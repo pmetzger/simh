@@ -1424,9 +1424,9 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
         i++;
     }
 
-/* kill trailing spaces if any */
+/* Trim trailing spaces, allowing numeric or empty input to reject cleanly. */
     gbuf[i] = '\0';
-    for (j = i - 1; gbuf[j] == ' '; j--) {
+    for (j = i - 1; j >= 0 && gbuf[j] == ' '; j--) {
         gbuf[j] = '\0';
     }
 

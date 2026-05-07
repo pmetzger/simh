@@ -33,6 +33,32 @@ set_tests_properties(zimh-unit-intel-systems-i8080-load PROPERTIES
 set_property(GLOBAL APPEND PROPERTY SIMH_UNIT_TEST_TARGETS
     zimh-unit-intel-systems-i8080-load)
 
+simh_executable_template(zimh-unit-intel-systems-i8080-symbols
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_i8080_symbols.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/common
+        ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/Intel-MDS
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
+if (TARGET cmocka::cmocka)
+    target_link_libraries(zimh-unit-intel-systems-i8080-symbols
+        PUBLIC cmocka::cmocka)
+elseif (TARGET PkgConfig::CMOCKA)
+    target_link_libraries(zimh-unit-intel-systems-i8080-symbols
+        PUBLIC PkgConfig::CMOCKA)
+else ()
+    message(FATAL_ERROR "cmocka target not available")
+endif ()
+add_test(NAME zimh-unit-intel-systems-i8080-symbols
+    COMMAND zimh-unit-intel-systems-i8080-symbols)
+set_tests_properties(zimh-unit-intel-systems-i8080-symbols PROPERTIES
+    LABELS "zimh;unit;zimh-intel-systems")
+set_property(GLOBAL APPEND PROPERTY SIMH_UNIT_TEST_TARGETS
+    zimh-unit-intel-systems-i8080-symbols)
+
 add_unit_test(unit-intel-systems-iram8
     SOURCES
         ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/common/iram8.c
