@@ -52,6 +52,19 @@ add_unit_test(unit-vax-va-dma-behavior
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax750-mem
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax750_mem.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_750
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax780-fload
     LABEL unit
     SOURCES

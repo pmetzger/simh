@@ -1,34 +1,15 @@
-/* vax750_mem.c: VAX 11/750 memory controllers
+/* vax750_mem.c: VAX 11/750 memory controllers */
+// SPDX-FileCopyrightText: 2010-2012 Matt Burke
+// SPDX-License-Identifier: X11
 
-   Copyright (c) 2010-2012, Matt Burke
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the "Software"),
-   to deal in the Software without restriction, including without limitation
-   the rights to use, copy, modify, merge, publish, distribute, sublicense,
-   and/or sell copies of the Software, and to permit persons to whom the
-   Software is furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included in
-   all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-   THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-   IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-   Except as contained in this notice, the name of the author shall not be
-   used in advertising or otherwise to promote the sale, use or other dealings
-   in this Software without prior written authorization from the author.
-
+/*
    mctl               MS750 memory controller
 
    21-Oct-2012  MB      First Version
 */
 
 #include "vax_defs.h"
+#include "vax750_mem_internal.h"
 
 #ifndef DONT_USE_INTERNAL_ROM
 #include "vax_ka750_bin_old.h" /* Defines BOOT_CODE_FILENAME and BOOT_CODE_ARRAY, etc */
@@ -64,31 +45,10 @@
 #define MCSR1_RW        (MCSR1_CS | MCSR1_ECCD | MCSR1_DIAG | \
                          MCSR1_PM | MCSR1_CRE)
 
-/* Memory adapter register 2 */
-
-#define MCSR2_OF        0x02
-#define MCSR2_M_MAP     0xFFFF                          /* Memory present */
-#define MCSR2_INIT      0x00010000                      /* Cold/warm restart flag */
-#define MCSR2_V_SA      17
-#define MCSR2_M_SA      0x7F                            /* Start address */
-#define MCSR2_V_CS64    24
-#define MCSR2_CS64      (1u << MCSR2_V_CS64)            /* Chip size */
-#define MCSR2_V_CS256   25
-#define MCSR2_CS256     (1u << MCSR2_V_CS256)           /* Chip size */
-#define MCSR2_MBZ       0xFC000000
-
 /* Debug switches */
 
 #define MCTL_DEB_RRD     0x01                            /* reg reads */
 #define MCTL_DEB_RWR     0x02                            /* reg writes */
-
-#define MEM_SIZE_16K    (1u << 18)                       /* Board size (16k chips) */
-#define MEM_SIZE_64K    (1u << 20)                       /* Board size (64k chips) */
-#define MEM_SIZE_256K   (1u << 22)                       /* Board size (256k chips) */
-#define MEM_64K_MASK     0x5555
-#define MEM_BOARD_MASK_64K(x)  ((((1u << (uint32)(x/MEM_SIZE_64K)) - 1) & MEM_64K_MASK) | MCSR2_CS64)
-#define MEM_256K_MASK    0x5555
-#define MEM_BOARD_MASK_256K(x) ((((1u << (uint32)(x/MEM_SIZE_256K)) - 1) & MEM_256K_MASK) | MCSR2_CS256)
 
 uint32 mcsr0 = 0;
 uint32 mcsr1 = 0;
@@ -231,24 +191,9 @@ t_stat mctl_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 large_slot_size = MEM_SIZE_16K, large_slots;
-uint32 small_slot_size, small_slots;
-uint32 boards, board_mask;
-
 mcsr0 = 0;
 mcsr1 = 0;
-if (MEMSIZE > MAXMEMSIZE_Y)                         /* More than 8MB? */
-    large_slot_size = MEM_SIZE_256K;                /* Use 256k chips */
-else {
-    if (MEMSIZE > MAXMEMSIZE)
-        large_slot_size = MEM_SIZE_64K;
-    }
-small_slot_size = large_slot_size >> 2;
-large_slots = (uint32)(MEMSIZE/large_slot_size);
-small_slots = (MEMSIZE & (large_slot_size -1))/small_slot_size;
-boards = ((1u << ((large_slots + small_slots) << 1)) - 1);
-board_mask = (((large_slot_size == MEM_SIZE_16K)? 0xFFFF : 0x5555) & (((1u << (large_slots << 1)) - 1))) | (((large_slot_size == MEM_SIZE_256K) ? 0xAAAA : 0xFFFF) << (large_slots << 1));
-mcsr2 = MCSR2_INIT | (boards & board_mask) | ((large_slot_size == MEM_SIZE_256K) ? MCSR2_CS256 : 0);  /* Use 256k chips */
+mcsr2 = vax750_mcsr2_reset_value((uint32)MEMSIZE);
 return SCPE_OK;
 }
 
