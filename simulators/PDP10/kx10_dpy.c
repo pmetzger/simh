@@ -391,7 +391,7 @@ t_stat dpy_reset (DEVICE *dptr)
 #endif
         display_reset();
         ty340_reset(dptr);
-        vid_set_fullscreen (dpy_unit[0].flags & FULLSCREEN);
+        vid_set_fullscreen ((dpy_unit[0].flags & FULLSCREEN) != 0);
         vid_register_gamepad_motion_callback (dpy_joy_motion);
         vid_register_gamepad_button_callback (dpy_joy_button);
     }

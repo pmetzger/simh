@@ -895,7 +895,7 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
                 dup_put_msg_bytes (dup, NULL, 0, FALSE, TRUE);
             }
             if ((dup_txcsr[dup] & TXCSR_M_HALFDUP) ^ (orig_val & TXCSR_M_HALFDUP))
-                tmxr_set_line_halfduplex (dup_desc.ldsc+dup, dup_txcsr[dup] & TXCSR_M_HALFDUP);
+                tmxr_set_line_halfduplex (dup_desc.ldsc+dup, (dup_txcsr[dup] & TXCSR_M_HALFDUP) != 0);
             if ((dup_txcsr[dup] & TXCSR_M_TXIE) &&
                 (!(orig_val & TXCSR_M_TXIE))    &&
                 (dup_txcsr[dup] & TXCSR_M_TXDONE)) {
@@ -911,7 +911,7 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
                 break;
             }
             if ((dup_txcsr[dup] & TXCSR_M_DPV_MAINT) ^ (orig_val & TXCSR_M_DPV_MAINT))   /* maint mode change */
-                tmxr_set_line_loopback (&dup_desc.ldsc[dup], dup_txcsr[dup] & TXCSR_M_DPV_MAINT );
+                tmxr_set_line_loopback (&dup_desc.ldsc[dup], (dup_txcsr[dup] & TXCSR_M_DPV_MAINT) != 0);
             if ((!(dup_txcsr[dup] & TXCSR_M_DPV_SEND)) &&
                 (orig_val & TXCSR_M_DPV_SEND)) {
                 dup_txcsr[dup] &= ~TXCSR_M_DPV_TXACT;
@@ -1178,7 +1178,7 @@ dup_rxcsr[dup] |= RXCSR_M_STRSYN | RXCSR_M_RCVEN;
 dup_parcsr[dup] = PARCSR_M_DECMODE | (DDCMP_SYN << PARCSR_V_ADSYNC);
 dup_txcsr[dup] &= TXCSR_M_HALFDUP;
 dup_txcsr[dup] |= (halfduplex ? TXCSR_M_HALFDUP : 0);
-tmxr_set_line_halfduplex (dup_desc.ldsc+dup, dup_txcsr[dup] & TXCSR_M_HALFDUP);
+tmxr_set_line_halfduplex (dup_desc.ldsc+dup, (dup_txcsr[dup] & TXCSR_M_HALFDUP) != 0);
 return dup_set_DTR (dup, TRUE);
 }
 
@@ -1424,7 +1424,8 @@ if (txdone && (!tmxr_tpbusyln (lp))) {
         /* HDLC mode abort, just reset the current TX frame back to the start */
         dup_put_msg_bytes (dup, &data, 0, TRUE, FALSE);
     else
-        dup_put_msg_bytes (dup, &data, putlen, dup_txdbuf[dup] & TXDBUF_M_TSOM, (dup_txdbuf[dup] & TXDBUF_M_TEOM));
+        dup_put_msg_bytes (dup, &data, putlen, (dup_txdbuf[dup] & TXDBUF_M_TSOM) != 0,
+                           (dup_txdbuf[dup] & TXDBUF_M_TEOM) != 0);
     if (tmxr_tpbusyln (lp)) { /* Packet ready to send? */
         sim_debug(DBG_TRC, DUPDPTR, "dup_svc(dup=%d) - Packet Done %d bytes\n", dup, dup_xmtpkoffset[dup]);
         }

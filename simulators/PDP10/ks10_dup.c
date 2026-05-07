@@ -605,7 +605,7 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
             dup_put_msg_bytes (dup, NULL, 0, FALSE, TRUE);
             }
         if ((dup_txcsr[dup] & TXCSR_M_HALFDUP) ^ (orig_val & TXCSR_M_HALFDUP))
-            tmxr_set_line_halfduplex (dup_desc.ldsc+dup, dup_txcsr[dup] & TXCSR_M_HALFDUP);
+            tmxr_set_line_halfduplex (dup_desc.ldsc+dup, (dup_txcsr[dup] & TXCSR_M_HALFDUP) != 0);
         if ((dup_txcsr[dup] & TXCSR_M_TXIE) &&
             (!(orig_val & TXCSR_M_TXIE))    &&
             (dup_txcsr[dup] & TXCSR_M_TXDONE)) {
@@ -827,7 +827,7 @@ dup_rxcsr[dup] |= RXCSR_M_STRSYN | RXCSR_M_RCVEN;
 dup_parcsr[dup] = PARCSR_M_DECMODE | (DDCMP_SYN << PARCSR_V_ADSYNC);
 dup_txcsr[dup] &= TXCSR_M_HALFDUP;
 dup_txcsr[dup] |= (halfduplex ? TXCSR_M_HALFDUP : 0);
-tmxr_set_line_halfduplex (dup_desc.ldsc+dup, dup_txcsr[dup] & TXCSR_M_HALFDUP);
+tmxr_set_line_halfduplex (dup_desc.ldsc+dup, (dup_txcsr[dup] & TXCSR_M_HALFDUP) != 0);
 return dup_set_DTR (dup, TRUE);
 }
 
@@ -982,8 +982,8 @@ if (!(dup_txcsr[dup] & TXCSR_M_TXDONE) && (!tmxr_tpbusyln (lp))) {
     uint8 data[1];   /* Make coverity happy */
     data[0] = dup_txdbuf[dup] & TXDBUF_M_TXDBUF;
 
-    dup_put_msg_bytes (dup, &data[0], 0, (dup_txdbuf[dup] & TXDBUF_M_TSOM),
-                   (dup_txdbuf[dup] & TXDBUF_M_TEOM));
+    dup_put_msg_bytes (dup, &data[0], 0, (dup_txdbuf[dup] & TXDBUF_M_TSOM) != 0,
+                   (dup_txdbuf[dup] & TXDBUF_M_TEOM) != 0);
     if (tmxr_tpbusyln (lp)) { /* Packet ready to send? */
         sim_debug(DBG_TRC, DUPDPTR, "dup_svc(dup=%d) - Packet Done %d bytes\n", dup, dup_xmtpkoffset[dup]);
         }

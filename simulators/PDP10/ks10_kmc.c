@@ -1911,10 +1911,10 @@ static void kmc_ctrlIn (int32 k, dupstate *d, int line) {
     /* Initialize DUP interface in the appropriate mode
      * DTR will be turned on.
      */
-    r = dup_setup_dup (d->dupidx, (sel6 & SEL6_CI_ENABLE),
-                                  (sel6 & SEL6_CI_DDCMP),
-                                  (sel6 & SEL6_CI_NOCRC),
-                                  (sel6 & SEL6_CI_HDX),
+    r = dup_setup_dup (d->dupidx, (sel6 & SEL6_CI_ENABLE) != 0,
+                                  (sel6 & SEL6_CI_DDCMP) != 0,
+                                  (sel6 & SEL6_CI_NOCRC) != 0,
+                                  (sel6 & SEL6_CI_HDX) != 0,
                                   (sel6 & SEL6_CI_ENASS) ? (sel6 & SEL6_CI_SADDR) : 0);
 
     /* If setup succeeded, enable packet callbacks.

@@ -3423,11 +3423,11 @@ return (controller->state == Halted);
 }
 t_bool ddcmp_UserStartup          (CTLR *controller)
 {
-return (*controller->modem & DMC_SEL4_M_DTR);
+return ((*controller->modem & DMC_SEL4_M_DTR) != 0);
 }
 t_bool ddcmp_UserMaintenanceMode  (CTLR *controller)
 {
-return (controller->link.ScanningEvents & DDCMP_EVENT_MAINTMODE);
+return ((controller->link.ScanningEvents & DDCMP_EVENT_MAINTMODE) != 0);
 }
 t_bool ddcmp_ReceiveStack         (CTLR *controller)
 {
@@ -3455,7 +3455,7 @@ return (!controller->link.TimerRunning);
 }
 t_bool ddcmp_TimerExpired         (CTLR *controller)
 {
-return (controller->link.ScanningEvents & DDCMP_EVENT_TIMER);
+return ((controller->link.ScanningEvents & DDCMP_EVENT_TIMER) != 0);
 }
 t_bool ddcmp_ReceiveMaintMessage  (CTLR *controller)
 {
@@ -3612,7 +3612,7 @@ return (buffer && (buffer->transfer_buffer[0] == 0));
 }
 t_bool ddcmp_LineConnected        (CTLR *controller)
 {
-return (*controller->modem & DMC_SEL4_M_CAR);
+return ((*controller->modem & DMC_SEL4_M_CAR) != 0);
 }
 t_bool ddcmp_LineDisconnected     (CTLR *controller)
 {

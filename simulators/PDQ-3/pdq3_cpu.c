@@ -512,7 +512,7 @@ static uint16 int_vectors[32] = {
 };
 
 static t_bool cpu_isIntEnabled(void) {
-  return reg_ssr & SSR_INTEN;
+  return (reg_ssr & SSR_INTEN) != 0;
 }
 
 /* latch interrupts */
