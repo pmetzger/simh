@@ -35,6 +35,7 @@ set_property(GLOBAL APPEND PROPERTY SIMH_UNIT_TEST_TARGETS
 
 simh_executable_template(zimh-unit-intel-systems-i8080-symbols
     SOURCES
+        ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/common/i8080_symbol.c
         ${CMAKE_CURRENT_SOURCE_DIR}/test_i8080_symbols.c
     INCLUDES
         ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/common

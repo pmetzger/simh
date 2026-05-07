@@ -7,6 +7,7 @@
 #include "test_cmocka.h"
 
 #include "system_defs.h"
+#include "i8080_symbol_internal.h"
 
 #include "i8080.c"
 
@@ -31,6 +32,14 @@ struct expected_instruction {
 struct operand_pattern {
     t_value low;
     t_value high;
+};
+
+struct expected_symbol {
+    t_value opcode_byte;
+    t_value low_operand;
+    t_value high_operand;
+    t_stat status;
+    const char *symbol;
 };
 
 /*
@@ -120,6 +129,27 @@ static char *render_i8080_symbol(t_value *val, t_stat *status)
 }
 
 /*
+ * Assert that one opcode formats to the expected machine-mode symbol.
+ */
+static void assert_fprint_sym_formats_instruction(
+    const struct expected_symbol *expected)
+{
+    t_stat status;
+    t_value val[HIST_ILNT] = {
+        expected->opcode_byte,
+        expected->low_operand,
+        expected->high_operand,
+    };
+    char *symbol;
+
+    symbol = render_i8080_symbol(val, &status);
+    assert_int_equal(status, expected->status);
+    assert_string_equal(symbol, expected->symbol);
+
+    free(symbol);
+}
+
+/*
  * Assert that symbolic machine input parses to exactly the expected bytes and
  * returns the expected instruction-length status.
  */
@@ -182,6 +212,63 @@ static void assert_parse_sym_rejects_all(const char *const *inputs,
 
     for (i = 0; i < count; i++)
         assert_parse_sym_rejects_unchanged(inputs[i]);
+}
+
+/*
+ * Assert that the opcode length table still describes the documented i8080
+ * opcode shape independently of the symbolic parser implementation.
+ */
+static void test_opcode_table_has_expected_instruction_lengths(void **state)
+{
+    static const uint8 expected_lengths[256] = {
+        1, 3, 1, 1, 1, 1, 2, 1, 0, 1, 1, 1, 1, 1, 2, 1,
+        0, 3, 1, 1, 1, 1, 2, 1, 0, 1, 1, 1, 1, 1, 2, 1,
+        1, 3, 3, 1, 1, 1, 2, 1, 0, 1, 3, 1, 1, 1, 2, 1,
+        1, 3, 3, 1, 1, 1, 2, 1, 0, 1, 3, 1, 1, 1, 2, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 3, 3, 3, 1, 2, 1, 1, 1, 3, 0, 3, 3, 2, 1,
+        1, 1, 3, 2, 3, 1, 2, 1, 1, 0, 3, 2, 3, 0, 2, 1,
+        1, 1, 3, 1, 3, 1, 2, 1, 1, 1, 3, 1, 3, 0, 2, 1,
+        1, 1, 3, 1, 3, 1, 2, 1, 1, 1, 3, 1, 3, 0, 2, 1,
+    };
+    size_t op;
+
+    (void)state;
+
+    for (op = 0; op < sizeof(expected_lengths) / sizeof(*expected_lengths);
+         op++)
+        assert_int_equal(i8080_symbol_instruction_length((uint8)op),
+                         expected_lengths[op]);
+}
+
+/*
+ * Representative symbolic output forms should not depend on parser details.
+ */
+static void test_fprint_sym_formats_representative_forms(void **state)
+{
+    const struct expected_symbol cases[] = {
+        {0x00, 0x00, 0x00, SCPE_OK, "NOP"},
+        {0x01, 0x34, 0x12, -2, "LXI B,1234"},
+        {0x22, 0x34, 0x12, -2, "SHLD 1234"},
+        {0x3E, 0x5A, 0x00, -1, "MVI A,5A"},
+        {0x41, 0x00, 0x00, SCPE_OK, "MOV B,C"},
+        {0xC3, 0x34, 0x12, -2, "JMP 1234"},
+        {0xC6, 0x5A, 0x00, -1, "ADI 5A"},
+        {0xFF, 0x00, 0x00, SCPE_OK, "RST 7"},
+    };
+    size_t i;
+
+    (void)state;
+
+    for (i = 0; i < sizeof(cases) / sizeof(*cases); i++)
+        assert_fprint_sym_formats_instruction(&cases[i]);
 }
 
 /*
@@ -379,7 +466,7 @@ static void test_parse_sym_accepts_all_fprint_sym_outputs(void **state)
     for (op = 0; op < 256; op++) {
         size_t pattern;
 
-        if (oplen[op] == 0)
+        if (i8080_symbol_instruction_length((uint8)op) == 0)
             continue;
 
         for (pattern = 0; pattern < sizeof(patterns) / sizeof(*patterns);
@@ -398,9 +485,9 @@ static void test_parse_sym_accepts_all_fprint_sym_outputs(void **state)
                                        SWMASK('M')),
                              expected_status);
             assert_int_equal(output[0], input[0]);
-            if (oplen[op] > 1)
+            if (i8080_symbol_instruction_length((uint8)op) > 1)
                 assert_int_equal(output[1], input[1]);
-            if (oplen[op] > 2)
+            if (i8080_symbol_instruction_length((uint8)op) > 2)
                 assert_int_equal(output[2], input[2]);
             free(symbol);
         }
@@ -553,6 +640,11 @@ static void test_parse_sym_ascii_string_uses_unsigned_bytes(void **state)
 int main(void)
 {
     const struct CMUnitTest tests[] = {
+        cmocka_unit_test_setup(
+            test_opcode_table_has_expected_instruction_lengths,
+            setup_i8080_symbols),
+        cmocka_unit_test_setup(test_fprint_sym_formats_representative_forms,
+                               setup_i8080_symbols),
         cmocka_unit_test_setup(
             test_parse_sym_rejects_numeric_input_for_generic_deposit,
             setup_i8080_symbols),
