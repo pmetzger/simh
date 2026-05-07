@@ -89,6 +89,7 @@
 #ifdef VM_IMPTIP
 #include "h316_defs.h"          // H316 emulator definitions
 #include "h316_imp.h"           // ARPAnet IMP/TIP definitions
+#include "h316_hi_internal.h"   // Host interface internal helpers
 
 // Externals from other parts of simh ...
 extern uint16 dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
@@ -202,27 +203,6 @@ UNIT   *const hi_units  [HI_NUM] = {&hi1_unit, &hi2_unit, &hi3_unit, &hi4_unit};
 DIB    *const hi_dibs   [HI_NUM] = {&hi1_dib,  &hi2_dib,  &hi3_dib,  &hi4_dib };
 HIDB   *const hi_hidbs  [HI_NUM] = {&hi1_db,   &hi2_db,   &hi3_db,   &hi4_db  };
 
-// Old message type field set to this to signal new format leader.
-#define NEW_FORMAT_FLAG       (15 << 8)
-
-// 1822 message types (or subtypes).
-#define LEADER_REGULAR        000
-#define LEADER_UNCONTROLLED   003
-#define LEADER_NOP            004
-
-// 1822 new leader flags.
-#define NLEADER_TRACE         010
-#define NLEADER_OCTAL         004
-#define NLEADER_FOR_IMP       252
-#define NLEADER_PRIORITY     0200
-
-// 1822 old leader flags.
-#define OLEADER_PRIORITY      010
-#define OLEADER_FOR_IMP       004
-#define OLEADER_TRACE         002
-#define OLEADER_OCTAL         001
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////   L O W   L E V E L   F U N C T I O N S   ///////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -334,72 +314,6 @@ static void hi_debug_msg (uint16 line, uint16 next, uint16 count, const char *pt
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////   T R A N S M I T   A N D   R E C E I V E   //////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
-// Convert 1822 long header from host, to short leader for IMP.
-static int16 hi_convert_long_to_short(uint16 line, int16 count)
-{
-  uint16 nflags, mtype, htype, host, imp, id, stype, length;
-  uint16 oflags;
-  uint16 *data = PHIDB(line)->rxdata;
-
-  if (count == 0)
-    return 0;
-
-  if (count < 7 || (data[1] & 0x0F00) != NEW_FORMAT_FLAG)
-    return count; // This is not a long leader message.
-
-  nflags = (data[2] & 0x0F00) >> 8;
-  mtype = data[2] & 0xFF;
-  htype = (data[3] & 0xFF00) >> 8;
-  host = data[3] & 0xFF;
-  imp = data[4];
-  id = (data[5] & 0xFFF0) >> 4;
-  stype = data[5] & 0x000F;
-  length = data[6];
-
-  // Keep track of padding.
-  if (mtype == LEADER_NOP)
-    PHIDB(line)->padding = stype;
-
-  // Sorry, can't handle these addresses.
-  if (host > 3)
-    return 0;
-  if (imp > 63)
-    return 0;
-
-  if (mtype == LEADER_REGULAR && stype == LEADER_UNCONTROLLED)
-    mtype = LEADER_UNCONTROLLED, stype = 0;
-  else if (mtype == LEADER_NOP)
-    stype = 0;
-
-  oflags = 0;
-  if (nflags & NLEADER_TRACE)
-    oflags |= OLEADER_TRACE;
-  if (nflags & NLEADER_OCTAL)
-    oflags |= OLEADER_OCTAL;
-  if (host >= NLEADER_FOR_IMP) {
-    oflags |= OLEADER_FOR_IMP;
-    host -= NLEADER_FOR_IMP;
-  }
-  if (htype & NLEADER_PRIORITY)
-    oflags |= OLEADER_PRIORITY;
-
-  oflags <<= 12;
-  mtype <<= 8;
-  host <<= 6;
-  id <<= 4;
-  data[1] = oflags | mtype | host | imp;
-  data[2] = id | stype;
-
-  if (mtype == LEADER_REGULAR) {
-    count -= 4 + PHIDB(line)->padding;
-    memmove(&data[3], &data[7 + PHIDB(line)->padding], 2 * count);
-  } else {
-    count = 3;
-  }
-
-  return count;
-}
 
 // Convert 1822 short header from IMP, to long leader for host.
 static uint16 hi_convert_short_to_long(uint16 line, uint16 *data, uint16 count)
@@ -572,7 +486,7 @@ static void hi_poll_rx (uint16 line)
   } else {
     // Get a new UDP packet.
     count = udp_receive(PDEVICE(line), PHIDB(line)->link, PHIDB(line)->rxdata, MAXDATA);
-    if (PHIDB(line)->convert) count = hi_convert_long_to_short(line, count);
+    if (PHIDB(line)->convert) count = hi_convert_long_to_short(PHIDB(line), count);
     PHIDB(line)->eom = FALSE;
     PHIDB(line)->rxsize = count;
     if (count == 0) { return; }
