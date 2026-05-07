@@ -46,7 +46,7 @@
    14-Jul-02    RMS     Added infinite loop message
 */
 
-#include "vax_defs.h"
+#include "vax_sys_internal.h"
 #include <ctype.h>
 
 #if defined (FULL_VAX)
@@ -57,17 +57,19 @@
 
 extern REG cpu_reg[];
 
-t_stat fprint_sym_m (FILE *of, uint32 addr, t_value *val);
-int32 fprint_sym_qoimm (FILE *of, t_value *val, int32 vp, int32 lnt);
-t_stat parse_char (const char *cptr, t_value *val, int32 lnt);
-t_stat parse_sym_m (const char *cptr, uint32 addr, t_value *val);
-int32 parse_brdisp (const char *cptr, uint32 addr, t_value *val,
+static int32 fprint_sym_qoimm (FILE *of, t_value *val, int32 vp, int32 lnt);
+static t_stat parse_char (const char *cptr, t_value *val, int32 lnt);
+static int32 parse_brdisp (const char *cptr, uint32 addr, t_value *val,
     int32 vp, int32 lnt, t_stat *r);
-int32 parse_spec (const char *cptr, uint32 addr, t_value *val,
-    int32 vp, int32 disp, t_stat *r);
-const char *parse_rnum (const char *cptr, int32 *rn);
-int32 parse_sym_qoimm (int32 *lit, t_value *val, int32 vp,
+static int32 parse_spec (const char *cptr, uint32 addr, t_value *val,
+    int32 vp, uint32 disp, t_stat *r);
+static const char *parse_rnum (const char *cptr, int32 *rn);
+static int32 parse_sym_qoimm (uint32 *lit, t_value *val, int32 vp,
     int lnt, int32 minus);
+static uint32 get_symbol_le_value (const t_value *val, int32 *vp, int32 size);
+static void put_symbol_le_value (t_value *val, int32 *vp, uint32 value,
+    int32 size);
+static t_int64 symbol_addr_delta (uint32 target, uint32 base);
 
 extern t_stat fprint_sym_cm (FILE *of, t_addr addr, t_value *bytes, int32 sw);
 extern t_stat parse_sym_cm (const char *cptr, t_addr addr, t_value *bytes, int32 sw);
@@ -727,8 +729,39 @@ const char* regname[] = {
  "R8", "R9", "R10", "R11", "AP", "FP", "SP", "PC"
  };
 
-#define GETNUM(d,n)     for (k = d = 0; k < n; k++) \
-                    d = d | (((int32) val[vp++]) << (k * 8))
+/* Read a little-endian VAX value from the symbolic byte buffer. */
+static uint32
+get_symbol_le_value (const t_value *val, int32 *vp, int32 size)
+{
+    uint32 value = 0;
+
+    for (int32 i = 0; i < size; i++)
+        value |= ((uint32)val[(*vp)++] & 0xffu) << (i * 8);
+
+    return value;
+}
+
+/* Write a little-endian VAX value into the symbolic byte buffer. */
+static void
+put_symbol_le_value (t_value *val, int32 *vp, uint32 value, int32 size)
+{
+    for (int32 i = 0; i < size; i++)
+        val[(*vp)++] = (value >> (i * 8)) & 0xffu;
+}
+
+/*
+ * Return a signed 32-bit address delta after wrapping the subtraction in the
+ * VAX address space.
+ */
+static t_int64
+symbol_addr_delta (uint32 target, uint32 base)
+{
+    uint32 delta = target - base;
+
+    if ((delta & LSIGN) == 0)
+        return (t_int64)delta;
+    return -((t_int64)(0u - delta));
+}
 
 /* Symbolic decode
 
@@ -747,7 +780,8 @@ t_stat fprint_sym (FILE *of, t_addr exta, t_value *val,
     UNIT *uptr, int32 sw)
 {
 uint32 addr = (uint32) exta;
-int32 c, k, num, vp, lnt, rdx;
+int32 c, vp, lnt, rdx;
+uint32 num;
 t_stat r;
 DEVICE *dptr;
 
@@ -797,8 +831,8 @@ if ((sw & SWMASK ('M')) && (uptr == &cpu_unit)) {       /* inst format? */
     }
 
 vp = 0;                                                 /* init ptr */
-GETNUM (num, lnt);                                      /* get number */
-fprint_val (of, (uint32) num, rdx, lnt * 8, PV_RZRO);
+num = get_symbol_le_value (val, &vp, lnt);              /* get number */
+fprint_val (of, num, rdx, lnt * 8, PV_RZRO);
 return -(vp - 1);
 }
 
@@ -815,13 +849,16 @@ return -(vp - 1);
 
 t_stat fprint_sym_m (FILE *of, uint32 addr, t_value *val)
 {
-int32 i, k, vp, inst, numspec;
-int32 num, spec, rn, disp, index;
+int32 i, vp, numspec;
+int32 rn, disp;
+uint32 inst;
+uint32 spec, index;
+uint32 num;
 
 vp = 0;                                                 /* init ptr */
-inst = (int32) val[vp++];                               /* get opcode */
+inst = (uint32) val[vp++] & 0xffu;                      /* get opcode */
 if (inst == 0xFD)                                       /* 2 byte op? */
-    inst = 0x100 | (int32) val[vp++];
+    inst = 0x100u | ((uint32) val[vp++] & 0xffu);
 if (opcode[inst] == NULL)                               /* defined? */
     return SCPE_ARG;
 numspec = DR_GETNSP (drom[inst][0]);                    /* get # spec */
@@ -832,21 +869,21 @@ for (i = 0; i < numspec; i++) {                         /* loop thru spec */
     fputc (i? ',': ' ', of);                            /* separator */
     disp = drom[inst][i + 1];                           /* get drom value */
     if (disp == BB) {                                   /* byte br disp? */
-        GETNUM (num, 1);
+        num = get_symbol_le_value (val, &vp, 1);
         fprintf (of, "%-X", SXTB (num) + addr + vp);
         }
     else if (disp == BW) {                              /* word br disp? */
-        GETNUM (num, 2);
+        num = get_symbol_le_value (val, &vp, 2);
         fprintf (of, "%-X", SXTW (num) + addr + vp);
         }
     else {
-        spec = (int32) val[vp++];                       /* get specifier */
+        spec = (uint32) val[vp++] & 0xffu;              /* get specifier */
         if ((spec & 0xF0) == IDX) {                     /* index? */
             index = spec;                               /* copy, get next */
-            spec = (int32) val[vp++];
+            spec = (uint32) val[vp++] & 0xffu;
             }
         else index = 0;
-        rn = spec & 0xF;                                /* get reg # */
+        rn = (int32)(spec & 0xF);                       /* get reg # */
         switch (spec & 0xF0) {                          /* case on mode */
 
         case SH0: case SH1: case SH2: case SH3:         /* s^# */
@@ -874,7 +911,7 @@ for (i = 0; i < numspec; i++) {                         /* loop thru spec */
                 else if (DR_LNT (disp) == L_QUAD)
                     vp = fprint_sym_qoimm (of, val, vp, 2);
                 else {
-                    GETNUM (num, DR_LNT (disp));
+                    num = get_symbol_le_value (val, &vp, DR_LNT (disp));
                     fprintf (of, "#%-X", num);
                     }
                 }
@@ -884,16 +921,16 @@ for (i = 0; i < numspec; i++) {                         /* loop thru spec */
             if (rn != nPC)
                 fprintf (of, "@(%-s)+", regname[rn]);
             else {
-                GETNUM (num, 4);
+                num = get_symbol_le_value (val, &vp, 4);
                 fprintf (of, "@#%-X", num);
                 }
             break;
 
         case BDD:                                       /* @b^d(r),@b^n */
             fputc ('@', of);
-            /* fall through */
+            FALLTHROUGH;
         case BDP:                                       /* b^d(r), b^n */
-            GETNUM (num, 1);
+            num = get_symbol_le_value (val, &vp, 1);
             if (rn == nPC)
                 fprintf (of, "%-X", addr + vp + SXTB (num));
             else if (num & BSIGN) fprintf (of, "-%-X(%-s)",
@@ -903,9 +940,9 @@ for (i = 0; i < numspec; i++) {                         /* loop thru spec */
 
         case WDD:                                       /* @w^d(r),@w^n */
             fputc ('@', of);
-            /* fall through */
+            FALLTHROUGH;
         case WDP:                                       /* w^d(r), w^n */
-            GETNUM (num, 2);
+            num = get_symbol_le_value (val, &vp, 2);
             if (rn == nPC)
                 fprintf (of, "%-X", addr + vp + SXTW (num));
             else if (num & WSIGN) fprintf (of, "-%-X(%-s)",
@@ -915,9 +952,9 @@ for (i = 0; i < numspec; i++) {                         /* loop thru spec */
 
         case LDD:                                       /* @l^d(r),@l^n */
             fputc ('@', of);
-            /* fall through */
+            FALLTHROUGH;
         case LDP:                                       /* l^d(r),l^n */
-            GETNUM (num, 4);
+            num = get_symbol_le_value (val, &vp, 4);
             if (rn == nPC)
                 fprintf (of, "%-X", addr + vp + num);
             else if (num & LSIGN) fprintf (of, "-%-X(%-s)",
@@ -943,12 +980,13 @@ return -(vp - 1);
         vp      =       updated index into val
 */
 
-int32 fprint_sym_qoimm (FILE *of, t_value *val, int32 vp, int32 lnt)
+static int32 fprint_sym_qoimm (FILE *of, t_value *val, int32 vp, int32 lnt)
 {
-int32 i, k, startp, num[4];
+int32 i, startp;
+uint32 num[4];
 
 for (i = 0; i < lnt; i++) {
-    GETNUM (num[lnt - 1 - i], 4);
+    num[lnt - 1 - i] = get_symbol_le_value (val, &vp, 4);
     }
 for (i = startp = 0; i < lnt; i++) {
     if (startp)
@@ -960,8 +998,6 @@ for (i = startp = 0; i < lnt; i++) {
     }
 return vp;
 }
-
-#define PUTNUM(d,n)     for (k = 0; k < n; k++) val[vp++] = (d >> (k * 8)) & 0xFF
 
 /* Symbolic input
 
@@ -979,7 +1015,8 @@ return vp;
 t_stat parse_sym (const char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32 sw)
 {
 uint32 addr = (uint32) exta;
-int32 k, rdx, lnt, num, vp;
+int32 rdx, lnt, vp;
+uint32 num;
 t_stat r;
 DEVICE *dptr;
 static const uint32 maxv[5] = { 0, 0xFF, 0xFFFF, 0, 0xFFFFFFFF };
@@ -1024,11 +1061,11 @@ if (uptr == &cpu_unit) {                                /* cpu only */
         return r;
     }
 
-num = (int32) get_uint (cptr, rdx, maxv[lnt], &r);      /* get number */
+num = (uint32) get_uint (cptr, rdx, maxv[lnt], &r);     /* get number */
 if (r != SCPE_OK)
     return r;
 vp = 0;
-PUTNUM (num, lnt);                                      /* store */
+put_symbol_le_value (val, &vp, num, lnt);               /* store */
 return -(lnt - 1);
 }
 
@@ -1043,7 +1080,7 @@ return -(lnt - 1);
                         <= 0  -number of extra words
 */
 
-t_stat parse_char (const char *cptr, t_value *val, int32 lnt)
+static t_stat parse_char (const char *cptr, t_value *val, int32 lnt)
 {
 int32 vp;
 
@@ -1124,17 +1161,18 @@ return -(vp - 1);
         vp      =       updated output pointer
 */
 
-int32 parse_brdisp (const char *cptr, uint32 addr, t_value *val, int32 vp,
-    int32 lnt, t_stat *r)
+static int32 parse_brdisp (const char *cptr, uint32 addr, t_value *val,
+    int32 vp, int32 lnt, t_stat *r)
 {
-int32 k, dest, num;
+uint32 dest;
+t_int64 delta;
 
-dest = (int32) get_uint (cptr, 16, 0xFFFFFFFF, r);      /* get value */
-num = dest - (addr + vp + lnt + 1);                     /* compute offset */
-if ((num > (lnt? 32767: 127)) || (num < (lnt? -32768: -128)))
+dest = (uint32) get_uint (cptr, 16, 0xFFFFFFFF, r);     /* get value */
+delta = symbol_addr_delta (dest, addr + vp + lnt + 1);  /* compute offset */
+if ((delta > (lnt? 32767: 127)) || (delta < (lnt? -32768: -128)))
     *r = SCPE_ARG;
 else {
-    PUTNUM (num, lnt + 1);                              /* store offset */
+    put_symbol_le_value (val, &vp, (uint32)delta, lnt + 1);
     *r = SCPE_OK;
     }
 return vp;
@@ -1170,22 +1208,27 @@ return vp;
                             cptr++; \
                             fl = fl | v; \
                             }
-#define SPUTNUM(v,d)    if (fl & SP_MINUS) { \
-                            v = -v; \
-                        } \
-                        PUTNUM (v, d)
+#define SPUTNUM(v,d)    do { \
+                            uint32 sputnum_value = (v); \
+                            if (fl & SP_MINUS) \
+                                sputnum_value = 0u - sputnum_value; \
+                            put_symbol_le_value (val, &vp, sputnum_value, d); \
+                        } while (0)
 #define PARSE_LOSE      { \
                             *r = SCPE_ARG; \
                             return vp; \
                             }
 #define SEL_LIM(p,m,u)  ((fl & SP_PLUS)? (p): ((fl & SP_MINUS)? (m): (u)))
 
-int32 parse_spec (const char *cptr, uint32 addr, t_value *val, int32 vp, int32 disp, t_stat *r)
+static int32 parse_spec (const char *cptr, uint32 addr, t_value *val,
+    int32 vp, uint32 disp, t_stat *r)
 {
-int32 i, k, litsize, rn, index;
-int32 num, dispsize, mode;
-int32 lit[4] = { 0 };
-int32 fl = 0;
+int32 i, litsize, rn, index;
+int32 dispsize;
+uint32 digit, mode;
+uint32 lit[4] = { 0 };
+uint32 fl = 0;
+t_int64 delta;
 char c;
 const char *tptr;
 const char *force[] = { "S^", "I^", "B^", "W^", "L^", NULL };
@@ -1218,13 +1261,13 @@ for (litsize = 0;; cptr++) {                            /* look for mprec int */
     c = *cptr;
     if ((c < '0') || (c > 'F') || ((c > '9') && (c < 'A')))
         break;
-    num = (c <= '9')? c - '0': c - 'A' + 10;
+    digit = (uint32)((c <= '9')? c - '0': c - 'A' + 10);
     fl = fl | SP_NUM;
     for (i = 3; i >= 0; i--) {
         lit[i] = lit[i] << 4;
         if (i > 0)
             lit[i] = lit[i] | ((lit[i - 1] >> 28) & 0xF);
-        else lit[i] = lit[i] | num;
+        else lit[i] = lit[i] | digit;
         if (lit[i] && (i > litsize))
             litsize = i;
         }
@@ -1268,7 +1311,8 @@ switch (fl) {                                           /* case on state */
         if ((litsize == 0) && ((lit[0] & ~0x3F) == 0)) {
             val[vp++] = lit[0];
             break;
-            }                                           /* fall thru */
+            }
+        FALLTHROUGH;
     case SP_LIT|SP_MINUS|SP_NUM:                        /* #-n */
     case SP_FI|SP_LIT|SP_NUM:                           /* I^#n */
     case SP_FI|SP_LIT|SP_PLUS|SP_NUM:                   /* I^#+n */
@@ -1277,14 +1321,12 @@ switch (fl) {                                           /* case on state */
         disp = disp & DR_LNMASK;
         switch (disp) {                                 /* case spec lnt */
         case 00:                                        /* check fit */
-            if ((litsize > 0) || (lit[0] < 0) ||
-                (lit[0] > SEL_LIM (0x7F, 0x80, 0xFF)))
+            if ((litsize > 0) || (lit[0] > SEL_LIM (0x7F, 0x80, 0xFF)))
                 PARSE_LOSE;
             SPUTNUM (lit[0], 1);                        /* store */
             break;
         case 01:                                        /* check fit */
-            if ((litsize > 0) || (lit[0] < 0) ||
-                (lit[0] > SEL_LIM (0x7FFF, 0x8000, 0xFFFF)))
+            if ((litsize > 0) || (lit[0] > SEL_LIM (0x7FFF, 0x8000, 0xFFFF)))
                 PARSE_LOSE;
             SPUTNUM (lit[0], 2);
             break;
@@ -1312,7 +1354,7 @@ switch (fl) {                                           /* case on state */
         if (litsize > 0)
             PARSE_LOSE;
         val[vp++] = nPC | AID;
-        PUTNUM (lit[0], 4);
+        put_symbol_le_value (val, &vp, lit[0], 4);
         break;
 
     case SP_NUM|SP_IDX:                                 /* d(rn) */
@@ -1325,15 +1367,13 @@ switch (fl) {                                           /* case on state */
             PARSE_LOSE;
         dispsize = 4;                                   /* find fit for */
         mode = LDP;                                     /* displacement */
-        if (lit[0] >= 0) {
-            if (lit[0] <= SEL_LIM (0x7F, 0x80, 0xFF)) {
-                dispsize = 1;
-                mode = BDP;
-                }
-            else if (lit[0] <= SEL_LIM (0x7FFF, 0x8000, 0xFFFF)) {
-                dispsize = 2;
-                mode = WDP;
-                }
+        if (lit[0] <= SEL_LIM (0x7F, 0x80, 0xFF)) {
+            dispsize = 1;
+            mode = BDP;
+            }
+        else if (lit[0] <= SEL_LIM (0x7FFF, 0x8000, 0xFFFF)) {
+            dispsize = 2;
+            mode = WDP;
             }
         val[vp++] = mode | rn | ((fl & SP_IND)? 0x10: 0);
         SPUTNUM (lit[0], dispsize);
@@ -1345,8 +1385,7 @@ switch (fl) {                                           /* case on state */
     case SP_IND|SP_FB|SP_NUM|SP_IDX:                    /* @B^d(rn) */
     case SP_IND|SP_FB|SP_PLUS|SP_NUM|SP_IDX:            /* @B^+d(rn) */
     case SP_IND|SP_FB|SP_MINUS|SP_NUM|SP_IDX:           /* @B^-d(rn) */
-        if ((litsize > 0) || (lit[0] < 0) ||
-            (lit[0] > SEL_LIM (0x7F, 0x80, 0xFF)))
+        if ((litsize > 0) || (lit[0] > SEL_LIM (0x7F, 0x80, 0xFF)))
             PARSE_LOSE;
         val[vp++] = rn | BDP | ((fl & SP_IND)? 0x10: 0);
         SPUTNUM (lit[0], 1);
@@ -1358,8 +1397,7 @@ switch (fl) {                                           /* case on state */
     case SP_IND|SP_FW|SP_NUM|SP_IDX:                    /* @W^d(rn) */
     case SP_IND|SP_FW|SP_PLUS|SP_NUM|SP_IDX:            /* @W^+d(rn) */
     case SP_IND|SP_FW|SP_MINUS|SP_NUM|SP_IDX:           /* @W^-d(rn) */
-        if ((litsize > 0) || (lit[0] < 0) ||
-            (lit[0] > SEL_LIM (0x7FFF, 0x8000, 0xFFFF)))
+        if ((litsize > 0) || (lit[0] > SEL_LIM (0x7FFF, 0x8000, 0xFFFF)))
             PARSE_LOSE;
         val[vp++] = rn | WDP | ((fl & SP_IND)? 0x10: 0);
         SPUTNUM (lit[0], 2);
@@ -1371,7 +1409,7 @@ switch (fl) {                                           /* case on state */
     case SP_IND|SP_FL|SP_NUM|SP_IDX:                    /* @L^d(rn) */
     case SP_IND|SP_FL|SP_PLUS|SP_NUM|SP_IDX:            /* @L^+d(rn) */
     case SP_IND|SP_FL|SP_MINUS|SP_NUM|SP_IDX:           /* @L^-d(rn) */
-        if ((litsize > 0) || (lit[0] < 0))
+        if (litsize > 0)
             PARSE_LOSE;
         val[vp++] = rn | LDP | ((fl & SP_IND)? 0x10: 0);
         SPUTNUM (lit[0], 4);
@@ -1381,52 +1419,52 @@ switch (fl) {                                           /* case on state */
     case SP_IND|SP_NUM:                                 /* @n */
         if (litsize > 0)
             PARSE_LOSE;
-        num = lit[0] - (addr + vp + 2);                 /* fit in byte? */
-        if ((num >= -128) && (num <= 127)) {
+        delta = symbol_addr_delta (lit[0], addr + vp + 2); /* fit byte? */
+        if ((delta >= -128) && (delta <= 127)) {
             mode = BDP;
             dispsize = 1;
             }
         else {
-            num = lit[0] - (addr + vp + 3);             /* fit in word? */
-            if ((num >= -32768) && (num <= 32767)) {
+            delta = symbol_addr_delta (lit[0], addr + vp + 3);
+            if ((delta >= -32768) && (delta <= 32767)) {
                 mode = WDP;
                 dispsize = 2;
                 }
             else {
-                num = lit[0] - (addr + vp + 5);         /* no, use lw */
+                delta = symbol_addr_delta (lit[0], addr + vp + 5);
                 mode = LDP;
                 dispsize = 4;
                 }
             }
         val[vp++] = mode | nPC | ((fl & SP_IND)? 0x10: 0);
-        PUTNUM (num, dispsize);
+        put_symbol_le_value (val, &vp, (uint32)delta, dispsize);
         break;
 
     case SP_FB|SP_NUM:                                  /* B^n */
     case SP_IND|SP_FB|SP_NUM:                           /* @B^n */
-        num = lit[0] - (addr + vp + 2);
-        if ((litsize > 0) || (num > 127) || (num < -128))
+        delta = symbol_addr_delta (lit[0], addr + vp + 2);
+        if ((litsize > 0) || (delta > 127) || (delta < -128))
             PARSE_LOSE;
         val[vp++] = nPC | BDP | ((fl & SP_IND)? 0x10: 0);
-        PUTNUM (num, 1);
+        put_symbol_le_value (val, &vp, (uint32)delta, 1);
         break;
 
     case SP_FW|SP_NUM:                                  /* W^n */
     case SP_IND|SP_FW|SP_NUM:                           /* @W^n */
-        num = lit[0] - (addr + vp + 3);
-        if ((litsize > 0) || (num > 32767) || (num < -32768))
+        delta = symbol_addr_delta (lit[0], addr + vp + 3);
+        if ((litsize > 0) || (delta > 32767) || (delta < -32768))
             PARSE_LOSE;
         val[vp++] = nPC | WDP | ((fl & SP_IND)? 0x10: 0);
-        PUTNUM (num, 2);
+        put_symbol_le_value (val, &vp, (uint32)delta, 2);
         break;
 
     case SP_FL|SP_NUM:                                  /* L^n */
     case SP_IND|SP_FL|SP_NUM:                           /* @L^n */
-        num = lit[0] - (addr + vp + 5);
+        delta = symbol_addr_delta (lit[0], addr + vp + 5);
         if (litsize > 0)
             PARSE_LOSE;
         val[vp++] = nPC | LDP | ((fl & SP_IND)? 0x10: 0);
-        PUTNUM (num, 4);
+        put_symbol_le_value (val, &vp, (uint32)delta, 4);
         break;
 
     default:
@@ -1438,7 +1476,7 @@ if (*cptr != 0)                                         /* must be done */
 return vp;
 }
 
-const char *parse_rnum (const char *cptr, int32 *rn)
+static const char *parse_rnum (const char *cptr, int32 *rn)
 {
 int32 i, lnt;
 t_value regnum;
@@ -1461,14 +1499,16 @@ if ((cptr == tptr) || (regnum > 15))
 return tptr;
 }
 
-int32 parse_sym_qoimm (int32 *lit, t_value *val, int32 vp, int lnt, int32 minus)
+static int32 parse_sym_qoimm (uint32 *lit, t_value *val, int32 vp, int lnt,
+    int32 minus)
 {
-int32 i, k, prev;
+int32 i;
+uint32 prev = 0;
 
-for (i = prev = 0; i < lnt; i++) {
+for (i = 0; i < lnt; i++) {
     if (minus)
         prev = lit[i] = ~lit[i] + (prev == 0);
-    PUTNUM (lit[i], 4);
+    put_symbol_le_value (val, &vp, lit[i], 4);
     }
 return vp;
 }

@@ -40,6 +40,36 @@ add_unit_test(unit-vax4xx-stddev
     FEATURE_FULL64
 )
 
+simh_executable_template(zimh-unit-vax-symbols
+    SOURCES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_sys.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_symbols.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+    FEATURE_FULL64
+)
+
+target_compile_definitions(zimh-unit-vax-symbols PRIVATE
+    VM_VAX
+    VAX_440
+)
+
+if (TARGET cmocka::cmocka)
+    target_link_libraries(zimh-unit-vax-symbols PUBLIC cmocka::cmocka)
+elseif (TARGET PkgConfig::CMOCKA)
+    target_link_libraries(zimh-unit-vax-symbols PUBLIC PkgConfig::CMOCKA)
+else ()
+    message(FATAL_ERROR "cmocka target not available")
+endif ()
+
+add_test(NAME zimh-unit-vax-symbols COMMAND zimh-unit-vax-symbols)
+set_tests_properties(zimh-unit-vax-symbols PROPERTIES
+    LABELS "zimh;unit;zimh-VAX")
+set_property(GLOBAL APPEND PROPERTY SIMH_UNIT_TEST_TARGETS
+    zimh-unit-vax-symbols)
+
 add_unit_test(unit-vax-va-dma
     LABEL unit
     SOURCES
