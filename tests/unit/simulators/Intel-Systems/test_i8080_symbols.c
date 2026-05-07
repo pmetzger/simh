@@ -9,18 +9,6 @@
 #include "system_defs.h"
 #include "i8080_symbol_internal.h"
 
-#include "i8080.c"
-
-static uint8 test_memory[MAXMEMSIZE + 1];
-
-REG *sim_PC = &i8080_reg[0];
-DEVICE *sim_devices[] = {&i8080_dev, NULL};
-char sim_name[] = "Intel-MDS";
-const char *sim_stop_messages[SCPE_BASE];
-int32 sim_emax = 1;
-
-struct idev dev_table[256];
-
 struct expected_instruction {
     const char *input;
     t_stat status;
@@ -42,6 +30,22 @@ struct expected_symbol {
     const char *symbol;
 };
 
+REG *sim_PC = NULL;
+DEVICE *sim_devices[] = {NULL};
+char sim_name[] = "Intel-MDS";
+const char *sim_stop_messages[SCPE_BASE];
+int32 sim_emax = 1;
+
+static UNIT symbol_unit;
+
+/*
+ * Satisfy the simulator core's execution callback for symbol-only tests.
+ */
+t_stat sim_instr(void)
+{
+    return SCPE_OK;
+}
+
 /*
  * Satisfy the simulator core's loader callback for symbol-only tests.
  */
@@ -55,36 +59,10 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
     return SCPE_OK;
 }
 
-uint8 get_mbyte(uint16 addr)
-{
-    return test_memory[addr];
-}
-
-uint16 get_mword(uint16 addr)
-{
-    return (uint16)(test_memory[addr] |
-                    (test_memory[(addr + 1) & ADDRMASK] << 8));
-}
-
-void put_mbyte(uint16 addr, uint8 val)
-{
-    test_memory[addr] = val;
-}
-
-void put_mword(uint16 addr, uint16 val)
-{
-    put_mbyte(addr, (uint8)(val & BYTEMASK));
-    put_mbyte((uint16)((addr + 1) & ADDRMASK), (uint8)(val >> 8));
-}
-
 static int setup_i8080_symbols(void **state)
 {
     (void)state;
-
-    memset(test_memory, 0, sizeof(test_memory));
-    memset(dev_table, 0, sizeof(dev_table));
-    i8080_unit.flags = 0;
-    i8080_unit.capac = MAXMEMSIZE;
+    symbol_unit = (UNIT){0};
 
     return 0;
 }
@@ -121,7 +99,7 @@ static char *render_i8080_symbol(t_value *val, t_stat *status)
     stream = tmpfile();
     assert_non_null(stream);
 
-    *status = fprint_sym(stream, 0, val, &i8080_unit, SWMASK('M'));
+    *status = fprint_sym(stream, 0, val, &symbol_unit, SWMASK('M'));
     output = read_stream(stream);
     assert_int_equal(fclose(stream), 0);
 
@@ -135,7 +113,7 @@ static void assert_fprint_sym_formats_instruction(
     const struct expected_symbol *expected)
 {
     t_stat status;
-    t_value val[HIST_ILNT] = {
+    t_value val[I8080_SYMBOL_WORDS] = {
         expected->opcode_byte,
         expected->low_operand,
         expected->high_operand,
@@ -159,9 +137,9 @@ assert_parse_sym_accepts_instruction(const char *input, t_stat status,
                                      t_value low_operand,
                                      t_value high_operand)
 {
-    t_value val[HIST_ILNT] = {0};
+    t_value val[I8080_SYMBOL_WORDS] = {0};
 
-    assert_int_equal(parse_sym(input, 0, &i8080_unit, val, SWMASK('M')),
+    assert_int_equal(parse_sym(input, 0, &symbol_unit, val, SWMASK('M')),
                      status);
     assert_int_equal(val[0], opcode_byte);
     if (status <= -1)
@@ -193,9 +171,9 @@ assert_parse_sym_accepts_instructions(const struct expected_instruction *cases,
  */
 static void assert_parse_sym_rejects_unchanged(const char *input)
 {
-    t_value val[HIST_ILNT] = {0xAA, 0xBB, 0xCC};
+    t_value val[I8080_SYMBOL_WORDS] = {0xAA, 0xBB, 0xCC};
 
-    assert_int_equal(parse_sym(input, 0, &i8080_unit, val, SWMASK('M')),
+    assert_int_equal(parse_sym(input, 0, &symbol_unit, val, SWMASK('M')),
                      SCPE_ARG);
     assert_int_equal(val[0], 0xAA);
     assert_int_equal(val[1], 0xBB);
@@ -544,7 +522,7 @@ static void test_fprint_sym_formats_all_opcode_text(void **state)
     for (op = 0; op < sizeof(expected_symbols) / sizeof(*expected_symbols);
          op++) {
         t_stat status;
-        t_value val[HIST_ILNT] = {op, 0x34, 0x12};
+        t_value val[I8080_SYMBOL_WORDS] = {op, 0x34, 0x12};
         char *symbol;
 
         symbol = render_i8080_symbol(val, &status);
@@ -739,7 +717,7 @@ test_parse_sym_accepts_immediate_operands_with_spaced_comma(void **state)
 static void test_fprint_sym_mvi_l_uses_comma_operand_delimiter(void **state)
 {
     t_stat status;
-    t_value val[HIST_ILNT] = {0x2E, 0x5A, 0};
+    t_value val[I8080_SYMBOL_WORDS] = {0x2E, 0x5A, 0};
     char *symbol;
 
     (void)state;
@@ -769,6 +747,36 @@ static void test_parse_sym_accepts_mov_mnemonic_with_spaced_comma(void **state)
 }
 
 /*
+ * MOV encodes its destination and source registers directly in the opcode
+ * byte; every valid register pair except M,M should round-trip.
+ */
+static void test_parse_sym_accepts_all_mov_register_pairs(void **state)
+{
+    static const char registers[] = "BCDEHLMA";
+    size_t dst;
+
+    (void)state;
+
+    for (dst = 0; dst < sizeof(registers) - 1; dst++) {
+        size_t src;
+
+        for (src = 0; src < sizeof(registers) - 1; src++) {
+            char input[] = "MOV x,y";
+            t_value expected_opcode;
+
+            if (registers[dst] == 'M' && registers[src] == 'M')
+                continue;
+
+            input[4] = registers[dst];
+            input[6] = registers[src];
+            expected_opcode = 0x40 + (t_value)(dst * 8 + src);
+            assert_parse_sym_accepts_instruction(input, SCPE_OK,
+                                                 expected_opcode, 0, 0);
+        }
+    }
+}
+
+/*
  * Every valid machine-mode disassembly should parse back to the same opcode
  * and operand bytes across a small boundary-value operand matrix.
  */
@@ -793,8 +801,8 @@ static void test_parse_sym_accepts_all_fprint_sym_outputs(void **state)
 
         for (pattern = 0; pattern < sizeof(patterns) / sizeof(*patterns);
              pattern++) {
-            t_value input[HIST_ILNT] = {0};
-            t_value output[HIST_ILNT] = {0};
+            t_value input[I8080_SYMBOL_WORDS] = {0};
+            t_value output[I8080_SYMBOL_WORDS] = {0};
             t_stat expected_status;
             char *symbol;
 
@@ -803,7 +811,7 @@ static void test_parse_sym_accepts_all_fprint_sym_outputs(void **state)
             input[2] = patterns[pattern].high;
 
             symbol = render_i8080_symbol(input, &expected_status);
-            assert_int_equal(parse_sym(symbol, 0, &i8080_unit, output,
+            assert_int_equal(parse_sym(symbol, 0, &symbol_unit, output,
                                        SWMASK('M')),
                              expected_status);
             assert_int_equal(output[0], input[0]);
@@ -839,9 +847,27 @@ static void test_parse_sym_rejects_incomplete_mov_mnemonics(void **state)
 {
     const char *const cases[] = {
         "MOV",
+        "MOVB,C",
         "MOV B",
         "MOV B,",
         "MOV B,CX",
+    };
+
+    (void)state;
+
+    assert_parse_sym_rejects_all(cases, sizeof(cases) / sizeof(*cases));
+}
+
+/*
+ * MOV only accepts i8080 register names, and M,M is encoded as HLT rather
+ * than a MOV instruction.
+ */
+static void test_parse_sym_rejects_bad_mov_operands(void **state)
+{
+    const char *const cases[] = {
+        "MOV X,B",
+        "MOV B,X",
+        "MOV M,M",
     };
 
     (void)state;
@@ -954,11 +980,11 @@ static void test_parse_sym_rejects_high_bit_input(void **state)
 static void test_parse_sym_ascii_char_uses_unsigned_byte(void **state)
 {
     char input[] = {(char)0x80, '\0'};
-    t_value val[HIST_ILNT] = {0};
+    t_value val[I8080_SYMBOL_WORDS] = {0};
 
     (void)state;
 
-    assert_int_equal(parse_sym(input, 0, &i8080_unit, val, SWMASK('A')),
+    assert_int_equal(parse_sym(input, 0, &symbol_unit, val, SWMASK('A')),
                      SCPE_OK);
     assert_int_equal(val[0], 0x80);
 }
@@ -969,11 +995,11 @@ static void test_parse_sym_ascii_char_uses_unsigned_byte(void **state)
 static void test_parse_sym_ascii_string_uses_unsigned_bytes(void **state)
 {
     char input[] = {(char)0x80, (char)0x81, '\0'};
-    t_value val[HIST_ILNT] = {0};
+    t_value val[I8080_SYMBOL_WORDS] = {0};
 
     (void)state;
 
-    assert_int_equal(parse_sym(input, 0, &i8080_unit, val, SWMASK('C')),
+    assert_int_equal(parse_sym(input, 0, &symbol_unit, val, SWMASK('C')),
                      SCPE_OK);
     assert_int_equal(val[0], 0x8081);
 }
@@ -1018,12 +1044,16 @@ int main(void)
         cmocka_unit_test_setup(
             test_parse_sym_accepts_mov_mnemonic_with_spaced_comma,
             setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_all_mov_register_pairs,
+                               setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_accepts_all_fprint_sym_outputs,
                                setup_i8080_symbols),
         cmocka_unit_test_setup(
             test_parse_sym_rejects_legacy_octal_operand_spelling,
             setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_rejects_incomplete_mov_mnemonics,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_rejects_bad_mov_operands,
                                setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_rejects_bad_rst_mnemonics,
                                setup_i8080_symbols),

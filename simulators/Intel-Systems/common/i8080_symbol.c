@@ -16,11 +16,14 @@ enum i8080_symbol_operand {
     I8080_SYMBOL_BYTE_COMMA,
     I8080_SYMBOL_WORD_SPACE,
     I8080_SYMBOL_WORD_COMMA,
+    I8080_SYMBOL_MOV,
 };
 
 struct i8080_symbol_entry {
     const char *mnemonic;
     enum i8080_symbol_operand operand;
+    char dst;
+    char src;
 };
 
 #define OP_NONE(text) {text, I8080_SYMBOL_NONE}
@@ -28,6 +31,7 @@ struct i8080_symbol_entry {
 #define OP_BYTE_COMMA(text) {text, I8080_SYMBOL_BYTE_COMMA}
 #define OP_WORD_SPACE(text) {text, I8080_SYMBOL_WORD_SPACE}
 #define OP_WORD_COMMA(text) {text, I8080_SYMBOL_WORD_COMMA}
+#define OP_MOV(dst, src) {"MOV", I8080_SYMBOL_MOV, dst, src}
 
 static const struct i8080_symbol_entry opcodes[256] = {
     [0x00] = OP_NONE("NOP"),
@@ -89,70 +93,70 @@ static const struct i8080_symbol_entry opcodes[256] = {
     [0x3D] = OP_NONE("DCR A"),
     [0x3E] = OP_BYTE_COMMA("MVI A"),
     [0x3F] = OP_NONE("CMC"),
-    [0x40] = OP_NONE("MOV B,B"),
-    [0x41] = OP_NONE("MOV B,C"),
-    [0x42] = OP_NONE("MOV B,D"),
-    [0x43] = OP_NONE("MOV B,E"),
-    [0x44] = OP_NONE("MOV B,H"),
-    [0x45] = OP_NONE("MOV B,L"),
-    [0x46] = OP_NONE("MOV B,M"),
-    [0x47] = OP_NONE("MOV B,A"),
-    [0x48] = OP_NONE("MOV C,B"),
-    [0x49] = OP_NONE("MOV C,C"),
-    [0x4A] = OP_NONE("MOV C,D"),
-    [0x4B] = OP_NONE("MOV C,E"),
-    [0x4C] = OP_NONE("MOV C,H"),
-    [0x4D] = OP_NONE("MOV C,L"),
-    [0x4E] = OP_NONE("MOV C,M"),
-    [0x4F] = OP_NONE("MOV C,A"),
-    [0x50] = OP_NONE("MOV D,B"),
-    [0x51] = OP_NONE("MOV D,C"),
-    [0x52] = OP_NONE("MOV D,D"),
-    [0x53] = OP_NONE("MOV D,E"),
-    [0x54] = OP_NONE("MOV D,H"),
-    [0x55] = OP_NONE("MOV D,L"),
-    [0x56] = OP_NONE("MOV D,M"),
-    [0x57] = OP_NONE("MOV D,A"),
-    [0x58] = OP_NONE("MOV E,B"),
-    [0x59] = OP_NONE("MOV E,C"),
-    [0x5A] = OP_NONE("MOV E,D"),
-    [0x5B] = OP_NONE("MOV E,E"),
-    [0x5C] = OP_NONE("MOV E,H"),
-    [0x5D] = OP_NONE("MOV E,L"),
-    [0x5E] = OP_NONE("MOV E,M"),
-    [0x5F] = OP_NONE("MOV E,A"),
-    [0x60] = OP_NONE("MOV H,B"),
-    [0x61] = OP_NONE("MOV H,C"),
-    [0x62] = OP_NONE("MOV H,D"),
-    [0x63] = OP_NONE("MOV H,E"),
-    [0x64] = OP_NONE("MOV H,H"),
-    [0x65] = OP_NONE("MOV H,L"),
-    [0x66] = OP_NONE("MOV H,M"),
-    [0x67] = OP_NONE("MOV H,A"),
-    [0x68] = OP_NONE("MOV L,B"),
-    [0x69] = OP_NONE("MOV L,C"),
-    [0x6A] = OP_NONE("MOV L,D"),
-    [0x6B] = OP_NONE("MOV L,E"),
-    [0x6C] = OP_NONE("MOV L,H"),
-    [0x6D] = OP_NONE("MOV L,L"),
-    [0x6E] = OP_NONE("MOV L,M"),
-    [0x6F] = OP_NONE("MOV L,A"),
-    [0x70] = OP_NONE("MOV M,B"),
-    [0x71] = OP_NONE("MOV M,C"),
-    [0x72] = OP_NONE("MOV M,D"),
-    [0x73] = OP_NONE("MOV M,E"),
-    [0x74] = OP_NONE("MOV M,H"),
-    [0x75] = OP_NONE("MOV M,L"),
+    [0x40] = OP_MOV('B', 'B'),
+    [0x41] = OP_MOV('B', 'C'),
+    [0x42] = OP_MOV('B', 'D'),
+    [0x43] = OP_MOV('B', 'E'),
+    [0x44] = OP_MOV('B', 'H'),
+    [0x45] = OP_MOV('B', 'L'),
+    [0x46] = OP_MOV('B', 'M'),
+    [0x47] = OP_MOV('B', 'A'),
+    [0x48] = OP_MOV('C', 'B'),
+    [0x49] = OP_MOV('C', 'C'),
+    [0x4A] = OP_MOV('C', 'D'),
+    [0x4B] = OP_MOV('C', 'E'),
+    [0x4C] = OP_MOV('C', 'H'),
+    [0x4D] = OP_MOV('C', 'L'),
+    [0x4E] = OP_MOV('C', 'M'),
+    [0x4F] = OP_MOV('C', 'A'),
+    [0x50] = OP_MOV('D', 'B'),
+    [0x51] = OP_MOV('D', 'C'),
+    [0x52] = OP_MOV('D', 'D'),
+    [0x53] = OP_MOV('D', 'E'),
+    [0x54] = OP_MOV('D', 'H'),
+    [0x55] = OP_MOV('D', 'L'),
+    [0x56] = OP_MOV('D', 'M'),
+    [0x57] = OP_MOV('D', 'A'),
+    [0x58] = OP_MOV('E', 'B'),
+    [0x59] = OP_MOV('E', 'C'),
+    [0x5A] = OP_MOV('E', 'D'),
+    [0x5B] = OP_MOV('E', 'E'),
+    [0x5C] = OP_MOV('E', 'H'),
+    [0x5D] = OP_MOV('E', 'L'),
+    [0x5E] = OP_MOV('E', 'M'),
+    [0x5F] = OP_MOV('E', 'A'),
+    [0x60] = OP_MOV('H', 'B'),
+    [0x61] = OP_MOV('H', 'C'),
+    [0x62] = OP_MOV('H', 'D'),
+    [0x63] = OP_MOV('H', 'E'),
+    [0x64] = OP_MOV('H', 'H'),
+    [0x65] = OP_MOV('H', 'L'),
+    [0x66] = OP_MOV('H', 'M'),
+    [0x67] = OP_MOV('H', 'A'),
+    [0x68] = OP_MOV('L', 'B'),
+    [0x69] = OP_MOV('L', 'C'),
+    [0x6A] = OP_MOV('L', 'D'),
+    [0x6B] = OP_MOV('L', 'E'),
+    [0x6C] = OP_MOV('L', 'H'),
+    [0x6D] = OP_MOV('L', 'L'),
+    [0x6E] = OP_MOV('L', 'M'),
+    [0x6F] = OP_MOV('L', 'A'),
+    [0x70] = OP_MOV('M', 'B'),
+    [0x71] = OP_MOV('M', 'C'),
+    [0x72] = OP_MOV('M', 'D'),
+    [0x73] = OP_MOV('M', 'E'),
+    [0x74] = OP_MOV('M', 'H'),
+    [0x75] = OP_MOV('M', 'L'),
     [0x76] = OP_NONE("HLT"),
-    [0x77] = OP_NONE("MOV M,A"),
-    [0x78] = OP_NONE("MOV A,B"),
-    [0x79] = OP_NONE("MOV A,C"),
-    [0x7A] = OP_NONE("MOV A,D"),
-    [0x7B] = OP_NONE("MOV A,E"),
-    [0x7C] = OP_NONE("MOV A,H"),
-    [0x7D] = OP_NONE("MOV A,L"),
-    [0x7E] = OP_NONE("MOV A,M"),
-    [0x7F] = OP_NONE("MOV A,A"),
+    [0x77] = OP_MOV('M', 'A'),
+    [0x78] = OP_MOV('A', 'B'),
+    [0x79] = OP_MOV('A', 'C'),
+    [0x7A] = OP_MOV('A', 'D'),
+    [0x7B] = OP_MOV('A', 'E'),
+    [0x7C] = OP_MOV('A', 'H'),
+    [0x7D] = OP_MOV('A', 'L'),
+    [0x7E] = OP_MOV('A', 'M'),
+    [0x7F] = OP_MOV('A', 'A'),
     [0x80] = OP_NONE("ADD B"),
     [0x81] = OP_NONE("ADD C"),
     [0x82] = OP_NONE("ADD D"),
@@ -283,6 +287,7 @@ static const struct i8080_symbol_entry opcodes[256] = {
 #undef OP_BYTE_COMMA
 #undef OP_WORD_SPACE
 #undef OP_WORD_COMMA
+#undef OP_MOV
 
 /*
  * Return the encoded instruction length for an Intel 8080 opcode.
@@ -291,6 +296,7 @@ int32 i8080_symbol_instruction_length(uint8 opcode)
 {
     switch (opcodes[opcode].operand) {
     case I8080_SYMBOL_NONE:
+    case I8080_SYMBOL_MOV:
         return 1;
     case I8080_SYMBOL_BYTE_SPACE:
     case I8080_SYMBOL_BYTE_COMMA:
@@ -328,8 +334,25 @@ static int hex_digit_value(unsigned char ch)
 }
 
 /*
- * Match an opcode table spelling against user input while allowing
- * case-insensitive input and human spacing around comma delimiters.
+ * Parse one i8080 register name and return its encoding, or -1 if the input
+ * byte is not a register.
+ */
+static int parse_register(char ch)
+{
+    static const char registers[] = "BCDEHLMA";
+    int index;
+
+    ch = (char)toupper((unsigned char)ch);
+    for (index = 0; registers[index] != '\0'; index++) {
+        if (ch == registers[index])
+            return index;
+    }
+    return -1;
+}
+
+/*
+ * Match an opcode table spelling against user input with case-insensitive
+ * text and normalized whitespace.
  */
 static t_bool i8080_symbol_text_matches(const char *input, const char *symbol,
                                         const char **remaining)
@@ -343,16 +366,6 @@ static t_bool i8080_symbol_text_matches(const char *input, const char *symbol,
             continue;
         }
 
-        if (*symbol == ',') {
-            input = skip_spaces(input);
-            if (*input != ',')
-                return FALSE;
-            input++;
-            input = skip_spaces(input);
-            symbol++;
-            continue;
-        }
-
         if (toupper((unsigned char)*input) != (unsigned char)*symbol)
             return FALSE;
         input++;
@@ -361,6 +374,38 @@ static t_bool i8080_symbol_text_matches(const char *input, const char *symbol,
 
     *remaining = input;
     return TRUE;
+}
+
+/*
+ * Parse a MOV destination/source register pair.
+ */
+static t_bool parse_mov_operands(const char *text, int *dst, int *src)
+{
+    if (!isspace((unsigned char)*text))
+        return FALSE;
+
+    text = skip_spaces(text);
+    *dst = parse_register(*text);
+    if (*dst < 0)
+        return FALSE;
+    text++;
+
+    text = skip_spaces(text);
+    if (*text != ',')
+        return FALSE;
+    text++;
+
+    text = skip_spaces(text);
+    *src = parse_register(*text);
+    if (*src < 0)
+        return FALSE;
+    text++;
+
+    if (*dst == 6 && *src == 6)
+        return FALSE;
+
+    text = skip_spaces(text);
+    return *text == '\0';
 }
 
 /*
@@ -406,6 +451,14 @@ static const char *i8080_symbol_display_text(int opcode)
 }
 
 /*
+ * Format one MOV instruction from its register metadata.
+ */
+static void fprint_mov(FILE *of, const struct i8080_symbol_entry *entry)
+{
+    fprintf(of, "MOV %c,%c", entry->dst, entry->src);
+}
+
+/*
  * Implement SIMH symbolic output for Intel 8080/8085 memory words.
  */
 t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
@@ -433,7 +486,10 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
         return SCPE_ARG;
     inst = val[0];
     entry = &opcodes[inst];
-    fprintf(of, "%s", i8080_symbol_display_text(inst));
+    if (entry->operand == I8080_SYMBOL_MOV)
+        fprint_mov(of, entry);
+    else
+        fprintf(of, "%s", i8080_symbol_display_text(inst));
     if (entry->operand == I8080_SYMBOL_BYTE_COMMA ||
         entry->operand == I8080_SYMBOL_WORD_COMMA)
         fprintf(of, ",");
@@ -495,6 +551,16 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
             if (*skip_spaces(operand) != '\0')
                 return SCPE_ARG;
             val[0] = op;
+            return SCPE_OK;
+        }
+
+        if (entry->operand == I8080_SYMBOL_MOV) {
+            int dst;
+            int src;
+
+            if (!parse_mov_operands(operand, &dst, &src))
+                return SCPE_ARG;
+            val[0] = 0x40 + (uint32)(dst * 8 + src);
             return SCPE_OK;
         }
 
