@@ -349,7 +349,7 @@ const char *opcode[] = {
 "RIM", "LXI H,", "SHLD ", "INX H",              /* 0x20 */
 "INR H", "DCR H", "MVI H,", "DAA",
 "???", "DAD H", "LHLD ", "DCX H",
-"INR L", "DCR L", "MVI L", "CMA",
+"INR L", "DCR L", "MVI L,", "CMA",
 "SIM", "LXI SP,", "STA ", "INX SP",             /* 0x30 */
 "INR M", "DCR M", "MVI M,", "STC",
 "???", "DAD SP", "LDA ", "DCX SP",
@@ -1354,6 +1354,97 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val,
     return -(oplen[inst] - 1);
 }
 
+/*
+ * Skip host whitespace in symbolic input.
+ */
+static const char *skip_spaces(const char *text)
+{
+    while (isspace((unsigned char)*text))
+        text++;
+    return text;
+}
+
+/*
+ * Return the numeric value of a hex digit, or -1 for a non-hex byte.
+ */
+static int hex_digit_value(unsigned char ch)
+{
+    if (ch >= '0' && ch <= '9')
+        return ch - '0';
+    ch = (unsigned char)toupper(ch);
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    return -1;
+}
+
+/*
+ * Match an opcode table spelling against user input while allowing
+ * case-insensitive input and human spacing around comma delimiters.
+ */
+static t_bool
+i8080_symbol_prefix_matches(const char *input, const char *symbol,
+                            const char **remaining)
+{
+    while (*symbol != '\0') {
+        if (isspace((unsigned char)*symbol)) {
+            if (!isspace((unsigned char)*input))
+                return FALSE;
+            input = skip_spaces(input);
+            symbol = skip_spaces(symbol);
+            continue;
+        }
+
+        if (*symbol == ',') {
+            input = skip_spaces(input);
+            if (*input != ',')
+                return FALSE;
+            input++;
+            input = skip_spaces(input);
+            symbol++;
+            continue;
+        }
+
+        if (toupper((unsigned char)*input) != (unsigned char)*symbol)
+            return FALSE;
+        input++;
+        symbol++;
+    }
+
+    *remaining = skip_spaces(input);
+    return TRUE;
+}
+
+/*
+ * Parse a byte or word operand in the same hex notation emitted by
+ * fprint_sym().
+ */
+static t_bool
+i8080_parse_hex_operand(const char *text, int max_digits, uint32 *value)
+{
+    int digit;
+    int digits = 0;
+    uint32 parsed = 0;
+
+    text = skip_spaces(text);
+    while ((digit = hex_digit_value((unsigned char)*text)) >= 0) {
+        if (digits == max_digits)
+            return FALSE;
+        parsed = (parsed << 4) | (uint32)digit;
+        digits++;
+        text++;
+    }
+
+    if (digits == 0)
+        return FALSE;
+
+    text = skip_spaces(text);
+    if (*text != '\0')
+        return FALSE;
+
+    *value = parsed;
+    return TRUE;
+}
+
 /* Symbolic input
    Inputs:
         *cptr   =       pointer to input string
@@ -1365,19 +1456,17 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val,
         status  =       error status
 */
 
-t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat
+parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
 {
     /* Generic symbolic input signature.
        This implementation does not use every parameter. */
     (void)addr;
     (void)uptr;
 
-    size_t i = 0, op;
-    unsigned int r;
-    char gbuf[CBUFSIZE];
+    size_t op;
 
-    memset (gbuf, 0, sizeof (gbuf));
-    while (isspace ((unsigned char)*cptr)) cptr++;          /* absorb spaces */
+    cptr = skip_spaces(cptr);
     if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
         if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
         val[0] = (unsigned char)cptr[0];
@@ -1390,75 +1479,36 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
         return SCPE_OK;
     }
 
-/* An instruction: get opcode (all characters until null, comma,
-   or numeric (including spaces).
-*/
-
-    while (i < sizeof (gbuf) - 4) {
-        if (*cptr == ',' || *cptr == '\0' ||
-             isdigit((unsigned char)*cptr))
-                break;
-        gbuf[i] = (char)toupper((unsigned char)*cptr);
-        cptr++;
-        i++;
-    }
-
-/* Allow for RST which has numeric as part of opcode */
-
-    if (toupper((unsigned char)gbuf[0]) == 'R' &&
-        toupper((unsigned char)gbuf[1]) == 'S' &&
-        toupper((unsigned char)gbuf[2]) == 'T' &&
-        isdigit((unsigned char)*cptr)) {
-        gbuf[i] = (char)toupper((unsigned char)*cptr);
-        cptr++;
-        i++;
-    }
-
-/* Allow for 'MOV' which is only opcode that has comma in it. */
-
-    if (toupper((unsigned char)gbuf[0]) == 'M' &&
-        toupper((unsigned char)gbuf[1]) == 'O' &&
-        toupper((unsigned char)gbuf[2]) == 'V' &&
-        cptr[0] == ',' &&
-        cptr[1] != '\0') {
-        gbuf[i] = (char)toupper((unsigned char)*cptr);
-        cptr++;
-        i++;
-        gbuf[i] = (char)toupper((unsigned char)*cptr);
-        cptr++;
-        i++;
-    }
-
-/* Trim trailing spaces, allowing numeric or empty input to reject cleanly. */
-    gbuf[i] = '\0';
-    while (i > 0 && gbuf[i - 1] == ' ') {
-        gbuf[--i] = '\0';
-    }
-
-/* find opcode in table */
     for (op = 0; op < 256; op++) {
-        if (strcmp(gbuf, opcode[op]) == 0)
-            break;
-    }
-    if (op > 255)                                           /* not found */
-        return SCPE_ARG;
+        const char *operand;
+        uint32 parsed;
 
-    if (oplen[op] < 2) {                                    /* if 1-byter we are done */
-        val[0] = op;                                        /* store opcode */
-        return SCPE_OK;
+        if (oplen[op] == 0)
+            continue;
+        if (!i8080_symbol_prefix_matches(cptr, opcode[op], &operand))
+            continue;
+
+        if (oplen[op] == 1) {
+            if (*operand != '\0')
+                return SCPE_ARG;
+            val[0] = op;
+            return SCPE_OK;
+        }
+
+        if (!i8080_parse_hex_operand(operand,
+                                     oplen[op] == 2 ? 2 : 4,
+                                     &parsed))
+            return SCPE_ARG;
+
+        val[0] = op;
+        val[1] = parsed & 0xFF;
+        if (oplen[op] == 2)
+            return -1;
+        val[2] = (parsed >> 8) & 0xFF;
+        return -2;
     }
-    if (*cptr == ',') cptr++;
-    cptr = get_glyph(cptr, gbuf, 0);                        /* get address */
-    if (sscanf(gbuf, "%o", &r) != 1)
-        return SCPE_ARG;
-    val[0] = op;                                            /* store opcode */
-    if (oplen[op] == 2) {
-        val[1] = r & 0xFF;
-        return (-1);
-    }
-    val[1] = r & 0xFF;
-    val[2] = (r >> 8) & 0xFF;
-    return (-2);
+
+    return SCPE_ARG;
 }
 
 /* Set history */
