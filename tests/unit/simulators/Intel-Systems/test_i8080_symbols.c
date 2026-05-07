@@ -66,21 +66,30 @@ static int setup_i8080_symbols(void **state)
 }
 
 /*
+ * Assert that malformed symbolic input is rejected before modifying the
+ * caller's value buffer.
+ */
+static void assert_parse_sym_rejects_unchanged(const char *input)
+{
+    t_value val[HIST_ILNT] = {0xAA, 0xBB, 0xCC};
+
+    assert_int_equal(parse_sym(input, 0, &i8080_unit, val, SWMASK('M')),
+                     SCPE_ARG);
+    assert_int_equal(val[0], 0xAA);
+    assert_int_equal(val[1], 0xBB);
+    assert_int_equal(val[2], 0xCC);
+}
+
+/*
  * Numeric deposit input is not an instruction mnemonic, so parse_sym() must
  * return SCPE_ARG and leave numeric parsing to the generic deposit path.
  */
 static void
 test_parse_sym_rejects_numeric_input_for_generic_deposit(void **state)
 {
-    t_value val[HIST_ILNT] = {0xAA, 0xBB, 0xCC};
-
     (void)state;
 
-    assert_int_equal(parse_sym("00", 0, &i8080_unit, val, SWMASK('M')),
-                     SCPE_ARG);
-    assert_int_equal(val[0], 0xAA);
-    assert_int_equal(val[1], 0xBB);
-    assert_int_equal(val[2], 0xCC);
+    assert_parse_sym_rejects_unchanged("00");
 }
 
 /*
@@ -89,14 +98,24 @@ test_parse_sym_rejects_numeric_input_for_generic_deposit(void **state)
  */
 static void test_parse_sym_rejects_empty_input(void **state)
 {
-    t_value val[HIST_ILNT] = {0xAA, 0xBB, 0xCC};
+    (void)state;
+
+    assert_parse_sym_rejects_unchanged("");
+}
+
+/*
+ * One-byte symbolic instructions store just the opcode byte and return
+ * SCPE_OK.
+ */
+static void test_parse_sym_accepts_one_byte_mnemonics(void **state)
+{
+    t_value val[HIST_ILNT] = {0};
 
     (void)state;
 
-    assert_int_equal(parse_sym("", 0, &i8080_unit, val, SWMASK('M')), SCPE_ARG);
-    assert_int_equal(val[0], 0xAA);
-    assert_int_equal(val[1], 0xBB);
-    assert_int_equal(val[2], 0xCC);
+    assert_int_equal(parse_sym("NOP", 0, &i8080_unit, val, SWMASK('M')),
+                     SCPE_OK);
+    assert_int_equal(val[0], 0x00);
 }
 
 /*
@@ -113,6 +132,155 @@ static void test_parse_sym_trims_trailing_opcode_spaces(void **state)
     assert_int_equal(val[0], 0x00);
 }
 
+/*
+ * Mnemonic matching is case-insensitive for the opcode text.
+ */
+static void test_parse_sym_accepts_lowercase_mnemonics(void **state)
+{
+    t_value val[HIST_ILNT] = {0};
+
+    (void)state;
+
+    assert_int_equal(parse_sym("nop", 0, &i8080_unit, val, SWMASK('M')),
+                     SCPE_OK);
+    assert_int_equal(val[0], 0x00);
+}
+
+/*
+ * MOV is the one opcode family whose table entries include a comma in the
+ * mnemonic itself.
+ */
+static void test_parse_sym_accepts_mov_mnemonic_with_comma(void **state)
+{
+    t_value val[HIST_ILNT] = {0};
+
+    (void)state;
+
+    assert_int_equal(parse_sym("MOV B,C", 0, &i8080_unit, val, SWMASK('M')),
+                     SCPE_OK);
+    assert_int_equal(val[0], 0x41);
+}
+
+/*
+ * RST opcodes include the restart number in the mnemonic text.
+ */
+static void test_parse_sym_accepts_rst_mnemonic_with_number(void **state)
+{
+    t_value val[HIST_ILNT] = {0};
+
+    (void)state;
+
+    assert_int_equal(parse_sym("RST 7", 0, &i8080_unit, val, SWMASK('M')),
+                     SCPE_OK);
+    assert_int_equal(val[0], 0xFF);
+}
+
+/*
+ * Two-byte instructions return -1 and store the parsed 8-bit operand.
+ * Existing i8080 symbolic input treats reachable numeric operands as octal.
+ */
+static void test_parse_sym_accepts_two_byte_octal_operand(void **state)
+{
+    t_value val[HIST_ILNT] = {0};
+
+    (void)state;
+
+    assert_int_equal(parse_sym("MVI L377", 0, &i8080_unit, val, SWMASK('M')),
+                     -1);
+    assert_int_equal(val[0], 0x2E);
+    assert_int_equal(val[1], 0xFF);
+}
+
+/*
+ * Incomplete MOV mnemonics should reject cleanly instead of reading past the
+ * end of the input while looking for the comma and source register.
+ */
+static void test_parse_sym_rejects_incomplete_mov_mnemonics(void **state)
+{
+    (void)state;
+
+    assert_parse_sym_rejects_unchanged("MOV");
+    assert_parse_sym_rejects_unchanged("MOV B");
+    assert_parse_sym_rejects_unchanged("MOV B,");
+}
+
+/*
+ * Incomplete RST mnemonics do not identify an opcode.
+ */
+static void test_parse_sym_rejects_incomplete_rst_mnemonics(void **state)
+{
+    (void)state;
+
+    assert_parse_sym_rejects_unchanged("RST");
+    assert_parse_sym_rejects_unchanged("RST ");
+}
+
+/*
+ * Known opcodes that require operands should reject missing operands without
+ * modifying the caller's value buffer.
+ */
+static void test_parse_sym_rejects_missing_operands(void **state)
+{
+    (void)state;
+
+    assert_parse_sym_rejects_unchanged("MVI L");
+}
+
+/*
+ * Known opcodes that require operands should reject non-octal operands
+ * without modifying the caller's value buffer.
+ */
+static void test_parse_sym_rejects_bad_octal_operands(void **state)
+{
+    (void)state;
+
+    assert_parse_sym_rejects_unchanged("MVI L8");
+}
+
+/*
+ * Non-ASCII bytes are not valid i8080 mnemonics, but the parser still must
+ * pass them to ctype routines safely.
+ */
+static void test_parse_sym_rejects_high_bit_input(void **state)
+{
+    char input[] = {(char)0x80, '\0'};
+
+    (void)state;
+
+    assert_parse_sym_rejects_unchanged(input);
+}
+
+/*
+ * ASCII character input stores the host character as an unsigned simulated
+ * byte, not as a sign-extended host char.
+ */
+static void test_parse_sym_ascii_char_uses_unsigned_byte(void **state)
+{
+    char input[] = {(char)0x80, '\0'};
+    t_value val[HIST_ILNT] = {0};
+
+    (void)state;
+
+    assert_int_equal(parse_sym(input, 0, &i8080_unit, val, SWMASK('A')),
+                     SCPE_OK);
+    assert_int_equal(val[0], 0x80);
+}
+
+/*
+ * ASCII string input stores two host characters as unsigned simulated bytes.
+ */
+static void test_parse_sym_ascii_string_uses_unsigned_bytes(void **state)
+{
+    char input[] = {(char)0x80, (char)0x81, '\0'};
+    t_value val[HIST_ILNT] = {0};
+
+    (void)state;
+
+    assert_int_equal(parse_sym(input, 0, &i8080_unit, val, SWMASK('C')),
+                     SCPE_OK);
+    assert_int_equal(val[0], 0x8081);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -121,7 +289,31 @@ int main(void)
             setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_rejects_empty_input,
                                setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_one_byte_mnemonics,
+                               setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_trims_trailing_opcode_spaces,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_lowercase_mnemonics,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_mov_mnemonic_with_comma,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_rst_mnemonic_with_number,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_two_byte_octal_operand,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_rejects_incomplete_mov_mnemonics,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_rejects_incomplete_rst_mnemonics,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_rejects_missing_operands,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_rejects_bad_octal_operands,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_rejects_high_bit_input,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_ascii_char_uses_unsigned_byte,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_ascii_string_uses_unsigned_bytes,
                                setup_i8080_symbols),
     };
 
