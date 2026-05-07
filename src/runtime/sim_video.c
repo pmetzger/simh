@@ -1853,7 +1853,8 @@ while (SDL_PushEvent (&user_event) < 0)
 
 t_bool vid_is_fullscreen_window (VID_DISPLAY *vptr)
 {
-return SDL_GetWindowFlags (vptr->vid_window) & SDL_WINDOW_FULLSCREEN_DESKTOP;
+return (SDL_GetWindowFlags (vptr->vid_window) &
+        SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
 }
 
 t_bool vid_is_fullscreen (void)
