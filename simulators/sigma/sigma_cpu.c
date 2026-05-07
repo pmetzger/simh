@@ -1461,7 +1461,7 @@ switch (op) {
             return tr;
         PCQ_ENTRY;                                      /* no traps, upd PCQ */
         if (IR & IRB (10))                              /* clr hi pri int? */
-            int_hireq = io_rels_int (int_hiact, IR & IRB (11));
+            int_hireq = io_rels_int (int_hiact, (IR & IRB (11)) != 0);
         else if (IR & IRB (11))                         /* clr PDF flag? */
             cpu_pdf = 0;
         break;
@@ -2404,7 +2404,7 @@ wd1 = (wd1 & ~(cpu_tab[cpu_model].psw2_mbz)) |          /* merge inhibits */
 if ((tr = cpu_new_PSD (IR & IRB (8), wd, wd1)) != 0)    /* update PSD */
     return tr;
 if (IR & IRB (10))                                      /* clr hi pri int? */
-    int_hireq = io_rels_int (int_hiact, IR & IRB (11));
+    int_hireq = io_rels_int (int_hiact, (IR & IRB (11)) != 0);
 else if (IR & IRB (11))                                 /* clr PDF flag? */
     cpu_pdf = 0;
 
