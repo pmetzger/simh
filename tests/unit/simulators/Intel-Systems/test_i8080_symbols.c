@@ -626,6 +626,12 @@ static void test_parse_sym_accepts_rst_mnemonic_with_number(void **state)
 {
     const struct expected_instruction cases[] = {
         {"RST 0", SCPE_OK, 0xC7, 0, 0},
+        {"RST 1", SCPE_OK, 0xCF, 0, 0},
+        {"RST 2", SCPE_OK, 0xD7, 0, 0},
+        {"rst 3", SCPE_OK, 0xDF, 0, 0},
+        {"RST    4", SCPE_OK, 0xE7, 0, 0},
+        {"RST 5", SCPE_OK, 0xEF, 0, 0},
+        {"RST 6", SCPE_OK, 0xF7, 0, 0},
         {"RST 7", SCPE_OK, 0xFF, 0, 0},
     };
 
@@ -777,6 +783,178 @@ static void test_parse_sym_accepts_all_mov_register_pairs(void **state)
 }
 
 /*
+ * One-register instruction families encode the target register directly in
+ * the opcode byte.
+ */
+static void test_parse_sym_accepts_one_register_families(void **state)
+{
+    static const char registers[] = "BCDEHLMA";
+    const struct {
+        const char *mnemonic;
+        t_value base_opcode;
+        t_value stride;
+    } cases[] = {
+        {"INR", 0x04, 8},
+        {"DCR", 0x05, 8},
+        {"ADD", 0x80, 1},
+        {"ADC", 0x88, 1},
+        {"SUB", 0x90, 1},
+        {"SBB", 0x98, 1},
+        {"ANA", 0xA0, 1},
+        {"XRA", 0xA8, 1},
+        {"ORA", 0xB0, 1},
+        {"CMP", 0xB8, 1},
+    };
+    size_t family;
+
+    (void)state;
+
+    for (family = 0; family < sizeof(cases) / sizeof(*cases); family++) {
+        size_t reg;
+
+        for (reg = 0; reg < sizeof(registers) - 1; reg++) {
+            char input[8];
+            t_value expected_opcode;
+
+            snprintf(input, sizeof(input), "%s %c", cases[family].mnemonic,
+                     registers[reg]);
+            expected_opcode = cases[family].base_opcode +
+                              (t_value)(reg * cases[family].stride);
+            assert_parse_sym_accepts_instruction(input, SCPE_OK,
+                                                 expected_opcode, 0, 0);
+        }
+    }
+}
+
+/*
+ * MVI encodes a register operand and an immediate byte.
+ */
+static void test_parse_sym_accepts_all_mvi_register_operands(void **state)
+{
+    static const char registers[] = "BCDEHLMA";
+    size_t reg;
+
+    (void)state;
+
+    for (reg = 0; reg < sizeof(registers) - 1; reg++) {
+        char input[] = "MVI x,5A";
+        t_value expected_opcode;
+
+        input[4] = registers[reg];
+        expected_opcode = 0x06 + (t_value)(reg * 8);
+        assert_parse_sym_accepts_instruction(input, -1, expected_opcode,
+                                             0x5A, 0);
+    }
+}
+
+/*
+ * Register-pair instruction families encode the register pair directly in
+ * the opcode byte.
+ */
+static void test_parse_sym_accepts_register_pair_families(void **state)
+{
+    static const char *const pairs[] = {"B", "D", "H", "SP"};
+    const struct {
+        const char *mnemonic;
+        t_value base_opcode;
+    } cases[] = {
+        {"INX", 0x03},
+        {"DCX", 0x0B},
+        {"DAD", 0x09},
+    };
+    size_t family;
+
+    (void)state;
+
+    for (family = 0; family < sizeof(cases) / sizeof(*cases); family++) {
+        size_t pair;
+
+        for (pair = 0; pair < sizeof(pairs) / sizeof(*pairs); pair++) {
+            char input[12];
+            t_value expected_opcode;
+
+            snprintf(input, sizeof(input), "%s %s", cases[family].mnemonic,
+                     pairs[pair]);
+            expected_opcode = cases[family].base_opcode + (t_value)(pair * 16);
+            assert_parse_sym_accepts_instruction(input, SCPE_OK,
+                                                 expected_opcode, 0, 0);
+        }
+    }
+}
+
+/*
+ * STAX and LDAX accept only the B and D register pairs.
+ */
+static void test_parse_sym_accepts_direct_register_pair_families(void **state)
+{
+    const struct expected_instruction cases[] = {
+        {"STAX B", SCPE_OK, 0x02, 0, 0},
+        {"LDAX B", SCPE_OK, 0x0A, 0, 0},
+        {"STAX D", SCPE_OK, 0x12, 0, 0},
+        {"LDAX D", SCPE_OK, 0x1A, 0, 0},
+    };
+
+    (void)state;
+
+    assert_parse_sym_accepts_instructions(cases,
+                                          sizeof(cases) / sizeof(*cases));
+}
+
+/*
+ * LXI encodes a register-pair operand and an immediate word.
+ */
+static void test_parse_sym_accepts_all_lxi_register_pairs(void **state)
+{
+    static const char *const pairs[] = {"B", "D", "H", "SP"};
+    size_t pair;
+
+    (void)state;
+
+    for (pair = 0; pair < sizeof(pairs) / sizeof(*pairs); pair++) {
+        char input[16];
+        t_value expected_opcode;
+
+        snprintf(input, sizeof(input), "LXI %s,1234", pairs[pair]);
+        expected_opcode = 0x01 + (t_value)(pair * 16);
+        assert_parse_sym_accepts_instruction(input, -2, expected_opcode,
+                                             0x34, 0x12);
+    }
+}
+
+/*
+ * Stack register-pair instructions use B, D, H, and PSW operands.
+ */
+static void test_parse_sym_accepts_stack_register_pair_families(void **state)
+{
+    static const char *const pairs[] = {"B", "D", "H", "PSW"};
+    const struct {
+        const char *mnemonic;
+        t_value base_opcode;
+    } cases[] = {
+        {"POP", 0xC1},
+        {"PUSH", 0xC5},
+    };
+    size_t family;
+
+    (void)state;
+
+    for (family = 0; family < sizeof(cases) / sizeof(*cases); family++) {
+        size_t pair;
+
+        for (pair = 0; pair < sizeof(pairs) / sizeof(*pairs); pair++) {
+            char input[12];
+            t_value expected_opcode;
+
+            snprintf(input, sizeof(input), "%s %s", cases[family].mnemonic,
+                     pairs[pair]);
+            expected_opcode = cases[family].base_opcode + (t_value)(pair * 16);
+            assert_parse_sym_accepts_instruction(input, SCPE_OK,
+                                                 expected_opcode, 0, 0);
+        }
+    }
+}
+
+/*
  * Every valid machine-mode disassembly should parse back to the same opcode
  * and operand bytes across a small boundary-value operand matrix.
  */
@@ -876,12 +1054,40 @@ static void test_parse_sym_rejects_bad_mov_operands(void **state)
 }
 
 /*
+ * Register and register-pair families reject invalid operands and malformed
+ * delimiters.
+ */
+static void test_parse_sym_rejects_bad_register_family_operands(void **state)
+{
+    const char *const cases[] = {
+        "ADD X",
+        "INR X",
+        "MVI X,5A",
+        "DAD A",
+        "STAX H",
+        "LDAX H",
+        "INX PSW",
+        "LXI A,1234",
+        "PUSH SP",
+        "POP A",
+        "ADD B,C",
+        "MVI A 5A",
+        "LXI B 1234",
+    };
+
+    (void)state;
+
+    assert_parse_sym_rejects_all(cases, sizeof(cases) / sizeof(*cases));
+}
+
+/*
  * Incomplete or out-of-range RST mnemonics do not identify an opcode.
  */
 static void test_parse_sym_rejects_bad_rst_mnemonics(void **state)
 {
     const char *const cases[] = {
         "RST",
+        "RST0",
         "RST ",
         "RST 8",
         "RST 0X",
@@ -1046,6 +1252,21 @@ int main(void)
             setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_accepts_all_mov_register_pairs,
                                setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_one_register_families,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(
+            test_parse_sym_accepts_all_mvi_register_operands,
+            setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_register_pair_families,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(
+            test_parse_sym_accepts_direct_register_pair_families,
+            setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_all_lxi_register_pairs,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(
+            test_parse_sym_accepts_stack_register_pair_families,
+            setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_accepts_all_fprint_sym_outputs,
                                setup_i8080_symbols),
         cmocka_unit_test_setup(
@@ -1055,6 +1276,9 @@ int main(void)
                                setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_rejects_bad_mov_operands,
                                setup_i8080_symbols),
+        cmocka_unit_test_setup(
+            test_parse_sym_rejects_bad_register_family_operands,
+            setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_rejects_bad_rst_mnemonics,
                                setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_rejects_trailing_opcode_garbage,
