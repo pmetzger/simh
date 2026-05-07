@@ -92,7 +92,7 @@ extern t_uint64 FR[32];
 extern uint32 fpcr;
 extern jmp_buf save_env;
 
-t_bool ieee_unpack (t_uint64 op, UFP *r, uint32 ir);
+uint32 ieee_unpack (t_uint64 op, UFP *r, uint32 ir);
 void ieee_norm (UFP *r);
 t_uint64 ieee_rpack (UFP *r, uint32 ir, uint32 dp);
 void ieee_trap (uint32 trap, uint32 instenb, uint32 fpcrdsb, uint32 ir);
@@ -551,7 +551,7 @@ return ieee_rpack (&b, ir, dp);                         /* round and pack */
 
 /* Support routines */
 
-t_bool ieee_unpack (t_uint64 op, UFP *r, uint32 ir)
+uint32 ieee_unpack (t_uint64 op, UFP *r, uint32 ir)
 {
 r->sign = FPR_GETSIGN (op);                             /* get sign */
 r->exp = FPR_GETEXP (op);                               /* get exponent */
