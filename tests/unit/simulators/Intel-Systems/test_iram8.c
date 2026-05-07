@@ -81,6 +81,26 @@ static void test_configured_ram_stores_in_range_bytes(void **state)
 }
 
 /*
+ * Reconfiguring RAM should replace the old storage.  The current allocation
+ * is released by teardown; LeakSanitizer verifies that the prior allocation
+ * was not orphaned.
+ */
+static void test_reconfiguring_ram_releases_old_storage(void **state)
+{
+    (void)state;
+
+    assert_int_equal(RAM_cfg(0x2000, 0x0010, 0), SCPE_OK);
+    RAM_put_mbyte(0x2000, 0xA5);
+
+    assert_int_equal(RAM_cfg(0x3000, 0x0020, 0), SCPE_OK);
+
+    assert_int_equal(RAM_unit.u3, 0x3000);
+    assert_int_equal(RAM_unit.capac, 0x0020);
+    assert_int_equal(RAM_get_mbyte(0x2000), BYTEMASK);
+    assert_int_equal(RAM_get_mbyte(0x3000), 0);
+}
+
+/*
  * Reads outside the configured RAM range should behave as absent memory.
  */
 static void
@@ -138,6 +158,9 @@ int main(void)
                                         setup_iram8, teardown_iram8),
         cmocka_unit_test_setup_teardown(
             test_configured_ram_stores_in_range_bytes, setup_iram8,
+            teardown_iram8),
+        cmocka_unit_test_setup_teardown(
+            test_reconfiguring_ram_releases_old_storage, setup_iram8,
             teardown_iram8),
         cmocka_unit_test_setup_teardown(
             test_configured_ram_read_outside_range_returns_absent_memory,

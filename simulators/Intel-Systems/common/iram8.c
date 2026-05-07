@@ -134,17 +134,21 @@ DEVICE RAM_dev = {
 
 t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy)
 {
+    uint8 *storage;
+
     /* Shared configuration signature.
        This implementation does not use every parameter. */
     (void) dummy;
 
-    RAM_unit.capac = size;              /* set RAM size */
-    RAM_unit.u3 = base;                 /* set RAM base */
-    RAM_unit.filebuf = (uint8 *)calloc(size, sizeof(uint8));
-    if (RAM_unit.filebuf == NULL) {
+    storage = (uint8 *)calloc(size, sizeof(uint8));
+    if (storage == NULL) {
         sim_printf ("    RAM: Calloc error\n");
         return SCPE_MEM;
     }
+    free(RAM_unit.filebuf);
+    RAM_unit.capac = size;              /* set RAM size */
+    RAM_unit.u3 = base;                 /* set RAM base */
+    RAM_unit.filebuf = storage;
     sim_printf("    RAM: 0%04XH bytes at base address 0%04XH\n",
         size, base);
     return SCPE_OK;
