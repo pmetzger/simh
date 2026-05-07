@@ -810,7 +810,7 @@ return;
 
 t_bool GenLshift (dstr_t *dsrc, uint32 cnt)
 {
-t_bool i, c, sc, sc1;
+uint32 i, c, sc, sc1;
 
 c = 0;
 sc = cnt / 8;
