@@ -79,7 +79,7 @@ typedef struct {
   void (*write)(uint16 reg, uint16 data);
 } TTDEV;
 
-extern t_bool build_dev_tab (void);
+extern t_stat build_dev_tab (void);
 extern void flag_on (uint16 flag);
 extern void flag_off (uint16 flag);
 extern uint16 cpu_alu (uint16 insn, uint16 op, uint16 adata, uint16 bdata);

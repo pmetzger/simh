@@ -59,7 +59,7 @@ sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
   return SCPE_OK;
 }
 
-t_bool build_dev_tab (void)
+t_stat build_dev_tab (void)
 {
   return SCPE_OK;
 }

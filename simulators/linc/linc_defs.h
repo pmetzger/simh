@@ -60,7 +60,7 @@ extern DEVICE kbd_dev;
 extern DEVICE tape_dev;
 extern DEVICE tty_dev;
 
-extern t_bool build_dev_tab(void);
+extern t_stat build_dev_tab(void);
 extern t_stat cpu_do(void);
 extern void dpy_dis(uint16 h, uint16 x, uint16 y);
 extern void crt_point (uint16 x, uint16 y);

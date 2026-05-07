@@ -295,7 +295,7 @@ static void null_write (uint16 reg, uint16 data)
   (void) data;
 }
 
-t_bool build_dev_tab (void)
+t_stat build_dev_tab (void)
 {
   TTDEV *ttdev;
   DEVICE *dev;

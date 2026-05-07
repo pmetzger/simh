@@ -41,7 +41,7 @@ static uint16 *reg_array(size_t index)
     return (uint16 *)cpu_reg[index].loc;
 }
 
-t_bool build_dev_tab(void)
+t_stat build_dev_tab(void)
 {
     return SCPE_OK;
 }

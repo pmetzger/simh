@@ -54,7 +54,7 @@ typedef struct {
   SUBDEV subdev[4];
 } IMDEV;
 
-extern t_bool build_dev_tab (void);
+extern t_stat build_dev_tab (void);
 extern void flag_on (uint16 flag);
 extern void flag_off (uint16 flag);
 extern uint16 flag_check (uint16 flag);

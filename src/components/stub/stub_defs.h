@@ -35,7 +35,7 @@
 #define STOP_IBKPT      2
 #define STOP_ACCESS     3
 
-extern t_bool build_dev_tab (void);
+extern t_stat build_dev_tab (void);
 
 extern REG cpu_reg[];
 extern uint16 M[];
