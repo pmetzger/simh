@@ -161,7 +161,7 @@ uint16  SFC;
 uint16  DFC;
 uint32  VBR;
 t_addr  saved_PC;
-static t_bool intpending;
+static uint8 intpending;
 static int m68k_sublevel;
 
 REG m68kcpu_reg[] = {
@@ -197,7 +197,7 @@ REG m68kcpu_reg[] = {
     { HRDATA (SFC,      SFC,        3),     REG_HIDDEN  },
     { HRDATA (DFC,      DFC,        3),     REG_HIDDEN  },
     { HRDATA (VBR,      VBR,        32),    REG_RO      },
-    { FLDATA (IRQPEN,   intpending, 0),     REG_HIDDEN  },
+    { HRDATA (IRQPEN,   intpending, 8),     REG_HIDDEN  },
     { NULL }
 };
 
@@ -1037,19 +1037,19 @@ static t_bool testcond(uint32 c)
     case 0x0400: /*CC*/
         return !CCR_C;
     case 0x0500: /*CS*/
-        return CCR_C;
+        return CCR_C != 0;
     case 0x0600: /*NE*/
         return !CCR_Z;
     case 0x0700: /*EQ*/
-        return CCR_Z;
+        return CCR_Z != 0;
     case 0x0800: /*VC*/
         return !CCR_V;
     case 0x0900: /*VS*/
-        return CCR_V;
+        return CCR_V != 0;
     case 0x0a00: /*PL*/
         return !CCR_N;
     case 0x0b00: /*MI*/
-        return CCR_N;
+        return CCR_N != 0;
     case 0x0c00: /*GE*/
         n = CCR_N; v = CCR_V;
         return (n && v) || !(n || v);
