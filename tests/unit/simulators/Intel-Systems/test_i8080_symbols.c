@@ -262,6 +262,7 @@ static void test_fprint_sym_formats_representative_forms(void **state)
         {0xC3, 0x34, 0x12, -2, "JMP 1234"},
         {0xC6, 0x5A, 0x00, -1, "ADI 5A"},
         {0xFF, 0x00, 0x00, SCPE_OK, "RST 7"},
+        {0x08, 0x00, 0x00, 1, "???"},
     };
     size_t i;
 
@@ -269,6 +270,288 @@ static void test_fprint_sym_formats_representative_forms(void **state)
 
     for (i = 0; i < sizeof(cases) / sizeof(*cases); i++)
         assert_fprint_sym_formats_instruction(&cases[i]);
+}
+
+/*
+ * Every opcode should format to the documented symbolic display text. This
+ * table is intentionally independent of the parser's opcode table so it can
+ * catch transcription errors in mnemonic text and operand delimiters.
+ */
+static void test_fprint_sym_formats_all_opcode_text(void **state)
+{
+    static const char *const expected_symbols[256] = {
+        "NOP",
+        "LXI B,1234",
+        "STAX B",
+        "INX B",
+        "INR B",
+        "DCR B",
+        "MVI B,34",
+        "RLC",
+        "???",
+        "DAD B",
+        "LDAX B",
+        "DCX B",
+        "INR C",
+        "DCR C",
+        "MVI C,34",
+        "RRC",
+        "???",
+        "LXI D,1234",
+        "STAX D",
+        "INX D",
+        "INR D",
+        "DCR D",
+        "MVI D,34",
+        "RAL",
+        "???",
+        "DAD D",
+        "LDAX D",
+        "DCX D",
+        "INR E",
+        "DCR E",
+        "MVI E,34",
+        "RAR",
+        "RIM",
+        "LXI H,1234",
+        "SHLD 1234",
+        "INX H",
+        "INR H",
+        "DCR H",
+        "MVI H,34",
+        "DAA",
+        "???",
+        "DAD H",
+        "LHLD 1234",
+        "DCX H",
+        "INR L",
+        "DCR L",
+        "MVI L,34",
+        "CMA",
+        "SIM",
+        "LXI SP,1234",
+        "STA 1234",
+        "INX SP",
+        "INR M",
+        "DCR M",
+        "MVI M,34",
+        "STC",
+        "???",
+        "DAD SP",
+        "LDA 1234",
+        "DCX SP",
+        "INR A",
+        "DCR A",
+        "MVI A,34",
+        "CMC",
+        "MOV B,B",
+        "MOV B,C",
+        "MOV B,D",
+        "MOV B,E",
+        "MOV B,H",
+        "MOV B,L",
+        "MOV B,M",
+        "MOV B,A",
+        "MOV C,B",
+        "MOV C,C",
+        "MOV C,D",
+        "MOV C,E",
+        "MOV C,H",
+        "MOV C,L",
+        "MOV C,M",
+        "MOV C,A",
+        "MOV D,B",
+        "MOV D,C",
+        "MOV D,D",
+        "MOV D,E",
+        "MOV D,H",
+        "MOV D,L",
+        "MOV D,M",
+        "MOV D,A",
+        "MOV E,B",
+        "MOV E,C",
+        "MOV E,D",
+        "MOV E,E",
+        "MOV E,H",
+        "MOV E,L",
+        "MOV E,M",
+        "MOV E,A",
+        "MOV H,B",
+        "MOV H,C",
+        "MOV H,D",
+        "MOV H,E",
+        "MOV H,H",
+        "MOV H,L",
+        "MOV H,M",
+        "MOV H,A",
+        "MOV L,B",
+        "MOV L,C",
+        "MOV L,D",
+        "MOV L,E",
+        "MOV L,H",
+        "MOV L,L",
+        "MOV L,M",
+        "MOV L,A",
+        "MOV M,B",
+        "MOV M,C",
+        "MOV M,D",
+        "MOV M,E",
+        "MOV M,H",
+        "MOV M,L",
+        "HLT",
+        "MOV M,A",
+        "MOV A,B",
+        "MOV A,C",
+        "MOV A,D",
+        "MOV A,E",
+        "MOV A,H",
+        "MOV A,L",
+        "MOV A,M",
+        "MOV A,A",
+        "ADD B",
+        "ADD C",
+        "ADD D",
+        "ADD E",
+        "ADD H",
+        "ADD L",
+        "ADD M",
+        "ADD A",
+        "ADC B",
+        "ADC C",
+        "ADC D",
+        "ADC E",
+        "ADC H",
+        "ADC L",
+        "ADC M",
+        "ADC A",
+        "SUB B",
+        "SUB C",
+        "SUB D",
+        "SUB E",
+        "SUB H",
+        "SUB L",
+        "SUB M",
+        "SUB A",
+        "SBB B",
+        "SBB C",
+        "SBB D",
+        "SBB E",
+        "SBB H",
+        "SBB L",
+        "SBB M",
+        "SBB A",
+        "ANA B",
+        "ANA C",
+        "ANA D",
+        "ANA E",
+        "ANA H",
+        "ANA L",
+        "ANA M",
+        "ANA A",
+        "XRA B",
+        "XRA C",
+        "XRA D",
+        "XRA E",
+        "XRA H",
+        "XRA L",
+        "XRA M",
+        "XRA A",
+        "ORA B",
+        "ORA C",
+        "ORA D",
+        "ORA E",
+        "ORA H",
+        "ORA L",
+        "ORA M",
+        "ORA A",
+        "CMP B",
+        "CMP C",
+        "CMP D",
+        "CMP E",
+        "CMP H",
+        "CMP L",
+        "CMP M",
+        "CMP A",
+        "RNZ",
+        "POP B",
+        "JNZ 1234",
+        "JMP 1234",
+        "CNZ 1234",
+        "PUSH B",
+        "ADI 34",
+        "RST 0",
+        "RZ",
+        "RET",
+        "JZ 1234",
+        "???",
+        "CZ 1234",
+        "CALL 1234",
+        "ACI 34",
+        "RST 1",
+        "RNC",
+        "POP D",
+        "JNC 1234",
+        "OUT 34",
+        "CNC 1234",
+        "PUSH D",
+        "SUI 34",
+        "RST 2",
+        "RC",
+        "???",
+        "JC 1234",
+        "IN 34",
+        "CC 1234",
+        "???",
+        "SBI 34",
+        "RST 3",
+        "RPO",
+        "POP H",
+        "JPO 1234",
+        "XTHL",
+        "CPO 1234",
+        "PUSH H",
+        "ANI 34",
+        "RST 4",
+        "RPE",
+        "PCHL",
+        "JPE 1234",
+        "XCHG",
+        "CPE 1234",
+        "???",
+        "XRI 34",
+        "RST 5",
+        "RP",
+        "POP PSW",
+        "JP 1234",
+        "DI",
+        "CP 1234",
+        "PUSH PSW",
+        "ORI 34",
+        "RST 6",
+        "RM",
+        "SPHL",
+        "JM 1234",
+        "EI",
+        "CM 1234",
+        "???",
+        "CPI 34",
+        "RST 7",
+    };
+    size_t op;
+
+    (void)state;
+
+    for (op = 0; op < sizeof(expected_symbols) / sizeof(*expected_symbols);
+         op++) {
+        t_stat status;
+        t_value val[HIST_ILNT] = {op, 0x34, 0x12};
+        char *symbol;
+
+        symbol = render_i8080_symbol(val, &status);
+        assert_string_equal(symbol, expected_symbols[op]);
+
+        free(symbol);
+    }
 }
 
 /*
@@ -402,6 +685,45 @@ static void test_parse_sym_accepts_hex_word_operands(void **state)
         {"LXI B,0000", -2, 0x01, 0x00, 0x00},
         {"LXI B,1234", -2, 0x01, 0x34, 0x12},
         {"JMP FFFF", -2, 0xC3, 0xFF, 0xFF},
+    };
+
+    (void)state;
+
+    assert_parse_sym_accepts_instructions(cases,
+                                          sizeof(cases) / sizeof(*cases));
+}
+
+/*
+ * Mnemonics that are prefixes of other mnemonics should only match when their
+ * operand delimiter is present.
+ */
+static void test_parse_sym_accepts_prefix_mnemonics(void **state)
+{
+    const struct expected_instruction cases[] = {
+        {"CP 1234", -2, 0xF4, 0x34, 0x12},
+        {"CPI 5A", -1, 0xFE, 0x5A, 0},
+    };
+
+    (void)state;
+
+    assert_parse_sym_accepts_instructions(cases,
+                                          sizeof(cases) / sizeof(*cases));
+}
+
+/*
+ * Comma-delimited immediate operands should allow normal human spacing around
+ * the comma.
+ */
+static void
+test_parse_sym_accepts_immediate_operands_with_spaced_comma(void **state)
+{
+    const struct expected_instruction cases[] = {
+        {"MVI A, 5A", -1, 0x3E, 0x5A, 0},
+        {"MVI A ,5A", -1, 0x3E, 0x5A, 0},
+        {"MVI A , 5A", -1, 0x3E, 0x5A, 0},
+        {"LXI B, 1234", -2, 0x01, 0x34, 0x12},
+        {"LXI B ,1234", -2, 0x01, 0x34, 0x12},
+        {"LXI B , 1234", -2, 0x01, 0x34, 0x12},
     };
 
     (void)state;
@@ -576,6 +898,25 @@ static void test_parse_sym_rejects_missing_operands(void **state)
 }
 
 /*
+ * Operand delimiter rules should reject missing required commas and
+ * unexpected commas before space-delimited operands.
+ */
+static void test_parse_sym_rejects_bad_operand_delimiters(void **state)
+{
+    const char *const cases[] = {
+        "MVI L 5A",
+        "LXI B 1234",
+        "ADI,5A",
+        "JMP,1234",
+        "MOV B C",
+    };
+
+    (void)state;
+
+    assert_parse_sym_rejects_all(cases, sizeof(cases) / sizeof(*cases));
+}
+
+/*
  * Known opcodes that require operands should reject invalid hex operands
  * without modifying the caller's value buffer.
  */
@@ -645,6 +986,8 @@ int main(void)
             setup_i8080_symbols),
         cmocka_unit_test_setup(test_fprint_sym_formats_representative_forms,
                                setup_i8080_symbols),
+        cmocka_unit_test_setup(test_fprint_sym_formats_all_opcode_text,
+                               setup_i8080_symbols),
         cmocka_unit_test_setup(
             test_parse_sym_rejects_numeric_input_for_generic_deposit,
             setup_i8080_symbols),
@@ -664,6 +1007,11 @@ int main(void)
                                setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_accepts_hex_word_operands,
                                setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_accepts_prefix_mnemonics,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(
+            test_parse_sym_accepts_immediate_operands_with_spaced_comma,
+            setup_i8080_symbols),
         cmocka_unit_test_setup(
             test_fprint_sym_mvi_l_uses_comma_operand_delimiter,
             setup_i8080_symbols),
@@ -682,6 +1030,8 @@ int main(void)
         cmocka_unit_test_setup(test_parse_sym_rejects_trailing_opcode_garbage,
                                setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_rejects_missing_operands,
+                               setup_i8080_symbols),
+        cmocka_unit_test_setup(test_parse_sym_rejects_bad_operand_delimiters,
                                setup_i8080_symbols),
         cmocka_unit_test_setup(test_parse_sym_rejects_bad_hex_operands,
                                setup_i8080_symbols),
