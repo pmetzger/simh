@@ -1021,7 +1021,7 @@ t_stat sysd_set_diag (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-if (cptr != NULL) ka_diag_full = strcmp(cptr, "MIN");
+if (cptr != NULL) ka_diag_full = (strcmp(cptr, "MIN") != 0);
 return SCPE_OK;
 }
 
@@ -1045,7 +1045,7 @@ t_stat sysd_set_halt (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-ka_hltenab = val;
+ka_hltenab = (val != 0);
 return SCPE_OK;
 }
 

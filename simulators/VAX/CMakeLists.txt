@@ -412,6 +412,17 @@ set_tests_properties(
         LABELS "zimh;integration;zimh-VAX"
         ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")
 
+add_test(
+    NAME zimh-vax630-sysdev-bool
+    COMMAND
+        $<TARGET_FILE:microvax2>
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/vax630-sysdev-bool_test.ini")
+set_tests_properties(
+    zimh-vax630-sysdev-bool
+    PROPERTIES
+        LABELS "zimh;integration;zimh-VAX"
+        ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")
+
 add_simulator(vax730
     SOURCES
         vax_cpu.c
