@@ -258,7 +258,8 @@ static t_svalue _op_gt(t_svalue data1, t_svalue data2)
 static int _i_strcmp(const char *s1, const char *s2)
 {
     if (sim_switches & SWMASK('W'))
-        return sim_strwhitecasecmp(s1, s2, sim_switches & SWMASK('I'));
+        return sim_strwhitecasecmp(s1, s2,
+                                   (sim_switches & SWMASK('I')) != 0);
     return ((sim_switches & SWMASK('I')) ? strcasecmp(s2, s1) : strcmp(s2, s1));
 }
 

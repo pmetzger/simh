@@ -900,7 +900,7 @@ vptr->vid_active_window = TRUE;
 vptr->vid_width = width;
 vptr->vid_height = height;
 vptr->vid_mouse_captured = FALSE;
-vptr->vid_cursor_visible = (vptr->vid_flags & SIM_VID_INPUTCAPTURED);
+vptr->vid_cursor_visible = (vptr->vid_flags & SIM_VID_INPUTCAPTURED) != 0;
 vptr->vid_blending = FALSE;
 vptr->vid_ready = FALSE;
 

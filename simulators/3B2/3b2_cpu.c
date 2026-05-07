@@ -4760,17 +4760,17 @@ static void cpu_set_nz_flags(t_uint64 data, operand *dst)
     switch (type) {
     case WD:
     case UW:
-        cpu_set_n_flag(!!(WD_MSB & data));
+        cpu_set_n_flag((WD_MSB & data) != 0);
         cpu_set_z_flag((data & WORD_MASK) == 0);
         break;
     case HW:
     case UH:
-        cpu_set_n_flag(HW_MSB & data);
+        cpu_set_n_flag((HW_MSB & data) != 0);
         cpu_set_z_flag((data & HALF_MASK) == 0);
         break;
     case BT:
     case SB:
-        cpu_set_n_flag(BT_MSB & data);
+        cpu_set_n_flag((BT_MSB & data) != 0);
         cpu_set_z_flag((data & BYTE_MASK) == 0);
         break;
     }
@@ -4835,7 +4835,7 @@ static inline void add(t_uint64 a, t_uint64 b, operand *dst)
     switch(op_type(dst)) {
     case WD:
         cpu_set_c_flag(result > WORD_MASK);
-        cpu_set_v_flag(((a ^ ~b) & (a ^ result)) & WD_MSB);
+        cpu_set_v_flag((((a ^ ~b) & (a ^ result)) & WD_MSB) != 0);
         break;
     case UW:
         cpu_set_c_flag(result > WORD_MASK);
@@ -4843,7 +4843,7 @@ static inline void add(t_uint64 a, t_uint64 b, operand *dst)
         break;
     case HW:
         cpu_set_c_flag(result > HALF_MASK);
-        cpu_set_v_flag(((a ^ ~b) & (a ^ result)) & HW_MSB);
+        cpu_set_v_flag((((a ^ ~b) & (a ^ result)) & HW_MSB) != 0);
         break;
     case UH:
         cpu_set_c_flag(result > HALF_MASK);
@@ -4855,7 +4855,7 @@ static inline void add(t_uint64 a, t_uint64 b, operand *dst)
         break;
     case SB:
         cpu_set_c_flag(result > BYTE_MASK);
-        cpu_set_v_flag(((a ^ ~b) & (a ^ result)) & BT_MSB);
+        cpu_set_v_flag((((a ^ ~b) & (a ^ result)) & BT_MSB) != 0);
         break;
     }
 }

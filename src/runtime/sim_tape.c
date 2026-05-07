@@ -3315,7 +3315,8 @@ else {
     if (flags & MTPOS_M_REV)                            /* reverse? */
         r = sim_tape_spfilebyrecr (uptr, files, filesskipped, &fileskiprecs);
     else
-        r = sim_tape_spfilebyrecf (uptr, files, filesskipped, &fileskiprecs, (flags & MTPOS_M_DLE));
+        r = sim_tape_spfilebyrecf (uptr, files, filesskipped, &fileskiprecs,
+                                   (flags & MTPOS_M_DLE) != 0);
     if (r != MTSE_OK)
         return r;
     if (flags & MTPOS_M_REV)                            /* reverse? */

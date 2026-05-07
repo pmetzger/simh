@@ -625,7 +625,7 @@ return SCPE_OK;
 
 t_bool sim_disk_wrp (UNIT *uptr)
 {
-return (uptr->flags & DKUF_WRP)? TRUE: FALSE;
+return ((uptr->flags & DKUF_WRP) != 0);
 }
 
 /* Get Disk size */
@@ -6140,7 +6140,8 @@ return hVHD;
 
 static FILE *sim_vhd_disk_create (const char *szVHDPath, t_offset desiredsize)
 {
-return (FILE *)sim_CreateVirtualDisk (szVHDPath, (uint32)(desiredsize/512), 0, (sim_switches & SWMASK ('X')));
+return (FILE *)sim_CreateVirtualDisk (szVHDPath, (uint32)(desiredsize/512), 0,
+                                      (sim_switches & SWMASK ('X')) != 0);
 }
 
 static FILE *sim_vhd_disk_create_diff (const char *szVHDPath, const char *szParentVHDPath)

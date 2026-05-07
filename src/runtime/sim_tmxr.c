@@ -2125,7 +2125,7 @@ if (lp->mp && lp->modem_control) {                  /* This API ONLY works on mo
     if ((bits_to_set | bits_to_clear) || status_bits) {/* Anything to do? */
         if (lp->loopback) {
             if ((lp->modembits ^ before_modem_bits) & TMXR_MDM_DTR) { /* DTR changed? */
-                lp->ser_connect_pending = (lp->modembits & TMXR_MDM_DTR);
+                lp->ser_connect_pending = (lp->modembits & TMXR_MDM_DTR) != 0;
                 lp->conn = !(lp->modembits & TMXR_MDM_DTR);
                 }
             return SCPE_OK;

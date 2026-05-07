@@ -162,6 +162,24 @@ test_sim_eval_expression_honors_case_insensitive_string_compare(void **state)
     assert_int_equal(value, 1);
 }
 
+/* Verify whitespace folding and case folding compose for string compares. */
+static void
+test_sim_eval_expression_honors_whitespace_case_string_compare(void **state)
+{
+    t_svalue value;
+    t_stat status;
+
+    (void)state;
+
+    sim_switches = SWMASK('W') | SWMASK('I');
+    assert_string_equal(
+        sim_eval_expression("\"ALPHA\t beta\" == \"alpha beta\"", &value,
+                            FALSE, &status),
+        "");
+    assert_int_equal(status, SCPE_OK);
+    assert_int_equal(value, 1);
+}
+
 /* Verify malformed expressions report an argument error and partial rest. */
 static void test_sim_eval_expression_reports_invalid_syntax(void **state)
 {
@@ -197,6 +215,9 @@ int main(void)
             setup_scp_expr_fixture, teardown_scp_expr_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_eval_expression_honors_case_insensitive_string_compare,
+            setup_scp_expr_fixture, teardown_scp_expr_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_eval_expression_honors_whitespace_case_string_compare,
             setup_scp_expr_fixture, teardown_scp_expr_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_eval_expression_reports_invalid_syntax,

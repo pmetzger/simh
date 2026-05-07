@@ -669,7 +669,7 @@ void tod_write(uint32 pa, uint32 val, size_t size)
         break;
 #else
     case TOD_STARTSTOP:
-        tod_enabled = val & 1;
+        tod_enabled = (val & 1) != 0;
         break;
 #endif
     case TOD_WDAY:

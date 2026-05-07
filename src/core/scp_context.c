@@ -145,5 +145,5 @@ t_stat sim_register_internal_device(DEVICE *dptr)
 /* Return whether a device is currently disabled. */
 t_bool qdisable(DEVICE *dptr)
 {
-    return (dptr->flags & DEV_DIS ? TRUE : FALSE);
+    return ((dptr->flags & DEV_DIS) != 0);
 }
