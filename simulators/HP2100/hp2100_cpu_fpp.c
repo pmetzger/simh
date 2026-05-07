@@ -841,7 +841,7 @@ if ((multiplicand.mantissa == 0) ||                     /* 0 * X = 0 */
     product->mantissa = product->exponent = 0;
 
 else {
-    firmware = !(cpu_configuration & CPU_1000_F);       /* set firmware flag */
+    firmware = (cpu_configuration & CPU_1000_F) == 0;   /* set firmware flag */
 
     if (!firmware || (product->precision != fp_f)) {    /* hardware? */
         if (multiplicand.mantissa < 0) {                /* negative? */
@@ -954,7 +954,7 @@ else if (dividend.mantissa == 0)                        /* dividend zero? */
     quotient->mantissa = quotient->exponent = 0;        /* yes; result is zero */
 
 else {
-    firmware = !(cpu_configuration & CPU_1000_F);       /* set firmware flag */
+    firmware = (cpu_configuration & CPU_1000_F) == 0;   /* set firmware flag */
 
     if (!firmware || (quotient->precision != fp_f)) {   /* hardware or FFP? */
         if (dividend.mantissa < 0) {                    /* negative? */
@@ -1298,7 +1298,7 @@ if (!(cpu_configuration & CPU_1000_F))                  /* firmware implementati
                            op_mask[accumulator.precision];
 
 normalize (&accumulator);                               /* normalize */
-overflow = roundovf (&accumulator, opcode & 0200);      /* round and check for overflow */
+overflow = roundovf (&accumulator, (opcode & 0200) != 0);   /* round and check for overflow */
 
 if (result)                                             /* result wanted? */
     *result = pack (accumulator);                       /* pack result */

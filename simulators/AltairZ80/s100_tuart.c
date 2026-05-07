@@ -705,7 +705,7 @@ static int32 tuart_command(DEVICE *dptr, int32 io, int32 data)
             xptr->stb &= ~(TUART_ORE);
             sim_debug(STATUS_MSG, dptr, "Reset port\n");
         }
-        xptr->inta = (data & TUART_INTA) ? TRUE : FALSE;
+        xptr->inta = (data & TUART_INTA) != 0;
         xptr->hbd = (data & TUART_HBD) ? 8 : 1;
         sim_debug(STATUS_MSG, dptr, "Command Port Write %02X (inta=%d hbd=%d)\n", data, xptr->inta, xptr->hbd);
         tuart_config_line(&dptr->units[0]);

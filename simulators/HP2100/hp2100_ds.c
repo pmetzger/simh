@@ -827,7 +827,7 @@ if (entry_srq != ds.srq)
 if (uptr->wait)                                             /* was service requested? */
     activate_unit (uptr);                                   /* schedule the next event */
 
-seek_completion = ~entry_status & uptr->STAT & DL_S2ATN;    /* seek is complete when Attention sets */
+seek_completion = (~entry_status & uptr->STAT & DL_S2ATN) != 0;  /* seek is complete when Attention sets */
 
 if (mac_cntlr.state != cntlr_busy) {                            /* is the command complete? */
     if (mac_cntlr.state == cntlr_wait && !seek_completion) {    /* is it command but not seek completion? */

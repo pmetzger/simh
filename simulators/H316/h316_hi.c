@@ -491,7 +491,7 @@ static void hi_start_tx (uint16 line, uint16 flags)
     count++;
     if (PHIDB(line)->convert && PHIDB(line)->txfirst)
       count = hi_convert_short_to_long(line, tmp, count);
-    PHIDB(line)->txfirst = !!(flags & PFLG_FINAL);
+    PHIDB(line)->txfirst = (flags & PFLG_FINAL) != 0;
     ret = udp_send(PDEVICE(line), PHIDB(line)->link, tmp, count);
     if (ret != SCPE_OK && ret != 66) hi_link_error(line);
   }
@@ -578,7 +578,7 @@ static void hi_poll_rx (uint16 line)
     if (count == 0) { return; }
     if (count < 0) { hi_link_error(line); return; }
     // Make note of the host ready bit.
-    PHIDB(line)->ready = !! (PHIDB(line)->rxdata[0] & PFLG_READY);
+    PHIDB(line)->ready = (PHIDB(line)->rxdata[0] & PFLG_READY) != 0;
     // Exclude the flags from the count.
     PHIDB(line)->rxnext = 1;  count--;
     if (count == 0) return;

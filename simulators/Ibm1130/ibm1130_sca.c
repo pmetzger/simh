@@ -471,7 +471,7 @@ static t_stat sca_attach (UNIT *uptr, const char *cptr)
        This implementation does not use every parameter. */
     (void) uptr;
 
-    do_listen = sim_switches & SWMASK('L');     /* -l means listen mode */
+    do_listen = ibm1130_switch_requested(sim_switches, SWMASK('L'));  /* -l means listen mode */
 
     if (sca_unit.flags & UNIT_ATT)              /* if already attached, detach */
         detach_unit(&sca_unit);

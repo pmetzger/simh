@@ -1822,7 +1822,7 @@ buffer_index = 0;                                       /* clear the buffer with
 offline_pending = FALSE;                                /* cancel any pending offline request */
 
 tape_fault  = FALSE;                                    /* clear any tape fault */
-paper_fault = ! (uptr->flags & UNIT_ATT);               /* set a paper fault if the printer is out of paper */
+paper_fault = (uptr->flags & UNIT_ATT) == 0;            /* set a paper fault if the printer is out of paper */
 
 if (sim_is_active (uptr)) {                             /* if the event service is scheduled */
     sim_cancel (uptr);                                  /*   then cancel it */

@@ -499,7 +499,7 @@ const char * quotefix (const char *cptr, char * buf)
 
 t_bool keyboard_is_busy (void)                  /* return TRUE if keyboard is not expecting a character */
 {
-    return (tti_dsw & TT_DSW_KEYBOARD_BUSY);
+    return (tti_dsw & TT_DSW_KEYBOARD_BUSY) != 0;
 }
 
 static t_stat tto_svc (UNIT *uptr)

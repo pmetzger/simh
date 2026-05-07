@@ -257,7 +257,7 @@ static t_bool save_1132_prt_line (int ch)
         mask >>= 1;                                                     /* prepare to examine next bit */
     }
 
-    return wd & 1;          /* return TRUE if the last word has lsb set, which means all bits had been set */
+    return (wd & 1) != 0;   /* return TRUE if the last word has lsb set, which means all bits had been set */
 }
 
 /* write_line - write collected line to output file. No need to trim spaces as the hammers

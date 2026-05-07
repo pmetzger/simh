@@ -3389,7 +3389,7 @@ buffer_index = 0;                                       /* clear the buffer with
 offline_pending = FALSE;                                /* cancel any pending offline request */
 
 tape_fault  = FALSE;                                    /* clear any tape fault */
-paper_fault = ! (xfer_unit.flags & UNIT_ATT);           /*   and set paper fault if out of paper */
+paper_fault = (xfer_unit.flags & UNIT_ATT) == 0;        /*   and set paper fault if out of paper */
 
 if (paper_fault && print_props [model].not_ready)       /* if paper is out and the printer reports it separately */
     new_status |= ST_NOT_READY;                         /*   then set not-ready status */

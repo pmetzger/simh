@@ -1568,7 +1568,7 @@ static t_stat echo_cmd (int32 flag, const char *cptr)
 
 void sim_init (void)
 {
-    sim_gui = ! (sim_switches & SWMASK('G'));   /* -g means no GUI */
+    sim_gui = (sim_switches & SWMASK('G')) == 0; /* -g means no GUI */
 
     sim_vm_cmd = x_cmds;                        /* provide list of additional commands */
 
@@ -1753,7 +1753,7 @@ static t_stat cpu_attach (UNIT *uptr, const char *cptr)
 
     remove(cptr);                           /* delete old log file, if present */
     new_log = TRUE;
-    log_fac = sim_switches & SWMASK ('F');  /* display the FAC and the ACC/EXT as fixed point. */
+    log_fac = (sim_switches & SWMASK ('F')) != 0; /* display the FAC and the ACC/EXT as fixed point. */
 
     for (s = syms; s != NULL; s = n) {      /* free any old map entries */
         n = s->next;

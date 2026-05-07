@@ -1737,11 +1737,11 @@ static uint8 jair_io_out(uint32 addr, int32 data)
             jairp_ctx.txd = data;
             jairp_ctx.txp = TRUE;
 
-            jair_ctx.sr_ena = (data & 0x01) ? FALSE : TRUE;
+            jair_ctx.sr_ena = (data & 0x01) == 0;
             break;
 
         case JAIR_SPI_SS:
-            jair_ctx.spi_cs = data & 0x01;
+            jair_ctx.spi_cs = (data & 0x01) != 0;
 
             if (jair_ctx.spi_cs) {    /* If chip is disable, reset */
                 jair_ctx.sd_appcmd = FALSE;

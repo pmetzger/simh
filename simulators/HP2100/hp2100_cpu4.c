@@ -746,7 +746,7 @@ switch (entry) {                                        /* decode IR<3:0> */
         if (op[0].fpk[0] == 0)                          /* argument zero? */
             break;                                      /* result zero */
 
-        flag = (op[0].fpk[1] & 1);                      /* get exponent sign */
+        flag = (op[0].fpk[1] & 1) != 0;                 /* get exponent sign */
         sign = ((int16) op[0].fpk[0] < 0);              /* get argument sign */
 
         if (flag == 0) {                                /* exp pos? (abs >= 0.5)? */
@@ -794,7 +794,7 @@ switch (entry) {                                        /* decode IR<3:0> */
             }
 
         multiple = multiple / 2 + (entry == 004);       /* add one for cosine */
-        flag = (multiple & 1);                          /* decide on series */
+        flag = (multiple & 1) != 0;                     /* decide on series */
 
         fp_exec (0040, &op[1], op[0], op[0]);           /* op1 = arg ^ 2 */
 
