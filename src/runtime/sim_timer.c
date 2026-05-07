@@ -542,13 +542,28 @@ UNIT sim_internal_timer_unit;                           /* Internal calibration 
 int32 sim_internal_timer_time;                          /* Pending internal timer delay */
 UNIT sim_throttle_unit;                                 /* one for throttle */
 
+/* Release the cached unit display name before test reset clears a timer-owned
+   UNIT structure. */
+static void sim_timer_free_unit_name(UNIT *uptr)
+{
+    free(uptr->uname);
+    uptr->uname = NULL;
+}
+
 /* Restore timer subsystem globals to startup-like defaults for unit tests.
    This is a test-only seam for isolating timer cases; production code should
    use the normal timer initialization and shutdown paths. */
 void sim_timer_reset_test_state(void)
 {
+    int tmr;
+
     while (sim_clock_queue != QUEUE_LIST_END)
         sim_cancel(sim_clock_queue);
+    for (tmr = 0; tmr <= SIM_NTIMERS; ++tmr)
+        sim_timer_free_unit_name(&sim_timer_units[tmr]);
+    sim_timer_free_unit_name(&sim_stop_unit);
+    sim_timer_free_unit_name(&sim_internal_timer_unit);
+    sim_timer_free_unit_name(&sim_throttle_unit);
     memset(rtcs, 0, sizeof(rtcs));
     memset(sim_timer_units, 0, sizeof(sim_timer_units));
     memset(&sim_stop_unit, 0, sizeof(sim_stop_unit));
