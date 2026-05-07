@@ -60,6 +60,33 @@ set_tests_properties(zimh-unit-intel-systems-i8080-symbols PROPERTIES
 set_property(GLOBAL APPEND PROPERTY SIMH_UNIT_TEST_TARGETS
     zimh-unit-intel-systems-i8080-symbols)
 
+# This target includes the real i8008 CPU personality, so it cannot use
+# add_unit_test(), which supplies generic simulator personality stubs.
+simh_executable_template(zimh-unit-intel-systems-i8008-symbolic
+    SOURCES
+        ${PROJECT_SOURCE_DIR}/tests/unit/support/test_support.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_i8008_symbolic.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/common
+        ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/scelbi
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
+target_link_libraries(zimh-unit-intel-systems-i8008-symbolic PUBLIC
+    ${unittest_cmocka_target}
+)
+target_compile_definitions(zimh-unit-intel-systems-i8008-symbolic PRIVATE
+    SIMH_TEST_SOURCE_ROOT="${CMAKE_SOURCE_DIR}"
+    SIMH_TEST_BINARY_ROOT="${CMAKE_BINARY_DIR}"
+)
+add_test(NAME zimh-unit-intel-systems-i8008-symbolic
+    COMMAND zimh-unit-intel-systems-i8008-symbolic)
+set_tests_properties(zimh-unit-intel-systems-i8008-symbolic PROPERTIES
+    LABELS "zimh;unit;zimh-intel-systems")
+set_property(GLOBAL APPEND PROPERTY SIMH_UNIT_TEST_TARGETS
+    zimh-unit-intel-systems-i8008-symbolic)
+
 add_unit_test(unit-intel-systems-iram8
     SOURCES
         ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/common/iram8.c
