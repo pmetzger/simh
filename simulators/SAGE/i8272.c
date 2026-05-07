@@ -327,7 +327,7 @@ static uint8 floorlog2(unsigned int n)
     return ((n == 0) ? (0xFF) : r); /* 0xFF is error return value */
 }
 
-static t_stat i8272_resultphase(I8272* chip,int delay)
+static void i8272_resultphase(I8272* chip,int delay)
 {
     uint8 cmd = chip->cmd[0] & 0x1f;
     chip->fdc_msr &= ~I8272_MSR_NON_DMA;
@@ -335,7 +335,6 @@ static t_stat i8272_resultphase(I8272* chip,int delay)
     chip->result_cnt = 0;
     NEXTSTATE(S_RESULT);
     if (delay) i8272_interrupt(chip,delay);
-    return SCPE_OK;
 }
 
 /*
@@ -355,7 +354,8 @@ t_stat i8272_finish(I8272* chip)
         TRACE_PRINT0(DBG_FD_VERBOSE,"Finish I/O, returning result");
         chip->irqflag = 0;
         chip->result[0] &= 0x3f; /* IC=normal termination */
-        return i8272_resultphase(chip,0);
+        i8272_resultphase(chip,0);
+        return SCPE_OK;
     default: /* @TODO is this correct? */
         TRACE_PRINT0(DBG_FD_VERBOSE,"Finish I/O, reset to S_CMD state");
         NEXTSTATE(S_CMD);
@@ -376,12 +376,14 @@ t_stat i8272_abortio(I8272* chip)
         TRACE_PRINT0(DBG_FD_VERBOSE,"RDY=0 during I/O, aborting and returning result");
         chip->irqflag = 0;
         chip->result[0] |= 0xc0; /* notify RDY change condition */
-        return i8272_resultphase(chip,0);
+        i8272_resultphase(chip,0);
+        return SCPE_OK;
 
     case S_RESULT:
         TRACE_PRINT0(DBG_FD_VERBOSE,"RDY=0, returning result");
         chip->irqflag = 0;
-        return i8272_resultphase(chip,0);
+        i8272_resultphase(chip,0);
+        return SCPE_OK;
 
     default: /* @TODO is this correct? */
         TRACE_PRINT0(DBG_FD_VERBOSE,"Abort I/O, reset to S_CMD state");
@@ -413,7 +415,8 @@ static t_stat i8272_dataread(I8272* chip,uint32* value)
     /* finished data read */
     TRACE_PRINT0(DBG_FD_RDDATA,"read buffer complete.");
     chip->result[0] &= 0x3f; /* clear bits 7,6: terminated correctly */
-    return i8272_resultphase(chip,0);
+    i8272_resultphase(chip,0);
+    return SCPE_OK;
 }
 
 static I8272_DRIVE_INFO* i8272_select_drive(I8272* chip, uint8 drive)
@@ -435,7 +438,8 @@ static t_stat i8272_secread(I8272* chip)
     /* finished with sector read? */
     if (chip->fdc_sector > chip->fdc_eot) {
         TRACE_PRINT2(DBG_FD_RDDATA,"No more sectors: sec=%d EOT=%d",chip->fdc_sector,chip->fdc_eot);
-        return i8272_resultphase(chip,10);
+        i8272_resultphase(chip,10);
+        return SCPE_OK;
     }
 
     /* no, read a buffer */
@@ -604,7 +608,8 @@ static t_stat i8272_nodriveerror(I8272* chip,const char* command,int delay)
     TRACE_PRINT1(DBG_FD_ERROR,"%s: no drive or disk\n",command);
     st0 = 0x40 | 0x10 | chip->fdc_curdrv;
     i8272_makeresult(chip, st0, 0, 0, 0, 0, 0, 0);
-    return i8272_resultphase(chip,delay);
+    i8272_resultphase(chip,delay);
+    return SCPE_OK;
 }
 
 
@@ -668,7 +673,8 @@ static t_stat i8272_format(I8272* chip)
         }
     }
     chip->fdc_sector = sc;
-    return i8272_resultphase(chip,1000);
+    i8272_resultphase(chip,1000);
+    return SCPE_OK;
 }
 
 static t_stat i8272_readid(I8272* chip)
@@ -723,7 +729,8 @@ static t_stat i8272_readid(I8272* chip)
         chip->fdc_curdrv, chip->result[0],
         chip->result[1],chip->result[2],chip->result[3],
         chip->result[4],chip->result[5],chip->result[6]));
-    return i8272_resultphase(chip,20);
+    i8272_resultphase(chip,20);
+    return SCPE_OK;
 }
 
 static t_stat i8272_seek(I8272* chip)
@@ -753,7 +760,8 @@ static t_stat i8272_senseint(I8272* chip)
     TRACE_PRINT2(DBG_FD_CMD,"Sense Interrupt Status ST0=0x%x PCN=%d",st0,dip->track);
     i8272_makeresult(chip, st0, dip->track, 0,0,0,0,0);
     chip->irqflag = 0; /* clear interrupt flag, don't raise a new one */
-    return i8272_resultphase(chip,0);
+    i8272_resultphase(chip,0);
+    return SCPE_OK;
 }
 
 static t_stat i8272_sensedrive(I8272* chip)
@@ -782,7 +790,8 @@ static t_stat i8272_sensedrive(I8272* chip)
     i8272_makeresult(chip, st3, 0, 0, 0, 0, 0, 0);
 
     TRACE_PRINT1(DBG_FD_CMD,"Sense Drive Status = 0x%02x", st3);
-    return i8272_resultphase(chip,5);
+    i8272_resultphase(chip,5);
+    return SCPE_OK;
 }
 
 static t_stat i8272_recalibrate(I8272* chip)
@@ -879,8 +888,10 @@ static t_bool i8272_secwrite(I8272* chip)
     sectWrite(dip->imd, dip->track, chip->fdc_head, chip->fdc_sector,
             chip->fdc_sdata, chip->fdc_secsz, &flags, &readlen);
     chip->fdc_sector++;
-    if (chip->fdc_sector > chip->fdc_eot)
-        return i8272_resultphase(chip,200);
+    if (chip->fdc_sector > chip->fdc_eot) {
+        i8272_resultphase(chip,200);
+        return TRUE;
+    }
 
     NEXTSTATE(S_DATAWRITE);
     if (chip->fdc_nd) { /* non-DMA */
@@ -898,7 +909,8 @@ static t_bool i8272_datawrite(I8272* chip,uint32 value,I8272_DRIVE_INFO* dip)
     /* finished with sector write? */
     if (chip->fdc_sector > chip->fdc_eot) {
         TRACE_PRINT0(DBG_FD_WRDATA,"Finished sector write");
-        return i8272_resultphase(chip,200);
+        i8272_resultphase(chip,200);
+        return TRUE;
     }
     if (chip->fdc_nd == 0) { /* DMA */
         for (i=0; i< chip->fdc_secsz; i++) {
@@ -996,7 +1008,8 @@ t_stat i8272_write(I8272* chip, int addr, uint32 value)
                 case UPD765_VERSION:
                     i8272_makeresult(chip, 0x80, 0, 0, 0, 0, 0, 0);
                     /* signal UPD765A, don't know whether B version (0x90) is relevant */
-                    return i8272_resultphase(chip,5);
+                    i8272_resultphase(chip,5);
+                    return SCPE_OK;
 
                 case I8272_SEEK:    /* SEEK */
                     return i8272_seek(chip);
@@ -1039,7 +1052,8 @@ t_stat i8272_write(I8272* chip, int addr, uint32 value)
 
                     TRACE_PRINT0(DBG_FD_CMD,"Scan Data");
                     TRACE_PRINT0(DBG_FD_ERROR,"ERROR: Scan not implemented.");
-                    return i8272_resultphase(chip,200);
+                    i8272_resultphase(chip,200);
+                    return SCPE_OK;
                 }
             }
         }
