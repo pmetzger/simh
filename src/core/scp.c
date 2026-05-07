@@ -3845,7 +3845,8 @@ if ((*optr != '"') && (*optr != '\'')) {
     if (rptr)
         return tptr;
     snprintf (optr, CBUFSIZE - 1, "\"%s\"", ap);
-    get_glyph_gen (optr, optr, 0, (sim_switches & SWMASK ('I')), TRUE, '\\');
+    get_glyph_gen (optr, optr, 0, (sim_switches & SWMASK ('I')) != 0, TRUE,
+                   '\\');
     }
 return tptr;
 }
@@ -3940,8 +3941,10 @@ if (Exist || (*gbuf == '"') || (*gbuf == '\'')) {       /* quoted string compari
             if (flag != 1)
                 return SCPE_2FARG;                      /* IF/ELSE needs actions! */
             }
-        result = sim_cmp_string (gbuf, gbuf2);
-        result = ((result == optr->aval) || (result == optr->bval));
+        int compare_result = sim_cmp_string (gbuf, gbuf2);
+
+        result = ((compare_result == optr->aval) ||
+                  (compare_result == optr->bval));
         if (optr->invert)
             result = !result;
         }
