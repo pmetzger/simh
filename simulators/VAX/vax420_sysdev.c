@@ -30,6 +30,7 @@
 */
 
 #include "vax_defs.h"
+#include "vax4xx_stddev.h"
 #include "sim_ether.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -147,22 +148,13 @@ int32 con_halt (int32 code, int32 cc);
 int32 tmr_tir_rd (void);
 void tmr_sched (void);
 
-extern t_stat or_map (uint32 index, uint8 *rom, t_addr size);
-extern t_stat or_unmap (uint32 index);
-extern void rom_wr_B (int32 pa, int32 val);
-extern int32 iccs_rd (void);
-extern int32 rom_rd (int32 pa);
-extern int32 nvr_rd (int32 pa);
 extern int32 nar_rd (int32 pa);
 extern int32 dz_rd (int32 pa);
-extern int32 or_rd (int32 pa);
 extern int32 rd_rd (int32 pa);
 extern int32 xs_rd (int32 pa);
 extern int32 vc_mem_rd (int32 pa);
 extern int32 va_rd (int32 pa);
 extern int32 ve_rd (int32 pa);
-extern void iccs_wr (int32 dat);
-extern void nvr_wr (int32 pa, int32 val, int32 lnt);
 extern void dz_wr (int32 pa, int32 val, int32 lnt);
 extern void rd_wr (int32 pa, int32 val, int32 lnt);
 extern void xs_wr (int32 pa, int32 val, int32 lnt);

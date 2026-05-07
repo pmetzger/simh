@@ -31,6 +31,8 @@
 */
 
 #include "vax_defs.h"
+#include "vax4xx_stddev.h"
+#include "vax4xx_stddev_internal.h"
 
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
 #define UNIT_NODELAY    (1u << UNIT_V_NODELAY)
@@ -197,23 +199,34 @@ DEVICE clk_dev = {
    issues with the embedded timing loops.
 */
 
+/*
+ * Read a 32-bit KA4xx ROM word.  This retains the legacy signed int32 VAX
+ * I/O signature, but the physical address and ROM word are unsigned guest bit
+ * patterns internally.
+ */
 int32 rom_rd (int32 pa)
 {
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 val = rom[rg];
+uint32 addr = (uint32) pa;
+uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
+uint32 val = rom[rg];
 
 if (rom_unit.flags & UNIT_NODELAY)
-    return val;
+    return (int32) val;
 
-return sim_rom_read_with_delay (val);
+return (int32) sim_rom_read_with_delay (val);
 }
 
+/*
+ * Replace one byte in the KA4xx ROM buffer.  The legacy loader API supplies
+ * signed int32 parameters, but the ROM storage and byte-lane merge are
+ * unsigned 32-bit guest word operations.
+ */
 void rom_wr_B (int32 pa, int32 val)
 {
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 sc = (pa & 3) << 3;
+uint32 addr = (uint32) pa;
+uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = ((val & 0xFF) << sc) | (rom[rg] & ~(0xFF << sc));
+rom[rg] = vax4xx_replace_byte_lane (rom[rg], addr, (uint32) val);
 return;
 }
 
@@ -306,32 +319,43 @@ return "read-only memory";
 
 /* NVR: non-volatile RAM - stored in a buffered file */
 
+/*
+ * Read a KA4xx NVR register word.  The public signature follows the legacy
+ * signed int32 VAX I/O callback pattern; the stored NVR value is handled as
+ * an unsigned guest register bit pattern before being returned through that
+ * boundary.
+ */
 int32 nvr_rd (int32 pa)
 {
-int32 rg = (pa - NVRBASE) >> 2;
-int32 val;
+uint32 addr = (uint32) pa;
+uint32 rg = (addr - NVRBASE) >> 2;
+uint32 val;
 
 if (rg < 14)                                            /* watch chip */
-    val = wtc_rd (rg);
+    val = (uint32) wtc_rd ((int32) rg);
 else
     val = nvr[rg];
-return (val << 2);
+return (int32) (val << 2);
 }
 
+/*
+ * Write a KA4xx NVR register byte lane.  The legacy signed int32 I/O callback
+ * supplies the value, but non-watch-chip NVR storage is updated as an
+ * unsigned 32-bit guest register image.
+ */
 void nvr_wr (int32 pa, int32 val, int32 lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - NVRBASE) >> 2;
-val = val >> 2;
+uint32 addr = (uint32) pa;
+uint32 rg = (addr - NVRBASE) >> 2;
+uint32 nvr_val = ((uint32) val) >> 2;
 if (rg < 14)                                            /* watch chip */
-    wtc_wr (rg, val);
+    wtc_wr ((int32) rg, (int32) nvr_val);
 else {
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = 0xFF;
-    nvr[rg] = ((val & mask) << sc) | (nvr[rg] & ~(mask << sc));
+    nvr[rg] = vax4xx_replace_byte_lane (nvr[rg], addr, nvr_val);
     }
 }
 
@@ -454,39 +478,44 @@ return "non-volatile memory";
    or_reset    process reset
 */
 
+/*
+ * Read a KA4xx option ROM word.  Option ROM data is assembled from raw bytes
+ * into an unsigned 32-bit guest word, then returned through the legacy signed
+ * int32 VAX I/O callback boundary.
+ */
 int32 or_rd (int32 pa)
 {
-uint32 off = (pa - ORBASE);                             /* offset from start of option roms */
+uint32 off = ((uint32) pa - ORBASE);                    /* offset from start of option roms */
 uint32 rn = ((off >> 18) & 0x3);                        /* rom number (0 - 3) */
 UNIT *uptr = &or_dev.units[rn];                         /* get unit */
 uint8 *opr = (uint8*) uptr->filebuf;
-int32 data = 0;
+uint32 data = 0;
 uint32 rg;
 
 if ((uptr->flags & UNIT_ATT) && (opr != NULL)) {
     switch (opr[0]) {                                    /* number of ROM chips */
         case 1:
             rg = (off >> 2) & (uptr->capac - 1);
-            data = (0xFFFFFF00 | (opr[rg] & 0xFF));
-            return sim_rom_read_with_delay (data);
+            data = 0xFFFFFF00u | vax4xx_pack_byte_lane (opr[rg], 0);
+            return (int32) sim_rom_read_with_delay (data);
 
         case 2:
             rg = (off >> 1) & (uptr->capac - 1);
-            data = data | opr[rg++];
-            data = data | (opr[rg] << 8);
-            data = (0xFFFF0000 | data);
-            return sim_rom_read_with_delay (data);
+            data = data | vax4xx_pack_byte_lane (opr[rg++], 0);
+            data = data | vax4xx_pack_byte_lane (opr[rg], 8);
+            data = 0xFFFF0000u | data;
+            return (int32) sim_rom_read_with_delay (data);
 
         case 4:
             rg = off & (uptr->capac - 1);
-            data = data | opr[rg++];
-            data = data | (opr[rg++] << 8);
-            data = data | (opr[rg++] << 16);
-            data = data | (opr[rg++] << 24);
-            return sim_rom_read_with_delay (data);
+            data = data | vax4xx_pack_byte_lane (opr[rg++], 0);
+            data = data | vax4xx_pack_byte_lane (opr[rg++], 8);
+            data = data | vax4xx_pack_byte_lane (opr[rg++], 16);
+            data = data | vax4xx_pack_byte_lane (opr[rg++], 24);
+            return (int32) sim_rom_read_with_delay (data);
             }
     }
-return sim_rom_read_with_delay (0xFFFFFFFF);
+return (int32) sim_rom_read_with_delay (0xFFFFFFFFu);
 }
 
 t_stat or_reset (DEVICE *dptr)
