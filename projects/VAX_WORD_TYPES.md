@@ -27,3 +27,12 @@ boundary.  They currently return `int32` even when the caller is passing
 around a 32-bit machine word.  Changing that convention should be done
 under focused VAX unit and integration coverage rather than folded into
 small undefined-behavior fixes.
+
+The VAX architectural masks in `vax_defs.h` should also be audited.
+Constants such as `BMASK`, `WMASK`, `LMASK`, and related sign or field
+masks describe guest bit patterns, but some are currently plain signed
+integer literals.  Making those masks unsigned may simplify many local
+UB fixes and better document their domain, but it will affect usual
+arithmetic conversions throughout the VAX CPU, compatibility-mode, MMU,
+and device code.  That change should be a separate, broadly tested VAX
+cleanup rather than a side effect of a narrow sanitizer repair.
