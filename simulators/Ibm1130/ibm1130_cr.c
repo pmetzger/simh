@@ -1567,7 +1567,8 @@ t_stat cr_rewind (void)
 static t_stat cr_attach (UNIT *uptr, const char *iptr)
 {
     t_stat rval;
-    t_bool use_decklist, old_quiet;
+    t_bool use_decklist;
+    int32 old_quiet;
     char gbuf[4*CBUFSIZE], *cptr = gbuf;
     char *c, *arg, quote;
 

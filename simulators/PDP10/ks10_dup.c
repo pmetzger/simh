@@ -1358,7 +1358,7 @@ static t_stat dup_set_W3 (UNIT* uptr, int32 val, const char* cptr, void* desc)
 DEVICE *dptr = DUPDPTR;
 int32 dup = (int32)(uptr-dptr->units);
 
-dup_W3[dup] = val;
+dup_W3[dup] = (val != 0);
 return SCPE_OK;
 }
 
@@ -1391,7 +1391,7 @@ static t_stat dup_set_W5 (UNIT* uptr, int32 val, const char* cptr, void* desc)
 DEVICE *dptr = DUPDPTR;
 int32 dup = (int32)(uptr-dptr->units);
 
-dup_W5[dup] = val;
+dup_W5[dup] = (val != 0);
 return SCPE_OK;
 }
 
@@ -1424,7 +1424,7 @@ static t_stat dup_set_W6 (UNIT* uptr, int32 val, const char* cptr, void* desc)
 DEVICE *dptr = DUPDPTR;
 int32 dup = (int32)(uptr-dptr->units);
 
-dup_W6[dup] = val;
+dup_W6[dup] = (val != 0);
 return SCPE_OK;
 }
 

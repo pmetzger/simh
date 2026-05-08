@@ -133,7 +133,7 @@ UNIT prt_unit[] = {
 
 #define IS_1403(uptr)      (uptr->flags & UNIT_1403)                    /* model test */
 #define IS_1132(uptr)     ((uptr->flags & UNIT_1403) == 0)              /* model test */
-#define IS_PHYSICAL(uptr)  (uptr->flags & UNIT_PHYSICAL_PTR)
+#define IS_PHYSICAL(uptr)  ((uptr->flags & UNIT_PHYSICAL_PTR) != 0)
 #define DO_TRACE(uptr)     (uptr->flags & UNIT_TRACE)
 
 /* Parameter in the unit descriptor (1132 printer) */

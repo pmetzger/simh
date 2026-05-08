@@ -1546,7 +1546,7 @@ while (cycles > 0) {                                    /* execute as long as cy
 
     cycles = cycles - CYCLES_PER_STATE;                         /* count the state execution */
 
-    state_reg = next_state (state_reg, sio_order, device_end);  /* get the next state */
+    state_reg = next_state (state_reg, sio_order, device_end == SET);   /* get the next state */
 
     rollover   = CLEAR;                                 /* the end of each state clears */
     device_end = CLEAR;                                 /*   the word count rollover and device end flip-flops */
