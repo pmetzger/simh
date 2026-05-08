@@ -7,6 +7,7 @@
 
 #include "test_cmocka.h"
 
+#include "scp.h"
 #include "sim_defs.h"
 #include "sim_dynstr_internal.h"
 #include "sim_fio.h"
@@ -294,6 +295,16 @@ static void assert_tape_callback(struct sim_tape_callback_state *state,
     reset_tape_callback_state(state);
 }
 
+static void wait_for_tape_callback(struct sim_tape_callback_state *state)
+{
+    unsigned retry;
+
+    for (retry = 0; (retry < 1000) && (state->calls == 0); ++retry) {
+        assert_int_equal(sim_process_event(), SCPE_OK);
+        usleep(1000);
+    }
+}
+
 static void write_sim_tape_self_test_output(void *context)
 {
     struct sim_tape_capture *capture = context;
@@ -544,6 +555,55 @@ static void test_sim_tape_callback_wrappers_report_sync_status(void **state)
                               sizeof(record));
 
     active_tape_callback_state = NULL;
+}
+
+static void test_sim_tape_async_spfilebyrecf_normalizes_check_leot(void **state)
+{
+    struct sim_tape_fixture *fixture = *state;
+    struct sim_tape_callback_state callback_state;
+    uint8 first_record[] = {0x4A, 0x4B};
+    uint32 files_skipped = 99;
+    uint32 records_skipped = 99;
+    t_stat queued_status;
+#if defined(SIM_ASYNCH_IO)
+    t_bool saved_asynch_enabled = sim_asynch_enabled;
+
+    sim_asynch_enabled = TRUE;
+#endif
+
+    active_tape_callback_state = &callback_state;
+    reset_tape_callback_state(&callback_state);
+
+    assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
+                     SCPE_OK);
+#if defined(SIM_ASYNCH_IO)
+    assert_non_null(fixture->unit.a_check_completion);
+    assert_non_null(fixture->unit.a_is_active);
+#endif
+    assert_int_equal(
+        sim_tape_wrrecf(&fixture->unit, first_record, sizeof(first_record)),
+        MTSE_OK);
+    assert_int_equal(sim_tape_wrtmk(&fixture->unit), MTSE_OK);
+    assert_int_equal(sim_tape_wrtmk(&fixture->unit), MTSE_OK);
+    assert_int_equal(sim_tape_rewind(&fixture->unit), MTSE_OK);
+
+    queued_status = sim_tape_spfilebyrecf_a(&fixture->unit, 2, &files_skipped,
+                                            &records_skipped, 2,
+                                            record_tape_callback);
+#if defined(SIM_ASYNCH_IO)
+    assert_int_equal(queued_status, MTSE_OK);
+#else
+    assert_int_equal(queued_status, MTSE_LEOT);
+#endif
+    wait_for_tape_callback(&callback_state);
+    assert_tape_callback(&callback_state, &fixture->unit, MTSE_LEOT);
+    assert_int_equal(files_skipped, 1);
+    assert_int_equal(records_skipped, 1);
+
+    active_tape_callback_state = NULL;
+#if defined(SIM_ASYNCH_IO)
+    sim_asynch_enabled = saved_asynch_enabled;
+#endif
 }
 
 /* Verify the synchronous callback wrappers return the same status as the
@@ -801,6 +861,26 @@ static void test_sim_tape_operational_error_paths(void **state)
     assert_int_equal(fixture->unit.tape_eom, 0);
     assert_null(fixture->unit.fileref);
     assert_null(fixture->unit.io_flush);
+}
+
+static void test_sim_tape_detach_restores_attach_format_override(void **state)
+{
+    struct sim_tape_fixture *fixture = *state;
+    char attach_arg[2048];
+
+    assert_int_equal(sim_tape_set_fmt(&fixture->unit, 0, "TPC", NULL),
+                     SCPE_OK);
+    assert_int_equal(MT_GET_FMT(&fixture->unit), MTUF_F_TPC);
+
+    assert_true(snprintf(attach_arg, sizeof(attach_arg), "SIMH %s",
+                         fixture->tape_path) < (int)sizeof(attach_arg));
+    sim_switches = SWMASK('F');
+    assert_int_equal(sim_tape_attach_ex(&fixture->unit, attach_arg, 0, 0),
+                     SCPE_OK);
+    assert_int_equal(MT_GET_FMT(&fixture->unit), MTUF_F_STD);
+
+    assert_int_equal(sim_tape_detach(&fixture->unit), SCPE_OK);
+    assert_int_equal(MT_GET_FMT(&fixture->unit), MTUF_F_STD);
 }
 
 /* Verify memory-backed tape formats release attach metadata on detach. */
@@ -1613,6 +1693,9 @@ int main(void)
         cmocka_unit_test_setup_teardown(
             test_sim_tape_callback_wrappers_report_sync_status,
             setup_sim_tape_fixture, teardown_sim_tape_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_tape_async_spfilebyrecf_normalizes_check_leot,
+            setup_sim_tape_fixture, teardown_sim_tape_fixture),
         cmocka_unit_test_setup_teardown(test_sim_tape_standard_image_round_trip,
                                         setup_sim_tape_fixture,
                                         teardown_sim_tape_fixture),
@@ -1655,6 +1738,9 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_sim_tape_operational_error_paths,
                                         setup_sim_tape_fixture,
                                         teardown_sim_tape_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_tape_detach_restores_attach_format_override,
+            setup_sim_tape_fixture, teardown_sim_tape_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_tape_memory_format_detach_clears_filename,
             setup_sim_tape_fixture, teardown_sim_tape_fixture),

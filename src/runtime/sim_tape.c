@@ -125,7 +125,7 @@ static t_stat tape_erase_rev (UNIT *uptr, t_mtrlnt gap_size);
 struct tape_context {
     DEVICE              *dptr;              /* Device for unit (access to debug flags) */
     uint32              dbit;               /* debugging bit for trace */
-    uint32              auto_format;        /* Format determined dynamically */
+    t_bool              auto_format;        /* Format determined dynamically */
 #if defined SIM_ASYNCH_IO
     t_bool              asynch_io;          /* Asynchronous Interrupt scheduling enabled */
     int                 asynch_io_latency;  /* instructions to delay pending interrupt */
@@ -263,7 +263,7 @@ struct tape_context *ctx = (struct tape_context *)uptr->tape_ctx;
                 ctx->io_status = sim_tape_spfilef (uptr, ctx->vbc, ctx->bc);
                 break;
             case TOP_SFRF:
-                ctx->io_status = sim_tape_spfilebyrecf (uptr, ctx->vbc, ctx->bc, ctx->fc, ctx->max);
+                ctx->io_status = sim_tape_spfilebyrecf (uptr, ctx->vbc, ctx->bc, ctx->fc, ctx->max != 0);
                 break;
             case TOP_SPFR:
                 ctx->io_status = sim_tape_spfiler (uptr, ctx->vbc, ctx->bc);
