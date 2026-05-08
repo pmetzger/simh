@@ -86,6 +86,15 @@ add_unit_test(unit-sim-time
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
+add_unit_test(unit-uint-bits
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_uint_bits.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
 add_unit_test(unit-sim-frontpanel
     LABEL unit
     SOURCES
