@@ -128,6 +128,44 @@ static void test_aligned_getters_le_right_justify_results(void **state)
     assert_int_equal(u32_get_addr_u16_le(0xd6175678u, 2), 0xd617u);
 }
 
+/* Verify big-endian u8 helpers cover every aligned field. */
+static void test_addr_u8_be_covers_all_fields(void **state)
+{
+    static const struct {
+        uint32_t addr;
+        uint32_t expected;
+    } cases[] = {
+        {0, 0xa5345678u},
+        {1, 0x12a55678u},
+        {2, 0x1234a578u},
+        {3, 0x123456a5u},
+    };
+
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        assert_int_equal(u32_put_addr_u8_be(0x12345678u, 0x1a5, cases[i].addr),
+                         cases[i].expected);
+        assert_int_equal(u32_get_addr_u8_be(cases[i].expected, cases[i].addr),
+                         0xa5u);
+    }
+}
+
+/* Verify big-endian u16 helpers cover both aligned fields. */
+static void test_addr_u16_be_covers_both_fields(void **state)
+{
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    assert_int_equal(u32_put_addr_u16_be(0x12345678u, 0x1d617, 0), 0xd6175678u);
+    assert_int_equal(u32_get_addr_u16_be(0xd6175678u, 0), 0xd617u);
+    assert_int_equal(u32_put_addr_u16_be(0x12345678u, 0x1d617, 2), 0x1234d617u);
+    assert_int_equal(u32_get_addr_u16_be(0x1234d617u, 2), 0xd617u);
+}
+
 /* Verify putting counted u8 fields handles every supported count. */
 static void test_put_u8_count_le_covers_supported_counts(void **state)
 {
@@ -203,6 +241,8 @@ int main(void)
         cmocka_unit_test(test_put_u16_le_covers_both_fields),
         cmocka_unit_test(test_make_u16_le_covers_both_fields),
         cmocka_unit_test(test_aligned_getters_le_right_justify_results),
+        cmocka_unit_test(test_addr_u8_be_covers_all_fields),
+        cmocka_unit_test(test_addr_u16_be_covers_both_fields),
         cmocka_unit_test(test_put_u8_count_le_covers_supported_counts),
         cmocka_unit_test(test_make_u8_count_le_covers_supported_counts),
         cmocka_unit_test(test_extract_helpers_split_values),

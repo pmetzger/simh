@@ -82,6 +82,7 @@
 #define ONIPU 0x0010                    /* BIT27 */
 
 #include "sim_defs.h"                   /* simh simulator defns */
+#include "uint_bits.h"
 
 #ifndef CPUONLY
 #ifdef USE_POSIX_SEM
@@ -620,28 +621,11 @@ extern  uint32  SPAD[];                 /* cpu SPAD memory */
 extern  uint32  attention_trap;
 extern  int     irq_pend;               /* pending interrupt flag */
 
-/* Return the bit offset for a byte within a big-endian SEL-32 word. */
-static inline uint32
-sel32_byte_shift(uint32 addr)
-{
-    return 8u * (3u - (addr & 3u));
-}
-
 /* Read a byte from a SEL-32 word-addressed memory array. */
 static inline uint32
 sel32_read_byte_from(const uint32 *memory, uint32 addr)
 {
-    return (memory[addr >> 2] >> sel32_byte_shift(addr)) & 0xffu;
-}
-
-/* Replace one byte in a big-endian SEL-32 word. */
-static inline uint32
-sel32_replace_word_byte(uint32 word, uint32 byte_index, uint32 data)
-{
-    uint32 shift = sel32_byte_shift(byte_index);
-    uint32 mask = 0xffu << shift;
-
-    return (word & ~mask) | ((data & 0xffu) << shift);
+    return u32_get_addr_u8_be(memory[addr >> 2], addr);
 }
 
 /* Write a byte into a SEL-32 word-addressed memory array. */
@@ -650,16 +634,14 @@ sel32_write_byte_to(uint32 *memory, uint32 addr, uint32 data)
 {
     uint32 index = addr >> 2;
 
-    memory[index] = sel32_replace_word_byte(memory[index], addr & 3u, data);
+    memory[index] = u32_put_addr_u8_be(memory[index], data, addr);
 }
 
 /* Read a halfword from a SEL-32 word-addressed memory array. */
 static inline uint32
 sel32_read_halfword_from(const uint32 *memory, uint32 addr)
 {
-    if (addr & 2u)
-        return memory[addr >> 2] & RMASK;
-    return (memory[addr >> 2] >> 16) & RMASK;
+    return u32_get_addr_u16_be(memory[addr >> 2], addr);
 }
 
 /* Write a halfword into a SEL-32 word-addressed memory array. */
@@ -667,12 +649,8 @@ static inline void
 sel32_write_halfword_to(uint32 *memory, uint32 addr, uint32 data)
 {
     uint32 index = addr >> 2;
-    uint32 halfword = data & RMASK;
 
-    if (addr & 2u)
-        memory[index] = (memory[index] & LMASK) | halfword;
-    else
-        memory[index] = (memory[index] & RMASK) | (halfword << 16);
+    memory[index] = u32_put_addr_u16_be(memory[index], data, addr);
 }
 
 #ifdef NOT_USED

@@ -27,6 +27,7 @@ add_simulator(sel32
         sel32_ipu.c
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/src/runtime
     DEFINES
         USE_INT32
         SEL32

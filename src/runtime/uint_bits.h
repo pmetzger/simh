@@ -165,6 +165,71 @@ static inline uint32_t u32_get_addr_u16_le(uint32_t src, uint32_t addr)
     return u32_get_field(src, (uint_t)(addr & 2u) << 3, 16u);
 }
 
+// Put an aligned big-endian u8 field into an existing uint32_t dest.
+//
+// addr is a simulated machine address. Only the low two addr bits are used.
+// addr & 3 selects the 8-bit aligned 8-bit field inside the uint32_t. src is
+// masked to 8 bits before insertion, and the other bits in dest are preserved.
+//
+// Example: u32_put_addr_u8_be(0x12345678, 0x1ab, 0x1001) returns 0x12ab5678.
+//
+//     dest:   0x12 [34] 56 78
+//     src:    0x00 00 01 [ab]
+//     result: 0x12 [ab] 56 78
+static inline uint32_t u32_put_addr_u8_be(uint32_t dest, uint32_t src,
+                                          uint32_t addr)
+{
+    return u32_put_field(dest, src, (uint_t)(3u - (addr & 3u)) << 3, 8u);
+}
+
+// Put an aligned big-endian u16 field into an existing uint32_t dest.
+//
+// addr is a simulated machine address. Only addr bit 1 is used. addr & 2
+// selects the 16-bit aligned 16-bit field inside the uint32_t. src is masked
+// to 16 bits before insertion, and the other bits in dest are preserved.
+//
+// Example: u32_put_addr_u16_be(0x12345678, 0x1abcd, 0x1002) returns
+// 0x1234abcd.
+//
+//     dest:   0x1234 [5678]
+//     src:    0x0001 [abcd]
+//     result: 0x1234 [abcd]
+static inline uint32_t u32_put_addr_u16_be(uint32_t dest, uint32_t src,
+                                           uint32_t addr)
+{
+    return u32_put_field(dest, src, (uint_t)(2u - (addr & 2u)) << 3, 16u);
+}
+
+// Get an aligned big-endian u8 field from a uint32_t src.
+//
+// addr is a simulated machine address. Only the low two addr bits are used.
+// addr & 3 selects the 8-bit aligned 8-bit field inside the uint32_t. The
+// selected field is returned in the low bits.
+//
+// Example: u32_get_addr_u8_be(0x12345678, 0x1001) returns 0x34.
+//
+//     src:    0x12 [34] 56 78
+//     result: 0x00 00 00 [34]
+static inline uint32_t u32_get_addr_u8_be(uint32_t src, uint32_t addr)
+{
+    return u32_get_field(src, (uint_t)(3u - (addr & 3u)) << 3, 8u);
+}
+
+// Get an aligned big-endian u16 field from a uint32_t src.
+//
+// addr is a simulated machine address. Only addr bit 1 is used. addr & 2
+// selects the 16-bit aligned 16-bit field inside the uint32_t. The selected
+// field is returned in the low bits.
+//
+// Example: u32_get_addr_u16_be(0x12345678, 0x1002) returns 0x5678.
+//
+//     src:    0x1234 [5678]
+//     result: 0x0000 [5678]
+static inline uint32_t u32_get_addr_u16_be(uint32_t src, uint32_t addr)
+{
+    return u32_get_field(src, (uint_t)(2u - (addr & 2u)) << 3, 16u);
+}
+
 // Put a counted little-endian u8 field group into an existing uint32_t dest.
 //
 // count must be in the range 1 through 4. It says how many adjacent u8 fields

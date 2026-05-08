@@ -6,30 +6,6 @@ struct ipcom *IPC;
 uint32 M[4];
 uint32 MAPC[4];
 
-/* Verify byte replacement preserves the rest of the word. */
-static void test_replace_word_byte_updates_each_byte(void **state)
-{
-    static const struct {
-        uint32 byte_index;
-        uint32 value;
-        uint32 expected;
-    } cases[] = {
-        {0, 0xff, 0xff345678},
-        {1, 0x80, 0x12805678},
-        {2, 0x7e, 0x12347e78},
-        {3, 0x01, 0x12345601},
-    };
-
-    (void)state;
-
-    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
-        assert_int_equal(
-            sel32_replace_word_byte(
-                0x12345678, cases[i].byte_index, cases[i].value),
-            cases[i].expected);
-    }
-}
-
 /* Verify byte writes preserve neighboring bytes and handle the high byte. */
 static void test_write_memory_byte_updates_each_byte(void **state)
 {
@@ -91,7 +67,6 @@ static void test_write_map_cache_halfword_updates_each_half(void **state)
 int main(void)
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(test_replace_word_byte_updates_each_byte),
         cmocka_unit_test(test_write_memory_byte_updates_each_byte),
         cmocka_unit_test(test_write_memory_halfword_updates_each_half),
         cmocka_unit_test(test_write_map_cache_halfword_updates_each_half),

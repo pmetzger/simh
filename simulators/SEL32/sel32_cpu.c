@@ -7294,7 +7294,8 @@ mcheck:
             case 5:
             case 6:
             case 7:         /* byte store operation */
-                temp = sel32_replace_word_byte(temp, (uint32)(FC - 4), dest);
+                temp = u32_put_addr_u8_be(temp, (uint32)dest,
+                    (uint32)(FC - 4));
                 break;
             }
             /* store back the modified memory location */
