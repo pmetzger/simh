@@ -128,6 +128,65 @@ static void test_combine_read_words_masks_qbus_words(void **state)
                      0xff001234u);
 }
 
+/* Verify write byte extraction treats the value as an unsigned bit pattern. */
+static void test_extract_write_byte_covers_every_byte(void **state)
+{
+    static const uint32 expected[] = {0x78, 0x56, 0x34, 0x12};
+
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); i++)
+        assert_int_equal(vax_qbus_extract_write_byte(0x12345678u, (uint32)i),
+                         expected[i]);
+}
+
+/* Verify write word extraction avoids signed right-shift semantics. */
+static void test_extract_write_word_handles_high_bit_values(void **state)
+{
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    assert_int_equal(vax_qbus_extract_write_word(0xff001234u, 0), 0x1234u);
+    assert_int_equal(vax_qbus_extract_write_word(0xff001234u, 1), 0x0012u);
+    assert_int_equal(vax_qbus_extract_write_word(0xff001234u, 2), 0xff00u);
+}
+
+/* Verify partial write values are positioned with unsigned arithmetic. */
+static void test_position_write_value_handles_high_bit_values(void **state)
+{
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    assert_int_equal(vax_qbus_position_write_value(3, 0xffu, L_BYTE),
+                     0xff000000u);
+    assert_int_equal(vax_qbus_position_write_value(2, 0xffffu, L_WORD),
+                     0xffff0000u);
+    assert_int_equal(vax_qbus_position_write_value(0, 0x87654321u, L_LONG),
+                     0x87654321u);
+}
+
+/* Verify partial register writes preserve non-selected fields. */
+static void test_replace_write_field_covers_byte_word_and_long(void **state)
+{
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    assert_int_equal(vax_qbus_replace_write_field(0x12345678u, 3, 0xa5u,
+                                                  L_BYTE),
+                     0xa5345678u);
+    assert_int_equal(vax_qbus_replace_write_field(0x12345678u, 1, 0xabcdu,
+                                                  L_WORD),
+                     0x12abcd78u);
+    assert_int_equal(vax_qbus_replace_write_field(0x12345678u, 0,
+                                                  0x87654321u, L_LONG),
+                     0x87654321u);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -139,6 +198,10 @@ int main(void)
         cmocka_unit_test(test_position_read_word_masks_qbus_word),
         cmocka_unit_test(test_combine_read_words_assembles_longword),
         cmocka_unit_test(test_combine_read_words_masks_qbus_words),
+        cmocka_unit_test(test_extract_write_byte_covers_every_byte),
+        cmocka_unit_test(test_extract_write_word_handles_high_bit_values),
+        cmocka_unit_test(test_position_write_value_handles_high_bit_values),
+        cmocka_unit_test(test_replace_write_field_covers_byte_word_and_long),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

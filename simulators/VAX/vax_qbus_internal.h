@@ -7,6 +7,10 @@
 
 #include "vax_defs.h"
 
+#ifdef VAX_QBUS_TEST_RECORD_WRITES
+void vax_qbus_test_record_write(uint32 pa, int32 val, int32 mode);
+#endif
+
 /* Return the bit shift for the byte lane selected by a VAX address. */
 static inline uint32 vax_qbus_byte_shift(uint32 pa)
 {
@@ -51,6 +55,45 @@ static inline uint32 vax_qbus_combine_read_words(uint32 low, uint32 high)
     uint32 word_mask = (uint32)WMASK;
 
     return ((high & word_mask) << 16) | (low & word_mask);
+}
+
+/* Extract one byte from a right-justified VAX longword write value. */
+static inline uint32 vax_qbus_extract_write_byte(uint32 val, uint32 byte_index)
+{
+    return (val >> (byte_index << 3)) & (uint32)BMASK;
+}
+
+/* Extract one word from a right-justified VAX longword write value. */
+static inline uint32 vax_qbus_extract_write_word(uint32 val, uint32 byte_index)
+{
+    return (val >> (byte_index << 3)) & (uint32)WMASK;
+}
+
+/* Position a partial write value in the register field selected by address. */
+static inline uint32 vax_qbus_position_write_value(uint32 pa, uint32 val,
+                                                   int32 lnt)
+{
+    uint32 mask;
+
+    if (lnt == L_LONG)
+        return val;
+    mask = (lnt == L_WORD) ? (uint32)WMASK : (uint32)BMASK;
+    return (val & mask) << vax_qbus_byte_shift(pa);
+}
+
+/* Replace the addressed byte or word field in a 32-bit register image. */
+static inline uint32 vax_qbus_replace_write_field(uint32 word, uint32 pa,
+                                                  uint32 val, int32 lnt)
+{
+    uint32 mask;
+    uint32 sc = vax_qbus_byte_shift(pa);
+    uint32 field_mask;
+
+    if (lnt == L_LONG)
+        return val;
+    mask = (lnt == L_WORD) ? (uint32)WMASK : (uint32)BMASK;
+    field_mask = mask << sc;
+    return ((val & mask) << sc) | (word & ~field_mask);
 }
 
 #endif

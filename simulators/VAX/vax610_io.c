@@ -117,6 +117,7 @@ MACH_CHECK (MCHK_READ);
 return 0;
 }
 
+#ifndef VAX_QBUS_TEST_RECORD_WRITES
 static void WriteQb (uint32 pa, int32 val, int32 mode)
 {
 int32 idx;
@@ -134,6 +135,13 @@ if (iodispW[idx]) {
 MACH_CHECK (MCHK_WRITE);                                /* FIXME: is this correct? */
 return;
 }
+#else
+static void WriteQb (uint32 pa, int32 val, int32 mode)
+{
+vax_qbus_test_record_write (pa, val, mode);
+return;
+}
+#endif
 
 /* ReadIO - read I/O space - aligned access
 
@@ -216,13 +224,15 @@ return (int32) iod;
 
 void WriteIO (uint32 pa, int32 val, int32 lnt)
 {
+uint32 data = (uint32) val;
+
 if (lnt == L_BYTE)
     WriteQb (pa, val, WRITEB);
 else if (lnt == L_WORD)
     WriteQb (pa, val, WRITE);
 else {
-    WriteQb (pa, val & 0xFFFF, WRITE);
-    WriteQb (pa + 2, (val >> 16) & 0xFFFF, WRITE);
+    WriteQb (pa, (int32) vax_qbus_extract_write_word (data, 0), WRITE);
+    WriteQb (pa + 2, (int32) vax_qbus_extract_write_word (data, 2), WRITE);
     }
 SET_IRQL;
 return;
@@ -248,27 +258,29 @@ bo = 1, lnt = tribyte - write byte, word
 
 void WriteIOU (uint32 pa, int32 val, int32 lnt)
 {
+uint32 data = (uint32) val;
+
 switch (lnt) {
 case L_BYTE:                                            /* byte */
-    WriteQb (pa, val & BMASK, WRITEB);
+    WriteQb (pa, (int32) vax_qbus_extract_write_byte (data, 0), WRITEB);
     break;
 
 case L_WORD:                                            /* word */
     if (pa & 1) {                                       /* odd addr? */
-        WriteQb (pa, val & BMASK, WRITEB);
-        WriteQb (pa + 1, (val >> 8) & BMASK, WRITEB);
+        WriteQb (pa, (int32) vax_qbus_extract_write_byte (data, 0), WRITEB);
+        WriteQb (pa + 1, (int32) vax_qbus_extract_write_byte (data, 1), WRITEB);
         }
-    else WriteQb (pa, val & WMASK, WRITE);
+    else WriteQb (pa, (int32) vax_qbus_extract_write_word (data, 0), WRITE);
     break;
 
 case 3:                                                 /* tribyte */
     if (pa & 1) {                                       /* odd addr? */
-        WriteQb (pa, val & BMASK, WRITEB);              /* byte then word */
-        WriteQb (pa + 1, (val >> 8) & WMASK, WRITE);
+        WriteQb (pa, (int32) vax_qbus_extract_write_byte (data, 0), WRITEB);
+        WriteQb (pa + 1, (int32) vax_qbus_extract_write_word (data, 1), WRITE);
         }
     else {                                              /* even */
-        WriteQb (pa, val & WMASK, WRITE);               /* word then byte */
-        WriteQb (pa + 2, (val >> 16) & BMASK, WRITEB);
+        WriteQb (pa, (int32) vax_qbus_extract_write_word (data, 0), WRITE);
+        WriteQb (pa + 2, (int32) vax_qbus_extract_write_byte (data, 2), WRITEB);
         }
     break;
     }

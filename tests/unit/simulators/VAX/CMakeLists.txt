@@ -75,6 +75,50 @@ add_unit_test(unit-vax-cpu1-call
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax-qbus-io-write
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_write.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_io.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_QBUS_TEST_RECORD_WRITES
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax610-qbus-io-write
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_write.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax610_io.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_610
+        VAX_QBUS_TEST_RECORD_WRITES
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax630-qbus-io-write
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_write.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax630_io.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_630
+        VAX_QBUS_TEST_RECORD_WRITES
+    FEATURE_FULL64
+)
+
 simh_executable_template(zimh-unit-vax-symbols
     SOURCES
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_sys.c
