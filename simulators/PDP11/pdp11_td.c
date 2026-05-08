@@ -1266,12 +1266,15 @@ return FALSE;
 
 static void tdi_set_int (int32 ctlr, t_bool val)
 {
-if ((tdi_ireq & (1 << ctlr)) ^ (val << ctlr)) {
+uint32 mask = 1u << ctlr;
+t_bool interrupt_set = ((tdi_ireq & mask) != 0);
+
+if (interrupt_set != val) {
     sim_debug (TDDEB_INT, &tdc_dev, "tdi_set_int(%d, %d)\n", ctlr, val);
     if (val)
-        tdi_ireq |= (1 << ctlr);                        /* set rcv int */
+        tdi_ireq |= mask;                               /* set rcv int */
     else
-        tdi_ireq &= ~(1 << ctlr);                       /* clear rcv int */
+        tdi_ireq &= ~mask;                              /* clear rcv int */
     if (tdi_ireq == 0)                                  /* all clr? */
         CLR_INT (TDRX);
     else
@@ -1295,12 +1298,15 @@ return 0;
 
 static void tdo_set_int (int32 ctlr, t_bool val)
 {
-if ((tdo_ireq & (1 << ctlr)) ^ (val << ctlr)) {
+uint32 mask = 1u << ctlr;
+t_bool interrupt_set = ((tdo_ireq & mask) != 0);
+
+if (interrupt_set != val) {
     sim_debug (TDDEB_INT, &tdc_dev, "tdo_set_int(%d, %d)\n", ctlr, val);
     if (val)
-        tdo_ireq |= (1 << ctlr);                        /* set xmt int */
+        tdo_ireq |= mask;                               /* set xmt int */
     else
-        tdo_ireq &= ~(1 << ctlr);                       /* clear xmt int */
+        tdo_ireq &= ~mask;                              /* clear xmt int */
     if (tdo_ireq == 0)                                  /* all clr? */
         CLR_INT (TDTX);
     else
