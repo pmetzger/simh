@@ -323,7 +323,7 @@ else {                                                  /* left */
     if (src.h & UFP_NORM)                               /* normalized? */
         CC |= CC1;                                      /* set CC1 */
     }
-fp_pack (&src, rn, stype, FALSE);                       /* pack result */
+fp_pack (&src, rn, stype != 0, FALSE);                  /* pack result */
 return;
 }
 
