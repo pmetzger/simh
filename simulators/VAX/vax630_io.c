@@ -29,7 +29,7 @@
    08-Nov-2012  MB      First version
 */
 
-#include "vax_defs.h"
+#include "vax_qbus_internal.h"
 
 /* Qbus IPC register */
 
@@ -533,14 +533,10 @@ uint32 ma;
 if (qba_map_addr (qa, &ma)) {                           /* in map? */
     if (ADDR_IS_MEM (ma)) {                             /* real memory? */
         if (md == WRITE) {                              /* word access? */
-            int32 sc = (ma & 2) << 3;                   /* aligned only */
-            M[ma >> 2] = (M[ma >> 2] & ~(WMASK << sc)) |
-                ((dat & WMASK) << sc);
+            M[ma >> 2] = vax_qbus_replace_word (M[ma >> 2], ma, (uint32) dat);
             }
         else {                                          /* byte access */
-            int32 sc = (ma & 3) << 3;
-            M[ma >> 2] = (M[ma >> 2] & ~(BMASK << sc)) |
-                ((dat & BMASK) << sc);
+            M[ma >> 2] = vax_qbus_replace_byte (M[ma >> 2], ma, (uint32) dat);
             }
         }                                               /* end if mem */
     else
