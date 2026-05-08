@@ -32,6 +32,7 @@
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
 #include "sim_ether.h"
+#include "uint_bits.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "ka43a.bin"
@@ -126,20 +127,6 @@ extern void vc_mem_wr (int32 pa, int32 val, int32 lnt);
 extern void ve_wr (int32 pa, int32 val, int32 lnt);
 
 /*
- * Replace the register field selected by the low address bits in a 32-bit VAX
- * register word.  The legacy register callbacks use signed int32 values, but
- * register field replacement is machine-word bit manipulation.
- */
-static inline uint32 replace_register_field(uint32 word, uint32 pa, uint32 val,
-                                            uint32 mask)
-{
-    uint32 sc = (pa & 3u) << 3;
-    uint32 lane_mask = mask << sc;
-
-    return ((val & mask) << sc) | (word & ~lane_mask);
-}
-
-/*
  * Compose the KA43 interrupt/video status register.  Each input is a
  * right-justified hardware field; the legacy ka_rd API returns int32, but the
  * register value is a 32-bit VAX machine word.
@@ -149,12 +136,10 @@ static inline uint32 compose_ka_status_register(uint32 interrupt_requests,
                                                 uint32 video_origin,
                                                 uint32 interrupt_mask)
 {
-    uint32 interrupt_request_field = (interrupt_requests & BMASK) << 24;
-    uint32 video_select_field = (video_select & 1u) << 16;
-    uint32 video_origin_field = (video_origin & BMASK) << 8;
-
-    return interrupt_request_field | video_select_field | video_origin_field |
-           (interrupt_mask & BMASK);
+    return u32_make_field(interrupt_requests, 24, 8) |
+           u32_make_field(video_select, 16, 1) |
+           u32_make_field(video_origin, 8, 8) |
+           u32_make_field(interrupt_mask, 0, 8);
 }
 
 /*
@@ -163,7 +148,7 @@ static inline uint32 compose_ka_status_register(uint32 interrupt_requests,
  */
 static inline uint32 compose_ka_timer_register(void)
 {
-    return ((uint32)tmr_tir_rd()) << 16;
+    return u32_make_field((uint32)tmr_tir_rd(), 16, 16);
 }
 
 /*
@@ -173,7 +158,7 @@ static inline uint32 compose_ka_timer_register(void)
  */
 static inline uint32 ka_timer_register_interval(uint32 val)
 {
-    return val >> 16;
+    return u32_high_u16(val);
 }
 
 /* SYSD data structures
@@ -379,8 +364,7 @@ uint32 i, id, dat;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
         id = (ba >> 2) & 0x7FFF;
-        ddb[id] = replace_register_field (ddb[id], ba, (uint32) *buf,
-                                          0xFFu);
+        ddb[id] = u32_put_addr_u8_le (ddb[id], (uint32) *buf, ba);
         ba++;
         }
     }
@@ -406,8 +390,7 @@ bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i = i + 2, buf++) {             /* by words */
         id = (ba >> 2) & 0x7FFF;
-        ddb[id] = replace_register_field (ddb[id], ba, (uint32) *buf,
-                                          0xFFFFu);
+        ddb[id] = u32_put_addr_u16_le (ddb[id], (uint32) *buf, ba);
         ba = ba + 2;
         }
     }
@@ -415,7 +398,7 @@ else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
         id = (ba >> 2) & 0x7FFF;
         dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = u32_from_u16_pair (dat, (uint32) *buf);   /* merge hi 16b */
         ddb[id] = dat;                                  /* store lw */
         ba = ba + 4;
         }
@@ -424,13 +407,12 @@ else {
 
 void ddb_ReadB (uint32 ba, uint32 bc, uint8 *buf)
 {
-uint32 i, id, sc, dat;
+uint32 i, id, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
         id = (ba >> 2) & 0x7FFF;
-        sc = (ba & 3) << 3;
-        *buf = (ddb[id] >> sc) & BMASK;
+        *buf = u32_get_addr_u8_le (ddb[id], ba);
         ba++;
         }
     }
@@ -438,10 +420,10 @@ else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
         id = (ba >> 2) & 0x7FFF;
         dat = ddb[id];                                  /* get lw */
-        *buf++ = dat & BMASK;                           /* low 8b */
-        *buf++ = (dat >> 8) & BMASK;                    /* next 8b */
-        *buf++ = (dat >> 16) & BMASK;                   /* next 8b */
-        *buf = (dat >> 24) & BMASK;
+        *buf++ = u32_get_u8 (dat, 0);                   /* low 8b */
+        *buf++ = u32_get_u8 (dat, 1);                   /* next 8b */
+        *buf++ = u32_get_u8 (dat, 2);                   /* next 8b */
+        *buf = u32_get_u8 (dat, 3);
         ba = ba + 4;
         }
     }
@@ -456,8 +438,7 @@ bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i = i + 2, buf++) {             /* by words */
         id = (ba >> 2) & 0x7FFF;
-        *buf = (ba & 2)? ((ddb[id] >> 16) & 0xFFFF) :
-            (ddb[id] & 0xFFFF);
+        *buf = u32_get_addr_u16_le (ddb[id], ba);
         ba = ba + 2;
         }
     }
@@ -465,8 +446,8 @@ else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
         id = (ba >> 2) & 0x7FFF;
         dat = ddb[id];                                  /* get lw */
-        *buf++ = dat & WMASK;                           /* low 16b */
-        *buf = (dat >> 16) & WMASK;                     /* high 16b */
+        *buf++ = u32_low_u16 (dat);                     /* low 16b */
+        *buf = u32_high_u16 (dat);                      /* high 16b */
         ba = ba + 4;
         }
     }
@@ -484,9 +465,10 @@ static void ddb_wr (int32 pa, int32 val, int32 lnt)
 int32 rg = ((pa - D128BASE) >> 2);
 rg = rg & 0x7FFF;
 if (lnt < L_LONG) {                                     /* byte or word? */
-    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
-    ddb[rg] = replace_register_field (ddb[rg], (uint32) pa,
-                                      (uint32) val, mask);
+    if (lnt == L_WORD)
+        ddb[rg] = u32_put_addr_u16_le (ddb[rg], (uint32) val, (uint32) pa);
+    else
+        ddb[rg] = u32_put_addr_u8_le (ddb[rg], (uint32) val, (uint32) pa);
     }
 else ddb[rg] = val;
 return;
@@ -524,10 +506,12 @@ static void cdg_wr (int32 pa, int32 val, int32 lnt)
 int32 row = CDG_GETROW (pa);
 
 if (lnt < L_LONG) {                                     /* byte or word? */
-    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
-    val = (int32) replace_register_field ((uint32) cdg_dat[row],
-                                          (uint32) pa, (uint32) val,
-                                          mask);
+    if (lnt == L_WORD)
+        val = (int32) u32_put_addr_u16_le ((uint32) cdg_dat[row],
+                                           (uint32) val, (uint32) pa);
+    else
+        val = (int32) u32_put_addr_u8_le ((uint32) cdg_dat[row],
+                                          (uint32) val, (uint32) pa);
     }
 cdg_dat[row] = val;                                     /* store data */
 }
@@ -852,8 +836,8 @@ void WriteRegU (uint32 pa, int32 val, int32 lnt)
 {
 int32 dat = ReadReg (pa & ~03, L_LONG);
 
-dat = (int32) replace_register_field ((uint32) dat, pa, (uint32) val,
-                                      (uint32) insert[lnt]);
+dat = (int32) u32_put_addr_u8_count_le ((uint32) dat, (uint32) val, pa,
+                                        (uint_t) lnt);
 WriteReg (pa & ~03, dat, L_LONG);
 return;
 }

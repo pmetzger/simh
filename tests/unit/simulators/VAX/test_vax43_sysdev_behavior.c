@@ -277,19 +277,27 @@ static void test_ddb_register_write_masks_source_value(void **state)
 /* Verify unaligned register writes preserve legacy DDB lane behavior. */
 static void test_ddb_register_unaligned_write_preserves_behavior(void **state)
 {
+    static const struct {
+        uint32 addr;
+        int32 val;
+        int32 lnt;
+        uint32 expected;
+    } cases[] = {
+        {D128BASE + 3, 0x1a5, L_BYTE, 0xa5345678u},
+        {D128BASE + 2, 0x1d617, L_WORD, 0xd6175678u},
+        {D128BASE + 1, 0x1d617a5, 3, 0xd617a578u},
+    };
+
     /* Cmocka test callback signature.
        This implementation does not use every parameter. */
     (void)state;
 
-    reset_vax43_sysdev_behavior_state();
-    test_ddb[0] = 0x12345678u;
-    WriteRegU(D128BASE + 3, 0xa5, L_BYTE);
-    assert_int_equal(test_ddb[0], 0xa5345678u);
-
-    reset_vax43_sysdev_behavior_state();
-    test_ddb[0] = 0x12345678u;
-    WriteRegU(D128BASE + 2, 0xd617, L_WORD);
-    assert_int_equal(test_ddb[0], 0xd6175678u);
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        reset_vax43_sysdev_behavior_state();
+        test_ddb[0] = 0x12345678u;
+        WriteRegU(cases[i].addr, cases[i].val, cases[i].lnt);
+        assert_int_equal(test_ddb[0], cases[i].expected);
+    }
 }
 
 /* Verify CDG partial writes preserve legacy byte-lane behavior. */

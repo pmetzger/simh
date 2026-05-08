@@ -26,43 +26,18 @@ add_unit_test(unit-vax4xx-rz94
     FEATURE_FULL64
 )
 
-add_unit_test(unit-vax4xx-stddev
-    LABEL unit
-    SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax4xx_stddev.c
-        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax4xx_stddev.c
-    INCLUDES
-        ${PROJECT_SOURCE_DIR}/simulators/VAX
-    DEFINES
-        VM_VAX
-        VAX_440
-        VAX_48
-    FEATURE_FULL64
-)
-
 add_unit_test(unit-vax4xx-stddev-behavior
     LABEL unit
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax4xx_stddev_behavior.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax4xx_stddev.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
     DEFINES
         VM_VAX
         VAX_440
         VAX_48
-    FEATURE_FULL64
-)
-
-add_unit_test(unit-vax-sysdev
-    LABEL unit
-    SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_sysdev.c
-    INCLUDES
-        ${PROJECT_SOURCE_DIR}/simulators/VAX
-        ${PROJECT_SOURCE_DIR}/simulators/PDP11
-    DEFINES
-        VM_VAX
     FEATURE_FULL64
 )
 
@@ -72,6 +47,7 @@ add_unit_test(unit-vax-sysdev-behavior
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_sysdev_behavior.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_sysdev.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
@@ -85,23 +61,12 @@ add_unit_test(unit-vax43-sysdev-behavior
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax43_sysdev_behavior.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax43_sysdev.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
     DEFINES
         VM_VAX
         VAX_43
         VAX_43A
-    FEATURE_FULL64
-)
-
-add_unit_test(unit-vax-qbus
-    LABEL unit
-    SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus.c
-    INCLUDES
-        ${PROJECT_SOURCE_DIR}/simulators/VAX
-        ${PROJECT_SOURCE_DIR}/simulators/PDP11
-    DEFINES
-        VM_VAX
     FEATURE_FULL64
 )
 
@@ -122,6 +87,7 @@ add_unit_test(unit-vax-qbus-mem-write
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_mem_write.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_io.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
@@ -135,6 +101,7 @@ add_unit_test(unit-vax630-qbus-mem-write
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_mem_write.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax630_io.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
@@ -149,6 +116,7 @@ add_unit_test(unit-vax-qbus-io-write
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_write.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_io.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
@@ -163,6 +131,7 @@ add_unit_test(unit-vax-qbus-io-read
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_read.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_io.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
@@ -177,6 +146,7 @@ add_unit_test(unit-vax610-qbus-io-write
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_write.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax610_io.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
@@ -192,6 +162,7 @@ add_unit_test(unit-vax610-qbus-io-read
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_read.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax610_io.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
@@ -207,6 +178,7 @@ add_unit_test(unit-vax630-qbus-io-write
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_write.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax630_io.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
@@ -222,6 +194,7 @@ add_unit_test(unit-vax630-qbus-io-read
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_read.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax630_io.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES

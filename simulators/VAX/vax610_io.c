@@ -29,6 +29,7 @@
    15-Feb-2012  MB      First Version
 */
 
+#include "uint_bits.h"
 #include "vax_qbus_internal.h"
 
 int32 int_req[IPL_HLVL] = { 0 };                        /* intr, IPL 14-17 */
@@ -165,10 +166,10 @@ uint32 iod;
 
 iod = (uint32) ReadQb (pa);                             /* wd from Qbus */
 if (lnt < L_LONG)                                       /* bw? position */
-    iod = vax_qbus_position_read_word (pa, iod);
+    iod = u32_make_addr_u16_le (iod, pa);
 else {                                                  /* lw, get 2nd wd */
     uint32 high = (uint32) ReadQb (pa + 2);
-    iod = vax_qbus_combine_read_words (iod, high);
+    iod = u32_from_u16_pair (iod, high);
     }
 SET_IRQL;
 return (int32) iod;
@@ -210,10 +211,10 @@ uint32 iod;
 
 iod = (uint32) ReadQb (pa);                             /* wd from Qbus */
 if ((lnt + (pa & 1)) <= 2)                              /* byte or (word & even) */
-    iod = vax_qbus_position_read_word (pa, iod);         /* one op */
+    iod = u32_make_addr_u16_le (iod, pa);                /* one op */
 else {                                                  /* two ops, get 2nd wd */
     uint32 high = (uint32) ReadQb (pa + 2);
-    iod = vax_qbus_combine_read_words (iod, high);
+    iod = u32_from_u16_pair (iod, high);
     }
 SET_IRQL;
 return (int32) iod;
@@ -238,8 +239,8 @@ if (lnt == L_BYTE)
 else if (lnt == L_WORD)
     WriteQb (pa, val, WRITE);
 else {
-    WriteQb (pa, (int32) vax_qbus_extract_write_word (data, 0), WRITE);
-    WriteQb (pa + 2, (int32) vax_qbus_extract_write_word (data, 2), WRITE);
+    WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
+    WriteQb (pa + 2, (int32) u32_get_u16 (data, 2), WRITE);
     }
 SET_IRQL;
 return;
@@ -269,25 +270,25 @@ uint32 data = (uint32) val;
 
 switch (lnt) {
 case L_BYTE:                                            /* byte */
-    WriteQb (pa, (int32) vax_qbus_extract_write_byte (data, 0), WRITEB);
+    WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
     break;
 
 case L_WORD:                                            /* word */
     if (pa & 1) {                                       /* odd addr? */
-        WriteQb (pa, (int32) vax_qbus_extract_write_byte (data, 0), WRITEB);
-        WriteQb (pa + 1, (int32) vax_qbus_extract_write_byte (data, 1), WRITEB);
+        WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
+        WriteQb (pa + 1, (int32) u32_get_u8 (data, 1), WRITEB);
         }
-    else WriteQb (pa, (int32) vax_qbus_extract_write_word (data, 0), WRITE);
+    else WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
     break;
 
 case 3:                                                 /* tribyte */
     if (pa & 1) {                                       /* odd addr? */
-        WriteQb (pa, (int32) vax_qbus_extract_write_byte (data, 0), WRITEB);
-        WriteQb (pa + 1, (int32) vax_qbus_extract_write_word (data, 1), WRITE);
+        WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
+        WriteQb (pa + 1, (int32) u32_get_u16 (data, 1), WRITE);
         }
     else {                                              /* even */
-        WriteQb (pa, (int32) vax_qbus_extract_write_word (data, 0), WRITE);
-        WriteQb (pa + 2, (int32) vax_qbus_extract_write_byte (data, 2), WRITEB);
+        WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
+        WriteQb (pa + 2, (int32) u32_get_u8 (data, 2), WRITEB);
         }
     break;
     }

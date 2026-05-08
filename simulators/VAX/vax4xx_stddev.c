@@ -30,9 +30,9 @@
    clk          100Hz and TODR clock
 */
 
+#include "uint_bits.h"
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
-#include "vax4xx_stddev_internal.h"
 
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
 #define UNIT_NODELAY    (1u << UNIT_V_NODELAY)
@@ -226,7 +226,7 @@ void rom_wr_B (int32 pa, int32 val)
 uint32 addr = (uint32) pa;
 uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = vax4xx_replace_byte_lane (rom[rg], addr, (uint32) val);
+rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32) val, addr);
 return;
 }
 
@@ -355,7 +355,7 @@ uint32 nvr_val = ((uint32) val) >> 2;
 if (rg < 14)                                            /* watch chip */
     wtc_wr ((int32) rg, (int32) nvr_val);
 else {
-    nvr[rg] = vax4xx_replace_byte_lane (nvr[rg], addr, nvr_val);
+    nvr[rg] = u32_put_addr_u8_le (nvr[rg], nvr_val, addr);
     }
 }
 
@@ -496,22 +496,22 @@ if ((uptr->flags & UNIT_ATT) && (opr != NULL)) {
     switch (opr[0]) {                                    /* number of ROM chips */
         case 1:
             rg = (off >> 2) & (uptr->capac - 1);
-            data = 0xFFFFFF00u | vax4xx_pack_byte_lane (opr[rg], 0);
+            data = 0xFFFFFF00u | u32_make_field (opr[rg], 0, 8);
             return (int32) sim_rom_read_with_delay (data);
 
         case 2:
             rg = (off >> 1) & (uptr->capac - 1);
-            data = data | vax4xx_pack_byte_lane (opr[rg++], 0);
-            data = data | vax4xx_pack_byte_lane (opr[rg], 8);
+            data = data | u32_make_field (opr[rg++], 0, 8);
+            data = data | u32_make_field (opr[rg], 8, 8);
             data = 0xFFFF0000u | data;
             return (int32) sim_rom_read_with_delay (data);
 
         case 4:
             rg = off & (uptr->capac - 1);
-            data = data | vax4xx_pack_byte_lane (opr[rg++], 0);
-            data = data | vax4xx_pack_byte_lane (opr[rg++], 8);
-            data = data | vax4xx_pack_byte_lane (opr[rg++], 16);
-            data = data | vax4xx_pack_byte_lane (opr[rg++], 24);
+            data = data | u32_make_field (opr[rg++], 0, 8);
+            data = data | u32_make_field (opr[rg++], 8, 8);
+            data = data | u32_make_field (opr[rg++], 16, 8);
+            data = data | u32_make_field (opr[rg++], 24, 8);
             return (int32) sim_rom_read_with_delay (data);
             }
     }

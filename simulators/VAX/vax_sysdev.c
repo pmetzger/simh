@@ -58,7 +58,8 @@
 #include <math.h>
 #include <stdbool.h>
 
-#include "vax_sysdev_internal.h"
+#include "uint_bits.h"
+#include "vax_defs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "ka655x.bin"
@@ -571,7 +572,7 @@ void rom_wr_B (int32 pa, int32 val)
 uint32 addr = (uint32) pa;
 uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = vax_sysdev_replace_byte_lane (rom[rg], addr, (uint32) val);
+rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32) val, addr);
 }
 
 /* ROM examine */
@@ -685,9 +686,10 @@ uint32 addr = (uint32) pa;
 uint32 rg = (addr - NVRBASE) >> 2;
 
 if (lnt < L_LONG) {                                     /* byte or word? */
-    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
-    nvr[rg] = vax_sysdev_replace_masked_lane (nvr[rg], addr, (uint32) val,
-        mask);
+    if (lnt == L_WORD)
+        nvr[rg] = u32_put_addr_u16_le (nvr[rg], (uint32) val, addr);
+    else
+        nvr[rg] = u32_put_addr_u8_le (nvr[rg], (uint32) val, addr);
     }
 else
     nvr[rg] = (uint32) val;
@@ -1185,8 +1187,7 @@ void WriteRegU (uint32 pa, int32 val, int32 lnt)
 {
 uint32 dat = (uint32) ReadReg (pa & ~03, L_LONG);
 
-dat = vax_sysdev_replace_masked_lane (dat, pa, (uint32) val,
-    (uint32) insert[lnt]);
+dat = u32_put_addr_u8_count_le (dat, (uint32) val, pa, (uint_t) lnt);
 WriteReg (pa & ~03, (int32) dat, L_LONG);
 }
 
@@ -1232,7 +1233,8 @@ void cmctl_wr (int32 pa, int32 val, int32 lnt)
 int32 i, rg = (pa - CMCTLBASE) >> 2;
 
 if (lnt < L_LONG) {                                     /* LW write only */
-    val = (int32) vax_sysdev_shift_lane_value ((uint32) val, (uint32) pa);
+    val = (int32) u32_make_addr_u8_count_le ((uint32) val, (uint32) pa,
+                                             (uint_t) lnt);
     }
 switch (rg) {
 
@@ -1351,9 +1353,12 @@ void cdg_wr (int32 pa, int32 val, int32 lnt)
 int32 row = CDG_GETROW (pa);
 
 if (lnt < L_LONG) {                                     /* byte or word? */
-    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
-    val = (int32) vax_sysdev_replace_masked_lane ((uint32) cdg_dat[row],
-        (uint32) pa, (uint32) val, mask);
+    if (lnt == L_WORD)
+        val = (int32) u32_put_addr_u16_le ((uint32) cdg_dat[row],
+                                           (uint32) val, (uint32) pa);
+    else
+        val = (int32) u32_put_addr_u8_le ((uint32) cdg_dat[row],
+                                          (uint32) val, (uint32) pa);
     }
 cdg_dat[row] = val;                                     /* store data */
 }
@@ -1462,9 +1467,12 @@ void ssc_wr (int32 pa, int32 val, int32 lnt)
 int32 rg = (pa - SSCBASE) >> 2;
 
 if (lnt < L_LONG) {                                     /* byte or word? */
-    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
-    val = (int32) vax_sysdev_replace_masked_lane ((uint32) ssc_rd (pa),
-        (uint32) pa, (uint32) val, mask);
+    if (lnt == L_WORD)
+        val = (int32) u32_put_addr_u16_le ((uint32) ssc_rd (pa),
+                                           (uint32) val, (uint32) pa);
+    else
+        val = (int32) u32_put_addr_u8_le ((uint32) ssc_rd (pa),
+                                          (uint32) val, (uint32) pa);
     }
 
 switch (rg) {

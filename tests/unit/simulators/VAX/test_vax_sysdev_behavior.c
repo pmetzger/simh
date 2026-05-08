@@ -291,7 +291,11 @@ static void test_nvr_write_preserves_legacy_behavior(void **state)
         int32 lnt;
         uint32 expected;
     } cases[] = {
+        {NVRBASE, 0xa5, L_BYTE, 0x123456a5u},
+        {NVRBASE + 1, 0xa5, L_BYTE, 0x1234a578u},
+        {NVRBASE + 2, 0xa5, L_BYTE, 0x12a55678u},
         {NVRBASE + 3, 0xa5, L_BYTE, 0xa5345678u},
+        {NVRBASE, 0x1d617, L_WORD, 0x1234d617u},
         {NVRBASE + 2, 0xffff, L_WORD, 0xffff5678u},
         {NVRBASE, (int32)0x87654321u, L_LONG, 0x87654321u},
     };
@@ -312,16 +316,27 @@ static void test_nvr_write_preserves_legacy_behavior(void **state)
 /* Verify unaligned register writes preserve legacy read-modify-write state. */
 static void test_writeregu_preserves_legacy_nvr_behavior(void **state)
 {
+    static const struct {
+        uint32 pa;
+        int32 val;
+        int32 lnt;
+        uint32 expected;
+    } cases[] = {
+        {NVRBASE + 3, 0x1a5, L_BYTE, 0xa5345678u},
+        {NVRBASE + 2, 0x1d617, L_WORD, 0xd6175678u},
+        {NVRBASE + 1, 0x1d617a5, 3, 0xd617a578u},
+    };
+
     /* Cmocka test callback signature.
        This implementation does not use every parameter. */
     (void)state;
 
-    reset_sysdev_behavior_state();
-    test_nvr[0] = 0x12345678u;
-
-    WriteRegU(NVRBASE + 3, 0xa5, L_BYTE);
-
-    assert_int_equal(test_nvr[0], 0xa5345678u);
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        reset_sysdev_behavior_state();
+        test_nvr[0] = 0x12345678u;
+        WriteRegU(cases[i].pa, cases[i].val, cases[i].lnt);
+        assert_int_equal(test_nvr[0], cases[i].expected);
+    }
 }
 
 /* Verify CMCTL partial writes preserve legacy lane positioning. */
@@ -338,34 +353,79 @@ static void test_cmctl_partial_write_preserves_legacy_behavior(void **state)
     assert_int_equal((uint32)cmctl_reg[0], 0x80000000u);
 }
 
-/* Verify CDG partial writes preserve legacy byte-lane behavior. */
-static void test_cdg_partial_write_preserves_legacy_behavior(void **state)
+/*
+ * Verify CMCTL partial writes mask the source value to the requested byte or
+ * word width before placing it in the addressed field.
+ */
+static void test_cmctl_partial_write_masks_source_value(void **state)
 {
     /* Cmocka test callback signature.
        This implementation does not use every parameter. */
     (void)state;
 
     reset_sysdev_behavior_state();
-    cdg_dat[0] = 0x12345678;
 
-    cdg_wr(CDGBASE + 3, 0xa5, L_BYTE);
+    cmctl_wr(CMCTLBASE + 2, 0x1ff0, L_BYTE);
 
-    assert_int_equal((uint32)cdg_dat[0], 0xa5345678u);
+    assert_int_equal((uint32)cmctl_reg[0], 0x00f00000u);
+}
+
+/* Verify CDG partial writes preserve legacy byte-lane behavior. */
+static void test_cdg_partial_write_preserves_legacy_behavior(void **state)
+{
+    static const struct {
+        uint32 pa;
+        int32 val;
+        int32 lnt;
+        uint32 expected;
+    } cases[] = {
+        {CDGBASE, 0xa5, L_BYTE, 0x123456a5u},
+        {CDGBASE + 1, 0xa5, L_BYTE, 0x1234a578u},
+        {CDGBASE + 2, 0xa5, L_BYTE, 0x12a55678u},
+        {CDGBASE + 3, 0xa5, L_BYTE, 0xa5345678u},
+        {CDGBASE, 0x1d617, L_WORD, 0x1234d617u},
+        {CDGBASE + 2, 0x1d617, L_WORD, 0xd6175678u},
+    };
+
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        reset_sysdev_behavior_state();
+        cdg_dat[0] = 0x12345678;
+        cdg_wr((int32)cases[i].pa, cases[i].val, cases[i].lnt);
+        assert_int_equal((uint32)cdg_dat[0], cases[i].expected);
+    }
 }
 
 /* Verify SSC partial writes preserve legacy byte-lane behavior. */
 static void test_ssc_partial_write_preserves_legacy_behavior(void **state)
 {
+    static const struct {
+        uint32 pa;
+        int32 val;
+        int32 lnt;
+        uint32 expected;
+    } cases[] = {
+        {TEST_SSC_TNIR0_PA, 0xa5, L_BYTE, 0x123456a5u},
+        {TEST_SSC_TNIR0_PA + 1, 0xa5, L_BYTE, 0x1234a578u},
+        {TEST_SSC_TNIR0_PA + 2, 0xa5, L_BYTE, 0x12a55678u},
+        {TEST_SSC_TNIR0_PA + 3, 0xa5, L_BYTE, 0xa5345678u},
+        {TEST_SSC_TNIR0_PA, 0x1d617, L_WORD, 0x1234d617u},
+        {TEST_SSC_TNIR0_PA + 2, 0x1d617, L_WORD, 0xd6175678u},
+    };
+
     /* Cmocka test callback signature.
        This implementation does not use every parameter. */
     (void)state;
 
-    reset_sysdev_behavior_state();
-    tmr_tnir[0] = 0x12345678u;
-
-    ssc_wr(TEST_SSC_TNIR0_PA + 3, 0xa5, L_BYTE);
-
-    assert_int_equal(tmr_tnir[0], 0xa5345678u);
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        reset_sysdev_behavior_state();
+        tmr_tnir[0] = 0x12345678u;
+        ssc_wr((int32)cases[i].pa, cases[i].val, cases[i].lnt);
+        assert_int_equal(tmr_tnir[0], cases[i].expected);
+    }
 }
 
 int main(void)
@@ -375,6 +435,7 @@ int main(void)
         cmocka_unit_test(test_nvr_write_preserves_legacy_behavior),
         cmocka_unit_test(test_writeregu_preserves_legacy_nvr_behavior),
         cmocka_unit_test(test_cmctl_partial_write_preserves_legacy_behavior),
+        cmocka_unit_test(test_cmctl_partial_write_masks_source_value),
         cmocka_unit_test(test_cdg_partial_write_preserves_legacy_behavior),
         cmocka_unit_test(test_ssc_partial_write_preserves_legacy_behavior),
     };
