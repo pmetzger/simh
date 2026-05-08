@@ -479,6 +479,16 @@ return "non-volatile memory";
 */
 
 /*
+ * Read one byte from a mapped option ROM image with the legacy power-of-two
+ * address wrap used by KA4xx option ROM probing.
+ */
+static uint32
+or_rom_byte (const UNIT *uptr, const uint8 *opr, uint32 index)
+{
+    return opr[index & ((uint32) uptr->capac - 1u)];
+}
+
+/*
  * Read a KA4xx option ROM word.  Option ROM data is assembled from raw bytes
  * into an unsigned 32-bit guest word, then returned through the legacy signed
  * int32 VAX I/O callback boundary.
@@ -495,23 +505,30 @@ uint32 rg;
 if ((uptr->flags & UNIT_ATT) && (opr != NULL)) {
     switch (opr[0]) {                                    /* number of ROM chips */
         case 1:
-            rg = (off >> 2) & (uptr->capac - 1);
-            data = 0xFFFFFF00u | u32_make_field (opr[rg], 0, 8);
+            rg = off >> 2;
+            data = 0xFFFFFF00u |
+                   u32_make_field (or_rom_byte (uptr, opr, rg), 0, 8);
             return (int32) sim_rom_read_with_delay (data);
 
         case 2:
-            rg = (off >> 1) & (uptr->capac - 1);
-            data = data | u32_make_field (opr[rg++], 0, 8);
-            data = data | u32_make_field (opr[rg], 8, 8);
+            rg = off >> 1;
+            data = data |
+                   u32_make_field (or_rom_byte (uptr, opr, rg), 0, 8);
+            data = data |
+                   u32_make_field (or_rom_byte (uptr, opr, rg + 1), 8, 8);
             data = 0xFFFF0000u | data;
             return (int32) sim_rom_read_with_delay (data);
 
         case 4:
-            rg = off & (uptr->capac - 1);
-            data = data | u32_make_field (opr[rg++], 0, 8);
-            data = data | u32_make_field (opr[rg++], 8, 8);
-            data = data | u32_make_field (opr[rg++], 16, 8);
-            data = data | u32_make_field (opr[rg++], 24, 8);
+            rg = off;
+            data = data |
+                   u32_make_field (or_rom_byte (uptr, opr, rg), 0, 8);
+            data = data |
+                   u32_make_field (or_rom_byte (uptr, opr, rg + 1), 8, 8);
+            data = data |
+                   u32_make_field (or_rom_byte (uptr, opr, rg + 2), 16, 8);
+            data = data |
+                   u32_make_field (or_rom_byte (uptr, opr, rg + 3), 24, 8);
             return (int32) sim_rom_read_with_delay (data);
             }
     }

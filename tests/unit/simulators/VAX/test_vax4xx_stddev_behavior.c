@@ -179,6 +179,47 @@ static void test_option_rom_read_preserves_legacy_packing(void **state)
     assert_int_equal((uint32)or_rd((int32)(ORBASE + 4)), 0x80345678u);
 }
 
+/* Verify multi-chip option ROM reads wrap every byte inside the ROM image. */
+static void test_option_rom_read_wraps_each_chip_byte(void **state)
+{
+    static uint8 one_chip_rom[8];
+    static uint8 two_chip_rom[8];
+    static uint8 four_chip_rom[8];
+
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    reset_stddev_behavior_state();
+    memset(one_chip_rom, 0, sizeof(one_chip_rom));
+    one_chip_rom[0] = 1;
+    one_chip_rom[7] = 0x80;
+    or_unit[0].filebuf = one_chip_rom;
+    or_unit[0].capac = sizeof(one_chip_rom);
+    or_unit[0].flags |= UNIT_ATT;
+    assert_int_equal((uint32)or_rd((int32)(ORBASE + 28)), 0xffffff80u);
+
+    reset_stddev_behavior_state();
+    memset(two_chip_rom, 0, sizeof(two_chip_rom));
+    two_chip_rom[0] = 2;
+    two_chip_rom[7] = 0x80;
+    or_unit[0].filebuf = two_chip_rom;
+    or_unit[0].capac = sizeof(two_chip_rom);
+    or_unit[0].flags |= UNIT_ATT;
+    assert_int_equal((uint32)or_rd((int32)(ORBASE + 14)), 0xffff0280u);
+
+    reset_stddev_behavior_state();
+    memset(four_chip_rom, 0, sizeof(four_chip_rom));
+    four_chip_rom[0] = 4;
+    four_chip_rom[1] = 0x56;
+    four_chip_rom[2] = 0x34;
+    four_chip_rom[7] = 0x80;
+    or_unit[0].filebuf = four_chip_rom;
+    or_unit[0].capac = sizeof(four_chip_rom);
+    or_unit[0].flags |= UNIT_ATT;
+    assert_int_equal((uint32)or_rd((int32)(ORBASE + 7)), 0x34560480u);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -186,6 +227,7 @@ int main(void)
         cmocka_unit_test(test_nvr_write_byte_preserves_legacy_behavior),
         cmocka_unit_test(test_nvr_read_preserves_legacy_shift_behavior),
         cmocka_unit_test(test_option_rom_read_preserves_legacy_packing),
+        cmocka_unit_test(test_option_rom_read_wraps_each_chip_byte),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
