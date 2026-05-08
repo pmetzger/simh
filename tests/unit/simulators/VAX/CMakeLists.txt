@@ -52,6 +52,19 @@ add_unit_test(unit-vax-sysdev
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax-sysdev-behavior
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_sysdev_behavior.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_sysdev.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax-qbus
     LABEL unit
     SOURCES
@@ -72,6 +85,33 @@ add_unit_test(unit-vax-cpu1-call
         ${PROJECT_SOURCE_DIR}/simulators/VAX
     DEFINES
         VM_VAX
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax-qbus-mem-write
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_mem_write.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_io.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax630-qbus-mem-write
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_mem_write.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax630_io.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_630
     FEATURE_FULL64
 )
 
