@@ -2368,7 +2368,7 @@ static int dmc_is_master_clear_set(CTLR *controller)
 return *controller->csrs->sel0 & DMC_SEL0_M_MCLEAR;
 }
 
-static int dmc_is_lu_loop_set(CTLR *controller)
+static t_bool dmc_is_lu_loop_set(CTLR *controller)
 {
 if (dmc_is_dmc(controller))
     return ((*controller->csrs->sel0 & DMC_SEL0_M_LU_LOOP) != 0);
@@ -2899,7 +2899,7 @@ else
 /* returns true if some data was received */
 t_bool dmc_buffer_fill_receive_buffers(CTLR *controller)
 {
-int ans = FALSE;
+t_bool ans = FALSE;
 
 if (controller->state == Running) {
     BUFFER *buffer = dmc_buffer_queue_head(controller->rcv_queue);
@@ -3801,7 +3801,7 @@ if (!dmc_is_dmc (controller) ||
         dmc_start_transfer_buffer(controller);
         }
     }
-if (tmxr_get_line_loopback (controller->line) ^ dmc_is_lu_loop_set (controller)) {
+if (tmxr_get_line_loopback (controller->line) != dmc_is_lu_loop_set (controller)) {
     sim_debug(DBG_INF, controller->device, "%s%d: %s loopback mode\n", controller->device->name, controller->index, dmc_is_lu_loop_set (controller) ? "Enabling" : "Disabling");
     tmxr_set_line_loopback (controller->line, dmc_is_lu_loop_set (controller));
     }
