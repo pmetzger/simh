@@ -136,7 +136,7 @@ struct disk_context {
     uint32              removable;          /* Removable device flag */
     uint32              is_cdrom;           /* Host system CDROM Device */
     uint32              media_removed;      /* Media not available flag */
-    uint32              auto_format;        /* Format determined dynamically */
+    t_bool              auto_format;        /* Format determined dynamically */
     uint32              read_count;         /* Number of read operations performed */
     uint32              write_count;        /* Number of write operations performed */
     struct simh_disk_footer
@@ -592,12 +592,13 @@ t_stat sim_disk_set_noautosize (int32 flag, const char *cptr)
 {
 DEVICE *dptr;
 uint32 dev, unit, count = 0;
+t_bool no_autosize = (flag != 0);
 
 /* Generic callback signature.
    This implementation does not use every parameter. */
 (void) cptr;
 
-if (flag == sim_disk_no_autosize)
+if (no_autosize == sim_disk_no_autosize)
     return sim_messagef (SCPE_ARG, "Autosizing is already %sabled!\n",
                                     sim_disk_no_autosize ? "dis" : "en");
 for (dev = 0; (dptr = sim_devices[dev]) != NULL; dev++) {
@@ -610,14 +611,14 @@ for (dev = 0; (dptr = sim_devices[dev]) != NULL; dev++) {
         int32 saved_sim_show_message = sim_show_message;
 
         sim_show_message = FALSE;
-        sprintf (cmd, "%s %sAUTOSIZE", sim_uname (&dptr->units[unit]), (flag != 0) ? "NO" : "");
+        sprintf (cmd, "%s %sAUTOSIZE", sim_uname (&dptr->units[unit]), no_autosize ? "NO" : "");
         set_cmd (0, cmd);
         sim_show_message = saved_sim_show_message;
         }
     }
 if (count == 0)
     return sim_messagef (SCPE_ARG, "No disk devices support autosizing\n");
-sim_disk_no_autosize = flag;
+sim_disk_no_autosize = no_autosize;
 return SCPE_OK;
 }
 
@@ -634,7 +635,7 @@ t_offset sim_disk_size (UNIT *uptr)
 {
 struct disk_context *ctx = (struct disk_context *)uptr->disk_ctx;
 t_offset physical_size, filesystem_size;
-t_bool saved_quiet = sim_quiet;
+int32 saved_quiet = sim_quiet;
 
 if ((uptr->flags & UNIT_ATT) == 0)
     return (t_offset)-1;
