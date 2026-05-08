@@ -64,6 +64,17 @@ add_unit_test(unit-vax-qbus
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax-cpu1-call
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_cpu1_call.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+    DEFINES
+        VM_VAX
+    FEATURE_FULL64
+)
+
 simh_executable_template(zimh-unit-vax-symbols
     SOURCES
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_sys.c

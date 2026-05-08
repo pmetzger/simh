@@ -75,6 +75,7 @@
 */
 
 #include "vax_defs.h"
+#include "vax_cpu1_internal.h"
 
 static const uint8 rcnt[128] = {
  0, 4, 4, 8, 4, 8, 8,12, 4, 8, 8,12, 8,12,12,16,        /* 00 - 0F */
@@ -252,20 +253,10 @@ for (i = 0; wd; i++, wd = wd >> 1) {
 return size;
 }
 
-#define CALL_DV         0x8000                          /* DV set */
-#define CALL_IV         0x4000                          /* IV set */
-#define CALL_MBZ        0x3000                          /* MBZ */
-#define CALL_MASK       0x0FFF                          /* mask */
-#define CALL_V_SPA      30                              /* SPA */
-#define CALL_M_SPA      03
-#define CALL_V_S        29                              /* S flag */
-#define CALL_S          (1 << CALL_V_S)
-#define CALL_V_MASK     16
 #define CALL_PUSH(n)    if ((mask >> (n)) & 1) { \
                             tsp = tsp - 4; \
                             Write (tsp, R[n], L_LONG, WA); \
                             }
-#define CALL_GETSPA(x)  (((x) >> CALL_V_SPA) & CALL_M_SPA)
 #define RET_POP(n)      if ((spamask >> (n + CALL_V_MASK)) & 1) { \
                             R[n] = Read (tsp, L_LONG, RA); \
                             tsp = tsp + 4; \
@@ -364,8 +355,7 @@ CALL_PUSH (0);
 Write (tsp - 4, PC, L_LONG, WA);                        /* push PC */
 Write (tsp - 8, FP, L_LONG, WA);                        /* push AP */
 Write (tsp - 12, AP, L_LONG, WA);                       /* push FP */
-wd = ((SP & CALL_M_SPA) << CALL_V_SPA) | (gs << CALL_V_S) |
-    ((mask & CALL_MASK) << CALL_V_MASK) | (PSL & 0xFFE0);
+wd = vax_call_frame_word (SP, gs, mask, PSL);
 Write (tsp - 16, wd, L_LONG, WA);                       /* push spa/s/mask/psw */
 Write (tsp - 20, 0, L_LONG, WA);                        /* push cond hdlr */
 if (gs)                                                 /* update AP */
