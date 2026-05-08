@@ -32,6 +32,7 @@
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
 #include "sim_ether.h"
+#include "uint_bits.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #if defined (VAX_411)
@@ -691,8 +692,10 @@ for (p = &regtable[0]; p->low != 0; p++) {
         val = p->read (pa);
         if (p->width < L_LONG) {
             if (lnt < L_LONG)
-                val = val << ((pa & 2)? 16: 0);
-            else val = (p->read (pa + 2) << 16) | val;
+                val = (int32) u32_make_addr_u16_le ((uint32) val, pa);
+            else
+                val = (int32) u32_from_u16_pair ((uint32) val,
+                                                 (uint32) p->read (pa + 2));
             }
         return val;
         }
@@ -719,13 +722,20 @@ for (p = &regtable[0]; p->low != 0; p++) {
         if (p->width < L_LONG) {
             val = p->read (pa);
             if ((lnt + (pa & 1)) <= 2)
-                val = val << ((pa & 2)? 16: 0);
-            else val = (p->read (pa + 2) << 16) | val;
+                val = (int32) u32_make_addr_u16_le ((uint32) val, pa);
+            else
+                val = (int32) u32_from_u16_pair ((uint32) val,
+                                                 (uint32) p->read (pa + 2));
             }
         else {
             if (lnt == L_BYTE)
                 val = p->read (pa & ~03);
-            else val = (p->read (pa & ~03) & WMASK) | (p->read ((pa & ~03) + 2) & (WMASK << 16));
+            else {
+                uint32 low = (uint32) p->read (pa & ~03);
+                uint32 high = (uint32) p->read ((pa & ~03) + 2);
+
+                val = (int32) u32_from_u16_pair (low, u32_high_u16 (high));
+                }
             }
         return val;
         }

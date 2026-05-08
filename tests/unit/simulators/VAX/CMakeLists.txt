@@ -41,6 +41,37 @@ add_unit_test(unit-vax4xx-stddev-behavior
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax410-sysdev-behavior
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax4xx_sysdev_behavior.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax410_sysdev.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+    DEFINES
+        DONT_USE_INTERNAL_ROM
+        VM_VAX
+        VAX_410
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax420-sysdev-behavior
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax4xx_sysdev_behavior.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax420_sysdev.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+    DEFINES
+        DONT_USE_INTERNAL_ROM
+        VM_VAX
+        VAX_420
+        VAX_42A
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax-sysdev-behavior
     LABEL unit
     SOURCES
