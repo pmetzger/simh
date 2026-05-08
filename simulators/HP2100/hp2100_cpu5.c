@@ -1016,7 +1016,7 @@ switch (entry) {                                        /* decode IR<3:0> */
         PR = rtn;
 
         tprintf (cpu_dev, TRACE_OPND, OPND_FORMAT "  return location is P+%u (%s)\n",
-                 PR, IR, PR - err_PR, fmt_ab (PR - op[0].word));
+                 PR, IR, PR - err_PR, fmt_ab (PR != op[0].word));
         break;
 
     case 001:                                           /* .MMAP  105241 (OP_AKK) */
@@ -1037,7 +1037,7 @@ switch (entry) {                                        /* decode IR<3:0> */
         PR = rtn;
 
         tprintf (cpu_dev, TRACE_OPND, OPND_FORMAT "  return location is P+%u (%s)\n",
-                 PR, IR, PR - err_PR, fmt_ab (PR - op[0].word));
+                 PR, IR, PR - err_PR, fmt_ab (PR != op[0].word));
         break;
 
     default:                                            /* others unimplemented */
@@ -1224,7 +1224,7 @@ switch (entry) {                                        /* decode IR<3:0> */
        reason = vis_eres(&PR,op[2].word,PR);            /* handle the ERES instruction */
 
        tprintf (cpu_dev, TRACE_OPND, OPND_FORMAT "  return location is P+%u (%s)\n",
-                PR, IR, PR - err_PR, fmt_ab (PR - rtn));
+                PR, IR, PR - err_PR, fmt_ab (PR != rtn));
        break;
 
    case 015:                                            /* .ESEG (OP_(A)A) */
@@ -1232,7 +1232,7 @@ switch (entry) {                                        /* decode IR<3:0> */
        reason = vis_eseg(&PR, op[0].word);              /* handle the ESEG instruction */
 
        tprintf (cpu_dev, TRACE_OPND, OPND_FORMAT "  return location is P+%u (%s)\n",
-                PR, IR, PR - err_PR, fmt_ab (PR - rtn));
+                PR, IR, PR - err_PR, fmt_ab (PR != rtn));
        break;
 
    case 016:                                            /* .VSET (OP_(A)AAACCC) */
