@@ -221,14 +221,17 @@ return;
 
 int32 ReadIO (uint32 pa, int32 lnt)
 {
-int32 iod;
+uint32 iod;
 
-iod = ReadQb (pa);                                      /* wd from Qbus */
+iod = (uint32) ReadQb (pa);                             /* wd from Qbus */
 if (lnt < L_LONG)                                       /* bw? position */
-    iod = iod << ((pa & 2)? 16: 0);
-else iod = (ReadQb (pa + 2) << 16) | iod;               /* lw, get 2nd wd */
+    iod = vax_qbus_position_read_word (pa, iod);
+else {                                                  /* lw, get 2nd wd */
+    uint32 high = (uint32) ReadQb (pa + 2);
+    iod = vax_qbus_combine_read_words (iod, high);
+    }
 SET_IRQL;
-return iod;
+return (int32) iod;
 }
 
 /* ReadIOU - read I/O space - unaligned access
@@ -263,14 +266,17 @@ bo = 3, byte - read one word
 
 int32 ReadIOU (uint32 pa, int32 lnt)
 {
-int32 iod;
+uint32 iod;
 
-iod = ReadQb (pa);                                      /* wd from Qbus */
+iod = (uint32) ReadQb (pa);                             /* wd from Qbus */
 if ((lnt + (pa & 1)) <= 2)                              /* byte or (word & even) */
-    iod = iod << ((pa & 2)? 16: 0);                     /* one op */
-else iod = (ReadQb (pa + 2) << 16) | iod;               /* two ops, get 2nd wd */
+    iod = vax_qbus_position_read_word (pa, iod);         /* one op */
+else {                                                  /* two ops, get 2nd wd */
+    uint32 high = (uint32) ReadQb (pa + 2);
+    iod = vax_qbus_combine_read_words (iod, high);
+    }
 SET_IRQL;
-return iod;
+return (int32) iod;
 }
 
 /* WriteIO - write I/O space - aligned access

@@ -39,4 +39,18 @@ static inline uint32 vax_qbus_replace_word(uint32 word, uint32 pa, uint32 val)
     return ((val & word_mask) << sc) | (word & ~lane_mask);
 }
 
+/* Position a 16-bit Qbus read result in the selected VAX longword lane. */
+static inline uint32 vax_qbus_position_read_word(uint32 pa, uint32 val)
+{
+    return (val & (uint32)WMASK) << vax_qbus_word_shift(pa);
+}
+
+/* Combine two 16-bit Qbus read results into one VAX longword result. */
+static inline uint32 vax_qbus_combine_read_words(uint32 low, uint32 high)
+{
+    uint32 word_mask = (uint32)WMASK;
+
+    return ((high & word_mask) << 16) | (low & word_mask);
+}
+
 #endif
