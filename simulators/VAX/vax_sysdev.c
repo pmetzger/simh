@@ -58,7 +58,7 @@
 #include <math.h>
 #include <stdbool.h>
 
-#include "vax_defs.h"
+#include "vax_sysdev_internal.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "ka655x.bin"
@@ -544,23 +544,34 @@ DEVICE sysd_dev = {
    issues with the embedded timing loops.
 */
 
+/*
+ * Read a 32-bit VAX 3900 ROM word.  This retains the legacy signed int32
+ * VAX I/O signature, but the physical address and ROM word are unsigned guest
+ * bit patterns internally.
+ */
 int32 rom_rd (int32 pa)
 {
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 val = rom[rg];
+uint32 addr = (uint32) pa;
+uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
+uint32 val = rom[rg];
 
 if (rom_unit.flags & UNIT_NODELAY)
-    return val;
+    return (int32) val;
 
-return sim_rom_read_with_delay (val);
+return (int32) sim_rom_read_with_delay (val);
 }
 
+/*
+ * Replace one byte in the VAX 3900 ROM buffer.  The legacy loader API supplies
+ * signed int32 parameters, but the ROM storage and byte-lane merge are
+ * unsigned 32-bit guest word operations.
+ */
 void rom_wr_B (int32 pa, int32 val)
 {
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 sc = (pa & 3) << 3;
+uint32 addr = (uint32) pa;
+uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = ((val & 0xFF) << sc) | (rom[rg] & ~(0xFF << sc));
+rom[rg] = vax_sysdev_replace_byte_lane (rom[rg], addr, (uint32) val);
 }
 
 /* ROM examine */
@@ -651,24 +662,35 @@ return "read-only memory";
 
 /* NVR: non-volatile RAM - stored in a buffered file */
 
+/*
+ * Read a 32-bit VAX 3900 NVR register image.  This retains the legacy signed
+ * int32 VAX I/O signature around unsigned guest register storage.
+ */
 int32 nvr_rd (int32 pa)
 {
-int32 rg = (pa - NVRBASE) >> 2;
+uint32 addr = (uint32) pa;
+uint32 rg = (addr - NVRBASE) >> 2;
 
-return nvr[rg];
+return (int32) nvr[rg];
 }
 
+/*
+ * Write a VAX 3900 NVR register lane.  The legacy signed int32 I/O callback
+ * supplies the value, but NVR storage is updated as an unsigned 32-bit guest
+ * register image.
+ */
 void nvr_wr (int32 pa, int32 val, int32 lnt)
 {
-int32 rg = (pa - NVRBASE) >> 2;
+uint32 addr = (uint32) pa;
+uint32 rg = (addr - NVRBASE) >> 2;
 
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
-    nvr[rg] = ((val & mask) << sc) | (nvr[rg] & ~(mask << sc));
+    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
+    nvr[rg] = vax_sysdev_replace_masked_lane (nvr[rg], addr, (uint32) val,
+        mask);
     }
 else
-    nvr[rg] = val;
+    nvr[rg] = (uint32) val;
 }
 
 /* NVR examine */
@@ -1161,11 +1183,11 @@ MACH_CHECK (MCHK_WRITE);
 
 void WriteRegU (uint32 pa, int32 val, int32 lnt)
 {
-int32 sc = (pa & 03) << 3;
-int32 dat = ReadReg (pa & ~03, L_LONG);
+uint32 dat = (uint32) ReadReg (pa & ~03, L_LONG);
 
-dat = (dat & ~(insert[lnt] << sc)) | ((val & insert[lnt]) << sc);
-WriteReg (pa & ~03, dat, L_LONG);
+dat = vax_sysdev_replace_masked_lane (dat, pa, (uint32) val,
+    (uint32) insert[lnt]);
+WriteReg (pa & ~03, (int32) dat, L_LONG);
 }
 
 /* CMCTL registers
@@ -1210,8 +1232,7 @@ void cmctl_wr (int32 pa, int32 val, int32 lnt)
 int32 i, rg = (pa - CMCTLBASE) >> 2;
 
 if (lnt < L_LONG) {                                     /* LW write only */
-    int32 sc = (pa & 3) << 3;                           /* shift data to */
-    val = val << sc;                                    /* proper location */
+    val = (int32) vax_sysdev_shift_lane_value ((uint32) val, (uint32) pa);
     }
 switch (rg) {
 
@@ -1330,10 +1351,9 @@ void cdg_wr (int32 pa, int32 val, int32 lnt)
 int32 row = CDG_GETROW (pa);
 
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
-    int32 t = cdg_dat[row];
-    val = ((val & mask) << sc) | (t & ~(mask << sc));
+    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
+    val = (int32) vax_sysdev_replace_masked_lane ((uint32) cdg_dat[row],
+        (uint32) pa, (uint32) val, mask);
     }
 cdg_dat[row] = val;                                     /* store data */
 }
@@ -1442,10 +1462,9 @@ void ssc_wr (int32 pa, int32 val, int32 lnt)
 int32 rg = (pa - SSCBASE) >> 2;
 
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
-    int32 t = ssc_rd (pa);
-    val = ((val & mask) << sc) | (t & ~(mask << sc));
+    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
+    val = (int32) vax_sysdev_replace_masked_lane ((uint32) ssc_rd (pa),
+        (uint32) pa, (uint32) val, mask);
     }
 
 switch (rg) {

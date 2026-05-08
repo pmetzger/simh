@@ -40,6 +40,18 @@ add_unit_test(unit-vax4xx-stddev
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax-sysdev
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_sysdev.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+    FEATURE_FULL64
+)
+
 simh_executable_template(zimh-unit-vax-symbols
     SOURCES
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_sys.c
