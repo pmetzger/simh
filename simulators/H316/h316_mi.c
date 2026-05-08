@@ -759,10 +759,12 @@ t_stat mi_set_loopback (UNIT *uptr, int32 val, const char *cptr, void *desc)
     case 3:     // NOLOOPLINE
       if (PMIDB(line)->link == NOLINK)
         return SCPE_UNATT;
-      val = (val == 2) ? 1 : 0;
-      ret = udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, val);
+      t_bool line_loopback = (val == 2);
+
+      ret = udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link,
+                                   line_loopback);
       if (ret == SCPE_OK)
-        PMIDB(line)->lloop = val;
+        PMIDB(line)->lloop = line_loopback;
       break;
     }
   return ret;
