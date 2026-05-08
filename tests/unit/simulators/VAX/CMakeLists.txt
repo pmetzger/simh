@@ -264,10 +264,13 @@ add_unit_test(unit-vax750-mem
     LABEL unit
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax750_mem.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax750_mem.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/simulators/VAX
         ${PROJECT_SOURCE_DIR}/simulators/PDP11
     DEFINES
+        DONT_USE_INTERNAL_ROM
         VM_VAX
         VAX_750
     FEATURE_FULL64

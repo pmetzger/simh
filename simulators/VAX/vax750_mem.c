@@ -10,6 +10,7 @@
 
 #include "vax_defs.h"
 #include "vax750_mem_internal.h"
+#include "uint_bits.h"
 
 #ifndef DONT_USE_INTERNAL_ROM
 #include "vax_ka750_bin_old.h" /* Defines BOOT_CODE_FILENAME and BOOT_CODE_ARRAY, etc */
@@ -177,9 +178,8 @@ return SCPE_OK;
 void rom_wr_B (int32 pa, int32 val)
 {
 int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 sc = (pa & 3) << 3;
 
-rom[rg] = ((val & 0xFF) << sc) | (rom[rg] & ~(0xFF << sc));
+rom[rg] = u32_put_addr_u8_le(rom[rg], (uint32)val, (uint32)pa);
 return;
 }
 
