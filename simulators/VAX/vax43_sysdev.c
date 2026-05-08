@@ -125,6 +125,57 @@ extern void vc_wr (int32 pa, int32 val, int32 lnt);
 extern void vc_mem_wr (int32 pa, int32 val, int32 lnt);
 extern void ve_wr (int32 pa, int32 val, int32 lnt);
 
+/*
+ * Replace the register field selected by the low address bits in a 32-bit VAX
+ * register word.  The legacy register callbacks use signed int32 values, but
+ * register field replacement is machine-word bit manipulation.
+ */
+static inline uint32 replace_register_field(uint32 word, uint32 pa, uint32 val,
+                                            uint32 mask)
+{
+    uint32 sc = (pa & 3u) << 3;
+    uint32 lane_mask = mask << sc;
+
+    return ((val & mask) << sc) | (word & ~lane_mask);
+}
+
+/*
+ * Compose the KA43 interrupt/video status register.  Each input is a
+ * right-justified hardware field; the legacy ka_rd API returns int32, but the
+ * register value is a 32-bit VAX machine word.
+ */
+static inline uint32 compose_ka_status_register(uint32 interrupt_requests,
+                                                uint32 video_select,
+                                                uint32 video_origin,
+                                                uint32 interrupt_mask)
+{
+    uint32 interrupt_request_field = (interrupt_requests & BMASK) << 24;
+    uint32 video_select_field = (video_select & 1u) << 16;
+    uint32 video_origin_field = (video_origin & BMASK) << 8;
+
+    return interrupt_request_field | video_select_field | video_origin_field |
+           (interrupt_mask & BMASK);
+}
+
+/*
+ * Return the KA43 timer register image.  The current interval is stored in the
+ * high word of the 32-bit hardware register.
+ */
+static inline uint32 compose_ka_timer_register(void)
+{
+    return ((uint32)tmr_tir_rd()) << 16;
+}
+
+/*
+ * Extract the high word written to the KA43 timer register.  Only this 16-bit
+ * interval field is architectural; legacy signed arithmetic could sign-extend
+ * the internal storage without changing the effective timer value.
+ */
+static inline uint32 ka_timer_register_interval(uint32 val)
+{
+    return val >> 16;
+}
+
 /* SYSD data structures
 
    sysd_dev     SYSD device descriptor
@@ -323,14 +374,13 @@ return 0;
 
 void ddb_WriteB (uint32 ba, uint32 bc, uint8 *buf)
 {
-uint32 i, id, sc, mask, dat;
+uint32 i, id, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
         id = (ba >> 2) & 0x7FFF;
-        sc = (ba & 3) << 3;
-        mask = 0xFF << sc;
-        ddb[id] = (ddb[id] & ~mask) | (*buf << sc);
+        ddb[id] = replace_register_field (ddb[id], ba, (uint32) *buf,
+                                          0xFFu);
         ba++;
         }
     }
@@ -356,8 +406,8 @@ bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i = i + 2, buf++) {             /* by words */
         id = (ba >> 2) & 0x7FFF;
-        ddb[id] = (ba & 2)? (ddb[id] & 0xFFFF) | (*buf << 16):
-            (ddb[id] & ~0xFFFF) | *buf;
+        ddb[id] = replace_register_field (ddb[id], ba, (uint32) *buf,
+                                          0xFFFFu);
         ba = ba + 2;
         }
     }
@@ -434,9 +484,9 @@ static void ddb_wr (int32 pa, int32 val, int32 lnt)
 int32 rg = ((pa - D128BASE) >> 2);
 rg = rg & 0x7FFF;
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
-    ddb[rg] = ((val & mask) << sc) | (ddb[rg] & ~(mask << sc));
+    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
+    ddb[rg] = replace_register_field (ddb[rg], (uint32) pa,
+                                      (uint32) val, mask);
     }
 else ddb[rg] = val;
 return;
@@ -474,10 +524,10 @@ static void cdg_wr (int32 pa, int32 val, int32 lnt)
 int32 row = CDG_GETROW (pa);
 
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
-    int32 t = cdg_dat[row];
-    val = ((val & mask) << sc) | (t & ~(mask << sc));
+    uint32 mask = (lnt == L_WORD)? 0xFFFFu: 0xFFu;
+    val = (int32) replace_register_field ((uint32) cdg_dat[row],
+                                          (uint32) pa, (uint32) val,
+                                          mask);
     }
 cdg_dat[row] = val;                                     /* store data */
 }
@@ -800,10 +850,10 @@ return;
 
 void WriteRegU (uint32 pa, int32 val, int32 lnt)
 {
-int32 sc = (pa & 03) << 3;
 int32 dat = ReadReg (pa & ~03, L_LONG);
 
-dat = (dat & ~(insert[lnt] << sc)) | ((val & insert[lnt]) << sc);
+dat = (int32) replace_register_field ((uint32) dat, pa, (uint32) val,
+                                      (uint32) insert[lnt]);
 WriteReg (pa & ~03, dat, L_LONG);
 return;
 }
@@ -826,13 +876,12 @@ switch (rg) {
         return ka_mear & MEAR_RD;
 
     case 3:                                             /* INT_REQ, VDC_SEL, VDC_ORG, INT_MSK */
-        return ((int_req[0] & BMASK) << 24) | \
-            ((vc_sel & 1) << 16) | \
-            ((vc_org & BMASK) << 8) | \
-            (int_mask & BMASK);
+        return (int32) compose_ka_status_register ((uint32) int_req[0],
+                                                   vc_sel, vc_org,
+                                                   (uint32) int_mask);
 
     case 7:                                             /* timer */
-        return ((tmr_tir_rd ()) << 16);
+        return (int32) compose_ka_timer_register ();
         }
 
 return 0;
@@ -886,7 +935,7 @@ switch (rg) {
         break;
 
     case 7:                                             /* timer */
-        tmr_tir = (val >> 16);
+        tmr_tir = ka_timer_register_interval ((uint32) val);
         break;
         }
 return;

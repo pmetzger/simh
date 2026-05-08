@@ -79,6 +79,20 @@ add_unit_test(unit-vax-sysdev-behavior
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax43-sysdev-behavior
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax43_sysdev_behavior.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax43_sysdev.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+    DEFINES
+        VM_VAX
+        VAX_43
+        VAX_43A
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax-qbus
     LABEL unit
     SOURCES
