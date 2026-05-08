@@ -89,6 +89,20 @@ add_unit_test(unit-vax-qbus-io-write
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax-qbus-io-read
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_read.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_io.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_QBUS_TEST_RECORD_READS
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax610-qbus-io-write
     LABEL unit
     SOURCES
@@ -104,6 +118,21 @@ add_unit_test(unit-vax610-qbus-io-write
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax610-qbus-io-read
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_read.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax610_io.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_610
+        VAX_QBUS_TEST_RECORD_READS
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax630-qbus-io-write
     LABEL unit
     SOURCES
@@ -116,6 +145,21 @@ add_unit_test(unit-vax630-qbus-io-write
         VM_VAX
         VAX_630
         VAX_QBUS_TEST_RECORD_WRITES
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax630-qbus-io-read
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_qbus_io_read.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax630_io.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_630
+        VAX_QBUS_TEST_RECORD_READS
     FEATURE_FULL64
 )
 

@@ -214,6 +214,7 @@ int32 int_vec[IPL_HLVL][32];                            /* int req to vector */
         - write: set DSER<7>, latch addr in MEAR, MEMERR interrupt
 */
 
+#ifndef VAX_QBUS_TEST_RECORD_READS
 static int32 ReadQb (uint32 pa)
 {
 int32 idx, val;
@@ -231,6 +232,12 @@ cq_merr (pa);
 MACH_CHECK (MCHK_READ);
 return 0;
 }
+#else
+static int32 ReadQb (uint32 pa)
+{
+return vax_qbus_test_record_read (pa);
+}
+#endif
 
 #ifndef VAX_QBUS_TEST_RECORD_WRITES
 static void WriteQb (uint32 pa, int32 val, int32 mode)

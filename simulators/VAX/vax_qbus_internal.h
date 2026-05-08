@@ -7,6 +7,10 @@
 
 #include "vax_defs.h"
 
+#ifdef VAX_QBUS_TEST_RECORD_READS
+int32 vax_qbus_test_record_read(uint32 pa);
+#endif
+
 #ifdef VAX_QBUS_TEST_RECORD_WRITES
 void vax_qbus_test_record_write(uint32 pa, int32 val, int32 mode);
 #endif
