@@ -247,8 +247,9 @@
   ------------------------------------------------------------------------------
 */
 
-#include "pdp11_xq_internal.h"
+#include "pdp11_xq.h"
 #include "pdp11_xq_bootrom.h"
+#include "uint_bits.h"
 
 extern int32 tmxr_poll;
 extern int32 tmr_poll, clk_tps;
@@ -2580,10 +2581,10 @@ t_stat xq_wr(int32 ldata, int32 PA, int32 access)
     case XQ_T_DELQA_PLUS:
       switch (index) {
         case 0:   /* IBAL */
-          xq->var->iba = xq_replace_iba_low(xq->var->iba, data);
+          xq->var->iba = u32_put_low_u16(xq->var->iba, data);
           break;
         case 1:   /* IBAH */
-          xq->var->iba = xq_replace_iba_high(xq->var->iba, data);
+          xq->var->iba = u32_put_high_u16(xq->var->iba, data);
           break;
         case 2:   /* ICR */
           xq_wr_icr(xq, data);
@@ -2606,7 +2607,7 @@ t_stat xq_wr(int32 ldata, int32 PA, int32 access)
       switch (index) {
         case 0:   /* IBAL/XCR0 */ /* these should only be written on a DELQA-T */
           if (xq->var->type == XQ_T_DELQA_PLUS)
-            xq->var->iba = xq_replace_iba_low(xq->var->iba, data);
+            xq->var->iba = u32_put_low_u16(xq->var->iba, data);
           break;
         case 1:   /* IBAH/XCR1 */
           if (xq->var->type == XQ_T_DELQA_PLUS) {
@@ -2616,7 +2617,7 @@ t_stat xq_wr(int32 ldata, int32 PA, int32 access)
               sim_cancel(xq->unit); /* Turn off receive processing until explicitly enabled */
               eth_clr_async(xq->var->etherface);
             }
-            xq->var->iba = xq_replace_iba_high(xq->var->iba, data);
+            xq->var->iba = u32_put_high_u16(xq->var->iba, data);
           }
           break;
         case 2:   /* receive bdl low bits */

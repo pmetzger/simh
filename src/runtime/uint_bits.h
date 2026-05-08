@@ -254,6 +254,36 @@ static inline uint32_t u32_from_u16_pair(uint32_t low, uint32_t high)
     return (low & UINT32_C(0xffff)) | ((high & UINT32_C(0xffff)) << 16);
 }
 
+// Put a right-justified u16 into the low half of a uint32_t dest.
+//
+// src is masked to 16 bits before insertion. The high u16 in dest is
+// preserved.
+//
+// Example: u32_put_low_u16(0x12345678, 0x1abcd) returns 0x1234abcd.
+//
+//     dest:   0x1234 [5678]
+//     src:    0x0001 [abcd]
+//     result: 0x1234 [abcd]
+static inline uint32_t u32_put_low_u16(uint32_t dest, uint32_t src)
+{
+    return u32_put_field(dest, src, 0u, 16u);
+}
+
+// Put a right-justified u16 into the high half of a uint32_t dest.
+//
+// src is masked to 16 bits before insertion. The low u16 in dest is
+// preserved.
+//
+// Example: u32_put_high_u16(0x12345678, 0x1abcd) returns 0xabcd5678.
+//
+//     dest:   0x[1234] 5678
+//     src:    0x0001 [abcd]
+//     result: 0x[abcd] 5678
+static inline uint32_t u32_put_high_u16(uint32_t dest, uint32_t src)
+{
+    return u32_put_field(dest, src, 16u, 16u);
+}
+
 // Return the low u16 half of a uint32_t src.
 //
 // Example: u32_low_u16(0x12345678) returns 0x5678.
