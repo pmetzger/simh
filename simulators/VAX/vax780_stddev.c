@@ -874,17 +874,18 @@ if (r != SCPE_OK)
     uptr->flags = uptr->flags & ~(UNIT_ATTABLE | UNIT_BUFABLE);
 else {
     TOY *toy = (TOY *)uptr->filebuf;
+    const uint32 sim_endian_plus2 = sim_end ? 3 : 2;
 
     uptr->hwmark = (uint32) uptr->capac;
     if ((toy->toy_endian_plus2 < 2) || (toy->toy_endian_plus2 > 3))
         memset (uptr->filebuf, 0, (size_t)uptr->capac);
     else {
-        if (toy->toy_endian_plus2 != sim_end + 2) {     /* wrong endian? */
+        if (toy->toy_endian_plus2 != sim_endian_plus2) { /* wrong endian? */
             toy->toy_gmtbase = sim_byteswap32 (toy->toy_gmtbase);
             toy->toy_gmtbasemsec = sim_byteswap32 (toy->toy_gmtbasemsec);
             }
         }
-    toy->toy_endian_plus2 = sim_end + 2;
+    toy->toy_endian_plus2 = sim_endian_plus2;
     todr_resync ();
     }
 return r;
