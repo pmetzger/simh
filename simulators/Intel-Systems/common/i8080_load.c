@@ -3,6 +3,7 @@
 // SPDX-FileCopyrightText: 2011 William A. Beech
 // SPDX-License-Identifier: X11
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define HLEN 16
@@ -35,39 +36,39 @@ static int32 ihex_hex_value(char ch)
  * Parse exactly two Intel HEX digits from *p. The input pointer advances only
  * after a complete byte field is present.
  */
-static t_bool parse_ihex_byte(const char **p, uint8 *byte)
+static bool parse_ihex_byte(const char **p, uint8 *byte)
 {
     int32 hi, lo;
 
     if (((*p)[0] == '\0') || ((*p)[1] == '\0'))
-        return FALSE;
+        return false;
     hi = ihex_hex_value((*p)[0]);
     lo = ihex_hex_value((*p)[1]);
     if ((hi < 0) || (lo < 0))
-        return FALSE;
+        return false;
     *byte = (uint8)((hi << 4) | lo);
     *p += 2;
-    return TRUE;
+    return true;
 }
 
 /*
  * Parse exactly four Intel HEX digits from *p as a 16-bit address field.
  */
-static t_bool parse_ihex_word(const char **p, int32 *word)
+static bool parse_ihex_word(const char **p, int32 *word)
 {
     uint8 hi, lo;
 
     if (!parse_ihex_byte(p, &hi) || !parse_ihex_byte(p, &lo))
-        return FALSE;
+        return false;
     *word = ((int32)hi << 8) | lo;
-    return TRUE;
+    return true;
 }
 
 /*
  * Parse one 16-bit hexadecimal address argument. Addresses are one to four
  * hex digits and are separated from later arguments by whitespace.
  */
-static t_bool parse_i8080_address_arg(const char **p, int32 *addr)
+static bool parse_i8080_address_arg(const char **p, int32 *addr)
 {
     int32 value = 0;
     int32 digits = 0;
@@ -77,15 +78,15 @@ static t_bool parse_i8080_address_arg(const char **p, int32 *addr)
         (*p)++;
     while ((hex = ihex_hex_value(**p)) >= 0) {
         if (digits >= 4)
-            return FALSE;
+            return false;
         value = (value << 4) | hex;
         digits++;
         (*p)++;
     }
     if (digits == 0)
-        return FALSE;
+        return false;
     *addr = value;
-    return TRUE;
+    return true;
 }
 
 /*
@@ -126,10 +127,10 @@ static t_stat parse_i8080_load_range(const char *cptr, int32 *argc,
  * Return whether a data record fits in the 16-bit i8080 memory image without
  * wrapping through address zero.
  */
-static t_bool ihex_data_fits_memory(int32 addr, int32 cnt)
+static bool ihex_data_fits_memory(int32 addr, int32 cnt)
 {
     if (cnt == 0)
-        return TRUE;
+        return true;
     return addr <= (ADDRMASK - cnt + 1);
 }
 
@@ -206,8 +207,8 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
     int32 addr1 = 0, end = 0, rtype;
     char buf[600];
     uint8 data[IHEX_MAX_DATA];
-    t_bool have_addr = FALSE;
-    t_bool have_eof = FALSE;
+    bool have_addr = false;
+    bool have_eof = false;
     t_stat r;
 
     start = saved_PC & ADDRMASK;
@@ -229,14 +230,14 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
                         return SCPE_ARG;
                     if (!have_addr) {
                         addr1 = addr;
-                        have_addr = TRUE;
+                        have_addr = true;
                     }
                     for (int32 j = 0; j < i; j++)
                         put_mbyte((uint16)(addr + j), data[j]);
                     cnt += i;
                     printf("+");
                 } else if (rtype == IHEX_EOF) {
-                    have_eof = TRUE;
+                    have_eof = true;
                     break;
                 } else {
                     return SCPE_ARG;

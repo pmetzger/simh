@@ -196,19 +196,19 @@ int32 iplpending = 0;               /* interrupted IPL's */
 int32 tbit = 0;                     /* trace flag (causes level 5 IRQ after each instr) */
 int32 V = 0, C = 0;                 /* condition codes */
 int32 wait_state = 0;               /* wait state (waiting for an IRQ) */
-int32 wait_lamp = TRUE;             /* alternate indicator to light the wait lamp on the GUI */
+int32 wait_lamp = true;             /* alternate indicator to light the wait lamp on the GUI */
 int32 int_req = 0;                  /* sum of interrupt request levels active */
 int32 int_lamps = 0;                /* accumulated version of int_req - gives lamp persistence */
 int32 int_mask;                     /* current active interrupt mask (ipl sensitive) */
 int32 mem_mask;                     /* mask for memory address bits based on current memory size */
 int32 cpu_dsw = 0;                  /* CPU device status word */
 int32 ibkpt_addr = -1;              /* breakpoint addr */
-t_bool sim_gui = TRUE;              /* enable gui */
-t_bool running = FALSE;             /* TRUE if CPU is running */
-t_bool power   = TRUE;              /* TRUE if CPU power is on */
-bool cgi     = false;               /* TRUE if we are running as a CGI program */
-bool cgiwritable = false;           /* TRUE if we can write the disk images back to the image file in CGI mode */
-t_bool is_1800 = FALSE;             /* TRUE if we are simulating an IBM 1800 processor */
+bool sim_gui = true;                /* enable gui */
+bool running = false;               /* true if CPU is running */
+bool power   = true;                /* true if CPU power is on */
+bool cgi     = false;               /* true if we are running as a CGI program */
+bool cgiwritable = false;           /* true if we can write the disk images back to the image file in CGI mode */
+bool is_1800 = false;               /* true if we are simulating an IBM 1800 processor */
 t_stat reason;                      /* CPU execution loop control */
 
 static int32 int_masks[6] = {
@@ -249,7 +249,7 @@ extern UNIT cr_unit, prt_unit[];
 
 static t_stat view_cmd (int32 flag, const char *cptr);
 static t_stat cpu_attach (UNIT *uptr, const char *cptr);
-static t_bool bsctest (int32 DSPLC);
+static bool bsctest (int32 DSPLC);
 static void   exit_irq (void);
 static void   trace_instruction (void);
 
@@ -503,16 +503,16 @@ t_stat sim_instr (void)
 #endif
     static const char *intlabel[] = {"INT0","INT1","INT2","INT3","INT4","INT5"};
 
-    /* the F bit indicates a two-word instruction for most instructions except the ones marked FALSE below */
-    static t_bool F_bit_used[] = {                                  /* FALSE for those few instructions that don't have a long instr version */
+    /* the F bit indicates a two-word instruction for most instructions except the ones marked false below */
+    static bool F_bit_used[] = {                                    /* false for those few instructions that don't have a long instr version */
       /*undef  XIO   SLx    SRx    LDS    STS   WAIT   undef */
-        FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE,
+        false, true, false, false, false, true, false, false,
       /*BSI    BSC   undef  undef  LDX    STX   MDX    undef */
-        TRUE,  TRUE, FALSE, FALSE, TRUE,  TRUE, TRUE,  FALSE,
+        true,  true, false, false, true,  true, true,  false,
       /*A      AD    S      SD     M      D     CPU dependent */
-        TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE, FALSE, FALSE,
+        true,  true, true,  true,  true,  true, false, false,
       /*LD     LDD   STO    STD    AND    OR    EOR    undef */
-        TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE, TRUE,  FALSE
+        true,  true, true,  true,  true,  true, true,  false
     };
 
 #ifdef ENABLE_1800_SUPPORT
@@ -529,7 +529,7 @@ t_stat sim_instr (void)
     if (! power)                            /* this matters only to the GUI */
         return STOP_POWER_OFF;
 
-    running = TRUE;
+    running = true;
 
     mem_mask = MEMSIZE - 1;                 /* set other useful variables */
     calc_ints();
@@ -539,8 +539,8 @@ t_stat sim_instr (void)
     reason = 0;
     wait_lamp = 0;                          /* release lock on wait lamp */
 
-    update_gui(TRUE);
-    gui_run(TRUE);
+    update_gui(true);
+    gui_run(true);
 
     while (reason == 0)  {
         IAR &= mem_mask;
@@ -549,11 +549,11 @@ t_stat sim_instr (void)
 #ifndef UPDATE_BY_TIMER
 #if (UPDATE_INTERVAL > 0)
             if (--cwincount <= 0) {
-                update_gui(FALSE);          /* update console lamps only every so many instructions */
+                update_gui(false);          /* update console lamps only every so many instructions */
                 cwincount = UPDATE_INTERVAL + (rand() % MIN(UPDATE_INTERVAL, 32));
             }
 #else
-            update_gui(FALSE);
+            update_gui(false);
 #endif /* ifdef  UPDATE_INTERVAL */
 #endif /* ifndef UPDATE_BY_TIMER */
 #endif /* ifdef  GUI_SUPPORT     */
@@ -1188,14 +1188,14 @@ t_stat sim_instr (void)
         }
     }                                       /* end main loop */
 
-    gui_run(FALSE);
+    gui_run(false);
 
-    running   = FALSE;
+    running   = false;
     int_lamps = 0;                          /* display only currently active interrupts while halted */
 
     if (reason == STOP_WAIT || reason == STOP_INVALID_INSTR) {
         wait_state = 0;                     /* on resume, don't wait */
-        wait_lamp = TRUE;                   /* but keep the lamp lit on the GUI */
+        wait_lamp = true;                   /* but keep the lamp lit on the GUI */
 
         CLRBIT(cpu_dsw, CPU_DSW_PROGRAM_STOP);  /* and on resume, reset program start bit */
         if ((cpu_dsw & CPU_DSW_PROGRAM_STOP) == 0)
@@ -1230,42 +1230,42 @@ static int simh_status_to_stopcode (int status)
 }
 
 /* ------------------------------------------------------------------------
- * bsctest - perform standard set of condition tests. We return TRUE if any
- * of the condition bits specified in DSPLC test positive, FALSE if none are true.
+ * bsctest - perform standard set of condition tests. We return true if any
+ * of the condition bits specified in DSPLC test positive, false if none are true.
  * Testing overflow resets the flag in both long and short forms.
  * ------------------------------------------------------------------------ */
 
-static t_bool bsctest (int32 DSPLC)
+static bool bsctest (int32 DSPLC)
 {
     if (DSPLC & 0x01) {                     /* Overflow off (note inverted sense) */
         if (! V)
-            return TRUE;
+            return true;
         /* IBM diagnostics showed both long and short forms reset overflow. */
         V = 0;
     }
 
     if (DSPLC & 0x02) {                     /* Carry off (note inverted sense) */
         if (! C)
-            return TRUE;
+            return true;
     }
 
     if (DSPLC & 0x04)                       /* Even */
         if ((ACC & 1) == 0)
-            return TRUE;
+            return true;
 
     if (DSPLC & 0x08)                       /* Positive */
         if ((ACC & 0x8000) == 0 && ACC != 0)
-            return TRUE;
+            return true;
 
     if (DSPLC & 0x10)                       /* Negative */
         if (ACC & 0x8000)
-            return TRUE;
+            return true;
 
     if (DSPLC & 0x20)                       /* Zero */
         if ((ACC & 0xFFFF) == 0)
-            return TRUE;
+            return true;
 
-    return FALSE;
+    return false;
 }
 
 /* ------------------------------------------------------------------------
@@ -1325,7 +1325,7 @@ t_stat cpu_reset (DEVICE *dptr)
 
     sim_init();
     wait_state = 0;                     /* cancel wait */
-    wait_lamp  = TRUE;                  /* but keep the wait lamp lit on the GUI */
+    wait_lamp  = true;                  /* but keep the wait lamp lit on the GUI */
 
     if ((cpu_unit.flags & (UNIT_ATT|UNIT_TRACE_INSTR)) == (UNIT_ATT|UNIT_TRACE_INSTR)) {    /* record reset in CPU log */
         fseek(cpu_unit.fileref, 0, SEEK_END);
@@ -1423,7 +1423,7 @@ t_stat cpu_svc (UNIT *uptr)
 
 t_stat cpu_set_size (UNIT *uptr, int32 value, const char *cptr, void *desc)
 {
-    t_bool used;
+    bool used;
     int32 i;
 
     /* Generic callback signature.
@@ -1435,14 +1435,14 @@ t_stat cpu_set_size (UNIT *uptr, int32 value, const char *cptr, void *desc)
     if ((value <= 0) || (value > MAXMEMSIZE) || ((value & 0xFFF) != 0))
         return SCPE_ARG;
 
-    for (i = value, used = FALSE; i < (int32) MEMSIZE; i++) {
+    for (i = value, used = false; i < (int32) MEMSIZE; i++) {
         if (M[i] != 0) {
-            used = TRUE;
+            used = true;
             break;
         }
     }
 
-    if (used && ! get_yn ("Really truncate memory [N]?", FALSE))
+    if (used && ! get_yn ("Really truncate memory [N]?", false))
         return SCPE_OK;
 
     for (i = MEMSIZE; i < value; i++)       /* clear expanded area */
@@ -1742,7 +1742,7 @@ typedef struct tag_symentry {
 } SYMENTRY, *PSYMENTRY;
 
 static PSYMENTRY syms = NULL;
-static t_bool new_log, log_fac;
+static bool new_log, log_fac;
 
 static t_stat cpu_attach (UNIT *uptr, const char *cptr)
 {
@@ -1752,7 +1752,7 @@ static t_stat cpu_attach (UNIT *uptr, const char *cptr)
     FILE *fd;
 
     remove(cptr);                           /* delete old log file, if present */
-    new_log = TRUE;
+    new_log = true;
     log_fac = (sim_switches & SWMASK ('F')) != 0; /* display the FAC and the ACC/EXT as fixed point. */
 
     for (s = syms; s != NULL; s = n) {      /* free any old map entries */
@@ -1823,7 +1823,7 @@ static void trace_instruction (void)
 
     if (new_log) {
         fseek(cpu_unit.fileref, 0, SEEK_END);
-        new_log = FALSE;
+        new_log = false;
 
         fprintf(cpu_unit.fileref, " IAR%s  ACC  EXT %s XR1  XR2  XR3 CVI %sOPERATION" CRLF,
             syms ? "           " : "", log_fac ? " (flt)   " : "", log_fac ? "     FAC      " : "");
@@ -1836,7 +1836,7 @@ static void trace_instruction (void)
     else {
         mant = ((ACC & 0xFFFF) << 16) | (EXT & 0xFFFF);
         if (mant == 0x80000000) {
-            sign = TRUE;
+            sign = true;
             fac = 1.f;
         }
         else {
@@ -1948,14 +1948,14 @@ void debug_print (const char *fmt, ...)
     va_list args;
     va_list file_args;
     FILE *fout = stdout;
-    t_bool binarymode = FALSE;
+    bool binarymode = false;
 
 #define DEBUG_TO_PRINTER
 
 #ifdef DEBUG_TO_PRINTER
     if (prt_unit[0].fileref != NULL) {      /* THIS IS TEMPORARY */
         fout = prt_unit[0].fileref;
-        binarymode = TRUE;
+        binarymode = true;
     }
 #endif
 

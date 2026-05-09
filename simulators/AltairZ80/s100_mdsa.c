@@ -13,6 +13,7 @@
  *************************************************************************/
 
 /*#define DBG_MSG*/
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 
@@ -99,7 +100,7 @@ static MDSA_INFO mdsa_info_data = { { 0xE800, 1024, 0, 0 } };
 static MDSA_INFO *mdsa_info = &mdsa_info_data;
 
 static SECTOR_FORMAT sdata;
-static uint32 stepCleared = TRUE;   /* true when step bit has returned to zero */
+static uint32 stepCleared = true;   /* true when step bit has returned to zero */
 
 #define UNIT_V_MDSA_VERBOSE    (UNIT_V_UF + 1)   /* verbose mode, i.e. show error messages       */
 #define UNIT_MDSA_VERBOSE      (1 << UNIT_V_MDSA_VERBOSE)
@@ -214,11 +215,11 @@ t_stat mdsa_reset(DEVICE *dptr)
 
     if(dptr->flags & DEV_DIS) {
         sim_map_resource(pnp->mem_base, pnp->mem_size,
-            RESOURCE_TYPE_MEMORY, &mdsadev, "mdsadev", TRUE);
+            RESOURCE_TYPE_MEMORY, &mdsadev, "mdsadev", true);
     } else {
         /* Connect MDSA at base address */
         if(sim_map_resource(pnp->mem_base, pnp->mem_size,
-            RESOURCE_TYPE_MEMORY, &mdsadev, "mdsadev", FALSE) != 0) {
+            RESOURCE_TYPE_MEMORY, &mdsadev, "mdsadev", false) != 0) {
             sim_printf("%s: error mapping resource at 0x%04x\n",
                 __FUNCTION__, pnp->mem_base);
             dptr->flags |= DEV_DIS;
@@ -411,7 +412,7 @@ static uint8 MDSA_Read(const uint32 Addr)
                     return 0x00;
                 }
                 if(mdsa_dev.dctrl & WR_DATA_DETAIL_MSG)
-                    showdata(FALSE);
+                    showdata(false);
                 switch((pDrive->uptr)->u3)
                 {
                     case IMAGE_TYPE_DSK:
@@ -488,7 +489,7 @@ static uint8 MDSA_Read(const uint32 Addr)
                             break;
                     }
                     if(mdsa_dev.dctrl & RD_DATA_DETAIL_MSG)
-                        showdata(TRUE);
+                        showdata(true);
                 }
 
                 if(mdsa_info->datacount < MDSA_SECTOR_LEN) {

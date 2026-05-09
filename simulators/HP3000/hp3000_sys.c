@@ -73,6 +73,7 @@
 
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
@@ -975,7 +976,7 @@ static const char *const edit_ops [] = {        /* EDIT operation names */
 /* System interface local SCP support routines */
 
 void   hp_one_time_init  (void);
-static t_bool fprint_stopped (FILE   *st,   t_stat     reason);
+static bool fprint_stopped (FILE   *st,   t_stat     reason);
 static void   fprint_addr    (FILE   *st,   DEVICE     *dptr, t_addr     addr);
 static t_addr parse_addr     (DEVICE *dptr, const char *cptr, const char **tptr);
 
@@ -2530,7 +2531,7 @@ return;
    matching values, and the device names associated with the matching values are
    printed.
 
-   This routine returns TRUE if any conflicts exist and FALSE there are none.
+   This routine returns true if any conflicts exist and false there are none.
 
 
    Implementation notes:
@@ -2557,7 +2558,7 @@ return;
        run-time determination of the count of simulator devices.
 */
 
-t_bool hp_device_conflict (void)
+bool hp_device_conflict (void)
 {
 #define CONFLICT_COUNT      3                           /* the number of conflict types to check */
 
@@ -2666,7 +2667,7 @@ for (conf = Device; conf <= Service; conf++) {          /* check for conflicts f
         }
     }
 
-return (conflict_is != None);                           /* return TRUE if any conflicts exist */
+return (conflict_is != None);                           /* return true if any conflicts exist */
 }
 
 
@@ -2747,8 +2748,8 @@ return;
    For VM stops, this routine is called after the message has been printed and
    before the comma and program counter label and value are printed.  Depending
    on the reason for the stop, the routine may insert additional information,
-   and it may request omission of the PC value by returning FALSE instead of
-   TRUE.
+   and it may request omission of the PC value by returning false instead of
+   true.
 
    This routine modifies the default output for these stop codes:
 
@@ -2765,7 +2766,7 @@ return;
     2. The system halt reason is present in RA.
 */
 
-static t_bool fprint_stopped (FILE *st, t_stat reason)
+static bool fprint_stopped (FILE *st, t_stat reason)
 {
 if (reason == STOP_HALT) {                              /* if this is a halt instruction stop */
     sim_eval [0] = CIR;                                 /*   then save the instruction for evaluation */
@@ -2778,7 +2779,7 @@ if (reason == STOP_HALT) {                              /* if this is a halt ins
     fprint_cpu (st, sim_eval, 0, SIM_SW_STOP);          /*   (which cannot fail) */
     fputc (')', st);                                    /*     within parentheses */
 
-    return TRUE;                                        /* return TRUE to append the program counter */
+    return true;                                        /* return true to append the program counter */
     }
 
 else if (reason == STOP_CDUMP) {                        /* otherwise if this is a cold dump completion stop */
@@ -2787,16 +2788,16 @@ else if (reason == STOP_CDUMP) {                        /* otherwise if this is 
                 cpu_dev.dwidth, PV_RZRO);
 
     fputc ('\n', st);                                   /* append an end-of-line character */
-    return FALSE;                                       /*   and return FALSE to omit the program counter */
+    return false;                                       /*   and return false to omit the program counter */
     }
 
 else if (reason == STOP_SYSHALT) {                      /* otherwise if this is a system halt stop */
     fprintf (st, " %u", RA);                            /*   then print the halt reason */
-    return TRUE;                                        /*     and return TRUE to append the program counter */
+    return true;                                        /*     and return true to append the program counter */
     }
 
 else                                                    /* otherwise all other stops */
-    return TRUE;                                        /*   return TRUE to append the program counter */
+    return true;                                        /*   return true to append the program counter */
 }
 
 
@@ -3424,11 +3425,11 @@ static t_stat fprint_instruction (FILE *ofile, const OP_TABLE ops, t_value *val,
 {
 uint32     op_index, op_radix;
 int32      reg_index;
-t_bool     reg_first;
+bool       reg_first;
 t_value    instruction, op_value;
 const char *prefix  = NULL;                             /* label to print before the operand */
-t_bool     index    = FALSE;                            /* TRUE if the instruction is indexed */
-t_bool     indirect = FALSE;                            /* TRUE if the instruction is indirect */
+bool       index    = false;                            /* true if the instruction is indexed */
+bool       indirect = false;                            /* true if the instruction is indirect */
 t_stat     status   = SCPE_OK;                          /* result status */
 
 instruction = TO_DWORD (val [1], val [0]);              /* merge the two supplied values */
@@ -3574,12 +3575,12 @@ switch (ops [op_index].operand) {                       /* dispatch by the opera
         if (op_value != 0) {                                    /* if any registers are to be output */
             fputc (' ', ofile);                                 /*   then print a space as a separator */
 
-            reg_first = TRUE;                                   /* set the first-time-through flag */
+            reg_first = true;                                   /* set the first-time-through flag */
 
             for (reg_index = 0; reg_index <= 7; reg_index++) {  /* loop through the register bits */
                 if (op_value & PSR_LR_MASK) {                   /* if the register selection bit is set */
                     if (reg_first)                              /*   then if this is the first time */
-                        reg_first = FALSE;                      /*     then clear the flag */
+                        reg_first = false;                      /*     then clear the flag */
                     else                                        /* otherwise */
                         fputc (',', ofile);                     /*   output a comma separator */
 
@@ -3598,12 +3599,12 @@ switch (ops [op_index].operand) {                       /* dispatch by the opera
         if (op_value != 0) {                                    /* if any registers are to be output */
             fputc (' ', ofile);                                 /*   then print a space as a separator */
 
-            reg_first = TRUE;                                   /* set the first-time-through flag */
+            reg_first = true;                                   /* set the first-time-through flag */
 
             for (reg_index = 7; reg_index >= 0; reg_index--) {  /* loop through the register bits */
                 if (op_value & PSR_RL_MASK) {                   /* if the register selection bit is set */
                     if (reg_first)                              /*   then if this is the first time */
-                        reg_first = FALSE;                      /*     then clear the flag */
+                        reg_first = false;                      /*     then clear the flag */
                     else                                        /* otherwise */
                         fputc (',', ofile);                     /*   output a comma separator */
 

@@ -42,6 +42,7 @@
  *   HD135      11   1224    15   18    512     Maxtor XT1190
  */
 
+#include <stdbool.h>
 #include "3b2_id.h"
 
 #include "sim_disk.h"
@@ -62,12 +63,12 @@
 static inline t_lba id_lba(uint16 cyl, uint8 head, uint8 sec);
 
 /* DMAC request */
-t_bool id_drq = FALSE;
+bool id_drq = false;
 
 struct id_state id_state[ID_NUM_UNITS] = {0};
 
 /* Enable support for disks with > 1024 cylinders */
-static t_bool   id_large = FALSE;
+static bool     id_large = false;
 /* Data FIFO pointer - Read */
 static uint8    id_dpr = 0;
 /* Data FIFO pointer - Write */
@@ -81,13 +82,13 @@ static uint8    id_cmd = 0;
 /* 8-byte FIFO */
 static uint8    id_data[ID_FIFO_LEN] = {0};
 /* SRQM bit */
-static t_bool   id_srqm = FALSE;
+static bool     id_srqm = false;
 /* The logical unit number (0-1) */
 static uint8    id_unit_num = 0;
 /* The physical unit number (0-3) */
 static uint8    id_ua = 0;
 /* Whether we are using buffered SEEK/RECAL or not */
-static t_bool   id_buffered = FALSE;
+static bool     id_buffered = false;
 /* Sector buffer */
 static uint8    id_buf[ID_SEC_SIZE];
 /* Buffer pointer */
@@ -186,7 +187,7 @@ static inline void id_clr_status(uint8 flags)
     UPDATE_INT;
 }
 
-static inline void id_set_srqm(t_bool state)
+static inline void id_set_srqm(bool state)
 {
     id_srqm = state;
     UPDATE_INT;
@@ -216,7 +217,7 @@ t_stat id_ctlr_svc(UNIT *uptr)
 
     cmd = uptr->u4;  /* The command that caused the activity */
 
-    id_set_srqm(FALSE);
+    id_set_srqm(false);
     id_clr_status(ID_STAT_CB);
     id_set_status(ID_STAT_CEH);
     uptr->u4 = 0;
@@ -243,14 +244,14 @@ t_stat id_ctlr_svc(UNIT *uptr)
  */
 t_stat id_unit_svc(UNIT *uptr)
 {
-    t_bool recal_error;
+    bool recal_error;
     uint8 unit, other, cmd, end_flags;
 
     unit  = uptr->u3;  /* The unit number that needs an interrupt */
     cmd   = uptr->u4;  /* The command that caused the activity    */
     other = unit ^ 1;  /* The number of the other unit            */
 
-    recal_error = FALSE;
+    recal_error = false;
 
     /* If the other unit is active, we cannot interrupt, so we delay
      * here */
@@ -260,7 +261,7 @@ t_stat id_unit_svc(UNIT *uptr)
         return SCPE_OK;
     }
 
-    id_set_srqm(FALSE);
+    id_set_srqm(false);
 
     switch (cmd) {
     case ID_CMD_RECAL:
@@ -334,7 +335,7 @@ t_stat id_set_large(UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) cptr;
     (void) desc;
 
-    id_large = (t_bool)val;
+    id_large = (bool)val;
 
     if (!id_large && (ID_GET_DTYPE(id_unit[0].flags) > ID_HD135_DTYPE ||
                       ID_GET_DTYPE(id_unit[1].flags) > ID_HD135_DTYPE)) {
@@ -403,7 +404,7 @@ t_stat id_attach(UNIT *uptr, const char *cptr)
         return sim_messagef(SCPE_ARG, "HD161 disks can only be used if large disk support is enabled (SET IDISK LARGE)\n");
     }
 
-    return sim_disk_attach_ex(uptr, cptr, 512, 1, TRUE, 0, id_dtab[ID_GET_DTYPE(uptr->flags)].name, 0, 0, NULL);
+    return sim_disk_attach_ex(uptr, cptr, 512, 1, true, 0, id_dtab[ID_GET_DTYPE(uptr->flags)].name, 0, 0, NULL);
 }
 
 t_stat id_detach(UNIT *uptr)
@@ -709,7 +710,7 @@ void id_handle_command(uint8 val)
             sim_debug(WRITE_MSG, &id_dev,
                       "COMMAND\t%02x\tAUX:HSRQ\n",
                       val);
-            id_set_srqm(TRUE);
+            id_set_srqm(true);
         }
 
         if (aux_cmd & ID_AUX_CLB) {
@@ -727,7 +728,7 @@ void id_handle_command(uint8 val)
             sim_cancel(id_sel_unit);
             sim_cancel(id_ctlr_unit);
             id_status = 0;
-            id_set_srqm(FALSE);
+            id_set_srqm(false);
         }
 
         /* Just return early */
@@ -895,7 +896,7 @@ void id_handle_command(uint8 val)
                   "COMMAND\t%02x\tRead ID - %d\n",
                   val, id_ua);
         if (id_sel_unit->flags & UNIT_ATT) {
-            id_drq = TRUE;
+            id_drq = true;
 
             /* Grab our arguments */
             id_state[id].phn = id_data[0];
@@ -933,7 +934,7 @@ void id_handle_command(uint8 val)
                   id_data[0], id_data[3], id_data[4], id_data[5]);
 
         if (id_sel_unit->flags & UNIT_ATT) {
-            id_drq = TRUE;
+            id_drq = true;
             id_buf_ptr = 0;
         } else {
             sim_debug(EXECUTE_MSG, &id_dev,
@@ -977,7 +978,7 @@ void id_handle_command(uint8 val)
                   id_data[0], id_data[3], id_data[4], id_data[5]);
 
         if (id_sel_unit->flags & UNIT_ATT) {
-            id_drq = TRUE;
+            id_drq = true;
             id_buf_ptr = 0;
         } else {
             sim_debug(EXECUTE_MSG, &id_dev,
@@ -992,7 +993,7 @@ void id_handle_command(uint8 val)
 void id_after_dma(void)
 {
     id_clr_status(ID_STAT_DRQ);
-    id_drq = FALSE;
+    id_drq = false;
 }
 
 const char *id_description(DEVICE *dptr)

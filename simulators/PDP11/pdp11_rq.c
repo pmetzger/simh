@@ -1159,42 +1159,42 @@ t_stat rq_show_unitq (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat rq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *rq_description (DEVICE *dptr);
 
-t_bool rq_step4 (MSC *cp);
-t_bool rq_mscp (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_abo (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_avl (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_fmt (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_gcs (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_gus (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_onl (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_rw (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_scc (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_suc (MSC *cp, uint16 pkt, t_bool q);
-t_bool rq_plf (MSC *cp, uint16 err);
-t_bool rq_dte (MSC *cp, UNIT *uptr, uint16 err);
-t_bool rq_hbe (MSC *cp, UNIT *uptr);
-t_bool rq_una (MSC *cp, uint16 un);
-t_bool rq_deqf (MSC *cp, uint16 *pkt);
+bool rq_step4 (MSC *cp);
+bool rq_mscp (MSC *cp, uint16 pkt, bool q);
+bool rq_abo (MSC *cp, uint16 pkt, bool q);
+bool rq_avl (MSC *cp, uint16 pkt, bool q);
+bool rq_fmt (MSC *cp, uint16 pkt, bool q);
+bool rq_gcs (MSC *cp, uint16 pkt, bool q);
+bool rq_gus (MSC *cp, uint16 pkt, bool q);
+bool rq_onl (MSC *cp, uint16 pkt, bool q);
+bool rq_rw (MSC *cp, uint16 pkt, bool q);
+bool rq_scc (MSC *cp, uint16 pkt, bool q);
+bool rq_suc (MSC *cp, uint16 pkt, bool q);
+bool rq_plf (MSC *cp, uint16 err);
+bool rq_dte (MSC *cp, UNIT *uptr, uint16 err);
+bool rq_hbe (MSC *cp, UNIT *uptr);
+bool rq_una (MSC *cp, uint16 un);
+bool rq_deqf (MSC *cp, uint16 *pkt);
 uint16 rq_deqh (MSC *cp, uint16 *lh);
 void rq_enqh (MSC *cp, uint16 *lh, uint16 pkt);
 void rq_enqt (MSC *cp, uint16 *lh, uint16 pkt);
-t_bool rq_getpkt (MSC *cp, uint16 *pkt);
-t_bool rq_putpkt (MSC *cp, uint16 pkt, t_bool qt);
-t_bool rq_getdesc (MSC *cp, struct uq_ring *ring, uint32 *desc);
-t_bool rq_putdesc (MSC *cp, struct uq_ring *ring, uint32 desc);
+bool rq_getpkt (MSC *cp, uint16 *pkt);
+bool rq_putpkt (MSC *cp, uint16 pkt, bool qt);
+bool rq_getdesc (MSC *cp, struct uq_ring *ring, uint32 *desc);
+bool rq_putdesc (MSC *cp, struct uq_ring *ring, uint32 desc);
 uint16 rq_rw_valid (MSC *cp, uint16 pkt, UNIT *uptr, uint16 cmd);
-t_bool rq_rw_end (MSC *cp, UNIT *uptr, uint16 flg, uint16 sts);
+bool rq_rw_end (MSC *cp, UNIT *uptr, uint16 flg, uint16 sts);
 uint32 rq_map_ba (uint32 ba, uint32 ma);
 int32 rq_readb (uint32 ba, int32 bc, uint32 ma, uint8 *buf);
 int32 rq_readw (uint32 ba, int32 bc, uint32 ma, uint16 *buf);
 int32 rq_writew (uint32 ba, int32 bc, uint32 ma, uint16 *buf);
 void rq_putr (MSC *cp, uint16 pkt, uint16 cmd, uint16 flg,
     uint16 sts, uint16 lnt, uint16 typ);
-void rq_putr_unit (MSC *cp, uint16 pkt, UNIT *uptr, uint16 lu, t_bool all);
+void rq_putr_unit (MSC *cp, uint16 pkt, UNIT *uptr, uint16 lu, bool all);
 void rq_setf_unit (MSC *cp, uint16 pkt, UNIT *uptr);
 void rq_init_int (MSC *cp);
 void rq_ring_int (MSC *cp, struct uq_ring *ring);
-t_bool rq_fatal (MSC *cp, uint16 err);
+bool rq_fatal (MSC *cp, uint16 err);
 UNIT *rq_getucb (MSC *cp, uint16 lu);
 int32 rq_map_pa (uint32 pa);
 void rq_setint (MSC *cp);
@@ -1734,7 +1734,7 @@ return -1;
 
 /* Transition to step 4 - init communications region */
 
-t_bool rq_step4 (MSC *cp)
+bool rq_step4 (MSC *cp)
 {
 int32 i, lnt;
 uint32 base;
@@ -1857,7 +1857,7 @@ for (i = 0; i < RQ_NUMDR; i++) {                        /* chk unit q's */
     if (nuptr->cpkt || (nuptr->pktq == 0))
         continue;
     pkt = rq_deqh (cp, &nuptr->pktq);                   /* get top of q */
-    if (!rq_mscp (cp, pkt, FALSE))                      /* process */
+    if (!rq_mscp (cp, pkt, false))                      /* process */
         return SCPE_OK;
     }
 if ((pkt == 0) && cp->pip) {                            /* polling? */
@@ -1874,12 +1874,12 @@ if ((pkt == 0) && cp->pip) {                            /* polling? */
             return rq_fatal (cp, PE_PIE);               /* no, term thread */
         cnid = GETP (pkt, UQ_HCTC, CID);                /* get conn ID */
         if (cnid == UQ_CID_MSCP) {                      /* MSCP packet? */
-            if (!rq_mscp (cp, pkt, TRUE))               /* proc, q non-seq */
+            if (!rq_mscp (cp, pkt, true))               /* proc, q non-seq */
                 return SCPE_OK;
             }
         else if (cnid == UQ_CID_DUP) {                  /* DUP packet? */
             rq_putr (cp, pkt, OP_END, 0, ST_CMD | I_OPCD, RSP_LNT, UQ_TYP_SEQ);
-            if (!rq_putpkt (cp, pkt, TRUE))             /* ill cmd */
+            if (!rq_putpkt (cp, pkt, true))             /* ill cmd */
                 return SCPE_OK;
             }
         else return rq_fatal (cp, PE_ICI);              /* no, term thread */
@@ -1888,7 +1888,7 @@ if ((pkt == 0) && cp->pip) {                            /* polling? */
     }                                                   /* end if pip */
 if (cp->rspq) {                                         /* resp q? */
     pkt = rq_deqh (cp, &cp->rspq);                      /* get top of q */
-    if (!rq_putpkt (cp, pkt, FALSE))                    /* send to host */
+    if (!rq_putpkt (cp, pkt, false))                    /* send to host */
         return SCPE_OK;
     sim_debug (DBG_TRC, rq_devmap[cp->cnum], "rq_quesvc - rq_putpkt failed - 1\n");
     }                                                   /* end if resp q */
@@ -1925,7 +1925,7 @@ return SCPE_OK;
 
 /* MSCP packet handling */
 
-t_bool rq_mscp (MSC *cp, uint16 pkt, t_bool q)
+bool rq_mscp (MSC *cp, uint16 pkt, bool q)
 {
 uint16 sts, cmd = GETP (pkt, CMD_OPC, OPC);
 
@@ -1978,12 +1978,12 @@ switch (cmd) {
         }
 
 rq_putr (cp, pkt, cmd, 0, sts, RSP_LNT, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Abort a command - 1st parameter is ref # of cmd to abort */
 
-t_bool rq_abo (MSC *cp, uint16 pkt, t_bool q)
+bool rq_abo (MSC *cp, uint16 pkt, bool q)
 {
 /* Shared command handler signature.
    This implementation does not use every parameter. */
@@ -2024,17 +2024,17 @@ if ((uptr = rq_getucb (cp, lu))) {                      /* get unit */
     if (tpkt) {                                         /* found target? */
         uint16 tcmd = GETP (tpkt, CMD_OPC, OPC);        /* get opcode */
         rq_putr (cp, tpkt, tcmd | OP_END, 0, ST_ABO, RSP_LNT, UQ_TYP_SEQ);
-        if (!rq_putpkt (cp, tpkt, TRUE))
+        if (!rq_putpkt (cp, tpkt, true))
             return ERR;
         }
     }                                                   /* end if unit */
 rq_putr (cp, pkt, cmd | OP_END, 0, ST_SUC, ABO_LNT, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Unit available - set unit status to available - defer if q'd cmds */
 
-t_bool rq_avl (MSC *cp, uint16 pkt, t_bool q)
+bool rq_avl (MSC *cp, uint16 pkt, bool q)
 {
 uint16 lu = cp->pak[pkt].d[CMD_UN];                     /* unit # */
 uint16 cmd = GETP (pkt, CMD_OPC, OPC);                  /* opcode */
@@ -2057,12 +2057,12 @@ if ((uptr = rq_getucb (cp, lu))) {                      /* unit exist? */
     }
 else sts = ST_OFL;                                      /* offline */
 rq_putr (cp, pkt, cmd | OP_END, 0, sts, AVL_LNT, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Get command status - only interested in active xfr cmd */
 
-t_bool rq_gcs (MSC *cp, uint16 pkt, t_bool q)
+bool rq_gcs (MSC *cp, uint16 pkt, bool q)
 {
 /* Shared command handler signature.
    This implementation does not use every parameter. */
@@ -2088,12 +2088,12 @@ else {
     cp->pak[pkt].d[GCS_STSH] = 0;
     }
 rq_putr (cp, pkt, cmd | OP_END, 0, ST_SUC, GCS_LNT, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Get unit status */
 
-t_bool rq_gus (MSC *cp, uint16 pkt, t_bool q)
+bool rq_gus (MSC *cp, uint16 pkt, bool q)
 {
 /* Shared command handler signature.
    This implementation does not use every parameter. */
@@ -2118,7 +2118,7 @@ if ((uptr = rq_getucb (cp, lu))) {                      /* unit exist? */
     else if (uptr->flags & UNIT_ONL)                    /* online */
         sts = ST_SUC;
     else sts = ST_AVL;                                  /* avail */
-    rq_putr_unit (cp, pkt, uptr, lu, FALSE);            /* fill unit fields */
+    rq_putr_unit (cp, pkt, uptr, lu, false);            /* fill unit fields */
     dtyp = GET_DTYPE (uptr->flags);                     /* get drive type */
     if (drv_tab[dtyp].rcts)                             /* ctrl bad blk? */
         rbpar = 1;
@@ -2135,12 +2135,12 @@ else sts = ST_OFL;                                      /* offline */
 cp->pak[pkt].d[GUS_SHUN] = lu;                          /* shadowing */
 cp->pak[pkt].d[GUS_SHST] = 0;
 rq_putr (cp, pkt, cmd | OP_END, 0, sts, GUS_LNT_D, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Unit online - defer if q'd commands */
 
-t_bool rq_onl (MSC *cp, uint16 pkt, t_bool q)
+bool rq_onl (MSC *cp, uint16 pkt, bool q)
 {
 /* Shared command handler signature.
    This implementation does not use every parameter. */
@@ -2170,18 +2170,18 @@ if ((uptr = rq_getucb (cp, lu))) {                      /* unit exist? */
         }
     else
         sts = ST_OFL | SB_OFL_NV;                       /* offl no vol */
-    rq_putr_unit (cp, pkt, uptr, lu, TRUE);             /* set fields */
+    rq_putr_unit (cp, pkt, uptr, lu, true);             /* set fields */
     }
 else sts = ST_OFL;                                      /* offline */
 cp->pak[pkt].d[ONL_SHUN] = lu;                          /* shadowing */
 cp->pak[pkt].d[ONL_SHST] = 0;
 rq_putr (cp, pkt, cmd | OP_END, 0, sts, ONL_LNT, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Set controller characteristics */
 
-t_bool rq_scc (MSC *cp, uint16 pkt, t_bool q)
+bool rq_scc (MSC *cp, uint16 pkt, bool q)
 {
 /* Shared command handler signature.
    This implementation does not use every parameter. */
@@ -2215,12 +2215,12 @@ else {
     cp->pak[pkt].d[SCC_MBCH] = 0;
     }
 rq_putr (cp, pkt, cmd | OP_END, 0, sts, SCC_LNT, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Set unit characteristics - defer if q'd commands */
 
-t_bool rq_suc (MSC *cp, uint16 pkt, t_bool q)
+bool rq_suc (MSC *cp, uint16 pkt, bool q)
 {
 uint16 lu = cp->pak[pkt].d[CMD_UN];                     /* unit # */
 uint16 cmd = GETP (pkt, CMD_OPC, OPC);                  /* opcode */
@@ -2240,18 +2240,18 @@ if ((uptr = rq_getucb (cp, lu))) {                      /* unit exist? */
         sts = ST_SUC;
         rq_setf_unit (cp, pkt, uptr);                   /* hack flags */
         }
-    rq_putr_unit (cp, pkt, uptr, lu, TRUE);             /* set fields */
+    rq_putr_unit (cp, pkt, uptr, lu, true);             /* set fields */
     }
 else sts = ST_OFL;                                      /* offline */
 cp->pak[pkt].d[ONL_SHUN] = lu;                          /* shadowing */
 cp->pak[pkt].d[ONL_SHST] = 0;
 rq_putr (cp, pkt, cmd | OP_END, 0, sts, SUC_LNT, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Format command - floppies only */
 
-t_bool rq_fmt (MSC *cp, uint16 pkt, t_bool q)
+bool rq_fmt (MSC *cp, uint16 pkt, bool q)
 {
 uint16 lu = cp->pak[pkt].d[CMD_UN];                     /* unit # */
 uint16 cmd = GETP (pkt, CMD_OPC, OPC);                  /* opcode */
@@ -2282,12 +2282,12 @@ if ((uptr = rq_getucb (cp, lu))) {                      /* unit exist? */
     }
 else sts = ST_OFL;                                      /* offline */
 rq_putr (cp, pkt, cmd | OP_END, 0, sts, FMT_LNT, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Data transfer commands */
 
-t_bool rq_rw (MSC *cp, uint16 pkt, t_bool q)
+bool rq_rw (MSC *cp, uint16 pkt, bool q)
 {
 uint16 lu = cp->pak[pkt].d[CMD_UN];                     /* unit # */
 uint16 cmd = GETP (pkt, CMD_OPC, OPC);                  /* opcode */
@@ -2326,7 +2326,7 @@ if ((uptr = rq_getucb (cp, lu))) {                      /* unit exist? */
 else sts = ST_OFL;                                      /* offline */
 cp->pak[pkt].d[RW_BCL] = cp->pak[pkt].d[RW_BCH] = 0;    /* bad packet */
 rq_putr (cp, pkt, cmd | OP_END, 0, sts, RW_LNT_D, UQ_TYP_SEQ);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Validity checks */
@@ -2640,7 +2640,7 @@ return SCPE_OK;
 
 /* Transfer command complete */
 
-t_bool rq_rw_end (MSC *cp, UNIT *uptr, uint16 flg, uint16 sts)
+bool rq_rw_end (MSC *cp, UNIT *uptr, uint16 flg, uint16 sts)
 {
 uint16 pkt = uptr->cpkt;                                /* packet */
 uint16 cmd = GETP (pkt, CMD_OPC, OPC);                  /* get cmd */
@@ -2661,7 +2661,7 @@ cp->pak[pkt].d[RW_WBLH] = 0;
 cp->pak[pkt].d[RW_WMPL] = 0;
 cp->pak[pkt].d[RW_WMPH] = 0;
 rq_putr (cp, pkt, cmd | OP_END, flg, sts, RW_LNT_D, UQ_TYP_SEQ); /* fill pkt */
-if (!rq_putpkt (cp, pkt, TRUE))                         /* send pkt */
+if (!rq_putpkt (cp, pkt, true))                         /* send pkt */
     return ERR;
 if (uptr->pktq)                                         /* more to do? */
     sim_activate (dptr->units + RQ_QUEUE, rq_qtime);    /* activate thread */
@@ -2670,7 +2670,7 @@ return OK;
 
 /* Data transfer error log packet */
 
-t_bool rq_dte (MSC *cp, UNIT *uptr, uint16 err)
+bool rq_dte (MSC *cp, UNIT *uptr, uint16 err)
 {
 uint16 pkt, tpkt;
 uint16 lu, ccyl, csurf, csect;
@@ -2721,12 +2721,12 @@ cp->pak[pkt].d[DTE_D2] = csect << DTE_D2_V_SECT;        /* geometry */
 cp->pak[pkt].d[DTE_D3] = (ccyl << DTE_D3_V_CYL) |
     (csurf << DTE_D3_V_SURF);
 rq_putr (cp, pkt, FM_SDE, LF_SNR, err, DTE_LNT, UQ_TYP_DAT);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Host bus error log packet */
 
-t_bool rq_hbe (MSC *cp, UNIT *uptr)
+bool rq_hbe (MSC *cp, UNIT *uptr)
 {
 uint16 pkt, tpkt;
 
@@ -2752,12 +2752,12 @@ cp->pak[pkt].d[HBE_RSV] = 0;
 cp->pak[pkt].d[HBE_BADL] = cp->pak[tpkt].d[RW_WBAL];    /* bad addr */
 cp->pak[pkt].d[HBE_BADH] = cp->pak[tpkt].d[RW_WBAH];
 rq_putr (cp, pkt, FM_BAD, LF_SNR, ST_HST | SB_HST_NXM, HBE_LNT, UQ_TYP_DAT);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Port last failure error log packet */
 
-t_bool rq_plf (MSC *cp, uint16 err)
+bool rq_plf (MSC *cp, uint16 err)
 {
 uint16 pkt;
 
@@ -2779,12 +2779,12 @@ cp->pak[pkt].d[PLF_VER] = (RQ_SVER << PLF_VER_V_SVER) |
 cp->pak[pkt].d[PLF_ERR] = err;
 rq_putr (cp, pkt, FM_CNT, LF_SNR, ST_CNT, PLF_LNT, UQ_TYP_DAT);
 cp->pak[pkt].d[UQ_HCTC] |= (UQ_CID_DIAG << UQ_HCTC_V_CID);
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* Unit now available attention packet */
 
-t_bool rq_una (MSC *cp, uint16 lu)
+bool rq_una (MSC *cp, uint16 lu)
 {
 uint16 pkt;
 UNIT *uptr = rq_getucb (cp, lu);
@@ -2798,9 +2798,9 @@ cp->pak[pkt].d[RSP_REFL] = 0;                           /* ref = 0 */
 cp->pak[pkt].d[RSP_REFH] = 0;
 cp->pak[pkt].d[RSP_UN] = lu;
 cp->pak[pkt].d[RSP_RSV] = 0;
-rq_putr_unit (cp, pkt, uptr, lu, FALSE);                /* fill unit fields */
+rq_putr_unit (cp, pkt, uptr, lu, false);                /* fill unit fields */
 rq_putr (cp, pkt, OP_AVA, 0, 0, UNA_LNT, UQ_TYP_SEQ);   /* fill std fields */
-return rq_putpkt (cp, pkt, TRUE);
+return rq_putpkt (cp, pkt, true);
 }
 
 /* List handling
@@ -2811,7 +2811,7 @@ return rq_putpkt (cp, pkt, TRUE);
    rq_enqt      -       enqueue at tail of list
 */
 
-t_bool rq_deqf (MSC *cp, uint16 *pkt)
+bool rq_deqf (MSC *cp, uint16 *pkt)
 {
 *pkt = 0;
 if (cp->freq == 0)                                      /* no free pkts?? */
@@ -2860,7 +2860,7 @@ return;
 
 /* Get packet from command ring */
 
-t_bool rq_getpkt (MSC *cp, uint16 *pkt)
+bool rq_getpkt (MSC *cp, uint16 *pkt)
 {
 uint32 addr, desc;
 
@@ -2885,7 +2885,7 @@ return rq_putdesc (cp, &cp->cq, desc);                  /* release desc */
    supplies one credit for every response packet sent over.  Simple!
 */
 
-t_bool rq_putpkt (MSC *cp, uint16 pkt, t_bool qt)
+bool rq_putpkt (MSC *cp, uint16 pkt, bool qt)
 {
 uint32 addr, desc, lnt, cr;
 DEVICE *dptr = rq_devmap[cp->cnum];
@@ -2923,7 +2923,7 @@ return rq_putdesc (cp, &cp->rq, desc);                  /* release desc */
 
 /* Get a descriptor from the host */
 
-t_bool rq_getdesc (MSC *cp, struct uq_ring *ring, uint32 *desc)
+bool rq_getdesc (MSC *cp, struct uq_ring *ring, uint32 *desc)
 {
 uint32 addr = ring->ba + ring->idx;
 uint16 d[2];
@@ -2941,7 +2941,7 @@ return OK;
    Actually, test whether previous ring entry was owned by host.
 */
 
-t_bool rq_putdesc (MSC *cp, struct uq_ring *ring, uint32 desc)
+bool rq_putdesc (MSC *cp, struct uq_ring *ring, uint32 desc)
 {
 uint32 prvd, newd = (desc & ~UQ_DESC_OWN) | UQ_DESC_F;
 uint32 prva, addr = ring->ba + ring->idx;
@@ -2994,7 +2994,7 @@ return;
 
 /* Unit response fields */
 
-void rq_putr_unit (MSC *cp, uint16 pkt, UNIT *uptr, uint16 lu, t_bool all)
+void rq_putr_unit (MSC *cp, uint16 pkt, UNIT *uptr, uint16 lu, bool all)
 {
 uint32 dtyp = GET_DTYPE (uptr->flags);                  /* get drive type */
 uint32 maxlbn = (uint32)uptr->capac;                    /* get max lbn */
@@ -3111,7 +3111,7 @@ return 0;                                               /* no intr req */
 
 /* Fatal error */
 
-t_bool rq_fatal (MSC *cp, uint16 err)
+bool rq_fatal (MSC *cp, uint16 err)
 {
 DEVICE *dptr = rq_devmap[cp->cnum];
 
@@ -3353,7 +3353,7 @@ uint32 i;
 int32 j, cidx;
 UNIT *uptr;
 MSC *cp;
-static t_bool plugs_inited = FALSE;
+static bool plugs_inited = false;
 DIB *dibp = (DIB *) dptr->ctxt;
 
 sim_debug (DBG_TRC, dptr, "rq_reset\n");
@@ -3377,7 +3377,7 @@ if (!plugs_inited ) {
     uint32 d;
     char uname[16];
 
-    plugs_inited  = TRUE;
+    plugs_inited  = true;
     for (i = 0; i < RQ_NUMCT; i++) {
         rq_devmap[i]->units[RQ_TIMER].action = &rq_tmrsvc;
         rq_devmap[i]->units[RQ_TIMER].flags = UNIT_IDLE|UNIT_DIS;

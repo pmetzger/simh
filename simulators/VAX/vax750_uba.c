@@ -29,6 +29,7 @@
    21-Oct-2012  MB      First Version
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 /* Unibus adapter */
@@ -91,8 +92,8 @@ t_stat uba_wrreg (int32 val, int32 pa, int32 lnt);
 int32 uba_get_ubvector (int32 lvl);
 void uba_eval_int (void);
 void uba_ioreset (void);
-t_bool uba_map_addr (uint32 ua, uint32 *ma);
-static t_bool uba_map_addr_c (uint32 ua, uint32 *ma);
+bool uba_map_addr (uint32 ua, uint32 *ma);
+static bool uba_map_addr_c (uint32 ua, uint32 *ma);
 t_stat uba_show_virt (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat uba_show_map (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
@@ -549,13 +550,13 @@ return 0;
 
 /* Map an address via the translation map */
 
-t_bool uba_map_addr (uint32 ua, uint32 *ma)
+bool uba_map_addr (uint32 ua, uint32 *ma)
 {
 uint32 ublk, umap;
 
 ublk = ua >> VA_V_VPN;                                  /* Unibus blk */
 if (ublk >= UBA_NMAPR)                                  /* unimplemented? */
-    return FALSE;
+    return false;
 umap = uba_map[ublk];                                   /* get map */
 if (umap & UBAMAP_VLD) {                                /* valid? */
     *ma = ((umap & UBAMAP_PAG) << VA_V_VPN) + VA_GETOFF (ua);
@@ -563,26 +564,26 @@ if (umap & UBAMAP_VLD) {                                /* valid? */
         *ma = *ma + 1;                                  /* byte offset? */
     return (ADDR_IS_MEM (*ma));                         /* legit addr */
     }
-return FALSE;
+return false;
 }
 
 /* Map an address via the translation map - console version (no status changes) */
 
-static t_bool uba_map_addr_c (uint32 ua, uint32 *ma)
+static bool uba_map_addr_c (uint32 ua, uint32 *ma)
 {
 uint32 ublk, umap;
 
 ublk = ua >> VA_V_VPN;                                  /* Unibus blk */
 if (ublk >= UBA_NMAPR)                                  /* unimplemented? */
-    return FALSE;
+    return false;
 umap = uba_map[ublk];                                   /* get map */
 if (umap & UBAMAP_VLD) {                                /* valid? */
     *ma = ((umap & UBAMAP_PAG) << VA_V_VPN) + VA_GETOFF (ua);
     if ((umap & UBAMAP_DP) && (umap & UBAMAP_ODD))      /* buffered dp? */
         *ma = *ma + 1;                                  /* byte offset? */
-    return TRUE;                                        /* legit addr */
+    return true;                                        /* legit addr */
     }
-return FALSE;
+return false;
 }
 
 /* Reset Unibus devices */

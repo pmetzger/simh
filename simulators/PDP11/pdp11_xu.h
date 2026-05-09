@@ -62,6 +62,7 @@
 #define XU_WID                    16
 #endif                                                  /* VM_PDP10 */
 
+#include <stdbool.h>
 #include "sim_ether.h"
 
 #define XU_QUE_MAX           500                        /* message queue array */
@@ -156,7 +157,7 @@ struct xu_device {
   uint16          udb[UDBSIZE];                         /* copy of Unibus Data Block */
   uint16          rxhdr[4];                             /* content of RX ring entry, during wait */
   uint16          txhdr[4];                             /* content of TX ring entry, during xmit */
-  t_bool          initialized;                          /* flag for one time initializations */
+  bool            initialized;                          /* flag for one time initializations */
 };
 
 struct xu_controller {

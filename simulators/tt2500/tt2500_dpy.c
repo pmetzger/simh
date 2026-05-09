@@ -24,6 +24,7 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <stdbool.h>
 #include <string.h>
 #include "tt2500_defs.h"
 
@@ -52,7 +53,7 @@ static uint16 SCROLL;
 uint16 DSR = 0;
 static uint16 ROW = 0;
 static uint16 COL = 0;
-int dpy_quit = FALSE;
+bool dpy_quit = false;
 
 /* DSR
 160000 Vector beam: 0=on, 7=off.
@@ -288,5 +289,5 @@ static void dpy_text_line (void)
 
 void dpy_quit_callback (void)
 {
-  dpy_quit = TRUE;
+  dpy_quit = true;
 }

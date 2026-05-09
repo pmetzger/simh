@@ -24,6 +24,7 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <stdbool.h>
 #include "imlac_defs.h"
 #include "display/display.h"
 
@@ -591,16 +592,16 @@ static t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32 sw)
   return SCPE_OK;
 }
 
-static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
+static bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 {
   static t_addr returns[2] = { 0, 0 };
 
   if ((M[PC] & 074000) == 034000) {
     returns[0] = PC + 1;
     *ret_addrs = returns;
-    return TRUE;
+    return true;
   } else {
-    return FALSE;
+    return false;
   }
 }
 

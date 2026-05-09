@@ -336,6 +336,7 @@
 **   as in all the sims based on this standard.
 --------------------------------------------------------------------------*/
 
+#include <stdbool.h>
 #include "nova_defs.h"
 
 #define UNIT_V_MICRO    (UNIT_V_UF)                     /* Microeclipse? */
@@ -5790,7 +5791,7 @@ t_addr i;
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i++) mc = mc | M[i];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE; i++) M[i] = 0;

@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "ibm1130_defs.h"
 
 /* ibm1130_gdu.c: IBM 1130 2250 Graphical Display Unit
@@ -122,7 +123,7 @@ void xio_2250_display (int32 addr, int32 func, int32 modify)
     /* ignore commands if device is nonexistent */
 }
 
-t_bool gdu_active (void)
+bool gdu_active (void)
 {
     return 0;
 }
@@ -135,8 +136,8 @@ t_bool gdu_active (void)
 static int32 gdu_instaddr;                          // address of first word of instruction
 static int xmouse, ymouse, lpen_dist, lpen_dist2;   // current mouse pointer, scaled closeness threshhold, same squared
 static double sfactor;                              // current scaling factor
-static t_bool last_abs = TRUE;                      // last positioning instruction was absolute
-static t_bool mouse_present = FALSE;                // mouse is/is not in the window
+static bool last_abs = true;                        // last positioning instruction was absolute
+static bool mouse_present = false;                  // mouse is/is not in the window
 static void clear_interrupts (void);
 static void set_indicators (int32 new_inds);
 static void start_regeneration (void);
@@ -149,7 +150,7 @@ static void notify_window_closed (void);
 static void   DrawLine(int x0, int y0, int x1, int y1);
 static void   DrawPoint(int x, int y);
 static void   CheckGDUKeyboard(void);
-static t_bool CreateGDUWindow(void);
+static bool CreateGDUWindow(void);
 static void   StartGDUUpdates(void);
 static void   StopGDUUpdates(void);
 static void   GetMouseCoordinates(void);
@@ -297,11 +298,11 @@ static int32 read_gduword (void)
 
 #define DIST2(x0,y0,x1,y1) (((x1)-(x0))*((x1)-(x0))+((y1)-(y0))*((y1)-(y0)))
 
-static void draw (int32 newx, int32 newy, t_bool beam)
+static void draw (int32 newx, int32 newy, bool beam)
 {
     int xmin, xmax, ymin, ymax, xd, yd;
     double s;
-    int hit = FALSE;
+    int hit = false;
 
     if (beam) {
         if (gdu_dsw & GDU_DSW_POINT_MODE) {
@@ -309,11 +310,11 @@ static void draw (int32 newx, int32 newy, t_bool beam)
 
 #ifdef DEBUG_LIGHTPEN
             if (DIST2(newx, newy, xmouse, ymouse) <= lpen_dist2)
-                hit = TRUE;
+                hit = true;
 #else
             if (gdu_unit.flags & UNIT_DETECTS_ENABLED && mouse_present)
                 if (DIST2(newx, newy, xmouse, ymouse) <= lpen_dist2)
-                    hit = TRUE;
+                    hit = true;
 #endif
         }
         else {
@@ -340,7 +341,7 @@ static void draw (int32 newx, int32 newy, t_bool beam)
                     yd = (ymouse <= ymin) ? ymin : (ymouse >= ymax) ? ymax : ymouse;
 
                     if (DIST2(xd, yd, xmouse, ymouse) <= lpen_dist2)
-                        hit = TRUE;
+                        hit = true;
                 }
                 else if (newy == gdu_y) {
                     // line is horizontal. Nearest point is an endpoint if the mouse is to the left or
@@ -349,7 +350,7 @@ static void draw (int32 newx, int32 newy, t_bool beam)
                     yd = gdu_y;
 
                     if (DIST2(xd, yd, xmouse, ymouse) <= lpen_dist2)
-                        hit = TRUE;
+                        hit = true;
                 }
                 else {
                     // line is diagonal. See if the mouse is inside the box lpen_dist wider than the line segment's bounding rectangle
@@ -367,24 +368,24 @@ static void draw (int32 newx, int32 newy, t_bool beam)
 #ifdef DEBUG_LIGHTPEN
                             // if it's a hit, set xd and yd so we can display the hit
                             if (DIST2(gdu_x, gdu_y, xmouse, ymouse) <= lpen_dist2) {
-                                hit = TRUE;
+                                hit = true;
                                 xd = gdu_x;
                                 yd = gdu_y;
                             }
                             else if (DIST2(newx, newy, xmouse, ymouse) <= lpen_dist2) {
-                                hit = TRUE;
+                                hit = true;
                                 xd = newx;
                                 yd = newy;
                             }
 #else
                             if (DIST2(gdu_x, gdu_y, xmouse, ymouse) <= lpen_dist2 || DIST2(newx, newy, xmouse, ymouse) <= lpen_dist2)
-                                hit = TRUE;
+                                hit = true;
 #endif
                         }
                         else {
                             yd = (int) (gdu_y + s*(xd - gdu_x) + 0.5);
                             if (DIST2(xd, yd, xmouse, ymouse) <= lpen_dist2)
-                                hit = TRUE;
+                                hit = true;
                         }
                     }
                 }
@@ -411,7 +412,7 @@ static void draw (int32 newx, int32 newy, t_bool beam)
 static void generate_image (void)
 {
     int32 instr, new_addr, newx, newy;
-    t_bool run = TRUE, accept;
+    bool run = true, accept;
 
     if (! (gdu_dsw & GDU_DSW_BUSY))
         return;
@@ -425,7 +426,7 @@ static void generate_image (void)
         if ((gdu_dsw & GDU_DSW_DETECT_STATUS) && ! (gdu_unit.flags & UNIT_INTERRUPTS_DEFERRED)) {
             CLRBIT(gdu_dsw, GDU_DSW_DETECT_STATUS); // clear when interrupt is activated
             gdu_interrupt(GDU_DSW_DETECT_INTERRUPT);
-            run = FALSE;
+            run = false;
             break;
         }
 
@@ -445,13 +446,13 @@ static void generate_image (void)
 
             case 2:                                 // long branch/interrupt
                 new_addr = read_gduword();          // get next word
-                accept = ((instr & 1) ? (gdu_dsw & GDU_DSW_LIGHT_PEN_SWITCH) : TRUE) && ((instr & 2) ? (gdu_dsw & GDU_DSW_DETECT_STATUS) : TRUE);
+                accept = ((instr & 1) ? (gdu_dsw & GDU_DSW_LIGHT_PEN_SWITCH) : true) && ((instr & 2) ? (gdu_dsw & GDU_DSW_DETECT_STATUS) : true);
 
                 if (instr & 2)                      // clear after testing
                     CLRBIT(gdu_dsw, GDU_DSW_DETECT_STATUS);
 
                 if (instr & 0x0400)                 // NOP
-                    accept = FALSE;
+                    accept = false;
 
                 if (accept) {
                     if (instr & 0x0800) {           // branch
@@ -469,7 +470,7 @@ static void generate_image (void)
                     }
                     else {                          // interrupt
                         gdu_interrupt(GDU_DSW_ORDER_CONTROLLED_INTERRUPT);
-                        run = FALSE;
+                        run = false;
                     }
                 }
                 break;
@@ -506,7 +507,7 @@ static void generate_image (void)
                         break;
 
                     case 4:                         // start timer
-                        run = FALSE;                // (which, for us, means stop processing until next timer message)
+                        run = false;                // (which, for us, means stop processing until next timer message)
                         CheckGDUKeyboard();
                         break;
 
@@ -530,7 +531,7 @@ static void generate_image (void)
                 newx = instr & 0x3FF;
                 newy = read_gduword() & 0x3FF;
                 draw(newx, newy, instr & 0x1000);
-                last_abs = TRUE;
+                last_abs = true;
                 break;
 
             case 6:                                 // short absolute
@@ -543,7 +544,7 @@ static void generate_image (void)
                 else
                     newx = instr & 0x3FF;
                 draw(newx, newy, instr & 0x1000);
-                last_abs = TRUE;
+                last_abs = true;
                 break;
 
             default:                                // high bit set - it's a relative instruction
@@ -560,7 +561,7 @@ static void generate_image (void)
                 newx = gdu_x + newx;
                 newy = gdu_y + newy;
                 draw(newx, newy, instr & 0x0080);
-                last_abs = FALSE;
+                last_abs = false;
                 break;
         }
     }
@@ -579,7 +580,7 @@ static struct charinfo {        // character mode scaling info:
 static void draw_characters (void)
 {
     int32 w, x0, y0, x1, y1, yoff = 0, ninstr = 0;
-    t_bool dospace, didstroke = FALSE;
+    bool dospace, didstroke = false;
     struct charinfo *ci;
 
     ci = &cx[(gdu_unit.flags & UNIT_LARGE_CHARS) ? 1 : 0];
@@ -592,14 +593,14 @@ static void draw_characters (void)
             return;
         }
 
-        dospace = TRUE;
+        dospace = true;
         w = M[gdu_ar++ & mem_mask];             // get next stroke or control word
 
         x1 = (w >> 12) & 7;
         y1 = (w >>  8) & 7;
 
         if (x1 == 7) {                          // this is a character control word
-            dospace = FALSE;                    // inhibit character spacing
+            dospace = false;                    // inhibit character spacing
 
             switch (y1) {
                 case 1:                         // subscript
@@ -628,7 +629,7 @@ static void draw_characters (void)
             y1 = gdu_y + (int) ((y1+yoff)*ci->sy + 0.5);
 
             if (w & 0x0800) {
-                didstroke = TRUE;
+                didstroke = true;
                 DrawLine(x0, y0, x1, y1);
             }
 
@@ -639,7 +640,7 @@ static void draw_characters (void)
             y0 = gdu_y + (int) ((y0+yoff)*ci->sy + 0.5);
 
             if (w & 0x0008) {
-                didstroke = TRUE;
+                didstroke = true;
                 DrawLine(x1, y1, x0, y0);
             }
         }
@@ -678,7 +679,7 @@ static HDC  hdcGDU      = NULL;
 static HBITMAP hBmp     = NULL;
 static int  curwid      = 0;
 static int  curht       = 0;
-static BOOL wcInited    = FALSE;
+static BOOL wcInited    = false;
 static DWORD GDUPumpID   = 0;
 static HANDLE hGDUPump  = INVALID_HANDLE_VALUE;
 static HPEN hGreenPen   = NULL;
@@ -690,7 +691,7 @@ static HBRUSH hGrayBrush, hDarkBrush;
 static HPEN hBlackPen;
 static int halted = 0;                              // number of time intervals that GDU has been halted w/o a regeneration
 static UINT idTimer = 0;
-static t_bool painting = FALSE;
+static bool painting = false;
 static LRESULT APIENTRY GDUWndProc (HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static DWORD   WINAPI   GDUPump (LPVOID arg);
 
@@ -737,9 +738,9 @@ static void destroy_GDU_window (void)
 #endif
 }
 
-static t_bool CreateGDUWindow (void)
+static bool CreateGDUWindow (void)
 {
-    static BOOL did_atexit = FALSE;
+    static BOOL did_atexit = false;
 
     hInstance = GetModuleHandle(NULL);
 
@@ -748,10 +749,10 @@ static t_bool CreateGDUWindow (void)
 
     if (! did_atexit) {
         atexit(destroy_GDU_window);
-        did_atexit = TRUE;
+        did_atexit = true;
     }
 
-    return TRUE;
+    return true;
 }
 
 // windows message handlers ----------------------------------------------------
@@ -772,7 +773,7 @@ static void gdu_WM_DESTROY (HWND hWnd)
         KillTimer(hwGDU, 1);
         idTimer = 0;
         halted  = 10000;
-        painting = FALSE;
+        painting = false;
     }
     notify_window_closed();
     hwGDU = NULL;
@@ -896,7 +897,7 @@ static void gdu_WM_PAINT (HWND hWnd)
 
                 // code for display
     hDC = BeginPaint(hWnd, &ps);
-    PaintImage(hDC, TRUE);
+    PaintImage(hDC, true);
     EndPaint(hWnd, &ps);
 
                 // set a timer so we keep doing it!
@@ -911,9 +912,9 @@ static void gdu_WM_PAINT (HWND hWnd)
 static void gdu_WM_SIZE (HWND hWnd, UINT state, int cx, int cy)
 {
 #ifdef BLIT_MODE
-    InvalidateRect(hWnd, NULL, FALSE);      // in blt mode, we'll paint a full black bitmap over the new screen size
+    InvalidateRect(hWnd, NULL, false);      // in blt mode, we'll paint a full black bitmap over the new screen size
 #else
-    InvalidateRect(hWnd, NULL, TRUE);
+    InvalidateRect(hWnd, NULL, true);
 #endif
 }
 
@@ -960,10 +961,10 @@ static void gdu_WM_TIMER (HWND hWnd, UINT id)
 
 #ifdef BLIT_MODE
         hDC = GetDC(hWnd);                      // blit the new image right over the old
-        PaintImage(hDC, FALSE);
+        PaintImage(hDC, false);
         ReleaseDC(hWnd, hDC);
 #else
-        InvalidateRect(hWnd, NULL, TRUE);       // repaint
+        InvalidateRect(hWnd, NULL, true);       // repaint
 #endif
     }
 }
@@ -1010,7 +1011,7 @@ static void DrawPoint (int x, int y)
 static void UpdateGDUIndicators(void)
 {
     if (hwGDU != NULL)
-        InvalidateRect(hwGDU, NULL, FALSE);         // no need to erase the background -- the draw routine fully paints the indicator
+        InvalidateRect(hwGDU, NULL, false);         // no need to erase the background -- the draw routine fully paints the indicator
 }
 
 static void CheckGDUKeyboard (void)
@@ -1020,12 +1021,12 @@ static void CheckGDUKeyboard (void)
 static void StartGDUUpdates (void)
 {
     halted = 0;
-    painting = TRUE;
+    painting = true;
 }
 
 static void StopGDUUpdates (void)
 {
-    painting = FALSE;
+    painting = false;
 }
 
 static void GetMouseCoordinates()
@@ -1037,12 +1038,12 @@ static void GetMouseCoordinates()
     GetClientRect(hwGDU, &r);
     if (! ScreenToClient(hwGDU, &p)) {
         xmouse = ymouse = -2000;
-        mouse_present = FALSE;
+        mouse_present = false;
         return;
     }
 
     if (p.x < r.left || p.x >= r.right || p.y < r.top || p.y > r.bottom) {
-        mouse_present = FALSE;
+        mouse_present = false;
         return;
     }
 
@@ -1050,10 +1051,10 @@ static void GetMouseCoordinates()
 
     xmouse =        (int) (1024./(r.right+1.-2*INDWIDTH)*p.x + 0.5);
     ymouse = 1023 - (int) (1024./(r.bottom+1.)*p.y + 0.5);
-    mouse_present = TRUE;
+    mouse_present = true;
 }
 
-t_bool gdu_active (void)
+bool gdu_active (void)
 {
     return cgi ? 0 : (gdu_dsw & GDU_DSW_BUSY);
 }
@@ -1061,7 +1062,7 @@ t_bool gdu_active (void)
 static void EraseGDUScreen (void)
 {
     if (hwGDU != NULL)                              /* redraw screen. it will be blank if GDU is not running */
-        InvalidateRect(hwGDU, NULL, TRUE);
+        InvalidateRect(hwGDU, NULL, true);
 }
 
 /* GDUPump - thread responsible for creating and displaying the graphics window */
@@ -1085,7 +1086,7 @@ static DWORD WINAPI GDUPump (LPVOID arg)
             return 0;
         }
 
-        wcInited = TRUE;
+        wcInited = true;
     }
 
     if (hGreenPen == NULL)
@@ -1128,7 +1129,7 @@ static DWORD WINAPI GDUPump (LPVOID arg)
         DispatchMessage(&msg);
     }
 
-    painting = FALSE;
+    painting = false;
 
     if (hwGDU != NULL) {
         DestroyWindow(hwGDU);                       /* but if a quit message got posted, clean up */

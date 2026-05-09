@@ -31,6 +31,7 @@
 
 #include "i7094_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 #include "i7094_dat.h"
 
 extern DEVICE cpu_dev;
@@ -714,7 +715,7 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
 
 uint32 i, j, c;
 t_uint64 fld[3];
-t_bool ind;
+bool ind;
 t_stat r;
 char gbuf[CBUFSIZE];
 
@@ -743,10 +744,10 @@ if ((sw & SWMASK ('S')) || ((*cptr == '"') && cptr++)) { /* sixbit string? */
 cptr = get_glyph (cptr, gbuf, 0);                       /* get opcode */
 j = strlen (gbuf);                                      /* get length */
 if (gbuf[j - 1] == '*') {                               /* indirect? */
-    ind = TRUE;
+    ind = true;
     gbuf[j - 1] = 0;
     }
-else ind = FALSE;
+else ind = false;
 for (i = 0; (opcode[i] != NULL) && (strcmp (opcode[i], gbuf) != 0) ; i++) ;
 if (opcode[i] == NULL)
     return SCPE_ARG;

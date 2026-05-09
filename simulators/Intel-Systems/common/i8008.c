@@ -82,6 +82,7 @@
 */
 
 #include <ctype.h>
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define UNIT_V_OPSTOP   (UNIT_V_UF)             /* Stop on Invalid OP? */
@@ -1074,7 +1075,7 @@ if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i++)
      mc = mc | Mem[i];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE; i++)

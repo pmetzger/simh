@@ -41,6 +41,7 @@
 
 #include "pdp10_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 /* The KS timer works off a 4.100 MHz (243.9024 nsec) oscillator that
  * is independent of all other system timing.
@@ -145,7 +146,7 @@ extern d10 pcst;
 static t_stat tcu_rd (int32 *data, int32 PA, int32 access);
 static t_stat tim_svc (UNIT *uptr);
 static t_stat tim_reset (DEVICE *dptr);
-static t_bool update_interval (d10 new_interval);
+static bool update_interval (d10 new_interval);
 static void tim_incr_base (d10 *base, d10 incr);
 
 extern t_stat wr_nop (int32 data, int32 PA, int32 access);
@@ -219,7 +220,7 @@ DEVICE tim_dev = {
  * E,E+1.
  */
 
-t_bool rdtim (a10 ea, int32 prv)
+bool rdtim (a10 ea, int32 prv)
 {
 d10 tempbase[2];                  /* Local copy of tempbase to interpolate */
 d10 incr;                         /* Interpolated increment for timebase   */
@@ -259,7 +260,7 @@ tempbase[1] &= ~((d10) TIM_BASE_RAZ);
 Write (ea, tempbase[0], prv);
 Write (INCA(ea), tempbase[1], prv);
 sim_debug (DEB_RRD, &tim_dev, "rdtim() = %012" LL_FMT "o %012" LL_FMT "o\n", tempbase[0], tempbase[1]);
-return FALSE;
+return false;
 }
 
 /*
@@ -267,23 +268,23 @@ return FALSE;
  * order word read (the part corresponding to the hardware millisecond
  * counter), and place the result in the time base registers in the workspace.
  */
-t_bool wrtim (a10 ea, int32 prv)
+bool wrtim (a10 ea, int32 prv)
 {
 tim_base[0] = Read (ea, prv);
 tim_base[1] = CLRS (Read (INCA (ea), prv) & ~((d10) TIM_HWRE_MASK));
 sim_debug (DEB_RWR, &tim_dev, "wrtim(%012" LL_FMT "o, %012" LL_FMT "o)\n", tim_base[0], tim_base[1]);
-return FALSE;
+return false;
 }
 
 /*
  * Read the contents of the interval register into location E. The period read is
  * the same as that supplied by WRINT.
  */
-t_bool rdint (a10 ea, int32 prv)
+bool rdint (a10 ea, int32 prv)
 {
 Write (ea, tim_interval, prv);
 sim_debug (DEB_RRD, &tim_dev, "rdint() = %012" LL_FMT "o\n", tim_interval);
-return FALSE;
+return false;
 }
 
 /* write a new interval timer period (in timer ticks).
@@ -295,14 +296,14 @@ return FALSE;
  * the workspace.
  */
 
-t_bool wrint (a10 ea, int32 prv)
+bool wrint (a10 ea, int32 prv)
 {
 tim_interval = CLRS (Read (ea, prv));
 sim_debug (DEB_RWR, &tim_dev, "wrint(%012" LL_FMT "o)\n", tim_interval);
 return update_interval (tim_interval);
 }
 
-static t_bool update_interval (d10 new_interval)
+static bool update_interval (d10 new_interval)
 {
 int32 old_clk_tps = clk_tps;
 int32 old_tick_in_usecs = tick_in_usecs;
@@ -351,7 +352,7 @@ if (new_interval & TIM_HWRE_MASK)
 
 if (tim_new_period == 0) {
     sim_debug (DEB_TPS, &tim_dev, "update_interval() - ignoring 0 value interval\n");
-    return FALSE;
+    return false;
     }
 tick_in_usecs = (int32)(((double)new_interval)/(((double)TIM_HW_FREQ)/1000000.0));
 if (tick_in_usecs != old_tick_in_usecs)
@@ -371,7 +372,7 @@ tmxr_poll = tim_unit.wait * tim_mult;
 /* The next tim_svc will update the activation time.
  *
  */
-return FALSE;
+return false;
 }
 
 /* Timer service - the timer is only serviced when the interval

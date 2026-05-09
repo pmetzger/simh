@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Simulator stop codes */
@@ -82,7 +83,7 @@ extern t_int64 GlobalWordTimeCount;
 struct dib {
         uint8   upc;                        // Number of Units in device
         uint32  (*cmd)(UNIT *up, uint16 cmd, uint16 dev);/* Issue command. */
-        void    (*ini)(UNIT *up, t_bool f);
+        void    (*ini)(UNIT *up, bool f);
 };
 
 typedef struct dib DIB;
@@ -136,7 +137,7 @@ extern int          LastTapeSelected;
 extern int          LastTapeIndicator;
 extern const char * TapeIndicatorStr[11];
 extern int          mt_ready(int n);
-extern void         mt_ini(UNIT * uptr, t_bool f);
+extern void         mt_ini(UNIT * uptr, bool f);
 
 /* Tape Indicator status */
 #define MT_IND_WRT_PROT    1    // attempting to write to a write protected tape
@@ -155,7 +156,7 @@ extern DEVICE       dsk_dev;
 extern uint32       dsk_cmd(int, int32, uint16);
 extern UNIT         dsk_unit[4];
 extern int          dsk_ready(int n, int arm);
-extern void         dsk_ini(UNIT * uptr, t_bool f);
+extern void         dsk_ini(UNIT * uptr, bool f);
 
 /* Disk Indicator status */
 #define DSK_IND_BADADDR     1    // invalid unit/arm/disk plate/track accessed

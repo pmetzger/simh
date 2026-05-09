@@ -8,16 +8,17 @@
 // SPDX-FileCopyrightText: 1993-2022 Robert M Supnik
 // SPDX-License-Identifier: MIT
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "scp.h"
 
 /* Parse one SCP token with optional case folding and quote handling. */
-const char *get_glyph_gen(const char *iptr, char *optr, char mchar, t_bool uc,
-                          t_bool quote, char escape_char)
+const char *get_glyph_gen(const char *iptr, char *optr, char mchar, bool uc,
+                          bool quote, char escape_char)
 {
-    t_bool quoting = FALSE;
-    t_bool escaping = FALSE;
-    t_bool got_quoted = FALSE;
+    bool quoting = false;
+    bool escaping = false;
+    bool got_quoted = false;
     char quote_char = 0;
 
     while ((*iptr != 0) && (!got_quoted) &&
@@ -27,15 +28,15 @@ const char *get_glyph_gen(const char *iptr, char *optr, char mchar, t_bool uc,
             if (quoting) {
                 if (!escaping) {
                     if (*iptr == escape_char)
-                        escaping = TRUE;
+                        escaping = true;
                     else if (*iptr == quote_char) {
-                        quoting = FALSE;
-                        got_quoted = TRUE;
+                        quoting = false;
+                        got_quoted = true;
                     }
                 } else
-                    escaping = FALSE;
+                    escaping = false;
             } else if ((*iptr == '"') || (*iptr == '\'')) {
-                quoting = TRUE;
+                quoting = true;
                 quote_char = *iptr;
             }
         }
@@ -57,19 +58,19 @@ const char *get_glyph_gen(const char *iptr, char *optr, char mchar, t_bool uc,
 /* Parse the next token and fold alphabetic characters to upper case. */
 const char *get_glyph(const char *iptr, char *optr, char mchar)
 {
-    return (const char *)get_glyph_gen(iptr, optr, mchar, TRUE, FALSE, 0);
+    return (const char *)get_glyph_gen(iptr, optr, mchar, true, false, 0);
 }
 
 /* Parse the next token without changing its case. */
 const char *get_glyph_nc(const char *iptr, char *optr, char mchar)
 {
-    return (const char *)get_glyph_gen(iptr, optr, mchar, FALSE, FALSE, 0);
+    return (const char *)get_glyph_gen(iptr, optr, mchar, false, false, 0);
 }
 
 /* Parse one token, allowing it to be enclosed in quotes. */
 const char *get_glyph_quoted(const char *iptr, char *optr, char mchar)
 {
-    return (const char *)get_glyph_gen(iptr, optr, mchar, FALSE, TRUE, '\\');
+    return (const char *)get_glyph_gen(iptr, optr, mchar, false, true, '\\');
 }
 
 /* Parse the leading command token, handling SCP's special '!' form. */
@@ -79,7 +80,7 @@ const char *get_glyph_cmd(const char *iptr, char *optr)
         strcpy(optr, "!");
         return (const char *)(iptr + 1);
     }
-    return (const char *)get_glyph_gen(iptr, optr, 0, TRUE, FALSE, 0);
+    return (const char *)get_glyph_gen(iptr, optr, 0, true, false, 0);
 }
 
 /* Decode either symbolic switches or a numeric switch argument. */

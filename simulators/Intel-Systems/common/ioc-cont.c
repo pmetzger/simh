@@ -32,6 +32,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 
 //dbb status flag bits
@@ -81,12 +82,12 @@ t_stat ioc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
 t_stat ioc_cont_clr(void);
 t_stat ioc_cont_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat ioc_cont_reset (DEVICE *dptr);
-uint8 ioc_cont0(t_bool io, uint8 data, uint8 devnum);    /* ioc_cont*/
-uint8 ioc_cont1(t_bool io, uint8 data, uint8 devnum);    /* ioc_cont*/
+uint8 ioc_cont0(bool io, uint8 data, uint8 devnum);      /* ioc_cont*/
+uint8 ioc_cont1(bool io, uint8 data, uint8 devnum);      /* ioc_cont*/
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 
 /* globals */
@@ -215,7 +216,7 @@ t_stat ioc_cont_reset(DEVICE *dptr)
 
 /* IOC data port functions */
 
-uint8 ioc_cont0(t_bool io, uint8 data, uint8 devnum)
+uint8 ioc_cont0(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -233,7 +234,7 @@ uint8 ioc_cont0(t_bool io, uint8 data, uint8 devnum)
 
 /* IOC control port functions */
 
-uint8 ioc_cont1(t_bool io, uint8 data, uint8 devnum)
+uint8 ioc_cont1(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */

@@ -61,6 +61,7 @@
 #include "i7080_defs.h"
 #include "sim_card.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define UNIT_V_MSIZE    (UNIT_V_UF + 0)
 #define UNIT_MSIZE      (017 << UNIT_V_MSIZE)
@@ -3453,7 +3454,7 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
            break;
         }
     }
-    if ((mc != 0) && (!get_yn("Really truncate memory [N]?", FALSE)))
+    if ((mc != 0) && (!get_yn("Really truncate memory [N]?", false)))
         return SCPE_OK;
     cpu_unit.flags &= ~UNIT_MSIZE;
     cpu_unit.flags |= val;

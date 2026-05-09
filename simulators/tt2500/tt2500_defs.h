@@ -29,6 +29,8 @@
 #ifndef TT2500_DEFS_H_
 #define TT2500_DEFS_H_  0
 
+#include <stdbool.h>
+
 #include "sim_defs.h"
 
 #define STOP_HALT       1
@@ -97,7 +99,7 @@ extern uint8 FONT[];
 extern DEVICE cpu_dev, dpy_dev, crt_dev, tv_dev, key_dev, uart_dev;
 extern TTDEV *dev_tab[];
 extern int C, V, N, Z;
-extern int dpy_quit;
+extern bool dpy_quit;
 
 extern uint16 tt2500_rom[];
 

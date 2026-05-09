@@ -54,6 +54,7 @@
 
 
 #include <setjmp.h>
+#include <stdbool.h>
 
 
 
@@ -1071,7 +1072,7 @@ extern jmp_buf     cpu_save_env;                /* saved environment for microco
 extern POWER_STATE cpu_power_state;             /* power supply state */
 extern EXEC_STATE  cpu_micro_state;             /* micromachine execution state */
 extern uint32      cpu_stop_flags;              /* set of simulation stop flags */
-extern t_bool      cpu_base_changed;            /* TRUE if any base register has been changed */
+extern bool        cpu_base_changed;            /* true if any base register has been changed */
 extern UNIT        cpu_unit [];                 /* CPU unit array (needed for memory size) */
 
 
@@ -1106,8 +1107,8 @@ extern void cpu_update_pclk        (void);
 
 /* Global CPU instruction execution routines */
 
-extern t_bool cpu_interrupt_pending (t_stat *status);
-extern t_stat cpu_branch_short      (t_bool check_loop);
+extern bool cpu_interrupt_pending (t_stat *status);
+extern t_stat cpu_branch_short      (bool check_loop);
 
 extern HP_WORD cpu_add_16 (HP_WORD augend,       HP_WORD addend);
 extern HP_WORD cpu_sub_16 (HP_WORD minuend,      HP_WORD subtrahend);

@@ -849,6 +849,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -901,13 +902,13 @@ static t_stat ema_emap (uint32* rtn, uint32 abase, uint32 dtbl, uint32 atbl);
 static t_stat ema_emio (uint32* rtn, uint32 bufl, uint32 dtbl, uint32 atbl);
 static t_stat ema_mmap (uint32 ipage, uint32 npgs);
 
-static t_bool ema_resolve (uint32 dtbl, uint32 atbl, uint32* sum);
-static t_bool ema_emas    (uint32 dtbl, uint32 atbl, EMA4* e);
-static t_bool ema_emat    (EMA4* e);
-static t_bool ema_mmap01  (EMA4* e);
-static t_bool ema_mmap02  (EMA4* e);
+static bool ema_resolve (uint32 dtbl, uint32 atbl, uint32* sum);
+static bool ema_emas    (uint32 dtbl, uint32 atbl, EMA4* e);
+static bool ema_emat    (EMA4* e);
+static bool ema_mmap01  (EMA4* e);
+static bool ema_mmap02  (EMA4* e);
 
-static const char *fmt_ab (t_bool success);
+static const char *fmt_ab (bool success);
 
 
 #if defined (HAVE_INT64)                                /* int64 support available */
@@ -917,13 +918,13 @@ static const char *fmt_ab (t_bool success);
 static void vis_svop   (uint32 subcode, OPS op, OPSIZE opsize);
 static void vis_vvop   (uint32 subcode, OPS op, OPSIZE opsize);
 static void vis_abs    (OP* in, OPSIZE opsize);
-static void vis_minmax (OPS op, OPSIZE opsize, t_bool domax, t_bool doabs);
+static void vis_minmax (OPS op, OPSIZE opsize, bool domax, bool doabs);
 static void vis_vpiv   (OPS op, OPSIZE opsize);
 static void vis_vabs   (OPS op, OPSIZE opsize);
 static void vis_trunc  (OP* out, OP in);
-static void vis_vsmnm  (OPS op, OPSIZE opsize, t_bool doabs);
+static void vis_vsmnm  (OPS op, OPSIZE opsize, bool doabs);
 static void vis_vdot   (OPS op, OPSIZE opsize);
-static void vis_movswp (OPS op, OPSIZE opsize, t_bool doswp);
+static void vis_movswp (OPS op, OPSIZE opsize, bool doswp);
 
 static t_stat vis_eres (HP_WORD *rtn, uint32 dtbl, uint32 atbl);
 static t_stat vis_eseg (HP_WORD *rtn, uint32 tbl);
@@ -935,7 +936,7 @@ static t_stat vis_vset (HP_WORD *rtn, OPS op);
 static void sig_caddsub (uint16 addsub, OPS op);
 static void sig_btrfy   (uint32 re, uint32 im, OP wr, OP wi, uint32 k, uint32 n2);
 static void sig_bitrev  (uint32 re, uint32 im, uint32 idx, uint32 log2n, int sz);
-static OP   sig_scadd   (uint16 oper, t_bool addh, OP a, OP b);
+static OP   sig_scadd   (uint16 oper, bool addh, OP a, OP b);
 static void sig_cmul    (OP *r, OP *i, OP a, OP b, OP c, OP d);
 
 #endif                                                  /* int64 conditional */
@@ -1122,11 +1123,11 @@ static const OP_PAT op_vis [16] = {
   OP_AA,   OP_A,        OP_AAACCC, OP_N         /*  .ERES  .ESEG  .VSET  [test] */
   };
 
-static const t_bool op_ftnret [16] = {
-  FALSE, TRUE,  TRUE,  TRUE,
-  TRUE,  TRUE,  TRUE,  TRUE,
-  TRUE,  TRUE,  TRUE,  TRUE,
-  FALSE, TRUE,  TRUE, FALSE,
+static const bool op_ftnret [16] = {
+  false, true,  true,  true,
+  true,  true,  true,  true,
+  true,  true,  true,  true,
+  false, true,  true, false,
   };
 
 t_stat cpu_vis (void)
@@ -1184,11 +1185,11 @@ switch (entry) {                                        /* decode IR<3:0> */
        break;
 
    case 003:                                            /* VSUM (OP_(A)AAKK) */
-       vis_vsmnm(op,opsize,FALSE);
+       vis_vsmnm(op,opsize,false);
        break;
 
    case 004:                                            /* VNRM (OP_(A)AAKK) */
-       vis_vsmnm(op,opsize,TRUE);
+       vis_vsmnm(op,opsize,true);
        break;
 
    case 005:                                            /* VDOT (OP_(A)AAKAKK) */
@@ -1196,27 +1197,27 @@ switch (entry) {                                        /* decode IR<3:0> */
        break;
 
    case 006:                                            /* VMAX (OP_(A)AAKK) */
-       vis_minmax(op,opsize,TRUE,FALSE);
+       vis_minmax(op,opsize,true,false);
        break;
 
    case 007:                                            /* VMAB (OP_(A)AAKK) */
-       vis_minmax(op,opsize,TRUE,TRUE);
+       vis_minmax(op,opsize,true,true);
        break;
 
    case 010:                                            /* VMIN (OP_(A)AAKK) */
-       vis_minmax(op,opsize,FALSE,FALSE);
+       vis_minmax(op,opsize,false,false);
        break;
 
    case 011:                                            /* VMIB (OP_(A)AAKK) */
-       vis_minmax(op,opsize,FALSE,TRUE);
+       vis_minmax(op,opsize,false,true);
        break;
 
    case 012:                                            /* VMOV (OP_(A)AKAKK) */
-       vis_movswp(op,opsize,FALSE);
+       vis_movswp(op,opsize,false);
        break;
 
    case 013:                                            /* VSWP (OP_(A)AKAKK) */
-       vis_movswp(op,opsize,TRUE);
+       vis_movswp(op,opsize,true);
        break;
 
    case 014:                                            /* .ERES (OP_(A)AA) */
@@ -1374,11 +1375,11 @@ switch (entry) {                                        /* decode IR<3:0> */
         p2 = ReadOp(RE(v + idx2), fp_f);                /* S2 VR[idx2] */
         p3 = ReadOp(IM(v + idx1), fp_f);                /* S9 VI[idx1] */
         p4 = ReadOp(IM(v + idx2), fp_f);                /* S10 VI[idx2] */
-        c = sig_scadd(000, TRUE, p3, p4);               /* S5,6 0.5*(p3+p4) */
-        d = sig_scadd(020, TRUE, p2, p1);               /* S7,8 0.5*(p2-p1) */
+        c = sig_scadd(000, true, p3, p4);               /* S5,6 0.5*(p3+p4) */
+        d = sig_scadd(020, true, p2, p1);               /* S7,8 0.5*(p2-p1) */
         sig_cmul(&m1, &m2, wr, wi, c, d);               /* (WR,WI) * (c,d) */
-        c = sig_scadd(000, TRUE, p1, p2);               /* 0.5*(p1+p2) */
-        d = sig_scadd(020, TRUE, p3, p4);               /* 0.5*(p3-p4) */
+        c = sig_scadd(000, true, p1, p2);               /* 0.5*(p1+p2) */
+        d = sig_scadd(020, true, p3, p4);               /* 0.5*(p3-p4) */
         (void)fp_exec(000, &p1, c, m1);                 /* VR[idx1] := 0.5*(p1+p2) + real(W*(c,d)) */
         WriteOp(RE(v + idx1), p1, fp_f);
         (void)fp_exec(000, &p2, d, m2);                 /* VI[idx1] := 0.5*(p3-p4) + imag(W*(c,d)) */
@@ -1408,11 +1409,11 @@ switch (entry) {                                        /* decode IR<3:0> */
         p2 = ReadOp(RE(v + idx2), fp_f);                /* VR[idx2] */
         p3 = ReadOp(IM(v + idx1), fp_f);                /* VI[idx1] */
         p4 = ReadOp(IM(v + idx2), fp_f);                /* VI[idx2] */
-        c = sig_scadd(020, FALSE, p1, p2);              /* p1-p2 */
-        d = sig_scadd(000, FALSE, p3, p4);              /* p3+p4 */
+        c = sig_scadd(020, false, p1, p2);              /* p1-p2 */
+        d = sig_scadd(000, false, p3, p4);              /* p3+p4 */
         sig_cmul(&m1,&m2, wr, wi, c, d);                /* (WR,WI) * (c,d) */
-        c = sig_scadd(000, FALSE, p1, p2);              /* p1+p2 */
-        d = sig_scadd(020, FALSE, p3,p4);               /* p3-p4 */
+        c = sig_scadd(000, false, p1, p2);              /* p1+p2 */
+        d = sig_scadd(020, false, p3,p4);               /* p3-p4 */
         (void)fp_exec(020, &p1, c, m2);                 /* VR[idx1] := (p1-p2) - imag(W*(c,d)) */
         WriteOp(RE(v + idx1), p1, fp_f);
         (void)fp_exec(000, &p2, d, m1);                 /* VI[idx1] := (p3-p4) + real(W*(c,d)) */
@@ -1680,7 +1681,7 @@ if (ndim<0) goto em15;                                  /* negative dimensions *
 sum = 0;                                                /* accu for index calc */
 while (ndim > 0) {
     MR = ReadW (atbl++);                                /* fetch address of A(N) */
-    cpu_resolve_indirects (FALSE);                      /* resolve indirects (uninterruptible) */
+    cpu_resolve_indirects (false);                      /* resolve indirects (uninterruptible) */
     act = ReadW(MR);                                    /* A(N) */
     low = ReadW(dtbl++);                                /* -L(N) */
     sub = SEXT16(act) + SEXT16(low);                    /* subscript */
@@ -1793,54 +1794,54 @@ return SCPE_OK;                                         /* leave */
 
 /* calculate the 32 bit EMA subscript for an array */
 
-static t_bool ema_resolve(uint32 dtbl,uint32 atbl,uint32* sum)
+static bool ema_resolve(uint32 dtbl,uint32 atbl,uint32* sum)
 {
 int32 sub, sz, ndim;
 uint32 base, udim, usz, act, low;
 
 udim = ReadW(dtbl++);                                   /* # dimensions */
 ndim = SEXT16(udim);                                    /* sign extend */
-if (ndim < 0) return FALSE;                             /* invalid? */
+if (ndim < 0) return false;                             /* invalid? */
 
 *sum = 0;                                               /* accu for index calc */
 while (ndim > 0) {
     MR = ReadW (atbl++);                                /* fetch address of A(N) */
-    cpu_resolve_indirects (FALSE);                      /* resolve indirects (uninterruptible) */
+    cpu_resolve_indirects (false);                      /* resolve indirects (uninterruptible) */
     act = ReadW(MR);                                    /* A(N) */
     low = ReadW(dtbl++);                                /* -L(N) */
     sub = SEXT16(act) + SEXT16(low);                    /* subscript */
-    if (sub & 0xffff8000) return FALSE;                 /* overflow? */
+    if (sub & 0xffff8000) return false;                 /* overflow? */
     *sum += sub;                                        /* accumulate */
     usz = ReadW(dtbl++);
     sz = SEXT16(usz);
-    if (sz < 0) return FALSE;
+    if (sz < 0) return false;
     *sum *= sz;
-    if (*sum > (512*1024)) return FALSE;                /* overflow? */
+    if (*sum > (512*1024)) return false;                /* overflow? */
     ndim--;
 }
 base = (ReadW(dtbl+1)<<16) | (ReadW(dtbl) & 0xffff);    /* base of array in EMA */
-if (base & 0x8000000) return FALSE;
+if (base & 0x8000000) return false;
 *sum += base;                                           /* calculate address into EMA */
-if (*sum & 0xf8000000) return FALSE;                    /* overflow? */
-return TRUE;
+if (*sum & 0xf8000000) return false;                    /* overflow? */
+return true;
 }
 
 
-static t_bool ema_emas(uint32 dtbl,uint32 atbl,EMA4* e)
+static bool ema_emas(uint32 dtbl,uint32 atbl,EMA4* e)
 {
 uint32 xidex, eqt;
 uint32 sum, msegsz,pgoff,offs,emasz,msegno,msoff,ipgs;
 
-if (!ema_resolve(dtbl,atbl,&sum)) return FALSE;         /* calculate 32 bit index */
+if (!ema_resolve(dtbl,atbl,&sum)) return false;         /* calculate 32 bit index */
 
 xidex = ReadU (idx);                                    /* read ID extension */
 msegsz = ReadWA(xidex+0) & 037;                         /* S5 # pgs for std MSEG */
 pgoff = sum >> 10;                                      /* S2 page containing element */
 offs = sum & 01777;                                     /* S6 offset in page to element */
-if (pgoff > 1023) return FALSE;                         /* overflow? */
+if (pgoff > 1023) return false;                         /* overflow? */
 eqt = ReadU (xeqt);
 emasz = ReadWA(eqt+28) & 01777;                         /* S EMA size in pages */
-if (pgoff > emasz) return FALSE;                        /* outside EMA? */
+if (pgoff > emasz) return false;                        /* outside EMA? */
 msegno = pgoff / msegsz;                                /* S4 # of MSEG */
 msoff = pgoff % msegsz;                                 /* offset within MSEG in pgs */
 ipgs = pgoff - msoff;                                   /* S7 # pgs to start of MSEG */
@@ -1854,11 +1855,11 @@ e->emasz = emasz;
 e->msegno = msegno;
 e->ipgs = ipgs;
 e->msoff = msoff;
-return TRUE;
+return true;
 }
 
 
-static t_bool ema_emat(EMA4* e)
+static bool ema_emat(EMA4* e)
 {
 uint32 xidex,idext0;
 uint32 curmseg,phys,msnum,lastpgs;
@@ -1874,14 +1875,14 @@ if ((idext0 & 0100000) ||                               /* was nonstd MSEG? */
     lastpgs = e->emasz % e->msegsz;                     /* #pgs in last MSEG */
     if (lastpgs==0) msnum--;                            /* adjust # of last MSEG */
     e->npgs = msnum==e->msegno ? lastpgs : e->msegsz;   /* for last MSEG, only map available pgs */
-    if (!ema_mmap01(e)) return FALSE;                   /* map npgs pages at ipgs */
+    if (!ema_mmap01(e)) return false;                   /* map npgs pages at ipgs */
 }
 BR = (HP_WORD) (e->mseg + e->msoff);                    /* return address of element */
-return TRUE;                                            /* and everything done */
+return true;                                            /* and everything done */
 }
 
 
-static t_bool ema_mmap01(EMA4* e)
+static bool ema_mmap01(EMA4* e)
 {
 uint32 xidex,idext0, pg, pg0, pg1, i;
 
@@ -1889,7 +1890,7 @@ uint32 base = e->mseg >> 10;                            /* get the # of first MS
 xidex = ReadU (idx);                                    /* get ID extension */
 idext0 = ReadWA(xidex+1);
 
-if (e->npgs==0) return FALSE;                           /* no pages to map? */
+if (e->npgs==0) return false;                           /* no pages to map? */
 if ((e->npgs+1+e->ipgs) <= e->emasz) e->npgs++;         /* actually map npgs+1 pgs */
 
 /* locations 1740...1777 of user base page contain the map entries we need.
@@ -1916,11 +1917,11 @@ else
     idext0 = (idext0 & 037) | (e->msegno<<5);           /* set new current mseg# */
 WriteS (xidex, idext0);                                 /* save back value */
 AR = 0;                                                 /* was successful */
-return TRUE;
+return true;
 }
 
 
-static t_bool ema_mmap02(EMA4* e)
+static bool ema_mmap02(EMA4* e)
 {
 uint32 xidex, eqt, idext1;
 uint32 mseg,phys,spmseg,emasz,msegsz,msegno;
@@ -1934,10 +1935,10 @@ spmseg = phys + e->ipgs;                                /* S7 phys pg# of MSEG *
 msegno = e->ipgs / msegsz;
 if ((e->ipgs % msegsz) != 0)                            /* non std MSEG? */
     msegno = 0xffff;                                    /* S4 yes, set marker */
-if (e->npgs > msegsz) return FALSE;                     /* map more pages than MSEG sz? */
+if (e->npgs > msegsz) return false;                     /* map more pages than MSEG sz? */
 eqt = ReadU (xeqt);
 emasz = ReadWA(eqt+28) & 01777;                         /* B EMA size in pages */
-if ((e->ipgs+e->npgs) > emasz) return FALSE;            /* outside EMA? */
+if ((e->ipgs+e->npgs) > emasz) return false;            /* outside EMA? */
 if ((e->ipgs+msegsz) > emasz)                           /* if MSEG overlaps end of EMA */
     e->npgs = emasz - e->ipgs;                          /* only map until end of EMA */
 
@@ -1963,7 +1964,7 @@ return ema_mmap01(e);
    tracing.
 */
 
-static const char *fmt_ab (t_bool success)
+static const char *fmt_ab (bool success)
 {
 static const char good  [] = "normal";
 static       char error [] = "error ....";
@@ -2048,7 +2049,7 @@ if (sign) (void)fp_pcom(in, opsize);                    /* if negative, make pos
 }
 
 
-static void vis_minmax(OPS op,OPSIZE opsize,t_bool domax,t_bool doabs)
+static void vis_minmax(OPS op,OPSIZE opsize,bool domax,bool doabs)
 {
 OP v1,vmxmn,res;
 int16 delta = opsize==fp_f ? 2 : 4;
@@ -2142,7 +2143,7 @@ out->fpk[1] = (in.fpk[1] & 0177400) | (in.fpk[3] & 0377);
 }
 
 
-static void vis_vsmnm(OPS op,OPSIZE opsize,t_bool doabs)
+static void vis_vsmnm(OPS op,OPSIZE opsize,bool doabs)
 {
 uint16 fpuop;
 OP v1,sumnrm = ZERO;
@@ -2196,7 +2197,7 @@ WriteOp(daddr, dot, opsize);                            /* write result */
 }
 
 
-static void vis_movswp(OPS op, OPSIZE opsize, t_bool doswp)
+static void vis_movswp(OPS op, OPSIZE opsize, bool doswp)
 {
 OP v1,v2;
 int16 delta = opsize==fp_f ? 2 : 4;
@@ -2354,7 +2355,7 @@ HP_WORD vectors = op[4].word;                            /* S5 */
 HP_WORD k       = op[5].word;                            /* S6 */
 uint32  imax    = 0;                                     /* imax S11*/
 uint32  xidex, idext1, mseg, addr, i;
-t_bool negflag = FALSE;
+bool negflag = false;
 
 for (i=0; i<scalars; i++) {                             /* copy scalars */
     XR = ReadW(vin++);
@@ -2367,7 +2368,7 @@ mseg = (idext1 >> 1) & MSEG_MASK;                       /* S9 get logical start 
 
 for (i=0; i<vectors; i++) {                             /* copy vector addresses */
     MR = ReadW(vin++);
-    cpu_resolve_indirects (FALSE);                      /* resolve indirects (uninterruptible) */
+    cpu_resolve_indirects (false);                      /* resolve indirects (uninterruptible) */
     addr = ReadW(MR) & 0177777;                         /* LSB */
     addr |= (ReadW(MR+1)<<16);                          /* MSB, build address */
     WriteW(vout++, mseg + (addr & 01777));              /* build and write log addr of vector */
@@ -2376,18 +2377,18 @@ for (i=0; i<vectors; i++) {                             /* copy vector addresses
     WriteW(maps++, addr+1);                             /* save next page# as well */
 
     MR = ReadW(vin++);                                  /* get index into Y */
-    cpu_resolve_indirects (FALSE);                      /* resolve indirects (uninterruptible) */
+    cpu_resolve_indirects (false);                      /* resolve indirects (uninterruptible) */
     YR = ReadW(MR);                                     /* get index value */
     WriteW(vout++, MR);                                 /* copy address of index */
     if (YR & D16_SIGN) {                                /* index is negative */
-         negflag = TRUE;                                /* mark a negative index (HARD) */
+         negflag = true;                                /* mark a negative index (HARD) */
          YR = NEG16 (YR);                               /* make index positive */
     }
     if (imax < YR) imax = YR;                           /* set maximum index */
     mseg += 04000;                                      /* incr mseg address by 2 more pages */
 }
 MR = ReadW(vin);                                        /* get N index into Y */
-cpu_resolve_indirects (FALSE);                          /* resolve indirects (uninterruptible) */
+cpu_resolve_indirects (false);                          /* resolve indirects (uninterruptible) */
 YR = ReadW(MR);
 WriteW(vout++, MR); vin++;                              /* copy address of N */
 
@@ -2504,7 +2505,7 @@ WriteOp(im+rev, v1i, fp_f);
 
 /* helper for PRSCR/UNSCR */
 
-static OP sig_scadd(uint16 oper,t_bool addh, OP a, OP b)
+static OP sig_scadd(uint16 oper,bool addh, OP a, OP b)
 {
 OP r;
 static const OP plus_half = { { 0040000, 0000000 } };   /* DEC +0.5 */

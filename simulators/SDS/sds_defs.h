@@ -31,6 +31,7 @@
 #ifndef SDS_DEFS_H_
 #define SDS_DEFS_H_    0
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 
 #if defined(USE_INT64) || defined(USE_ADDR64)
@@ -202,7 +203,7 @@ typedef struct sdsdib DIB;
 
 /* I/O support */
 
-t_bool io_init (void);
+bool io_init (void);
 t_stat op_wyim (uint32 inst, uint32 *dat);
 t_stat op_miwy (uint32 inst, uint32 dat);
 t_stat op_pin (uint32 *dat);
@@ -447,7 +448,7 @@ void chan_set_uar (int32 ch, uint32 dev);
 t_stat set_chan (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat show_chan (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat chan_process (void);
-t_bool chan_testact (void);
+bool chan_testact (void);
 
 /* Character conversion function prototypes */
 

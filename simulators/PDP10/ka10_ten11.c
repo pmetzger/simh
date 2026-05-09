@@ -23,6 +23,7 @@
    specific to the MIT AI lab PDP-10.
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
@@ -127,8 +128,8 @@ static t_stat ten11_reset (DEVICE *dptr)
   sim_debug(DBG_TRC, dptr, "ten11_reset()\n");
 
   ten11_unit[0].flags |= UNIT_ATTABLE | UNIT_IDLE;
-  ten11_desc.packet = TRUE;
-  ten11_desc.notelnet = TRUE;
+  ten11_desc.packet = true;
+  ten11_desc.notelnet = true;
   ten11_desc.buffered = 2048;
 
   if (ten11_unit[0].flags & UNIT_ATT)
@@ -147,7 +148,7 @@ static t_stat ten11_attach (UNIT *uptr, const char *cptr)
     return SCPE_ARG;
   if (!(uptr->flags & UNIT_ATTABLE))
     return SCPE_NOATT;
-  r = tmxr_attach_ex (&ten11_desc, uptr, cptr, FALSE);
+  r = tmxr_attach_ex (&ten11_desc, uptr, cptr, false);
   if (r != SCPE_OK)                                       /* error? */
     return r;
   sim_debug(DBG_TRC, &ten11_dev, "activate connection\n");

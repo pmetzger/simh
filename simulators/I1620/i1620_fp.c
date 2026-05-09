@@ -35,6 +35,7 @@
    31-May-2008  RMS     Fixed add_field call (Peter Schorn)
 */
 
+#include <stdbool.h>
 #include "i1620_defs.h"
 
 #define FP_LMAX         100                             /* max fp mant lnt */
@@ -58,7 +59,7 @@ t_stat fp_scan_mant (uint32 ad, uint32 *lnt, uint32 *zro);
 t_stat fp_zero (FPA *fp);
 
 extern t_stat xmt_field (uint32 d, uint32 s, uint32 skp);
-extern t_stat add_field (uint32 d, uint32 s, t_bool sub, uint32 skp, int32 *sta);
+extern t_stat add_field (uint32 d, uint32 s, bool sub, uint32 skp, int32 *sta);
 extern t_stat mul_field (uint32 d, uint32 s);
 extern t_stat xmt_divd (uint32 d, uint32 s);
 extern t_stat div_field (uint32 dvd, uint32 dvr, int32 *ez);
@@ -239,7 +240,7 @@ return 0;                                               /* done, equal */
 
 /* Floating point add */
 
-t_stat fp_add (uint32 d, uint32 s, t_bool sub)
+t_stat fp_add (uint32 d, uint32 s, bool sub)
 {
 FPA sfp, dfp;
 uint32 i, sad, hi;

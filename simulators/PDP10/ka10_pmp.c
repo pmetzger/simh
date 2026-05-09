@@ -57,6 +57,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_PMP
@@ -2145,7 +2146,7 @@ pmp_format(UNIT * uptr, int flag) {
     uint32              hd;
     uint32              pos;
 
-    if (flag || get_yn("Initialize dasd? [Y] ", TRUE)) {
+    if (flag || get_yn("Initialize dasd? [Y] ", true)) {
         memset(&hdr, 0, sizeof(struct pmp_header));
         memcpy(&hdr.devid[0], "CKD_P370", 8);
         hdr.heads = disk_type[type].heads;
@@ -2252,7 +2253,7 @@ pmp_attach(UNIT * uptr, const char *file)
              if (GET_TYPE(uptr->flags) != i) {
                   /* Ask if we should change */
                   fprintf(stderr, "Wrong type %s\r\n", disk_type[i].name);
-                  if (!get_yn("Update dasd type? [N] ", FALSE)) {
+                  if (!get_yn("Update dasd type? [N] ", false)) {
                       detach_unit(uptr);
                       return SCPE_FMT;
                   }

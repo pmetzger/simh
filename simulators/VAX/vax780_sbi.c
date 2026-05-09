@@ -36,6 +36,7 @@
    28-May-2008  RMS     Inlined physical memory routines
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -711,7 +712,7 @@ t_stat cpu_boot (int32 unitno, DEVICE *dptr)
 {
 t_stat r;
 
-r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, FALSE, 0x200);
+r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, false, 0x200);
 if (r != SCPE_OK)
     return r;
 SP = PC = 512;

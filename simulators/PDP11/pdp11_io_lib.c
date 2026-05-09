@@ -33,6 +33,7 @@
 #else                                                   /* PDP-11 version */
 #include "pdp11_defs.h"
 #endif
+#include <stdbool.h>
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include "sim_ether.h"
@@ -616,9 +617,9 @@ for (i = 0, dibp = NULL; i < (IOPAGESIZE >> 1); i++) {  /* loop thru entries */
 return SCPE_OK;
 }
 
-static t_bool _map_description (char *buf, size_t buf_size, uint32 val, uint32 index, uint32 valid_mask)
+static bool _map_description (char *buf, size_t buf_size, uint32 val, uint32 index, uint32 valid_mask)
 {
-t_bool ind_eq = (index == (val & ~valid_mask));
+bool ind_eq = (index == (val & ~valid_mask));
 const char *desc = ind_eq ? "Value == Index" : "";
 const char *valid = (val & valid_mask) ? "Valid" : "";
 
@@ -638,7 +639,7 @@ uint32 mstart = 0;
 uint32 mend = nmapregs - 1;
 uint32 same_val;
 uint32 same_start;
-t_bool ind_eq;
+bool ind_eq;
 char same_desc[32];
 char desc[32];
 
@@ -925,7 +926,7 @@ AUTO_CON auto_tab[] = {/*c  #v  am vm  fxa   fxv */
 
 static void build_vector_tab (void)
 {
-static t_bool done = FALSE;
+static bool done = false;
 AUTO_CON *autp;
 DEVICE *dptr;
 uint32 j, k;
@@ -958,7 +959,7 @@ for (j = 0; (dptr = sim_devices[j]) != NULL; j++) {
             }
         }
     }
-done = TRUE;
+done = true;
 }
 
 t_stat auto_config (const char *name, int32 nctrl)

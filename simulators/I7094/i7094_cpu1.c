@@ -30,6 +30,7 @@
                         Added SPUx, SPTx, SPRx
 */
 
+#include <stdbool.h>
 #include "i7094_defs.h"
 
 #define FP_HIFRAC(x)    ((uint32) ((x) >> FP_N_FR) & FP_FMASK)
@@ -50,7 +51,7 @@ extern uint32 mode_storn, mode_multi;
 extern uint32 chtr_pend, chtr_inht, chtr_inhi;
 extern uint32 ch_flags[NUM_CHAN];
 
-extern t_bool prot_trap (uint32 decr);
+extern bool prot_trap (uint32 decr);
 
 typedef struct {                                        /* unpacked fp */
     uint32              s;                              /* sign: 0 +, 1 - */
@@ -61,12 +62,12 @@ typedef struct {                                        /* unpacked fp */
 uint32 op_frnd (void);
 t_uint64 fp_fracdiv (t_uint64 dvd, t_uint64 dvr, t_uint64 *rem);
 void fp_norm (UFP *op);
-void fp_unpack (t_uint64 h, t_uint64 l, t_bool q_ac, UFP *op);
+void fp_unpack (t_uint64 h, t_uint64 l, bool q_ac, UFP *op);
 uint32 fp_pack (UFP *op, uint32 mqs, int32 mqch);
 
-extern t_bool fp_trap (uint32 spill);
-extern t_bool sel_trap (uint32 va);
-extern t_stat ch_op_reset (uint32 ch, t_bool ch7909);
+extern bool fp_trap (uint32 spill);
+extern bool sel_trap (uint32 va);
+extern t_stat ch_op_reset (uint32 ch, bool ch7909);
 
 /* Integer add
 
@@ -123,17 +124,17 @@ return;
 
 /* Divide */
 
-t_bool op_div (t_uint64 sr, uint32 sc)
+bool op_div (t_uint64 sr, uint32 sc)
 {
 uint32 signa, signm;
 
 if (sc == 0)                                            /* sc = 0? nop */
-    return FALSE;
+    return false;
 signa = (AC & AC_S)? 1: 0;                              /* get signs */
 signm = (sr & SIGN)? 1: 0;
 sr = sr & MMASK;                                        /* get dvr magn */
 if ((AC & AC_MMASK) >= sr)                              /* |AC| >= |sr|? */
-    return TRUE;
+    return true;
 AC = AC & AC_MMASK;                                     /* AC, MQ magn */
 MQ = MQ & MMASK;
 while (sc--) {                                          /* for sc */
@@ -148,7 +149,7 @@ if (signa ^ signm)                                      /* quo neg? */
     MQ = MQ | SIGN;
 if (signa)                                              /* rem neg? */
     AC = AC | AC_S;
-return FALSE;                                           /* div ok */
+return false;                                           /* div ok */
 }
 
 /* Shifts */
@@ -534,7 +535,7 @@ return SCPE_OK;
      AC > SR.  However, any shift >= 54 will produce a zero fraction,
      so the difference can be ignored */
 
-uint32 op_fad (t_uint64 sr, t_bool norm)
+uint32 op_fad (t_uint64 sr, bool norm)
 {
 UFP op1, op2, t;
 int32 mqch, diff;
@@ -583,7 +584,7 @@ return fp_pack (&op2, op2.s, mqch);                     /* pack AC, MQ */
 
 /* Floating multiply */
 
-uint32 op_fmp (t_uint64 sr, t_bool norm)
+uint32 op_fmp (t_uint64 sr, bool norm)
 {
 UFP op1, op2;
 int32 mqch;
@@ -664,7 +665,7 @@ return (spill? (spill | TRAP_F_SGL): 0);                /* if spill, set SGL */
      In case (a), SI is unchanged.  In case (b), SI ends up with the SR sign
      and characteristic but the MQ (!) fraction */
 
-uint32 op_dfad (t_uint64 sr, t_uint64 sr1, t_bool norm)
+uint32 op_dfad (t_uint64 sr, t_uint64 sr1, bool norm)
 {
 UFP op1, op2, t;
 int32 mqch, diff;
@@ -726,7 +727,7 @@ return fp_pack (&op2, op2.s, mqch);                     /* pack AC, MQ */
    - For the A+B' both zero 'early end' case SI ends up with A or C,
      depending on whether the operation is normalized or not */
 
-uint32 op_dfmp (t_uint64 sr, t_uint64 sr1, t_bool norm)
+uint32 op_dfmp (t_uint64 sr, t_uint64 sr1, bool norm)
 {
 UFP op1, op2;
 int32 mqch;
@@ -911,7 +912,7 @@ return;
 
 /* Floating point unpack */
 
-void fp_unpack (t_uint64 h, t_uint64 l, t_bool q_ac, UFP *op)
+void fp_unpack (t_uint64 h, t_uint64 l, bool q_ac, UFP *op)
 {
 if (q_ac) {                                             /* AC? */
     op->s = (h & AC_S)? 1: 0;                           /* get sign */

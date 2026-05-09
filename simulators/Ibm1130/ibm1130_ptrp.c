@@ -17,6 +17,7 @@
  * Mail to simh@ibm1130.org
  */
 
+#include <stdbool.h>
 #include "ibm1130_defs.h"
 
 /***************************************************************************************
@@ -240,7 +241,7 @@ static t_stat ptr_detach (UNIT *uptr)
 static t_stat ptr_boot (int32 unitno, DEVICE *dptr)
 {
     int ch, nch, val, addr;
-    t_bool leader = TRUE, start = FALSE;
+    bool leader = true, start = false;
     t_stat rval;
 
     /* Generic callback signature.
@@ -262,7 +263,7 @@ static t_stat ptr_boot (int32 unitno, DEVICE *dptr)
             if ((ch & 0x7F) == 0x7F)            /* ignore leading rubouts or "delete" characters */
                 continue;
 
-            leader = FALSE;                     /* after first nonrubout, any punch in channel 5 terminates load */
+            leader = false;                     /* after first nonrubout, any punch in channel 5 terminates load */
         }
 
         /* this is untested -- not sure of actual byte ordering  */
@@ -278,7 +279,7 @@ static t_stat ptr_boot (int32 unitno, DEVICE *dptr)
         }
 
         if (ch & 0x10) {                        /* channel 5 punch terminates load */
-            start = TRUE;
+            start = true;
             break;
         }
     }

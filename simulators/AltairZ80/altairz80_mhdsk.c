@@ -44,6 +44,7 @@
 
 -------------------------------------------------------------------------------
 */
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 /**  Typedefs & Defines  **************************************/
@@ -254,8 +255,8 @@ static t_stat mhdsk_boot(int32 unitno, DEVICE *dptr) {
     (void) unitno;
     (void) dptr;
 
-    const t_bool installSuccessful = (install_bootrom(bootrom_mhdsk, BOOTROM_SIZE_MHDSK,
-                                                      MHDSK_BOOT_ADDRESS, FALSE) == SCPE_OK);
+    const bool installSuccessful = (install_bootrom(bootrom_mhdsk, BOOTROM_SIZE_MHDSK,
+                                                      MHDSK_BOOT_ADDRESS, false) == SCPE_OK);
     ASSURE(installSuccessful);
     *((int32 *) sim_PC -> loc) = MHDSK_BOOT_ADDRESS;
     return SCPE_OK;

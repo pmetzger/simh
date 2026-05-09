@@ -57,6 +57,7 @@
    these four paragraphs for those parts of this code that are retained.
 */
 
+#include <stdbool.h>
 #include "alpha_defs.h"
 
 #define UFT_ZERO        0                               /* unpacked: zero */
@@ -101,7 +102,7 @@ t_uint64 ieee_cvtst (t_uint64 op, uint32 ir);
 t_uint64 ieee_cvtts (t_uint64 op, uint32 ir);
 t_uint64 ieee_cvtif (t_uint64 val, uint32 ir, uint32 dp);
 t_uint64 ieee_cvtfi (t_uint64 op, uint32 ir);
-t_uint64 ieee_fadd (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp, t_bool sub);
+t_uint64 ieee_fadd (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp, bool sub);
 t_uint64 ieee_fmul (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp);
 t_uint64 ieee_fdiv (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp);
 uint32 estimateSqrt32 (uint32 exp, uint32 a);
@@ -373,7 +374,7 @@ return (a.sign? NEG_Q (a.frac): a.frac);
           but normalization is at most 1 place, sticky bit is retained
           for rounding purposes (but not in low order bit) */
 
-t_uint64 ieee_fadd (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp, t_bool sub)
+t_uint64 ieee_fadd (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp, bool sub)
 {
 UFP a, b, t;
 uint32 ftpa, ftpb;

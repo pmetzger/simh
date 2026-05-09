@@ -94,6 +94,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "sim_timer.h"
 
@@ -407,7 +408,7 @@ int Mem_read(int flag, int cur_context, int fetch, int mod);
 int Mem_write(int flag, int cur_context);
 #endif
 
-t_bool build_dev_tab (void);
+bool build_dev_tab (void);
 
 /* CPU data structures
 
@@ -4939,7 +4940,7 @@ st_pi:
     if (sim_idle_enab &&
           ((PC < 020 && AB < 020 && (IR & 0740) == 0340) ||
            (uuo_cycle && (IR & 0740) == 0 && IA == 041))) {
-       sim_idle (TMR_RTC, FALSE);
+       sim_idle (TMR_RTC, false);
     }
 
     /* Update history */
@@ -13865,7 +13866,7 @@ if (val < (int32)MEMSIZE) {
     uint64 mc = 0;
     for (i = val-1; i < (int32)MEMSIZE; i++)
         mc = mc | M[i];
-    if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+    if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
         return SCPE_OK;
 }
 for (i = (int32)MEMSIZE; i < val; i++)
@@ -13876,7 +13877,7 @@ return SCPE_OK;
 
 #if !KS
 /* Build device dispatch table */
-t_bool build_dev_tab (void)
+bool build_dev_tab (void)
 {
     DEVICE *dptr;
     DIB    *dibp;
@@ -13956,7 +13957,7 @@ t_bool build_dev_tab (void)
                 d = rh_nums[rh_idx];
                 if (d == 0) {
                     sim_printf ("To many RH10 devices %s\n", sim_dname (dptr));
-                    return TRUE;
+                    return true;
                 }
 #if KL
             } else if (d & RH20_DEV) {                      /* RH20, grab next device */
@@ -14002,7 +14003,7 @@ t_bool build_dev_tab (void)
                                                             /* already filled? */
                         sim_printf ("%s device number conflict at %02o\n",
                                sim_dname (dptr), d + (j << 2));
-                        return TRUE;
+                        return true;
                     }
                     dev_tab[(d >> 2) + j] = dibp->io;       /* fill */
                     dev_irqv[(d >> 2) + j] = dibp->irq;
@@ -14010,7 +14011,7 @@ t_bool build_dev_tab (void)
             }
         }
     }
-    return FALSE;
+    return false;
 }
 #endif
 

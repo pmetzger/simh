@@ -8,6 +8,7 @@
    21-Oct-2012  MB      First Version
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "vax750_mem_internal.h"
 #include "uint_bits.h"
@@ -200,12 +201,12 @@ return SCPE_OK;
 t_stat mctl_populate_rom (const char *rom_filename)
 {
 #ifdef DONT_USE_INTERNAL_ROM
-return cpu_load_bootcode (rom_filename, NULL, sizeof (rom), TRUE, 0);
+return cpu_load_bootcode (rom_filename, NULL, sizeof (rom), true, 0);
 #else
 if (strcmp (rom_filename, "ka750_new.bin") == 0)
-    return cpu_load_bootcode ("ka750_new.bin", vax_ka750_bin_new, BOOT_CODE_SIZE, TRUE, 0);
+    return cpu_load_bootcode ("ka750_new.bin", vax_ka750_bin_new, BOOT_CODE_SIZE, true, 0);
 else
-    return cpu_load_bootcode ("ka750_old.bin", vax_ka750_bin_old, BOOT_CODE_SIZE, TRUE, 0);
+    return cpu_load_bootcode ("ka750_old.bin", vax_ka750_bin_old, BOOT_CODE_SIZE, true, 0);
 #endif
 }
 

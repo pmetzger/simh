@@ -36,6 +36,7 @@
    I/O Processor, Multiplexer Channel, and Selector Channel.
 */
 
+#include <stdbool.h>
 
 
 /* Global data structures */
@@ -195,13 +196,13 @@ extern void mpx_service    (uint32 ticks_elapsed);
 
 /* Global selector channel state and functions
 
-   sel_request : TRUE if a pending channel service request
+   sel_request : true if a pending channel service request
 
    sel_initialize : initialize the selector channel
    sel_service    : service the interface with an active service request
 */
 
-extern t_bool sel_request;
+extern bool sel_request;
 
 extern void sel_initialize (void);
 extern void sel_service    (uint32 ticks_elapsed);

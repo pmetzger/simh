@@ -126,6 +126,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 #include "isbc206_internal.h"
 #include "scp.h"
@@ -188,7 +189,7 @@ extern uint16    PCX;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16 port);
 extern uint8 get_mbyte(uint16 addr);
 extern void put_mbyte(uint16 addr, uint8 val);
@@ -205,11 +206,11 @@ t_stat isbc206_reset(DEVICE *dptr);
 void isbc206_reset_dev(void);
 t_stat isbc206_attach (UNIT *uptr, const char *cptr);
 t_stat isbc206_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-uint8 isbc206r0(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 0 */
-uint8 isbc206r1(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 1 */
-uint8 isbc206r2(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 2 */
-uint8 isbc206r3(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 3 */
-uint8 isbc206r7(t_bool io, uint8 data, uint8 devnum);  /* isbc206 port 7 */
+uint8 isbc206r0(bool io, uint8 data, uint8 devnum);    /* isbc206 port 0 */
+uint8 isbc206r1(bool io, uint8 data, uint8 devnum);    /* isbc206 port 1 */
+uint8 isbc206r2(bool io, uint8 data, uint8 devnum);    /* isbc206 port 2 */
+uint8 isbc206r3(bool io, uint8 data, uint8 devnum);    /* isbc206 port 3 */
+uint8 isbc206r7(bool io, uint8 data, uint8 devnum);    /* isbc206 port 7 */
 void isbc206_diskio(void);       //do actual disk i/o
 
 /* globals */
@@ -233,7 +234,7 @@ HDCDEF    hdc206;                       //indexed by the isbc-206 instance numbe
  * TODO: Share this helper logic with the other Intel diskette controllers
  * after the warning-driven fixes are settled.
  */
-static t_bool isbc206_completion_interrupt_enabled(uint8 cw)
+static bool isbc206_completion_interrupt_enabled(uint8 cw)
 {
     return (cw & CW_INT_CTL) != CW_INT_DIS;
 }
@@ -568,7 +569,7 @@ t_stat isbc206_attach (UNIT *uptr, const char *cptr)
 
 /* iSBC206 control port functions */
 
-uint8 isbc206r0(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc206r0(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -581,7 +582,7 @@ uint8 isbc206r0(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc206r1(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc206r1(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -598,7 +599,7 @@ uint8 isbc206r1(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc206r2(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc206r2(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -615,7 +616,7 @@ uint8 isbc206r2(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc206r3(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc206r3(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -639,7 +640,7 @@ uint8 isbc206r3(t_bool io, uint8 data, uint8 devnum)
 }
 
 
-uint8 isbc206r7(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc206r7(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -665,7 +666,7 @@ void isbc206_diskio(void)
     uint32 i;
     UNIT *uptr;
     uint8 *fbuf;
-    t_bool completion_interrupt;
+    bool completion_interrupt;
 
     //parse the IOPB
     cw = get_mbyte(hdc206.iopb);

@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_mem.h"
 
 #include "3b2_cpu.h"
@@ -39,7 +40,7 @@
 
 #if defined(REV3)
 static uint32 ecc_addr;  /* ECC address */
-static t_bool ecc_err;   /* ECC multi-bit error */
+static bool ecc_err;     /* ECC multi-bit error */
 #endif
 
 /*
@@ -47,7 +48,7 @@ static t_bool ecc_err;   /* ECC multi-bit error */
  *
  * Checking and setting of ECC syndrome bits is a no-op for Rev 2.
  */
-static inline void check_ecc(uint32 pa, t_bool write, uint8 src)
+static inline void check_ecc(uint32 pa, bool write, uint8 src)
 {
 #if !defined(REV3)
     /* Shared helper signature.
@@ -64,16 +65,16 @@ static inline void check_ecc(uint32 pa, t_bool write, uint8 src)
                   "ECC Error on Write. pa=%08x\n",
                   pa);
         ecc_addr = pa;
-        ecc_err = TRUE;
+        ecc_err = true;
     } else if (ecc_err && !write && pa == ecc_addr) {
         sim_debug(EXECUTE_MSG, &mmu_dev,
                   "ECC Error detected on Read. pa=%08x psw=%08x cur_ipl=%d csr=%08x\n",
                   pa, R[NUM_PSW], PSW_CUR_IPL, csr_data);
         flt[0] = ecc_addr & 0x3ffff;
         flt[1] = MA_CPU_IO|MA_CPU_BU;
-        ecc_err = FALSE;
-        CSRBIT(CSRFRF, TRUE);    /* Fault registers frozen */
-        CSRBIT(CSRMBERR, TRUE);  /* Multi-bit error */
+        ecc_err = false;
+        CSRBIT(CSRFRF, true);    /* Fault registers frozen */
+        CSRBIT(CSRMBERR, true);  /* Multi-bit error */
         CPU_SET_INT(INT_MBERR);
         /* Only abort if CPU is doing the read */
         if (src == BUS_CPU) {
@@ -97,7 +98,7 @@ uint32 pread_w(uint32 pa, uint8 src)
         sim_debug(READ_MSG, &mmu_dev,
                   "Cannot read physical address. ALIGNMENT ISSUE: %08x\n",
                   pa);
-        CSRBIT(CSRALGN, TRUE);
+        CSRBIT(CSRALGN, true);
         cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
     }
 
@@ -109,7 +110,7 @@ uint32 pread_w(uint32 pa, uint8 src)
         m = ROM;
         index = pa;
     } else if (IS_RAM(pa)) {
-        check_ecc(pa, FALSE, src);
+        check_ecc(pa, false, src);
         m = RAM;
         index = (pa - PHYS_MEM_BASE);
     } else {
@@ -130,7 +131,7 @@ void pwrite_w(uint32 pa, uint32 val, uint8 src)
         sim_debug(WRITE_MSG, &mmu_dev,
                   "Cannot write physical address. ALIGNMENT ISSUE: %08x\n",
                   pa);
-        CSRBIT(CSRALGN, TRUE);
+        CSRBIT(CSRALGN, true);
         cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
     }
 
@@ -140,7 +141,7 @@ void pwrite_w(uint32 pa, uint32 val, uint8 src)
     }
 
     if (IS_RAM(pa)) {
-        check_ecc(pa, TRUE, src);
+        check_ecc(pa, true, src);
         index = pa - PHYS_MEM_BASE;
         RAM[index] = (val >> 24) & 0xff;
         RAM[index + 1] = (val >> 16) & 0xff;
@@ -162,7 +163,7 @@ uint16 pread_h(uint32 pa, uint8 src)
         sim_debug(READ_MSG, &mmu_dev,
                   "Cannot read physical address. ALIGNMENT ISSUE %08x\n",
                   pa);
-        CSRBIT(CSRALGN, TRUE);
+        CSRBIT(CSRALGN, true);
         cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
     }
 
@@ -174,7 +175,7 @@ uint16 pread_h(uint32 pa, uint8 src)
         m = ROM;
         index = pa;
     } else if (IS_RAM(pa)) {
-        check_ecc(pa, FALSE, src);
+        check_ecc(pa, false, src);
         m = RAM;
         index = pa - PHYS_MEM_BASE;
     } else {
@@ -199,7 +200,7 @@ void pwrite_h(uint32 pa, uint16 val, uint8 src)
         sim_debug(WRITE_MSG, &mmu_dev,
                   "Cannot write physical address %08x, ALIGNMENT ISSUE\n",
                   pa);
-        CSRBIT(CSRALGN, TRUE);
+        CSRBIT(CSRALGN, true);
     }
 
     if (IS_IO(pa)) {
@@ -208,7 +209,7 @@ void pwrite_h(uint32 pa, uint16 val, uint8 src)
     }
 
     if (IS_RAM(pa)) {
-        check_ecc(pa, TRUE, src);
+        check_ecc(pa, true, src);
         index = pa - PHYS_MEM_BASE;
         RAM[index] = (val >> 8) & 0xff;
         RAM[index + 1] = val & 0xff;
@@ -228,7 +229,7 @@ uint8 pread_b(uint32 pa, uint8 src)
     if (IS_ROM(pa)) {
         return ROM[pa];
     } else if (IS_RAM(pa)) {
-        check_ecc(pa, FALSE, src);
+        check_ecc(pa, false, src);
         return RAM[pa - PHYS_MEM_BASE];
     } else {
         return 0;
@@ -246,7 +247,7 @@ void pwrite_b(uint32 pa, uint8 val, uint8 src)
     }
 
     if (IS_RAM(pa)) {
-        check_ecc(pa, TRUE, src);
+        check_ecc(pa, true, src);
         index = pa - PHYS_MEM_BASE;
         RAM[index] = val;
         return;
@@ -301,7 +302,7 @@ t_stat read_operand(uint32 va, uint8 *val)
     uint32 pa;
     t_stat succ;
 
-    succ = mmu_decode_va(va, ACC_IF, TRUE, &pa);
+    succ = mmu_decode_va(va, ACC_IF, true, &pa);
 
     if (succ == SCPE_OK) {
         *val = pread_b(pa, BUS_CPU);
@@ -317,7 +318,7 @@ t_stat examine(uint32 va, uint8 *val)
     uint32 pa;
     t_stat succ;
 
-    succ = mmu_decode_va(va, 0, FALSE, &pa);
+    succ = mmu_decode_va(va, 0, false, &pa);
 
     if (succ == SCPE_OK) {
         if (IS_ROM(pa) || IS_RAM(pa)) {
@@ -338,7 +339,7 @@ t_stat deposit(uint32 va, uint8 val)
     uint32 pa;
     t_stat succ;
 
-    succ = mmu_decode_va(va, 0, FALSE, &pa);
+    succ = mmu_decode_va(va, 0, false, &pa);
 
     if (succ == SCPE_OK) {
         if (IS_RAM(pa)) {

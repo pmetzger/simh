@@ -32,6 +32,7 @@
       INIR, OTIR, INDR and OTDR instructions
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 #define FLAG_C  1
@@ -1020,7 +1021,7 @@ t_stat sim_instr_nommu(void) {
     l_sim_brk_summ = sim_brk_summ;
 
     /* main instruction fetch/decode loop */
-    while (TRUE) {                                  /* loop until halted    */
+    while (true) {                                  /* loop until halted    */
         if (sim_interval <= 0) {                    /* check clock queue    */
             if ((reason = sim_process_event()))
                 break;

@@ -50,6 +50,7 @@
 
 #include "vax_defs.h"
 #include <setjmp.h>
+#include <stdbool.h>
 
 typedef struct {
     uint32      tag;                                    /* tag */
@@ -70,7 +71,7 @@ static const uint32 insert[4] = {
 
 extern void zap_tb (int stb);
 extern void zap_tb_ent (uint32 va);
-extern t_bool chk_tb_ent (uint32 va);
+extern bool chk_tb_ent (uint32 va);
 extern void set_map_reg (void);
 extern int32 ReadIO (uint32 pa, int32 lnt);
 extern void WriteIO (uint32 pa, int32 val, int32 lnt);

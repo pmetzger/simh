@@ -7,6 +7,7 @@
 #include "sim_tape.h"
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 /* SCSI commands */
 
@@ -172,7 +173,7 @@ static const char *scsi_phases[] = {
     "MSGI"                                              /* message in */
     };
 
-static t_bool scsi_is_queue_tag (uint8 msg)
+static bool scsi_is_queue_tag (uint8 msg)
 {
 return ((msg == MSG_SIMPLE_QTAG) ||
         (msg == MSG_HEAD_QTAG) ||
@@ -181,17 +182,17 @@ return ((msg == MSG_SIMPLE_QTAG) ||
 
 /* Arbitrate for control of the bus */
 
-t_bool scsi_arbitrate (SCSI_BUS *bus, uint32 initiator)
+bool scsi_arbitrate (SCSI_BUS *bus, uint32 initiator)
 {
 if (bus->initiator < 0) {                               /* bus free? */
     sim_debug (SCSI_DBG_BUS, bus->dptr,
        "Initiator %d won arbitration\n", initiator);
     bus->initiator = initiator;                         /* won arbitration */
-    return TRUE;
+    return true;
     }
 sim_debug (SCSI_DBG_BUS, bus->dptr,
    "Initiator %d lost arbitration\n", initiator);
-return FALSE;                                           /* lost arbitration */
+return false;                                           /* lost arbitration */
 }
 
 /* Release control of the bus */
@@ -205,8 +206,8 @@ bus->phase = SCSI_DATO;                                 /* bus free state */
 bus->initiator = -1;
 bus->target = -1;
 bus->buf_t = bus->buf_b = 0;
-bus->atn = FALSE;
-bus->req = FALSE;
+bus->atn = false;
+bus->req = false;
 }
 
 /* Assert the attention signal */
@@ -215,7 +216,7 @@ void scsi_set_atn (SCSI_BUS *bus)
 {
 sim_debug (SCSI_DBG_BUS, bus->dptr,
    "Attention signal asserted\n");
-bus->atn = TRUE;                                        /* assert ATN */
+bus->atn = true;                                        /* assert ATN */
 if (bus->target != -1)                                  /* target selected? */
     bus->phase = SCSI_MSGO;                             /* go to msg out phase */
 }
@@ -226,17 +227,17 @@ void scsi_release_atn (SCSI_BUS *bus)
 {
 sim_debug (SCSI_DBG_BUS, bus->dptr,
    "Attention signal cleared\n");
-bus->atn = FALSE;                                       /* release ATN */
+bus->atn = false;                                       /* release ATN */
 }
 
 /* Assert the request signal */
 
 static void scsi_set_req (SCSI_BUS *bus)
 {
-if (bus->req == FALSE) {
+if (bus->req == false) {
     sim_debug (SCSI_DBG_BUS, bus->dptr,
        "Request signal asserted\n");
-    bus->req = TRUE;                                    /* assert REQ */
+    bus->req = true;                                    /* assert REQ */
     }
 }
 
@@ -244,10 +245,10 @@ if (bus->req == FALSE) {
 
 static void scsi_release_req (SCSI_BUS *bus)
 {
-if (bus->req == TRUE) {
+if (bus->req == true) {
     sim_debug (SCSI_DBG_BUS, bus->dptr,
        "Request signal cleared\n");
-    bus->req = FALSE;                                   /* release REQ */
+    bus->req = false;                                   /* release REQ */
     }
 }
 
@@ -262,19 +263,19 @@ if (bus->phase != phase) {
 
 /* Attempt to select a target device */
 
-t_bool scsi_select (SCSI_BUS *bus, uint32 target)
+bool scsi_select (SCSI_BUS *bus, uint32 target)
 {
 UNIT *uptr = bus->dev[target];
 
 if (bus->initiator < 0) {
     sim_debug (SCSI_DBG_BUS, bus->dptr,
         "SCSI: Attempted to select a target without arbitration\n");
-    return FALSE;
+    return false;
     }
 if (bus->target >= 0) {
     sim_debug (SCSI_DBG_BUS, bus->dptr,
         "SCSI: Attempted to select a target when a target is already selected\n");
-    return FALSE;
+    return false;
     }
 if ((uptr->flags & UNIT_DIS) == 0) {                    /* unit enabled? */
     sim_debug (SCSI_DBG_BUS, bus->dptr,
@@ -285,12 +286,12 @@ if ((uptr->flags & UNIT_DIS) == 0) {                    /* unit enabled? */
         scsi_set_phase (bus, SCSI_CMD);                 /* command */
     bus->target = target;
     scsi_set_req (bus);                                 /* request data */
-    return TRUE;
+    return true;
     }
 sim_debug (SCSI_DBG_BUS, bus->dptr,
    "Select timeout for target %d\n", target);
 scsi_release (bus);
-return FALSE;
+return false;
 }
 
 /* Process a SCSI message */
@@ -655,21 +656,21 @@ else if (bus->phase == SCSI_DATO) {
 
 /* Mode Sense common fields */
 
-static t_bool scsi_mode_sense_accept_page_control (SCSI_BUS *bus, uint32 pctl)
+static bool scsi_mode_sense_accept_page_control (SCSI_BUS *bus, uint32 pctl)
 {
     switch (pctl) {
     case MODE_SENSE_PC_CURRENT:
     case MODE_SENSE_PC_CHANGEABLE:
     case MODE_SENSE_PC_DEFAULT:
-        return TRUE;
+        return true;
     case MODE_SENSE_PC_SAVED:
         scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVCDB);
-        return FALSE;
+        return false;
     default:
         break;
         }
     scsi_status (bus, STS_CHK, KEY_ILLREQ, ASC_INVCDB);
-    return FALSE;
+    return false;
 }
 
 static void scsi_mode_sense_copy_values (SCSI_BUS *bus, uint32 pctl,
@@ -2143,8 +2144,8 @@ void scsi_reset (SCSI_BUS *bus)
 sim_debug (SCSI_DBG_BUS, bus->dptr, "Bus reset\n");
 bus->phase = SCSI_DATO;
 bus->buf_t = bus->buf_b = 0;
-bus->atn = FALSE;
-bus->req = FALSE;
+bus->atn = false;
+bus->req = false;
 bus->initiator = -1;
 bus->target = -1;
 bus->lun = 0;
@@ -2245,7 +2246,7 @@ switch (dev->devtype) {
                                    SCSI_DBG_DSK, dev->name, 0, 0, drivetypes);
     case SCSI_CDROM:
         sim_switches |= SWMASK ('R');       /* Force Read Only Attach for CDROM */
-        return sim_disk_attach_ex (uptr, cptr, dev->block_size, sizeof (uint16), FALSE, SCSI_DBG_DSK, dev->name, 0, 0, drivetypes);
+        return sim_disk_attach_ex (uptr, cptr, dev->block_size, sizeof (uint16), false, SCSI_DBG_DSK, dev->name, 0, 0, drivetypes);
     case SCSI_TAPE:
         return sim_tape_attach_ex (uptr, cptr, SCSI_DBG_TAP, 0);
     default:

@@ -225,6 +225,7 @@
      to XR; the user must examine or deposit location 0.
 */
 
+#include <stdbool.h>
 #include "h316_defs.h"
 #ifdef VM_IMPTIP
 #include "h316_imp.h"
@@ -259,7 +260,7 @@ typedef struct {
     int32               xr;
     int32               ea;
     int32               opnd;
-    t_bool              iack;      // [RLA] TRUE if an interrupt occurred
+    bool                iack;      // [RLA] true if an interrupt occurred
     } InstHistory;
 
 uint16 M[MAXMEMSIZE] = { 0 };                           /* memory */
@@ -297,7 +298,7 @@ int32 hst_p = 0;                                        /* history pointer */
 int32 hst_lnt = 0;                                      /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 
-t_bool devtab_init (void);
+bool devtab_init (void);
 int32 dmaio (int32 inst, int32 fnc, int32 dat, int32 dev);
 int32 undio (int32 inst, int32 fnc, int32 dat, int32 dev);
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
@@ -410,7 +411,7 @@ t_stat sim_instr (void)
 {
 int32 AR, BR, MB, Y = 0, t1, t2, t3, skip, dev;
 uint32 ut;
-t_bool iack;                                            // [RLA] TRUE if an interrupt was taken this cycle
+bool iack;                                              // [RLA] true if an interrupt was taken this cycle
 t_stat reason;
 
 #define Read(ad)        M[(ad)]
@@ -509,15 +510,15 @@ if (chan_req) {                                         /* channel request? */
 
 //[RLA] Todo - add WDT interrupts ????
 
-iack = FALSE;
+iack = false;
 if ((dev_int & (INT_PEND|INT_NMI|dev_enb)) > INT_PEND) { // [RLA] check for standard interrupt
     MB = cpu_interrupt(M_INT);
-    iack = TRUE;
+    iack = true;
     }
 else if (((dev_ext_int & dev_ext_enb) != 0)             // [RLA] check for extended interrupt
       && ((dev_int & INT_PEND) == INT_PEND)) {
     MB = cpu_ext_interrupt ();
-    iack = TRUE;
+    iack = true;
     }
 
 /* Instruction fetch */
@@ -1535,7 +1536,7 @@ if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0) ||
         return SCPE_ARG;
 for (i = val; i < MEMSIZE; i++)
     mc = mc | M[i];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE; i++)
@@ -1746,25 +1747,25 @@ return SCPE_OK;
 /* Set up I/O dispatch and channel maps */
 // [RLA] Check for DMC conflicts (on both DMC channels!) ...
 
-static t_bool set_chanmap (DEVICE *dptr, DIB *dibp, uint32 dno, uint32 chan)
+static bool set_chanmap (DEVICE *dptr, DIB *dibp, uint32 dno, uint32 chan)
 {
   if ((chan < DMC_V_DMC1) && (chan >= dma_nch)) {
     sim_printf ("%s configured for DMA channel %d\n", sim_dname (dptr), chan + 1);
-    return TRUE;
+    return true;
   }
   if ((chan >= DMC_V_DMC1) && !(cpu_unit.flags & UNIT_DMC)) {
     sim_printf ("%s configured for DMC, option disabled\n", sim_dname (dptr));
-    return TRUE;
+    return true;
   }
   if (chan_map[chan]) {                           /* channel conflict? */
    sim_printf ("%s DMA/DMC channel conflict, devno = %02o\n", sim_dname (dptr), dno);
-   return TRUE;
+   return true;
   }
   chan_map[chan] = dno;                           /* channel back map */
-  return FALSE;
+  return false;
 }
 
-t_bool devtab_init (void)
+bool devtab_init (void)
 {
 DEVICE *dptr;
 DIB *dibp;
@@ -1783,28 +1784,28 @@ for (i = 0; (dptr = sim_devices[i]); i++) {             /* loop thru devices */
         if (iotab[dno + j]) {                           /* conflict? */
             sim_printf ("%s device number conflict, devno = %02o\n",
                          sim_dname (dptr), dno + j);
-            return TRUE;
+            return true;
             }
         iotab[dno + j] = dibp->io;                      /* set I/O routine */
         }                                               /* end for */
     // [RLA] set up the channel map
     if (dibp->chan  != 0)
         if (set_chanmap(dptr, dibp, dno, dibp->chan-1))
-            return TRUE;
+            return true;
     if (dibp->chan2 != 0)
         if (set_chanmap(dptr, dibp, dno, dibp->chan2-1))
-            return TRUE;
+            return true;
     // [RLA] If the device uses extended interrupts, check that they're enabled.
     if ((dibp->inum != INT_V_NONE) && (dibp->inum >= INT_V_EXTD) && (ext_ints == 0)) {
         sim_printf ("%s uses extended interrupts but that option is disabled\n", sim_dname (dptr));
-        return TRUE;
+        return true;
         }
     }                                                   /* end for */
 for (i = 0; i < DEV_MAX; i++) {                         /* fill in blanks */
     if (iotab[i] == NULL)
         iotab[i] = &undio;
     }
-return FALSE;
+return false;
 }
 
 /* Set history */

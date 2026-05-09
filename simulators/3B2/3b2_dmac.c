@@ -294,7 +294,7 @@ static void dmac_program(uint8 reg, uint8 val)
         } else {
             dma_state.mask &= ~(1 << channel_id);
             /* Set the appropriate DRQ */
-            /* *dmac_drq_handlers[channel_id].drq = TRUE; */
+            /* *dmac_drq_handlers[channel_id].drq = true; */
         }
 
         sim_debug(WRITE_MSG, &dmac_dev,

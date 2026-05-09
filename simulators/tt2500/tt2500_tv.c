@@ -24,6 +24,7 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <stdbool.h>
 #include "tt2500_defs.h"
 #include "sim_video.h"
 #include "display/display.h"
@@ -72,7 +73,7 @@ tv_svc(UNIT *uptr)
   sim_activate_after (uptr, 10000);
 
   if (dpy_quit) {
-    dpy_quit = FALSE;
+    dpy_quit = false;
     return SCPE_STOP;
   }
 

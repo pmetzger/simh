@@ -43,6 +43,7 @@
 
 /*#define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "i8272.h"
@@ -235,10 +236,10 @@ static t_stat i8272_reset(DEVICE *dptr)
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &i8272dev, "i8272dev", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &i8272dev, "i8272dev", true);
     } else {
         /* Connect I/O Ports at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &i8272dev, "i8272dev", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &i8272dev, "i8272dev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }

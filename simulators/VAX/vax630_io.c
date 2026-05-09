@@ -29,6 +29,7 @@
    08-Nov-2012  MB      First version
 */
 
+#include <stdbool.h>
 #include "uint_bits.h"
 #include "vax_qbus_internal.h"
 
@@ -86,8 +87,8 @@ int32 eval_int (void);
 t_stat qba_reset (DEVICE *dptr);
 t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
-t_bool qba_map_addr (uint32 qa, uint32 *ma);
-t_bool qba_map_addr_c (uint32 qa, uint32 *ma);
+bool qba_map_addr (uint32 qa, uint32 *ma);
+bool qba_map_addr_c (uint32 qa, uint32 *ma);
 t_stat qba_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc);
 t_stat qba_show_map (FILE *of, UNIT *uptr, int32 val, const void *desc);
 t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
@@ -442,7 +443,7 @@ t_stat dbl_rd (int32 *data, int32 addr, int32 access)
 *data = qb_ipc & QBIPC_MASK;
 
 sim_debug(DBG_REG, &qba_dev, "dbl_rd(addr=0x%08X, data=0x%X) ", addr, *data);
-sim_debug_bits(DBG_REG, &qba_dev, qb_ipc_bits, (uint32)*data, (uint32)*data, TRUE);
+sim_debug_bits(DBG_REG, &qba_dev, qb_ipc_bits, (uint32)*data, (uint32)*data, true);
 
 return SCPE_OK;
 }
@@ -463,7 +464,7 @@ if (!(qb_ipc & QBIPC_DBIE))
     qb_ipc = qb_ipc & ~QBIPC_DB;                        /* Read only when not DBIE */
 
 sim_debug(DBG_REG, &qba_dev, "qba_wr(addr=0x%08X, data=0x%X) ", addr, data);
-sim_debug_bits(DBG_REG, &qba_dev, qb_ipc_bits, (uint32)old_val, (uint32)qb_ipc, TRUE);
+sim_debug_bits(DBG_REG, &qba_dev, qb_ipc_bits, (uint32)old_val, (uint32)qb_ipc, true);
 return SCPE_OK;
 }
 
@@ -584,7 +585,7 @@ return SCPE_OK;
 
 /* Map an address via the translation map */
 
-t_bool qba_map_addr (uint32 qa, uint32 *ma)
+bool qba_map_addr (uint32 qa, uint32 *ma)
 {
 int32 qblk = (qa >> VA_V_VPN);                          /* Qbus blk */
 
@@ -593,20 +594,20 @@ if (qblk < QBNMAPR) {
     if (qmap & QBMAP_VLD) {                             /* valid? */
         *ma = ((qmap & QBMAP_PAG) << VA_V_VPN) + VA_GETOFF (qa);
         if (ADDR_IS_MEM (*ma))                          /* legit addr */
-            return TRUE;
+            return true;
         ka_mser |= MSER_NXM;
-        return FALSE;
+        return false;
         }
     ka_mser |= MSER_NXM;
-    return FALSE;
+    return false;
     }
 ka_mser |= MSER_NXM;
-return FALSE;
+return false;
 }
 
 /* Map an address via the translation map - console version (no status changes) */
 
-t_bool qba_map_addr_c (uint32 qa, uint32 *ma)
+bool qba_map_addr_c (uint32 qa, uint32 *ma)
 {
 int32 qblk = (qa >> VA_V_VPN);                          /* Qbus blk */
 
@@ -614,10 +615,10 @@ if (qblk < QBNMAPR) {
     int32 qmap = qb_map[qblk];
     if (qmap & QBMAP_VLD) {                             /* valid? */
         *ma = ((qmap & QBMAP_PAG) << VA_V_VPN) + VA_GETOFF (qa);
-        return TRUE;
+        return true;
         }
     }
-return FALSE;
+return false;
 }
 
 /* Reset I/O bus */

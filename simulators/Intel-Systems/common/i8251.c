@@ -109,6 +109,7 @@
         to the data port writes the character to the device.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define UNIT_V_ANSI (UNIT_V_UF + 0)     /* ANSI mode */
@@ -127,7 +128,7 @@
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 
 /* globals */
@@ -151,8 +152,8 @@ t_stat i8251_clr(void);
 t_stat i8251_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat i8251_svc (UNIT *uptr);
 t_stat i8251_reset (DEVICE *dptr);
-uint8 i8251s(t_bool io, uint8 data, uint8 devnum);
-uint8 i8251d(t_bool io, uint8 data, uint8 devnum);
+uint8 i8251s(bool io, uint8 data, uint8 devnum);
+uint8 i8251d(bool io, uint8 data, uint8 devnum);
 void i8251_reset_dev(uint16 devnum);
 
 /* i8251 Standard I/O Data Structures */
@@ -344,7 +345,7 @@ void i8251_reset_dev(uint16 devnum)
     IN or OUT instruction is issued.
 */
 
-uint8 i8251s(t_bool io, uint8 data, uint8 devnum)
+uint8 i8251s(bool io, uint8 data, uint8 devnum)
 {
      if (io == 0) {                      /* read status port */
         return i8251_unit[devnum].u3;
@@ -361,7 +362,7 @@ uint8 i8251s(t_bool io, uint8 data, uint8 devnum)
      return 0;
 }
 
-uint8 i8251d(t_bool io, uint8 data, uint8 devnum)
+uint8 i8251d(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read data port */
         i8251_unit[devnum].u3 &= ~RXR;

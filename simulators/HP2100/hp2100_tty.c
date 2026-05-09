@@ -124,6 +124,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -214,7 +215,7 @@ static const BITSET_FORMAT tty_status_format =          /* names, offset, direct
 typedef struct {
     char         io_data;                       /* input/output data register */
     char         shift_in_data;                 /* shift-in data */
-    t_bool       cr_seen;                       /* carriage return has been seen on input */
+    bool         cr_seen;                       /* carriage return has been seen on input */
     HP_WORD      mode;                          /* control mode register */
 
     FLIP_FLOP    control;                       /* control flip-flop */
@@ -423,7 +424,7 @@ static SIGNALS_VALUE tty_interface (const DIB *dibptr, INBOUND_SET inbound_signa
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -500,7 +501,7 @@ while (working_set) {                                   /* while signals remain 
             tty.mode = CN_INPUT;                        /* set the input mode and clear the print and punch modes */
 
             tty.shift_in_data = MARK;                   /* indicate that the serial line is marking */
-            tty.cr_seen = FALSE;                        /*   and that a CR character has not been seen */
+            tty.cr_seen = false;                        /*   and that a CR character has not been seen */
             break;
 
 
@@ -546,7 +547,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 

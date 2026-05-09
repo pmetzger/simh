@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -59,7 +60,7 @@ TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat);
 t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat cpu_load_bootcode(const char *filename,
                          const unsigned char *builtin_code, size_t size,
-                         t_bool load_rom, t_addr offset);
+                         bool load_rom, t_addr offset);
 int32 intexc(int32 vec, int32 cc, int32 ipl, int ei);
 int32 qbmap_rd(int32 pa, int32 lnt);
 void qbmap_wr(int32 pa, int32 val, int32 lnt);
@@ -132,7 +133,7 @@ t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 t_stat cpu_load_bootcode(const char *filename,
                          const unsigned char *builtin_code, size_t size,
-                         t_bool load_rom, t_addr offset)
+                         bool load_rom, t_addr offset)
 {
     /* Stubbed boot-code loader for uncalled boot paths. */
     (void)filename;

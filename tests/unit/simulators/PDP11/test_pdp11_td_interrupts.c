@@ -1,4 +1,5 @@
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -67,12 +68,12 @@ void cpu_set_boot(int32 pc)
 
 #include PDP11_TD_SOURCE
 
-static t_bool td_rx_cpu_interrupt_is_set(void)
+static bool td_rx_cpu_interrupt_is_set(void)
 {
     return ((int_req[IPL_TDRX] & (int32)INT_TDRX) != 0);
 }
 
-static t_bool td_tx_cpu_interrupt_is_set(void)
+static bool td_tx_cpu_interrupt_is_set(void)
 {
     return ((int_req[IPL_TDTX] & (int32)INT_TDTX) != 0);
 }
@@ -90,19 +91,19 @@ static void test_tdi_set_int_tracks_single_controller_state(void **state)
 
     reset_td_interrupts();
 
-    tdi_set_int(0, FALSE);
+    tdi_set_int(0, false);
     assert_int_equal(tdi_ireq, 0);
     assert_false(td_rx_cpu_interrupt_is_set());
 
-    tdi_set_int(0, TRUE);
+    tdi_set_int(0, true);
     assert_int_equal(tdi_ireq, 1u);
     assert_true(td_rx_cpu_interrupt_is_set());
 
-    tdi_set_int(0, TRUE);
+    tdi_set_int(0, true);
     assert_int_equal(tdi_ireq, 1u);
     assert_true(td_rx_cpu_interrupt_is_set());
 
-    tdi_set_int(0, FALSE);
+    tdi_set_int(0, false);
     assert_int_equal(tdi_ireq, 0);
     assert_false(td_rx_cpu_interrupt_is_set());
 }
@@ -113,16 +114,16 @@ static void test_tdi_set_int_preserves_shared_interrupt_until_clear(void **state
 
     reset_td_interrupts();
 
-    tdi_set_int(0, TRUE);
-    tdi_set_int(1, TRUE);
+    tdi_set_int(0, true);
+    tdi_set_int(1, true);
     assert_int_equal(tdi_ireq, 3u);
     assert_true(td_rx_cpu_interrupt_is_set());
 
-    tdi_set_int(0, FALSE);
+    tdi_set_int(0, false);
     assert_int_equal(tdi_ireq, 2u);
     assert_true(td_rx_cpu_interrupt_is_set());
 
-    tdi_set_int(1, FALSE);
+    tdi_set_int(1, false);
     assert_int_equal(tdi_ireq, 0);
     assert_false(td_rx_cpu_interrupt_is_set());
 }
@@ -133,19 +134,19 @@ static void test_tdo_set_int_tracks_single_controller_state(void **state)
 
     reset_td_interrupts();
 
-    tdo_set_int(0, FALSE);
+    tdo_set_int(0, false);
     assert_int_equal(tdo_ireq, 0);
     assert_false(td_tx_cpu_interrupt_is_set());
 
-    tdo_set_int(0, TRUE);
+    tdo_set_int(0, true);
     assert_int_equal(tdo_ireq, 1u);
     assert_true(td_tx_cpu_interrupt_is_set());
 
-    tdo_set_int(0, TRUE);
+    tdo_set_int(0, true);
     assert_int_equal(tdo_ireq, 1u);
     assert_true(td_tx_cpu_interrupt_is_set());
 
-    tdo_set_int(0, FALSE);
+    tdo_set_int(0, false);
     assert_int_equal(tdo_ireq, 0);
     assert_false(td_tx_cpu_interrupt_is_set());
 }
@@ -156,16 +157,16 @@ static void test_tdo_set_int_preserves_shared_interrupt_until_clear(void **state
 
     reset_td_interrupts();
 
-    tdo_set_int(0, TRUE);
-    tdo_set_int(1, TRUE);
+    tdo_set_int(0, true);
+    tdo_set_int(1, true);
     assert_int_equal(tdo_ireq, 3u);
     assert_true(td_tx_cpu_interrupt_is_set());
 
-    tdo_set_int(0, FALSE);
+    tdo_set_int(0, false);
     assert_int_equal(tdo_ireq, 2u);
     assert_true(td_tx_cpu_interrupt_is_set());
 
-    tdo_set_int(1, FALSE);
+    tdo_set_int(1, false);
     assert_int_equal(tdo_ireq, 0);
     assert_false(td_tx_cpu_interrupt_is_set());
 }

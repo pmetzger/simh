@@ -14,6 +14,8 @@
 #ifndef SIM_DISK_H_
 #define SIM_DISK_H_    0
 
+#include <stdbool.h>
+
 /* SIMH/Disk format */
 
 typedef uint32          t_seccnt;                       /* disk sector count */
@@ -73,7 +75,7 @@ t_stat sim_disk_attach (UNIT *uptr,
                         const char *cptr,
                         size_t memory_sector_size,  /* memory footprint of sector data */
                         size_t xfer_element_size,
-                        t_bool dontchangecapac,     /* if false just change uptr->capac as needed */
+                        bool dontchangecapac,       /* if false just change uptr->capac as needed */
                         uint32 debugbit,            /* debug bit */
                         const char *drivetype,      /* drive type */
                         uint32 pdp11_tracksize,     /* BAD144 track */
@@ -82,7 +84,7 @@ t_stat sim_disk_attach_ex (UNIT *uptr,
                            const char *cptr,
                            size_t memory_sector_size,   /* memory footprint of sector data */
                            size_t xfer_element_size,
-                           t_bool dontchangecapac,      /* if false just change uptr->capac as needed */
+                           bool dontchangecapac,        /* if false just change uptr->capac as needed */
                            uint32 dbit,                 /* debug bit */
                            const char *dtype,           /* drive type */
                            uint32 pdp11tracksize,       /* BAD144 track */
@@ -93,7 +95,7 @@ t_stat sim_disk_attach_ex2 (UNIT *uptr,
                             const char *cptr,
                             size_t memory_sector_size,  /* memory footprint of sector data */
                             size_t xfer_element_size,
-                            t_bool dontchangecapac,     /* if false just change uptr->capac as needed */
+                            bool dontchangecapac,       /* if false just change uptr->capac as needed */
                             uint32 dbit,                /* debug bit */
                             const char *dtype,          /* drive type */
                             uint32 pdp11tracksize,      /* BAD144 track */
@@ -122,13 +124,13 @@ t_stat sim_disk_clr_async (UNIT *uptr);
 t_stat sim_disk_reset (UNIT *uptr);
 t_stat sim_disk_perror (UNIT *uptr, const char *msg);
 t_stat sim_disk_clearerr (UNIT *uptr);
-t_bool sim_disk_isavailable (UNIT *uptr);
-t_bool sim_disk_isavailable_a (UNIT *uptr, DISK_PCALLBACK callback);
-t_bool sim_disk_wrp (UNIT *uptr);
+bool sim_disk_isavailable (UNIT *uptr);
+bool sim_disk_isavailable_a (UNIT *uptr, DISK_PCALLBACK callback);
+bool sim_disk_wrp (UNIT *uptr);
 t_stat sim_disk_pdp11_bad_block (UNIT *uptr, int32 sec, int32 wds);
 t_offset sim_disk_size (UNIT *uptr);
-t_bool sim_disk_vhd_support (void);
-t_bool sim_disk_raw_support (void);
+bool sim_disk_vhd_support (void);
+bool sim_disk_raw_support (void);
 void sim_disk_data_trace (UNIT *uptr, const uint8 *data, size_t lba, size_t len, const char* txt, int detail, uint32 reason);
 t_stat sim_disk_info_cmd (int32 flag, const char *ptr);
 t_stat sim_disk_set_noautosize (int32 flag, const char *cptr);

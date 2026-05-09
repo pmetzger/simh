@@ -81,7 +81,7 @@
 
 extern UNIT fl_unit;
 
-t_bool rtfile_parse (char *pntr, uint16 *file_name);
+bool rtfile_parse (char *pntr, uint16 *file_name);
 uint32 rtfile_lookup (uint16 *file_name, uint32 *start);
 uint32 rtfile_ator50 (uint32 ascii);
 bool rtfile_read (uint32 block, uint32 count, uint16 *buffer);
@@ -131,7 +131,7 @@ return SCPE_OK;
 
 /* Parse an RT11 file name and convert it to radix-50 */
 
-t_bool rtfile_parse (char *pntr, uint16 *file_name)
+bool rtfile_parse (char *pntr, uint16 *file_name)
 {
 char c;
 uint16 d;
@@ -145,17 +145,17 @@ for (i = 0; i < 2; i++) {                               /* 6 characters */
             d = 0;
         else {
             if ((d = rtfile_ator50 (c)) == 0)
-                return FALSE;
+                return false;
             pntr++;
             }
         file_name[i] = (file_name[i] * 050) + d;        /* merge into name */
         }
     }
 if (file_name[0] == 0)                                  /* no name? lose */
-    return FALSE;
+    return false;
 while ((c = *pntr++) != '.') {                          /* scan for . */
     if (c == 0)                                         /* end? done */
-        return TRUE;
+        return true;
     }
 for (i = 0; i < 3; i++) {                               /* 3 characters */
     c = *pntr;
@@ -163,12 +163,12 @@ for (i = 0; i < 3; i++) {                               /* 3 characters */
         d = 0;
     else {
         if ((d = rtfile_ator50 (c)) == 0)
-            return FALSE;
+            return false;
         pntr++;
         }
     file_name[2] = (file_name[2] * 050) + d;            /* merge into ext */
     }
-return TRUE;
+return true;
 }
 
 /* ASCII to radix-50 conversion */

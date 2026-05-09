@@ -31,6 +31,7 @@
 #ifndef __3B2_ID_H__
 #define __3B2_ID_H__
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 #define ID0             0
@@ -180,6 +181,6 @@ void id_handle_data(uint8 val);
 void id_handle_command(uint8 val);
 void id_after_dma(void);
 
-extern t_bool id_drq;
+extern bool id_drq;
 
 #endif

@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -51,13 +52,13 @@ static void test_no_video_stubs_report_unavailable(void **state)
     vid_set_window_size(NULL, 640, 480);
     vid_render_set_logical_size(NULL, 320, 240);
 
-    assert_int_equal(vid_set_cursor(FALSE, 0, 0, NULL, NULL, 0, 0), SCPE_NOFNC);
-    assert_int_equal(vid_set_cursor_window(NULL, FALSE, 0, 0, NULL, NULL, 0, 0),
+    assert_int_equal(vid_set_cursor(false, 0, 0, NULL, NULL, 0, 0), SCPE_NOFNC);
+    assert_int_equal(vid_set_cursor_window(NULL, false, 0, 0, NULL, NULL, 0, 0),
                      SCPE_NOFNC);
     assert_false(vid_is_fullscreen());
     assert_false(vid_is_fullscreen_window(NULL));
-    assert_int_equal(vid_set_fullscreen(TRUE), SCPE_OK);
-    assert_int_equal(vid_set_fullscreen_window(NULL, TRUE), SCPE_OK);
+    assert_int_equal(vid_set_fullscreen(true), SCPE_OK);
+    assert_int_equal(vid_set_fullscreen_window(NULL, true), SCPE_OK);
 
     assert_string_equal(vid_version(), "No Video Support");
     assert_string_equal(vid_key_name(SIM_KEY_A), "");

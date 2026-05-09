@@ -57,6 +57,8 @@
 #error "VAX uses vax780_mba.c!"
 
 #else                                                   /* PDP-11 version */
+#include <stdbool.h>
+
 #include "pdp11_defs.h"
 #endif
 
@@ -404,7 +406,7 @@ t_stat mba_wr (int32 val, int32 pa, int32 access)
 {
 int32 ofs, cs1f, drv, mb;
 t_stat r;
-t_bool cs1dt;
+bool cs1dt;
 
 mb = mba_map_pa (pa, &ofs);                             /* get mb number */
 if ((mb < 0) || (ofs < 0))                              /* valid? */

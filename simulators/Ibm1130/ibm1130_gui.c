@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "ibm1130_defs.h"
 #include "ibm1130res.h"
@@ -99,12 +100,12 @@ extern UNIT prt_unit;
 
 extern UNIT dsk_unit[];
 extern int boot_drive;
-extern t_bool program_is_loaded;
+extern bool program_is_loaded;
 
 #ifndef GUI_SUPPORT
     /* Non-GUI stubs keep the GUI-facing API available to the simulator.
        These implementations do not use every parameter. */
-    void update_gui (t_bool force)
+    void update_gui (bool force)
     {
         (void) force;
     }
@@ -151,12 +152,12 @@ extern t_bool program_is_loaded;
         return 0;
     }
 
-    t_bool stuff_and_wait (char *cmd, int timeout, int delay)
+    bool stuff_and_wait (char *cmd, int timeout, int delay)
     {
         (void) cmd;
         (void) timeout;
         (void) delay;
-        return FALSE;
+        return false;
     }
     char *read_cmdline (char *ptr, int size, FILE *stream)
     {
@@ -181,7 +182,7 @@ t_stat console_reset (DEVICE *dptr)
             hConsoleWindow = GetConsoleWindow();
         }
 
-    update_gui(FALSE);
+    update_gui(false);
     return SCPE_OK;
 }
 
@@ -235,7 +236,7 @@ void scp_panic (const char *msg)
 #define TXTBOX_WIDTH    195
 #define TXTBOX_HEIGHT    12
 
-static BOOL   class_defined = FALSE;
+static BOOL   class_defined = false;
 static HWND   hConsoleWnd = NULL;
 static HBITMAP hBitmap = NULL;
 static HFONT  hFont = NULL;
@@ -275,29 +276,29 @@ static struct tag_btn {
     BOOL   subclassed;
 
 } btn[] = {
-    0, 0, BUTTON_WIDTH, BUTTON_HEIGHT,  "",                     FALSE,  FALSE,  RGB(255,255,180),   NULL, NULL, NULL,   TRUE,
-    0, 1, BUTTON_WIDTH, BUTTON_HEIGHT,  "DISK\nUNLOCK",         FALSE,  TRUE,   RGB(255,255,180),   NULL, NULL, NULL,   TRUE,
-    0, 2, BUTTON_WIDTH, BUTTON_HEIGHT,  "RUN",                  FALSE,  FALSE,  RGB(0,255,0),       NULL, NULL, NULL,   TRUE,
-    0, 3, BUTTON_WIDTH, BUTTON_HEIGHT,  "K B\nSELECT",          FALSE,  FALSE,  RGB(255,255,180),   NULL, NULL, NULL,   TRUE,
+    0, 0, BUTTON_WIDTH, BUTTON_HEIGHT,  "",                     false,  false,  RGB(255,255,180),   NULL, NULL, NULL,   true,
+    0, 1, BUTTON_WIDTH, BUTTON_HEIGHT,  "DISK\nUNLOCK",         false,  true,   RGB(255,255,180),   NULL, NULL, NULL,   true,
+    0, 2, BUTTON_WIDTH, BUTTON_HEIGHT,  "RUN",                  false,  false,  RGB(0,255,0),       NULL, NULL, NULL,   true,
+    0, 3, BUTTON_WIDTH, BUTTON_HEIGHT,  "K B\nSELECT",          false,  false,  RGB(255,255,180),   NULL, NULL, NULL,   true,
 
-    1, 0, BUTTON_WIDTH, BUTTON_HEIGHT,  "POWER\nON",            FALSE,  TRUE,   RGB(255,255,180),   NULL, NULL, NULL,   TRUE,
-    1, 1, BUTTON_WIDTH, BUTTON_HEIGHT,  "FILE\nREADY",          FALSE,  FALSE,  RGB(0,255,0),       NULL, NULL, NULL,   TRUE,
-    1, 2, BUTTON_WIDTH, BUTTON_HEIGHT,  "PARITY\nCHECK",        FALSE,  FALSE,  RGB(255,0,0),       NULL, NULL, NULL,   TRUE,
-    1, 3, BUTTON_WIDTH, BUTTON_HEIGHT,  "FORMS\nCHECK",         FALSE,  FALSE,  RGB(255,255,0),     NULL, NULL, NULL,   TRUE,
+    1, 0, BUTTON_WIDTH, BUTTON_HEIGHT,  "POWER\nON",            false,  true,   RGB(255,255,180),   NULL, NULL, NULL,   true,
+    1, 1, BUTTON_WIDTH, BUTTON_HEIGHT,  "FILE\nREADY",          false,  false,  RGB(0,255,0),       NULL, NULL, NULL,   true,
+    1, 2, BUTTON_WIDTH, BUTTON_HEIGHT,  "PARITY\nCHECK",        false,  false,  RGB(255,0,0),       NULL, NULL, NULL,   true,
+    1, 3, BUTTON_WIDTH, BUTTON_HEIGHT,  "FORMS\nCHECK",         false,  false,  RGB(255,255,0),     NULL, NULL, NULL,   true,
 
-    2, 0, BUTTON_WIDTH, BUTTON_HEIGHT,  "POWER",                TRUE,   FALSE,  RGB(255,255,180),   NULL, NULL, NULL,   TRUE,
-    2, 1, BUTTON_WIDTH, BUTTON_HEIGHT,  "PROGRAM\nSTART",       TRUE,   FALSE,  RGB(0,255,0),       NULL, NULL, NULL,   TRUE,
-    2, 2, BUTTON_WIDTH, BUTTON_HEIGHT,  "PROGRAM\nSTOP",        TRUE,   FALSE,  RGB(255,0,0),       NULL, NULL, NULL,   TRUE,
-    2, 3, BUTTON_WIDTH, BUTTON_HEIGHT,  "LOAD\nIAR",            TRUE,   FALSE,  RGB(0,0,255),       NULL, NULL, NULL,   TRUE,
+    2, 0, BUTTON_WIDTH, BUTTON_HEIGHT,  "POWER",                true,   false,  RGB(255,255,180),   NULL, NULL, NULL,   true,
+    2, 1, BUTTON_WIDTH, BUTTON_HEIGHT,  "PROGRAM\nSTART",       true,   false,  RGB(0,255,0),       NULL, NULL, NULL,   true,
+    2, 2, BUTTON_WIDTH, BUTTON_HEIGHT,  "PROGRAM\nSTOP",        true,   false,  RGB(255,0,0),       NULL, NULL, NULL,   true,
+    2, 3, BUTTON_WIDTH, BUTTON_HEIGHT,  "LOAD\nIAR",            true,   false,  RGB(0,0,255),       NULL, NULL, NULL,   true,
 
-    3, 0, BUTTON_WIDTH, BUTTON_HEIGHT,  "KEYBOARD",             TRUE,   FALSE,  RGB(255,255,180),   NULL, NULL, NULL,   TRUE,
-    3, 1, BUTTON_WIDTH, BUTTON_HEIGHT,  "IMM\nSTOP",            TRUE,   FALSE,  RGB(255,0,0),       NULL, NULL, NULL,   TRUE,
-    3, 2, BUTTON_WIDTH, BUTTON_HEIGHT,  "RESET",                TRUE,   FALSE,  RGB(0,0,255),       NULL, NULL, NULL,   TRUE,
-    3, 3, BUTTON_WIDTH, BUTTON_HEIGHT,  "PROGRAM\nLOAD",        TRUE,   FALSE,  RGB(0,0,255),       NULL, NULL, NULL,   TRUE,
+    3, 0, BUTTON_WIDTH, BUTTON_HEIGHT,  "KEYBOARD",             true,   false,  RGB(255,255,180),   NULL, NULL, NULL,   true,
+    3, 1, BUTTON_WIDTH, BUTTON_HEIGHT,  "IMM\nSTOP",            true,   false,  RGB(255,0,0),       NULL, NULL, NULL,   true,
+    3, 2, BUTTON_WIDTH, BUTTON_HEIGHT,  "RESET",                true,   false,  RGB(0,0,255),       NULL, NULL, NULL,   true,
+    3, 3, BUTTON_WIDTH, BUTTON_HEIGHT,  "PROGRAM\nLOAD",        true,   false,  RGB(0,0,255),       NULL, NULL, NULL,   true,
 
-    TXTBOX_X+40, TXTBOX_Y+25, 35, 12,   "Tear",                 TRUE,   FALSE,  0,                  NULL, NULL, NULL,   FALSE,
-    635, 238, 110, 110,                 "EMPTY_1442",           TRUE,   FALSE,  0,                  NULL, NULL, NULL,   FALSE,
-    635, 366, 110, 110,                 "EMPTY_1132",           TRUE,   FALSE,  0,                  NULL, NULL, NULL,   FALSE,
+    TXTBOX_X+40, TXTBOX_Y+25, 35, 12,   "Tear",                 true,   false,  0,                  NULL, NULL, NULL,   false,
+    635, 238, 110, 110,                 "EMPTY_1442",           true,   false,  0,                  NULL, NULL, NULL,   false,
+    635, 366, 110, 110,                 "EMPTY_1132",           true,   false,  0,                  NULL, NULL, NULL,   false,
 };
 #define NBUTTONS (sizeof(btn) / sizeof(btn[0]))
 
@@ -345,7 +346,7 @@ static void tear_printer (void);
 
 static void init_console_window (void)
 {
-    static BOOL did_atexit = FALSE;
+    static BOOL did_atexit = false;
 
     if (hConsoleWnd != NULL)
         return;
@@ -355,7 +356,7 @@ static void init_console_window (void)
 
     if (! did_atexit) {
         atexit(destroy_console_window);
-        did_atexit = TRUE;
+        did_atexit = true;
     }
 }
 
@@ -399,7 +400,7 @@ static void destroy_console_window (void)
 
 /*  if (class_defined) {
         UnregisterClass(hInstance, szConsoleClassName);
-        class_defined = FALSE;
+        class_defined = false;
     }
 */
 }
@@ -426,7 +427,7 @@ static void RedrawRegion (HWND hWnd, int left, int top, int right, int bottom)
     r.right  = right;
     r.bottom = bottom;
 
-    InvalidateRect(hWnd, &r, FALSE);
+    InvalidateRect(hWnd, &r, false);
 }
 
 /* ------------------------------------------------------------------------
@@ -442,7 +443,7 @@ static void RepaintRegion (HWND hWnd, int left, int top, int right, int bottom)
     r.right  = right;
     r.bottom = bottom;
 
-    InvalidateRect(hWnd, &r, TRUE);
+    InvalidateRect(hWnd, &r, true);
 }
 
 /* ------------------------------------------------------------------------
@@ -454,11 +455,11 @@ static void RepaintRegion (HWND hWnd, int left, int top, int right, int bottom)
  * reflected instantly.
  * ------------------------------------------------------------------------ */
 
-void update_gui (t_bool force)
+void update_gui (bool force)
 {
     int i;
     BOOL state;
-    static int in_here = FALSE;
+    static int in_here = false;
     static int32 displayed = 0;
     RECT xin;
 
@@ -478,7 +479,7 @@ void update_gui (t_bool force)
         GUI_END_CRITICAL_SECTION
         return;
     }
-    in_here = TRUE;
+    in_here = true;
     GUI_END_CRITICAL_SECTION
 
     CND = 0;    /* combine carry and V as two bits */
@@ -493,12 +494,12 @@ void update_gui (t_bool force)
             boot_drive = -1;
     }
     if ((boot_drive>=0) && (dsk_unit[boot_drive].flags&UNIT_ATT)) {
-        disk_ready(TRUE);
-        disk_unlocked(FALSE);
+        disk_ready(true);
+        disk_unlocked(false);
     }
     else {
-        disk_ready(FALSE);
-        disk_unlocked(TRUE);
+        disk_ready(false);
+        disk_unlocked(true);
     }
 
     int_lamps |= int_req;
@@ -574,7 +575,7 @@ void update_gui (t_bool force)
 
     if (force) {                                    /* if force flag is set, update text region */
         SetRect(&xin, TXTBOX_X, TXTBOX_Y, TXTBOX_X+TXTBOX_WIDTH, TXTBOX_BOTTOM+2*TXTBOX_HEIGHT);
-        InvalidateRect(hConsoleWnd, &xin, TRUE);
+        InvalidateRect(hConsoleWnd, &xin, true);
     }
 
     state = ((cr_unit.flags & UNIT_ATT) == 0) ? STATE_1442_EMPTY  :
@@ -621,7 +622,7 @@ void update_gui (t_bool force)
         btn[IDC_1132].state = state;
     }
 
-    in_here = FALSE;
+    in_here = false;
 }
 
 WNDPROC oldButtonProc = NULL;
@@ -793,7 +794,7 @@ HWND CreateSubclassedButton (HWND hwParent, UINT_PTR i)
         b = GetBValue(btn[i].clr) / 4;
 
         btn[i].hbrDark = CreateSolidBrush(RGB(r,g,b));
-        EnableWindow(hBtn, FALSE);
+        EnableWindow(hBtn, false);
     }
 
     SetWindowLongPtr(hBtn, GWLP_WNDPROC, (UINT_PTR) ButtonProc);
@@ -839,7 +840,7 @@ static DWORD WINAPI Pump (LPVOID arg)
             return 0;
         }
 
-        class_defined = TRUE;
+        class_defined = true;
     }
 
     hbWhite    = GetStockObject(WHITE_BRUSH);           /* create or fetch useful GDI objects */
@@ -879,7 +880,7 @@ static DWORD WINAPI Pump (LPVOID arg)
             return 0;
         }
 
-        DragAcceptFiles(hConsoleWnd, TRUE);         /* let it accept dragged files (scripts) */
+        DragAcceptFiles(hConsoleWnd, true);         /* let it accept dragged files (scripts) */
     }
 
     GetObject(hBitmap, sizeof(bm), &bm);            /* get bitmap size */
@@ -900,7 +901,7 @@ static DWORD WINAPI Pump (LPVOID arg)
  *  btn[i].hBtn = CreateWindow("BUTTON", btn[i].txt, WS_CHILD|WS_VISIBLE|BS_CENTER,
  *          btn[i].x, btn[i].y, btn[i].wx, btn[i].wy, hConsoleWnd, (HMENU) i, hInstance, NULL);
  *
- *  SendMessage(btn[i].hBtn, WM_SETFONT, (WPARAM) hTinyFont, TRUE);
+ *  SendMessage(btn[i].hBtn, WM_SETFONT, (WPARAM) hTinyFont, true);
  */
 
     hbm1442_full   = LoadBitmap(hInstance, "FULL_1442");
@@ -922,7 +923,7 @@ static DWORD WINAPI Pump (LPVOID arg)
 
     btn[i].hBtn = CreateWindow("STATIC", btn[i].txt, WS_CHILD|WS_VISIBLE|SS_BITMAP|SS_SUNKEN|WS_BORDER|SS_REALSIZEIMAGE|SS_NOTIFY,
             btn[i].x, btn[i].y, btn[i].wx, btn[i].wy, hConsoleWnd, (HMENU) i, hInstance, NULL);
-    btn[i].state = FALSE;
+    btn[i].state = false;
 
     wx = SendMessage(btn[i].hBtn, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM) hbm1132_empty);
 
@@ -940,7 +941,7 @@ static DWORD WINAPI Pump (LPVOID arg)
     GetClientRect(hConsoleWnd, &r);
     wx = (wx - r.right  - 1) + bmwid;               /* compute new desired size based on how client area came out */
     wy = (wy - r.bottom - 1) + bmht;
-    MoveWindow(hConsoleWnd, 0, 0, wx, wy, FALSE);   /* resize window */
+    MoveWindow(hConsoleWnd, 0, 0, wx, wy, false);   /* resize window */
 
     ShowWindow(hConsoleWnd, SW_SHOWNOACTIVATE);     /* display it */
     UpdateWindow(hConsoleWnd);
@@ -957,7 +958,7 @@ static DWORD WINAPI Pump (LPVOID arg)
     }
 
     if (running)                                    /* if simulator is already running, start update timer */
-        gui_run(TRUE);
+        gui_run(true);
 
     while (GetMessage(&msg, hConsoleWnd, 0, 0)) {   /* message pump - this basically loops forevermore */
         TranslateMessage(&msg);
@@ -965,7 +966,7 @@ static DWORD WINAPI Pump (LPVOID arg)
     }
 
     if (hConsoleWnd != NULL) {
-        DragAcceptFiles(hConsoleWnd, FALSE);        /* unregister as drag/drop target */
+        DragAcceptFiles(hConsoleWnd, false);        /* unregister as drag/drop target */
         DestroyWindow(hConsoleWnd);                 /* but if a quit message got posted, clean up */
         hConsoleWnd = NULL;
     }
@@ -1060,7 +1061,7 @@ void DrawRunmode (HDC hDC, int mode)
 /* ------------------------------------------------------------------------
  * HandleClick - handle mouse clicks on the console window. Now we just
  * look at the console sense switches.  Actual says this is a real click, rather
- * than a mouse-region test.  Return value TRUE means the cursor is over a hotspot.
+ * than a mouse-region test.  Return value true means the cursor is over a hotspot.
  * ------------------------------------------------------------------------ */
 
 static BOOL HandleClick (HWND hWnd, int xh, int yh, BOOL actual, BOOL rightclick)
@@ -1071,9 +1072,9 @@ static BOOL HandleClick (HWND hWnd, int xh, int yh, BOOL actual, BOOL rightclick
         if (BETWEEN(xh, x-3, x+8+3) && BETWEEN(yh, 230, 275)) {
             if (actual) {
                 CES ^= b;                       /* a hit. Invert the bit and redisplay */
-                update_gui(TRUE);
+                update_gui(true);
             }
-            return TRUE;
+            return true;
         }
         x += (b & 0x1111) ? 31 : 21;
     }
@@ -1086,16 +1087,16 @@ static BOOL HandleClick (HWND hWnd, int xh, int yh, BOOL actual, BOOL rightclick
                 if (BETWEEN(ang, i*45-12, i*45+12)) {
                     if (actual) {
                         RUNMODE = i;
-                        update_gui(TRUE);
+                        update_gui(true);
                     }
-                    return TRUE;
+                    return true;
                 }
             }
 
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 /* ------------------------------------------------------------------------
@@ -1118,7 +1119,7 @@ static void DrawConsole (HDC hDC, PAINTSTRUCT *ps)
     int i, n;
     DEVICE *dptr;
     UNIT *uptr;
-    t_bool enab;
+    bool enab;
     char nametemp[50], *dispname;
 
     hOldFont  = SelectObject(hDC, hFont);           /* use that tiny font */
@@ -1155,7 +1156,7 @@ static void DrawConsole (HDC hDC, PAINTSTRUCT *ps)
         hOldFont = SelectObject(hDC, hTinyFont);
 
         for (i = 0; i < NTXTBOXES; i++) {
-            enab = FALSE;
+            enab = false;
 
             dptr = find_unit(txtbox[i].unitname, &uptr);
             if (dptr != NULL && uptr != NULL) {
@@ -1174,7 +1175,7 @@ static void DrawConsole (HDC hDC, PAINTSTRUCT *ps)
 
                     TextOut(hDC, txtbox[i].x+25, txtbox[i].y+TXTBOX_HEIGHT, dispname, strlen(dispname));
                     SetTextColor(hDC, RGB(255,255,255));
-                    enab = TRUE;
+                    enab = true;
                 }
                 else {
                     SetTextColor(hDC, RGB(128,128,128));
@@ -1197,7 +1198,7 @@ static void DrawConsole (HDC hDC, PAINTSTRUCT *ps)
 
 void flash_run (void)
 {
-    EnableWindow(btn[IDC_RUN].hBtn, TRUE);      /* enable the run lamp */
+    EnableWindow(btn[IDC_RUN].hBtn, true);      /* enable the run lamp */
 
     if (hFlashTimer != 0)
         KillTimer(hConsoleWnd, FLASH_TIMER_ID); /* (re)schedule lamp update */
@@ -1228,7 +1229,7 @@ void HandleCommand (HWND hWnd, WORD wNotify, WORD idCtl, HWND hwCtl)
                 reason = STOP_POWER_OFF;
                 /* wait for execution thread to exit */
 /* this prevents message pump from running, which unfortunately locks up
- * the emulator thread when it calls gui_run(FALSE) which calls EnableWindow on the Run lamp
+ * the emulator thread when it calls gui_run(false) which calls EnableWindow on the Run lamp
  *              while (running)
  *                  Sleep(10);
  */
@@ -1240,13 +1241,13 @@ void HandleCommand (HWND hWnd, WORD wNotify, WORD idCtl, HWND hwCtl)
 
             for (i = 0; i < NBUTTONS; i++)  /* repaint all of the lamps */
                 if (! btn[i].pushable)
-                    InvalidateRect(btn[i].hBtn, NULL, TRUE);
+                    InvalidateRect(btn[i].hBtn, NULL, true);
             if ((cr_unit.flags & UNIT_ATT) &&
                 (btn[IDC_1442].state!=STATE_1442_FULL)) {
                 stuff_and_wait("detach cr", 0, 500);
-                update_gui(TRUE);
+                update_gui(true);
             }
-            program_is_loaded = FALSE;
+            program_is_loaded = false;
             break;
 
         case IDC_PROGRAM_START:             /* begin execution */
@@ -1298,7 +1299,7 @@ void HandleCommand (HWND hWnd, WORD wNotify, WORD idCtl, HWND hwCtl)
                 reason = STOP_IMMEDIATE;    /* terminate execution without setting wait_mode */
                 /* wait for execution thread to exit */
 /* this prevents message pump from running, which unfortunately locks up
- * the emulator thread when it calls gui_run(FALSE) which calls EnableWindow on the Run lamp
+ * the emulator thread when it calls gui_run(false) which calls EnableWindow on the Run lamp
  *              while (running)
  *                  Sleep(10);
  */
@@ -1314,9 +1315,9 @@ void HandleCommand (HWND hWnd, WORD wNotify, WORD idCtl, HWND hwCtl)
             if ((cr_unit.flags & UNIT_ATT) &&
                 (btn[IDC_1442].state!=STATE_1442_FULL)) {
                 stuff_and_wait("detach cr", 0, 500);
-                update_gui(TRUE);
+                update_gui(true);
             }
-            program_is_loaded = FALSE;
+            program_is_loaded = false;
             break;
 
         case IDC_PROGRAM_LOAD:
@@ -1359,13 +1360,13 @@ void HandleCommand (HWND hWnd, WORD wNotify, WORD idCtl, HWND hwCtl)
                     stuff_cmd("detach cr");
             } else if (btn[IDC_1442].state != STATE_1442_EMPTY && wNotify == STN_CLICKED) {
                 cr_rewind();
-                update_gui(TRUE);
+                update_gui(true);
             }
             break;
     }
 
     SetForegroundWindow(hConsoleWindow);
-    update_gui(FALSE);
+    update_gui(false);
 }
 
 /* ------------------------------------------------------------------------
@@ -1386,7 +1387,7 @@ LRESULT CALLBACK ConsoleWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             break;
 
         case WM_DESTROY:
-            gui_run(FALSE);
+            gui_run(false);
             hConsoleWnd = NULL;
             break;
 
@@ -1396,7 +1397,7 @@ LRESULT CALLBACK ConsoleWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             SetRect(&rbmp, 0, 0, bmwid, bmht);
             if (IntersectRect(&xsect, &clip, &rbmp))
                 BitBlt(hDC, xsect.left, xsect.top, xsect.right-xsect.left+1, xsect.bottom-xsect.top+1, hCDC, xsect.left, xsect.top, SRCCOPY);
-            return TRUE;            /* let Paint do this so we know what the update region is (ps.rcPaint) */
+            return true;            /* let Paint do this so we know what the update region is (ps.rcPaint) */
 
         case WM_PAINT:
             hDC = BeginPaint(hWnd, &ps);
@@ -1420,15 +1421,15 @@ LRESULT CALLBACK ConsoleWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         case WM_SETCURSOR:
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            SetCursor(HandleClick(hWnd, p.x, p.y, FALSE, FALSE) ? hcHand : hcArrow);
-            return TRUE;
+            SetCursor(HandleClick(hWnd, p.x, p.y, false, false) ? hcHand : hcArrow);
+            return true;
 
         case WM_LBUTTONDOWN:
-            HandleClick(hWnd, LOWORD(lParam), HIWORD(lParam), TRUE, FALSE);
+            HandleClick(hWnd, LOWORD(lParam), HIWORD(lParam), true, false);
             break;
 
         case WM_RBUTTONDOWN:
-            HandleClick(hWnd, LOWORD(lParam), HIWORD(lParam), TRUE, TRUE);
+            HandleClick(hWnd, LOWORD(lParam), HIWORD(lParam), true, true);
             break;
 
         case WM_CTLCOLORBTN:
@@ -1441,7 +1442,7 @@ LRESULT CALLBACK ConsoleWndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                 KillTimer(hWnd, FLASH_TIMER_ID);
                 hFlashTimer = 0;
             }
-            update_gui(FALSE);
+            update_gui(false);
             break;
 
         case WM_DROPFILES:
@@ -1474,7 +1475,7 @@ void forms_check (int set)
         EnableWindow(btn[IDC_FORMS_CHECK].hBtn, printerstatus);
 
         if (btn[IDC_FORMS_CHECK].clr != oldcolor)
-            InvalidateRect(btn[IDC_FORMS_CHECK].hBtn, NULL, TRUE);      /* change color in any case */
+            InvalidateRect(btn[IDC_FORMS_CHECK].hBtn, NULL, true);      /* change color in any case */
     }
 }
 
@@ -1495,7 +1496,7 @@ void print_check (int set)
         EnableWindow(btn[IDC_FORMS_CHECK].hBtn, printerstatus);
 
         if (btn[IDC_FORMS_CHECK].clr != oldcolor)
-            InvalidateRect(btn[IDC_FORMS_CHECK].hBtn, NULL, TRUE);      /* change color in any case */
+            InvalidateRect(btn[IDC_FORMS_CHECK].hBtn, NULL, true);      /* change color in any case */
     }
 }
 
@@ -1535,11 +1536,11 @@ static BOOL is_scp_file(const char *filename)
     char *argv[1] = {NULL};
     FILE *f = fopen(filename, "r");
     int lines = 0, comment_lines = 0;
-    BOOL result = TRUE;
+    BOOL result = true;
     size_t i;
 
     if (!f)
-        return FALSE;
+        return false;
     while (result) {
         const char *cptr;
 
@@ -1547,11 +1548,11 @@ static BOOL is_scp_file(const char *filename)
         if (cptr == NULL)
             break;
         if (strlen(cptr) == sizeof(cbuf)-1)             /* VERY long lines are not SCP commands */
-            result = FALSE;
+            result = false;
         if (!strchr(cptr, '\n'))                        /* lines without newlines are not SCP commands */
-            result = FALSE;
+            result = false;
         if (!memcmp(cptr,"!// ", 4))                    /* indirect deck file literals are not SCP commands */
-            result = FALSE;
+            result = false;
         cptr = sim_trim_endspc(cbuf);
         while (sim_isspace (*cptr))                     /* trim leading space */
             cptr++;
@@ -1559,7 +1560,7 @@ static BOOL is_scp_file(const char *filename)
         for (i = 0; i < strlen(cptr); i++)
             if ((cptr[i] & 0x80) ||
                 ((!isprint(cptr[i])) && (!isspace(cptr[i]))))
-                result = FALSE;                         /* SCP files only have printable ASCII */
+                result = false;                         /* SCP files only have printable ASCII */
         if ((*cptr == ';') || (*cptr == '#')) {         /* ignore comments */
             ++comment_lines;
             continue;
@@ -1569,13 +1570,13 @@ static BOOL is_scp_file(const char *filename)
         sim_sub_args (cbuf, sizeof(cbuf), argv);
         cptr = get_glyph_cmd (cptr, gbuf);              /* get command glyph */
         if (!find_cmd (gbuf)) {                         /* lookup command */
-            result = FALSE;
+            result = false;
             break;
         }
     }
     fclose(f);
     if (lines == 0)                                     /* Empty file isn't SCP */
-        result = FALSE;
+        result = false;
     return result;
 }
 
@@ -1604,9 +1605,9 @@ static void accept_dropped_file (HANDLE hDrop)
     }
 
     if ((hWndDrop = ChildWindowFromPoint(hConsoleWnd, pt)) == btn[IDC_1442].hBtn)
-        cardreader = TRUE;                                  /* file was dropped onto 1442 card reader */
+        cardreader = true;                                  /* file was dropped onto 1442 card reader */
     else if (hWndDrop == NULL || hWndDrop == hConsoleWnd)
-        cardreader = FALSE;                                 /* file was dropped onto console window, not a button */
+        cardreader = false;                                 /* file was dropped onto console window, not a button */
     else {
         MessageBeep(0);                                     /* file was dropped onto another button */
         return;
@@ -1623,14 +1624,14 @@ static void accept_dropped_file (HANDLE hDrop)
             snprintf(msg, sizeof(msg)-1, "\"%s\"\r\n\r\nContains SCP commands (not card reader input).\r\n\r\nProcess as SCP commands?", fname);
             if (IDYES != MessageBox(hConsoleWnd, msg, "", MB_YESNO))
                 return;
-            cardreader = FALSE;                 /* Process as SCP commands */
+            cardreader = false;                 /* Process as SCP commands */
         }
     } else {
         if (!scp_file) {
             snprintf(msg, sizeof(msg)-1, "Invalid SCP command file:\r\n\r\n\"%s\"\r\n\r\nProcess as Card Reader Input?", fname);
             if (IDYES != MessageBox(hConsoleWnd, msg, "", MB_YESNO))
                 return;
-            cardreader = TRUE;                  /* Process as Card Input */
+            cardreader = true;                  /* Process as Card Input */
         }
     }
                                                 /* if shift key is down, prepend @ to name (make it a deck file) */
@@ -1678,11 +1679,11 @@ CRITICAL_SECTION critsect;
 
 void begin_critical_section (void)
 {
-    static BOOL mustinit = TRUE;
+    static BOOL mustinit = true;
 
     if (mustinit) {
         InitializeCriticalSection(&critsect);
-        mustinit = FALSE;
+        mustinit = false;
     }
 
     EnterCriticalSection(&critsect);
@@ -1700,10 +1701,10 @@ static HANDLE hCmdThread     = NULL;
 static DWORD  iCmdThreadID   = 0;
 static HANDLE hCmdReadEvent  = NULL;
 static HANDLE hCmdReadyEvent = NULL;
-static BOOL   scp_reading = FALSE;
+static BOOL   scp_reading = false;
 static long   scp_command = 0;
 static char   cmdbuffer[256];
-static BOOL   read_exiting = FALSE;
+static BOOL   read_exiting = false;
 
 #define SCP_COMMAND InterlockedExchangeAdd(&scp_command, 0L)
 #define NEXT_SCP_COMMAND InterlockedIncrement(&scp_command)
@@ -1720,16 +1721,16 @@ static DWORD WINAPI CmdThread (LPVOID arg)
             continue;                                           /* put breakpoint here to debug */
         if (read_exiting)
             break;
-        scp_reading = FALSE;
+        scp_reading = false;
         if (ReadFile(hStdIn, cmdbuffer, sizeof(cmdbuffer)-1, &dwBytesRead, NULL)) {
             cmdbuffer[dwBytesRead] = '\0';
-            scp_reading = FALSE;
+            scp_reading = false;
             NEXT_SCP_COMMAND;
             SetEvent(hCmdReadyEvent);                           /* notify main thread a line is ready */
         } else {
             DWORD dwError = GetLastError();
 
-            scp_reading = FALSE;
+            scp_reading = false;
             NEXT_SCP_COMMAND;
         }
     }
@@ -1741,7 +1742,7 @@ static void read_atexit (void)
     typedef BOOL (WINAPI *_func)(HANDLE, LPOVERLAPPED);
     _func pCancelIoEx;
 
-    read_exiting = TRUE;
+    read_exiting = true;
     pCancelIoEx = (_func)GetProcAddress(GetModuleHandleA("kernel32.dll"), "CancelIoEx");
     if (pCancelIoEx) {
         pCancelIoEx(GetStdHandle(STD_INPUT_HANDLE), NULL);
@@ -1761,10 +1762,10 @@ char *read_cmdline (char *ptr, int size, FILE *stream)
     char *cptr;
 
     if (hCmdThread == NULL) {                               /* set up command-reading thread */
-        if ((hCmdReadEvent  = CreateEvent(NULL, FALSE, FALSE, NULL)) == NULL)
+        if ((hCmdReadEvent  = CreateEvent(NULL, false, false, NULL)) == NULL)
             scp_panic("Can't create command line read event");
 
-        if ((hCmdReadyEvent = CreateEvent(NULL, FALSE, FALSE, NULL)) == NULL)
+        if ((hCmdReadyEvent = CreateEvent(NULL, false, false, NULL)) == NULL)
             scp_panic("Can't create command line ready event");
                                                                 /* start up the command thread */
         if ((hCmdThread = CreateThread(NULL, 0, CmdThread, NULL, 0, &iCmdThreadID)) == NULL)
@@ -1773,7 +1774,7 @@ char *read_cmdline (char *ptr, int size, FILE *stream)
         Sleep(500);                                         /* Let GUI threads startup and start to process messages */
     }
 
-    update_gui(TRUE);
+    update_gui(true);
     SetEvent(hCmdReadEvent);                                /* let read thread get one line */
     WaitForSingleObject(hCmdReadyEvent, INFINITE);          /* wait for read thread or GUI to respond */
     strncpy(ptr, cmdbuffer, MIN(size, sizeof(cmdbuffer)));  /* copy line to caller's buffer */
@@ -1796,20 +1797,20 @@ long stuff_cmd (char *cmd)
     ip = (INPUT_RECORD *)calloc(2+2*cmdsize, sizeof(*ip));
     for (i=j=0; i<cmdsize; i++, j++) {
         ip[j].EventType = KEY_EVENT;
-        ip[j].Event.KeyEvent.bKeyDown = TRUE;
+        ip[j].Event.KeyEvent.bKeyDown = true;
         ip[j].Event.KeyEvent.wRepeatCount = 1;
         ip[j].Event.KeyEvent.uChar.AsciiChar = cmd[i];
         j++;
         ip[j] = ip[j-1];
-        ip[j].Event.KeyEvent.bKeyDown = FALSE;
+        ip[j].Event.KeyEvent.bKeyDown = false;
     }
     ip[j].EventType = KEY_EVENT;
-    ip[j].Event.KeyEvent.bKeyDown = TRUE;
+    ip[j].Event.KeyEvent.bKeyDown = true;
     ip[j].Event.KeyEvent.wRepeatCount = 1;
     ip[j].Event.KeyEvent.uChar.AsciiChar = '\r';
     j++;
     ip[j] = ip[j-1];
-    ip[j].Event.KeyEvent.bKeyDown = FALSE;
+    ip[j].Event.KeyEvent.bKeyDown = false;
     WriteConsoleInput(GetStdHandle(STD_INPUT_HANDLE), ip, 2+j, &dwEventsWritten);
     free(ip);
     return scp_cmd;
@@ -1835,13 +1836,13 @@ static void my_yield (void)
  * and come back to prompt for another
  */
 
-t_bool stuff_and_wait (char *cmd, int timeout, int delay)
+bool stuff_and_wait (char *cmd, int timeout, int delay)
 {
     long scp_cmd = stuff_cmd(cmd);
 
     while (scp_cmd == SCP_COMMAND) {
         if (timeout < 0)
-            return FALSE;
+            return false;
 
         my_yield();
         if (scp_cmd != SCP_COMMAND)
@@ -1858,7 +1859,7 @@ t_bool stuff_and_wait (char *cmd, int timeout, int delay)
     if (delay)
         Sleep(delay);
 
-    return TRUE;
+    return true;
 }
 
 /* remark_cmd - print a remark from inside a command processor. This routine takes

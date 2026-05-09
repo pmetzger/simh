@@ -356,6 +356,7 @@ Fx | HPL APL  JC SIO  -   -   -   -   -   -   -   -   -   -   -   -
         ibms3_sys.c     add pointer to data structures to sim_devices
 */
 
+#include <stdbool.h>
 #include "s3_defs.h"
 
 #define UNIT_V_M15      (UNIT_V_UF)                     /* Model 15 extensions */
@@ -1847,7 +1848,7 @@ uint32 i;
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i++) mc = mc | M[i];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE; i++) M[i] = 0;

@@ -158,6 +158,7 @@
 #include "i7090_defs.h"
 #include "sim_timer.h"
 #include <math.h>
+#include <stdbool.h>
 #ifdef CPANEL
 #include "cpanel.h"
 #endif
@@ -4285,7 +4286,7 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
         return SCPE_ARG;
     for (i = v-1; i < MEMSIZE; i++)
         mc |= M[i];
-    if ((mc != 0) && (!get_yn("Really truncate memory [N]?", FALSE)))
+    if ((mc != 0) && (!get_yn("Really truncate memory [N]?", false)))
         return SCPE_OK;
     MEMSIZE = v;
     memmask = v - 1;

@@ -26,6 +26,7 @@
    04-Oct-09    HV      Initial version
 */
 
+#include <stdbool.h>
 #include "sage_defs.h"
 
 static t_stat sagecpu_reset(DEVICE* dptr);
@@ -35,7 +36,7 @@ static t_stat sage_mem(t_addr addr,uint8** mem);
 static t_stat sagecpu_set_bios(UNIT *uptr, int32 value, const char *cptr, void *desc);
 static t_stat sagecpu_show_bios(FILE *st, UNIT *uptr, int32 val, const void *desc);
 static uint8* ROM = 0;
-static int rom_enable = TRUE; /* LS74 U51 in CPU schematic */
+static int rom_enable = true; /* LS74 U51 in CPU schematic */
 
 extern int32 DR[];
 extern t_addr AR[];
@@ -161,7 +162,7 @@ static t_stat sagecpu_reset(DEVICE* dptr)
 #endif
 
     if (!ROM) ROM = (uint8*)calloc(MAX_ROMSIZE,1);
-    rom_enable = TRUE;
+    rom_enable = true;
 
     if ((rc=m68kcpu_reset(dptr)) != SCPE_OK) return rc;
 
@@ -184,7 +185,7 @@ static t_stat sage_mem(t_addr addr,uint8** mem)
     }
     a = addr - 0xfe0000;            /* boot rom at normal ROM page */
     if (a < MAX_ROMSIZE) {
-        rom_enable = FALSE;
+        rom_enable = false;
         *mem = ROM+a;
         return SCPE_OK;
     }

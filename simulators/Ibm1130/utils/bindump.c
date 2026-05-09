@@ -18,6 +18,7 @@
 //          bindump -p deckfile          for system program, lists phase IDs in the deck
 //          bindump -s deckfile >outfile for system program, sorts the phases & writes to stdout
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef _WIN32
@@ -27,12 +28,6 @@
 #endif
 
 #include "util_io.h"
-
-#ifndef TRUE
-    #define BOOL  int
-    #define TRUE  1
-    #define FALSE 0
-#endif
 
 typedef enum {R_ABSOLUTE = 0, R_RELATIVE = 1, R_LIBF = 2, R_CALL = 3} RELOC;
 
@@ -51,9 +46,9 @@ typedef enum {PACKED, UNPACKED} PACKMODE;
 #define CARDTYPE_81         0x81
 #define CARDTYPE_DATA       0x0A
 
-BOOL verbose = FALSE;
-BOOL phid    = FALSE;
-BOOL sort    = FALSE;
+bool verbose = false;
+bool phid    = false;
+bool sort    = false;
 unsigned short card[80], buf[54];
 
 // bindump - dump a binary (card format) deck to verify sbrks, etc
@@ -97,13 +92,13 @@ int main (int argc, char **argv)
             while (*arg) {
                 switch (*arg++) {
                     case 'v':
-                        verbose = TRUE;
+                        verbose = true;
                         break;
                     case 'p':
-                        phid = TRUE;        // print only phase ID's
+                        phid = true;        // print only phase ID's
                         break;
                     case 's':
-                        sort = TRUE;        // sort deck by phases, writing to stdout
+                        sort = true;        // sort deck by phases, writing to stdout
                         break;
                     default:
                         bail(usestr);
@@ -188,7 +183,7 @@ void sort_phases (char *fname)
     int i, ncards, cardtype, len, seq = 0, phid;
     struct tag_card *deck;
     FILE *fd;
-    BOOL saw_sbrk = TRUE;
+    bool saw_sbrk = true;
 
     if ((fd = fopen(fname, "rb")) == NULL) {
         perror(fname);
@@ -235,7 +230,7 @@ void sort_phases (char *fname)
 
         switch (cardtype) {
             case CARDTYPE_ABS:                      // start of deck is same as sector break
-                saw_sbrk = TRUE;                    // (though I don't ever expect to get a REL deck)
+                saw_sbrk = true;                    // (though I don't ever expect to get a REL deck)
                 break;
 
             case CARDTYPE_DATA:
@@ -249,7 +244,7 @@ void sort_phases (char *fname)
 
                     deck[i].phid   = phid;                  // this belongs to the new phase
                     deck[i-1].phid = phid;                  // as does previous card (START or SBRK card)
-                    saw_sbrk = FALSE;
+                    saw_sbrk = false;
                 }
                 break;
 
@@ -290,7 +285,7 @@ void sort_phases (char *fname)
 void dump_phids (char *fname)
 {
     FILE *fp;
-    BOOL saw_sbrk = FALSE, neg;
+    bool saw_sbrk = false, neg;
     unsigned short cardtype;
     short id;
 
@@ -310,7 +305,7 @@ void dump_phids (char *fname)
 
         switch (cardtype) {
             case CARDTYPE_ABS:          // beginning of absolute deck, or SBRK card (which spoofs an ABS start card)
-                saw_sbrk = TRUE;
+                saw_sbrk = true;
                 break;
 
             case CARDTYPE_END:
@@ -321,11 +316,11 @@ void dump_phids (char *fname)
                     unpack(card, buf, 11);
                     id = buf[10];
                     if (id < 0)
-                        id = -id, neg = TRUE;
+                        id = -id, neg = true;
                     else
-                        neg = FALSE;
+                        neg = false;
                     printf("   : %3d / %02x%s\n", id, id, neg ? " (neg)" : "");
-                    saw_sbrk = FALSE;
+                    saw_sbrk = false;
                 }
                 break;
 
@@ -350,7 +345,7 @@ void dump_phids (char *fname)
 void dump_data (char *fname)
 {
     FILE *fp;
-    BOOL first = TRUE;
+    bool first = true;
     unsigned short cardtype;
     char str[80];
     int i;
@@ -435,7 +430,7 @@ void dump_data (char *fname)
             }
         }
 
-        first = FALSE;
+        first = false;
     }
 
     fclose(fp);
@@ -444,7 +439,7 @@ void dump_data (char *fname)
 void show_data (void)
 {
     int i, n, jrel, rflag, nout, ch, reloc;
-    BOOL first = TRUE;
+    bool first = true;
 
     n = buf[2] & 0x00FF;
 
@@ -458,7 +453,7 @@ void show_data (void)
             rflag = buf[jrel++];
             if (first) {
                 printf(" %s", getseq());
-                first = FALSE;
+                first = false;
             }
             printf("\n      ");
             nout = 0;
@@ -478,7 +473,7 @@ void show_data (void)
 void show_core (void)
 {
     int i, n, nout;
-    BOOL first = TRUE;
+    bool first = true;
 
     n = buf[2] & 0x00FF;
 
@@ -489,7 +484,7 @@ void show_core (void)
         if (nout >= 8) {
             if (first) {
                 printf(" %s", getseq());
-                first = FALSE;
+                first = false;
             }
             printf("\n      ");
             nout = 0;

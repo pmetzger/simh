@@ -51,8 +51,9 @@
  * 13) A lot of comments in Russian (UTF-8).
  */
 #include "besm6_defs.h"
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stdbool.h>
 
 
 t_value memory [MEMSIZE];
@@ -1566,7 +1567,7 @@ static void cpu_one_inst (void)
     /* Не находимся ли мы в цикле "ЖДУ" диспака? */
     if (RUU == 047 && PC == 04440 && RK == 067704440) {
         check_initial_setup ();
-        sim_idle(0, TRUE);
+        sim_idle(0, true);
     }
 }
 

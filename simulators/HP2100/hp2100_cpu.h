@@ -109,6 +109,8 @@
      WriteBA  Write a data byte using the alternate map
 */
 
+#include <stdbool.h>
+
 #define ReadF(a)            mem_read (&cpu_dev, Fetch, a)
 #define ReadW(a)            mem_read (&cpu_dev, Data, a)
 #define ReadWA(a)           mem_read (&cpu_dev, Data_Alternate, a)
@@ -580,7 +582,7 @@ extern uint32    cpu_pending_interrupt;         /* the select code of a pending 
 
 /* Microcode dispatcher functions (grouped by cpu module number) */
 
-extern t_stat cpu_uig_0   (uint32 intrq, t_bool int_ack);   /* [0] UIG group 0 dispatcher */
+extern t_stat cpu_uig_0   (uint32 intrq, bool int_ack);     /* [0] UIG group 0 dispatcher */
 extern t_stat cpu_uig_1   (uint32 intrq);                   /* [0] UIG group 1 dispatcher */
 extern t_stat cpu_ds      (void);                           /* [0] Distributed System stub */
 extern t_stat cpu_user    (void);                           /* [0] User firmware dispatcher */
@@ -610,7 +612,7 @@ extern t_stat cpu_signal  (void);                       /* [5] SIGNAL/1000 Instr
 extern t_stat cpu_vis (void);                           /* [5] Vector Instruction Set */
 #endif
 
-extern t_stat cpu_rte_os (t_bool int_ack);              /* [6] RTE-6 OS */
+extern t_stat cpu_rte_os (bool int_ack);                /* [6] RTE-6 OS */
 
 extern t_stat cpu_rte_vma (void);                       /* [7] RTE-6 VMA */
 
@@ -630,13 +632,13 @@ extern t_stat sim_instr (void);
 
 /* CPU global SCP support routine declarations */
 
-extern void cpu_post_cmd (t_bool from_scp);
+extern void cpu_post_cmd (bool from_scp);
 
 
 /* CPU global utility routine declarations */
 
 extern t_stat cpu_iog               (HP_WORD instruction);
-extern t_stat cpu_resolve_indirects (t_bool is_interruptible);
+extern t_stat cpu_resolve_indirects (bool is_interruptible);
 extern void   cpu_microcode_abort   (MICRO_ABORT abort_reason);
 
 

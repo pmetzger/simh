@@ -81,6 +81,7 @@
 #define HASIPU 0x1000                   /* BIT19 */
 #define ONIPU 0x0010                    /* BIT27 */
 
+#include <stdbool.h>
 #include "sim_defs.h"                   /* simh simulator defns */
 #include "uint_bits.h"
 
@@ -364,7 +365,7 @@ typedef struct dib {
         /* Post I/O processing  */
         t_stat      (*iocl_io)(CHANP *chp, int32 tic_ok);   /* IOCL processing */
         /* Controller init */
-        void        (*dev_ini)(UNIT *, t_bool); /* init function */
+        void        (*dev_ini)(UNIT *, bool);   /* init function */
         UNIT        *units;             /* Pointer to units structure */
         CHANP       *chan_prg;          /* Pointer to channel program */
         IOCLQ       *ioclq_ptr;         /* pointer to array of IOCLQ entries */

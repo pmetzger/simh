@@ -194,6 +194,7 @@
         pdp8_sys.c      add sim_devices table entry
 */
 
+#include <stdbool.h>
 #include "pdp8_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -254,7 +255,7 @@ t_stat cpu_reset (DEVICE *dptr);
 t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_bool build_dev_tab (void);
+bool build_dev_tab (void);
 
 /* CPU data structures
 
@@ -709,13 +710,13 @@ switch ((IR >> 7) & 037) {                              /* decode IR<0:4> */
             if (MA == ((PC - 2) & 07777)) {             /* 1) JMP *-1? */
                 if (!(int_req & (INT_ION|INT_TTI)) &&   /*    iof, TTI flag off? */
                     (M[IB|((PC - 2) & 07777)] == OP_KSF)) /*  next is KSF? */
-                    sim_idle (TMR_CLK, FALSE);          /* we're idle */
+                    sim_idle (TMR_CLK, false);          /* we're idle */
                 }                                       /* end JMP *-1 */
             else if (MA == ((PC - 1) & 07777)) {        /* 2) JMP *? */
                 if (!(int_req & INT_ION))               /*    iof? */
                     reason = STOP_LOOP;                 /* then infinite loop */
                 else if (!(int_req & INT_ALL))          /*    ion, not intr? */
-                    sim_idle (TMR_CLK, FALSE);          /* we're idle */
+                    sim_idle (TMR_CLK, false);          /* we're idle */
                 }                                       /* end JMP */
             }                                           /* end idle enabled */
         IF = IB;                                        /* change IF */
@@ -1464,7 +1465,7 @@ if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i++)
     mc = mc | M[i];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE; i++)
@@ -1542,7 +1543,7 @@ return (SCPE_IERR << IOT_V_REASON) | AC;                /* broken! */
 
 /* Build device dispatch table */
 
-t_bool build_dev_tab (void)
+bool build_dev_tab (void)
 {
 DEVICE *dptr;
 DIB *dibp;
@@ -1565,7 +1566,7 @@ for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* add devices */
                     if (dev_tab[dspp->dev]) {           /* already filled? */
                         sim_printf ("%s device number conflict at %02o\n",
                             sim_dname (dptr), dspp->dev);
-                        return TRUE;
+                        return true;
                         }
                     dev_tab[dspp->dev] = dspp->dsp;     /* fill */
                     }                                   /* end if dsp */
@@ -1577,7 +1578,7 @@ for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* add devices */
                     if (dev_tab[dibp->dev + j]) {       /* already filled? */
                         sim_printf ("%s device number conflict at %02o\n",
                             sim_dname (dptr), dibp->dev + j);
-                        return TRUE;
+                        return true;
                         }
                     dev_tab[dibp->dev + j] = dibp->dsp[j]; /* fill */
                     }                                   /* end if dsp */
@@ -1585,7 +1586,7 @@ for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* add devices */
             }                                           /* end else */
         }                                               /* end if enb */
     }                                                   /* end for i */
-return FALSE;
+return false;
 }
 
 /* Set history */

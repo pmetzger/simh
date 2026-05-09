@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "sim_dynstr.h"
 #include "sim_dynstr_internal.h"
@@ -39,24 +40,24 @@ static sim_dynstr_vsnprintf_fn sim_dynstr_vsnprintf_impl(void)
 }
 
 /* Ensure the string buffer can hold the requested byte count. */
-static t_bool sim_dynstr_reserve(sim_dynstr_t *ds, size_t needed)
+static bool sim_dynstr_reserve(sim_dynstr_t *ds, size_t needed)
 {
     sim_dynstr_realloc_fn realloc_fn;
     size_t new_cap;
     char *new_buf;
 
     if (needed <= ds->cap)
-        return TRUE;
+        return true;
     new_cap = ds->cap ? ds->cap : 16;
     while (new_cap < needed)
         new_cap *= 2;
     realloc_fn = sim_dynstr_realloc_impl();
     new_buf = (char *)realloc_fn(ds->buf, new_cap);
     if (new_buf == NULL)
-        return FALSE;
+        return false;
     ds->buf = new_buf;
     ds->cap = new_cap;
-    return TRUE;
+    return true;
 }
 
 /* Initialize one dynamic string to the empty state. */
@@ -75,19 +76,19 @@ void sim_dynstr_free(sim_dynstr_t *ds)
 }
 
 /* Append one NUL-terminated string to the current contents. */
-t_bool sim_dynstr_append(sim_dynstr_t *ds, const char *text)
+bool sim_dynstr_append(sim_dynstr_t *ds, const char *text)
 {
     size_t text_len = strlen(text);
 
     if (!sim_dynstr_reserve(ds, ds->len + text_len + 1))
-        return FALSE;
+        return false;
     memcpy(ds->buf + ds->len, text, text_len + 1);
     ds->len += text_len;
-    return TRUE;
+    return true;
 }
 
 /* Append one formatted string fragment. */
-t_bool sim_dynstr_appendf(sim_dynstr_t *ds, const char *fmt, ...)
+bool sim_dynstr_appendf(sim_dynstr_t *ds, const char *fmt, ...)
 {
     sim_dynstr_vsnprintf_fn vsnprintf_fn;
     char stackbuf[CBUFSIZE];
@@ -102,7 +103,7 @@ t_bool sim_dynstr_appendf(sim_dynstr_t *ds, const char *fmt, ...)
     va_end(copy);
     if (len < 0) {
         va_end(args);
-        return FALSE;
+        return false;
     }
     if ((size_t)len < sizeof(stackbuf)) {
         va_end(args);
@@ -110,22 +111,22 @@ t_bool sim_dynstr_appendf(sim_dynstr_t *ds, const char *fmt, ...)
     }
     if (!sim_dynstr_reserve(ds, ds->len + (size_t)len + 1)) {
         va_end(args);
-        return FALSE;
+        return false;
     }
     (void)vsnprintf_fn(ds->buf + ds->len, (size_t)len + 1, fmt, args);
     va_end(args);
     ds->len += (size_t)len;
-    return TRUE;
+    return true;
 }
 
 /* Append one character and keep the buffer NUL-terminated. */
-t_bool sim_dynstr_append_ch(sim_dynstr_t *ds, char ch)
+bool sim_dynstr_append_ch(sim_dynstr_t *ds, char ch)
 {
     if (!sim_dynstr_reserve(ds, ds->len + 2))
-        return FALSE;
+        return false;
     ds->buf[ds->len++] = ch;
     ds->buf[ds->len] = '\0';
-    return TRUE;
+    return true;
 }
 
 /* Return the current contents as a conventional C string view. */

@@ -293,6 +293,7 @@
 
 
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
@@ -719,7 +720,7 @@ static const BITSET_FORMAT tci_line_format =    /* names, offset, direction, alt
 
 /* ATC global state */
 
-t_bool atc_is_polling = TRUE;                   /* TRUE if the ATC is polling for the simulation console */
+bool atc_is_polling = true;                     /* true if the ATC is polling for the simulation console */
 
 
 /* TDI interface state */
@@ -790,7 +791,7 @@ static t_stat  poll_service  (UNIT    *uptr);
 static int32   activate_unit (UNIT    *uptr,   ACTIVATOR reason);
 static uint32  service_time  (HP_WORD control, ACTIVATOR reason);
 static void    store         (HP_WORD control, HP_WORD   data);
-static void    receive       (int32   channel, int32 data, t_bool loopback);
+static void    receive       (int32   channel, int32 data, bool loopback);
 static void    diagnose      (HP_WORD control, int32 data);
 static void    scan_channels (int32   channel);
 static HP_WORD scan_status   (void);
@@ -1558,13 +1559,13 @@ return IORETURN (outbound_signals, outbound_value);     /* return the outbound s
    for a DISABLE, and "cptr" pointing to the next character after the keyword.
    If the TDI is already enabled or disabled, respectively, the routine returns
    with no further action.  Otherwise, if "value" is 1, the device is enabled by
-   clearing the DEV_DIS flag, and the polling flag is set TRUE to indicate that
+   clearing the DEV_DIS flag, and the polling flag is set true to indicate that
    the TDI is polling for the simulation console.  If "value" is 0, a check is
    made to see if the TDI is listening for connections.  If it is, the disable
    request is rejected; the device must be detached first.  Otherwise, the
    device is disabled by setting the DEV_DIS flag, and the polling flag is set
-   FALSE to indicate that the TDI is no longer polling for the simulation
-   console (the PCLK device will take over when the polling flag is FALSE).
+   false to indicate that the TDI is no longer polling for the simulation
+   console (the PCLK device will take over when the polling flag is false).
 
    In either case, the device is reset, which will restart or cancel the poll,
    as appropriate.
@@ -1581,7 +1582,7 @@ static t_stat atc_set_endis (UNIT *uptr, int32 value, const char *cptr, void *de
 if (value)                                              /* if this is an ENABLE request */
     if (atcd_dev.flags & DEV_DIS) {                     /*   then if the device is disabled */
         atcd_dev.flags &= ~DEV_DIS;                     /*     then reenable it */
-        atc_is_polling = TRUE;                          /*       and set the polling flag */
+        atc_is_polling = true;                          /*       and set the polling flag */
         }
 
     else                                                /*   otherwise the device is already enabled */
@@ -1596,7 +1597,7 @@ else                                                    /* otherwise this is a D
 
     else {                                              /*   otherwise */
         atcd_dev.flags |= DEV_DIS;                      /*     disable the device */
-        atc_is_polling = FALSE;                         /*       and clear the polling flag */
+        atc_is_polling = false;                         /*       and clear the polling flag */
         }
 
 return atcd_reset (&atcd_dev);                          /* reset the TDI and restart or cancel polling */
@@ -1874,7 +1875,7 @@ if (uptr == line_unit || uptr == &poll_unit) {                  /* if we're deta
 
     if ((sim_switches & SIM_SW_REST) == 0)                      /* if this is not a RESTORE call */
         for (channel = 0; channel < TERM_COUNT; channel++) {    /*   then for each terminal channel */
-            atcd_ldsc [channel].rcve = FALSE;                   /*     disable reception */
+            atcd_ldsc [channel].rcve = false;                   /*     disable reception */
             sim_cancel (&line_unit [channel]);                  /*       and cancel any transfer in progress */
             }
     }
@@ -2127,7 +2128,7 @@ static t_stat line_service (UNIT *uptr)
 {
 const  int32 channel = (int32) (uptr - line_unit);          /* the channel number */
 const  int32 alt_channel = channel ^ 1;                     /* alternate channel number for diagnostic mode */
-const  t_bool loopback = (atcd_dev.flags & DEV_DIAG) != 0;  /* TRUE if device is set for diagnostic mode */
+const  bool loopback = (atcd_dev.flags & DEV_DIAG) != 0;    /* true if device is set for diagnostic mode */
 int32  recv_data, send_data, char_data, cvtd_data;
 t_stat result = SCPE_OK;
 
@@ -2339,7 +2340,7 @@ if ((atcd_dev.flags & DEV_DIAG) == 0) {                 /* if we're not in diagn
     chan = tmxr_poll_conn (&atcd_mdsc);                 /*   then check for a new multiplexer connection */
 
     if (chan != -1) {                                   /* if a new connection was established */
-        atcd_ldsc [chan].rcve = TRUE;                   /*   then enable the channel to receive */
+        atcd_ldsc [chan].rcve = true;                   /*   then enable the channel to receive */
 
         dprintf (atcc_dev, DEB_XFER, "Channel %d connected\n",
                  chan);
@@ -2693,7 +2694,7 @@ else                                                    /* otherwise this is a r
    is received on an auxiliary channel.  The "channel" parameter indicates the
    channel on which reception occurred, "data" is the (full) character data
    as received from the console or terminal multiplexer libraries, and
-   "loopback" is TRUE if the data should be looped back to the alternate channel
+   "loopback" is true if the data should be looped back to the alternate channel
    for diagnostic execution.
 
    On entry, the bits required to pad the character are obtained.  If a BREAK
@@ -2722,7 +2723,7 @@ else                                                    /* otherwise this is a r
        the buffer to empty.
 */
 
-static void receive (int32 channel, int32 data, t_bool loopback)
+static void receive (int32 channel, int32 data, bool loopback)
 {
 int32 recv_data, char_data, char_echo, pad;
 
@@ -2835,7 +2836,7 @@ int32 channel;
 
 for (channel = FIRST_AUX; channel <= LAST_AUX; channel++)   /* scan the auxiliary channels */
     if ((recv_param [channel] & DPI_CHAR_CONFIG) == config) /* if the character configurations match */
-        receive (channel, data, FALSE);                     /*   then receive the data on this channel */
+        receive (channel, data, false);                     /*   then receive the data on this channel */
 
 return;
 }

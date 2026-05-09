@@ -43,6 +43,7 @@
    polling mechanism is superimposed onto the keyboard of the first interface.
 */
 
+#include <stdbool.h>
 #include "pdp18b_defs.h"
 #include "sim_tmxr.h"
 
@@ -70,11 +71,11 @@ DEVICE ttix_dev, ttox_dev;
 int32 ttix (int32 dev, int32 pulse, int32 dat);
 int32 ttox (int32 dev, int32 pulse, int32 dat);
 t_stat ttix_svc (UNIT *uptr);
-t_bool ttix_test_done (int32 ln);
+bool ttix_test_done (int32 ln);
 void ttix_set_done (int32 ln);
 void ttix_clr_done (int32 ln);
 t_stat ttox_svc (UNIT *uptr);
-t_bool ttox_test_done (int32 ln);
+bool ttox_test_done (int32 ln);
 void ttox_set_done (int32 ln);
 void ttox_clr_done (int32 ln);
 int32 ttx_getln (int32 dev, int32 pulse);
@@ -243,11 +244,11 @@ return SCPE_OK;
 
 /* Interrupt handling routines */
 
-t_bool ttix_test_done (int32 ln)
+bool ttix_test_done (int32 ln)
 {
 if (ttix_done & (1 << ln))
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 void ttix_set_done (int32 ln)
@@ -316,11 +317,11 @@ return SCPE_OK;
 
 /* Interrupt handling routines */
 
-t_bool ttox_test_done (int32 ln)
+bool ttox_test_done (int32 ln)
 {
 if (ttox_done & (1 << ln))
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 void ttox_set_done (int32 ln)
@@ -450,7 +451,7 @@ if (newln == 0)
 if (newln < ttx_lines) {
     for (i = newln, t = 0; i < ttx_lines; i++)
         t = t | ttx_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
         return SCPE_OK;
     for (i = newln; i < ttx_lines; i++) {
         if (ttx_ldsc[i].conn) {

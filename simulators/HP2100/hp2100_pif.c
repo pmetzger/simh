@@ -100,6 +100,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -268,11 +269,11 @@ static SIGNALS_VALUE pif_interface (const DIB *dibptr, INBOUND_SET inbound_signa
 (void) dibptr;
 (void) inbound_value;
 
-const t_bool   is_rte_pif  = (pif_dev.flags & DEV_12936) == 0;  /* TRUE if 12620A card */
+const bool     is_rte_pif  = (pif_dev.flags & DEV_12936) == 0;  /* true if 12620A card */
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {
     signal = IONEXTSIG (working_set);                   /* isolate the next signal */
@@ -310,7 +311,7 @@ while (working_set) {
 
 
         case ioIOO:                                     /* I/O data output */
-            if (is_rte_pif == FALSE) {                  /* DOS PIF? */
+            if (is_rte_pif == false) {                  /* DOS PIF? */
                 pif.flag_buffer = SET;                  /* set flag buffer */
                 working_set |= ioENF | ioSIR;           /* set ENF and SIR (not normally done for IOO) */
                 }
@@ -372,7 +373,7 @@ while (working_set) {
 
 
         case ioIEN:                                     /* interrupt enable */
-            irq_enabled = TRUE;
+            irq_enabled = true;
             break;
 
 

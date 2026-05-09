@@ -15,13 +15,6 @@
 #define NULL 0
 #endif
 
-#ifndef FALSE
-#define FALSE 0                /* comes in handy */
-#endif
-#ifndef TRUE
-#define TRUE 1
-#endif
-
 /*
  * Name pollution problems: <time.h> on Digital UNIX pulls in some
  * strange hardware header file which sees fit to define R_SP. We

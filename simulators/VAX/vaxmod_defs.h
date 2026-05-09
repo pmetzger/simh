@@ -79,6 +79,8 @@
 #ifndef VAXMOD_DEFS_H_
 #define VAXMOD_DEFS_H_ 1
 
+#include <stdbool.h>
+
 /* Microcode constructs */
 
 #define CVAX_SID        (10 << 24)                      /* system ID */
@@ -293,7 +295,7 @@ extern uint32 *vc_buf;
 #define DEV_QBUS        (1u << DEV_V_QBUS)
 #define DEV_Q18         (1u << DEV_V_Q18)
 
-#define UNIBUS          FALSE                           /* 22b only */
+#define UNIBUS          false                           /* 22b only */
 
 #define DEV_RDX         16                              /* default device radix */
 

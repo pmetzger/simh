@@ -31,6 +31,7 @@
    This module implements up to 32 individual serial interfaces.
 */
 
+#include <stdbool.h>
 #include "pdp1_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -59,7 +60,7 @@ t_stat dcs_attach (UNIT *uptr, const char *cptr);
 t_stat dcs_detach (UNIT *uptr);
 t_stat dcs_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc);
 void dcs_reset_ln (int32 ln);
-void dcs_scan_next (t_bool unlk);
+void dcs_scan_next (bool unlk);
 
 /* DCS data structures
 
@@ -207,7 +208,7 @@ switch (pls & 057) {                                    /* case IR<6,8:11> */
         dcs_flg[dcs_scan] = 0;                          /* clr line flag */
                                                         /* fall through */
     case 011:                                           /* RSC */
-        dcs_scan_next (TRUE);                           /* unlock scanner */
+        dcs_scan_next (true);                           /* unlock scanner */
         break;
 
     case 040:                                           /* TCB */
@@ -224,7 +225,7 @@ switch (pls & 057) {                                    /* case IR<6,8:11> */
         dcs_buf[dcs_scan] = dat & 0377;                 /* load buffer */
         dcs_flg[dcs_scan] = 0;                          /* clr line flag */
         sim_activate (&dcsl_unit[dcs_scan], dcsl_unit[dcs_scan].wait);
-        dcs_scan_next (TRUE);                           /* unlock scanner */
+        dcs_scan_next (true);                           /* unlock scanner */
         break;
 
     default:
@@ -262,7 +263,7 @@ for (ln = 0; ln < DCS_NUMLIN; ln++) {                   /* loop thru lines */
             else c = sim_tt_inpcvt (c, TT_GET_MODE (dcsl_unit[ln].flags)|TTUF_KSR);
             dcs_buf[ln] = c;                            /* save char */
             dcs_flg[ln] = 1;                            /* set line flag */
-            dcs_scan_next (FALSE);                      /* kick scanner */
+            dcs_scan_next (false);                      /* kick scanner */
             out = sim_tt_outcvt (c & 0177, TT_GET_MODE (dcsl_unit[ln].flags));
             if (out >= 0) {
                 tmxr_putc_ln (&dcs_ldsc[ln], out);      /* echo char */
@@ -298,13 +299,13 @@ if (dcs_ldsc[ln].conn) {                                /* connected? */
         }
     }
 dcs_flg[ln] = 1;                                        /* set line flag */
-dcs_scan_next (FALSE);                                  /* kick scanner */
+dcs_scan_next (false);                                  /* kick scanner */
 return SCPE_OK;
 }
 
 /* Kick scanner */
 
-void dcs_scan_next (t_bool unlk)
+void dcs_scan_next (bool unlk)
 {
 int32 i;
 
@@ -397,7 +398,7 @@ if (newln == 0)
 if (newln < DCS_LINES) {
     for (i = newln, t = 0; i < DCS_NUMLIN; i++)
         t = t | dcs_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
             return SCPE_OK;
     for (i = newln; i < DCS_NUMLIN; i++) {
         if (dcs_ldsc[i].conn) {

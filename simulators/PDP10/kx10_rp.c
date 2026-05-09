@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "kx10_disk.h"
 
@@ -231,7 +232,7 @@ int           rp_read(DEVICE *dptr, struct rh_if *rh, int reg, uint32 *data);
 void          rp_rst(DEVICE *dptr);
 t_stat        rp_svc(UNIT *);
 t_stat        rp_boot(int32, DEVICE *);
-void          rp_ini(UNIT *, t_bool);
+void          rp_ini(UNIT *, bool);
 t_stat        rp_reset(DEVICE *);
 t_stat        rp_attach(UNIT *, const char *);
 t_stat        rp_detach(UNIT *);

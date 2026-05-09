@@ -209,7 +209,7 @@ t_stat mi_show_loopback (FILE *st, UNIT *uptr, int32 val, const void *desc);
 // Modem Information Data Blocks ...
 //   The MIDB is our own internal data structure for each modem.  It keeps data
 // about the current state, COM port, UDP connection, etc.
-#define MI_MIDB(N) {FALSE, FALSE, 0, 0, 0, FALSE, FALSE, NOLINK, MI_TXBPS}
+#define MI_MIDB(N) {false, false, 0, 0, 0, false, false, NOLINK, MI_TXBPS}
 MIDB mi1_db = MI_MIDB(1), mi2_db = MI_MIDB(2);
 MIDB mi3_db = MI_MIDB(3), mi4_db = MI_MIDB(4);
 MIDB mi5_db = MI_MIDB(5);
@@ -319,15 +319,15 @@ MIDB   *const mi_midbs  [MI_NUM] = {&mi1_db,   &mi2_db,   &mi3_db,   &mi4_db,   
 #define CLR_RX_IEN(l)  CLR_EXT_ENB((1u << (PDIB(l)->rxint - INT_V_EXTD)))
 #define CLR_TX_IEN(l)  CLR_EXT_ENB((1u << (PDIB(l)->txint - INT_V_EXTD)))
 
-// TRUE if the line has the specified debugging output enabled ...
+// true if the line has the specified debugging output enabled ...
 #define ISLDBG(l,f)    ((PDEVICE(l)->dctrl & (f)) != 0)
 
 // Reset receiver (clear flags AND initialize all data) ...
 static void mi_reset_rx (uint16 line)
 {
-  PMIDB(line)->iloop = PMIDB(line)->lloop = FALSE;
-  udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, FALSE);
-  PMIDB(line)->rxerror = PMIDB(line)->rxpending = FALSE;
+  PMIDB(line)->iloop = PMIDB(line)->lloop = false;
+  udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, false);
+  PMIDB(line)->rxerror = PMIDB(line)->rxpending = false;
   PMIDB(line)->rxtotal = 0;
   CLR_RX_IRQ(line);  CLR_RX_IEN(line);
 }
@@ -335,8 +335,8 @@ static void mi_reset_rx (uint16 line)
 // Reset transmitter (clear flags AND initialize all data) ...
 static void mi_reset_tx (uint16 line)
 {
-  PMIDB(line)->iloop = PMIDB(line)->lloop = FALSE;
-  udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, FALSE);
+  PMIDB(line)->iloop = PMIDB(line)->lloop = false;
+  udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, false);
   PMIDB(line)->txtotal = PMIDB(line)->txdelay = 0;
   CLR_TX_IRQ(line);  CLR_TX_IEN(line);
 }
@@ -474,7 +474,7 @@ static void mi_start_rx (uint16 line)
   if (PMIDB(line)->rxpending) {
     sim_debug(IMP_DBG_WARN,PDEVICE(line),"start input while input already pending\n");
   }
-  PMIDB(line)->rxpending = TRUE;  PMIDB(line)->rxerror = FALSE;
+  PMIDB(line)->rxpending = true;  PMIDB(line)->rxerror = false;
   CLR_RX_IRQ(line);
 }
 
@@ -514,13 +514,13 @@ static void mi_poll_rx (uint16 line)
   // receiver buffer, then that sets the error flag too.
   if (count > maxbuf) {
     sim_debug(IMP_DBG_WARN, PDEVICE(line), "receiver overrun (length=%d maxbuf=%d)\n", count, maxbuf);
-    PMIDB(line)->rxerror = TRUE;  count = maxbuf;
+    PMIDB(line)->rxerror = true;  count = maxbuf;
   }
   mi_update_dmc(PDIB(line)->rxdmc, count);
   mi_debug_msg (line, next, count, "received");
 
   // Assert the interrupt request and we're done!
-  SET_RX_IRQ(line);  PMIDB(line)->rxpending = FALSE;  PMIDB(line)->rxtotal++;
+  SET_RX_IRQ(line);  PMIDB(line)->rxpending = false;  PMIDB(line)->rxtotal++;
   sim_debug(IMP_DBG_IOT, PDEVICE(line), "receive done (message #%d, intreq=%06o)\n", PMIDB(line)->rxtotal, dev_ext_int);
 }
 
@@ -541,13 +541,13 @@ void mi_rx_local (uint16 line, uint16 txnext, uint16 txcount)
 
   // Get the DMC words for the receiver and copy data from one buffer to the other.
   mi_get_dmc(PDIB(line)->rxdmc, &rxnext, &rxlast, &maxbuf);
-  if (txcount > maxbuf) {txcount = maxbuf;  PMIDB(line)->rxerror = TRUE;}
+  if (txcount > maxbuf) {txcount = maxbuf;  PMIDB(line)->rxerror = true;}
   memmove(&M[rxnext], &M[txnext], txcount * sizeof(uint16));
 
   // Update the receiver DMC pointers, assert IRQ and we're done!
   mi_update_dmc(PDIB(line)->rxdmc, txcount);
   mi_debug_msg (line, rxnext, txcount, "received");
-  SET_RX_IRQ(line);  PMIDB(line)->rxpending = FALSE;  PMIDB(line)->rxtotal++;
+  SET_RX_IRQ(line);  PMIDB(line)->rxpending = false;  PMIDB(line)->rxtotal++;
   sim_debug(IMP_DBG_IOT, PDEVICE(line), "receive done (message #%d, intreq=%06o)\n", PMIDB(line)->rxtotal, dev_ext_int);
 }
 
@@ -591,20 +591,20 @@ int32 mi_io (uint16 line, int32 inst, int32 fnc, int32 dat, int32 dev)
       case 001:
         // MnUNXP - un-cross patch modem ...
         sim_debug(IMP_DBG_IOT,PDEVICE(line),"un-cross patch modem (PC=%06o)\n", PC-1);
-        PMIDB(line)->iloop = PMIDB(line)->lloop = FALSE;
-        udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, FALSE);
+        PMIDB(line)->iloop = PMIDB(line)->lloop = false;
+        udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, false);
         return dat;
       case 002:
         // MnLXP - enable line cross patch ...
         sim_debug(IMP_DBG_IOT,PDEVICE(line),"enable line cross patch (PC=%06o)\n", PC-1);
-        PMIDB(line)->lloop = TRUE;
-        udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, TRUE);
-        PMIDB(line)->iloop = FALSE;  return dat;
+        PMIDB(line)->lloop = true;
+        udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, true);
+        PMIDB(line)->iloop = false;  return dat;
       case 003:
         // MnIXP - enable interface cross patch ...
         sim_debug(IMP_DBG_IOT,PDEVICE(line),"enable interface cross patch (PC=%06o)\n", PC-1);
-        PMIDB(line)->iloop = TRUE;  PMIDB(line)->lloop = FALSE;
-        udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, FALSE);
+        PMIDB(line)->iloop = true;  PMIDB(line)->lloop = false;
+        udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link, false);
         return dat;
       case 004:
         // MnIN - start modem input ...
@@ -759,7 +759,7 @@ t_stat mi_set_loopback (UNIT *uptr, int32 val, const char *cptr, void *desc)
     case 3:     // NOLOOPLINE
       if (PMIDB(line)->link == NOLINK)
         return SCPE_UNATT;
-      t_bool line_loopback = (val == 2);
+      bool line_loopback = (val == 2);
 
       ret = udp_set_link_loopback (PDEVICE(line), PMIDB(line)->link,
                                    line_loopback);

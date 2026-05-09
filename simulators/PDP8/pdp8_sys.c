@@ -52,6 +52,7 @@
 
 #include "pdp8_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
@@ -75,7 +76,7 @@ extern uint16 M[];
 t_stat fprint_sym_fpp (FILE *of, t_value *val);
 t_stat parse_sym_fpp (const char *cptr, t_value *val);
 const char *parse_field (const char *cptr, uint32 max, uint32 *val, uint32 c);
-const char *parse_fpp_xr (const char *cptr, uint32 *xr, t_bool inc);
+const char *parse_fpp_xr (const char *cptr, uint32 *xr, bool inc);
 int32 test_fpp_addr (uint32 ad, uint32 max);
 
 /* SCP data structures and interface routines
@@ -202,7 +203,7 @@ while ((c = getc (fi)) != EOF) {                        /* read char */
 return EOF;
 }
 
-static t_stat sim_load_bin (FILE *fi, t_bool do_load)
+static t_stat sim_load_bin (FILE *fi, bool do_load)
 {
 int32 hi, lo, wd, csum, t;
 uint32 field, newf, origin, words;
@@ -253,7 +254,7 @@ for (;;) {
                     t_stat extra;
 
                     sim_switches |= SWMASK ('Q');
-                    extra = sim_load_bin (fi, FALSE);   /* Check for more sections */
+                    extra = sim_load_bin (fi, false);   /* Check for more sections */
                     sim_switches = saved_switches;
 
                     if (extra == SCPE_OK) {
@@ -300,7 +301,7 @@ if (flag != 0)
 if ((sim_switches & SWMASK ('R')) ||                    /* RIM format? */
     (match_ext (fnam, "RIM") && !(sim_switches & SWMASK ('B'))))
     return sim_load_rim (fileref);
-else return sim_load_bin (fileref, TRUE);               /* no, BIN */
+else return sim_load_bin (fileref, true);               /* no, BIN */
 }
 
 /* Symbol tables */
@@ -950,7 +951,7 @@ switch (j) {                                            /* case on class */
         if ((cptr = parse_field (cptr, 07777, &ad, ',')) == NULL)
             return SCPE_ARG;
         if ((*cptr == 0) ||
-            ((cptr = parse_fpp_xr (cptr, &xr, FALSE)) == NULL))
+            ((cptr = parse_fpp_xr (cptr, &xr, false)) == NULL))
             return SCPE_ARG;
         val[0] |= xr;
         val[++nwd] = ad;
@@ -967,7 +968,7 @@ switch (j) {                                            /* case on class */
         if ((cptr = parse_field (cptr, 077777, &ad, ',')) == NULL)
             return SCPE_ARG;
         if ((*cptr == 0) ||
-            ((cptr = parse_fpp_xr (cptr, &xr, FALSE)) == NULL))
+            ((cptr = parse_fpp_xr (cptr, &xr, false)) == NULL))
             return SCPE_ARG;
         val[0] |= ((xr << 3) | ((ad >> 12) & 07));
         val[++nwd] = ad & 07777;
@@ -978,7 +979,7 @@ switch (j) {                                            /* case on class */
         if ((cptr = parse_field (cptr, 077777, &ad, ',')) == NULL)
             return SCPE_ARG;
         if ((*cptr != 0) &&
-            ((cptr = parse_fpp_xr (cptr, &xr, TRUE)) == NULL))
+            ((cptr = parse_fpp_xr (cptr, &xr, true)) == NULL))
             return SCPE_ARG;
         if ((broff = test_fpp_addr (ad, 07)) < 0)
             return SCPE_ARG;
@@ -991,7 +992,7 @@ switch (j) {                                            /* case on class */
         if (((broff = test_fpp_addr (ad, 0177)) < 0) ||
             (*cptr != 0)) {
             if ((*cptr != 0) &&
-                ((cptr = parse_fpp_xr (cptr, &xr, TRUE)) == NULL))
+                ((cptr = parse_fpp_xr (cptr, &xr, true)) == NULL))
                 return SCPE_ARG;
             val[0] |= (00400 | (xr << 3) | ((ad >> 12) & 07));
             val[++nwd] = ad & 07777;
@@ -1003,7 +1004,7 @@ switch (j) {                                            /* case on class */
         if ((cptr = parse_field (cptr, 077777, &ad, ',')) == NULL)
             return SCPE_ARG;
         if ((*cptr != 0) &&
-            ((cptr = parse_fpp_xr (cptr, &xr, TRUE)) == NULL))
+            ((cptr = parse_fpp_xr (cptr, &xr, true)) == NULL))
             return SCPE_ARG;
         val[0] |= ((xr << 3) | ((ad >> 12) & 07));
         val[++nwd] = ad & 07777;
@@ -1034,7 +1035,7 @@ return cptr;
 
 /* Parse index register */
 
-const char *parse_fpp_xr (const char *cptr, uint32 *xr, t_bool inc)
+const char *parse_fpp_xr (const char *cptr, uint32 *xr, bool inc)
 {
 char gbuf[CBUFSIZE];
 uint32 len;

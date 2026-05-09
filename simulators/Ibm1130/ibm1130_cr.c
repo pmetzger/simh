@@ -3,6 +3,7 @@
 #include "sim_tempfile.h"
 
 #include <ctype.h>
+#include <stdbool.h>
 /* ibm1130_cr.c: IBM 1130 1442 Card Reader simulator
 
    Based on the SIMH package written by Robert M Supnik
@@ -369,7 +370,7 @@ static t_stat cr_reset    (DEVICE *dptr);
 static t_stat cr_set_code (UNIT *uptr, int32 match, const char *cptr, void *desc);
 static t_stat cr_attach   (UNIT *uptr, const char *cptr);
 static int32  guess_cr_code (void);
-static void   feedcycle   (t_bool load, t_bool punching);
+static void   feedcycle   (bool load, bool punching);
 
 static t_stat cp_reset    (DEVICE *dptr);
 static t_stat cp_set_code (UNIT *uptr, int32 match, const char *cptr, void *desc);
@@ -738,7 +739,7 @@ static uint16 punchstation[80];
 static uint16 readstation[80];
 static enum {STATION_EMPTY, STATION_LOADED, STATION_READ, STATION_PUNCHED} punchstate = STATION_EMPTY, readstate = STATION_EMPTY;
 
-static t_bool nextdeck (void);
+static bool nextdeck (void);
 static void checkdeck (void);
 
 /* open_scratch_deck - create a temporary deck file for literal cards */
@@ -773,11 +774,11 @@ static void   pcr_xio_startread(void);
 static void   pcr_reset(void);
 
 int boot_drive = -1;
-t_bool program_is_loaded = FALSE;
+bool program_is_loaded = false;
 
 /* lookup_codetable - use code flag setting to get code table pointer and length */
 
-static t_bool lookup_codetable (int32 match, CPCODE **pcode, size_t *pncode)
+static bool lookup_codetable (int32 match, CPCODE **pcode, size_t *pncode)
 {
     switch (match) {
         case CODE_029:
@@ -802,9 +803,9 @@ static t_bool lookup_codetable (int32 match, CPCODE **pcode, size_t *pncode)
 
         default:
             printf("Eek! Undefined code table index");
-            return FALSE;
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
 static t_stat set_active_cr_code (int match)
@@ -928,7 +929,7 @@ t_stat load_cr_boot (int32 drvno, int switches)
     int i;
     const char *name;
     char msg[80];
-    t_bool expand;
+    bool expand;
     uint16 word, *boot;
     static uint16 dms_boot_data[] = {               /* DMSV2M12, already expanded to 16 bits */
         0xc80a, 0x18c2, 0xd008, 0xc019, 0x8007, 0xd017, 0xc033, 0x100a,
@@ -969,17 +970,17 @@ t_stat load_cr_boot (int32 drvno, int switches)
     if ((switches & SWMASK('A')) && (switches & SWMASK('P'))) {
         boot   = aplp_boot_data;
         name   = "APL\\1130 Privileged";
-        expand = FALSE;
+        expand = false;
     }
     else if (switches & SWMASK('A')) {
         boot   = apl_boot_data;
         name   = "APL\\1130";
-        expand = FALSE;
+        expand = false;
     }
     else {
         boot   = dms_boot_data;
         name   = "DMS V2M12";
-        expand = FALSE;
+        expand = false;
     }
 
     if (drvno >= 0 && ! (switches & SWMASK('S')))               /* if specified, set toggle switches to disk drive no */
@@ -1003,7 +1004,7 @@ t_stat load_cr_boot (int32 drvno, int switches)
     }
 
     boot_drive = drvno;
-    program_is_loaded = TRUE;
+    program_is_loaded = true;
 
     return SCPE_OK;
 }
@@ -1032,7 +1033,7 @@ t_stat cr_boot (int32 unitno, DEVICE *dptr)
     if (cr_unit.fileref == NULL)                /* this will happen if no file in deck file can be opened */
         return SCPE_IOERR;
 
-    feedcycle(TRUE, FALSE);
+    feedcycle(true, false);
 
     if (readstate != STATION_LOADED) {
         printf("No cards in reader\n");
@@ -1049,7 +1050,7 @@ t_stat cr_boot (int32 unitno, DEVICE *dptr)
 
     readstate = STATION_READ;                   /* the current card has been consumed */
 
-    program_is_loaded = TRUE;
+    program_is_loaded = true;
 
     return SCPE_OK;
 }
@@ -1080,7 +1081,7 @@ char hollerith_to_ascii (uint16 hol)
 
 /* feedcycle - move cards to next station */
 
-static void feedcycle (t_bool load, t_bool punching)
+static void feedcycle (bool load, bool punching)
 {
     char buf[84], *x;
     const char *result;
@@ -1238,7 +1239,7 @@ static void npro (void)
     cr_count = -1;                                  /* nix the card counter */
 
     if (punchstate == STATION_PUNCHED)
-        feedcycle(FALSE, FALSE);                    /* flush out card just punched */
+        feedcycle(false, false);                    /* flush out card just punched */
 
     readstate = punchstate = STATION_EMPTY;
     cr_unit.COLUMN = -1;                            /* neither device is currently cycling */
@@ -1297,10 +1298,10 @@ static char * alltrim (char *str)
 
 static void checkdeck (void)
 {
-    t_bool empty;
+    bool empty;
 
     if (cr_unit.fileref == NULL) {                  /* there is no open file */
-        empty = TRUE;
+        empty = true;
     }
     else {
         fseek(cr_unit.fileref, 0, SEEK_END);        /* seek to end of file */
@@ -1322,7 +1323,7 @@ static void checkdeck (void)
 
 /* nextdeck - attempt to load a new file from the deck list into the hopper */
 
-static t_bool nextdeck (void)
+static bool nextdeck (void)
 {
     char buf[200], *fname, *c, quote;
     int code;
@@ -1332,7 +1333,7 @@ static t_bool nextdeck (void)
     cr_unit.pos = 0;
 
     if (deckfile == NULL)                   /* we can't help */
-        return FALSE;
+        return false;
 
     code = GET_CODE(cr_unit);               /* default code as set */
 
@@ -1492,7 +1493,7 @@ static t_bool nextdeck (void)
     if (code != CODE_AUTO)                      /* if code was determined, set it */
         set_active_cr_code(code);               /* (it may be left at CODE_AUTO when deckfile is exhausted */
 
-    return (cr_unit.flags & UNIT_CR_EMPTY) == 0;/* return TRUE if a deck has been loaded */
+    return (cr_unit.flags & UNIT_CR_EMPTY) == 0;/* return true if a deck has been loaded */
 }
 
 static t_stat cr_reset (DEVICE *dptr)
@@ -1559,7 +1560,7 @@ t_stat cr_rewind (void)
 
     /* there is a read pending. Pull the card in to make it go */
     if (CURRENT_OP == OP_READING || CURRENT_OP == OP_PUNCHING || CURRENT_OP == OP_FEEDING)
-        feedcycle(TRUE, (cp_unit.flags & UNIT_ATT) != 0);
+        feedcycle(true, (cp_unit.flags & UNIT_ATT) != 0);
 
     return SCPE_OK;
 }
@@ -1567,7 +1568,7 @@ t_stat cr_rewind (void)
 static t_stat cr_attach (UNIT *uptr, const char *iptr)
 {
     t_stat rval;
-    t_bool use_decklist;
+    bool use_decklist;
     int32 old_quiet;
     char gbuf[4*CBUFSIZE], *cptr = gbuf;
     char *c, *arg, quote;
@@ -1580,7 +1581,7 @@ static t_stat cr_attach (UNIT *uptr, const char *iptr)
 
     tab_proc = NULL;
     tab_width = 8;
-    use_decklist = FALSE;
+    use_decklist = false;
 
     sim_switches |= SWMASK('R');    // the card reader is readonly. Don't create an empty file if file does not exist
 
@@ -1605,7 +1606,7 @@ static t_stat cr_attach (UNIT *uptr, const char *iptr)
 
         if (list_nargs == 0 && *c == '@') {         /* @ might occur before a quoted name; check first */
             c++;
-            use_decklist = TRUE;
+            use_decklist = true;
         }
 
         if (*c == '\'' || *c == '"') {              /* quoted string */
@@ -1636,7 +1637,7 @@ static t_stat cr_attach (UNIT *uptr, const char *iptr)
 
     cptr = list_arg[0];                             /* filename is first argument */
     if (*cptr == '@') {                             /* @ might also occur inside a quoted name; check afterwards too */
-        use_decklist = TRUE;
+        use_decklist = true;
         cptr++;
     }
 
@@ -1657,7 +1658,7 @@ static t_stat cr_attach (UNIT *uptr, const char *iptr)
     }
     else {
         old_quiet = sim_quiet;                      /* attach the file, but set sim_quiet so we don't get the "CR is read-only" message */
-        sim_quiet = TRUE;
+        sim_quiet = true;
         rval = attach_unit(uptr, cptr);
         sim_quiet = old_quiet;
 
@@ -1680,7 +1681,7 @@ static t_stat cr_attach (UNIT *uptr, const char *iptr)
 
     /* there is a read pending. Pull the card in to make it go */
     if (CURRENT_OP == OP_READING || CURRENT_OP == OP_PUNCHING || CURRENT_OP == OP_FEEDING)
-        feedcycle(TRUE, (cp_unit.flags & UNIT_ATT) != 0);
+        feedcycle(true, (cp_unit.flags & UNIT_ATT) != 0);
 
     return SCPE_OK;
 }
@@ -1732,7 +1733,7 @@ static t_stat cp_detach   (UNIT *uptr)
 {
     if (cp_unit.flags & UNIT_ATT)
         if (punchstate == STATION_PUNCHED)
-            feedcycle(FALSE, FALSE);            /* flush out card just punched */
+            feedcycle(false, false);            /* flush out card just punched */
 
     any_punched = 0;                            /* reset punch detected */
     cp_count = 0;                               /* clear punch count */
@@ -1740,7 +1741,7 @@ static t_stat cp_detach   (UNIT *uptr)
     return detach_unit(uptr);
 }
 
-static void op_done (UNIT *u, const char *opname, t_bool issue_intr)
+static void op_done (UNIT *u, const char *opname, bool issue_intr)
 {
     if (u->flags & UNIT_DEBUG)
         DEBUG_PRINT("!CR %s Op Complete, card %d%s", opname, cr_count, issue_intr ? ", interrupt" : "");
@@ -1777,7 +1778,7 @@ static t_stat cr_svc (UNIT *uptr)
             break;
 
         case OP_FEEDING:
-            op_done(&cr_unit, "feed", FALSE);
+            op_done(&cr_unit, "feed", false);
             break;
 
         case OP_READING:
@@ -1791,7 +1792,7 @@ static t_stat cr_svc (UNIT *uptr)
                     M[(cr_addr + i) & mem_mask] = readstation[i];
 
                 readstate = STATION_READ;
-                op_done(&cr_unit, "read", TRUE);
+                op_done(&cr_unit, "read", true);
             }
             else if (++cr_unit.COLUMN < 80) {           /* 1442 interrupts on each column... */
                 SETBIT(cr_dsw,  CR_DSW_1442_READ_RESPONSE);
@@ -1803,7 +1804,7 @@ static t_stat cr_svc (UNIT *uptr)
             }
             else {                                      /* ... then issues op-complete */
                 readstate = STATION_READ;
-                op_done(&cr_unit, "read", TRUE);
+                op_done(&cr_unit, "read", true);
             }
             break;
 
@@ -1815,7 +1816,7 @@ static t_stat cr_svc (UNIT *uptr)
 
             if (cp_unit.flags & UNIT_LASTPUNCH) {
                 punchstate = STATION_PUNCHED;
-                op_done(&cp_unit, "punch", TRUE);
+                op_done(&cp_unit, "punch", true);
             }
             else if (++cp_unit.COLUMN < 80) {
                 SETBIT(cr_dsw,  CR_DSW_1442_PUNCH_RESPONSE);
@@ -1827,7 +1828,7 @@ static t_stat cr_svc (UNIT *uptr)
             }
             else {
                 punchstate = STATION_PUNCHED;
-                op_done(&cp_unit, "punch", TRUE);
+                op_done(&cp_unit, "punch", true);
             }
             break;
     }
@@ -1839,7 +1840,7 @@ void xio_2501_card (int32 addr, int32 func, int32 modify)
 {
     char msg[80];
     int ch;
-    t_bool lastcard;
+    bool lastcard;
 
 /* it would be nice for simulated reader to be able to use 2501 mode -- much more
  * efficient. Using the 1403 printer and 2501 reader speeds things up quite considerably. */
@@ -1855,19 +1856,19 @@ void xio_2501_card (int32 addr, int32 func, int32 modify)
 // the LAST_CARD bit...
 
             if ((cr_unit.flags & UNIT_ATT) == 0)
-                lastcard = TRUE;                    /* if nothing to read, hopper's empty */
+                lastcard = true;                    /* if nothing to read, hopper's empty */
             else if (readstate == STATION_LOADED)
-                lastcard = FALSE;
+                lastcard = false;
             else if (cr_unit.fileref == NULL)
-                lastcard = TRUE;
+                lastcard = true;
             else if ((ch = getc(cr_unit.fileref)) != EOF) {
                 ungetc(ch, cr_unit.fileref);        /* put character back; hopper's not empty */
-                lastcard = FALSE;
+                lastcard = false;
             }
             else if (deckfile != NULL && nextdeck())
-                lastcard = FALSE;
+                lastcard = false;
             else
-                lastcard = TRUE;                    /* there is nothing left to read for a next card */
+                lastcard = true;                    /* there is nothing left to read for a next card */
 
             CLRBIT(cr_dsw, CR_DSW_2501_LAST_CARD|CR_DSW_2501_BUSY|CR_DSW_2501_NOT_READY);
 
@@ -1909,7 +1910,7 @@ void xio_2501_card (int32 addr, int32 func, int32 modify)
             }
 
             if (readstate != STATION_LOADED)
-                feedcycle(TRUE, (cp_unit.flags & UNIT_ATT) != 0);
+                feedcycle(true, (cp_unit.flags & UNIT_ATT) != 0);
 
             SET_OP(OP_READING);
             sim_cancel(&cr_unit);
@@ -1928,7 +1929,7 @@ void xio_1442_card (int32 addr, int32 func, int32 modify)
     char msg[80];
     int ch;
     uint16 wd;
-    t_bool lastcard;
+    bool lastcard;
 
     switch (func) {
         case XIO_SENSE_DEV:
@@ -1941,21 +1942,21 @@ void xio_1442_card (int32 addr, int32 func, int32 modify)
  * have to separate out what status is 1442 is punch only and 2501 is the reader */
 
             if (cp_unit.flags & UNIT_ATT)
-                lastcard = FALSE;                   /* if punch file is open, assume infinite blank cards in reader */
+                lastcard = false;                   /* if punch file is open, assume infinite blank cards in reader */
             else if ((cr_unit.flags & UNIT_ATT) == 0)
-                lastcard = TRUE;                    /* if nothing to read, hopper's empty */
+                lastcard = true;                    /* if nothing to read, hopper's empty */
             else if (readstate == STATION_LOADED)
-                lastcard = FALSE;
+                lastcard = false;
             else if (cr_unit.fileref == NULL)
-                lastcard = TRUE;
+                lastcard = true;
             else if ((ch = getc(cr_unit.fileref)) != EOF) {
                 ungetc(ch, cr_unit.fileref);        /* put character back; hopper's not empty */
-                lastcard = FALSE;
+                lastcard = false;
             }
             else if (deckfile != NULL && nextdeck())
-                lastcard = FALSE;
+                lastcard = false;
             else
-                lastcard = TRUE;                    /* there is nothing left to read for a next card */
+                lastcard = true;                    /* there is nothing left to read for a next card */
 
             CLRBIT(cr_dsw, CR_DSW_1442_LAST_CARD | CR_DSW_1442_BUSY | CR_DSW_1442_NOT_READY);
 
@@ -2042,7 +2043,7 @@ void xio_1442_card (int32 addr, int32 func, int32 modify)
                     if (cr_unit.flags & UNIT_DEBUG)
                         DEBUG_PRINT("#CR Start Punch");
                     if (punchstate != STATION_LOADED)
-                        feedcycle(TRUE, TRUE);
+                        feedcycle(true, true);
 
                     SET_OP(OP_PUNCHING);
                     cp_unit.COLUMN = -1;
@@ -2064,7 +2065,7 @@ void xio_1442_card (int32 addr, int32 func, int32 modify)
                         break;
                     }
 
-                    feedcycle(TRUE, (cp_unit.flags & UNIT_ATT) != 0);
+                    feedcycle(true, (cp_unit.flags & UNIT_ATT) != 0);
 
                     SET_OP(OP_FEEDING);
                     sim_cancel(&cr_unit);
@@ -2083,7 +2084,7 @@ void xio_1442_card (int32 addr, int32 func, int32 modify)
                     }
 
                     if (readstate != STATION_LOADED)
-                        feedcycle(TRUE, (cp_unit.flags & UNIT_ATT) != 0);
+                        feedcycle(true, (cp_unit.flags & UNIT_ATT) != 0);
 
                     SET_OP(OP_READING);
                     sim_cancel(&cr_unit);
@@ -2214,14 +2215,14 @@ static t_stat pcr_attach (UNIT *uptr, const char *devname)
         return rval;
 
     if (hPickEvent == INVALID_HANDLE_VALUE)
-        hPickEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+        hPickEvent = CreateEvent(NULL, false, false, NULL);
 
     if (hResetEvent == INVALID_HANDLE_VALUE)
-        hResetEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+        hResetEvent = CreateEvent(NULL, false, false, NULL);
 
     pcr_status = PCR_STATUS_HEMPTY;                 /* set default status: offline, no cards */
     pcr_state  = PCR_STATE_IDLE;
-    pcr_done   = FALSE;
+    pcr_done   = false;
     cr_dsw     = CR_DSW_1442_LAST_CARD | CR_DSW_1442_NOT_READY;
 
     set_active_cr_code(CODE_BINARY);                /* force binary mode */
@@ -2265,7 +2266,7 @@ static t_stat pcr_open_controller (const char *devname)
     dcb.fOutxCtsFlow    = 0;
     dcb.fOutxDsrFlow    = 0;
     dcb.fDtrControl     = DTR_CONTROL_ENABLE;
-    dcb.fDsrSensitivity = FALSE;
+    dcb.fDsrSensitivity = false;
     dcb.fTXContinueOnXoff = 0;
     dcb.fOutX           = 0;
     dcb.fInX            = 0;
@@ -2377,14 +2378,14 @@ static DWORD CALLBACK pcr_thread (LPVOID arg)
     DWORD event;
     long nrcvd, nread, nwritten;
     HANDLE objs[4];
-    BOOL pick_queued = FALSE, reset_queued = FALSE;
+    BOOL pick_queued = false, reset_queued = false;
 
     nwaits = 0;
 
     ZeroMemory(&ovRd,  sizeof(ovRd));
     ZeroMemory(&ovWr,  sizeof(ovWr));
-    ovRd.hEvent = CreateEvent(NULL, TRUE,  FALSE, NULL);    /* create an event for async IO reads */
-    ovWr.hEvent = CreateEvent(NULL, TRUE,  FALSE, NULL);    /* create an event for async IO writes */
+    ovRd.hEvent = CreateEvent(NULL, true,  false, NULL);    /* create an event for async IO reads */
+    ovWr.hEvent = CreateEvent(NULL, true,  false, NULL);    /* create an event for async IO writes */
 
     objs[0] = ovRd.hEvent;
     objs[1] = ovWr.hEvent;
@@ -2395,23 +2396,23 @@ static DWORD CALLBACK pcr_thread (LPVOID arg)
         if (pcr_state == PCR_STATE_IDLE) {
             if (pick_queued) {
                 pcr_cmd('P');
-                pick_queued = FALSE;
-                pcr_done    = FALSE;
+                pick_queued = false;
+                pcr_done    = false;
                 pcr_state   = PCR_STATE_WAIT_PICK_CMD_RESPONSE;
             }
             else if (reset_queued) {
                 pcr_cmd('X');
-                reset_queued = FALSE;
+                reset_queued = false;
                 pcr_state = PCR_STATE_WAIT_CMD_RESPONSE;
             }
         }
 
-        event = WaitForMultipleObjects(4, objs, FALSE, PCR_STATUS_MSEC);
+        event = WaitForMultipleObjects(4, objs, false, PCR_STATUS_MSEC);
 
         switch (event) {
             case WAIT_OBJECT_0+0:                       /* read complete */
                 ResetEvent(ovRd.hEvent);
-                if (! GetOverlappedResult(hpcr, &ovRd, &nrcvd, TRUE))
+                if (! GetOverlappedResult(hpcr, &ovRd, &nrcvd, true))
                     report_error("PCR_Read", GetLastError());
                 else if (cr_unit.flags & UNIT_DEBUG)
                     printf("PCR_Read: event, %ld rcvd\n", nrcvd);
@@ -2420,19 +2421,19 @@ static DWORD CALLBACK pcr_thread (LPVOID arg)
             case WAIT_OBJECT_0+1:                       /* write complete */
                 nwritten = 0;
                 ResetEvent(ovWr.hEvent);
-                if (! GetOverlappedResult(hpcr, &ovWr, &nwritten, TRUE))
+                if (! GetOverlappedResult(hpcr, &ovWr, &nwritten, true))
                     report_error("PCR_Write", GetLastError());
                 else if (cr_unit.flags & UNIT_DEBUG)
                     printf("PCR_Write: event, %ld sent\n", nwritten);
                 continue;
 
             case WAIT_OBJECT_0+2:                       /* reset request from simulator */
-                reset_queued = TRUE;
-                pick_queued  = FALSE;
+                reset_queued = true;
+                pick_queued  = false;
                 continue;
 
             case WAIT_OBJECT_0+3:                       /* pick request from simulator */
-                pick_queued = TRUE;
+                pick_queued = true;
                 continue;
 
             case WAIT_TIMEOUT:
@@ -2530,7 +2531,7 @@ static DWORD CALLBACK pcr_thread (LPVOID arg)
                 if (pcr_handle_status_byte(nrcvd)) {
                     readstate = STATION_READ;
                     pcr_state = PCR_STATE_IDLE;
-                    pcr_done  = TRUE;
+                    pcr_done  = true;
                 }
                 break;
         }
@@ -2584,7 +2585,7 @@ static BOOL pcr_handle_status_byte (int nrcvd)
     BOOL show;
 
     if (nrcvd <= 0)
-        return FALSE;
+        return false;
 
     pcr_status = response_byte;                     /* save new status */
 
@@ -2595,9 +2596,9 @@ static BOOL pcr_handle_status_byte (int nrcvd)
         prev_status = pcr_status;
     }
 
-    pcr_set_dsw_from_status(FALSE);
+    pcr_set_dsw_from_status(false);
 
-    return TRUE;
+    return true;
 }
 
 /* pcr_set_dsw_from_status - construct device status word from current physical reader status */
@@ -2684,10 +2685,10 @@ static t_stat pcr_svc (UNIT *uptr)
                 sim_activate(&cr_unit, cr_wait);            /* keep checking frequently */
             }
             else if (pcr_done) {
-                pcr_done = FALSE;
+                pcr_done = false;
                 cr_count++;
-                op_done(&cr_unit, "pcr read", TRUE);
-                pcr_set_dsw_from_status(TRUE);
+                op_done(&cr_unit, "pcr read", true);
+                pcr_set_dsw_from_status(true);
             }
             else
                 sim_activate(&cr_unit, cr_wait);            /* keep checking frequently */
@@ -2696,8 +2697,8 @@ static t_stat pcr_svc (UNIT *uptr)
         case OP_FEEDING:
             if (pcr_done) {
                 cr_count++;
-                op_done(&cr_unit, "pcr feed", FALSE);
-                pcr_set_dsw_from_status(TRUE);
+                op_done(&cr_unit, "pcr feed", false);
+                pcr_set_dsw_from_status(true);
             }
             else
                 sim_activate(&cr_unit, cr_wait);            /* keep checking frequently */
@@ -2715,11 +2716,11 @@ static CRITICAL_SECTION pcr_critsect;
 
 static void begin_pcr_critical_section (void)
 {
-    static BOOL mustinit = TRUE;
+    static BOOL mustinit = true;
 
     if (mustinit) {
         InitializeCriticalSection(&pcr_critsect);
-        mustinit = FALSE;
+        mustinit = false;
     }
 
     EnterCriticalSection(&pcr_critsect);

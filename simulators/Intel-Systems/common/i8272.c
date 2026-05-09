@@ -34,6 +34,7 @@
         u6 - unit number/device number
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define UNIT_V_WPMODE   (UNIT_V_UF)     /* Write protect */
@@ -138,12 +139,12 @@ void i8272_reset1(uint8 devnum);
 uint8 i8272_get_dn(void);
 t_stat i8272_attach (UNIT *uptr, const char *cptr);
 t_stat i8272_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-uint8 i8272_r00(t_bool io, uint8 data);
-uint8 i8272_r01(t_bool io, uint8 data);
+uint8 i8272_r00(bool io, uint8 data);
+uint8 i8272_r01(bool io, uint8 data);
 
 /* external function prototypes */
 
-extern uint16 reg_dev(uint8 (*routine)(t_bool, uint8), uint16);
+extern uint16 reg_dev(uint8 (*routine)(bool, uint8), uint16);
 extern void multibus_put_mbyte(uint16 addr, uint8 val);
 extern uint8 multibus_get_mbyte(uint16 addr);
 
@@ -750,7 +751,7 @@ t_stat i8272_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
     IN or OUT instruction is issued.
 */
 
-uint8 i8272_r00(t_bool io, uint8 data)
+uint8 i8272_r00(bool io, uint8 data)
 {
     uint8 devnum;
 
@@ -768,7 +769,7 @@ uint8 i8272_r00(t_bool io, uint8 data)
 
 // read/write FDC data register stack
 
-uint8 i8272_r01(t_bool io, uint8 data)
+uint8 i8272_r01(bool io, uint8 data)
 {
     uint8 devnum;
 

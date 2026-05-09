@@ -60,9 +60,9 @@
  * e.g. when attached to a processor with different bus.
  * In rare cases, it's better not to include help that doesn't apply.
  * For these cases, ?#, where # is a 1-based parameter number, can be used
- * to selectively include a topic.  If the specified parameter is TRUE
+ * to selectively include a topic.  If the specified parameter is true
  * (a string with the value "T", "t" or '1'), the topic will be visible.
- * If the parameter is FALSE (NULL, or a string with any other value),
+ * If the parameter is false (NULL, or a string with any other value),
  * the topic will not be visible.
  *
  * If it can be determined at compile time whether the topic in question

@@ -36,6 +36,7 @@
 
 #include "sigma_io_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define UTRK            u3                              /* current track */
 
@@ -97,9 +98,9 @@ uint32 dk_tdv_status (uint32 un);
 t_stat dk_chan_err (uint32 dva, uint32 st);
 t_stat dk_svc (UNIT *uptr);
 t_stat dk_reset (DEVICE *dptr);
-t_bool dk_inv_ad (uint32 *da);
-t_bool dk_inc_ad (void);
-t_bool dk_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
+bool dk_inv_ad (uint32 *da);
+bool dk_inc_ad (void);
+bool dk_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
 
 /* DK data structures
 
@@ -390,13 +391,13 @@ return SCPE_OK;
 
 /* Common read/write sector end routine
 
-   case 1 - more to transfer, not end disk - reschedule, return TRUE
-   case 2 - more to transfer, end disk - uend, return TRUE
-   case 3 - transfer done, length error - uend, return TRUE
-   case 4 - transfer done, no length error - return FALSE (sched end state)
+   case 1 - more to transfer, not end disk - reschedule, return true
+   case 2 - more to transfer, end disk - uend, return true
+   case 3 - transfer done, length error - uend, return true
+   case 4 - transfer done, no length error - return false (sched end state)
 */
 
-t_bool dk_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
+bool dk_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
 {
 uint32 un = uptr - dk_unit;
 uint32 dva = dk_dib.dva | un;
@@ -405,13 +406,13 @@ if (st != CHS_ZBC) {                                    /* end record? */
     if (dk_inc_ad ())                                   /* inc addr, ovf? */
         chan_uen (dva);                                 /* uend */
     else sim_activate (uptr, dk_time * 16);             /* no, next sector */
-    return TRUE;
+    return true;
     }
 dk_inc_ad ();                                           /* just incr addr */
 if ((lnt != exp) &&                                     /* length error? */
     chan_set_chf (dva, CHF_LNTE))                       /* do we care? */
-    return TRUE;
-return FALSE;                                           /* cmd done */
+    return true;
+return false;                                           /* cmd done */
 }
 
 /* DK status routine */
@@ -445,21 +446,21 @@ return dk_flags | (dk_inv_ad (NULL)? DKV_BADS: 0);
 
 /* Validate disk address */
 
-t_bool dk_inv_ad (uint32 *da)
+bool dk_inv_ad (uint32 *da)
 {
 uint32 tk = DKA_GETTK (dk_ad);
 uint32 sc = DKA_GETSC (dk_ad);
 
 if (tk >= DK_TKUN)                                      /* badtrk? */
-    return TRUE;
+    return true;
 if (da)                                                 /* return word addr */
     *da = ((tk * DK_SCTK) + sc) * DK_WDSC;
-return FALSE;
+return false;
 }
 
 /* Increment disk address */
 
-t_bool dk_inc_ad (void)
+bool dk_inc_ad (void)
 {
 uint32 tk = DKA_GETTK (dk_ad);
 uint32 sc = DKA_GETSC (dk_ad);
@@ -472,8 +473,8 @@ if (sc >= DK_SCTK) {                                    /* overflow? */
 dk_ad = ((tk << DKA_V_TK) |                             /* rebuild dk_ad */
           (sc << DKA_V_SC));
 if (tk >= DK_TKUN)                                      /* invalid addr? */
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* Channel error */

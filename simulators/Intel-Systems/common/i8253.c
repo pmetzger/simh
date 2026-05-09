@@ -33,6 +33,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define i8253_NAME    "Intel i8253 PIT Chip"
@@ -41,7 +42,7 @@
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 
 /* globals */
@@ -87,10 +88,10 @@ t_stat i8253_clr(void);
 t_stat i8253_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat i8253_svc (UNIT *uptr);
 t_stat i8253_reset (DEVICE *dptr);
-uint8 i8253t0(t_bool io, uint8 data, uint8 devnum);
-uint8 i8253t1(t_bool io, uint8 data, uint8 devnum);
-uint8 i8253t2(t_bool io, uint8 data, uint8 devnum);
-uint8 i8253c(t_bool io, uint8 data, uint8 devnum);
+uint8 i8253t0(bool io, uint8 data, uint8 devnum);
+uint8 i8253t1(bool io, uint8 data, uint8 devnum);
+uint8 i8253t2(bool io, uint8 data, uint8 devnum);
+uint8 i8253c(bool io, uint8 data, uint8 devnum);
 
 /* i8253 Standard I/O Data Structures */
 /* up to 4 i8253 devices */
@@ -378,7 +379,7 @@ t_stat i8253_reset (DEVICE *dptr)
     IN or OUT instruction is issued.
 */
 
-uint8 i8253t0(t_bool io, uint8 data, uint8 devnum)
+uint8 i8253t0(bool io, uint8 data, uint8 devnum)
 {
     uint8 rl;
 
@@ -435,7 +436,7 @@ uint8 i8253t0(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8253t1(t_bool io, uint8 data, uint8 devnum)
+uint8 i8253t1(bool io, uint8 data, uint8 devnum)
 {
     uint8 rl;
 
@@ -492,7 +493,7 @@ uint8 i8253t1(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8253t2(t_bool io, uint8 data, uint8 devnum)
+uint8 i8253t2(bool io, uint8 data, uint8 devnum)
 {
     uint8 rl;
 
@@ -550,7 +551,7 @@ uint8 i8253t2(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8253c(t_bool io, uint8 data, uint8 devnum)
+uint8 i8253c(bool io, uint8 data, uint8 devnum)
 {
     uint8 sc;
 

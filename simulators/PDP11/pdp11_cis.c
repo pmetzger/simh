@@ -87,6 +87,7 @@
    The code is unoptimized.
 */
 
+#include <stdbool.h>
 #include "pdp11_defs.h"
 
 /* Opcode bits */
@@ -188,7 +189,7 @@ uint32 NibbleRshift (DSTR *dsrc, int32 sc, uint32 cin);
 int32 WordLshift (DSTR *dsrc, int32 sc);
 void WordRshift (DSTR *dsrc, int32 sc);
 void CreateTable (DSTR *dsrc, DSTR mtable[10]);
-t_bool cis_int_test (int32 cycles, int32 oldpc, t_stat *st);
+bool cis_int_test (int32 cycles, int32 oldpc, t_stat *st);
 int32 movx_setup (int32 op, int32 *arg);
 void movx_cleanup (int32 op);
 
@@ -1647,7 +1648,7 @@ return;
 
 /* Test for CIS mid-instruction interrupt */
 
-t_bool cis_int_test (int32 cycles, int32 oldpc, t_stat *st)
+bool cis_int_test (int32 cycles, int32 oldpc, t_stat *st)
 {
 while (cycles >= 0) {                                   /* until delay done */
     if (sim_interval > cycles) {                        /* event > delay */
@@ -1662,9 +1663,9 @@ while (cycles >= 0) {                                   /* until delay done */
         if ((*st != SCPE_OK) ||                         /* bad status or */
             trap_req & TRAP_INT) {                      /* interrupt? */
             PC = oldpc;                                 /* back out */
-            return TRUE;
+            return true;
             }                                           /* end if stop */
         }                                               /* end else event */
     }                                                   /* end while delay */
-return FALSE;
+return false;
 }

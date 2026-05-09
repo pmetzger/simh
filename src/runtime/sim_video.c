@@ -10,6 +10,7 @@
 #if defined(HAVE_LIBPNG) && defined(USE_SIM_VIDEO) && defined(HAVE_LIBSDL)
 #include <png.h>
 #endif
+#include <stdbool.h>
 #include "sim_video.h"
 #include "sim_video_internal.h"
 #include "scp.h"
@@ -17,9 +18,9 @@
 int vid_active = 0;
 int32 vid_cursor_x;
 int32 vid_cursor_y;
-t_bool vid_mouse_b1 = FALSE;
-t_bool vid_mouse_b2 = FALSE;
-t_bool vid_mouse_b3 = FALSE;
+bool vid_mouse_b1 = false;
+bool vid_mouse_b2 = false;
+bool vid_mouse_b3 = false;
 static VID_QUIT_CALLBACK vid_quit_callback = NULL;
 static VID_GAMEPAD_CALLBACK motion_callback[10];
 static VID_GAMEPAD_CALLBACK button_callback[10];
@@ -29,24 +30,24 @@ static int vid_gamepad_inited = 0;
 static void vid_controllers_setup(DEVICE *dptr);
 static void vid_controllers_cleanup(void);
 
-/* Return TRUE when a simulator has asked for optional gamepad input. */
-static t_bool vid_gamepad_callbacks_registered(void)
+/* Return true when a simulator has asked for optional gamepad input. */
+static bool vid_gamepad_callbacks_registered(void)
 {
     int i;
 
     for (i = 0; i < (int)(sizeof motion_callback / sizeof motion_callback[0]);
          i++) {
         if (motion_callback[i] != NULL)
-            return TRUE;
+            return true;
         }
 
     for (i = 0; i < (int)(sizeof button_callback / sizeof button_callback[0]);
          i++) {
         if (button_callback[i] != NULL)
-            return TRUE;
+            return true;
         }
 
-    return FALSE;
+    return false;
 }
 #endif
 
@@ -477,12 +478,12 @@ static void vid_beep_cleanup (void);
 static void vid_controllers_cleanup (void);
 
 struct VID_DISPLAY {
-t_bool vid_active_window;
-t_bool vid_mouse_captured;
+bool vid_active_window;
+bool vid_mouse_captured;
 int32 vid_flags;                                        /* Open Flags */
 int32 vid_width;
 int32 vid_height;
-t_bool vid_ready;
+bool vid_ready;
 char vid_title[128];
 SDL_Texture *vid_texture;                               /* video buffer in GPU */
 SDL_Renderer *vid_renderer;
@@ -491,11 +492,11 @@ SDL_PixelFormat *vid_format;
 uint32 vid_windowID;
 SDL_mutex *vid_draw_mutex;                              /* window update mutex */
 SDL_Cursor *vid_cursor;                                 /* current cursor */
-t_bool vid_cursor_visible;                              /* cursor visibility state */
+bool vid_cursor_visible;                                /* cursor visibility state */
 DEVICE *vid_dev;
-t_bool vid_key_state[SDL_NUM_SCANCODES];
+bool vid_key_state[SDL_NUM_SCANCODES];
 VID_DISPLAY *next;
-t_bool vid_blending;
+bool vid_blending;
 SDL_Rect *vid_dst_last;
 SDL_Rect vid_rect;
 uint32 *vid_data_last;
@@ -706,7 +707,7 @@ static t_stat vid_create_window (VID_DISPLAY *vptr)
 int wait_count = 0;
 SDL_Event user_event;
 
-vptr->vid_ready = FALSE;
+vptr->vid_ready = false;
 user_event.type = SDL_USEREVENT;
 user_event.user.code = EVENT_OPEN;
 user_event.user.data1 = vptr;
@@ -730,7 +731,7 @@ if (vid_thread_handle == NULL)
     vid_thread_handle = SDL_CreateThread (vid_thread, "vid-thread", vptr);
 else {
     SDL_Event user_event;
-    vptr->vid_ready = FALSE;
+    vptr->vid_ready = false;
     user_event.type = SDL_USEREVENT;
     user_event.user.code = EVENT_OPEN;
     user_event.user.data1 = vptr;
@@ -896,13 +897,13 @@ if ((strlen(sim_name) + 7 + (dptr ? strlen (dptr->name) : 0) + (title ? strlen (
 else
     sprintf (vptr->vid_title, "%s", sim_name);
 vptr->vid_flags = flags;
-vptr->vid_active_window = TRUE;
+vptr->vid_active_window = true;
 vptr->vid_width = width;
 vptr->vid_height = height;
-vptr->vid_mouse_captured = FALSE;
+vptr->vid_mouse_captured = false;
 vptr->vid_cursor_visible = (vptr->vid_flags & SIM_VID_INPUTCAPTURED) != 0;
-vptr->vid_blending = FALSE;
-vptr->vid_ready = FALSE;
+vptr->vid_blending = false;
+vptr->vid_ready = false;
 
 if (!vid_active) {
     vid_key_events.head = 0;
@@ -978,7 +979,7 @@ if (vid_thread_handle && vid_active <= 1) {
 while (vptr->vid_ready)
     sim_os_ms_sleep (10);
 
-vptr->vid_active_window = FALSE;
+vptr->vid_active_window = false;
 if (!vid_active && vid_mouse_events.sem) {
     SDL_DestroySemaphore(vid_mouse_events.sem);
     vid_mouse_events.sem = NULL;
@@ -1125,7 +1126,7 @@ void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32 *buf)
 vid_draw_window (&vid_first, x, y, w, h, buf);
 }
 
-t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
+t_stat vid_set_cursor_window (VID_DISPLAY *vptr, bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
 {
 SDL_Cursor *cursor = SDL_CreateCursor (data, mask, width, height, hot_x, hot_y);
 SDL_Event user_event;
@@ -1161,7 +1162,7 @@ if (SDL_PushEvent (&user_event) < 0) {
 return SCPE_OK;
 }
 
-t_stat vid_set_cursor (t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
+t_stat vid_set_cursor (bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
 {
 return vid_set_cursor_window (&vid_first, visible, width, height, data, mask, hot_x, hot_y);
 }
@@ -1639,7 +1640,7 @@ if (vptr->vid_mouse_captured) {
         sim_debug (SIM_VID_DBG_KEY, vptr->vid_dev, "vid_key() - Cursor Release\n");
         if (SDL_SetRelativeMouseMode(SDL_FALSE) < 0)    /* release cursor, show cursor */
             sim_printf ("%s: vid_key(): SDL_SetRelativeMouseMode error: %s\n", vid_dname(vptr->vid_dev), SDL_GetError());
-        vptr->vid_mouse_captured = FALSE;
+        vptr->vid_mouse_captured = false;
         return;
         }
     }
@@ -1653,14 +1654,14 @@ if (SDL_SemWait (vid_key_events.sem) == 0) {
         sim_debug (SIM_VID_DBG_KEY, vptr->vid_dev, "Keyboard Event: State: %s, Keysym(scancode,sym): (%d,%d) - %s\n", (event->state == SDL_PRESSED) ? "PRESSED" : "RELEASED", event->keysym.scancode, event->keysym.sym, vid_key_name(ev.key));
         if (event->state == SDL_PRESSED) {
             if (!vptr->vid_key_state[event->keysym.scancode]) {/* Key was not down before */
-                vptr->vid_key_state[event->keysym.scancode] = TRUE;
+                vptr->vid_key_state[event->keysym.scancode] = true;
                 ev.state = SIM_KEYPRESS_DOWN;
                 }
             else
                 ev.state = SIM_KEYPRESS_REPEAT;
             }
         else {
-            vptr->vid_key_state[event->keysym.scancode] = FALSE;
+            vptr->vid_key_state[event->keysym.scancode] = false;
             ev.state = SIM_KEYPRESS_UP;
             }
         vid_key_events.events[vid_key_events.tail++] = ev;
@@ -1709,9 +1710,9 @@ if (SDL_SemWait (vid_mouse_events.sem) == 0) {
         event->xrel = (event->x - vid_cursor_x);
         event->yrel = (event->y - vid_cursor_y);
         }
-    vid_mouse_b1 = (event->state & SDL_BUTTON(SDL_BUTTON_LEFT)) ? TRUE : FALSE;
-    vid_mouse_b2 = (event->state & SDL_BUTTON(SDL_BUTTON_MIDDLE)) ? TRUE : FALSE;
-    vid_mouse_b3 = (event->state & SDL_BUTTON(SDL_BUTTON_RIGHT)) ? TRUE : FALSE;
+    vid_mouse_b1 = (event->state & SDL_BUTTON(SDL_BUTTON_LEFT)) ? true : false;
+    vid_mouse_b2 = (event->state & SDL_BUTTON(SDL_BUTTON_MIDDLE)) ? true : false;
+    vid_mouse_b3 = (event->state & SDL_BUTTON(SDL_BUTTON_RIGHT)) ? true : false;
     sim_debug (SIM_VID_DBG_MOUSE, vptr->vid_dev, "Mouse Move Event: pos:(%d,%d) rel:(%d,%d) buttons:(%d,%d,%d) - Count: %d vid_cursor:(%d,%d)\n",
                                             event->x, event->y, event->xrel, event->yrel, (event->state & SDL_BUTTON(SDL_BUTTON_LEFT)) ? 1 : 0, (event->state & SDL_BUTTON(SDL_BUTTON_MIDDLE)) ? 1 : 0, (event->state & SDL_BUTTON(SDL_BUTTON_RIGHT)) ? 1 : 0, vid_mouse_events.count, vid_cursor_x, vid_cursor_y);
     if (vid_mouse_events.count < MAX_EVENTS) {
@@ -1755,7 +1756,7 @@ void vid_mouse_button (SDL_MouseButtonEvent *event)
 {
 SDL_Event dummy_event;
 SIM_MOUSE_EVENT ev;
-t_bool state;
+bool state;
 VID_DISPLAY *vptr = vid_get_event_window ((SDL_Event *)event, event->windowID);
 if (vptr == NULL)
    return;
@@ -1769,13 +1770,13 @@ if ((!vptr->vid_mouse_captured) && (vptr->vid_flags & SIM_VID_INPUTCAPTURED)) {
         SDL_WarpMouseInWindow (NULL, vptr->vid_width/2, vptr->vid_height/2);/* back to center */
         SDL_PumpEvents ();
         while (SDL_PeepEvents (&dummy_event, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION)) {};
-        vptr->vid_mouse_captured = TRUE;
+        vptr->vid_mouse_captured = true;
         }
     return;
     }
 if (!sim_is_running)
     return;
-state = (event->state == SDL_PRESSED) ? TRUE : FALSE;
+state = (event->state == SDL_PRESSED) ? true : false;
 if (SDL_SemWait (vid_mouse_events.sem) == 0) {
     switch (event->button) {
         case SDL_BUTTON_LEFT:
@@ -1851,18 +1852,18 @@ while (SDL_PushEvent (&user_event) < 0)
 #endif
 }
 
-t_bool vid_is_fullscreen_window (VID_DISPLAY *vptr)
+bool vid_is_fullscreen_window (VID_DISPLAY *vptr)
 {
 return (SDL_GetWindowFlags (vptr->vid_window) &
         SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
 }
 
-t_bool vid_is_fullscreen (void)
+bool vid_is_fullscreen (void)
 {
 return vid_is_fullscreen_window (&vid_first);
 }
 
-t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, t_bool flag)
+t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, bool flag)
 {
 SDL_Event user_event;
 
@@ -1883,7 +1884,7 @@ else
 return SCPE_OK;
 }
 
-t_stat vid_set_fullscreen (t_bool flag)
+t_stat vid_set_fullscreen (bool flag)
 {
 return vid_set_fullscreen_window (&vid_first, flag);
 }
@@ -1934,7 +1935,7 @@ else {
     }
 }
 
-void vid_update_cursor (VID_DISPLAY *vptr, SDL_Cursor *cursor, t_bool visible)
+void vid_update_cursor (VID_DISPLAY *vptr, SDL_Cursor *cursor, bool visible)
 {
 if (!cursor)
     return;
@@ -2060,19 +2061,19 @@ t_stat vid_set_alpha_mode (VID_DISPLAY *vptr, int mode)
 SDL_BlendMode x;
 switch (mode) {
     case SIM_ALPHA_NONE:
-        vptr->vid_blending = FALSE;
+        vptr->vid_blending = false;
         x = SDL_BLENDMODE_NONE;
         break;
     case SIM_ALPHA_BLEND:
-        vptr->vid_blending = TRUE;
+        vptr->vid_blending = true;
         x = SDL_BLENDMODE_BLEND;
         break;
     case SIM_ALPHA_ADD:
-        vptr->vid_blending = TRUE;
+        vptr->vid_blending = true;
         x = SDL_BLENDMODE_ADD;
         break;
     case SIM_ALPHA_MOD:
-        vptr->vid_blending = TRUE;
+        vptr->vid_blending = true;
         x = SDL_BLENDMODE_MOD;
         break;
     default:
@@ -2088,7 +2089,7 @@ return SCPE_OK;
 static void vid_destroy (VID_DISPLAY *vptr)
 {
 VID_DISPLAY *parent;
-vptr->vid_ready = FALSE;
+vptr->vid_ready = false;
 if (vptr->vid_cursor) {
     SDL_FreeCursor (vptr->vid_cursor);
     vptr->vid_cursor = NULL;
@@ -2113,10 +2114,10 @@ int vid_video_events (VID_DISPLAY *vptr0)
 SDL_Event event;
 static const char *eventtypes[SDL_LASTEVENT];
 static const char *windoweventtypes[256];
-static t_bool initialized = FALSE;
+static bool initialized = false;
 
 if (!initialized) {
-    initialized = TRUE;
+    initialized = true;
 
     eventtypes[SDL_QUIT] = "QUIT";          /**< User-requested quit */
 
@@ -2242,7 +2243,7 @@ if (!vid_new_window (vptr0)) {
 vid_beep_setup (400, 660);
 vid_controllers_setup (vptr0->vid_dev);
 
-vptr0->vid_ready = TRUE;
+vptr0->vid_ready = true;
 sim_debug (SIM_VID_DBG_VIDEO|SIM_VID_DBG_KEY|SIM_VID_DBG_MOUSE|SIM_VID_DBG_CURSOR, vptr0->vid_dev, "vid_thread() - Started\n");
 
 while (vid_active) {
@@ -2351,7 +2352,7 @@ while (vid_active) {
                             }
                         }
                     if (event.user.code == EVENT_CURSOR) {
-                        vid_update_cursor (vptr, (SDL_Cursor *)(event.user.data1), (t_bool)((size_t)event.user.data2));
+                        vid_update_cursor (vptr, (SDL_Cursor *)(event.user.data1), (bool)((size_t)event.user.data2));
                         event.user.data1 = NULL;
                         event.user.code = 0;    /* Mark as done */
                         }
@@ -2397,7 +2398,7 @@ while (vid_active) {
                     if (event.user.code == EVENT_OPEN) {
                         VID_DISPLAY *vptr = (VID_DISPLAY *)event.user.data1;
                         vid_new_window (vptr);
-                        vptr->vid_ready = TRUE;
+                        vptr->vid_ready = true;
                         event.user.code = 0;    /* Mark as done */
                         }
                     if (event.user.code != 0) {
@@ -3042,7 +3043,7 @@ void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32 *buf)
 return;
 }
 
-t_stat vid_set_cursor (t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
+t_stat vid_set_cursor (bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
 {
 /* Generic video API signature.
    This implementation does not use every parameter. */
@@ -3128,13 +3129,13 @@ sim_printf ("video support unavailable\n");
 return SCPE_NOFNC|SCPE_NOMESSAGE;
 }
 
-t_bool vid_is_fullscreen (void)
+bool vid_is_fullscreen (void)
 {
 sim_printf ("video support unavailable\n");
-return FALSE;
+return false;
 }
 
-t_stat vid_set_fullscreen (t_bool flag)
+t_stat vid_set_fullscreen (bool flag)
 {
 /* Generic video API signature.
    This implementation does not use every parameter. */
@@ -3202,7 +3203,7 @@ void vid_refresh_window (VID_DISPLAY *vptr)
 return;
 }
 
-t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
+t_stat vid_set_cursor_window (VID_DISPLAY *vptr, bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y)
 {
 /* Generic video API signature.
    This implementation does not use every parameter. */
@@ -3218,17 +3219,17 @@ t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32 width, u
 return SCPE_NOFNC;
 }
 
-t_bool vid_is_fullscreen_window (VID_DISPLAY *vptr)
+bool vid_is_fullscreen_window (VID_DISPLAY *vptr)
 {
 /* Generic video API signature.
    This implementation does not use every parameter. */
 (void) vptr;
 
 sim_printf ("video support unavailable\n");
-return FALSE;
+return false;
 }
 
-t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, t_bool flag)
+t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, bool flag)
 {
 /* Generic video API signature.
    This implementation does not use every parameter. */

@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "sim_tape.h"
 
@@ -167,7 +168,7 @@ int           tu_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data);
 void          tu_rst(DEVICE *dptr);
 t_stat        tu_srv(UNIT *);
 t_stat        tu_boot(int32, DEVICE *);
-void          tu_ini(UNIT *, t_bool);
+void          tu_ini(UNIT *, bool);
 t_stat        tu_reset(DEVICE *);
 t_stat        tu_attach(UNIT *, const char *);
 t_stat        tu_detach(UNIT *);

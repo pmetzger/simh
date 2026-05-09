@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_DDC
@@ -108,7 +109,7 @@ int             ddc_putptr;
 
 t_stat          ddc_devio(uint32 dev, uint64 *data);
 t_stat          ddc_svc(UNIT *);
-void            ddc_ini(UNIT *, t_bool);
+void            ddc_ini(UNIT *, bool);
 t_stat          ddc_reset(DEVICE *);
 t_stat          ddc_attach(UNIT *, const char *);
 t_stat          ddc_detach(UNIT *);

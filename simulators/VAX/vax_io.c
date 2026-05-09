@@ -51,6 +51,7 @@
    07-Sep-02    RMS     Added TMSCP and variable vector support
 */
 
+#include <stdbool.h>
 #include "uint_bits.h"
 #include "vax_qbus_internal.h"
 
@@ -137,8 +138,8 @@ void cq_serr (int32 pa);
 t_stat qba_reset (DEVICE *dptr);
 t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
-t_bool qba_map_addr (uint32 qa, uint32 *ma);
-t_bool qba_map_addr_c (uint32 qa, uint32 *ma);
+bool qba_map_addr (uint32 qa, uint32 *ma);
+bool qba_map_addr_c (uint32 qa, uint32 *ma);
 t_stat qba_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc);
 t_stat qba_show_map (FILE *of, UNIT *uptr, int32 val, const void *desc);
 t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
@@ -700,7 +701,7 @@ return SCPE_OK;
 
 /* Map an address via the translation map */
 
-t_bool qba_map_addr (uint32 qa, uint32 *ma)
+bool qba_map_addr (uint32 qa, uint32 *ma)
 {
 int32 qblk = (qa >> VA_V_VPN);                          /* Qbus blk */
 int32 qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;       /* map entry */
@@ -710,20 +711,20 @@ if (ADDR_IS_MEM (qmma)) {                               /* legit? */
     if (qmap & CQMAP_VLD) {                             /* valid? */
         *ma = ((qmap & CQMAP_PAG) << VA_V_VPN) + VA_GETOFF (qa);
         if (ADDR_IS_MEM (*ma))                          /* legit addr */
-            return TRUE;
+            return true;
         cq_serr (*ma);                                  /* slave nxm */
-        return FALSE;
+        return false;
         }
     cq_merr (qa);                                       /* master nxm */
-    return FALSE;
+    return false;
     }
 cq_serr (0);                                            /* inv mem */
-return FALSE;
+return false;
 }
 
 /* Map an address via the translation map - console version (no status changes) */
 
-t_bool qba_map_addr_c (uint32 qa, uint32 *ma)
+bool qba_map_addr_c (uint32 qa, uint32 *ma)
 {
 int32 qblk = (qa >> VA_V_VPN);                          /* Qbus blk */
 int32 qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;       /* map entry */
@@ -732,10 +733,10 @@ if (ADDR_IS_MEM (qmma)) {                               /* legit? */
     int32 qmap = M[qmma >> 2];                          /* get map */
     if (qmap & CQMAP_VLD) {                             /* valid? */
         *ma = ((qmap & CQMAP_PAG) << VA_V_VPN) + VA_GETOFF (qa);
-        return TRUE;                                    /* legit addr */
+        return true;                                    /* legit addr */
         }
     }
-return FALSE;
+return false;
 }
 
 /* Set master error */

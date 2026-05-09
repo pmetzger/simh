@@ -38,7 +38,7 @@
 /* ------------------------------------------------------------------------ */
 /* Global state */
 
-extern t_bool sim_gui;
+extern bool sim_gui;
 
 extern uint16 M[];                          /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
 extern uint16 ILSW[];                       /* interrupt level status words */
@@ -62,10 +62,10 @@ extern int32  int_mask;                     /* current active interrupt mask (ip
 extern int32  mem_mask;
 extern int32  cpu_dsw;                      /* CPU device status word */
 extern int32  con_dsw;                      /* has program stop and int run bits */
-extern t_bool running;
-extern t_bool power;
-extern bool cgi;                            /* TRUE if we are running as a CGI program */
-extern bool cgiwritable;                    /* TRUE if we can write to the disk image file in CGI mode */
+extern bool running;
+extern bool power;
+extern bool cgi;                            /* true if we are running as a CGI program */
+extern bool cgiwritable;                    /* true if we can write to the disk image file in CGI mode */
 extern t_stat reason;                       /* CPU execution loop control */
 
 #define WAIT_OP          1      /* wait state causes: wait instruction, invalid instruction*/
@@ -274,18 +274,18 @@ void   scp_panic (const char *msg);                 /* bail out of simulator */
 char  *upcase(char *str);
 void   break_simulation (t_stat reason);            /* let a device halt the simulation */
 char   hollerith_to_ascii (uint16 hol);             /* for debugging use only */
-t_bool gdu_active (void);
+bool gdu_active (void);
 void   remark_cmd (char *remark);
 long   stuff_cmd (char *cmd);
-t_bool stuff_and_wait (char *cmd, int timeout, int delay);
-void   update_gui (t_bool force);
+bool stuff_and_wait (char *cmd, int timeout, int delay);
+void   update_gui (bool force);
 void   sim_init (void);
 t_stat register_cmd (const char *name, t_stat (*action)(int32 flag, const char *ptr), int arg, const char *help);
 t_stat basic_attach (UNIT *uptr, const char *cptr);
 const char * quotefix (const char *cptr, char * buf);
 
 /* GUI interface routines */
-t_bool keyboard_is_busy (void);
+bool keyboard_is_busy (void);
 void   forms_check (int set);                       /* device notification to console lamp display */
 void   print_check (int set);
 void   keyboard_selected (int select);

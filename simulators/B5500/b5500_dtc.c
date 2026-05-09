@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "b5500_defs.h"
 #include "sim_timer.h"
 #include "sim_sock.h"
@@ -838,7 +839,7 @@ t_stat dtc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     if (newln < dtc_desc.lines) {
         for (i = newln-1, t = 0; i < dtc_desc.lines; i++)
             t = t | dtc_ldsc[i].conn;
-        if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+        if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
             return SCPE_OK;
         for (i = newln-1; i < dtc_desc.lines; i++) {
             if (dtc_ldsc[i].conn) {

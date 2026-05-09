@@ -23,6 +23,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i7090_defs.h"
 
 #ifdef NUM_DEVS_HD
@@ -39,7 +40,7 @@
 
 uint32              hsdrm_cmd(UNIT *, uint16, uint16);
 t_stat              hsdrm_srv(UNIT *);
-void                hsdrm_ini(UNIT *, t_bool);
+void                hsdrm_ini(UNIT *, bool);
 t_stat              hsdrm_reset(DEVICE *);
 t_uint64            hsdrm_addr; /* Read/write drum address */
 t_stat              set_hunits(UNIT * uptr, int32 val, const char *cptr, void *desc);
@@ -167,7 +168,7 @@ t_stat hsdrm_srv(UNIT * uptr)
 }
 
 void
-hsdrm_ini(UNIT * uptr, t_bool f)
+hsdrm_ini(UNIT * uptr, bool f)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

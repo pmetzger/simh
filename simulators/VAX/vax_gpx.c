@@ -26,6 +26,8 @@
 
 #if !defined(VAX_620)
 
+#include <stdbool.h>
+
 #include "vax_gpx.h"
 
 #define VA_FIFOSIZE     64
@@ -413,10 +415,10 @@ ln->err = (abs(dx) > abs(dy)) ? (ln->xstep * -dx) : (ln->ystep * -dy);
 
 /* Step to the next point on a line */
 
-static t_bool va_line_step (VA_LINE *ln)
+static bool va_line_step (VA_LINE *ln)
 {
 if ((ln->dx == 0) && (ln->dy == 0))                     /* null line? */
-    return TRUE;                                        /* done */
+    return true;                                        /* done */
 else if (ln->dx == 0) {                                 /* no X component? */
     ln->y = ln->y + ln->ystep;                          /* just step Y */
     ln->pix = ln->pix + (VA_XSIZE * ln->ystep);
@@ -453,9 +455,9 @@ if ((ln->x == ln->dx) && (ln->y == ln->dy)) {           /* finished? */
     ln->x = 0;
     ln->y = 0;
     ln->pix = ln->spix;
-    return TRUE;                                        /* done */
+    return true;                                        /* done */
     }
-return FALSE;                                           /* more steps to do */
+return false;                                           /* more steps to do */
 }
 
 static void va_viper_rop (int32 cn, uint32 sc, uint32 *pix)
@@ -560,7 +562,7 @@ uint32 cmd = va_adp[ADP_CMD1];
 int32 old_y, x0, x1;
 int32 sel, cn;
 int32 bs2 = -1;
-t_bool clip;
+bool clip;
 uint32 s2_temp;
 uint32 s2_csr;
 
@@ -639,22 +641,22 @@ for (;;) {
                     }
                 }
             }
-        clip = FALSE;
+        clip = false;
         if ((dst_slow.x + dst_fast.x + dx) < va_adp[ADP_CXMN]) {
             va_adp[ADP_STAT] |= ADPSTAT_CL;
-            clip = TRUE;
+            clip = true;
             }
         else if ((dst_slow.x + dst_fast.x + dx) > va_adp[ADP_CXMX]) {
             va_adp[ADP_STAT] |= ADPSTAT_CR;
-            clip = TRUE;
+            clip = true;
             }
         if ((dst_slow.y + dst_fast.y + dy) < va_adp[ADP_CYMN]) {
             va_adp[ADP_STAT] |= ADPSTAT_CT;
-            clip = TRUE;
+            clip = true;
             }
         else if ((dst_slow.y + dst_fast.y + dy) > va_adp[ADP_CYMX]) {
             va_adp[ADP_STAT] |= ADPSTAT_CB;
-            clip = TRUE;
+            clip = true;
             }
         if ((cmd & 0x400) && (va_adp[ADP_MDE] & 0x80) && !clip) {    /* dest enabled, pen down? */
             /* Call all enabled Vipers to process the current pixel */
@@ -663,7 +665,7 @@ for (;;) {
                     va_viper_rop (cn, (dst_fast.x & 0xF), &va_buf[dst_fast.pix]);
                 }
             sim_debug (DBG_ROP, gpx_dev, "-> Dest X: %d, Y: %d, pix: %X\n", dst_fast.x, dst_slow.y, va_buf[dst_fast.pix]);
-            va_updated[dst_slow.y + dst_fast.y + dy] = TRUE;
+            va_updated[dst_slow.y + dst_fast.y + dy] = true;
             }
 
         if (va_line_step (&dst_fast))                   /* fast vector exhausted? */
@@ -699,7 +701,7 @@ uint32 cmd = va_adp[ADP_CMD1];
 int32 sel, cn;
 int32 bs1 = -1;
 int32 bs2 = -1;
-t_bool clip, scale, wrap;
+bool clip, scale, wrap;
 uint32 s1_temp;
 uint32 s2_temp;
 uint32 s1_csr;
@@ -707,11 +709,11 @@ uint32 s2_csr;
 uint32 acf = 0;                                         /* fast scale accumulator */
 uint32 acs = 0;                                         /* slow scale accumulator */
 
-scale = FALSE;
+scale = false;
 if ((va_adp[ADP_FS] & 0x1FFF) != 0x1FFF)                /* fast scale != unity? */
-    scale = TRUE;                                       /* enable scaling */
+    scale = true;                                       /* enable scaling */
 if ((va_adp[ADP_SS] & 0x1FFF) != 0x1FFF)                /* slow scale != unity? */
-    scale = TRUE;                                       /* enable scaling */
+    scale = true;                                       /* enable scaling */
 
 if (cmd & 0x4) {
     s1_csr = VDP_CSR4;                                  /* CSR bank 2 */
@@ -839,22 +841,22 @@ for (;;) {
                 }
             }
         }
-    clip = FALSE;
+    clip = false;
     if ((dst_slow.x + dst_fast.x + dx) < va_adp[ADP_CXMN]) {
         va_adp[ADP_STAT] |= ADPSTAT_CL;
-        clip = TRUE;
+        clip = true;
         }
     else if ((dst_slow.x + dst_fast.x + dx) > va_adp[ADP_CXMX]) {
         va_adp[ADP_STAT] |= ADPSTAT_CR;
-        clip = TRUE;
+        clip = true;
         }
     if ((dst_slow.y + dst_fast.y + dy) < va_adp[ADP_CYMN]) {
         va_adp[ADP_STAT] |= ADPSTAT_CT;
-        clip = TRUE;
+        clip = true;
         }
     else if ((dst_slow.y + dst_fast.y + dy) > va_adp[ADP_CYMX]) {
         va_adp[ADP_STAT] |= ADPSTAT_CB;
-        clip = TRUE;
+        clip = true;
         }
     if ((cmd & 0x400) && (va_adp[ADP_MDE] & 0x80) && !clip) {    /* dest enabled, pen down? */
         /* Call all enabled Vipers to process the current pixel */
@@ -863,7 +865,7 @@ for (;;) {
                 va_viper_rop (cn, (dst_fast.x & 0xF), &va_buf[dst_fast.pix]);
             }
         sim_debug (DBG_ROP, gpx_dev, "-> Dest X: %d, Y: %d, pix: %X\n", dst_fast.x, dst_slow.y, va_buf[dst_fast.pix]);
-        va_updated[dst_slow.y + dst_fast.y + dy] = TRUE;
+        va_updated[dst_slow.y + dst_fast.y + dy] = true;
         }
 
     if ((va_adp[ADP_MDE] & 3) == 2) {                   /* linear pattern mode? */
@@ -884,7 +886,7 @@ for (;;) {
         if (cmd & 0x800) {                              /* source 1 enabled? */
             if (scale) {
                 acf = acf + (va_adp[ADP_FS] & 0x1FFF) + 1; /* increment fast accumulator */
-                wrap = FALSE;
+                wrap = false;
                 if ((va_adp[ADP_FS] & 0x2000) || (acf & 0x2000)) /* all but upscaling, no overflow */
                     wrap = wrap | va_line_step (&s1_fast); /* fast vector exhausted? */
                 if (((va_adp[ADP_FS] & 0x2000) == 0) || (acf & 0x2000)) /* all but downscaling, no overflow */
@@ -1422,7 +1424,7 @@ if (va_adp[ADP_PYSC] & 0x1000) {                        /* down scrolling? */
                         dest++;
                         }
                     }
-                va_updated[y_new] = TRUE;
+                va_updated[y_new] = true;
                 y_new++;
                 if (y_new == va_adp[ADP_YL]) {
                     y_new = 0;
@@ -1461,7 +1463,7 @@ else {                                                  /* up, left or right */
                     sim_debug (DBG_ROP, gpx_dev, "(%d, %d) -> (%d, %d) = %X\n", (x + va_adp[ADP_PXMN]), (y_old + y), (x + va_adp[ADP_PXMN]), (y_new + y), va_buf[dest]);
                     dest++;
                     }
-                va_updated[y_new + y] = TRUE;
+                va_updated[y_new + y] = true;
                 dest = dest + (VA_XSIZE - x_size);
                 src = src + (VA_XSIZE - x_size);
                 }
@@ -1506,7 +1508,7 @@ else {                                                  /* up, left or right */
                                 src--;
                                 }
                             }
-                        va_updated[y] = TRUE;
+                        va_updated[y] = true;
                         dest = dest + (VA_XSIZE + (x_max - x_min)) + 1;
                         src = src + (VA_XSIZE + (x_max - x_min)) + 1;
                         }
@@ -1540,7 +1542,7 @@ else {                                                  /* up, left or right */
                                 src++;
                                 }
                             }
-                        va_updated[y] = TRUE;
+                        va_updated[y] = true;
                         dest = dest + (VA_XSIZE - (x_max - x_min));
                         src = src + (VA_XSIZE - (x_max - x_min));
                         }
@@ -1692,10 +1694,10 @@ s1_slow.err = s1_slow.err + va_adp[ADP_ERR2];
 sim_debug (DBG_ROP, gpx_dev, "\n");
 }
 
-t_stat va_ptb (UNIT *uptr, t_bool zmode)
+t_stat va_ptb (UNIT *uptr, bool zmode)
 {
 uint32 val = 0, sc;
-t_bool clip;
+bool clip;
 
 if ((uptr->CMD != CMD_PTBX) && (uptr->CMD != CMD_PTBZ))
     return SCPE_OK;
@@ -1713,22 +1715,22 @@ for (;;) {
             val = va_fifo_rd ();                        /* read FIFO */
             }
         }
-    clip = FALSE;
+    clip = false;
     if ((dst_fast.x + dx) < va_adp[ADP_CXMN]) {
         va_adp[ADP_STAT] |= ADPSTAT_CL;
-        clip = TRUE;
+        clip = true;
         }
     else if ((dst_fast.x + dx) > va_adp[ADP_CXMX]) {
         va_adp[ADP_STAT] |= ADPSTAT_CR;
-        clip = TRUE;
+        clip = true;
         }
     if ((dst_fast.y + dy) < va_adp[ADP_CYMN]) {
         va_adp[ADP_STAT] |= ADPSTAT_CT;
-        clip = TRUE;
+        clip = true;
         }
     else if ((dst_fast.y + dy) > va_adp[ADP_CYMX]) {
         va_adp[ADP_STAT] |= ADPSTAT_CB;
-        clip = TRUE;
+        clip = true;
         }
     if ((va_adp[ADP_CMD1] & 0x400) && (va_adp[ADP_MDE] & 0x80) && !clip) {   /* dest enabled, pen down? */
         if (zmode)
@@ -1740,7 +1742,7 @@ for (;;) {
                 va_buf[dst_fast.pix] = va_buf[dst_fast.pix] & ~va_ucs; /* clear pixel in selected chips */
             }
         sim_debug (DBG_ROP, gpx_dev, "-> Dest X: %d, Y: %d, pix: %X\n", dst_fast.x, dst_slow.y, va_buf[dst_fast.pix]);
-        va_updated[dst_slow.y + dst_fast.y + dy] = TRUE;
+        va_updated[dst_slow.y + dst_fast.y + dy] = true;
         }
 
     if (va_line_step (&dst_fast)) {                     /* fast vector exhausted? */
@@ -1755,7 +1757,7 @@ va_adpstat (ADPSTAT_AC | ADPSTAT_RC, 0);
 return SCPE_OK;
 }
 
-t_stat va_btp (UNIT *uptr, t_bool zmode)
+t_stat va_btp (UNIT *uptr, bool zmode)
 {
 uint32 val, sc;
 
@@ -1831,7 +1833,7 @@ dest = (y0 * VA_XSIZE) + x0;
 for (y = y0; y < y1; y++) {
     for (x = x0; x < x1; x++)
        va_buf[dest++] = zfill[x & 0xF];
-    va_updated[y] = TRUE;
+    va_updated[y] = true;
     dest = dest + VA_XSIZE - (x1 - x0);
     }
 sim_debug (DBG_ROP, gpx_dev, "Erase Complete\n");

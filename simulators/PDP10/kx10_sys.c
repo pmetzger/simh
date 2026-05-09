@@ -30,6 +30,7 @@
 #include "kx10_defs.h"
 #include "sim_card.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 
 /* SCP data structures and interface routines
@@ -509,7 +510,7 @@ static uint64 getrimw (FILE *fileref)
 static t_stat load_rim (FILE *fileref)
 {
     uint64        count, cksm, data;
-    t_bool        its_rim;
+    bool          its_rim;
     uint32        pa;
     int32         op, i, ldrc;
 
@@ -518,9 +519,9 @@ static t_stat load_rim (FILE *fileref)
         return SCPE_FMT;
     ldrc = 1 + (RMASK ^ ((int32) ((data >> 18) & RMASK))); /* get loader count */
     if (ldrc == 016)                                    /* 16? RIM10B */
-        its_rim = FALSE;
+        its_rim = false;
     else if (ldrc == 017)                               /* 17? ITS RIM */
-        its_rim = TRUE;
+        its_rim = true;
     else return SCPE_FMT;                               /* unknown */
 
     for (i = 0; i < ldrc; i++) {                        /* skip the loader */

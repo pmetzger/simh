@@ -220,8 +220,8 @@ uint32 vc_curx = 0;                                     /* Cursor X-position */
 uint32 vc_cur_x = 0;                                    /* Last cursor X-position */
 uint32 vc_cur_y = 0;                                    /* Last cursor Y-position */
 uint32 vc_cur_f = 0;                                    /* Last cursor function (0->AND, 1->OR) */
-t_bool vc_cur_v = FALSE;                                /* Last cursor visible */
-t_bool vc_cur_new_data = FALSE;                         /* New Cursor image data */
+bool vc_cur_v = false;                                  /* Last cursor visible */
+bool vc_cur_new_data = false;                           /* New Cursor image data */
 bool vc_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
 uint32 vc_mpos = 0;                                     /* Mouse position */
 uint32 vc_crtc[CRTC_SIZE];                              /* CRTC registers */
@@ -233,7 +233,7 @@ uint32 *vc_buf = NULL;                                  /* Video memory */
 uint32 *vc_lines = NULL;                                /* Video Display Lines */
 uint8 vc_cur[256];                                      /* Cursor image */
 uint32 vc_palette[2];                                   /* Monochrome palette */
-t_bool vc_active = FALSE;
+bool vc_active = false;
 
 t_stat vc_rd (int32 *data, int32 PA, int32 access);
 t_stat vc_wr (int32 data, int32 PA, int32 access);
@@ -328,11 +328,11 @@ MTAB vc_mod[] = {
         &vc_set_enable, NULL, NULL, "Enable VCB01 (QVSS)" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
         &vc_set_enable, NULL, NULL, "Disable VCB01 (QVSS)" },
-    { MTAB_XTD|MTAB_VDV, TRUE, NULL, "CAPTURE",
+    { MTAB_XTD|MTAB_VDV, true, NULL, "CAPTURE",
         &vc_set_capture, &vc_show_capture, NULL, "Enable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, FALSE, NULL, "NOCAPTURE",
+    { MTAB_XTD|MTAB_VDV, false, NULL, "NOCAPTURE",
         &vc_set_capture, NULL, NULL, "Disable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, TRUE, "OSCURSOR", NULL,
+    { MTAB_XTD|MTAB_VDV, true, "OSCURSOR", NULL,
         NULL, &vc_show_capture, NULL, "Display Input Capture mode" },
     { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "VIDEO", NULL,
         NULL, &vid_show_video, NULL, "Display the host system video capabilities" },
@@ -712,7 +712,7 @@ if (rg >= 0xFFF8) {                                     /* cursor image */
         }
     for (i = 0; i < (lnt << 3); i++)
         vc_cur[idx++] = (val >> i) & 1;                 /* 1bpp to 8bpp */
-    vc_cur_new_data = TRUE;
+    vc_cur_new_data = true;
     }
 else if (rg >= 0xFE00) {                                /* scanline map */
     if (vc_buf[rg] != nval) {
@@ -748,7 +748,7 @@ for (ln = y1; ln < y2; ln++)
     vc_map[ln] &= ~VCMAP_VLD;                           /* invalidate map entry */
 }
 
-static void vc_set_vid_cursor (t_bool visible, int func, uint8 *cur_bits)
+static void vc_set_vid_cursor (bool visible, int func, uint8 *cur_bits)
 {
 uint8 data[2*16];
 uint8 mask[2*16];
@@ -881,7 +881,7 @@ t_stat vc_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
-t_bool updated = FALSE;                                 /* flag for refresh */
+bool updated = false;                                   /* flag for refresh */
 uint32 lines;
 uint32 ln, col, off;
 int32 xpos, ypos, dx, dy;
@@ -918,7 +918,7 @@ vc_cur_y = CUR_Y;
 vid_set_cursor_position (vc_cur_x, vc_cur_y);
 vc_cur_v = CUR_V;
 vc_cur_f = CUR_F;
-vc_cur_new_data = FALSE;
+vc_cur_new_data = false;
 
 if (vid_poll_kb (&kev) == SCPE_OK)                      /* poll keyboard */
     lk_event (&kev);                                    /* push event */
@@ -979,7 +979,7 @@ for (ln = 0; ln < VC_YSIZE; ln++) {
             }
         else
             lines++;
-        updated = TRUE;
+        updated = true;
         }
     }
 
@@ -1026,7 +1026,7 @@ if (dptr->flags & DEV_DIS) {
         vc_lines = NULL;
         free (vc_map);
         vc_map = NULL;
-        vc_active = FALSE;
+        vc_active = false;
         return vid_close ();
         }
     else
@@ -1060,7 +1060,7 @@ if (!vid_active)  {
         }
     vc_palette[0] = vid_map_rgb (0x00, 0x00, 0x00);     /* black */
     vc_palette[1] = vid_map_rgb (0xFF, 0xFF, 0xFF);     /* white */
-    vc_active = TRUE;
+    vc_active = true;
     sim_printf ("QVSS Display Created.  ");
     vc_show_capture (stdout, NULL, 0, NULL);
     if (sim_log)

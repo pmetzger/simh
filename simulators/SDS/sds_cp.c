@@ -41,7 +41,7 @@
 
  The Symbol assembler punch routine uses the PBT (Punch Buffer Test)
  before issueing a connect EOM to determine if it needs to write 12 rows
- per card, or just 1.  To make Symbol work right we always return TRUE,
+ per card, or just 1.  To make Symbol work right we always return true,
  (skip) for this test.
 
  I can't find anything in the computer reference manuals that describes

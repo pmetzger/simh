@@ -260,6 +260,7 @@
 
 
 #include <math.h>
+#include <stdbool.h>
 
 #include "hp2100_defs.h"                                /* this must reflect the machine used */
 #include "hp2100_disclib.h"
@@ -459,18 +460,18 @@ typedef struct {
     uint32       params_in;                             /* count of input parameters */
     uint32       params_out;                            /* count of output parameters */
     CNTLR_CLASS  classification;                        /* command classification */
-    t_bool       valid [type_count];                    /* per-type command validity */
-    t_bool       clear_status;                          /* command clears the controller status */
-    t_bool       unit_field;                            /* command has a unit field */
-    t_bool       unit_check;                            /* command checks the unit number validity */
-    t_bool       unit_access;                           /* command accesses the drive unit */
-    t_bool       seek_wait;                             /* command waits for seek completion */
+    bool         valid [type_count];                    /* per-type command validity */
+    bool         clear_status;                          /* command clears the controller status */
+    bool         unit_field;                            /* command has a unit field */
+    bool         unit_check;                            /* command checks the unit number validity */
+    bool         unit_access;                           /* command accesses the drive unit */
+    bool         seek_wait;                             /* command waits for seek completion */
     } DS_PROPS;
 
 typedef const DS_PROPS *PRPTR;
 
-#define T   TRUE
-#define F   FALSE
+#define T   true
+#define F   false
 
 static const DS_PROPS cmd_props [] = {
 /*   par par  opcode           valid for  clear unit  unit  unit  seek */
@@ -551,12 +552,12 @@ static const char * const phase_name [] = {
 
 /* Disc library local controller routines */
 
-static t_bool start_seek      (CVPTR cvptr, UNIT *uptr, CNTLR_OPCODE next_opcode, CNTLR_PHASE next_phase);
+static bool start_seek      (CVPTR cvptr, UNIT *uptr, CNTLR_OPCODE next_opcode, CNTLR_PHASE next_phase);
 static t_stat start_read      (CVPTR cvptr, UNIT *uptr);
 static void   end_read        (CVPTR cvptr, UNIT *uptr);
 static void   start_write     (CVPTR cvptr, UNIT *uptr);
 static t_stat end_write       (CVPTR cvptr, UNIT *uptr);
-static t_bool position_sector (CVPTR cvptr, UNIT *uptr, t_bool verify);
+static bool position_sector (CVPTR cvptr, UNIT *uptr, bool verify);
 static void   next_sector     (CVPTR cvptr, UNIT *uptr);
 static t_stat io_error        (CVPTR cvptr, UNIT *uptr, CNTLR_STATUS status);
 
@@ -581,14 +582,14 @@ static uint16 drive_status (UNIT  *uptr);
    command word.  For an ICD controller, the parameter indicates the number
    of the unit to use directly.
 
-   If a valid command was prepared for execution, the routine returns TRUE and
+   If a valid command was prepared for execution, the routine returns true and
    sets the controller state to "busy."  If the command is illegal, the routine
-   returns FALSE and sets the controller state to "waiting."  In the latter
+   returns false and sets the controller state to "waiting."  In the latter
    case, the controller status will indicate the reason for the rejection.
 
    The opcode and unit number (for MAC controllers) are obtained from the buffer
    and checked for legality.  If either is illegal, the controller status is set
-   appropriately, and the routine returns FALSE.
+   appropriately, and the routine returns false.
 
    For a valid command and an available unit, the controller's opcode field is
    set from the buffer, the length field is set to the number of inbound
@@ -596,7 +597,7 @@ static uint16 drive_status (UNIT  *uptr);
    first parameter entry in the buffer.
 */
 
-t_bool dl_prepare_command (CVPTR cvptr, UNIT *units, uint32 unit_limit)
+bool dl_prepare_command (CVPTR cvptr, UNIT *units, uint32 unit_limit)
 {
 uint32 unit;
 PRPTR props;
@@ -642,13 +643,13 @@ if (cvptr->type <= last_type                            /* is the controller typ
             set_timer (cvptr, SET);                     /* start the timer to wait for the first parameter */
             }
 
-        return TRUE;                                    /* the command is now prepared for execution */
+        return true;                                    /* the command is now prepared for execution */
         }
 
 else                                                    /* the opcode is undefined */
     dl_end_command (cvptr, illegal_opcode);             /*   so set bad opcode status */
 
-return FALSE;                                           /* the preparation has failed */
+return false;                                           /* the preparation has failed */
 }
 
 
@@ -751,7 +752,7 @@ UNIT *dl_start_command (CVPTR cvptr, UNIT *units, uint32 unit_limit)
 UNIT *uptr, *rptr;
 uint32 unit;
 PRPTR props;
-t_bool is_seeking = FALSE;
+bool is_seeking = false;
 
 props = &cmd_props [cvptr->opcode];                     /* get the command properties */
 
@@ -965,22 +966,22 @@ return;
 /* Poll the drives for Attention status.
 
    If interrupts are enabled on the interface, this routine is called to check
-   if any drive is requesting attention.  The routine returns TRUE if a drive is
-   requesting attention and FALSE if not.
+   if any drive is requesting attention.  The routine returns true if a drive is
+   requesting attention and false if not.
 
    Starting with the last unit requesting attention, each drive is checked in
    sequence.  If a drive has its Attention status set, the controller saves its
    unit number, sets the result status to Drive Attention, and enters the
-   command wait state.  The routine returns TRUE to indicate that an interrupt
+   command wait state.  The routine returns true to indicate that an interrupt
    should be generated.  The next time the routine is called, the poll begins
    with the last unit that requested attention, so that each unit is given an
    equal chance to respond.
 
-   If no unit is requesting attention, the routine returns FALSE to indicate
+   If no unit is requesting attention, the routine returns false to indicate
    that no interrupt should be generated.
 */
 
-t_bool dl_poll_drives (CVPTR cvptr, UNIT *units, uint32 unit_limit)
+bool dl_poll_drives (CVPTR cvptr, UNIT *units, uint32 unit_limit)
 {
 uint32 unit;
 
@@ -993,11 +994,11 @@ for (unit = 0; unit <= unit_limit; unit++) {                /* check each unit i
         cvptr->spd_unit = SET_S1UNIT (cvptr->poll_unit);    /* set the controller's unit number */
         cvptr->status = drive_attention;                    /*   and status */
         cvptr->state = cntlr_wait;                          /*     and wait for a command */
-        return TRUE;                                        /* tell the caller to interrupt */
+        return true;                                        /* tell the caller to interrupt */
         }
     }
 
-return FALSE;                                               /* no requests, so do not generate an interrupt */
+return false;                                               /* no requests, so do not generate an interrupt */
 }
 
 
@@ -1571,7 +1572,7 @@ return;
        changed to avoid upsetting the state that was SAVEd.
 */
 
-t_stat dl_load_unload (CVPTR cvptr, UNIT *uptr, t_bool load)
+t_stat dl_load_unload (CVPTR cvptr, UNIT *uptr, bool load)
 {
 if ((uptr->flags & UNIT_ATT) == 0)                      /* the unit must be attached to [un]load */
     return SCPE_UNATT;                                  /* return "Unit not attached" if not */
@@ -1675,7 +1676,7 @@ result = attach_unit (uptr, cptr);                          /* attach the unit *
 if (result != SCPE_OK)                                      /* did the attach fail? */
     return result;                                          /* yes, so return the error status */
 
-dl_load_unload (cvptr, uptr, TRUE);                         /* if the attach succeeded, load the heads */
+dl_load_unload (cvptr, uptr, true);                         /* if the attach succeeded, load the heads */
 
 if (uptr->flags & UNIT_AUTO) {                              /* is autosizing enabled? */
     size = sim_fsize (uptr->fileref) / sizeof (uint16);     /* get the file size in words */
@@ -1703,7 +1704,7 @@ return SCPE_OK;                                             /* the unit was succ
 
 t_stat dl_detach (CVPTR cvptr, UNIT *uptr)
 {
-dl_load_unload (cvptr, uptr, FALSE);                    /* unload the heads if attached */
+dl_load_unload (cvptr, uptr, false);                    /* unload the heads if attached */
 return detach_unit (uptr);                              /*   and detach the unit */
 }
 
@@ -1785,7 +1786,7 @@ return SCPE_OK;
 static t_stat start_read (CVPTR cvptr, UNIT *uptr)
 {
 uint32 count, offset;
-t_bool verify;
+bool verify;
 const CNTLR_OPCODE opcode = (CNTLR_OPCODE) uptr->OP;
 
 if (cvptr->eod == SET) {                                /* is the end of data indicated? */
@@ -1801,7 +1802,7 @@ if (opcode == Read_Full_Sector) {                       /* are we starting a Rea
 
     set_address (cvptr, 1);                             /* set the current address into buffer 1-2 */
     offset = 3;                                         /* start the data after the header */
-    verify = FALSE;                                     /* set for no address verification */
+    verify = false;                                     /* set for no address verification */
     }
 
 else {                                                  /* it's another read command */
@@ -1928,7 +1929,7 @@ return;
 
 static void start_write (CVPTR cvptr, UNIT *uptr)
 {
-const t_bool verify = (CNTLR_OPCODE) uptr->OP == Write; /* only Write verifies the sector address */
+const bool verify = (CNTLR_OPCODE) uptr->OP == Write;   /* only Write verifies the sector address */
 
 if ((uptr->flags & UNIT_WPROT)                          /* is the unit write protected, */
   || !verify && !(uptr->flags & UNIT_FMT))              /*   or is formatting required but not enabled? */
@@ -2019,8 +2020,8 @@ return SCPE_OK;
    current cylinder and the controller's current head and sector addresses.
    Positioning may involve an auto-seek if a prior read or write addressed the
    final sector of a cylinder.  If a seek is initiated or an error is detected,
-   the routine returns FALSE to indicate that the positioning was not performed.
-   If the file was positioned, the routine returns TRUE.
+   the routine returns false to indicate that the positioning was not performed.
+   If the file was positioned, the routine returns true.
 
    On entry, if the controller's end-of-cylinder flag is set, a prior read or
    write addressed the final sector in the current cylinder.  If the file mask
@@ -2050,9 +2051,9 @@ return SCPE_OK;
    for positioning.  If it is, the file is positioned to a byte offset in the
    image file that is calculated from the CHS address.  If positioning succeeds,
    the disc service is scheduled to begin the data transfer, and the routine
-   returns TRUE to indicate that the file position is set.  If positioning fails
+   returns true to indicate that the file position is set.  If positioning fails
    with a host file system error, it is reported to the simulation console, and
-   the routine returns FALSE to indicate that an AGC (drive positioner) fault
+   the routine returns false to indicate that an AGC (drive positioner) fault
    occurred.
 
 
@@ -2064,7 +2065,7 @@ return SCPE_OK;
        drive status word.
 */
 
-static t_bool position_sector (CVPTR cvptr, UNIT *uptr, t_bool verify)
+static bool position_sector (CVPTR cvptr, UNIT *uptr, bool verify)
 {
 uint32 block;
 uint32 model = GET_MODEL (uptr->flags);
@@ -2117,18 +2118,18 @@ else {                                                  /* we are ready to posit
     if (sim_fseek (uptr->fileref, uptr->pos, SEEK_SET)) {   /* set the image file position; if it failed */
         io_error (cvptr, uptr, status_2_error);             /*   then report it to the simulation console */
 
-        dl_load_unload (cvptr, uptr, FALSE);                /* unload the heads */
+        dl_load_unload (cvptr, uptr, false);                /* unload the heads */
         uptr->STAT |= DL_S2FAULT;                           /*   and set Fault status */
         }
 
     else {                                              /* otherwise the seek succeeded */
         uptr->wait = cvptr->data_time;                  /*   so delay for the data access time */
 
-        return TRUE;                                    /* report that positioning was accomplished */
+        return true;                                    /* report that positioning was accomplished */
         }
     }
 
-return FALSE;                                           /* report that positioning failed or was deferred */
+return false;                                           /* report that positioning failed or was deferred */
 }
 
 
@@ -2183,7 +2184,7 @@ return;                                                 /*   indicate that an up
    cylinder, head, and sector values in the controller are valid for the current
    drive model.  If the current operation is a recalibrate, a seek is initiated
    to cylinder 0 instead of the cylinder value stored in the controller.  The
-   routine returns TRUE if the drive was ready for the seek and FALSE if it was
+   routine returns true if the drive was ready for the seek and false if it was
    not.
 
    If the controller cylinder is beyond the drive's limit, Seek Check status is
@@ -2217,7 +2218,7 @@ return;                                                 /*   indicate that an up
        service is scheduled as though a one-cylinder seek was requested.
 */
 
-static t_bool start_seek (CVPTR cvptr, UNIT *uptr, CNTLR_OPCODE next_opcode, CNTLR_PHASE next_phase)
+static bool start_seek (CVPTR cvptr, UNIT *uptr, CNTLR_OPCODE next_opcode, CNTLR_PHASE next_phase)
 {
 int32 delta;
 uint32 block, target_cylinder;
@@ -2225,7 +2226,7 @@ const uint32 model = GET_MODEL (uptr->flags);           /* get the drive model *
 
 if (uptr->flags & UNIT_UNLOAD) {                        /* are the heads unloaded? */
     dl_end_command (cvptr, status_2_error);             /* the seek ends with Status-2 error */
-    return FALSE;                                       /*   as the drive was not ready */
+    return false;                                       /*   as the drive was not ready */
     }
 
 if ((CNTLR_OPCODE) uptr->OP == Recalibrate)             /* is the unit recalibrating? */
@@ -2270,7 +2271,7 @@ else {                                                  /* the seek was OK or th
 
 uptr->OP    = next_opcode;                              /* set the next operation */
 uptr->PHASE = next_phase;                               /*   and command phase */
-return TRUE;                                            /*     and report that the drive was ready */
+return true;                                            /*     and report that the drive was ready */
 }
 
 

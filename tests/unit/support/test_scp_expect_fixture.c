@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -65,7 +66,7 @@ int simh_test_setup_scp_expect_fixture(void **state)
         fixture->lines[i].txbsz = 16;
     }
     assert_int_equal(tmxr_attach_ex(&fixture->mux, &fixture->unit,
-                                    "LINE=0,LOOPBACK,LINE=1,LOOPBACK", FALSE),
+                                    "LINE=0,LOOPBACK,LINE=1,LOOPBACK", false),
                      SCPE_OK);
     assert_int_equal(sim_brk_init(), SCPE_OK);
     sim_switches = 0;

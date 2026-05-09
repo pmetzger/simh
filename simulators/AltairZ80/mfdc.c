@@ -41,6 +41,7 @@
 /*#define DBG_MSG */
 #define USE_VGI     /* Use 275-byte VGI-format sectors (includes all metadata) */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 
@@ -108,7 +109,7 @@ typedef struct {
     uint8 wr_latch;     /* Write enable latch */
     uint8 int_enable;   /* Interrupt Enable */
     uint32 datacount;   /* Number of data bytes transferred from controller for current sector */
-    uint8 read_in_progress; /* TRUE if a read is in progress */
+    uint8 read_in_progress; /* true if a read is in progress */
     MFDC_DRIVE_INFO drive[MFDC_MAX_DRIVES];
 } MFDC_INFO;
 
@@ -218,13 +219,13 @@ static t_stat mfdc_reset(DEVICE *dptr)
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) {
-        sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &mdskdev, "mdskdev", TRUE);
+        sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &mdskdev, "mdskdev", true);
     } else {
         /* Connect MFDC at base address */
         for(i = 0; i < MFDC_MAX_DRIVES; i++) {
             mfdc_info->drive[i].uptr = &mfdc_dev.units[i];
         }
-        if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &mdskdev, "mdskdev", FALSE) != 0) {
+        if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &mdskdev, "mdskdev", false) != 0) {
             sim_printf("%s: error mapping resource at 0x%04x\n", __FUNCTION__, pnp->mem_base);
             dptr->flags |= DEV_DIS;
             return SCPE_ARG;
@@ -385,7 +386,7 @@ static uint8 MFDC_Read(const uint32 Addr)
 
     switch(Addr & 0x3) {
         case 0:
-            if(mfdc_info->read_in_progress == FALSE) {
+            if(mfdc_info->read_in_progress == false) {
                 pDrive->sector_wait_count++;
                 if(pDrive->sector_wait_count > 10) {
                     pDrive->sector++;
@@ -508,7 +509,7 @@ static uint8 MFDC_Read(const uint32 Addr)
                 sdata.u.checksum = checksum & 0xFF;
 #endif
 /*              DBG_PRINT(("Checksum=%x\n", sdata.u.checksum)); */
-                mfdc_info->read_in_progress = TRUE;
+                mfdc_info->read_in_progress = true;
             }
 
             cData = sdata.raw[mfdc_info->datacount];
@@ -516,7 +517,7 @@ static uint8 MFDC_Read(const uint32 Addr)
             mfdc_info->datacount++;
             if(mfdc_info->datacount == 270) {
                 sim_debug(RD_DATA_MSG, &mfdc_dev, "MFDC: " ADDRESS_FORMAT " Read sector [%d] complete\n", PCX, pDrive->sector);
-                mfdc_info->read_in_progress = FALSE;
+                mfdc_info->read_in_progress = false;
             }
 
 /*          DBG_PRINT(("MFDC: " ADDRESS_FORMAT " RD Data Sector %d[%03d]: 0x%02x\n", PCX, pDrive->sector, mfdc_info->datacount, cData)); */
@@ -649,7 +650,7 @@ static void MFDC_Command(uint8 cData)
         case MFDC_CMD_SELECT:
             mfdc_info->sel_drive = cModifier & 0x03;
             mfdc_info->head = (cModifier & 0x10) >> 4;
-            mfdc_info->selected = TRUE;
+            mfdc_info->selected = true;
 
             if(pDrive->uptr->fileref != NULL) {
                 pDrive->ready = 1;

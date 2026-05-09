@@ -26,6 +26,7 @@
     Contains code from Howard M. Harte for defining and changing disk geometry.
 */
 
+#include <stdbool.h>
 #include "m68k/m68k.h"
 #include "sim_imd.h"
 
@@ -479,10 +480,10 @@ DEVICE hdsk_dev = {
 static t_stat hdsk_reset(DEVICE *dptr)  {
     PNP_INFO *pnp = (PNP_INFO *)dptr -> ctxt;
     if (dptr -> flags & DEV_DIS) {
-        sim_map_resource(pnp -> io_base, pnp -> io_size, RESOURCE_TYPE_IO, &hdsk_io, "hdsk_io", TRUE);
+        sim_map_resource(pnp -> io_base, pnp -> io_size, RESOURCE_TYPE_IO, &hdsk_io, "hdsk_io", true);
     } else {
         /* Connect HDSK at base address */
-        if (sim_map_resource(pnp -> io_base, pnp -> io_size, RESOURCE_TYPE_IO, &hdsk_io, "hdsk_io", FALSE) != 0) {
+        if (sim_map_resource(pnp -> io_base, pnp -> io_size, RESOURCE_TYPE_IO, &hdsk_io, "hdsk_io", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp -> mem_base);
             dptr -> flags |= DEV_DIS;
             return SCPE_ARG;
@@ -784,7 +785,7 @@ static int32 bootrom_hdsk[BOOTROM_SIZE_HDSK] = {
 };
 
 static t_stat hdsk_boot(int32 unitno, DEVICE *dptr) {
-    t_bool installSuccessful;
+    bool installSuccessful;
     if (chiptype == CHIP_TYPE_M68K)
         return m68k_hdsk_boot(unitno, dptr, VERBOSE_MSG, HDSK_NUMBER);
     if (MEMORYSIZE < 24 * KB) {
@@ -803,7 +804,7 @@ static t_stat hdsk_boot(int32 unitno, DEVICE *dptr) {
         install_ALTAIRbootROM();                                            /* install modified ROM */
     }
     installSuccessful = (install_bootrom(bootrom_hdsk, BOOTROM_SIZE_HDSK, HDSK_BOOT_ADDRESS,
-                                         FALSE) == SCPE_OK);
+                                         false) == SCPE_OK);
     ASSURE(installSuccessful);
     *((int32 *) sim_PC -> loc) = HDSK_BOOT_ADDRESS;
     return SCPE_OK;
@@ -859,8 +860,8 @@ static t_stat hdsk_boot(int32 unitno, DEVICE *dptr) {
 
 */
 
-/* check the parameters and return TRUE iff parameters are correct or have been repaired */
-t_bool hdsk_checkParameters(void) {
+/* check the parameters and return true iff parameters are correct or have been repaired */
+bool hdsk_checkParameters(void) {
     UNIT *uptr;
     if ((selectedDisk < 0) || (selectedDisk >= HDSK_NUMBER)) {
         sim_debug(VERBOSE_MSG, &hdsk_dev, "HDSK%d: " ADDRESS_FORMAT
@@ -872,7 +873,7 @@ t_bool hdsk_checkParameters(void) {
     if ((hdsk_dev.units[selectedDisk].flags & UNIT_ATT) == 0) {
         sim_debug(VERBOSE_MSG, &hdsk_dev, "HDSK%d: " ADDRESS_FORMAT
                   " Disk %i is not attached.\n", selectedDisk, PCX, selectedDisk);
-        return FALSE; /* cannot read or write */
+        return false; /* cannot read or write */
     }
     if ((selectedSector < 0) || (selectedSector >= uptr -> HDSK_SECTORS_PER_TRACK)) {
         sim_debug(VERBOSE_MSG, &hdsk_dev, "HDSK%d: " ADDRESS_FORMAT
@@ -893,7 +894,7 @@ t_bool hdsk_checkParameters(void) {
                       " Error: DMA (0x%08x) + sector size (0x%02x) out of bounds. "
                       "Must be at most 0x%08x.\n",
                       selectedDisk, PCX, selectedDMA, uptr -> HDSK_SECTOR_SIZE, M68K_MAX_RAM);
-            return FALSE;
+            return false;
         }
     } else
         selectedDMA &= ADDRMASK;
@@ -909,7 +910,7 @@ t_bool hdsk_checkParameters(void) {
                   selectedDisk, PCX, selectedTrack, selectedSector,
                   uptr -> HDSK_SECTOR_SIZE, selectedDMA);
     }
-    return TRUE;
+    return true;
 }
 
 /* pre-condition: hdsk_checkParameters has been executed to repair any faulty parameters */

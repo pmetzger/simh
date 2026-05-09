@@ -31,6 +31,7 @@
 #ifndef __3B2_IF_H__
 #define __3B2_IF_H__
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 typedef struct {
@@ -43,7 +44,7 @@ typedef struct {
     uint8 side;
     uint8 read_addr_ptr;
     int8  step_dir;
-    t_bool drq;
+    bool drq;
 #if defined(REV3)
     uint8 csr;
 #endif

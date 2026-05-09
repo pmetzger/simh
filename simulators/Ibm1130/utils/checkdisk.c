@@ -30,6 +30,7 @@
 //      checkdisk -d 198.0 -n 4 file.dsk
 //              dump 4 sectors starting at m.n
 // -----------------------------------------------------------------------------------------
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,12 +42,6 @@
     long filelength (int fno);
 #   include <sys/types.h>
 #   include <sys/stat.h>
-#endif
-
-#ifndef TRUE
-#  define BOOL  int
-#  define TRUE  1
-#  define FALSE 0
 #endif
 
 #define DSK_NUMWD   321             /* words/sector */
@@ -67,7 +62,7 @@ int main (int argc, char **argv)
     FILE *fp;
     char *fname = NULL, *arg, *argval;
     int i, j, cyl, sec, pos, asec, retry, nbad = 0, nfixed = 0, nline;
-    BOOL fixit = FALSE, dump = FALSE;
+    bool fixit = false, dump = false;
     int dsec, nsec = 1;
     unsigned short wd, buf[DSK_NUMWD];
 
@@ -79,11 +74,11 @@ int main (int argc, char **argv)
             while (*arg) {
                 switch (*arg++) {
                     case 'f':
-                        fixit = TRUE;
+                        fixit = true;
                         break;
 
                     case 'd':
-                        dump = TRUE;
+                        dump = true;
 
                         if (i >= argc)
                             bail(usestr);

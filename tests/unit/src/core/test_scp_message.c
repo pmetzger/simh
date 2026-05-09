@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -20,7 +21,7 @@ static int setup_scp_message_fixture(void **state)
     sim_switches = 0;
     sim_quiet = 0;
     sim_show_message = 1;
-    sim_is_running = FALSE;
+    sim_is_running = false;
     sim_log = NULL;
     sim_deb = NULL;
     return 0;
@@ -34,7 +35,7 @@ static int teardown_scp_message_fixture(void **state)
     sim_switches = 0;
     sim_quiet = 0;
     sim_show_message = 1;
-    sim_is_running = FALSE;
+    sim_is_running = false;
     sim_log = NULL;
     sim_deb = NULL;
     return 0;

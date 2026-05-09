@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_if.h"
 
 #include "sim_disk.h"
@@ -167,7 +168,7 @@ t_stat if_reset(DEVICE *dptr)
 
 t_stat if_attach(UNIT *uptr, const char *cptr)
 {
-    return sim_disk_attach(uptr, cptr, 512, 1, TRUE, 0, NULL, 0, 0);
+    return sim_disk_attach(uptr, cptr, 512, 1, true, 0, NULL, 0, 0);
 }
 
 t_stat if_detach(UNIT *uptr)
@@ -443,7 +444,7 @@ void if_handle_command(void)
                           sectsread);
             }
             /* We set DRQ right away to request the transfer. */
-            if_state.drq = TRUE;
+            if_state.drq = true;
             if_state.status |= IF_DRQ;
             if (if_state.cmd & IF_E_FLAG) {
                 if_activate(IF_R_DELAY + IF_VERIFY_DELAY + head_switch_delay);
@@ -479,7 +480,7 @@ void if_handle_command(void)
          * be written by the host into our buffer by 512 writes to the
          * data register. When the IF device later activates, the data
          * will actually be written. */
-        if_state.drq = TRUE;
+        if_state.drq = true;
         if_state.status |= IF_DRQ;
         if (if_state.cmd & IF_E_FLAG) {
             if_activate(IF_W_DELAY + IF_VERIFY_DELAY + head_switch_delay);
@@ -496,7 +497,7 @@ void if_handle_command(void)
         break;
     case IF_READ_ADDR:
         sim_debug(EXECUTE_MSG, &if_dev, "\tCOMMAND\t%02x\tRead Address\n", if_state.cmd);
-        if_state.drq = TRUE;
+        if_state.drq = true;
         if_state.status |= IF_DRQ;
         if_activate(IF_R_DELAY);
         break;
@@ -508,7 +509,7 @@ void if_handle_command(void)
     case IF_WRITE_TRACK:
         sim_debug(EXECUTE_MSG, &if_dev, "\tCOMMAND\t%02x\tWrite Track\n", if_state.cmd);
         /* Set DRQ */
-        if_state.drq = TRUE;
+        if_state.drq = true;
         if_state.status |= IF_DRQ;
         if (if_state.cmd & IF_E_FLAG) {
             if_activate(IF_W_DELAY + IF_VERIFY_DELAY + head_switch_delay);
@@ -676,6 +677,6 @@ static inline uint32 if_lba(void)
 
 void if_after_dma(void)
 {
-    if_state.drq = FALSE;
+    if_state.drq = false;
     if_state.status &= ~IF_DRQ;
 }

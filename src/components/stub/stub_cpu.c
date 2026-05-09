@@ -26,6 +26,7 @@
 
 #include "stub_defs.h"
 
+#include <stdbool.h>
 
 /* Debug */
 #define DBG_CPU         0001
@@ -116,13 +117,13 @@ static t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32 sw)
   return SCPE_OK;
 }
 
-static t_bool pc_is_a_subroutine_call (t_addr **ret_addrs)
+static bool pc_is_a_subroutine_call (t_addr **ret_addrs)
 {
   /* Generic subroutine-detection callback signature.
      This implementation does not use every parameter. */
   (void) ret_addrs;
 
-  return FALSE;
+  return false;
 }
 
 static t_stat

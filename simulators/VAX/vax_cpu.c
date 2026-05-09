@@ -184,6 +184,7 @@
 
 /* Definitions */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 #define UNIT_V_CONH     (UNIT_V_UF + 0)                 /* halt to console */
@@ -317,7 +318,7 @@ const uint32 align[4] = {
 extern int32 sys_model;
 
 t_stat cpu_reset (DEVICE *dptr);
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
 t_stat cpu_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
 t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
@@ -332,8 +333,8 @@ const char *cpu_description (DEVICE *dptr);
 int32 cpu_get_vsw (int32 sw);
 static inline int32 get_istr (int32 lnt, int32 acc);
 int32 ReadOcta (uint32 va, uint32 *opnd, int32 j, int32 acc);
-t_bool cpu_show_opnd (FILE *st, InstHistory *h, int32 line);
-t_stat cpu_show_hist_records (FILE *st, t_bool do_header, int32 start, int32 count);
+bool cpu_show_opnd (FILE *st, InstHistory *h, int32 line);
+t_stat cpu_show_hist_records (FILE *st, bool do_header, int32 start, int32 count);
 int32 cpu_emulate_exception (uint32 *opnd, int32 cc, int32 opc, int32 acc);
 void cpu_idle (void);
 
@@ -529,7 +530,7 @@ if (abortval > 0) {                                     /* sim stop? */
     PSL = PSL | cc;                                     /* put PSL together */
     pcq_r->qptr = pcq_p;                                /* update pc q ptr */
     if (hst_log) {                                      /* auto logging history? */
-        cpu_show_hist_records (hst_log, FALSE, hst_log_p, (hst_p < hst_log_p) ? hst_lnt - (hst_log_p - hst_p) : hst_p - hst_log_p);
+        cpu_show_hist_records (hst_log, false, hst_log_p, (hst_p < hst_log_p) ? hst_lnt - (hst_log_p - hst_p) : hst_p - hst_log_p);
         hst_log_p = hst_p;                              /* record everything logged */
         }
     return abortval;                                    /* return to SCP */
@@ -1594,7 +1595,7 @@ for ( ;; ) {
         if (hst_p >= hst_lnt)
             hst_p = 0;
         if (hst_log && (hst_p == hst_log_p))
-            cpu_show_hist_records (hst_log, FALSE, hst_log_p, hst_lnt);
+            cpu_show_hist_records (hst_log, false, hst_log_p, hst_lnt);
         }
 
 /* Dispatch to instructions */
@@ -2625,13 +2626,13 @@ for ( ;; ) {
 */
 
     case CALLS:
-        cc = op_call (opnd, TRUE, acc);
+        cc = op_call (opnd, true, acc);
         if (sim_switches & SWMASK ('R'))
             ++step_out_nest_level;
         break;
 
     case CALLG:
-        cc = op_call (opnd, FALSE, acc);
+        cc = op_call (opnd, false, acc);
         if (sim_switches & SWMASK ('R'))
             ++step_out_nest_level;
         break;
@@ -2925,37 +2926,37 @@ for ( ;; ) {
         break;
 
     case ADDF2: case ADDF3:
-        r = op_addf (opnd, FALSE);
+        r = op_addf (opnd, false);
         WRITE_L (r);
         CC_IIZZ_FP (r);
         break;
 
     case ADDD2: case ADDD3:
-        r = op_addd (opnd, &rh, FALSE);
+        r = op_addd (opnd, &rh, false);
         WRITE_Q (r, rh);
         CC_IIZZ_FP (r);
         break;
 
     case ADDG2: case ADDG3:
-        r = op_addg (opnd, &rh, FALSE);
+        r = op_addg (opnd, &rh, false);
         WRITE_Q (r, rh);
         CC_IIZZ_FP (r);
         break;
 
     case SUBF2: case SUBF3:
-        r = op_addf (opnd, TRUE);
+        r = op_addf (opnd, true);
         WRITE_L (r);
         CC_IIZZ_FP (r);
         break;
 
     case SUBD2: case SUBD3:
-        r = op_addd (opnd, &rh, TRUE);
+        r = op_addd (opnd, &rh, true);
         WRITE_Q (r, rh);
         CC_IIZZ_FP (r);
         break;
 
     case SUBG2: case SUBG3:
-        r = op_addg (opnd, &rh, TRUE);
+        r = op_addg (opnd, &rh, true);
         WRITE_Q (r, rh);
         CC_IIZZ_FP (r);
         break;
@@ -2997,7 +2998,7 @@ for ( ;; ) {
         break;
 
     case ACBF:
-        r = op_addf (opnd + 1, FALSE);                  /* add + index */
+        r = op_addf (opnd + 1, false);                  /* add + index */
         temp = op_cmpfd (r, 0, op0, 0);                 /* result : limit */
         WRITE_L (r);                                    /* write result */
         CC_IIZP_FP (r);                                 /* set cc's */
@@ -3007,7 +3008,7 @@ for ( ;; ) {
         break;
 
     case ACBD:
-        r = op_addd (opnd + 2, &rh, FALSE);
+        r = op_addd (opnd + 2, &rh, false);
         temp = op_cmpfd (r, rh, op0, op1);
         WRITE_Q (r, rh);
         CC_IIZP_FP (r);
@@ -3017,7 +3018,7 @@ for ( ;; ) {
         break;
 
     case ACBG:
-        r = op_addg (opnd + 2, &rh, FALSE);
+        r = op_addg (opnd + 2, &rh, false);
         temp = op_cmpg (r, rh, op0, op1);
         WRITE_Q (r, rh);
         CC_IIZP_FP (r);
@@ -3313,7 +3314,7 @@ return 0;                                               /* set new cc's */
 
 void cpu_idle (void)
 {
-sim_idle (TMR_CLK, TRUE);
+sim_idle (TMR_CLK, true);
 }
 
 /*
@@ -3373,22 +3374,22 @@ static const char *cpu_next_caveats =
 "locations due to a trap, stack unwind or any other reason, instruction\n"
 "execution will continue until some other reason causes execution to stop.\n";
 
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 {
 #define MAX_SUB_RETURN_SKIP 9
 static t_addr returns[MAX_SUB_RETURN_SKIP+1] = {0};
-static t_bool caveats_displayed = FALSE;
+static bool caveats_displayed = false;
 int i;
 int32 saved_sim_switches = sim_switches;
 
 if (!caveats_displayed) {
-    caveats_displayed = TRUE;
+    caveats_displayed = true;
     sim_printf ("%s", cpu_next_caveats);
     }
 sim_switches |= SWMASK('V');
 if (SCPE_OK != get_aval (PC, &cpu_dev, &cpu_unit)) {/* get data */
     sim_switches = saved_sim_switches;
-    return FALSE;
+    return false;
     }
 sim_switches = saved_sim_switches;
 switch (sim_eval[0])
@@ -3401,9 +3402,9 @@ switch (sim_eval[0])
             returns[i] = returns[i-1] + 1;      /* Possible skip return */
         returns[i] = 0;                         /* Make sure the address list ends with a zero */
         *ret_addrs = returns;
-        return TRUE;
+        return true;
     default:
-        return FALSE;
+        return false;
     }
 }
 
@@ -3475,7 +3476,7 @@ if ((val <= 0) || (val > MAXMEMSIZE_X))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i = i + 4)
     mc = mc | M[i >> 2];
-if ((mc != 0) && !get_yn ("Really truncate memory [N]?", FALSE))
+if ((mc != 0) && !get_yn ("Really truncate memory [N]?", false))
     return SCPE_OK;
 nM = (uint32 *) calloc (uval >> 2, sizeof (uint32));
 if (nM == NULL)
@@ -3568,7 +3569,7 @@ if (cptr == NULL) {
     if (hst_log) {
         sim_set_fsize (hst_log, (t_addr)0);
         hst_log_p = 0;
-        cpu_show_hist_records (hst_log, TRUE, 0, 0);
+        cpu_show_hist_records (hst_log, true, 0, 0);
         }
     return SCPE_OK;
     }
@@ -3597,7 +3598,7 @@ if (lnt) {
     if (cptr && *cptr) {
         hst_log = sim_fopen (cptr, "w");
         if (hst_log)
-            cpu_show_hist_records (hst_log, TRUE, 0, 0);
+            cpu_show_hist_records (hst_log, true, 0, 0);
         else {
             free (hst);
             hst_lnt = 0;
@@ -3633,10 +3634,10 @@ else lnt = hst_lnt;
 di = hst_p - lnt;                                       /* work forward */
 if (di < 0)
     di = di + hst_lnt;
-return cpu_show_hist_records (st, TRUE, di, lnt);
+return cpu_show_hist_records (st, true, di, lnt);
 }
 
-t_stat cpu_show_hist_records (FILE *st, t_bool do_header, int32 start, int32 count)
+t_stat cpu_show_hist_records (FILE *st, bool do_header, int32 start, int32 count)
 {
 int32 i, k, numspec;
 InstHistory *h;
@@ -3681,17 +3682,17 @@ fflush (st);
 return SCPE_OK;
 }
 
-t_bool cpu_show_opnd (FILE *st, InstHistory *h, int32 line)
+bool cpu_show_opnd (FILE *st, InstHistory *h, int32 line)
 {
 
 int32 numspec, i, j, disp;
-t_bool more;
+bool more;
 
 numspec = drom[h->opc][0] & DR_NSPMASK;                 /* #specifiers */
 fputs ("\n                  ", st);                     /* space */
 if (hst_switches & SWMASK('T'))
     fputs ("            ", st);
-for (i = 1, j = 0, more = FALSE; i <= numspec; i++) {   /* loop thru specs */
+for (i = 1, j = 0, more = false; i <= numspec; i++) {   /* loop thru specs */
     disp = drom[h->opc][i];                             /* specifier type */
     if (disp == RG)                                     /* fix specials */
         disp = RQ;
@@ -3712,12 +3713,12 @@ for (i = 1, j = 0, more = FALSE; i <= numspec; i++) {   /* loop thru specs */
             fprintf (st, " %08X", h->opnd[j + line]);
         else fputs ("         ", st);
         if (line == 0)
-            more = TRUE;
+            more = true;
         j = j + 2;
         break;
     case RO: case MO:                                   /* read, modify octa */
         fprintf (st, " %08X", h->opnd[j + line]);
-        more = TRUE;
+        more = true;
         j = j + 4;
         break;
     case WB: case WW: case WL: case WQ: case WO:        /* write */
@@ -3849,14 +3850,14 @@ if (!cptr || !*cptr)
     return SCPE_ARG;
 while (1) {
     int i;
-    t_bool invert = FALSE;
+    bool invert = false;
     char gbuf[CBUFSIZE];
 
     cptr = get_glyph (cptr, gbuf, ';');
     if (!gbuf[0])
         break;
     if (0 == strncmp (gbuf, "NO", 2)) {
-        invert = TRUE;
+        invert = true;
         memmove (gbuf, gbuf + 2, 1 + strlen (gbuf + 2));
         }
     for (i=0; inst_groups[i].match != NULL; i++)
@@ -3889,7 +3890,7 @@ int matches;
 char const *opcd_tmp[NUM_INST];
 
 for (opc=matches=0; opc<NUM_INST; opc++) {
-    t_bool match = FALSE;
+    bool match = false;
 
     for (group=0; (!match) && (group<=IG_MAX_GRP); group++) {
         if ((1 << group) & groupmask)
@@ -3971,7 +3972,7 @@ else {
 return SCPE_OK;
 }
 
-t_stat cpu_load_bootcode (const char *filename, const unsigned char *builtin_code, size_t size, t_bool rom, t_addr offset)
+t_stat cpu_load_bootcode (const char *filename, const unsigned char *builtin_code, size_t size, bool rom, t_addr offset)
 {
 char args[CBUFSIZE];
 t_stat r;

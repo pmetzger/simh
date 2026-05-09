@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <setjmp.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 /* Used when sorting a list of command names. */
 static int _cmd_name_compare(const void *pa, const void *pb)
@@ -89,11 +90,11 @@ void fprint_help(FILE *st)
     fprintf(st, "\n");
 }
 
-static void fprint_header(FILE *st, t_bool *pdone, char *context)
+static void fprint_header(FILE *st, bool *pdone, char *context)
 {
     if (!*pdone)
         fprintf(st, "%s", context);
-    *pdone = TRUE;
+    *pdone = true;
 }
 
 static void fprint_wrapped(FILE *st, const char *buf, size_t width,
@@ -172,11 +173,11 @@ static void fprint_wrapped(FILE *st, const char *buf, size_t width,
     fprintf(st, "%s%s\n", gap ? gap : "", extra ? extra : "");
 }
 
-void fprint_reg_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
+void fprint_reg_help_ex(FILE *st, DEVICE *dptr, bool silent)
 {
     REG *rptr, *trptr;
-    t_bool found = FALSE;
-    t_bool all_unique = TRUE;
+    bool found = false;
+    bool all_unique = true;
     size_t max_namelen = 0;
     DEVICE *tdptr;
     const char *tptr;
@@ -198,10 +199,10 @@ void fprint_reg_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
                 rangebuf[0] = '\0';
             if (max_namelen < (strlen(rptr->name) + strlen(rangebuf)))
                 max_namelen = strlen(rptr->name) + strlen(rangebuf);
-            found = TRUE;
+            found = true;
             trptr = find_reg_glob(rptr->name, &tptr, &tdptr);
             if ((trptr == NULL) || (tdptr != dptr))
-                all_unique = FALSE;
+                all_unique = false;
         }
     if (!found) {
         if (!silent)
@@ -275,10 +276,10 @@ void fprint_reg_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
 
 void fprint_reg_help(FILE *st, DEVICE *dptr)
 {
-    fprint_reg_help_ex(st, dptr, TRUE);
+    fprint_reg_help_ex(st, dptr, true);
 }
 
-void fprint_attach_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
+void fprint_attach_help_ex(FILE *st, DEVICE *dptr, bool silent)
 {
     if (dptr->attach_help) {
         fprintf(st, "\n%s device attach commands:\n\n", dptr->name);
@@ -320,12 +321,12 @@ void fprint_attach_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
     }
 }
 
-void fprint_set_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
+void fprint_set_help_ex(FILE *st, DEVICE *dptr, bool silent)
 {
     MTAB *mptr;
     DEBTAB *dep;
-    t_bool found = FALSE;
-    t_bool deb_desc_available = FALSE;
+    bool found = false;
+    bool deb_desc_available = false;
     char buf[CBUFSIZE], header[CBUFSIZE], extra[CBUFSIZE];
     uint32 enabled_units = dptr->numunits;
     char unit_spec[50];
@@ -531,13 +532,13 @@ void fprint_set_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
 
 void fprint_set_help(FILE *st, DEVICE *dptr)
 {
-    fprint_set_help_ex(st, dptr, TRUE);
+    fprint_set_help_ex(st, dptr, true);
 }
 
-void fprint_show_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
+void fprint_show_help_ex(FILE *st, DEVICE *dptr, bool silent)
 {
     MTAB *mptr;
-    t_bool found = FALSE;
+    bool found = false;
     char buf[CBUFSIZE], header[CBUFSIZE], extra[CBUFSIZE];
     uint32 enabled_units = dptr->numunits;
     char unit_spec[50];
@@ -607,10 +608,10 @@ void fprint_show_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
 
 void fprint_show_help(FILE *st, DEVICE *dptr)
 {
-    fprint_show_help_ex(st, dptr, TRUE);
+    fprint_show_help_ex(st, dptr, true);
 }
 
-void fprint_brk_help_ex(FILE *st, DEVICE *dptr, t_bool silent)
+void fprint_brk_help_ex(FILE *st, DEVICE *dptr, bool silent)
 {
     BRKTYPTAB *brkt = dptr->brk_types;
     char gbuf[CBUFSIZE];
@@ -673,19 +674,19 @@ t_stat help_dev_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                 return SCPE_OK;
             }
             if (cmdp->action == &set_cmd) {
-                fprint_set_help_ex(st, dptr, FALSE);
+                fprint_set_help_ex(st, dptr, false);
                 return SCPE_OK;
             }
             if (cmdp->action == &show_cmd) {
-                fprint_show_help_ex(st, dptr, FALSE);
+                fprint_show_help_ex(st, dptr, false);
                 return SCPE_OK;
             }
             if (cmdp->action == &attach_cmd) {
-                fprint_attach_help_ex(st, dptr, FALSE);
+                fprint_attach_help_ex(st, dptr, false);
                 return SCPE_OK;
             }
             if (cmdp->action == &brk_cmd) {
-                fprint_brk_help_ex(st, dptr, FALSE);
+                fprint_brk_help_ex(st, dptr, false);
                 return SCPE_OK;
             }
             if (dptr->help)
@@ -695,7 +696,7 @@ t_stat help_dev_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
             return SCPE_OK;
         }
         if (MATCH_CMD(gbuf, "REGISTERS") == 0) {
-            fprint_reg_help_ex(st, dptr, FALSE);
+            fprint_reg_help_ex(st, dptr, false);
             return SCPE_OK;
         }
         if (dptr->help)
@@ -711,11 +712,11 @@ t_stat help_dev_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
         fprintf(st, "%s %s help\n", dptr->description(dptr), dptr->name);
     else
         fprintf(st, "%s help\n", dptr->name);
-    fprint_set_help_ex(st, dptr, TRUE);
-    fprint_show_help_ex(st, dptr, TRUE);
-    fprint_attach_help_ex(st, dptr, TRUE);
-    fprint_reg_help_ex(st, dptr, TRUE);
-    fprint_brk_help_ex(st, dptr, TRUE);
+    fprint_set_help_ex(st, dptr, true);
+    fprint_show_help_ex(st, dptr, true);
+    fprint_attach_help_ex(st, dptr, true);
+    fprint_reg_help_ex(st, dptr, true);
+    fprint_brk_help_ex(st, dptr, true);
     return SCPE_OK;
 }
 
@@ -801,7 +802,7 @@ static TOPIC *buildHelp(TOPIC *topic, DEVICE *dptr, UNIT *uptr,
     size_t asnum = 0;
     char *const *hblock;
     const char *ep;
-    t_bool excluded = FALSE;
+    bool excluded = false;
 
     memset(vstrings, 0, sizeof(vstrings));
     memset(astrings, 0, sizeof(astrings));
@@ -951,7 +952,7 @@ static TOPIC *buildHelp(TOPIC *topic, DEVICE *dptr, UNIT *uptr,
                 if (start == htext) {
                     FAIL(SCPE_ARG, Null topic name, htext);
                 }
-                excluded = FALSE;
+                excluded = false;
                 if (*start == '?') {
                     size_t n = 0;
                     start++;
@@ -963,7 +964,7 @@ static TOPIC *buildHelp(TOPIC *topic, DEVICE *dptr, UNIT *uptr,
                         vstrings[vsnum++] = va_arg(ap, char *);
                     end = vstrings[n - 1];
                     if (!end || !(sim_toupper(*end) == 'T' || *end == '1')) {
-                        excluded = TRUE;
+                        excluded = true;
                         if (*htext)
                             htext++;
                         continue;
@@ -1027,7 +1028,7 @@ static TOPIC *buildHelp(TOPIC *topic, DEVICE *dptr, UNIT *uptr,
     return topic;
 }
 
-static char *helpPrompt(TOPIC *topic, const char *pstring, t_bool oneword)
+static char *helpPrompt(TOPIC *topic, const char *pstring, bool oneword)
 {
     char *prefix;
     char *newp, *newt;
@@ -1185,7 +1186,7 @@ t_stat scp_vhelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
     size_t match;
     size_t i;
     const char *p;
-    t_bool flat_help = FALSE;
+    bool flat_help = false;
     char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
 
     static const char attach_help[] = {" ATTACH"};
@@ -1285,7 +1286,7 @@ t_stat scp_vhelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
         return SCPE_OK;
     }
 
-    while (TRUE) {
+    while (true) {
         char *pstring;
         const char *prompt[2] = {"? ", "Subtopic? "};
 
@@ -1323,7 +1324,7 @@ t_stat scp_vhelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
             }
             fprintf(st, "\n\n");
             if (flag & SCP_HELP_ONECMD) {
-                pstring = helpPrompt(topic, "", TRUE);
+                pstring = helpPrompt(topic, "", true);
                 fprintf(st,
                         "To view additional topics, type HELP %s topicname\n",
                         pstring + 1);
@@ -1339,7 +1340,7 @@ t_stat scp_vhelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
         if (!cptr || !*cptr) {
             if (topic->kids == 0)
                 topic = topic->parent;
-            pstring = helpPrompt(topic, prompt[topic->kids != 0], FALSE);
+            pstring = helpPrompt(topic, prompt[topic->kids != 0], false);
 
             cptr = read_line_p(pstring, cbuf, sizeof(cbuf), stdin);
             free(pstring);

@@ -60,6 +60,7 @@
    Options supported are Timer, Extended addressing and Floating point.
 */
 
+#include <stdbool.h>
 #include "i7070_defs.h"
 #include "sim_timer.h"
 
@@ -2890,7 +2891,7 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
            break;
         }
     }
-    if ((mc != 0) && (!get_yn("Really truncate memory [N]?", FALSE)))
+    if ((mc != 0) && (!get_yn("Really truncate memory [N]?", false)))
         return SCPE_OK;
     cpu_unit.flags &= ~UNIT_MSIZE;
     cpu_unit.flags |= val;

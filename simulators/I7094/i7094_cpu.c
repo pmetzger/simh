@@ -144,6 +144,7 @@
         i7094_sys.c     add sim_devices table entry
 */
 
+#include <stdbool.h>
 #include "i7094_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -222,16 +223,16 @@ t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_show_model (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_bool ReadI (uint32 va, t_uint64 *dat);
-t_bool Read (uint32 va, t_uint64 *dat);
-t_bool Write (uint32 va, t_uint64 dat);
+bool ReadI (uint32 va, t_uint64 *dat);
+bool Read (uint32 va, t_uint64 *dat);
+bool Write (uint32 va, t_uint64 dat);
 void WriteTA (uint32 pa, uint32 addr);
 void WriteTAD (uint32 pa, uint32 addr, uint32 decr);
 void TrapXfr (uint32 newpc);
-t_bool fp_trap (uint32 spill);
-t_bool prot_trap (uint32 decr);
-t_bool sel_trap (uint32 va);
-t_bool cpy_trap (uint32 va);
+bool fp_trap (uint32 spill);
+bool prot_trap (uint32 decr);
+bool sel_trap (uint32 va);
+bool cpy_trap (uint32 va);
 uint32 get_xri (uint32 tag);
 uint32 get_xrx (uint32 tag);
 void put_xr (uint32 tag, uint32 dat);
@@ -241,12 +242,12 @@ t_stat cpu_fprint_one_inst (FILE *st, uint32 pc, uint32 rpt, uint32 ea,
 extern uint32 chtr_eval (uint32 *decr);
 extern void op_add (t_uint64 sr);
 extern void op_mpy (t_uint64 ac, t_uint64 sr, uint32 sc);
-extern t_bool op_div (t_uint64 sr, uint32 sc);
-extern uint32 op_fad (t_uint64 sr, t_bool norm);
-extern uint32 op_fmp (t_uint64 sr, t_bool norm);
+extern bool op_div (t_uint64 sr, uint32 sc);
+extern uint32 op_fad (t_uint64 sr, bool norm);
+extern uint32 op_fmp (t_uint64 sr, bool norm);
 extern uint32 op_fdv (t_uint64);
-extern uint32 op_dfad (t_uint64 shi, t_uint64 slo, t_bool norm);
-extern uint32 op_dfmp (t_uint64 shi, t_uint64 slo, t_bool norm);
+extern uint32 op_dfad (t_uint64 shi, t_uint64 slo, bool norm);
+extern uint32 op_dfmp (t_uint64 shi, t_uint64 slo, bool norm);
 extern uint32 op_dfdv (t_uint64 shi, t_uint64 slo);
 extern void op_als (uint32 ea);
 extern void op_ars (uint32 ea);
@@ -258,7 +259,7 @@ extern t_stat op_pse (uint32 ea);
 extern t_stat op_mse (uint32 ea);
 extern t_stat ch_op_ds (uint32 ch, uint32 ds, uint32 unit);
 extern t_stat ch_op_nds (uint32 ch, uint32 ds, uint32 unit);
-extern t_stat ch_op_start (uint32 ch, uint32 clc, t_bool reset);
+extern t_stat ch_op_start (uint32 ch, uint32 clc, bool reset);
 extern t_stat ch_op_store (uint32 ch, t_uint64 *dat);
 extern t_stat ch_op_store_diag (uint32 ch, t_uint64 *dat);
 extern t_stat ch_proc (uint32 ch);
@@ -623,7 +624,7 @@ t_uint64 IR, SR, t, t1, t2, sr1 = 0;
 uint32 op, fl, tag, tagi, addr, ea;
 uint32 ch, dec, xr, xec_cnt, trp;
 uint32 i, j, sc, s1, s2, spill;
-t_bool tracing;
+bool tracing;
 
 /* Restore register state */
 
@@ -1862,7 +1863,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
             if (prot_trap (0))                          /* user mode? */
                 break;
             ch = ((op & 03) << 1) | ((op >> 9) & 01);
-            reason = ch_op_start (ch, ea, TRUE);
+            reason = ch_op_start (ch, ea, true);
             chtr_pend = chtr_eval (NULL);               /* eval chan traps */
             break;
 
@@ -1871,7 +1872,7 @@ while (reason == SCPE_OK) {                             /* loop until error */
             if (prot_trap (0))                          /* user mode? */
                 break;
             ch = ((op & 03) << 1) | ((op >> 9) & 01);
-            reason = ch_op_start (ch, ea, FALSE);
+            reason = ch_op_start (ch, ea, false);
             chtr_pend = chtr_eval (NULL);               /* eval chan traps */
             break;
 
@@ -2064,13 +2065,13 @@ return;
 
 /* Floating point trap */
 
-t_bool fp_trap (uint32 spill)
+bool fp_trap (uint32 spill)
 {
 if (mode_ftrap) {
     WriteTAD (TRAP_STD_SAV, PC, spill);
     PCQ_ENTRY;
     PC = TRAP_FP_PC;
-    return TRUE;
+    return true;
     }
 else {
     if (spill & TRAP_F_AC)
@@ -2078,20 +2079,20 @@ else {
     if (spill & TRAP_F_MQ)
         ind_mqo = 1;
     }
-return FALSE;
+return false;
 }
 
 /* (CTSS) Protection trap */
 
-t_bool prot_trap (uint32 decr)
+bool prot_trap (uint32 decr)
 {
 if (mode_user) {
     WriteTAD (TRAP_PROT_SAV, PC, decr);
     PCQ_ENTRY;
     PC = TRAP_PROT_PC;
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Store trap address and decrement, with A/B select flags; clear A/B, user mode */
@@ -2120,28 +2121,28 @@ return;
 
 /* Copy trap */
 
-t_bool cpy_trap (uint32 va)
+bool cpy_trap (uint32 va)
 {
 if (mode_ctrap) {
     WriteTA (TRAP_704_SAV, va);
     PCQ_ENTRY;
     TrapXfr (TRAP_CPY_PC);
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Select trap */
 
-t_bool sel_trap (uint32 va)
+bool sel_trap (uint32 va)
 {
 if (mode_strap) {
     WriteTA (TRAP_704_SAV, va);
     PCQ_ENTRY;
     TrapXfr (TRAP_SEL_PC);
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Store trap address - do not alter state yet (might be TRA) */
@@ -2173,44 +2174,44 @@ return;
 
 /* Read instruction and indirect */
 
-t_bool ReadI (uint32 va, t_uint64 *val)
+bool ReadI (uint32 va, t_uint64 *val)
 {
 if (mode_reloc)
     va = (va + ind_reloc) & AMASK;
 if (mode_user && ((va < ind_start) || (va > ind_limit))) {
     prot_trap (0);
-    return FALSE;
+    return false;
     }
 *val = M[va | inst_base];
-return TRUE;
+return true;
 }
 
 /* Read */
 
-t_bool Read (uint32 va, t_uint64 *val)
+bool Read (uint32 va, t_uint64 *val)
 {
 if (mode_reloc)
     va = (va + ind_reloc) & AMASK;
 if (mode_user && ((va < ind_start) || (va > ind_limit))) {
     prot_trap (0);
-    return FALSE;
+    return false;
     }
 *val = M[va | data_base];
-return TRUE;
+return true;
 }
 
 /* Write */
 
-t_bool Write (uint32 va, t_uint64 dat)
+bool Write (uint32 va, t_uint64 dat)
 {
 if (mode_reloc)
     va = (va + ind_reloc) & AMASK;
 if (mode_user && ((va < ind_start) || (va > ind_limit))) {
     prot_trap (0);
-    return FALSE;
+    return false;
     }
 M[va | data_base] = dat;
-return TRUE;
+return true;
 }
 
 /* Reset routine */

@@ -25,6 +25,7 @@
 #ifndef _I7000_H_
 #define _I7000_H_
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Definitions for each supported CPU */
@@ -213,7 +214,7 @@ struct dib {
         uint16  addr;                                   /* Unit address */
         uint16  mask;                                   /* Channel mask type */
         uint32  (*cmd)(UNIT *up, uint16 cmd, uint16 dev);/* Issue command. */
-        void    (*ini)(UNIT *up, t_bool f);
+        void    (*ini)(UNIT *up, bool f);
 };
 
 typedef struct dib DIB;
@@ -466,7 +467,7 @@ extern uint32       cdr_cmd(UNIT *, uint16, uint16);
 extern DIB          cdp_dib;
 extern DEVICE       cdp_dev;
 extern uint32       cdp_cmd(UNIT *, uint16, uint16);
-extern void         cdp_ini(UNIT *, t_bool);
+extern void         cdp_ini(UNIT *, bool);
 #endif
 
 #ifdef STACK_DEV
@@ -477,14 +478,14 @@ extern DEVICE       stack_dev;
 extern DIB          lpr_dib;
 extern DEVICE       lpr_dev;
 extern uint32       lpr_cmd(UNIT *, uint16, uint16);
-extern void         lpr_ini(UNIT *, t_bool);
+extern void         lpr_ini(UNIT *, bool);
 #endif
 
 #ifdef NUM_DEVS_CON
 extern DIB          con_dib;
 extern DEVICE       con_dev;
 extern uint32       con_cmd(UNIT *, uint16, uint16);
-extern void         con_ini(UNIT *, t_bool);
+extern void         con_ini(UNIT *, bool);
 #endif
 
 #ifdef NUM_DEVS_CHRON
@@ -502,21 +503,21 @@ extern DEVICE      coml_dev;
 
 #ifdef NUM_DEVS_DR
 extern uint32      drm_cmd(UNIT *, uint16, uint16);
-extern void        drm_ini(UNIT *, t_bool);
+extern void        drm_ini(UNIT *, bool);
 extern DIB         drm_dib;
 extern DEVICE      drm_dev;
 #endif
 
 #ifdef NUM_DEVS_DSK
 extern uint32      dsk_cmd(UNIT *, uint16, uint16);
-extern void        dsk_ini(UNIT *, t_bool);
+extern void        dsk_ini(UNIT *, bool);
 extern DIB         dsk_dib;
 extern DEVICE      dsk_dev;
 #endif
 
 #ifdef NUM_DEVS_HD
 extern uint32      hsdrm_cmd(UNIT *, uint16, uint16);
-extern void        hsdrm_ini(UNIT *, t_bool);
+extern void        hsdrm_ini(UNIT *, bool);
 extern DIB         hsdrm_dib;
 extern DEVICE      hsdrm_dev;
 #endif
@@ -533,7 +534,7 @@ extern DEVICE      htb_dev;
 #if (NUM_DEVS_MT > 0) || defined(MT_CHANNEL_ZERO)
 extern DIB         mt_dib;
 extern uint32      mt_cmd(UNIT *, uint16, uint16);
-extern void        mt_ini(UNIT *, t_bool);
+extern void        mt_ini(UNIT *, bool);
 #ifdef MT_CHANNEL_ZERO
 extern DEVICE      mtz_dev;
 #endif

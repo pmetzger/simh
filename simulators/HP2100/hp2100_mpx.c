@@ -158,6 +158,7 @@
 
 
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
@@ -827,7 +828,7 @@ static uint32 mpx_port    = 0;                  /* current port number for R/W *
 static uint32 mpx_portkey = 0;                  /* current port's key */
 static  int32 mpx_iolen   = 0;                  /* length of current I/O xfer */
 
-static t_bool mpx_uien   = FALSE;               /* unsolicited interrupts enabled */
+static bool mpx_uien   = false;                 /* unsolicited interrupts enabled */
 static uint32 mpx_uicode = 0;                   /* unsolicited interrupt reason and port */
 
 typedef struct {
@@ -912,7 +913,7 @@ static t_stat show_status   (FILE   *st,   UNIT  *uptr, int32 val,        const 
 
 /* Multiplexer local utility routines */
 
-static t_bool exec_command     (void);
+static bool exec_command     (void);
 static void   poll_connection  (void);
 static void   controller_reset (void);
 static uint32 service_time     (uint16 control_word);
@@ -1198,7 +1199,7 @@ int32  delay;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -1337,7 +1338,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -1444,8 +1445,8 @@ static t_stat cntl_service (UNIT *uptr)
 
 uint8 ch;
 uint32 i;
-t_bool add_crlf;
-t_bool set_flag = TRUE;
+bool add_crlf;
+bool set_flag = true;
 STATE last_state = mpx_state;
 
 static const char * const cmd_state [] = { "complete", "internal error!", "waiting for parameter", "executing" };
@@ -1454,15 +1455,15 @@ static const char * const cmd_state [] = { "complete", "internal error!", "waiti
 switch (mpx_state) {                                                /* dispatch on current state */
 
     case idle:                                                      /* controller idle */
-        set_flag = FALSE;                                           /* assume no UI */
+        set_flag = false;                                           /* assume no UI */
 
         if (mpx_uicode) {                                                   /* unacknowledged UI? */
-            if (mpx_uien == TRUE) {                                         /* interrupts enabled? */
+            if (mpx_uien == true) {                                         /* interrupts enabled? */
                 mpx_port = GET_UIPORT (mpx_uicode);                         /* get port number */
                 mpx_portkey = mpx_key [mpx_port];                           /* get port key */
                 mpx_ibuf = (uint16) (mpx_uicode & UI_REASON_MASK | mpx_portkey); /* report UI reason and port key */
-                set_flag = TRUE;                                            /* reissue host interrupt */
-                mpx_uien = FALSE;                                           /* disable UI */
+                set_flag = true;                                            /* reissue host interrupt */
+                mpx_uien = false;                                           /* disable UI */
 
                 tprintf (mpx_dev, DEB_CMDS, "Port %d key %d unsolicited interrupt reissued, reason = %d\n",
                          mpx_port, mpx_portkey, GET_UIREASON (mpx_uicode));
@@ -1481,7 +1482,7 @@ switch (mpx_state) {                                                /* dispatch 
                         mpx_flags [i] &= ~FL_UI_PENDING;            /* cancel pending UI */
                         }
 
-                    else if (mpx_uien == TRUE) {                    /* interrupts enabled? */
+                    else if (mpx_uien == true) {                    /* interrupts enabled? */
                         if ((mpx_flags [i] & FL_WANTBUF) &&         /* port wants a write buffer? */
                             (buf_avail (iowrite, i) > 0))           /*   and one is available? */
                             mpx_uicode = UI_WRBUF_AVAIL;            /* set UI reason */
@@ -1496,8 +1497,8 @@ switch (mpx_state) {                                                /* dispatch 
                             mpx_port = i;                                   /* set port number for Acknowledge */
                             mpx_ibuf = (uint16) (mpx_uicode | mpx_portkey); /* merge UI reason and port key */
                             mpx_uicode = mpx_uicode | mpx_port;             /* save UI reason and port */
-                            set_flag = TRUE;                                /* interrupt host */
-                            mpx_uien = FALSE;                               /* disable UI */
+                            set_flag = true;                                /* interrupt host */
+                            mpx_uien = false;                               /* disable UI */
 
                             tprintf (mpx_dev, DEB_CMDS, "Port %d key %d unsolicited interrupt generated, reason = %d\n",
                                      i, mpx_portkey, GET_UIREASON (mpx_uicode));
@@ -1530,7 +1531,7 @@ switch (mpx_state) {                                                /* dispatch 
 
             case CMD_BINARY_READ:                       /* fast binary read */
                 mpx_flags [0] &= ~FL_HAVEBUF;           /* data word was picked up by CPU */
-                set_flag = FALSE;                       /* suppress device flag */
+                set_flag = false;                       /* suppress device flag */
                 break;
 
 
@@ -1555,7 +1556,7 @@ switch (mpx_state) {                                                /* dispatch 
                         if ((mpx_iolen == 1) &&             /* final char? */
                             (ch == '_') && add_crlf) {      /* underscore and asking for CRLF? */
 
-                            add_crlf = FALSE;               /* suppress CRLF */
+                            add_crlf = false;               /* suppress CRLF */
 
                             tprintf (mpx_dev, DEB_BUF, "Port %d character '_' suppressed CR/LF\n", mpx_port);
                             }
@@ -1600,7 +1601,7 @@ switch (mpx_state) {                                                /* dispatch 
                         }
 
                     else
-                        set_flag = FALSE;                           /* ignore word */
+                        set_flag = false;                           /* ignore word */
 
                     break;
                     }
@@ -1798,14 +1799,14 @@ const  int32 port = uptr - mpx_unit;                            /* port number *
 const uint16 rt = mpx_rcvtype [port];                           /* receive type for port */
 const uint32 data_bits = 5 + GET_BPC (mpx_config [port]);       /* number of data bits */
 const uint32 data_mask = (1 << data_bits) - 1;                  /* mask for data bits */
-const t_bool fast_timing = (uptr->flags & UNIT_FASTTIME) != 0;  /* port is set for fast timing */
-const t_bool fast_binary_read = (mpx_cmd == CMD_BINARY_READ);   /* fast binary read in progress */
+const bool fast_timing = (uptr->flags & UNIT_FASTTIME) != 0;    /* port is set for fast timing */
+const bool fast_binary_read = (mpx_cmd == CMD_BINARY_READ);     /* fast binary read in progress */
 uint8 ch;
 int32 chx;
 uint32 buffer_count, write_count;
 t_stat status = SCPE_OK;
-t_bool recv_loop = !fast_binary_read;                               /* bypass if fast binary read */
-t_bool xmit_loop = !(fast_binary_read                               /* bypass if fast read */
+bool recv_loop = !fast_binary_read;                                 /* bypass if fast binary read */
+bool xmit_loop = !(fast_binary_read                                 /* bypass if fast read */
                      || mpx_flags [port] & (FL_WAITACK | FL_XOFF)   /*   or output suspended */
                      || mpx_ldsc [port].xmte == 0);                 /*     or buffer full */
 
@@ -1844,7 +1845,7 @@ while (xmit_loop && write_count > 0) {                  /* character available t
             mpx_flags [port] |= FL_WAITACK;             /* set wait for ACK */
             }
 
-        xmit_loop = FALSE;                              /* stop further transmission */
+        xmit_loop = false;                              /* stop further transmission */
         }
 
     else {                                              /* not ready for ENQ */
@@ -1862,7 +1863,7 @@ while (xmit_loop && write_count > 0) {                  /* character available t
             }
 
         else                                            /* otherwise transmission failed */
-            xmit_loop = FALSE;                          /*   so exit the loop */
+            xmit_loop = false;                          /*   so exit the loop */
         }
 
     if (status == SCPE_OK)
@@ -1939,7 +1940,7 @@ while (recv_loop) {                                     /* OK to process? */
 
     if ((ch == ACK) && (mpx_flags [port] & FL_WAITACK)) {   /* ACK and waiting for it? */
         mpx_flags [port] = mpx_flags [port] & ~FL_WAITACK;  /* clear wait flag */
-        recv_loop = FALSE;                                  /* absorb character */
+        recv_loop = false;                                  /* absorb character */
         }
 
     else if (buffer_count == 0 &&                           /* no free buffer available for char? */
@@ -1984,7 +1985,7 @@ while (recv_loop) {                                     /* OK to process? */
             tmxr_putc_ln (&mpx_ldsc [port], ch);            /* echo the char */
 
         if (rt & RT_END_ON_CHAR) {                          /* end on character? */
-            recv_loop = FALSE;                              /* assume termination */
+            recv_loop = false;                              /* assume termination */
 
             if ((ch == CR) && (rt & RT_END_ON_CR)) {
                 if (rt & RT_ENAB_ECHO)                      /* echo enabled? */
@@ -2003,7 +2004,7 @@ while (recv_loop) {                                     /* OK to process? */
                 mpx_param = RS_ETC_DC2;                     /* set termination condition */
 
             else
-                recv_loop = TRUE;                           /* no termination */
+                recv_loop = true;                           /* no termination */
             }
 
         if (recv_loop) {                                    /* no termination condition? */
@@ -2013,7 +2014,7 @@ while (recv_loop) {                                     /* OK to process? */
 
         if ((rt & RT_END_ON_CNT) &&                         /* end on count */
             (mpx_charcnt [port] == mpx_termcnt [port])) {   /*   and termination count reached? */
-            recv_loop = FALSE;                              /* set termination */
+            recv_loop = false;                              /* set termination */
             mpx_param = 0;                                  /* no extra termination info */
             mpx_charcnt [port] = 0;                         /* clear the current character count */
 
@@ -2024,7 +2025,7 @@ while (recv_loop) {                                     /* OK to process? */
             }
 
         else if (buf_len (ioread, port, put) == RD_BUF_LIMIT) { /* buffer now full? */
-            recv_loop = FALSE;                                  /* set termination */
+            recv_loop = false;                                  /* set termination */
             mpx_param = mpx_param | RS_PARTIAL;                 /*   and partial buffer flag */
             }
 
@@ -2032,7 +2033,7 @@ while (recv_loop) {                                     /* OK to process? */
             if (buffer_count == 2)                          /*   then if we're filling the first buffer */
                 recv_loop = fast_timing;                    /*     then set to loop if in fast mode */
             else                                            /*   otherwise we're filling the second */
-                recv_loop = FALSE;                          /*     so give the CPU a chance to read the first */
+                recv_loop = false;                          /*     so give the CPU a chance to read the first */
 
         else {                                              /* otherwise a termination condition exists */
             if (mpx_param & RS_PARTIAL)
@@ -2455,11 +2456,11 @@ return SCPE_OK;
        termination count is reset to 254.
 */
 
-static t_bool exec_command (void)
+static bool exec_command (void)
 {
 int32 port;
 uint32 svc_time;
-t_bool set_flag = TRUE;                                 /* flag is normally set on completion */
+bool set_flag = true;                                   /* flag is normally set on completion */
 STATE next_state = idle;                                /* command normally executes to completion */
 
 mpx_ibuf = ST_OK;                                       /* return status is normally OK */
@@ -2477,19 +2478,19 @@ switch (mpx_cmd) {
 
 
     case CMD_ENABLE_UI:
-        mpx_uien = TRUE;                                /* enable unsolicited interrupts */
+        mpx_uien = true;                                /* enable unsolicited interrupts */
         sim_activate (&mpx_cntl, CMD_DELAY);            /*   and schedule controller for UI check */
 
         tprintf (mpx_dev, DEB_CMDS, "Controller status check scheduled, time = %d\n", CMD_DELAY);
 
-        set_flag = FALSE;                               /* do not set the flag at completion */
+        set_flag = false;                               /* do not set the flag at completion */
         break;
 
 
     case CMD_DISABLE:
         switch (mpx_portkey) {
             case SUBCMD_UI:
-                mpx_uien = FALSE;                           /* disable unsolicited interrupts */
+                mpx_uien = false;                           /* disable unsolicited interrupts */
                 break;
 
             case SUBCMD_DMA:
@@ -2650,7 +2651,7 @@ switch (mpx_cmd) {
 
             sim_activate (&mpx_cntl, DATA_DELAY);       /* schedule the transfer */
             next_state = exec;                          /* set execution state */
-            set_flag = FALSE;                           /* no flag until word ready */
+            set_flag = false;                           /* no flag until word ready */
             }
         break;
 
@@ -2739,7 +2740,7 @@ mpx_state = idle;                                       /* idle state */
 
 mpx_cmd = 0;                                            /* clear command */
 mpx_param = 0;                                          /* clear parameter */
-mpx_uien = FALSE;                                       /* disable interrupts */
+mpx_uien = false;                                       /* disable interrupts */
 
 for (i = 0; i < MPX_PORTS; i++) {                       /* clear per-line variables */
     buf_init (iowrite, i);                              /* initialize write buffers */

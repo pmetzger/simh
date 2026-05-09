@@ -24,6 +24,7 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <stdbool.h>
 #include "linc_defs.h"
 #include "sim_video.h"
 #include "display/display.h"
@@ -32,7 +33,7 @@
 static t_stat crt_svc (UNIT *uptr);
 static t_stat crt_reset (DEVICE *dptr);
 
-static int crt_quit = FALSE;
+static int crt_quit = false;
 
 /* Debug */
 #define DBG             0001
@@ -76,7 +77,7 @@ crt_svc(UNIT *uptr)
   display_age (100, 0);
   sim_activate_after (uptr, 100);
   if (crt_quit) {
-    crt_quit = FALSE;
+    crt_quit = false;
     return SCPE_STOP;
   }
 #endif
@@ -85,7 +86,7 @@ crt_svc(UNIT *uptr)
 
 static void crt_quit_callback (void)
 {
-  crt_quit = TRUE;
+  crt_quit = true;
 }
 
 static t_stat

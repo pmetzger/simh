@@ -72,6 +72,7 @@
 
 #include "h316_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define FNC             u3                              /* saved function */
 #define CYL             u4                              /* actual cylinder */
@@ -253,7 +254,7 @@ t_stat dp_go1 (uint32 dat);
 t_stat dp_go2 (uint32 dat);
 t_stat dp_rdtrk (UNIT *uptr, uint16 *buf, uint32 cyl, uint32 hd);
 t_stat dp_wrtrk (UNIT *uptr, uint16 *buf, uint32 cyl, uint32 hd);
-t_bool dp_findrec (uint32 addr);
+bool dp_findrec (uint32 addr);
 t_stat dp_wrwd (UNIT *uptr, uint32 dat);
 t_stat dp_wrdone (UNIT *uptr, uint32 flg);
 t_stat dp_done (uint32 req, uint32 f);
@@ -825,23 +826,23 @@ return SCPE_OK;
 
 /* Find record; true if found, false if not found */
 
-t_bool dp_findrec (uint32 addr)
+bool dp_findrec (uint32 addr)
 {
 dp_rptr = 0;
 
 do {
     if (dpxb[dp_rptr + REC_LNT] == 0)
-        return FALSE;
+        return false;
     if (dpxb[dp_rptr + REC_LNT] >= DP_TRKLEN)
-        return TRUE;
+        return true;
     if (dpxb[dp_rptr + REC_ADDR] == addr)
-        return TRUE;
+        return true;
     dp_rptr = dp_rptr + dpxb[dp_rptr + REC_LNT] + REC_OVHD;
     } while (dp_rptr < DP_TRKLEN);
-return FALSE;
+return false;
 }
 
-/* Write next word to track buffer; return TRUE if ok, FALSE if next record trashed */
+/* Write next word to track buffer; return true if ok, false if next record trashed */
 
 t_stat dp_wrwd (UNIT *uptr, uint32 dat)
 {
@@ -1028,7 +1029,7 @@ else {
         return SCPE_ARG;
     }
 sim_printf ("Proposed format: records/track = %d, record size = %d\n", nr, nw);
-if (!get_yn ("Formatting will destroy all data on this disk; proceed? [N]", FALSE))
+if (!get_yn ("Formatting will destroy all data on this disk; proceed? [N]", false))
     return SCPE_OK;
 for (c = cntr = 0; c < dp_tab[dp_ctype].cyl; c++) {
     for (h = 0; h < dp_tab[dp_ctype].surf; h++) {

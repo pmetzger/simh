@@ -17,6 +17,8 @@
 #ifndef SIM_CONSOLE_H_
 #define SIM_CONSOLE_H_ 0
 
+#include <stdbool.h>
+
 #define TTUF_V_MODE     (UNIT_V_UF + 0)
 #define TTUF_W_MODE     2
 #define  TTUF_MODE_7B   0
@@ -84,7 +86,7 @@ t_stat sim_show_cons_log (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const 
 t_stat sim_show_cons_debug (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 t_stat sim_show_cons_expect (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 t_stat sim_check_console (int32 sec);
-t_stat sim_open_logfile (const char *filename, t_bool binary, FILE **pf, FILEREF **pref);
+t_stat sim_open_logfile (const char *filename, bool binary, FILE **pf, FILEREF **pref);
 t_stat sim_close_logfile (FILEREF **pref);
 const char *sim_logfile_name (FILE *st, FILEREF *ref);
 SEND *sim_cons_get_send (void);
@@ -99,8 +101,8 @@ t_stat sim_ttinit (void);
 t_stat sim_ttrun (void);
 t_stat sim_ttcmd (void);
 t_stat sim_ttclose (void);
-t_bool sim_ttisatty (void);
-t_bool sim_fd_isatty (int fd);
+bool sim_ttisatty (void);
+bool sim_fd_isatty (int fd);
 int32 sim_tt_inpcvt (int32 c, uint32 mode);
 int32 sim_tt_outcvt (int32 c, uint32 mode);
 t_stat sim_tt_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
@@ -108,7 +110,7 @@ t_stat sim_tt_set_parity (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat sim_tt_show_modepar (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat sim_tt_settabs (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat sim_tt_showtabs (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_bool sim_is_remote_console_master_line (void *lp);
+bool sim_is_remote_console_master_line (void *lp);
 
 extern int32 sim_rem_cmd_active_line;   /* command in progress on line # */
 
@@ -116,7 +118,7 @@ extern int32 sim_int_char;              /* interrupt character */
 extern int32 sim_brk_char;              /* break character */
 extern int32 sim_tt_pchar;              /* printable character mask */
 extern int32 sim_del_char;              /* delete character */
-extern t_bool sim_signaled_int_char;    /* WRU character detected by signal while running  */
+extern bool sim_signaled_int_char;      /* WRU character detected by signal while running  */
 extern uint32 sim_last_poll_kbd_time;   /* time when sim_poll_kbd was called */
 
 #endif

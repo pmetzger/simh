@@ -8,6 +8,7 @@
  * initial version 27/iii/95 by Simon Tatham
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -939,7 +940,7 @@ static int matches (struct itemplate *t, unsigned char *data, int asize,
 {
     unsigned char * r = (unsigned char *)(t->code);
     unsigned char * origdata = data;
-    int           a_used = FALSE, o_used = FALSE;
+    int           a_used = false, o_used = false;
     int           drep = 0;
 
     if ( rep == 0xF2 )
@@ -953,21 +954,21 @@ static int matches (struct itemplate *t, unsigned char *data, int asize,
     if (c >= 01 && c <= 03) {
         while (c--)
         if (*r++ != *data++)
-            return FALSE;
+            return false;
     }
     if (c == 04) {
         switch (*data++) {
           case 0x07: ins->oprs[0].basereg = 0; break;
           case 0x17: ins->oprs[0].basereg = 2; break;
           case 0x1F: ins->oprs[0].basereg = 3; break;
-          default: return FALSE;
+          default: return false;
         }
     }
     if (c == 05) {
         switch (*data++) {
           case 0xA1: ins->oprs[0].basereg = 4; break;
           case 0xA9: ins->oprs[0].basereg = 5; break;
-          default: return FALSE;
+          default: return false;
         }
     }
     if (c == 06) {
@@ -976,20 +977,20 @@ static int matches (struct itemplate *t, unsigned char *data, int asize,
           case 0x0E: ins->oprs[0].basereg = 1; break;
           case 0x16: ins->oprs[0].basereg = 2; break;
           case 0x1E: ins->oprs[0].basereg = 3; break;
-          default: return FALSE;
+          default: return false;
         }
     }
     if (c == 07) {
         switch (*data++) {
           case 0xA0: ins->oprs[0].basereg = 4; break;
           case 0xA8: ins->oprs[0].basereg = 5; break;
-          default: return FALSE;
+          default: return false;
         }
     }
     if (c >= 010 && c <= 012) {
         int t = *r++, d = *data++;
         if (d < t || d > t+7)
-        return FALSE;
+        return false;
         else {
         ins->oprs[c-010].basereg = d-t;
         ins->oprs[c-010].segment |= SEG_RMREG;
@@ -997,7 +998,7 @@ static int matches (struct itemplate *t, unsigned char *data, int asize,
     }
     if (c == 017)
         if (*data++)
-        return FALSE;
+        return false;
     if (c >= 014 && c <= 016) {
         ins->oprs[c-014].offset = (signed char) *data++;
         ins->oprs[c-014].segment |= SEG_SIGNED;
@@ -1089,7 +1090,7 @@ static int matches (struct itemplate *t, unsigned char *data, int asize,
     if (c >= 0200 && c <= 0277) {
         int modrm = *data++;
         if (((modrm >> 3) & 07) != (c & 07))
-        return FALSE;          /* spare field doesn't match up */
+        return false;          /* spare field doesn't match up */
         data = do_ea (data, modrm, asize, segsize,
               &ins->oprs[(c >> 3) & 07]);
     }
@@ -1098,54 +1099,54 @@ static int matches (struct itemplate *t, unsigned char *data, int asize,
         ins->oprs[c-0300].segment |= SEG_32BIT;
         else
         ins->oprs[c-0300].segment &= ~SEG_32BIT;
-        a_used = TRUE;
+        a_used = true;
     }
     if (c == 0310) {
         if (asize == 32)
-        return FALSE;
+        return false;
         else
-        a_used = TRUE;
+        a_used = true;
     }
     if (c == 0311) {
         if (asize == 16)
-        return FALSE;
+        return false;
         else
-        a_used = TRUE;
+        a_used = true;
     }
     if (c == 0312) {
         if (asize != segsize)
-        return FALSE;
+        return false;
         else
-        a_used = TRUE;
+        a_used = true;
     }
     if (c == 0320) {
         if (osize == 32)
-        return FALSE;
+        return false;
         else
-        o_used = TRUE;
+        o_used = true;
     }
     if (c == 0321) {
         if (osize == 16)
-        return FALSE;
+        return false;
         else
-        o_used = TRUE;
+        o_used = true;
     }
     if (c == 0322) {
         if (osize != segsize)
-        return FALSE;
+        return false;
         else
-        o_used = TRUE;
+        o_used = true;
     }
     if (c == 0330) {
         int t = *r++, d = *data++;
         if (d < t || d > t+15)
-        return FALSE;
+        return false;
         else
         ins->condition = d - t;
     }
     if (c == 0331) {
         if ( rep )
-            return FALSE;
+            return false;
     }
     if (c == 0332) {
         if (drep == P_REP)
@@ -1153,7 +1154,7 @@ static int matches (struct itemplate *t, unsigned char *data, int asize,
     }
     if (c == 0333) {
         if ( rep != 0xF3 )
-            return FALSE;
+            return false;
         drep = 0;
     }
     }
@@ -1227,7 +1228,7 @@ long disasm (unsigned char *data, char *output, int segsize, long offset)
     for (p = itable[*data]; *p; p++) {
       if ( (length = matches(*p, data, asize, osize,
                  segsize, rep, &tmp_ins)) ) {
-        works = TRUE;
+        works = true;
         /*
          * Final check to make sure the types of r/m match up.
          */
@@ -1246,7 +1247,7 @@ long disasm (unsigned char *data, char *output, int segsize, long offset)
               ((((*p)->opd[i] & (REGISTER | FPUREG)) ||
             (tmp_ins.oprs[i].segment & SEG_RMREG)) &&
                !whichreg ((*p)->opd[i], tmp_ins.oprs[i].basereg))) {
-            works = FALSE;
+            works = false;
             break;
           }
         }
@@ -1296,7 +1297,7 @@ long disasm (unsigned char *data, char *output, int segsize, long offset)
     }
     if (i >= (int)elements(ico))
     slen += sprintf(output+slen, "%s", insn_names[(*p)->opcode]);
-    colon = FALSE;
+    colon = false;
     length += data - origdata;         /* fix up for prefixes */
     for (i=0; i<(*p)->operands; i++) {
     output[slen++] = (colon ? ':' : i==0 ? ' ' : ',');
@@ -1311,9 +1312,9 @@ long disasm (unsigned char *data, char *output, int segsize, long offset)
     }
 
     if ((*p)->opd[i] & COLON)
-        colon = TRUE;
+        colon = true;
     else
-        colon = FALSE;
+        colon = false;
 
     if (((*p)->opd[i] & (REGISTER | FPUREG)) ||
         (ins.oprs[i].segment & SEG_RMREG))
@@ -1355,7 +1356,7 @@ long disasm (unsigned char *data, char *output, int segsize, long offset)
                 ins.oprs[i].offset);
         segover = NULL;
     } else if ( !(REGMEM & ~(*p)->opd[i]) ) {
-        int started = FALSE;
+        int started = false;
         if ( (*p)->opd[i] & BITS8 )
         slen += sprintf(output+slen, "byte ");
         if ( (*p)->opd[i] & BITS16 )
@@ -1383,7 +1384,7 @@ long disasm (unsigned char *data, char *output, int segsize, long offset)
         slen += sprintf(output+slen, "%s",
                 reg_names[(ins.oprs[i].basereg -
                        EXPR_REG_START)]);
-        started = TRUE;
+        started = true;
         }
         if (ins.oprs[i].indexreg != -1) {
         if (started)
@@ -1393,7 +1394,7 @@ long disasm (unsigned char *data, char *output, int segsize, long offset)
                        EXPR_REG_START)]);
         if (ins.oprs[i].scale > 1)
             slen += sprintf(output+slen, "*%d", ins.oprs[i].scale);
-        started = TRUE;
+        started = true;
         }
         if (ins.oprs[i].segment & SEG_DISP8) {
         int sign = '+';

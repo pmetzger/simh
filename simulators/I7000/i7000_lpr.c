@@ -29,6 +29,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i7000_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -65,7 +66,7 @@ struct _lpr_data
 lpr_data[NUM_DEVS_LPR];
 
 uint32              lpr_cmd(UNIT *, uint16, uint16);
-void                lpr_ini(UNIT *, t_bool);
+void                lpr_ini(UNIT *, bool);
 t_stat              lpr_srv(UNIT *);
 t_stat              lpr_reset(DEVICE *);
 t_stat              lpr_attach(UNIT *, const char *);
@@ -495,7 +496,7 @@ lpr_srv(UNIT *uptr) {
 }
 
 void
-lpr_ini(UNIT *uptr, t_bool f) {
+lpr_ini(UNIT *uptr, bool f) {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void)f;

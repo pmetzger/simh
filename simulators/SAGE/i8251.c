@@ -26,6 +26,7 @@
    22-Jan-10    HV      Initial version
 */
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "m68k_cpu.h"
 #include "chip_defs.h"
@@ -143,7 +144,7 @@ t_stat i8251_read(I8251* chip,int port,uint32* value)
 t_stat i8251_reset(I8251* chip)
 {
     chip->init = 0;
-    chip->oob = FALSE;
+    chip->oob = false;
     chip->crlf = 0;
     return SCPE_OK;
 }

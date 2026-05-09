@@ -34,6 +34,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 int32   mbirq = 0;                      /* set no interrupts */
@@ -44,8 +45,8 @@ t_stat xtbus_svc(UNIT *uptr);
 t_stat xtbus_reset(DEVICE *dptr);
 void set_irq(int32 int_num);
 void clr_irq(int32 int_num);
-uint8 nulldev(t_bool io, uint8 data, uint8 devnum);
-uint16 reg_dev(uint8 (*routine)(t_bool io, uint8 data, uint8 devnum), uint16 port, uint8 devnum);
+uint8 nulldev(bool io, uint8 data, uint8 devnum);
+uint16 reg_dev(uint8 (*routine)(bool io, uint8 data, uint8 devnum), uint16 port, uint8 devnum);
 void dump_dev_table(void);
 t_stat xtbus_reset (DEVICE *dptr);
 uint8 xtbus_get_mbyte(uint32 addr);
@@ -156,7 +157,7 @@ The actual 808X can address 65,536 I/O ports but the IBM only uses
 the first 1024. */
 
 struct idev {
-    uint8 (*routine)(t_bool io, uint8 data, uint8 devnum);
+    uint8 (*routine)(bool io, uint8 data, uint8 devnum);
     uint8 port;
     uint8 devnum;
 };
@@ -420,7 +421,7 @@ struct idev dev_table[1024] = {
 {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}          /* 3FCH */
 };
 
-uint8 nulldev(t_bool io, uint8 data, uint8 devnum)
+uint8 nulldev(bool io, uint8 data, uint8 devnum)
 {
     sim_printf("xtbus: I/O Port %03X is not assigned io=%d data=%02X\n",
         port, io, data);
@@ -429,7 +430,7 @@ uint8 nulldev(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint16 reg_dev(uint8 (*routine)(t_bool io, uint8 data, uint8 devnum), uint16 port, uint8 devnum)
+uint16 reg_dev(uint8 (*routine)(bool io, uint8 data, uint8 devnum), uint16 port, uint8 devnum)
 {
     if (dev_table[port].routine != &nulldev) {  /* port already assigned */
         sim_printf("xtbus: I/O Port %03X is already assigned\n", port);

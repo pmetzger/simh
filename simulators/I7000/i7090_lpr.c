@@ -34,6 +34,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i7090_defs.h"
 #include "sim_console.h"
 #include "sim_card.h"
@@ -75,7 +76,7 @@ lpr_data[NUM_DEVS_LPR];
 
 uint32              lpr_cmd(UNIT *, uint16, uint16);
 t_stat              lpr_srv(UNIT *);
-void                lpr_ini(UNIT *, t_bool);
+void                lpr_ini(UNIT *, bool);
 t_stat              lpr_reset(DEVICE *);
 t_stat              lpr_attach(UNIT *, const char *);
 t_stat              lpr_detach(UNIT *);
@@ -648,7 +649,7 @@ t_stat lpr_srv(UNIT * uptr)
 }
 
 void
-lpr_ini(UNIT * uptr, t_bool f)
+lpr_ini(UNIT * uptr, bool f)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -700,7 +701,7 @@ lpr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
    (void)uptr;
 
    const char *cpu = cpu_description(&cpu_dev);
-   extern void fprint_attach_help_ex (FILE *st, DEVICE *dptr, t_bool silent);
+   extern void fprint_attach_help_ex (FILE *st, DEVICE *dptr, bool silent);
 
    fprintf (st, "%s\n\n", lpr_description(dptr));
 #if NUM_DEVS_LPR > 3

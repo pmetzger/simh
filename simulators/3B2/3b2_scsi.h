@@ -31,6 +31,7 @@
 #ifndef _3B2_SCSI_H_
 #define _3B2_SCSI_H_
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 /* CIO Opcodes */
@@ -194,11 +195,11 @@
 
 #define GET_DTYPE(x)    (((x) >> UNIT_V_DTYPE) & UNIT_M_DTYPE)
 #define HA_DISK(d)                                          \
-    {  SCSI_DISK, d##_PQUAL, d##_SCSI,  FALSE,     d##_BLK, \
+    {  SCSI_DISK, d##_PQUAL, d##_SCSI,  false,     d##_BLK, \
        d##_LBN,   d##_MANU,  d##_DESC,  d##_REV,   #d }
 
 #define HA_TAPE(d)                                          \
-    {  SCSI_TAPE, d##_PQUAL, d##_SCSI,  TRUE,      d##_BLK, \
+    {  SCSI_TAPE, d##_PQUAL, d##_SCSI,  true,      d##_BLK, \
        d##_LBN,   d##_MANU,  d##_DESC,  d##_REV,   #d }
 
 #define HA_SIZE(d)      d##_LBN
@@ -252,7 +253,7 @@ typedef struct {
  * SCSI Target state
  */
 typedef struct {
-    t_bool pending;       /* Service pending */
+    bool pending;         /* Service pending */
     ha_req req;           /* SCSI job request */
     ha_resp rep;          /* SCSI job reply */
 } ha_ts;
@@ -263,7 +264,7 @@ typedef struct {
 typedef struct {
     uint8   slot;             /* Card Backsplane Slot # */
     uint32  pump_state;
-    t_bool  frq;              /* Fast Request Queue enabled */
+    bool    frq;              /* Fast Request Queue enabled */
     uint8   edt[HA_EDT_LEN];  /* Equipped Device Table */
     ha_ts   ts[8];            /* Target state */
 } HA_STATE;

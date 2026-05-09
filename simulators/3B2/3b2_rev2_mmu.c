@@ -29,6 +29,7 @@
 */
 
 
+#include <stdbool.h>
 #include "3b2_cpu.h"
 #include "3b2_mmu.h"
 #include "3b2_sys.h"
@@ -522,11 +523,11 @@ void mmu_write(uint32 pa, uint32 val, size_t size)
  * If SCPE_NXM is returned, a failure code and fault address will be
  * set in the appropriate registers.
  *
- * As always, the flag 'fc' may be set to FALSE to avoid certain
+ * As always, the flag 'fc' may be set to false to avoid certain
  * typses of fault checking.
  *
  */
-static t_stat mmu_get_sd(uint32 va, uint8 r_acc, t_bool fc,
+static t_stat mmu_get_sd(uint32 va, uint8 r_acc, bool fc,
                          uint32 *sd0, uint32 *sd1)
 {
     /* We immediately do some bounds checking (fc flag is not checked
@@ -586,7 +587,7 @@ static t_stat mmu_get_sd(uint32 va, uint8 r_acc, t_bool fc,
 /*
  * Load a page descriptor from memory
  */
-static t_stat mmu_get_pd(uint32 va, uint8 r_acc, t_bool fc,
+static t_stat mmu_get_pd(uint32 va, uint8 r_acc, bool fc,
                          uint32 sd0, uint32 sd1,
                          uint32 *pd, uint8 *pd_acc)
 {
@@ -624,7 +625,7 @@ static t_stat mmu_get_pd(uint32 va, uint8 r_acc, t_bool fc,
  */
 static t_stat mmu_decode_contig(uint32 va, uint8 r_acc,
                                 uint32 sd0, uint32 sd1,
-                                t_bool fc, uint32 *pa)
+                                bool fc, uint32 *pa)
 {
     if (fc) {
         /* Update R and M bits if configured */
@@ -654,7 +655,7 @@ static t_stat mmu_decode_contig(uint32 va, uint8 r_acc,
     return SCPE_OK;
 }
 
-static t_stat mmu_decode_paged(uint32 va, uint8 r_acc, t_bool fc,
+static t_stat mmu_decode_paged(uint32 va, uint8 r_acc, bool fc,
                                uint32 sd1, uint32 pd,
                                uint8 pd_acc, uint32 *pa)
 {
@@ -709,7 +710,7 @@ static t_stat mmu_decode_paged(uint32 va, uint8 r_acc, t_bool fc,
  *   - Modifying segment and page descriptor bits
  */
 
-t_stat mmu_decode_va(uint32 va, uint8 r_acc, t_bool fc, uint32 *pa)
+t_stat mmu_decode_va(uint32 va, uint8 r_acc, bool fc, uint32 *pa)
 {
     uint32 sd0, sd1, pd;
     uint8 pd_acc;
@@ -803,7 +804,7 @@ uint32 mmu_xlate_addr(uint32 va, uint8 r_acc)
     uint32 pa;
     t_stat succ;
 
-    succ = mmu_decode_va(va, r_acc, TRUE, &pa);
+    succ = mmu_decode_va(va, r_acc, true, &pa);
 
     if (succ == SCPE_OK) {
         mmu_state.var = va;
@@ -818,14 +819,14 @@ void mmu_enable(void)
 {
     sim_debug(EXECUTE_MSG, &mmu_dev,
               "Enabling MMU.\n");
-    mmu_state.enabled = TRUE;
+    mmu_state.enabled = true;
 }
 
 void mmu_disable(void)
 {
     sim_debug(EXECUTE_MSG, &mmu_dev,
               "Disabling MMU.\n");
-    mmu_state.enabled = FALSE;
+    mmu_state.enabled = false;
 }
 
 const char *mmu_description(DEVICE *dptr)

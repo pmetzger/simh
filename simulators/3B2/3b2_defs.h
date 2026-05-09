@@ -32,6 +32,7 @@
 #define _3B2_DEFS_H_
 
 #include <setjmp.h>
+#include <stdbool.h>
 
 #include "sim_defs.h"
 
@@ -41,11 +42,11 @@
 #include "3b2_rev2_defs.h"
 #endif
 
-#ifndef FALSE
-#define FALSE 0
+#ifndef false
+#define false 0
 #endif
-#ifndef TRUE
-#define TRUE 1
+#ifndef true
+#define true 1
 #endif
 
 #if defined(__GNUC__)

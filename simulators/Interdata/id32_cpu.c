@@ -157,6 +157,7 @@
 
 #include "id_defs.h"
 #include <setjmp.h>
+#include <stdbool.h>
 
 #define PCQ_SIZE        64                              /* must be 2**n */
 #define PCQ_MASK        (PCQ_SIZE - 1)
@@ -275,11 +276,11 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
 void set_r_display (uint32 *rbase);
 
-extern t_bool devtab_init (void);
+extern bool devtab_init (void);
 extern void int_eval (void);
 extern uint32 int_getdev (void);
 extern void sch_cycle (uint32 ch);
-extern t_bool sch_blk (uint32 dev);
+extern bool sch_blk (uint32 dev);
 extern uint32 f_l (uint32 op, uint32 r1, uint32 r2, uint32 ea);
 extern uint32 f_c (uint32 op, uint32 r1, uint32 r2, uint32 ea);
 extern uint32 f_as (uint32 op, uint32 r1, uint32 r2, uint32 ea);
@@ -709,7 +710,7 @@ while (reason == 0) {                                   /* loop until halted */
             }
 
         if (PSW & PSW_WAIT) {                           /* wait state? */
-            sim_idle (TMR_LFC, TRUE);                   /* idling */
+            sim_idle (TMR_LFC, true);                   /* idling */
             continue;
             }
 
@@ -2338,7 +2339,7 @@ if ((val <= 0) || (((unsigned)val) > MAXMEMSIZE32) || ((val & 0xFFFF) != 0))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i = i + 4)
     mc = mc | M[i >> 2];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE32; i = i + 4)

@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -32,7 +33,7 @@ uint32 chan_set_chf(uint32 dva, uint32 fl)
     return SCPE_IERR;
 }
 
-t_bool chan_tst_cmf(uint32 dva, uint32 fl)
+bool chan_tst_cmf(uint32 dva, uint32 fl)
 {
     (void)dva;
     (void)fl;
@@ -56,10 +57,10 @@ void chan_set_dvi(uint32 dva)
     (void)dva;
 }
 
-t_bool chan_chk_dvi(uint32 dva)
+bool chan_chk_dvi(uint32 dva)
 {
     (void)dva;
-    return FALSE;
+    return false;
 }
 
 uint32 chan_end(uint32 dva)

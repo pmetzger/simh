@@ -26,6 +26,7 @@
    rz           SCSI controller
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_scsi.h"
 #include "vax_rzdev.h"
@@ -131,7 +132,7 @@ typedef struct {
     uint32 selen;                                       /* select enable reg */
     uint32 dcount;                                      /* DMA count reg */
     uint32 daddr;                                       /* DMA addr reg */
-    t_bool daddr_low;                                   /* DMA addr flag */
+    bool daddr_low;                                     /* DMA addr flag */
     uint32 ddir;                                        /* DMA dir */
     uint8 *buf;                                         /* unit buffer */
     int32 buf_ptr;                                      /* current buffer pointer */
@@ -591,11 +592,11 @@ switch (rg) {
         if (access == L_BYTE) {
             if (rz->daddr_low) {
                 rz->daddr = rz->daddr | (data & BMASK);
-                rz->daddr_low = FALSE;
+                rz->daddr_low = false;
                 }
             else {
                 rz->daddr = ((data & 0x3F) << 8);
-                rz->daddr_low = TRUE;
+                rz->daddr_low = true;
                 }
             }
         else rz->daddr = data & DCNT_MASK;
@@ -780,7 +781,7 @@ rz->cstat = 0;
 rz->selen = 0;
 rz->dcount = 0;
 rz->daddr = 0;
-rz->daddr_low = FALSE;
+rz->daddr_low = false;
 rz->ddir = 0;
 rz->buf_ptr = 0;
 scsi_reset (&rz->bus);

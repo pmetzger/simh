@@ -64,6 +64,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -438,7 +439,7 @@ switch (entry) {                                        /* decode IR<4:0> */
             sa = op[0].word - 1;
 
         MR = ReadW (sa);                                /* get jump target */
-        reason = cpu_resolve_indirects (TRUE);          /* resolve indirects */
+        reason = cpu_resolve_indirects (true);          /* resolve indirects */
 
         if (reason != SCPE_OK) {                        /* resolution failed? */
             PR = err_PR;                                /* irq restarts instruction */
@@ -485,7 +486,7 @@ switch (entry) {                                        /* decode IR<4:0> */
 
         for (j = 0; j < sc; j++) {
             MR = ReadW (sa++);                          /* get addr of actual */
-            reason = cpu_resolve_indirects (TRUE);      /* resolve indirects */
+            reason = cpu_resolve_indirects (true);      /* resolve indirects */
 
             if (reason != SCPE_OK) {                    /* resolution failed? */
                 PR = err_PR;                            /* irq restarts instruction */

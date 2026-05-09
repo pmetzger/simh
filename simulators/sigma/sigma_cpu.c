@@ -120,6 +120,7 @@
         sigma_sys.c     add pointer to data structures to sim_devices
 */
 
+#include <stdbool.h>
 #include "sigma_io_defs.h"
 
 #define CPUF_V_MODEL    (UNIT_V_UF + 6)                 /* CPU model */
@@ -212,7 +213,7 @@ uint32 EaP20 (uint32 IR, uint32 *bva, uint32 lnt);
 uint32 EaSh (uint32 ir, uint32 *stype, uint32 *sc);
 uint32 Add32 (uint32 s1, uint32 s2, uint32 cin);
 uint32 SMul64 (uint32 a, uint32 b, uint32 *lo);
-t_bool SDiv64 (uint32 dvdh, uint32 dvdl, uint32 dvr, uint32 *res, uint32 *rem);
+bool SDiv64 (uint32 dvdh, uint32 dvdl, uint32 dvr, uint32 *res, uint32 *rem);
 uint32 Cmp32 (uint32 a, uint32 b);
 uint32 Shift (uint32 rn, uint32 stype, uint32 sc);
 uint32 TestSP1 (uint32 sp1, int32 mod);
@@ -242,9 +243,9 @@ extern uint32 map_lms (uint32 rn, uint32 bva);
 extern t_stat io_init (void);
 extern uint32 io_eval_int (void);
 extern uint32 io_actv_int (void);
-extern t_bool io_poss_int (void);
+extern bool io_poss_int (void);
 extern uint32 io_ackn_int (uint32 hireq);
-extern uint32 io_rels_int (uint32 hiact, t_bool arm);
+extern uint32 io_rels_int (uint32 hiact, bool arm);
 extern uint32 io_rwd (uint32 op, uint32 rn, uint32 bva);
 extern uint32 io_sio (uint32 rn, uint32 bva);
 extern uint32 io_tio (uint32 rn, uint32 bva);
@@ -526,7 +527,7 @@ uint32 op, rn, bva, opnd, opnd1, opnd2, t;
 uint32 res, res1, tr, stype, sc, cnt;
 uint32 sa, da, mask, c, c1, i, lim, aop, exu_cnt;
 int32 sop, sop1;
-t_bool mprot;
+bool mprot;
 
 exu_cnt = 0;                                            /* init EXU count */
 EXU_LOOP:
@@ -2214,7 +2215,7 @@ if (rhi != ((rmid2 & WSIGN)? WMASK: 0))                 /* fit in 32b? */
 return rhi;
 }
 
-t_bool SDiv64 (uint32 dvdh, uint32 dvdl, uint32 dvr, uint32 *res, uint32 *rem)
+bool SDiv64 (uint32 dvdh, uint32 dvdl, uint32 dvr, uint32 *res, uint32 *rem)
 {
 uint32 i, quo, quos, rems;
 
@@ -2226,7 +2227,7 @@ if (dvdh & WSIGN) {                                     /* |dividend| */
 if (dvr & WSIGN)                                        /* |divisor| */
     dvr = NEG_W (dvr);
 if (dvdh >= dvr)                                        /* divide work? */
-    return TRUE;
+    return true;
 for (i = quo = 0; i < 32; i++) {                        /* 32 iterations */
     quo = (quo << 1) & WMASK;                           /* shift quotient */
     dvdh = ((dvdh << 1) | (dvdl >> 31)) & WMASK;        /* shift dividend */
@@ -2237,10 +2238,10 @@ for (i = quo = 0; i < 32; i++) {                        /* 32 iterations */
         }
     }
 if (quo & WSIGN)                                        /* quotient ovflo? */
-    return TRUE;
+    return true;
 *rem = (rems & WSIGN)? NEG_W (dvdh): dvdh;              /* sign of rem */
 *res = (quos & WSIGN)? NEG_W (quo): quo;
-return FALSE;                                           /* no overflow */
+return false;                                           /* no overflow */
 }
 
 uint32 Cmp32 (uint32 a, uint32 b)
@@ -2629,7 +2630,7 @@ if ((val <= 0) || (val > (int32)(cpu_tab[cpu_model].pamask + 1)))
 if (!desc) {                                            /* force trunc? */
     for (i = val; i < MEMSIZE; i++)
         mc = mc | M[i];
-    if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+    if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
         return SCPE_OK;
     }
 MEMSIZE = val;

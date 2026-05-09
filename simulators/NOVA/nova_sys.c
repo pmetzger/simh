@@ -49,6 +49,7 @@
 
 #include "nova_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
@@ -645,7 +646,7 @@ static const int32 dev_val[] = {
         return  =       error code
 */
 static t_stat fprint_addr (FILE *of, t_addr addr, int32 ind, int32 mode,
-    int32 disp, t_bool ext, int32 cflag)
+    int32 disp, bool ext, int32 cflag)
 {
 int32 dsign, dmax;
 
@@ -758,7 +759,7 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
 #if defined (ECLIPSE)
             if (Usermap && (MapStat & 0100)) {          /* the evil LEF mode */
                 fprintf (of, "LEF %-o,", dst);
-                fprint_addr (of, addr, ind, mode, disp, FALSE, cflag);
+                fprint_addr (of, addr, ind, mode, disp, false, cflag);
                 break;
                 }
 #endif
@@ -775,12 +776,12 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
 
         case I_V_M:                                     /* addr only */
             fprintf (of, "%s ", opcode[i]);
-            fprint_addr (of, addr, ind, mode, disp, FALSE, cflag);
+            fprint_addr (of, addr, ind, mode, disp, false, cflag);
             break;
 
         case I_V_RM:                                    /* reg, addr */
             fprintf (of, "%s %-o,", opcode[i], dst);
-            fprint_addr (of, addr, ind, mode, disp, FALSE, cflag);
+            fprint_addr (of, addr, ind, mode, disp, false, cflag);
             break;
 
         case I_V_RR:                                    /* operate */
@@ -811,17 +812,17 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
 
         case I_V_LM:                                    /* long addr */
             fprintf (of, "%s ", opcode[i]);
-            fprint_addr (of, addr, extind, mode, extdisp, TRUE, cflag);
+            fprint_addr (of, addr, extind, mode, extdisp, true, cflag);
             return -1;
 
         case I_V_RLM:                                   /* reg, long addr */
             fprintf (of, "%s %-o,", opcode[i], dst);
-            fprint_addr (of, addr, extind, mode, extdisp, TRUE, cflag);
+            fprint_addr (of, addr, extind, mode, extdisp, true, cflag);
             return -1;
 
         case I_V_FRM:                                   /* flt reg, long addr */
             fprintf (of, "%s %-o,", opcode[i], dst);
-            fprint_addr (of, addr, extind, src, extdisp, TRUE, cflag);
+            fprint_addr (of, addr, extind, src, extdisp, true, cflag);
             return -1;
 
         case I_V_FST:                                   /* flt status */
@@ -863,7 +864,7 @@ return SCPE_ARG;
 #define A_SI    020                                     /* sign seen */
 #define A_MI    040                                     /* - seen */
 
-static const char *get_addr (const char *cptr, t_addr addr, t_bool ext, int32 cflag, int32 *val)
+static const char *get_addr (const char *cptr, t_addr addr, bool ext, int32 cflag, int32 *val)
 {
 int32 d, x, pflag;
 t_stat r;
@@ -1065,7 +1066,7 @@ switch (j) {                                            /* case on class */
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
     case I_V_M:                                         /* addr */
-        cptr = get_addr (cptr, addr, FALSE, cflag, amd);
+        cptr = get_addr (cptr, addr, false, cflag, amd);
         if (cptr == NULL)
             return SCPE_ARG;
         val[0] = val[0] | (amd[0] << I_V_IND) | (amd[1] << I_V_MODE) | amd[2];
@@ -1141,7 +1142,7 @@ switch (j) {                                            /* case on class */
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
     case I_V_LM:                                        /* long mem */
-        cptr = get_addr (cptr, addr, TRUE, cflag, amd);
+        cptr = get_addr (cptr, addr, true, cflag, amd);
         if (cptr == NULL)
             return SCPE_ARG;
         val[0] = val[0] | (amd[1] << I_V_MODE);
@@ -1155,7 +1156,7 @@ switch (j) {                                            /* case on class */
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
-        cptr = get_addr (cptr, addr, TRUE, cflag, amd);
+        cptr = get_addr (cptr, addr, true, cflag, amd);
         if (cptr == NULL)
             return SCPE_ARG;
         val[0] = val[0] | (amd[1] << I_V_SRC);
@@ -1164,7 +1165,7 @@ switch (j) {                                            /* case on class */
         break;
 
     case I_V_FST:                                       /* flt status */
-        cptr = get_addr (cptr, addr, TRUE, cflag, amd);
+        cptr = get_addr (cptr, addr, true, cflag, amd);
         if (cptr == NULL)
             return SCPE_ARG;
         val[0] = val[0] | (amd[1] << I_V_DST);

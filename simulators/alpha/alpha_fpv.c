@@ -29,6 +29,7 @@
         - double precision floating point, G
 */
 
+#include <stdbool.h>
 #include "alpha_defs.h"
 
 #define IPMAX           0x7FFFFFFFFFFFFFFF              /* plus MAX (int) */
@@ -43,15 +44,15 @@
 extern t_uint64 FR[32];
 extern jmp_buf save_env;
 
-t_bool vax_unpack (t_uint64 op, UFP *a, uint32 ir);
-t_bool vax_unpack_d (t_uint64 op, UFP *a, uint32 ir);
+bool vax_unpack (t_uint64 op, UFP *a, uint32 ir);
+bool vax_unpack_d (t_uint64 op, UFP *a, uint32 ir);
 void vax_norm (UFP *a);
 t_uint64 vax_rpack (UFP *a, uint32 ir, uint32 dp);
 t_uint64 vax_rpack_d (UFP *a, uint32 ir);
 int32 vax_fcmp (t_uint64 a, t_uint64 b, uint32 ir);
 t_uint64 vax_cvtif (t_uint64 val, uint32 ir, uint32 dp);
 t_uint64 vax_cvtfi (t_uint64 op, uint32 ir);
-t_uint64 vax_fadd (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp, t_bool sub);
+t_uint64 vax_fadd (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp, bool sub);
 t_uint64 vax_fmul (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp);
 t_uint64 vax_fdiv (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp);
 
@@ -252,7 +253,7 @@ return (a.sign? NEG_Q (a.frac): a.frac);
 
 /* VAX floating add */
 
-t_uint64 vax_fadd (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp, t_bool sub)
+t_uint64 vax_fadd (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp, bool sub)
 {
 UFP a, b, t;
 uint32 sticky;
@@ -354,7 +355,7 @@ return vax_rpack (&b, ir, dp);                          /* round and pack */
 
 /* Support routines */
 
-t_bool vax_unpack (t_uint64 op, UFP *r, uint32 ir)
+bool vax_unpack (t_uint64 op, UFP *r, uint32 ir)
 {
 r->sign = FPR_GETSIGN (op);                             /* get sign */
 r->exp = FPR_GETEXP (op);                               /* get exponent */
@@ -362,13 +363,13 @@ r->frac = FPR_GETFRAC (op);                             /* get fraction */
 if (r->exp == 0) {                                      /* exp = 0? */
     if (op != 0) arith_trap (TRAP_INV, ir);             /* rsvd op? */
     r->frac = r->sign = 0;
-    return TRUE;
+    return true;
     }
 r->frac = (r->frac | FPR_HB) << FPR_GUARD;              /* ins hidden bit, guard */
-return FALSE;
+return false;
 }
 
-t_bool vax_unpack_d (t_uint64 op, UFP *r, uint32 ir)
+bool vax_unpack_d (t_uint64 op, UFP *r, uint32 ir)
 {
 r->sign = FDR_GETSIGN (op);                             /* get sign */
 r->exp = FDR_GETEXP (op);                               /* get exponent */
@@ -376,11 +377,11 @@ r->frac = FDR_GETFRAC (op);                             /* get fraction */
 if (r->exp == 0) {                                      /* exp = 0? */
     if (op != 0) arith_trap (TRAP_INV, ir);             /* rsvd op? */
     r->frac = r->sign = 0;
-    return TRUE;
+    return true;
     }
 r->exp = r->exp + G_BIAS - D_BIAS;                      /* change to G bias */
 r->frac = (r->frac | FDR_HB) << FDR_GUARD;              /* ins hidden bit, guard */
-return FALSE;
+return false;
 }
 
 /* VAX normalize */

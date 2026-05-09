@@ -102,6 +102,7 @@
    the actual processing logic.
 */
 
+#include <stdbool.h>
 #include "pdp11_defs.h"
 
 /* Floating point status register */
@@ -260,7 +261,7 @@ int32 fpnotrap (int32 code);
 int32 GeteaFW (int32 spec);
 int32 GeteaFP (int32 spec, int32 len);
 uint32 ReadI (int32 addr, int32 spec, int32 len);
-t_bool ReadFP (fpac_t *fac, int32 addr, int32 spec, int32 len);
+bool ReadFP (fpac_t *fac, int32 addr, int32 spec, int32 len);
 void WriteI (int32 data, int32 addr, int32 spec, int32 len);
 void WriteFP (fpac_t *data, int32 addr, int32 spec, int32 len);
 int32 setfcc (int32 old_status, int32 result_high, int32 newV);
@@ -768,17 +769,17 @@ return ((ReadW (VA) << 16) |
         spec    =       specifier
         len     =       length (4/8 bytes)
    Output:
-        TRUE if read succeeded
-        FALSE if instruction must be NOP'd
+        true if read succeeded
+        false if instruction must be NOP'd
 */
 
-t_bool ReadFP (fpac_t *fptr, int32 VA, int32 spec, int32 len)
+bool ReadFP (fpac_t *fptr, int32 VA, int32 spec, int32 len)
 {
 int32 exta;
 
 if (spec <= 07) {
     F_LOAD_P (len == QUAD, FR[spec], fptr);
-    return TRUE;
+    return true;
     }
 if (spec == 027) {
     fptr->h = (ReadW (VA) << FP_V_F0);
@@ -796,9 +797,9 @@ else {
 if ((GET_SIGN (fptr->h) != 0) &&
     (GET_EXP (fptr->h) == 0) &&
     !fpnotrap (FEC_UNDFV)) {                        /* trap enabled? */
-        return FALSE;                               /* NOP instruction */
+        return false;                               /* NOP instruction */
     }
-return TRUE;
+return true;
 }
 
 /* Write integer result
@@ -1399,7 +1400,7 @@ return 0;
    Inputs:
         code    =       exception code
    Outputs:
-        int     =       FALSE if interrupt enabled, TRUE if disabled
+        int     =       false if interrupt enabled, true if disabled
 */
 
 int32 fpnotrap (int32 code)
@@ -1409,11 +1410,11 @@ static const int32 test_code[] = { 0, 0, 0, FPS_IC, FPS_IV, FPS_IU, FPS_IUV };
 if ((code >= FEC_ICVT) &&
     (code <= FEC_UNDFV) &&
     ((FPS & test_code[code >> 1]) == 0))
-    return TRUE;
+    return true;
 FPS = FPS | FPS_ER;
 FEC = code;
 FEA = (backup_PC - 2) & 0177777;
 if ((FPS & FPS_ID) == 0)
     setTRAP (TRAP_FPE);
-return FALSE;
+return false;
 }

@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_ctc.h"
 
 #include "sim_disk.h"
@@ -66,7 +67,7 @@ static uint32 diag_crc[] = {
 
 static uint8   int_slot;            /* Interrupting card ID   */
 static uint8   int_subdev;          /* Interrupting subdevice */
-static t_bool  ctc_conf = FALSE;    /* Has a CTC card been configured? */
+static bool    ctc_conf = false;    /* Has a CTC card been configured? */
 static uint32  ctc_crc;             /* CRC32 of downloaded memory */
 
 struct partition vtoc_table[VTOC_PART] = {
@@ -698,7 +699,7 @@ t_stat ctc_reset(DEVICE *dptr)
 
     if (dptr->flags & DEV_DIS) {
         cio_remove_all(CTC_ID);
-        ctc_conf = FALSE;
+        ctc_conf = false;
         return SCPE_OK;
     }
 
@@ -709,7 +710,7 @@ t_stat ctc_reset(DEVICE *dptr)
         if (r != SCPE_OK) {
             return r;
         }
-        ctc_conf = TRUE;
+        ctc_conf = true;
     }
 
     return SCPE_OK;
@@ -749,7 +750,7 @@ t_stat ctc_svc(UNIT *uptr)
 
 t_stat ctc_attach(UNIT *uptr, const char *cptr)
 {
-    return sim_disk_attach(uptr, cptr, VTOC_SECSZ, 1, TRUE, 0, "CIPHER23", 0, 0);
+    return sim_disk_attach(uptr, cptr, VTOC_SECSZ, 1, true, 0, "CIPHER23", 0, 0);
 }
 
 t_stat ctc_detach(UNIT *uptr)

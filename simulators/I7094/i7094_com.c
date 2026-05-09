@@ -68,6 +68,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #define COM_MLINES      31                              /* mux lines */
 #define COM_TLINES      (COM_MLINES + 1)                /* total lines */
@@ -231,16 +232,16 @@ uint16 com_gethd_free (uint16 *lh);
 uint16 com_gethd (uint16 *lh);
 uint16 com_gettl_free (uint16 *lh);
 uint16 com_gettl (uint16 *lh);
-t_bool com_new_puttl (uint16 *lh, uint16 val);
+bool com_new_puttl (uint16 *lh, uint16 val);
 void com_puttl (uint16 *lh, uint16 ent);
-t_bool com_test_inp (void);
+bool com_test_inp (void);
 void com_set_inpp (uint32 ln);
 t_uint64 com_getob (uint32 ch);
-t_bool com_qdone (uint32 ch);
+bool com_qdone (uint32 ch);
 void com_end (uint32 ch, uint32 fl, uint32 st);
 t_stat com_send_id (uint32 ln);
 uint32 com_gen_ccmp (uint32 ln);
-t_bool com_queue_in (uint32 ln, uint32 ch);
+bool com_queue_in (uint32 ln, uint32 ch);
 uint32 com_queue_out (uint32 ln, uint32 *c1);
 void com_set_sns (t_uint64 stat);
 
@@ -793,7 +794,7 @@ return SCPE_OK;
 
 /* Translate and queue input character */
 
-t_bool com_queue_in (uint32 ln, uint32 c)
+bool com_queue_in (uint32 ln, uint32 c)
 {
 uint16 out;
 
@@ -895,15 +896,15 @@ return com_chob;
 
 /* Test whether input pending */
 
-t_bool com_test_inp (void)
+bool com_test_inp (void)
 {
 uint32 i;
 
 for (i = 0; i < COM_TLINES; i++) {
     if ((com_not_ret[i] != 0) || coml_unit[i].INPP)
-        return TRUE;
+        return true;
     }
-return FALSE;
+return false;
 }
 
 /* Set input pending and attention */
@@ -917,13 +918,13 @@ return;
 
 /* Test for done */
 
-t_bool com_qdone (uint32 ch)
+bool com_qdone (uint32 ch)
 {
 if (com_stop || !ch9_qconn (ch)) {                      /* stop or err disc? */
     com_sta = 0;                                        /* ctrl is idle */
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Channel end */
@@ -960,16 +961,16 @@ return ent;
 
 /* Get free entry and insert at tail */
 
-t_bool com_new_puttl (uint16 *lh, uint16 val)
+bool com_new_puttl (uint16 *lh, uint16 val)
 {
 uint16 ent;
 
 if ((ent = com_gethd (com_free)) != 0) {
     com_pkt[ent][DATA] = val;
     com_puttl (lh, ent);
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Remove from head */

@@ -49,6 +49,7 @@
    08-Nov-01    RMS     Cloned from cpu sources
 */
 
+#include <stdbool.h>
 #include "pdp11_defs.h"
 
 extern int32 ub_map[UBM_LNT_LW];
@@ -125,9 +126,9 @@ return SCPE_NXM;
    Inputs:
         pa      =       address
    Outputs:
-        status  =       TRUE or FALSE
+        status  =       true or false
 */
-static t_bool iopageCPUReg (uint32 pa)
+static bool iopageCPUReg (uint32 pa)
 {
 int32 idx;
 DIB *dibp;
@@ -143,7 +144,7 @@ return (dibp && (dibp->dptr == &cpu_dev));
 int32 calc_ints (int32 nipl, int32 trq)
 {
 int32 i, t;
-t_bool all_int = (UNIBUS || (nipl < IPL_HMIN));
+bool all_int = (UNIBUS || (nipl < IPL_HMIN));
 
 for (i = IPL_HLVL - 1; i > nipl; i--) {
     t = all_int? int_req[i]: (int_req[i] & int_internal[i]);
@@ -159,7 +160,7 @@ return (trq & ~TRAP_INT);
 int32 get_vector (int32 nipl)
 {
 int32 i, j, t, vec;
-t_bool all_int = (UNIBUS || (nipl < IPL_HMIN));
+bool all_int = (UNIBUS || (nipl < IPL_HMIN));
 
 for (i = IPL_HLVL - 1; i > nipl; i--) {                 /* loop thru lvls */
     t = all_int? int_req[i]: (int_req[i] & int_internal[i]);

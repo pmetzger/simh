@@ -47,6 +47,7 @@
      one wasted byte.  Multi-sector transfers in 12b mode don't work.
 */
 
+#include <stdbool.h>
 #include "pdp8_defs.h"
 
 /* Constants */
@@ -652,7 +653,7 @@ if ((uptr->flags & UNIT_ATT) == 0)
     return SCPE_UNATT;
 if (uptr->flags & UNIT_RO)
     return SCPE_RO;
-if (!get_yn ("Create bad block table? [N]", FALSE))
+if (!get_yn ("Create bad block table? [N]", false))
     return SCPE_OK;
 if (fseek (uptr->fileref, da, SEEK_SET))
     return SCPE_IOERR;

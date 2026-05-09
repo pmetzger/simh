@@ -37,6 +37,8 @@
  * independent XY Display simulation
  */
 
+#include <stdbool.h>
+
 #if defined (VM_VAX)                                    /* VAX version */
 #include "vax_defs.h"
 #elif defined(VM_PDP11)                                 /* PDP-11 version */
@@ -146,11 +148,11 @@ MTAB vt_mod[] = {
     { 0 }  };
 
 
-static t_bool vt_stop_flag = FALSE;
+static bool vt_stop_flag = false;
 
 static void vt_quit_callback (void)
 {
-vt_stop_flag = TRUE;
+vt_stop_flag = true;
 }
 
 /* Debug detail levels */
@@ -321,7 +323,7 @@ vt_svc(UNIT *uptr)
     if (vt11_cycle(uptr->wait, 0))
         sim_activate_after (uptr, uptr->wait);  /* running; reschedule */
     if (vt_stop_flag) {
-        vt_stop_flag = FALSE;                   /* reset flag after we notice it */
+        vt_stop_flag = false;                   /* reset flag after we notice it */
         return SCPE_STOP;
         }
     return SCPE_OK;

@@ -32,6 +32,7 @@
 #ifndef SIGMA_IO_DEFS_H_
 #define SIGMA_IO_DEFS_H_  0
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 #include "sigma_defs.h"
 
@@ -251,12 +252,12 @@ typedef struct {
 
 uint32 chan_get_cmd (uint32 dva, uint32 *cmd);
 uint32 chan_set_chf (uint32 dva, uint32 fl);
-t_bool chan_tst_cmf (uint32 dva, uint32 fl);
+bool chan_tst_cmf (uint32 dva, uint32 fl);
 void chan_set_chi (uint32 dva, uint32 fl);
 void chan_set_dvi (uint32 dva);
 int32 chan_clr_chi (uint32 dva);
 int32 chan_chk_chi (uint32 dva);
-t_bool chan_chk_dvi (uint32 dva);
+bool chan_chk_dvi (uint32 dva);
 uint32 chan_set_cm (uint32 dva);
 uint32 chan_end (uint32 dva);
 uint32 chan_uen (uint32 dva);

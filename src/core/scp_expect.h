@@ -11,11 +11,13 @@
 #ifndef SCP_EXPECT_H_
 #define SCP_EXPECT_H_
 
+#include <stdbool.h>
+
 /* Internal device used to stop simulation when an expect rule matches. */
 extern DEVICE sim_expect_dev;
 
 /* Identify the internal expect trigger unit in generic SCP code. */
-t_bool sim_expect_is_unit(const UNIT *uptr);
+bool sim_expect_is_unit(const UNIT *uptr);
 
 /* SCP command entry points for SEND/NOSEND and EXPECT/NOEXPECT. */
 t_stat send_cmd(int32 flag, const char *ptr);
@@ -38,7 +40,7 @@ void sim_send_init_context(SEND *snd, DEVICE *dptr, uint32 dbit);
 t_stat sim_show_send_input(FILE *st, const SEND *snd);
 
 /* Poll queued SEND state and return one pending character when available. */
-t_bool sim_send_poll_data(SEND *snd, t_stat *stat);
+bool sim_send_poll_data(SEND *snd, t_stat *stat);
 
 /* Clear queued SEND data for a console or multiplexer line. */
 t_stat sim_send_clear(SEND *snd);

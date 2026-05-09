@@ -49,6 +49,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #define PAS_LINES       32
 
@@ -109,7 +110,7 @@ TMXR pas_desc = { 8, 0, 0, pas_ldsc };                  /* mux descriptor */
 #define PAS_ENAB        pas_desc.lines
 
 uint32 pas (uint32 dev, uint32 op, uint32 dat);
-void pas_ini (t_bool dtpl);
+void pas_ini (bool dtpl);
 t_stat pasi_svc (UNIT *uptr);
 t_stat paso_svc (UNIT *uptr);
 t_stat pas_reset (DEVICE *dptr);
@@ -527,7 +528,7 @@ if (newln == 0)
 if (newln < PAS_ENAB) {
     for (i = newln, t = 0; i < PAS_ENAB; i++)
         t = t | pas_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
         return SCPE_OK;
     for (i = newln; i < PAS_ENAB; i++) {
         if (pas_ldsc[i].conn) {
@@ -569,7 +570,7 @@ return;
 
 /* Init template */
 
-void pas_ini (t_bool dtpl)
+void pas_ini (bool dtpl)
 {
 /* Device initialization signature.
    This implementation does not use every parameter. */

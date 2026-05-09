@@ -104,6 +104,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 #include "hp2100_di.h"
@@ -228,7 +229,7 @@ DI_STATE di [card_count];                       /* per-card state */
 
 /* Disc interface local bus routines */
 
-static t_bool di_bus_accept  (CARD_ID card, uint8 data);
+static bool di_bus_accept  (CARD_ID card, uint8 data);
 static void   di_bus_respond (CARD_ID card, uint8 cntl);
 static void   di_bus_poll    (CARD_ID card);
 
@@ -458,12 +459,12 @@ const CARD_ID card = (CARD_ID) (dibptr->card_index);
 DI_STATE * const di_card = &di [card];
 
 uint8          assert, deny;                            /* new bus control states */
-t_bool         update_required = TRUE;                  /* TRUE if CLF must update the card state */
+bool           update_required = true;                  /* true if CLF must update the card state */
 
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -516,7 +517,7 @@ while (working_set) {                                   /* while signals remain 
                         tpprintf (dptrs [card], DEB_CMDS, "SRQ cleared\n");
 
                     di_card->srq = CLEAR;                   /* clear SRQ */
-                    update_required = FALSE;                /* the card state does not change */
+                    update_required = false;                /* the card state does not change */
                     }
                 }
 
@@ -582,7 +583,7 @@ while (working_set) {                                   /* while signals remain 
                             tpprintf (dptrs [card], DEB_CMDS, "SRQ cleared\n");
 
                         di_card->srq = CLEAR;                           /* clear SRQ */
-                        update_required = FALSE;                        /* the card state does not change */
+                        update_required = false;                        /* the card state does not change */
                         }
                     }
                 }
@@ -739,7 +740,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -1001,16 +1002,16 @@ return SCPE_OK;
 
    The functions that simulate the HP-IB (where "*" is "di", "da", etc.) are:
 
-    di_bus_source --    Source a data byte to the bus.  Returns TRUE if the
+    di_bus_source --    Source a data byte to the bus.  Returns true if the
                         byte was accepted (i.e., there were one or more
-                        listeners) and FALSE if it was not.  Called by the
+                        listeners) and false if it was not.  Called by the
                         controller to send commands to devices, and called by
                         the current talker to send data to the listener(s).  ATN
                         and EOI should be asserted as required on the bus before
                         calling.
 
-    *_bus_accept --     Accept a data byte from the bus.  Returns TRUE if the
-                        byte was accepted and FALSE if it was not.  Called by
+    *_bus_accept --     Accept a data byte from the bus.  Returns true if the
+                        byte was accepted and false if it was not.  Called by
                         di_bus_source to handshake between source and acceptor.
                         If ATN is asserted on the bus, the byte is a command;
                         otherwise, it is data.  If EOI is asserted for a data
@@ -1057,11 +1058,11 @@ return SCPE_OK;
        parallel poll does not source data onto the bus).
 */
 
-t_bool di_bus_source (CARD_ID card, uint8 data)
+bool di_bus_source (CARD_ID card, uint8 data)
 {
 CARD_ID other;
 uint32 acceptors, unit;
-t_bool accepted = FALSE;
+bool accepted = false;
 
 tpprintf (dptrs [card], DEB_XFER, "HP-IB DIO %03o signals %s available\n",
           data, fmt_bitset (di [card].bus_cntl, bus_format));
@@ -1144,7 +1145,7 @@ void di_bus_control (CARD_ID card, uint32 unit, uint8 assert, uint8 deny)
 {
 CARD_ID other;
 uint32 acceptors, responder;
-t_bool responded;
+bool responded;
 uint8 new_state, new_assertions, new_denials;
 
 new_state = di [card].bus_cntl & ~deny | assert;        /* set up the new control state */
@@ -1173,14 +1174,14 @@ else
 if ((dptrs [card]->flags & DEV_DIAG)                            /* is the card in diagnostic mode? */
   || (new_assertions & ASSERT_SET)                              /*   or are changed signals in the */
   || (new_denials & DENY_SET)) {                                /*     set that must be broadcast? */
-    responded = FALSE;                                          /* assume no response was received */
+    responded = false;                                          /* assume no response was received */
 
     if (dptrs [card]->flags & DEV_DIAG) {                       /* is this a diagnostic run? */
         for (other = first_card; other <= last_card; other++)   /* look through the list of cards */
             if (other != card && dptrs [other]                  /*   for the other card */
               && (dptrs [other]->flags & DEV_DIAG)) {           /*     that is configured for diagnostic */
                 di_bus_respond (other, new_state);              /* notify the other card of the new control state */
-                responded = TRUE;                               /*   and note that there was a responder */
+                responded = true;                               /*   and note that there was a responder */
                 }
         }
 
@@ -1305,18 +1306,18 @@ return;
    The indicated card accepts a byte that has been sourced to the bus.  The byte
    is loaded into the FIFO, and the card state is updated to reflect the load.
 
-   Bus acceptors return TRUE to indicate that the byte was accepted.  A card
-   always accepts a byte, so the routine always returns TRUE.
+   Bus acceptors return true to indicate that the byte was accepted.  A card
+   always accepts a byte, so the routine always returns true.
 */
 
-static t_bool di_bus_accept (CARD_ID card, uint8 data)
+static bool di_bus_accept (CARD_ID card, uint8 data)
 {
 tpprintf (dptrs [card], DEB_XFER, "HP-IB card %d accepted data %03o\n",
           card, data);
 
 fifo_load (card, data, bus_access);                     /* load the data byte into the FIFO */
 update_state (card);                                    /*   and update the card state */
-return TRUE;                                            /* indicate that the byte was accepted */
+return true;                                            /* indicate that the byte was accepted */
 }
 
 
@@ -1623,7 +1624,7 @@ return;
 static void fifo_load (CARD_ID card, uint16 data, FIFO_ACCESS access)
 {
 uint32 tag, index;
-t_bool add_word = TRUE;
+bool add_word = true;
 DI_STATE * const di_card = &di [card];
 
 if (FIFO_FULL) {                                        /* is the FIFO already full? */
@@ -1668,7 +1669,7 @@ if (access == bus_access) {                             /* is this a bus access 
         else {                                          /* more bytes are expected */
             di_card->fifo [index] =                     /*   so position this byte */
               tag | TO_WORD (data, 0);                  /*   and store it with the tag */
-            add_word = FALSE;                           /* wait for the second byte before adding */
+            add_word = false;                           /* wait for the second byte before adding */
             }
         }
 
@@ -1806,7 +1807,7 @@ return;
 static uint16 fifo_unload (CARD_ID card, FIFO_ACCESS access)
 {
 uint32 data, tag;
-t_bool remove_word = TRUE;
+bool remove_word = true;
 DI_STATE * const di_card = &di [card];
 
 if (FIFO_EMPTY) {                                       /* is the FIFO already empty? */
@@ -1840,7 +1841,7 @@ else if (access == bus_access)                          /* is this a bus access?
     if (di_card->obp == upper) {                        /* is this the upper byte? */
         di_card->obp = lower;                           /* set the lower byte as next */
         data = UPPER_BYTE (data);                       /* mask and position the upper byte in the data word */
-        remove_word = FALSE;                            /* do not unload the FIFO until the next byte */
+        remove_word = false;                            /* do not unload the FIFO until the next byte */
         }
 
     else {                                              /* this is the lower byte */

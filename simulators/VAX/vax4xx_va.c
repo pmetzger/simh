@@ -160,10 +160,10 @@ uint32 va_cur_p = 0;                                    /* cursor image pointer 
 uint32 va_cur_x = 0;                                    /* Last cursor X-position */
 uint32 va_cur_y = 0;                                    /* Last cursor Y-position */
 uint32 va_cur_f = 0;                                    /* Last cursor function */
-t_bool va_cur_v = FALSE;                                /* Last cursor visible */
+bool va_cur_v = false;                                  /* Last cursor visible */
 
-t_bool va_active = FALSE;
-t_bool va_updated[2048];
+bool va_active = false;
+bool va_updated[2048];
 bool va_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
 uint32 *va_buf = NULL;                                  /* Video memory */
 uint32 *va_lines = NULL;                                /* Video Display Lines */
@@ -322,11 +322,11 @@ MTAB va_mod[] = {
         &va_set_enable, NULL, NULL, "Enable GPX" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
         &va_set_enable, NULL, NULL, "Disable GPX" },
-    { MTAB_XTD|MTAB_VDV, TRUE, NULL, "CAPTURE",
+    { MTAB_XTD|MTAB_VDV, true, NULL, "CAPTURE",
         &va_set_capture, &va_show_capture, NULL, "Enable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, FALSE, NULL, "NOCAPTURE",
+    { MTAB_XTD|MTAB_VDV, false, NULL, "NOCAPTURE",
         &va_set_capture, NULL, NULL, "Disable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, TRUE, "OSCURSOR", NULL,
+    { MTAB_XTD|MTAB_VDV, true, "OSCURSOR", NULL,
         NULL, &va_show_capture, NULL, "Display Input Capture mode" },
     { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "VIDEO", NULL,
         NULL, &vid_show_video, NULL, "Display the host system video capabilities" },
@@ -535,7 +535,7 @@ switch (rg) {
             va_cmap2[va_bt458_addr] |= (va_cmap[1] << 8);
             va_cmap2[va_bt458_addr] |= (va_cmap[2] << 16);
             for (i = 0; i < VA_YSIZE; i++)
-                va_updated[i] = TRUE;
+                va_updated[i] = true;
             va_bt458_addr++;
             va_bt458_addr = va_bt458_addr & 0xFF;
             }
@@ -555,7 +555,7 @@ switch (rg) {
             va_cmap2[VA_BPP + va_bt458_addr] |= (va_cmap[1] << 8);
             va_cmap2[VA_BPP + va_bt458_addr] |= (va_cmap[2] << 16);
             for (i = 0; i < VA_YSIZE; i++)
-                va_updated[i] = TRUE;
+                va_updated[i] = true;
             va_bt458_addr++;
             va_bt458_addr = va_bt458_addr & 0x7;
             }
@@ -600,7 +600,7 @@ if (rg < 0x28) {                                        /* active colour map? */
     grn = grn | (grn << 4);
     va_palette[rg] = vid_map_rgb (red, grn, blu);
     for (i = 0; i < VA_YSIZE; i++)
-        va_updated[i] = TRUE;
+        va_updated[i] = true;
     }
 }
 #endif
@@ -835,7 +835,7 @@ if (rg >= VA_ADP_OF) {                                  /* address processor */
 
 void va_dlist (void)
 {
-t_bool nodec = FALSE;
+bool nodec = false;
 uint32 inst, saved_inst;
 int32 val;
 
@@ -849,7 +849,7 @@ if ((va_dla < VA_TMP_OF) || (saved_inst & 0x2000)) {
 else
     inst = va_ram[va_dla++];
 if (saved_inst & 0x1000)                                /* saved decode flag */
-    nodec = TRUE;
+    nodec = true;
 
 sim_debug (DBG_ROP, &va_dev, "Begin display list\n");
 sim_debug (DBG_ROP, &va_dev, "DLIST: %04X = %04X ", (va_dla == 0) ? 0 : (va_dla - 1), inst);
@@ -857,7 +857,7 @@ for (;;) {
     if (nodec) {                                        /* decode disabled? */
         sim_debug (DBG_ROP, &va_dev, "(data - full word)\n");
         va_adp_wr (ADP_ADCT, inst);                     /* write to adder (full word) */
-        nodec = FALSE;                                  /* enable decode */
+        nodec = false;                                  /* enable decode */
         }
     else if (inst & 0x8000) {                           /* command? */
         if (inst & 0x800) {
@@ -885,7 +885,7 @@ for (;;) {
             if ((inst & 0x4000) == 0)                       /* write enabled? */
                 va_adp_wr (ADP_ADCT, (0x8000 | (inst & 0xFFF))); /* update counter */
             if (inst & 0x1000)                              /* decode disable? */
-                nodec = TRUE;
+                nodec = true;
             if (inst & 0x2000) {                            /* read fifo? */
                 if (va_fcc_fifo_sz == 0) {
                     va_dla = va_dla | (inst << 16);         /* save current instruction */
@@ -950,14 +950,14 @@ static inline void va_invalidate (uint32 y1, uint32 y2)
 uint32 ln;
 
 for (ln = y1; ln < y2; ln++)
-    va_updated[ln] = TRUE;                              /* flag as updated */
+    va_updated[ln] = true;                              /* flag as updated */
 }
 
 t_stat va_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
-t_bool updated = FALSE;                                 /* flag for refresh */
+bool updated = false;                                   /* flag for refresh */
 uint32 lines;
 uint32 ln, col, off;
 uint16 *plna, *plnb;
@@ -1028,15 +1028,15 @@ for (ln = 0; ln < VA_YSIZE; ln++) {
                     }
                 }
             }
-        va_updated[ln + va_yoff] = FALSE;               /* set valid */
+        va_updated[ln + va_yoff] = false;               /* set valid */
         if ((ln == (VA_YSIZE-1)) ||                     /* if end of window OR */
-            (va_updated[ln+va_yoff+1] == FALSE)) {      /* next is already valid? */
+            (va_updated[ln+va_yoff+1] == false)) {      /* next is already valid? */
             vid_draw (0, ln-lines, VA_XSIZE, lines+1, va_lines+(ln-lines)*VA_XSIZE); /* update region */
             lines = 0;
             }
         else
             lines++;
-        updated = TRUE;
+        updated = true;
         }
     }
 
@@ -1049,20 +1049,20 @@ if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or error? */
 return SCPE_OK;
 }
 
-static t_bool va_fcc_rdn (uint32 *data, uint32 bits)
+static bool va_fcc_rdn (uint32 *data, uint32 bits)
 {
 int32 mask = (1u << bits) - 1;
 if (va_fcc_sc == 0) {                                   /* need to read FIFO? */
     if (va_fcc_fifo_sz == 0)                            /* empty? */
-        return FALSE;                                   /* no more data to read */
+        return false;                                   /* no more data to read */
     va_fcc_data = va_fcc_fifo_rd ();
     }
 *data = (va_fcc_data >> va_fcc_sc) & mask;              /* extract bits */
 va_fcc_sc = (va_fcc_sc + bits) & 0xF;
-return TRUE;
+return true;
 }
 
-static t_bool va_fcc_wrn (uint32 data, uint32 bits)
+static bool va_fcc_wrn (uint32 data, uint32 bits)
 {
 int32 mask = (1u << bits) - 1;
 mask = mask << va_fcc_sc;
@@ -1071,11 +1071,11 @@ va_fcc_data = va_fcc_data | ((data << va_fcc_sc) & mask); /* insert bits */
 va_fcc_sc = (va_fcc_sc + bits) & 0xF;
 if (va_fcc_sc == 0) {                                   /* need to write FIFO? */
     if (va_fcc_fifo_sz == RAM_SIZE)                     /* full? */
-        return FALSE;                                   /* no more space to write */
+        return false;                                   /* no more space to write */
     va_fcc_fifo_wr (va_fcc_data);
     va_fcc_data = 0;
     }
-return TRUE;
+return true;
 }
 
 static void va_fcc_decomp (UNIT *uptr)
@@ -1288,7 +1288,7 @@ va_bt458_addr = 0;
 va_cmap_p = 0;
 
 for (i = 0; i < VA_YSIZE; i++)
-    va_updated[i] = TRUE;
+    va_updated[i] = true;
 
 if (dptr->flags & DEV_DIS) {
     if (va_active) {
@@ -1296,7 +1296,7 @@ if (dptr->flags & DEV_DIS) {
         va_buf = NULL;
         free (va_lines);
         va_lines = NULL;
-        va_active = FALSE;
+        va_active = false;
         return vid_close ();
         }
     else
@@ -1336,7 +1336,7 @@ if (!vid_active)  {
     if (sim_log)
         va_show_capture (sim_log, NULL, 0, NULL);
     sim_printf ("\n");
-    va_active = TRUE;
+    va_active = true;
     }
 sim_activate_abs (&va_unit[0], tmxr_poll);
 return SCPE_OK;
@@ -1370,7 +1370,7 @@ if (cptr == NULL)
     return SCPE_ARG;
 va_yoff = (int32) get_uint (cptr, 10, 2048, &r);
 for (i = 0; i < VA_YSIZE; i++)
-    va_updated[i + va_yoff] = TRUE;
+    va_updated[i + va_yoff] = true;
 return r;
 }
 
@@ -1405,7 +1405,7 @@ if (va_dpln > 0) {
     va_dpln = (1u << va_dpln);
     }
 for (i = 0; i < VA_YSIZE; i++)
-    va_updated[i + va_yoff] = TRUE;
+    va_updated[i + va_yoff] = true;
 return r;
 }
 

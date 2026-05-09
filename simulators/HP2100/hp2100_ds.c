@@ -134,6 +134,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 #include "hp2100_disclib.h"
@@ -153,7 +154,7 @@
 #define FIFO_STOP       (ds.fifo_count >= 5)            /* FIFO stop filling test */
 #define FIFO_FULL       (ds.fifo_count == FIFO_SIZE)    /* FIFO full test */
 
-#define PRESET_ENABLE   TRUE                            /* Preset Jumper (W4) is enabled */
+#define PRESET_ENABLE   true                            /* Preset Jumper (W4) is enabled */
 
 
 /* Per-card state variables */
@@ -467,9 +468,9 @@ const char * const hold_or_clear = (inbound_signals & ioCLF ? ",C" : "");
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
-t_bool         command_issued = FALSE;
-t_bool         interrupt_enabled = FALSE;
+bool           irq_enabled = false;
+bool           command_issued = false;
+bool           interrupt_enabled = false;
 
 while (working_set) {
     signal = IONEXTSIG (working_set);                   /* isolate the next signal */
@@ -537,7 +538,7 @@ while (working_set) {
             if (ds.cmfol == SET) {                          /* are we expecting a command? */
                 ds.cmfol = CLEAR;                           /* clear the command follows flip-flop */
                 ds.cmrdy = SET;                             /* set the command ready flip-flop */
-                command_issued = TRUE;                      /*   and request an interface poll */
+                command_issued = true;                      /*   and request an interface poll */
                 }
 
             else {                                          /* not a command */
@@ -594,7 +595,7 @@ while (working_set) {
         case ioSTC:                                     /* set control flip-flop */
             ds.control = SET;                           /* set the control flip-flop */
 
-            interrupt_enabled = TRUE;                   /* check for drive attention */
+            interrupt_enabled = true;                   /* check for drive attention */
 
             tprintf (ds_dev, DEB_CMDS, "[STC%s] Control set\n", hold_or_clear);
             break;
@@ -627,7 +628,7 @@ while (working_set) {
 
 
         case ioIEN:                                     /* interrupt enable */
-            irq_enabled = TRUE;
+            irq_enabled = true;
             break;
 
 
@@ -745,7 +746,7 @@ return outbound;                                        /* return the outbound s
 static t_stat ds_service_drive (UNIT *uptr)
 {
 t_stat result;
-t_bool seek_completion;
+bool seek_completion;
 FLIP_FLOP entry_srq = ds.srq;                           /* get the SRQ state on entry */
 CNTLR_PHASE entry_phase = (CNTLR_PHASE) uptr->PHASE;    /* get the operation phase on entry */
 uint32 entry_status = uptr->STAT;                       /* get the drive status on entry */
@@ -1419,7 +1420,7 @@ static t_stat ds_load_unload (UNIT *uptr, int32 value, const char *cptr, void *d
 (void) cptr;
 (void) desc;
 
-const t_bool load = (value != UNIT_UNLOAD);             /* true if the heads are loading */
+const bool load = (value != UNIT_UNLOAD);               /* true if the heads are loading */
 
 return dl_load_unload (&mac_cntlr, uptr, load);         /* load or unload the heads */
 }

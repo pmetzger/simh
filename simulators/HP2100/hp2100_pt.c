@@ -192,6 +192,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -551,7 +552,7 @@ UNIT * const     uptr = &(pt_unit [card]);                  /* the associated un
 INBOUND_SIGNAL   signal;
 INBOUND_SET      working_set = inbound_signals;
 SIGNALS_VALUE    outbound    = { ioNONE, 0 };
-t_bool           irq_enabled = FALSE;
+bool             irq_enabled = false;
 int32            delay;
 
 while (working_set) {                                   /* while signals remain */
@@ -658,7 +659,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 

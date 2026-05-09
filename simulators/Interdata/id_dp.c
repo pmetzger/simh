@@ -33,6 +33,7 @@
 
 #include "id_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define DP_NUMBY        256                             /* bytes/sector */
 #define DP_NUMSC        24                              /* sectors/track */
@@ -154,7 +155,7 @@ int32 dp_wtime = 1;                                     /* word time */
 uint8 dp_tplte[(2 * DP_NUMDR) + 2];                     /* fix/rmv + ctrl + end */
 
 uint32 dp (uint32 dev, uint32 op, uint32 dat);
-void dp_ini (t_bool dtpl);
+void dp_ini (bool dtpl);
 t_stat dp_svc (UNIT *uptr);
 t_stat dp_reset (DEVICE *dptr);
 t_stat dp_attach (UNIT *uptr, const char *cptr);
@@ -162,7 +163,7 @@ t_stat dp_detach (UNIT *uptr);
 t_stat dp_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat dp_rds (UNIT *uptr);
 t_stat dp_wds (UNIT *uptr);
-t_bool dp_dter (UNIT *uptr, uint32 first);
+bool dp_dter (UNIT *uptr, uint32 first);
 void dp_done (uint32 flg);
 
 extern t_stat id_dboot (int32 u, DEVICE *dptr);
@@ -487,7 +488,7 @@ return SCPE_OK;
 
 /* Data transfer error test routine */
 
-t_bool dp_dter (UNIT *uptr, uint32 first)
+bool dp_dter (UNIT *uptr, uint32 first)
 {
 uint32 hd, sc, sa;
 uint32 dtype = GET_DTYPE (uptr->flags);                 /* get drive type */
@@ -495,7 +496,7 @@ uint32 dtype = GET_DTYPE (uptr->flags);                 /* get drive type */
 if (((uptr->flags & UNIT_ATT) == 0) ||                  /* not attached? */
     ((uptr->flags & UNIT_WPRT) && (dp_cmd == CMC_WR))) {
     dp_done (STC_DTE);                                  /* error, done */
-    return TRUE;
+    return true;
     }
 hd = GET_SRF (dp_hdsc);                                 /* get head */
 sc = GET_SEC (dp_hdsc);                                 /* get sector */
@@ -504,23 +505,23 @@ if (dp_cyl != (uint32) uptr->CYL) {                     /* wrong cylinder? */
         uptr->CYL = 0;
     else {
         dp_done (STC_ACF);                              /* error, done */
-        return TRUE;
+        return true;
         }
     }
 if (sc >= DP_NUMSC) {                                   /* bad sector? */
     dp_done (STC_OVR);                                  /* error, done */
-    return TRUE;
+    return true;
     }
 if (!first && (sc == 0) && (hd == 0)) {                 /* cyl overflow? */
     dp_done (STC_CYO);                                  /* error, done */
-    return TRUE;
+    return true;
     }
 sa = GET_SA (dp_plat, uptr->CYL, hd, sc, dtype);        /* curr disk addr */
 fseek (uptr->fileref, sa * DP_NUMBY, SEEK_SET);
 if ((sc + 1) < DP_NUMSC)                                /* end of track? */
     dp_hdsc = dp_hdsc + 1;
 else dp_hdsc = (dp_hdsc ^ HS_HMASK) & HS_HMASK;         /* sec 0, nxt srf */
-return FALSE;
+return false;
 }
 
 /* Data transfer done routine */
@@ -620,7 +621,7 @@ return SCPE_OK;
 
 /* Create device number (T) or interrupt (F) template */
 
-void dp_ini (t_bool dtpl)
+void dp_ini (bool dtpl)
 {
 int32 u, j, dev;
 

@@ -83,6 +83,7 @@
 
 #include "i7094_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define DSK_NUMDR       10                              /* modules/controller */
 #define DSK_SNS         (2 * DSK_NUMDR)                 /* dummy unit for sense */
@@ -324,8 +325,8 @@ t_uint64 dsk_acc_atn (uint32 u);
 t_stat dsk_init_trk (UNIT *udptr, uint32 trk);
 t_stat dsk_xfer_done (UNIT *uaptr, uint32 dtyp);
 t_stat dsk_wr_trk (UNIT *uptr, uint32 trk);
-t_bool dsk_get_fmtc (uint32 dtyp, uint8 *fc);
-t_bool dsk_qdone (uint32 ch);
+bool dsk_get_fmtc (uint32 dtyp, uint8 *fc);
+bool dsk_qdone (uint32 ch);
 t_stat dsk_show_format (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
 /* DSK data structures
@@ -1014,7 +1015,7 @@ return (DSKS_ATN0 >> ((g * 6) + (b? b + 1: 0)));
 
 /* Get next format character */
 
-t_bool dsk_get_fmtc (uint32 dtyp, uint8 *fc)
+bool dsk_get_fmtc (uint32 dtyp, uint8 *fc)
 {
 uint32 cc = dsk_fmt_cntr % 6;
 
@@ -1029,9 +1030,9 @@ if ((cc == 5) && !dsk_stop)                             /* end of word? */
     ch_req |= REQ_CH (dsk_ch);
 if (dsk_fmt_cntr++ >= dsk_tab[dtyp].fchpt) {            /* track overflow? */
     dsk_uend (dsk_ch, DSKS_FMTC);                       /* format check */
-    return FALSE;
+    return false;
     }
-return TRUE;
+return true;
 }
 
 /* Unusual end (set status and stop) */
@@ -1054,13 +1055,13 @@ return SCPE_OK;
 
 /* Test for done */
 
-t_bool dsk_qdone (uint32 ch)
+bool dsk_qdone (uint32 ch)
 {
 if (dsk_stop || !ch9_qconn (ch)) {                      /* stop or err disc? */
     dsk_sta = DSK_IDLE;                                 /* disk is idle */
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Reset */
@@ -1159,7 +1160,7 @@ uint32 minrsz = DSK_BUFSIZ;
 uint32 maxrsz = 0;
 uint32 minrno = DSK_BUFSIZ;
 uint32 maxrno = 0;
-t_bool ctss;
+bool ctss;
 t_uint64 dbuf[DSK_BUFSIZ];
 DEVICE *dptr;
 
@@ -1176,7 +1177,7 @@ dtyp = GET_DTYPE (uptr->flags);
 if ((dtyp == TYPE_7320) || (dtyp == TYPE_1301))
     format = ctss_fmt_7320;
 else format = ctss_fmt_1302;
-for (a = 0, ctss = TRUE; a < dsk_tab[dtyp].accpm; a++) {
+for (a = 0, ctss = true; a < dsk_tab[dtyp].accpm; a++) {
     if (val)
         tlim = dsk_tab[dtyp].trkpa;
     else tlim = 1;
@@ -1191,7 +1192,7 @@ for (a = 0, ctss = TRUE; a < dsk_tab[dtyp].accpm; a++) {
         rptr = T1STREC;
         rlnt = (uint32) dbuf[rptr + RLNT];
         if (dbuf[THA2] != CTSS_HA2)
-            ctss = FALSE;
+            ctss = false;
         if (rlnt == 0) {
             if (a || t)
                 fprintf (st, "Unformatted track, unit = %d, access = %d, track = %d\n", u, a, t);
@@ -1200,7 +1201,7 @@ for (a = 0, ctss = TRUE; a < dsk_tab[dtyp].accpm; a++) {
             }
         for (rec = 0, ctptr = 0; rlnt != 0; rec++) {
             if ((format[ctptr] == 0) || format[ctptr++] != rlnt)
-                ctss = FALSE;
+                ctss = false;
             rlim = rptr + rlnt + RDATA;
             if (rlim >= dsk_tab[dtyp].wdspt) {
                 fprintf (st, "Invalid record length %d, unit = %d, access = %d, track = %d, record = %d\n",
@@ -1215,7 +1216,7 @@ for (a = 0, ctss = TRUE; a < dsk_tab[dtyp].accpm; a++) {
             rlnt = (uint32) dbuf[rptr + RLNT];
             }
         if (format[ctptr] != 0)
-            ctss = FALSE;
+            ctss = false;
         if (rec > maxrno)
             maxrno = rec;
         if (rec < minrno)

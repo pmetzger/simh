@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -23,7 +24,7 @@ extern uint32 *ddb;
 extern int32 cdg_dat[];
 extern int32 int_mask;
 extern int32 int_req[];
-extern t_bool tmr_inst;
+extern bool tmr_inst;
 extern uint32 tmr_tir;
 
 static uint32 test_ddb[D128SIZE >> 2];
@@ -102,7 +103,7 @@ t_stat show_vec(FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 t_stat cpu_load_bootcode(const char *filename,
                          const unsigned char *builtin_code, size_t size,
-                         t_bool load_rom, t_addr offset)
+                         bool load_rom, t_addr offset)
 {
     /* Stubbed boot-code loader for uncalled boot paths. */
     (void)filename;
@@ -199,7 +200,7 @@ static void reset_vax43_sysdev_behavior_state(void)
     memset(cdg_dat, 0, CDASIZE);
     int_req[0] = 0;
     int_mask = 0;
-    tmr_inst = FALSE;
+    tmr_inst = false;
     tmr_tir = 0;
     vc_org = 0;
     vc_sel = 0;

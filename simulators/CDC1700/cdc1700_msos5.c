@@ -28,6 +28,7 @@
 /* cdc1700_msos5.c: CDC1700 MSOS 5 trace and debugging support
  */
 
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 extern uint16 M[], Preg, Areg, Qreg;
@@ -84,9 +85,9 @@ extern uint16 doADDinternal(uint16, uint16);
  * Note that INDIR requests may or may not be queueable depending on the
  * target parameter list.
  */
-t_bool queueable[] = {
-  TRUE, TRUE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, TRUE,
-  TRUE, FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, FALSE
+bool queueable[] = {
+  true, true, true, false, true, false, true, false, true, true,
+  true, false, false, true, true, true, false, true, true, false
 };
 
 const char *indent[] = {
@@ -142,7 +143,7 @@ const char *charRep[128] = {
 /*
  * Check if a logical unit is a mass storage device.
  */
-static t_bool isMassStorage(uint16 lu)
+static bool isMassStorage(uint16 lu)
 {
   uint16 extbv4 = M[CREXTB];
   uint16 log1a = M[extbv4 + LOG1A];
@@ -154,9 +155,9 @@ static t_bool isMassStorage(uint16 lu)
      * Check if equipment class is 2 (Mass storage)
      */
     if ((M[physDev + 8] & 0x3800) == 0x1000)
-      return TRUE;
+      return true;
   }
-  return FALSE;
+  return false;
 }
 
 /*
@@ -371,7 +372,7 @@ void MSOS5request(uint16 param, uint16 depth)
   char luadr;
   uint16 lu, abslu, abss, abswd, i;
   uint32 sector;
-  t_bool secondary = FALSE;
+  bool secondary = false;
 
   parameters[0] = '\0';
   details[0] = '\0';
@@ -393,7 +394,7 @@ void MSOS5request(uint16 param, uint16 depth)
     /*
      * Secondary scheduler call
      */
-    secondary = TRUE;
+    secondary = true;
     reqCode = RQ_SCHDLE;
   }
   /*

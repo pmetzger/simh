@@ -50,6 +50,7 @@
    End of tape is two consecutive end of file marks.
 */
 
+#include <stdbool.h>
 #include "id_defs.h"
 #include "sim_tape.h"
 
@@ -269,7 +270,7 @@ uint32 i;
 int32 u = uptr - mt_dev.units;
 uint32 dev = mt_dib.dno + (u * o_MT0);
 t_mtrlnt tbc;
-t_bool passed_eot;
+bool passed_eot;
 t_stat st, r = SCPE_OK;
 
 if ((uptr->flags & UNIT_ATT) == 0) {                    /* not attached? */

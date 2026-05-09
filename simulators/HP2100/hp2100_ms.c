@@ -100,6 +100,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -210,7 +211,7 @@ static int32    msd_buf = 0;                    /* data buffer */
 static uint8    msxb [DBSIZE] = { 0 };          /* data buffer */
 static t_mtrlnt ms_ptr = 0;                     /* buffer ptrs */
 static t_mtrlnt ms_max = 0;                     /* buffer ptrs */
-static t_bool   ms_crc = FALSE;                 /* buffer ready for CRC calc */
+static bool     ms_crc = false;                 /* buffer ready for CRC calc */
 
 
 /* Hardware timing at 45 IPS                  13181                  13183
@@ -514,7 +515,7 @@ static SIGNALS_VALUE msd_interface (const DIB *dibptr, INBOUND_SET inbound_signa
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 uint32         check;
 
 while (working_set) {                                   /* while signals remain */
@@ -586,7 +587,7 @@ while (working_set) {                                   /* while signals remain 
 
         case ioSTC:                                     /* Set Control flip-flop */
             msd.control = SET;                          /* set the control flip-flop */
-            ms_crc = FALSE;                             /* reset CRC ready */
+            ms_crc = false;                             /* reset CRC ready */
             break;
 
 
@@ -616,7 +617,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -674,7 +675,7 @@ UNIT           *uptr = msc_dev.units + msc_usl;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -856,7 +857,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -1039,7 +1040,7 @@ switch (uptr->FNC) {                                    /* case on function */
             msc_1st = 1;                                /* restart */
         else {
             uptr->FNC |= FNC_CMPL;                      /* set completion */
-            ms_crc = TRUE;                              /*   and CRC ready */
+            ms_crc = true;                              /*   and CRC ready */
             }
         return SCPE_OK;
 
@@ -1087,7 +1088,7 @@ switch (uptr->FNC) {                                    /* case on function */
         sim_activate (uptr, msc_itime);                 /* sched IRG */
         uptr->FNC |= FNC_CMPL;                          /* set completion */
         ms_max = ms_ptr;                                /* indicate buffer complete */
-        ms_crc = TRUE;                                  /*   and CRC may be generated */
+        ms_crc = true;                                  /*   and CRC may be generated */
         return SCPE_OK;
 
     case FNC_WC | FNC_CMPL:                             /* write completion */

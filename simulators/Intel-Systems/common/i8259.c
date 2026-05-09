@@ -33,6 +33,7 @@
         other multibus boards in the simulated system.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 
 #define i8259_NAME    "Intel i8259 PIC Chip"
@@ -42,8 +43,8 @@
 t_stat i8259_cfg(uint16 base, uint16 devnum, uint8 dummy);
 t_stat i8259_clr(void);
 t_stat i8259_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
-uint8 i8259a(t_bool io, uint8 data, uint8 devnum);
-uint8 i8259b(t_bool io, uint8 data, uint8 devnum);
+uint8 i8259a(bool io, uint8 data, uint8 devnum);
+uint8 i8259b(bool io, uint8 data, uint8 devnum);
 void i8259_dump(uint8 devnum);
 t_stat i8259_reset (DEVICE *dptr);
 
@@ -61,7 +62,7 @@ uint8 icw_num0 = 1, icw_num1 = 1;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 
 /* globals */
@@ -236,7 +237,7 @@ t_stat i8259_reset (DEVICE *dptr)
 
 /* i8259 functions */
 
-uint8 i8259a(t_bool io, uint8 data, uint8 devnum)
+uint8 i8259a(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read data port */
         if ((i8259_ocw3[devnum] & 0x03) == 0x02)
@@ -270,7 +271,7 @@ uint8 i8259a(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8259b(t_bool io, uint8 data, uint8 devnum)
+uint8 i8259b(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read data port */
         if ((i8259_ocw3[devnum] & 0x03) == 0x02)

@@ -23,6 +23,7 @@
    through shared memory and inter-processor interrupts.
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
@@ -115,8 +116,8 @@ static t_stat auxcpu_reset (DEVICE *dptr)
   sim_debug(DBG_TRC, dptr, "auxcpu_reset()\n");
 
   auxcpu_unit[0].flags |= UNIT_ATTABLE | UNIT_IDLE;
-  auxcpu_desc.packet = TRUE;
-  auxcpu_desc.notelnet = TRUE;
+  auxcpu_desc.packet = true;
+  auxcpu_desc.notelnet = true;
   auxcpu_desc.buffered = 2048;
 
   if (auxcpu_unit[0].flags & UNIT_ATT)
@@ -135,7 +136,7 @@ static t_stat auxcpu_attach (UNIT *uptr, const char *cptr)
     return SCPE_ARG;
   if (!(uptr->flags & UNIT_ATTABLE))
     return SCPE_NOATT;
-  r = tmxr_attach_ex (&auxcpu_desc, uptr, cptr, FALSE);
+  r = tmxr_attach_ex (&auxcpu_desc, uptr, cptr, false);
   if (r != SCPE_OK)                                       /* error? */
     return r;
   sim_debug(DBG_TRC, &auxcpu_dev, "activate connection\n");

@@ -454,6 +454,7 @@ OP CODE 11 (Resened)
 #include "pdp11_defs.h"
 #endif
 
+#include <stdbool.h>
 #include "pdp11_td.h"
 
 /* DL Definitions */
@@ -611,10 +612,10 @@ struct CTLR {
     UNIT *uptr;
     uint16 rx_csr;
     uint16 rx_buf;
-    void (*rx_set_int) (int32 ctlr_num, t_bool val);
+    void (*rx_set_int) (int32 ctlr_num, bool val);
     uint16 tx_csr;
     uint16 tx_buf;
-    void (*tx_set_int) (int32 ctlr_num, t_bool val);
+    void (*tx_set_int) (int32 ctlr_num, bool val);
     uint8 ibuf[TD_NUMBY+1];                 /* input buffer */
     int32 ibptr;                            /* input buffer pointer */
     int32 ilen;                             /* input length */
@@ -640,15 +641,15 @@ static t_stat td_set_ctrls (UNIT *uptr, int32 val, const char *cptr, void *desc)
 static t_stat td_show_ctlrs (FILE *st, UNIT *uptr, int32 val, const void *desc);
 static t_stat td_boot (int32 unitno, DEVICE *dptr);
 static t_stat td_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-static void tdi_set_int (int32 ctlr, t_bool val);
+static void tdi_set_int (int32 ctlr, bool val);
 static int32 tdi_iack (void);
-static void tdo_set_int (int32 ctlr, t_bool val);
+static void tdo_set_int (int32 ctlr, bool val);
 static int32 tdo_iack (void);
 
 static const char *td_description (DEVICE *dptr);
 
 static void td_process_packet(CTLR *ctrl);
-static t_bool td_test_xfr (UNIT *uptr, int32 state);
+static bool td_test_xfr (UNIT *uptr, int32 state);
 
 /* TU58 data structures
 
@@ -1245,7 +1246,7 @@ return SCPE_OK;
 
 /* Test for data transfer okay */
 
-static t_bool td_test_xfr (UNIT *uptr, int32 state)
+static bool td_test_xfr (UNIT *uptr, int32 state)
 {
 CTLR *ctlr = (CTLR *)uptr->up7;
 
@@ -1257,17 +1258,17 @@ else if ((state == TD_WRITE) && (uptr->flags & UNIT_WPRT))               /* writ
     ctlr->ecode = TD_STSWP;
 else {
     ctlr->ecode = TD_STSOK;
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Interrupt routines */
 
-static void tdi_set_int (int32 ctlr, t_bool val)
+static void tdi_set_int (int32 ctlr, bool val)
 {
 uint32 mask = 1u << ctlr;
-t_bool interrupt_set = ((tdi_ireq & mask) != 0);
+bool interrupt_set = ((tdi_ireq & mask) != 0);
 
 if (interrupt_set != val) {
     sim_debug (TDDEB_INT, &tdc_dev, "tdi_set_int(%d, %d)\n", ctlr, val);
@@ -1296,10 +1297,10 @@ for (ctlr = 0; ctlr < TD_NUMCTLR; ctlr++) {             /* find 1st line */
 return 0;
 }
 
-static void tdo_set_int (int32 ctlr, t_bool val)
+static void tdo_set_int (int32 ctlr, bool val)
 {
 uint32 mask = 1u << ctlr;
-t_bool interrupt_set = ((tdo_ireq & mask) != 0);
+bool interrupt_set = ((tdo_ireq & mask) != 0);
 
 if (interrupt_set != val) {
     sim_debug (TDDEB_INT, &tdc_dev, "tdo_set_int(%d, %d)\n", ctlr, val);
@@ -1351,8 +1352,8 @@ static t_stat td_reset (DEVICE *dptr)
 {
 CTLR *ctlr;
 int ctl;
-static t_bool td_enabled_reset = FALSE;
-static t_bool td_regs_inited = FALSE;
+static bool td_enabled_reset = false;
+static bool td_regs_inited = false;
 
 if (!td_regs_inited) {
     int regs;
@@ -1396,17 +1397,17 @@ if (!td_regs_inited) {
         reg += 2;
         }
     dptr->registers = registers;
-    td_regs_inited = TRUE;
+    td_regs_inited = true;
     }
 
 if (dptr->flags & DEV_DIS)
-    td_enabled_reset = FALSE;
+    td_enabled_reset = false;
 else {
     /* When the TDC device is just being enabled, */
     if (!td_enabled_reset) {
         char num[16];
 
-        td_enabled_reset = TRUE;
+        td_enabled_reset = true;
         /* make sure to bound the number of DLI devices */
         sprintf (num, "%d", td_ctrls);
         td_set_ctrls (dptr->units, 0, num, NULL);
@@ -1521,8 +1522,8 @@ return SCPE_OK;
 }
 
 t_stat td_connect_console_device (DEVICE *dptr,
-                                  void (*rx_set_int) (int32 ctlr_num, t_bool val),
-                                  void (*tx_set_int) (int32 ctlr_num, t_bool val))
+                                  void (*rx_set_int) (int32 ctlr_num, bool val),
+                                  void (*tx_set_int) (int32 ctlr_num, bool val))
 {
 uint32 i;
 CTLR *ctlr = &td_ctlr[TD_NUMCTLR];

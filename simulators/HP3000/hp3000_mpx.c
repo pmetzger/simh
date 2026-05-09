@@ -322,6 +322,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_cpu_ims.h"
 #include "hp3000_io.h"
@@ -628,7 +629,7 @@ static const BITSET_FORMAT aux_format =         /* names, offset, direction, alt
 
 /* Channel global state */
 
-t_bool mpx_is_idle     = TRUE;                  /* TRUE if the multiplexer channel is idle */
+bool mpx_is_idle     = true;                    /* true if the multiplexer channel is idle */
 uint32 mpx_request_set = 0;                     /* set of service request bits */
 
 
@@ -682,7 +683,7 @@ static t_stat      mpx_reset     (DEVICE *dptr);
 
 /* Channel local utility routines */
 
-static uint8        next_state    (uint8 current_state, SIO_ORDER order, t_bool abort);
+static uint8        next_state    (uint8 current_state, SIO_ORDER order, bool abort);
 static void         end_channel   (DIB   *dibptr);
 static SIGNALS_DATA abort_channel (DIB   *dibptr, const char *reason);
 
@@ -889,7 +890,7 @@ addr_ram  [srn] = 0;                                    /*       entries */
 
 excess_cycles = - CYCLES_PER_EVENT;                     /* preset the excess cycle count */
 
-mpx_is_idle = FALSE;                                    /* indicate that the channel is busy */
+mpx_is_idle = false;                                    /* indicate that the channel is busy */
 active_count = active_count + 1;                        /* bump reference counter */
 
 return;
@@ -906,7 +907,7 @@ return;
    by returning the SRn signal to the IOP.  The routine corresponds in hardware
    to asserting the SRn signal associated with the interface to the multiplexer.
 
-   On entry, the service_request field in the device's DIB is set to TRUE, and
+   On entry, the service_request field in the device's DIB is set to true, and
    the request set bit corresponding the service_request_number field in the DIB
    is set.  This enables the channel to service the interface on the next
    multiplexer poll call, assuming that the interface has priority.
@@ -914,11 +915,11 @@ return;
 
 void mpx_assert_SRn (DIB *dibptr)
 {
-if (dibptr->service_request == FALSE)
+if (dibptr->service_request == false)
     dprintf (mpx_dev, DEB_SR, "Device number %u asserted SR%u\n",
              dibptr->device_number, dibptr->service_request_number);
 
-dibptr->service_request = TRUE;                         /* set the service request flag */
+dibptr->service_request = true;                         /* set the service request flag */
 mpx_request_set |= 1 << dibptr->service_request_number; /*   and the associated request bit */
 
 return;
@@ -1203,7 +1204,7 @@ DIB          *dibptr;
 int32        cycles;
 uint32       srn, mask, priority_mask;
 HP_WORD      inbound_data, outbound_data, iocw, ioaw;
-t_bool       store_ioaw;
+bool         store_ioaw;
 SIO_ORDER    sio_order;
 INBOUND_SET  inbound_signals;
 SIGNALS_DATA outbound = IORETURN (NO_SIGNALS, 0);       /* needed to quiet warning */
@@ -1275,7 +1276,7 @@ while (cycles > 0) {                                    /* execute as long as cy
 
 
         case State_B:
-            store_ioaw = FALSE;                         /* assume that a fetch and not a store will be needed */
+            store_ioaw = false;                         /* assume that a fetch and not a store will be needed */
 
             switch (sio_order) {                        /* dispatch based on the I/O order */
 
@@ -1291,7 +1292,7 @@ while (cycles > 0) {                                    /* execute as long as cy
                     else                                /* otherwise return the two's-complement remainder */
                         outbound = IORETURN (SRn, IOCW_COUNT (cntr_reg));
 
-                    store_ioaw = TRUE;                  /* set to store the count */
+                    store_ioaw = true;                  /* set to store the count */
                     break;
 
                 case sioINTRP:
@@ -1300,12 +1301,12 @@ while (cycles > 0) {                                    /* execute as long as cy
 
                 case sioEND:
                     inbound_signals = TOGGLESIOOK | TOGGLESR | PSTATSTB | CHANSO;
-                    store_ioaw = TRUE;                  /* set to store the returned status */
+                    store_ioaw = true;                  /* set to store the returned status */
                     break;
 
                 case sioENDIN:
                     inbound_signals = TOGGLESIOOK | TOGGLESR | PSTATSTB | SETINT | CHANSO;
-                    store_ioaw = TRUE;                  /* set to store the returned status */
+                    store_ioaw = true;                  /* set to store the returned status */
                     break;
 
                 case sioCNTL:
@@ -1314,7 +1315,7 @@ while (cycles > 0) {                                    /* execute as long as cy
 
                 case sioSENSE:
                     inbound_signals = PSTATSTB | CHANSO;
-                    store_ioaw = TRUE;                  /* set to store the returned status */
+                    store_ioaw = true;                  /* set to store the returned status */
                     break;
 
                 case sioWRITE:
@@ -1341,7 +1342,7 @@ while (cycles > 0) {                                    /* execute as long as cy
                     break;
                 }
 
-            if (store_ioaw == FALSE) {                          /* if a fetch is needed */
+            if (store_ioaw == false) {                          /* if a fetch is needed */
                 iop_read_memory (absolute, addr_reg, &ioaw);    /*   then load the IOAW from memory */
                 cycles = cycles - CYCLES_PER_READ;              /*     and count the memory access */
 
@@ -1356,7 +1357,7 @@ while (cycles > 0) {                                    /* execute as long as cy
                 outbound = dibptr->io_interface (dibptr,        /*   then pass them to the interface */
                                                  inbound_signals, ioaw);
 
-            if (store_ioaw == TRUE) {                           /* if a store is needed */
+            if (store_ioaw == true) {                           /* if a store is needed */
                 ioaw = IODATA (outbound);                       /*   then set the IOAW from the returned value */
                 iop_write_memory (absolute, addr_reg, ioaw);    /*     and store it in memory */
                 cycles = cycles - CYCLES_PER_WRITE;             /* count the memory access */
@@ -1553,7 +1554,7 @@ while (cycles > 0) {                                    /* execute as long as cy
 
     if ((outbound & SRn) == NO_SIGNALS) {               /* if the device is no longer requesting service */
         mpx_request_set &= ~priority_mask;              /*   then clear its request from the set */
-        dibptr->service_request = FALSE;                /*     and clear its internal request flag */
+        dibptr->service_request = false;                /*     and clear its internal request flag */
 
         priority_mask = 0;                              /* request SR priority recalculation */
 
@@ -1683,7 +1684,7 @@ while (working_set) {
                 cntr_ram [address]  = cntr_reg;         /*   from their respective registers */
                 }
 
-            state_ram [address] = next_state (state_reg, sio_order, FALSE); /* store the next state into the state RAM */
+            state_ram [address] = next_state (state_reg, sio_order, false); /* store the next state into the state RAM */
 
             if (control_word & CN_STATE_RAM) {                          /* if the state RAM is enabled */
                 state_ram [address] |= WR_STATE (inbound_value);        /*   then merge the new state values */
@@ -1878,7 +1879,7 @@ rollover   = CLEAR;                                     /* clear the word count 
 device_end = CLEAR;                                     /*   and device end flip-flops */
 
 active_count = 0;                                       /* idle the channel */
-mpx_is_idle  = TRUE;
+mpx_is_idle  = true;
 
 return SCPE_OK;
 }
@@ -1900,7 +1901,7 @@ return SCPE_OK;
    state C, which is skipped.  Following the abort, the next state is state A.
 */
 
-static uint8 next_state (uint8 current_state, SIO_ORDER order, t_bool abort)
+static uint8 next_state (uint8 current_state, SIO_ORDER order, bool abort)
 {
 switch (current_state) {
 

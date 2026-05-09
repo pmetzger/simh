@@ -172,6 +172,7 @@
 */
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_cpu_ims.h"
@@ -631,12 +632,12 @@ static const char *const io_command_name [] = {         /* indexed by IO_COMMAND
     };
 
 uint32       irq, devno;
-t_bool       no_response;
+bool         no_response;
 DIB          *dibptr;
 SIGNALS_DATA outbound = NO_SIGNALS;
 
 if (io_cmd == ioSMSK) {                                     /* if the I/O order is "Set Interrupt Mask" */
-    no_response = TRUE;                                     /*   then check for responding devices */
+    no_response = true;                                     /*   then check for responding devices */
 
     for (devno = 0; devno <= DEVNO_MAX; devno++) {          /* loop through the device number list */
         dibptr = devs [devno];                              /*   to get a device information block pointer */
@@ -655,7 +656,7 @@ if (io_cmd == ioSMSK) {                                     /* if the I/O order 
             if (outbound & INTREQ)                          /* if an interrupt request was asserted */
                 iop_assert_INTREQ (dibptr);                 /*   then set it up */
 
-            no_response = FALSE;                            /* at least one device has responded */
+            no_response = false;                            /* at least one device has responded */
             }
         }
 
@@ -907,7 +908,7 @@ static t_stat iop_show_filter (FILE *st, UNIT *uptr, int32 value, const void *de
 
 int32  group, low, high;
 uint32 test_filter;
-t_bool first = TRUE, in_range = FALSE;
+bool first = true, in_range = false;
 
 low = 0;                                                /* initialize the current starting value */
 
@@ -916,13 +917,13 @@ for (group = 0; group < 4; group++) {                   /* the filter values are
 
     for (high = group * 32; high < group * 32 + 32; high++) {   /* loop through the represented device numbers */
         if ((test_filter & 1) == 0) {                           /* if the current device is filtered out */
-            in_range = TRUE;                                    /*   then accumulate the omission range */
+            in_range = true;                                    /*   then accumulate the omission range */
             }
 
         else if (in_range) {                            /* otherwise if an omission range was accumulated */
             if (first) {                                /*   then if this is the first range to be printed */
                 fputs ("filter=", st);                  /*     then print a header to start */
-                first = FALSE;
+                first = false;
                 }
 
             else                                        /* otherwise this is not the first range to be printed */
@@ -934,7 +935,7 @@ for (group = 0; group < 4; group++) {                   /* the filter values are
             else                                        /* otherwise a range was established */
                 fprintf (st, "%d-%d", low, high - 1);   /*   so print the starting and ending device numbers */
 
-            in_range = FALSE;                           /* start a new range */
+            in_range = false;                           /* start a new range */
             low = high + 1;                             /*   from this device number onward */
             }
 
@@ -945,7 +946,7 @@ for (group = 0; group < 4; group++) {                   /* the filter values are
         }
     }
 
-if (first == TRUE)                                      /* if there is only a single range */
+if (first == true)                                      /* if there is only a single range */
     if (in_range)                                       /*   then if it's an omission range */
         fprintf (st, "filter=%d-127\n", low);           /*     then report it */
 

@@ -108,6 +108,7 @@
       these as the system clock, though.
 */
 
+#include <stdbool.h>
 #include "pdp11_defs.h"
 
 #define PCLKCSR_RDMASK  0100377                         /* readable */
@@ -278,7 +279,7 @@ switch ((PA >> 1) & 03) {
         }
 
 sim_debug(DBG_REG, &pclk_dev, "pclk_rd(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, pclk_regs[(PA >> 1) & 03], access, *data);
-sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), TRUE);
+sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), true);
 
 return SCPE_OK;
 }
@@ -289,7 +290,7 @@ int32 old_csr = pclk_csr;
 int32 rv;
 
 sim_debug(DBG_REG, &pclk_dev, "pclk_wr(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, pclk_regs[(PA >> 1) & 03], access, data);
-sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), TRUE);
+sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), true);
 switch ((PA >> 1) & 03) {
 
     case 00:                                            /* CSR */

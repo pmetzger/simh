@@ -42,6 +42,7 @@
    controllers.  It must be included by the interface-specific modules.
 */
 
+#include <stdbool.h>
 
 
 /* Architectural constants.
@@ -401,7 +402,7 @@ typedef struct {
     CNTLR_OPCODE       opcode;                  /* controller opcode */
     CNTLR_STATUS       status;                  /* controller status */
     FLIP_FLOP          eoc;                     /* end-of-cylinder flag */
-    t_bool             verify;                  /* address verification required */
+    bool               verify;                  /* address verification required */
     uint32             spd_unit;                /* S/P/D flags and unit number */
     uint32             file_mask;               /* file mask */
     uint32             cylinder;                /* cylinder address */
@@ -435,7 +436,7 @@ typedef CNTLR_VARS          *CVPTR;             /* pointer to a controller state
 
 #define CNTLR_INIT(ctype,dev,bufptr,doa,fast) \
           (ctype), &(dev), Idle_State, End, Normal_Completion, \
-          CLEAR, FALSE, \
+          CLEAR, false, \
           0, 0, 0, 0, 0, 0, 0, \
           (bufptr), 0, 0, \
           (doa), -1, \
@@ -541,7 +542,7 @@ typedef CNTLR_VARS          *CVPTR;             /* pointer to a controller state
 /* Disc library global controller routines */
 
 extern CNTLR_IFN_IBUS dl_controller  (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags, CNTLR_IBUS data);
-extern t_stat         dl_load_unload (CVPTR cvptr, UNIT *uptr, t_bool load);
+extern t_stat         dl_load_unload (CVPTR cvptr, UNIT *uptr, bool load);
 
 /* Disc library global utility routines */
 

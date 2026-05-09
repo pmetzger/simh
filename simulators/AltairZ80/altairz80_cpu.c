@@ -32,6 +32,7 @@
       INIR, OTIR, INDR and OTDR instructions
 */
 
+#include <stdbool.h>
 #include "m68k/m68k.h"
 
 #define SWITCHCPU_DEFAULT 0xfd
@@ -170,20 +171,20 @@ static t_stat cpu_set_nonbanked     (UNIT *uptr, int32 value, const char *cptr, 
 static t_stat cpu_set_ramtype       (UNIT *uptr, int32 value, const char *cptr, void *desc);
 static t_stat cpu_set_chiptype      (UNIT *uptr, int32 value, const char *cptr, void *desc);
 static t_stat cpu_set_size          (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat set_size              (uint32 size, t_bool unmap);
+static t_stat set_size              (uint32 size, bool unmap);
 static t_stat m68k_set_chiptype     (UNIT * uptr, int32 value, const char* cptr, void* desc);
 static t_stat cpu_set_memory        (UNIT *uptr, int32 value, const char *cptr, void *desc);
 static t_stat cpu_resize_memory     (UNIT *uptr, int32 value, const char *cptr, void *desc);
 static t_stat cpu_set_hist          (UNIT *uptr, int32 val, const char *cptr, void *desc);
 static t_stat cpu_show_hist         (FILE *st, UNIT *uptr, int32 val, const void *desc);
 static t_stat cpu_clear_command     (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static void cpu_clear(t_bool unmap);
+static void cpu_clear(bool unmap);
 static t_stat cpu_show              (FILE *st, UNIT *uptr, int32 val, const void *desc);
 static t_stat chip_show             (FILE *st, UNIT *uptr, int32 val, const void *desc);
 static t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 static t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw);
 static t_stat cpu_reset(DEVICE *dptr);
-static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
+static bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
 static t_stat cpu_hex_load(FILE *fileref, const char *cptr, const char *fnam, int flag);
 static t_stat sim_instr_mmu(void);
 static uint32 GetBYTE(uint32 Addr);
@@ -1853,10 +1854,10 @@ static uint8 M[MAXMEMORY];   /* RAM which is present (for 8080, Z80 and 8086 */
 typedef struct { /* Structure to describe a 2^LOG2PAGESIZE byte page of address space */
     /* There are four cases
     isRAM   isEmpty     routine     code
-    TRUE    FALSE       NULL        W       page is random access memory (RAM)
-    FALSE   TRUE        NULL        U       no memory at this location
-    FALSE   FALSE       NULL        R       page is read only memory (ROM)
-    FALSE   FALSE       not NULL    M       page is mapped to memory mapped I/O routine
+    true    false       NULL        W       page is random access memory (RAM)
+    false   true        NULL        U       no memory at this location
+    false   false       NULL        R       page is read only memory (ROM)
+    false   false       not NULL    M       page is mapped to memory mapped I/O routine
     other combinations are undefined!
     */
     uint32 isRAM;
@@ -1865,9 +1866,9 @@ typedef struct { /* Structure to describe a 2^LOG2PAGESIZE byte page of address 
     const char *name; /* name of handler routine */
 } MDEV;
 
-static MDEV ROM_PAGE    =   {FALSE, FALSE,  NULL, "ROM"};       /* this makes a page ROM        */
-static MDEV RAM_PAGE    =   {TRUE,  FALSE,  NULL, "RAM"};       /* this makes a page RAM        */
-static MDEV EMPTY_PAGE  =   {FALSE, TRUE,   NULL, "NONEXIST"};  /* this is non-existing memory  */
+static MDEV ROM_PAGE    =   {false, false,  NULL, "ROM"};       /* this makes a page ROM        */
+static MDEV RAM_PAGE    =   {true,  false,  NULL, "RAM"};       /* this makes a page RAM        */
+static MDEV EMPTY_PAGE  =   {false, true,   NULL, "NONEXIST"};  /* this is non-existing memory  */
 static MDEV mmu_table[MAXMEMORY >> LOG2PAGESIZE];
 
 /* Memory and I/O Resource Mapping and Unmapping routine. */
@@ -2139,7 +2140,7 @@ void PutByteDMA(const uint32 Addr, const uint32 Value) {
         ((acu + (x)) > 0xff ? (FLAG_C | FLAG_H) : 0) |  /* CF, HF   */  \
         parityTable[((acu + (x)) & 7) ^ HIGH_REGISTER(BC)] /* PF    */
 
-int32 switch_cpu_now = TRUE;
+int32 switch_cpu_now = true;
 
 t_stat sim_instr (void) {
     t_stat result;
@@ -2148,7 +2149,7 @@ t_stat sim_instr (void) {
     } else if ((chiptype == CHIP_TYPE_8086) || (cpu_unit.flags & UNIT_CPU_MMU))
         do {
             result = (chiptype == CHIP_TYPE_8086) ? sim_instr_8086() : sim_instr_mmu();
-        } while (switch_cpu_now == FALSE);
+        } while (switch_cpu_now == false);
     else {
         uint32 i;
         for (i = 0; i < MAXBANKSIZE; i++)
@@ -2160,7 +2161,7 @@ t_stat sim_instr (void) {
     return result;
 }
 
-static int32 clockHasChanged = FALSE;
+static int32 clockHasChanged = false;
 
 uint32 getClockFrequency(void) {
     return clockFrequency;
@@ -2168,7 +2169,7 @@ uint32 getClockFrequency(void) {
 
 void setClockFrequency(const uint32 Value) {
     clockFrequency = Value;
-    clockHasChanged = TRUE;
+    clockHasChanged = true;
 }
 
 static t_stat sim_instr_mmu (void) {
@@ -2215,9 +2216,9 @@ static t_stat sim_instr_mmu (void) {
     uint32 tStates;             /* number of t-states executed in the current time-slice */
     uint32 tStatesInSlice;      /* number of t-states in a 10 mSec time-slice */
     uint32 startTime, now;
-    int32 tStateModifier = FALSE;
+    int32 tStateModifier = false;
 
-    switch_cpu_now = TRUE;
+    switch_cpu_now = true;
 
     AF = AF_S;
     BC = BC_S;
@@ -2236,12 +2237,12 @@ static t_stat sim_instr_mmu (void) {
         clockFrequency = startTime = tStatesInSlice = 0;
 
     /* main instruction fetch/decode loop */
-    while (switch_cpu_now == TRUE) {        /* loop until halted    */
+    while (switch_cpu_now == true) {        /* loop until halted    */
         if (sim_interval <= 0) {            /* check clock queue    */
             if ((reason = sim_process_event()))
                 break;
             if (clockHasChanged) {
-                clockHasChanged = FALSE;
+                clockHasChanged = false;
                 tStates = 0;
                 if (rtc_avail) {
                     startTime = sim_os_msec();
@@ -2264,10 +2265,10 @@ static t_stat sim_instr_mmu (void) {
             }
 
             if (nmiInterrupt) {
-                nmiInterrupt = FALSE;
+                nmiInterrupt = false;
                 specialProcessing = clockFrequency | sim_brk_summ;
                 IFF_S &= IFF2; /* Clear IFF1 */
-                CHECK_BREAK_TWO_BYTES_EXTENDED(SP - 2, SP - 1, (nmiInterrupt = TRUE, IFF_S |= IFF1));
+                CHECK_BREAK_TWO_BYTES_EXTENDED(SP - 2, SP - 1, (nmiInterrupt = true, IFF_S |= IFF1));
                 if ((GetBYTE(PC) == HALTINSTRUCTION) && ((cpu_unit.flags & UNIT_CPU_STOPONHALT) == 0)) {
                     PUSH(PC + 1);
                     PCQ_ENTRY(PC);
@@ -2281,10 +2282,10 @@ static t_stat sim_instr_mmu (void) {
             }
 
             if (timerInterrupt && (IFF_S & IFF1)) {
-                timerInterrupt = FALSE;
+                timerInterrupt = false;
                 specialProcessing = clockFrequency | sim_brk_summ;
                 IFF_S = 0; /* disable interrupts */
-                CHECK_BREAK_TWO_BYTES_EXTENDED(SP - 2, SP - 1, (timerInterrupt = TRUE, IFF_S |= (IFF1 | IFF2)));
+                CHECK_BREAK_TWO_BYTES_EXTENDED(SP - 2, SP - 1, (timerInterrupt = true, IFF_S |= (IFF1 | IFF2)));
                 if ((GetBYTE(PC) == HALTINSTRUCTION) && ((cpu_unit.flags & UNIT_CPU_STOPONHALT) == 0)) {
                     PUSH(PC + 1);
                     PCQ_ENTRY(PC);
@@ -2354,10 +2355,10 @@ static t_stat sim_instr_mmu (void) {
             }
 
             if (keyboardInterrupt && (IFF_S & IFF1)) {
-                keyboardInterrupt = FALSE;
+                keyboardInterrupt = false;
                 specialProcessing = clockFrequency | sim_brk_summ;
                 IFF_S = 0; /* disable interrupts */
-                CHECK_BREAK_TWO_BYTES_EXTENDED(SP - 2, SP - 1, (keyboardInterrupt = TRUE, IFF_S |= (IFF1 | IFF2)));
+                CHECK_BREAK_TWO_BYTES_EXTENDED(SP - 2, SP - 1, (keyboardInterrupt = true, IFF_S |= (IFF1 | IFF2)));
                 if ((GetBYTE(PC) == HALTINSTRUCTION) && ((cpu_unit.flags & UNIT_CPU_STOPONHALT) == 0)) {
                     PUSH(PC + 1);
                     PCQ_ENTRY(PC);
@@ -3900,42 +3901,42 @@ static t_stat sim_instr_mmu (void) {
                 switch ((op = GetBYTE(PC)) & 7) {
 
                     case 0:
-                        tStateModifier = FALSE;
+                        tStateModifier = false;
                         ++PC;
                         acu = HIGH_REGISTER(BC);
                         tStates += 8;
                         break;
 
                     case 1:
-                        tStateModifier = FALSE;
+                        tStateModifier = false;
                         ++PC;
                         acu = LOW_REGISTER(BC);
                         tStates += 8;
                         break;
 
                     case 2:
-                        tStateModifier = FALSE;
+                        tStateModifier = false;
                         ++PC;
                         acu = HIGH_REGISTER(DE);
                         tStates += 8;
                         break;
 
                     case 3:
-                        tStateModifier = FALSE;
+                        tStateModifier = false;
                         ++PC;
                         acu = LOW_REGISTER(DE);
                         tStates += 8;
                         break;
 
                     case 4:
-                        tStateModifier = FALSE;
+                        tStateModifier = false;
                         ++PC;
                         acu = HIGH_REGISTER(HL);
                         tStates += 8;
                         break;
 
                     case 5:
-                        tStateModifier = FALSE;
+                        tStateModifier = false;
                         ++PC;
                         acu = LOW_REGISTER(HL);
                         tStates += 8;
@@ -3945,12 +3946,12 @@ static t_stat sim_instr_mmu (void) {
                         CHECK_BREAK_BYTE(adr);
                         ++PC;
                         acu = GetBYTE(adr);
-                        tStateModifier = TRUE;
+                        tStateModifier = true;
                         tStates += 15;
                         break;
 
                     case 7:
-                        tStateModifier = FALSE;
+                        tStateModifier = false;
                         ++PC;
                         acu = HIGH_REGISTER(AF);
                         tStates += 8;
@@ -6509,7 +6510,7 @@ static t_stat sim_instr_mmu (void) {
     /* It we stopped processing instructions because of a switch to the other
      * CPU, then fixup the reason code.
      */
-    if (switch_cpu_now == FALSE) {
+    if (switch_cpu_now == false) {
         reason = SCPE_OK;
     }
 
@@ -6580,7 +6581,7 @@ static t_stat cpu_reset(DEVICE *dptr) {
     return SCPE_OK;
 }
 
-static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs) {
+static bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs) {
     static t_addr returns[2] = {0, 0};
     switch (chiptype) {
         case CHIP_TYPE_8080:
@@ -6597,9 +6598,9 @@ static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs) {
                 case 0xfc:  /* CALL M,nnnn  */
                     returns[0] = PC_S + 3;
                     *ret_addrs = returns;
-                    return TRUE;
+                    return true;
                 default:
-                    return FALSE;
+                    return false;
             }
             break;
 
@@ -6610,9 +6611,9 @@ static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs) {
                     returns[0] = PCX_S + (1 - fprint_sym (stdnul, PCX_S, sim_eval,
                                                           &cpu_unit, SWMASK ('M')));
                     *ret_addrs = returns;
-                    return TRUE;
+                    return true;
                 default:
-                    return FALSE;
+                    return false;
             }
             break;
 
@@ -6624,14 +6625,14 @@ static t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs) {
                 returns[0] = localPC + (1 - fprint_sym (stdnul, localPC, sim_eval,
                                                         &cpu_unit, SWMASK ('M')));
                 *ret_addrs = returns;
-                return TRUE;
+                return true;
             }
-            return FALSE;
+            return false;
         }
             break;
 
         default:
-            return FALSE;
+            return false;
             break;
     }
 }
@@ -6813,7 +6814,7 @@ static t_stat cpu_show(FILE *st, UNIT *uptr, int32 val, const void *desc) {
     (void)val;
     (void)desc;
 
-    uint32 i, maxBanks, first = TRUE;
+    uint32 i, maxBanks, first = true;
     MDEV m;
     maxBanks = ((cpu_unit.flags & UNIT_CPU_BANKED) ||
                 (chiptype == CHIP_TYPE_8086)) ? MAXBANKS : 1;
@@ -6841,7 +6842,7 @@ static t_stat cpu_show(FILE *st, UNIT *uptr, int32 val, const void *desc) {
         for (i = 0; i < 256; i++)
             if (dev_table[i].routine != &nulldev) {
                 if (first)
-                    first = FALSE;
+                    first = false;
                 else
                     fprintf(st, " ");
                 fprintf(st, "%02X", i);
@@ -6849,12 +6850,12 @@ static t_stat cpu_show(FILE *st, UNIT *uptr, int32 val, const void *desc) {
         fprintf(st, "]");
     }
     if ((chiptype >= 0) && (chiptype < NUM_CHIP_TYPE)) {
-        first = TRUE;
+        first = true;
         /* show verbose CPU flags */
         for (i = 0; cpuflags[chiptype][i].mask; i++)
             if (*flagregister[chiptype] & cpuflags[chiptype][i].mask) {
                 if (first) {
-                    first = FALSE;
+                    first = false;
                     fprintf(st, "\n\tFlags");
                 }
                 fprintf(st, " %s", cpuflags[chiptype][i].flagName);
@@ -6867,7 +6868,7 @@ static t_stat cpu_show(FILE *st, UNIT *uptr, int32 val, const void *desc) {
     return SCPE_OK;
 }
 
-static void cpu_clear(t_bool unmap) {
+static void cpu_clear(bool unmap) {
     uint32 i;
     for (i = 0; i < MAXMEMORY; i++)
         M[i] = 0;
@@ -6883,7 +6884,7 @@ static void cpu_clear(t_bool unmap) {
     if (cpu_unit.flags & UNIT_CPU_ALTAIRROM)
         install_ALTAIRbootROM();
     m68k_clear_memory();
-    clockHasChanged = FALSE;
+    clockHasChanged = false;
 }
 
 static t_stat cpu_clear_command(UNIT *uptr, int32 value, const char *cptr, void *desc) {
@@ -6894,7 +6895,7 @@ static t_stat cpu_clear_command(UNIT *uptr, int32 value, const char *cptr, void 
     (void)cptr;
     (void)desc;
 
-    cpu_clear(TRUE);
+    cpu_clear(true);
     return SCPE_OK;
 }
 
@@ -6961,7 +6962,7 @@ static t_stat cpu_set_banked(UNIT *uptr, int32 value, const char *cptr, void *de
             previousCapacity = MEMORYSIZE;
         MEMORYSIZE = MAXMEMORY;
         cpu_dev.awidth = MAXBANKSIZELOG2 + MAXBANKSLOG2;
-        cpu_clear(TRUE);
+        cpu_clear(true);
     } else if (chiptype == CHIP_TYPE_8086) {
         sim_printf("Cannot use banked memory for 8086 CPU.\n");
         return SCPE_ARG;
@@ -6980,7 +6981,7 @@ static t_stat cpu_set_nonbanked(UNIT *uptr, int32 value, const char *cptr, void 
     if ((chiptype == CHIP_TYPE_8080) || (chiptype == CHIP_TYPE_Z80)) {
         MEMORYSIZE = previousCapacity;
         cpu_dev.awidth = MAXBANKSIZELOG2;
-        cpu_clear(TRUE);
+        cpu_clear(true);
     }
     return SCPE_OK;
 }
@@ -7128,7 +7129,7 @@ static t_stat cpu_set_chiptype(UNIT *uptr, int32 value, const char *cptr, void *
     (void)desc;
 
     cpu_set_chiptype_short(value);
-    cpu_clear(TRUE);
+    cpu_clear(true);
     return SCPE_OK;
 }
 
@@ -7142,14 +7143,14 @@ static int32 switchcpu_io(const int32 port, const int32 io, const int32 data) {
                     sim_printf("CPU: " ADDRESS_FORMAT " SWITCH(port=%02x) to 8086\n", PCX, port);
                 }
                 new_chiptype = CHIP_TYPE_8086;
-                switch_cpu_now = FALSE;
+                switch_cpu_now = false;
                 break;
             case CHIP_TYPE_8086:
                 if (cpu_unit.flags & UNIT_CPU_VERBOSE) {
                     sim_printf("CPU: " ADDRESS_FORMAT " SWITCH(port=%02x) to 8085/Z80\n", PCX, port);
                 }
                 new_chiptype = CHIP_TYPE_Z80;
-                switch_cpu_now = FALSE;
+                switch_cpu_now = false;
                 break;
             default:
                 sim_printf("%s: invalid chiptype: %d\n", __FUNCTION__, chiptype);
@@ -7189,7 +7190,7 @@ static t_stat cpu_set_switcher(UNIT *uptr, int32 value, const char *cptr, void *
     struct idev safe;
     switcherPort &= 0xff;
     safe = dev_table[switcherPort];
-    if (sim_map_resource(switcherPort, 1, RESOURCE_TYPE_IO, &switchcpu_io, "switchcpu_io", FALSE)) {
+    if (sim_map_resource(switcherPort, 1, RESOURCE_TYPE_IO, &switchcpu_io, "switchcpu_io", false)) {
         sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, switcherPort);
         return SCPE_ARG;
     }
@@ -7205,7 +7206,7 @@ static t_stat cpu_reset_switcher(UNIT *uptr, int32 value, const char *cptr, void
     (void)cptr;
     (void)desc;
 
-    if (sim_map_resource(switcherPort, 1, RESOURCE_TYPE_IO, oldSwitcherDevice.routine, oldSwitcherDevice.name, FALSE)) {
+    if (sim_map_resource(switcherPort, 1, RESOURCE_TYPE_IO, oldSwitcherDevice.routine, oldSwitcherDevice.name, false)) {
         sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, switcherPort);
         return SCPE_ARG;
     }
@@ -7229,22 +7230,22 @@ static t_stat cpu_set_ramtype(UNIT *uptr, int32 value, const char *cptr, void *d
         case RAM_TYPE_HRAM:
             if (cpu_unit.flags & UNIT_CPU_VERBOSE)
                 sim_printf("Unmapping NorthStar HRAM\n");
-            sim_map_resource(0xC0, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", TRUE);
+            sim_map_resource(0xC0, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", true);
             break;
         case RAM_TYPE_VRAM:
             if (cpu_unit.flags & UNIT_CPU_VERBOSE)
                 sim_printf("Unmapping Vector RAM\n");
-            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", TRUE);
+            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", true);
             break;
         case RAM_TYPE_CRAM:
             if (cpu_unit.flags & UNIT_CPU_VERBOSE)
                 sim_printf("Unmapping Cromemco RAM\n");
-            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", TRUE);
+            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", true);
             break;
         case RAM_TYPE_B810:
             if (cpu_unit.flags & UNIT_CPU_VERBOSE)
                 sim_printf("Unmapping AB Digital Design B810 RAM\n");
-            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", TRUE);
+            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", true);
             break;
         case 0:
         default:
@@ -7257,22 +7258,22 @@ static t_stat cpu_set_ramtype(UNIT *uptr, int32 value, const char *cptr, void *d
         case RAM_TYPE_HRAM:
             if (cpu_unit.flags & UNIT_CPU_VERBOSE)
                 sim_printf("NorthStar HRAM Selected\n");
-            sim_map_resource(0xC0, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", FALSE);
+            sim_map_resource(0xC0, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", false);
             break;
         case RAM_TYPE_VRAM:
             if (cpu_unit.flags & UNIT_CPU_VERBOSE)
                 sim_printf("Vector RAM Selected\n");
-            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", FALSE);
+            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", false);
             break;
         case RAM_TYPE_CRAM:
             if (cpu_unit.flags & UNIT_CPU_VERBOSE)
                 sim_printf("Cromemco RAM Selected\n");
-            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", FALSE);
+            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", false);
             break;
         case RAM_TYPE_B810:
             if (cpu_unit.flags & UNIT_CPU_VERBOSE)
                 sim_printf("AB Digital Design B810 RAM Selected\n");
-            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", FALSE);
+            sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &bankseldev, "bankseldev", false);
             break;
         case 0:
         default:
@@ -7286,7 +7287,7 @@ static t_stat cpu_set_ramtype(UNIT *uptr, int32 value, const char *cptr, void *d
 }
 
 /* set memory to 'size' kilo byte */
-static t_stat set_size(uint32 size, t_bool unmap) {
+static t_stat set_size(uint32 size, bool unmap) {
     uint32 maxsize;
     if (chiptype == CHIP_TYPE_M68K) {   // ignore for M68K
         if (cpu_unit.flags & UNIT_CPU_VERBOSE)
@@ -7319,7 +7320,7 @@ static t_stat cpu_set_size(UNIT *uptr, int32 value, const char *cptr, void *desc
     (void)cptr;
     (void)desc;
 
-    return set_size(value, TRUE);
+    return set_size(value, true);
 }
 
 static t_stat cpu_set_memory(UNIT *uptr, int32 value, const char *cptr, void *desc) {
@@ -7337,7 +7338,7 @@ static t_stat cpu_set_memory(UNIT *uptr, int32 value, const char *cptr, void *de
     result = sscanf(cptr, "%i%n", &size, &i);
     if ((result == 1) && (cptr[i] == 'K') && ((cptr[i + 1] == 0) ||
             ((cptr[i + 1] == 'B') && (cptr[i + 2] == 0))))
-        return set_size(size, TRUE);
+        return set_size(size, true);
     sim_printf("Memory size must be specified as xK\n");
     return SCPE_ARG | SCPE_NOMESSAGE;
 }
@@ -7357,7 +7358,7 @@ static t_stat cpu_resize_memory(UNIT *uptr, int32 value, const char *cptr, void 
     result = sscanf(cptr, "%i%n", &size, &i);
     if ((result == 1) && (cptr[i] == 'K') && ((cptr[i + 1] == 0) ||
             ((cptr[i + 1] == 'B') && (cptr[i + 2] == 0))))
-        return set_size(size, FALSE);
+        return set_size(size, false);
     sim_printf("Memory size must be specified as xK\n");
     return SCPE_ARG | SCPE_NOMESSAGE;
 }
@@ -7536,7 +7537,7 @@ static t_value altairz80_pc_value (void) {
 
 /* AltairZ80 Simulator initialization */
 void altairz80_init(void) {
-    cpu_clear(TRUE);
+    cpu_clear(true);
     sim_vm_pc_value = &altairz80_pc_value;
 /* altairz80_print_tables(); */
 }
@@ -7587,7 +7588,7 @@ static t_stat sim_load_m68k(FILE *fileref, const char *cptr, const char *fnam, i
 
 t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag) {
     int32 i;
-    uint32 addr, cnt = 0, org, pagesModified = 0, makeROM = FALSE;
+    uint32 addr, cnt = 0, org, pagesModified = 0, makeROM = false;
     t_addr j, lo, hi;
     const char *result;
     MDEV m;
@@ -7612,7 +7613,7 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag) {
             get_glyph(cptr, gbuf, 0);
             if (strcmp(gbuf, "ROM") == 0) {
                 addr = (chiptype == CHIP_TYPE_8086) ? PCX_S : PC_S;
-                makeROM = TRUE;
+                makeROM = true;
             } else {
                 addr = strtotv(cptr, &result, 16) & ADDRMASKEXTENDED;
                 if (cptr == result)
@@ -7621,10 +7622,10 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag) {
                     result++;
                 get_glyph(result, gbuf, 0);
                 if (strcmp(gbuf, "ROM") == 0)
-                    makeROM = TRUE;
+                    makeROM = true;
             }
         }
-        /* addr is start address to load to, makeROM == TRUE iff memory should become ROM */
+        /* addr is start address to load to, makeROM == true iff memory should become ROM */
         org = addr;
         while ((addr < MAXMEMORY) && ((i = getc(fileref)) != EOF)) {
             m = mmu_table[addr >> LOG2PAGESIZE];
@@ -7665,12 +7666,12 @@ static t_stat cpu_hex_load(FILE *fileref, const char *cptr, const char *fnam, in
     char gbuf[CBUFSIZE];
     char linebuf[1024], datastr[1024], *bufptr;
     int32 bytecnt, rectype, databyte, chksum, line = 0, cnt = 0;
-    uint32 makeROM = FALSE;
+    uint32 makeROM = false;
     t_addr addr, org = 0;
 
     get_glyph(cptr, gbuf, 0);
     if (strcmp(gbuf, "ROM") == 0) {
-        makeROM = TRUE;
+        makeROM = true;
     }
 
     while (!feof(fileref)) {

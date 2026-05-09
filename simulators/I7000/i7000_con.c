@@ -29,6 +29,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i7000_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -54,7 +55,7 @@ struct _con_data
 con_data[NUM_DEVS_CON];
 
 uint32              con_cmd(UNIT *, uint16, uint16);
-void                con_ini(UNIT *, t_bool);
+void                con_ini(UNIT *, bool);
 t_stat              con_srv(UNIT *);
 t_stat              con_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 const char         *con_description(DEVICE *dptr);
@@ -79,7 +80,7 @@ DEVICE              con_dev = {
  *Console printer routines.
  */
 void
-con_ini(UNIT *uptr, t_bool f) {
+con_ini(UNIT *uptr, bool f) {
      /* Generic callback signature.
         This implementation does not use every parameter. */
      (void)f;

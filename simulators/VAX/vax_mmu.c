@@ -52,6 +52,7 @@
 #include "vax_defs.h"
 #include "vax_mmu.h"
 #include <setjmp.h>
+#include <stdbool.h>
 
 uint32 d_p0br, d_p0lr;                                  /* dynamic copies */
 uint32 d_p1br, d_p1lr;                                  /* altered per ucode */
@@ -245,7 +246,7 @@ else ptlb[tbi].tag = ptlb[tbi].pte = -1;
 
 /* Check for tlb entry corresponding to va */
 
-t_bool chk_tb_ent (uint32 va)
+bool chk_tb_ent (uint32 va)
 {
 int32 vpn = VA_GETVPN (va);
 int32 tbi = VA_GETTBI (vpn);
@@ -253,8 +254,8 @@ TLBENT xpte;
 
 xpte = (va & VA_S0)? stlb[tbi]: ptlb[tbi];
 if (xpte.tag == vpn)
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* TLB examine */

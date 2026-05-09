@@ -29,14 +29,15 @@
  *                 Simh devices: tti, tto, ptr, ptp
  */
 
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 extern char INTprefix[];
 
 extern void fw_IOunderwayData(IO_DEVICE *, uint16);
-extern void fw_IOcompleteData(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
+extern void fw_IOcompleteData(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
+extern bool fw_reject(IO_DEVICE *, bool, uint8);
 extern void fw_setForced(IO_DEVICE *, uint16);
 extern void fw_clearForced(IO_DEVICE *, uint16);
 
@@ -44,7 +45,7 @@ extern void rebuildPending(void);
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
-extern t_bool doDirectorFunc(DEVICE *, t_bool);
+extern bool doDirectorFunc(DEVICE *, bool);
 
 extern t_stat show_addr(FILE *, UNIT *, int32, const void *);
 
@@ -56,7 +57,7 @@ extern t_stat clear_protected(UNIT *, int32, const char *, void *);
 
 extern uint16 Areg, IOAreg;
 
-extern t_bool IOFWinitialized;
+extern bool IOFWinitialized;
 
 t_stat tti_svc(UNIT *);
 t_stat tto_svc(UNIT *);
@@ -67,7 +68,7 @@ static void TTIstate(const char *, DEVICE *, IO_DEVICE *);
 static void TTOstate(const char *, DEVICE *, IO_DEVICE *);
 static void TTstate(const char *, DEVICE *, IO_DEVICE *);
 uint16 TTrebuild(void);
-static t_bool TTreject(IO_DEVICE *, t_bool, uint8);
+static bool TTreject(IO_DEVICE *, bool, uint8);
 static enum IOstatus TTin(IO_DEVICE *, uint8);
 static enum IOstatus TTout(IO_DEVICE *, uint8);
 
@@ -322,7 +323,7 @@ t_stat tti_svc(UNIT *uptr)
      */
     if ((TTIdev.iod_indelay & IODP_TTI_XFER) != 0) {
       TTIdev.iod_indelay &= ~IODP_TTI_XFER;
-      TTIdev.iod_holdFull = TRUE;
+      TTIdev.iod_holdFull = true;
       if ((tti_dev.dctrl & DBG_DTRACE) != 0)
         fprintf(DBGOUT, "%s[TTI: tti_svc() transfer complete]\r\n", INTprefix);
 
@@ -344,7 +345,7 @@ t_stat tti_svc(UNIT *uptr)
     TTdev.STATUS &= IO_ST_BUSY;
     TTIdev.STATUS |= IO_ST_EOP;
 
-    fw_IOintr(FALSE, &tti_dev, &TTIdev, 0, 0, 0xFFFF, "Motion delay");
+    fw_IOintr(false, &tti_dev, &TTIdev, 0, 0, 0xFFFF, "Motion delay");
     TTrebuild();
 
     /*
@@ -383,7 +384,7 @@ t_stat tti_svc(UNIT *uptr)
       fprintf(DBGOUT, "%s[TTI: tti_svc() hold register full]\r\n", INTprefix);
 
     TTIdev.STATUS |= IO_ST_ALARM | IO_ST_LOST;
-    fw_IOintr(FALSE, &tti_dev, &TTIdev, 0, 0, 0xFFFF, "Lost char");
+    fw_IOintr(false, &tti_dev, &TTIdev, 0, 0, 0xFFFF, "Lost char");
     TTrebuild();
     return SCPE_OK;
   }
@@ -416,7 +417,7 @@ t_stat tti_svc(UNIT *uptr)
       TTIstate("tti_svc", &tti_dev, &TTIdev);
   }
 
-  fw_IOintr(FALSE, &tti_dev, &TTIdev, 0, 0, 0xFFFF, "Input char");
+  fw_IOintr(false, &tti_dev, &TTIdev, 0, 0, 0xFFFF, "Input char");
   TTrebuild();
 
   return SCPE_OK;
@@ -432,7 +433,7 @@ t_stat tti_reset(DEVICE *dptr)
 
   /*** Reset TT? ***/
   TTIdev.STATUS = IO_1711_RMODE;
-  TTIdev.iod_holdFull = FALSE;
+  TTIdev.iod_holdFull = false;
   TTIdev.iod_indelay = 0;
 
   tti_unit.buf = 0;
@@ -455,7 +456,7 @@ static enum IOstatus TTIin(IO_DEVICE *iod, uint8 reg)
    * The logical TT device driver only passes INP operations for the data
    * register (0x90).
    */
-  TTIdev.iod_holdFull = FALSE;
+  TTIdev.iod_holdFull = false;
   Areg = tti_unit.buf;
 
   TTdev.STATUS &= ~IO_ST_BUSY;
@@ -486,7 +487,7 @@ static void TTIcint(void)
 static void TTIccont(void)
 {
   tti_reset(&tti_dev);
-  TTIdev.iod_holdFull = FALSE;
+  TTIdev.iod_holdFull = false;
 
   TTIcint();
 }
@@ -533,7 +534,7 @@ t_stat tto_svc(UNIT *uptr)
     }
   }
 
-  TTOdev.iod_holdFull = FALSE;
+  TTOdev.iod_holdFull = false;
   TTOdev.STATUS |= IO_ST_EOP | IO_ST_DATA;
   TTdev.STATUS &= ~IO_ST_BUSY;
 
@@ -545,7 +546,7 @@ t_stat tto_svc(UNIT *uptr)
 
   uptr->pos++;
 
-  fw_IOintr(FALSE, &tto_dev, &TTOdev, 0, 0, 0xFFFF, "Output done");
+  fw_IOintr(false, &tto_dev, &TTOdev, 0, 0, 0xFFFF, "Output done");
   TTrebuild();
 
   return SCPE_OK;
@@ -561,7 +562,7 @@ t_stat tto_reset(DEVICE *dptr)
 
   /*** Reset TT? ***/
   TTOdev.STATUS = IO_ST_DATA;
-  TTOdev.iod_holdFull = FALSE;
+  TTOdev.iod_holdFull = false;
 
   return SCPE_OK;
 }
@@ -582,7 +583,7 @@ static enum  IOstatus TTOout(IO_DEVICE *iod, uint8 reg)
   sim_activate(&tto_unit, tto_unit.wait);
 
   tto_unit.buf = Areg;
-  TTOdev.iod_holdFull = TRUE;
+  TTOdev.iod_holdFull = true;
 
   TTOdev.STATUS &= ~(IO_ST_EOP | IO_ST_INT | IO_ST_DATA);
   TTdev.STATUS |= IO_ST_BUSY;
@@ -650,7 +651,7 @@ static void TTstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
 static void TTreset(void)
 {
   TTdev.STATUS = IO_1711_MON | IO_ST_READY;
-  TTdev.iod_rmode = TRUE;
+  TTdev.iod_rmode = true;
 }
 
 /* Rebuild the director status register */
@@ -668,7 +669,7 @@ uint16 TTrebuild(void)
 
 /* Check if I/O should be rejected */
 
-static t_bool TTreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+static bool TTreject(IO_DEVICE *iod, bool output, uint8 reg)
 {
   /* Registered I/O reject signature.
      This implementation does not use every parameter. */
@@ -686,19 +687,19 @@ static t_bool TTreject(IO_DEVICE *iod, t_bool output, uint8 reg)
     if (func != 0) {
       if ((func & (IO_DIR_ALARM | IO_DIR_EOP | IO_DIR_DATA | \
                    IO_DIR_CINT | IO_DIR_CCONT)) != 0)
-        return FALSE;
+        return false;
 
       /*
        * Select read/write mode must be set - reject if both are set.
        */
       if ((func & (IO_1711_SREAD | IO_1711_SWRITE)) ==
           (IO_1711_SREAD | IO_1711_SWRITE))
-        return TRUE;
+        return true;
 
       return (TTdev.STATUS & IO_ST_BUSY) != 0;
     }
   }
-  return FALSE;
+  return false;
 }
 
 /* Perform I/O */
@@ -721,7 +722,7 @@ static enum IOstatus TTin(IO_DEVICE *iod, uint8 reg)
 
 static enum IOstatus TTout(IO_DEVICE *iod, uint8 reg)
 {
-  t_bool rmode, changed = FALSE;
+  bool rmode, changed = false;
   DEVICE *dptr;
 
   /*
@@ -742,7 +743,7 @@ static enum IOstatus TTout(IO_DEVICE *iod, uint8 reg)
     TTOccont();
     TTdev.STATUS &= ~IO_ST_BUSY;
 
-    TTdev.iod_rmode = TRUE;
+    TTdev.iod_rmode = true;
   }
 
   if ((IOAreg & IO_DIR_CINT) != 0) {
@@ -765,9 +766,9 @@ static enum IOstatus TTout(IO_DEVICE *iod, uint8 reg)
      * both modes.
      */
     if ((IOAreg & IO_1711_SREAD) != 0)
-      TTdev.iod_rmode = TRUE;
+      TTdev.iod_rmode = true;
     if ((IOAreg & IO_1711_SWRITE) != 0) {
-      TTdev.iod_rmode = FALSE;
+      TTdev.iod_rmode = false;
       TTIdev.STATUS &= ~IO_ST_LOST;
     }
   }
@@ -787,7 +788,7 @@ static enum IOstatus TTout(IO_DEVICE *iod, uint8 reg)
 
   if (changed)
     if (!rmode)
-      fw_IOintr(FALSE, dptr, iod, 0, 0, 0xFFFF, "Can output");
+      fw_IOintr(false, dptr, iod, 0, 0, 0xFFFF, "Can output");
 
   TTrebuild();
 
@@ -995,7 +996,7 @@ t_stat ptr_svc(UNIT *uptr)
        * We've run off the end of the tape. Indicate motion failure and alarm
        * status and generate an interrupt if requested.
        */
-      fw_IOintr(FALSE, &ptr_dev, &PTRdev, IO_ST_ALARM | IO_1721_MOTIONF, IO_ST_READY, 0xFFFF, "End of tape");
+      fw_IOintr(false, &ptr_dev, &PTRdev, IO_ST_ALARM | IO_1721_MOTIONF, IO_ST_READY, 0xFFFF, "End of tape");
       return SCPE_OK;
     } else perror("PTR I/O error");
     clearerr(uptr->fileref);
@@ -1006,7 +1007,7 @@ t_stat ptr_svc(UNIT *uptr)
   uptr->buf = temp & 0xFF;
   uptr->pos++;
 
-  fw_IOcompleteData(FALSE, &ptr_dev, &PTRdev, 0xFFFF, "Read Complete");
+  fw_IOcompleteData(false, &ptr_dev, &PTRdev, 0xFFFF, "Read Complete");
 
   if ((ptr_dev.dctrl & DBG_DTRACE) != 0) {
     fprintf(DBGOUT,
@@ -1101,7 +1102,7 @@ static enum IOstatus PTRout(IO_DEVICE *iod, uint8 reg)
       return IO_REJECT;
 
     case 0x01:
-      doDirectorFunc(&ptr_dev, FALSE);
+      doDirectorFunc(&ptr_dev, false);
 
       if ((IOAreg & IO_DIR_START) != 0) {
         fw_setForced(&PTRdev, IO_ST_BUSY);
@@ -1303,7 +1304,7 @@ t_stat ptp_svc(UNIT *uptr)
      * Generate an interrupt indicating that the motor is up to speed.
      */
     PTPdev.iod_PTPdelay &= ~IODP_PTPINTRWAIT;
-    fw_IOintr(FALSE, &ptp_dev, &PTPdev, 0, 0, 0xFFFF, "Up to speed");
+    fw_IOintr(false, &ptp_dev, &PTPdev, 0, 0, 0xFFFF, "Up to speed");
 
     if ((PTPdev.iod_PTPdelay & IODP_PTP_MASK) != 0)
       sim_activate(&ptp_unit, ptp_unit.wait);
@@ -1323,7 +1324,7 @@ t_stat ptp_svc(UNIT *uptr)
       } else uptr->pos++;
     }
 
-    fw_IOcompleteData(FALSE, &ptp_dev, &PTPdev, 0xFFFF, "Output complete");
+    fw_IOcompleteData(false, &ptp_dev, &PTPdev, 0xFFFF, "Output complete");
   }
 
  done:
@@ -1400,7 +1401,7 @@ static enum IOstatus PTPout(IO_DEVICE *iod, uint8 reg)
       if (STARTSTOP(Areg))
         return IO_REJECT;
 
-      if (doDirectorFunc(&ptp_dev, FALSE)) {
+      if (doDirectorFunc(&ptp_dev, false)) {
         /*
          * The device interrupt mask has been explicitly changed. If the
          * interrupt on data was just set and the device is ready, generate

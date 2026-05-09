@@ -85,6 +85,7 @@
 *
 ***********************************************************************/
 
+#include <stdbool.h>
 #include "i7094_defs.h"
 
 extern t_uint64 *M;
@@ -101,7 +102,7 @@ binloader (FILE *fd, const char *file, int loadpt)
 #ifdef DEBUGLOADER
    FILE *lfd;
 #endif
-   int transfer = FALSE;
+   int transfer = false;
    int loadaddr = LOADADDR;
    int curraddr = LOADADDR;
    char inbuf[OBJRECLEN+2];
@@ -183,7 +184,7 @@ binloader (FILE *fd, const char *file, int loadpt)
             break;
 
         case ABSXFER_TAG:
-            transfer = TRUE;
+            transfer = true;
             /* fall through */
         case ABSENTRY_TAG:
             PC = (uint32) ldata & AMASK;
@@ -195,7 +196,7 @@ binloader (FILE *fd, const char *file, int loadpt)
             break;
 
         case RELXFER_TAG:
-            transfer = TRUE;
+            transfer = true;
             /* fall through */
         case RELENTRY_TAG:
             ldata = (ldata + loadaddr) & AMASK;

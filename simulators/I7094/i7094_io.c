@@ -48,6 +48,7 @@
      bit is set; thus, SCHx must store all 16b of the current address.
 */
 
+#include <stdbool.h>
 #include "i7094_defs.h"
 
 #define CHAMASK         ((cpu_model & I_CT)? PAMASK: AMASK) /* chan addr mask */
@@ -97,9 +98,9 @@ t_stat ch_set_disable (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat ch_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
 DEVICE *ch_find_dev (uint32 ch, uint32 unit);
 t_stat ch6_sel (uint32 ch, uint32 sel, uint32 unit, uint32 sta);
-t_bool ch6_rd_putw (uint32 ch);
-t_stat ch6_wr_getw (uint32 ch, t_bool eorz);
-t_stat ch6_new_cmd (uint32 ch, t_bool ch_ld);
+bool ch6_rd_putw (uint32 ch);
+t_stat ch6_wr_getw (uint32 ch, bool eorz);
+t_stat ch6_new_cmd (uint32 ch, bool ch_ld);
 t_stat ch6_ioxt (uint32 ch);
 void ch6_iosp_cclr (uint32 ch);
 t_stat ch9_new_cmd (uint32 ch);
@@ -736,7 +737,7 @@ return NULL;
    7607: channel should have a data select operation pending (DSW state)
    7909: channel should be idle (IDLE state) */
 
-t_stat ch_op_start (uint32 ch, uint32 clc, t_bool reset)
+t_stat ch_op_start (uint32 ch, uint32 clc, bool reset)
 {
 t_uint64 ir;
 t_stat r;
@@ -798,7 +799,7 @@ switch (ch_sta[ch]) {                                   /* case on chan state */
                 return r;
             }
         else ch_clc[ch] = clc;                          /* set clc */
-        return ch6_new_cmd (ch, TRUE);                  /* start channel */
+        return ch6_new_cmd (ch, true);                  /* start channel */
 
     case CHXS_DSX:                                      /* executing */
         ch_flags[ch] = ch_flags[ch] | CHF_LDW;          /* flag pending LCH */
@@ -853,7 +854,7 @@ return SCPE_OK;
    7607 responds to RDC
    7909 responds to RIC */
 
-t_stat ch_op_reset (uint32 ch, t_bool ch7909)
+t_stat ch_op_reset (uint32 ch, bool ch7909)
 {
 DEVICE *dptr;
 
@@ -897,7 +898,7 @@ if (ch_dev[ch].flags & DEV_7909) {                      /* 7909 */
 
     t_uint64 sr;
     uint32 csel, sc, tval, mask, ta;
-    t_bool xfr;
+    bool xfr;
 
     if (ch_flags[ch] & CHF_IRQ) {                       /* interrupt? */
         ta = CHINT_CHA_SAV + (ch << 1);                 /* save location */
@@ -1075,7 +1076,7 @@ else if (ch_flags[ch] & CHF_RDS) {                      /* 7607 read? */
 
     case CH6_TCH:                                       /* transfer */
         ch_clc[ch] = ch_ca[ch] & CHAMASK;               /* change clc */
-        return ch6_new_cmd (ch, FALSE);                 /* unpack new cmd */
+        return ch6_new_cmd (ch, false);                 /* unpack new cmd */
 
     case CH6_IOCD:                                      /* IOCD */
         if (ch_wc[ch]) {                                /* wc > 0? */
@@ -1089,7 +1090,7 @@ else if (ch_flags[ch] & CHF_RDS) {                      /* 7607 read? */
             if (ch6_rd_putw (ch))                       /* store; more? cont */
                 return SCPE_OK;
             }
-        return ch6_new_cmd (ch, FALSE);                 /* unpack new cmd */
+        return ch6_new_cmd (ch, false);                 /* unpack new cmd */
 
     case CH6_IOCT:                                      /* IOCT */
         if (ch_wc[ch]) {                                /* wc > 0? */
@@ -1101,14 +1102,14 @@ else if (ch_flags[ch] & CHF_RDS) {                      /* 7607 read? */
     case CH6_IOSP:                                      /* IOSP */
         if (ch_flags[ch] & CHF_EOR) {                   /* (new) EOR set? */
             ch_flags[ch] = ch_flags[ch] & ~CHF_EOR;     /* clear flag */
-            return ch6_new_cmd (ch, FALSE);             /* get next cmd */
+            return ch6_new_cmd (ch, false);             /* get next cmd */
             }
         if (ch_wc[ch]) {                                /* wc > 0? */
             if (ch6_rd_putw (ch) && !(ch_flags[ch] & CHF_EOR))
                  return SCPE_OK;                        /* yes, store; more? */
             ch6_iosp_cclr (ch);                         /* cond clear eor */
             }
-        return ch6_new_cmd (ch, FALSE);                 /* next cmd */
+        return ch6_new_cmd (ch, false);                 /* next cmd */
 
     case CH6_IOST:                                      /* IOST */
          if (ch_flags[ch] & CHF_EOR) {                   /* (new) EOR set? */
@@ -1125,12 +1126,12 @@ else if (ch_flags[ch] & CHF_RDS) {                      /* 7607 read? */
     case CH6_IORP:                                      /* IORP */
         if (ch_flags[ch] & CHF_EOR) {                   /* (new) EOR set? */
             ch_flags[ch] = ch_flags[ch] & ~CHF_EOR;     /* clear flag */
-            return ch6_new_cmd (ch, FALSE);             /* get next cmd */
+            return ch6_new_cmd (ch, false);             /* get next cmd */
             }
         ch6_rd_putw (ch);                               /* store wd; ignore wc */
         if (ch_flags[ch] & CHF_EOR) {                   /* EOR? */
             ch_flags[ch] = ch_flags[ch] & ~CHF_EOR;     /* clear flag */
-            return ch6_new_cmd (ch, FALSE);             /* get next cmd */
+            return ch6_new_cmd (ch, false);             /* get next cmd */
             }
         return SCPE_OK;                                 /* done */
 
@@ -1159,11 +1160,11 @@ else {                                                  /* 7607 write */
 
     case CH6_TCH:                                       /* transfer */
         ch_clc[ch] = ch_ca[ch] & CHAMASK;               /* change clc */
-        return ch6_new_cmd (ch, FALSE);                 /* unpack new cmd */
+        return ch6_new_cmd (ch, false);                 /* unpack new cmd */
 
     case CH6_IOCD:                                      /* IOCD */
         if (ch_wc[ch]) {                                /* wc > 0? */
-            if ((r = ch6_wr_getw (ch, TRUE)))           /* send wd to dev; err? */
+            if ((r = ch6_wr_getw (ch, true)))           /* send wd to dev; err? */
                 return r;
             if (ch_wc[ch])                              /* more to do? */
                 return SCPE_OK;
@@ -1173,17 +1174,17 @@ else {                                                  /* 7607 write */
     case CH6_IOCP:                                      /* IOCP */
     case CH6_IOSP:                                      /* IOSP */
         if (ch_wc[ch]) {                                /* wc > 0? */
-            if ((r = ch6_wr_getw (ch, FALSE)))          /* send wd to dev; err? */
+            if ((r = ch6_wr_getw (ch, false)))          /* send wd to dev; err? */
                 return r;
             if (ch_wc[ch])                              /* more to do? */
                 return SCPE_OK;
             }
-        return ch6_new_cmd (ch, FALSE);                 /* get next cmd */
+        return ch6_new_cmd (ch, false);                 /* get next cmd */
 
     case CH6_IOCT:                                      /* IOCT */
     case CH6_IOST:                                      /* IOST */
         if (ch_wc[ch]) {                                /* wc > 0? */
-            if ((r = ch6_wr_getw (ch, FALSE)))          /* send wd to dev; err? */
+            if ((r = ch6_wr_getw (ch, false)))          /* send wd to dev; err? */
                 return r;
             if (ch_wc[ch])                              /* more to do? */
                 return SCPE_OK;
@@ -1192,17 +1193,17 @@ else {                                                  /* 7607 write */
 
     case CH6_IORP:                                      /* IORP */
         if (!(ch_flags[ch] & CHF_EOR) && ch_wc[ch]) {   /* not EOR? (cdp, lpt) */
-            if ((r = ch6_wr_getw (ch, TRUE)))           /* send wd to dev; err? */
+            if ((r = ch6_wr_getw (ch, true)))           /* send wd to dev; err? */
                 return r;
             if (ch_wc[ch])                              /* more to do? */
                 return SCPE_OK;
             }
         ch_flags[ch] = ch_flags[ch] & ~CHF_EOR;         /* clear EOR */
-        return ch6_new_cmd (ch, FALSE);                 /* get next cmd */
+        return ch6_new_cmd (ch, false);                 /* get next cmd */
 
     case CH6_IORT:                                      /* IORT */
         if (!(ch_flags[ch] & CHF_EOR) && ch_wc[ch]) {   /* not EOR? (cdp, lpt) */
-            if ((r = ch6_wr_getw (ch, TRUE)))           /* send wd to dev; err? */
+            if ((r = ch6_wr_getw (ch, true)))           /* send wd to dev; err? */
                 return r;
             if (ch_wc[ch])                              /* more to do? */
                 return SCPE_OK;
@@ -1220,7 +1221,7 @@ else {                                                  /* 7607 write */
 
 /* 7607 channel input routine - put one word to memory */
 
-t_bool ch6_rd_putw (uint32 ch)
+bool ch6_rd_putw (uint32 ch)
 {
 if (ch_idf[ch] & CH6DF_EOR)                             /* eor from dev? */
     ch_flags[ch] |= CHF_EOR;
@@ -1233,12 +1234,12 @@ if (ch_wc[ch]) {                                        /* wc > 0? */
         }
     ch_wc[ch] = ch_wc[ch] - 1;
     }
-return (ch_wc[ch]? TRUE: FALSE);
+return (ch_wc[ch]? true: false);
 }
 
 /* 7607 channel output routine - get one word from memory */
 
-t_stat ch6_wr_getw (uint32 ch, t_bool eorz)
+t_stat ch6_wr_getw (uint32 ch, bool eorz)
 {
 DEVICE *dptr;
 DIB *dibp;
@@ -1273,7 +1274,7 @@ return SCPE_IERR;                                       /* huh? */
      channel command as quickly as possible.
 */
 
-t_stat ch6_new_cmd (uint32 ch, t_bool ch_ld)
+t_stat ch6_new_cmd (uint32 ch, bool ch_ld)
 {
 t_uint64 ir;
 uint32 op, t;
@@ -1432,12 +1433,12 @@ return 0;
 
 /* Channel connected to unit? */
 
-t_bool ch6_qconn (uint32 ch, uint32 unit)
+bool ch6_qconn (uint32 ch, uint32 unit)
 {
 if ((ch < NUM_CHAN) &&                                  /* valid chan */
     (ch_dsu[ch] == unit))                               /* for right unit? */
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* 7909 channel support routines */
@@ -1647,11 +1648,11 @@ return;
 
 /* Test connected */
 
-t_bool ch9_qconn (uint32 ch)
+bool ch9_qconn (uint32 ch)
 {
 if ((ch < NUM_CHAN) && (ch_sta[ch] == CHXS_DSX))
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* Evaluate interrupts
@@ -1688,15 +1689,15 @@ return;
 
 /* Test for all channels idle */
 
-t_bool ch_qidle (void)
+bool ch_qidle (void)
 {
 uint32 i;
 
 for (i = 0; i < NUM_CHAN; i++) {
     if (ch_sta[i] != CHXS_IDLE)
-        return FALSE;
+        return false;
     }
-return TRUE;
+return true;
 }
 
 /* Evaluate/execute channel traps */

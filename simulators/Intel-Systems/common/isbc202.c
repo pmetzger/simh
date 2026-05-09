@@ -143,6 +143,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 #include "isbc202_internal.h"
 #include "scp.h"
@@ -208,7 +209,7 @@ extern uint16    PCX;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 extern uint8 get_mbyte(uint16 addr);
 extern void put_mbyte(uint16 addr, uint8 val);
@@ -225,11 +226,11 @@ t_stat isbc202_reset(DEVICE *dptr);
 void isbc202_reset_dev(void);
 t_stat isbc202_attach (UNIT *uptr, const char *cptr);
 t_stat isbc202_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-uint8 isbc202r0(t_bool io, uint8 data, uint8 devnum); /* isbc202 0 */
-uint8 isbc202r1(t_bool io, uint8 data, uint8 devnum); /* isbc202 1 */
-uint8 isbc202r2(t_bool io, uint8 data, uint8 devnum); /* isbc202 2 */
-uint8 isbc202r3(t_bool io, uint8 data, uint8 devnum); /* isbc202 3 */
-uint8 isbc202r7(t_bool io, uint8 data, uint8 devnum); /* isbc202 7 */
+uint8 isbc202r0(bool io, uint8 data, uint8 devnum);   /* isbc202 0 */
+uint8 isbc202r1(bool io, uint8 data, uint8 devnum);   /* isbc202 1 */
+uint8 isbc202r2(bool io, uint8 data, uint8 devnum);   /* isbc202 2 */
+uint8 isbc202r3(bool io, uint8 data, uint8 devnum);   /* isbc202 3 */
+uint8 isbc202r7(bool io, uint8 data, uint8 devnum);   /* isbc202 7 */
 void isbc202_diskio(void);      //do actual disk i/o
 
 /* globals */
@@ -253,7 +254,7 @@ FDCDEF    fdc202;                       //indexed by the isbc-202 instance numbe
  * TODO: Share this helper logic with the other Intel diskette controllers
  * after the warning-driven fixes are settled.
  */
-static t_bool isbc202_completion_interrupt_enabled(uint8 cw)
+static bool isbc202_completion_interrupt_enabled(uint8 cw)
 {
     return (cw & CW_INT_CTL) != CW_INT_DIS;
 }
@@ -608,7 +609,7 @@ t_stat isbc202_attach (UNIT *uptr, const char *cptr)
 
 /* iSBC202 control port functions */
 
-uint8 isbc202r0(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc202r0(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -621,7 +622,7 @@ uint8 isbc202r0(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc202r1(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc202r1(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -638,7 +639,7 @@ uint8 isbc202r1(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc202r2(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc202r2(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -655,7 +656,7 @@ uint8 isbc202r2(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc202r3(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc202r3(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -678,7 +679,7 @@ uint8 isbc202r3(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc202r7(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc202r7(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -704,7 +705,7 @@ void isbc202_diskio(void)
     uint32 i;
     UNIT *uptr;
     uint8 *fbuf;
-    t_bool completion_interrupt;
+    bool completion_interrupt;
 
     //parse the IOPB
     cw = get_mbyte(fdc202.iopb);

@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_RC
@@ -113,7 +114,7 @@ uint32          rc_ipr[NUM_DEVS_RC];
 t_stat          rc_devio(uint32 dev, uint64 *data);
 t_stat          rc_svc(UNIT *);
 t_stat          rc_boot(int32, DEVICE *);
-void            rc_ini(UNIT *, t_bool);
+void            rc_ini(UNIT *, bool);
 t_stat          rc_reset(DEVICE *);
 t_stat          rc_attach(UNIT *, const char *);
 t_stat          rc_detach(UNIT *);

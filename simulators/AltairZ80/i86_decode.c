@@ -21,6 +21,7 @@
  *
  */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "i86.h"
 
@@ -198,7 +199,7 @@ t_stat sim_instr_8086(void) {
     setCPURegisters();
     intr = 0;
     newIP = PCX_S - 16 * CS_S;
-    switch_cpu_now = TRUE;
+    switch_cpu_now = true;
     if ((0 <= newIP) && (newIP <= 0xffff))
         cpu8086.R_IP = newIP;
     else {
@@ -209,7 +210,7 @@ t_stat sim_instr_8086(void) {
         }
         cpu8086.R_IP = PCX_S & 0xffff;
     }
-    while (switch_cpu_now == TRUE) {                        /* loop until halted    */
+    while (switch_cpu_now == true) {                        /* loop until halted    */
         if (sim_interval <= 0) {                            /* check clock queue    */
             if ( (reason = sim_process_event()) )
                 break;
@@ -257,7 +258,7 @@ t_stat sim_instr_8086(void) {
     /* It we stopped processing instructions because of a switch to the other
      * CPU, then fixup the reason code.
      */
-    if (switch_cpu_now == FALSE) {
+    if (switch_cpu_now == false) {
         reason = SCPE_OK;
         PCX += 2;
         PCX_S = PCX;

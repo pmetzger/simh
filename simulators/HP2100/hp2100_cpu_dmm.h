@@ -33,6 +33,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_io.h"                          /* include the I/O definitions for the I/O dispatcher */
 
 
@@ -40,7 +41,7 @@
 /* I/O dispatcher return value */
 
 typedef struct {                                /* the I/O dispatcher return structure */
-    t_bool   skip;                              /*   TRUE if the interface asserted the SKF signal */
+    bool     skip;                              /*   true if the interface asserted the SKF signal */
     HP_WORD  data;                              /*   the data value returned from the interface */
     } SKPF_DATA;
 
@@ -150,7 +151,7 @@ extern HP_WORD mp_fence;                        /* memory protect fence register
 
 /* I/O subsystem global utility routine declarations */
 
-extern t_bool    io_control  (uint32 select_code, IO_GROUP_OP micro_op);
+extern bool      io_control  (uint32 select_code, IO_GROUP_OP micro_op);
 extern SKPF_DATA io_dispatch (uint32 select_code, INBOUND_SET inbound_signals, HP_WORD inbound_value);
 
 
@@ -166,9 +167,9 @@ extern void    mem_write_byte (DEVICE *dptr, ACCESS_CLASS classification, HP_WOR
 extern HP_WORD mem_fast_read (HP_WORD address, MEU_MAP_SELECTOR map);
 
 extern void   mem_zero            (uint32 starting_address, uint32 fill_count);
-extern t_bool mem_is_empty        (uint32 starting_address);
+extern bool mem_is_empty        (uint32 starting_address);
 extern void   mem_copy_loader     (MEMORY_WORD *buffer, uint32 starting_address, COPY_DIRECTION mode);
-extern t_bool mem_is_idle_loop    (void);
+extern bool mem_is_idle_loop    (void);
 extern void   mem_trace_registers (FLIP_FLOP interrupt_system);
 
 /* Main memory global utility routines declared in io.h
@@ -189,19 +190,19 @@ extern HP_WORD meu_update_status    (void);
 extern HP_WORD meu_update_violation (void);
 extern void    meu_assert_IAK       (void);
 extern void    meu_privileged       (MEU_CONDITION condition);
-extern uint32  meu_breakpoint_type  (t_bool is_iak);
+extern uint32  meu_breakpoint_type  (bool is_iak);
 extern uint32  meu_map_address      (HP_WORD logical, int32 switches);
 
 
 /* Memory Protect global utility routine declarations */
 
-extern t_bool mp_initialize          (void);
-extern void   mp_configure           (t_bool is_enabled, t_bool is_optional);
+extern bool mp_initialize          (void);
+extern void   mp_configure           (bool is_enabled, bool is_optional);
 extern void   mp_check_jmp           (HP_WORD address, uint32 lower_bound);
 extern void   mp_check_jsb           (HP_WORD address);
 extern void   mp_check_io            (uint32 select_code, IO_GROUP_OP micro_op);
 extern void   mp_violation           (void);
 extern void   mp_disable             (void);
-extern t_bool mp_is_on               (void);
-extern t_bool mp_reenable_interrupts (void);
-extern t_bool mp_trace_violation     (void);
+extern bool mp_is_on               (void);
+extern bool mp_reenable_interrupts (void);
+extern bool mp_trace_violation     (void);

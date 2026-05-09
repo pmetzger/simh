@@ -36,6 +36,7 @@
 
 #include "h316_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 /* Constants */
 
@@ -102,9 +103,9 @@ t_stat fhd_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
 void fhd_go (uint32 dma);
 void fhd_go1 (uint32 dat);
 void fhd_go2 (uint32 dat);
-t_bool fhd_getc (UNIT *uptr, uint32 *ch);
-t_bool fhd_putc (UNIT *uptr, uint32 ch);
-t_bool fhd_bad_wa (uint32 wa);
+bool fhd_getc (UNIT *uptr, uint32 *ch);
+bool fhd_putc (UNIT *uptr, uint32 ch);
+bool fhd_bad_wa (uint32 wa);
 uint32 fhd_csword (uint32 cs, uint32 ch);
 
 /* FHD data structures
@@ -372,7 +373,7 @@ return SCPE_OK;
 
 /* Read character from disk */
 
-t_bool fhd_getc (UNIT *uptr, uint32 *ch)
+bool fhd_getc (UNIT *uptr, uint32 *ch)
 {
 uint32 sf = CW1_GETSF (fhd_cw1);                        /* surface */
 uint32 tk = CW1_GETTK (fhd_cw1);                        /* track */
@@ -383,19 +384,19 @@ uint16 *fbuf = (uint16 *) uptr->filebuf;                /* buffer base */
 uint32 wd;
 
 if (fhd_bad_wa (wa))                                    /* addr bad? */
-    return TRUE;
+    return true;
 fhd_cw2 = fhd_cw2 + 1;                                  /* incr char addr */
 if (ca & 1)                                             /* select char */
     wd = fbuf[ba] & 0377;
 else wd = (fbuf[ba] >> 8) & 0377;
 fhd_csum = fhd_csword (fhd_csum, wd);                   /* put in csum */
 *ch = wd;                                               /* return */
-return FALSE;
+return false;
 }
 
 /* Write character to disk */
 
-t_bool fhd_putc (UNIT *uptr, uint32 ch)
+bool fhd_putc (UNIT *uptr, uint32 ch)
 {
 uint32 sf = CW1_GETSF (fhd_cw1);                        /* surface */
 uint32 tk = CW1_GETTK (fhd_cw1);                        /* track */
@@ -406,7 +407,7 @@ uint16 *fbuf = (uint16 *)uptr->filebuf;                 /* buffer base */
 
 ch = ch & 0377;                                         /* mask char */
 if (fhd_bad_wa (wa))                                    /* addr bad? */
-    return TRUE;
+    return true;
 fhd_cw2 = fhd_cw2 + 1;                                  /* incr char addr */
 if (ca & 1)                                             /* odd? low char */
     fbuf[ba] = (fbuf[ba] & ~0377) | ch;
@@ -414,20 +415,20 @@ else fbuf[ba] = (fbuf[ba] & 0377) | (ch << 8);          /* even, hi char */
 fhd_csum = fhd_csword (fhd_csum, ch);                   /* put in csum */
 if (ba >= uptr->hwmark)                                 /* update hwmark */
     uptr->hwmark = ba + 1;
-return FALSE;
+return false;
 }
 
 /* Check word address */
 
-t_bool fhd_bad_wa (uint32 wa)
+bool fhd_bad_wa (uint32 wa)
 {
 if (wa >= FH_NUMWD) {                                   /* bad address? */
     fhd_ace = 1;                                        /* access error */
     fhd_busy = 0;                                       /* abort operation */
     SET_INT (INT_FHD);
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Add character to checksum (parity) */

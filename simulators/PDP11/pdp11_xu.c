@@ -98,6 +98,7 @@
   ------------------------------------------------------------------------------
 */
 
+#include <stdbool.h>
 #include "pdp11_xu.h"
 
 extern int32 tmxr_poll;
@@ -921,7 +922,7 @@ t_stat xu_reset(DEVICE* dptr)
   if (!xu->var->initialized) {
     char uname[16];
 
-    xu->var->initialized = TRUE;
+    xu->var->initialized = true;
     sprintf (uname, "%s-SVC", dptr->name);
     sim_set_uname (&dptr->units[0], uname);
     sprintf (uname, "%s-TMRSVC", dptr->name);

@@ -109,6 +109,7 @@
 #include "sim_tmxr.h"
 
 #include <ctype.h>
+#include <stdbool.h>
 
 #define SER_DEV_NAME_MAX     256                        /* maximum device name size */
 #define SER_DEV_DESC_MAX     256                        /* maximum device description size */
@@ -444,7 +445,7 @@ t_stat sim_config_serial  (SERHANDLE port, const char *sconfig)
 const char *pptr;
 const char *sptr, *tptr;
 SERCONFIG config = { 0 };
-t_bool arg_error = FALSE;
+bool arg_error = false;
 t_stat r;
 struct open_serial_device *dev;
 

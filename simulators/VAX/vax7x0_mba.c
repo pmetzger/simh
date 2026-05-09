@@ -28,6 +28,7 @@
    28-May-08    RMS     Inlined physical memory routines
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 /* Massbus */
@@ -258,7 +259,7 @@ t_stat mba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cpt
 const char *mba_description (DEVICE *dptr);
 t_stat mba_rdreg (int32 *val, int32 pa, int32 mode);
 t_stat mba_wrreg (int32 val, int32 pa, int32 lnt);
-t_bool mba_map_addr (uint32 va, uint32 *ma, uint32 mb);
+bool mba_map_addr (uint32 va, uint32 *ma, uint32 mb);
 void mba_set_int (uint32 mb);
 void mba_clr_int (uint32 mb);
 void mba_upd_sr (uint32 set, uint32 clr, uint32 mb);
@@ -467,7 +468,7 @@ t_stat mba_wrreg (int32 val, int32 pa, int32 lnt)
 int32 mb, ofs, drv, rtype;
 uint32 old_reg, old_sr;
 t_stat r;
-t_bool cs1dt;
+bool cs1dt;
 
 mb = NEXUS_GETNEX (pa) - TR_MBA0;                       /* get MBA */
 if ((pa & 3) || (lnt != L_LONG)) {                      /* unaligned or not lw? */
@@ -737,7 +738,7 @@ return i;
 
 /* Map an address via the translation map */
 
-t_bool mba_map_addr (uint32 va, uint32 *ma, uint32 mb)
+bool mba_map_addr (uint32 va, uint32 *ma, uint32 mb)
 {
 uint32 vblk = (va >> VA_V_VPN);                         /* map index */
 uint32 mmap = mba_map[mb][vblk];                        /* get map */

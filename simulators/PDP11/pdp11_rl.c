@@ -98,6 +98,7 @@
 #include "pdp11_defs.h"
 #endif
 
+#include <stdbool.h>
 #include "sim_disk.h"
 
 /* Constants */
@@ -1035,7 +1036,7 @@ static const char *drives[] = {"RL01", "RL02", NULL};
 
 uptr->capac = (uptr->flags & UNIT_RL02)? RL02_SIZE: RL01_SIZE;
 r = sim_disk_attach_ex (uptr, cptr, RL_NUMWD * sizeof (uint16),
-                        sizeof (uint16), TRUE, 0,
+                        sizeof (uint16), true, 0,
                         (uptr->capac == RL02_SIZE) ? "RL02" : "RL01", RL_NUMSC, 0,
                         (uptr->flags & UNIT_NOAUTO) ? NULL : drives);
 if (r != SCPE_OK)                                       /* error? */

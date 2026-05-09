@@ -74,6 +74,7 @@
         - (interrupt and exception routine)
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "vax_cpu1_internal.h"
 
@@ -90,7 +91,7 @@ static const uint8 rcnt[128] = {
 
 extern int32 ReadIPR (int32 rg);
 extern void WriteIPR (int32 rg, int32 val);
-extern t_bool BadCmPSL (int32 newpsl);
+extern bool BadCmPSL (int32 newpsl);
 
 /* Branch on bit and no modify
    Branch on bit and modify
@@ -325,7 +326,7 @@ return size;
                 update PSW traps, clear condition codes
 */
 
-int32 op_call (uint32 *opnd, t_bool gs, int32 acc)
+int32 op_call (uint32 *opnd, bool gs, int32 acc)
 {
 int32 addr = opnd[1];
 int32 mask, stklen, tsp, wd;

@@ -39,6 +39,7 @@
 
 /*#define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "i8272.h"
 
@@ -60,7 +61,7 @@
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
     uint32 dma_addr;    /* DMA Transfer Address */
-    uint8 rom_disabled; /* TRUE if ROM has been disabled */
+    uint8 rom_disabled; /* true if ROM has been disabled */
 } DISK1A_INFO;
 
 static DISK1A_INFO disk1a_info_data = { { 0x0, 512, 0xC0, 4 } };
@@ -702,13 +703,13 @@ static uint8 disk1a_rom[16][512] = {
 };
 
 
-/* returns TRUE iff there exists a disk with VERBOSE */
+/* returns true iff there exists a disk with VERBOSE */
 static int32 disk1a_hasProperty(uint32 property) {
     int32 i;
     for (i = 0; i < DISK1A_MAX_DRIVES; i++)
         if (disk1a_dev.units[i].flags & property)
-            return TRUE;
-    return FALSE;
+            return true;
+    return false;
 }
 
 /* Reset routine */
@@ -718,18 +719,18 @@ static t_stat disk1a_reset(DEVICE *dptr)
 
     if(dptr->flags & DEV_DIS) { /* Disconnect ROM and I/O Ports */
         if (disk1a_hasProperty(UNIT_DISK1A_ROM))
-            sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &disk1arom, "disk1arom", TRUE);
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &disk1adev, "disk1adev", TRUE);
+            sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &disk1arom, "disk1arom", true);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &disk1adev, "disk1adev", true);
     } else {
         /* Connect DISK1A ROM at base address */
         if (disk1a_hasProperty(UNIT_DISK1A_ROM))
-            if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &disk1arom, "disk1arom", FALSE) != 0) {
+            if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &disk1arom, "disk1arom", false) != 0) {
                 sim_printf("%s: error mapping MEM resource at 0x%04x\n", __FUNCTION__, pnp->mem_base);
                 return SCPE_ARG;
             }
 
         /* Connect DISK1A at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &disk1adev, "disk1adev", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &disk1adev, "disk1adev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
@@ -748,7 +749,7 @@ static t_stat disk1a_boot(int32 unitno, DEVICE *dptr)
     DBG_PRINT(("Booting DISK1A Controller, bootstrap=%d\n", bootstrap));
 
     /* Re-enable the ROM in case it was disabled */
-    disk1a_info->rom_disabled = FALSE;
+    disk1a_info->rom_disabled = false;
 
     /* Set the PC to 0, and go. */
     *((int32 *) sim_PC->loc) = 0;
@@ -782,7 +783,7 @@ static int32 disk1arom(const int32 Addr, const int32 write, const int32 data)
         return 0;
     } else {
         bootstrap &= 0xF;
-        if(disk1a_info->rom_disabled == FALSE) {
+        if(disk1a_info->rom_disabled == false) {
             return(disk1a_rom[bootstrap][Addr & 0x1FF]);
         } else {
             return(disk1aram[Addr & 0x1FF]);
@@ -861,7 +862,7 @@ static uint8 DISK1A_Write(const uint32 Addr, uint8 cData)
                           " Boot ROM disabled\n", PCX);
 
                 /* Unmap Boot ROM */
-                disk1a_info->rom_disabled = TRUE;
+                disk1a_info->rom_disabled = true;
             }
 
             sim_debug(CMD_MSG, &disk1a_dev, "DISK1A: " ADDRESS_FORMAT

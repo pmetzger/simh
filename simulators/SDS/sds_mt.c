@@ -49,6 +49,7 @@
    End of tape is two consecutive end of file marks.
 */
 
+#include <stdbool.h>
 #include "sds_defs.h"
 #include "sim_tape.h"
 
@@ -363,7 +364,7 @@ if ((uptr->flags & UNIT_ATT) == 0) {                    /* attached? */
 if (mt_inst & CHC_REV)                                  /* reverse? */
     st = sim_tape_rdrecr (uptr, mtxb, &tbc, MT_MAXFR);  /* read rec rev */
 else {                                                  /* no, fwd */
-    t_bool passed_eot = sim_tape_eot (uptr);            /* passed EOT? */
+    bool passed_eot = sim_tape_eot (uptr);              /* passed EOT? */
     st = sim_tape_rdrecf (uptr, mtxb, &tbc, MT_MAXFR);
     if (!passed_eot && sim_tape_eot (uptr))             /* just passed eot? */
         uptr->eotf = 1;
@@ -410,7 +411,7 @@ t_stat mt_wrend (uint32 dev)
 {
 UNIT *uptr = mt_dev.units + (dev & MT_UNIT);
 t_stat st;
-t_bool passed_eot;
+bool passed_eot;
 
 sim_cancel (uptr);                                      /* no more xfr's */
 if (mt_bptr == 0)                                       /* buf empty? */

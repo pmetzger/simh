@@ -138,6 +138,7 @@
  *
  */
 
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 uint16 M[MAXMEMSIZE];
@@ -148,17 +149,17 @@ uint16 Preg, Areg, Qreg, Mreg, CAenable, OrigPreg, Pending, IOAreg, IOQreg;
 uint16 R1reg, R2reg, R3reg, R4reg;
 uint8 Pfault, Protected, lastP, Oflag, INTflag, DEFERflag;
 
-t_bool ExecutionStarted = FALSE;
+bool ExecutionStarted = false;
 uint16 CharAddrMode[16];
 
 uint16 INTlevel;
 
 char INTprefix[8];
 
-t_bool FirstRejSeen = FALSE;
+bool FirstRejSeen = false;
 uint32 CountRejects = 0;
 
-t_bool FirstAddr = TRUE;
+bool FirstAddr = true;
 
 /*
  * Memory location holding MSOS5 system request routine address
@@ -167,9 +168,9 @@ t_bool FirstAddr = TRUE;
 
 extern void MSOS5request(uint16, uint16);
 
-extern int disassem(char *, uint16, t_bool, t_bool, t_bool);
+extern int disassem(char *, uint16, bool, bool, bool);
 
-extern enum IOstatus doIO(t_bool, DEVICE **);
+extern enum IOstatus doIO(bool, DEVICE **);
 extern void fw_init(void);
 extern void VMinit(void);
 extern void rebuildPending(void);
@@ -300,11 +301,11 @@ DEVICE cpu_dev = {
 /*
  * Table of instructions which store to memory
  */
-static t_bool storagemode[] = {
-  FALSE, FALSE, FALSE, FALSE,                   /* SPECIAL, JMP, MUI, DVI */
-  TRUE, FALSE, TRUE, TRUE,                      /* STQ, RTJ, STA, SPA */
-  FALSE, FALSE, FALSE, FALSE,                   /* ADD, SUB, AND, EOR */
-  FALSE, TRUE, FALSE, FALSE                     /* LDA, RAO, LDQ, ADQ */
+static bool storagemode[] = {
+  false, false, false, false,                   /* SPECIAL, JMP, MUI, DVI */
+  true, false, true, true,                      /* STQ, RTJ, STA, SPA */
+  false, false, false, false,                   /* ADD, SUB, AND, EOR */
+  false, true, false, false                     /* LDA, RAO, LDQ, ADQ */
 };
 
 /*
@@ -407,9 +408,9 @@ t_stat cpu_reset(DEVICE *dptr)
   fw_init();
 
   sim_brk_types = sim_brk_dflt = SWMASK('E');
-  Pfault = FALSE;
+  Pfault = false;
 
-  FirstRejSeen = FALSE;
+  FirstRejSeen = false;
   CountRejects = 0;
 
   /*
@@ -443,7 +444,7 @@ t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
   for (i = val; i < cpu_unit.capac; i++)
     mc |= M[i];
 
-  if ((mc != 0) && (!get_yn("Really truncate memory [N]?", FALSE)))
+  if ((mc != 0) && (!get_yn("Really truncate memory [N]?", false)))
     return SCPE_OK;
 
   cpu_unit.capac = val;
@@ -498,7 +499,7 @@ static void dumpRegisters(void)
 /*
  * Indicate processor is running in protected mode.
  */
-t_bool inProtectedMode(void)
+bool inProtectedMode(void)
 {
   return (cpu_unit.flags & UNIT_PROT) != 0;
 }
@@ -570,11 +571,11 @@ uint16 LoadFromMem(uint16 addr)
 }
 
 /*
- * Writes require checking for protected mode. This routine returns TRUE
- * if the write succeeded and FALSE if the write failed and an interrupt
+ * Writes require checking for protected mode. This routine returns true
+ * if the write succeeded and false if the write failed and an interrupt
  * has been scheduled.
  */
-static t_bool StoreToMem(uint16 addr, uint16 value)
+static bool StoreToMem(uint16 addr, uint16 value)
 {
   if (inProtectedMode()) {
     if (!Protected) {
@@ -584,34 +585,34 @@ static t_bool StoreToMem(uint16 addr, uint16 value)
                   "%sProtect fault storing to memory at %04x => %04X\r\n",
                   INTprefix, OrigPreg, addr);
         }
-        Pfault = TRUE;
+        Pfault = true;
         RaiseInternalInterrupt();
-        return FALSE;
+        return false;
       }
     }
   }
   M[MEMADDR(addr)] = value;
-  return TRUE;
+  return true;
 }
 
 /*
  * I/O devices can maintain their own protected status. Perform similar
  * checking as StoreToMem() using the device protected status but do not
  * generate a "protect fault" since the error will be reported back through
- * the device status. Return TRUE if the write succeeded and FALSE if the
+ * the device status. Return true if the write succeeded and false if the
  * write failed due to a protect failure.
  */
-t_bool IOStoreToMem(uint16 addr, uint16 value, t_bool prot)
+bool IOStoreToMem(uint16 addr, uint16 value, bool prot)
 {
   if (inProtectedMode()) {
     if (!prot) {
       if (P[MEMADDR(addr)]) {
-        return FALSE;
+        return false;
       }
     }
   }
   M[MEMADDR(addr)] = value;
-  return TRUE;
+  return true;
 }
 
 /*
@@ -955,7 +956,7 @@ static t_stat executeAnInstruction(void)
             Oflag = 0;
           }
 
-          Protected = TRUE;
+          Protected = true;
           StoreToMem(operand1, operand2);
           Preg = operand1 + 1;
           INTflag = 0;
@@ -970,7 +971,7 @@ static t_stat executeAnInstruction(void)
             fprintf(DBGOUT,
                     "%s %u Rejects terminated by interrupt\r\n",
                     INTprefix, CountRejects);
-            FirstRejSeen = FALSE;
+            FirstRejSeen = false;
             CountRejects = 0;
           }
 
@@ -1024,9 +1025,9 @@ static t_stat executeAnInstruction(void)
   if (((cpu_dev.dctrl & DBG_DISASS) != 0) ||
       (((cpu_dev.dctrl & DBG_IDISASS) != 0) && (INTlevel != 0))) {
     char buf[128];
-    t_bool target = (cpu_dev.dctrl & DBG_TARGET) != 0;
+    bool target = (cpu_dev.dctrl & DBG_TARGET) != 0;
 
-    disassem(buf, Preg, TRUE, target, TRUE);
+    disassem(buf, Preg, true, target, true);
     fprintf(DBGOUT, "%s%s\r\n", INTprefix, buf);
   }
 
@@ -1053,7 +1054,7 @@ static t_stat executeAnInstruction(void)
                 "%sProtect fault, protected after unprotected at %04X\r\n",
                 INTprefix, OrigPreg);
       }
-      Pfault = TRUE;
+      Pfault = true;
       RaiseInternalInterrupt();
 
       /*
@@ -1332,14 +1333,14 @@ static t_stat executeAnInstruction(void)
             case OPC_SPF:
               if (Pfault)
                 Preg = doADDinternal(Preg, instr & OPC_SKIPCOUNT);
-              Pfault = FALSE;
+              Pfault = false;
               rebuildPending();
               break;
 
             case OPC_SNF:
               if (!Pfault)
                 Preg = doADDinternal(Preg, instr & OPC_SKIPCOUNT);
-              Pfault = FALSE;
+              Pfault = false;
               rebuildPending();
               break;
           }
@@ -1352,13 +1353,13 @@ static t_stat executeAnInstruction(void)
                       "%sINP:[A: %04X, Q: %04X, M: %04X, Ovf: %d, I: %d, D: %d]\r\n",
                       INTprefix, Areg, Qreg, Mreg, Oflag, INTflag, DEFERflag);
 
-          switch (doIO(FALSE, &dev)) {
+          switch (doIO(false, &dev)) {
             case IO_REPLY:
               if (FirstRejSeen) {
                 fprintf(DBGOUT,
                         "%s %u Rejects terminated by a Reply\r\n",
                         INTprefix, CountRejects);
-                FirstRejSeen = FALSE;
+                FirstRejSeen = false;
                 CountRejects = 0;
               }
               if ((cpu_dev.dctrl & DBG_INPUT) != 0)
@@ -1381,7 +1382,7 @@ static t_stat executeAnInstruction(void)
               if (Preg == OrigPreg) {
                 if ((dev  != NULL) && ((dev->dctrl & DBG_DFIRSTREJ) != 0)) {
                   if (!FirstRejSeen) {
-                    FirstRejSeen = TRUE;
+                    FirstRejSeen = true;
                     CountRejects = 1;
                   }
                 } else CountRejects++;
@@ -1405,13 +1406,13 @@ static t_stat executeAnInstruction(void)
                       "%sOUT:[A: %04X, Q: %04X, M: %04X, Ovf: %d, I: %d, D: %d]\r\n",
                       INTprefix, Areg, Qreg, Mreg, Oflag, INTflag, DEFERflag);
 
-          switch (doIO(TRUE, &dev)) {
+          switch (doIO(true, &dev)) {
             case IO_REPLY:
               if (FirstRejSeen) {
                 fprintf(DBGOUT,
                         "%s %u Rejects terminated by a Reply\r\n",
                         INTprefix, CountRejects);
-                FirstRejSeen = FALSE;
+                FirstRejSeen = false;
                 CountRejects = 0;
               }
               if ((cpu_dev.dctrl & DBG_OUTPUT) != 0)
@@ -1432,7 +1433,7 @@ static t_stat executeAnInstruction(void)
               if (Preg == OrigPreg) {
                 if ((dev  != NULL) && ((dev->dctrl & DBG_DFIRSTREJ) != 0)) {
                   if (!FirstRejSeen) {
-                    FirstRejSeen = TRUE;
+                    FirstRejSeen = true;
                     CountRejects = 1;
                   }
                 } else CountRejects++;
@@ -1513,7 +1514,7 @@ static t_stat executeAnInstruction(void)
                         "%sProtect fault EIN/SPB/CPB/EXI at %04X\r\n",
                         INTprefix, OrigPreg);
               }
-              Pfault = TRUE;
+              Pfault = true;
               RaiseInternalInterrupt();
 
               /*
@@ -1613,7 +1614,7 @@ static t_stat executeAnInstruction(void)
                           "%sProtect fault INTER to M at %04X\r\n",
                           INTprefix, OrigPreg);
                 }
-                Pfault = TRUE;
+                Pfault = true;
                 RaiseInternalInterrupt();
 
                 /*
@@ -1802,7 +1803,7 @@ t_stat sim_instr(void)
 {
   t_stat reason = 0;
 
-  ExecutionStarted = TRUE;
+  ExecutionStarted = true;
 
   while (reason == 0) {
     if (sim_interval <= 0) {

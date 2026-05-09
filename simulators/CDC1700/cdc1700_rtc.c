@@ -28,6 +28,7 @@
 /* cdc1700_rtc.c: 10336-1 Real-time clock support
  *                Simh devices: rtc
  */
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 #define HOLDREG         iod_writeR[0]           /* Holding register */
@@ -46,7 +47,7 @@ extern void rebuildPending(void);
 
 extern uint16 Areg;
 
-extern t_bool IOFWinitialized;
+extern bool IOFWinitialized;
 
 t_stat rtc_show_rate(FILE *, UNIT *, int32, const void *);
 t_stat rtc_set_rate(UNIT *, int32, const char *, void *);
@@ -260,7 +261,7 @@ t_stat rtc_svc(UNIT *uptr)
       if ((RTCdev.iod_RTCstate & IODP_RTCINTR) != 0) {
         if (RTCdev.COUNTER == RTCdev.HOLDREG) {
           RTCdev.COUNTER = 0;
-          RTCdev.iod_RTCraised = TRUE;
+          RTCdev.iod_RTCraised = true;
           RaiseExternalInterrupt(&rtc_dev);
         }
       }
@@ -282,7 +283,7 @@ t_stat rtc_reset(DEVICE * dptr)
         return r;
 
   RTCdev.iod_RTCstate = IODP_RTCIDLE;
-  RTCdev.iod_RTCraised = FALSE;
+  RTCdev.iod_RTCraised = false;
 
   return SCPE_OK;
 }
@@ -327,7 +328,7 @@ enum IOstatus RTCout(IO_DEVICE *iod, uint8 reg)
         sim_cancel(&rtc_unit);
 
         RTCdev.iod_RTCstate = IODP_RTCIDLE;
-        RTCdev.iod_RTCraised = FALSE;
+        RTCdev.iod_RTCraised = false;
         rebuildPending();
 
         RTCdev.HOLDREG = 0;
@@ -346,13 +347,13 @@ enum IOstatus RTCout(IO_DEVICE *iod, uint8 reg)
       }
 
       if ((Areg & IO_10336_ACK) != 0) {
-        RTCdev.iod_RTCraised = FALSE;
+        RTCdev.iod_RTCraised = false;
         rebuildPending();
       }
 
       if ((Areg & IO_10336_DIS) != 0) {
         RTCdev.iod_RTCstate &= ~IODP_RTCINTR;
-        RTCdev.iod_RTCraised = FALSE;
+        RTCdev.iod_RTCraised = false;
         rebuildPending();
       }
 

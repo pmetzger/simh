@@ -28,6 +28,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
@@ -182,7 +183,7 @@ ch11_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
             ch11_csr &= ~CSR_RDN;
             rx_count = 0;
             rx_pos = 0;
-            ch11_lines[0].rcve = TRUE;
+            ch11_lines[0].rcve = true;
             uba_clr_irq(dibp, dibp->uba_vect);
         }
         if (data & CSR_TCL) {
@@ -386,7 +387,7 @@ ch11_receive (struct pdp_dib *dibp)
         sim_debug (DBG_INT, &ch11_dev, "RX Interrupt\n");
         uba_set_irq(dibp, dibp->uba_vect);
     }
-    ch11_lines[0].rcve = FALSE;
+    ch11_lines[0].rcve = false;
     sim_debug (DBG_TRC, &ch11_dev, "Rx off\n");
   } else {
     sim_debug (DBG_ERR, &ch11_dev, "Lost packet\n");
@@ -408,7 +409,7 @@ ch11_clear (struct pdp_dib *dibp)
   tx_buffer[1] = 1;
   tx_buffer[2] = 0;
   tx_buffer[3] = 0;
-  ch11_lines[0].rcve = TRUE;
+  ch11_lines[0].rcve = true;
 
   uba_clr_irq(dibp, dibp->uba_vect);
 }

@@ -25,6 +25,8 @@
    in this Software without prior written authorization from the authors.
 */
 
+#include <stdbool.h>
+
 #include "pdp11_defs.h"
 #include "display/display.h"
 #include "display/ng.h"
@@ -82,12 +84,12 @@ MTAB ng_mod[] = {
   { 0 }  };
 
 
-static t_bool ng_stop_flag = FALSE;
-static t_bool ng_inited = FALSE;
+static bool ng_stop_flag = false;
+static bool ng_inited = false;
 
 static void ng_quit_callback (void)
 {
-  ng_stop_flag = TRUE;
+  ng_stop_flag = true;
 }
 
 /* Debug detail levels */
@@ -151,7 +153,7 @@ ng_svc(UNIT *uptr)
   if (ng_cycle(uptr->wait, 0))
     sim_activate_after (uptr, uptr->wait);
   if (ng_stop_flag) {
-    ng_stop_flag = FALSE;
+    ng_stop_flag = false;
     return SCPE_STOP;
   }
   return SCPE_OK;
@@ -187,7 +189,7 @@ ng_reset(DEVICE *dptr)
 
   if (!ng_inited && !ng_init(dptr, DEB_TRC))
       return sim_messagef (SCPE_ALATT, "Display already in use.\n");
-  ng_inited = TRUE;
+  ng_inited = true;
 
   CLR_INT (NG);
   ng_unit.wait = 100;

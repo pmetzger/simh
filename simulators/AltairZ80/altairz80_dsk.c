@@ -130,6 +130,7 @@
                 subsequent reads of the sector register.
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 /* Debug flags */
@@ -197,8 +198,8 @@ static int32 tracks         [NUM_OF_DSK]    = { MAX_TRACKS, MAX_TRACKS, MAX_TRAC
                                                 MAX_TRACKS, MAX_TRACKS, MAX_TRACKS, MAX_TRACKS,
                                                 MAX_TRACKS, MAX_TRACKS, MAX_TRACKS, MAX_TRACKS };
 static int32 in9_count                      = 0;
-static int32 in9_message                    = FALSE;
-static int32 dirty                          = FALSE;    /* TRUE when buffer has unwritten data in it    */
+static int32 in9_message                    = false;
+static int32 dirty                          = false;    /* true when buffer has unwritten data in it    */
 static int32 warnLevelDSK                   = 3;
 static int32 warnLock       [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static int32 warnAttached   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -401,14 +402,14 @@ static t_stat dsk_reset(DEVICE *dptr) {
     warnDSK12       = 0;
     current_disk    = NUM_OF_DSK;
     in9_count       = 0;
-    in9_message     = FALSE;
+    in9_message     = false;
     sim_map_resource(0x08, 1, RESOURCE_TYPE_IO, &dsk10, "dsk10", dptr->flags & DEV_DIS);
     sim_map_resource(0x09, 1, RESOURCE_TYPE_IO, &dsk11, "dsk11", dptr->flags & DEV_DIS);
     sim_map_resource(0x0A, 1, RESOURCE_TYPE_IO, &dsk12, "dsk12", dptr->flags & DEV_DIS);
     return SCPE_OK;
 }
 
-static t_bool dsk_image_size_is_near(
+static bool dsk_image_size_is_near(
     const int32 image_size, const int32 expected_size, const int32 delta)
 {
     return (expected_size - delta < image_size) &&
@@ -450,7 +451,7 @@ static t_stat dsk_attach(UNIT *uptr, const char *cptr) {
 }
 
 void install_ALTAIRbootROM(void) {
-    const t_bool result = (install_bootrom(bootrom_dsk, BOOTROM_SIZE_DSK, ALTAIR_ROM_LOW, TRUE) ==
+    const bool result = (install_bootrom(bootrom_dsk, BOOTROM_SIZE_DSK, ALTAIR_ROM_LOW, true) ==
                            SCPE_OK);
     ASSURE(result);
 }
@@ -466,8 +467,8 @@ static t_stat dsk_boot(int32 unitno, DEVICE *dptr) {
 
     if (cpu_unit.flags & (UNIT_CPU_ALTAIRROM | UNIT_CPU_BANKED)) {
         if (sectors_per_track[unitno] == MINI_DISK_SECT) {
-            const t_bool result = (install_bootrom(alt_bootrom_dsk, BOOTROM_SIZE_DSK,
-                                                   ALTAIR_ROM_LOW, TRUE) == SCPE_OK);
+            const bool result = (install_bootrom(alt_bootrom_dsk, BOOTROM_SIZE_DSK,
+                                                   ALTAIR_ROM_LOW, true) == SCPE_OK);
             ASSURE(result);
         } else {
             if (bootrom_dsk[START_SECTOR_OFFSET - 1] == LDB_INSTRUCTION)
@@ -534,7 +535,7 @@ static void writebuf(void) {
     }
     current_flag[current_disk]  &= 0xfe;    /* ENWD off */
     current_byte[current_disk]  = 0xff;
-    dirty                       = FALSE;
+    dirty                       = false;
 }
 
 /*  I/O instruction handlers, called from the CPU module when an
@@ -630,7 +631,7 @@ int32 dsk11(const int32 port, const int32 io, const int32 data) {
     if (io == 0) {  /* read sector position */
         in9_count++;
         if ((dsk_dev.dctrl & SECTOR_STUCK_MSG) && (in9_count > 2 * DSK_SECT) && (!in9_message)) {
-            in9_message = TRUE;
+            in9_message = true;
             sim_debug(SECTOR_STUCK_MSG, &dsk_dev,
                       "DSK%i: " ADDRESS_FORMAT " Looping on sector find.\n",
                       current_disk, PCX);
@@ -772,7 +773,7 @@ int32 dsk12(const int32 port, const int32 io, const int32 data) {
         if (current_byte[current_disk] >= DSK_SECTSIZE)
             writebuf();     /* from above we have that current_disk < NUM_OF_DSK */
         else {
-            dirty = TRUE;   /* this guarantees for the next call to writebuf that current_disk < NUM_OF_DSK */
+            dirty = true;   /* this guarantees for the next call to writebuf that current_disk < NUM_OF_DSK */
             dskbuf[current_byte[current_disk]++] = data & 0xff;
         }
         return 0;   /* ignored since OUT */

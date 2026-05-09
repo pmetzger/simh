@@ -395,6 +395,7 @@
         uptr->u6 - unit number (0-FDD_NUM)
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define UNIT_V_WPMODE   (UNIT_V_UF)     /* Write protect */
@@ -482,34 +483,34 @@ void isbc208_reset1 (void);
 t_stat isbc208_attach (UNIT *uptr, const char *cptr);
 t_stat isbc208_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat isbc208_svc (UNIT *uptr);
-uint8 isbc208_r0(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r1(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r2(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r3(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r4(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r5(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r6(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r7(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r8(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r9(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rA(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rB(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rC(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rD(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rE(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_rF(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r10(t_bool io, uint8 dat, uint8 devnum);
-uint8 isbc208_r11(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r12(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r13(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r14(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc208_r15(t_bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r0(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r1(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r2(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r3(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r4(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r5(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r6(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r7(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r8(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r9(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_rA(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_rB(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_rC(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_rD(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_rE(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_rF(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r10(bool io, uint8 dat, uint8 devnum);
+uint8 isbc208_r11(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r12(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r13(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r14(bool io, uint8 data, uint8 devnum);
+uint8 isbc208_r15(bool io, uint8 data, uint8 devnum);
 
 /* external function prototypes */
 
 extern void set_irq(int32 int_num);
 extern void clr_irq(int32 int_num);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 extern void multibus_put_mbyte(uint16 addr, uint8 val);
 extern uint8 multibus_get_mbyte(uint16 addr);
@@ -1087,7 +1088,7 @@ t_stat isbc208_svc (UNIT *uptr)
 }
 
 // read/write FDC data register stack
-uint8 isbc208_r11(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r11(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1205,7 +1206,7 @@ uint8 isbc208_r11(t_bool io, uint8 data, uint8 devnum)
     to the device.
 */
 
-uint8 isbc208_r0(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r0(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1231,7 +1232,7 @@ uint8 isbc208_r0(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r1(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r1(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1257,7 +1258,7 @@ uint8 isbc208_r1(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r2(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r2(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1283,7 +1284,7 @@ uint8 isbc208_r2(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r3(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r3(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1309,7 +1310,7 @@ uint8 isbc208_r3(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r4(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r4(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1335,7 +1336,7 @@ uint8 isbc208_r4(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r5(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r5(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1361,7 +1362,7 @@ uint8 isbc208_r5(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r6(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r6(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1387,7 +1388,7 @@ uint8 isbc208_r6(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r7(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r7(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1413,7 +1414,7 @@ uint8 isbc208_r7(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r8(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r8(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1427,7 +1428,7 @@ uint8 isbc208_r8(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r9(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r9(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1441,7 +1442,7 @@ uint8 isbc208_r9(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_rA(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_rA(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1480,7 +1481,7 @@ uint8 isbc208_rA(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_rB(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_rB(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1494,7 +1495,7 @@ uint8 isbc208_rB(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_rC(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_rC(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1509,7 +1510,7 @@ uint8 isbc208_rC(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_rD(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_rD(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1524,7 +1525,7 @@ uint8 isbc208_rD(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_rE(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_rE(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1539,7 +1540,7 @@ uint8 isbc208_rE(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_rF(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_rF(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1553,7 +1554,7 @@ uint8 isbc208_rF(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r10(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r10(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1568,7 +1569,7 @@ uint8 isbc208_r10(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r12(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r12(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1582,7 +1583,7 @@ uint8 isbc208_r12(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r13(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r13(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1597,7 +1598,7 @@ uint8 isbc208_r13(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r14(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r14(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -1611,7 +1612,7 @@ uint8 isbc208_r14(t_bool io, uint8 data, uint8 devnum)
     }
 }
 
-uint8 isbc208_r15(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc208_r15(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */

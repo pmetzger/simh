@@ -29,6 +29,7 @@
 
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 #define UNIT_V_DSK_VERBOSE  (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
@@ -144,15 +145,15 @@ static t_stat fif_set_verbose(UNIT *uptr, int32 value, const char *cptr, void *d
     return SCPE_OK;
 }
 
-/* returns TRUE iff there exists a disk with VERBOSE */
+/* returns true iff there exists a disk with VERBOSE */
 static int32 hasVerbose(void) {
     int32 i;
     for (i = 0; i < NUM_OF_DSK; i++) {
         if (((fif_dev.units + i) -> flags) & UNIT_DSK_VERBOSE) {
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 
 /* service routines to handle simulator functions */
@@ -166,10 +167,10 @@ static t_stat fif_reset(DEVICE *dptr)
     current_disk = NUM_OF_DSK;
 
     if(dptr->flags & DEV_DIS) {
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &fif_io, "fif_io", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &fif_io, "fif_io", true);
     } else {
         /* Connect HDSK at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &fif_io, "fif_io", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &fif_io, "fif_io", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->mem_base);
             dptr->flags |= DEV_DIS;
             return SCPE_ARG;

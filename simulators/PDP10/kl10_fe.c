@@ -29,6 +29,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #if KL
 #define UNIT_DUMMY      (1 << UNIT_V_UF)
@@ -2438,7 +2439,7 @@ t_stat tty_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     if (newln < tty_desc.lines) {
         for (i = newln, t = 0; i < tty_desc.lines; i++)
             t = t | tty_ldsc[i].conn;
-        if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+        if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
             return SCPE_OK;
         for (i = newln; i < tty_desc.lines; i++) {
             if (tty_ldsc[i].conn) {

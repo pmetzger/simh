@@ -28,6 +28,7 @@
    19-Mar-2012  RMS     Fixed various declarations (Mark Pizzolato)
 */
 
+#include <stdbool.h>
 #include "sds_defs.h"
 
 /* Data chain word */
@@ -827,7 +828,7 @@ return SCPE_OK;
 
 /* Test for channel active */
 
-t_bool chan_testact (void)
+bool chan_testact (void)
 {
 int32 i, dev;
 
@@ -961,7 +962,7 @@ return SCPE_OK;
 
 /* Init device tables */
 
-t_bool io_init (void)
+bool io_init (void)
 {
 DEVICE *dptr;
 DIB *dibp;
@@ -990,14 +991,14 @@ for (i = 0; (dptr = sim_devices[i]); i++) {             /* loop thru devices */
         dev3_dsp[dev] = dibp->iop;
     else {
         if (dibp->tplt == NULL)                         /* must have template */
-            return TRUE;
+            return true;
         for (tplp = dibp->tplt; tplp->num; tplp++) {    /* loop thru templates */
             for (j = 0; j < tplp->num; j++) {           /* repeat as needed */
                 doff = dev + tplp->off + j;             /* get offset dnum */
                 if (dev_map[doff][ch]) {                /* slot in use? */
                     sim_printf ("Device number conflict, chan = %s, devno = %02o\n",
                                 chname[ch], doff);
-                    return TRUE;
+                    return true;
                     }
                 dev_map[doff][ch] = dibp->xfr;          /* set xfr flag */
                 dev_dsp[doff][ch] = dibp->iop;          /* set dispatch */
@@ -1005,7 +1006,7 @@ for (i = 0; (dptr = sim_devices[i]); i++) {             /* loop thru devices */
             }                                           /* end for tplt */
         }                                               /* end else */
     }                                                   /* end for i */
-return FALSE;
+return false;
 }
 
 /* Display channel state */

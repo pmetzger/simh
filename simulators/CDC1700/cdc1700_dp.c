@@ -28,6 +28,7 @@
 /* cdc1700_dp.c: disk pack controller support
  *               Simh devices: dp0, dp1
  */
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 #define ADDRSTATUS      iod_readR[2]
@@ -36,12 +37,12 @@ extern char INTprefix[];
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
-extern t_bool doDirectorFunc(DEVICE *, t_bool);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
+extern bool doDirectorFunc(DEVICE *, bool);
+extern bool fw_reject(IO_DEVICE *, bool, uint8);
 extern void fw_IOunderwayEOP(IO_DEVICE *, uint16);
-extern void fw_IOcompleteEOP(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-extern void fw_IOalarm(t_bool, DEVICE *, IO_DEVICE *, const char *);
-extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
+extern void fw_IOcompleteEOP(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern void fw_IOalarm(bool, DEVICE *, IO_DEVICE *, const char *);
+extern void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
 
 extern t_stat checkReset(DEVICE *, uint8);
 
@@ -56,13 +57,13 @@ extern t_stat set_stoponrej(UNIT *, int32, const char *, void *);
 extern t_stat clr_stoponrej(UNIT *, int32, const char *, void *);
 
 extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern bool IOStoreToMem(uint16, uint16, bool);
 
 extern uint16 M[], Areg, IOAreg;
 
-extern t_bool IOFWinitialized;
+extern bool IOFWinitialized;
 
-extern t_bool ExecutionStarted;
+extern bool ExecutionStarted;
 
 extern UNIT cpu_unit;
 
@@ -109,10 +110,10 @@ struct dpio_unit {
   uint16                head;           /* Current head # */
   uint16                sector;         /* Current sector # */
   uint16                buf[DP_NUMWD];  /* Sector buffer */
-  t_bool                oncyl;          /* Unit on-cylinder status */
+  bool                  oncyl;          /* Unit on-cylinder status */
 } DPunits[DP_NUMDR];
 
-t_bool DPbusy = FALSE;                  /* Controller vs. unit busy */
+bool DPbusy = false;                    /* Controller vs. unit busy */
 
 enum dpio_status {
   DPIO_MORE,                            /* More I/O pending */
@@ -128,10 +129,10 @@ t_stat dp_attach(UNIT *, const char *);
 t_stat dp_detach(UNIT *);
 
 void DPstate(const char *, DEVICE *, IO_DEVICE *);
-t_bool DPreject(IO_DEVICE *, t_bool, uint8);
+bool DPreject(IO_DEVICE *, bool, uint8);
 enum IOstatus DPin(IO_DEVICE *, uint8);
 enum IOstatus DPout(IO_DEVICE *, uint8);
-t_bool DPintr(IO_DEVICE *);
+bool DPintr(IO_DEVICE *);
 
 t_stat dp_help(FILE *, DEVICE *, UNIT *, int32, const char *);
 
@@ -478,7 +479,7 @@ void DPstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
 /*
  * Determine if a non-standard interrupt condition is present.
  */
-t_bool DPintr(IO_DEVICE *iod)
+bool DPintr(IO_DEVICE *iod)
 {
   return (ISENABLED(iod, IO_1738_RBINT) &&
           ((DEVSTATUS(iod) & (IO_ST_READY | IO_ST_BUSY)) == IO_ST_READY));
@@ -487,11 +488,11 @@ t_bool DPintr(IO_DEVICE *iod)
 /*
  * Load and validate disk address in the A register
  */
-static t_bool LoadDiskAddress(UNIT *uptr, struct dpio_unit *iou, uint16 state)
+static bool LoadDiskAddress(UNIT *uptr, struct dpio_unit *iou, uint16 state)
 {
   uint16 numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
 
-  iou->oncyl = FALSE;
+  iou->oncyl = false;
   DPdev.ADDRSTATUS = iou->sectorRA = IOAreg;
 
   /*
@@ -502,10 +503,10 @@ static t_bool LoadDiskAddress(UNIT *uptr, struct dpio_unit *iou, uint16 state)
   iou->sector = IOAreg & 0xF;
 
   if ((iou->cylinder >= numcy) || (iou->head >= DP_NUMTR))
-    return FALSE;
+    return false;
 
   iou->state = state;
-  return TRUE;
+  return true;
 }
 
 /*
@@ -516,7 +517,7 @@ static void StartDPDiskIO(UNIT *uptr, struct dpio_unit *iou, uint16 state)
   iou->LWA = LoadFromMem(IOAreg);
   iou->CWA = ++IOAreg;
 
-  DPbusy = TRUE;
+  DPbusy = true;
 
   DPdev.STATUS &= IO_ST_READY | IO_ST_PROT | IO_1738_ONCYL;
   fw_IOunderwayEOP(&DPdev, 0);
@@ -530,12 +531,12 @@ static void StartDPDiskIO(UNIT *uptr, struct dpio_unit *iou, uint16 state)
     /*
      * This is an empty I/O request, complete it immediately.
      */
-    DPbusy = FALSE;
+    DPbusy = false;
 
     if ((dp_dev.dctrl & DBG_DTRACE) != 0)
       fprintf(DBGOUT, "%sDP - Empty I/O request\r\n", INTprefix);
 
-    fw_IOcompleteEOP(FALSE, &dp_dev, &DPdev, 0xFFFF, "Null transfer complete");
+    fw_IOcompleteEOP(false, &dp_dev, &DPdev, 0xFFFF, "Null transfer complete");
     return;
   }
 
@@ -582,7 +583,7 @@ static enum dpio_status DPDiskIORead(UNIT *uptr)
 
   for (i = 0; i < DP_NUMWD; i++) {
     /*** TODO: fix protect check ***/
-    if (!IOStoreToMem(iou->CWA, iou->buf[i], TRUE))
+    if (!IOStoreToMem(iou->CWA, iou->buf[i], true))
       return DPIO_PROTECT;
 
     iou->CWA++;
@@ -603,7 +604,7 @@ static enum dpio_status DPDiskIOWrite(UNIT *uptr)
   struct dpio_unit *iou = (struct dpio_unit *)uptr->up7;
   uint16 numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
   uint32 lba = DPLBA(iou);
-  t_bool fill = FALSE;
+  bool fill = false;
   int i;
 
   if (iou->cylinder >= numcy)
@@ -614,7 +615,7 @@ static enum dpio_status DPDiskIOWrite(UNIT *uptr)
       iou->buf[i] = LoadFromMem(iou->CWA);
       iou->CWA++;
       if (iou->CWA == iou->LWA)
-        fill = TRUE;
+        fill = true;
     } else iou->buf[i] = 0;
   }
 
@@ -705,14 +706,14 @@ static void DPDiskIO(UNIT *uptr, uint16 iotype)
   err:
       iou->state = DP_IDLE;
 
-      DPbusy = FALSE;
+      DPbusy = false;
 
       if ((dp_dev.dctrl & DBG_DERROR) != 0)
         fprintf(DBGOUT,
                 "%sDP - Read/Write/Compare failed - %s\r\n",
                 INTprefix, error);
 
-      fw_IOalarm(FALSE, &dp_dev, &DPdev, "Alarm");
+      fw_IOalarm(false, &dp_dev, &DPdev, "Alarm");
       break;
 
     case DPIO_MISMATCH:
@@ -722,13 +723,13 @@ static void DPDiskIO(UNIT *uptr, uint16 iotype)
     case DPIO_DONE:
       iou->state = DP_IDLE;
 
-      DPbusy = FALSE;
+      DPbusy = false;
 
       if ((dp_dev.dctrl & DBG_DTRACE) != 0)
         fprintf(DBGOUT,
                 "%sDP - Read/Write/Compare transfer complete\r\n", INTprefix);
 
-      fw_IOcompleteEOP(TRUE, &dp_dev, &DPdev, 0xFFFF, "Transfer complete");
+      fw_IOcompleteEOP(true, &dp_dev, &DPdev, 0xFFFF, "Transfer complete");
       break;
   }
 }
@@ -770,13 +771,13 @@ t_stat dp_svc(UNIT *uptr)
                   "%sDP - Load Address positioning transfer complete\r\n",
                   INTprefix);
 
-        fw_IOintr(FALSE, &dp_dev, &DPdev, 0, 0, 0xFFFF, "Load address");
+        fw_IOintr(false, &dp_dev, &DPdev, 0, 0, 0xFFFF, "Load address");
       }
       break;
 
     case DP_SEEK:
       iou->state = DP_IDLE;
-      iou->oncyl = TRUE;
+      iou->oncyl = true;
 
       DPdev.STATUS &= ~IO_ST_BUSY;
 
@@ -790,7 +791,7 @@ t_stat dp_svc(UNIT *uptr)
         if ((dp_dev.dctrl & DBG_DTRACE) != 0)
           fprintf(DBGOUT, "%sDP - Seek complete\r\n", INTprefix);
 
-        fw_IOintr(TRUE, &dp_dev, &DPdev, 0, 0, 0xFFFF, "Seek complete");
+        fw_IOintr(true, &dp_dev, &DPdev, 0, 0, 0xFFFF, "Seek complete");
       }
       break;
 
@@ -802,7 +803,7 @@ t_stat dp_svc(UNIT *uptr)
 
     case DP_CHECKWORD:
       iou->state = DP_IDLE;
-      iou->oncyl = TRUE;
+      iou->oncyl = true;
 
       /*
        * Set Sector Record Address to the start of the next track.
@@ -817,15 +818,15 @@ t_stat dp_svc(UNIT *uptr)
 
       DPdev.STATUS |= IO_ST_EOP | IO_1738_ONCYL;
       DPdev.STATUS &= ~IO_ST_BUSY;
-      DPbusy = FALSE;
+      DPbusy = false;
 
       if ((dp_dev.dctrl & DBG_DTRACE) != 0)
         fprintf(DBGOUT, "%sDP - Checkword transfer complete\r\n", INTprefix);
 
       if ((DPdev.STATUS & (IO_ST_READY | IO_ST_BUSY)) == IO_ST_READY)
-        fw_IOintr(TRUE, &dp_dev, &DPdev, 0, 0, 0xFFFF, "Checkword transfer");
+        fw_IOintr(true, &dp_dev, &DPdev, 0, 0, 0xFFFF, "Checkword transfer");
 
-      fw_IOintr(FALSE, &dp_dev, &DPdev, 0, 0, 0xFFFF, "Checkword");
+      fw_IOintr(false, &dp_dev, &DPdev, 0, 0, 0xFFFF, "Checkword");
       break;
 
     case DP_WRITEADDR:
@@ -851,7 +852,7 @@ t_stat dp_reset(DEVICE *dptr)
       if ((r = checkReset(dptr, DPdev.iod_equip)) != SCPE_OK)
         return r;
 
-  DPbusy = FALSE;
+  DPbusy = false;
 
   /*
    * Cancel any existing unit selection.
@@ -916,7 +917,7 @@ t_stat dp_attach(UNIT *uptr, const char *cptr)
   iou->cylinder = 0;
   iou->head = 0;
   iou->sector = 0;
-  iou->oncyl = TRUE;
+  iou->oncyl = true;
 
   return SCPE_OK;
 }
@@ -930,14 +931,14 @@ t_stat dp_detach(UNIT *uptr)
 
   sim_cancel(uptr);
   stat = detach_unit(uptr);
-  iou->oncyl = FALSE;
+  iou->oncyl = false;
 
   return stat;
 }
 
 /* Check if I/O should be rejected */
 
-t_bool DPreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+bool DPreject(IO_DEVICE *iod, bool output, uint8 reg)
 {
   if (output) {
     switch (reg) {
@@ -952,7 +953,7 @@ t_bool DPreject(IO_DEVICE *iod, t_bool output, uint8 reg)
        * Write Address - always unsupported
        */
       case 0x07:
-        return TRUE;
+        return true;
 
       /*
        * Write/Checkword Check
@@ -973,7 +974,7 @@ t_bool DPreject(IO_DEVICE *iod, t_bool output, uint8 reg)
                 (IO_ST_READY | IO_1738_ONCYL));
     }
   }
-  return FALSE;
+  return false;
 }
 
 /* Perform I/O */
@@ -1011,7 +1012,7 @@ enum IOstatus DPout(IO_DEVICE *iod, uint8 reg)
       if ((IOAreg & (IO_1738_USEL | IO_1738_REL)) == (IO_1738_USEL | IO_1738_REL))
         return IO_REJECT;
 
-      if (doDirectorFunc(&dp_dev, TRUE)) {
+      if (doDirectorFunc(&dp_dev, true)) {
         /*
          * The device interrupt mask has been explicitly changed. If the
          * device state is such that an interrupt can occur, generate it now.
@@ -1082,7 +1083,7 @@ enum IOstatus DPout(IO_DEVICE *iod, uint8 reg)
             fprintf(DBGOUT,
                     "%sDP: Bad Load Address (%04X)\r\n", INTprefix, Areg);
 
-          fw_IOintr(FALSE, &dp_dev, &DPdev, IO_1738_ADDRERR | IO_ST_EOP | IO_ST_ALARM, 0, 0xFFFF, "Bad load address");
+          fw_IOintr(false, &dp_dev, &DPdev, IO_1738_ADDRERR | IO_ST_EOP | IO_ST_ALARM, 0, 0xFFFF, "Bad load address");
         }
       } else return IO_REJECT;
       break;
@@ -1129,7 +1130,7 @@ enum IOstatus DPout(IO_DEVICE *iod, uint8 reg)
         if (LoadDiskAddress(uptr, iou, DP_CHECKWORD)) {
           DPdev.STATUS &= IO_ST_READY | IO_ST_PROT | IO_1738_ONCYL;
           DPdev.STATUS |= IO_ST_BUSY;
-          DPbusy = TRUE;
+          DPbusy = true;
           sim_activate(uptr, DP_XFER_WAIT);
         } else {
           if ((dp_dev.dctrl & DBG_DERROR) != 0)
@@ -1137,7 +1138,7 @@ enum IOstatus DPout(IO_DEVICE *iod, uint8 reg)
                     "%sDP: Bad Checkword Address (%04X)\r\n",
                     INTprefix, Areg);
 
-          fw_IOintr(FALSE, &dp_dev, &DPdev, IO_1738_ADDRERR | IO_ST_EOP | IO_ST_ALARM, 0, 0xFFFF, "Bad checkword");
+          fw_IOintr(false, &dp_dev, &DPdev, IO_1738_ADDRERR | IO_ST_EOP | IO_ST_ALARM, 0, 0xFFFF, "Bad checkword");
         }
       } else return IO_REJECT;
       break;

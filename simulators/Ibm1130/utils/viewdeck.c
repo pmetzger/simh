@@ -12,13 +12,10 @@
  * Mail to sim@ibm1130.org
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "util_io.h"
-
-#define TRUE  1
-#define FALSE 0
-typedef int BOOL;
 
 int  hollerith_to_ascii (unsigned short h);
 void bail (char *msg);
@@ -28,7 +25,7 @@ int main (int argc, char **argv)
 {
     FILE *fd;
     char *fname = NULL, line[82], *arg;
-    BOOL coldstart = FALSE;
+    bool coldstart = false;
     unsigned short buf[80];
     int i, lastnb;
     static char usestr[] =
@@ -44,7 +41,7 @@ int main (int argc, char **argv)
             while (*arg) {
                 switch (*arg++) {
                     case 'c':
-                        coldstart = TRUE;
+                        coldstart = true;
                         break;
                     default:
                         bail(usestr);

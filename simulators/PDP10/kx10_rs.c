@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_RS
@@ -175,7 +176,7 @@ int           rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data);
 void          rs_rst(DEVICE *dptr);
 t_stat        rs_svc(UNIT *);
 t_stat        rs_boot(int32, DEVICE *);
-void          rs_ini(UNIT *, t_bool);
+void          rs_ini(UNIT *, bool);
 t_stat        rs_reset(DEVICE *);
 t_stat        rs_attach(UNIT *, const char *);
 t_stat        rs_detach(UNIT *);

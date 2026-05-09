@@ -303,8 +303,8 @@ return 0;
    4. Tape mark can be encountered on any read or space command. Except for space file,
       it is treated as an error and causes a UEND.
 
-   The macro CHS_IFERR is TRUE if the error code is a channel error or a fatal SCP error
-   and FALSE if the error code is a chennel information code or 0.
+   The macro CHS_IFERR is true if the error code is a channel error or a fatal SCP error
+   and false if the error code is a chennel information code or 0.
 */
 
 t_stat mtu_svc (UNIT *uptr)

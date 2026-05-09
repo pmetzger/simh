@@ -97,6 +97,7 @@
 
 
 #include <signal.h>
+#include <stdbool.h>
 
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
@@ -148,7 +149,7 @@ typedef sem_t               *EVENT;             /* the event type */
 
 #define NO_EVENT            SEM_FAILED          /* the initial (undefined) event value */
 
-static t_bool event_fallback = FALSE;           /* TRUE if semaphores are defined but not supported */
+static bool event_fallback = false;             /* true if semaphores are defined but not supported */
 
 
 /* Process synchronization stub */
@@ -330,14 +331,14 @@ static CARD_STATE ipl [CARD_COUNT];             /* per-card state */
 */
 
 typedef struct {
-    t_bool   cable_connected;                   /* TRUE if the inbound cable is connected */
-    t_bool   device_flag_in;                    /* external DEVICE FLAG signal state */
+    bool     cable_connected;                   /* true if the inbound cable is connected */
+    bool     device_flag_in;                    /* external DEVICE FLAG signal state */
     HP_WORD  data_in;                           /* external DATA IN signal bus */
     } INPUT_STATE, *INPUT_STATE_PTR;
 
 typedef struct {
-    t_bool   cable_connected;                   /* TRUE if the outbound cable is connected */
-    t_bool   device_command_out;                /* external DEVICE COMMAND signal state */
+    bool     cable_connected;                   /* true if the outbound cable is connected */
+    bool     device_command_out;                /* external DEVICE COMMAND signal state */
     HP_WORD  data_out;                          /* external DATA OUT signal bus */
     } OUTPUT_STATE, *OUTPUT_STATE_PTR;
 
@@ -376,13 +377,13 @@ static STATE_PTRS io_ptrs [CARD_COUNT] = {      /* the card accessors pointing a
 
 /* IPL interface state */
 
-static t_bool cpu_is_iop     = FALSE;           /* TRUE if this is the IOP instance, FALSE if SP instance */
+static bool cpu_is_iop     = false;             /* true if this is the IOP instance, false if SP instance */
 static int32  edt_delay      = 1;               /* EDT delay (msec) */
 static int32  poll_wait      = 50;              /* maximum poll wait time */
 
 static char   event_name [PATH_MAX];            /* the event name */
 static uint32 event_error    = 0;               /* the host OS error code from a failed process sync call */
-static t_bool wait_aborted   = FALSE;           /* TRUE if the user aborted a SET IPL WAIT command */
+static bool wait_aborted   = false;             /* true if the user aborted a SET IPL WAIT command */
 static EVENT  event_id       = NO_EVENT;        /* the synchronization event */
 static SHMEM  *memory_region = NULL;            /* a pointer to the shared memory region descriptor */
 
@@ -415,8 +416,8 @@ static void   abort_handler (int signal);
 
 static uint32 create_event       (const char *name, EVENT *event);
 static uint32 destroy_event      (const char *name, EVENT *event);
-static t_bool event_is_undefined (EVENT event);
-static uint32 wait_event         (EVENT event, uint32 wait_in_ms, t_bool *signaled);
+static bool event_is_undefined (EVENT event);
+static uint32 wait_event         (EVENT event, uint32 wait_in_ms, bool *signaled);
 static uint32 signal_event       (EVENT event);
 
 
@@ -646,7 +647,7 @@ UNIT * const uptr = &(ipl_unit [card]);                     /* associated unit p
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -721,7 +722,7 @@ while (working_set) {                                   /* while signals remain 
         case ioSTC:                                             /* Set Control flip-flop */
             ipl [card].control = SET;                           /* set the control flip-flop */
 
-            io_ptrs [card].output->device_command_out = TRUE;   /* assert Device Command */
+            io_ptrs [card].output->device_command_out = true;   /* assert Device Command */
 
             if (uptr->flags & UNIT_DIAG)                        /* if this card is in the diagnostic mode */
                 if (ipl_unit [card ^ 1].flags & UNIT_DIAG) {    /*   then if both cards are in diagnostic mode */
@@ -773,7 +774,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -810,8 +811,8 @@ tpprintf (dptrs [card], TRACE_PSERV, "Poll delay %d service entered\n",
 
 delta [card] = delta [card] + uptr->wait;               /* update the accumulated time */
 
-if (io_ptrs [card].input->device_flag_in == TRUE) {     /* if the Device Flag is asserted */
-    io_ptrs [card].input->device_flag_in = FALSE;       /*   then clear it */
+if (io_ptrs [card].input->device_flag_in == true) {     /* if the Device Flag is asserted */
+    io_ptrs [card].input->device_flag_in = false;       /*   then clear it */
 
     ipl [card].input_word = io_ptrs [card].input->data_in;  /* read the data input lines */
 
@@ -821,7 +822,7 @@ if (io_ptrs [card].input->device_flag_in == TRUE) {     /* if the Device Flag is
     ipl [card].flag_buffer = SET;                       /* set the flag buffer */
     io_assert (dptrs [card], ioa_ENF);                  /*   and flag flip-flops */
 
-    io_ptrs [card].output->device_command_out = FALSE;  /* reset Device Command */
+    io_ptrs [card].output->device_command_out = false;  /* reset Device Command */
 
     uptr->wait = 1;                                     /* restart polling at the minimum time */
     delta [card] = 0;                                   /*   and clear the accumulated time */
@@ -833,7 +834,7 @@ else {                                                  /* otherwise Device Flag
     if (uptr->wait > poll_wait)                         /* if the new time is greater than the maximum time */
         uptr->wait = poll_wait;                         /*   then limit it to the maximum */
 
-    if (io_ptrs [card].input->cable_connected == FALSE  /* if the interconnecting cable is not present */
+    if (io_ptrs [card].input->cable_connected == false  /* if the interconnecting cable is not present */
       && cpu_io_stop (uptr))                            /*   and the I/O error stop is enabled */
         status = STOP_NOCONN;                           /*     then report the disconnection */
     }
@@ -1044,8 +1045,8 @@ else {                                                  /* otherwise a single nu
             io_ptrs [iplo].output = &isp [iplo].forward.output; /*         directly */
             }
 
-        io_ptrs [ipli].output->cable_connected = TRUE;          /* indicate that the cables */
-        io_ptrs [iplo].output->cable_connected = TRUE;          /*   have been connected */
+        io_ptrs [ipli].output->cable_connected = true;          /* indicate that the cables */
+        io_ptrs [iplo].output->cable_connected = true;          /*   have been connected */
         }
 
     sprintf (event_name, "/%s-EVT-%d",                  /* generate the process synchronization event name */
@@ -1117,8 +1118,8 @@ uptr->ID = 0;                                           /*   and the ID number *
 
 sim_cancel (uptr);                                      /* cancel the poll */
 
-io_ptrs [ipli].output->cable_connected = FALSE;         /* disconnect the cables */
-io_ptrs [iplo].output->cable_connected = FALSE;         /*   from both cards */
+io_ptrs [ipli].output->cable_connected = false;         /* disconnect the cables */
+io_ptrs [iplo].output->cable_connected = false;         /*   from both cards */
 
 io_ptrs [ipli].input  = &dev_bus [ipli].forward.input;  /* restore local control */
 io_ptrs [ipli].output = &dev_bus [ipli].forward.output; /*   over the I/O state */
@@ -1189,33 +1190,33 @@ if (ipli_unit.flags & iplo_unit.flags & UNIT_DIAG) {        /* if both devices a
     io_ptrs [iplo].input  = &dev_bus [ipli].reverse.input;  /*       are connected to the inputs of the other card */
     io_ptrs [iplo].output = &dev_bus [iplo].forward.output; /*         and vice versa */
 
-    io_ptrs [ipli].output->cable_connected = TRUE;          /* indicate that the cable */
-    io_ptrs [iplo].output->cable_connected = TRUE;          /*   has been connected between the cards */
+    io_ptrs [ipli].output->cable_connected = true;          /* indicate that the cable */
+    io_ptrs [iplo].output->cable_connected = true;          /*   has been connected between the cards */
     }
 
 else {                                                          /* otherwise */
     if (ipli_unit.flags & UNIT_DIAG) {                          /*   if the input card is in diagnostic mode */
         io_ptrs [ipli].input  = &dev_bus [ipli].reverse.input;  /*     then loop the card outputs */
         io_ptrs [ipli].output = &dev_bus [ipli].forward.output; /*       back to the inputs and vice versa */
-        io_ptrs [ipli].output->cable_connected = TRUE;          /*         and indicate that the card is connected */
+        io_ptrs [ipli].output->cable_connected = true;          /*         and indicate that the card is connected */
         }
 
     else {                                                      /*   otherwise the card is in link mode */
         io_ptrs [ipli].input  = &dev_bus [ipli].forward.input;  /*     so point at the card state */
         io_ptrs [ipli].output = &dev_bus [ipli].forward.output; /*       in the normal direction */
-        io_ptrs [ipli].output->cable_connected = FALSE;         /*         and indicate that the card is not connected */
+        io_ptrs [ipli].output->cable_connected = false;         /*         and indicate that the card is not connected */
         }
 
     if (iplo_unit.flags & UNIT_DIAG) {                          /* otherwise */
         io_ptrs [iplo].input  = &dev_bus [iplo].reverse.input;  /*   if the output card is in diagnostic mode */
         io_ptrs [iplo].output = &dev_bus [iplo].forward.output; /*     then loop the card outputs */
-        io_ptrs [iplo].output->cable_connected = TRUE;          /*       back to the inputs and vice versa */
+        io_ptrs [iplo].output->cable_connected = true;          /*       back to the inputs and vice versa */
         }                                                       /*         and indicate that the card is connected */
 
     else {
         io_ptrs [iplo].input  = &dev_bus [iplo].forward.input;  /*   otherwise the card is in link mode */
         io_ptrs [iplo].output = &dev_bus [iplo].forward.output; /*     so point at the card state */
-        io_ptrs [iplo].output->cable_connected = FALSE;         /*       in the normal direction */
+        io_ptrs [iplo].output->cable_connected = false;         /*       in the normal direction */
         }                                                       /*         and indicate that the card is not connected */
     }
 
@@ -1241,13 +1242,13 @@ return SCPE_OK;
 
    To permit the user to abort the wait command, a CTRL+C handler is installed,
    and waits of one second each are performed in a loop.  The handler will set
-   the "wait_aborted" variable TRUE if it is called, and the loop then will
+   the "wait_aborted" variable true if it is called, and the loop then will
    terminate and return with success status.
 
 
    Implementation notes:
 
-    1. The "wait_event" routine returns TRUE if the event is signaled and FALSE
+    1. The "wait_event" routine returns true if the event is signaled and false
        if it times out while waiting.
 */
 
@@ -1260,7 +1261,7 @@ static t_stat ipl_set_sync (UNIT *uptr, int32 value, const char *cptr, void *des
 (void) desc;
 
 const uint32 wait_time = 1000;                          /* the wait time in milliseconds */
-t_bool signaled;
+bool signaled;
 
 if (event_is_undefined (event_id))                      /* if the event has not been defined yet */
     return SCPE_NOFNC;                                  /*   then the command is not allowed */
@@ -1275,7 +1276,7 @@ if (value) {                                            /* if this is a SIGNAL c
     }
 
 else {                                                  /* otherwise it's a WAIT command */
-    wait_aborted = FALSE;                               /* clear the abort flag */
+    wait_aborted = false;                               /* clear the abort flag */
     signal (SIGINT, abort_handler);                     /*   and set up the CTRL+C handler */
 
     do
@@ -1305,7 +1306,7 @@ static void abort_handler (int signal)
    This implementation does not use every parameter. */
 (void) signal;
 
-wait_aborted = TRUE;                                    /* the user has aborted the event wait */
+wait_aborted = true;                                    /* the user has aborted the event wait */
 return;
 }
 
@@ -1659,13 +1660,13 @@ else {                                                  /* otherwise the event e
 
 /* Test if the synchronization event exists.
 
-   This routine returns TRUE if the supplied event handle does not exist and
-   FALSE if the handle refers to a defined event.
+   This routine returns true if the supplied event handle does not exist and
+   false if the handle refers to a defined event.
 */
 
-static t_bool event_is_undefined (EVENT event)
+static bool event_is_undefined (EVENT event)
 {
-return (event == NULL);                                 /* return TRUE if the event does not exist */
+return (event == NULL);                                 /* return true if the event does not exist */
 }
 
 
@@ -1674,8 +1675,8 @@ return (event == NULL);                                 /* return TRUE if the ev
    This routine waits for a synchronization event to be signaled or for the
    supplied maximum wait time to elapse.  If the event identified by the
    supplied handle is signaled, the routine returns 0 and sets the "signaled"
-   flag to TRUE.  If the timeout expires without the event being signaled, the
-   routine returns 0 with the "signaled" flag set to FALSE.  If the event wait
+   flag to true.  If the timeout expires without the event being signaled, the
+   routine returns 0 with the "signaled" flag set to false.  If the event wait
    fails, the routine returns the error value.
 
 
@@ -1687,7 +1688,7 @@ return (event == NULL);                                 /* return TRUE if the ev
        and return to the SCP prompt.
 */
 
-static uint32 wait_event (EVENT event, uint32 wait_in_ms, t_bool *signaled)
+static uint32 wait_event (EVENT event, uint32 wait_in_ms, bool *signaled)
 {
 const DWORD wait_time = (DWORD) wait_in_ms;             /* interval wait time in milliseconds */
 DWORD status;
@@ -1700,7 +1701,7 @@ if (status == WAIT_FAILED)                              /* if the wait failed */
     return (uint32) GetLastError ();                    /*   then return the error code */
 
 else {                                                  /* otherwise the wait completed */
-    *signaled = (status != WAIT_TIMEOUT);               /*   so set the flag TRUE if the wait did not time out */
+    *signaled = (status != WAIT_TIMEOUT);               /*   so set the flag true if the wait did not time out */
     return 0;                                           /*     and return success */
     }
 }
@@ -1764,7 +1765,7 @@ if (*event == SEM_FAILED)                               /* if event creation fai
     if (errno == ENOSYS) {                              /*   then if the function is not implemented */
         tprintf (ipli_dev, TRACE_CMD, "sem_open is unsupported on this system; using fallback\n");
 
-        event_fallback = TRUE;                          /*     then fall back to event emulation */
+        event_fallback = true;                          /*     then fall back to event emulation */
         return 0;                                       /*       and claim that the open succeeded */
         }
 
@@ -1819,16 +1820,16 @@ else {                                                  /* otherwise the event e
 
 /* Test if the synchronization event exists.
 
-   This routine returns TRUE if the supplied event object does not exist and
-   FALSE if the object refers to a defined event.
+   This routine returns true if the supplied event object does not exist and
+   false if the object refers to a defined event.
 */
 
-static t_bool event_is_undefined (EVENT event)
+static bool event_is_undefined (EVENT event)
 {
 if (event_fallback)                                     /* if events are being emulated */
-    return FALSE;                                       /*   then claim that the event is defined */
+    return false;                                       /*   then claim that the event is defined */
 else                                                    /* otherwise */
-    return (event == SEM_FAILED);                       /*   return TRUE if the event does not exist */
+    return (event == SEM_FAILED);                       /*   return true if the event does not exist */
 }
 
 
@@ -1837,8 +1838,8 @@ else                                                    /* otherwise */
    This routine waits for a synchronization event to be signaled or for the
    supplied maximum wait time to elapse.  If the event identified by the
    supplied event object is signaled, the routine returns 0 and sets the
-   "signaled" flag to TRUE.  If the timeout expires without the event being
-   signaled, the routine returns 0 with the "signaled" flag set to FALSE.  If
+   "signaled" flag to true.  If the timeout expires without the event being
+   signaled, the routine returns 0 with the "signaled" flag set to false.  If
    the event wait fails, the routine returns the error value.
 
 
@@ -1850,7 +1851,7 @@ else                                                    /* otherwise */
        wait and return to the SCP prompt.
 */
 
-static uint32 wait_event (EVENT event, uint32 wait_in_ms, t_bool *signaled)
+static uint32 wait_event (EVENT event, uint32 wait_in_ms, bool *signaled)
 {
 const int wait_time = (int) wait_in_ms / 1000;          /* interval wait time in seconds */
 struct timespec until_time;
@@ -1859,7 +1860,7 @@ int    status;
 if (event_fallback) {                                   /* if events are being emulated */
     sim_os_sleep (2);                                   /*   then wait for two seconds */
 
-    *signaled = TRUE;                                   /* indicate a signaled completion */
+    *signaled = true;                                   /* indicate a signaled completion */
     return 0;                                           /*   and return success */
     }
 
@@ -1873,7 +1874,7 @@ else                                                    /* otherwise */
 
 status = sem_timedwait (event, &until_time);            /* wait for the event, but not forever */
 
-*signaled = (status == 0);                              /* set the flag TRUE if the wait did not time out */
+*signaled = (status == 0);                              /* set the flag true if the wait did not time out */
 
 if (status)                                             /* if the wait terminated */
     if (errno == ETIMEDOUT || errno == EINTR)           /*   then if it timed out or was manually aborted */
@@ -1958,17 +1959,17 @@ return 0;
 }
 
 
-static t_bool event_is_undefined (EVENT event)
+static bool event_is_undefined (EVENT event)
 {
 /* Process synchronization stub signature.
    This implementation does not use every parameter. */
 (void) event;
 
-return FALSE;
+return false;
 }
 
 
-static uint32 wait_event (EVENT event, uint32 wait_in_ms, t_bool *signaled)
+static uint32 wait_event (EVENT event, uint32 wait_in_ms, bool *signaled)
 {
 /* Process synchronization stub signature.
    This implementation does not use every parameter. */
@@ -1977,7 +1978,7 @@ static uint32 wait_event (EVENT event, uint32 wait_in_ms, t_bool *signaled)
 
 sim_os_sleep (2);                                       /* wait for two seconds */
 
-*signaled = TRUE;                                       /* then indicate a signaled completion */
+*signaled = true;                                       /* then indicate a signaled completion */
 return 0;                                               /*   and return success */
 }
 

@@ -33,6 +33,7 @@
    26-Dec-2012  MB      First Version
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_tmxr.h"
 
@@ -780,13 +781,13 @@ return "console terminal output";
 
 int32 iccs_rd (void)
 {
-sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_rd()", tmr_iccs_bits, tmr_iccs, tmr_iccs, TRUE);
+sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_rd()", tmr_iccs_bits, tmr_iccs, tmr_iccs, true);
 return tmr_iccs & TMR_CSR_RD;
 }
 
 void iccs_wr (int32 val)
 {
-sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_wr()", tmr_iccs_bits, tmr_iccs, val, TRUE);
+sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_wr()", tmr_iccs_bits, tmr_iccs, val, true);
 if ((val & TMR_CSR_RUN) == 0) {                         /* clearing run? */
     if (tmr_iccs & TMR_CSR_RUN) {                       /* run 1 -> 0? */
         tmr_icr = icr_rd ();                            /* update icr */

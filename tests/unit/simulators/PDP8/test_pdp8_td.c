@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -77,7 +78,7 @@ static int setup_pdp8_td_fixture(void **state)
         td_unit[unit].pos = 0;
         td_unit[unit].STATE = 0;
         td_unit[unit].LASTT = 0;
-        td_unit[unit].WRITTEN = FALSE;
+        td_unit[unit].WRITTEN = false;
     }
 
     td_cmd = 0;

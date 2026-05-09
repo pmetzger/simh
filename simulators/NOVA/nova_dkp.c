@@ -63,6 +63,7 @@
    29-Jun-96    RMS     Added unit disable support
 */
 
+#include <stdbool.h>
 #include "nova_defs.h"
 
 #define DKP_NUMDR       4                               /* #drives */
@@ -213,7 +214,7 @@
 #define SURF_FLP        1
 #define CYL_FLP         77
 #define SIZE_FLP        (SECT_FLP * SURF_FLP * CYL_FLP * DKP_NUMWD)
-#define NFMT_FLP        FALSE
+#define NFMT_FLP        false
 
 #define TYPE_DSDD       1
 #define TYPE_6097       TYPE_DSDD
@@ -221,77 +222,77 @@
 #define SURF_DSDD       2
 #define CYL_DSDD        77
 #define SIZE_DSDD       (SECT_DSDD * SURF_DSDD * CYL_DSDD * DKP_NUMWD)
-#define NFMT_DSDD       TRUE
+#define NFMT_DSDD       true
 
 #define TYPE_D31        2
 #define SECT_D31        12
 #define SURF_D31        2
 #define CYL_D31         203
 #define SIZE_D31        (SECT_D31 * SURF_D31 * CYL_D31 * DKP_NUMWD)
-#define NFMT_D31        FALSE
+#define NFMT_D31        false
 
 #define TYPE_6225       3
 #define SECT_6225       20
 #define SURF_6225       2
 #define CYL_6225        245
 #define SIZE_6225       (SECT_6225 * SURF_6225 * CYL_6225 * DKP_NUMWD)
-#define NFMT_6225       TRUE
+#define NFMT_6225       true
 
 #define TYPE_C111       4
 #define SECT_C111       6
 #define SURF_C111       10
 #define CYL_C111        203
 #define SIZE_C111       (SECT_C111 * SURF_C111 * CYL_C111 * DKP_NUMWD)
-#define NFMT_C111       FALSE
+#define NFMT_C111       false
 
 #define TYPE_D44        5
 #define SECT_D44        12
 #define SURF_D44        4
 #define CYL_D44         408
 #define SIZE_D44        (SECT_D44 * SURF_D44 * CYL_D44 * DKP_NUMWD)
-#define NFMT_D44        FALSE
+#define NFMT_D44        false
 
 #define TYPE_6099       6
 #define SECT_6099       32
 #define SURF_6099       4
 #define CYL_6099        192
 #define SIZE_6099       (SECT_6099 * SURF_6099 * CYL_6099 * DKP_NUMWD)
-#define NFMT_6099       TRUE
+#define NFMT_6099       true
 
 #define TYPE_6227       7
 #define SECT_6227       20
 #define SURF_6227       6
 #define CYL_6227        245
 #define SIZE_6227       (SECT_6227 * SURF_6227 * CYL_6227 * DKP_NUMWD)
-#define NFMT_6227       TRUE
+#define NFMT_6227       true
 
 #define TYPE_6070       8
 #define SECT_6070       24
 #define SURF_6070       4
 #define CYL_6070        408
 #define SIZE_6070       (SECT_6070 * SURF_6070 * CYL_6070 * DKP_NUMWD)
-#define NFMT_6070       TRUE
+#define NFMT_6070       true
 
 #define TYPE_C114       9
 #define SECT_C114       12
 #define SURF_C114       20
 #define CYL_C114        203
 #define SIZE_C114       (SECT_C114 * SURF_C114 * CYL_C114 * DKP_NUMWD)
-#define NFMT_C114       FALSE
+#define NFMT_C114       false
 
 #define TYPE_6103       10
 #define SECT_6103       32
 #define SURF_6103       8
 #define CYL_6103        192
 #define SIZE_6103       (SECT_6103 * SURF_6103 * CYL_6103 * DKP_NUMWD)
-#define NFMT_6103       TRUE
+#define NFMT_6103       true
 
 #define TYPE_4231       11
 #define SECT_4231       23
 #define SURF_4231       19
 #define CYL_4231        411
 #define SIZE_4231       (SECT_4231 * SURF_4231 * CYL_4231 * DKP_NUMWD)
-#define NFMT_4231       TRUE
+#define NFMT_4231       true
 
 struct drvtyp {
     int32       sect;                                   /* sectors */
@@ -667,7 +668,7 @@ u = GET_UNIT (dkp_ussc);                                /* get unit number */
 uptr = dkp_dev.units + u;                               /* get unit */
 if (((uptr->flags & UNIT_ATT) == 0) || sim_is_active (uptr)) {
     dkp_sta = dkp_sta | STA_ERR;                        /* attached or busy? */
-    return FALSE;
+    return false;
     }
 
 if (dkp_diagmode) {                                     /* diagnostic mode? */
@@ -675,7 +676,7 @@ if (dkp_diagmode) {                                     /* diagnostic mode? */
     DEV_CLR_BUSY( INT_DKP ) ;                           /* clear busy  */
     DEV_SET_DONE( INT_DKP ) ;                           /* set   done  */
     DEV_UPDATE_INTR ;                                   /* update interrupts  */
-    return ( TRUE ) ;                                   /* do not do function */
+    return ( true ) ;                                   /* do not do function */
     }
 
 oldCyl = uptr->CYL ;                                    /* get old cylinder  */
@@ -743,7 +744,7 @@ switch (uptr->FUNC) {                                   /* decode command */
         }
     if ( (pulse != iopS) || (dkp_sta & STA_ERR) )
         {
-        return ( FALSE ) ;
+        return ( false ) ;
         }
         sim_activate (uptr, dkp_rwait);                 /* schedule read or write request */
         break;
@@ -763,7 +764,7 @@ switch (uptr->FUNC) {                                   /* decode command */
             }
         if ( (pulse != iopP) || (dkp_sta & STA_ERR) )
             {
-            return ( FALSE ) ;                          /* only 'P' pulse start seeks!  */
+            return ( false ) ;                          /* only 'P' pulse start seeks!  */
             }
 
         /*  do the seek  */
@@ -776,7 +777,7 @@ switch (uptr->FUNC) {                                   /* decode command */
         break;
         }                                               /* end case command */
 
-return ( TRUE ) ;                                       /* no error */
+return ( true ) ;                                       /* no error */
 }
 
 

@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "test_cmocka.h"
@@ -31,12 +32,12 @@ static void test_call_frame_word_matches_old_int_bool_expression(void **state)
     (void)state;
 
     for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
-        assert_int_equal(vax_call_frame_word(cases[i].sp, FALSE, cases[i].mask,
+        assert_int_equal(vax_call_frame_word(cases[i].sp, false, cases[i].mask,
                                              cases[i].psl),
                          old_int_bool_call_frame_word(
                              cases[i].sp, 0, cases[i].mask, cases[i].psl));
         assert_int_equal(
-            vax_call_frame_word(cases[i].sp, TRUE, cases[i].mask, cases[i].psl),
+            vax_call_frame_word(cases[i].sp, true, cases[i].mask, cases[i].psl),
             old_int_bool_call_frame_word(cases[i].sp, 1, cases[i].mask,
                                          cases[i].psl));
     }
@@ -49,8 +50,8 @@ static void test_call_frame_word_sets_s_flag_only_for_calls(void **state)
 
     (void)state;
 
-    callg_word = vax_call_frame_word(0, FALSE, 0, 0);
-    calls_word = vax_call_frame_word(0, TRUE, 0, 0);
+    callg_word = vax_call_frame_word(0, false, 0, 0);
+    calls_word = vax_call_frame_word(0, true, 0, 0);
 
     assert_int_equal(callg_word & CALL_S, 0);
     assert_int_equal(calls_word & CALL_S, CALL_S);

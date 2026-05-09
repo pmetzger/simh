@@ -35,6 +35,7 @@
    13-Apr-01    RMS     Revised for register arrays
 */
 
+#include <stdbool.h>
 #include "i1401_defs.h"
 
 extern uint8 M[];
@@ -142,7 +143,7 @@ if ((r = lpt_puts (lbuf)) != SCPE_OK)                   /* write line */
 if (lines)                                              /* cc action? do it */
     r = space (lines, lflag);
 else if (sup == 0)                                      /* default? 1 line */
-    r = space (1, FALSE);
+    r = space (1, false);
 else r = lpt_puts ("\r");                               /* sup -> overprint */
 lines = lflag = 0;                                      /* clear cc action */
 return r;
@@ -172,21 +173,21 @@ switch (action) {
             return SCPE_OK;
         for (i = 1; i < cctlnt + 1; i++) {              /* sweep thru cct */
             if (CHP (mod, cct[(cctptr + i) % cctlnt]))
-                return space (i, TRUE);
+                return space (i, true);
             }
         return STOP_CCT;                                /* runaway channel */
 
     case 1:                                             /* space after */
         if (mod <= 3) {
             lines = mod;                                /* save # lines */
-            lflag = FALSE;                              /* flag spacing */
+            lflag = false;                              /* flag spacing */
             ind[IN_CC9] = ind[IN_CC12] = 0;
             }
         return SCPE_OK;
 
     case 2:                                             /* space now */
         if (mod <= 3)
-            return space (mod, FALSE);
+            return space (mod, false);
         return SCPE_OK;
 
     case 3:                                             /* to channel after */
@@ -196,7 +197,7 @@ switch (action) {
         for (i = 1; i < cctlnt + 1; i++) {              /* sweep thru cct */
             if (CHP (mod, cct[(cctptr + i) % cctlnt])) {
                 lines = i;                              /* save # lines */
-                lflag = TRUE;                           /* flag skipping */
+                lflag = true;                           /* flag skipping */
                 return SCPE_OK;
                 }
             }
@@ -210,7 +211,7 @@ return SCPE_OK;
 
    Inputs:
         count   =       number of lines to space or skip
-        sflag   =       skip (TRUE) or space (FALSE)
+        sflag   =       skip (true) or space (false)
 */
 
 t_stat space (int32 count, int32 sflag)

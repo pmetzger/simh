@@ -36,6 +36,7 @@
 #ifndef I7094_DEFS_H_
 #define I7094_DEFS_H_  0
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -473,12 +474,12 @@ typedef struct {
 void cpu_ent_hist (uint32 pc, uint32 ea, t_uint64 ir, t_uint64 opnd);
 void op_add (t_uint64 sr);
 void op_mpy (t_uint64 ac, t_uint64 sr, uint32 sc);
-t_bool op_div (t_uint64 sr, uint32 sc);
-uint32 op_fad (t_uint64 sr, t_bool norm);
-uint32 op_fmp (t_uint64 sr, t_bool norm);
+bool op_div (t_uint64 sr, uint32 sc);
+uint32 op_fad (t_uint64 sr, bool norm);
+uint32 op_fmp (t_uint64 sr, bool norm);
 uint32 op_fdv (t_uint64 sr);
-uint32 op_dfad (t_uint64 shi, t_uint64 slo, t_bool norm);
-uint32 op_dfmp (t_uint64 shi, t_uint64 slo, t_bool norm);
+uint32 op_dfad (t_uint64 shi, t_uint64 slo, bool norm);
+uint32 op_dfmp (t_uint64 shi, t_uint64 slo, bool norm);
 uint32 op_dfdv (t_uint64 shi, t_uint64 slo);
 void op_als (uint32 ea);
 void op_ars (uint32 ea);
@@ -494,22 +495,22 @@ uint32 ch6_set_flags (uint32 ch, uint32 unit, uint32 flags);
 t_stat ch6_err_disc (uint32 ch, uint32 unit, uint32 flags);
 t_stat ch6_req_rd (uint32 ch, uint32 unit, t_uint64 val, uint32 flags);
 void ch6_req_wr (uint32 ch, uint32 unit);
-t_bool ch6_qconn (uint32 ch, uint32 unit);
+bool ch6_qconn (uint32 ch, uint32 unit);
 t_stat ch_op_ds (uint32 ch, uint32 ds, uint32 unit);
 t_stat ch_op_nds (uint32 ch, uint32 nds, uint32 unit);
-t_stat ch_op_start (uint32 ch, uint32 clc, t_bool reset);
+t_stat ch_op_start (uint32 ch, uint32 clc, bool reset);
 t_stat ch_op_store (uint32 ch, t_uint64 *dat);
 t_stat ch_op_store_diag (uint32 ch, t_uint64 *dat);
-t_stat ch_op_reset (uint32 ch, t_bool ch7909);
+t_stat ch_op_reset (uint32 ch, bool ch7909);
 t_stat ch_proc (uint32 ch);
 uint32 chtr_eval (uint32 *decr);
 t_stat ch9_req_rd (uint32 ch, t_uint64 val);
 void ch9_set_atn (uint32 ch);
 void ch9_set_ioc (uint32 ch);
 void ch9_set_end (uint32 ch, uint32 ireq);
-t_bool ch9_qconn (uint32 ch);
+bool ch9_qconn (uint32 ch);
 void ch_set_map (void);
-t_bool ch_qidle (void);
+bool ch_qidle (void);
 t_stat ch_bkpt (uint32 ch, uint32 clc);
 uint32 chrono_rd (uint8 *buf, uint32 bufsiz);
 t_stat binloader (FILE *fd, const char *file, int loadpt);

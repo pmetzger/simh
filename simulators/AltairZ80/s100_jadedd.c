@@ -180,6 +180,7 @@
 
 /* #define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 
@@ -245,7 +246,7 @@ typedef struct {
     uint32 prom_size;   /* Memory Address space requirement */
     uint8 pe;           /* PROM enable                      */
     uint8 mem_bank;     /* 0 or 1                           */
-    uint8 mem_sys;      /* FALSE=OUT or TRUE=IN             */
+    uint8 mem_sys;      /* false=OUT or true=IN             */
     uint8 curdrv;       /* Currently selected drive         */
     drvtbl_t dt[JADE_MAX_DRIVES];
     UNIT *uptr[JADE_MAX_DRIVES];
@@ -254,7 +255,7 @@ typedef struct {
 static JADE_INFO jade_info_data =   {   JADE_BANK_BASE, JADE_BANK_SIZE,
                                         JADE_IO_BASE, JADE_IO_SIZE,
                                         JADE_PROM_BASE, JADE_PROM_SIZE,
-                                        TRUE, 0, FALSE, 0,
+                                        true, 0, false, 0,
                                         {   { JADE_SPT_SD, DF_T1D },
                                             { JADE_SPT_SD, DF_T1D },
                                             { JADE_SPT_SD, DF_T1D },
@@ -538,22 +539,22 @@ t_stat jade_reset(DEVICE *dptr)
     JADE_INFO *pInfo = (JADE_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(pInfo->prom_base, pInfo->prom_size, RESOURCE_TYPE_MEMORY, &jadeprom, "jadeprom", TRUE);
-        sim_map_resource(pInfo->mem_base, pInfo->mem_size, RESOURCE_TYPE_MEMORY, &jademem, "jademem", TRUE);
-        sim_map_resource(pInfo->io_base, pInfo->io_size, RESOURCE_TYPE_IO, &jadedev, "jadedev", TRUE);
+        sim_map_resource(pInfo->prom_base, pInfo->prom_size, RESOURCE_TYPE_MEMORY, &jadeprom, "jadeprom", true);
+        sim_map_resource(pInfo->mem_base, pInfo->mem_size, RESOURCE_TYPE_MEMORY, &jademem, "jademem", true);
+        sim_map_resource(pInfo->io_base, pInfo->io_size, RESOURCE_TYPE_IO, &jadedev, "jadedev", true);
     } else {
         if(pInfo->pe) {
-            if(sim_map_resource(pInfo->prom_base, pInfo->prom_size, RESOURCE_TYPE_MEMORY, &jadeprom, "jadeprom", FALSE) != 0) {
+            if(sim_map_resource(pInfo->prom_base, pInfo->prom_size, RESOURCE_TYPE_MEMORY, &jadeprom, "jadeprom", false) != 0) {
                 sim_debug(ERROR_MSG, &jade_dev, JADE_SNAME ": Error mapping MEM resource at 0x%04x\n", pInfo->prom_base);
                 return SCPE_ARG;
             }
         }
-        if(sim_map_resource(pInfo->mem_base, pInfo->mem_size, RESOURCE_TYPE_MEMORY, &jademem, "jademem", FALSE) != 0) {
+        if(sim_map_resource(pInfo->mem_base, pInfo->mem_size, RESOURCE_TYPE_MEMORY, &jademem, "jademem", false) != 0) {
             sim_debug(ERROR_MSG, &jade_dev, JADE_SNAME ": Error mapping MEM resource at 0x%04x\n", pInfo->mem_base);
             return SCPE_ARG;
         }
         /* Connect I/O Ports at base address */
-        if(sim_map_resource(pInfo->io_base, pInfo->io_size, RESOURCE_TYPE_IO, &jadedev, "jadedev", FALSE) != 0) {
+        if(sim_map_resource(pInfo->io_base, pInfo->io_size, RESOURCE_TYPE_IO, &jadedev, "jadedev", false) != 0) {
             sim_debug(ERROR_MSG, &jade_dev, JADE_SNAME ": Error mapping I/O resource at 0x%02x\n", pInfo->io_base);
             return SCPE_ARG;
         }
@@ -900,12 +901,12 @@ static uint8 JADE_Out(uint32 Addr, int32 Data)
     switch (Data) {
         case CMD_SOT:    /* Bank 0 out of system */
             sim_debug(CMD_MSG, &jade_dev, JADE_SNAME ": Z80 system memory out\n");
-            jade_info->mem_sys = FALSE;
+            jade_info->mem_sys = false;
             break;
 
         case CMD_SIN|CMD_MD0:    /* Request memory bank 0 */
             sim_debug(CMD_MSG, &jade_dev, JADE_SNAME ": Z80 system memory in\n");
-            jade_info->mem_sys = TRUE;
+            jade_info->mem_sys = true;
             sim_debug(CMD_MSG, &jade_dev, JADE_SNAME ": selected memory bank 0\n");
             jade_info->mem_bank = 0;
             break;
@@ -1154,7 +1155,7 @@ static uint8 DCM_ReadSector(uint8 drive, uint8 track, uint8 sector, uint8 *buffe
         return CS_CRC;
     }
 
-    showsector(drive, TRUE, buffer);
+    showsector(drive, true, buffer);
 
     return CS_NOE;
 }
@@ -1201,7 +1202,7 @@ static uint8 DCM_WriteSector(uint8 drive, uint8 track, uint8 sector, uint8 *buff
         return CS_CRC;
     }
 
-    showsector(drive, FALSE, buffer);
+    showsector(drive, false, buffer);
 
     return CS_NOE;
 }

@@ -28,6 +28,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
@@ -284,7 +285,7 @@ static int ch10_receive (void)
     sim_debug (DBG_TRC, &ch10_dev, "Rx count, %d\n", rx_count);
     ch10_validate (rx_buffer + CHUDP_HEADER, rx_count - CHUDP_HEADER);
     ch10_status |= RXD;
-    ch10_lines[0].rcve = FALSE;
+    ch10_lines[0].rcve = false;
     sim_debug (DBG_TRC, &ch10_dev, "Rx off\n");
     ch10_test_int ();
   } else {
@@ -306,7 +307,7 @@ static void ch10_clear (void)
   tx_buffer[1] = 1;
   tx_buffer[2] = 0;
   tx_buffer[3] = 0;
-  ch10_lines[0].rcve = TRUE;
+  ch10_lines[0].rcve = true;
 
   ch10_test_int ();
 }
@@ -317,7 +318,7 @@ static void ch10_command (uint32 data)
      sim_debug (DBG_REG, &ch10_dev, "Clear RX\n");
      ch10_status &= ~RXD;
      rx_count = 0;
-     ch10_lines[0].rcve = TRUE;
+     ch10_lines[0].rcve = true;
      rx_count = 0;
   }
   if (data & RESET) {

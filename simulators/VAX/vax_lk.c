@@ -34,6 +34,8 @@
 
 #if !defined(VAX_620)
 
+#include <stdbool.h>
+
 #include "vax_lk.h"
 
 /* States */
@@ -173,8 +175,8 @@ LK_KEYDATA LK_KEY_F12        = { 12, LK_F12 };
 #define DBG_SERIAL      0x0001                          /* serial port data */
 #define DBG_CMD         0x0002                          /* commands */
 
-t_bool lk_repeat = TRUE;                                /* autorepeat flag */
-t_bool lk_trpti = FALSE;                                /* temp repeat inhibit */
+bool lk_repeat = true;                                  /* autorepeat flag */
+bool lk_trpti = false;                                  /* temp repeat inhibit */
 int32 lk_keysdown = 0;                                  /* no of keys held down */
 LK_FIFO lk_sndf;                                        /* send FIFO */
 LK_FIFO lk_rcvf;                                        /* receive FIFO */
@@ -353,17 +355,17 @@ if (data & 1) {                                         /* peripheral command */
 
         case 0xC1:
             sim_debug (DBG_CMD, &lk_dev, "temporary auto-repeat inhibit\n");
-            lk_trpti = TRUE;
+            lk_trpti = true;
             break;
 
         case 0xE3:
             sim_debug (DBG_CMD, &lk_dev, "enable auto-repeat across keyboard\n");
-            lk_repeat = TRUE;
+            lk_repeat = true;
             break;
 
         case 0xE1:
             sim_debug (DBG_CMD, &lk_dev, "disable auto-repeat across keyboard\n");
-            lk_repeat = FALSE;
+            lk_repeat = false;
             break;
 
         case 0xD9:
@@ -395,8 +397,8 @@ if (data & 1) {                                         /* peripheral command */
         case 0xD3:
             sim_debug (DBG_CMD, &lk_dev, "reinstate defaults\n");
             lk_reset_mode ();
-            lk_repeat = TRUE;
-            lk_trpti = FALSE;
+            lk_repeat = true;
+            lk_trpti = false;
             LK_SEND_CHAR (LK_MODEACK);                  /* Mode change ACK */
             break;
 
@@ -808,8 +810,8 @@ t_stat lk_reset (DEVICE *dptr)
 lk_clear_fifo (&lk_sndf);
 lk_clear_fifo (&lk_rcvf);
 lk_keysdown = 0;
-lk_repeat = TRUE;
-lk_trpti = FALSE;
+lk_repeat = true;
+lk_trpti = false;
 lk_reset_mode ();
 return SCPE_OK;
 }
@@ -825,7 +827,7 @@ mode  = lk_mode[lk_key.group];
 sim_debug (DBG_SERIAL, &lk_dev, "lk_poll() Event - Key: (group=%d, code=%02X), Mode: %s - auto-repeat inhibit: %s - state: %s\n", lk_key.group, lk_key.code, lk_modes[mode], lk_trpti ? "TRUE" : "FALSE", lk_states[ev->state]);
 
 if (lk_trpti && (ev->state != SIM_KEYPRESS_REPEAT))
-    lk_trpti = FALSE;
+    lk_trpti = false;
 
 switch (mode) {
 

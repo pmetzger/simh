@@ -55,6 +55,7 @@
 
 #include "pdp10_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 /* Time (seconds) of idleness before data flushed to attached file. */
 #ifndef LP20_IDLE_TIME
@@ -208,9 +209,9 @@ static t_stat lp20_show_vfu_type (FILE *st, UNIT *up, int32 v, const void *dp);
 static t_stat lp20_show_vfu (FILE *st, UNIT *up, int32 v, const void *dp);
 static t_stat lp20_set_tof (UNIT *uptr, int32 val, const char *cptr, void *desc);
 static t_stat lp20_clear_vfu (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_bool lp20_print (int32 c);
-static t_bool lp20_adv (int32 c, t_bool advdvu);
-static t_bool lp20_davfu (int32 c);
+static bool lp20_print (int32 c);
+static bool lp20_adv (int32 c, bool advdvu);
+static bool lp20_davfu (int32 c);
 static void update_lpcs (int32 flg);
 static void change_rdy (int32 setrdy, int32 clrrdy);
 static int16 evenbits (int16 value);
@@ -580,7 +581,7 @@ static t_stat lp20_svc (UNIT *uptr)
 {
 int32 fnc, i, tbc, txst;
 uint16 wd10;
-t_bool cont;
+bool cont;
 a10 ba;
 
 static const uint32 txcase[32] = {
@@ -603,7 +604,7 @@ if ((fnc == FNC_PR) && (lpcsb & CSB_DVOF)) {
     return SCPE_OK;
     }
 
-for (i = 0, cont = TRUE; (i < tbc) && cont; ba++, i++) {
+for (i = 0, cont = true; (i < tbc) && cont; ba++, i++) {
     if (Map_ReadW (ba, 2, &wd10)) {                     /* get word, err? */
         lpcsb = lpcsb | CSB_MTE;                        /* set NXM error */
         update_lpcs (CSA_ERR);                          /* set done */
@@ -683,7 +684,7 @@ for (i = 0, cont = TRUE; (i < tbc) && cont; ba++, i++) {
         lprdat = txram[lpcbuf];                         /* get RAM char */
         if (((lprdat & TX_PARITY) == 0) && (lpcsa & CSA_PAR)) { /* Check for valid */
             lpcsb |= CSB_RPE;                           /* Declare RAM parity error */
-            cont = FALSE;
+            cont = false;
             break;
             }
         txst = (TX_GETFL (lprdat) << 1) |               /* get state */
@@ -704,13 +705,13 @@ for (i = 0, cont = TRUE; (i < tbc) && cont; ba++, i++) {
 
         case TX_DVU:                                    /* DAVFU action */
             if (lprdat & TX_SLEW)
-                cont = lp20_adv (lprdat & TX_VMASK, TRUE);
+                cont = lp20_adv (lprdat & TX_VMASK, true);
             else cont = lp20_davfu (lprdat & TX_VMASK);
             break;
 
         case TX_INT:                                    /* interrupt */
             lpcsa = lpcsa | CSA_UNDF;                   /* set flag */
-            cont = FALSE;                               /* force stop */
+            cont = false;                               /* force stop */
             break;
             }                                           /* end case char state */
         break;
@@ -743,19 +744,19 @@ return SCPE_OK;
    lp20_adv             advance n lines
    lp20_davfu           advance to channel on VFU
 
-   Return TRUE to continue printing, FALSE to stop
+   Return true to continue printing, false to stop
 */
 
-static t_bool lp20_print (int32 c)
+static bool lp20_print (int32 c)
 {
-t_bool r = TRUE;
+bool r = true;
 int32 i, rpt = 1;
 
 lppdat = c & 0177;                                      /* mask char to 7b */
 if (lppdat == 000)                                      /* NUL? no op */
-    return TRUE;
+    return true;
 if (lppdat == 012)                                      /* LF? adv carriage */
-    return lp20_adv (1, TRUE);
+    return lp20_adv (1, true);
 if (lppdat == 014)                                      /* FF? top of form */
     return lp20_davfu (DV_TOF);
 if (lppdat == 015)                                      /* CR? reset col cntr */
@@ -763,7 +764,7 @@ if (lppdat == 015)                                      /* CR? reset col cntr */
 else if (lppdat == 011) {                               /* TAB? simulate */
     lppdat = ' ';                                       /* with spaces */
     if (lpcolc >= 128) {
-        r = lp20_adv (1, TRUE);                         /* eol? adv carriage */
+        r = lp20_adv (1, true);                         /* eol? adv carriage */
         rpt = 8;                                        /* adv to col 9 */
         }
     else rpt = 8 - (lpcolc & 07);                       /* else adv 1 to 8 */
@@ -772,7 +773,7 @@ else {
     if (lppdat < 040)                                   /* cvt non-prnt to spc */
         lppdat = ' ';
     if (lpcolc >= LP_WIDTH)                             /* line full? */
-        r = lp20_adv (1, TRUE);                         /* adv carriage */
+        r = lp20_adv (1, true);                         /* adv carriage */
     }
 for (i = 0; i < rpt; i++)
     fputc (lppdat, lp20_unit->fileref);
@@ -781,16 +782,16 @@ lpcolc = lpcolc + rpt;
 return r;
 }
 
-static t_bool lp20_adv (int32 cnt, t_bool dvuadv)
+static bool lp20_adv (int32 cnt, bool dvuadv)
 {
 int32 i;
-int stoppc = FALSE;
+int stoppc = false;
 
 if (cnt == 0)
-    return TRUE;
+    return true;
 
 if (lpcsb & CSB_DVOF)
-    return FALSE;
+    return false;
 
 /* This logic has changed because it did not account for the case of more than one TOF
  * occuring in the advance.  Consider a tape with odd/even pages, and a slew channel that
@@ -807,23 +808,23 @@ for (i = 0; i < cnt; i++) {                             /* print 'n' newlines; e
             lppagc = (lppagc - 1) & PAGC_MASK;          /* decr page cntr */
             if (lppagc == 0) {
                 lpcsa = lpcsa | CSA_PZRO;               /* stop if zero */
-                stoppc = TRUE;
+                stoppc = true;
                 }
             } /* At TOF */
         } /* update pointer */
     }
 lp20_unit->pos = (t_addr)sim_ftell (lp20_unit->fileref);
 if (stoppc)                                            /* crossed one or more TOFs? */
-    return FALSE;
-return TRUE;
+    return false;
+return true;
 }
 
-static t_bool lp20_davfu (int32 cnt)
+static bool lp20_davfu (int32 cnt)
 {
 int i;
 
 if (lpcsb & CSB_DVOF)
-    return FALSE;
+    return false;
 if (cnt > DV_MAX)                                       /* inval chan? */
     cnt = 7;
 for (i = 0; i < dvlnt; i++) {                           /* search DAVFU */
@@ -832,22 +833,22 @@ for (i = 0; i < dvlnt; i++) {                           /* search DAVFU */
         dvptr = 0;
     if (davfu[dvptr] & (1 << cnt)) {                    /* channel stop set? */
         if (cnt)                                        /* ~TOF, adv */
-            return lp20_adv (i + 1, FALSE);
+            return lp20_adv (i + 1, false);
         if (lpcolc)                                     /* TOF, need newline? */
-            lp20_adv (1, FALSE);
+            lp20_adv (1, false);
         fputc ('\f', lp20_unit->fileref);               /* print form feed */
         lp20_unit->pos = (t_addr)sim_ftell (lp20_unit->fileref);
         lppagc = (lppagc - 1) & PAGC_MASK;              /* decr page cntr */
         if (lppagc != 0)
-            return TRUE;
+            return true;
         else {
             lpcsa = lpcsa | CSA_PZRO;                   /* stop if zero */
-            return FALSE;
+            return false;
             }
         }
     }                                                   /* end for */
 change_rdy (0,CSA_DVON);                                /* Code to channel with no channel stop */
-return FALSE;
+return false;
 }
 
 /* Update LPCSA, optionally request interrupt */
@@ -1303,7 +1304,7 @@ static t_stat lp20_clear_vfu (UNIT *uptr, int32 val, const char *cptr, void *des
 
 int i;
 
-if (!get_yn ("Clear DAVFU & RAM? [N]", FALSE))
+if (!get_yn ("Clear DAVFU & RAM? [N]", false))
     return SCPE_OK;
 for (i = 0; i < DV_SIZE; i++)
     davfu[i] = 0;

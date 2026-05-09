@@ -37,6 +37,7 @@
 
 /*#define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 #ifdef DBG_MSG
@@ -151,10 +152,10 @@ static t_stat mdriveh_reset(DEVICE *dptr)
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) { /* Disconnect ROM and I/O Ports */
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &mdrivehdev, "mdrivehdev", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &mdrivehdev, "mdrivehdev", true);
     } else {
         /* Connect MDRIVEH at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &mdrivehdev, "mdrivehdev", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &mdrivehdev, "mdrivehdev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }

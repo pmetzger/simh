@@ -133,6 +133,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -209,7 +210,7 @@ typedef struct {
     HP_WORD   cw2;                              /* direction, address */
     HP_WORD   cw3;                              /* word count */
     uint8     packer;                           /* byte-packer holding register */
-    t_bool    occupied;                         /* TRUE if packing register is occupied */
+    bool      occupied;                         /* true if packing register is occupied */
     } DMA_STATE;
 
 static DMA_STATE dma [DMA_CHAN_COUNT];          /* per-channel state */
@@ -460,7 +461,7 @@ const  CHANNEL ch = (CHANNEL) dibptr->card_index;       /* the DMA channel numbe
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -552,7 +553,7 @@ while (working_set) {                                   /* while signals remain 
             dma [ch].control = SET;                     /* set the control flip-flop */
 
             dma [ch].packer = 0;                        /* clear the packing register */
-            dma [ch].occupied = FALSE;                  /*   and the occupied flag */
+            dma [ch].occupied = false;                  /*   and the occupied flag */
 
             if (dma [ch].flag_buffer == CLEAR               /* if the flag buffer is clear */
               || inbound_signals & ioCLF) {                 /*   or will be cleared in this cycle */
@@ -590,7 +591,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -902,7 +903,7 @@ if (sim_switches & SWMASK ('P')) {                      /* if this is a power-on
 io_assert (dptr, ioa_POPIO);                            /* PRESET the device */
 
 dma [ch].packer = 0;                                    /* clear the packing register */
-dma [ch].occupied = FALSE;                              /*   and the occupied flag */
+dma [ch].occupied = false;                              /*   and the occupied flag */
 
 return SCPE_OK;
 }

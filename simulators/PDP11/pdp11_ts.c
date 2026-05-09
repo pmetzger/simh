@@ -102,6 +102,7 @@
 #define TS_DIS          DEV_DIS                         /* off by default */
 #endif
 
+#include <stdbool.h>
 #include "sim_tape.h"
 #define ADDRTEST        (UNIBUS? 0177774: 0177700)
 
@@ -506,7 +507,7 @@ switch (st) {
 return 0;
 }
 
-static int32 ts_spacef (UNIT *uptr, int32 fc, t_bool upd)
+static int32 ts_spacef (UNIT *uptr, int32 fc, bool upd)
 {
 t_stat st;
 t_mtrlnt tbc;
@@ -526,11 +527,11 @@ static int32 ts_skipf (UNIT *uptr, int32 fc)
 {
 t_stat st;
 t_mtrlnt tbc;
-t_bool tmkprv = FALSE;
+bool tmkprv = false;
 
 msgrfc = fc;
 if (sim_tape_bot (uptr) && (wchopt & WCH_ENB))
-    tmkprv = TRUE;
+    tmkprv = true;
 do {
     st = sim_tape_sprecf (uptr, &tbc);                  /* space rec fwd */
     if (st == MTSE_TMK) {                               /* tape mark? */
@@ -539,17 +540,17 @@ do {
         if (tmkprv && (wchopt & WCH_ESS))               /* 2nd tmk & ESS? */
             return (XTC ((msgrfc? XS0_RLS: 0) |
                 XS0_TMK | XS0_LET, TC2));
-        tmkprv = TRUE;                                  /* flag tmk */
+        tmkprv = true;                                  /* flag tmk */
         }
     else if (st != MTSE_OK)
         return ts_map_status (st);
-    else tmkprv = FALSE;                                /* not a tmk */
+    else tmkprv = false;                                /* not a tmk */
     msgxs0 = msgxs0 | XS0_MOT;                          /* tape has moved */
     } while (msgrfc != 0);
 return 0;
 }
 
-static int32 ts_spacer (UNIT *uptr, int32 fc, t_bool upd)
+static int32 ts_spacer (UNIT *uptr, int32 fc, bool upd)
 {
 int32 st;
 t_mtrlnt tbc;
@@ -569,7 +570,7 @@ static int32 ts_skipr (UNIT *uptr, int32 fc)
 {
 t_stat st;
 t_mtrlnt tbc;
-t_bool tmkprv = FALSE;
+bool tmkprv = false;
 
 msgrfc = fc;
 do {
@@ -580,11 +581,11 @@ do {
         if (tmkprv && (wchopt & WCH_ESS))               /* 2nd tmk & ESS? */
             return (XTC ((msgrfc? XS0_RLS: 0) |
                 XS0_TMK | XS0_LET, TC2));
-        tmkprv = TRUE;                                  /* flag tmk */
+        tmkprv = true;                                  /* flag tmk */
         }
     else if (st != MTSE_OK)
         return ts_map_status (st);
-    else tmkprv = FALSE;                                /* not a tmk */
+    else tmkprv = false;                                /* not a tmk */
     msgxs0 = msgxs0 | XS0_MOT;                          /* tape has moved */
     } while (msgrfc != 0);
 return 0;
@@ -742,7 +743,7 @@ if (ts_bcmd) {                                          /* boot? */
     sim_tape_rewind (uptr);                             /* rewind */
     if (uptr->flags & UNIT_ATT) {                       /* attached? */
         cmdlnt = cmdadh = cmdadl = 0;                   /* defang rd */
-        ts_spacef (uptr, 1, FALSE);                     /* space fwd */
+        ts_spacef (uptr, 1, false);                     /* space fwd */
         ts_readf (uptr, 512);                           /* read blk */
         tssr = ts_updtssr (tssr | TSSR_SSR);
         }
@@ -884,10 +885,10 @@ switch (fnc) {                                          /* case on func */
         case 02:                                        /* reread fwd */
             if (cmdhdr & CMD_OPP) {                     /* opposite? */
                 st0 = ts_readr (uptr, cmdlnt);
-                st1 = ts_spacef (uptr, 1, FALSE);
+                st1 = ts_spacef (uptr, 1, false);
                 }
             else {
-                st0 = ts_spacer (uptr, 1, FALSE);
+                st0 = ts_spacer (uptr, 1, false);
                 st1 = ts_readf (uptr, cmdlnt);
                 }
             break;
@@ -895,10 +896,10 @@ switch (fnc) {                                          /* case on func */
         case 03:                                        /* reread back */
             if (cmdhdr & CMD_OPP) {                     /* opposite */
                 st0 = ts_readf (uptr, cmdlnt);
-                st1 = ts_spacer (uptr, 1, FALSE);
+                st1 = ts_spacer (uptr, 1, false);
                 }
             else {
-                st0 = ts_spacef (uptr, 1, FALSE);
+                st0 = ts_spacef (uptr, 1, false);
                 st1 = ts_readr (uptr, cmdlnt);
                 }
             break;
@@ -914,7 +915,7 @@ switch (fnc) {                                          /* case on func */
             break;
 
         case 01:                                        /* rewrite */
-            st0 = ts_spacer (uptr, 1, FALSE);
+            st0 = ts_spacer (uptr, 1, false);
             st1 = ts_write (uptr, cmdlnt);
             break;
             }
@@ -932,7 +933,7 @@ switch (fnc) {                                          /* case on func */
             break;
 
         case 02:                                        /* retry tmk */
-            st0 = ts_spacer (uptr, 1, FALSE);
+            st0 = ts_spacer (uptr, 1, false);
             st1 = ts_wtmk (uptr);
             break;
             }
@@ -943,11 +944,11 @@ switch (fnc) {                                          /* case on func */
         switch (mod) {                                  /* case mode */
 
         case 00:                                        /* space fwd */
-            st0 = ts_spacef (uptr, cmdadl, TRUE);
+            st0 = ts_spacef (uptr, cmdadl, true);
             break;
 
         case 01:                                        /* space rev */
-            st0 = ts_spacer (uptr, cmdadl, TRUE);
+            st0 = ts_spacer (uptr, cmdadl, true);
             break;
 
         case 02:                                        /* space ffwd */

@@ -27,6 +27,7 @@
    03-Jun-10    HV      Repair POLL function (defective FDC interrupt handling in SAGEBIOS)
 */
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "m68k_cpu.h"
 #include "chip_defs.h"
@@ -238,7 +239,7 @@ t_stat i8259_raiseint(I8259* chip,int level)
 
 t_stat i8259_reset(I8259* chip)
 {
-    chip->autoint = TRUE;
+    chip->autoint = true;
     chip->intlevel = 1;
     chip->intvector = 0;
     chip->state = 0;

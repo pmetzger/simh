@@ -15,6 +15,7 @@
 
 #include "sim_defs.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -37,7 +38,7 @@ typedef int32        t_offset;
 FILE *sim_fopen (const char *file, const char *mode);
 int sim_fseek (FILE *st, t_addr offset, int whence);
 int sim_fseeko (FILE *st, t_offset offset, int whence);
-t_bool sim_can_seek (FILE *st);
+bool sim_can_seek (FILE *st);
 int sim_set_fsize (FILE *fptr, t_addr size);
 t_stat sim_set_file_times (const char *file_name, time_t access_time, time_t write_time);
 int sim_set_fifo_nonblock (FILE *fptr);
@@ -52,7 +53,7 @@ int sim_stat (const char *fname, struct stat *stat_str);
 int sim_chdir(const char *path);
 int sim_mkdir(const char *path);
 int sim_rmdir(const char *path);
-t_stat sim_copyfile (const char *source_file, const char *dest_file, t_bool overwrite_existing);
+t_stat sim_copyfile (const char *source_file, const char *dest_file, bool overwrite_existing);
 char *sim_filepath_parts (const char *pathname, const char *parts);
 char *sim_getcwd (char *buf, size_t buf_size);
 typedef void (*DIR_ENTRY_CALLBACK)(const char *directory,
@@ -73,11 +74,11 @@ typedef struct SHMEM SHMEM;
 t_stat sim_shmem_open (const char *name, size_t size, SHMEM **shmem, void **addr);
 void sim_shmem_close (SHMEM *shmem);
 int32 sim_shmem_atomic_add (int32 *ptr, int32 val);
-t_bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv);
+bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv);
 
-extern t_bool sim_taddr_64;         /* t_addr is > 32b and Large File Support available */
-extern t_bool sim_toffset_64;       /* Large File (>2GB) file I/O support */
-extern t_bool sim_end;              /* TRUE = little endian, FALSE = big endian */
+extern bool sim_taddr_64;           /* t_addr is > 32b and Large File Support available */
+extern bool sim_toffset_64;         /* Large File (>2GB) file I/O support */
+extern bool sim_end;                /* true = little endian, false = big endian */
 
 char *sim_trim_endspc (char *cptr);
 int sim_isspace (int c);
@@ -148,7 +149,7 @@ int sim_strcasecmp (const char *string1, const char *string2);
 #ifndef strcasecmp
 #define strcasecmp(str1, str2) sim_strcasecmp ((str1), (str2))
 #endif
-int sim_strwhitecasecmp (const char *string1, const char *string2, t_bool casecmp);
+int sim_strwhitecasecmp (const char *string1, const char *string2, bool casecmp);
 
 
 #endif

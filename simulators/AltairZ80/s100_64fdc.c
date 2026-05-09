@@ -39,6 +39,7 @@
 
 /*#define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "wd179x.h"
 
@@ -63,7 +64,7 @@
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
     uint32 dma_addr;    /* DMA Transfer Address */
-    uint8 rom_disabled; /* TRUE if ROM has been disabled */
+    uint8 rom_disabled; /* true if ROM has been disabled */
     uint8 motor_on;
     uint8 autowait;
     uint8 rtc;
@@ -1430,14 +1431,14 @@ unsigned char ccs2422_rom[2048] = {
     0x31, 0xB7, 0x7E, 0x20, 0x02, 0xE6, 0xBF, 0xB1, 0xD3, 0x34, 0x3A, 0x43, 0x00, 0xD3, 0x04, 0xC9
 };
 
-/* returns TRUE iff there exists a disk with 'property' */
+/* returns true iff there exists a disk with 'property' */
 static int32 cromfdc_hasProperty(uint32 property)
 {
     int32 i;
     for (i = 0; i < CROMFDC_MAX_DRIVES; i++)
         if (cromfdc_dev.units[i].flags & property)
-            return TRUE;
-    return FALSE;
+            return true;
+    return false;
 }
 
 static uint8 motor_timeout = 0;
@@ -1475,52 +1476,52 @@ static t_stat cromfdc_reset(DEVICE *dptr)
 
     if(dptr->flags & DEV_DIS) { /* Disconnect ROM and I/O Ports */
         if (cromfdc_hasProperty(UNIT_CROMFDC_ROM)) {
-            sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &cromfdcrom, "cromfdcrom", TRUE);
+            sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &cromfdcrom, "cromfdcrom", true);
         }
         /* Unmap I/O Ports (0x3-4,0x5-9,0x34,0x40 */
-        sim_map_resource(0x03, 2, RESOURCE_TYPE_IO, &cromfdc_ext, "cromfdc_ext", TRUE);
-        sim_map_resource(0x05, 5, RESOURCE_TYPE_IO, &cromfdc_timer, "cromfdc_timer", TRUE);
-        sim_map_resource(0x34, 1, RESOURCE_TYPE_IO, &cromfdc_control, "cromfdc_control", TRUE);
-        sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &cromfdc_banksel, "cromfdc_banksel", TRUE);
+        sim_map_resource(0x03, 2, RESOURCE_TYPE_IO, &cromfdc_ext, "cromfdc_ext", true);
+        sim_map_resource(0x05, 5, RESOURCE_TYPE_IO, &cromfdc_timer, "cromfdc_timer", true);
+        sim_map_resource(0x34, 1, RESOURCE_TYPE_IO, &cromfdc_control, "cromfdc_control", true);
+        sim_map_resource(0x40, 1, RESOURCE_TYPE_IO, &cromfdc_banksel, "cromfdc_banksel", true);
         if(crofdc_type == 50) { /* CCS2422 */
-            sim_map_resource(0x26, 1, RESOURCE_TYPE_IO, &ccs2810_uart_status, "ccs2810_uart_status", TRUE);
+            sim_map_resource(0x26, 1, RESOURCE_TYPE_IO, &ccs2810_uart_status, "ccs2810_uart_status", true);
         }
     } else {
         /* Connect CROMFDC ROM at base address */
         if(cromfdc_hasProperty(UNIT_CROMFDC_ROM)) {
             sim_debug(VERBOSE_MSG, &cromfdc_dev, "CROMFDC: ROM Enabled.\n");
-            if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &cromfdcrom, "cromfdcrom", FALSE) != 0) {
+            if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &cromfdcrom, "cromfdcrom", false) != 0) {
                 sim_printf("%s: error mapping MEM resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
                 return SCPE_ARG;
             }
         } else
             sim_debug(VERBOSE_MSG, &cromfdc_dev, "CROMFDC: ROM Disabled.\n");
         /* Connect CROMFDC Interrupt, and Aux Disk Registers */
-        if(sim_map_resource(0x03, 0x02, RESOURCE_TYPE_IO, &cromfdc_ext, "cromfdc_ext", FALSE) != 0) {
+        if(sim_map_resource(0x03, 0x02, RESOURCE_TYPE_IO, &cromfdc_ext, "cromfdc_ext", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
 
         /* Connect CROMFDC Timer Registers */
-        if(sim_map_resource(0x05, 0x05, RESOURCE_TYPE_IO, &cromfdc_timer, "cromfdc_timer", FALSE) != 0) {
+        if(sim_map_resource(0x05, 0x05, RESOURCE_TYPE_IO, &cromfdc_timer, "cromfdc_timer", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
 
         /* Connect CROMFDC Disk Flags and Control Register */
-        if(sim_map_resource(0x34, 0x01, RESOURCE_TYPE_IO, &cromfdc_control, "cromfdc_control", FALSE) != 0) {
+        if(sim_map_resource(0x34, 0x01, RESOURCE_TYPE_IO, &cromfdc_control, "cromfdc_control", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
 
         /* Connect CROMFDC Bank Select Register */
-        if(sim_map_resource(0x40, 0x1, RESOURCE_TYPE_IO, &cromfdc_banksel, "cromfdc_banksel", FALSE) != 0) {
+        if(sim_map_resource(0x40, 0x1, RESOURCE_TYPE_IO, &cromfdc_banksel, "cromfdc_banksel", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
 
         /* Connect CCS 2810 UART Status Register (needed by MOSS 2.2 Monitor */
-        if(sim_map_resource(0x26, 0x01, RESOURCE_TYPE_IO, &ccs2810_uart_status, "ccs2810_uart_status", FALSE) != 0) {
+        if(sim_map_resource(0x26, 0x01, RESOURCE_TYPE_IO, &ccs2810_uart_status, "ccs2810_uart_status", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         } else {
@@ -1529,7 +1530,7 @@ static t_stat cromfdc_reset(DEVICE *dptr)
 
     }
 
-    cromfdc_info->rom_disabled = FALSE;
+    cromfdc_info->rom_disabled = false;
 /*  sim_activate (cromfdc_unit, cromfdc_unit->wait); */ /* requeue! */
     return SCPE_OK;
 }
@@ -1550,7 +1551,7 @@ static t_stat cromfdc_boot(int32 unitno, DEVICE *dptr)
     DBG_PRINT(("Booting %dFDC Controller, bootstrap=%d\n", crofdc_type, bootstrap));
 
     /* Re-enable the ROM in case it was disabled */
-    cromfdc_info->rom_disabled = FALSE;
+    cromfdc_info->rom_disabled = false;
 
     /* Set the PC to C000, and go. */
     *((int32 *) sim_PC->loc) = 0xC000;
@@ -1564,7 +1565,7 @@ static int32 cromfdcrom(const int32 Addr, const int32 write, const int32 data)
         cromfdcram[Addr & CROMFDC_ADDR_MASK] = data;
         return 0;
     } else {
-        if(cromfdc_info->rom_disabled == FALSE) {
+        if(cromfdc_info->rom_disabled == false) {
             return(cromfdc_rom[bootstrap & 0x01][Addr & CROMFDC_ADDR_MASK]);
         } else {
             return(cromfdcram[Addr & CROMFDC_ADDR_MASK]);
@@ -1763,7 +1764,7 @@ static int32 cromfdc_banksel(const int32 port, const int32 io, const int32 data)
         sim_debug(VERBOSE_MSG, &cromfdc_dev, "CROMFDC: " ADDRESS_FORMAT
                   " BANKSEL OUT, Port 0x%02x Data 0x%02x\n", PCX, port, data);
             /* Unmap Boot ROM */
-            cromfdc_info->rom_disabled = TRUE;
+            cromfdc_info->rom_disabled = true;
         result = 0;
     } else {
         result = 0xFF;

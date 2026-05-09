@@ -33,6 +33,7 @@
         Computer Systems.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 int32   nmiflg = 0;                     //mask NMI off
@@ -46,12 +47,12 @@ uint16 get_mword(uint32 addr);
 void put_mbyte(uint32 addr, uint8 val);
 void put_mword(uint32 addr, uint16 val);
 t_stat SBC_reset (DEVICE *dptr);
-uint8 enbnmi(t_bool io, uint8 data);
-uint8 dmapag(t_bool io, uint8 data);
-uint8 dmapag0(t_bool io, uint8 data);
-uint8 dmapag1(t_bool io, uint8 data);
-uint8 dmapag2(t_bool io, uint8 data);
-uint8 dmapag3(t_bool io, uint8 data);
+uint8 enbnmi(bool io, uint8 data);
+uint8 dmapag(bool io, uint8 data);
+uint8 dmapag0(bool io, uint8 data);
+uint8 dmapag1(bool io, uint8 data);
+uint8 dmapag2(bool io, uint8 data);
+uint8 dmapag3(bool io, uint8 data);
 
 /* external function prototypes */
 
@@ -70,7 +71,7 @@ extern t_stat i8255_reset (DEVICE *dptr, uint16 base);
 extern t_stat i8259_reset (DEVICE *dptr, uint16 base);
 extern t_stat EPROM_reset (DEVICE *dptr, uint32 base, uint32 size);
 extern t_stat RAM_reset (DEVICE *dptr, uint32 base, uint32 size);
-extern uint16 reg_dev(uint8 (*routine)(t_bool, uint8), uint16);
+extern uint16 reg_dev(uint8 (*routine)(bool, uint8), uint16);
 
 /*  SBC reset routine */
 
@@ -92,7 +93,7 @@ t_stat SBC_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-uint8 dmapag0(t_bool io, uint8 data)
+uint8 dmapag0(bool io, uint8 data)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -103,7 +104,7 @@ uint8 dmapag0(t_bool io, uint8 data)
     return 0;
 }
 
-uint8 dmapag1(t_bool io, uint8 data)
+uint8 dmapag1(bool io, uint8 data)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -114,7 +115,7 @@ uint8 dmapag1(t_bool io, uint8 data)
     return 0;
 }
 
-uint8 dmapag2(t_bool io, uint8 data)
+uint8 dmapag2(bool io, uint8 data)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -125,7 +126,7 @@ uint8 dmapag2(t_bool io, uint8 data)
     return 0;
 }
 
-uint8 dmapag3(t_bool io, uint8 data)
+uint8 dmapag3(bool io, uint8 data)
 {
     //sim_printf("dmapag3: entered\n");
     if (io == 0) {                      /* read data port */
@@ -137,7 +138,7 @@ uint8 dmapag3(t_bool io, uint8 data)
     return 0;
 }
 
-uint8 enbnmi(t_bool io, uint8 data)
+uint8 enbnmi(bool io, uint8 data)
 {
     if (io == 0) {                      /* read data port */
         ;

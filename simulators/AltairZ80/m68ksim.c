@@ -77,6 +77,7 @@
 
  */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "m68k/m68k.h"
 
@@ -135,7 +136,7 @@ static void int_controller_clear(uint32 value);
 static int m68k_MC6850_control = 0;                 /* MC6850 control register      */
 static int m68k_MC6850_status = 2;                  /* MC6850 status register       */
 static t_stat keyboardCharacter;                    /* one character buffer         */
-static t_bool characterAvailable = FALSE;           /* buffer initially empty       */
+static bool characterAvailable = false;             /* buffer initially empty       */
 
 static uint32 m68k_int_controller_pending = 0;      /* list of pending interrupts   */
 static uint32 m68k_int_controller_highest_int = 0;  /* Highest pending interrupt    */
@@ -208,7 +209,7 @@ void m68k_viewToCPU(void) {
 t_stat sim_instr_m68k(void) {
     t_stat reason = SCPE_OK;
     m68k_viewToCPU();
-    while (TRUE) {
+    while (true) {
         if (sim_interval <= 0) {                            /* check clock queue    */
             if ((reason = sim_process_event()))
                 break;
@@ -265,7 +266,7 @@ void m68k_cpu_reset(void) {
 static void MC6850_reset(void) {
     m68k_MC6850_control = 0;
     m68k_MC6850_status = 2;
-    characterAvailable = FALSE;
+    characterAvailable = false;
     int_controller_clear(IRQ_MC6850);
 }
 
@@ -285,7 +286,7 @@ static void m68k_input_device_update(void) {
         if (SIMHSleep)
             sim_os_ms_sleep(SIMHSleep);
         if (ch) {
-            characterAvailable = TRUE;
+            characterAvailable = true;
             keyboardCharacter = ch;
         }
     }
@@ -298,7 +299,7 @@ static uint32 MC6850_data_read(void) {
     m68k_MC6850_status &= ~0x81;        // clear data ready and interrupt flag
     if (characterAvailable) {
         ch = keyboardCharacter;
-        characterAvailable = FALSE;
+        characterAvailable = false;
     } else
         ch = sim_poll_kbd();
     while ((ch <= 0) && (!stop_cpu)) {
@@ -308,7 +309,7 @@ static uint32 MC6850_data_read(void) {
         ch = sim_poll_kbd();
     }
     if (ch == SCPE_STOP)
-        stop_cpu = TRUE;
+        stop_cpu = true;
     return (((ch > 0) && (!stop_cpu)) ? ch & 0xff : 0xff);
 }
 
@@ -481,7 +482,7 @@ void m68k_cpu_write_long(unsigned int address, unsigned int value) {
             return;
 
         case M68K_STOP_CPU:
-            stop_cpu = TRUE;
+            stop_cpu = true;
             return;
 
         default:

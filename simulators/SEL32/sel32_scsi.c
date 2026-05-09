@@ -21,6 +21,7 @@
    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 
 /* uncomment to use fast sim_activate times when running UTX */
@@ -295,7 +296,7 @@ t_stat  scsi_startcmd(UNIT *uptr, uint16 chan, uint8 cmd);
 t_stat  scsi_haltio(UNIT *uptr);
 t_stat  scsi_srv(UNIT *);
 t_stat  scsi_boot(int32 unitnum, DEVICE *);
-void    scsi_ini(UNIT *, t_bool);
+void    scsi_ini(UNIT *, bool);
 t_stat  scsi_rschnlio(UNIT *uptr);
 t_stat  scsi_reset(DEVICE *);
 t_stat  scsi_attach(UNIT *, const char *);
@@ -336,7 +337,7 @@ DIB     sba_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     scsi_rschnlio,  /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    scsi_ini,       /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    scsi_ini,       /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     sba_unit,       /* UNIT* units */                           /* Pointer to units structure */
     sba_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -380,7 +381,7 @@ DIB     sbb_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     scsi_rschnlio,  /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    scsi_ini,       /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    scsi_ini,       /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     sbb_unit,       /* UNIT* units */                           /* Pointer to units structure */
     sbb_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -1441,7 +1442,7 @@ read_cap:                                       /* merge point from TCMD process
 }
 
 /* initialize the disk */
-void scsi_ini(UNIT *uptr, t_bool f)
+void scsi_ini(UNIT *uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */
@@ -1551,7 +1552,7 @@ static int scsi_format(UNIT *uptr) {
     if (!(sim_switches & SWMASK('N')) && !(sim_switches & SWMASK('I'))) {
         sim_switches = 0;                       /* simh tests 'N' & 'Y' switches */
         /* see if user wants to initialize the disk */
-        if (!get_yn("Initialize disk? [Y] ", TRUE)) {
+        if (!get_yn("Initialize disk? [Y] ", true)) {
             sim_switches = oldsw;
             return 1;
         }
@@ -1560,7 +1561,7 @@ static int scsi_format(UNIT *uptr) {
 
 #if 0
     /* see if user wants to initialize the disk */
-    if (!get_yn("Initialize disk? [Y] ", TRUE)) {
+    if (!get_yn("Initialize disk? [Y] ", true)) {
         return 1;
     }
 #endif

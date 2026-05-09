@@ -47,6 +47,7 @@
    in the various operating systems.
 */
 
+#include <stdbool.h>
 #include "pdp11_defs.h"
 #include "pdp11_cpumod.h"
 
@@ -1345,7 +1346,7 @@ if (val > ((int32) (cpu_tab[cpu_model].maxm - IOPAGESIZE)))
     val = (int32) (cpu_tab[cpu_model].maxm - IOPAGESIZE);
 for (i = val; i < MEMSIZE; i = i + 2)
     mc = mc | M[i >> 1];
-if ((mc != 0) && !get_yn ("Really truncate memory [N]?", FALSE))
+if ((mc != 0) && !get_yn ("Really truncate memory [N]?", false))
     return SCPE_OK;
 nM = (uint16 *) calloc (val >> 1, sizeof (uint16));
 if (nM == NULL)

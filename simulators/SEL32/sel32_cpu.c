@@ -22,6 +22,7 @@
 
 */
 
+#include <stdbool.h>
 #include "sel32_arith_internal.h"
 
 #ifndef CPUONLY
@@ -8013,7 +8014,7 @@ t_stat cpu_set_size(UNIT *uptr, int32 sval, const char *cptr, void *desc)
         uint32 mc = 0;                              /* yes, see if larger memory was used */
         for (i = sz-1; i < (MEMSIZE>>2); i++)
             mc = mc | M[i];                         /* or in any bits we might find */
-        if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+        if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
             return SCPE_OK;                         /* forget update */
     }
     for (i = (MEMSIZE>>2) - 1; i < sz; i++)

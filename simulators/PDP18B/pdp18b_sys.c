@@ -58,6 +58,7 @@
 
 #include "pdp18b_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern DEVICE cpu_dev;
 #if defined (PDP15)
@@ -962,7 +963,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     UNIT *uptr, int32 sw)
 {
 int32 i, j, k, sp, inst, disp, ma;
-t_bool cflag;
+bool cflag;
 DEVICE *dptr;
 
 if (uptr == NULL)
@@ -1163,7 +1164,7 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
 int32 d, i, j, k, sign, damask, epcmask;
 t_stat r, sta = SCPE_OK;
 char gbuf[CBUFSIZE], cbuf[2*CBUFSIZE];
-t_bool cflag;
+bool cflag;
 DEVICE *dptr;
 
 if (uptr == NULL)

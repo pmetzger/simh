@@ -5,6 +5,7 @@
 #ifndef SIM_TIMER_INTERNAL_H_
 #define SIM_TIMER_INTERNAL_H_
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "sim_defs.h"
@@ -41,8 +42,8 @@ typedef struct RTC {
     uint32 clock_catchup_ticks;      /* Record of catchups */
     uint32 clock_catchup_ticks_tot;  /* Record of catchups - total */
     uint32 clock_catchup_ticks_curr; /* Record of catchups in this second */
-    t_bool clock_catchup_pending;    /* clock tick catchup pending */
-    t_bool clock_catchup_eligible;   /* clock tick catchup eligible */
+    bool clock_catchup_pending;      /* clock tick catchup pending */
+    bool clock_catchup_eligible;     /* clock tick catchup eligible */
     uint32 clock_time_idled;         /* total time idled */
     uint32 clock_time_idled_last;    /* total idled time before prior second */
     uint32 clock_calib_skip_idle;    /* calibrations skipped due to idling */

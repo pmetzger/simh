@@ -87,6 +87,7 @@
    * = Active Low
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
@@ -144,19 +145,19 @@
 typedef struct {
     PNP_INFO pnp;        /* Must be first    */
     int32 port;          /* Port 0 or 1      */
-    t_bool conn;         /* Connected Status */
+    bool conn;           /* Connected Status */
     TMLN *tmln;          /* TMLN pointer     */
     TMXR *tmxr;          /* TMXR pointer     */
     int32 baud;          /* Baud rate        */
     int32 rts;           /* RTS Status       */
     int32 rxb;           /* Receive Buffer   */
     int32 txb;           /* Transmit Buffer  */
-    t_bool txp;          /* Transmit Pending */
+    bool txp;            /* Transmit Pending */
     int32 stb;           /* Status Buffer    */
     int32 ctb;           /* Control Buffer   */
-    t_bool rie;          /* Rx Int Enable    */
-    t_bool tie;          /* Tx Int Enable    */
-    t_bool dcdl;         /* DCD latch        */
+    bool rie;            /* Rx Int Enable    */
+    bool tie;            /* Tx Int Enable    */
+    bool dcdl;           /* DCD latch        */
     uint8 intenable;     /* Interrupt Enable */
     uint8 intvector;     /* Interrupt Vector */
     uint8 databus;       /* Data Bus Value   */
@@ -416,8 +417,8 @@ static t_stat m2sio_reset(DEVICE *dptr, int32 (*routine)(const int32, const int3
 
     /* Reset status registers */
     xptr->stb = M2SIO_CTS | M2SIO_DCD;
-    xptr->txp = FALSE;
-    xptr->dcdl = FALSE;
+    xptr->txp = false;
+    xptr->dcdl = false;
     if (dptr->units[0].flags & UNIT_ATT) {
         m2sio_config_rts(dptr, 1);    /* disable RTS */
     }
@@ -446,7 +447,7 @@ static t_stat m2sio_svc(UNIT *uptr)
     if (uptr->flags & UNIT_ATT) {
         if (tmxr_poll_conn(xptr->tmxr) >= 0) {      /* poll connection */
 
-            xptr->conn = TRUE;          /* set connected   */
+            xptr->conn = true;          /* set connected   */
 
             sim_debug(STATUS_MSG, uptr->dptr, "new connection.\n");
         }
@@ -467,7 +468,7 @@ static t_stat m2sio_svc(UNIT *uptr)
             xptr->stb |= ((s & TMXR_MDM_DCD) || (uptr->flags & UNIT_M2SIO_DCD)) ? 0 : M2SIO_DCD;     /* Active Low */
             if ((stb ^ xptr->stb) & M2SIO_DCD) {
                 if ((xptr->stb & M2SIO_DCD) == M2SIO_DCD) {
-                    xptr->dcdl = TRUE;
+                    xptr->dcdl = true;
                     if (xptr->rie) {
                         m2sio_int(uptr);
                     }
@@ -485,17 +486,17 @@ static t_stat m2sio_svc(UNIT *uptr)
         if (uptr->flags & UNIT_ATT) {
             if (!(xptr->stb & M2SIO_CTS)) {    /* Active low */
                 r = tmxr_putc_ln(xptr->tmln, xptr->txb);
-                xptr->txp = FALSE;             /* Reset TX Pending */
+                xptr->txp = false;             /* Reset TX Pending */
             } else {
                 r = SCPE_STALL;
             }
         } else {
             r = sim_putchar(xptr->txb);
-            xptr->txp = FALSE;                 /* Reset TX Pending */
+            xptr->txp = false;                 /* Reset TX Pending */
         }
 
         if (r == SCPE_LOST) {
-            xptr->conn = FALSE;          /* Connection was lost */
+            xptr->conn = false;          /* Connection was lost */
             sim_debug(STATUS_MSG, uptr->dptr, "lost connection.\n");
         }
 
@@ -805,10 +806,10 @@ static int32 m2sio_stat(DEVICE *dptr, int32 io, int32 data)
             sim_debug(STATUS_MSG, dptr, "MC6850 master reset.\n");
             xptr->stb &= (M2SIO_CTS | M2SIO_DCD);           /* Reset status register */
             xptr->rxb = 0x00;
-            xptr->txp = FALSE;
-            xptr->tie = FALSE;
-            xptr->rie = FALSE;
-            xptr->dcdl = FALSE;
+            xptr->txp = false;
+            xptr->tie = false;
+            xptr->rie = false;
+            xptr->dcdl = false;
             m2sio_config_rts(dptr, 1);    /* disable RTS */
         } else {
             /* Interrupt Enable */
@@ -849,11 +850,11 @@ static int32 m2sio_data(DEVICE *dptr, int32 io, int32 data)
     if (io == IO_RD) {
         r = xptr->rxb;
         xptr->stb &= ~(M2SIO_RDRF | M2SIO_FE | M2SIO_OVRN | M2SIO_PE | M2SIO_IRQ);
-        xptr->dcdl = FALSE;
+        xptr->dcdl = false;
     } else {
         xptr->txb = data;
         xptr->stb &= ~(M2SIO_TDRE | M2SIO_IRQ);
-        xptr->txp = TRUE;
+        xptr->txp = true;
         r = 0x00;
     }
 

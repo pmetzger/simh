@@ -35,6 +35,7 @@
 
 #include "sim_defs.h"
 #include <setjmp.h>
+#include <stdbool.h>
 
 #define INLINE
 
@@ -374,8 +375,8 @@ typedef struct {
 typedef struct {                                        /* device info block */
     t_uint64            low;                            /* low addr */
     t_uint64            high;                           /* high addr */
-    t_bool              (*read)(t_uint64 pa, t_uint64 *val, uint32 lnt);
-    t_bool              (*write)(t_uint64 pa, t_uint64 val, uint32 lnt);
+    bool                (*read)(t_uint64 pa, t_uint64 *val, uint32 lnt);
+    bool                (*write)(t_uint64 pa, t_uint64 val, uint32 lnt);
     uint32              ipl;
     } DIB;
 
@@ -439,7 +440,7 @@ INLINE t_uint64 ReadPB (t_uint64 pa);
 INLINE t_uint64 ReadPW (t_uint64 pa);
 INLINE t_uint64 ReadPL (t_uint64 pa);
 INLINE t_uint64 ReadPQ (t_uint64 pa);
-t_bool ReadIO (t_uint64 pa, t_uint64 *val, uint32 lnt);
+bool ReadIO (t_uint64 pa, t_uint64 *val, uint32 lnt);
 void WriteB (t_uint64 va, t_uint64 dat);
 void WriteW (t_uint64 va, t_uint64 dat);
 void WriteL (t_uint64 va, t_uint64 dat);
@@ -450,7 +451,7 @@ INLINE void WritePB (t_uint64 pa, t_uint64 dat);
 INLINE void WritePW (t_uint64 pa, t_uint64 dat);
 INLINE void WritePL (t_uint64 pa, t_uint64 dat);
 INLINE void WritePQ (t_uint64 pa, t_uint64 dat);
-t_bool WriteIO (t_uint64 pa, t_uint64 val, uint32 lnt);
+bool WriteIO (t_uint64 pa, t_uint64 val, uint32 lnt);
 t_uint64 trans_i (t_uint64 va);
 t_uint64 trans_d (t_uint64 va, uint32 acc);
 t_uint64 trans_c (t_uint64 va);

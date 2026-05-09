@@ -39,6 +39,7 @@
  *                                                                       *
  *************************************************************************/
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "wd179x.h"
 
@@ -131,10 +132,10 @@ static t_stat tdd_reset(DEVICE *dptr)
 
     if(dptr->flags & DEV_DIS) { /* Disconnect ROM and I/O Ports */
         /* Unmap I/O Ports */
-        sim_map_resource(pnp->io_base, 1, RESOURCE_TYPE_IO, &tdd_control, "tdd_control", TRUE);
+        sim_map_resource(pnp->io_base, 1, RESOURCE_TYPE_IO, &tdd_control, "tdd_control", true);
     } else {
         /* Connect TDD Disk Flags and Control Register */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &tdd_control, "tdd_control", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &tdd_control, "tdd_control", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }

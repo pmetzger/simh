@@ -3,6 +3,7 @@
 // SPDX-FileCopyrightText: 2011 William A. Beech
 // SPDX-License-Identifier: X11
 
+#include <stdbool.h>
 #include "i8080_symbol_internal.h"
 
 /*
@@ -369,54 +370,54 @@ static int parse_register(char ch)
  * Match an opcode table spelling against user input with case-insensitive
  * text and normalized whitespace.
  */
-static t_bool i8080_symbol_text_matches(const char *input, const char *symbol,
+static bool i8080_symbol_text_matches(const char *input, const char *symbol,
                                         const char **remaining)
 {
     while (*symbol != '\0') {
         if (isspace((unsigned char)*symbol)) {
             if (!isspace((unsigned char)*input))
-                return FALSE;
+                return false;
             input = skip_spaces(input);
             symbol = skip_spaces(symbol);
             continue;
         }
 
         if (toupper((unsigned char)*input) != (unsigned char)*symbol)
-            return FALSE;
+            return false;
         input++;
         symbol++;
     }
 
     *remaining = input;
-    return TRUE;
+    return true;
 }
 
 /*
  * Match one explicitly modeled register operand.
  */
-static t_bool match_register_operand(const char *text, char reg,
+static bool match_register_operand(const char *text, char reg,
                                      const char **remaining)
 {
     if (!isspace((unsigned char)*text))
-        return FALSE;
+        return false;
 
     text = skip_spaces(text);
     if (toupper((unsigned char)*text) != reg)
-        return FALSE;
+        return false;
 
     text++;
     *remaining = text;
-    return TRUE;
+    return true;
 }
 
 /*
  * Match one explicitly modeled text operand, such as a register pair.
  */
-static t_bool match_text_operand(const char *text, const char *operand,
+static bool match_text_operand(const char *text, const char *operand,
                                  const char **remaining)
 {
     if (!isspace((unsigned char)*text))
-        return FALSE;
+        return false;
 
     text = skip_spaces(text);
     return i8080_symbol_text_matches(text, operand, remaining);
@@ -425,30 +426,30 @@ static t_bool match_text_operand(const char *text, const char *operand,
 /*
  * Parse a MOV destination/source register pair.
  */
-static t_bool parse_mov_operands(const char *text, int *dst, int *src)
+static bool parse_mov_operands(const char *text, int *dst, int *src)
 {
     if (!isspace((unsigned char)*text))
-        return FALSE;
+        return false;
 
     text = skip_spaces(text);
     *dst = parse_register(*text);
     if (*dst < 0)
-        return FALSE;
+        return false;
     text++;
 
     text = skip_spaces(text);
     if (*text != ',')
-        return FALSE;
+        return false;
     text++;
 
     text = skip_spaces(text);
     *src = parse_register(*text);
     if (*src < 0)
-        return FALSE;
+        return false;
     text++;
 
     if (*dst == 6 && *src == 6)
-        return FALSE;
+        return false;
 
     text = skip_spaces(text);
     return *text == '\0';
@@ -457,14 +458,14 @@ static t_bool parse_mov_operands(const char *text, int *dst, int *src)
 /*
  * Parse an RST restart number.
  */
-static t_bool parse_rst_operand(const char *text, uint8 *rst)
+static bool parse_rst_operand(const char *text, uint8 *rst)
 {
     if (!isspace((unsigned char)*text))
-        return FALSE;
+        return false;
 
     text = skip_spaces(text);
     if (*text < '0' || *text > '7')
-        return FALSE;
+        return false;
 
     *rst = (uint8)(*text - '0');
     text++;
@@ -476,7 +477,7 @@ static t_bool parse_rst_operand(const char *text, uint8 *rst)
  * Parse a byte or word operand in the same hex notation emitted by
  * fprint_sym().
  */
-static t_bool i8080_parse_hex_operand(const char *text, int max_digits,
+static bool i8080_parse_hex_operand(const char *text, int max_digits,
                                       uint32 *value)
 {
     int digit;
@@ -486,21 +487,21 @@ static t_bool i8080_parse_hex_operand(const char *text, int max_digits,
     text = skip_spaces(text);
     while ((digit = hex_digit_value((unsigned char)*text)) >= 0) {
         if (digits == max_digits)
-            return FALSE;
+            return false;
         parsed = (parsed << 4) | (uint32)digit;
         digits++;
         text++;
     }
 
     if (digits == 0)
-        return FALSE;
+        return false;
 
     text = skip_spaces(text);
     if (*text != '\0')
-        return FALSE;
+        return false;
 
     *value = parsed;
-    return TRUE;
+    return true;
 }
 
 /*

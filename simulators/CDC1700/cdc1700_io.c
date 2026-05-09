@@ -28,23 +28,24 @@
 /* cdc1700_io.c: CDC1700 I/O subsystem
  */
 
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 extern char INTprefix[];
 
-extern t_bool inProtectedMode(void);
+extern bool inProtectedMode(void);
 extern uint16 dev1INTR(DEVICE *);
 extern uint16 cpuINTR(DEVICE *);
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
-extern enum IOstatus fw_doIO(DEVICE *, t_bool);
+extern enum IOstatus fw_doIO(DEVICE *, bool);
 
 extern uint16 Areg, Mreg, Preg, OrigPreg, Qreg, Pending, IOAreg, IOQreg, M[];
 extern uint8 Protected, INTflag;
 extern t_uint64 Instructions;
 
-extern t_bool FirstRejSeen;
+extern bool FirstRejSeen;
 extern uint32 CountRejects;
 
 extern DEVICE cpu_dev, dca_dev, dcb_dev, dcc_dev, tti_dev, tto_dev,
@@ -69,7 +70,7 @@ static const char *status[] = {
  * (e.g. The Disk Pack Controller) using DSA (Direct Storage Access).
  */
 
-typedef enum IOstatus devIO(DEVICE *, t_bool);
+typedef enum IOstatus devIO(DEVICE *, bool);
 
 /*
  * There can be up to 16 equipment addresses.
@@ -259,9 +260,9 @@ void rebuildPending(void)
 /*
  * Handle generic director function(s) for a device. The function request is
  * in IOAreg and the bits will be cleared in IOAreg as they are processed.
- * Return TRUE if an explicit change was made to the device interrupt mask.
+ * Return true if an explicit change was made to the device interrupt mask.
  */
-t_bool doDirectorFunc(DEVICE *dptr, t_bool allowStacked)
+bool doDirectorFunc(DEVICE *dptr, bool allowStacked)
 {
   IO_DEVICE *iod = (IO_DEVICE *)dptr->ctxt;
 
@@ -303,7 +304,7 @@ t_bool doDirectorFunc(DEVICE *dptr, t_bool allowStacked)
      */
     if (!allowStacked) {
       IOAreg = 0;
-      return FALSE;
+      return false;
     }
     IOAreg &= ~(IO_DIR_CINT | IO_DIR_CCONT);
   }
@@ -315,9 +316,9 @@ t_bool doDirectorFunc(DEVICE *dptr, t_bool allowStacked)
     iod->iod_oldienable = iod->iod_ienable;
     iod->iod_ienable |= Areg & iod->iod_imask;
     IOAreg &= ~iod->iod_imask;
-    return TRUE;
+    return true;
   }
-  return FALSE;
+  return false;
 }
 
 /*
@@ -325,7 +326,7 @@ t_bool doDirectorFunc(DEVICE *dptr, t_bool allowStacked)
  * on the 1706 buffered data channel devices since it is not relevant in the
  * emulation environment.
  */
-enum IOstatus doIO(t_bool output, DEVICE **device)
+enum IOstatus doIO(bool output, DEVICE **device)
 {
   enum IOstatus result;
   DEVICE *dev;
@@ -507,7 +508,7 @@ enum IOstatus doIO(t_bool output, DEVICE **device)
 /*
  * Default I/O routine for devices which are not present
  */
-static enum IOstatus notPresent(DEVICE *dev, t_bool output)
+static enum IOstatus notPresent(DEVICE *dev, bool output)
 {
   /* Generic device I/O signature.
      This implementation does not use every parameter. */

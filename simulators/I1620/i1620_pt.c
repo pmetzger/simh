@@ -41,6 +41,7 @@
    25-Apr-03    RMS     Revised for extended file support
 */
 
+#include <stdbool.h>
 #include "i1620_defs.h"
 
 #define PT_EL   0x80                                    /* end record */
@@ -61,7 +62,7 @@ extern uint32 PAR, cpuio_opc, cpuio_cnt;
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
 t_stat ptr_boot (int32 unitno, DEVICE *dptr);
-t_stat ptr_read (uint8 *c, t_bool ignfeed);
+t_stat ptr_read (uint8 *c, bool ignfeed);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptp_reset (DEVICE *dptr);
 t_stat ptp_write (uint32 c);
@@ -288,7 +289,7 @@ if ((uptr->flags & UNIT_ATT) == 0)                      /* not attached? */
 switch (cpuio_opc) {
 
     case OP_RN:                                         /* read numeric */
-        r = ptr_read (&ptc, TRUE);                      /* read frame */
+        r = ptr_read (&ptc, true);                      /* read frame */
         if (r != SCPE_OK)                               /* error? */
             return r;
         if (ptc & PT_EL) {                              /* end record? */
@@ -306,7 +307,7 @@ switch (cpuio_opc) {
         return SCPE_OK;
 
     case OP_RA:                                         /* read alphameric */
-        r = ptr_read (&ptc, TRUE);                      /* read frame */
+        r = ptr_read (&ptc, true);                      /* read frame */
         if (r != SCPE_OK)                               /* error? */
         return r;
         if (ptc & PT_EL) {                              /* end record? */
@@ -348,7 +349,7 @@ return SCPE_OK;
 
 /* Read ptr frame - all errors are 'hard' errors and halt the system */
 
-t_stat ptr_read (uint8 *c, t_bool ignfeed)
+t_stat ptr_read (uint8 *c, bool ignfeed)
 {
 int32 temp;
 

@@ -72,8 +72,9 @@
 */
 
 #include "pdp10_defs.h"
-#include <setjmp.h>
 #include <ctype.h>
+#include <setjmp.h>
+#include <stdbool.h>
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
@@ -235,10 +236,10 @@ DIB *std_dib[] = {                                      /* standard DIBs */
 
 /* IO 710       (DEC) TIOE - test I/O word, skip if zero
                 (ITS) IORDI - read word from Unibus 3
-                returns TRUE if skip, FALSE otherwise
+                returns true if skip, false otherwise
 */
 
-t_bool io710 (int32 ac, a10 ea)
+bool io710 (int32 ac, a10 ea)
 {
 d10 val;
 
@@ -247,17 +248,17 @@ if (Q_ITS)                                              /* IORDI */
 else {                                                  /* TIOE */
     val = ReadIO (ea);                                  /* read word */
     if ((AC(ac) & val) == 0)
-        return TRUE;
+        return true;
     }
-return FALSE;
+return false;
 }
 
 /* IO 711       (DEC) TION - test I/O word, skip if non-zero
                 (ITS) IORDQ - read word from Unibus 1
-                returns TRUE if skip, FALSE otherwise
+                returns true if skip, false otherwise
 */
 
-t_bool io711 (int32 ac, a10 ea)
+bool io711 (int32 ac, a10 ea)
 {
 d10 val;
 
@@ -266,9 +267,9 @@ if (Q_ITS)                                              /* IORDQ */
 else {                                                  /* TION */
     val = ReadIO (ea);                                  /* read word */
     if ((AC(ac) & val) != 0)
-        return TRUE;
+        return true;
     }
-return FALSE;
+return false;
 }
 
 /* IO 712       (DEC) RDIO - read I/O word, addr in ea
@@ -328,10 +329,10 @@ return;
 
 /* IO 720       (DEC) TIOEB - test I/O byte, skip if zero
                 (ITS) IORDBI - read byte from Unibus 3
-                returns TRUE if skip, FALSE otherwise
+                returns true if skip, false otherwise
 */
 
-t_bool io720 (int32 ac, a10 ea)
+bool io720 (int32 ac, a10 ea)
 {
 d10 val;
 
@@ -343,17 +344,17 @@ else {                                                  /* TIOEB */
     val = ReadIO (eaRB);
     val = GETBYTE (ea, val);
     if ((AC(ac) & val) == 0)
-        return TRUE;
+        return true;
     }
-return FALSE;
+return false;
 }
 
 /* IO 721       (DEC) TIONB - test I/O word, skip if non-zero
                 (ITS) IORDBQ - read word from Unibus 1
-                returns TRUE if skip, FALSE otherwise
+                returns true if skip, false otherwise
 */
 
-t_bool io721 (int32 ac, a10 ea)
+bool io721 (int32 ac, a10 ea)
 {
 d10 val;
 
@@ -365,9 +366,9 @@ else {                                                  /* TIONB */
     val = ReadIO (eaRB);
     val = GETBYTE (ea, val);
     if ((AC(ac) & val) != 0)
-        return TRUE;
+        return true;
     }
-return FALSE;
+return false;
 }
 
 /* IO 722       (DEC) RDIOB - read I/O byte, addr in ea
@@ -663,7 +664,7 @@ if (seg) {                                              /* Unaligned head */
         --seg;
         break;
     default:
-        ASSURE (FALSE);
+        ASSURE (false);
         }
     if (bc == 0) {
         uba_debug_dma_out (dpy_ba, dpy_pa10, pa10);
@@ -729,7 +730,7 @@ if (bc) {
         buf[0] = (uint8) ((m >> V_BYTE0) & M_BYTE);
         break;
     default:
-        ASSURE (FALSE);
+        ASSURE (false);
         }
     }
 
@@ -1089,7 +1090,7 @@ if (seg) {                                      /* Unaligned head */
         --seg;
         break;
     default:
-        ASSURE (FALSE);
+        ASSURE (false);
         }
     M[pa10++] = m;
     if (bc == 0) {
@@ -1150,7 +1151,7 @@ if (bc) {
             m = (m & M_BYTE0) | (((d10) (buf[0])) << V_BYTE0);
             break;
         default:
-            ASSURE (FALSE);
+            ASSURE (false);
             }
         }
     else {
@@ -1166,7 +1167,7 @@ if (bc) {
             m = ((d10) (buf[0])) << V_BYTE0;
             break;
         default:
-            ASSURE (FALSE);
+            ASSURE (false);
             }
         }
     M[pa10++] = m;
@@ -1888,7 +1889,7 @@ return show_vec (st, uptr, ((mp->lines * 2) / arg), desc);
 
 /* Test for conflict in device addresses */
 
-static t_bool dev_conflict (DIB *curr)
+static bool dev_conflict (DIB *curr)
 {
 uint32 i, end;
 DEVICE *dptr;
@@ -1906,10 +1907,10 @@ for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* loop thru dev */
         (end < (dibp->ba + dibp->lnt)))) {
         sim_printf ("Device %s address conflict at %08o\n",
                     sim_dname (dptr), dibp->ba);
-        return TRUE;
+        return true;
         }
     }
-return FALSE;
+return false;
 }
 
 /* Build interrupt tables */

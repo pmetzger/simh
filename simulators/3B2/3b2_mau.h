@@ -142,6 +142,7 @@
 #ifndef _3B2_REV2_MAU_H_
 #define _3B2_REV2_MAU_H_
 
+#include <stdbool.h>
 #include "sim_defs.h"
 
 #define SRC_LEN_INVALID   0
@@ -221,7 +222,7 @@
 #define PACK_XFP(SIGN,EXP,FRAC,V)    do {               \
         (V)->frac = (FRAC);                             \
         (V)->sign_exp = ((uint16)(SIGN) << 15) + (EXP); \
-        (V)->s = FALSE;                                 \
+        (V)->s = false;                                 \
     } while (0)
 
 #define PACK_XFP_S(SIGN,EXP,FRAC,S,V)   do {             \
@@ -321,7 +322,7 @@ typedef struct {
 typedef struct {
     uint32 sign_exp;  /* Sign and Exponent */
     t_uint64 frac;    /* Fraction/Significand/Mantissa */
-    t_bool s;         /* Sticky bit */
+    bool s;           /* Sticky bit */
 } XFP;
 
 typedef struct {
@@ -359,9 +360,9 @@ typedef struct {
     uint32   exception;
     /* Status register */
     uint32   asr;
-    t_bool   trapping_nan;
+    bool     trapping_nan;
     /* Generate a Non-Trapping NaN */
-    t_bool   ntnan;
+    bool     ntnan;
     /* Source (from broadcast) */
     uint32   src;
     /* Destination (from broadcast) */

@@ -31,6 +31,7 @@
 #ifndef _3B2_REV3_MMU_H_
 #define _3B2_REV3_MMU_H_
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 #define MMU_SRS         4        /* Section RAM array size (words) */
@@ -310,9 +311,9 @@ typedef struct {
  */
 
 typedef struct _mmu_state {
-    t_bool enabled;         /* Global enabled/disabled flag */
+    bool enabled;           /* Global enabled/disabled flag */
 
-    t_bool flush_u;         /* If true, flush all but last cached entry */
+    bool flush_u;           /* If true, flush all but last cached entry */
     uint32 last_cached;     /* The index of the last cached PDC entry */
 
     uint32 sdcl[MMU_SDCS];  /* SDC low bits (0-31) */
@@ -345,9 +346,9 @@ const char *mmu_description(DEVICE *dptr);
 /* Virtual memory translation */
 uint32 mmu_xlate_addr(uint32 va, uint8 r_acc);
 t_stat mmu_decode_vaddr(uint32 vaddr, uint8 r_acc,
-                        t_bool fc, uint32 *pa);
+                        bool fc, uint32 *pa);
 
-t_stat mmu_decode_va(uint32 va, uint8 r_acc, t_bool fc, uint32 *pa);
+t_stat mmu_decode_va(uint32 va, uint8 r_acc, bool fc, uint32 *pa);
 void   mmu_enable(void);
 void   mmu_disable(void);
 

@@ -219,9 +219,9 @@
 
    The channel simulator provides these global objects:
 
-     t_bool sel_is_idle
+     bool sel_is_idle
 
-       TRUE if the selector channel is idle; FALSE otherwise.  Corresponds to
+       true if the selector channel is idle; false otherwise.  Corresponds to
        the hardware SIOENABLE signal and reflects the value of the Selector
        Active flip-flop.  Used by device interfaces to qualify their SIO OK
        status bits.
@@ -244,10 +244,10 @@
        synchronously.  Sets the service_request flag in the DIB and sets
        sel_request.
 
-     t_bool sel_request
+     bool sel_request
 
-       TRUE if an interface is requesting service from the selector channel or
-       the channel is servicing an internal request; FALSE otherwise.
+       true if an interface is requesting service from the selector channel or
+       the channel is servicing an internal request; false otherwise.
        Corresponds to the CHANSR signal received by the channel.  Used by the
        CPU to determine if a request is pending and the selector channel service
        routine should be called.
@@ -257,7 +257,7 @@
        Called in the instruction execution prelude to allow devices to be
        reassigned or reset.  If a device is under channel control, the routine
        reestablishes the device number for the channel.  It also sets
-       sel_request TRUE if the device has a service request pending or FALSE
+       sel_request true if the device has a service request pending or false
        otherwise.
 
      sel_service (uint32)
@@ -292,6 +292,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_cpu_ims.h"
 #include "hp3000_io.h"
@@ -384,8 +385,8 @@ static const char *const action_name [] = {     /* indexed by SEQ_STATE */
 
 /* Channel global state */
 
-t_bool sel_is_idle = TRUE;                      /* TRUE if the channel is idle */
-t_bool sel_request = FALSE;                     /* TRUE if the channel sequencer is to be invoked */
+bool sel_is_idle = true;                        /* true if the channel is idle */
+bool sel_request = false;                       /* true if the channel sequencer is to be invoked */
 
 
 /* Channel local state */
@@ -394,8 +395,8 @@ static SEQ_STATE sequencer = Idle_Sequence;     /* the current sequencer executi
 static SIO_ORDER order;                         /* the current SIO order */
 static DIB      *active_dib;                    /* a pointer to the participating interface's DIB */
 static uint32    device_index;                  /* the index into the device table */
-static t_bool    prefetch_control;              /* TRUE if the IOCW should be prefetched */
-static t_bool    prefetch_address;              /* TRUE if the IOAW should be prefetched */
+static bool      prefetch_control;              /* true if the IOCW should be prefetched */
+static bool      prefetch_address;              /* true if the IOAW should be prefetched */
 
 static uint32    device_number;                 /* the participating interface's device number */
 static uint32    bank;                          /* the transfer bank register */
@@ -538,7 +539,7 @@ void sel_initialize (void)
 {
 SIGNALS_DATA outbound;
 
-if (sel_is_idle == FALSE) {                                         /* if the channel is controlling a device */
+if (sel_is_idle == false) {                                         /* if the channel is controlling a device */
     active_dib = (DIB *) sim_devices [device_index]->ctxt;          /*   then restore the active DIB pointer */
 
     outbound = active_dib->io_interface (active_dib, DEVNODB, 0);   /* see if the device responds to DEVNODB */
@@ -586,8 +587,8 @@ if (sel_is_idle) {                                      /* if the channel is idl
     dprintf (sel_dev, DEB_CSRW, "Device number %u asserted REQ for channel initialization\n",
              dibptr->device_number);
 
-    sel_is_idle = FALSE;                                /* the channel is now busy */
-    sel_request = TRUE;                                 /* set the request flag */
+    sel_is_idle = false;                                /* the channel is now busy */
+    sel_request = true;                                 /* set the request flag */
 
     sequencer = Fetch_Sequence;                         /* initialize the sequencer */
     bank = 0;                                           /* set the bank to bank 0 */
@@ -639,8 +640,8 @@ void sel_assert_CHANSR (DIB *dibptr)
 dprintf (sel_dev, DEB_SR, "Device number %u asserted CHANSR\n",
          device_number);
 
-dibptr->service_request = TRUE;                         /* set the service request flag in the interface */
-sel_request = TRUE;                                     /*   and the selector request flag */
+dibptr->service_request = true;                         /* set the service request flag in the interface */
+sel_request = true;                                     /*   and the selector request flag */
 
 return;
 }
@@ -720,7 +721,7 @@ return;
    that the latter needs an external service request (i.e., CHANSR assertion)
    only for operations on the interface.  All other channel operations apply an
    internal service request and so occur automatically without CHANSR being
-   asserted.  In simulation, sel_request is set TRUE during channel
+   asserted.  In simulation, sel_request is set true during channel
    initialization and is only cleared when the channel is waiting for a response
    from the interface during a control, read, or write operation.  The following
    signal assertions to the interface must return CHANSR to permit the channel
@@ -821,7 +822,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
     switch (sequencer) {                                /* dispatch based on the selector state */
 
         case Idle_Sequence:                             /* if the selector is idle */
-            sel_request = FALSE;                        /*   then the request is invalid */
+            sel_request = false;                        /*   then the request is invalid */
             break;
 
 
@@ -876,7 +877,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
                 case sioCNTL:
                     inbound_signals = PCMD1 | CHANSO;
 
-                    sel_request = FALSE;                /* wait until the interface requests the next word */
+                    sel_request = false;                /* wait until the interface requests the next word */
                     break;
 
                 case sioSENSE:
@@ -888,7 +889,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
                     inbound_signals = TOGGLEOUTXFER | CHANSO;
 
                     word_count = IOCW_WCNT (control_word);  /* load the word count */
-                    sel_request = FALSE;                    /* wait until the interface requests the next word */
+                    sel_request = false;                    /* wait until the interface requests the next word */
                     break;
 
                 case sioREAD:
@@ -896,7 +897,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
                     inbound_signals = TOGGLEINXFER | READNEXTWD | CHANSO;
 
                     word_count = IOCW_WCNT (control_word);  /* load the word count */
-                    sel_request = FALSE;                    /* wait until the interface requests the next word */
+                    sel_request = false;                    /* wait until the interface requests the next word */
                     break;
 
                 default:                                /* needed to quiet warning about inbound_signals */
@@ -969,8 +970,8 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
                     break;
 
                 case sioCNTL:
-                    prefetch_control = FALSE;                   /* prefetching is not used */
-                    prefetch_address = FALSE;                   /*   for the Control order */
+                    prefetch_control = false;                   /* prefetching is not used */
+                    prefetch_address = false;                   /*   for the Control order */
 
                     sim_activate (&sel_unit [0], sel_unit [0].wait);    /* start the SR timer */
                     sequencer = Wait_Sequence;                          /*   and check for a timeout */
@@ -993,7 +994,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
                     if (prefetch_control) {                     /* if control word prefetching is enabled */
                         load_control (&control_buffer);         /*   then prefetch the next IOCW into the buffer */
                         cycles = cycles - CYCLES_PER_PREFETCH;  /*     and count the sequencer time */
-                        prefetch_control = FALSE;               /* mark the job done */
+                        prefetch_control = false;               /* mark the job done */
                         }
 
                     sim_activate (&sel_unit [0], sel_unit [0].wait);    /* start the SR timer */
@@ -1017,7 +1018,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
             if (order == sioCNTL) {                     /* if this is a Control order */
                 inbound_data = address_word;            /*   then supply the control word */
                 inbound_signals = PCONTSTB | CHANSO;    /*     to the interface */
-                sel_request = FALSE;                    /* wait until the interface confirms receipt */
+                sel_request = false;                    /* wait until the interface confirms receipt */
                 }
 
             else if (order == sioREAD || order == sioREADC) {   /* otherwise if this is a Read or Read Chained order */
@@ -1033,7 +1034,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
                 else                                            /* otherwise the transfer continues */
                     inbound_signals |= READNEXTWD;              /*   with the next word */
 
-                sel_request = FALSE;                            /* wait until the interface confirms receipt */
+                sel_request = false;                            /* wait until the interface confirms receipt */
                 }
 
             else {                                                  /* otherwise it's a Write or Write Chained order */
@@ -1051,7 +1052,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
                         else                                        /*   otherwise */
                             inbound_signals |= EOT | TOGGLEOUTXFER; /*     end the transfer block */
 
-                    sel_request = FALSE;                            /* wait until the interface confirms receipt */
+                    sel_request = false;                            /* wait until the interface confirms receipt */
                     }
 
                 else {                                                  /* otherwise the memory read failed */
@@ -1071,13 +1072,13 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
                 if (prefetch_control) {                     /*   then if control word prefetching is enabled */
                     load_control (&control_buffer);         /*     then prefetch the next IOCW into the buffer */
                     cycles = cycles - CYCLES_PER_PREFETCH;  /*       and count the sequencer time */
-                    prefetch_control = FALSE;               /* mark the job done */
+                    prefetch_control = false;               /* mark the job done */
                     }
 
                 else if (prefetch_address) {                /*   otherwise if address word prefetching is enabled */
                     load_address (&address_buffer);         /*     then prefetch the next IOAW into the buffer */
                     cycles = cycles - CYCLES_PER_PREFETCH;  /*       and count the sequencer time */
-                    prefetch_address = FALSE;               /* mark the job done */
+                    prefetch_address = false;               /* mark the job done */
                     }
 
             if (order == sioCNTL) {                                 /* if this is a Control order */
@@ -1175,11 +1176,11 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
     if (outbound & INTREQ)                              /* if an interrupt request was asserted */
         iop_assert_INTREQ (active_dib);                 /*   then set it up */
 
-    if (sel_is_idle == FALSE)                           /* if the channel is still running */
+    if (sel_is_idle == false)                           /* if the channel is still running */
         if (outbound & CHANSR)                          /*   then if the interface requested service */
             sel_assert_CHANSR (active_dib);             /*     then set it up */
         else                                            /*   otherwise */
-            active_dib->service_request = FALSE;        /*     clear the current service request */
+            active_dib->service_request = false;        /*     clear the current service request */
 
     else                                                /* otherwise the channel has stopped */
         sim_cancel (&sel_unit [0]);                     /*   so cancel the CHANSR timer */
@@ -1251,8 +1252,8 @@ static t_stat sel_reset (DEVICE *dptr)
 
 rollover = CLEAR;                                       /* clear the word count rollover flip-flop */
 
-sel_is_idle = TRUE;                                     /* the channel is now inactive */
-sel_request = FALSE;                                    /* clear the request flag */
+sel_is_idle = true;                                     /* the channel is now inactive */
+sel_request = false;                                    /* clear the request flag */
 
 sequencer = Idle_Sequence;                              /* stop the sequencer */
 
@@ -1283,7 +1284,7 @@ static void end_channel (DIB *dibptr)
 port_write_memory (absolute, device_number * 4,         /* write the program counter back to the DRT */
                    program_counter);
 
-dibptr->service_request = FALSE;                        /* clear any outstanding device service request */
+dibptr->service_request = false;                        /* clear any outstanding device service request */
 
 sel_reset (&sel_dev);                                   /* perform a Clear Logic operation */
 

@@ -29,6 +29,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i7000_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -57,7 +58,7 @@
 */
 
 uint32              cdp_cmd(UNIT *, uint16, uint16);
-void                cdp_ini(UNIT *, t_bool);
+void                cdp_ini(UNIT *, bool);
 t_stat              cdp_srv(UNIT *);
 t_stat              cdp_reset(DEVICE *);
 t_stat              cdp_attach(UNIT *, const char *);
@@ -344,7 +345,7 @@ cdp_reset(DEVICE *dptr) {
 }
 
 void
-cdp_ini(UNIT *uptr, t_bool f) {
+cdp_ini(UNIT *uptr, bool f) {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void)f;

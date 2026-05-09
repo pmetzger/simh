@@ -52,6 +52,7 @@
 
 #include "sim_defs.h"                                   /* simulator defns */
 #include <setjmp.h>
+#include <stdbool.h>
 
 #if defined(USE_ADDR64)
 #error "PDP-10 does not support 64b addresses!"
@@ -641,7 +642,7 @@ typedef struct pdp_dib DIB;
 #define DEV_QBUS        (1u << DEV_V_QBUS)
 #define DEV_Q18         (1u << DEV_V_Q18)
 
-#define UNIBUS          TRUE                            /* 18b only */
+#define UNIBUS          true                            /* 18b only */
 
 #define DEV_RDX         8                               /* default device radix */
 
@@ -784,59 +785,59 @@ extern d10 ReadP (a10 ea);                              /* read, physical */
 extern void Write (a10 ea, d10 val, int32 prv);         /* write */
 extern void WriteE (a10 ea, d10 val);                   /* write, exec */
 extern void WriteP (a10 ea, d10 val);                   /* write, physical */
-extern t_bool AccViol (a10 ea, int32 prv, int32 mode);  /* access check */
+extern bool AccViol (a10 ea, int32 prv, int32 mode);    /* access check */
 extern d10 imul (d10 val, d10 mb);
-extern t_bool idiv (d10 val, d10 mb, d10 *rs);
+extern bool idiv (d10 val, d10 mb, d10 *rs);
 extern void mul (d10 val, d10 mb, d10 *rs);
-extern t_bool divi (int32 ac, d10 mb, d10 *rs);
+extern bool divi (int32 ac, d10 mb, d10 *rs);
 extern void dmul (int32 ac, d10 *rs);
 extern void ddiv (int32 ac, d10 *rs);
-extern d10 fad (d10 val, d10 mb, t_bool rnd, int32 inv);
-extern d10 fmp (d10 val, d10 mb, t_bool rnd);
-extern t_bool fdv (d10 val, d10 mb, d10 *rs, t_bool rnd);
+extern d10 fad (d10 val, d10 mb, bool rnd, int32 inv);
+extern d10 fmp (d10 val, d10 mb, bool rnd);
+extern bool fdv (d10 val, d10 mb, d10 *rs, bool rnd);
 extern d10 fsc (d10 val, a10 ea);
 extern d10 fltr (d10 mb);
-extern void fix (int32 ac, d10 mb, t_bool rnd);
+extern void fix (int32 ac, d10 mb, bool rnd);
 extern void dfad (int32 ac, d10 *rs, int32 inv);
 extern void dfmp (int32 ac, d10 *rs);
 extern void dfdv (int32 ac, d10 *rs);
-extern t_bool rdtim (a10 ea, int32 prv);
-extern t_bool rdint (a10 ea, int32 prv);
-extern t_bool wrtim (a10 ea, int32 prv);
-extern t_bool wrint (a10 ea, int32 prv);
+extern bool rdtim (a10 ea, int32 prv);
+extern bool rdint (a10 ea, int32 prv);
+extern bool wrtim (a10 ea, int32 prv);
+extern bool wrint (a10 ea, int32 prv);
 extern t_stat tim_set_mod (UNIT *uptr, int32 val, const char *cptr, void *desc);
 extern void fe_intr (void);
 extern void set_dyn_ptrs (void);
 extern d10 map (a10 ea, int32 prv);
 extern a10 conmap (a10 ea, int32 mode, int32 sw);
-extern t_bool clrpt (a10 ea, int32 prv);
-extern t_bool wrebr (a10 ea, int32 prv);
-extern t_bool rdebr (a10 ea, int32 prv);
-extern t_bool wrubr (a10 ea, int32 prv);
-extern t_bool rdubr (a10 ea, int32 prv);
-extern t_bool wrhsb (a10 ea, int32 prv);
-extern t_bool rdhsb (a10 ea, int32 prv);
-extern t_bool wrspb (a10 ea, int32 prv);
-extern t_bool rdspb (a10 ea, int32 prv);
-extern t_bool wrcsb (a10 ea, int32 prv);
-extern t_bool rdcsb (a10 ea, int32 prv);
-extern t_bool wrpur (a10 ea, int32 prv);
-extern t_bool rdpur (a10 ea, int32 prv);
-extern t_bool wrcstm (a10 ea, int32 prv);
-extern t_bool rdcstm (a10 ea, int32 prv);
-extern t_bool clrcsh (a10 ea, int32 prv);
-extern t_bool ldbr1 (a10 ea, int32 prv);
-extern t_bool sdbr1 (a10 ea, int32 prv);
-extern t_bool ldbr2 (a10 ea, int32 prv);
-extern t_bool sdbr2 (a10 ea, int32 prv);
-extern t_bool ldbr3 (a10 ea, int32 prv);
-extern t_bool sdbr3 (a10 ea, int32 prv);
-extern t_bool ldbr4 (a10 ea, int32 prv);
-extern t_bool sdbr4 (a10 ea, int32 prv);
-extern t_bool wrpcst (a10 ea, int32 prv);
-extern t_bool rdpcst (a10 ea, int32 prv);
-extern t_bool lpmr (a10 ea, int32 prv);
-extern t_bool spm (a10 ea, int32 prv);
+extern bool clrpt (a10 ea, int32 prv);
+extern bool wrebr (a10 ea, int32 prv);
+extern bool rdebr (a10 ea, int32 prv);
+extern bool wrubr (a10 ea, int32 prv);
+extern bool rdubr (a10 ea, int32 prv);
+extern bool wrhsb (a10 ea, int32 prv);
+extern bool rdhsb (a10 ea, int32 prv);
+extern bool wrspb (a10 ea, int32 prv);
+extern bool rdspb (a10 ea, int32 prv);
+extern bool wrcsb (a10 ea, int32 prv);
+extern bool rdcsb (a10 ea, int32 prv);
+extern bool wrpur (a10 ea, int32 prv);
+extern bool rdpur (a10 ea, int32 prv);
+extern bool wrcstm (a10 ea, int32 prv);
+extern bool rdcstm (a10 ea, int32 prv);
+extern bool clrcsh (a10 ea, int32 prv);
+extern bool ldbr1 (a10 ea, int32 prv);
+extern bool sdbr1 (a10 ea, int32 prv);
+extern bool ldbr2 (a10 ea, int32 prv);
+extern bool sdbr2 (a10 ea, int32 prv);
+extern bool ldbr3 (a10 ea, int32 prv);
+extern bool sdbr3 (a10 ea, int32 prv);
+extern bool ldbr4 (a10 ea, int32 prv);
+extern bool sdbr4 (a10 ea, int32 prv);
+extern bool wrpcst (a10 ea, int32 prv);
+extern bool rdpcst (a10 ea, int32 prv);
+extern bool lpmr (a10 ea, int32 prv);
+extern bool spm (a10 ea, int32 prv);
 extern int xtend (int32 ac, int32 ea, int32 pflgs);
 extern void xtcln (int32 rlog);
 

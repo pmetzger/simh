@@ -38,6 +38,7 @@
 
 #include "sigma_io_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 /* Constants */
 
@@ -131,10 +132,10 @@ t_stat rad_svc (UNIT *uptr);
 t_stat rad_reset (DEVICE *dptr);
 t_stat rad_settype (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat rad_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_bool rad_inv_ad (uint32 *da);
-t_bool rad_inc_ad (void);
-t_bool rad_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
-t_bool rad_wp_trk (uint32 adr);
+bool rad_inv_ad (uint32 *da);
+bool rad_inc_ad (void);
+bool rad_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
+bool rad_wp_trk (uint32 adr);
 
 /* RAD data structures
 
@@ -417,13 +418,13 @@ return SCPE_OK;
 
 /* Common read/write sector end routine
 
-   case 1 - more to transfer, not end disk - reschedule, return TRUE
-   case 2 - more to transfer, end disk - uend, return TRUE
-   case 3 - transfer done, length error - uend, return TRUE
-   case 4 - transfer done, no length error - return FALSE (sched end state)
+   case 1 - more to transfer, not end disk - reschedule, return true
+   case 2 - more to transfer, end disk - uend, return true
+   case 3 - transfer done, length error - uend, return true
+   case 4 - transfer done, no length error - return false (sched end state)
 */
 
-t_bool rad_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
+bool rad_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
 {
 uint32 un = uptr - rad_unit;
 uint32 dva = rad_dib.dva | un;
@@ -432,13 +433,13 @@ if (st != CHS_ZBC) {                                    /* end record? */
     if (rad_inc_ad ())                                  /* inc addr, ovf? */
         chan_uen (dva);                                 /* uend */
     else sim_activate (uptr, rad_time * 16);            /* no, next sector */
-    return TRUE;
+    return true;
     }
 rad_inc_ad ();                                          /* just incr addr */
 if ((lnt != exp) &&                                     /* length error? */
     chan_set_chf (dva, CHF_LNTE))                       /* do we care? */
-    return TRUE;
-return FALSE;                                           /* cmd done */
+    return true;
+return false;                                           /* cmd done */
 }
 
 /* RAD status routine */
@@ -473,23 +474,23 @@ return st;
 
 /* Validate disk address */
 
-t_bool rad_inv_ad (uint32 *da)
+bool rad_inv_ad (uint32 *da)
 {
 uint32 tk = RADA_GETTK (rad_ad);
 uint32 sc = RADA_GETSC (rad_ad);
 
 if ((tk >= rad_tab[rad_model].tkun) ||                  /* bad sec or trk? */
     (sc >= rad_tab[rad_model].sctk)) {
-    return TRUE;
+    return true;
     }
 if (da)                                                 /* return word addr */
     *da = ((tk * rad_tab[rad_model].sctk) + sc) * RAD_WDSC;
-return FALSE;
+return false;
 }
 
 /* Increment disk address */
 
-t_bool rad_inc_ad (void)
+bool rad_inc_ad (void)
 {
 uint32 tk = RADA_GETTK (rad_ad);
 uint32 sc = RADA_GETSC (rad_ad);
@@ -502,20 +503,20 @@ if (sc >= rad_tab[rad_model].sctk) {                    /* overflow? */
 rad_ad = ((tk << rad_tab[rad_model].tk_v) |             /* rebuild rad_ad */
           (sc << rad_tab[rad_model].sc_v));
 if (tk >= rad_tab[rad_model].tkun)                      /* overflow? */
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* Test disk addr for protected tracks */
 
-t_bool rad_wp_trk (uint32 adr)
+bool rad_wp_trk (uint32 adr)
 {
 uint32 trk = RADA_GETTK (adr);                          /* track */
 uint32 sw = (trk * RAD_N_WLK) / rad_tab[rad_model].tkun; /* switch num */
 
 if ((rad_wlk >> sw) & 1)                                /* switch set? */
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* Channel error */

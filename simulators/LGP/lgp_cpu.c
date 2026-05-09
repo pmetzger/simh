@@ -117,6 +117,7 @@
       I/O devices.  The LGP-21 could but none are known.
 */
 
+#include <stdbool.h>
 #include "lgp_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -159,7 +160,7 @@ t_stat cpu_set_fill (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_set_exec (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_one_inst (uint32 opc, uint32 ir);
 uint32 Mul64 (uint32 a, uint32 b, uint32 *low);
-t_bool Div32 (uint32 dvd, uint32 dvr, uint32 *q);
+bool Div32 (uint32 dvd, uint32 dvr, uint32 *q);
 uint32 I_delay (uint32 opc, uint32 ea, uint32 op);
 uint32 shift_in (uint32 a, uint32 dat, uint32 sh4);
 
@@ -324,7 +325,7 @@ return r;
 t_stat cpu_one_inst (uint32 opc, uint32 ir)
 {
 uint32 ea, op, dat, res, dev, sh4, ch;
-t_bool ovf_this_cycle = FALSE;
+bool ovf_this_cycle = false;
 t_stat reason = 0;
 
 op = I_GETOP (ir);                                      /* opcode */
@@ -384,7 +385,7 @@ switch (op) {                                           /* case on opcode */
         dat = Read (ea);                                /* get operand */
         res = (A + dat) & DMASK;                        /* add */
         if ((~A ^ dat) & (dat ^ res) & SIGN)            /* calc overflow */
-            ovf_this_cycle = TRUE;
+            ovf_this_cycle = true;
         A = res;                                        /* save result */
         delay = I_delay (opc, ea, op);
         break;
@@ -393,7 +394,7 @@ switch (op) {                                           /* case on opcode */
         dat = Read (ea);                                /* get operand */
         res = (A - dat) & DMASK;                        /* subtract */
         if ((A ^ dat) & (~dat ^ res) & SIGN)            /* calc overflow */
-            ovf_this_cycle = TRUE;
+            ovf_this_cycle = true;
         A = res;
         delay = I_delay (opc, ea, op);
         break;
@@ -414,7 +415,7 @@ switch (op) {                                           /* case on opcode */
     case OP_D:                                          /* divide */
         dat = Read (ea);                                /* get operand */
         if (Div32 (A, dat, &A))                         /* divide; overflow? */
-            ovf_this_cycle = TRUE;
+            ovf_this_cycle = true;
         delay = I_delay (opc, ea, op);
         break;
 
@@ -560,7 +561,7 @@ return rhi & M32;
 
 /* 32b/32b divide (done as 32b'0/32b) */
 
-t_bool Div32 (uint32 dvd, uint32 dvr, uint32 *q)
+bool Div32 (uint32 dvd, uint32 dvr, uint32 *q)
 {
 uint32 sgn = dvd ^ dvr;
 uint32 i, quo;
@@ -568,7 +569,7 @@ uint32 i, quo;
 dvd = ABS (dvd);
 dvr = ABS (dvr);
 if (dvd >= dvr)
-    return TRUE;
+    return true;
 for (i = quo = 0; i < 31; i++) {                        /* 31 iterations */
     quo = quo << 1;                                     /* shift quotient */
     dvd = dvd << 1;                                     /* shift dividend */
@@ -582,7 +583,7 @@ if (sgn & SIGN)                                         /* result -? */
     quo = NEG (quo);
 if (q)                                                  /* return quo */
     *q = quo;
-return FALSE;                                           /* no overflow */
+return false;                                           /* no overflow */
 }
 
 /* Rotational delay */

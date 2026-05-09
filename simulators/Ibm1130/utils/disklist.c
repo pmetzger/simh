@@ -21,6 +21,7 @@
 // 21-Dec-2006 Added file type column in standard output mode
 // -------------------------------------------------------------------------------------------
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,12 +31,8 @@
 // DEFINITIONS
 // -------------------------------------------------------------------------------------------
 
-typedef int            BOOL;                        // boolean
 typedef unsigned short uint16;                      // unsigned 16-bit integer
 typedef short          int16;                       // signed   16-bit integer
-
-#define TRUE  1                                     // BOOL values
-#define FALSE 0
 
 #define ALLOCATE(obj) ((obj *) calloc(1, sizeof(obj)))      // macro to allocate an object and return pointer to it
 
@@ -57,7 +54,7 @@ typedef struct tag_letentry {                       // linked list node for dire
     uint16 dbcount;                                 // length in DMS "disk blocks" (20 words per block)
     uint16 dbaddr;                                  // disk block address
     struct tag_letentry *master;                    // master entry, if this is an alternate name entry
-    BOOL dummy;                                     // TRUE if this is a 1DUMY entry
+    bool dummy;                                     // true if this is a 1DUMY entry
 } LETENTRY;
 
 typedef struct tag_filearg {                        // node in linked list of filename arguments
@@ -157,10 +154,10 @@ typedef struct tag_dci_program_header {         // header of a DCI (core image) 
 
 uint16 defective[3] = {0xFFFF, 0xFFFF, 0xFFFF};     // defective cylinder table, number is 1st sector number of bad cylinder
 FILE *fd;                                           // stream for open disk image file
-BOOL verbose = FALSE;                               // verbose switch
-BOOL show_all = FALSE;                              // switch to display alternate file entries
-BOOL dumpslet = FALSE;                              // dump SLET switch
-BOOL do_dump = FALSE;
+bool verbose = false;                               // verbose switch
+bool show_all = false;                              // switch to display alternate file entries
+bool dumpslet = false;                              // dump SLET switch
+bool do_dump = false;
 char *ftname[4] = {"DSF", "???", "DCI", "DDF"};     // DMS2 filetype names
 
 LETENTRY *flet = NULL, *let = NULL;                 // pointers to contents of FLET and LET
@@ -230,7 +227,7 @@ struct {                                            // DCOM sector
 
 #pragma pack()
 
-BOOL is_system = FALSE;                                 // TRUE if this is a system disk
+bool is_system = false;                                 // true if this is a system disk
 
 // NOTE: in DMS, disk blocks are 1/16 of a sector (20 words) -- DMS suballocates sectors for files. Some
 // files have to start on a sector boundary, and there are 1DUMY entries for the little lost bits. The last
@@ -247,7 +244,7 @@ void print_slet (void);                                 // print contents of SLE
 void get_let (LETENTRY **listhead, uint16 secno);       // read FLET or LET, building linked list
 void print_let (char *title, LETENTRY *listhead);       // print contents of FLET or LET
 void list_named_files (char *name, char *image) ;       // print info for specified file(s)
-void print_onefile (LETENTRY *entry, BOOL in_flet);     // print detailed info about one particular file
+void print_onefile (LETENTRY *entry, bool in_flet);     // print detailed info about one particular file
 int  ebcdic_to_ascii (int ch);                          // convert EBCDIC character to ASCII
 void convert_namecode (uint16 *namecode, char *name);   // convert DMS name code words into ASCII filename
 char *upcase (char *str);                               // convert string to upper case
@@ -288,16 +285,16 @@ int main (int argc, char **argv)
             while (*arg) {                                  // process all flags
                 switch (*arg++) {
                     case 'v':
-                        verbose = TRUE;                     // -v turns on verbose mode
+                        verbose = true;                     // -v turns on verbose mode
                         break;
                     case 'a':
-                        show_all = TRUE;                    // -a turns on listing of alternate file entries & pad spaces
+                        show_all = true;                    // -a turns on listing of alternate file entries & pad spaces
                         break;
                     case 's':                               // -s turns on dump slet
-                        dumpslet = TRUE;
+                        dumpslet = true;
                         break;
                     case 'd':
-                        do_dump = TRUE;
+                        do_dump = true;
                         break;
                     default:
                         bail(usestr);                       // unrecognized flag
@@ -983,7 +980,7 @@ char *astring (char *str)
 // name and spec are uppercase.
 // -------------------------------------------------------------------------------------------
 
-BOOL matchname (char *name, char *spec)
+bool matchname (char *name, char *spec)
 {
     while (*name) {                             // scan through the filename
         if (*name == *spec || *spec == '?') {   // if exact match, or single-char ? match,
@@ -995,7 +992,7 @@ BOOL matchname (char *name, char *spec)
                 spec++;
 
             if (*spec == '\0')                  // no more literal pattern characters; this qualifies as a match
-                return TRUE;
+                return true;
 
             // if we get here, we need to start matching the remaining part of the pattern against
             // some reduction of the name; we can skip 0 or more characters looking for a hit.
@@ -1005,15 +1002,15 @@ BOOL matchname (char *name, char *spec)
 
             while (*name) {
                 if (matchname(name, spec))      // if the remaining part of the pattern matches the name,
-                    return TRUE;                // it's a hit
+                    return true;                // it's a hit
 
                 name++;                         // skip one character in name (the part matched by our *) and try again
             }
 
-            return FALSE;                       // we skipped everything and still couldn't match the residual pattern
+            return false;                       // we skipped everything and still couldn't match the residual pattern
         }
         else
-            return FALSE;                       // this is a definite mismatch
+            return false;                       // this is a definite mismatch
     }
                                                 // we've hit the end of the actual filename
     while (*spec == '*')
@@ -1137,7 +1134,7 @@ void init_dsf_stream (DSFSTREAM *dsf_stream, LETENTRY *entry, DSF_PROGRAM_HEADER
 // get_dsf_word - read next data word and associated relocation flag bits from DSF data stream
 // -------------------------------------------------------------------------------------------
 
-BOOL get_dsf_word (DSFSTREAM *dsf_stream, uint16 *word, uint16 *addr, uint16 *relflag)
+bool get_dsf_word (DSFSTREAM *dsf_stream, uint16 *word, uint16 *addr, uint16 *relflag)
 {
     uint16 dataheader[2];
     int i;
@@ -1151,7 +1148,7 @@ BOOL get_dsf_word (DSFSTREAM *dsf_stream, uint16 *word, uint16 *addr, uint16 *re
             dsf_stream->nwords = dataheader[1];
 
             if (dsf_stream->nwords == 0)                // end of file
-                return FALSE;
+                return false;
 
             if (verbose)                                // in verbose mode, show module header
                 printf(INDENT2 "%04x %04x %d\n", dsf_stream->addr, dsf_stream->nwords, dsf_stream->nwords-2);
@@ -1419,13 +1416,13 @@ void dumpfile (LETENTRY *entry)
 // print_onefile - print detailed info about one particular file
 // -------------------------------------------------------------------------------------------
 
-void print_onefile (LETENTRY *entry, BOOL in_flet)
+void print_onefile (LETENTRY *entry, bool in_flet)
 {
-    static BOOL first = TRUE;
+    static bool first = true;
     LETENTRY *mst;
 
     if (first) {                                                // print column headings
-        first = FALSE;
+        first = false;
         printf("Name  Type  Blocks  Addr Remarks\n");
         printf("----- ----  ------  ---- ---------------------------------------------------\n");
     }
@@ -1459,26 +1456,26 @@ void print_onefile (LETENTRY *entry, BOOL in_flet)
 
 void list_named_files (char *name, char *image)
 {
-    BOOL has_wild = strchr(name, '?') != NULL || strchr(name, '*') != NULL;
-    BOOL in_flet, matched;
+    bool has_wild = strchr(name, '?') != NULL || strchr(name, '*') != NULL;
+    bool in_flet, matched;
     LETENTRY *entry;
 
     if (flet != NULL) {                             // start at head of FLET if we have one, otherwise LET
-        in_flet = TRUE;
+        in_flet = true;
         entry   = flet;
     }
     else {
-        in_flet = FALSE;
+        in_flet = false;
         entry   = let;
     }
 
-    matched = FALSE;
+    matched = false;
 
     while (entry != NULL) {                         // scan through flet/let lists
         if (! entry->dummy) {
             if (matchname(entry->name, name)) {     // does this file match the specified name?
                 print_onefile(entry, in_flet);      // print it
-                matched = TRUE;
+                matched = true;
                 if (! has_wild)                     // if there were no wildcard characters in the name, stop scanning
                     break;
             }
@@ -1487,7 +1484,7 @@ void list_named_files (char *name, char *image)
         if (entry->next == NULL) {                  // if at end of current list
             if (in_flet) {
                 entry   = let;                      // move from flet to let
-                in_flet = FALSE;
+                in_flet = false;
             }
             else
                 break;                              // done with both lists

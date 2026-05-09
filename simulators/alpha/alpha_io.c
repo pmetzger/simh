@@ -26,13 +26,14 @@
    rom          boot ROM
 */
 
+#include <stdbool.h>
 #include "alpha_defs.h"
 #include "alpha_sys_defs.h"
 
 t_uint64 *rom = NULL;                                   /* boot ROM */
 
-t_bool rom_rd (t_uint64 pa, t_uint64 *val, uint32 lnt);
-t_bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt);
+bool rom_rd (t_uint64 pa, t_uint64 *val, uint32 lnt);
+bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt);
 t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
 t_stat rom_reset (DEVICE *dptr);
@@ -71,10 +72,10 @@ DEVICE rom_dev = {
         *dat    =       pointer to data
         lnt     =       length (BWLQ)
    Output:
-        TRUE if read succeeds, else FALSE
+        true if read succeeds, else false
 */
 
-t_bool ReadIO (t_uint64 pa, t_uint64 *dat, uint32 lnt)
+bool ReadIO (t_uint64 pa, t_uint64 *dat, uint32 lnt)
 {
 DEVICE *dptr;
 uint32 i;
@@ -87,7 +88,7 @@ for (i = 0; sim_devices[i] != NULL; i++) {
             return dibp->read (pa, dat, lnt);
         }
     }
-return FALSE;
+return false;
 }
 
 /* WriteIO - write register space
@@ -98,10 +99,10 @@ return FALSE;
         val     =       data to write, right justified in 64b quadword
         lnt     =       length (BWLQ)
    Output:
-        TRUE if write succeeds, else FALSE
+        true if write succeeds, else false
 */
 
-t_bool WriteIO (t_uint64 pa, t_uint64 dat, uint32 lnt)
+bool WriteIO (t_uint64 pa, t_uint64 dat, uint32 lnt)
 {
 DEVICE *dptr;
 uint32 i;
@@ -114,12 +115,12 @@ for (i = 0; sim_devices[i] != NULL; i++) {
             return dibp->write (pa, dat, lnt);
         }
     }
-return FALSE;
+return false;
 }
 
 /* Boot ROM read */
 
-t_bool rom_rd (t_uint64 pa, t_uint64 *val, uint32 lnt)
+bool rom_rd (t_uint64 pa, t_uint64 *val, uint32 lnt)
 {
 uint32 sc, rg = ((uint32) ((pa - ROMBASE) & (ROMSIZE - 1))) >> 3;
 
@@ -145,12 +146,12 @@ switch (lnt) {
         break;
         }
 
-return TRUE;
+return true;
 }
 
 /* Boot ROM write */
 
-t_bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt)
+bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt)
 {
 uint32 sc, rg = ((uint32) ((pa - ROMBASE) & (ROMSIZE - 1))) >> 3;
 
@@ -176,7 +177,7 @@ switch (lnt) {
         break;
         }
 
-return TRUE;
+return true;
 }
 
 /* ROM examine */

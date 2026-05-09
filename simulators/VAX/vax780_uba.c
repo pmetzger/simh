@@ -32,6 +32,7 @@
    25-Jan-08    RMS     Fixed declarations (Mark Pizzolato)
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 /* Unibus adapter */
@@ -194,9 +195,9 @@ void uba_inv_map (int32 ublk);
 void uba_eval_int (void);
 void uba_adap_set_int (int32 flg);
 void uba_adap_clr_int (void);
-void uba_set_dpr (uint32 ua, t_bool wr);
+void uba_set_dpr (uint32 ua, bool wr);
 void uba_ubpdn (int32 time);
-t_bool uba_map_addr (uint32 ua, uint32 *ma);
+bool uba_map_addr (uint32 ua, uint32 *ma);
 t_stat uba_show_virt (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat uba_show_map (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
@@ -638,7 +639,7 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
             *buf++ = (dat >> 24) & BMASK;
             }
         }
-    uba_set_dpr (ba + i + pbc - L_BYTE, FALSE);
+    uba_set_dpr (ba + i + pbc - L_BYTE, false);
     }
 return 0;
 }
@@ -679,7 +680,7 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
             *buf++ = (dat >> 16) & WMASK;               /* high 16b */
             }
         }
-    uba_set_dpr (ba + i + pbc - L_WORD, FALSE);
+    uba_set_dpr (ba + i + pbc - L_WORD, false);
     }
 return 0;
 }
@@ -713,7 +714,7 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
             WriteL (ma, dat);                           /* store lw */
             }
         }
-    uba_set_dpr (ba + i + pbc - L_BYTE, TRUE);
+    uba_set_dpr (ba + i + pbc - L_BYTE, true);
     }
 return 0;
 }
@@ -755,21 +756,21 @@ for (i = 0; i < bc; i = i + pbc) {                      /* loop by pages */
             WriteL (ma, dat);                           /* store LW */
             }
         }
-    uba_set_dpr (ba + i + pbc - L_WORD, TRUE);
+    uba_set_dpr (ba + i + pbc - L_WORD, true);
     }
 return 0;
 }
 
 /* Map an address via the translation map */
 
-t_bool uba_map_addr (uint32 ua, uint32 *ma)
+bool uba_map_addr (uint32 ua, uint32 *ma)
 {
 uint32 ublk, umap;
 
 ublk = ua >> VA_V_VPN;                                  /* Unibus blk */
 if ((ublk < UBACR_GETDSB (uba_cr)) ||                   /* map disabled? */
     (ublk >= UBA_NMAPR))                                /* unimplemented? */
-    return FALSE;
+    return false;
 umap = uba_map[ublk];                                   /* get map */
 if (umap & UBAMAP_VLD) {                                /* valid? */
     *ma = ((umap & UBAMAP_PAG) << VA_V_VPN) + VA_GETOFF (ua);
@@ -778,33 +779,33 @@ if (umap & UBAMAP_VLD) {                                /* valid? */
     return (ADDR_IS_MEM (*ma));                         /* legit addr */
     }
 uba_inv_map (ua);                                       /* invalid map */
-return FALSE;
+return false;
 }
 
 /* Map an address via the translation map - console version (no status changes) */
 
-static t_bool uba_map_addr_c (uint32 ua, uint32 *ma)
+static bool uba_map_addr_c (uint32 ua, uint32 *ma)
 {
 uint32 ublk, umap;
 
 ublk = ua >> VA_V_VPN;                                  /* Unibus blk */
 if ((ublk < UBACR_GETDSB (uba_cr)) ||                   /* map disabled? */
     (ublk >= UBA_NMAPR))                                /* unimplemented? */
-    return FALSE;
+    return false;
 umap = uba_map[ublk];                                   /* get map */
 if (umap & UBAMAP_VLD) {                                /* valid? */
     *ma = ((umap & UBAMAP_PAG) << VA_V_VPN) + VA_GETOFF (ua);
     if ((umap & UBAMAP_DP) && (umap & UBAMAP_ODD))      /* buffered dp? */
         *ma = *ma + 1;                                  /* byte offset? */
-    return TRUE;                                        /* legit addr */
+    return true;                                        /* legit addr */
     }
-return FALSE;
+return false;
 }
 
 /* At end of page or transfer, update DPR register, in case next page
    gets an error */
 
-void uba_set_dpr (uint32 ua, t_bool wr)
+void uba_set_dpr (uint32 ua, bool wr)
 {
 uint32 ublk, umap, dpr;
 

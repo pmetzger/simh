@@ -5,6 +5,8 @@
 #ifndef _SIM_SCSI_H_
 #define _SIM_SCSI_H_     0
 
+#include <stdbool.h>
+
 #include "sim_defs.h"
 #include "sim_disk.h"
 #include "sim_tape.h"
@@ -58,7 +60,7 @@ struct scsi_dev_t {
     uint8 devtype;                                      /* device type */
     uint8 pqual;                                        /* peripheral qualifier */
     uint32 scsiver;                                     /* SCSI version */
-    t_bool removeable;                                  /* removable flag */
+    bool removeable;                                    /* removable flag */
     uint32 block_size;                                  /* device block size */
     uint32 lbn;                                         /* device size (blocks) */
     const char *manufacturer;                           /* manufacturer string */
@@ -73,8 +75,8 @@ struct scsi_bus_t {
     UNIT *dev[8];                                       /* target units */
     int32 initiator;                                    /* current initiator */
     int32 target;                                       /* current target */
-    t_bool atn;                                         /* attention flag */
-    t_bool req;                                         /* request flag */
+    bool atn;                                           /* attention flag */
+    bool req;                                           /* request flag */
     uint8 *buf;                                         /* transfer buffer */
     uint8 cmd[10];                                      /* command buffer */
     uint32 buf_b;                                       /* buffer bottom ptr */
@@ -91,11 +93,11 @@ struct scsi_bus_t {
 typedef struct scsi_bus_t SCSI_BUS;
 typedef struct scsi_dev_t SCSI_DEV;
 
-t_bool scsi_arbitrate (SCSI_BUS *bus, uint32 initiator);
+bool scsi_arbitrate (SCSI_BUS *bus, uint32 initiator);
 void scsi_release (SCSI_BUS *bus);
 void scsi_set_atn (SCSI_BUS *bus);
 void scsi_release_atn (SCSI_BUS *bus);
-t_bool scsi_select (SCSI_BUS *bus, uint32 target);
+bool scsi_select (SCSI_BUS *bus, uint32 target);
 uint32 scsi_write (SCSI_BUS *bus, uint8 *data, uint32 len);
 uint32 scsi_read (SCSI_BUS *bus, uint8 *data, uint32 len);
 uint32 scsi_state (SCSI_BUS *bus, uint32 id);

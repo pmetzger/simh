@@ -3,6 +3,7 @@
  *  This implementation may be incomplete and/or incorrect
  ***************************************************************************************/
 
+#include <stdbool.h>
 #include "ibm1130_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -52,7 +53,7 @@ static uint16 t2741_dsw    = T2741_DSW_TRANSMIT_NOT_READY;  /* device status wor
 static uint32 t2741_swait  = 200;                           /* character send wait     */
 static uint32 t2741_rwait  = 2000;                          /* character receive wait  */
 static uint16 t2741_char   = 0;                             /* last character received */
-static int    overrun      = FALSE;
+static int    overrun      = false;
 static uint32 t2741_socket = 1130;
 
 UNIT t2741_unit[1] = {
@@ -84,7 +85,7 @@ void xio_t2741_terminal (int32 iocc_addr, int32 iocc_func, int32 iocc_mod)
         case XIO_READ:                                          /* read: return last character read */
             code = t2741_char & 0xFF00;
             M[iocc_addr & mem_mask] = code;
-            overrun = FALSE;
+            overrun = false;
 #ifdef DEBUG_T2741
 /*          trace_both("T2741 %04x READ %02x %s", prev_IAR, code >> 8, t2741_to_ascii(code)); */
 #endif
@@ -195,7 +196,7 @@ static t_stat t2741_svc (UNIT *uptr)
                 (t2741_dsw & T2741_DSW_ATTENTION)    ? "|ATTENTION" : "");
 #endif
 
-            overrun = TRUE;                                     /* arm overrun flag */
+            overrun = true;                                     /* arm overrun flag */
         }
 
         if (t2741_char == CODE_CIRCLEC)                         /* end of line (CIRCLEC after RETURN) auto downshifts */
@@ -216,7 +217,7 @@ static t_stat t2741_attach (UNIT *uptr, const char *cptr)
 
     if ((rval = attach_unit(uptr, cptr)) == SCPE_OK) {          /* use standard attach */
         t2741_char = 0;
-        overrun    = FALSE;
+        overrun    = false;
 
         CLRBIT(t2741_unit->flags, UNIT_UPCASE);
 
@@ -237,7 +238,7 @@ static t_stat t2741_detach (UNIT *uptr)
         sim_cancel(t2741_unit);
 
     t2741_char = 0;
-    overrun    = FALSE;
+    overrun    = false;
 
     rval = detach_unit(uptr);                               /* use standard detach */
 
@@ -258,7 +259,7 @@ static t_stat t2741_reset  (DEVICE *dptr)
 
     t2741_char = 0;
     t2741_dsw  = 0;
-    overrun    = FALSE;
+    overrun    = false;
 
     set_transmit_notready();
 
@@ -271,58 +272,58 @@ static t_stat t2741_reset  (DEVICE *dptr)
 static struct tag_t2741_map {
     int code;
     int lcase, ucase;
-    t_bool shifts;
+    bool shifts;
 } t2741_map[] = {
-    {0x4F00, 'A', 'a', TRUE},
-    {0x3700, 'B', 'b', TRUE},
-    {0x2F00, 'C', 'c', TRUE},
-    {0x2A00, 'D', 'd', TRUE},
-    {0x2900, 'E', 'e', TRUE},
-    {0x6700, 'F', '_', TRUE},
-    {0x6200, 'G', 'g', TRUE},
-    {0x3200, 'H', 'h', TRUE},
-    {0x4C00, 'I', 'i', TRUE},
-    {0x6100, 'J', 'j', TRUE},
-    {0x2C00, 'K', '\'', TRUE},
-    {0x3100, 'L', 'l', TRUE},
-    {0x4300, 'M', '|', TRUE},
-    {0x2500, 'N', 'n', TRUE},
-    {0x5100, 'O', 'o', TRUE},
-    {0x6800, 'P', '*', TRUE},
-    {0x6D00, 'Q', '?', TRUE},
-    {0x4A00, 'R', 'r', TRUE},
-    {0x5200, 'S', 's', TRUE},
-    {0x2000, 'T', '~', TRUE},
-    {0x2600, 'U', 'u', TRUE},
-    {0x4600, 'V', 'v', TRUE},
-    {0x5700, 'W', 'w', TRUE},
-    {0x2300, 'X', 'x', TRUE},
-    {0x7300, 'Y', 'y', TRUE},
-    {0x1500, 'Z', 'z', TRUE},
-    {0x1300, '0', '&', TRUE},
-    {0x0200, '1', '?', TRUE},
-    {0x0400, '2', '?', TRUE},
-    {0x0700, '3', '<', TRUE},
-    {0x1000, '4', '?', TRUE},
-    {0x0800, '5', '=', TRUE},
-    {0x0D00, '6', '?', TRUE},
-    {0x0B00, '7', '>', TRUE},
-    {0x0E00, '8', '?', TRUE},
-    {0x1600, '9', '|', TRUE},
-    {0x7000, '/', '\\', TRUE},
-    {0x7600, '+', '-', TRUE},
-    {0x6400, '?', '?', TRUE},
-    {0x4000, '<', '>', TRUE},
-    {0x6B00, '[', '(', TRUE},
-    {0x4900, ']', ')', TRUE},
-    {0x6E00, ',', ';', TRUE},
-    {0x4500, '.', ':', TRUE},
-    {0x0100, ' ',  0,  FALSE},
-    {0x5B00, '\r', 0,  FALSE},
-    {0x3B00, '\n', 0,  FALSE},
-    {0x5D00, '\b', 0,  FALSE},
-    {0x5E00, '\t', 0,  FALSE},
-    {0x0001, '\027', 0,  FALSE},
+    {0x4F00, 'A', 'a', true},
+    {0x3700, 'B', 'b', true},
+    {0x2F00, 'C', 'c', true},
+    {0x2A00, 'D', 'd', true},
+    {0x2900, 'E', 'e', true},
+    {0x6700, 'F', '_', true},
+    {0x6200, 'G', 'g', true},
+    {0x3200, 'H', 'h', true},
+    {0x4C00, 'I', 'i', true},
+    {0x6100, 'J', 'j', true},
+    {0x2C00, 'K', '\'', true},
+    {0x3100, 'L', 'l', true},
+    {0x4300, 'M', '|', true},
+    {0x2500, 'N', 'n', true},
+    {0x5100, 'O', 'o', true},
+    {0x6800, 'P', '*', true},
+    {0x6D00, 'Q', '?', true},
+    {0x4A00, 'R', 'r', true},
+    {0x5200, 'S', 's', true},
+    {0x2000, 'T', '~', true},
+    {0x2600, 'U', 'u', true},
+    {0x4600, 'V', 'v', true},
+    {0x5700, 'W', 'w', true},
+    {0x2300, 'X', 'x', true},
+    {0x7300, 'Y', 'y', true},
+    {0x1500, 'Z', 'z', true},
+    {0x1300, '0', '&', true},
+    {0x0200, '1', '?', true},
+    {0x0400, '2', '?', true},
+    {0x0700, '3', '<', true},
+    {0x1000, '4', '?', true},
+    {0x0800, '5', '=', true},
+    {0x0D00, '6', '?', true},
+    {0x0B00, '7', '>', true},
+    {0x0E00, '8', '?', true},
+    {0x1600, '9', '|', true},
+    {0x7000, '/', '\\', true},
+    {0x7600, '+', '-', true},
+    {0x6400, '?', '?', true},
+    {0x4000, '<', '>', true},
+    {0x6B00, '[', '(', true},
+    {0x4900, ']', ')', true},
+    {0x6E00, ',', ';', true},
+    {0x4500, '.', ':', true},
+    {0x0100, ' ',  0,  false},
+    {0x5B00, '\r', 0,  false},
+    {0x3B00, '\n', 0,  false},
+    {0x5D00, '\b', 0,  false},
+    {0x5E00, '\t', 0,  false},
+    {0x0001, '\027', 0,  false},
 };
 
 static uint16 ascii_to_t2741 (int ascii)

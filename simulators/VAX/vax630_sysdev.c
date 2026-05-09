@@ -33,6 +33,7 @@
    08-Nov-2012  MB      First version
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "uint_bits.h"
 
@@ -132,8 +133,8 @@ int32 ka_bdr = BDR_BRKENB;                              /* KA630 boot diag */
 int32 ka_mser = 0;                                      /* KA630 mem sys err */
 int32 ka_cear = 0;                                      /* KA630 cpu err */
 int32 ka_dear = 0;                                      /* KA630 dma err */
-t_bool ka_diag_full = FALSE;
-t_bool ka_hltenab = TRUE;                               /* Halt Enable / Autoboot flag */
+bool ka_diag_full = false;
+bool ka_hltenab = true;                                 /* Halt Enable / Autoboot flag */
 
 t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
@@ -1011,7 +1012,7 @@ conpsl = PSL_IS | PSL_IPL1F | CON_PWRUP;
 if (rom == NULL)
     return SCPE_IERR;
 if (*rom == 0) {                                        /* no boot? */
-    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, TRUE, 0);
+    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, true, 0);
     if (r != SCPE_OK)
         return r;
     }

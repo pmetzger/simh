@@ -29,6 +29,7 @@
     07 Jun 16 - Original file.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 #define IPC     1
 
@@ -59,7 +60,7 @@ extern t_stat ipc_cont_reset(DEVICE *dptr);
 extern  t_stat ioc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
 extern  t_stat ipc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
 extern t_stat ioc_cont_reset(DEVICE *dptr);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint8, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint8, uint8);
 extern t_stat EPROM_cfg(uint16 base, uint16 size, uint8 devnum);
 extern  t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy);
 

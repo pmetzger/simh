@@ -49,6 +49,7 @@
     to the data port writes the character to the device.
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
@@ -190,7 +191,7 @@ static int32 daysCPM3SinceOrg       = 0;        /* days since 1 Jan 1978        
 
 /* timer interrupt related                                                                                      */
 static uint32 timeOfNextInterrupt;              /* time when next interrupt is scheduled                        */
-       int32 timerInterrupt         = FALSE;    /* timer interrupt pending                                      */
+       int32 timerInterrupt         = false;    /* timer interrupt pending                                      */
        int32 timerInterruptHandler  = 0x0fc00;  /* default address of interrupt handling routine                */
 static int32 setTimerInterruptAdrPos= 0;        /* determines state for receiving timerInterruptHandler         */
 static int32 timerDelta             = DEFAULT_TIMER_DELTA;  /* interrupt every 100 ms                           */
@@ -289,7 +290,7 @@ static int32 warnPTREOF             = 0;        /* display a warning message if 
 static int32 warnUnassignedPort     = 0;        /* display a warning message if < warnLevel and SIO set to
                                                 VERBOSE and attempt to perform IN or OUT on an unassigned PORT  */
 
-       int32 keyboardInterrupt = FALSE;         /* keyboard interrupt pending                                   */
+       int32 keyboardInterrupt = false;         /* keyboard interrupt pending                                   */
        uint32 keyboardInterruptHandler = 0x0038;/* address of keyboard interrupt handler                        */
 
 /* PTR/PTP port assignments (read only)                                                                         */
@@ -308,8 +309,8 @@ static TMXR altairTMXR = {                      /* mux descriptor   */
 static UNIT sio_unit = {
     UDATA (&sio_svc, UNIT_ATTABLE | UNIT_SIO_MAP | UNIT_SIO_SLEEP, 0),
     100000, /* wait                                                 */
-    FALSE,  /* u3 = FALSE, no character available in buffer         */
-    FALSE,  /* u4 = FALSE, terminal input is not attached to a file */
+    false,  /* u3 = false, no character available in buffer         */
+    false,  /* u4 = false, terminal input is not attached to a file */
     0,      /* u5 = 0, not used                                     */
     0       /* u6 = 0, not used                                     */
 };
@@ -327,10 +328,10 @@ static REG sio_reg[] = {
                "Counter for unassigned port")                                               },
     { HRDATAD (FILEATT,  sio_unit.u4,        8,
                "BOOL to determine whether terminal input is attached to a file"), REG_RO    },
-    /* TRUE iff terminal input is attached to a file    */
+    /* true iff terminal input is attached to a file    */
     { HRDATAD (TSTATUS,  sio_unit.u3,        8,
                "BOOL to determine whether a character is available")                       },
-    /* TRUE iff a character available in sio_unit.buf   */
+    /* true iff a character available in sio_unit.buf   */
     { DRDATAD (TBUFFER,  sio_unit.buf,       8,
                "Input buffer register")                                                     },
     /* input buffer for one character                   */
@@ -565,20 +566,20 @@ static void resetSIOWarningFlags(void) {
 
 static t_stat sio_attach(UNIT *uptr, const char *cptr) {
     t_stat r = SCPE_IERR;
-    sio_unit.u3 = FALSE;                                    /* no character in terminal input buffer    */
+    sio_unit.u3 = false;                                    /* no character in terminal input buffer    */
     get_uint(cptr, 10, 65535, &r);                          /* attempt to get port, discard result      */
     if (r == SCPE_OK) {                                     /* string can be interpreted as port number */
-        sio_unit.u4 = FALSE;                                /* terminal input is not attached to a file */
+        sio_unit.u4 = false;                                /* terminal input is not attached to a file */
         return tmxr_attach(&altairTMXR, uptr, cptr);        /* attach mux                               */
     }
-    sio_unit.u4 = TRUE;                                     /* terminal input is attached to a file     */
+    sio_unit.u4 = true;                                     /* terminal input is attached to a file     */
     return attach_unit(uptr, cptr);
 }
 
 static t_stat sio_detach(UNIT *uptr) {
-    sio_unit.u3 = FALSE;                                    /* no character in terminal input buffer    */
+    sio_unit.u3 = false;                                    /* no character in terminal input buffer    */
     if (sio_unit.u4) {                                      /* is terminal input attached to a file?    */
-        sio_unit.u4 = FALSE;                                /* not anymore, detach                      */
+        sio_unit.u4 = false;                                /* not anymore, detach                      */
         return detach_unit(uptr);
     }
     return tmxr_detach(&altairTMXR, uptr);
@@ -602,7 +603,7 @@ static t_stat sio_reset(DEVICE *dptr) {
 
     int32 i;
     sim_debug(VERBOSE_MSG, &sio_dev, "SIO: " ADDRESS_FORMAT " Reset\n", PCX);
-    sio_unit.u3 = FALSE;                                    /* no character in terminal input buffer    */
+    sio_unit.u3 = false;                                    /* no character in terminal input buffer    */
     sio_unit.buf = 0;
     resetSIOWarningFlags();
     if (sio_unit.u4)                                        /* is terminal input attached to a file?    */
@@ -620,7 +621,7 @@ static t_stat sio_reset(DEVICE *dptr) {
 static t_stat ptr_reset(DEVICE *dptr) {
     sim_debug(VERBOSE_MSG, &ptr_dev, "PTR: " ADDRESS_FORMAT " Reset\n", PCX);
     resetSIOWarningFlags();
-    ptr_unit.u3 = FALSE;                                    /* End Of File not yet reached              */
+    ptr_unit.u3 = false;                                    /* End Of File not yet reached              */
     ptr_unit.buf = 0;
     if (ptr_unit.flags & UNIT_ATT)                          /* attached?                                */
         rewind(ptr_unit.fileref);
@@ -671,100 +672,100 @@ typedef struct {
     int32 sio_can_read;     /* bit mask to indicate that one can read from this port    */
     int32 sio_cannot_read;  /* bit mask to indicate that one cannot read from this port */
     int32 sio_can_write;    /* bit mask to indicate that one can write to this port     */
-    int32 hasReset;         /* TRUE iff SIO has reset command                           */
+    int32 hasReset;         /* true iff SIO has reset command                           */
     int32 sio_reset;        /* reset command                                            */
-    int32 hasOUT;           /* TRUE iff port supports OUT command                       */
-    int32 isBuiltin;        /* TRUE iff mapping is built in                             */
+    int32 hasOUT;           /* true iff port supports OUT command                       */
+    int32 isBuiltin;        /* true iff mapping is built in                             */
 } SIO_PORT_INFO;
 
 static SIO_PORT_INFO port_table[PORT_TABLE_SIZE] = {
-    {0x00, 0, KBD_HAS_CHAR,     KBD_HAS_NO_CHAR, SIO_CAN_WRITE, FALSE, 0, FALSE, TRUE   },
-    {0x01, 0, 0,                0,      0, FALSE, 0, FALSE, TRUE                        },
-    {0x02, 0, VGSIO_CAN_READ,   0,      VGSIO_CAN_WRITE, FALSE, 0, TRUE, TRUE           },
-    {0x03, 0, VGSIO_CAN_READ,   0,      VGSIO_CAN_WRITE, FALSE, 0, FALSE, TRUE          },
-    {0x04, 0, VGSIO_CAN_READ,   0,      VGSIO_CAN_WRITE, FALSE, 0, TRUE, TRUE           },
-    {0x05, 0, VGSIO_CAN_READ,   0,      VGSIO_CAN_WRITE, FALSE, 0, FALSE, TRUE          },
-    {0x10, 0, SIO_CAN_READ,     0,      SIO_CAN_WRITE, TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x11, 0, SIO_CAN_READ,     0,      SIO_CAN_WRITE, TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x14, 1, SIO_CAN_READ,     0,      SIO_CAN_WRITE, TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x15, 1, SIO_CAN_READ,     0,      SIO_CAN_WRITE, TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x16, 2, SIO_CAN_READ,     0,      SIO_CAN_WRITE, TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x17, 2, SIO_CAN_READ,     0,      SIO_CAN_WRITE, TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x18, 3, SIO_CAN_READ,     0,      SIO_CAN_WRITE, TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x19, 3, SIO_CAN_READ,     0,      SIO_CAN_WRITE, TRUE, SIO_RESET, TRUE, TRUE      },
+    {0x00, 0, KBD_HAS_CHAR,     KBD_HAS_NO_CHAR, SIO_CAN_WRITE, false, 0, false, true   },
+    {0x01, 0, 0,                0,      0, false, 0, false, true                        },
+    {0x02, 0, VGSIO_CAN_READ,   0,      VGSIO_CAN_WRITE, false, 0, true, true           },
+    {0x03, 0, VGSIO_CAN_READ,   0,      VGSIO_CAN_WRITE, false, 0, false, true          },
+    {0x04, 0, VGSIO_CAN_READ,   0,      VGSIO_CAN_WRITE, false, 0, true, true           },
+    {0x05, 0, VGSIO_CAN_READ,   0,      VGSIO_CAN_WRITE, false, 0, false, true          },
+    {0x10, 0, SIO_CAN_READ,     0,      SIO_CAN_WRITE, true, SIO_RESET, false, true     },
+    {0x11, 0, SIO_CAN_READ,     0,      SIO_CAN_WRITE, true, SIO_RESET, true, true      },
+    {0x14, 1, SIO_CAN_READ,     0,      SIO_CAN_WRITE, true, SIO_RESET, false, true     },
+    {0x15, 1, SIO_CAN_READ,     0,      SIO_CAN_WRITE, true, SIO_RESET, true, true      },
+    {0x16, 2, SIO_CAN_READ,     0,      SIO_CAN_WRITE, true, SIO_RESET, false, true     },
+    {0x17, 2, SIO_CAN_READ,     0,      SIO_CAN_WRITE, true, SIO_RESET, true, true      },
+    {0x18, 3, SIO_CAN_READ,     0,      SIO_CAN_WRITE, true, SIO_RESET, false, true     },
+    {0x19, 3, SIO_CAN_READ,     0,      SIO_CAN_WRITE, true, SIO_RESET, true, true      },
 
     /* CompuPro System Support 1 Board */
-    {0x5c, 0, 0x0,              0,      0,             FALSE,0,         TRUE, TRUE      },
-    {0x5d, 0, 0xC2,             0,      0xC5,          FALSE,0,         FALSE, TRUE     },
+    {0x5c, 0, 0x0,              0,      0,             false,0,         true, true      },
+    {0x5d, 0, 0xC2,             0,      0xC5,          false,0,         false, true     },
 
     /* CompuPro Interfacer 3 (IF3) Board 0 */
-    {0x300, 1, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x301, 1, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x302, 2, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x303, 2, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x304, 3, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x305, 3, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x306, 4, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x307, 4, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x308, 5, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x309, 5, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x30a, 6, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x30b, 6, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x30c, 7, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x30d, 7, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x30e, 8, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x30f, 8, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
+    {0x300, 1, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x301, 1, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x302, 2, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x303, 2, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x304, 3, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x305, 3, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x306, 4, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x307, 4, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x308, 5, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x309, 5, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x30a, 6, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x30b, 6, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x30c, 7, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x30d, 7, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x30e, 8, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x30f, 8, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
     /* CompuPro Interfacer 3 (IF3) Board 1 */
-    {0x310, 9, 0x0,             0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x311, 9, 0xC2,            0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x312, 10, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x313, 10, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x314, 11, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x315, 11, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x316, 12, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x317, 12, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x318, 13, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x319, 13, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x31a, 14, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x31b, 14, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x31c, 15, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x31d, 15, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x31e, 16, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x31f, 16, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
+    {0x310, 9, 0x0,             0,      0,             true, SIO_RESET, true, true      },
+    {0x311, 9, 0xC2,            0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x312, 10, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x313, 10, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x314, 11, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x315, 11, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x316, 12, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x317, 12, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x318, 13, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x319, 13, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x31a, 14, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x31b, 14, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x31c, 15, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x31d, 15, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x31e, 16, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x31f, 16, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
     /* CompuPro Interfacer 3 (IF3) Board 2 */
-    {0x320, 17, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x321, 17, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x322, 18, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x323, 18, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x324, 19, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x325, 19, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x326, 20, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x327, 20, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x328, 21, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x329, 21, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x32a, 22, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x32b, 22, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x32c, 23, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x32d, 23, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x32e, 24, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x32f, 24, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
+    {0x320, 17, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x321, 17, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x322, 18, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x323, 18, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x324, 19, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x325, 19, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x326, 20, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x327, 20, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x328, 21, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x329, 21, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x32a, 22, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x32b, 22, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x32c, 23, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x32d, 23, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x32e, 24, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x32f, 24, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
     /* CompuPro Interfacer 3 (IF3) Board 3 */
-    {0x330, 25, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x331, 25, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x332, 26, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x333, 26, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x334, 27, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x335, 27, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x336, 28, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x337, 28, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x338, 29, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x339, 29, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x33a, 30, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x33b, 30, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x33c, 31, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x33d, 31, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
-    {0x33e, 32, 0x0,            0,      0,             TRUE, SIO_RESET, TRUE, TRUE      },
-    {0x33f, 32, 0xC2,           0,      0xC5,          TRUE, SIO_RESET, FALSE, TRUE     },
+    {0x330, 25, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x331, 25, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x332, 26, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x333, 26, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x334, 27, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x335, 27, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x336, 28, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x337, 28, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x338, 29, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x339, 29, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x33a, 30, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x33b, 30, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x33c, 31, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x33d, 31, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
+    {0x33e, 32, 0x0,            0,      0,             true, SIO_RESET, true, true      },
+    {0x33f, 32, 0xC2,           0,      0xC5,          true, SIO_RESET, false, true     },
     {-1, 0, 0, 0, 0, 0, 0, 0, 0}   /* must be last */
 };
 
@@ -807,7 +808,7 @@ static int32 sio0sCore(const int32 port, const int32 io, const int32 data) {
                 sio_detach(&sio_unit);                      /* detach file and switch to keyboard input */
                 return spi.sio_cannot_read | spi.sio_can_write;
             } else {
-                sio_unit.u3 = TRUE;                         /* indicate character available             */
+                sio_unit.u3 = true;                         /* indicate character available             */
                 sio_unit.buf = ch;                          /* store character in buffer                */
                 return spi.sio_can_read | spi.sio_can_write;
             }
@@ -834,7 +835,7 @@ static int32 sio0sCore(const int32 port, const int32 io, const int32 data) {
             return spi.sio_cannot_read | spi.sio_can_write; /* do not consume stop character        */
         }
         if (ch) {                                           /* character available?                     */
-            sio_unit.u3 = TRUE;                             /* indicate character available             */
+            sio_unit.u3 = true;                             /* indicate character available             */
             sio_unit.buf = ch;                              /* store character in buffer                */
             return spi.sio_can_read | spi.sio_can_write;
         }
@@ -843,7 +844,7 @@ static int32 sio0sCore(const int32 port, const int32 io, const int32 data) {
     }                                                       /* OUT follows, no fall-through from IN     */
     if (spi.hasReset && (data == spi.sio_reset)) {          /* reset command                            */
         if (!sio_unit.u4)                                   /* only reset for regular console I/O       */
-            sio_unit.u3 = FALSE;                            /* indicate that no character is available  */
+            sio_unit.u3 = false;                            /* indicate that no character is available  */
         sim_debug(CMD_MSG, &sio_dev, "\tSIO_S: " ADDRESS_FORMAT
                   " Command OUT(0x%03x) = 0x%02x\n", PCX, port, data);
     }
@@ -875,7 +876,7 @@ static int32 sio0dCore(const int32 port, const int32 io, const int32 data) {
             sim_debug(BUFFER_EMPTY_MSG, &sio_dev, "\tSIO_D: " ADDRESS_FORMAT
                       " IN(0x%03x) for empty character buffer\n", PCX, port);
         }
-        sio_unit.u3 = FALSE;                                /* no character is available any more       */
+        sio_unit.u3 = false;                                /* no character is available any more       */
         return mapCharacter(sio_unit.buf);                  /* return previous character                */
     }                                                       /* OUT follows, no fall-through from IN     */
     if (spi.hasOUT) {
@@ -905,10 +906,10 @@ int32 sio0d(const int32 port, const int32 io, const int32 data) {
     const int32 result = sio0dCore(port, io, data);
     if (io == 0) {
         sim_debug(IN_MSG, &sio_dev, "\tSIO_D: " ADDRESS_FORMAT
-                  " IN(0x%03x) = 0x%02x%s\n", PCX, port, result, printable(buffer, result, TRUE));
+                  " IN(0x%03x) = 0x%02x%s\n", PCX, port, result, printable(buffer, result, true));
     } else if (io) {
         sim_debug(OUT_MSG, &sio_dev, "\tSIO_D: " ADDRESS_FORMAT
-                  " OUT(0x%03x) = 0x%02x%s\n", PCX, port, data, printable(buffer, data, FALSE));
+                  " OUT(0x%03x) = 0x%02x%s\n", PCX, port, data, printable(buffer, data, false));
         }
     return result;
 }
@@ -932,7 +933,7 @@ static int32 sio1sCore(const int32 port, const int32 io, const int32 data) {
         return ptr_unit.u3 ? SIO_CAN_WRITE : (SIO_CAN_READ | SIO_CAN_WRITE);
     }                                                       /* OUT follows                              */
     if (data == SIO_RESET) {
-        ptr_unit.u3 = FALSE;                                /* reset EOF indicator                      */
+        ptr_unit.u3 = false;                                /* reset EOF indicator                      */
         sim_debug(CMD_MSG, &ptr_dev, "PTR: " ADDRESS_FORMAT
                   " Command OUT(0x%03x) = 0x%02x\n", PCX, port, data);
     }
@@ -976,7 +977,7 @@ static int32 sio1dCore(const int32 port, const int32 io, const int32 data) {
             return 0x00;
         }
         if ((ch = getc(ptr_unit.fileref)) == EOF) {         /* end of file?                             */
-            ptr_unit.u3 = TRUE;                             /* remember EOF reached                     */
+            ptr_unit.u3 = true;                             /* remember EOF reached                     */
             return CONTROLZ_CHAR;                           /* ^Z denotes end of text file in CP/M      */
         }
         return ch & 0xff;
@@ -1010,11 +1011,11 @@ int32 sio1d(const int32 port, const int32 io, const int32 data) {
 
 static t_stat toBool(char tf, int32 *result) {
     if (tf == 'T') {
-        *result = TRUE;
+        *result = true;
         return SCPE_OK;
     }
     if (tf == 'F') {
-        *result = FALSE;
+        *result = false;
         return SCPE_OK;
     }
     return SCPE_ARG;
@@ -1106,7 +1107,7 @@ static t_stat sio_dev_set_port(UNIT *uptr, int32 value, const char *cptr, void *
             port_table[position] = port_table[position + 1];
             position++;
         } while (port_table[position].port != -1);
-        sim_map_resource(sip.port, 1, RESOURCE_TYPE_IO, &nulldev, "nulldev", FALSE);
+        sim_map_resource(sip.port, 1, RESOURCE_TYPE_IO, &nulldev, "nulldev", false);
         if (sio_unit.flags & UNIT_SIO_VERBOSE) {
             sim_printf("Removing mapping for port 0x%02x.\n\t", sip.port);
             show_sio_port_info(stdout, old);
@@ -1151,7 +1152,7 @@ static t_stat sio_dev_set_port(UNIT *uptr, int32 value, const char *cptr, void *
         sim_printf("\n");
     port_table[position] = sip;
     sim_map_resource(sip.port, 1, RESOURCE_TYPE_IO,
-                     isDataPort ? &sio0d : &sio0s, isDataPort ? "sio0d" : "sio0s", FALSE);
+                     isDataPort ? &sio0d : &sio0s, isDataPort ? "sio0d" : "sio0s", false);
     return SCPE_OK;
 }
 
@@ -1162,11 +1163,11 @@ static t_stat sio_dev_show_port(FILE *st, UNIT *uptr, int32 val, const void *des
     (void) val;
     (void) desc;
 
-    int32 i, first = TRUE;
+    int32 i, first = true;
     for (i = 0; port_table[i].port != -1; i++)
         if (!port_table[i].isBuiltin) {
             if (first)
-                first = FALSE;
+                first = false;
             else
                 fprintf(st, " ");
             show_sio_port_info(st, port_table[i]);
@@ -1184,7 +1185,7 @@ static t_stat sio_dev_set_interrupton(UNIT *uptr, int32 value, const char *cptr,
     (void) cptr;
     (void) desc;
 
-    keyboardInterrupt = FALSE;
+    keyboardInterrupt = false;
     return sim_activate(&sio_unit, sio_unit.wait);          /* activate unit */
 }
 
@@ -1196,7 +1197,7 @@ static t_stat sio_dev_set_interruptoff(UNIT *uptr, int32 value, const char *cptr
     (void) cptr;
     (void) desc;
 
-    keyboardInterrupt = FALSE;
+    keyboardInterrupt = false;
     sim_cancel(&sio_unit);
     return SCPE_OK;
 }
@@ -1210,7 +1211,7 @@ static t_stat sio_svc(UNIT *uptr) {
     const SIO_PORT_INFO spi = lookupPortInfo(kbdIrqPort, &ch);
     ASSURE(spi.port == kbdIrqPort);
     if (sio0s(kbdIrqPort, 0, 0) & spi.sio_can_read)
-        keyboardInterrupt = TRUE;
+        keyboardInterrupt = true;
     if (sio_unit.flags & UNIT_SIO_INTERRUPT)
         sim_activate(&sio_unit, sio_unit.wait);             /* activate unit    */
     return SCPE_OK;
@@ -1223,7 +1224,7 @@ static void mapAltairPorts(void) {
         spi = port_table[i++];
         if ((0x02 <= spi.port) && (spi.port <= 0x19))
             sim_map_resource(spi.port, 1, RESOURCE_TYPE_IO,
-                             spi.hasOUT ? &sio0d : &sio0s, spi.hasOUT ? "sio0d" : "sio0s", FALSE);
+                             spi.hasOUT ? &sio0d : &sio0s, spi.hasOUT ? "sio0d" : "sio0s", false);
     } while (spi.port >= 0);
 }
 
@@ -1391,7 +1392,7 @@ static const char *cmdNames[kSimhPseudoDeviceCommands] = {
 #define TIMER_STACK_LIMIT          10       /* stack depth of timer stack   */
 static uint32 markTime[TIMER_STACK_LIMIT];  /* timer stack                  */
 static struct tm currentTime;
-static int32 currentTimeValid = FALSE;
+static int32 currentTimeValid = false;
 static char version[] = "SIMH005";
 
 #define URL_MAX_LENGTH              1024
@@ -1405,7 +1406,7 @@ static int32 isInReadPhase;
 
 static t_stat simh_dev_reset(DEVICE *dptr) {
     sim_map_resource(0xfe, 1, RESOURCE_TYPE_IO, &simh_dev, "simh_dev", dptr->flags & DEV_DIS);
-    currentTimeValid        = FALSE;
+    currentTimeValid        = false;
     ClockZSDOSDelta         = 0;
     setClockZSDOSPos        = 0;
     getClockZSDOSPos        = 0;
@@ -1420,7 +1421,7 @@ static t_stat simh_dev_reset(DEVICE *dptr) {
     versionPos              = 0;
     lastCommand             = 0;
     lastCPMStatus           = SCPE_OK;
-    timerInterrupt          = FALSE;
+    timerInterrupt          = false;
     urlPointer              = 0;
     getClockFrequencyPos    = 0;
     setClockFrequencyPos    = 0;
@@ -1459,7 +1460,7 @@ static t_stat simh_dev_set_timeroff(UNIT *uptr, int32 value, const char *cptr, v
     (void) cptr;
     (void) desc;
 
-    timerInterrupt = FALSE;
+    timerInterrupt = false;
     return SCPE_OK;
 }
 
@@ -1471,7 +1472,7 @@ static t_stat simh_svc(UNIT *uptr) {
     if (simh_unit.flags & UNIT_SIMH_TIMERON) {
         uint32 now = sim_os_msec();
         if (now >= timeOfNextInterrupt) {
-            timerInterrupt = TRUE;
+            timerInterrupt = true;
             if (timerDelta == 0)
                 timeOfNextInterrupt = now + DEFAULT_TIMER_DELTA;
             else {
@@ -1778,7 +1779,7 @@ static int32 simh_out(const int32 port, const int32 data) {
                     urlResult = URLContents(urlStore, &resultLength);
                     urlPointer = resultPointer = 0;
                     showAvailability = 1;
-                    isInReadPhase = TRUE;
+                    isInReadPhase = true;
                 }
             }
             break;
@@ -1917,7 +1918,7 @@ static int32 simh_out(const int32 port, const int32 data) {
             switch(data) {
                 case readURLCmd:
                     urlPointer = 0;
-                    isInReadPhase = FALSE;
+                    isInReadPhase = false;
                     break;
 
                 case getHostFilenamesCmd:   /* list files of host file directory */
@@ -1998,7 +1999,7 @@ static int32 simh_out(const int32 port, const int32 data) {
                     sim_get_time(&now);
                     now += ClockZSDOSDelta;
                     currentTime = *localtime(&now);
-                    currentTimeValid = TRUE;
+                    currentTimeValid = true;
                     getClockZSDOSPos = 0;
                     break;
 
@@ -2010,7 +2011,7 @@ static int32 simh_out(const int32 port, const int32 data) {
                     sim_get_time(&now);
                     now += ClockCPM3Delta;
                     currentTime = *localtime(&now);
-                    currentTimeValid = TRUE;
+                    currentTimeValid = true;
                     daysCPM3SinceOrg = (int32) ((now - mkCPM3Origin()) / SECONDS_PER_DAY);
                     getClockCPM3Pos = 0;
                     break;
@@ -2074,7 +2075,7 @@ static int32 simh_out(const int32 port, const int32 data) {
 
                 case startTimerInterruptsCmd:
                     if (simh_dev_set_timeron(NULL, 0, NULL, NULL) == SCPE_OK) {
-                        timerInterrupt = FALSE;
+                        timerInterrupt = false;
                         simh_unit.flags |= UNIT_SIMH_TIMERON;
                     }
                     break;

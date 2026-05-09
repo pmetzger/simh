@@ -101,6 +101,7 @@
 
 #include "pdp10_defs.h"
 #include <setjmp.h>
+#include <stdbool.h>
 
 typedef struct {                                        /* unpacked fp number */
     int32               sign;                           /* sign */
@@ -112,8 +113,8 @@ typedef struct {                                        /* unpacked fp number */
 #define MSK32           0xFFFFFFFF
 #define FIT27           (DMASK - 0x07FFFFFF)
 #define FIT32           (DMASK - MSK32)
-#define SFRC            TRUE                            /* frac 2's comp */
-#define AFRC            FALSE                           /* frac abs value */
+#define SFRC            true                            /* frac 2's comp */
+#define AFRC            false                           /* frac abs value */
 
 /* In packed floating point number */
 
@@ -155,9 +156,9 @@ typedef struct {                                        /* unpacked fp number */
 #define DUNEG(x)        x.flo = UNEG (x.flo); x.fhi = ~x.fhi + (x.flo == 0)
 
 void mul (d10 a, d10 b, d10 *rs);
-void funpack (d10 h, d10 l, UFP *r, t_bool sgn);
+void funpack (d10 h, d10 l, UFP *r, bool sgn);
 void fnorm (UFP *r, t_int64 rnd);
-d10 fpack (UFP *r, d10 *lo, t_bool fdvneg);
+d10 fpack (UFP *r, d10 *lo, bool fdvneg);
 
 /* Integer multiply - checked against KS-10 ucode */
 
@@ -182,14 +183,14 @@ return rs[1];
    2^35 (that is, -2^35) as the incorrect result.
 */
 
-t_bool idiv (d10 a, d10 b, d10 *rs)
+bool idiv (d10 a, d10 b, d10 *rs)
 {
 d10 dvd = ABS (a);                                      /* make ops positive */
 d10 dvr = ABS (b);
 
 if (dvr == 0) {                                         /* divide by 0? */
     SETF (F_DCK | F_AOV | F_T1);                        /* set flags, return */
-    return FALSE;
+    return false;
     }
 rs[0] = dvd / dvr;                                      /* get quotient */
 rs[1] = dvd % dvr;                                      /* get remainder */
@@ -197,7 +198,7 @@ if (TSTS (a ^ b))                                       /* sign of result */
     rs[0] = NEG (rs[0]);
 if (TSTS (a))                                           /* sign of remainder */
     rs[1] = NEG (rs[1]);
-return TRUE;
+return true;
 }
 
 /* Multiply, return double precision result - checked against KS10 ucode */
@@ -242,7 +243,7 @@ return;
    thus, the quotient can have at most 35 bits.
 */
 
-t_bool divi (int32 ac, d10 b, d10 *rs)
+bool divi (int32 ac, d10 b, d10 *rs)
 {
 int32 p1 = ADDAC (ac, 1);
 d10 dvr = ABS (b);                                      /* make divr positive */
@@ -257,7 +258,7 @@ if (TSTS (AC(ac))) {                                    /* make divd positive */
     }
 if (dvd[0] >= dvr) {                                    /* divide fail? */
     SETF (F_AOV | F_DCK | F_T1);                        /* set flags, return */
-    return FALSE;
+    return false;
     }
 if (dvd[0] & FIT27) {                                   /* fit in 63b? */
     for (i = 0, rs[0] = 0; i < 35; i++) {               /* 35 quotient bits */
@@ -280,7 +281,7 @@ if (TSTS (AC(ac) ^ b))                                  /* sign of result */
     rs[0] = NEG (rs[0]);
 if (TSTS (AC(ac)))                                      /* sign of remainder */
     rs[1] = NEG (rs[1]);
-return TRUE;
+return true;
 }
 
 /* Double precision multiply.  This is done the old fashioned way.  Cross
@@ -404,7 +405,7 @@ return;
    result sign is determined by the fraction sign.
 */
 
-d10 fad (d10 op1, d10 op2, t_bool rnd, int32 inv)
+d10 fad (d10 op1, d10 op2, bool rnd, int32 inv)
 {
 int32 ediff;
 UFP a, b, t;
@@ -447,7 +448,7 @@ else {
         }
     }
 fnorm (&a, (rnd? FP_URNDS: 0));                         /* normalize, round */
-return fpack (&a, NULL, FALSE);
+return fpack (&a, NULL, false);
 }
 
 /* Single precision floating multiply.  Because the fractions are 27b,
@@ -457,7 +458,7 @@ return fpack (&a, NULL, FALSE);
 */
 
 #define FP_V_SPM        (FP_V_UFHI - (32 - FP_N_FHI - 1))
-d10 fmp (d10 op1, d10 op2, t_bool rnd)
+d10 fmp (d10 op1, d10 op2, bool rnd)
 {
 UFP a, b;
 
@@ -469,7 +470,7 @@ a.sign = a.sign ^ b.sign;                               /* result sign */
 a.exp = a.exp + b.exp - FP_BIAS + 1;                    /* result exponent */
 a.fhi = (a.fhi >> FP_V_SPM) * (b.fhi >> FP_V_SPM);      /* high 27b of result */
 fnorm (&a, (rnd? FP_URNDS: 0));                         /* normalize, round */
-return fpack (&a, NULL, FALSE);
+return fpack (&a, NULL, false);
 }
 
 /* Single precision floating divide.  Because the fractions are 27b, a
@@ -480,24 +481,24 @@ return fpack (&a, NULL, FALSE);
    implements the note on p2-23 of the Processor Reference Manual.
 */
 
-t_bool fdv (d10 op1, d10 op2, d10 *rs, t_bool rnd)
+bool fdv (d10 op1, d10 op2, d10 *rs, bool rnd)
 {
 UFP a, b;
 t_uint64 savhi;
-t_bool rem = FALSE;
+bool rem = false;
 
 funpack (op1, 0, &a, AFRC);                             /* unpack operands */
 funpack (op2, 0, &b, AFRC);                             /* fracs are abs val */
 if (a.fhi >= 2 * b.fhi) {                               /* will divide work? */
     SETF (F_AOV | F_DCK | F_FOV | F_T1);
-    return FALSE;
+    return false;
     }
 if ((savhi = a.fhi)) {                                  /* dvd = 0? quo = 0 */
     a.sign = a.sign ^ b.sign;                           /* result sign */
     a.exp = a.exp - b.exp + FP_BIAS + 1;                /* result exponent */
     a.fhi = a.fhi / (b.fhi >> (FP_N_FHI + 1));          /* do divide */
     if (a.sign && (savhi != (a.fhi * (b.fhi >> (FP_N_FHI + 1)))))
-        rem = TRUE;                                     /* KL/KS hack */
+        rem = true;                                     /* KL/KS hack */
     a.fhi = a.fhi << (FP_V_UNORM - FP_N_FHI - 1);       /* put quo in place */
     if ((a.fhi & FP_UNORM) == 0) {                      /* normalize 1b */
         a.fhi = a.fhi << 1;                             /* before masking */
@@ -507,7 +508,7 @@ if ((savhi = a.fhi)) {                                  /* dvd = 0? quo = 0 */
     }
 fnorm (&a, (rnd? FP_URNDS: 0));                         /* normalize, round */
 *rs = fpack (&a, NULL, rem);                            /* pack result */
-return TRUE;
+return true;
 }
 
 /* Single precision floating scale. */
@@ -524,7 +525,7 @@ if (ea & RSIGN)                                         /* adjust exponent */
     a.exp = a.exp - sc;
 else a.exp = a.exp + sc;
 fnorm (&a, 0);                                          /* renormalize */
-return fpack (&a, NULL, FALSE);                         /* pack result */
+return fpack (&a, NULL, false);                         /* pack result */
 }
 
 /* Float integer operand and round */
@@ -539,12 +540,12 @@ a.exp = FP_BIAS + 36;                                   /* initial exponent */
 a.fhi = val << (FP_V_UNORM - 35);                       /* left justify op */
 a.flo = 0;
 fnorm (&a, FP_URNDS);                                   /* normalize, round */
-return fpack (&a, NULL, FALSE);                         /* pack result */
+return fpack (&a, NULL, false);                         /* pack result */
 }
 
 /* Fix and truncate/round floating operand */
 
-void fix (int32 ac, d10 mb, t_bool rnd)
+void fix (int32 ac, d10 mb, bool rnd)
 {
 int32 sc;
 t_uint64 so;
@@ -626,7 +627,7 @@ else {
         }
     }
 fnorm (&a, FP_URNDD);                                   /* normalize, round */
-AC(ac) = fpack (&a, &AC(p1), FALSE);                    /* pack result */
+AC(ac) = fpack (&a, &AC(p1), false);                    /* pack result */
 return;
 }
 
@@ -662,7 +663,7 @@ mid = (xh * yl) + (yh * xl);                            /* fits in 64b */
 a.flo = a.flo + (mid << 32);                            /* add mid lo to lo */
 a.fhi = a.fhi + ((mid >> 32) & MSK32) + (a.flo < (mid << 32));
 fnorm (&a, FP_URNDD);                                   /* normalize, round */
-AC(ac) = fpack (&a, &AC(p1), FALSE);                    /* pack result */
+AC(ac) = fpack (&a, &AC(p1), false);                    /* pack result */
 return;
 }
 
@@ -704,13 +705,13 @@ if (a.fhi) {                                            /* dvd = 0? quo = 0 */
     a.fhi = qu;
     }
 fnorm (&a, FP_URNDD);                                   /* normalize, round */
-AC(ac) = fpack (&a, &AC(p1), FALSE);                    /* pack result */
+AC(ac) = fpack (&a, &AC(p1), false);                    /* pack result */
 return;
 }
 
 /* Unpack floating point operand */
 
-void funpack (d10 h, d10 l, UFP *r, t_bool sgn)
+void funpack (d10 h, d10 l, UFP *r, bool sgn)
 {
 d10 fphi, fplo;
 
@@ -784,7 +785,7 @@ return;
 
 /* Pack floating point result */
 
-d10 fpack (UFP *r, d10 *lo, t_bool fdvneg)
+d10 fpack (UFP *r, d10 *lo, bool fdvneg)
 {
 d10 val[2];
 

@@ -44,6 +44,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i7000_defs.h"
 
 #ifdef NUM_DEVS_DSK
@@ -105,7 +106,7 @@
 uint32              dsk_cmd(UNIT *, uint16, uint16);
 t_stat              dsk_srv(UNIT *);
 t_stat              dsk_boot(int32, DEVICE *);
-void                dsk_ini(UNIT *, t_bool);
+void                dsk_ini(UNIT *, bool);
 t_stat              dsk_reset(DEVICE *);
 t_stat              dsk_set_module(UNIT * uptr, int32 val, const char *cptr,
                                    void *desc);
@@ -1711,7 +1712,7 @@ dsk_boot(int unit_num, DEVICE * dptr)
 }
 
 void
-dsk_ini(UNIT * uptr, t_bool f)
+dsk_ini(UNIT * uptr, bool f)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

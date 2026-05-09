@@ -57,9 +57,9 @@
    sim_tape_position    generalized position
    sim_tape_rewind      rewind
    sim_tape_reset       reset unit
-   sim_tape_bot         TRUE if at beginning of tape
-   sim_tape_eot         TRUE if at or beyond end of tape
-   sim_tape_wrp         TRUE if write protected
+   sim_tape_bot         true if at beginning of tape
+   sim_tape_eot         true if at or beyond end of tape
+   sim_tape_wrp         true if write protected
    sim_tape_set_fmt     set tape format
    sim_tape_show_fmt    show tape format
    sim_tape_set_capac   set tape capacity
@@ -78,6 +78,7 @@
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #if defined SIM_ASYNCH_IO
 #include <pthread.h>
@@ -125,9 +126,9 @@ static t_stat tape_erase_rev (UNIT *uptr, t_mtrlnt gap_size);
 struct tape_context {
     DEVICE              *dptr;              /* Device for unit (access to debug flags) */
     uint32              dbit;               /* debugging bit for trace */
-    t_bool              auto_format;        /* Format determined dynamically */
+    bool                auto_format;        /* Format determined dynamically */
 #if defined SIM_ASYNCH_IO
-    t_bool              asynch_io;          /* Asynchronous Interrupt scheduling enabled */
+    bool                asynch_io;          /* Asynchronous Interrupt scheduling enabled */
     int                 asynch_io_latency;  /* instructions to delay pending interrupt */
     pthread_mutex_t     lock;
     pthread_t           io_thread;          /* I/O Thread Id */
@@ -324,7 +325,7 @@ else {
     }
 }
 
-static t_bool _tape_is_active (UNIT *uptr)
+static bool _tape_is_active (UNIT *uptr)
 {
 struct tape_context *ctx = (struct tape_context *)uptr->tape_ctx;
 
@@ -332,10 +333,10 @@ if (ctx) {
     sim_debug_unit (ctx->dbit, uptr, "_tape_is_active(unit=%d, top=%d)\n", (int)(uptr-ctx->dptr->units), ctx->io_top);
     return (ctx->io_top != TOP_DONE);
     }
-return FALSE;
+return false;
 }
 
-static t_bool _tape_cancel (UNIT *uptr)
+static bool _tape_cancel (UNIT *uptr)
 {
 struct tape_context *ctx = (struct tape_context *)uptr->tape_ctx;
 
@@ -348,7 +349,7 @@ if (ctx) {
         pthread_mutex_unlock (&ctx->io_lock);
         }
     }
-return FALSE;
+return false;
 }
 #else
 #define AIO_CALLSETUP                                                       \
@@ -412,25 +413,25 @@ const char HDR3_RMS_FIXRSX[] = "HDR3020008010000"
 static struct ansi_tape_parameters {
     const char          *name;                  /* operating system */
     const char          *system_code;           /* */
-    t_bool              nohdr2;                 /* no HDR2 records */
-    t_bool              nohdr3;                 /* no HDR2 records */
-    t_bool              fixed_text;             /*  */
+    bool                nohdr2;                 /* no HDR2 records */
+    bool                nohdr3;                 /* no HDR2 records */
+    bool                fixed_text;             /*  */
     char                vol1_standard;          /* 3 or 4 */
     const char          *hdr3_fixed;            /* HDR3 template for Fixed format files */
     const char          *hdr3_lf_line_endings;  /* HDR3 template for text with LF line ending files */
     const char          *hdr3_crlf_line_endings;/* HDR3 template for text with CRLF line ending files */
     int                 skip_lf_line_endings;
     int                 skip_crlf_line_endings;
-    t_bool              y2k_date_bug;
-    t_bool              zero_record_length;
+    bool                y2k_date_bug;
+    bool                zero_record_length;
     char                record_format;
     char                carriage_control;
     } ansi_args[] = {     /* code       nohdr2 nohdr3 fixed_text lvl hdr3 for fixed    hdr3 for lf      hdr3 for crlf  skLF CRLF Y2KDT  0RecLnt RFM  CC*/
-        {"ANSI-VMS"      , "DECFILE11A", FALSE, FALSE, FALSE,    '3', HDR3_RMS_FIXED,  HDR3_RMS_STMLF,  HDR3_RMS_STREAM, 0,   0, FALSE, FALSE,   0,   0},
-        {"ANSI-RSX11"    , "DECFILE11A", FALSE, FALSE, FALSE,    '4', HDR3_RMS_FIXRSX, HDR3_RMS_VARRSX, HDR3_RMS_VARRSX, 1,   2, FALSE, FALSE,   0,   0},
-        {"ANSI-RT11"     , "DECRT11A",   TRUE,  TRUE,  TRUE,     '3', NULL,            NULL,            NULL,            0,   0, FALSE, FALSE,   0,   0},
-        {"ANSI-RSTS"     , "DECRSTS/E",  FALSE, TRUE,  TRUE,     '3', NULL,            NULL,            NULL,            0,   0, TRUE,  TRUE,  'U', 'M'},
-        {"ANSI-VAR"      , "DECRSTS/E",  FALSE, TRUE,  FALSE,    '3', NULL,            NULL,            NULL,            1,   2, TRUE,  FALSE, 'D', ' '},
+        {"ANSI-VMS"      , "DECFILE11A", false, false, false,    '3', HDR3_RMS_FIXED,  HDR3_RMS_STMLF,  HDR3_RMS_STREAM, 0,   0, false, false,   0,   0},
+        {"ANSI-RSX11"    , "DECFILE11A", false, false, false,    '4', HDR3_RMS_FIXRSX, HDR3_RMS_VARRSX, HDR3_RMS_VARRSX, 1,   2, false, false,   0,   0},
+        {"ANSI-RT11"     , "DECRT11A",   true,  true,  true,     '3', NULL,            NULL,            NULL,            0,   0, false, false,   0,   0},
+        {"ANSI-RSTS"     , "DECRSTS/E",  false, true,  true,     '3', NULL,            NULL,            NULL,            0,   0, true,  true,  'U', 'M'},
+        {"ANSI-VAR"      , "DECRSTS/E",  false, true,  false,    '3', NULL,            NULL,            NULL,            1,   2, true,  false, 'D', ' '},
         {NULL}
     };
 
@@ -443,7 +444,7 @@ static void sim_tape_add_ansi_entry (const char *directory,
                                      t_offset FileSize,
                                      const struct stat *filestat,
                                      void *context);
-static t_bool memory_tape_add_block (MEMORY_TAPE *tape, uint8 *block, size_t size);
+static bool memory_tape_add_block (MEMORY_TAPE *tape, uint8 *block, size_t size);
 
 typedef struct DOS11_HDR {
     uint16 fname[2];        /* File name (RAD50 - 6 characters) */
@@ -520,7 +521,7 @@ if (!ctx) return SCPE_UNATT;
 
 if (ctx->asynch_io) {
     pthread_mutex_lock (&ctx->io_lock);
-    ctx->asynch_io = FALSE;
+    ctx->asynch_io = false;
     pthread_cond_signal (&ctx->io_cond);
     pthread_mutex_unlock (&ctx->io_lock);
     pthread_join (ctx->io_thread, NULL);
@@ -578,8 +579,8 @@ DEVICE *dptr;
 char gbuf[CBUFSIZE];
 char export_file[CBUFSIZE] = "";
 t_stat r;
-t_bool auto_format = FALSE;
-t_bool had_debug = (sim_deb != NULL);
+bool auto_format = false;
+bool had_debug = (sim_deb != NULL);
 uint32 starting_dctrl = uptr->dctrl;
 int32 saved_switches = sim_switches;
 MEMORY_TAPE *tape = NULL;
@@ -598,7 +599,7 @@ if (sim_switches & SWMASK ('F')) {                      /* format spec? */
     if (sim_tape_set_fmt (uptr, 0, gbuf, NULL) != SCPE_OK)
         return sim_messagef (SCPE_ARG, "Invalid Tape Format: %s\n", gbuf);
     sim_switches = sim_switches & ~(SWMASK ('F'));      /* Record Format specifier already processed */
-    auto_format = TRUE;
+    auto_format = true;
     }
 if (sim_switches & SWMASK ('B')) {                      /* Record Size (blocking factor)? */
     cptr = get_glyph (cptr, gbuf, 0);                   /* get spec */
@@ -679,10 +680,10 @@ switch (MT_GET_FMT (uptr)) {
             FILE *f;
             struct stat statb;
             size_t max_record_size;
-            t_bool lf_line_endings;
-            t_bool crlf_line_endings;
+            bool lf_line_endings;
+            bool crlf_line_endings;
             uint8 *block = NULL;
-            int error = FALSE;
+            bool error = false;
             static const uint8 ascii2ebcdic[128] = {
                 0000,0001,0002,0003,0067,0055,0056,0057,
                 0026,0005,0045,0013,0014,0015,0016,0017,
@@ -735,7 +736,7 @@ switch (MT_GET_FMT (uptr)) {
                     else {
                         if (data_read != 0) {
                             r = sim_messagef (SCPE_ARG, "Read %u bytes of data when expecting %u bytes\n", (uint32)data_read, (uint32)tape->block_size);
-                            error = TRUE;
+                            error = true;
                             }
                         }
                     }
@@ -932,7 +933,7 @@ t_stat sim_tape_detach (UNIT *uptr)
 struct tape_context *ctx;
 uint32 f;
 t_stat r;
-t_bool auto_format = FALSE;
+bool auto_format = false;
 
 if (uptr == NULL)
     return SCPE_IERR;
@@ -1176,7 +1177,7 @@ return uptr->tape_eom;                   /* Virtual tape images: record/TM count
 static t_stat sim_tape_rdlntf (UNIT *uptr, t_mtrlnt *bc)
 {
 uint8    c;
-t_bool   all_eof;
+bool     all_eof;
 uint32   f = MT_GET_FMT (uptr);
 t_mtrlnt sbc;
 t_tpclnt tpcbc;
@@ -1551,7 +1552,7 @@ return status;
 static t_stat sim_tape_rdlntr (UNIT *uptr, t_mtrlnt *bc)
 {
 uint8    c;
-t_bool   all_eof;
+bool     all_eof;
 uint32   f = MT_GET_FMT (uptr);
 t_addr   ppos;
 t_mtrlnt sbc;
@@ -2177,7 +2178,7 @@ static t_stat sim_tape_aws_wrdata (UNIT *uptr, uint8 *buf, t_mtrlnt bc)
 {
 t_awshdr awshdr;
 size_t   rdcnt;
-t_bool   replacing_record;
+bool     replacing_record;
 
 memset (&awshdr, 0, sizeof (t_awshdr));
 if (sim_tape_seek (uptr, uptr->pos))        /* set pos */
@@ -3052,11 +3053,11 @@ return r;
    data record error    updated
 */
 
-t_stat sim_tape_spfilebyrecf (UNIT *uptr, uint32 count, uint32 *skipped, uint32 *recsskipped, t_bool check_leot)
+t_stat sim_tape_spfilebyrecf (UNIT *uptr, uint32 count, uint32 *skipped, uint32 *recsskipped, bool check_leot)
 {
 struct tape_context *ctx = (struct tape_context *)uptr->tape_ctx;
 t_stat st;
-t_bool last_tapemark = FALSE;
+bool last_tapemark = false;
 uint32 filerecsskipped;
 
 *skipped = *recsskipped = 0;
@@ -3089,7 +3090,7 @@ while (*skipped < count) {                              /* loop */
             *skipped = *skipped - 1;                    /* adjust # files skipped */
             return MTSE_LEOT;
             }
-        last_tapemark = TRUE;
+        last_tapemark = true;
         }
     else
         return st;
@@ -3097,7 +3098,7 @@ while (*skipped < count) {                              /* loop */
 return MTSE_OK;
 }
 
-t_stat sim_tape_spfilebyrecf_a (UNIT *uptr, uint32 count, uint32 *skipped, uint32 *recsskipped, t_bool check_leot, TAPE_PCALLBACK callback)
+t_stat sim_tape_spfilebyrecf_a (UNIT *uptr, uint32 count, uint32 *skipped, uint32 *recsskipped, bool check_leot, TAPE_PCALLBACK callback)
 {
 t_stat r = MTSE_OK;
 AIO_CALLSETUP
@@ -3135,7 +3136,7 @@ if (ctx == NULL)                                        /* if not properly attac
     return sim_messagef (SCPE_IERR, "Bad Attach\n");    /*   that's a problem */
 sim_debug_unit (ctx->dbit, uptr, "sim_tape_spfilef(unit=%d, count=%d)\n", (int)(uptr-ctx->dptr->units), count);
 
-return sim_tape_spfilebyrecf (uptr, count, skipped, &totalrecsskipped, FALSE);
+return sim_tape_spfilebyrecf (uptr, count, skipped, &totalrecsskipped, false);
 }
 
 t_stat sim_tape_spfilef_a (UNIT *uptr, uint32 count, uint32 *skipped, TAPE_PCALLBACK callback)
@@ -3361,25 +3362,25 @@ return SCPE_OK;
 
 /* Test for BOT */
 
-t_bool sim_tape_bot (UNIT *uptr)
+bool sim_tape_bot (UNIT *uptr)
 {
 uint32 f = MT_GET_FMT (uptr);
 
-return ((uptr->pos <= fmts[f].bot) && (!MT_TST_INMRK (uptr))) ? TRUE: FALSE;
+return ((uptr->pos <= fmts[f].bot) && (!MT_TST_INMRK (uptr))) ? true: false;
 }
 
 /* Test for end of tape */
 
-t_bool sim_tape_eot (UNIT *uptr)
+bool sim_tape_eot (UNIT *uptr)
 {
-return (uptr->capac && (uptr->pos >= uptr->capac))? TRUE: FALSE;
+return (uptr->capac && (uptr->pos >= uptr->capac))? true: false;
 }
 
 /* Test for write protect */
 
-t_bool sim_tape_wrp (UNIT *uptr)
+bool sim_tape_wrp (UNIT *uptr)
 {
-return ((uptr->flags & MTUF_WRP) || (uptr->flags & UNIT_RO) || (MT_GET_FMT (uptr) == MTUF_F_TPC))? TRUE: FALSE;
+return ((uptr->flags & MTUF_WRP) || (uptr->flags & UNIT_RO) || (MT_GET_FMT (uptr) == MTUF_F_TPC))? true: false;
 }
 
 /* Process I/O error */
@@ -3601,7 +3602,7 @@ if (rec_sizes == NULL) {
 r = sim_tape_rewind (uptr);
 while (r == SCPE_OK) {
     if (stop_cpu) { /* SIGINT? */
-        stop_cpu = FALSE;
+        stop_cpu = false;
         break;
         }
     pos_f = uptr->pos;
@@ -3941,7 +3942,7 @@ t_stat sim_tape_init (void)
 return SCPE_OK;
 }
 
-static void ansi_date (time_t datetime, char date[6], t_bool y2k_date_bug)
+static void ansi_date (time_t datetime, char date[6], bool y2k_date_bug)
     {
     struct tm *lt;
     char buf[20];
@@ -4052,7 +4053,7 @@ static void ansi_make_HDR1 (ANSI_HDR1 *hdr1, ANSI_VOL1 *vol, ANSI_HDR4 *hdr4, co
     free (fn_cpy);
     }
 
-static t_bool ansi_make_HDR2 (ANSI_HDR2 *hdr, t_bool fixed_record,
+static bool ansi_make_HDR2 (ANSI_HDR2 *hdr, bool fixed_record,
                               size_t block_size, size_t record_size,
                               uint32 ansi_type, const char **field_error)
     {
@@ -4069,7 +4070,7 @@ static t_bool ansi_make_HDR2 (ANSI_HDR2 *hdr, t_bool fixed_record,
                                        (t_uint64)block_size)) {
         if (field_error != NULL)
             *field_error = "block size";
-        return FALSE;
+        return false;
         }
     if (!sim_tape_format_ansi_decimal (hdr->record_length,
                                        sizeof (hdr->record_length),
@@ -4077,14 +4078,14 @@ static t_bool ansi_make_HDR2 (ANSI_HDR2 *hdr, t_bool fixed_record,
                                            (t_uint64)record_size)) {
         if (field_error != NULL)
             *field_error = "record size";
-        return FALSE;
+        return false;
         }
     hdr->carriage_control = ansi->carriage_control ? ansi->carriage_control : (fixed_record ? 'M' : ' ');
     memcpy (hdr->buffer_offset, "00", 2);
-    return TRUE;
+    return true;
     }
 
-static void ansi_fill_text_buffer (FILE *f, char *buf, size_t buf_size, size_t record_skip_ending, t_bool fixed_text)
+static void ansi_fill_text_buffer (FILE *f, char *buf, size_t buf_size, size_t record_skip_ending, bool fixed_text)
     {
     long start;
     char *tmp = (char *)calloc (2 + buf_size, sizeof (*buf));
@@ -4145,7 +4146,7 @@ static void ansi_fill_text_buffer (FILE *f, char *buf, size_t buf_size, size_t r
     free (tmp);
     }
 
-static t_bool memory_tape_add_block (MEMORY_TAPE *tape, uint8 *block, size_t size)
+static bool memory_tape_add_block (MEMORY_TAPE *tape, uint8 *block, size_t size)
 {
 TAPE_RECORD *rec;
 
@@ -4155,18 +4156,18 @@ if (tape->array_size <= tape->record_count) {
     TAPE_RECORD **new_records;
     new_records = (TAPE_RECORD **)realloc (tape->records, (tape->array_size + 1000) * sizeof (*tape->records));
     if (new_records == NULL)
-        return TRUE;                /* no memory error */
+        return true;                /* no memory error */
     tape->records = new_records;
     memset (tape->records + tape->array_size, 0, 1000 * sizeof (*tape->records));
     tape->array_size += 1000;
     }
 rec = (TAPE_RECORD *)malloc (sizeof (*rec) + size);
 if (rec == NULL)
-    return TRUE;                    /* no memory error */
+    return true;                    /* no memory error */
 rec->size = size;
 memcpy (rec->data, block, size);
 tape->records[tape->record_count++] = rec;
-return FALSE;
+return false;
 }
 
 static void memory_free_tape (void *vtape)
@@ -4219,20 +4220,20 @@ void sim_tape_dos11_fallback_name(char name[9], uint32 file_count)
 }
 
 /* Format a value that must fit exactly in a fixed-width ANSI label field. */
-t_bool
+bool
 sim_tape_format_ansi_decimal(char *field, size_t field_size, t_uint64 value)
 {
     char text[16];
     int written;
 
     if ((field == NULL) || (field_size == 0) || (field_size >= sizeof (text)))
-        return FALSE;
+        return false;
     written = snprintf (text, sizeof (text), "%0*" T_UINT64_FMT "u",
                         (int)field_size, value);
     if ((written < 0) || ((size_t)written != field_size))
-        return FALSE;
+        return false;
     memcpy (field, text, field_size);
-    return TRUE;
+    return true;
 }
 
 /*
@@ -4254,7 +4255,7 @@ static void dos11_sanitize(char *buf, int len, const char *inbuf)
 static int dos11_copy_ascii_file (FILE *f, MEMORY_TAPE *tape, char *buf, size_t bufSize)
 {
 char ch, tmp[512];
-t_bool crlast = FALSE;
+bool crlast = false;
 int error = 0;
 size_t i, data_read, offset = 0;
 
@@ -4276,7 +4277,7 @@ while (!feof (f) && !error) {
                     error = memory_tape_add_block (tape, (uint8 *)buf, bufSize);
                     offset = 0;
                     }
-                crlast = FALSE;
+                crlast = false;
                 }
             else {
                 crlast = ch == '\r';
@@ -4311,8 +4312,8 @@ MEMORY_TAPE *tape = (MEMORY_TAPE *)context;
 char *full_path = NULL;
 FILE *f;
 size_t max_record_size;
-t_bool lf_line_endings;
-t_bool crlf_line_endings;
+bool lf_line_endings;
+bool crlf_line_endings;
 uint8 *block = NULL;
 int error = 0;
 DOS11_HDR hdr;
@@ -4430,24 +4431,24 @@ sim_printf ("Can't open: %s - %s\n", filename, strerror (errno));
 return NULL;
 }
 
-int sim_tape_classify_file_contents (FILE *f, size_t *max_record_size, t_bool *lf_line_endings, t_bool *crlf_line_endings)
+int sim_tape_classify_file_contents (FILE *f, size_t *max_record_size, bool *lf_line_endings, bool *crlf_line_endings)
 {
 long pos = -1;
 long last_cr = -1;
 long line_start = 0;
 int chr;
-t_bool non_print_chars = FALSE;
+bool non_print_chars = false;
 long lf_lines = 0;
 long crlf_lines = 0;
 
 *max_record_size = 0;
-*lf_line_endings = FALSE;
-*crlf_line_endings = FALSE;
+*lf_line_endings = false;
+*crlf_line_endings = false;
 rewind (f);
 while (EOF != (chr = fgetc (f))) {
     ++pos;
     if (!isprint (chr) && (chr != '\r') && (chr != '\n') && (chr != '\t') && (chr != '\f')) {
-        non_print_chars = TRUE;
+        non_print_chars = true;
         break;
         }
     if (chr == '\r')
@@ -4479,13 +4480,13 @@ if (non_print_chars)
 
 else {
     if ((crlf_lines > 0) && (lf_lines == 0)) {
-        *lf_line_endings = FALSE;
-        *crlf_line_endings = TRUE;
+        *lf_line_endings = false;
+        *crlf_line_endings = true;
         }
     else {
         if ((lf_lines > 0) && (crlf_lines == 0)) {
-            *lf_line_endings = TRUE;
-            *crlf_line_endings = FALSE;
+            *lf_line_endings = true;
+            *crlf_line_endings = false;
             }
         }
     }
@@ -4509,11 +4510,11 @@ return tape;
  * Determine the ANSI record size used for import and reject layouts that
  * cannot be copied into fixed-size tape blocks.
  */
-static t_bool
+static bool
 ansi_resolve_record_layout(const struct ansi_tape_parameters *ansi,
                            const char *filename, size_t block_size,
-                           size_t rms_record_size, t_bool lf_line_endings,
-                           t_bool crlf_line_endings,
+                           size_t rms_record_size, bool lf_line_endings,
+                           bool crlf_line_endings,
                            size_t *max_record_size)
 {
     enum {
@@ -4521,13 +4522,13 @@ ansi_resolve_record_layout(const struct ansi_tape_parameters *ansi,
         ANSI_RCW_SIZE = 4,
         ANSI_RCW_LIMIT = 9999
     };
-    t_bool text_file = lf_line_endings || crlf_line_endings;
+    bool text_file = lf_line_endings || crlf_line_endings;
 
     if (!text_file) {
         if (ansi->record_format == 'D') {
             sim_messagef(SCPE_ARG, "%s format does not support binary files\n",
                          ansi->name);
-            return FALSE;
+            return false;
         }
         *max_record_size = rms_record_size;
     } else {
@@ -4551,7 +4552,7 @@ ansi_resolve_record_layout(const struct ansi_tape_parameters *ansi,
                     "allows (%d)\n",
                     filename, (int)rms_record_size, ansi->name,
                     (int)max_allowed);
-                return FALSE;
+                return false;
             }
         }
     }
@@ -4561,7 +4562,7 @@ ansi_resolve_record_layout(const struct ansi_tape_parameters *ansi,
                      "%s file: %s requires a minimum block size of %d\n",
                      text_file ? "Text" : "Binary", filename,
                      (int)*max_record_size);
-        return FALSE;
+        return false;
     }
     /* Binary ANSI imports pad fixed-size records inside each tape block. */
     if (!text_file && (*max_record_size != 0) &&
@@ -4570,17 +4571,17 @@ ansi_resolve_record_layout(const struct ansi_tape_parameters *ansi,
                      "Binary file block size %" SIZE_T_FMT "u is not a "
                      "multiple of the ANSI record size %" SIZE_T_FMT "u\n",
                      block_size, *max_record_size);
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 /* Build the optional RMS attributes header used by DEC ANSI variants. */
 static void
 ansi_make_HDR3(ANSI_HDR3 *hdr, const struct ansi_tape_parameters *ansi,
-               size_t rms_record_size, t_bool lf_line_endings,
-               t_bool crlf_line_endings)
+               size_t rms_record_size, bool lf_line_endings,
+               bool crlf_line_endings)
 {
     char size[5];
 
@@ -4602,9 +4603,9 @@ FILE *f;
 struct ansi_tape_parameters *ansi = &ansi_args[tape->ansi_type];
 uint8 *block = NULL;
 size_t rms_record_size, max_record_size;
-t_bool lf_line_endings, crlf_line_endings;
+bool lf_line_endings, crlf_line_endings;
 int block_count = 0;
-int error = FALSE;
+bool error = false;
 uint32 file_sequence;
 ANSI_HDR1 hdr1;
 ANSI_HDR2 hdr2;
@@ -4614,14 +4615,14 @@ const char *hdr2_field_error;
 
 f = tape_open_and_check_file (filename);
 if (f == NULL)
-    return TRUE;
+    return true;
 
 sim_tape_classify_file_contents (f, &rms_record_size, &lf_line_endings, &crlf_line_endings);
 if (!ansi_resolve_record_layout(ansi, filename, tape->block_size,
                                 rms_record_size, lf_line_endings,
                                 crlf_line_endings, &max_record_size)) {
     fclose (f);
-    return TRUE;
+    return true;
     }
 ansi_make_HDR1 (&hdr1, &tape->vol1, &hdr4, filename, tape->ansi_type);
 if (tape->file_count >= 9999) {
@@ -4629,7 +4630,7 @@ if (tape->file_count >= 9999) {
                   "%s file count %u exceeds the ANSI label sequence limit\n",
                   ansi->name, tape->file_count);
     fclose (f);
-    return TRUE;
+    return true;
     }
 file_sequence = tape->file_count + 1;
 if (!sim_tape_format_ansi_decimal (hdr1.file_sequence,
@@ -4639,7 +4640,7 @@ if (!sim_tape_format_ansi_decimal (hdr1.file_sequence,
                   "%s file sequence %u does not fit the ANSI label field\n",
                   ansi->name, file_sequence);
     fclose (f);
-    return TRUE;
+    return true;
     }
 if (!ansi_make_HDR2 (&hdr2, !lf_line_endings && !crlf_line_endings,
                      tape->block_size, max_record_size, tape->ansi_type,
@@ -4648,7 +4649,7 @@ if (!ansi_make_HDR2 (&hdr2, !lf_line_endings && !crlf_line_endings,
                   "%s %s does not fit the ANSI label field\n",
                   ansi->name, hdr2_field_error);
     fclose (f);
-    return TRUE;
+    return true;
     }
 
 if (!(ansi->nohdr3))
@@ -4705,7 +4706,7 @@ if (!sim_tape_format_ansi_decimal (hdr1.block_count,
     sim_messagef (SCPE_ARG,
                   "%s block count %d does not fit the ANSI label field\n",
                   ansi->name, block_count);
-    return TRUE;
+    return true;
     }
 memory_tape_add_block (tape, (uint8 *)&hdr1, sizeof (hdr1));
 if (!(ansi->nohdr2))

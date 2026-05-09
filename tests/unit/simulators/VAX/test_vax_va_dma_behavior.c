@@ -1,4 +1,5 @@
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -165,14 +166,14 @@ void va_fifo_wr(uint32 val)
     (void)val;
 }
 
-t_stat va_btp(UNIT *uptr, t_bool zmode)
+t_stat va_btp(UNIT *uptr, bool zmode)
 {
     (void)uptr;
     (void)zmode;
     return SCPE_OK;
 }
 
-t_stat va_ptb(UNIT *uptr, t_bool zmode)
+t_stat va_ptb(UNIT *uptr, bool zmode)
 {
     (void)uptr;
     (void)zmode;

@@ -34,6 +34,7 @@
    disk controller
 */
 
+#include <stdbool.h>
 #include "id_defs.h"
 
 #define IDC_NUMBY       256                             /* bytes/sector */
@@ -224,7 +225,7 @@ t_stat idc_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
 void idc_wd_byte (uint32 dat);
 t_stat idc_rds (UNIT *uptr);
 t_stat idc_wds (UNIT *uptr);
-t_bool idc_dter (UNIT *uptr, uint32 first);
+bool idc_dter (UNIT *uptr, uint32 first);
 void idc_done (uint32 flg);
 
 extern t_stat id_dboot (int32 u, DEVICE *dptr);
@@ -683,7 +684,7 @@ return SCPE_OK;
 
 /* Data transfer error test routine */
 
-t_bool idc_dter (UNIT *uptr, uint32 first)
+bool idc_dter (UNIT *uptr, uint32 first)
 {
 uint32 cy;
 uint32 hd, sc, sa;
@@ -691,11 +692,11 @@ uint32 dtype = GET_DTYPE (uptr->flags);                 /* get drive type */
 
 if ((uptr->flags & UNIT_ATT) == 0) {                    /* not attached? */
     idc_done (STC_DTE);                                 /* error, done */
-    return TRUE;
+    return true;
     }
 if ((uptr->flags & UNIT_WPRT) && (uptr->FNC == CMC_WR)) {
     idc_done (STC_WRP);                                 /* error, done */
-    return TRUE;
+    return true;
     }
 cy = uptr->CYL;                                         /* get cylinder */
 hd = uptr->HD;                                          /* get head */
@@ -703,7 +704,7 @@ sc = idc_sec & SC_MASK;                                 /* get sector */
 if (cy >= drv_tab[dtype].cyl) {                         /* bad cylinder? */
     uptr->STD = uptr->STD | STD_SKI;                    /* error */
     idc_done (STC_DTE);                                 /* error, done */
-    return TRUE;
+    return true;
     }
 if (hd >= drv_tab[dtype].surf) {                        /* bad head? */
     if (first) {                                        /* 1st xfer? */
@@ -711,14 +712,14 @@ if (hd >= drv_tab[dtype].surf) {                        /* bad head? */
         idc_done (STC_ACF);
         }
     else idc_done (STC_CYO);                            /* no, cyl ovf */
-    return TRUE;
+    return true;
     }
 sa = GET_SA (cy, hd, sc, dtype);                        /* curr disk addr */
 fseek (uptr->fileref, sa * IDC_NUMBY, SEEK_SET);        /* seek to pos */
 idc_sec = (idc_sec + 1) & SC_MASK;                      /* incr disk addr */
 if (idc_sec == 0)
     uptr->HD = uptr->HD + 1;
-return FALSE;
+return false;
 }
 
 /* Data transfer done routine */

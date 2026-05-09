@@ -105,6 +105,7 @@
 #include "3b2_mau.h"
 
 #include <math.h>
+#include <stdbool.h>
 
 #include "3b2_cpu.h"
 #include "3b2_mem.h"
@@ -112,7 +113,7 @@
 
 #define   MAU_ID   0        /* Coprocessor ID of MAU */
 
-#define   TININESS_BEFORE_ROUNDING   TRUE
+#define   TININESS_BEFORE_ROUNDING   true
 
 /* Static function declarations */
 static inline void mau_case_div_zero(XFP *op1, XFP *op2, XFP *result);
@@ -120,9 +121,9 @@ static inline void mau_case_div_zero(XFP *op1, XFP *op2, XFP *result);
 static inline void mau_exc(uint32 flag, uint32 mask);
 static inline void abort_on_fault(void);
 static inline void mau_decode(uint32 cmd, uint32 src, uint32 dst);
-static inline t_bool le_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1);
-static inline t_bool eq_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1);
-static inline t_bool lt_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1);
+static inline bool le_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1);
+static inline bool eq_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1);
+static inline bool lt_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1);
 static uint8 leading_zeros(uint32 val);
 static uint8 leading_zeros_64(t_int64 val);
 static void shift_right_32_jamming(uint32 val, int16 count, uint32 *result);
@@ -152,7 +153,7 @@ static t_int64 round_pack_int64(uint32 sign,
 static SFP round_pack_sfp(uint32 sign, int16 exp,
                           uint32 frac, RM rounding_mode);
 static DFP round_pack_dfp(uint32 sign, int16 exp, t_uint64 frac,
-                          t_bool xfp_sticky, RM rounding_mode);
+                          bool xfp_sticky, RM rounding_mode);
 static void round_pack_xfp(uint32 sign, int32 exp,
                            t_uint64 frac_a, t_uint64 frac_b,
                            RM rounding_mode, XFP *result);
@@ -419,7 +420,7 @@ static inline void mau_exc(uint32 flag, uint32 mask)
         if (mau_state.asr & MAU_ASR_NTNC) {
             mau_state.asr |= MAU_ASR_ECP;
         } else {
-            mau_state.ntnan = TRUE;
+            mau_state.ntnan = true;
         }
         return;
     }
@@ -432,7 +433,7 @@ static inline void mau_exc(uint32 flag, uint32 mask)
 /*
  * Returns true if an exceptional condition is present.
  */
-static inline t_bool mau_exception_present(void)
+static inline bool mau_exception_present(void)
 {
 
     return mau_state.asr & MAU_ASR_ECP &&
@@ -489,7 +490,7 @@ static inline void abort_on_fault(void)
  */
 static void clear_asr(void)
 {
-    mau_state.ntnan = FALSE;
+    mau_state.ntnan = false;
 
     switch(mau_state.opcode) {
     case M_NOP:
@@ -510,14 +511,14 @@ static void clear_asr(void)
  * here. If an exception has occured, the Z and N flags are not to be
  * set!
  */
-static t_bool set_nz(void)
+static bool set_nz(void)
 {
     switch(mau_state.opcode) {
     case M_NOP:
     case M_RDASR:
     case M_WRASR:
     case M_EROF:
-        return FALSE;
+        return false;
     default:
         return (mau_state.asr & MAU_ASR_ECP) == 0;
     }
@@ -545,7 +546,7 @@ t_stat mau_reset(DEVICE *dptr)
  *
  * Derived from the SoftFloat 2c package (see copyright notice above)
  */
-static inline t_bool le_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1)
+static inline bool le_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1)
 {
     return (a0 < b0) || ((a0 == b0) && (a1 <= b1));
 }
@@ -555,7 +556,7 @@ static inline t_bool le_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1)
  *
  * Derived from the SoftFloat 2c package (see copyright notice above)
  */
-static inline t_bool eq_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1)
+static inline bool eq_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1)
 {
     return (a0 == b0) && (a1 == b1);
 }
@@ -565,7 +566,7 @@ static inline t_bool eq_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1)
  *
  * Derived from the SoftFloat 2c package (see copyright notice above)
  */
-static inline t_bool lt_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1)
+static inline bool lt_128(t_uint64 a0, t_uint64 a1, t_uint64 b0, t_uint64 b1)
 {
     return (a0 < b0) || ((a0 == b0) && (a1 < b1));
 }
@@ -988,7 +989,7 @@ static t_int64 round_pack_int64(uint32 sign,
                                 t_uint64 abs_0, t_uint64 abs_1,
                                 RM rounding_mode)
 {
-    t_bool increment;
+    bool increment;
     t_int64 z;
 
     increment = (t_int64)abs_1 < 0;
@@ -1106,10 +1107,10 @@ static SFP round_pack_sfp(uint32 sign, int16 exp, uint32 frac, RM rounding_mode)
  * Derived from the SoftFloat 2c package (see copyright notice above)
  */
 static DFP round_pack_dfp(uint32 sign, int16 exp, t_uint64 frac,
-                          t_bool xfp_sticky, RM rounding_mode)
+                          bool xfp_sticky, RM rounding_mode)
 {
     int16 round_increment, round_bits;
-    t_bool lsb, round, sticky;
+    bool lsb, round, sticky;
     uint8 is_tiny;
 
     is_tiny = 0;
@@ -1169,7 +1170,7 @@ static DFP round_pack_dfp(uint32 sign, int16 exp, t_uint64 frac,
         }
     } else {
         frac = (frac + round_increment) >> 11;
-        lsb = !((t_bool)(round_bits ^ 0x200));
+        lsb = !((bool)(round_bits ^ 0x200));
         frac &= ~((t_uint64)lsb);
     }
 
@@ -1270,7 +1271,7 @@ static void propagate_xfp_nan(XFP *a, XFP *b, XFP *result)
  */
 static void propagate_xfp_nan_128(XFP* a, XFP* b, t_mau_128* result)
 {
-    t_bool is_sig_nan_a, is_sig_nan_b;
+    bool is_sig_nan_a, is_sig_nan_b;
     t_uint64 non_frac_a_low, non_frac_b_low;
     uint16 mag_a, mag_b;
 
@@ -1413,7 +1414,7 @@ static T_NAN sfp_to_common_nan(SFP val)
     T_NAN nan = {0};
 
     if (SFP_IS_TRAPPING_NAN(val)) {
-        mau_state.trapping_nan = TRUE;
+        mau_state.trapping_nan = true;
     }
 
     nan.sign = (val >> 31) & 1;
@@ -1434,7 +1435,7 @@ static T_NAN dfp_to_common_nan(DFP val)
     T_NAN nan = {0};
 
     if (DFP_IS_TRAPPING_NAN(val)) {
-        mau_state.trapping_nan = TRUE;
+        mau_state.trapping_nan = true;
     }
 
     nan.sign = (val >> 63) & 1;
@@ -1455,7 +1456,7 @@ static T_NAN xfp_to_common_nan(XFP *val)
     T_NAN nan = {0};
 
     if (XFP_IS_TRAPPING_NAN(val)) {
-        mau_state.trapping_nan = TRUE;
+        mau_state.trapping_nan = true;
     }
 
     nan.sign = (val->sign_exp >> 15) & 1;
@@ -2464,7 +2465,7 @@ static void xfp_mul(XFP *a, XFP *b, XFP *result, RM rounding_mode)
  */
 static void xfp_div(XFP *a, XFP *b, XFP *result, RM rounding_mode)
 {
-    t_bool a_sign, b_sign, r_sign;
+    bool a_sign, b_sign, r_sign;
     int32 a_exp, b_exp, r_exp;
     t_uint64 a_frac, b_frac, r_frac0, r_frac1;
     t_uint64 rem0, rem1, rem2, term0, term1, term2;
@@ -2577,7 +2578,7 @@ static void xfp_div(XFP *a, XFP *b, XFP *result, RM rounding_mode)
 static void xfp_sqrt(XFP *a, XFP *result, RM rounding_mode)
 {
     XFP zero = {0, 0, 0};
-    t_bool a_sign;
+    bool a_sign;
     int32 a_exp, norm_exp, r_exp;
     uint32 a_frac_32, sqrt_recip_32, r_frac_32;
     t_uint64 a_frac, norm_frac, q, x64, z_frac, z_frac_extra;
@@ -2996,7 +2997,7 @@ static void store_op3(XFP *xfp)
 {
     DFP dfp;
     SFP sfp;
-    t_bool store_dr = FALSE;
+    bool store_dr = false;
 
     sim_debug(TRACE_DBG, &mau_dev,
               "[store_op3] op3=%04x%016llx\n",
@@ -3008,7 +3009,7 @@ static void store_op3(XFP *xfp)
     case M_SUB:
     case M_MUL:
     case M_DIV:
-        store_dr = TRUE;
+        store_dr = true;
         break;
     default:
         break;

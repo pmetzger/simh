@@ -56,6 +56,7 @@
    verified with an atomic compare-and-swap.
 */
 
+#include <stdbool.h>
 #include "pdp11_defs.h"
 
 #include "sim_fio.h"
@@ -257,7 +258,7 @@ case 2:                                                 /* input buffer */
      UC15_ATOMIC_CAS (UC15_TCBP_RD, 0, 1);              /* send ACK */
      if (DEBUG_PRS (uca_dev)) {
         uint32 apiv, apil, fnc, tsk, pa;
-        t_bool spl;
+        bool spl;
 
         pa = ucb_buf + MEMSIZE;
         apiv = RdMemB (pa);

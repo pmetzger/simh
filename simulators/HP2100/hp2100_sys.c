@@ -1869,7 +1869,7 @@ static DEVICE poll_dev = {
 /* System interface local SCP support routines */
 
 void   hp_one_time_init  (void);
-static t_bool fprint_stopped (FILE *st, t_stat reason);
+static bool fprint_stopped (FILE *st, t_stat reason);
 static void   fprint_addr    (FILE *st, DEVICE *dptr, t_addr addr);
 static t_addr parse_addr     (DEVICE *dptr, const char *cptr, const char **tptr);
 
@@ -1900,7 +1900,7 @@ static int fputword (int data, FILE *fileref);
 
 static size_t device_size    = 0;               /* the maximum device name size */
 static size_t flag_size      = 0;               /* the maximum trace flag name size */
-static t_bool parse_physical = TRUE;            /* the address parser configuration */
+static bool parse_physical = true;              /* the address parser configuration */
 static UNIT   *cpu_uptr      = NULL;            /* a pointer to the CPU unit */
 
 /* System interface global data structures */
@@ -2141,7 +2141,7 @@ if (flag == 0) {                                        /* if this is a LOAD com
             return SCPE_ARG;                            /*   then report a bad argument */
         }
 
-    while (TRUE) {                                      /* read absolute binary records from the file */
+    while (true) {                                      /* read absolute binary records from the file */
         do {                                            /* skip any blank leader or trailer present */
             count = fgetc (fptr);                       /* get the next byte from the tape */
 
@@ -2897,7 +2897,7 @@ return SCPE_OK;                                         /* return the display re
 t_stat fprint_cpu (FILE *ofile, t_addr addr, t_value *val, uint32 radix, SYMBOL_SOURCE source)
 {
 const  t_value opcode = val [0];                        /* the instruction opcode */
-t_bool separator = FALSE;                               /* TRUE if a separator between multiple ops is needed */
+bool separator = false;                                 /* true if a separator between multiple ops is needed */
 t_stat status    = SCPE_ARG;                            /* initial return status is "invalid opcode" */
 
 if (MRGOP (opcode)) {                                   /* if this is an MRG instruction */
@@ -2914,7 +2914,7 @@ else if (SRGOP (opcode)) {                              /* otherwise if this is 
         status = fprint_instruction (ofile, addr, val,  /*     then print the first shift operation */
                                      radix, srg1_desc, srg1_ops);
 
-        separator = TRUE;                               /* we will need a separator */
+        separator = true;                               /* we will need a separator */
         }
 
     if (opcode == SRG_NOP                               /* if this is a NOP */
@@ -2925,7 +2925,7 @@ else if (SRGOP (opcode)) {                              /* otherwise if this is 
         status = fprint_instruction (ofile, addr, val,  /* print the micro-op(s) */
                                      radix, srg_udesc, srg_uops);
 
-        separator = TRUE;                               /* we will need a separator */
+        separator = true;                               /* we will need a separator */
         }
 
     if (opcode & SRG2_DE_MASK) {                        /* if the second shift is enabled */
@@ -3559,8 +3559,8 @@ return;
    For VM stops, this routine is called after the message has been printed and
    before the comma and program counter label and value are printed.  Depending
    on the reason for the stop, the routine may insert additional information,
-   and it may request omission of the PC value by returning FALSE instead of
-   TRUE.
+   and it may request omission of the PC value by returning false instead of
+   true.
 
    This routine modifies the default output for these stop codes:
 
@@ -3578,7 +3578,7 @@ return;
    the stop message.  To so do, we define a sim_vm_fprint_stopped handler that
    is called for all VM stops.  When called for a STOP_HALT, the halt message
    has been printed, and we add the opcode value in the T register before
-   returning TRUE, so that SCP will add the program counter value.
+   returning true, so that SCP will add the program counter value.
 
    For unreported I/O error stops, the message must include the device name, so
    the user will know how to correct the error.  For these stops, the global
@@ -3596,7 +3596,7 @@ return;
        not be included.
 */
 
-static t_bool fprint_stopped (FILE *st, t_stat reason)
+static bool fprint_stopped (FILE *st, t_stat reason)
 {
 DEVICE *dptr;
 
@@ -3617,7 +3617,7 @@ else if (cpu_ioerr_uptr) {                              /* otherwise if this is 
         fputs (" an unknown device", st);                   /*   report that the device is unknown */
     }
 
-return TRUE;                                            /* return TRUE to append the program counter */
+return true;                                            /* return true to append the program counter */
 }
 
 
@@ -3739,7 +3739,7 @@ if (cptr != *tptr)                                      /* if the parse succeede
     else if (address > LA_MAX)                          /* otherwise if the non-paged offset is too large */
         *tptr = cptr;                                   /*   then report a parse error */
 
-if (parse_physical == FALSE                             /* if only logical addresses are permitted */
+if (parse_physical == false                             /* if only logical addresses are permitted */
   && address > LA_MAX)                                  /*   and the parsed address is out of range */
     *tptr = cptr;                                       /*     then report a parse error */
 
@@ -3761,7 +3761,7 @@ return address;                                         /* return the linear add
 
 static t_stat hp_exdep_cmd (int32 arg, const char *buf)
 {
-parse_physical = TRUE;                                  /* allow the <page.<offset> address form */
+parse_physical = true;                                  /* allow the <page.<offset> address form */
 
 return exdep_cmd (arg, buf);                            /* return the result of the standard handler */
 }
@@ -3782,7 +3782,7 @@ return exdep_cmd (arg, buf);                            /* return the result of 
 
 static t_stat hp_run_cmd (int32 arg, const char *buf)
 {
-parse_physical = FALSE;                                 /* allow the <logical-address> address form only */
+parse_physical = false;                                 /* allow the <logical-address> address form only */
 
 return run_cmd (arg, buf);                              /* return the result of the standard handler */
 }
@@ -3803,7 +3803,7 @@ return run_cmd (arg, buf);                              /* return the result of 
 
 static t_stat hp_brk_cmd (int32 arg, const char *buf)
 {
-parse_physical = FALSE;                                 /* allow the <logical-address> address form only */
+parse_physical = false;                                 /* allow the <logical-address> address form only */
 
 return brk_cmd (arg, buf);                              /* return the result of the standard handler */
 }
@@ -4017,7 +4017,7 @@ t_value    instruction, op_value;
 t_stat     status;
 const char *prefix   = NULL;                            /* label to print before the operand */
 bool       clear     = false;                           /* set if the instruction contains a CLF micro-op */
-t_bool     separator = FALSE;                           /* TRUE if a separator between multiple ops is needed */
+bool       separator = false;                           /* true if a separator between multiple ops is needed */
 uint32     op_start  = 1;                               /* the "val" array index of the first operand */
 
 if (!(cpu_configuration & op_desc.feature & CPU_OPTION_MASK /* if the required feature set is not enabled */
@@ -4057,7 +4057,7 @@ else {                                                  /* otherwise search thro
 
                 if (op_desc.mask == OP_LINEAR           /* if multiple matches */
                   && op_desc.shift == OP_MULTIPLE)      /*   are allowed */
-                    separator = TRUE;                   /*     then separators will be needed between mnemonics */
+                    separator = true;                   /*     then separators will be needed between mnemonics */
 
                 else                                    /* otherwise */
                     break;                              /*   the search terminates on the first match */
@@ -4573,8 +4573,8 @@ OP_TYPE    op_type;
 uint32     accumulator, op_index, op_count, op_radix, op_address_set;
 t_stat     status, consumption;
 t_value    op_value;
-t_bool     op_implicit;
-t_bool     op_flag  = FALSE;
+bool       op_implicit;
+bool       op_flag  = false;
 uint32     op_start = 1;                                /* the "val" array index of the first operand */
 
 val [0] = LOWER_WORD (optr->opcode);                    /* set the (initial) opcode */
@@ -4672,16 +4672,16 @@ else {                                                  /* otherwise, it's a sin
             if (gbuf [0] == 'C' && gbuf [1] == '\0') {      /* if the "C" modifier was specified */
                 val [0] = val [0] | IR_CP;                  /*   then add the current-page flag */
                 cptr = get_glyph (cptr, gbuf, '\0');        /* get the address */
-                op_implicit = FALSE;                        /*   and clear the implicit-page flag */
+                op_implicit = false;                        /*   and clear the implicit-page flag */
                 }
 
             else if (gbuf [0] == 'Z' && gbuf [1] == '\0') { /* otherwise if the "Z" modifier was specified */
                 cptr = get_glyph (cptr, gbuf, '\0');        /*   then get the address */
-                op_implicit = FALSE;                        /*     and clear the implicit-page flag */
+                op_implicit = false;                        /*     and clear the implicit-page flag */
                 }
 
             else                                            /* otherwise neither modifier is present */
-                op_implicit = TRUE;                         /*   so set the flag to allow implicit-page addressing */
+                op_implicit = true;                         /*   so set the flag to allow implicit-page addressing */
 
             op_value = parse_address (gbuf, &status);       /* parse the address and optional indirection indicator */
 
@@ -4705,7 +4705,7 @@ else {                                                  /* otherwise, it's a sin
 
         case opSCHC:
         case opSCOHC:
-            op_flag = TRUE;                             /* set a flag to enable an optional ",C" */
+            op_flag = true;                             /* set a flag to enable an optional ",C" */
 
         /* fall through into the opSC case */
 
@@ -4778,7 +4778,7 @@ else {                                                  /* otherwise, it's a sin
                 cptr++;                                 /*   then skip it */
 
             else if (*cptr == '-') {                    /* otherwise if there is a leading minus sign */
-                op_flag = TRUE;                         /*   then set the negative flag */
+                op_flag = true;                         /*   then set the negative flag */
                 cptr++;                                 /*     and skip it */
                 }
 

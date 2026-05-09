@@ -350,6 +350,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 #include "hp2100_di.h"
@@ -491,7 +492,7 @@ static t_stat da_load_unload (UNIT *uptr, int32 value, const char *cptr, void *d
 
 /* Amigo disc local utility routines */
 
-static t_bool start_command     (uint32 unit);
+static bool start_command     (uint32 unit);
 static void   abort_command     (uint32 unit, CNTLR_STATUS status, IF_STATE state);
 static void   complete_read     (uint32 unit);
 static void   complete_write    (uint32 unit);
@@ -766,12 +767,12 @@ CNTLR_CLASS command_class;
 const int32 unit = uptr - da_unit;                          /* get the disc unit number */
 const CVPTR cvptr = &icd_cntlr [unit];                      /* get a pointer to the controller */
 t_stat result = SCPE_OK;
-t_bool release_interface = FALSE;
+bool release_interface = false;
 
 switch (if_state [unit]) {                                  /* dispatch the interface state */
 
     case command_wait:                                      /* command is waiting */
-        release_interface = TRUE;                           /* release the interface at then end if it's idle */
+        release_interface = true;                           /* release the interface at then end if it's idle */
 
     /* fall through into the command_exec handler to process the current command */
 
@@ -874,7 +875,7 @@ switch (if_state [unit]) {                                  /* dispatch the inte
                 case disc_command:                          /* disc read or status commands */
                     data = get_buffer_byte (cvptr);         /* get the next byte from the buffer */
 
-                    if (di_bus_source (da, data) == FALSE)  /* send the byte to the card; is it listening? */
+                    if (di_bus_source (da, data) == false)  /* send the byte to the card; is it listening? */
                         cvptr->eod = SET;                   /* no, so terminate the read */
 
                     if (cvptr->length == 0 || cvptr->eod == SET) {  /* is the data phase complete? */
@@ -1358,7 +1359,7 @@ static t_stat da_load_unload (UNIT *uptr, int32 value, const char *cptr, void *d
 (void) desc;
 
 const int32 unit = uptr - da_unit;                          /* calculate the unit number */
-const t_bool load = (value != UNIT_UNLOAD);                 /* true if the heads are loading */
+const bool load = (value != UNIT_UNLOAD);                   /* true if the heads are loading */
 t_stat result;
 
 result = dl_load_unload (&icd_cntlr [unit], uptr, load);    /* load or unload the heads */
@@ -1381,7 +1382,7 @@ return result;
 /* Accept a data byte from the bus.
 
    The indicated unit is offered a byte that has been sourced to the bus.  The
-   routine returns TRUE or FALSE to indicate whether or not it accepted the
+   routine returns true or false to indicate whether or not it accepted the
    byte.
 
    Commands from the bus may be universal (applying to all acceptors) or
@@ -1527,14 +1528,14 @@ return result;
        commands, as only listeners are called by the bus source.
 */
 
-t_bool da_bus_accept (uint32 unit, uint8 data)
+bool da_bus_accept (uint32 unit, uint8 data)
 {
 const uint8 message_address = data & BUS_ADDRESS;
-t_bool accepted = TRUE;
-t_bool initiated = FALSE;
-t_bool addressed = FALSE;
-t_bool stopped_listening = FALSE;
-t_bool stopped_talking = FALSE;
+bool accepted = true;
+bool initiated = false;
+bool addressed = false;
+bool stopped_listening = false;
+bool stopped_talking = false;
 char action [40] = "";
 uint32 my_address;
 
@@ -1574,8 +1575,8 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                 di [da].listeners |= (1 << unit);           /* set my listener bit */
                 di [da].talker &= ~(1 << unit);             /* clear my talker bit */
 
-                addressed = TRUE;                           /* unit is now addressed */
-                stopped_talking = TRUE;                     /* MLA stops the unit from talking */
+                addressed = true;                           /* unit is now addressed */
+                stopped_talking = true;                     /* MLA stops the unit from talking */
 
                 if (TRACING (da_dev, DEB_XFER))
                     sprintf (action, "listen %d", message_address);
@@ -1584,14 +1585,14 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
             else if (message_address == BUS_UNADDRESS) {    /* is it an Unlisten? */
                 di [da].listeners = 0;                      /* clear all of the listeners */
 
-                stopped_listening = TRUE;                   /* UNL stops the unit from listening */
+                stopped_listening = true;                   /* UNL stops the unit from listening */
 
                 if (TRACING (da_dev, DEB_XFER))
                     strcpy (action, "unlisten");
                 }
 
             else                                            /* other listen addresses */
-                accepted = FALSE;                           /*   are not accepted */
+                accepted = false;                           /*   are not accepted */
 
             break;
 
@@ -1603,8 +1604,8 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                 di [da].talker = (1 << unit);               /* set my talker bit and clear the others */
                 di [da].listeners &= ~(1 << unit);          /* clear my listener bit */
 
-                addressed = TRUE;                           /* the unit is now addressed */
-                stopped_listening = TRUE;                   /* MTA stops the unit from listening */
+                addressed = true;                           /* the unit is now addressed */
+                stopped_listening = true;                   /* MTA stops the unit from listening */
 
                 if (TRACING (da_dev, DEB_XFER))
                     sprintf (action, "talk %d", message_address);
@@ -1613,10 +1614,10 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
             else {                                          /* it is some other talker (or Untalk) */
                 di [da].talker &= ~(1 << unit);             /* clear my talker bit */
 
-                stopped_talking = TRUE;                     /* UNT or OTA stops the unit from talking */
+                stopped_talking = true;                     /* UNT or OTA stops the unit from talking */
 
                 if (message_address != BUS_UNADDRESS)       /* other talk addresses */
-                    accepted = FALSE;                       /*   are not accepted */
+                    accepted = false;                       /*   are not accepted */
 
                 else                                        /* it's an Untalk */
                     if (TRACING (da_dev, DEB_XFER))
@@ -1647,7 +1648,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                             di_bus_control (da, unit, BUS_NRFD, 0);             /* assert NRFD to hold off the card */
                             }
 
-                        initiated = TRUE;                   /* log the command or abort initiation */
+                        initiated = true;                   /* log the command or abort initiation */
                         break;
 
                     case 0x08:                                  /* disc commands */
@@ -1658,7 +1659,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                     case 0x09:                                  /* CRC (Listen) */
                         if_command [unit] = crc_listen;         /* set up the command */
                         if_state [unit] = error_sink;           /* sink any data that will be coming */
-                        initiated = TRUE;                       /* log the command initiation */
+                        initiated = true;                       /* log the command initiation */
                         break;
 
                     case 0x10:                                  /* Amigo Clear */
@@ -1671,7 +1672,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                         if_command [unit] = write_loopback;     /* set up the command */
                         if_state [unit] = write_xfer;           /* data will be coming */
                         icd_cntlr [unit].length = 16;           /* accept only the first 16 bytes */
-                        initiated = TRUE;                       /* log the command initiation */
+                        initiated = true;                       /* log the command initiation */
                         break;
 
                     case 0x1F:                                  /* Initiate Self-Test */
@@ -1683,7 +1684,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                     default:                                    /* an unsupported listen secondary was received */
                         abort_command (unit, io_program_error,  /* abort and sink any data */
                                        error_sink);             /*   that might accompany the command */
-                        initiated = TRUE;                       /* log the abort initiation */
+                        initiated = true;                       /* log the abort initiation */
                         break;
                     }
                 }
@@ -1691,7 +1692,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
 
             else if (di [da].talker & (1 << unit)) {                /* is it a talk secondary? */
                 da_unit [unit].wait = icd_cntlr [unit].cmd_time;    /* these are always scheduled and */
-                initiated = TRUE;                                   /*   logged as initiated */
+                initiated = true;                                   /*   logged as initiated */
 
                 if (if_state [unit] == read_wait                    /* if we're waiting for a send data secondary */
                   && message_address != 0x00                        /*   but it's not there */
@@ -1756,11 +1757,11 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                     if_command [unit] = amigo_identify;                 /*     then this is an Amigo ID sequence */
                     if_state [unit] = command_exec;                     /* set up for execution */
                     da_unit [unit].wait = icd_cntlr [unit].cmd_time;    /* schedule the unit */
-                    initiated = TRUE;                                   /* log the command initiation */
+                    initiated = true;                                   /* log the command initiation */
                     }
 
                 else                                                /* unaddressed secondaries */
-                    accepted = FALSE;                               /*   are not accepted */
+                    accepted = false;                               /*   are not accepted */
                 }
 
 
@@ -1825,7 +1826,7 @@ else {                                                      /* it is bus data (A
             else {                                          /* the disc command is invalid */
                 abort_command (unit, illegal_opcode,        /* abort the command */
                                error_sink);                 /*   and sink any parameter bytes */
-                initiated = TRUE;                           /* log the abort initiation */
+                initiated = true;                           /* log the abort initiation */
                 }                                           /* (the unit cannot be busy) */
             break;
 
@@ -1843,7 +1844,7 @@ else {                                                      /* it is bus data (A
                 else {                                      /* the parameter count is wrong */
                     abort_command (unit, io_program_error,  /* abort the command and sink */
                                    error_sink);             /*   any additional parameter bytes */
-                    initiated = TRUE;                       /* log the abort initiation */
+                    initiated = true;                       /* log the abort initiation */
                     }
             break;
 
@@ -1971,11 +1972,11 @@ if (!(new_cntl & (BUS_ATN | BUS_NRFD))                  /* is the card in data m
    been set to the reason for the rejection.
 
    If the next interface state is command_exec, then the disc command is ready
-   for execution, and we return TRUE to schedule the unit service.  Otherwise,
-   we return FALSE, and the appropriate action will be taken by the caller.
+   for execution, and we return true to schedule the unit service.  Otherwise,
+   we return false, and the appropriate action will be taken by the caller.
 
    For all other commands, execution begins as soon as the correct parameters
-   are received, so we set command_exec state and return TRUE.  (Only Amigo
+   are received, so we set command_exec state and return true.  (Only Amigo
    Clear and Initiate Self Test require parameters, so they will be the only
    other commands that must be started here.)
 
@@ -1987,7 +1988,7 @@ if (!(new_cntl & (BUS_ATN | BUS_NRFD))                  /* is the card in data m
        is not used other than as an indication of success or failure.
 */
 
-static t_bool start_command (uint32 unit)
+static bool start_command (uint32 unit)
 {
 if (if_command [unit] == disc_command) {                        /* are we starting a disc command? */
     if (dl_start_command (&icd_cntlr [unit], da_unit, unit)) {  /* start the command; was it successful? */
@@ -1999,18 +2000,18 @@ if (if_command [unit] == disc_command) {                        /* are we starti
         if_dsj [unit] = 1;                                      /*   so indicate an error */
 
     if (if_state [unit] == command_exec)                        /* if the command is executing */
-        return TRUE;                                            /*   activate the unit */
+        return true;                                            /*   activate the unit */
 
     else {                                                      /* if we must wait */
         da_unit [unit].wait = 0;                                /*   for another secondary, */
-        return FALSE;                                           /*   then skip the activation */
+        return false;                                           /*   then skip the activation */
         }
     }
 
 else {                                                          /* all other commands */
     if_state [unit] = command_exec;                             /*   execute as soon */
     da_unit [unit].wait = icd_cntlr [unit].cmd_time;            /*     as they */
-    return TRUE;                                                /*       are received */
+    return true;                                                /*       are received */
     }
 }
 

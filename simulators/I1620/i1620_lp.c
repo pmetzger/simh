@@ -37,6 +37,7 @@
    25-Apr-03    RMS     Revised for extended file support
 */
 
+#include <stdbool.h>
 #include "i1620_defs.h"
 
 #define LPT_BSIZE       197                             /* buffer size */
@@ -65,7 +66,7 @@ t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *cptr);
 void lpt_buf_init (void);
-t_stat lpt_num(uint32 pa, uint32 f1, t_bool dump);
+t_stat lpt_num(uint32 pa, uint32 f1, bool dump);
 t_stat lpt_print (uint32 flag);
 t_stat lpt_spcop (int32 ctrl);
 t_stat lpt_space (int32 lines, int32 lflag);
@@ -212,10 +213,10 @@ switch (op) {                                           /* decode op */
         return sta;
 
     case OP_DN:
-        return lpt_num (pa, f1, TRUE);                  /* dump numeric */
+        return lpt_num (pa, f1, true);                  /* dump numeric */
 
     case OP_WN:
-        return lpt_num (pa, f1, FALSE);                 /* write numeric */
+        return lpt_num (pa, f1, false);                 /* write numeric */
 
     case OP_WA:
         for ( ; lpt_bptr < LPT_BSIZE; lpt_bptr++) {     /* only fill buf */
@@ -246,7 +247,7 @@ return SCPE_OK;
 
 /* Print numeric */
 
-t_stat lpt_num (uint32 pa, uint32 f1, t_bool dump)
+t_stat lpt_num (uint32 pa, uint32 f1, bool dump)
 {
 uint8 d;
 int8 lpc;
@@ -320,13 +321,13 @@ int32 chan, i;
 
 lpt_savctrl = K_LIN|1;                                  /* reset saved control */
 if ((ctrl & K_LIN) != 0)                                /* space lines? */
-    return lpt_space (ctrl & K_LCNT, FALSE);            /* execute spacing op */
+    return lpt_space (ctrl & K_LCNT, false);            /* execute spacing op */
 chan = lpt_savctrl & K_CHAN;                            /* get chan */
 if ((chan == 0) || (chan > 12))
     return STOP_INVFNC;
 for (i = 1; i < cct_lnt + 1; i++) {                     /* sweep thru cct */
     if (CHP (chan, cct[(cct_ptr + i) % cct_lnt]))
-        return lpt_space (i, TRUE);
+        return lpt_space (i, true);
     }
 return STOP_CCT;                                        /* runaway channel */
 }
@@ -335,7 +336,7 @@ return STOP_CCT;                                        /* runaway channel */
 
    Inputs:
         count   =       number of lines to space or skip
-        sflag   =       skip (TRUE) or space (FALSE)
+        sflag   =       skip (true) or space (false)
 */
 
 t_stat lpt_space (int32 count, int32 sflag)

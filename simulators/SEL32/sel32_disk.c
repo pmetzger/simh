@@ -21,6 +21,7 @@
    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 
 /* uncomment to use fast sim_activate times when running UTX */
@@ -388,7 +389,7 @@ t_stat  disk_haltio(UNIT *uptr);
 t_stat  disk_iocl(CHANP *chp, int32 tic_ok);
 t_stat  disk_srv(UNIT *uptr);
 t_stat  disk_boot(int32 unitnum, DEVICE *dptr);
-void    disk_ini(UNIT *, t_bool);
+void    disk_ini(UNIT *, bool);
 t_stat  disk_rschnlio(UNIT *uptr);
 t_stat  disk_reset(DEVICE *);
 t_stat  disk_attach(UNIT *, const char *);
@@ -452,7 +453,7 @@ DIB             dda_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     disk_rschnlio,  /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     disk_iocl,      /* t_stat (*iocl_io)(CHANP *chp, int32 tik_ok)) */  /* Process IOCL */
-    disk_ini,       /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    disk_ini,       /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     dda_unit,       /* UNIT* units */                           /* Pointer to units structure */
     dda_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -498,7 +499,7 @@ DIB             ddb_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     disk_rschnlio,  /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     disk_iocl,      /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    disk_ini,       /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    disk_ini,       /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     ddb_unit,       /* UNIT* units */                           /* Pointer to units structure */
     ddb_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -2686,7 +2687,7 @@ t_stat  disk_rschnlio(UNIT *uptr) {
 }
 
 /* initialize the disk */
-void disk_ini(UNIT *uptr, t_bool f)
+void disk_ini(UNIT *uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */
@@ -2996,7 +2997,7 @@ static int disk_format(UNIT *uptr) {
     if (!(sim_switches & SWMASK('N')) && !(sim_switches & SWMASK('I'))) {
         sim_switches = 0;                       /* simh tests 'N' & 'Y' switches */
         /* see if user wants to initialize the disk */
-        if (!get_yn("Initialize disk? [Y] ", TRUE)) {
+        if (!get_yn("Initialize disk? [Y] ", true)) {
             sim_switches = oldsw;
             return 1;
         }

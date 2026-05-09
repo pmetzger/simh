@@ -29,6 +29,7 @@
 #if defined(VM_PDP11)  &&  !defined(UC15)
 
 #include <assert.h>
+#include <stdbool.h>
 
 #include "pdp11_defs.h"
 #include "sim_disk.h"
@@ -758,7 +759,7 @@ static t_stat rr_seek_init (UNIT *uptr)
 static void rr_go (int16 func)
 {
     int32 i, n, type, cyl, head;
-    t_bool rd, wr;
+    bool rd, wr;
     UNIT* uptr;
 
     assert(func == GET_FUNC(rpcs));
@@ -919,7 +920,7 @@ static void rr_go (int16 func)
 
 /* Complete seek */
 
-static void rr_seek_done (UNIT *uptr, t_bool cancel)
+static void rr_seek_done (UNIT *uptr, bool cancel)
 {
     int32 n = (int32)(uptr - rr_dev.units);             /* get unit number */
 
@@ -957,7 +958,7 @@ static t_stat rr_svc (UNIT *uptr)
     t_seccnt todo, done;
     t_stat ioerr;
     uint32 ma;
-    t_bool wr;
+    bool wr;
 
     assert(func);
     uptr->FUNC = 0;                                     /* idle */
@@ -1306,7 +1307,7 @@ static t_stat rr_attach (UNIT *uptr, const char *cptr)
     int32 type = GET_DTYPE(uptr->flags);
     t_stat err = sim_disk_attach_ex2(uptr, cptr,
                                      RP_SIZE(sizeof(*rpxb)), sizeof(*rpxb),
-                                     TRUE, 0, drv_tab[type].name,
+                                     true, 0, drv_tab[type].name,
                                      0, 0,
                                      rr_dev.flags & DEV_RP11CE ? rr_types : NULL,
                                      0);

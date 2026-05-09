@@ -50,6 +50,7 @@
 
 #include "sim_defs.h"
 #include <setjmp.h>
+#include <stdbool.h>
 
 /* Stops and aborts */
 
@@ -860,14 +861,14 @@ return -(int32) mag;
 }
 
 /* Compare two unsigned longword bit patterns as signed VAX longwords. */
-static inline t_bool vax_signed_lt_l (uint32 s1, uint32 s2)
+static inline bool vax_signed_lt_l (uint32 s1, uint32 s2)
 {
 if ((s1 ^ s2) & LSIGN)
     return (s1 & LSIGN) != 0;
 return s1 < s2;
 }
 
-static inline t_bool vax_signed_le_l (uint32 s1, uint32 s2)
+static inline bool vax_signed_le_l (uint32 s1, uint32 s2)
 {
 return (s1 == s2) || vax_signed_lt_l (s1, s2);
 }
@@ -1013,7 +1014,7 @@ extern int32 op_bb_x (uint32 *opnd, int32 newb, int32 acc);
 extern int32 op_extv (uint32 *opnd, int32 vfldrp1, int32 acc);
 extern void op_insv (uint32 *opnd, int32 vfldrp1, int32 acc);
 extern int32 op_ffs (uint32 fld, int32 size);
-extern int32 op_call (uint32 *opnd, t_bool gs, int32 acc);
+extern int32 op_call (uint32 *opnd, bool gs, int32 acc);
 extern int32 op_ret (int32 acc);
 extern int32 op_insque (uint32 *opnd, int32 acc);
 extern int32 op_remque (uint32 *opnd, int32 acc);
@@ -1057,9 +1058,9 @@ extern int32 op_mnegg (int32 val);
 extern int32 op_cvtdf (uint32 *opnd);
 extern int32 op_cvtfg (uint32 *opnd, int32 *rh);
 extern int32 op_cvtgf (uint32 *opnd);
-extern int32 op_addf (uint32 *opnd, t_bool sub);
-extern int32 op_addd (uint32 *opnd, int32 *rh, t_bool sub);
-extern int32 op_addg (uint32 *opnd, int32 *rh, t_bool sub);
+extern int32 op_addf (uint32 *opnd, bool sub);
+extern int32 op_addd (uint32 *opnd, int32 *rh, bool sub);
+extern int32 op_addg (uint32 *opnd, int32 *rh, bool sub);
 extern int32 op_mulf (uint32 *opnd);
 extern int32 op_muld (uint32 *opnd, int32 *rh);
 extern int32 op_mulg (uint32 *opnd, int32 *rh);
@@ -1075,7 +1076,7 @@ extern int32 op_octa (uint32 *opnd, int32 cc, int32 opc, int32 acc, int32 spec, 
 
 /* vax_cmode.c externals */
 extern int32 op_cmode (int32 cc);
-extern t_bool BadCmPSL (int32 newpsl);
+extern bool BadCmPSL (int32 newpsl);
 
 /* vax_sys.c externals */
 extern const uint16 drom[NUM_INST][MAX_SPEC + 1];
@@ -1157,7 +1158,7 @@ extern int32 cpu_instruction_set;
 #define BOOT_CODE_SIZE 0
 #endif
 
-extern t_stat cpu_load_bootcode (const char *filename, const unsigned char *builtin_code, size_t size, t_bool rom, t_addr offset);
+extern t_stat cpu_load_bootcode (const char *filename, const unsigned char *builtin_code, size_t size, bool rom, t_addr offset);
 extern t_stat cpu_print_model (FILE *st);
 extern t_stat cpu_show_model (FILE *st, UNIT *uptr, int32 val, const void *desc);
 extern t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc);

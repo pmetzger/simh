@@ -75,6 +75,7 @@
 #endif
 #include "pdp11_defs.h"
 #include <math.h>
+#include <stdbool.h>
 #include "sim_disk.h"
 
 #define UNIT_V_PLAT     (DKUF_V_UF + 0)                 /* #platters - 1 */
@@ -584,7 +585,7 @@ static t_stat rc_attach (UNIT *uptr, const char *cptr)
     sprintf (plat, "%dP", UNIT_GETP (uptr->flags));
 
     return sim_disk_attach_ex (uptr, cptr, RC_NUMWD * sizeof (uint16), sizeof (uint16),
-                                    TRUE, 0, plat, FALSE, 0, (uptr->flags & UNIT_NOAUTO) ? NULL : platters);
+                                    true, 0, plat, false, 0, (uptr->flags & UNIT_NOAUTO) ? NULL : platters);
 }
 
 /* Change disk size */

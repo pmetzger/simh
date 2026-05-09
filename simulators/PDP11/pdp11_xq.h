@@ -80,6 +80,7 @@
 #define ULTRIX1X 0
 #endif
 
+#include <stdbool.h>
 #include "sim_ether.h"
 
 #define XQ_QUE_MAX           500                        /* read queue size in packets */
@@ -264,7 +265,7 @@ struct xq_device {
   uint32            coalesce_latency;                   /* microseconds to hold-off interrupts when not polling */
   uint32            coalesce_latency_ticks;             /* instructions in coalesce_latency microseconds */
   struct xq_sanity  sanity;                             /* sanity timer information */
-  t_bool            lockmode;                           /* DEQNA-Lock mode */
+  bool              lockmode;                           /* DEQNA-Lock mode */
   uint32            throttle_time;                      /* ms burst time window */
   uint32            throttle_burst;                     /* packets passed with throttle_time which trigger throttling */
   uint32            throttle_delay;                     /* ms to delay when throttling.  0 disables throttling */
@@ -308,7 +309,7 @@ struct xq_device {
   ETH_QUE           ReadQ;
   int32             idtmr;                              /* countdown for ID Timer */
   uint32            must_poll;                          /* receiver must poll instead of counting on asynch polls */
-  t_bool            initialized;                        /* flag for one time initializations */
+  bool              initialized;                        /* flag for one time initializations */
 };
 
 struct xq_controller {

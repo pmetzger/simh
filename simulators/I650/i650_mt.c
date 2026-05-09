@@ -34,6 +34,7 @@
    of junk.  File marks are represented by a byte count of 0.
 */
 
+#include <stdbool.h>
 #include "i650_defs.h"
 #include "sim_tape.h"
 
@@ -52,7 +53,7 @@
 /* Definitions */
 uint32              mt_cmd(UNIT *, uint16, uint16);
 t_stat              mt_srv(UNIT *);
-void                mt_ini(UNIT *, t_bool);
+void                mt_ini(UNIT *, bool);
 t_stat              mt_reset(DEVICE *);
 t_stat              mt_attach(UNIT *, const char *);
 t_stat              mt_detach(UNIT *);
@@ -595,7 +596,7 @@ t_stat mt_srv(UNIT * uptr)
     return SCPE_OK;
 }
 
-void mt_ini(UNIT * uptr, t_bool f)
+void mt_ini(UNIT * uptr, bool f)
 {
     /* Shared device initialization signature.
        This implementation does not use every parameter. */

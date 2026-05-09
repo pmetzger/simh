@@ -30,6 +30,7 @@
    08-Oct-02    RMS     Added impossible function catcher
 */
 
+#include <stdbool.h>
 #include "s3_defs.h"
 
 extern uint8 M[];
@@ -237,7 +238,7 @@ for (i = 0; i < LPT_WIDTH; i++) {                       /* convert print buf */
 for (i = LPT_WIDTH - 1; (i >= 0) && (lbuf[i] == ' '); i--) lbuf[i] = 0;
 fputs (lbuf, lpt_unit.fileref);                         /* write line */
 if (lines) space (lines, lflag);                        /* cc action? do it */
-else if (mod == 0) space (1, FALSE);                    /* default? 1 line */
+else if (mod == 0) space (1, false);                    /* default? 1 line */
 else {
     fputc ('\r', lpt_unit.fileref);                     /* sup -> overprint */
     lpt_unit.pos = ftell (lpt_unit.fileref);            /* update position */
@@ -274,18 +275,18 @@ case 0:                                                 /* to channel now */
     if ((mod == 0) || (mod > 12) || CHP (mod, cct[cctptr])) return SCPE_OK;
     for (i = 1; i < cctlnt + 1; i++) {                  /* sweep thru cct */
         if (CHP (mod, cct[(cctptr + i) % cctlnt]))
-            return space (i, TRUE);
+            return space (i, true);
     }
     return STOP_INVDEV;                                 /* runaway channel */
 case 1:                                                 /* space after */
     if (mod <= 3) {
         lines = mod;                                    /* save # lines */
-        lflag = FALSE;                                  /* flag spacing */
+        lflag = false;                                  /* flag spacing */
         CC9 = CC12 = 0;
     }
     return SCPE_OK;
 case 2:                                                 /* space now */
-    if (mod <= 3) return space (mod, FALSE);
+    if (mod <= 3) return space (mod, false);
     return SCPE_OK;
 case 3:                                                 /* to channel after */
     if ((mod == 0) || (mod > 12)) return SCPE_OK;       /* check channel */
@@ -293,7 +294,7 @@ case 3:                                                 /* to channel after */
     for (i = 1; i < cctlnt + 1; i++) {                  /* sweep thru cct */
         if (CHP (mod, cct[(cctptr + i) % cctlnt])) {
             lines = i;                                  /* save # lines */
-            lflag = TRUE;                               /* flag skipping */
+            lflag = true;                               /* flag skipping */
             return SCPE_OK;
         }
     }
@@ -322,7 +323,7 @@ return SCPE_OK;
 
    Inputs:
         count   =       number of lines to space or skip
-        sflag   =       skip (TRUE) or space (FALSE)
+        sflag   =       skip (true) or space (false)
 */
 
 t_stat space (int32 count, int32 sflag)

@@ -30,10 +30,11 @@
 
 #include "cdc1700_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern void buildIOtable(void);
 
-extern int disassem(char *, uint16, t_bool, t_bool, t_bool);
+extern int disassem(char *, uint16, bool, bool, bool);
 
 extern uint16 M[];
 extern REG cpu_reg[];
@@ -47,7 +48,7 @@ t_stat CDautoload(void);
 t_stat DPautoload(void);
 t_stat DRMautoload(void);
 
-t_bool RelValid = FALSE;
+bool RelValid = false;
 uint16 RelBase;
 
 /* SCP data structures and interface routines
@@ -108,7 +109,7 @@ CTAB cdc1700_cmd[] = {
 /*
  * Command post-processing routine.
  */
-static void postUpdate(t_bool from_scp)
+static void postUpdate(bool from_scp)
 {
   /* Generic command post-processing signature.
      This implementation does not use every parameter. */
@@ -121,7 +122,7 @@ static void postUpdate(t_bool from_scp)
   buildIOtable();
   buildDCtables();
 
-  RelValid = FALSE;
+  RelValid = false;
 }
 
 /*
@@ -132,7 +133,7 @@ static void sprintAddress(char *buf, DEVICE *dptr, t_addr addr)
   if ((dptr == sim_devices[0]) && ((sim_switches & SWMASK('R')) != 0)) {
     if (!RelValid) {
       RelBase = (uint16)addr;
-      RelValid = TRUE;
+      RelValid = true;
     }
     addr -= RelBase;
   }
@@ -161,7 +162,7 @@ void VMinit(void)
 /*
  * Check for duplicate equipment addresses.
  */
-static t_bool checkDuplicate(DEVICE *dptr, uint8 equipment)
+static bool checkDuplicate(DEVICE *dptr, uint8 equipment)
 {
   int i = 0;
   DEVICE *dptr2;
@@ -171,10 +172,10 @@ static t_bool checkDuplicate(DEVICE *dptr, uint8 equipment)
       IO_DEVICE *iod = (IO_DEVICE *)dptr2->ctxt;
 
       if (iod->iod_equip == equipment)
-        return TRUE;
+        return true;
     }
   }
-  return FALSE;
+  return false;
 }
 
 /*
@@ -307,7 +308,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
   (void)uptr;
 
   int32 inst = val[0];
-  t_bool target = (sw & SWMASK('T')) != 0;
+  bool target = (sw & SWMASK('T')) != 0;
   char buf[128];
   int consume;
 
@@ -330,7 +331,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
   if ((sw & SWMASK('M')) == 0)
     return SCPE_ARG;
 
-  consume = disassem(buf, (uint16)addr, FALSE, target, FALSE);
+  consume = disassem(buf, (uint16)addr, false, target, false);
   fprintf(of, "%s", buf);
   return -(consume - 1);
 }

@@ -25,6 +25,7 @@
 
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
@@ -83,7 +84,7 @@
 
 typedef struct {
     PNP_INFO pnp;        /* Must be first     */
-    t_bool conn;         /* Connected Status  */
+    bool conn;           /* Connected Status  */
     TMLN *tmln;          /* TMLN pointer      */
     TMXR *tmxr;          /* TMXR pointer      */
     int32 baud;          /* Baud rate         */
@@ -91,9 +92,9 @@ typedef struct {
     uint8 sbits;         /* Stop bits         */
     uint8 rxb;           /* Receive Buffer    */
     uint8 txb;           /* Transmit Buffer   */
-    t_bool txp;          /* Transmit Pending  */
+    bool txp;            /* Transmit Pending  */
     uint8 stb;           /* Status Buffer     */
-    t_bool inta;         /* Interrupt Ack Ena */
+    bool inta;           /* Interrupt Ack Ena */
     uint8 intmask;       /* Int Enable Mask   */
     uint8 intadr;        /* Interrupt Address */
     uint8 intvector;     /* Interrupt Vector  */
@@ -367,7 +368,7 @@ static t_stat tuart_reset(DEVICE *dptr, int32 (*routine)(const int32, const int3
 
     /* Reset registers */
     xptr->stb = TUART_TBE;
-    xptr->txp = FALSE;
+    xptr->txp = false;
     xptr->hbd = 1;
     xptr->baud = 9600;
     xptr->sbits = 1;
@@ -391,7 +392,7 @@ static t_stat tuart_svc(UNIT *uptr)
     TUART_CTX *xptr;
     int32 c;
     t_stat r;
-    t_bool dr = TRUE;
+    bool dr = true;
 
     xptr = (TUART_CTX *) uptr->dptr->ctxt;
 
@@ -399,7 +400,7 @@ static t_stat tuart_svc(UNIT *uptr)
     if (uptr->flags & UNIT_ATT) {
         if (tmxr_poll_conn(xptr->tmxr) >= 0) {      /* poll connection */
 
-            xptr->conn = TRUE;          /* set connected   */
+            xptr->conn = true;          /* set connected   */
             xptr->tmln->rcve = 1;
 
             sim_debug(STATUS_MSG, uptr->dptr, "new connection.\n");
@@ -410,17 +411,17 @@ static t_stat tuart_svc(UNIT *uptr)
     if (xptr->txp) {
         if (uptr->flags & UNIT_ATT) {
             r = tmxr_putc_ln(xptr->tmln, xptr->txb);
-            xptr->txp = FALSE;             /* Reset TX Pending */
+            xptr->txp = false;             /* Reset TX Pending */
 
             if (r == SCPE_LOST) {
-                xptr->conn = FALSE;          /* Connection was lost */
+                xptr->conn = false;          /* Connection was lost */
                 sim_debug(STATUS_MSG, uptr->dptr, "lost connection.\n");
             }
         } else {
             r = sim_putchar(xptr->txb);
-            xptr->txp = FALSE;             /* Reset TX Pending */
+            xptr->txp = false;             /* Reset TX Pending */
             xptr->stb |= TUART_TBE;        /* Xmit buffer empty */
-            dr = FALSE;                    /* Skip read */
+            dr = false;                    /* Skip read */
         }
 
         /* If TX buffer now empty, send interrupt */
@@ -685,7 +686,7 @@ static int32 tuart_data(DEVICE *dptr, int32 io, int32 data)
         xptr->stb &= ~(TUART_RDA | TUART_FME | TUART_ORE | TUART_IPG);
     } else {
         xptr->txb = data;
-        xptr->txp = TRUE;
+        xptr->txp = true;
         xptr->stb &= ~(TUART_TBE | TUART_IPG);
     }
 

@@ -109,6 +109,7 @@ The other test was to configure DECnet on VMS 4.6 and do SET HOST.
 #include "pdp11_defs.h"
 #endif
 
+#include <stdbool.h>
 #include "sim_tmxr.h"
 #include "pdp11_ddcmp.h"
 
@@ -460,13 +461,13 @@ typedef struct buffer_queue {
  *   To insert at head of queue, specify &head for predecessor.
  *   To insert at tail, specify head.prev
  *
- * returns FALSE if queue is full.
+ * returns false if queue is full.
  */
 
-static t_bool insqueue (QH *entry, QH *pred)
+static bool insqueue (QH *entry, QH *pred)
 {
 if ((pred->queue->size > 0) && (pred->queue->count >= pred->queue->size))
-    return FALSE;
+    return false;
 ASSURE (entry->queue == NULL);
 entry->next = pred->next;
 entry->prev = pred;
@@ -474,7 +475,7 @@ entry->queue = pred->queue;
 pred->next->prev = entry;
 pred->next = entry;
 ++pred->queue->count;
-return TRUE;
+return true;
 }
 
 /* Remove entry from queue.
@@ -577,7 +578,7 @@ typedef struct {
                                is used to avoid sending additional NAKs when one has already
                                been sent while the remaining packets in the transmit pipeline
                                are still arriving. */
-    t_bool SACK;            /* Send ACK flag.  This flag is set when either R
+    bool SACK;              /* Send ACK flag.  This flag is set when either R
                                is incremented, meaning a new sequential data
                                message has been received which requires an ACK
                                reply, or a REP message is received which requires
@@ -597,12 +598,12 @@ typedef struct {
                     overwritten with the latest NAK error reason.
                     Whenever the SNAK flag is set the NAK reason variable is set
                     to the reason for the NAK. */
-    t_bool SNAK;            /* Send NAK flag.  This flag is set when a receive
+    bool SNAK;              /* Send NAK flag.  This flag is set when a receive
                                error occurs that requires a NAK reply. It is
                                cleared when a NAK message is sent with the
                                latest RESP information, or when the SACK flag
                                is set.*/
-    t_bool SREP;            /* Send REP flag.  This flag is set when a reply
+    bool SREP;              /* Send REP flag.  This flag is set when a reply
                                timer expires in the running state and a REP
                                should be sent. It is independent of the SACK
                                and SNAK flags.*/
@@ -613,11 +614,11 @@ typedef struct {
     uint8 nak_reason;       /*  */
     uint8 nak_crc_reason;   /* CRC status for current received packet */
     DDCMP_LinkState state;  /* Current State */
-    t_bool TimerRunning;    /* Timer Running Flag */
-    t_bool TimeRemaining;   /* Seconds remaining before timeout (when timer running) */
-    t_bool Scanning;        /* Event Scanning in progress */
+    bool TimerRunning;      /* Timer Running Flag */
+    bool TimeRemaining;     /* Seconds remaining before timeout (when timer running) */
+    bool Scanning;          /* Event Scanning in progress */
     uint32 ScanningEvents;  /* Event Mask while scanning */
-    t_bool RecurseScan;     /* Scan was attempted while scanning */
+    bool RecurseScan;       /* Scan was attempted while scanning */
     uint32 RecurseEventMask;/* Mask for recursive Scan */
 #define DDCMP_EVENT_XMIT_DONE 0x001
 #define DDCMP_EVENT_PKT_RCVD  0x002
@@ -684,45 +685,45 @@ typedef struct dmc_controller {
 
 typedef void (*DDCMP_LinkAction_Routine)(CTLR *controller);
 
-typedef t_bool (*DDCMP_Condition_Routine)(CTLR *controller);
+typedef bool (*DDCMP_Condition_Routine)(CTLR *controller);
 
-t_bool ddcmp_UserHalt             (CTLR *controller);
-t_bool ddcmp_UserStartup          (CTLR *controller);
-t_bool ddcmp_UserMaintenanceMode  (CTLR *controller);
-t_bool ddcmp_ReceiveStack         (CTLR *controller);
-t_bool ddcmp_ReceiveStrt          (CTLR *controller);
-t_bool ddcmp_TimerRunning         (CTLR *controller);
-t_bool ddcmp_TimerNotRunning      (CTLR *controller);
-t_bool ddcmp_TimerExpired         (CTLR *controller);
-t_bool ddcmp_ReceiveMaintMessage  (CTLR *controller);
-t_bool ddcmp_ReceiveAck           (CTLR *controller);
-t_bool ddcmp_ReceiveNak           (CTLR *controller);
-t_bool ddcmp_ReceiveRep           (CTLR *controller);
-t_bool ddcmp_NUMEqRplus1          (CTLR *controller);   /* (NUM == R+1) */
-t_bool ddcmp_NUMGtRplus1          (CTLR *controller);   /* (NUM > R+1) */
-t_bool ddcmp_ReceiveDataMsg       (CTLR *controller);   /* Receive Data Message */
-t_bool ddcmp_ReceiveMaintMsg      (CTLR *controller);   /* Receive Maintenance Message */
-t_bool ddcmp_ALtRESPleN           (CTLR *controller);   /* (A < RESP <= N) */
-t_bool ddcmp_ALeRESPleN           (CTLR *controller);   /* (A <= RESP <= N) */
-t_bool ddcmp_RESPleAOrRESPgtN     (CTLR *controller);   /* (RESP <= A) OR (RESP > N) */
-t_bool ddcmp_TltNplus1            (CTLR *controller);   /* T < N + 1 */
-t_bool ddcmp_TeqNplus1            (CTLR *controller);   /* T == N + 1 */
-t_bool ddcmp_ReceiveMessageError  (CTLR *controller);
-t_bool ddcmp_NumEqR               (CTLR *controller);   /* (NUM == R) */
-t_bool ddcmp_NumNeR               (CTLR *controller);   /* (NUM != R) */
-t_bool ddcmp_TransmitterIdle      (CTLR *controller);
-t_bool ddcmp_TramsmitterBusy      (CTLR *controller);
-t_bool ddcmp_SACKisSet            (CTLR *controller);
-t_bool ddcmp_SACKisClear          (CTLR *controller);
-t_bool ddcmp_SNAKisSet            (CTLR *controller);
-t_bool ddcmp_SNAKisClear          (CTLR *controller);
-t_bool ddcmp_SREPisSet            (CTLR *controller);
-t_bool ddcmp_SREPisClear          (CTLR *controller);
-t_bool ddcmp_UserSendMessage      (CTLR *controller);
-t_bool ddcmp_LineConnected        (CTLR *controller);
-t_bool ddcmp_LineDisconnected     (CTLR *controller);
-t_bool ddcmp_DataMessageSent      (CTLR *controller);
-t_bool ddcmp_REPMessageSent       (CTLR *controller);
+bool ddcmp_UserHalt             (CTLR *controller);
+bool ddcmp_UserStartup          (CTLR *controller);
+bool ddcmp_UserMaintenanceMode  (CTLR *controller);
+bool ddcmp_ReceiveStack         (CTLR *controller);
+bool ddcmp_ReceiveStrt          (CTLR *controller);
+bool ddcmp_TimerRunning         (CTLR *controller);
+bool ddcmp_TimerNotRunning      (CTLR *controller);
+bool ddcmp_TimerExpired         (CTLR *controller);
+bool ddcmp_ReceiveMaintMessage  (CTLR *controller);
+bool ddcmp_ReceiveAck           (CTLR *controller);
+bool ddcmp_ReceiveNak           (CTLR *controller);
+bool ddcmp_ReceiveRep           (CTLR *controller);
+bool ddcmp_NUMEqRplus1          (CTLR *controller);     /* (NUM == R+1) */
+bool ddcmp_NUMGtRplus1          (CTLR *controller);     /* (NUM > R+1) */
+bool ddcmp_ReceiveDataMsg       (CTLR *controller);     /* Receive Data Message */
+bool ddcmp_ReceiveMaintMsg      (CTLR *controller);     /* Receive Maintenance Message */
+bool ddcmp_ALtRESPleN           (CTLR *controller);     /* (A < RESP <= N) */
+bool ddcmp_ALeRESPleN           (CTLR *controller);     /* (A <= RESP <= N) */
+bool ddcmp_RESPleAOrRESPgtN     (CTLR *controller);     /* (RESP <= A) OR (RESP > N) */
+bool ddcmp_TltNplus1            (CTLR *controller);     /* T < N + 1 */
+bool ddcmp_TeqNplus1            (CTLR *controller);     /* T == N + 1 */
+bool ddcmp_ReceiveMessageError  (CTLR *controller);
+bool ddcmp_NumEqR               (CTLR *controller);     /* (NUM == R) */
+bool ddcmp_NumNeR               (CTLR *controller);     /* (NUM != R) */
+bool ddcmp_TransmitterIdle      (CTLR *controller);
+bool ddcmp_TramsmitterBusy      (CTLR *controller);
+bool ddcmp_SACKisSet            (CTLR *controller);
+bool ddcmp_SACKisClear          (CTLR *controller);
+bool ddcmp_SNAKisSet            (CTLR *controller);
+bool ddcmp_SNAKisClear          (CTLR *controller);
+bool ddcmp_SREPisSet            (CTLR *controller);
+bool ddcmp_SREPisClear          (CTLR *controller);
+bool ddcmp_UserSendMessage      (CTLR *controller);
+bool ddcmp_LineConnected        (CTLR *controller);
+bool ddcmp_LineDisconnected     (CTLR *controller);
+bool ddcmp_DataMessageSent      (CTLR *controller);
+bool ddcmp_REPMessageSent       (CTLR *controller);
 
 void ddcmp_StartTimer             (CTLR *controller);
 void ddcmp_StopTimer              (CTLR *controller);
@@ -1085,13 +1086,13 @@ void dmc_set_modem_dtr (CTLR *controller);
 void dmc_clr_modem_dtr (CTLR *controller);
 void dmc_process_immediate(CTLR *controller);
 void dmc_process_command (CTLR *controller);
-t_bool dmc_buffer_fill_receive_buffers (CTLR *controller);
+bool dmc_buffer_fill_receive_buffers (CTLR *controller);
 void dmc_start_transfer_buffer (CTLR *controller);
 void dmc_buffer_queue_init (CTLR *controller, BUFFER_QUEUE *q, const char *name, size_t size, BUFFER *buffers);
 void dmc_buffer_queue_init_all (CTLR *controller);
 BUFFER *dmc_buffer_queue_head (BUFFER_QUEUE *q);
 BUFFER *dmc_buffer_allocate (CTLR *controller);
-t_bool dmc_transmit_queue_empty  (CTLR *controller);
+bool dmc_transmit_queue_empty  (CTLR *controller);
 void dmc_ddcmp_start_transmitter (CTLR *controller);
 void dmc_queue_control_out (CTLR *controller, uint16 sel6);
 
@@ -1143,7 +1144,7 @@ char dmc_port[DMC_NUMDEVICE][PEERSIZE];
 uint32 dmc_baseaddr[DMC_NUMDEVICE];
 uint16 dmc_basesize[DMC_NUMDEVICE];
 uint8 dmc_modem[DMC_NUMDEVICE];
-t_bool dmc_microdiag[DMC_NUMDEVICE];
+bool dmc_microdiag[DMC_NUMDEVICE];
 int32 dmc_corruption[DMC_NUMDEVICE];
 
 CSRS dmp_csrs[DMP_NUMDEVICE];
@@ -1542,10 +1543,10 @@ if ((cptr == NULL) || (*cptr == '\0'))
     return SCPE_ARG;
 get_glyph (cptr, gbuf, 0);
 if (MATCH_CMD (gbuf, "ENABLE") == 0)
-    dmc_microdiag[dmc] = TRUE;
+    dmc_microdiag[dmc] = true;
 else
     if (MATCH_CMD (gbuf, "DISABLE") == 0)
-        dmc_microdiag[dmc] = FALSE;
+        dmc_microdiag[dmc] = false;
     else
         return SCPE_ARG;
 return SCPE_OK;
@@ -1630,7 +1631,7 @@ fprintf(st, "DDCMP control packets sent=%d\n", controller->ddcmp_control_packets
 return SCPE_OK;
 }
 
-static void dmc_showqueue (FILE* st, BUFFER_QUEUE *queue, t_bool detail)
+static void dmc_showqueue (FILE* st, BUFFER_QUEUE *queue, bool detail)
 {
 size_t i;
 
@@ -1714,11 +1715,11 @@ static const char *tstates[] = {"Idle", "InputTransfer", "OutputTransfer", "Outp
 dmc_showstats (st, uptr, val, desc);
 fprintf (st, "State: %s\n", states[controller->state]);
 fprintf (st, "TransferState: %s\n", tstates[controller->transfer_state]);
-dmc_showqueue (st, controller->completion_queue, TRUE);
-dmc_showqueue (st, controller->xmt_queue, TRUE);
-dmc_showqueue (st, controller->ack_wait_queue, TRUE);
-dmc_showqueue (st, controller->rcv_queue, TRUE);
-dmc_showqueue (st, controller->free_queue, TRUE);
+dmc_showqueue (st, controller->completion_queue, true);
+dmc_showqueue (st, controller->xmt_queue, true);
+dmc_showqueue (st, controller->ack_wait_queue, true);
+dmc_showqueue (st, controller->rcv_queue, true);
+dmc_showqueue (st, controller->free_queue, true);
 if (controller->control_out) {
     CONTROL_OUT *control;
 
@@ -2368,12 +2369,12 @@ static int dmc_is_master_clear_set(CTLR *controller)
 return *controller->csrs->sel0 & DMC_SEL0_M_MCLEAR;
 }
 
-static t_bool dmc_is_lu_loop_set(CTLR *controller)
+static bool dmc_is_lu_loop_set(CTLR *controller)
 {
 if (dmc_is_dmc(controller))
     return ((*controller->csrs->sel0 & DMC_SEL0_M_LU_LOOP) != 0);
 else
-    return FALSE;
+    return false;
 }
 
 static int dmc_is_run_set(CTLR *controller)
@@ -2801,7 +2802,7 @@ initqueue (&q->hdr, q, size, buffers, sizeof(*buffers));
 q->controller = controller;
 }
 
-t_bool dmc_transmit_queue_empty(CTLR *controller)
+bool dmc_transmit_queue_empty(CTLR *controller)
 {
 return (controller->xmt_queue->count == 0);
 }
@@ -2897,9 +2898,9 @@ else
 }
 
 /* returns true if some data was received */
-t_bool dmc_buffer_fill_receive_buffers(CTLR *controller)
+bool dmc_buffer_fill_receive_buffers(CTLR *controller)
 {
-t_bool ans = FALSE;
+bool ans = false;
 
 if (controller->state == Running) {
     BUFFER *buffer = dmc_buffer_queue_head(controller->rcv_queue);
@@ -2908,7 +2909,7 @@ if (controller->state == Running) {
         ddcmp_tmxr_get_packet_ln (controller->line, (const uint8 **)&controller->link.rcv_pkt, &controller->link.rcv_pkt_size, *controller->corruption_factor);
         if (!controller->link.rcv_pkt)
             break;
-        ans = TRUE;
+        ans = true;
         controller->buffers_received_from_net++;
         controller->ddcmp_control_packets_received += (controller->link.rcv_pkt[0] == DDCMP_ENQ) ? 1 : 0;
         ddcmp_dispatch(controller, DDCMP_EVENT_PKT_RCVD);
@@ -3112,7 +3113,7 @@ if (abs(badiff) <= (int)queue_size)
 return ans;
 }
 
-static t_bool ddcmp_compare (uint8 a, CompareOP Op, uint8 b, CTLR *controller)
+static bool ddcmp_compare (uint8 a, CompareOP Op, uint8 b, CTLR *controller)
 {
 int cmp = Mod256Cmp(a & 0xFF, b & 0xFF, controller->free_queue->size);
 
@@ -3123,28 +3124,28 @@ switch (Op) {
         return (cmp != 0);
     case LE:
         if (cmp == 0)
-            return TRUE;
+            return true;
     case LT:
         return (cmp < 0);
     case GE:
         if (cmp == 0)
-            return TRUE;
+            return true;
     case GT:
         return (cmp > 0);
     default:    /* Never happens */
-        return FALSE;
+        return false;
     }
 }
 
 void ddcmp_StartTimer             (CTLR *controller)
 {
-controller->link.TimerRunning = TRUE;
+controller->link.TimerRunning = true;
 controller->link.TimeRemaining = DDCMP_PACKET_TIMEOUT;
 sim_activate_after (controller->device->units+(controller->device->numunits-1), controller->link.TimeRemaining*1000000);
 }
 void ddcmp_StopTimer              (CTLR *controller)
 {
-controller->link.TimerRunning = FALSE;
+controller->link.TimerRunning = false;
 }
 void ddcmp_ResetVariables         (CTLR *controller)
 {
@@ -3156,9 +3157,9 @@ controller->link.N = 0;
 controller->link.A = 0;
 controller->link.T = 1;
 controller->link.X = 0;
-controller->link.SACK = FALSE;
-controller->link.SNAK = FALSE;
-controller->link.SREP = FALSE;
+controller->link.SACK = false;
+controller->link.SNAK = false;
+controller->link.SREP = false;
 controller->link.state = Halt;
 controller->link.nak_reason = 0;
 /* Move any ack wait packets back to the transmit queue so they get
@@ -3238,27 +3239,27 @@ dmc_ddcmp_start_transmitter (controller);
 }
 void ddcmp_SetSACK                (CTLR *controller)
 {
-controller->link.SACK = TRUE;
+controller->link.SACK = true;
 }
 void ddcmp_ClearSACK              (CTLR *controller)
 {
-controller->link.SACK = FALSE;
+controller->link.SACK = false;
 }
 void ddcmp_SetSNAK                (CTLR *controller)
 {
-controller->link.SNAK = TRUE;
+controller->link.SNAK = true;
 }
 void ddcmp_ClearSNAK              (CTLR *controller)
 {
-controller->link.SNAK = FALSE;
+controller->link.SNAK = false;
 }
 void ddcmp_SetSREP                (CTLR *controller)
 {
-controller->link.SREP = TRUE;
+controller->link.SREP = true;
 }
 void ddcmp_ClearSREP              (CTLR *controller)
 {
-controller->link.SREP = FALSE;
+controller->link.SREP = false;
 }
 void ddcmp_IncrementR             (CTLR *controller)
 {
@@ -3417,19 +3418,19 @@ controller->link.X = controller->link.xmt_done_buffer->transfer_buffer[DDCMP_NUM
 
 /* Conditions/Events */
 
-t_bool ddcmp_UserHalt             (CTLR *controller)
+bool ddcmp_UserHalt             (CTLR *controller)
 {
 return (controller->state == Halted);
 }
-t_bool ddcmp_UserStartup          (CTLR *controller)
+bool ddcmp_UserStartup          (CTLR *controller)
 {
 return ((*controller->modem & DMC_SEL4_M_DTR) != 0);
 }
-t_bool ddcmp_UserMaintenanceMode  (CTLR *controller)
+bool ddcmp_UserMaintenanceMode  (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_MAINTMODE) != 0);
 }
-t_bool ddcmp_ReceiveStack         (CTLR *controller)
+bool ddcmp_ReceiveStack         (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         controller->link.rcv_pkt &&
@@ -3437,7 +3438,7 @@ return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         (controller->link.rcv_pkt[1] == DDCMP_CTL_STACK) &&
         (!ddcmp_ReceiveMessageError(controller)));
 }
-t_bool ddcmp_ReceiveStrt          (CTLR *controller)
+bool ddcmp_ReceiveStrt          (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         controller->link.rcv_pkt &&
@@ -3445,26 +3446,26 @@ return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         (controller->link.rcv_pkt[1] == DDCMP_CTL_STRT) &&
         (!ddcmp_ReceiveMessageError(controller)));
 }
-t_bool ddcmp_TimerRunning         (CTLR *controller)
+bool ddcmp_TimerRunning         (CTLR *controller)
 {
 return (controller->link.TimerRunning);
 }
-t_bool ddcmp_TimerNotRunning      (CTLR *controller)
+bool ddcmp_TimerNotRunning      (CTLR *controller)
 {
 return (!controller->link.TimerRunning);
 }
-t_bool ddcmp_TimerExpired         (CTLR *controller)
+bool ddcmp_TimerExpired         (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_TIMER) != 0);
 }
-t_bool ddcmp_ReceiveMaintMessage  (CTLR *controller)
+bool ddcmp_ReceiveMaintMessage  (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         controller->link.rcv_pkt &&
         (controller->link.rcv_pkt[0] == DDCMP_DLE) &&
         (!ddcmp_ReceiveMessageError(controller)));
 }
-t_bool ddcmp_ReceiveAck           (CTLR *controller)
+bool ddcmp_ReceiveAck           (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         controller->link.rcv_pkt &&
@@ -3472,7 +3473,7 @@ return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         (controller->link.rcv_pkt[1] == DDCMP_CTL_ACK) &&
         (!ddcmp_ReceiveMessageError(controller)));
 }
-t_bool ddcmp_ReceiveNak           (CTLR *controller)
+bool ddcmp_ReceiveNak           (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         controller->link.rcv_pkt &&
@@ -3480,7 +3481,7 @@ return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         (controller->link.rcv_pkt[1] == DDCMP_CTL_NAK) &&
         (!ddcmp_ReceiveMessageError(controller)));
 }
-t_bool ddcmp_ReceiveRep           (CTLR *controller)
+bool ddcmp_ReceiveRep           (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         controller->link.rcv_pkt &&
@@ -3488,21 +3489,21 @@ return ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
         (controller->link.rcv_pkt[1] == DDCMP_CTL_REP) &&
         (!ddcmp_ReceiveMessageError(controller)));
 }
-t_bool ddcmp_NUMEqRplus1          (CTLR *controller)
+bool ddcmp_NUMEqRplus1          (CTLR *controller)
 {
-t_bool breturn = (controller->link.rcv_pkt &&
+bool breturn = (controller->link.rcv_pkt &&
                   ddcmp_compare (controller->link.rcv_pkt[DDCMP_NUM_OFFSET], EQ, controller->link.R + 1, controller));
 return breturn;
 }
-t_bool ddcmp_NUMGtRplus1          (CTLR *controller)
+bool ddcmp_NUMGtRplus1          (CTLR *controller)
 {
-t_bool breturn = (controller->link.rcv_pkt &&
+bool breturn = (controller->link.rcv_pkt &&
                   ddcmp_compare (controller->link.rcv_pkt[DDCMP_NUM_OFFSET], GT, controller->link.R + 1, controller));
 return breturn;
 }
-t_bool ddcmp_ReceiveDataMsg       (CTLR *controller)
+bool ddcmp_ReceiveDataMsg       (CTLR *controller)
 {
-t_bool breturn = ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
+bool breturn = ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
                   controller->link.rcv_pkt &&
                   (controller->link.rcv_pkt[0] == DDCMP_SOH) &&
                   (!ddcmp_ReceiveMessageError(controller)));
@@ -3510,9 +3511,9 @@ if (breturn)
     return breturn;
 return breturn;
 }
-t_bool ddcmp_ReceiveMaintMsg      (CTLR *controller)
+bool ddcmp_ReceiveMaintMsg      (CTLR *controller)
 {
-t_bool breturn = ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
+bool breturn = ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) &&
                   controller->link.rcv_pkt &&
                   (controller->link.rcv_pkt[0] == DDCMP_DLE) &&
                   (!ddcmp_ReceiveMessageError(controller)));
@@ -3520,114 +3521,114 @@ if (breturn)
     return breturn;
 return breturn;
 }
-t_bool ddcmp_ALtRESPleN           (CTLR *controller)
+bool ddcmp_ALtRESPleN           (CTLR *controller)
 {
 return (controller->link.rcv_pkt &&
         ddcmp_compare (controller->link.A, LT, controller->link.rcv_pkt[DDCMP_RESP_OFFSET], controller) &&
         ddcmp_compare (controller->link.rcv_pkt[DDCMP_RESP_OFFSET], LE, controller->link.N, controller));
 }
-t_bool ddcmp_ALeRESPleN           (CTLR *controller)
+bool ddcmp_ALeRESPleN           (CTLR *controller)
 {
 return (controller->link.rcv_pkt &&
         ddcmp_compare (controller->link.A, LE, controller->link.rcv_pkt[DDCMP_RESP_OFFSET], controller) &&
         ddcmp_compare (controller->link.rcv_pkt[DDCMP_RESP_OFFSET], LE, controller->link.N, controller));
 }
-t_bool ddcmp_RESPleAOrRESPgtN     (CTLR *controller)
+bool ddcmp_RESPleAOrRESPgtN     (CTLR *controller)
 {
 return (controller->link.rcv_pkt &&
         (ddcmp_compare (controller->link.rcv_pkt[DDCMP_RESP_OFFSET], LE, controller->link.A, controller) ||
          ddcmp_compare (controller->link.rcv_pkt[DDCMP_RESP_OFFSET], GT, controller->link.N, controller)));
 }
-t_bool ddcmp_TltNplus1            (CTLR *controller)
+bool ddcmp_TltNplus1            (CTLR *controller)
 {
 return (ddcmp_compare (controller->link.T, LT, controller->link.N + 1, controller));
 }
-t_bool ddcmp_TeqNplus1            (CTLR *controller)
+bool ddcmp_TeqNplus1            (CTLR *controller)
 {
 return (ddcmp_compare (controller->link.T, EQ, controller->link.N + 1, controller));
 }
-t_bool ddcmp_ReceiveMessageError  (CTLR *controller)
+bool ddcmp_ReceiveMessageError  (CTLR *controller)
 {
 if ((controller->link.ScanningEvents & DDCMP_EVENT_PKT_RCVD) && controller->link.rcv_pkt) {
     if (0 != ddcmp_crc16 (0, controller->link.rcv_pkt, 8)) {
         controller->link.nak_crc_reason = 1;    /* Header CRC Error */
-        return TRUE;
+        return true;
         }
     if ((controller->link.rcv_pkt[0] != DDCMP_ENQ) &&
         (0 != ddcmp_crc16 (0, controller->link.rcv_pkt+8, controller->link.rcv_pkt_size-8))) {
         controller->link.nak_crc_reason = 2;    /* Data CRC Error */
-        return TRUE;
+        return true;
         }
     controller->link.nak_crc_reason = 0;        /* No CRC Error */
     }
-return FALSE;
+return false;
 }
-t_bool ddcmp_NumEqR               (CTLR *controller)
+bool ddcmp_NumEqR               (CTLR *controller)
 {
 return (controller->link.rcv_pkt &&
         ddcmp_compare (controller->link.rcv_pkt[DDCMP_NUM_OFFSET], EQ, controller->link.R, controller));
 }
-t_bool ddcmp_NumNeR               (CTLR *controller)
+bool ddcmp_NumNeR               (CTLR *controller)
 {
 return (controller->link.rcv_pkt &&
         ddcmp_compare (controller->link.rcv_pkt[DDCMP_NUM_OFFSET], NE, controller->link.R, controller));
 }
-t_bool ddcmp_TransmitterIdle      (CTLR *controller)
+bool ddcmp_TransmitterIdle      (CTLR *controller)
 {
 return (NULL == controller->link.xmt_buffer);
 }
-t_bool ddcmp_TramsmitterBusy      (CTLR *controller)
+bool ddcmp_TramsmitterBusy      (CTLR *controller)
 {
 return !ddcmp_TransmitterIdle(controller);
 }
-t_bool ddcmp_SACKisSet            (CTLR *controller)
+bool ddcmp_SACKisSet            (CTLR *controller)
 {
 return (controller->link.SACK);
 }
-t_bool ddcmp_SACKisClear          (CTLR *controller)
+bool ddcmp_SACKisClear          (CTLR *controller)
 {
 return (!(controller->link.SACK));
 }
-t_bool ddcmp_SNAKisSet            (CTLR *controller)
+bool ddcmp_SNAKisSet            (CTLR *controller)
 {
 return (controller->link.SNAK);
 }
-t_bool ddcmp_SNAKisClear          (CTLR *controller)
+bool ddcmp_SNAKisClear          (CTLR *controller)
 {
 return (!(controller->link.SNAK));
 }
-t_bool ddcmp_SREPisSet            (CTLR *controller)
+bool ddcmp_SREPisSet            (CTLR *controller)
 {
 return (controller->link.SREP);
 }
-t_bool ddcmp_SREPisClear          (CTLR *controller)
+bool ddcmp_SREPisClear          (CTLR *controller)
 {
 return (!(controller->link.SREP));
 }
-t_bool ddcmp_UserSendMessage      (CTLR *controller)
+bool ddcmp_UserSendMessage      (CTLR *controller)
 {
 BUFFER *buffer = dmc_buffer_queue_head(controller->xmt_queue);
 
 return (buffer && (buffer->transfer_buffer[0] == 0));
 }
-t_bool ddcmp_LineConnected        (CTLR *controller)
+bool ddcmp_LineConnected        (CTLR *controller)
 {
 return ((*controller->modem & DMC_SEL4_M_CAR) != 0);
 }
-t_bool ddcmp_LineDisconnected     (CTLR *controller)
+bool ddcmp_LineDisconnected     (CTLR *controller)
 {
 return (!(*controller->modem & DMC_SEL4_M_CAR));
 }
-t_bool ddcmp_DataMessageSent      (CTLR *controller)
+bool ddcmp_DataMessageSent      (CTLR *controller)
 {
-t_bool breturn = ((controller->link.ScanningEvents & DDCMP_EVENT_XMIT_DONE) &&
+bool breturn = ((controller->link.ScanningEvents & DDCMP_EVENT_XMIT_DONE) &&
                     controller->link.xmt_done_buffer &&
                     (controller->link.xmt_done_buffer->transfer_buffer[0] == DDCMP_SOH));
 if (breturn)
     return breturn;
 return breturn;
 }
-t_bool ddcmp_REPMessageSent       (CTLR *controller)
+bool ddcmp_REPMessageSent       (CTLR *controller)
 {
 return ((controller->link.ScanningEvents & DDCMP_EVENT_XMIT_DONE) &&
         controller->link.xmt_done_buffer &&
@@ -3643,17 +3644,17 @@ static const char *states[] = {"Halt", "IStart", "AStart", "Run", "Maintenance",
 
 if (controller->link.Scanning) {
     if (!controller->link.RecurseScan) {
-        controller->link.RecurseScan = TRUE;
+        controller->link.RecurseScan = true;
         controller->link.RecurseEventMask |= EventMask;
         }
     return;
     }
-controller->link.Scanning = TRUE;
+controller->link.Scanning = true;
 controller->link.ScanningEvents |= EventMask;
 for (table=DDCMP_TABLE; table->Conditions[0] != NULL; ++table) {
     if ((table->State == controller->link.state) ||
         (table->State == All)) {
-        t_bool match = TRUE;
+        bool match = true;
         DDCMP_Condition_Routine *cond = table->Conditions;
         DDCMP_LinkAction_Routine *action = table->Actions;
 
@@ -3679,10 +3680,10 @@ for (table=DDCMP_TABLE; table->Conditions[0] != NULL; ++table) {
 if (matched) {
     sim_debug (DBG_INF, controller->device, "%s%d: ddcmp_dispatch(%X) - queues: %s\n", controller->device->name, controller->index, EventMask, controller_queue_state(controller));
     }
-controller->link.Scanning = FALSE;
+controller->link.Scanning = false;
 controller->link.ScanningEvents &= ~EventMask;
 if (controller->link.RecurseScan) {
-    controller->link.RecurseScan = FALSE;
+    controller->link.RecurseScan = false;
     EventMask = controller->link.RecurseEventMask;
     controller->link.RecurseEventMask = 0;
     ddcmp_dispatch (controller, EventMask);
@@ -3913,9 +3914,9 @@ uint32 i, j;
 
 sim_debug(DBG_TRC, dptr, "dmc_reset(%s)\n", dptr->name);
 
-dmc_desc.packet = TRUE;
+dmc_desc.packet = true;
 dmc_desc.buffered = 16384;
-dmp_desc.packet = TRUE;
+dmp_desc.packet = true;
 dmp_desc.buffered = 16384;
 /* Connect structures together */
 for (i=0; i < DMC_NUMDEVICE; i++) {
@@ -3982,7 +3983,7 @@ if (0 == dmc_units[0].flags) {       /* First Time Initializations */
 #endif
         dmc_dev.units[i] = dmc_unit_template;
         controller->unit->ctlr = (void *)controller;
-        dmc_microdiag[i] = TRUE;
+        dmc_microdiag[i] = true;
         dmc_corruption[i] = 0;
         }
     tmxr_set_modem_control_passthru (&dmc_desc);   /* We always want Modem Control */
@@ -3990,7 +3991,7 @@ if (0 == dmc_units[0].flags) {       /* First Time Initializations */
     dmc_units[dmc_dev.numunits-2].ctlr = dmc_units[0].ctlr;
     dmc_units[dmc_dev.numunits-1] = dmc_timer_unit_template;
     dmc_units[dmc_dev.numunits-1].ctlr = dmc_units[0].ctlr;
-    dmc_desc.notelnet = TRUE;                      /* We always want raw tcp socket */
+    dmc_desc.notelnet = true;                      /* We always want raw tcp socket */
     dmc_desc.dptr = &dmc_dev;                      /* Connect appropriate device */
     dmc_desc.uptr = dmc_units+dmc_desc.lines;      /* Identify polling unit */
     for (i=0; i < DMP_NUMDEVICE; i++) {
@@ -4008,7 +4009,7 @@ if (0 == dmc_units[0].flags) {       /* First Time Initializations */
     dmp_units[dmp_dev.numunits-2].ctlr = dmp_units[0].ctlr;
     dmp_units[dmp_dev.numunits-1] = dmc_timer_unit_template;
     dmp_units[dmp_dev.numunits-1].ctlr = dmp_units[0].ctlr;
-    dmp_desc.notelnet = TRUE;                      /* We always want raw tcp socket */
+    dmp_desc.notelnet = true;                      /* We always want raw tcp socket */
     dmp_desc.dptr = &dmp_dev;                      /* Connect appropriate device */
     dmp_desc.uptr = dmp_units+dmp_desc.lines;      /* Identify polling unit */
     }

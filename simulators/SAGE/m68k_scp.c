@@ -29,8 +29,9 @@
 #include "sim_defs.h"
 #include "m68k_cpu.h"
 #include <ctype.h>
+#include <stdbool.h>
 
-static t_bool symtrace = TRUE;
+static bool symtrace = true;
 static t_stat hdump_cmd(int32 arg, const char* buf);
 static t_stat symset_cmd(int32 arg, const char* buf);
 static t_stat symclr_cmd(int32 arg, const char* buf);
@@ -95,7 +96,7 @@ void m68k_sim_init(void)
     for (i=0; i<SYMHASHSIZE; i++)
         symbyval[i].vnext = symbyname[i].nnext = 0;
 
-    symtrace = TRUE;
+    symtrace = true;
 }
 
 static int getnhash(const char* name)
@@ -112,7 +113,7 @@ static int getvhash(t_addr val)
     return val % SYMHASHSIZE;
 }
 
-static t_bool sym_lookupname(const char *name,SYMHASH **n)
+static bool sym_lookupname(const char *name,SYMHASH **n)
 {
     int hash = getnhash(name);
     SYMHASH *p = symbyname[hash].nnext;
@@ -121,7 +122,7 @@ static t_bool sym_lookupname(const char *name,SYMHASH **n)
     return p != 0;
 }
 
-static t_bool sym_lookupval(t_addr val, SYMHASH **v)
+static bool sym_lookupval(t_addr val, SYMHASH **v)
 {
     int hash = getvhash(val);
     SYMHASH *p = symbyval[hash].vnext;
@@ -130,13 +131,13 @@ static t_bool sym_lookupval(t_addr val, SYMHASH **v)
     return p != 0;
 }
 
-static t_bool sym_enter(const char* name,t_addr val)
+static bool sym_enter(const char* name,t_addr val)
 {
     int nhash = getnhash(name);
     int vhash = getvhash(val);
     SYMHASH *v, *n, *e;
 
-    if (sym_lookupname(name,&n) || sym_lookupval(val,&v)) return FALSE;
+    if (sym_lookupname(name,&n) || sym_lookupval(val,&v)) return false;
     n = symbyname[nhash].nnext;
     v = symbyval[vhash].vnext;
     e = (SYMHASH*)malloc(sizeof(SYMHASH));
@@ -146,10 +147,10 @@ static t_bool sym_enter(const char* name,t_addr val)
     strcpy(e->name,name);
     e->val = val;
     symbyname[nhash].nnext = symbyval[vhash].vnext = e;
-    return TRUE;
+    return true;
 }
 
-static t_bool sym_delete(const char* name)
+static bool sym_delete(const char* name)
 {
     int hash = getnhash(name);
     SYMHASH *p, *q, **n, **v;
@@ -168,10 +169,10 @@ static t_bool sym_delete(const char* name)
             *n = p->nnext;
             free(p->name);
             free(p);
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 
 static t_stat symset_cmd(int32 arg, const char* buf)
@@ -225,7 +226,7 @@ static t_stat symlist_cmd(int32 arg, const char* buf)
     SYMHASH* n;
     char gbuf[2*CBUFSIZE];
     char *name;
-    t_bool found = FALSE;
+    bool found = false;
 
     gbuf[sizeof(gbuf)-1] = '\0';
     strncpy(gbuf, buf, sizeof(gbuf)-1);
@@ -241,7 +242,7 @@ static t_stat symlist_cmd(int32 arg, const char* buf)
             while (n) {
                 printf("  %s = 0x%08x\n",n->name,n->val);
                 n = n->nnext;
-                found = TRUE;
+                found = true;
             }
         }
         if (!found) printf("Symbol table is empty\n");
@@ -252,7 +253,7 @@ static t_stat symlist_cmd(int32 arg, const char* buf)
 static t_stat symtrace_cmd(int32 arg, const char* buf)
 {
     if (!*buf)
-        symtrace = arg ? TRUE : FALSE;
+        symtrace = arg ? true : false;
 
     printf("Symbolic tracing %sabled\n",symtrace ? "en" : "dis");
     return SCPE_OK;
@@ -280,11 +281,11 @@ static t_stat hdump_cmd(int32 arg, const char* buf)
     char gbuf[2*CBUFSIZE];
     char *token;
     uint32 byte[16];
-    t_bool ascii = FALSE;
-    t_bool first = TRUE;
+    bool ascii = false;
+    bool first = true;
 
     if (buf[0]=='-' && buf[1]=='a') {
-        ascii = TRUE;
+        ascii = true;
         buf += 2;
         while (*buf && isspace(*buf)) buf++;
     }
@@ -305,7 +306,7 @@ static t_stat hdump_cmd(int32 arg, const char* buf)
         if ((base % 16)==0) {
             if (!first && ascii) putascii(byte);
             printf("\n%08x: ",base);
-            first = FALSE;
+            first = false;
         }
         if (base < low) printf("   ");
         else if (base > high) printf("   ");

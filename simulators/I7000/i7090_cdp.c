@@ -23,6 +23,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i7090_defs.h"
 #include "sim_card.h"
 #ifdef NUM_DEVS_CDP
@@ -243,7 +244,7 @@ t_stat cdp_srv(UNIT * uptr)
 }
 
 void
-cdp_ini(UNIT * uptr, t_bool f)
+cdp_ini(UNIT * uptr, bool f)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

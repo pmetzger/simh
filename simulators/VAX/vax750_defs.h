@@ -260,7 +260,7 @@ extern t_stat vax750_show_bootdev (FILE *st, UNIT *uptr, int32 val, const void *
 #define DEV_QBUS        (0)
 #define DEV_Q18         (0)
 
-#define UNIBUS          TRUE                            /* Unibus only */
+#define UNIBUS          true                            /* Unibus only */
 
 #define DEV_RDX         16                              /* default device radix */
 
@@ -454,6 +454,7 @@ void sbi_set_errcnf (void);
 #define WriteIOU(p,v,l)     WriteIO (p, v, l)
 #define WriteRegU(p,v,l)    WriteReg (p, v, l)
 
+#include <stdbool.h>
 #include "pdp11_io_lib.h"
 
 /* Function prototypes for virtual and physical memory interface (inlined) */

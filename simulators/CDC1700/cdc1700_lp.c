@@ -28,6 +28,7 @@
 /* cdc1700_lp.c: 1740 and 1742-30 line printer support
  *               Simh devices: lp
  */
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 #define COLUMNS         136
@@ -63,18 +64,18 @@ uint8 LPmap[128] = {
 
 extern char INTprefix[];
 
-extern void fw_IOalarm(t_bool, DEVICE *, IO_DEVICE *, const char *);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
+extern void fw_IOalarm(bool, DEVICE *, IO_DEVICE *, const char *);
+extern bool fw_reject(IO_DEVICE *, bool, uint8);
 extern void fw_IOunderwayData(IO_DEVICE *, uint16);
-extern void fw_IOcompleteData(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern void fw_IOcompleteData(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
 extern void fw_IOunderwayEOP(IO_DEVICE *, uint16);
-extern void fw_IOcompleteEOP(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern void fw_IOcompleteEOP(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
 extern void fw_setForced(IO_DEVICE *, uint16);
 extern void fw_clearForced(IO_DEVICE *, uint16);
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
-extern t_bool doDirectorFunc(DEVICE *, t_bool);
+extern bool doDirectorFunc(DEVICE *, bool);
 
 extern t_stat checkReset(DEVICE *, uint8);
 
@@ -90,7 +91,7 @@ extern t_stat set_equipment(UNIT *, int32, const char *, void *);
 
 extern uint16 Areg, IOAreg;
 
-extern t_bool IOFWinitialized;
+extern bool IOFWinitialized;
 
 t_stat lp_show_type(FILE *, UNIT *, int32, const void *);
 t_stat lp_set_type(UNIT *, int32, const char *, void *);
@@ -370,7 +371,7 @@ t_stat lp_svc(UNIT *uptr)
        */
       LPdev.iod_LPstate = IODP_LPNONE;
 
-      fw_IOcompleteData(FALSE, &lp_dev, &LPdev, 0xFFFF, "Output done");
+      fw_IOcompleteData(false, &lp_dev, &LPdev, 0xFFFF, "Output done");
       break;
 
     case IODP_LPPRINTWAIT:
@@ -380,9 +381,9 @@ t_stat lp_svc(UNIT *uptr)
        */
       LPdev.iod_LPstate = IODP_LPNONE;
       if (LPdev.iod_type == DEVTYPE_1742)
-        LPdev.iod_LPccpend = TRUE;
+        LPdev.iod_LPccpend = true;
 
-      fw_IOcompleteEOP(FALSE, &lp_dev, &LPdev, 0xFFFF, "EOP interrupt");
+      fw_IOcompleteEOP(false, &lp_dev, &LPdev, 0xFFFF, "EOP interrupt");
       break;
 
     case IODP_LPCCWAIT:
@@ -391,9 +392,9 @@ t_stat lp_svc(UNIT *uptr)
        * completed.
        */
       LPdev.iod_LPstate = IODP_LPNONE;
-      LPdev.iod_LPccpend = FALSE;
+      LPdev.iod_LPccpend = false;
 
-      fw_IOcompleteData(FALSE, &lp_dev, &LPdev, 0xFFFF, "Control Char. Done");
+      fw_IOcompleteData(false, &lp_dev, &LPdev, 0xFFFF, "Control Char. Done");
       break;
 
     default:
@@ -459,7 +460,7 @@ t_stat lp_reset(DEVICE *dptr)
 
   LPdev.iod_LPcolumn = 0;
   if (LPdev.iod_type == DEVTYPE_1742)
-    LPdev.iod_LPccpend = TRUE;
+    LPdev.iod_LPccpend = true;
 
   fw_setForced(&LPdev, IO_ST_READY);
 
@@ -489,7 +490,7 @@ enum IOstatus LPin(IO_DEVICE *iod, uint8 reg)
 enum IOstatus LPout(IO_DEVICE *iod, uint8 reg)
 {
   uint8 *buffer = (uint8 *)iod->iod_LPbuffer;
-  t_bool printwait = FALSE, changed;
+  bool printwait = false, changed;
 
   /*
    * 1742-30 does not have a register 3
@@ -515,7 +516,7 @@ enum IOstatus LPout(IO_DEVICE *iod, uint8 reg)
               fprintf(DBGOUT,
                       "%sLP: Invalid code (0x%02x, 0x%02x) ==> [0x%02x, 0x%02x]\r\\n",
                       INTprefix, ch1, ch2, LPmap[ch1], LPmap[ch2]);
-            fw_IOalarm(FALSE, &lp_dev, iod, "Invalid code");
+            fw_IOalarm(false, &lp_dev, iod, "Invalid code");
             break;
           }
           /*
@@ -588,7 +589,7 @@ enum IOstatus LPout(IO_DEVICE *iod, uint8 reg)
       break;
 
     case 0x01:
-      changed = doDirectorFunc(&lp_dev, TRUE);
+      changed = doDirectorFunc(&lp_dev, true);
 
       if ((Areg & (IO_DIR_CINT | IO_DIR_CCONT)) != 0)
         LPdev.STATUS |= IO_ST_DATA | IO_ST_EOP;
@@ -648,10 +649,10 @@ enum IOstatus LPout(IO_DEVICE *iod, uint8 reg)
               for (i = 0; i < iod->iod_LPcolumn; i++)
                 lp_putc(buffer[i]);
 
-              iod->iod_LPoverwrite = TRUE;
+              iod->iod_LPoverwrite = true;
             }
           }
-          printwait = TRUE;
+          printwait = true;
         }
 
         if ((Areg & IO_1740_MOTION) != 0) {
@@ -663,8 +664,8 @@ enum IOstatus LPout(IO_DEVICE *iod, uint8 reg)
             if ((Areg & IO_1740_DSP) != 0)
               lp_putc('\n');
           }
-          iod->iod_LPoverwrite = FALSE;
-          printwait = TRUE;
+          iod->iod_LPoverwrite = false;
+          printwait = true;
         }
         if (printwait) {
           fw_IOunderwayEOP(&LPdev, IO_ST_INT);

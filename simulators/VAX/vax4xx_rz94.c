@@ -26,6 +26,7 @@
    rz           SCSI controller
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_scsi.h"
 #include "vax_rzdev.h"
@@ -277,12 +278,12 @@ rz_fifo_t = rz_fifo_b = 0;
 rz_fifo[rz_fifo_b] = 0;
 }
 
-static t_bool rz_message_accepted (void)
+static bool rz_message_accepted (void)
 {
 if ((rz_bus.phase == SCSI_MSGI) && (rz_bus.buf_t != rz_bus.buf_b))
-    return FALSE;
+    return false;
 scsi_release (&rz_bus);
-return TRUE;
+return true;
 }
 
 /* IO dispatch routines, I/O addresses 177601x0 - 177601x7 */

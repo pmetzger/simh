@@ -46,6 +46,7 @@
 
 #include "pdq3_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 /* some simulator publics */
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
@@ -511,12 +512,12 @@ static uint16 int_vectors[32] = {
   NIL
 };
 
-static t_bool cpu_isIntEnabled(void) {
+static bool cpu_isIntEnabled(void) {
   return (reg_ssr & SSR_INTEN) != 0;
 }
 
 /* latch interrupts */
-void cpu_assertInt(int level, t_bool tf) {
+void cpu_assertInt(int level, bool tf) {
   uint16 bit = 1 << level;
   if (tf)
     setbit(reg_intlatch, bit);
@@ -534,7 +535,7 @@ t_stat cpu_raiseInt(int level) {
 
   if (!cpu_isIntEnabled()) return STOP_ERRIO; /* interrupts disabled, or invalid vector */
 
-  cpu_assertInt(level, TRUE);
+  cpu_assertInt(level, true);
   return SCPE_OK;
 }
 
@@ -748,7 +749,7 @@ static t_stat Raise(uint16 err) {
   /* push error code
    * attention: potential double fault: STKOVFL */
   if (err==PASERROR_STKOVFL)
-    Write(0,reg_sp,err,TRUE);
+    Write(0,reg_sp,err,true);
   else
     Push(err);
   sim_debug(DBG_CPU_INT, &cpu_dev, DBG_PCFORMAT2 "Raised Pascal Exception #%d\n",DBG_PC,err);
@@ -840,7 +841,7 @@ static t_stat taskswitch6(void) {
         if ((rc = sim_process_event()) != SCPE_OK)
           return rc;
       }
-      sim_idle(TMR_IDLE, TRUE);
+      sim_idle(TMR_IDLE, true);
     }
   }
 
@@ -1608,7 +1609,7 @@ t_stat sim_instr(void)
       if ((rc = DoInstr()) != SCPE_OK) break;
     }
     else {
-      sim_idle(TMR_IDLE, TRUE);
+      sim_idle(TMR_IDLE, true);
     }
 
     /* process interrupts

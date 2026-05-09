@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -75,7 +76,7 @@ struct sim_tmxr_fixture {
         int32 control_bits_clear[4];
         t_stat control_result;
         int32 control_status_bits;
-        t_bool have_control_status_bits;
+        bool have_control_status_bits;
 
         int sleep_calls;
         unsigned int sleep_msec[4];
@@ -105,7 +106,7 @@ struct sim_tmxr_fixture {
         ETH_DEV *last_eth_write_dev;
         ETH_PACK eth_write_packets[4];
         t_stat eth_write_result;
-        t_bool poll_rx_after_eth_write;
+        bool poll_rx_after_eth_write;
 
         int eth_filter_calls;
         ETH_DEV *last_eth_filter_dev;
@@ -375,7 +376,7 @@ static t_stat test_tmxr_eth_write(ETH_DEV *dev, ETH_PACK *packet,
         tmxr_io_fixture->io.eth_write_packets[call] = *packet;
     tmxr_io_fixture->io.eth_write_calls++;
     if (tmxr_io_fixture->io.poll_rx_after_eth_write) {
-        tmxr_io_fixture->io.poll_rx_after_eth_write = FALSE;
+        tmxr_io_fixture->io.poll_rx_after_eth_write = false;
         tmxr_poll_rx(&tmxr_io_fixture->mux);
     }
     return tmxr_io_fixture->io.eth_write_result;
@@ -630,13 +631,13 @@ static void test_tmxr_loopback_toggle_updates_buffer_state(void **state)
     assert_false(tmxr_get_line_loopback(line));
     assert_null(line->lpb);
 
-    assert_int_equal(tmxr_set_line_loopback(line, TRUE), SCPE_OK);
+    assert_int_equal(tmxr_set_line_loopback(line, true), SCPE_OK);
     assert_true(tmxr_get_line_loopback(line));
     assert_non_null(line->lpb);
     assert_int_equal(line->lpbsz, line->rxbsz);
     assert_true(line->ser_connect_pending);
 
-    assert_int_equal(tmxr_set_line_loopback(line, FALSE), SCPE_OK);
+    assert_int_equal(tmxr_set_line_loopback(line, false), SCPE_OK);
     assert_false(tmxr_get_line_loopback(line));
     assert_null(line->lpb);
     assert_int_equal(line->lpbsz, 0);
@@ -649,9 +650,9 @@ static void test_tmxr_halfduplex_toggle_round_trips(void **state)
     TMLN *line = &fixture->lines[0];
 
     assert_false(tmxr_get_line_halfduplex(line));
-    assert_int_equal(tmxr_set_line_halfduplex(line, TRUE), SCPE_OK);
+    assert_int_equal(tmxr_set_line_halfduplex(line, true), SCPE_OK);
     assert_true(tmxr_get_line_halfduplex(line));
-    assert_int_equal(tmxr_set_line_halfduplex(line, FALSE), SCPE_OK);
+    assert_int_equal(tmxr_set_line_halfduplex(line, false), SCPE_OK);
     assert_false(tmxr_get_line_halfduplex(line));
 }
 
@@ -829,14 +830,14 @@ static void test_tmxr_line_mode_setters_toggle_state(void **state)
     struct sim_tmxr_fixture *fixture = *state;
     TMLN *line = &fixture->lines[0];
 
-    assert_int_equal(tmxr_set_line_halfduplex(line, TRUE), SCPE_OK);
+    assert_int_equal(tmxr_set_line_halfduplex(line, true), SCPE_OK);
     assert_true(tmxr_get_line_halfduplex(line));
-    assert_int_equal(tmxr_set_line_halfduplex(line, FALSE), SCPE_OK);
+    assert_int_equal(tmxr_set_line_halfduplex(line, false), SCPE_OK);
     assert_false(tmxr_get_line_halfduplex(line));
 
-    assert_int_equal(tmxr_set_line_modem_control(line, TRUE), SCPE_OK);
+    assert_int_equal(tmxr_set_line_modem_control(line, true), SCPE_OK);
     assert_true(line->modem_control);
-    assert_int_equal(tmxr_set_line_modem_control(line, FALSE), SCPE_OK);
+    assert_int_equal(tmxr_set_line_modem_control(line, false), SCPE_OK);
     assert_false(line->modem_control);
 }
 
@@ -1137,7 +1138,7 @@ static void test_tmxr_poll_rx_skips_short_framer_data_frame(void **state)
     fixture->io.eth_read_results[1] = 1;
     fixture->io.next_eth_read_result = 0;
     line->rcve = 1;
-    line->conn = TRUE;
+    line->conn = true;
     line->rxbps = 0;
 
     tmxr_poll_rx(&fixture->mux);
@@ -1168,7 +1169,7 @@ static void test_tmxr_put_packet_ln_reports_framer_write_failure(void **state)
     assert_int_equal(
         tmxr_open_master(&fixture->mux, "Line=1,SYNC=sync0:integral:56000"),
         SCPE_OK);
-    line->conn = TRUE;
+    line->conn = true;
     fixture->io.eth_write_calls = 0;
     fixture->io.eth_write_result = SCPE_IOERR;
 
@@ -1203,15 +1204,15 @@ static void test_tmxr_start_framer_uses_prewrite_status_snapshot(void **state)
     assert_int_equal(
         tmxr_open_master(&fixture->mux, "Line=1,SYNC=sync0:integral:56000"),
         SCPE_OK);
-    line->conn = TRUE;
-    line->rcve = TRUE;
+    line->conn = true;
+    line->rcve = true;
     fixture->io.eth_write_calls = 0;
     fixture->io.eth_read_calls = 0;
     fixture->io.sleep_calls = 0;
     set_test_framer_status_packet(&fixture->io.eth_read_packets[0], 1);
     fixture->io.eth_read_results[0] = 1;
     fixture->io.next_eth_read_result = 0;
-    fixture->io.poll_rx_after_eth_write = TRUE;
+    fixture->io.poll_rx_after_eth_write = true;
 
     assert_int_equal(
         tmxr_set_get_modem_bits(line, TMXR_MDM_DTR, 0, &status_bits), SCPE_OK);
@@ -1243,7 +1244,7 @@ static void test_tmxr_start_framer_skips_status_wait_after_write_failure(
     assert_int_equal(
         tmxr_open_master(&fixture->mux, "Line=1,SYNC=sync0:integral:56000"),
         SCPE_OK);
-    line->conn = TRUE;
+    line->conn = true;
     fixture->io.eth_write_calls = 0;
     fixture->io.eth_read_calls = 0;
     fixture->io.sleep_calls = 0;
@@ -1278,7 +1279,7 @@ static void test_tmxr_stop_framer_skips_status_wait_after_write_failure(
     assert_int_equal(
         tmxr_open_master(&fixture->mux, "Line=1,SYNC=sync0:integral:56000"),
         SCPE_OK);
-    line->conn = TRUE;
+    line->conn = true;
     line->modembits = TMXR_MDM_DTR;
     fixture->io.eth_write_calls = 0;
     fixture->io.eth_read_calls = 0;
@@ -1426,7 +1427,7 @@ static void test_tmxr_open_master_rejects_programmatic_speed_override(
     struct sim_tmxr_fixture *fixture = *state;
     t_stat status;
 
-    fixture->mux.port_speed_control = TRUE;
+    fixture->mux.port_speed_control = true;
     status = tmxr_open_master(&fixture->mux, "Speed=9600");
     assert_int_equal(SCPE_BARE_STATUS(status), SCPE_ARG);
 }
@@ -1441,7 +1442,7 @@ static void test_tmxr_open_master_restores_speed_with_port_speed_control(
     int32 saved_switches = sim_switches;
 
     fixture->mux.lines = 1;
-    fixture->mux.port_speed_control = TRUE;
+    fixture->mux.port_speed_control = true;
     sim_switches |= SIM_SW_REST;
 
     assert_int_equal(tmxr_open_master(&fixture->mux, "Loopback,Speed=2400"),
@@ -1844,7 +1845,7 @@ static void test_tmxr_poll_conn_accepts_line_listener_connection(
     fixture->io.next_accept_result = 0;
 
     assert_int_equal(tmxr_poll_conn(&fixture->mux), 2);
-    assert_int_not_equal(line->conn, FALSE);
+    assert_int_not_equal(line->conn, false);
     assert_int_equal((int)(uintptr_t)line->sock, 81);
     assert_non_null(line->ipad);
     assert_string_equal(line->ipad, "203.0.113.9:8000");
@@ -1922,7 +1923,7 @@ static void test_tmxr_poll_conn_reports_mux_listener_all_busy(void **state)
     fixture->io.next_accept_result = 0;
 
     for (i = 0; i < fixture->mux.lines; ++i)
-        fixture->lines[i].conn = TRUE;
+        fixture->lines[i].conn = true;
 
     result = tmxr_poll_conn(&fixture->mux);
     assert_int_equal(result, -1);
@@ -1952,10 +1953,10 @@ static void test_tmxr_poll_conn_rings_mux_listener_line_with_dtr_low(
     fixture->io.next_accept_result = 0;
 
     for (i = 0; i < fixture->mux.lines; ++i)
-        fixture->lines[i].conn = TRUE;
+        fixture->lines[i].conn = true;
 
-    ringing_line->conn = FALSE;
-    ringing_line->modem_control = TRUE;
+    ringing_line->conn = false;
+    ringing_line->modem_control = true;
     ringing_line->modembits = 0;
 
     result = tmxr_poll_conn(&fixture->mux);
@@ -1986,10 +1987,10 @@ static void test_tmxr_poll_conn_times_out_ringing_mux_listener(void **state)
     assert_non_null(fixture->mux.ring_ipad);
 
     for (i = 0; i < fixture->mux.lines; ++i)
-        fixture->lines[i].conn = TRUE;
+        fixture->lines[i].conn = true;
 
-    ringing_line->conn = FALSE;
-    ringing_line->modem_control = TRUE;
+    ringing_line->conn = false;
+    ringing_line->modem_control = true;
     ringing_line->modembits = TMXR_MDM_RNG;
 
     result = tmxr_poll_conn(&fixture->mux);
@@ -2071,7 +2072,7 @@ static void test_tmxr_reset_ln_pulses_serial_control_lines(void **state)
 
     install_tmxr_test_io_hooks();
     line->serport = (SERHANDLE)(uintptr_t)2;
-    line->modem_control = FALSE;
+    line->modem_control = false;
 
     assert_int_equal(tmxr_reset_ln(line), SCPE_OK);
     assert_int_equal(fixture->io.close_serial_calls, 0);
@@ -2106,7 +2107,7 @@ static void test_tmxr_reset_ln_restarts_configured_outgoing_destination(
     fixture->io.connect_result = (SOCKET)(uintptr_t)77;
     line->sock = (SOCKET)(uintptr_t)21;
     line->connecting = (SOCKET)(uintptr_t)22;
-    line->conn = TRUE;
+    line->conn = true;
     line->destination = strdup("remote:1234");
     line->ipad = strdup("127.0.0.1");
 
@@ -2135,7 +2136,7 @@ static void test_tmxr_set_get_modem_bits_raises_dtr_and_starts_connect(
 
     install_tmxr_test_io_hooks();
     fixture->io.connect_result = (SOCKET)(uintptr_t)55;
-    line->modem_control = TRUE;
+    line->modem_control = true;
     line->destination = strdup("remote:4321");
     line->port = strdup("listen:9999");
 
@@ -2189,12 +2190,12 @@ static void test_tmxr_connection_message_honors_suppression_flags(void **state)
     struct sim_tmxr_fixture *fixture = *state;
     TMLN *line = &fixture->lines[0];
 
-    line->notelnet = TRUE;
-    assert_null(tmxr_connection_message(&fixture->mux, line, FALSE));
+    line->notelnet = true;
+    assert_null(tmxr_connection_message(&fixture->mux, line, false));
 
-    line->notelnet = FALSE;
-    line->nomessage = TRUE;
-    assert_null(tmxr_connection_message(&fixture->mux, line, FALSE));
+    line->notelnet = false;
+    line->nomessage = true;
+    assert_null(tmxr_connection_message(&fixture->mux, line, false));
 }
 
 /* Verify the extracted connection banner helper formats the simulator,
@@ -2205,7 +2206,7 @@ static void test_tmxr_connection_message_formats_multiline_banner(void **state)
     TMLN *line = &fixture->lines[2];
     char *message;
 
-    message = tmxr_connection_message(&fixture->mux, line, FALSE);
+    message = tmxr_connection_message(&fixture->mux, line, false);
     assert_non_null(message);
     assert_string_equal(
         message,
@@ -2224,9 +2225,9 @@ static void test_tmxr_connection_message_formats_single_line_forced_banner(
     char *message;
 
     fixture->mux.lines = 1;
-    line->notelnet = TRUE;
+    line->notelnet = true;
 
-    message = tmxr_connection_message(&fixture->mux, line, TRUE);
+    message = tmxr_connection_message(&fixture->mux, line, true);
     assert_non_null(message);
     assert_string_equal(
         message,
@@ -2253,12 +2254,12 @@ static void test_tmxr_line_attach_string_formats_listener_state(void **state)
 
     fixture->mux.buffered = 64;
     line->conn = TMXR_LINE_DISABLED;
-    line->modem_control = TRUE;
-    line->txbfd = TRUE;
+    line->modem_control = true;
+    line->txbfd = true;
     line->txbsz = 128;
-    line->notelnet = TRUE;
-    line->nomessage = TRUE;
-    line->loopback = TRUE;
+    line->notelnet = true;
+    line->nomessage = true;
+    line->loopback = true;
     line->port = strdup("5000");
     line->acl = strdup("+127.0.0.1/32,-10.0.0.0/8");
     line->txlogname = strdup("tmxr.log");
@@ -2306,9 +2307,9 @@ static void test_tmxr_putc_ln_reports_lost_output_on_disconnected_line(
     struct sim_tmxr_fixture *fixture = *state;
     TMLN *line = &fixture->lines[1];
 
-    line->conn = FALSE;
-    line->txbfd = FALSE;
-    line->notelnet = FALSE;
+    line->conn = false;
+    line->txbfd = false;
+    line->notelnet = false;
 
     assert_int_equal(tmxr_putc_ln(line, 'A'), SCPE_LOST);
     assert_int_equal(line->txdrp, 1);
@@ -2319,14 +2320,14 @@ static void test_tmxr_putc_ln_duplicates_telnet_iac(void **state)
 {
     struct sim_tmxr_fixture *fixture = *state;
     TMLN *line = &fixture->lines[2];
-    t_bool saved_running = sim_is_running;
+    bool saved_running = sim_is_running;
     const unsigned char telnet_iac = 255;
 
     ensure_line_tx_buffer(line, 16);
-    line->conn = TRUE;
-    line->notelnet = FALSE;
+    line->conn = true;
+    line->notelnet = false;
     line->xmte = 1;
-    sim_is_running = TRUE;
+    sim_is_running = true;
 
     assert_int_equal(tmxr_putc_ln(line, telnet_iac), SCPE_OK);
     assert_int_equal(tmxr_tqln(line), 2);
@@ -2384,7 +2385,7 @@ static void test_tmxr_poll_rx_notelnet_uses_full_small_buffer(void **state)
     assert_true(line->loopback);
     assert_true(line->txbfd);
 
-    line->notelnet = TRUE;
+    line->notelnet = true;
     line->rcve = 1;
     line->xmte = 1;
     line->rxbsz = 1;
@@ -2407,7 +2408,7 @@ static void test_tmxr_put_packet_ln_stalls_when_packet_transmit_is_busy(
     TMLN *line = &fixture->lines[0];
     const uint8 payload[] = {0x11, 0x22, 0x33};
 
-    line->loopback = TRUE;
+    line->loopback = true;
     line->txppsize = 4;
     line->txppoffset = 0;
     line->txpb = calloc((size_t)line->txppsize, sizeof(*line->txpb));
@@ -2436,7 +2437,7 @@ static void test_tmxr_get_packet_ln_ex_decodes_framed_buffer(void **state)
         tmxr_open_master(&fixture->mux, "BUFFERED=16,LOOPBACK"), SCPE_OK);
     assert_true(line->txbfd);
     line->rcve = 1;
-    line->notelnet = TRUE;
+    line->notelnet = true;
     line->rxbps = 0;
     memcpy(line->rxb, packet, sizeof(packet));
     line->rxbpi = sizeof(packet);
@@ -2465,7 +2466,7 @@ static void test_tmxr_getc_ln_reads_manual_buffered_byte(void **state)
         tmxr_open_master(&fixture->mux, "BUFFERED=16,LOOPBACK"), SCPE_OK);
     assert_true(line->txbfd);
     line->rcve = 1;
-    line->notelnet = TRUE;
+    line->notelnet = true;
     line->rxbps = 0;
     line->rxb[0] = 0x7e;
     line->rxbpi = 1;
@@ -2495,7 +2496,7 @@ static void test_tmxr_put_packet_ln_loopback_without_conn_round_trips(
     assert_int_equal(
         tmxr_open_master(&fixture->mux, "BUFFERED=16,LOOPBACK"), SCPE_OK);
     assert_true(line->txbfd);
-    line->notelnet = TRUE;
+    line->notelnet = true;
     line->rcve = 1;
     line->rxbps = 0;
     line->txbps = 0;
@@ -2524,7 +2525,7 @@ static void test_tmxr_get_packet_ln_reports_empty_and_lost_states(
     const uint8 *received = NULL;
     size_t received_size = 0;
 
-    line->conn = TRUE;
+    line->conn = true;
     line->rcve = 1;
 
     assert_int_equal(
@@ -2533,7 +2534,7 @@ static void test_tmxr_get_packet_ln_reports_empty_and_lost_states(
     assert_null(received);
     assert_int_equal(received_size, 0);
 
-    line->conn = FALSE;
+    line->conn = false;
     assert_int_equal(
         tmxr_get_packet_ln_ex(line, &received, &received_size, 0x7e),
         SCPE_LOST);
@@ -2581,9 +2582,9 @@ static void test_tmxr_txdone_ln_tracks_pending_and_completed_output(
     struct sim_tmxr_fixture *fixture = *state;
     TMLN *line = &fixture->lines[0];
 
-    line->conn = TRUE;
+    line->conn = true;
     line->txbps = 9600;
-    line->txdone = FALSE;
+    line->txdone = false;
     line->txnexttime = sim_gtime() + 1000.0;
 
     assert_int_equal(tmxr_txdone_ln(line), 0);
@@ -2643,9 +2644,9 @@ static void test_tmxr_linemsg_buffers_plain_text(void **state)
     char *buffered;
 
     ensure_line_tx_buffer(line, 64);
-    line->conn = TRUE;
-    line->txbfd = TRUE;
-    line->notelnet = TRUE;
+    line->conn = true;
+    line->txbfd = true;
+    line->notelnet = true;
 
     tmxr_linemsg(line, "hello");
 
@@ -2663,9 +2664,9 @@ static void test_tmxr_linemsgf_expands_newlines_to_crlf(void **state)
     char *buffered;
 
     ensure_line_tx_buffer(line, 128);
-    line->conn = TRUE;
-    line->txbfd = TRUE;
-    line->notelnet = TRUE;
+    line->conn = true;
+    line->txbfd = true;
+    line->notelnet = true;
 
     tmxr_linemsgf(line, "one\ntwo\r\nthree");
 
@@ -2687,9 +2688,9 @@ static void test_tmxr_linemsgf_handles_long_formatted_output(void **state)
     long_text[sizeof(long_text) - 1] = '\0';
 
     ensure_line_tx_buffer(line, 2048);
-    line->conn = TRUE;
-    line->txbfd = TRUE;
-    line->notelnet = TRUE;
+    line->conn = true;
+    line->txbfd = true;
+    line->notelnet = true;
 
     tmxr_linemsgf(line, "<%s>", long_text);
 
@@ -2825,8 +2826,8 @@ static void test_tmxr_attach_help_formats_single_and_multi_line_modes(void **sta
     fixture->device.help_ctx = &fixture->mux;
 
     fixture->mux.lines = 1;
-    fixture->mux.port_speed_control = TRUE;
-    fixture->mux.modem_control = TRUE;
+    fixture->mux.port_speed_control = true;
+    fixture->mux.modem_control = true;
     stream = open_memstream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(
@@ -2842,8 +2843,8 @@ static void test_tmxr_attach_help_formats_single_and_multi_line_modes(void **sta
     output = NULL;
     output_size = 0;
     fixture->mux.lines = 4;
-    fixture->mux.port_speed_control = FALSE;
-    fixture->mux.modem_control = FALSE;
+    fixture->mux.port_speed_control = false;
+    fixture->mux.modem_control = false;
     stream = open_memstream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(
@@ -3022,7 +3023,7 @@ static void test_tmxr_fconns_formats_connecting_and_serial_states(void **state)
     fixture->lines[2].txbsz = 16;
     fixture->lines[2].serport = (SERHANDLE)(uintptr_t)1;
     fixture->lines[2].destination = strdup("ser0");
-    fixture->lines[2].modem_control = TRUE;
+    fixture->lines[2].modem_control = true;
     fixture->lines[2].modembits = TMXR_MDM_DTR | TMXR_MDM_CTS;
     assert_non_null(fixture->lines[2].destination);
     stream = open_memstream(&output, &output_size);
@@ -3058,7 +3059,7 @@ static void test_tmxr_fstats_formats_connected_counters(void **state)
     line->txpcnt = 3;
     line->txppsize = 8;
     line->txppoffset = 3;
-    line->txbfd = TRUE;
+    line->txbfd = true;
     line->txbsz = 64;
     line->txdrp = 4;
     line->txstall = 5;
@@ -3196,7 +3197,7 @@ static void test_tmxr_debug_formats_telnet_and_octal_text(void **state)
     char *output;
 
     fixture->device.dctrl = TMXR_DBG_RCV;
-    line->notelnet = FALSE;
+    line->notelnet = false;
 
     output = capture_tmxr_debug_output(TMXR_DBG_RCV, line, "recv",
                                        buffer, (int)sizeof(buffer));
@@ -3217,7 +3218,7 @@ static void test_tmxr_debug_formats_truncated_telnet_options(void **state)
     char *output;
 
     fixture->device.dctrl = TMXR_DBG_RCV;
-    line->notelnet = FALSE;
+    line->notelnet = false;
 
     output = capture_tmxr_debug_output(TMXR_DBG_RCV, line, "recv",
                                        trailing_iac, 1);
@@ -3252,7 +3253,7 @@ static void test_tmxr_debug_formats_notelnet_hex_dump(void **state)
     char *output;
 
     fixture->device.dctrl = TMXR_DBG_RCV;
-    line->notelnet = TRUE;
+    line->notelnet = true;
 
     output = capture_tmxr_debug_output(TMXR_DBG_RCV, line, "recv",
                                        buffer, (int)sizeof(buffer));

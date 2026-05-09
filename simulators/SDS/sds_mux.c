@@ -40,6 +40,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #define PROJ_GENIE      (cpu_unit.flags & UNIT_GENIE)
 #define MUX_NUMLIN      mux_desc.lines
@@ -541,7 +542,7 @@ if (newln == 0)
 if (newln < MUX_NUMLIN) {
     for (i = newln, t = 0; i < MUX_NUMLIN; i++)
         t = t | mux_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
             return SCPE_OK;
     for (i = newln; i < MUX_NUMLIN; i++) {
         if (mux_ldsc[i].conn) {

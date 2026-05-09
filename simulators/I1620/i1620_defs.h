@@ -38,6 +38,7 @@
 #ifndef I1620_DEFS_H_
 #define I1620_DEFS_H_  0
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 
 #if defined(USE_INT64) || defined(USE_ADDR64)
@@ -260,7 +261,7 @@ t_stat dp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
 t_stat lpt (uint32 op, uint32 pa, uint32 f0, uint32 f1);
 t_stat btp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
 t_stat btr (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat fp_add (uint32 d, uint32 s, t_bool sub);
+t_stat fp_add (uint32 d, uint32 s, bool sub);
 t_stat fp_mul (uint32 d, uint32 s);
 t_stat fp_div (uint32 d, uint32 s);
 t_stat fp_fsl (uint32 d, uint32 s);

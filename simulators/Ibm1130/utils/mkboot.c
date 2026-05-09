@@ -46,17 +46,12 @@
 //                            load DSYSLDR1 which is what we are after here.
 // ---------------------------------------------------------------------------------
 
+#include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "util_io.h"
-
-#ifndef TRUE
-    #define BOOL  int
-    #define TRUE  1
-    #define FALSE 0
-#endif
 
 #ifndef _WIN32
     int strnicmp (char *a, char *b, int n);
@@ -73,7 +68,7 @@ typedef enum {R_ABSOLUTE = 0, R_RELATIVE = 1, R_LIBF = 2, R_CALL = 3} RELOC;
 
 typedef enum {B_1130, B_1800, B_CORE} BOOTMODE;
 
-BOOL verbose = FALSE;
+bool verbose = false;
 char *infile = NULL, *outfile = NULL;
 BOOTMODE mode = B_1130;
 int addr_from = 0, addr_to = 79;
@@ -122,7 +117,7 @@ int main (int argc, char **argv)
             while (*arg) {
                 switch (*arg++) {
                     case 'v':
-                        verbose = TRUE;
+                        verbose = true;
                         break;
                     default:
                         bail(usestr);
@@ -365,7 +360,7 @@ void loadcard (unsigned short *buf)
 void loaddata (char *fname)
 {
     FILE *fp;
-    BOOL first = TRUE;
+    bool first = true;
     unsigned short card[80], buf[54], cardtype;
 
     if ((fp = fopen(fname, "rb")) == NULL) {
@@ -417,7 +412,7 @@ void loaddata (char *fname)
                     bail("Unexpected card type");
             }
         }
-        first = FALSE;
+        first = false;
     }
 
     fclose(fp);
@@ -550,7 +545,7 @@ int corecard_n   = 0;           // number of object words stored in corecard (0-
 int corecard_seq = 1;           // card output sequence number
 int corecard_org = 0;           // origin of current card-full
 int corecard_maxaddr = 0;
-BOOL corecard_first = TRUE;     // TRUE when we're to write the program type card
+bool corecard_first = true;     // true when we're to write the program type card
 
 // corecard_init - prepare a new object data output card
 
@@ -591,7 +586,7 @@ void corecard_writedata (void)
 {
     corecard[1] = 0;                            // checksum
     corecard[2] = 0x0000 | corecard_n;          // data card type + word count
-    corecard_writecard(FALSE);                  // emit the card
+    corecard_writecard(false);                  // emit the card
 }
 
 // corecard_flush - flush any pending binary data

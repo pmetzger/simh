@@ -34,6 +34,7 @@
         disable the onboard RAM.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define BASE_ADDR       u3
@@ -71,12 +72,12 @@ UNIT RAM_unit = { UDATA (NULL, UNIT_BINK, 0) };
 /*
  * Return whether an address maps to currently allocated RAM storage.
  */
-static t_bool RAM_addr_is_configured(uint16 addr)
+static bool RAM_addr_is_configured(uint16 addr)
 {
     if ((RAM_unit.filebuf == NULL) || (RAM_unit.capac == 0))
-        return FALSE;
+        return false;
     if (addr < RAM_unit.u3)
-        return FALSE;
+        return false;
     return ((uint32)addr - (uint32)RAM_unit.u3) < (uint32)RAM_unit.capac;
 }
 

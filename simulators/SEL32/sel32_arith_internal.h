@@ -3,6 +3,7 @@
 #ifndef SEL32_ARITH_INTERNAL_H_
 #define SEL32_ARITH_INTERNAL_H_ 0
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 
 /* Interpret a 32-bit machine word as a signed two's-complement value. */
@@ -25,8 +26,8 @@ static inline int sel32_compare_signed_words(uint32 left, uint32 right)
 /* Compare two signed 64-bit CAMx operands without subtracting them. */
 static inline int sel32_compare_signed_doubles(t_uint64 left, t_uint64 right)
 {
-    t_bool left_negative = (left & DMSIGN) != 0;
-    t_bool right_negative = (right & DMSIGN) != 0;
+    bool left_negative = (left & DMSIGN) != 0;
+    bool right_negative = (right & DMSIGN) != 0;
 
     if (left_negative != right_negative)
         return left_negative ? -1 : 1;

@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,7 +66,7 @@ static void test_sim_eval_expression_handles_numeric_precedence(void **state)
 
     (void)state;
 
-    rest = sim_eval_expression("1 + 2 * (3 + 4)", &value, FALSE, &status);
+    rest = sim_eval_expression("1 + 2 * (3 + 4)", &value, false, &status);
 
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(value, 15);
@@ -82,7 +83,7 @@ test_sim_eval_expression_returns_rest_after_paren_group(void **state)
 
     (void)state;
 
-    rest = sim_eval_expression("(1 + 2) trailing", &value, TRUE, &status);
+    rest = sim_eval_expression("(1 + 2) trailing", &value, true, &status);
 
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(value, 3);
@@ -98,13 +99,13 @@ static void test_sim_eval_expression_uses_register_values(void **state)
 
     (void)fixture;
 
-    assert_string_equal(sim_eval_expression("ACC + 1", &value, FALSE, &status),
+    assert_string_equal(sim_eval_expression("ACC + 1", &value, false, &status),
                         "");
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(value, 6);
 
     assert_string_equal(
-        sim_eval_expression("CPU.ACC * 2", &value, FALSE, &status), "");
+        sim_eval_expression("CPU.ACC * 2", &value, false, &status), "");
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(value, 10);
 }
@@ -119,7 +120,7 @@ static void test_sim_eval_expression_uses_environment_values(void **state)
 
     setenv("SIMH_TEST_EXPR_VALUE", "41", 1);
     assert_string_equal(
-        sim_eval_expression("SIMH_TEST_EXPR_VALUE + 1", &value, FALSE, &status),
+        sim_eval_expression("SIMH_TEST_EXPR_VALUE + 1", &value, false, &status),
         "");
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(value, 42);
@@ -139,7 +140,7 @@ test_sim_eval_expression_expands_argument_substitutions(void **state)
     scp_set_exp_argv(argv);
 
     assert_string_equal(sim_eval_expression("\"hello %1\" == \"hello world\"",
-                                            &value, FALSE, &status),
+                                            &value, false, &status),
                         "");
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(value, 1);
@@ -156,7 +157,7 @@ test_sim_eval_expression_honors_case_insensitive_string_compare(void **state)
 
     sim_switches = SWMASK('I');
     assert_string_equal(
-        sim_eval_expression("\"HELLO\" == \"hello\"", &value, FALSE, &status),
+        sim_eval_expression("\"HELLO\" == \"hello\"", &value, false, &status),
         "");
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(value, 1);
@@ -174,7 +175,7 @@ test_sim_eval_expression_honors_whitespace_case_string_compare(void **state)
     sim_switches = SWMASK('W') | SWMASK('I');
     assert_string_equal(
         sim_eval_expression("\"ALPHA\t beta\" == \"alpha beta\"", &value,
-                            FALSE, &status),
+                            false, &status),
         "");
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(value, 1);
@@ -189,7 +190,7 @@ static void test_sim_eval_expression_reports_invalid_syntax(void **state)
 
     (void)state;
 
-    rest = sim_eval_expression("1 + )", &value, FALSE, &status);
+    rest = sim_eval_expression("1 + )", &value, false, &status);
 
     assert_int_equal(SCPE_BARE_STATUS(status), SCPE_ARG);
     assert_non_null(rest);

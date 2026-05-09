@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -33,7 +34,7 @@ struct sim_timer_activation_fixture {
     DEVICE *devices[3];
     UNIT clock_unit;
     UNIT target_unit;
-    t_bool saved_sim_is_running;
+    bool saved_sim_is_running;
 };
 
 struct sim_timer_negative_delay_context {
@@ -116,7 +117,7 @@ static int setup_sim_timer_fixture (void **state)
     simh_test_target_service_calls = 0;
     sim_time_reset_test_hooks ();
     sim_timer_reset_test_state ();
-    sim_is_running = FALSE;
+    sim_is_running = false;
     sim_set_rom_delay_factor (1);
     errno = 0;
     return 0;
@@ -780,7 +781,7 @@ static void test_sim_timer_activate_after_bounds_long_running_delay (
 {
     struct sim_timer_activation_fixture *fixture = *state;
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
 
     assert_int_equal (
         sim_timer_activate_after (&fixture->target_unit, 30000000000000.0),
@@ -812,7 +813,7 @@ static void test_sim_timer_activate_after_preserves_active_unit (void **state)
 {
     struct sim_timer_activation_fixture *fixture = *state;
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
     assert_int_equal (sim_timer_activate_after (&fixture->target_unit, 1000.0),
                       SCPE_OK);
     assert_int_equal (sim_timer_activate_after (&fixture->target_unit, 5000.0),
@@ -837,7 +838,7 @@ static void test_sim_timer_activate_after_rejects_negative_delay (void **state)
     char *text = NULL;
     size_t text_size = 0;
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
     sim_interval = 1234;
     debug_stream = tmpfile ();
     assert_non_null (debug_stream);
@@ -875,7 +876,7 @@ static void test_sim_activate_after_d_rejects_negative_delay (void **state)
     char *text = NULL;
     size_t text_size = 0;
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
     sim_interval = 4321;
 
     assert_int_equal (
@@ -902,7 +903,7 @@ static void test_sim_activate_after_abs_d_rejects_negative_delay_before_cancel (
     char *text = NULL;
     size_t text_size = 0;
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
     assert_int_equal (sim_timer_activate_after (&fixture->target_unit, 1000.0),
                       SCPE_OK);
 
@@ -927,7 +928,7 @@ static void test_sim_timer_activate_after_coschedules_until_calibration (
 {
     struct sim_timer_activation_fixture *fixture = *state;
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
     sim_timer_queue_calibrated_tick (fixture, 1000.0);
 
     assert_int_equal (
@@ -947,7 +948,7 @@ static void test_sim_timer_activate_after_coschedules_until_next_tick (
 {
     struct sim_timer_activation_fixture *fixture = *state;
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
     sim_timer_queue_calibrated_tick (fixture, 1000.0);
 
     assert_int_equal (
@@ -1026,7 +1027,7 @@ static void test_sim_timer_activation_time_queries_standard_queue (
     assert_float_equal (sim_timer_activate_time_usecs (&fixture->target_unit),
                         -1.0, 0.000001);
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
     assert_int_equal (sim_timer_activate_after (&fixture->target_unit, 1000.0),
                       SCPE_OK);
 
@@ -1141,7 +1142,7 @@ static void test_sim_rtcn_calb_counts_pending_catchup_tick (void **state)
 
     (void)state;
 
-    rtc->clock_catchup_pending = TRUE;
+    rtc->clock_catchup_pending = true;
     rtc->clock_tick_size = 0.01;
 
     assert_int_equal (sim_rtcn_calb (100, 0), 100);
@@ -1215,7 +1216,7 @@ static void test_sim_idle_without_calibrated_timer_counts_single_cycle (
     (void)state;
 
     sim_interval = 100;
-    sim_idle_enab = FALSE;
+    sim_idle_enab = false;
     rtcs[0].elapsed = SIM_IDLE_STDFLT;
 
     assert_false (sim_idle (0, 7));
@@ -1229,7 +1230,7 @@ static void test_sim_idle_rejects_invalid_timer_number (void **state)
     (void)state;
 
     sim_interval = 100;
-    sim_idle_enab = TRUE;
+    sim_idle_enab = true;
 
     assert_false (sim_idle (SIM_NTIMERS + 1, 7));
     assert_int_equal (sim_interval, 93);
@@ -1257,7 +1258,7 @@ static void test_sim_idle_sleeps_for_idle_capable_event (void **state)
     simh_test_clock_value_count = 2;
     simh_test_clock_value_index = 0;
     rtcs[0].elapsed = SIM_IDLE_STDFLT;
-    sim_idle_enab = TRUE;
+    sim_idle_enab = true;
     fixture->target_unit.flags = UNIT_IDLE;
     assert_int_equal (sim_activate (&fixture->target_unit, 1000), SCPE_OK);
 
@@ -1276,7 +1277,7 @@ static void test_sim_idle_falls_back_to_calibrated_timer (void **state)
     struct sim_timer_activation_fixture *fixture = *state;
 
     rtcs[0].elapsed = SIM_IDLE_STDFLT;
-    sim_idle_enab = TRUE;
+    sim_idle_enab = true;
     fixture->target_unit.flags = UNIT_IDLE;
     assert_int_equal (sim_activate (&fixture->target_unit, 1000), SCPE_OK);
     simh_test_clock_values[0] = (struct timespec){.tv_sec = 10,
@@ -1301,9 +1302,9 @@ static void test_sim_idle_accelerates_pending_catchup_tick (void **state)
     struct sim_timer_activation_fixture *fixture = *state;
 
     sim_interval = 100;
-    sim_idle_enab = TRUE;
+    sim_idle_enab = true;
     rtcs[0].elapsed = SIM_IDLE_STDFLT;
-    rtcs[0].clock_catchup_pending = TRUE;
+    rtcs[0].clock_catchup_pending = true;
     fixture->target_unit.flags = UNIT_IDLE;
     assert_int_equal (sim_activate (&fixture->target_unit, 100), SCPE_OK);
 
@@ -1321,9 +1322,9 @@ static void test_sim_idle_schedules_overdue_catchup_tick (void **state)
     struct sim_timer_activation_fixture *fixture = *state;
 
     sim_interval = 100;
-    sim_idle_enab = TRUE;
+    sim_idle_enab = true;
     rtcs[0].elapsed = SIM_IDLE_STDFLT;
-    rtcs[0].clock_catchup_eligible = TRUE;
+    rtcs[0].clock_catchup_eligible = true;
     rtcs[0].clock_catchup_base_time = 10.0;
     rtcs[0].clock_tick_size = 0.01;
     simh_test_clock_values[0] = (struct timespec){.tv_sec = 10,
@@ -1348,7 +1349,7 @@ static void test_sim_idle_rejects_too_short_wait (void **state)
     struct sim_timer_activation_fixture *fixture = *state;
 
     sim_interval = 1;
-    sim_idle_enab = TRUE;
+    sim_idle_enab = true;
     rtcs[0].elapsed = SIM_IDLE_STDFLT;
     fixture->target_unit.flags = UNIT_IDLE;
     assert_int_equal (sim_activate (&fixture->target_unit, 1), SCPE_OK);
@@ -1366,7 +1367,7 @@ static void test_sim_idle_rejects_timer_without_cycle_rate (void **state)
     struct sim_timer_activation_fixture *fixture = *state;
 
     sim_interval = 1000;
-    sim_idle_enab = TRUE;
+    sim_idle_enab = true;
     rtcs[0].currd = 1;
     rtcs[0].elapsed = SIM_IDLE_STDFLT;
     fixture->target_unit.flags = UNIT_IDLE;
@@ -1384,9 +1385,9 @@ static void test_sim_idle_uses_catchup_tick_fraction_for_wait (void **state)
 {
     struct sim_timer_activation_fixture *fixture = *state;
 
-    sim_idle_enab = TRUE;
+    sim_idle_enab = true;
     rtcs[0].elapsed = SIM_IDLE_STDFLT;
-    rtcs[0].clock_catchup_eligible = TRUE;
+    rtcs[0].clock_catchup_eligible = true;
     rtcs[0].clock_catchup_base_time = 1000.0;
     rtcs[0].clock_tick_size = 0.01;
     fixture->target_unit.flags = UNIT_IDLE;
@@ -1752,7 +1753,7 @@ static void test_sim_show_timers_reports_detailed_timer_state (void **state)
     rtc->calib_ticks_acked_tot = 7;
     rtc->calib_tick_time = 0.5;
     rtc->calib_tick_time_tot = 1.0;
-    rtc->clock_catchup_eligible = TRUE;
+    rtc->clock_catchup_eligible = true;
     rtc->clock_catchup_base_time = 100.0;
     rtc->clock_catchup_ticks = 8;
     rtc->clock_catchup_ticks_curr = 1;
@@ -1901,7 +1902,7 @@ static void test_sim_timer_activate_wrapper_converts_interval_to_usecs (
 {
     struct sim_timer_activation_fixture *fixture = *state;
 
-    sim_is_running = TRUE;
+    sim_is_running = true;
     assert_int_equal (sim_timer_activate (&fixture->target_unit, 50), SCPE_OK);
 
     assert_true (sim_is_active (&fixture->target_unit));

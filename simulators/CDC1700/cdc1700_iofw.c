@@ -27,6 +27,7 @@
 
 /* cdc1700_iofw.c:      CDC1700 I/O framework
  */
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 extern char INTprefix[];
@@ -41,7 +42,7 @@ extern DEVICE *IOdev[];
 
 extern IO_DEVICE **CMap[];
 
-t_bool IOFWinitialized = FALSE;
+bool IOFWinitialized = false;
 
 /*
  * This I/O framework provides an implementation of a generic device. The
@@ -91,7 +92,7 @@ t_bool IOFWinitialized = FALSE;
  *      DEVICE          *iod_indev;     - Pointer to input device
  *      DEVICE          *iod_outdev;    - Pointer to output device
  *      UNIT            *iod_unit;      - Currently selected unit
- *      t_bool          (*iod_reject)(IO_DEVICE *, t_bool, uint8);
+ *      bool          (*iod_reject)(IO_DEVICE *, bool, uint8);
  *                                      - Check if should reject I/O
  *      enum IOstatus   (*iod_IOread)(IO_DEVICE *, uint8);
  *      enum IOstatus   (*iod_IOwrite)(IO_DEVICE *, uint8);
@@ -102,16 +103,16 @@ t_bool IOFWinitialized = FALSE;
  *                                        from 1706 buffered data channel
  *      void            (*iod_state)(char *, DEVICE *, IO_DEVICE *);
  *                                      - Dump device state for debug
- *      t_bool          (*iod_intr)(IO_DEVICE *);
+ *      bool          (*iod_intr)(IO_DEVICE *);
  *                                      - Check for non-standard interrupts
  *      uint16          (*iod_raised)(DEVICE *);
  *                                      - For completely non-standard
  *                                        interrupt handling
  *      void            (*iod_clear)(DEVICE *);
  *                                      - Perform clear controller operation
- *      uint8           (*iod_decode)(DEVICE *, t_bool, uint8);
+ *      uint8           (*iod_decode)(DEVICE *, bool, uint8);
  *                                      - Non-std device register decode
- *      t_bool          (*iod_chksta)(t_bool, uint8);
+ *      bool          (*iod_chksta)(bool, uint8);
  *                                      - Check for valid station address(es)
  *      uint16          iod_ienable;    - Device interrupt enables
  *      uint16          iod_oldienable; - Previous iod_ienable
@@ -139,13 +140,13 @@ t_bool IOFWinitialized = FALSE;
  *      uint16          iod_private;    - Device-specific use
  *      void            *iod_private2;  - Device-specific use
  *      uint16          iod_private3;   - Device-specific use
- *      t_bool          iod_private4;   - Device-specific use
+ *      bool          iod_private4;   - Device-specific use
  *      void            *iod_private5;  - Device-specific use
  *      uint16          iod_private6;   - Device-specific use
  *      uint16          iod_private7;   - Device-specific use
  *      uint16          iod_private8;   - Device-specific use
  *      uint8           iod_private9;   - Device-specific use
- *      t_bool          iod_private10;  - Device-specific use
+ *      bool          iod_private10;  - Device-specific use
  *      uint16          iod_private11;  - Device-specific use
  *      uint16          iod_private12;  - Device-specific use
  *      uint8           iod_private13;  - Device-specific use
@@ -190,14 +191,14 @@ void fw_init(void)
   buildIOtable();
   buildDCtables();
 
-  IOFWinitialized = TRUE;
+  IOFWinitialized = true;
 }
 
 /*
  * Perform I/O operation - called directly from the IN/OUT instruction
  * processing.
  */
-enum IOstatus fw_doIO(DEVICE *dptr, t_bool output)
+enum IOstatus fw_doIO(DEVICE *dptr, bool output)
 {
   IO_DEVICE *iod = (IO_DEVICE *)dptr->ctxt;
   uint16 rej = (output ? iod->iod_rejmapW : iod->iod_rejmapR) & ~MASK_REGISTER1;
@@ -258,7 +259,7 @@ enum IOstatus fw_doIO(DEVICE *dptr, t_bool output)
 /*
  * Perform I/O operation - called from the buffered data channel controller.
  */
-enum IOstatus fw_doBDCIO(IO_DEVICE *iod, uint16 *data, t_bool output, uint8 reg)
+enum IOstatus fw_doBDCIO(IO_DEVICE *iod, uint16 *data, bool output, uint8 reg)
 {
   uint8 rej = (output ? iod->iod_rejmapW : iod->iod_rejmapR) & ~MASK_REGISTER1;
   DEVICE *dptr = iod->iod_indev;
@@ -326,7 +327,7 @@ enum IOstatus fw_doBDCIO(IO_DEVICE *iod, uint16 *data, t_bool output, uint8 reg)
  * provide a callback to a device-specific routine to check for such
  * interrupts.
  */
-void fw_IOintr(t_bool other, DEVICE *dev, IO_DEVICE *iod, uint16 set, uint16 clr, uint16 mask, const char *why)
+void fw_IOintr(bool other, DEVICE *dev, IO_DEVICE *iod, uint16 set, uint16 clr, uint16 mask, const char *why)
 {
   /*
    * Set/clear the requested status bits.
@@ -341,7 +342,7 @@ void fw_IOintr(t_bool other, DEVICE *dev, IO_DEVICE *iod, uint16 set, uint16 clr
    * Check for any interrupts enabled.
    */
   if (ISENABLED(iod, iod->iod_imask)) {
-    t_bool intr = FALSE;
+    bool intr = false;
 
     /*
      * Check standard interrupts
@@ -352,7 +353,7 @@ void fw_IOintr(t_bool other, DEVICE *dev, IO_DEVICE *iod, uint16 set, uint16 clr
          (((DEVSTATUS(iod) & IO_ST_EOP) != 0))) ||
         (ISENABLED(iod, IO_DIR_DATA) &&
          (((DEVSTATUS(iod) & IO_ST_DATA) != 0))))
-      intr = TRUE;
+      intr = true;
 
     /*
      * If the device has non-standard interrupts, call a device-specific
@@ -361,7 +362,7 @@ void fw_IOintr(t_bool other, DEVICE *dev, IO_DEVICE *iod, uint16 set, uint16 clr
     if (other)
       if (iod->iod_intr != NULL)
         if (iod->iod_intr(iod))
-          intr = TRUE;
+          intr = true;
 
     if (intr) {
       DEVSTATUS(iod) |= IO_ST_INT;
@@ -392,7 +393,7 @@ void fw_IOunderwayData(IO_DEVICE *iod, uint16 clr)
   DEVSTATUS(iod) &= iod->iod_smask;
 }
 
-void fw_IOcompleteData(t_bool other, DEVICE *dev, IO_DEVICE *iod, uint16 mask, const char *why)
+void fw_IOcompleteData(bool other, DEVICE *dev, IO_DEVICE *iod, uint16 mask, const char *why)
 {
   fw_IOintr(other, dev, iod, IO_ST_READY | IO_ST_DATA, IO_ST_BUSY, mask, why);
 }
@@ -408,7 +409,7 @@ void fw_IOunderwayEOP(IO_DEVICE *iod, uint16 clr)
   DEVSTATUS(iod) &= iod->iod_smask;
 }
 
-void fw_IOcompleteEOP(t_bool other, DEVICE *dev, IO_DEVICE *iod, uint16 mask, const char *why)
+void fw_IOcompleteEOP(bool other, DEVICE *dev, IO_DEVICE *iod, uint16 mask, const char *why)
 {
   fw_IOintr(other, dev, iod, IO_ST_READY | IO_ST_EOP, IO_ST_BUSY, mask, why);
 }
@@ -425,12 +426,12 @@ void fw_IOunderwayEOP2(IO_DEVICE *iod, uint16 clr)
   DEVSTATUS(iod) &= iod->iod_smask;
 }
 
-void fw_IOcompleteEOP2(t_bool other, DEVICE *dev, IO_DEVICE *iod, uint16 mask, const char *why)
+void fw_IOcompleteEOP2(bool other, DEVICE *dev, IO_DEVICE *iod, uint16 mask, const char *why)
 {
   fw_IOintr(other, dev, iod, IO_ST_EOP, IO_ST_BUSY, mask, why);
 }
 
-void fw_IOalarm(t_bool other, DEVICE *dev, IO_DEVICE *iod, const char *why)
+void fw_IOalarm(bool other, DEVICE *dev, IO_DEVICE *iod, const char *why)
 {
   fw_IOintr(other, dev, iod, IO_ST_ALARM, IO_ST_BUSY, 0xFFFF, why);
 }
@@ -457,12 +458,12 @@ void fw_clearForced(IO_DEVICE *iod, uint16 mask)
  * Generic device reject check. If the device is not ready, reject all OUTs
  * unless it is to the director function register (register 1).
  */
-t_bool fw_reject(IO_DEVICE *iod, t_bool output, uint8 reg)
+bool fw_reject(IO_DEVICE *iod, bool output, uint8 reg)
 {
   if (output && (reg != 1)) {
     return (DEVSTATUS(iod) & IO_ST_READY) == 0;
   }
-  return FALSE;
+  return false;
 }
 
 /*

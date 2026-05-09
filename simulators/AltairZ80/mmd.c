@@ -120,6 +120,7 @@
 
 /* #define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "sim_tmxr.h"
@@ -2709,7 +2710,7 @@ typedef struct {
 
 static MMD_CTX mmd_ctx_data = {
     MMD_ROM_BASE, MMD_ROM_SIZE, MMD_IO_BASE, MMD_IO_SIZE,
-    {0,0}, FALSE, TRUE, 6, 10
+    {0,0}, false, true, 6, 10
 };
 
 static MMD_CTX *mmd_ctx = &mmd_ctx_data;
@@ -2915,15 +2916,15 @@ static t_stat mmd_reset(DEVICE *dptr)
     uint8 i;
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(mmd_ctx->rom_base, mmd_ctx->rom_size, RESOURCE_TYPE_MEMORY, &mmdrom, "mmdrom", TRUE);
-        sim_map_resource(mmd_ctx->io_base, mmd_ctx->io_size, RESOURCE_TYPE_IO, &mmddev, "mmddev", TRUE);
+        sim_map_resource(mmd_ctx->rom_base, mmd_ctx->rom_size, RESOURCE_TYPE_MEMORY, &mmdrom, "mmdrom", true);
+        sim_map_resource(mmd_ctx->io_base, mmd_ctx->io_size, RESOURCE_TYPE_IO, &mmddev, "mmddev", true);
     } else {
-        if (sim_map_resource(mmd_ctx->rom_base, mmd_ctx->rom_size, RESOURCE_TYPE_MEMORY, &mmdrom, "mmdrom", FALSE) != 0) {
+        if (sim_map_resource(mmd_ctx->rom_base, mmd_ctx->rom_size, RESOURCE_TYPE_MEMORY, &mmdrom, "mmdrom", false) != 0) {
             sim_debug(ERROR_MSG, &mmd_dev, "Error mapping MEM resource at 0x%04x\n", mmd_ctx->rom_base);
             return SCPE_ARG;
         }
         /* Connect I/O Ports at base address */
-        if (sim_map_resource(mmd_ctx->io_base, mmd_ctx->io_size, RESOURCE_TYPE_IO, &mmddev, "mmddev", FALSE) != 0) {
+        if (sim_map_resource(mmd_ctx->io_base, mmd_ctx->io_size, RESOURCE_TYPE_IO, &mmddev, "mmddev", false) != 0) {
             sim_debug(ERROR_MSG, &mmd_dev, "Error mapping I/O resource at 0x%02x\n", mmd_ctx->io_base);
             return SCPE_ARG;
         }
@@ -2942,10 +2943,10 @@ static t_stat mmd_reset(DEVICE *dptr)
     mmd_ctx->MMD.sto = 1;
     mmd_ctx->MMD.pcn = 2;
     mmd_ctx->MMD.cstatus = MMD_STAT_TXRDY;
-    mmd_ctx->MMD.intenable = TRUE;
+    mmd_ctx->MMD.intenable = true;
     mmd_ctx->MMD.intvec = 0;
     mmd_ctx->MMD.databus = 0x7f;
-    mmd_ctx->MMD.tc = FALSE;
+    mmd_ctx->MMD.tc = false;
 
     for (i=0; i < MMD_UNITS; i++) {
         if (mmd_ctx->uptr[i] == NULL) {
@@ -2989,12 +2990,12 @@ static t_stat mmdm_reset(DEVICE *dptr) {
     dptr->units[0].dptr = dptr;
 
     if (dptr->flags & DEV_DIS) { /* Disconnect Modem I/O Ports */
-        sim_map_resource(xptr->pnp.io_base, xptr->pnp.io_size, RESOURCE_TYPE_IO, &mmddev, "mmdmdev", TRUE);
+        sim_map_resource(xptr->pnp.io_base, xptr->pnp.io_size, RESOURCE_TYPE_IO, &mmddev, "mmdmdev", true);
 
         mmdm_ctx->status = 0;
     } else {
         /* Connect I/O Ports at base address */
-        if (sim_map_resource(xptr->pnp.io_base, xptr->pnp.io_size, RESOURCE_TYPE_IO, &mmddev, "mmdmdev", FALSE) != 0) {
+        if (sim_map_resource(xptr->pnp.io_base, xptr->pnp.io_size, RESOURCE_TYPE_IO, &mmddev, "mmdmdev", false) != 0) {
             sim_debug(ERROR_MSG, &mmd_dev, "Error mapping I/O resource at 0x%02x\n", xptr->pnp.io_base);
             return SCPE_ARG;
         }
@@ -3038,7 +3039,7 @@ static t_stat mmdm_svc(UNIT *uptr)
         if (mmdm_ctx->txp) {
             r = tmxr_putc_ln(&mmdm_tmln[0], mmdm_ctx->txd);
 
-            mmdm_ctx->txp = FALSE;
+            mmdm_ctx->txp = false;
 
             if (r == SCPE_LOST) {
                 mmdm_ctx->conn = 0;          /* Connection was lost */
@@ -3096,7 +3097,7 @@ static t_stat mmd_sio1_svc(UNIT *uptr)
             r = sim_putchar(mmd_ctx->MMD.txd);
         }
 
-        mmd_ctx->MMD.txp = FALSE;
+        mmd_ctx->MMD.txp = false;
 
         if (r == SCPE_LOST) {
             mmd_ctx->conn[0] = 0;          /* Connection was lost */
@@ -3325,7 +3326,7 @@ static t_stat mmd_boot(int32 unitno, DEVICE *dptr)
     sim_debug(VERBOSE_MSG, dptr, "Booting using ROM at 0x%04x\n", mmd_ctx->rom_base);
 
     /* Enable ROM */
-    mmd_ctx->romEnabled = TRUE;
+    mmd_ctx->romEnabled = true;
 
     *((int32 *) sim_PC->loc) = mmd_ctx->rom_base;
 
@@ -3347,9 +3348,9 @@ static t_stat mmd_set_diag(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     /* this assumes that the parameter has already been upcased */
     if (!strncmp(cptr, "ENABLE", strlen(cptr))) {
-        mmd_ctx->diagEnabled = TRUE;
+        mmd_ctx->diagEnabled = true;
     } else if (!strncmp(cptr, "DISABLE", strlen(cptr))) {
-        mmd_ctx->diagEnabled = FALSE;
+        mmd_ctx->diagEnabled = false;
     } else {
         return SCPE_ARG;
     }
@@ -3443,7 +3444,7 @@ static int32 mmdrom(int32 Addr, int32 rw, int32 Data)
     ** data in the ROM. If the ROM is disabled,
     ** use RAM.
     */
-    if (mmd_ctx->romEnabled == TRUE && !rw) {
+    if (mmd_ctx->romEnabled == true && !rw) {
         return(mmd_rom[Addr & MMD_ROM_MASK]);
     }
 
@@ -3482,7 +3483,7 @@ static uint8 MMD_Dev_Read(uint32 Addr)
 
     switch(Addr & 0xff) {
         case MMD_REG_ROMCTL:
-            mmd_ctx->romEnabled = FALSE;
+            mmd_ctx->romEnabled = false;
             break;
 
         case MMD_REG_CSTAT:
@@ -3584,18 +3585,18 @@ static uint8 MMD_Dev_Write(uint32 Addr, int32 Data)
             break;
 
         case MMD_REG_ROMCTL:
-            mmd_ctx->romEnabled = TRUE;
+            mmd_ctx->romEnabled = true;
             break;
 
         case MMD_REG_CDATA:
             mmd_ctx->MMD.txd = Data;
-            mmd_ctx->MMD.txp = TRUE;    /* Set TX pending flag */
+            mmd_ctx->MMD.txp = true;    /* Set TX pending flag */
             mmd_ctx->MMD.cstatus &= ~MMD_STAT_TXRDY;
             break;
 
         case MMD_REG_MDATA:
             mmdm_ctx->txd = Data;
-            mmdm_ctx->txp = TRUE;    /* Set TX pending flag */
+            mmdm_ctx->txp = true;    /* Set TX pending flag */
             mmdm_ctx->status &= ~MMD_STAT_TXRDY;
             break;
 
@@ -3905,7 +3906,7 @@ static uint8 MMD_Exec_Read(void)
             mmd_ctx->MMD.stkidx = 0;
             mmd_ctx->MMD.stkcnt = 7;
             mmd_ctx->MMD.phase = MMD_PHASE_RSLTSTK;   /* Exec Done */
-            mmd_ctx->MMD.tc = FALSE;
+            mmd_ctx->MMD.tc = false;
         }
         else {
             mmd_ctx->MMD.r++;
@@ -3940,7 +3941,7 @@ static uint8 MMD_Exec_Write(int32 Data)
             mmd_ctx->MMD.stkcnt = 7;
             mmd_ctx->MMD.status |= MMD_STAT_DIO;
             mmd_ctx->MMD.phase = MMD_PHASE_RSLTSTK;   /* Exec Done */
-            mmd_ctx->MMD.tc = FALSE;
+            mmd_ctx->MMD.tc = false;
         }
         else {
             mmd_ctx->MMD.r++;
@@ -3955,7 +3956,7 @@ static uint8 MMD_Exec_Write(int32 Data)
 static uint8 MMD_Term_Count(void)
 {
     if (mmd_ctx->MMD.status & MMD_STAT_EXM) {
-        mmd_ctx->MMD.tc = TRUE;
+        mmd_ctx->MMD.tc = true;
     }
 
     return 0;

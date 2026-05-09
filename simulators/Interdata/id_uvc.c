@@ -36,6 +36,7 @@
 
 #include "id_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 /* Device definitions */
 
@@ -73,7 +74,7 @@ static int32 pic_map[16] = {                            /* map rate to delay */
 uint32 pic (uint32 dev, uint32 op, uint32 dat);
 t_stat pic_svc (UNIT *uptr);
 t_stat pic_reset (DEVICE *dptr);
-void pic_sched (t_bool strt);
+void pic_sched (bool strt);
 uint32 pic_rd_cic (void);
 
 int32 lfc_tps = 120;                                    /* ticks per */
@@ -228,7 +229,7 @@ switch (op) {                                           /* case IO op */
             sim_cancel (&pic_unit);                     /* stop clock */
             pic_rdp = pic_wdp = 0;                      /* init ptrs */
             if (pic_ric & PIC_RATE)                     /* any rate? */
-                pic_sched (TRUE);
+                pic_sched (true);
             }                                           /* end if start */
         break;
         }                                               /* end case */
@@ -244,7 +245,7 @@ t_stat pic_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-t_bool rate_chg = FALSE;
+bool rate_chg = false;
 
 if (pic_cnti)                                           /* one shot? */
     pic_cic = 0;
@@ -255,7 +256,7 @@ if (pic_cic <= 0) {                                     /* overflow? */
     if (pic_arm)                                        /* if armed, intr */
         SET_INT (v_PIC);
     if (GET_RATE (pic_ric) != GET_RATE (pic_db))        /* rate change? */
-        rate_chg = TRUE;
+        rate_chg = true;
     pic_ric = pic_db;                                   /* new ric */
     pic_cic = GET_CTR (pic_ric);                        /* new cic */
     if ((pic_ric & PIC_RATE) == 0)
@@ -271,7 +272,7 @@ return SCPE_OK;
    If eff rate = 1ms, and not diagnostic mode, use timer
 */
 
-void pic_sched (t_bool strt)
+void pic_sched (bool strt)
 {
 int32 r, t, intv, intv_usec;
 

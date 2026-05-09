@@ -87,6 +87,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #ifdef NUM_DEVS_COM
 #define COM_MLINES      32      /* mux lines */
@@ -278,10 +279,10 @@ uint32              com_queue_out(uint32 ln, uint16 * c1);
 t_stat              com_send_id(uint32 ln);
 t_stat              com_send_ccmp(uint32 ln);
 void                com_skip_outc(uint32 ln);
-t_bool              com_get(int ln, uint16 *ch);
-t_bool              com_put(int ln, uint16 ch);
+bool                com_get(int ln, uint16 *ch);
+bool                com_put(int ln, uint16 ch);
 void                com_post_eom(void);
-t_bool              com_inp_msg(uint32 ln, uint16 msg);
+bool                com_inp_msg(uint32 ln, uint16 msg);
 const char          *com_description(DEVICE *dptr);
 t_stat              com_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char          *coml_description(DEVICE *dptr);
@@ -931,8 +932,8 @@ com_queue_out(uint32 ln, uint16 * c1)
         case '\034':    com_out_inesc[ln] &= 2; return 0;    /* UC */
         case '\037':    com_out_inesc[ln] |= 1; return 0;    /* LC */
         case '\076':    com_out_inesc[ln] |= 4; return 0;   /* Esc */
-        case '\016':    coml_unit[ln].ECHO = FALSE; return 0; /* Poff */
-        case '\015':    coml_unit[ln].ECHO = TRUE; return 0; /* Pon */
+        case '\016':    coml_unit[ln].ECHO = false; return 0; /* Poff */
+        case '\015':    coml_unit[ln].ECHO = true; return 0; /* Pon */
         }
         c2 = com_2741_out[(com_out_inesc[ln]&1)? (0100|c2): c2];
         sim_debug(DEBUG_DETAIL, &com_dev, "printing %d %04o '%c' %o\n",
@@ -958,10 +959,10 @@ com_queue_out(uint32 ln, uint16 * c1)
                tmxr_putc_ln(&com_ldsc[ln], 'm');
                return 0;
         case ':':               /* Poff */
-               coml_unit[ln].ECHO = FALSE;
+               coml_unit[ln].ECHO = false;
                return 0;
         case ';':               /* Pon */
-               coml_unit[ln].ECHO = TRUE;
+               coml_unit[ln].ECHO = true;
                return 0;
         }
         *c1 = c;
@@ -1047,14 +1048,14 @@ com_skip_outc(uint32 ln)
 
 /* List routines - remove from head and free */
 
-t_bool
+bool
 com_get(int ln, uint16 *ch)
 {
     uint16              ent;
 
     ent = com_out_head[ln];
     if (ent == 0)               /* Check if anything to send. */
-        return TRUE;
+        return true;
     *ch = com_buf[ent].data;
     com_comp_cnt[ln]++;
     com_out_head[ln] = com_buf[ent].link;       /* Get next char */
@@ -1063,11 +1064,11 @@ com_get(int ln, uint16 *ch)
     if (com_out_head[ln] == 0) { /* done with queue? */
         com_out_tail[ln] = 0;
     }
-    return FALSE;
+    return false;
 }
 
 /* Put a character onto output queue for a line */
-t_bool
+bool
 com_put(int ln, uint16 ch)
 {
     uint16              ent;
@@ -1075,7 +1076,7 @@ com_put(int ln, uint16 ch)
     ln -= COM_LBASE;
     ent = com_free;             /* Get a character spot */
     if (ent == 0)
-        return TRUE;            /* No room */
+        return true;            /* No room */
     com_free = com_buf[ent].link;       /* Next free character */
     com_buf[ent].data = ch;
     com_buf[ent].link = 0;
@@ -1088,7 +1089,7 @@ com_put(int ln, uint16 ch)
     /* Activate line if not already running */
     if (!sim_is_active(&coml_unit[ln]))
         sim_activate(&coml_unit[ln], coml_unit[ln].wait);
-    return FALSE;
+    return false;
 }
 
 /* Put EOM on input queue and post interupt to wake up CPU */
@@ -1118,7 +1119,7 @@ com_post_eom(void)
 
 /* Insert line and message into input queue */
 
-t_bool
+bool
 com_inp_msg(uint32 ln, uint16 msg)
 {
     int          ent1, ent2;
@@ -1129,12 +1130,12 @@ com_inp_msg(uint32 ln, uint16 msg)
     if (ent1 >= (int)((sizeof(in_buff)/sizeof(uint16)))) /* Wrap around */
         ent1 = 0;
     if (ent1 == in_head) /* If next element would be head, queue is full */
-        return TRUE;
+        return true;
     ent2 = ent1 + 1;
     if (ent2 >= (int)((sizeof(in_buff)/sizeof(uint16)))) /* Wrap around */
         ent2 = 0;
     if (ent2 == in_head) /* If next element would be head, queue is full */
-        return TRUE;
+        return true;
     /* Ok we have room to put this message in. */
     ln += COM_LBASE;
     in_buff[ent1] = 02000 + ln;
@@ -1145,7 +1146,7 @@ com_inp_msg(uint32 ln, uint16 msg)
     if (!com_active && in_count > 150) {
          com_post_eom();
     }
-    return FALSE;
+    return false;
 }
 
 /* Reset routine */

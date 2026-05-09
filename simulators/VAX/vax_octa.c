@@ -44,6 +44,7 @@
    15-Jul-04    RMS     Cloned from 32b VAX floating point implementation
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 #define WORDSWAP(x)     ((((x) & WMASK) << 16) | (((x) >> 16) & WMASK))
@@ -76,7 +77,7 @@ int32 op_cvtfdh (int32 vl, int32 vh, uint32 *hf);
 int32 op_cvtgh (int32 vl, int32 vh, uint32 *hf);
 int32 op_cvthfd (uint32 *hf, int32 *vh);
 int32 op_cvthg (uint32 *hf, int32 *vh);
-int32 op_addh (uint32 *opnd, uint32 *hf, t_bool sub);
+int32 op_addh (uint32 *opnd, uint32 *hf, bool sub);
 int32 op_mulh (uint32 *opnd, uint32 *hf);
 int32 op_divh (uint32 *opnd, uint32 *hf);
 int32 op_emodh (uint32 *opnd, uint32 *hflt, int32 *intgr, int32 *flg);
@@ -353,13 +354,13 @@ switch (opc) {
 
 
     case ADDH2: case ADDH3:
-        r = op_addh (opnd, r_octa, FALSE);              /* add */
+        r = op_addh (opnd, r_octa, false);              /* add */
         h_write_o (spec, va, r_octa, acc, hst);         /* write result */
         CC_IIZZ_FP (r);                                 /* set cc's */
         break;
 
     case SUBH2: case SUBH3:
-        r = op_addh (opnd, r_octa, TRUE);               /* subtract */
+        r = op_addh (opnd, r_octa, true);               /* subtract */
         h_write_o (spec, va, r_octa, acc, hst);         /* write result */
         CC_IIZZ_FP (r);                                 /* set cc's */
         break;
@@ -387,7 +388,7 @@ switch (opc) {
 */
 
     case ACBH:
-        r = op_addh (opnd + 4, r_octa, FALSE);          /* add + index */
+        r = op_addh (opnd + 4, r_octa, false);          /* add + index */
         CC_IIZP_FP (r);                                 /* set cc's */
         temp = op_cmph (r_octa, opnd);                  /* result : limit */
         h_write_o (spec, va, r_octa, acc, hst);         /* write 2nd */
@@ -575,7 +576,7 @@ return h_rpackg (&a, rh);                               /* round and pack */
 
 /* Floating add and subtract */
 
-int32 op_addh (uint32 *opnd, uint32 *hflt, t_bool sub)
+int32 op_addh (uint32 *opnd, uint32 *hflt, bool sub)
 {
 UFPH a, b;
 

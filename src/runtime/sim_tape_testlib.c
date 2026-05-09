@@ -5,6 +5,7 @@
 
 #include <errno.h>
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +16,7 @@
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
 
-static t_bool p7b_parity_inited = FALSE;
+static bool p7b_parity_inited = false;
 static uint8 p7b_odd_parity[64];
 static uint8 p7b_even_parity[64];
 
@@ -198,7 +199,7 @@ static t_stat sim_tape_test_create_tape_files(UNIT *uptr, const char *filename,
             p7b_odd_parity[i] = i | ((~bit_count & 1) << 6);
             p7b_even_parity[i] = i | ((bit_count & 1) << 6);
         }
-        p7b_parity_inited = TRUE;
+        p7b_parity_inited = true;
     }
     buf = (uint8 *)malloc(65536);
     if (buf == NULL)
@@ -494,18 +495,18 @@ static struct classify_test {
     const char *testname;
     const char *testdata;
     size_t expected_mrs;
-    t_bool expected_lf_lines;
-    t_bool expected_crlf_lines;
+    bool expected_lf_lines;
+    bool expected_crlf_lines;
     const char *success_attach_args;
     const char *fail_attach_args;
 } classify_tests[] = {{"TapeTest-Classify-80.txt",
                        "Now is the time for all good men to come to the aid of "
                        "their country.~~~~~~~~~~~\r\n",
-                       80, FALSE, TRUE, "-fb FIXED 80"},
+                       80, false, true, "-fb FIXED 80"},
                       {"TapeTest-Classify-80-lf.txt",
                        "Now is the time for all good men to come to the aid of "
                        "their country.~~~~~~~~~~~\n",
-                       80, TRUE, FALSE, "-fb FIXED 80"},
+                       80, true, false, "-fb FIXED 80"},
                       {"TapeTest-Classify-508.txt",
                        "A really long line of text (512 - 4 = 508 characters) "
                        "64646464641281281281281281"
@@ -520,7 +521,7 @@ static struct classify_test {
                        "1251251251251251251251251251251251251251251251255125125"
                        "1251251251251251251251251"
                        "2512512512512512512512512512\r\n",
-                       508, FALSE, TRUE, "-fb FIXED 512"},
+                       508, false, true, "-fb FIXED 512"},
                       {"TapeTest-Classify-512.txt",
                        "A really long line of text (516 - 4 = 512 characters) "
                        "64646464641281281281281281"
@@ -535,13 +536,13 @@ static struct classify_test {
                        "1251251251251251251251251251251251251251251251255125125"
                        "1251251251251251251251251"
                        "2512512512512512512512512512~~~~\r\n",
-                       512, FALSE, TRUE, "-fb FIXED 512", "-fb ANSI-VMS 512"},
+                       512, false, true, "-fb FIXED 512", "-fb ANSI-VMS 512"},
                       {"TapeTest-Classify-82.bin",
                        "Now is the time for all good men to come to the aid of "
                        "their country.\001\002~~~~~~~~~\r\n"
                        "Now is the time for all good men to come to the aid of "
                        "their country.\001\002~~~~~~~~~\r\n",
-                       512, FALSE, FALSE, "-fb FIXED 82"},
+                       512, false, false, "-fb FIXED 82"},
                       {NULL}};
 
 static t_stat sim_tape_test_classify_file_contents(UNIT *uptr)
@@ -549,8 +550,8 @@ static t_stat sim_tape_test_classify_file_contents(UNIT *uptr)
     struct classify_test *t;
     FILE *f;
     size_t mrs;
-    t_bool lf_lines;
-    t_bool crlf_lines;
+    bool lf_lines;
+    bool crlf_lines;
 
     for (t = classify_tests; t->testname != NULL; t++) {
         (void)remove(t->testname);

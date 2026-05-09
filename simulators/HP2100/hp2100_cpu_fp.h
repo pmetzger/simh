@@ -51,6 +51,7 @@
        (add, subtract, multiply, divide, fix, and float)..
 */
 
+#include <stdbool.h>
 
 
 #if defined (HAVE_INT64)                                /* int64 support is available */
@@ -80,7 +81,7 @@ extern uint32 fp_cvt   (OP *result, OPSIZE source_precision, OPSIZE dest_precisi
 
 /* Firmware floating-point routines */
 
-extern uint32 f_as  (uint32 op, t_bool sub);            /* FAD/FSB */
+extern uint32 f_as  (uint32 op, bool sub);              /* FAD/FSB */
 extern uint32 f_mul (uint32 op);                        /* FMP */
 extern uint32 f_div (uint32 op);                        /* FDV */
 extern uint32 f_fix (void);                             /* FIX */

@@ -29,6 +29,7 @@
    transmitted as ASCII characters.
 */
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 #include "sim_tmxr.h"
 
@@ -99,7 +100,7 @@ uint32  inbusy = 0;                     /* input waiting on timeout */
 /* forward definitions */
 t_stat  con_preio(UNIT *uptr, uint16 chan);
 t_stat  con_startcmd(UNIT*, uint16, uint8);
-void    con_ini(UNIT*, t_bool);
+void    con_ini(UNIT*, bool);
 t_stat  con_srvi(UNIT*);
 t_stat  con_srvo(UNIT*);
 t_stat  con_haltio(UNIT *);
@@ -129,7 +130,7 @@ DIB             con_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     con_rschnlio,   /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    con_ini,        /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    con_ini,        /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     con_unit,       /* UNIT* units */                           /* Pointer to units structure */
     con_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -154,7 +155,7 @@ DEVICE  con_dev = {
  * Console print routines.
  */
 /* initialize the console chan/unit */
-void con_ini(UNIT *uptr, t_bool f) {
+void con_ini(UNIT *uptr, bool f) {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */
     (void) f;

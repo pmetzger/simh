@@ -37,6 +37,7 @@
    - flt         Fault Register (Rev 3 only)
 */
 
+#include <stdbool.h>
 #include "3b2_stddev.h"
 
 #include "3b2_cpu.h"
@@ -281,7 +282,7 @@ void nvram_write(uint32 pa, uint32 val, size_t size)
 static void tod_resync(UNIT *uptr);
 static void tod_tick(UNIT *uptr);
 static t_stat tod_svc(UNIT *uptr);
-static t_bool tod_enabled;
+static bool tod_enabled;
 
 int32 tmr_poll = CLK_DELAY;
 int32 tmxr_poll = CLK_DELAY;
@@ -358,7 +359,7 @@ t_stat tod_reset(DEVICE *dptr)
     }
 
     /* We start in a running state */
-    tod_enabled = TRUE;
+    tod_enabled = true;
 
     t = sim_rtcn_init_unit(&tod_unit, tod_unit.wait, TMR_CLK);
     sim_activate_after(&tod_unit, 1000000/CLK_TPS);
@@ -605,10 +606,10 @@ void tod_write(uint32 pa, uint32 val, size_t size)
     case TOD_CTRL:
         td->ctrl = (uint8) val;
         if (val & CTRL_DISABLE) {
-            tod_enabled = FALSE;
+            tod_enabled = false;
             td->tsec = 0;
         } else {
-            tod_enabled = TRUE;
+            tod_enabled = true;
         }
 #else
     case TOD_TEST:

@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -18,11 +19,11 @@ extern DEVICE isbc206_dev;
 t_stat isbc206_set_port(UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat isbc206_set_int(UNIT *uptr, int32 val, const char *cptr, void *desc);
 void isbc206_reset_dev(void);
-uint8 isbc206r0(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc206r1(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc206r2(t_bool io, uint8 data, uint8 devnum);
-uint8 isbc206r3(t_bool io, uint8 data, uint8 devnum);
-uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16 port,
+uint8 isbc206r0(bool io, uint8 data, uint8 devnum);
+uint8 isbc206r1(bool io, uint8 data, uint8 devnum);
+uint8 isbc206r2(bool io, uint8 data, uint8 devnum);
+uint8 isbc206r3(bool io, uint8 data, uint8 devnum);
+uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16 port,
               uint16 devnum, uint8 dummy);
 uint8 unreg_dev(uint16 port);
 uint8 get_mbyte(uint16 addr);
@@ -40,7 +41,7 @@ uint16 PCX;
  * commands so tests can verify that valid port changes wire the expected
  * controller handlers.
  */
-uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16 port,
+uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16 port,
               uint16 devnum, uint8 dummy)
 {
     (void)routine;
@@ -126,8 +127,8 @@ static void write_nop_iopb(uint8 channel_word)
  */
 static void start_iopb(void)
 {
-    isbc206r1(TRUE, TEST_IOPB_ADDR & 0xff, 0);
-    isbc206r2(TRUE, TEST_IOPB_ADDR >> 8, 0);
+    isbc206r1(true, TEST_IOPB_ADDR & 0xff, 0);
+    isbc206r2(true, TEST_IOPB_ADDR >> 8, 0);
 }
 
 /*
@@ -296,8 +297,8 @@ static void test_nop_iopb_default_channel_word_sets_interrupt(void **state)
     write_nop_iopb(0x00);
     start_iopb();
 
-    assert_true(isbc206r0(FALSE, 0, 0) & TEST_HDCINT);
-    assert_int_equal(isbc206r3(FALSE, 0, 0), 0);
+    assert_true(isbc206r0(false, 0, 0) & TEST_HDCINT);
+    assert_int_equal(isbc206r3(false, 0, 0), 0);
 }
 
 /*
@@ -311,8 +312,8 @@ static void test_nop_iopb_interrupt_disable_suppresses_interrupt(void **state)
     write_nop_iopb(0x10);
     start_iopb();
 
-    assert_false(isbc206r0(FALSE, 0, 0) & TEST_HDCINT);
-    assert_int_equal(isbc206r3(FALSE, 0, 0), 0);
+    assert_false(isbc206r0(false, 0, 0) & TEST_HDCINT);
+    assert_int_equal(isbc206r3(false, 0, 0), 0);
 }
 
 /*
@@ -328,8 +329,8 @@ static void test_not_ready_completion_honors_interrupt_disable(void **state)
     write_nop_iopb(0x10);
     start_iopb();
 
-    assert_false(isbc206r0(FALSE, 0, 0) & TEST_HDCINT);
-    assert_int_equal(isbc206r3(FALSE, 0, 0), TEST_RBYT_NOT_READY);
+    assert_false(isbc206r0(false, 0, 0) & TEST_HDCINT);
+    assert_int_equal(isbc206r3(false, 0, 0), TEST_RBYT_NOT_READY);
 }
 
 int main(void)

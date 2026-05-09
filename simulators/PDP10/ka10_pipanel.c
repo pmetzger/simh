@@ -34,6 +34,7 @@
  * To Build this:
  *    make PIDP10=1 pdp10-ka
  */
+#include <stdbool.h>
 #include <pthread.h>                            /* Needed for pthread */
 #include <unistd.h>                             /* Needed for sleep/geteuid */
 #include <sys/types.h>
@@ -727,7 +728,7 @@ vm_read(char *cptr, int32 sz, FILE *file)
 }
 
 static void
-vm_post(t_bool from_scp)
+vm_post(bool from_scp)
 {
 }
 

@@ -71,6 +71,7 @@
     At the '>' prompt, enter "EX E800" to boot CP/M
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "sim_tmxr.h"
@@ -1674,9 +1675,9 @@ static t_stat sol20_reset(DEVICE *dptr)
 #endif
 
     if (dptr->flags & DEV_DIS) { /* Disconnect Resources */
-        sim_map_resource(sol20_ctx.rom_base, sol20_ctx.rom_size, RESOURCE_TYPE_MEMORY, &sol20rom, "sol20rom", TRUE);
-        sim_map_resource(sol20_ctx.ram_base, sol20_ctx.ram_size, RESOURCE_TYPE_MEMORY, &sol20ram, "sol20ram", TRUE);
-        sim_map_resource(sol20_ctx.io_base, sol20_ctx.io_size, RESOURCE_TYPE_IO, &sol20io, "sol20io", TRUE);
+        sim_map_resource(sol20_ctx.rom_base, sol20_ctx.rom_size, RESOURCE_TYPE_MEMORY, &sol20rom, "sol20rom", true);
+        sim_map_resource(sol20_ctx.ram_base, sol20_ctx.ram_size, RESOURCE_TYPE_MEMORY, &sol20ram, "sol20ram", true);
+        sim_map_resource(sol20_ctx.io_base, sol20_ctx.io_size, RESOURCE_TYPE_IO, &sol20io, "sol20io", true);
     }
     else {
         /*
@@ -1699,16 +1700,16 @@ static t_stat sol20_reset(DEVICE *dptr)
 #endif
         }
 
-        if (sim_map_resource(sol20_ctx.rom_base, sol20_ctx.rom_size, RESOURCE_TYPE_MEMORY, &sol20rom, "sol20rom", FALSE) != 0) {
+        if (sim_map_resource(sol20_ctx.rom_base, sol20_ctx.rom_size, RESOURCE_TYPE_MEMORY, &sol20rom, "sol20rom", false) != 0) {
             sim_debug(ERROR_MSG, &sol20_dev, "Error mapping ROM resource at 0x%04x\n", sol20_ctx.rom_base);
             return SCPE_ARG;
         }
-        if (sim_map_resource(sol20_ctx.ram_base, sol20_ctx.ram_size, RESOURCE_TYPE_MEMORY, &sol20ram, "sol20ram", FALSE) != 0) {
+        if (sim_map_resource(sol20_ctx.ram_base, sol20_ctx.ram_size, RESOURCE_TYPE_MEMORY, &sol20ram, "sol20ram", false) != 0) {
             sim_debug(ERROR_MSG, &sol20_dev, "Error mapping RAM resource at 0x%04x\n", sol20_ctx.ram_base);
             return SCPE_ARG;
         }
         /* Connect I/O Ports at base address */
-        if (sim_map_resource(sol20_ctx.io_base, sol20_ctx.io_size, RESOURCE_TYPE_IO, &sol20io, "sol20io", FALSE) != 0) {
+        if (sim_map_resource(sol20_ctx.io_base, sol20_ctx.io_size, RESOURCE_TYPE_IO, &sol20io, "sol20io", false) != 0) {
             sim_debug(ERROR_MSG, &sol20_dev, "Error mapping I/O resource at 0x%02x\n", sol20_ctx.io_base);
             return SCPE_ARG;
         }
@@ -1761,21 +1762,21 @@ static t_stat sol20_port_reset(DEVICE *dptr) {
     }
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Port(s) */
-        sim_map_resource(port->pnp.io_base, port->pnp.io_size, RESOURCE_TYPE_IO, &sol20io, dptr->name, TRUE);
+        sim_map_resource(port->pnp.io_base, port->pnp.io_size, RESOURCE_TYPE_IO, &sol20io, dptr->name, true);
         for (u = 0; u < dptr->numunits; u++) {
             sim_cancel(&dptr->units[u]);  /* cancel timer */
         }
     }
     else {
         /* Connect I/O Ports at base address */
-        if (sim_map_resource(port->pnp.io_base, port->pnp.io_size, RESOURCE_TYPE_IO, &sol20io, dptr->name, FALSE) != 0) {
+        if (sim_map_resource(port->pnp.io_base, port->pnp.io_size, RESOURCE_TYPE_IO, &sol20io, dptr->name, false) != 0) {
             sim_debug(ERROR_MSG, dptr, "Error mapping I/O resource at 0x%02x\n", port->pnp.io_base);
             return SCPE_ARG;
         }
 
         port->status = 0x00;
-        port->rdr = FALSE;
-        port->tbe = TRUE;
+        port->rdr = false;
+        port->tbe = true;
 
         for (u = 0; u < dptr->numunits; u++) {
             sim_activate_after_abs(&dptr->units[u], dptr->units[u].wait);  /* activate timer */
@@ -1814,7 +1815,7 @@ static t_stat sol20_svc(UNIT *uptr)
     }
 
     /* TX byte pending? */
-    if (port->tbe == FALSE) {
+    if (port->tbe == false) {
         if (uptr->flags & UNIT_ATT) {
             if (!(uptr->dptr->flags & DEV_MUX)) {
                 r = (sim_fwrite(&port->txd, 1, 1, uptr->fileref) == 1) ? SCPE_OK : SCPE_IOERR;
@@ -1835,11 +1836,11 @@ static t_stat sol20_svc(UNIT *uptr)
             sim_putchar(port->txd);
         }
 
-        port->tbe = TRUE;
+        port->tbe = true;
     }
 
     /* Check for Data if RX buffer empty */
-    if (port->rdr == FALSE) {
+    if (port->rdr == false) {
         if (uptr->flags & UNIT_ATT) {
             if (!(uptr->dptr->flags & DEV_MUX)) {
                 if (sim_fread(&c, 1, 1, uptr->fileref) == 1) {
@@ -1857,7 +1858,7 @@ static t_stat sol20_svc(UNIT *uptr)
 
         if (c & (TMXR_VALID | SCPE_KFLAG)) {
             port->rxd = c & 0xff;
-            port->rdr = TRUE;
+            port->rdr = true;
         }
     }
 
@@ -2213,22 +2214,22 @@ static uint8 sol20_io_in(uint32 addr)
 
         case SOL20_KDATA:
             data = sol20k_ctx.rxd;
-            sol20k_ctx.rdr = FALSE;
+            sol20k_ctx.rdr = false;
             break;
 
         case SOL20_SDATA:
             data = sol20s_ctx.rxd;
-            sol20s_ctx.rdr = FALSE;
+            sol20s_ctx.rdr = false;
             break;
 
         case SOL20_TDATA:
             data = sol20t_ctx.rxd;
-            sol20t_ctx.rdr = FALSE;
+            sol20t_ctx.rdr = false;
             break;
 
         case SOL20_PDATA:
             data = sol20p_ctx.rxd;
-            sol20p_ctx.rdr = FALSE;
+            sol20p_ctx.rdr = false;
             break;
 
         default:
@@ -2247,7 +2248,7 @@ static uint8 sol20_io_out(uint32 addr, int32 data)
     switch(addr & 0xff) {
         case SOL20_SDATA:
             sol20s_ctx.txd = data;
-            sol20s_ctx.tbe = FALSE;
+            sol20s_ctx.tbe = false;
             break;
 
         case SOL20_STAPT:
@@ -2262,12 +2263,12 @@ static uint8 sol20_io_out(uint32 addr, int32 data)
 
         case SOL20_TDATA:
             sol20t_ctx.txd = data;
-            sol20t_ctx.tbe = FALSE;
+            sol20t_ctx.tbe = false;
             break;
 
         case SOL20_PDATA:
             sol20p_ctx.txd = data;
-            sol20p_ctx.tbe = FALSE;
+            sol20p_ctx.tbe = false;
             break;
 
         default:
@@ -2291,7 +2292,7 @@ static t_stat sol20_kb_callback(SIM_KEY_EVENT *kev)
 
     if ((c = translate_key(kev))) {
         sol20k_ctx.rxd = c;
-        sol20k_ctx.rdr = TRUE;
+        sol20k_ctx.rdr = true;
     }
 
     return SCPE_OK;
@@ -2307,25 +2308,25 @@ static t_stat sol20_kb_callback(SIM_KEY_EVENT *kev)
  */
 static uint8 translate_key(SIM_KEY_EVENT *kev)
 {
-    static t_bool shifted = FALSE;
-    static t_bool caps = FALSE;
-    static t_bool control = FALSE;
-    static t_bool erase = FALSE;
+    static bool shifted = false;
+    static bool caps = false;
+    static bool control = false;
+    static bool erase = false;
 
     if (kev->key != SIM_KEY_F3) {  /* Clear erase cassette flag */
-        erase = FALSE;
+        erase = false;
     }
 
     if (kev->state == SIM_KEYPRESS_UP) {
         switch (kev->key) {
             case SIM_KEY_SHIFT_L:
             case SIM_KEY_SHIFT_R:
-              shifted = FALSE;
+              shifted = false;
               break;
 
             case SIM_KEY_CTRL_L:
             case SIM_KEY_CTRL_R:
-              control = FALSE;
+              control = false;
               break;
         }
     }
@@ -2333,7 +2334,7 @@ static uint8 translate_key(SIM_KEY_EVENT *kev)
         switch (kev->key) {
             case SIM_KEY_SHIFT_L:
             case SIM_KEY_SHIFT_R:
-                shifted = TRUE;
+                shifted = true;
                 break;
 
             case SIM_KEY_CAPS_LOCK:
@@ -2342,7 +2343,7 @@ static uint8 translate_key(SIM_KEY_EVENT *kev)
 
             case SIM_KEY_CTRL_L:
             case SIM_KEY_CTRL_R:
-                control = TRUE;
+                control = true;
                 break;
 
             case SIM_KEY_0:
@@ -2575,12 +2576,12 @@ static uint8 translate_key(SIM_KEY_EVENT *kev)
                   break;
                 }
 
-                if (erase == TRUE) {
+                if (erase == true) {
                     sol20_erase(sol20t_unit);
                 }
                 else {
                     sim_printf("%s: Press F3 again to erase cassette.\n", SOL20T_SNAME);
-                    erase = TRUE;
+                    erase = true;
                 }
                 break;
 
@@ -2607,7 +2608,7 @@ static uint8 translate_key(SIM_KEY_EVENT *kev)
                 PutBYTEWrapper(0x0066, 0xc3); /* JMP */
                 PutBYTEWrapper(0x0067, 0x00); /* JMP */
                 PutBYTEWrapper(0x0068, 0xc0); /* JMP */
-                nmiInterrupt = TRUE;
+                nmiInterrupt = true;
                 sim_printf("%s: Rebooting...\n", SOL20_SNAME);
                 break;
 

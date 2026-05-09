@@ -89,20 +89,20 @@ uint32 vc_ymin2 = 0;                                    /* region 2 top edge */
 uint32 vc_ymax2 = 0;                                    /* region 2 bottom edge */
 uint16 vc_cur[32];                                      /* cursor image data */
 uint32 vc_cur_p = 0;                                    /* cursor image pointer */
-t_bool vc_updated[VC_YSIZE];
-t_bool vc_cur_new_data = FALSE;                         /* New Cursor image data */
+bool vc_updated[VC_YSIZE];
+bool vc_cur_new_data = false;                           /* New Cursor image data */
 bool vc_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
 uint32 vc_cur_x = 0;                                    /* Last cursor X-position */
 uint32 vc_cur_y = 0;                                    /* Last cursor Y-position */
 uint32 vc_cur_f = 0;                                    /* Last cursor function */
-t_bool vc_cur_v = FALSE;                                /* Last cursor visible */
+bool vc_cur_v = false;                                  /* Last cursor visible */
 uint32 vc_org = 0;                                      /* display origin */
 uint32 vc_last_org = 0;                                 /* display last origin */
 uint32 vc_sel = 0;                                      /* interrupt select */
 uint32 *vc_buf = NULL;                                  /* Video memory */
 uint32 *vc_lines = NULL;                                /* Video Display Lines */
 uint32 vc_palette[2];                                   /* Monochrome palette */
-t_bool vc_active = FALSE;
+bool vc_active = false;
 
 t_stat vc_svc (UNIT *uptr);
 t_stat vc_reset (DEVICE *dptr);
@@ -154,11 +154,11 @@ MTAB vc_mod[] = {
         &vc_set_enable, NULL, NULL, "Enable Monochrome Video" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
         &vc_set_enable, NULL, NULL, "Disable Monochrome Video" },
-    { MTAB_XTD|MTAB_VDV, TRUE, NULL, "CAPTURE",
+    { MTAB_XTD|MTAB_VDV, true, NULL, "CAPTURE",
         &vc_set_capture, &vc_show_capture, NULL, "Enable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, FALSE, NULL, "NOCAPTURE",
+    { MTAB_XTD|MTAB_VDV, false, NULL, "NOCAPTURE",
         &vc_set_capture, NULL, NULL, "Disable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, TRUE, "OSCURSOR", NULL,
+    { MTAB_XTD|MTAB_VDV, true, "OSCURSOR", NULL,
         NULL, &vc_show_capture, NULL, "Display Input Capture mode" },
     { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "VIDEO", NULL,
         NULL, &vid_show_video, NULL, "Display the host system video capabilities" },
@@ -253,7 +253,7 @@ switch (rg) {
         vc_cur[vc_cur_p++] = data;
         if (vc_cur_p == 32)
             vc_cur_p--;
-        vc_cur_new_data = TRUE;
+        vc_cur_new_data = true;
         break;
     }
 
@@ -290,11 +290,11 @@ else nval = val;
 vc_buf[rg] = nval;                                      /* update buffer */
 scrln = ((rg >> 5) + VC_BYSIZE - (vc_org << VC_ORSC)) & (VC_BYSIZE - 1);
 if (scrln < VC_YSIZE)
-    vc_updated[scrln] = TRUE;                           /* flag as updated */
+    vc_updated[scrln] = true;                           /* flag as updated */
 return;
 }
 
-static void vc_set_vid_cursor (t_bool visible)
+static void vc_set_vid_cursor (bool visible)
 {
 uint8 data[2*16];
 uint8 mask[2*16];
@@ -363,14 +363,14 @@ static inline void vc_invalidate (uint32 y1, uint32 y2)
 uint32 ln;
 
 for (ln = y1; ln < y2; ln++)
-    vc_updated[ln] = TRUE;                              /* flag as updated */
+    vc_updated[ln] = true;                              /* flag as updated */
 }
 
 t_stat vc_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
-t_bool updated = FALSE;                                 /* flag for refresh */
+bool updated = false;                                   /* flag for refresh */
 uint32 lines;
 uint32 ln, col, off;
 uint16 *plna, *plnb;
@@ -403,7 +403,7 @@ vc_cur_y = CUR_Y;
 vid_set_cursor_position (vc_cur_x, vc_cur_y);
 vc_cur_v = CUR_V;
 vc_cur_f = CUR_F;
-vc_cur_new_data = FALSE;
+vc_cur_new_data = false;
 
 if (vid_poll_kb (&kev) == SCPE_OK)                      /* poll keyboard */
     lk_event (&kev);                                    /* push event */
@@ -444,15 +444,15 @@ for (ln = 0; ln < VC_YSIZE; ln++) {
                     }
                 }
             }
-        vc_updated[ln] = FALSE;                         /* set valid */
+        vc_updated[ln] = false;                         /* set valid */
         if ((ln == (VC_YSIZE-1)) ||                     /* if end of window OR */
-            (vc_updated[ln+1] == FALSE)) {              /* next is already valid? */
+            (vc_updated[ln+1] == false)) {              /* next is already valid? */
             vid_draw (0, ln-lines, VC_XSIZE, lines+1, vc_lines+(ln-lines)*VC_XSIZE); /* update region */
             lines = 0;
             }
         else
             lines++;
-        updated = TRUE;
+        updated = true;
         }
     }
 
@@ -488,7 +488,7 @@ vc_ymax2 = 0;
 vc_cur_p = 0;
 
 for (i = 0; i < VC_YSIZE; i++)
-    vc_updated[i] = FALSE;
+    vc_updated[i] = false;
 
 if (dptr->flags & DEV_DIS) {
     if (vc_active) {
@@ -496,7 +496,7 @@ if (dptr->flags & DEV_DIS) {
         vc_buf = NULL;
         free (vc_lines);
         vc_lines = NULL;
-        vc_active = FALSE;
+        vc_active = false;
         return vid_close ();
         }
     else
@@ -526,7 +526,7 @@ if (!vid_active && !vc_active)  {
     if (sim_log)
         vc_show_capture (sim_log, NULL, 0, NULL);
     sim_printf ("\n");
-    vc_active = TRUE;
+    vc_active = true;
     }
 sim_activate_abs (&vc_unit, tmxr_poll);
 return SCPE_OK;

@@ -38,6 +38,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 #define UNIT_V_BOOT     (UNIT_V_UF+1)   /* BOOT/RUN switch */
 #define UNIT_BOOT       (1 << UNIT_V_BOOT)
@@ -47,7 +48,7 @@
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 
 /* globals */
@@ -77,10 +78,10 @@ t_stat i3214_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat i3214_reset (DEVICE *dptr);
 t_stat i3214_reset_dev (uint8 devnum);
 t_stat i3214_svc (UNIT *uptr);
-uint8 i3214_do_mask(t_bool io, uint8 data, uint8 devnum);
-uint8 i3214_do_status(t_bool io, uint8 data, uint8 devnum);
-uint8 i3214_cpu_bus_override(t_bool io, uint8 data, uint8 devnum);
-uint8 i3214_monitor_do_boot(t_bool io, uint8 data, uint8 devnum);
+uint8 i3214_do_mask(bool io, uint8 data, uint8 devnum);
+uint8 i3214_do_status(bool io, uint8 data, uint8 devnum);
+uint8 i3214_cpu_bus_override(bool io, uint8 data, uint8 devnum);
+uint8 i3214_monitor_do_boot(bool io, uint8 data, uint8 devnum);
 
 /* i3214 Standard I/O Data Structures */
 /* 1 i3214 device */
@@ -233,7 +234,7 @@ t_stat i3214_reset_dev (uint8 devnum)
 
 // 3214 device routines
 
-uint8 i3214_do_mask(t_bool io, uint8 data, uint8 devnum)
+uint8 i3214_do_mask(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -246,7 +247,7 @@ uint8 i3214_do_mask(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i3214_do_status(t_bool io, uint8 data, uint8 devnum)
+uint8 i3214_do_status(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -261,7 +262,7 @@ uint8 i3214_do_status(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i3214_cpu_bus_override(t_bool io, uint8 data, uint8 devnum)
+uint8 i3214_cpu_bus_override(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -274,7 +275,7 @@ uint8 i3214_cpu_bus_override(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i3214_monitor_do_boot(t_bool io, uint8 data, uint8 devnum)
+uint8 i3214_monitor_do_boot(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */

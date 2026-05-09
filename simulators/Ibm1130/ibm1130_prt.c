@@ -47,6 +47,7 @@
  */
 
 #include "ibm1130_defs.h"
+#include <stdbool.h>
 #include <stdlib.h>             /* needed for atexit, for cgi mode */
 
 /***************************************************************************************
@@ -99,7 +100,7 @@ static int32 prt_fwait = 100;                               /* fast wait, for 14
 static int32 prt_twait = 50;                                /* transfer wait, for 1403 operations */
 #define SKIPTARGET  (uptr->u4)                              /* target for skip operation */
 
-static t_bool formfed = FALSE;                              /* last line printed was a formfeed */
+static bool formfed = false;                                /* last line printed was a formfeed */
 
 #define UNIT_V_FORMCHECK    (UNIT_V_UF + 0)                 /* out of paper error */
 #define UNIT_V_DATACHECK    (UNIT_V_UF + 1)                 /* printer overrun error */
@@ -229,7 +230,7 @@ static void reset_prt_line (void)
 
 /* save_1132_prt_line - fire hammers for character 'ch' */
 
-static t_bool save_1132_prt_line (int ch)
+static bool save_1132_prt_line (int ch)
 {
     int i, r, addr = 32;
     int32 mask = 0, wd = 0;
@@ -257,14 +258,14 @@ static t_bool save_1132_prt_line (int ch)
         mask >>= 1;                                                     /* prepare to examine next bit */
     }
 
-    return (wd & 1) != 0;   /* return TRUE if the last word has lsb set, which means all bits had been set */
+    return (wd & 1) != 0;   /* return true if the last word has lsb set, which means all bits had been set */
 }
 
 /* write_line - write collected line to output file. No need to trim spaces as the hammers
  * are never fired for them, so ncol[r] is the last printed position on each line.
  */
 
-static void newpage (FILE *fd, t_bool physical_printer)
+static void newpage (FILE *fd, bool physical_printer)
 {
     if (cgi)
         fputs("<HR>\n", fd);
@@ -272,12 +273,12 @@ static void newpage (FILE *fd, t_bool physical_printer)
         putc('\f', fd);
         if (physical_printer) {
             fflush(fd);                                     /* send the ff out to the printer immediately */
-            formfed = TRUE;                                 /* hack: inhibit consecutive ff's */
+            formfed = true;                                 /* hack: inhibit consecutive ff's */
         }
     }
 }
 
-static void flush_prt_line (FILE *fd, int spacemode, t_bool physical_printer)
+static void flush_prt_line (FILE *fd, int spacemode, bool physical_printer)
 {
     int r;
 
@@ -300,7 +301,7 @@ static void flush_prt_line (FILE *fd, int spacemode, t_bool physical_printer)
         }
         else {
             prt_nnl++;
-            formfed = FALSE;
+            formfed = false;
         }
 
         prt_unit->pos++;                                    /* note something written */
@@ -333,7 +334,7 @@ static void flush_prt_line (FILE *fd, int spacemode, t_bool physical_printer)
     if (physical_printer)                                   /* if physical printer, send buffered output to device */
         fflush(fd);
 
-    formfed = FALSE;                                        /* note that something is now on the page */
+    formfed = false;                                        /* note that something is now on the page */
 }
 
 /* 1132 printer commands */
@@ -444,7 +445,7 @@ static t_stat prt1132_svc (UNIT *uptr)
         if (DO_TRACE(uptr)) trace_io("1132 form check");
         SETBIT(uptr->flags, UNIT_FORMCHECK);
         SET_ACTION(uptr, 0);
-        forms_check(TRUE);                                  /* and turn on forms check lamp */
+        forms_check(true);                                  /* and turn on forms check lamp */
         return SCPE_OK;
     }
 
@@ -475,7 +476,7 @@ static t_stat prt1132_svc (UNIT *uptr)
             trace_io("* Print check -- buffer not set in time");
             SETBIT(uptr->flags, UNIT_DATACHECK);                    /* buffer wasn't set in time */
             SET_ACTION(uptr, 0);
-            print_check(TRUE);                                      /* and turn on forms check lamp */
+            print_check(true);                                      /* and turn on forms check lamp */
 
 /*  if (running)
         reason = STOP_IMMEDIATE;    // halt on check
@@ -504,7 +505,7 @@ static t_stat prt1132_svc (UNIT *uptr)
 static void save_1403_prt_line (int32 addr)
 {
     size_t j;
-    int i, r, ch, even = TRUE;
+    int i, r, ch, even = true;
     unsigned char ebcdic;
     int32 wd;
 
@@ -512,11 +513,11 @@ static void save_1403_prt_line (int32 addr)
         if (even) {                                     /* fetch next word from memory */
             wd     = M[addr++];
             ebcdic = (unsigned char) ((wd >> 8) & 0x7F);
-            even   = FALSE;
+            even   = false;
         }
         else {
             ebcdic = (unsigned char) (wd & 0x7F);       /* use low byte of previously fetched word */
-            even   = TRUE;
+            even   = true;
         }
 
         ch = ' ';                                       /* translate ebcdic to ascii. Don't bother checking for parity errors */
@@ -596,7 +597,7 @@ static t_stat prt1403_svc(UNIT *uptr)
     if (PRT_DSW & PRT1403_DSW_NOT_READY) {                  /* cancel operation if printer went offline */
         SET_ACTION(uptr, 0);
         if (DO_TRACE(uptr)) trace_io("1403 form check");
-        forms_check(TRUE);                                  /* and turn on forms check lamp */
+        forms_check(true);                                  /* and turn on forms check lamp */
     }
     else if (uptr->flags & UNIT_TRANSFERRING) {             /* end of transfer */
         CLRBIT(uptr->flags, UNIT_TRANSFERRING);
@@ -697,7 +698,7 @@ static t_stat prt_reset (DEVICE *dptr)
     calc_ints();
     reset_prt_line();
 
-    forms_check(FALSE);
+    forms_check(false);
     return SCPE_OK;
 }
 
@@ -707,7 +708,7 @@ static t_stat prt_attach (UNIT *uptr, const char *cptr)
     char gbuf[2*CBUFSIZE];
                                                         /* assume failure */
     SETBIT(PRT_DSW, IS_1132(uptr) ? PRT1132_DSW_NOT_READY : PRT1403_DSW_NOT_READY);
-    formfed = FALSE;
+    formfed = false;
 
     if (uptr->flags & UNIT_ATT) {
         if ((rval = prt_detach(uptr)) != SCPE_OK) {
@@ -772,7 +773,7 @@ static t_stat prt_attach (UNIT *uptr, const char *cptr)
             CLRBIT(PRT_DSW, PRT1403_DSW_NOT_READY);     /* fixed by Carl Claunch */
     }
 
-    forms_check(FALSE);
+    forms_check(false);
 
     return SCPE_OK;
 }
@@ -782,7 +783,7 @@ static t_stat prt_detach (UNIT *uptr)
     t_stat rval;
 
     if (uptr->flags & UNIT_ATT)
-        flush_prt_line(uptr->fileref, TRUE, TRUE);
+        flush_prt_line(uptr->fileref, true, true);
 
     if (uptr->fileref == stdout) {
         CLRBIT(uptr->flags, UNIT_ATT);
@@ -807,6 +808,6 @@ static t_stat prt_detach (UNIT *uptr)
 
     calc_ints();
 
-    forms_check(FALSE);
+    forms_check(false);
     return SCPE_OK;
 }

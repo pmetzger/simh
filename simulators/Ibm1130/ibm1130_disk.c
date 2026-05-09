@@ -93,7 +93,7 @@ static t_stat dsk_attach (UNIT *uptr, const char *cptr);
 static t_stat dsk_detach (UNIT *uptr);
 static t_stat dsk_boot   (int32 unitno, DEVICE *dptr);
 
-static void diskfail (UNIT *uptr, int dswflag, int unitflag, t_bool do_interrupt);
+static void diskfail (UNIT *uptr, int dswflag, int unitflag, bool do_interrupt);
 
 /* DSK data structures
 
@@ -207,7 +207,7 @@ void xio_disk (int32 iocc_addr, int32 func, int32 modify, int drv)
     switch (func) {
         case XIO_INITR:
             if (! IS_ONLINE(uptr)) {                /* disk is offline */
-                diskfail(uptr, 0, 0, FALSE);
+                diskfail(uptr, 0, 0, false);
                 break;
             }
 
@@ -257,12 +257,12 @@ void xio_disk (int32 iocc_addr, int32 func, int32 modify, int drv)
 
         case XIO_INITW:
             if (! IS_ONLINE(uptr)) {                /* disk is offline */
-                diskfail(uptr, 0, 0, FALSE);
+                diskfail(uptr, 0, 0, false);
                 break;
             }
 
             if (uptr->flags & UNIT_RONLY) {         /* oops, write to RO disk? permanent error until disk is powered off/on */
-                diskfail(uptr, DSK_DSW_DATA_ERROR, UNIT_HARDERR, FALSE);
+                diskfail(uptr, DSK_DSW_DATA_ERROR, UNIT_HARDERR, false);
                 break;
             }
 
@@ -321,7 +321,7 @@ void xio_disk (int32 iocc_addr, int32 func, int32 modify, int drv)
 
         case XIO_CONTROL:                               /* step fwd/rev */
             if (! IS_ONLINE(uptr)) {
-                diskfail(uptr, 0, 0, FALSE);
+                diskfail(uptr, 0, 0, false);
                 break;
             }
 
@@ -373,7 +373,7 @@ void xio_disk (int32 iocc_addr, int32 func, int32 modify, int drv)
 
 /* diskfail - schedule an operation complete that sets the error bit */
 
-static void diskfail (UNIT *uptr, int dswflag, int unitflag, t_bool do_interrupt)
+static void diskfail (UNIT *uptr, int dswflag, int unitflag, bool do_interrupt)
 {
     int drv = uptr - dsk_unit;
 
@@ -539,8 +539,8 @@ static t_stat dsk_attach (UNIT *uptr, const char *cptr)
 
     if ((boot_drive >= 0) &&
         (dsk_unit[boot_drive].flags & UNIT_ATT)) {
-        disk_ready(TRUE);
-        disk_unlocked(FALSE);
+        disk_ready(true);
+        disk_unlocked(false);
     }
 
     enable_dms_tracing(sim_switches & SWMASK('D'));
@@ -569,8 +569,8 @@ static t_stat dsk_detach (UNIT *uptr)
 
     if ((boot_drive >= 0) &&
         (!(dsk_unit[boot_drive].flags & UNIT_ATT))) {
-        disk_unlocked(TRUE);
-        disk_ready(FALSE);
+        disk_unlocked(true);
+        disk_ready(false);
     }
 
     return SCPE_OK;
@@ -669,13 +669,13 @@ static t_stat phdebug_cmd (int32 flag, const char *ptr)
         switch(sscanf(ptr, "%x%x", &val1, &val2)) {
             case 1:
                 phdebug_lo = phdebug_hi = val1;
-                enable_dms_tracing(TRUE);
+                enable_dms_tracing(true);
                 break;
 
             case 2:
                 phdebug_lo = val1;
                 phdebug_hi = val2;
-                enable_dms_tracing(TRUE);
+                enable_dms_tracing(true);
                 break;
 
             default:

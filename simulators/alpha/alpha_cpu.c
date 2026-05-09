@@ -122,6 +122,7 @@
         alpha_sys.c     add sim_devices table entry
 */
 
+#include <stdbool.h>
 #include "alpha_defs.h"
 
 #define UNIT_V_CONH     (UNIT_V_UF + 0)                 /* halt to console */
@@ -362,7 +363,7 @@ t_stat sim_instr (void)
 {
 t_stat reason;
 int abortval;
-t_bool tracing;
+bool tracing;
 
 PC = PC | pc_align;                                     /* put PC together */
 abortval = setjmp (save_env);                           /* set abort hdlr */
@@ -1732,7 +1733,7 @@ uint32 i, clim;
 t_uint64 *nM = NULL;
 
 for (i = val; i < MEMSIZE; i = i + 8) mc = mc | M[i >> 3];
-if ((mc != 0) && !get_yn ("Really truncate memory [N]?", FALSE))
+if ((mc != 0) && !get_yn ("Really truncate memory [N]?", false))
     return SCPE_OK;
 nM = (t_uint64 *) calloc (val >> 3, sizeof (t_uint64));
 if (nM == NULL) return SCPE_MEM;

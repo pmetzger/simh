@@ -37,6 +37,7 @@
  *                                                                       *
  *************************************************************************/
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 
@@ -294,10 +295,10 @@ static t_stat djhdc_reset(DEVICE *dptr)
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &djhdcdev, "djhdcdev", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &djhdcdev, "djhdcdev", true);
     } else {
         /* Connect DJHDC at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &djhdcdev, "djhdcdev", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &djhdcdev, "djhdcdev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }

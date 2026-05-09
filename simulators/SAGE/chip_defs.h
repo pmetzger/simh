@@ -28,6 +28,7 @@
 #ifndef CHIP_DEFS_H_
 #define CHIP_DEFS_H_
 
+#include <stdbool.h>
 #include "sim_imd.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -138,7 +139,7 @@ typedef struct i8259 {
     int32 icw2;
     int32 icw4;
     int32 prio; /* which IR* has prio 7? */
-    t_bool autoint;
+    bool autoint;
     int intlevel;
     int intvector;
 } I8259;
@@ -214,7 +215,7 @@ typedef struct i8251 {
     int obuf;
     int status;
     int bitmask;
-    t_bool oob; /* out-of-band=1 will allow a console to receive CTRL-E even when receiver is disabled */
+    bool oob;   /* out-of-band=1 will allow a console to receive CTRL-E even when receiver is disabled */
     int crlf;  /* CRLF state machine to suppress NUL bytes */
 } I8251;
 

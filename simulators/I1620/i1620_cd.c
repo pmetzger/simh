@@ -43,6 +43,7 @@
    This allows cards to be created and edited as normal files.
 */
 
+#include <stdbool.h>
 #include "i1620_defs.h"
 
 #define CD_LEN          80
@@ -61,7 +62,7 @@ t_stat cdr_boot (int32 unitno, DEVICE *dptr);
 t_stat cdr_read (void);
 t_stat cdp_reset (DEVICE *dptr);
 t_stat cdp_write (uint32 len);
-t_stat cdp_num (uint32 pa, uint32 ndig, t_bool dump);
+t_stat cdp_num (uint32 pa, uint32 ndig, bool dump);
 
 /* Card reader data structures
 
@@ -464,7 +465,7 @@ switch (op) {                                           /* decode op */
 
         return cdp_num (pa,                             /* dump numeric */
                         ((20000 - (pa % 20000) + 79) / 80) * 80,
-                        TRUE);
+                        true);
 
     case OP_WN:
 
@@ -473,7 +474,7 @@ switch (op) {                                           /* decode op */
            wraps around to zero and continues. The PP function handles
            this correctly.                              (Tom McBride) */
 
-        return cdp_num (pa, CD_LEN, FALSE);             /* write numeric */
+        return cdp_num (pa, CD_LEN, false);             /* write numeric */
 
     case OP_WA:                                         /* write alphanumerically */
 
@@ -504,7 +505,7 @@ return STOP_INVFNC;
 
 /* Punch card numeric */
 
-t_stat cdp_num (uint32 pa, uint32 ndig, t_bool dump)
+t_stat cdp_num (uint32 pa, uint32 ndig, bool dump)
 {
 int32 i, ncd, len;
 uint8 d;

@@ -100,6 +100,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_cpu_fp.h"
@@ -142,11 +143,11 @@
 typedef struct {
     t_uint64   mantissa;                        /* the unsigned mantissa */
     int32      exponent;                        /* the unbiased exponent */
-    t_bool     negative;                        /* TRUE if the mantissa is negative */
+    bool       negative;                        /* true if the mantissa is negative */
     FP_OPSIZE  precision;                       /* the precision currently expressed by the value */
     } FPU;
 
-static const FPU zero = { 0, 0, FALSE, fp_f };  /* an unpacked zero value */
+static const FPU zero = { 0, 0, false, fp_f };  /* an unpacked zero value */
 
 
 /* Floating-point descriptors */
@@ -188,7 +189,7 @@ static TRAP_CLASS multiply (FPU *product,    FPU multiplicand, FPU multiplier);
 static TRAP_CLASS divide   (FPU *quotient,   FPU dividend,     FPU divisor);
 
 static TRAP_CLASS ffloat (FPU *real,    FPU integer);
-static TRAP_CLASS fix    (FPU *integer, FPU real, t_bool round);
+static TRAP_CLASS fix    (FPU *integer, FPU real, bool round);
 
 
 
@@ -243,11 +244,11 @@ switch (operator) {                                     /* dispatch the floating
         break;
 
     case fp_fixr:
-        trap = fix (&result, left, TRUE);               /* round the floating-point operand to an integer */
+        trap = fix (&result, left, true);               /* round the floating-point operand to an integer */
         break;
 
     case fp_fixt:
-        trap = fix (&result, left, FALSE);              /* truncate the floating-point operand to an integer */
+        trap = fix (&result, left, false);              /* truncate the floating-point operand to an integer */
         break;
 
     default:
@@ -318,11 +319,11 @@ switch (packed.precision) {                             /* dispatch based on the
 
         if (word & D16_SIGN) {                          /* if the value is negative */
             word = NEG16 (word);                        /*   then make it positive */
-            unpacked.negative = TRUE;                   /*     and set the mantissa sign flag */
+            unpacked.negative = true;                   /*     and set the mantissa sign flag */
             }
 
         else                                            /* otherwise the value is positive */
-            unpacked.negative = FALSE;                  /*   so clear the sign flag */
+            unpacked.negative = false;                  /*   so clear the sign flag */
 
         unpacked.mantissa = (t_uint64) word << 32;      /* store the preshifted value as the mantissa */
         unpacked.exponent = UNPACKED_BITS - 32;         /*   and set the exponent to account for the shift */
@@ -335,11 +336,11 @@ switch (packed.precision) {                             /* dispatch based on the
 
         if (word & D32_SIGN) {                          /* if the value is negative */
             word = NEG32 (word);                        /*   then make it positive */
-            unpacked.negative = TRUE;                   /*     and set the mantissa sign flag */
+            unpacked.negative = true;                   /*     and set the mantissa sign flag */
             }
 
         else                                            /* otherwise the value is positive */
-            unpacked.negative = FALSE;                  /*   so clear the sign flag */
+            unpacked.negative = false;                  /*   so clear the sign flag */
 
         unpacked.mantissa = (t_uint64) word << 16;      /* store the preshifted value as the mantissa */
         unpacked.exponent = UNPACKED_BITS - 16;         /*   and set the exponent to account for the shift */
@@ -364,7 +365,7 @@ switch (packed.precision) {                             /* dispatch based on the
 
         if (unpacked.exponent == MIN_EXPONENT               /* if the biased exponent and mantissa are zero */
           && unpacked.mantissa == 0)                        /*   then the mantissa is positive */
-            unpacked.negative = FALSE;                      /*     regardless of the packed sign */
+            unpacked.negative = false;                      /*     regardless of the packed sign */
 
         else {                                                          /* otherwise the value is non-zero */
             unpacked.mantissa |= IMPLIED_BIT;                           /*   so add back the implied "1" bit */
@@ -871,7 +872,7 @@ return trap_None;                                       /* report that the float
        though -2 ** 31 (143700 000000) does fit in the result.
 */
 
-static TRAP_CLASS fix (FPU *integer, FPU real, t_bool round)
+static TRAP_CLASS fix (FPU *integer, FPU real, bool round)
 {
 if (real.exponent < -1)                                 /* if the real value is < 0.5 */
     integer->mantissa = 0;                              /*   then the integer value is 0 */

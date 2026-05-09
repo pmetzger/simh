@@ -252,6 +252,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -282,9 +283,9 @@ static const HP_WORD ptemiss = 0176000u;
 /* VMA local utility routine declarations */
 
 static t_stat cpu_vma_loc   (OPS op);
-static t_bool cpu_vma_ptevl (uint32 pagid, uint32* physpg);
+static bool cpu_vma_ptevl (uint32 pagid, uint32* physpg);
 static t_stat cpu_vma_fault (uint32 x, uint32 y, int32 mapr, uint32 ptepg, uint32 ptr, uint32 faultpc);
-static t_bool cpu_vma_mapte (uint32* ptepg);
+static bool cpu_vma_mapte (uint32* ptepg);
 static t_stat cpu_vma_lbp   (uint32 ptr, uint32 aoffset, uint32 faultpc);
 static t_stat cpu_vma_pmap  (uint32 umapr, uint32 pagid);
 static t_stat cpu_vma_ijmar (OPSIZE ij, uint32 dtbl, uint32 atbl, uint32* dimret);
@@ -605,11 +606,11 @@ return SCPE_OK;
 
 
 /* map pte into last page
-   return FALSE if page fault, nil flag in PTE or suit mismatch
-   return TRUE if suit match, physpg = physical page
+   return false if page fault, nil flag in PTE or suit mismatch
+   return true if suit match, physpg = physical page
                 or page=0 -> last+1 page
 */
-static t_bool cpu_vma_ptevl(uint32 pagid,uint32* physpg)
+static bool cpu_vma_ptevl(uint32 pagid,uint32* physpg)
 {
 uint32 suit;
 uint32 pteidx = pagid & 0001777;                        /* build index */
@@ -617,7 +618,7 @@ uint32 reqst  = pagid & SUITMASK;                       /* required suit */
 uint32 pteval = ReadW(page31 | pteidx);                 /* get PTE entry */
 *physpg = pteval & 0001777;                             /* store physical page number */
 suit = pteval & SUITMASK;                               /* suit number seen */
-if (pteval == NILPAGE) return FALSE;                    /* NIL value in PTE */
+if (pteval == NILPAGE) return false;                    /* NIL value in PTE */
 return suit == reqst || !*physpg;                       /* good page or last+1 */
 }
 
@@ -657,16 +658,16 @@ return SCPE_OK;
 
 /* map in PTE into last page, return false, if page fault */
 
-static t_bool cpu_vma_mapte(uint32* ptepg)
+static bool cpu_vma_mapte(uint32* ptepg)
 {
 uint32 idext,idext2;
 uint32 dispatch = ReadU (vswp) & 01777;                 /* get fresh dispatch flag */
-t_bool swapflag = TRUE;
+bool swapflag = true;
 
 if (dispatch == 0) {                                    /* not yet set */
     idext = ReadU (idx);                                /* go into ID segment extent */
     if (idext == 0) {                                   /* is ema/vma program? */
-        swapflag = FALSE;                               /* no, so mark PTE as invalid */
+        swapflag = false;                               /* no, so mark PTE as invalid */
         *ptepg = (uint32) -1;                           /*   and return an invalid page number */
         }
 
@@ -734,7 +735,7 @@ if (ptr & 0x80000000) {                                 /* is it a local referen
     MR = (HP_WORD) (ptr & LA_MASK);
     if (ptr & IR_IND) {
         MR = ReadW (MR);
-        reason = cpu_resolve_indirects (FALSE);         /* resolve indirects (uninterruptible) */
+        reason = cpu_resolve_indirects (false);         /* resolve indirects (uninterruptible) */
         if (reason)
             return reason;                              /* yes, resolve indirect ref */
         }
@@ -928,7 +929,7 @@ if (TRACING (cpu_dev, TRACE_OPND)) {
     for (i = ndim; i > 0; i--) {                        /* subscripts appear in 3, 2, 1 order */
         MR = mem_fast_read (atbl + i - 1, Current_Map); /* get the pointer to the subscript */
 
-        reason = cpu_resolve_indirects (FALSE);         /* resolve indirects (uninterruptible) */
+        reason = cpu_resolve_indirects (false);         /* resolve indirects (uninterruptible) */
 
         if (reason != SCPE_OK)                          /* if resolution failed */
             return reason;                              /*   then return the reason */
@@ -981,7 +982,7 @@ if (ndim == 0) {                                        /* no dimensions:  */
 accu = 0;
 while (ndim-- > 0) {
     MR = ReadW(atbl++);                                 /* get addr of subscript */
-    reason = cpu_resolve_indirects (TRUE);              /* resolve indirects */
+    reason = cpu_resolve_indirects (true);              /* resolve indirects */
     if (reason)
         return reason;
     din = ReadOp(MR,ij);                                /* get actual subscript value */

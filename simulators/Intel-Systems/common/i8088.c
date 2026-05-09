@@ -19,6 +19,7 @@
 
 /* cpu.c: functions to emulate the 8086/V20 CPU in software. the heart of Fake86. */
 
+#include <stdbool.h>
 #include "cpu.h"
 
 /* simulator routines */
@@ -38,7 +39,7 @@ extern void do_trace(void);
 uint16 port;                            //port called in dev_table[port]
 
 struct idev {
-    uint8 (*routine)(t_bool io, uint8 data, uint8 devnum);
+    uint8 (*routine)(bool io, uint8 data, uint8 devnum);
     uint16 port;
     uint16 devnum;
     uint8 dummy;

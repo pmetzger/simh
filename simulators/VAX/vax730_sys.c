@@ -32,6 +32,7 @@
 
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -98,7 +99,7 @@ extern void init_ubus_tab (void);
 extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
 extern int32 ubamap_rd (int32 pa);
 extern void ubamap_wr (int32 pa, int32 val, int32 lnt);
-extern t_bool uba_eval_int (int32 lvl);
+extern bool uba_eval_int (int32 lvl);
 extern int32 uba_get_ubvector (int32 lvl);
 
 /* SYSB data structures
@@ -573,7 +574,7 @@ t_stat cpu_boot (int32 unitno, DEVICE *dptr)
 t_stat r;
 
 
-r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, FALSE, 0x200);
+r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, false, 0x200);
 if (r != SCPE_OK)
     return r;
 SP = PC = 512;

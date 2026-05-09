@@ -38,6 +38,7 @@
 
 /*#define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 #ifdef DBG_MSG
@@ -181,10 +182,10 @@ static t_stat if3_reset(DEVICE *dptr)
         for(i=0;i<IF3_MAX_BOARDS;i++)
             sim_cancel(&if3_unit[i]);
 
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &if3dev, "if3dev", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &if3dev, "if3dev", true);
     } else {
         /* Connect IF3 at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &if3dev, "if3dev", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &if3dev, "if3dev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }

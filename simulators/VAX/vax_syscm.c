@@ -195,8 +195,8 @@ static const char r50_to_asc[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ$._0123456789";
         addr    =       current PC
         spec    =       specifier
         nval    =       next word
-        flag    =       TRUE if decoding for CPU
-        iflag   =       TRUE if decoding integer instruction
+        flag    =       true if decoding for CPU
+        iflag   =       true if decoding integer instruction
    Outputs:
         count   =       -number of extra words retired
 */

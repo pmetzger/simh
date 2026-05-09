@@ -29,6 +29,7 @@
 */
 
 
+#include <stdbool.h>
 #include "3b2_cpu.h"
 #include "3b2_csr.h"
 #include "3b2_mem.h"
@@ -211,7 +212,7 @@ static void set_u_bit(uint32 index)
         }
     }
 
-    mmu_state.flush_u = TRUE;
+    mmu_state.flush_u = true;
 }
 
 /*
@@ -280,7 +281,7 @@ static uint32 put_pdce(uint32 va, uint32 sd_lo, uint32 pd)
     if (mmu_state.flush_u) {
         sim_debug(MMU_CACHE_DBG, &mmu_dev,
                   "Flushing PDC U bits on all-set condition.\n");
-        mmu_state.flush_u = FALSE;
+        mmu_state.flush_u = false;
         for (i = 0; i < MMU_PDCS; i++) {
             if (i != mmu_state.last_cached) {
                 mmu_state.pdch[i] &= ~(PDC_U_MASK);
@@ -539,7 +540,7 @@ uint32 mmu_read(uint32 pa, size_t size)
         sim_debug(MMU_READ_DBG, &mmu_dev,
                   "Invalid MMU register: pa=%08x\n",
                   pa);
-        CSRBIT(CSRTIMO, TRUE);
+        CSRBIT(CSRTIMO, true);
         break;
     }
 
@@ -703,14 +704,14 @@ void mmu_write(uint32 pa, uint32 val, size_t size)
 /*
  * Update history bits in cache and memory.
  */
-static t_stat mmu_update_history(uint32 va, uint8 r_acc, uint32 pdc_idx, t_bool fc)
+static t_stat mmu_update_history(uint32 va, uint8 r_acc, uint32 pdc_idx, bool fc)
 {
     uint32 sd_hi, sd_lo, pd;
     uint32 pd_addr;
-    t_bool update_sdc = TRUE;
+    bool update_sdc = true;
 
     if (get_sdce(va, &sd_hi, &sd_lo) != SCPE_OK) {
-        update_sdc = FALSE;
+        update_sdc = false;
     }
 
     sd_lo = pread_w(SD_ADDR(va), BUS_PER);
@@ -772,7 +773,7 @@ static t_stat mmu_update_history(uint32 va, uint8 r_acc, uint32 pdc_idx, t_bool 
  * - r_acc is the requested access type.
  * - fc is the fault check flag.
  *
- * If there was a miss when reading the SDC, TRUE will be returned in
+ * If there was a miss when reading the SDC, true will be returned in
  * "sd_miss". The page descriptor will be returned in "pd", and the
  * segment descriptor will be returned in "sd_lo" and "sd_hi".
  *
@@ -780,7 +781,7 @@ static t_stat mmu_update_history(uint32 va, uint8 r_acc, uint32 pdc_idx, t_bool 
  * returned, a failure code and fault address will be set in the
  * appropriate registers.
  *
- * As always, the flag 'fc' may be set to FALSE to avoid certain
+ * As always, the flag 'fc' may be set to false to avoid certain
  * types of fault checking.
  *
  * For detailed documentation, See:
@@ -788,12 +789,12 @@ static t_stat mmu_update_history(uint32 va, uint8 r_acc, uint32 pdc_idx, t_bool 
  * "WE 32201 Memory Management Unit Information Manual", AT&T Select
  * Code 307-706, February 1987; Figure 2-18, pages 2-24 through 2-25.
  */
-static t_stat mmu_pdc_miss(uint32 va, uint8 r_acc, t_bool fc,
+static t_stat mmu_pdc_miss(uint32 va, uint8 r_acc, bool fc,
                            uint32 *pd, uint32 *pdc_idx)
 {
     uint32 sd_ptr, sd_hi, sd_lo, pd_addr;
     uint32 indirect_count = 0;
-    t_bool sdc_miss = FALSE;
+    bool sdc_miss = false;
 
     *pdc_idx = 0;
 
@@ -819,7 +820,7 @@ static t_stat mmu_pdc_miss(uint32 va, uint8 r_acc, t_bool fc,
         if (get_sdce(va, &sd_hi, &sd_lo) != SCPE_OK) {
             /* This was a miss, so we need to load the SD out of
              * memory. */
-            sdc_miss = TRUE;
+            sdc_miss = true;
 
             sd_lo = pread_w(sd_ptr, BUS_PER);      /* Control Bits */
             sd_hi = pread_w(sd_ptr + 4, BUS_PER);  /* Address Bits */
@@ -966,14 +967,14 @@ static t_stat mmu_pdc_miss(uint32 va, uint8 r_acc, t_bool fc,
  *
  * Note that unlike 'mmu_xlate_addr', this function will _not_ abort
  * on failure. The decoded physical address is returned in "pa". If
- * the argument "fc" is FALSE, this function will bypass:
+ * the argument "fc" is false, this function will bypass:
  *
  *   - Access flag checks,
  *   - Cache insertion,
  *   - Setting MMU fault registers,
  *   - Modifying segment and page descriptor bits.
  *
- * In other words, setting "fc" to FALSE does the minimum work
+ * In other words, setting "fc" to false does the minimum work
  * necessary to translate a virtual address without changing any MMU
  * state. The primary use case for this flag is to provide simulator
  * debugging access to memory translation while avoiding that access
@@ -983,7 +984,7 @@ static t_stat mmu_pdc_miss(uint32 va, uint8 r_acc, t_bool fc,
  * SCPE_NXM if translation failed.
  *
  */
-t_stat mmu_decode_va(uint32 va, uint8 r_acc, t_bool fc, uint32 *pa)
+t_stat mmu_decode_va(uint32 va, uint8 r_acc, bool fc, uint32 *pa)
 {
     uint32 pd, pdc_idx;
     uint8 pd_acc;
@@ -1055,7 +1056,7 @@ uint32 mmu_xlate_addr(uint32 va, uint8 r_acc)
     uint32 pa;
     t_stat succ;
 
-    succ = mmu_decode_va(va, r_acc, TRUE, &pa);
+    succ = mmu_decode_va(va, r_acc, true, &pa);
 
     mmu_state.var = va;
 
@@ -1072,7 +1073,7 @@ uint32 mmu_xlate_addr(uint32 va, uint8 r_acc)
  */
 void mmu_enable(void)
 {
-    mmu_state.enabled = TRUE;
+    mmu_state.enabled = true;
 }
 
 /*
@@ -1080,7 +1081,7 @@ void mmu_enable(void)
  */
 void mmu_disable(void)
 {
-    mmu_state.enabled = FALSE;
+    mmu_state.enabled = false;
 }
 
 const char *mmu_description(DEVICE *dptr)

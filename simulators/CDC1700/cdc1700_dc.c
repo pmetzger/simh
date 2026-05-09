@@ -29,29 +29,30 @@
  *               Simh devices: dca, dcb, dcc
  */
 
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 extern char INTprefix[];
 
 extern uint16 Areg, Preg, Qreg, IOAreg, IOQreg, M[];
 
-extern t_bool IOFWinitialized;
+extern bool IOFWinitialized;
 
 extern DEVICE *IOdev[];
 extern UNIT cpu_unit;
 
 extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern bool IOStoreToMem(uint16, uint16, bool);
 
 extern void rebuildPending(void);
 extern void RaiseExternalInterrupt(DEVICE *);
 
 extern IO_DEVICE *fw_findChanDevice(IO_DEVICE *, uint16);
-extern enum IOstatus fw_doIO(DEVICE *, t_bool);
-extern enum IOstatus fw_doBDCIO(IO_DEVICE *, uint16 *, t_bool, uint8);
+extern enum IOstatus fw_doIO(DEVICE *, bool);
+extern enum IOstatus fw_doBDCIO(IO_DEVICE *, uint16 *, bool, uint8);
 
 extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern bool IOStoreToMem(uint16, uint16, bool);
 
 static t_stat set_intr(UNIT *uptr, int32 val, const char *, void *);
 static t_stat show_intr(FILE *, UNIT *, int32, const void *);
@@ -62,7 +63,7 @@ static t_stat dc_svc(UNIT *);
 static t_stat dc_reset(DEVICE *);
 
 void DCstate(const char *, DEVICE *, IO_DEVICE *);
-t_bool DCreject(IO_DEVICE *, t_bool, uint8);
+bool DCreject(IO_DEVICE *, bool, uint8);
 enum IOstatus DCin(IO_DEVICE *, uint8);
 enum IOstatus DCout(IO_DEVICE *, uint8);
 
@@ -371,12 +372,12 @@ static t_stat dc_svc(UNIT *uptr)
           DCSTATUS(iod) &= ~(IO_1706_REPLY | IO_1706_REJECT);
           iod->iod_nextAddr = iod->iod_CWA + 1;
 
-          status = fw_doBDCIO(target, &temp, FALSE, iod->iod_reg);
+          status = fw_doBDCIO(target, &temp, false, iod->iod_reg);
 
           switch (status) {
             case IO_REPLY:
               DCSTATUS(iod) |= IO_1706_REPLY;
-              if (!IOStoreToMem(iod->iod_CWA, temp, TRUE)) {
+              if (!IOStoreToMem(iod->iod_CWA, temp, true)) {
                 DCSTATUS(iod) |= IO_1706_PROT;
                 /*** TODO: Signal protect fault ***/
               }
@@ -424,7 +425,7 @@ static t_stat dc_svc(UNIT *uptr)
           iod->iod_nextAddr = iod->iod_CWA + 1;
 
           temp = LoadFromMem(iod->iod_CWA);
-          status = fw_doBDCIO(target, &temp, TRUE, iod->iod_reg);
+          status = fw_doBDCIO(target, &temp, true, iod->iod_reg);
 
           switch (status) {
             case IO_REPLY:
@@ -570,12 +571,12 @@ static t_stat show_target(FILE *st, UNIT *uptr, int32 val, const void *desc)
  *  02          Not busy                        Always allowed
  *  03          Not busy                        Always allowed
  */
-t_bool DCreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+bool DCreject(IO_DEVICE *iod, bool output, uint8 reg)
 {
   if (output || (reg == 0))
     return (DCSTATUS(iod) & IO_ST_BUSY) != 0;
 
-  return FALSE;
+  return false;
 }
 
 /*
@@ -586,7 +587,7 @@ t_bool DCreject(IO_DEVICE *iod, t_bool output, uint8 reg)
  * status and terminate the transfer before starting the actual transfer.
  * The diagnostics check for this particular case.
  */
-static enum IOstatus DCxfer(IO_DEVICE *iod, IO_DEVICE *target, t_bool output)
+static enum IOstatus DCxfer(IO_DEVICE *iod, IO_DEVICE *target, bool output)
 {
   DEVICE *dptr = (DEVICE *)iod->iod_indev;
 
@@ -646,7 +647,7 @@ enum IOstatus DCin(IO_DEVICE *iod, uint8 reg)
         if (target->iod_state != NULL)
           (*target->iod_state)("before direct in", target->iod_indev, target);
 
-      status = fw_doIO(target->iod_indev, FALSE);
+      status = fw_doIO(target->iod_indev, false);
 
       if ((target->iod_indev->dctrl & DBG_DSTATE) != 0)
         if (target->iod_state != NULL)
@@ -709,7 +710,7 @@ enum IOstatus DCout(IO_DEVICE *iod, uint8 reg)
         if (target->iod_state != NULL)
           (*target->iod_state)("before direct out", target->iod_indev, target);
 
-      status = fw_doIO(target->iod_indev, TRUE);
+      status = fw_doIO(target->iod_indev, true);
 
       if ((target->iod_indev->dctrl & DBG_DSTATE) != 0)
         if (target->iod_state != NULL)
@@ -736,13 +737,13 @@ enum IOstatus DCout(IO_DEVICE *iod, uint8 reg)
      * Initiate buffered output on the 1706-A.
      */
     case 0x02:
-      return DCxfer(iod, target, TRUE);
+      return DCxfer(iod, target, true);
 
     /*
      * Initiate buffered input on the 1706-A.
      */
     case 0x03:
-      return DCxfer(iod, target, FALSE);
+      return DCxfer(iod, target, false);
   }
   return IO_REJECT;
 }

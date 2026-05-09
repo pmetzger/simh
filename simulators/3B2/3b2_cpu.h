@@ -31,6 +31,7 @@
 #ifndef _3B2_CPU_H_
 #define _3B2_CPU_H_
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 /* Execution Modes */
@@ -588,7 +589,7 @@ typedef struct {
     uint32 psw;
     uint32 sp;
     uint32 pc;
-    t_bool valid;
+    bool valid;
     operand operands[4];
 } instr;
 
@@ -610,7 +611,7 @@ t_stat cpu_boot(int32 unit_num, DEVICE *dptr);
 t_stat cpu_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *cpu_description(DEVICE *dptr);
 
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
 
 void cpu_register_name(uint8 reg, char *buf, size_t len);
 void cpu_show_operand(FILE *st, operand *op);
@@ -668,17 +669,17 @@ void cpu_abort(uint8 et, uint8 isc);
 #define CPU_SET_INT(flags) (sbd_int_req |= flags)
 #define CPU_CLR_INT(flags) (sbd_int_req &= ~(flags))
 
-extern t_bool rom_loaded;
+extern bool rom_loaded;
 extern volatile int32 stop_reason;
 extern uint16 sbd_int_req;
 extern instr *cpu_instr;
-extern t_bool cpu_nmi;
+extern bool cpu_nmi;
 extern uint8 *ROM;
 extern uint8 *RAM;
 extern uint32 R[NUM_REGISTERS];
 extern REG cpu_reg[];
 extern UNIT cpu_unit;
 extern uint8 fault;
-extern t_bool cpu_km;
+extern bool cpu_km;
 
 #endif

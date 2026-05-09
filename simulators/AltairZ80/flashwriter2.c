@@ -37,6 +37,7 @@
 
 /*#define DBG_MSG*/
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 #ifdef DBG_MSG
@@ -150,17 +151,17 @@ static t_stat fw2_attach(UNIT *uptr, const char *cptr)
     fw2_info[i]->uptr = uptr;
     fw2_info[i]->uptr->u3 = baseaddr;
 
-    if(sim_map_resource(baseaddr, FW2_CAPACITY, RESOURCE_TYPE_MEMORY, &fw2dev, "fw2dev", FALSE) != 0) {
+    if(sim_map_resource(baseaddr, FW2_CAPACITY, RESOURCE_TYPE_MEMORY, &fw2dev, "fw2dev", false) != 0) {
         sim_printf("%s: error mapping MEM resource at 0x%04x\n", __FUNCTION__, baseaddr);
         return SCPE_ARG;
     }
 
-    if(sim_map_resource(0x00, 1, RESOURCE_TYPE_IO, &sio0s, "sio0s", FALSE) != 0) {
+    if(sim_map_resource(0x00, 1, RESOURCE_TYPE_IO, &sio0s, "sio0s", false) != 0) {
         sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, 0x00);
         return SCPE_ARG;
     }
 
-    if(sim_map_resource(0x01, 1, RESOURCE_TYPE_IO, &sio0d, "sio0d", FALSE) != 0) {
+    if(sim_map_resource(0x01, 1, RESOURCE_TYPE_IO, &sio0d, "sio0d", false) != 0) {
         sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, 0x01);
         return SCPE_ARG;
     }
@@ -192,9 +193,9 @@ static t_stat fw2_detach(UNIT *uptr)
         return SCPE_ARG;
 
     /* Disconnect FlashWriter2: unmap memory and I/O resources */
-    sim_map_resource(fw2_info[i]->uptr->u3, FW2_CAPACITY, RESOURCE_TYPE_MEMORY, &fw2dev, "fw2dev", TRUE);
-    sim_map_resource(0x00, 1, RESOURCE_TYPE_IO, &sio0s, "sio0s", TRUE);
-    sim_map_resource(0x01, 1, RESOURCE_TYPE_IO, &sio0d, "sio0d", TRUE);
+    sim_map_resource(fw2_info[i]->uptr->u3, FW2_CAPACITY, RESOURCE_TYPE_MEMORY, &fw2dev, "fw2dev", true);
+    sim_map_resource(0x00, 1, RESOURCE_TYPE_IO, &sio0s, "sio0s", true);
+    sim_map_resource(0x01, 1, RESOURCE_TYPE_IO, &sio0d, "sio0d", true);
 
     if(fw2_info[i]) {
         free(fw2_info[i]);

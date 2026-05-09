@@ -84,6 +84,7 @@ return(crc);
 /* Debug routines */
 
 #include <ctype.h>
+#include <stdbool.h>
 
 static void ddcmp_packet_trace (uint32 reason, DEVICE *dptr, const char *txt, const uint8 *msg, int32 len)
 {
@@ -193,16 +194,16 @@ uint16 ddcmp_crc16(uint16 crc, const void* vbuf, size_t len);
  * the transmitter and receiver; thus the troll applies a direction-
  * dependent pattern.
  *
- * Return TRUE if the troll ate the message.
- * Return FALSE if the message was nibbled or spared.
+ * Return true if the troll ate the message.
+ * Return false if the message was nibbled or spared.
  */
-static t_bool ddcmp_feedCorruptionTroll (TMLN *lp, uint8 *msg, t_bool rx, int32 trollHungerLevel)
+static bool ddcmp_feedCorruptionTroll (TMLN *lp, uint8 *msg, bool rx, int32 trollHungerLevel)
 {
 double r, rmax;
 char msgbuf[80];
 
 if (trollHungerLevel == 0)
-    return FALSE;
+    return false;
 r = rand();
 rmax = (double)RAND_MAX;
 if (msg[0] == DDCMP_ENQ) {
@@ -212,7 +213,7 @@ if (msg[0] == DDCMP_ENQ) {
         if (eat <= trollHungerLevel) {      /* Eat the packet */
             sprintf (msgbuf, "troll ate a %s control message\n", rx ? "RCV" : "XMT");
             tmxr_debug_msg (rx ? DDCMP_DBG_PRCV : DDCMP_DBG_PXMT, lp, msgbuf);
-            return TRUE;
+            return true;
             }
         sprintf (msgbuf, "troll bit a %s control message\n", rx ? "RCV" : "XMT");
         tmxr_debug_msg (rx ? DDCMP_DBG_PRCV : DDCMP_DBG_PXMT, lp, msgbuf);
@@ -226,7 +227,7 @@ else {
         if (eat <= trollHungerLevel) {      /* Eat the packet */
             sprintf (msgbuf, "troll ate a %s %s message\n", rx ? "RCV" : "XMT", (msg[0] == DDCMP_SOH)? "data" : "maintenance");
             tmxr_debug_msg (rx ? DDCMP_DBG_PRCV : DDCMP_DBG_PXMT, lp, msgbuf);
-            return TRUE;
+            return true;
             }
         if (eat <= (trollHungerLevel * 2)) { /* HCRC */
             sprintf (msgbuf, "troll bit a %s %s message\n", rx ? "RCV" : "XMT", (msg[0] == DDCMP_SOH)? "data" : "maintenance");
@@ -240,7 +241,7 @@ else {
             }
         }
     }
-return FALSE;
+return false;
 }
 
 /* Get packet from specific line
@@ -300,7 +301,7 @@ while (TMXR_VALID & (c = tmxr_getc_ln (lp))) {
             else
                 strcpy (msg, "<<< RCV Packet");
             ddcmp_packet_trace (DDCMP_DBG_PRCV, lp->mp->dptr, msg, lp->rxpb, *psize);
-            if (ddcmp_feedCorruptionTroll (lp, lp->rxpb, TRUE, corruptrate))
+            if (ddcmp_feedCorruptionTroll (lp, lp->rxpb, true, corruptrate))
                 break;
             return SCPE_OK;
             }
@@ -315,7 +316,7 @@ while (TMXR_VALID & (c = tmxr_getc_ln (lp))) {
                 strcpy (msg, "<<< RCV Packet");
             ddcmp_packet_trace (DDCMP_DBG_PRCV, lp->mp->dptr, msg, lp->rxpb, *psize);
             lp->rxpboffset = 0;
-            if (ddcmp_feedCorruptionTroll (lp, lp->rxpb, TRUE, corruptrate))
+            if (ddcmp_feedCorruptionTroll (lp, lp->rxpb, true, corruptrate))
                 break;
             return SCPE_OK;
             }
@@ -367,7 +368,7 @@ if (lp->mp->lines > 1)
 else
     strcpy (msg, ">>> XMT Packet");
 ddcmp_packet_trace (DDCMP_DBG_PXMT, lp->mp->dptr, msg, lp->txpb, lp->txppsize);
-if (!ddcmp_feedCorruptionTroll (lp, lp->txpb, FALSE, corruptrate)) {
+if (!ddcmp_feedCorruptionTroll (lp, lp->txpb, false, corruptrate)) {
     ++lp->txpcnt;
     while ((lp->txppoffset < lp->txppsize) &&
            (SCPE_OK == (r = tmxr_putc_ln (lp, lp->txpb[lp->txppoffset]))))

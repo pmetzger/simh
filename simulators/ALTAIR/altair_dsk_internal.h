@@ -3,6 +3,7 @@
 #ifndef ALTAIR_DSK_INTERNAL_H_
 #define ALTAIR_DSK_INTERNAL_H_ 0
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 
@@ -24,6 +25,6 @@ void altair_dsk_set_io_hooks(const ALTAIR_DSK_IO_HOOKS *hooks);
 void altair_dsk_reset_io_hooks(void);
 
 t_stat dsk_reset(DEVICE *dptr);
-t_bool writebuf(void);
+bool writebuf(void);
 
 #endif /* ALTAIR_DSK_INTERNAL_H_ */

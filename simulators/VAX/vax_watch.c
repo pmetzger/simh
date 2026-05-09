@@ -31,6 +31,7 @@
    models including the KA620, KA630, KA410, KA420 and KA820.
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 /* control/status registers */
@@ -246,7 +247,7 @@ if (rg < 14) {
             break;
             }
     sim_debug(DBG_REG, &wtc_dev, "wtc_rd(rg=%d [%s], data=0x%X) ", rg, wtc_regs[rg], val);
-    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32)val, (uint32)val, TRUE);
+    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32)val, (uint32)val, true);
     }
 else
     sim_debug(DBG_REG, &wtc_dev, "wtc_rd(rg=%d [RAM], data=0x%X)\n", rg, val);
@@ -289,7 +290,7 @@ switch(rg) {                                            /* register behaviors */
 
 if (rg < 14) {
     sim_debug(DBG_REG, &wtc_dev, "wtc_wr(rg=%d [%s], data=0x%X) ", rg, wtc_regs[rg], val);
-    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32)new_val, (uint32)new_val, TRUE);
+    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32)new_val, (uint32)new_val, true);
     }
 else
     sim_debug(DBG_REG, &wtc_dev, "wtc_wr(rg=%d [RAM], data=0x%X)\n", rg, val);

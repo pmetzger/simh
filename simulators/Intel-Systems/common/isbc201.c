@@ -158,6 +158,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 #include "isbc201_internal.h"
 #include "scp.h"
@@ -218,7 +219,7 @@ extern uint16    PCX;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16 port);
 extern uint8 get_mbyte(uint16 addr);
 extern void put_mbyte(uint16 addr, uint8 val);
@@ -235,11 +236,11 @@ t_stat isbc201_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat isbc201_reset(DEVICE *dptr);
 void isbc201_reset_dev(void);
 t_stat isbc201_attach (UNIT *uptr, const char *cptr);
-uint8 isbc201r0(t_bool io, uint8 data, uint8 devnum);  /* isbc201 0 */
-uint8 isbc201r1(t_bool io, uint8 data, uint8 devnum);  /* isbc201 1 */
-uint8 isbc201r2(t_bool io, uint8 data, uint8 devnum);  /* isbc201 2 */
-uint8 isbc201r3(t_bool io, uint8 data, uint8 devnum);  /* isbc201 3 */
-uint8 isbc201r7(t_bool io, uint8 data, uint8 devnum);  /* isbc201 7 */
+uint8 isbc201r0(bool io, uint8 data, uint8 devnum);    /* isbc201 0 */
+uint8 isbc201r1(bool io, uint8 data, uint8 devnum);    /* isbc201 1 */
+uint8 isbc201r2(bool io, uint8 data, uint8 devnum);    /* isbc201 2 */
+uint8 isbc201r3(bool io, uint8 data, uint8 devnum);    /* isbc201 3 */
+uint8 isbc201r7(bool io, uint8 data, uint8 devnum);    /* isbc201 7 */
 void isbc201_diskio(void);      //do actual disk i/o
 
 /* globals */
@@ -263,7 +264,7 @@ FDCDEF    fdc201;                       //indexed by the isbc-201 instance numbe
  * TODO: Share this helper logic with the other Intel diskette controllers
  * after the warning-driven fixes are settled.
  */
-static t_bool isbc201_completion_interrupt_enabled(uint8 cw)
+static bool isbc201_completion_interrupt_enabled(uint8 cw)
 {
     return (cw & CW_INT_CTL) != CW_INT_DIS;
 }
@@ -604,7 +605,7 @@ t_stat isbc201_attach (UNIT *uptr, const char *cptr)
 
 /* ISBC201 control port functions */
 
-uint8 isbc201r0(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc201r0(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -617,7 +618,7 @@ uint8 isbc201r0(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc201r1(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc201r1(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -634,7 +635,7 @@ uint8 isbc201r1(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc201r2(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc201r2(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -651,7 +652,7 @@ uint8 isbc201r2(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc201r3(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc201r3(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -674,7 +675,7 @@ uint8 isbc201r3(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc201r7(t_bool io, uint8 data, uint8 devnum)
+uint8 isbc201r7(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -700,7 +701,7 @@ void isbc201_diskio(void)
     uint32 i;
     UNIT *uptr;
     uint8 *fbuf;
-    t_bool completion_interrupt;
+    bool completion_interrupt;
 
     //parse the IOPB
     cw = get_mbyte(fdc201.iopb);        //Channel Word

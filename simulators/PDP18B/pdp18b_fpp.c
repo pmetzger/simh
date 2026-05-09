@@ -75,6 +75,7 @@
 
 */
 
+#include <stdbool.h>
 #include "pdp18b_defs.h"
 
 /* Instruction */
@@ -158,14 +159,14 @@ extern int32 trap_pending, usmd;
 t_stat fp15_reset (DEVICE *dptr);
 t_stat fp15_opnd (int32 ir, int32 addr, UFP *a);
 t_stat fp15_store (int32 ir, int32 addr, UFP *a);
-t_stat fp15_iadd (int32 ir, UFP *a, UFP *b, t_bool sub);
+t_stat fp15_iadd (int32 ir, UFP *a, UFP *b, bool sub);
 t_stat fp15_imul (int32 ir, UFP *a, UFP *b);
 t_stat fp15_idiv (int32 ir, UFP *a, UFP *b);
-t_stat fp15_fadd (int32 ir, UFP *a, UFP *b, t_bool sub);
+t_stat fp15_fadd (int32 ir, UFP *a, UFP *b, bool sub);
 t_stat fp15_fmul (int32 ir, UFP *a, UFP *b);
 t_stat fp15_fdiv (int32 ir, UFP *a, UFP *b);
 t_stat fp15_fix (int32 ir, UFP *a);
-t_stat fp15_norm (int32 ir, UFP *a, UFP *b, t_bool rnd);
+t_stat fp15_norm (int32 ir, UFP *a, UFP *b, bool rnd);
 t_stat fp15_exc (t_stat sta);
 void fp15_asign (int32 ir, UFP *a);
 void dp_add (UFP *a, UFP *b);
@@ -492,7 +493,7 @@ return FP_OK;
 
 /* Integer add - overflow only on add, if carry out of high fraction */
 
-t_stat fp15_iadd (int32 ir, UFP *a, UFP *b, t_bool sub)
+t_stat fp15_iadd (int32 ir, UFP *a, UFP *b, bool sub)
 {
 fmq.hi = fmq.lo = 0;                                    /* clear FMQ */
 if (a->sign ^ b->sign ^ sub)                            /* eff subtract? */
@@ -580,7 +581,7 @@ return FP_OK;
    - Special add case, overflow if carry out increments exp out of range
    - All cases, overflow/underflow detected in normalize */
 
-t_stat fp15_fadd (int32 ir, UFP *a, UFP *b, t_bool sub)
+t_stat fp15_fadd (int32 ir, UFP *a, UFP *b, bool sub)
 {
 int32 ediff;
 
@@ -844,7 +845,7 @@ return;
      Normalization also does zero detect
    - Do rounding if enabled (NOR phase, part 2) */
 
-t_stat fp15_norm (int32 ir, UFP *a, UFP *b, t_bool rnd)
+t_stat fp15_norm (int32 ir, UFP *a, UFP *b, bool rnd)
 {
 a->hi = a->hi & UFP_FH_MASK;                            /* mask a */
 a->lo = a->lo & UFP_FL_MASK;

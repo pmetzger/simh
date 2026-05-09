@@ -35,6 +35,7 @@
    23-Jul-10    HV      RTE didn't set/reset S bit
 */
 
+#include <stdbool.h>
 #include "m68k_cpu.h"
 
 /* status reg flags */
@@ -279,7 +280,7 @@ static t_stat ReadInstr(t_addr pc,uint32* inst)
     t_addr tpc;
     IOHANDLER* ioh;
 
-    if ((rc=TranslateAddr(pc & ~CACHE_MASK,&tpc,&ioh,MEM_READ,FALSE,FALSE)) != SCPE_OK)
+    if ((rc=TranslateAddr(pc & ~CACHE_MASK,&tpc,&ioh,MEM_READ,false,false)) != SCPE_OK)
         return rc==SIM_ISIO ? STOP_PCIO : rc;
     if (tpc != cache_pc) {
         ASSERT_OKRET(ReadICache(tpc));
@@ -310,7 +311,7 @@ static t_stat ReadInstrLongInc(t_addr* pc,uint32* inst)
 }
 
 
-static void m68k_set_s(t_bool tf)
+static void m68k_set_s(bool tf)
 {
     if (tf) {
         SR |= FLAG_S;
@@ -391,7 +392,7 @@ t_stat m68kcpu_reset(DEVICE* dptr)
     ReadPL(4,&saved_PC);
     ReadInstr(saved_PC,&dummy); /* fill prefetch cache */
     m68k_irqinit();             /* reset interrupt flags */
-    m68k_set_s(TRUE);           /* reset to supervisor mode */
+    m68k_set_s(true);           /* reset to supervisor mode */
     return SCPE_OK;
 }
 
@@ -1021,15 +1022,15 @@ t_stat ea_dst(uint32 eamod,uint32 eareg,uint32 val,int sz,t_addr* pc)
     }
 }
 
-static t_bool testcond(uint32 c)
+static bool testcond(uint32 c)
 {
     int n,v;
 
     switch (c) {
     case 0x0000: /*T*/
-        return TRUE;
+        return true;
     case 0x0100: /*F*/
-        return FALSE;
+        return false;
     case 0x0200: /*HI*/
         return !(CCR_C || CCR_Z);
     case 0x0300: /*LS*/
@@ -1063,7 +1064,7 @@ static t_bool testcond(uint32 c)
         n = CCR_N; v = CCR_V;
         return CCR_Z || (!n && v) || (n && !v);
     default: /*notreached*/
-        return FALSE;
+        return false;
     }
 }
 
@@ -1128,7 +1129,7 @@ static t_stat m68k_gen_exception(int vecno,t_addr* pc)
     if (cputype<2) {
         ASSERT_OKRET(m68k_push32(*pc));
         ASSERT_OKRET(m68k_push16(SR));
-        m68k_set_s(TRUE);
+        m68k_set_s(true);
         CLRF(FLAG_T0|FLAG_T1);
     } else {
         /* no support for 68010 and above yet */
@@ -1150,7 +1151,7 @@ static uint32 m68k_add8(uint32 src1,uint32 src2,uint32 x)
     return res;
 }
 
-static uint32 m68k_add16(uint32 src1,uint32 src2,uint32 x,t_bool chgflags)
+static uint32 m68k_add16(uint32 src1,uint32 src2,uint32 x,bool chgflags)
 {
     uint32 res = MASK_16L(src1) + MASK_16L(src2) + x;
     if (chgflags) {
@@ -1161,7 +1162,7 @@ static uint32 m68k_add16(uint32 src1,uint32 src2,uint32 x,t_bool chgflags)
     return res;
 }
 
-static uint32 m68k_add32(t_uint64 src1,t_uint64 src2,t_uint64 x,t_bool chgflags)
+static uint32 m68k_add32(t_uint64 src1,t_uint64 src2,t_uint64 x,bool chgflags)
 {
     t_uint64 resx = MASK_32L(src1) + MASK_32L(src2) + x;
     if (chgflags) {
@@ -1181,7 +1182,7 @@ static uint32 m68k_sub8(uint32 dst,uint32 src,uint32 x)
     return res;
 }
 
-static uint32 m68k_sub16(uint32 dst,uint32 src,uint32 x,t_bool chgflags)
+static uint32 m68k_sub16(uint32 dst,uint32 src,uint32 x,bool chgflags)
 {
     uint32 res = MASK_16L(dst) - MASK_16L(src) - x;
     if (chgflags) {
@@ -1192,7 +1193,7 @@ static uint32 m68k_sub16(uint32 dst,uint32 src,uint32 x,t_bool chgflags)
     return res;
 }
 
-static uint32 m68k_sub32(t_uint64 dst,t_uint64 src, t_uint64 x,t_bool chgflags)
+static uint32 m68k_sub32(t_uint64 dst,t_uint64 src, t_uint64 x,bool chgflags)
 {
     t_uint64 resx = MASK_32L(dst) - MASK_32L(src) - x;
     if (chgflags) {
@@ -1208,7 +1209,7 @@ static uint32* movem_regs[] = {
         (uint32*)&A0, (uint32*)&A1, (uint32*)&A2, (uint32*)&A3, (uint32*)&A4, (uint32*)&A5, (uint32*)&A6, 0
 };
 
-static t_stat m68k_movem_r_pd(t_addr* areg,uint32 regs,t_bool sz)
+static t_stat m68k_movem_r_pd(t_addr* areg,uint32 regs,bool sz)
 {
     int i;
     t_stat rc;
@@ -1229,7 +1230,7 @@ static t_stat m68k_movem_r_pd(t_addr* areg,uint32 regs,t_bool sz)
     return SCPE_OK;
 }
 
-static t_stat m68k_movem_r_ea(t_addr ea,uint32 regs,t_bool sz)
+static t_stat m68k_movem_r_ea(t_addr ea,uint32 regs,bool sz)
 {
     int i;
     t_stat rc;
@@ -1248,7 +1249,7 @@ static t_stat m68k_movem_r_ea(t_addr ea,uint32 regs,t_bool sz)
     return SCPE_OK;
 }
 
-static t_stat m68k_movem_pi_r(t_addr* areg,uint32 regs,t_bool sz)
+static t_stat m68k_movem_pi_r(t_addr* areg,uint32 regs,bool sz)
 {
     int i;
     t_addr ea = *areg;
@@ -1271,7 +1272,7 @@ static t_stat m68k_movem_pi_r(t_addr* areg,uint32 regs,t_bool sz)
     return SCPE_OK;
 }
 
-static t_stat m68k_movem_ea_r(t_addr ea,uint32 regs,t_bool sz)
+static t_stat m68k_movem_ea_r(t_addr ea,uint32 regs,bool sz)
 {
     int i;
     uint32 src;
@@ -1333,7 +1334,7 @@ static t_stat m68k_divs_w(uint32 divdr,int32* reg, t_addr* pc)
     return SCPE_OK;
 }
 
-static t_bool m68k_checkints(t_addr* pc)
+static bool m68k_checkints(t_addr* pc)
 {
     int i;
     if (intpending) {
@@ -1346,7 +1347,7 @@ static t_bool m68k_checkints(t_addr* pc)
                 intpending &= ~(1<<i);
                 intvectors[i] = 0; /* mark it as handled */
                 m68k_setipl(i); /* set new interrupt prio, to leave out lower prio interrupts */
-                return TRUE;
+                return true;
             }
         }
     }
@@ -1378,7 +1379,7 @@ t_stat sim_instr(void)
     int32 sres, *reg, cnt;
     t_uint64 resx, srcx1, srcx2;
     t_addr PC, srca, *areg, oldpc;
-    t_bool isbsr,iscond;
+    bool isbsr,iscond;
     uint16 tracet0;
     char out[20];
 
@@ -1676,7 +1677,7 @@ do_bclr8:       SETZ8(res & src1);
             case 0002150: case 0002160: case 0002170: /*subi.w*/
                 ASSERT_OK(ReadInstrInc(&PC,&src2));
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                res = m68k_sub16(src1,src2,0,TRUE);
+                res = m68k_sub16(src1,src2,0,true);
                 rc = IR_1103 < 0006000 ? ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res) : SCPE_OK;
                 break;
             case 0006200: case 0006220: case 0006230: case 0006240:
@@ -1685,7 +1686,7 @@ do_bclr8:       SETZ8(res & src1);
             case 0002250: case 0002260: case 0002270: /*subi.l*/
                 ASSERT_OK(ReadInstrLongInc(&PC,&src2));
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-                res = m68k_sub32(srcx1,(t_uint64)src2,0,TRUE);
+                res = m68k_sub32(srcx1,(t_uint64)src2,0,true);
                 rc = IR_1103 < 0006000 ? ea_dst_l_rmw(IR_EAMOD,IR_EAREG,res) : SCPE_OK;
                 break;
 
@@ -1699,13 +1700,13 @@ do_bclr8:       SETZ8(res & src1);
             case 0003150: case 0003160: case 0003170: /*addi.w*/
                 ASSERT_OK(ReadInstrInc(&PC,&src2));
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                res = m68k_add16(src1,src2,0,TRUE);
+                res = m68k_add16(src1,src2,0,true);
                 rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res); break;
             case 0003200: case 0003220: case 0003230: case 0003240:
             case 0003250: case 0003260: case 0003270: /*addi.l*/
                 ASSERT_OK(ReadInstrLongInc(&PC,&src2));
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-                res = m68k_add32(srcx1,(t_uint64)src2,0,TRUE);
+                res = m68k_add32(srcx1,(t_uint64)src2,0,true);
                 rc = ea_dst_l_rmw(IR_EAMOD,IR_EAREG,res);
                 break;
             case 0005000: case 0005020: case 0005030: case 0005040:
@@ -1852,7 +1853,7 @@ do_neg8:        res = m68k_sub8(0,src1,0);
                 goto do_neg16;
             case 002100: /*neg.w*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-do_neg16:       res = m68k_sub16(0,src1,0,TRUE);
+do_neg16:       res = m68k_sub16(0,src1,0,true);
                 rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res);
                 break;
 
@@ -1862,7 +1863,7 @@ do_neg16:       res = m68k_sub16(0,src1,0,TRUE);
                 goto do_neg32;
             case 002200: /*neg.l*/
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
+do_neg32:       res = m68k_sub32(0,srcx1,0,true);
                 rc = ea_dst_l_rmw(IR_EAMOD,IR_EAREG,res);
                 break;
 
@@ -1930,10 +1931,10 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 } else { /*movem.w regs,ea*/
                     ASSERT_OK(ReadInstrInc(&PC,&IRE));
                     if (IR_EAMOD==EA_APD)
-                        rc = m68k_movem_r_pd(AREG(IR_REGY),IRE,FALSE);
+                        rc = m68k_movem_r_pd(AREG(IR_REGY),IRE,false);
                     else {
                         ASSERT_OK(ea_src_l_nd(IR_EAMOD,IR_EAREG,&srca,&PC));
-                        rc = m68k_movem_r_ea(srca,IRE,FALSE);
+                        rc = m68k_movem_r_ea(srca,IRE,false);
                     }
                 }
                 break;
@@ -1947,10 +1948,10 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 } else { /*movem.l regs,ea */
                     ASSERT_OK(ReadInstrInc(&PC,&IRE));
                     if (IR_EAMOD==EA_APD)
-                        rc = m68k_movem_r_pd(AREG(IR_REGY),IRE,TRUE);
+                        rc = m68k_movem_r_pd(AREG(IR_REGY),IRE,true);
                     else {
                         ASSERT_OK(ea_src_l_nd(IR_EAMOD,IR_EAREG,&srca,&PC));
-                        rc = m68k_movem_r_ea(srca,IRE,TRUE);
+                        rc = m68k_movem_r_ea(srca,IRE,true);
                     }
                 }
                 break;
@@ -1980,19 +1981,19 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 006200: /*movem.w ea,regs*/
                 ASSERT_OK(ReadInstrInc(&PC,&IRE));
                 if (IR_EAMOD==EA_API)
-                    rc = m68k_movem_pi_r(AREG(IR_REGY),IRE,FALSE);
+                    rc = m68k_movem_pi_r(AREG(IR_REGY),IRE,false);
                 else {
                     ASSERT_OK(ea_src_l_nd(IR_EAMOD,IR_EAREG,&srca,&PC));
-                    rc = m68k_movem_ea_r(srca,IRE,FALSE);
+                    rc = m68k_movem_ea_r(srca,IRE,false);
                 }
                 break;
             case 006300: /*movem.l ea,regs*/
                 ASSERT_OK(ReadInstrInc(&PC,&IRE));
                 if (IR_EAMOD==EA_API)
-                    rc = m68k_movem_pi_r(AREG(IR_REGY),IRE,TRUE);
+                    rc = m68k_movem_pi_r(AREG(IR_REGY),IRE,true);
                 else {
                     ASSERT_OK(ea_src_l_nd(IR_EAMOD,IR_EAREG,&srca,&PC));
-                    rc = m68k_movem_ea_r(srca,IRE,TRUE);
+                    rc = m68k_movem_ea_r(srca,IRE,true);
                 }
                 break;
             case 007100:
@@ -2156,7 +2157,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                     rc = SCPE_OK;
                 } else {
                     ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                    res = m68k_add16(src1,quickarg[IR_REGX],0,TRUE);
+                    res = m68k_add16(src1,quickarg[IR_REGX],0,true);
                     rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res);
                 }
                 break;
@@ -2176,7 +2177,7 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                     rc = SCPE_OK;
                 } else {
                     ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                    res = m68k_sub16(src1,quickarg[IR_REGX],0,TRUE);
+                    res = m68k_sub16(src1,quickarg[IR_REGX],0,true);
                     rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res);
                 }
                 break;
@@ -2341,23 +2342,23 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 rc = ea_dst_b_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000500: /*subx.w d*/
-                res = m68k_sub16(MASK_16L(DRY),DRX,CCR_X?1:0,TRUE);
+                res = m68k_sub16(MASK_16L(DRY),DRX,CCR_X?1:0,true);
                 rc = ea_dst_w(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000510: /*subx.w -a*/
                 ASSERT_OK(ea_src_w(EA_APD,IR_REGY,&src1,&PC));
                 ASSERT_OK(ea_src_w(EA_APD,IR_REGX,&src2,&PC));
-                res = m68k_sub16(src1,src2,CCR_X?1:0,TRUE);
+                res = m68k_sub16(src1,src2,CCR_X?1:0,true);
                 rc = ea_dst_w_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000600: /*subx.l d*/
-                res = m68k_sub32((t_uint64)DRY,(t_uint64)DRX,CCR_X?1:0,TRUE);
+                res = m68k_sub32((t_uint64)DRY,(t_uint64)DRX,CCR_X?1:0,true);
                 rc = ea_dst_l(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000610: /*subx.l -a*/
                 ASSERT_OK(ea_src_l64(EA_APD,IR_REGY,&srcx1,&PC));
                 ASSERT_OK(ea_src_l64(EA_APD,IR_REGX,&srcx2,&PC));
-                res = m68k_sub32(srcx1,srcx2,CCR_X?1:0,TRUE);
+                res = m68k_sub32(srcx1,srcx2,CCR_X?1:0,true);
                 rc = ea_dst_l_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000000: case 0000020: case 0000030: case 0000040:
@@ -2369,13 +2370,13 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 0000100: case 0000110: case 0000120: case 0000130:
             case 0000140: case 0000150: case 0000160: case 0000170: /* sub.w ->d */
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                res = m68k_sub16(DRX,src1,0,TRUE);
+                res = m68k_sub16(DRX,src1,0,true);
                 rc = ea_dst_w(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000200: case 0000210: case 0000220: case 0000230:
             case 0000240: case 0000250: case 0000260: case 0000270: /* sub.l ->d */
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-                res = m68k_sub32((t_uint64)DRX,srcx1,0,TRUE);
+                res = m68k_sub32((t_uint64)DRX,srcx1,0,true);
                 rc = ea_dst_l(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000420: case 0000430: case 0000440: case 0000450:
@@ -2387,13 +2388,13 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 0000520: case 0000530: case 0000540: case 0000550:
             case 0000560: case 0000570:                             /* sub.w ->ea */
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                res = m68k_sub16(src1,DRX,0,TRUE);
+                res = m68k_sub16(src1,DRX,0,true);
                 rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res);
                 break;
             case 0000620: case 0000630: case 0000640: case 0000650:
             case 0000660: case 0000670:                             /* sub.l ->ea */
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-                res = m68k_sub32(srcx1,(t_uint64)DRX,0,TRUE);
+                res = m68k_sub32(srcx1,(t_uint64)DRX,0,true);
                 rc = ea_dst_l_rmw(IR_EAMOD,IR_EAREG,res);
                 break;
             default:
@@ -2455,24 +2456,24 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 0000100: case 0000110: case 0000120: case 0000130:
             case 0000140: case 0000150: case 0000160: case 0000170: /*cmp.w*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                (void)m68k_sub16(DRX,src1,0,TRUE);
+                (void)m68k_sub16(DRX,src1,0,true);
                 break;
             case 0000200: case 0000210: case 0000220: case 0000230:
             case 0000240: case 0000250: case 0000260: case 0000270: /*cmp.l*/
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-                (void)m68k_sub32((t_uint64)DRX,srcx1,0,TRUE);
+                (void)m68k_sub32((t_uint64)DRX,srcx1,0,true);
                 break;
             case 0000300: case 0000310: case 0000320: case 0000330:
             case 0000340: case 0000350: case 0000360: case 0000370: /*cmpa.w*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
                 areg = AREG(IR_REGX);
-                (void)m68k_sub32((t_uint64)EXTW(*areg),(t_uint64)src1,0,TRUE);
+                (void)m68k_sub32((t_uint64)EXTW(*areg),(t_uint64)src1,0,true);
                 break;
 
             case 0000700: case 0000710: case 0000720: case 0000730:
             case 0000740: case 0000750: case 0000760: case 0000770: /*cmpa.l*/
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-                (void)m68k_sub32((t_uint64)*AREG(IR_REGX),srcx1,0,TRUE);
+                (void)m68k_sub32((t_uint64)*AREG(IR_REGX),srcx1,0,true);
                 break;
             default:
                 rc = STOP_ERROP;
@@ -2600,23 +2601,23 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
                 rc = ea_dst_b_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000500: /* addx.w d*/
-                res = m68k_add16(MASK_16L(DRY),DRX,CCR_X?1:0,TRUE);
+                res = m68k_add16(MASK_16L(DRY),DRX,CCR_X?1:0,true);
                 rc = ea_dst_w(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000510: /* addx.w -a*/
                 ASSERT_OK(ea_src_w(EA_APD,IR_REGY,&src1,&PC));
                 ASSERT_OK(ea_src_w(EA_APD,IR_REGX,&src2,&PC));
-                res = m68k_add16(src1,src2,CCR_X?1:0,TRUE);
+                res = m68k_add16(src1,src2,CCR_X?1:0,true);
                 rc = ea_dst_w_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000600: /* addx.l d*/
-                res = m68k_add32((t_uint64)DRY,(t_uint64)DRX,CCR_X?1:0,TRUE);
+                res = m68k_add32((t_uint64)DRY,(t_uint64)DRX,CCR_X?1:0,true);
                 rc = ea_dst_l(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000610: /* addx.l -a*/
                 ASSERT_OK(ea_src_l64(EA_APD,IR_REGY,&srcx1,&PC));
                 ASSERT_OK(ea_src_l64(EA_APD,IR_REGX,&srcx2,&PC));
-                res = m68k_add32(srcx1,srcx2,CCR_X?1:0,TRUE);
+                res = m68k_add32(srcx1,srcx2,CCR_X?1:0,true);
                 rc = ea_dst_l_rmw(EA_APD,IR_REGX,res);
                 break;
             case 0000000: case 0000010: case 0000020: case 0000030:
@@ -2628,13 +2629,13 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 0000100: case 0000110: case 0000120: case 0000130:
             case 0000140: case 0000150: case 0000160: case 0000170: /*add.w ->d*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                res = m68k_add16(src1,DRX,0,TRUE);
+                res = m68k_add16(src1,DRX,0,true);
                 rc = ea_dst_w(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000200: case 0000210: case 0000220: case 0000230:
             case 0000240: case 0000250: case 0000260: case 0000270: /*add.l ->d*/
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-                res = m68k_add32(srcx1,(t_uint64)DRX,0,TRUE);
+                res = m68k_add32(srcx1,(t_uint64)DRX,0,true);
                 rc = ea_dst_l(EA_DDIR,IR_REGX,res,&PC);
                 break;
             case 0000420: case 0000430: case 0000440: case 0000450:
@@ -2646,13 +2647,13 @@ do_neg32:       res = m68k_sub32(0,srcx1,0,TRUE);
             case 0000520: case 0000530: case 0000540: case 0000550:
             case 0000560: case 0000570: /*add.w ->ea*/
                 ASSERT_OK(ea_src_w(IR_EAMOD,IR_EAREG,&src1,&PC));
-                res = m68k_add16(src1,DRX,0,TRUE);
+                res = m68k_add16(src1,DRX,0,true);
                 rc = ea_dst_w_rmw(IR_EAMOD,IR_EAREG,res);
                 break;
             case 0000620: case 0000630: case 0000640: case 0000650:
             case 0000660: case 0000670: /*add.l ->ea*/
                 ASSERT_OK(ea_src_l64(IR_EAMOD,IR_EAREG,&srcx1,&PC));
-                res = m68k_add32(srcx1,(t_uint64)DRX,0,TRUE);
+                res = m68k_add32(srcx1,(t_uint64)DRX,0,true);
                 rc = ea_dst_l_rmw(IR_EAMOD,IR_EAREG,res);
                 break;
             default:

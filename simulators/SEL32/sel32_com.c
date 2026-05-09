@@ -26,6 +26,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #if NUM_DEVS_COM > 0
 
@@ -220,8 +221,8 @@ TMXR com_desc = { COM_LINES, 0, 0, com_ldsc }; /* com descr */
 t_stat      coml_preio(UNIT *uptr, uint16 chan);
 t_stat      coml_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd);
 t_stat      coml_haltio(UNIT *uptr);
-void        com_ini(UNIT *, t_bool);
-void        coml_ini(UNIT *, t_bool);
+void        com_ini(UNIT *, bool);
+void        coml_ini(UNIT *, bool);
 t_stat      coml_rschnlio(UNIT *uptr);
 t_stat      com_rschnlio(UNIT *uptr);
 t_stat      comi_srv(UNIT *uptr);
@@ -270,7 +271,7 @@ DIB             com_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     com_rschnlio,   /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    com_ini,        /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    com_ini,        /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     com_unit,       /* UNIT* units */                           /* Pointer to units structure */
     com_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -341,7 +342,7 @@ DIB             coml_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     coml_rschnlio,  /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    coml_ini,       /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    coml_ini,       /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     coml_unit,      /* UNIT* units */                           /* Pointer to units structure */
     coml_chp,       /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -384,7 +385,7 @@ DEVICE          coml_dev = {
 };
 
 /* 8-line serial routines */
-void coml_ini(UNIT *uptr, t_bool f)
+void coml_ini(UNIT *uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */
@@ -409,7 +410,7 @@ t_stat  coml_rschnlio(UNIT *uptr) {
 }
 
 /* 8-line serial routines */
-void com_ini(UNIT *uptr, t_bool f)
+void com_ini(UNIT *uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */

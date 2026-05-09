@@ -253,6 +253,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
 #include "hp_tapelib.h"
@@ -1144,7 +1145,7 @@ static t_stat ms_onoffline (UNIT *uptr, int32 value, const char *cptr, void *des
 (void) cptr;
 (void) desc;
 
-const t_bool online = (value != UNIT_OFFLINE);          /* TRUE if the drive is being put online */
+const bool online = (value != UNIT_OFFLINE);            /* true if the drive is being put online */
 t_stat result;
 
 result = tl_onoffline (&ms_cntlr, uptr, online);        /* set the drive online or offline */

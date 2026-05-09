@@ -68,6 +68,7 @@
 extern uint32 cpu_opt;
 #endif
 
+#include <stdbool.h>
 #include "sim_disk.h"
 
 #define HK_NUMDR        8                               /* #drives */
@@ -932,7 +933,7 @@ return SCPE_OK;
 void hk_go (int32 drv)
 {
 int32 fnc, t;
-t_bool dte;
+bool dte;
 UNIT *uptr;
 
 static uint8 fnc_dte[16] = {
@@ -1519,7 +1520,7 @@ static const char *drives[] = {"RK06", "RK07", NULL};
 
 uptr->capac = HK_SIZE (uptr);
 r = sim_disk_attach_ex (uptr, cptr, HK_NUMWD * sizeof (uint16),
-                        sizeof (uint16), TRUE, 0,
+                        sizeof (uint16), true, 0,
                         (uptr->capac == RK06_SIZE) ? "RK06" : "RK07", HK_NUMSC, 0,
                         (uptr->flags & UNIT_NOAUTO) ? NULL : drives);
 if (r != SCPE_OK)                                       /* error? */

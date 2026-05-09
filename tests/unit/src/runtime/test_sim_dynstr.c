@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,7 +11,7 @@
 
 static int simh_test_dynstr_realloc_calls = 0;
 static int simh_test_dynstr_fail_after = -1;
-static t_bool simh_test_dynstr_vsnprintf_fail = FALSE;
+static bool simh_test_dynstr_vsnprintf_fail = false;
 
 /* Fail allocation after the configured number of successful calls. */
 static void *simh_test_dynstr_realloc_fail(void *ptr, size_t size)
@@ -39,7 +40,7 @@ static int setup_sim_dynstr_fixture(void **state)
 
     simh_test_dynstr_realloc_calls = 0;
     simh_test_dynstr_fail_after = -1;
-    simh_test_dynstr_vsnprintf_fail = FALSE;
+    simh_test_dynstr_vsnprintf_fail = false;
     sim_dynstr_reset_test_hooks();
     return 0;
 }
@@ -229,7 +230,7 @@ static void test_sim_dynstr_appendf_vsnprintf_failure_preserves_state(
 
     sim_dynstr_init(&ds);
     assert_true(sim_dynstr_append(&ds, "alpha"));
-    simh_test_dynstr_vsnprintf_fail = TRUE;
+    simh_test_dynstr_vsnprintf_fail = true;
     sim_dynstr_set_test_vsnprintf_hook(simh_test_dynstr_vsnprintf_fail_hook);
 
     assert_false(sim_dynstr_appendf(&ds, "%s", "beta"));

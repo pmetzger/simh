@@ -26,6 +26,7 @@
    rd            HDC9224 Hard Disk Controller
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_disk.h"
 
@@ -287,7 +288,7 @@ uint16 *rd_xb = NULL;                                   /* xfer buffer */
 t_stat rd_svc (UNIT *uptr);
 t_stat rd_reset (DEVICE *dptr);
 void rd_set_dstat (UNIT *uptr);
-void rd_done (int32 term_code, t_bool setint);
+void rd_done (int32 term_code, bool setint);
 void rd_cmd (int32 data);
 int32 rd_decode_cmd (int32 data);
 t_stat rd_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
@@ -563,7 +564,7 @@ switch (uptr->CMD) {
         rd_dcyl = 0;
         uptr->CYL = 0;
         sim_debug (DBG_CMD, &rd_dev, "RESET\n");
-        rd_done (TRM_OK, FALSE);
+        rd_done (TRM_OK, false);
         break;
 
     case CMD_SETREG:
@@ -573,21 +574,21 @@ switch (uptr->CMD) {
 
     case CMD_DESELECT:
         sim_debug (DBG_CMD, &rd_dev, "DESELECT\n");
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     case CMD_DRVSEL:
         rd_cstat = (rd_cstat & ~CST_SDRV) | (data & CST_SDRV);
         uptr = &rd_unit[CUR_DRV];                       /* get new unit */
         if ((uptr->flags & (UNIT_DIS + UNIT_ATT)) == UNIT_ATT) {
-            rd_done (TRM_OK, TRUE);                     /* drive installed */
+            rd_done (TRM_OK, true);                     /* drive installed */
             uptr->HEAD = rd_dhead;
             uptr->CYL = 0;
             rd_set_dstat (uptr);
             sim_debug (DBG_CMD, &rd_dev, "DRVSEL, drive = %d\n", CUR_DRV);
             }
         else {
-            rd_done (TRM_ERR_TRAN, TRUE);               /* drive not installed */
+            rd_done (TRM_ERR_TRAN, true);               /* drive not installed */
             rd_set_dstat (uptr);
             sim_debug (DBG_CMD, &rd_dev, "DRVSEL, drive = %d (not present)\n", CUR_DRV);
             }
@@ -608,7 +609,7 @@ switch (uptr->CMD) {
             uptr->CYL = (max_cyl - 1);
 
         rd_set_dstat (uptr);
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     default:
@@ -735,7 +736,7 @@ switch (uptr->CMD) {
         else {
             if (rd_rtcnt & 0x1) {
                 rd_cstat |= CST_SYNCE;
-                rd_done (TRM_ERR_RD, TRUE);
+                rd_done (TRM_ERR_RD, true);
                 return SCPE_OK;
                 }
             lba = GET_DA (uptr, rd_dcyl, rd_dhead, (rd_dsect - 1));
@@ -747,7 +748,7 @@ switch (uptr->CMD) {
         rd_dma = (rd_dma + (rd_scnt * RD_NUMBY)) & 0xFFFFFF;
         rd_dsect = rd_dsect + rd_scnt - 1;
         rd_scnt = 0;
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     case CMD_WRPHY:
@@ -770,7 +771,7 @@ switch (uptr->CMD) {
         else {
             if (rd_rtcnt & 0x1) {
                 rd_cstat |= 0x8;
-                rd_done (TRM_ERR_RD, TRUE);
+                rd_done (TRM_ERR_RD, true);
                 return SCPE_OK;
                 }
             lba = GET_DA (uptr, rd_dcyl, rd_dhead, (rd_dsect - 1));
@@ -779,14 +780,14 @@ switch (uptr->CMD) {
             }
         rd_dsect = rd_dsect + rd_scnt - 1;
         rd_scnt = 0;
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     case CMD_RESTORE:
         sim_debug (DBG_CMD, &rd_dev, "RESTORE\n");
         uptr->CYL = 0;
         rd_set_dstat (uptr);
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     case CMD_RDID:
@@ -795,26 +796,26 @@ switch (uptr->CMD) {
             uptr->CYL = rd_dcyl;
             uptr->HEAD = rd_dhead;
             }
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     case CMD_RDTRK:                                     /* not implemented */
         sim_debug (DBG_CMD, &rd_dev, "RD TRK\n");
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     case CMD_POLL:                                      /* not implemented */
         sim_debug (DBG_CMD, &rd_dev, "POLL\n");
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     case CMD_FORMAT:                                    /* not implemented */
         sim_debug (DBG_CMD, &rd_dev, "FORMAT\n");
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         break;
 
     default:
-        rd_done (TRM_OK, TRUE);
+        rd_done (TRM_OK, true);
         }
 
 return SCPE_OK;
@@ -841,7 +842,7 @@ else                                                    /* drive not present */
    request interrupt if needed, return to IDLE state.
 */
 
-void rd_done (int32 term_code, t_bool setint)
+void rd_done (int32 term_code, bool setint)
 {
 rd_stat = ((term_code & STAT_M_TRMC) << STAT_V_TRMC) | STAT_DONE;
 if ((rd_term & 0x20) && setint) {
@@ -860,7 +861,7 @@ t_stat rd_reset (DEVICE *dptr)
 
 rd_rg_p = 0;
 CLR_INT (SCA);                                          /* clear int req */
-rd_done (TRM_OK, FALSE);
+rd_done (TRM_OK, false);
 sim_cancel (&rd_unit[0]);                               /* cancel drive 0 */
 sim_cancel (&rd_unit[1]);                               /* cancel drive 1 */
 sim_cancel (&rd_unit[2]);                               /* cancel drive 2 */
@@ -878,7 +879,7 @@ t_stat rd_attach (UNIT *uptr, const char *cptr)
 const char *drives[] = {"RX33", "RD31", "RD32", "RD53", "RD54", };
 
 return sim_disk_attach_ex (uptr, cptr, RD_NUMBY,
-                           sizeof (uint8), TRUE, DBG_DSK,
+                           sizeof (uint8), true, DBG_DSK,
                            drv_tab[GET_DTYPE (uptr->flags)].name, 0, 0,
                            (uptr->flags & UNIT_NOAUTO) ? NULL: drives);
 }

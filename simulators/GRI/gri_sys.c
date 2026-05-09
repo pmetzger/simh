@@ -30,6 +30,7 @@
 
 #include "gri_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
@@ -531,7 +532,7 @@ val[1] = d;                                             /* second wd */
 return cptr;
 }
 
-static const char *get_sd (const char *cptr, t_value *val, char term, t_bool src)
+static const char *get_sd (const char *cptr, t_value *val, char term, bool src)
 {
 char gbuf[CBUFSIZE];
 int32 d;
@@ -620,7 +621,7 @@ switch (j) {                                            /* case on class */
         if ((!cptr) || (!*cptr))                        /* none? */
             return SCPE_ARG;
         get_fnc (gbuf, val);                            /* fo # */
-        cptr = get_sd (cptr, val, 0, FALSE);            /* dst */
+        cptr = get_sd (cptr, val, 0, false);            /* dst */
         break;
 
     case F_V_FOI:                                       /* func out impl */
@@ -628,7 +629,7 @@ switch (j) {                                            /* case on class */
         break;
 
     case F_V_SF:                                        /* skip func */
-        cptr = get_sd (cptr, val, ',', TRUE);           /* src */
+        cptr = get_sd (cptr, val, ',', true);           /* src */
         if (!cptr)
             return SCPE_ARG;
         /* fall through */
@@ -637,24 +638,24 @@ switch (j) {                                            /* case on class */
         break;
 
     case F_V_RR:                                        /* reg-reg */
-        cptr = get_sd (cptr, val, ',', TRUE);           /* src */
+        cptr = get_sd (cptr, val, ',', true);           /* src */
         if (!cptr)
             return SCPE_ARG;
         cptr = get_op (cptr, val, ',');                 /* op */
         if (!cptr)
             return SCPE_ARG;
-        cptr = get_sd (cptr, val, 0, FALSE);            /* dst */
+        cptr = get_sd (cptr, val, 0, false);            /* dst */
         break;
 
     case F_V_ZR:                                        /* zero-reg */
         cptr = get_op (cptr, val, ',');                 /* op */
         if (!cptr)
             return SCPE_ARG;
-        cptr = get_sd (cptr, val, 0, FALSE);            /* dst */
+        cptr = get_sd (cptr, val, 0, false);            /* dst */
         break;
 
     case F_V_RS:                                        /* reg self */
-        cptr = get_sd (cptr, val, ',', TRUE);           /* src */
+        cptr = get_sd (cptr, val, ',', true);           /* src */
         if (!cptr)
             return SCPE_ARG;
         val[0] = val[0] | I_GETSRC (val[0]);            /* duplicate */
@@ -662,7 +663,7 @@ switch (j) {                                            /* case on class */
         break;
 
     case F_V_JC:                                        /* jump cond */
-        cptr = get_sd (cptr, val, ',', TRUE);           /* src */
+        cptr = get_sd (cptr, val, ',', true);           /* src */
         if (!cptr)
             return SCPE_ARG;
         cptr = get_glyph (cptr, gbuf, ',');             /* cond */
@@ -679,7 +680,7 @@ switch (j) {                                            /* case on class */
         break;
 
     case F_V_RM:                                        /* reg mem */
-        cptr = get_sd (cptr, val, ',', TRUE);           /* src */
+        cptr = get_sd (cptr, val, ',', true);           /* src */
         if (!cptr)
             return SCPE_ARG;
     case F_V_ZM:                                        /* zero mem */
@@ -696,7 +697,7 @@ switch (j) {                                            /* case on class */
         cptr = get_op (cptr, val, ',');                 /* op */
         if (!cptr)
             return SCPE_ARG;
-        cptr = get_sd (cptr, val, 0, FALSE);            /* dst */
+        cptr = get_sd (cptr, val, 0, false);            /* dst */
         break;
 
     case F_V_MS:                                        /* mem self */

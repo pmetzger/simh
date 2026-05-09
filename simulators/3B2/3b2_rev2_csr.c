@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_rev2_csr.h"
 
 #include "3b2_cpu.h"
@@ -169,13 +170,13 @@ void csr_write(uint32 pa, uint32 val, size_t size)
         sim_debug(WRITE_MSG, &csr_dev,
                   "SET INHIBIT TIMERS\n");
         csr_data |= CSRITIM;
-        timer_gate(TIMER_INTERVAL, TRUE);
+        timer_gate(TIMER_INTERVAL, true);
         break;
     case 0x27:    /* Clear Inhibit Timers */
         sim_debug(WRITE_MSG, &csr_dev,
                   "CLEAR INHIBIT TIMERS\n");
         csr_data &= ~CSRITIM;
-        timer_gate(TIMER_INTERVAL, FALSE);
+        timer_gate(TIMER_INTERVAL, false);
         break;
     case 0x2b:    /* Set Inhibit Faults */
         csr_data |= CSRIFLT;

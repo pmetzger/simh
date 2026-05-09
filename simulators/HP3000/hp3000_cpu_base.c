@@ -75,6 +75,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_cpu_fp.h"
@@ -141,8 +142,8 @@ static t_stat io_control         (void);
 
    This routine is called from within an executor for an interruptible
    instruction to test for a pending interrupt.  It counts an event tick and
-   returns TRUE if the instruction should yield, either for an interrupt or for
-   an event error, or FALSE if the instruction should continue.
+   returns true if the instruction should yield, either for an interrupt or for
+   an event error, or false if the instruction should continue.
 
    Instructions that potentially take a long time (e.g., MOVE, SCU, LLSH) test
    for pending interrupts after each word or byte moved or scanned.  The design
@@ -170,7 +171,7 @@ static t_stat io_control         (void);
        sim_process_event that must be preserved.
 */
 
-t_bool cpu_interrupt_pending (t_stat *status)
+bool cpu_interrupt_pending (t_stat *status)
 {
 uint32 device_number = 0;
 
@@ -183,7 +184,7 @@ if (sim_interval <= 0) {                                /* if an event timeout e
         P = P - 1 & R_MASK;                             /*   then back up to reenter the instruction */
         sim_interval = sim_interval + 1;                /*     and cancel the instruction loop increment */
 
-        return TRUE;                                    /* abort the instruction and stop the simulator */
+        return true;                                    /* abort the instruction and stop the simulator */
         }
     }
 
@@ -203,11 +204,11 @@ if (CPX1 & CPX1_IRQ_SET) {                              /* if an interrupt is pe
     P = P - 1 & R_MASK;                                 /*   then back up to reenter the instruction */
     cpu_run_mode_interrupt (device_number);             /*     and set up the service routine */
 
-    return TRUE;                                        /* abort the instruction */
+    return true;                                        /* abort the instruction */
     }
 
 else                                                    /* otherwise */
-    return FALSE;                                       /*   continue with the current instruction */
+    return false;                                       /*   continue with the current instruction */
 }
 
 
@@ -215,10 +216,10 @@ else                                                    /* otherwise */
 
    The program counter is adjusted by the displacement specified in the CIR, and
    the NIR is loaded with the target instruction.  If the "check_loop" parameter
-   is TRUE, an infinite loop check is made if the corresponding simulator stop
+   is true, an infinite loop check is made if the corresponding simulator stop
    is enabled.  Branch instructions that cannot cause an infinite loop because
    they modify the CPU state during execution will specify the parameter as
-   FALSE.
+   false.
 
    On entry, the CIR must be loaded with a branch instruction having a short
    (5-bit plus sign bit) displacement.  The instruction format is:
@@ -233,7 +234,7 @@ else                                                    /* otherwise */
    simulation may continue.
 */
 
-t_stat cpu_branch_short (t_bool check_loop)
+t_stat cpu_branch_short (bool check_loop)
 {
 HP_WORD displacement, address;
 t_stat  status;
@@ -561,7 +562,7 @@ switch (operation) {                                    /* dispatch the stack op
             MICRO_ABORT (trap_Integer_Zero_Divide);     /*   then trap or set the overflow flag */
 
         if (abs (divisor) <= abs (SEXT16 (RB)))         /* if the divisor is <= the MSW of the dividend */
-            SET_OVERFLOW (TRUE);                        /*   an overflow will occur on the division */
+            SET_OVERFLOW (true);                        /*   an overflow will occur on the division */
 
         else {                                          /* otherwise, the divisor might be large enough */
             quotient  = dividend / divisor;             /* form the 32-bit signed quotient */
@@ -1142,7 +1143,7 @@ switch (operation) {                                    /* dispatch the shift/br
         SET_CCA (RA, 0);                                /*   and set the condition code */
 
         if (RA == 0)                                    /* if the TOS is now zero */
-            status = cpu_branch_short (FALSE);          /*   then branch to the target address */
+            status = cpu_branch_short (false);          /*   then branch to the target address */
         break;
 
 
@@ -1157,7 +1158,7 @@ switch (operation) {                                    /* dispatch the shift/br
         SET_CCA (X, 0);                                 /*   and set the condition code */
 
         if (X == 0)                                     /* if X is now zero */
-            status = cpu_branch_short (FALSE);          /*   then branch to the target address */
+            status = cpu_branch_short (false);          /*   then branch to the target address */
         break;
 
 
@@ -1166,14 +1167,14 @@ switch (operation) {                                    /* dispatch the shift/br
         SET_CCA (X, 0);                                 /*   and set the condition code */
 
         if (X == 0)                                     /* if X is now zero */
-            status = cpu_branch_short (FALSE);          /*   then branch to the target address */
+            status = cpu_branch_short (false);          /*   then branch to the target address */
         break;
 
 
     case 014:                                           /* BCY (C = 0; BNDV) */
         if (STA & STATUS_C) {                           /* if the carry bit is set */
             STA &= ~STATUS_C;                           /*   then clear it */
-            status = cpu_branch_short (TRUE);           /*     and branch to the target address */
+            status = cpu_branch_short (true);           /*     and branch to the target address */
             }
         break;
 
@@ -1182,7 +1183,7 @@ switch (operation) {                                    /* dispatch the shift/br
         if (STA & STATUS_C)                             /* if the carry bit is set */
             STA &= ~STATUS_C;                           /*   then clear it and do not branch */
         else                                            /* otherwise the carry bit is clear */
-            status = cpu_branch_short (TRUE);           /*   so branch to the target address */
+            status = cpu_branch_short (true);           /*   so branch to the target address */
         break;
 
 
@@ -1228,7 +1229,7 @@ switch (operation) {                                    /* dispatch the shift/br
 
         else {                                          /* otherwise lower bound <= X <= upper bound */
             SET_CCE;                                    /*   so set CCE */
-            status = cpu_branch_short (FALSE);          /*     and branch to the target address */
+            status = cpu_branch_short (false);          /*     and branch to the target address */
             }
 
         cpu_pop ();                                     /* pop the TOS */
@@ -1241,14 +1242,14 @@ switch (operation) {                                    /* dispatch the shift/br
         SET_CCA (RA, 0);                                /*   and set the condition code */
 
         if (RA == 0)                                    /* if the TOS is now zero */
-            status = cpu_branch_short (FALSE);          /*   then branch to the target address */
+            status = cpu_branch_short (false);          /*   then branch to the target address */
         break;
 
 
     case 030:                                           /* BOV (O = 0; BNDV) */
         if (STA & STATUS_O) {                           /* if the overflow bit is set */
             STA &= ~STATUS_O;                           /*   then clear it */
-            status = cpu_branch_short (TRUE);           /*     and branch to the target address */
+            status = cpu_branch_short (true);           /*     and branch to the target address */
             }
         break;
 
@@ -1257,7 +1258,7 @@ switch (operation) {                                    /* dispatch the shift/br
         if (STA & STATUS_O)                             /* if the overflow bit is set */
             STA &= ~STATUS_O;                           /*   then clear it and do not branch */
         else                                            /* otherwise the overflow bit is clear */
-            status = cpu_branch_short (TRUE);           /*   so branch to the target address */
+            status = cpu_branch_short (true);           /*   so branch to the target address */
         break;
 
 
@@ -1287,7 +1288,7 @@ switch (operation) {                                    /* dispatch the shift/br
 
     case 036:                                           /* BRO (none; STUN, BNDV) */
         if ((RA & 1) == 1)                              /* if the TOS is odd */
-            status = cpu_branch_short (FALSE);          /*   then branch to the target address */
+            status = cpu_branch_short (false);          /*   then branch to the target address */
 
         cpu_pop ();                                     /* pop the TOS */
         break;
@@ -1295,7 +1296,7 @@ switch (operation) {                                    /* dispatch the shift/br
 
     case 037:                                           /* BRE (none; STUN, BNDV) */
         if ((RA & 1) == 0)                              /* if the TOS is even */
-            status = cpu_branch_short (FALSE);          /*   then branch to the target address */
+            status = cpu_branch_short (false);          /*   then branch to the target address */
 
         cpu_pop ();                                     /* pop the TOS */
         break;
@@ -2650,7 +2651,7 @@ HP_WORD      operand, bank, offset, base;
 HP_WORD      byte, test_byte, terminal_byte, increment, byte_class, loop_condition;
 HP_WORD      source_bank, source, source_end, target_bank, target, target_end;
 HP_WORD      stack_db, ics_q, delta_qi, disp_counter, delta_q, new_q, new_sm, device;
-t_bool       q_is_qi, disp_active;
+bool         q_is_qi, disp_active;
 ACCESS_CLASS class;
 t_stat       status = SCPE_OK;
 
@@ -2820,7 +2821,7 @@ switch (operation) {                                    /* dispatch the move or 
 
         cpu_read_memory (data, source, &operand);       /* read the first word */
 
-        while (TRUE) {
+        while (true) {
             if (RB & 1) {                               /* if the byte address is odd */
                 if (cpu_interrupt_pending (&status))    /*   then if an interrupt is pending */
                     return status;                      /*     then return with an interrupt set up or an error */
@@ -2963,7 +2964,7 @@ switch (operation) {                                    /* dispatch the move or 
 
         loop_condition = (CIR & MVBW_CCF) << MVBW_CCF_SHIFT;    /* get the loop condition code flags */
 
-        while (TRUE) {                                  /* while the loop condition holds */
+        while (true) {                                  /* while the loop condition holds */
             cpu_read_memory (data, source, &operand);   /*   get the source word */
 
             if (RA & 1) {                               /* if the byte address is odd */
@@ -3241,8 +3242,8 @@ switch (operation) {                                    /* dispatch the move or 
                 cpu_read_memory (absolute, ics_q - 18 & LA_MASK,    /*       and the dispatcher counter */
                                  &disp_counter);
 
-                q_is_qi = (Q == ics_q);                     /* TRUE if Q = QI, i.e., a user process was interrupted */
-                disp_active = (CPX1 & cpx1_DISPFLAG) != 0;  /* TRUE if the dispatcher is currently active */
+                q_is_qi = (Q == ics_q);                     /* true if Q = QI, i.e., a user process was interrupted */
+                disp_active = (CPX1 & cpx1_DISPFLAG) != 0;  /* true if the dispatcher is currently active */
 
                 new_sm = 0;                                 /* these will be set by every path through IXIT */
                 new_q  = 0;                                 /*   but the compiler doesn't realize this and so warns */
@@ -3512,7 +3513,7 @@ switch (operation) {                                    /* dispatch the operatio
                 if (dividend == (int32) D32_SMIN && divisor == -1) {    /* if the division will overflow */
                     quotient  = dividend;                               /*   then set the quotient */
                     remainder = 0;                                      /*     and remainder explicitly */
-                    SET_OVERFLOW (TRUE);                                /*       and trap or set overflow */
+                    SET_OVERFLOW (true);                                /*       and trap or set overflow */
                     }
 
                 else {                                  /* otherwise */
@@ -3701,7 +3702,7 @@ switch (operation) {                                    /* dispatch the I/O or c
                 RB = DBANK;                             /*   RB and */
                 DBANK = operand & BA_MASK;              /*     DBANK values */
 
-                cpu_base_changed = TRUE;                /* this instruction changed the base registers */
+                cpu_base_changed = true;                /* this instruction changed the base registers */
                 break;
 
 

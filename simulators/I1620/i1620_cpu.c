@@ -127,6 +127,7 @@
         i1620_sys.c     add sim_devices table entry
 */
 
+#include <stdbool.h>
 #include "i1620_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -184,16 +185,16 @@ t_stat cpu_set_cps (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_show_cps (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
 int32 get_2d (uint32 ad);
-t_stat get_addr (uint32 alast, int32 lnt, t_bool indexok, uint32 *addr);
-t_stat cvt_addr (uint32 alast, int32 lnt, t_bool signok, int32 *val);
+t_stat get_addr (uint32 alast, int32 lnt, bool indexok, uint32 *addr);
+t_stat cvt_addr (uint32 alast, int32 lnt, bool signok, int32 *val);
 t_stat get_idx (uint32 aidx);
 t_stat xmt_field (uint32 d, uint32 s, uint32 skp);
-t_stat xmt_record (uint32 d, uint32 s, t_bool cpy);
+t_stat xmt_record (uint32 d, uint32 s, bool cpy);
 t_stat xmt_index (uint32 d, uint32 s);
 t_stat xmt_divd (uint32 d, uint32 s);
 t_stat xmt_tns (uint32 d, uint32 s);
 t_stat xmt_tnf (uint32 d, uint32 s);
-t_stat add_field (uint32 d, uint32 s, t_bool sub, uint32 skp, int32 *sta);
+t_stat add_field (uint32 d, uint32 s, bool sub, uint32 skp, int32 *sta);
 t_stat cmp_field (uint32 d, uint32 s);
 uint32 add_one_digit (uint32 dst, uint32 src, uint32 *cry);
 t_stat mul_field (uint32 mpc, uint32 mpy);
@@ -218,7 +219,7 @@ extern t_stat lpt (uint32 op, uint32 pa, uint32 f0, uint32 f1);
 extern t_stat btp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
 extern t_stat btr (uint32 op, uint32 pa, uint32 f0, uint32 f1);
 
-extern t_stat fp_add (uint32 d, uint32 s, t_bool sub);
+extern t_stat fp_add (uint32 d, uint32 s, bool sub);
 extern t_stat fp_mul (uint32 d, uint32 s);
 extern t_stat fp_div (uint32 d, uint32 s);
 extern t_stat fp_fsl (uint32 d, uint32 s);
@@ -583,14 +584,14 @@ while (reason == SCPE_OK) {                             /* loop until halted */
     pla = ADDR_A (PC, I_PL);                            /* P last addr */
     qla = ADDR_A (PC, I_QL);                            /* Q last addr */
     if (flags & IF_VPA) {                               /* need P? */
-        reason = get_addr (pla, 5, TRUE, &PAR);         /* get P addr */
+        reason = get_addr (pla, 5, true, &PAR);         /* get P addr */
         if (reason != SCPE_OK)                          /* stop if error */
             break;
         }
     if (flags & (IF_VQA | IF_4QA | IF_NQX)) {           /* need Q? */
         reason = get_addr (qla,                         /* get Q addr */
             ((flags & IF_4QA)? 4: 5),                   /* 4 or 5 digits */
-            ((flags & IF_NQX)? FALSE: TRUE),            /* not or indexed */
+            ((flags & IF_NQX)? false: true),            /* not or indexed */
             &QAR);
         if (reason != SCPE_OK) {                        /* stop if invalid */
             reason = reason + (STOP_INVQDG - STOP_INVPDG);
@@ -636,13 +637,13 @@ while (reason == SCPE_OK) {                             /* loop until halted */
 /* Transmit record - P,Q are valid */
 
     case OP_TR:
-        reason = xmt_record (PAR, QAR, TRUE);           /* xmit record */
+        reason = xmt_record (PAR, QAR, true);           /* xmit record */
         break;
 
 /* Transmit record no record mark - P,Q are valid */
 
     case OP_TRNM:
-        reason = xmt_record (PAR, QAR, FALSE);          /* xmit record but */
+        reason = xmt_record (PAR, QAR, false);          /* xmit record but */
         break;                                          /* not rec mark */
 
 /* Set flag - P is valid */
@@ -756,7 +757,7 @@ while (reason == SCPE_OK) {                             /* loop until halted */
 
     case OP_A:
     case OP_AM:
-        reason = add_field (PAR, QAR, FALSE, 0, &sta);  /* add */
+        reason = add_field (PAR, QAR, false, 0, &sta);  /* add */
         if (sta == ADD_CARRY)                           /* cout => ovflo */
             ind[IN_OVF] = 1;
         if (ar_stop && ind[IN_OVF])
@@ -765,7 +766,7 @@ while (reason == SCPE_OK) {                             /* loop until halted */
 
     case OP_S:
     case OP_SM:
-        reason = add_field (PAR, QAR, TRUE, 0, &sta);   /* sub, store */
+        reason = add_field (PAR, QAR, true, 0, &sta);   /* sub, store */
         if (sta == ADD_CARRY)                           /* cout => ovflo */
             ind[IN_OVF] = 1;
         if (ar_stop && ind[IN_OVF])
@@ -813,7 +814,7 @@ while (reason == SCPE_OK) {                             /* loop until halted */
         if (dev < 0)                                    /* invalid digits? */
             return STOP_INVDIG;
         if (k_valid_p[dev]) {                           /* validate P? */
-            reason = get_addr (pla, 5, TRUE, &PAR);     /* get P addr */
+            reason = get_addr (pla, 5, true, &PAR);     /* get P addr */
             if (reason != SCPE_OK)                      /* stop if error */
                  break;
             }
@@ -919,7 +920,7 @@ while (reason == SCPE_OK) {                             /* loop until halted */
             reason = STOP_INVIDX;                       /* stop */
             break;
             }
-        reason = add_field (GET_IDXADDR (idx), QAR, FALSE, 0, &sta);
+        reason = add_field (GET_IDXADDR (idx), QAR, false, 0, &sta);
         if (ar_stop && ind[IN_OVF])
             reason = STOP_OVERFL;
         BRANCH (PAR);                                   /* branch to P */
@@ -931,7 +932,7 @@ while (reason == SCPE_OK) {                             /* loop until halted */
             reason = STOP_INVIDX;                       /* stop */
             break;
             }
-        reason = add_field (GET_IDXADDR (idx), QAR, FALSE, 3, &sta);
+        reason = add_field (GET_IDXADDR (idx), QAR, false, 3, &sta);
         if (ar_stop && ind[IN_OVF])
             reason = STOP_OVERFL;
         BRANCH (PAR);                                   /* branch to P */
@@ -945,7 +946,7 @@ while (reason == SCPE_OK) {                             /* loop until halted */
             reason = STOP_INVIDX;                       /* stop */
             break;
             }
-        reason = add_field (GET_IDXADDR (idx), QAR, FALSE, 0, &sta);
+        reason = add_field (GET_IDXADDR (idx), QAR, false, 0, &sta);
         if (ar_stop && ind[IN_OVF])
             reason = STOP_OVERFL;
         if ((ind[IN_EZ] == 0) && (sta == ADD_NOCRY)) {  /* ~z, ~c, ~sign chg? */
@@ -959,7 +960,7 @@ while (reason == SCPE_OK) {                             /* loop until halted */
             reason = STOP_INVIDX;                       /* stop */
             break;
             }
-        reason = add_field (GET_IDXADDR (idx), QAR, FALSE, 3, &sta);
+        reason = add_field (GET_IDXADDR (idx), QAR, false, 3, &sta);
         if (ar_stop && ind[IN_OVF])
             reason = STOP_OVERFL;
         if ((ind[IN_EZ] == 0) && (sta == ADD_NOCRY)) {  /* ~z, ~c, ~sign chg? */
@@ -1059,13 +1060,13 @@ while (reason == SCPE_OK) {                             /* loop until halted */
 /* Floating point special feature instructions */
 
     case OP_FADD:
-        reason = fp_add (PAR, QAR, FALSE);              /* add */
+        reason = fp_add (PAR, QAR, false);              /* add */
         if (ar_stop && ind[IN_EXPCHK])
             reason = STOP_EXPCHK;
         break;
 
     case OP_FSUB:
-        reason = fp_add (PAR, QAR, TRUE);               /* subtract */
+        reason = fp_add (PAR, QAR, true);               /* subtract */
         if (ar_stop && ind[IN_EXPCHK])
             reason = STOP_EXPCHK;
         break;
@@ -1157,7 +1158,7 @@ return ((d * 10) + d1);                                 /* cvt to binary */
    Inputs:
         alast   =       address of low digit
         lnt     =       length
-        indexok =       TRUE if indexing allowed
+        indexok =       true if indexing allowed
         &addr   =       pointer to address output
    Output:
         return  =       error status (in terms of P address)
@@ -1169,7 +1170,7 @@ return ((d * 10) + d1);                                 /* cvt to binary */
    - An address that exceeds memory produces a MAR check stop
 */
 
-t_stat get_addr (uint32 alast, int32 lnt, t_bool indexok, uint32 *reta)
+t_stat get_addr (uint32 alast, int32 lnt, bool indexok, uint32 *reta)
 {
 uint8 indir;
 int32 cnt, idx, idxa, idxv, addr;
@@ -1181,12 +1182,12 @@ else indir = 0;
 cnt = 0;                                                /* count depth */
 do {
     indir = indir & M[alast];                           /* get indirect */
-    if (cvt_addr (alast, lnt, FALSE, &addr))            /* cvt addr to bin */
+    if (cvt_addr (alast, lnt, false, &addr))            /* cvt addr to bin */
         return STOP_INVPDG;                             /* bad? */
     idx = get_idx (ADDR_S (alast, 1));                  /* get index reg num */
     if (indexok && (idx > 0)) {                         /* indexable? */
         idxa = GET_IDXADDR (idx);                       /* get idx reg addr */
-        if (cvt_addr (idxa, ADDR_LEN, TRUE, &idxv))     /* cvt idx reg */
+        if (cvt_addr (idxa, ADDR_LEN, true, &idxv))     /* cvt idx reg */
             return STOP_INVPDG;
         addr = addr + idxv;                             /* add in index */
         if (addr < 0)                                   /* -? 10's comp */
@@ -1208,13 +1209,13 @@ return SCPE_OK;
    Inputs:
         alast   =       address of low digit
         lnt     =       length
-        signok  =       TRUE if signed
+        signok  =       true if signed
         val     =       address of output
    Outputs:
         status  =       0 if ok, != 0 if error
 */
 
-t_stat cvt_addr (uint32 alast, int32 lnt, t_bool signok, int32 *val)
+t_stat cvt_addr (uint32 alast, int32 lnt, bool signok, int32 *val)
 {
 int32 sign = 0, addr = 0, t;
 
@@ -1295,9 +1296,9 @@ do {
 return SCPE_OK;
 }
 
-/* Transmit record from 's' to 'd' - copy record mark if 'cpy' = TRUE */
+/* Transmit record from 's' to 'd' - copy record mark if 'cpy' = true */
 
-t_stat xmt_record (uint32 d, uint32 s, t_bool cpy)
+t_stat xmt_record (uint32 d, uint32 s, bool cpy)
 {
 uint32 cnt = 0;
 
@@ -1400,8 +1401,8 @@ return SCPE_OK;
    Inputs:
         d       =       destination field low (P)
         s       =       source field low (Q)
-        sub     =       TRUE if subtracting
-        sto     =       TRUE if storing
+        sub     =       true if subtracting
+        sto     =       true if storing
         skp     =       number of source field flags, beyond sign, to ignore
    Output:
         return  =       status
@@ -1416,7 +1417,7 @@ return SCPE_OK;
    as 0 (Dave Wise; from schematics).
 */
 
-t_stat add_field (uint32 d, uint32 s, t_bool sub, uint32 skp, int32 *sta)
+t_stat add_field (uint32 d, uint32 s, bool sub, uint32 skp, int32 *sta)
 {
 uint32 cry, src, dst, res, comp, dp, dsv;
 uint32 src_f = 0, cnt = 0, dst_f = 0;
@@ -1855,7 +1856,7 @@ t_stat div_field (uint32 dvd, uint32 dvr, int32 *ez)
 {
 uint32 quop, quod, quos;                                /* quo ptr, dig, sign */
 uint32 dvds;                                            /* dvd sign */
-t_bool first = TRUE;                                    /* first pass */
+bool first = true;                                      /* first pass */
 t_stat r;
 
 dvds = (M[PROD_AREA + PROD_AREA_LEN - 1]) & FLAG;       /* dividend sign */
@@ -1878,7 +1879,7 @@ do {
             return STOP_OVERFL;                         /* stop */
             }
         M[quop] = FLAG | quod;                          /* set flag on quo */
-        first = FALSE;
+        first = false;
         }
     else M[quop] = quod;                                /* store quo digit */
     if (quod)                                           /* if nz, clr ind */
@@ -2132,7 +2133,7 @@ return SCPE_OK;
 t_stat dec_to_oct (uint32 d, uint32 tbl, int32 *ez)
 {
 uint32 sign, octd, t;
-t_bool first = TRUE;
+bool first = true;
 uint32 ctr = 0;
 t_stat r;
 
@@ -2150,7 +2151,7 @@ for ( ;; ) {
             return SCPE_OK;                             /* stop */
             }
         M[d] = FLAG | octd;                             /* set flag on quo */
-        first = FALSE;
+        first = false;
         }
     else M[d] = octd;                                   /* store quo digit */
     if (octd)                                           /* if nz, clr ind */
@@ -2205,7 +2206,7 @@ return SCPE_OK;
 t_stat cpu_reset (DEVICE *dptr)
 {
 int32 i;
-static t_bool one_time = TRUE;
+static bool one_time = true;
 
 PR1 = IR2 = 1;                                          /* invalidate PR1,IR2 */
 ind[0] = 0;
@@ -2227,7 +2228,7 @@ if (one_time) {                                         /* set default tables */
     cpu_set_table (&cpu_unit, 1, NULL, NULL);
     actual_PC = saved_PC = 0;                           /* sync PCs */
     }
-one_time = FALSE;
+one_time = false;
 return SCPE_OK;
 }
 
@@ -2361,7 +2362,7 @@ if ((val <= 0) || (val > MAXMEMSIZE) || ((val % 1000) != 0))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i++)
     mc = mc | M[i];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE; i++)

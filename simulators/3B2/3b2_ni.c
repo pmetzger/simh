@@ -93,6 +93,7 @@
  *
  */
 
+#include <stdbool.h>
 #include "3b2_ni.h"
 
 #include "3b2_io.h"
@@ -102,13 +103,13 @@
 /* State container for the card */
 NI_STATE  ni;
 
-t_bool ni_conf = FALSE;
+bool ni_conf = false;
 
 /* Static Function Declarations */
 static void dump_packet(const char *direction, ETH_PACK *pkt);
 static void ni_enable(void);
 static void ni_disable(void);
-static void ni_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data, t_bool is_exp);
+static void ni_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data, bool is_exp);
 
 /*
  * A list of pumped code CRCs that will cause Force Function Call to
@@ -288,14 +289,14 @@ static void ni_enable(void)
     sim_activate_after(sanity_unit, NI_SANITY_INTERVAL_US);
 
     /* Enable the interface */
-    ni.enabled = TRUE;
+    ni.enabled = true;
 }
 
 static void ni_disable(void)
 {
     sim_debug(DBG_TRACE, &ni_dev,
               "[ni_disable] Disabling the interface.\n");
-    ni.enabled = FALSE;
+    ni.enabled = false;
     sim_cancel(ni_unit);
     sim_cancel(rcv_unit);
     sim_cancel(rq_unit);
@@ -304,7 +305,7 @@ static void ni_disable(void)
     CIO_CLR_INT(ni.slot);
 }
 
-static void ni_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data, t_bool is_exp)
+static void ni_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data, bool is_exp)
 {
     int i, j;
     int32 delay;
@@ -608,7 +609,7 @@ t_stat ni_show_filters(FILE* st, UNIT* uptr, int32 val, const void* desc)
 void ni_sysgen(uint8 slot)
 {
     int i;
-    t_bool pumped = FALSE;
+    bool pumped = false;
     cio_entry cqe = {0};
     uint8 app_data[4] = {0};
 
@@ -627,7 +628,7 @@ void ni_sysgen(uint8 slot)
     for (i = 0; NI_PUMP_CRCS[i] != 0; i++) {
         if (NI_PUMP_CRCS[i] == ni.crc) {
             cio_cqueue(slot, CIO_STAT, NIQESIZE, &cqe, app_data);
-            pumped = TRUE;
+            pumped = true;
             break;
         }
     }
@@ -655,7 +656,7 @@ void ni_express(uint8 slot)
               "[ni_express] Handling express CIO request.\n");
 
     cio_rexpress(slot, NIQESIZE, &rqe, app_data);
-    ni_cmd(slot, &rqe, app_data, TRUE);
+    ni_cmd(slot, &rqe, app_data, true);
 }
 
 /*
@@ -671,7 +672,7 @@ void ni_full(uint8 slot)
 
     while (cio_cqueue_avail(slot, NIQESIZE) &&
            cio_rqueue(slot, GE_QUEUE, NIQESIZE, &rqe, app_data) == SCPE_OK) {
-        ni_cmd(slot, &rqe, app_data, FALSE);
+        ni_cmd(slot, &rqe, app_data, false);
     }
 }
 
@@ -693,7 +694,7 @@ t_stat ni_reset(DEVICE *dptr)
 
     if (dptr->flags & DEV_DIS) {
         cio_remove_all(NI_ID);
-        ni_conf = FALSE;
+        ni_conf = false;
         return SCPE_OK;
     }
 
@@ -706,7 +707,7 @@ t_stat ni_reset(DEVICE *dptr)
         }
         /* Remember the card slot */
         ni.slot = slot;
-        ni_conf = TRUE;
+        ni_conf = true;
     }
 
     /* Set an initial MAC address in the AT&T NI range */
@@ -764,14 +765,14 @@ t_stat ni_rcv_svc(UNIT *uptr)
  */
 t_stat ni_rq_svc(UNIT *uptr)
 {
-    t_bool rq_taken;
+    bool rq_taken;
     int i, wp, no_rque;
     cio_entry rqe = {0};
     uint8 slot[4] = {0};
 
     UNUSED(uptr);
 
-    rq_taken = FALSE;
+    rq_taken = false;
     no_rque = cio[ni.slot].no_rque - 1;
 
     for (i = 0; i < no_rque; i++) {
@@ -788,7 +789,7 @@ t_stat ni_rq_svc(UNIT *uptr)
             ni.job_cache[i].req[wp].slot = slot[3];
             ni.job_cache[i].wp = (wp + 1) % NI_CACHE_LEN;
             ni.stats.rq_taken++;
-            rq_taken = TRUE;
+            rq_taken = true;
         }
     }
 

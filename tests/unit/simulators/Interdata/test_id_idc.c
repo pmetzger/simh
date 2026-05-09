@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -21,11 +22,11 @@ void sch_adr(uint32 ch, uint32 dev)
     (void)dev;
 }
 
-t_bool sch_actv(uint32 sch, uint32 devno)
+bool sch_actv(uint32 sch, uint32 devno)
 {
     (void)sch;
     (void)devno;
-    return FALSE;
+    return false;
 }
 
 void sch_stop(uint32 sch)

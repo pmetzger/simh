@@ -52,11 +52,12 @@
 
 #define IN_SIM_FIO_C 1              /* Include from sim_fio.c */
 
+#include <stdbool.h>
 #include "sim_defs.h"
 
-t_bool sim_end;                     /* TRUE = little endian, FALSE = big endian */
-t_bool sim_taddr_64;                /* t_addr is > 32b and Large File Support available */
-t_bool sim_toffset_64;              /* Large File (>2GB) file I/O Support available */
+bool sim_end;                       /* true = little endian, false = big endian */
+bool sim_taddr_64;                  /* t_addr is > 32b and Large File Support available */
+bool sim_toffset_64;                /* Large File (>2GB) file I/O Support available */
 
 #if defined(fprintf)                /* Make sure to only use the C rtl stream I/O routines */
 #undef fprintf
@@ -299,14 +300,14 @@ uint32 sim_fsize (FILE *fp)
 return (uint32)(sim_fsize_ex (fp));
 }
 
-t_bool sim_can_seek (FILE *fp)
+bool sim_can_seek (FILE *fp)
 {
 struct stat statb;
 
 if ((0 != fstat (fileno (fp), &statb)) ||
     (0 == (statb.st_mode & S_IFREG)))
-    return FALSE;
-return TRUE;
+    return false;
+return true;
 }
 
 static char *_sim_expand_homedir (const char *file, char *dest, size_t dest_size)
@@ -568,7 +569,7 @@ while (sim_isspace (szMsgBuffer[strlen (szMsgBuffer)-1]))
 return szMsgBuffer;
 }
 
-t_stat sim_copyfile (const char *source_file, const char *dest_file, t_bool overwrite_existing)
+t_stat sim_copyfile (const char *source_file, const char *dest_file, bool overwrite_existing)
 {
 char sourcename[PATH_MAX + 1], destname[PATH_MAX + 1];
 
@@ -637,7 +638,7 @@ struct SHMEM {
 t_stat sim_shmem_open (const char *name, size_t size, SHMEM **shmem, void **addr)
 {
 SYSTEM_INFO SysInfo;
-t_bool AlreadyExists;
+bool AlreadyExists;
 
 GetSystemInfo (&SysInfo);
 *shmem = (SHMEM *)calloc (1, sizeof(**shmem));
@@ -704,7 +705,7 @@ int32 sim_shmem_atomic_add (int32 *p, int32 v)
 return InterlockedExchangeAdd ((volatile long *) p,v) + (v);
 }
 
-t_bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
+bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
 {
 return (InterlockedCompareExchange ((LONG volatile *) ptr, newv, oldv) == oldv);
 }
@@ -728,7 +729,7 @@ sim_get_os_error_text (int Error)
 return strerror (Error);
 }
 
-t_stat sim_copyfile (const char *source_file, const char *dest_file, t_bool overwrite_existing)
+t_stat sim_copyfile (const char *source_file, const char *dest_file, bool overwrite_existing)
 {
 FILE *fIn = NULL, *fOut = NULL;
 t_stat st = SCPE_OK;
@@ -925,7 +926,7 @@ return *p + v;
 #endif
 }
 
-t_bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
+bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
 {
 #if defined (__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4)
 return __sync_bool_compare_and_swap (ptr, oldv, newv);
@@ -955,9 +956,9 @@ int32 sim_shmem_atomic_add (int32 *p, int32 v)
 return -1;
 }
 
-t_bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
+bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
 {
-return FALSE;
+return false;
 }
 
 #endif /* defined (__linux__) || defined (__APPLE__) */
@@ -1009,7 +1010,7 @@ struct sim_filepath_info {
 
 /* Detect paths that do not need the current directory prepended.
    For example, /tmp/a and C:\tmp\a are already full paths. */
-static t_bool sim_filepath_is_fullpath(const char *filepath)
+static bool sim_filepath_is_fullpath(const char *filepath)
 {
     return (((filepath[0] != '\0') && (filepath[1] == ':')) ||
             (filepath[0] == '/') || (filepath[0] == '\\'));
@@ -1114,14 +1115,14 @@ static void sim_filepath_format_size(char *buf, size_t size,
 }
 
 /* Format the MM/DD/YYYY hh:mm AM/PM timestamp substitution. */
-static t_bool sim_filepath_format_datetime(char *buf, size_t size,
+static bool sim_filepath_format_datetime(char *buf, size_t size,
                                            time_t mtime)
 {
     struct tm *tm = localtime(&mtime);
     int written;
 
     if (tm == NULL)
-        return FALSE;
+        return false;
 
     written = snprintf(buf, size, "%02d/%02d/%04d %02d:%02d %cM ",
                        1 + tm->tm_mon, tm->tm_mday, 1900 + tm->tm_year,
@@ -1147,17 +1148,17 @@ static void sim_filepath_read_metadata(struct sim_filepath_info *info)
 /* Allocate and normalize fullpath, then record name and ext inside it.
    For example, /tmp//alpha/./report.bin becomes /tmp/alpha/report.bin,
    with name pointing at report.bin and ext pointing at .bin. */
-static t_bool sim_filepath_info_init(struct sim_filepath_info *info,
+static bool sim_filepath_info_init(struct sim_filepath_info *info,
                                      const char *filepath)
 {
     memset(info, 0, sizeof(*info));
     info->fullpath = sim_filepath_make_fullpath(filepath);
     if (info->fullpath == NULL)
-        return FALSE;
+        return false;
 
     sim_filepath_normalize_fullpath(info->fullpath);
     sim_filepath_find_parts(info);
-    return TRUE;
+    return true;
 }
 
 /* Release owned storage and clear borrowed pointers into it. */
@@ -1550,7 +1551,7 @@ while (1) {
 return 0;
 }
 
-int sim_strwhitecasecmp (const char *string1, const char *string2, t_bool casecmp)
+int sim_strwhitecasecmp (const char *string1, const char *string2, bool casecmp)
 {
 unsigned char s1 = 1, s2 = 1;   /* start with equal, but not space */
 

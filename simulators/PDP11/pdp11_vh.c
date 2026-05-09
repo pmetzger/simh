@@ -91,6 +91,7 @@ Rank:       32
 #include "pdp11_defs.h"
 #endif
 
+#include <stdbool.h>
 #include "sim_tmxr.h"
 
 /* imports from pdp11_stddev.c: */
@@ -488,7 +489,7 @@ static t_stat vh_xmt_svc (UNIT *uptr);
 static t_stat vh_timersvc (UNIT *uptr);
 static int32 vh_rxinta (void);
 static int32 vh_txinta (void);
-static t_stat vh_clear (int32 vh, t_bool flag);
+static t_stat vh_clear (int32 vh, bool flag);
 static t_stat vh_reset (DEVICE *dptr);
 static t_stat vh_attach (UNIT *uptr, const char *cptr);
 static t_stat vh_detach (UNIT *uptr);
@@ -1082,7 +1083,7 @@ static t_stat vh_rd (   int32   *data,
 
     sim_debug(DBG_RREG, &vh_dev, "vh_rd(vh=%d, PA=0x%08X [%s], access=%d, data=0x%X) ", vh, PA,
               ((vh_unit[vh].flags & UNIT_MODEDHU) ? vh_rd_dhu_regs : vh_rd_dhv_regs)[(PA >> 1) & 07], access, *data);
-    sim_debug_bits(DBG_RREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32)(*data), (uint32)(*data), TRUE);
+    sim_debug_bits(DBG_RREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32)(*data), (uint32)(*data), true);
 
     return (SCPE_OK);
 }
@@ -1102,7 +1103,7 @@ static t_stat vh_wr (   int32   ldata,
 
     sim_debug(DBG_WREG, &vh_dev, "vh_wr(vh=%d, PA=0x%08X [%s], access=%d, data=0x%X) ", vh, PA,
               ((vh_unit[vh].flags & UNIT_MODEDHU) ? vh_wr_dhu_regs : vh_wr_dhv_regs)[(PA >> 1) & 07], access, data);
-    sim_debug_bits(DBG_WREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), TRUE);
+    sim_debug_bits(DBG_WREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), true);
 
     switch ((PA >> 1) & 7) {
     case 0:     /* CSR, but no read-modify-write */
@@ -1460,7 +1461,7 @@ static t_stat vh_timersvc (  UNIT    *uptr   )
             if (vh_mcount[vh] != 0)
                 vh_mcount[vh] -= 1;
             else {
-                vh_clear (vh, FALSE);
+                vh_clear (vh, false);
                 sim_debug (DBG_TIM, &vh_dev, "vh_timersvc() - vh=%d, Master Reset Complete\n", vh);
             }
         }
@@ -1623,7 +1624,7 @@ static void vh_init_chan (  int32   vh,
 /* init a controller; flag true if BINIT, false if master.reset */
 
 static t_stat vh_clear (    int32   vh,
-                t_bool  flag    )
+                bool    flag    )
 {
     int32   i;
 
@@ -1721,7 +1722,7 @@ static t_stat vh_reset (    DEVICE  *dptr   )
             else
                 vh_unit[i].flags &= ~UNIT_MODEDHU;
             vh_unit[i].flags &= ~UNIT_DIS;
-            vh_clear (i, TRUE);
+            vh_clear (i, true);
         } else {
             vh_unit[i].flags |= UNIT_DIS;
         }
@@ -1860,7 +1861,7 @@ if ((newln == 0) || (newln % VH_LINES))
 if (newln < vh_desc.lines) {
     for (i = newln, t = 0; i < vh_desc.lines; i++)
         t = t | vh_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
         return SCPE_OK;
     for (i = newln; i < vh_desc.lines; i++) {
         if (vh_ldsc[i].conn) {
@@ -1868,7 +1869,7 @@ if (newln < vh_desc.lines) {
             tmxr_reset_ln (&vh_ldsc[i]);                /* reset line */
             }
         if ((i % VH_LINES) == (VH_LINES - 1))
-            vh_clear (i / VH_LINES, TRUE);              /* reset mux */
+            vh_clear (i / VH_LINES, true);              /* reset mux */
         }
     }
 vh_desc.lines = newln;

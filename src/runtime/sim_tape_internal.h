@@ -5,6 +5,7 @@
 #ifndef SIM_TAPE_INTERNAL_H_
 #define SIM_TAPE_INTERNAL_H_ 0
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 
@@ -81,13 +82,13 @@ typedef struct SIM_TAPE_TEST_FILE {
 void sim_tape_dos11_fallback_name(char name[9], uint32 file_count);
 
 /* Format a zero-padded decimal value into a fixed-width ANSI label field. */
-t_bool sim_tape_format_ansi_decimal(char *field, size_t field_size,
+bool sim_tape_format_ansi_decimal(char *field, size_t field_size,
                                     t_uint64 value);
 
 /* Classify text-vs-binary tape input and its line-ending shape. */
 int sim_tape_classify_file_contents(FILE *f, size_t *max_record_size,
-                                    t_bool *lf_line_endings,
-                                    t_bool *crlf_line_endings);
+                                    bool *lf_line_endings,
+                                    bool *crlf_line_endings);
 
 /* Build TESTLIB tape attach arguments for one processing step; caller frees. */
 char *sim_tape_test_process_args(const char *filename, const char *format,

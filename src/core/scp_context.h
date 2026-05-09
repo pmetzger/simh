@@ -13,6 +13,7 @@
 #ifndef SIM_SCP_CONTEXT_H_
 #define SIM_SCP_CONTEXT_H_ 0
 
+#include <stdbool.h>
 #include "sim_defs.h"
 
 /* Default device selected for SCP commands that operate on a device. */
@@ -46,6 +47,6 @@ DEVICE *find_unit(const char *cptr, UNIT **uptr);
 t_stat sim_register_internal_device(DEVICE *dptr);
 
 /* Return whether a device is currently disabled. */
-t_bool qdisable(DEVICE *dptr);
+bool qdisable(DEVICE *dptr);
 
 #endif

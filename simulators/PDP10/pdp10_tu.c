@@ -96,6 +96,7 @@
      but the SC interrupt is.
 */
 
+#include <stdbool.h>
 #include "pdp10_defs.h"
 #include "sim_tape.h"
 
@@ -349,7 +350,7 @@ t_stat tu_boot (int32 unitno, DEVICE *dptr);
 void tu_go (int32 drv);
 void set_tuer (int32 flag);
 void update_tucs (int32 flag, int32 drv);
-t_stat tu_map_err (UNIT *uptr, t_stat st, t_bool qdt);
+t_stat tu_map_err (UNIT *uptr, t_stat st, bool qdt);
 
 /* TU data structures
 
@@ -1095,7 +1096,7 @@ return VEC_TU;                                          /* acknowledge */
 
    Note that tape mark on a data transfer sets FCE and Massbus EXC */
 
-t_stat tu_map_err (UNIT *uptr, t_stat st, t_bool qdt)
+t_stat tu_map_err (UNIT *uptr, t_stat st, bool qdt)
 {
 /* Generic helper signature.
    This implementation does not use every parameter. */

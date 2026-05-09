@@ -38,6 +38,7 @@
  *************************************************************************/
 
 /*#define DBG_MSG*/
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 
@@ -294,11 +295,11 @@ static t_stat mdsad_reset(DEVICE *dptr)
 
     if(dptr->flags & DEV_DIS) {
         sim_map_resource(pnp->mem_base, pnp->mem_size,
-            RESOURCE_TYPE_MEMORY, &mdsaddev, "mdsaddev", TRUE);
+            RESOURCE_TYPE_MEMORY, &mdsaddev, "mdsaddev", true);
     } else {
         /* Connect MDSAD at base address */
         if(sim_map_resource(pnp->mem_base, pnp->mem_size,
-            RESOURCE_TYPE_MEMORY, &mdsaddev, "mdsaddev", FALSE) != 0) {
+            RESOURCE_TYPE_MEMORY, &mdsaddev, "mdsaddev", false) != 0) {
             sim_printf("%s: error mapping resource at 0x%04x\n",
                 __FUNCTION__, pnp->mem_base);
             dptr->flags |= DEV_DIS;
@@ -525,7 +526,7 @@ static uint8 MDSAD_Read(const uint32 Addr)
                     return 0x00;
                 }
                 if(mdsad_dev.dctrl & WR_DATA_DETAIL_MSG)
-                    showdata(FALSE);
+                    showdata(false);
                 switch((pDrive->uptr)->u3)
                 {
                     case IMAGE_TYPE_DSK:
@@ -790,7 +791,7 @@ static uint8 MDSAD_Read(const uint32 Addr)
                                     break;
                             }
                             if(mdsad_dev.dctrl & RD_DATA_DETAIL_MSG)
-                                showdata(TRUE);
+                                showdata(true);
                     }
 
                     if(mdsad_info->datacount < MDSAD_SECTOR_LEN) {

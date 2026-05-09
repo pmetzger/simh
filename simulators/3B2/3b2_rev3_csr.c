@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_cpu.h"
 #include "3b2_csr.h"
 #include "3b2_if.h"
@@ -123,13 +124,13 @@ t_stat csr_reset(DEVICE *dptr)
        This implementation does not use every parameter. */
     (void) dptr;
 
-    CSRBIT(CSRFECC, TRUE);
-    CSRBIT(CSRTHERM, FALSE);
-    CSRBIT(CSRITIM, TRUE);
-    CSRBIT(CSRISTIM, TRUE);
-    CSRBIT(CSRIBUB, TRUE);
-    CSRBIT(CSRPWRSPDN, FALSE);
-    CSRBIT(CSRFLPMO, TRUE);
+    CSRBIT(CSRFECC, true);
+    CSRBIT(CSRTHERM, false);
+    CSRBIT(CSRITIM, true);
+    CSRBIT(CSRISTIM, true);
+    CSRBIT(CSRIBUB, true);
+    CSRBIT(CSRPWRSPDN, false);
+    CSRBIT(CSRFLPMO, true);
 
     return SCPE_OK;
 }
@@ -237,7 +238,7 @@ void csr_write(uint32 pa, uint32 val, size_t size)
         break;
     case 0x3c:
         CSRBIT(CSRTHERM, val);
-        cpu_nmi = val ? TRUE : FALSE; /* Immediate NMI */
+        cpu_nmi = val ? true : false; /* Immediate NMI */
         break;
     case 0x40:
         CSRBIT(CSRLED, val);
@@ -269,10 +270,10 @@ void csr_write(uint32 pa, uint32 val, size_t size)
         CSRBIT(CSRSBERR, val);
         if (val) {
             if (!(csr_data & CSRISBERR)) {
-                SET_INT(INT_SBERR, TRUE);
+                SET_INT(INT_SBERR, true);
             }
         } else {
-            SET_INT(INT_SBERR, FALSE);
+            SET_INT(INT_SBERR, false);
         }
         break;
     case 0x60:
@@ -287,10 +288,10 @@ void csr_write(uint32 pa, uint32 val, size_t size)
         CSRBIT(CSRTIMO, val);
         if (val) {
             if (!(csr_data & CSRITIMO)) {
-                SET_INT(INT_BUS_TMO, TRUE);
+                SET_INT(INT_BUS_TMO, true);
             }
         } else {
-            SET_INT(INT_BUS_TMO, FALSE);
+            SET_INT(INT_BUS_TMO, false);
         }
         break;
     case 0x6c:
@@ -301,11 +302,11 @@ void csr_write(uint32 pa, uint32 val, size_t size)
         break;
     case 0x74:
         CSRBIT(CSRSTIMO, val);
-        cpu_nmi = val ? TRUE : FALSE; /* Immediate NMI */
+        cpu_nmi = val ? true : false; /* Immediate NMI */
         break;
     case 0x78:
         CSRBIT(CSRABRT, val);
-        cpu_nmi = val ? TRUE : FALSE; /* Immediate NMI */
+        cpu_nmi = val ? true : false; /* Immediate NMI */
         break;
     case 0x7c:
         /* System reset request */

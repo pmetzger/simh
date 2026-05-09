@@ -37,6 +37,7 @@
  *                                                                       *
  *************************************************************************/
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "wd179x.h"
 
@@ -72,7 +73,7 @@ typedef enum ibc_model {
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8 rom_disabled; /* TRUE if ROM has been disabled */
+    uint8 rom_disabled; /* true if ROM has been disabled */
     ibc_model_t model;
     uint8 dipsw_E;      /* 8-position DIP switch at location E. */
     uint8* cache;       /* IBC CACHE storage */
@@ -1595,7 +1596,7 @@ static t_stat ibc_set_model(UNIT* uptr, int32 value, const char* cptr, void* des
     while (resources->routine != NULL) {
         sim_debug(VERBOSE_MSG, &ibc_dev, "Unmapping I/O at 0x%02x-0x%02x: %s\n",
             resources->baseaddr, resources->baseaddr + resources->size - 1, resources->name);
-        sim_map_resource(resources->baseaddr, resources->size, resources->resource_type, resources->routine, resources->name, TRUE);
+        sim_map_resource(resources->baseaddr, resources->size, resources->resource_type, resources->routine, resources->name, true);
         resources++;
     }
 
@@ -1606,7 +1607,7 @@ static t_stat ibc_set_model(UNIT* uptr, int32 value, const char* cptr, void* des
     while (resources->routine != NULL) {
         sim_debug(VERBOSE_MSG, &ibc_dev, "Mapping I/O at 0x%02x-0x%02x: %s\n",
             resources->baseaddr, resources->baseaddr + resources->size - 1, resources->name);
-        sim_map_resource(resources->baseaddr, resources->size, resources->resource_type, resources->routine, resources->name, FALSE);
+        sim_map_resource(resources->baseaddr, resources->size, resources->resource_type, resources->routine, resources->name, false);
         resources++;
     }
 
@@ -1637,7 +1638,7 @@ static t_stat ibc_reset(DEVICE* dptr)
 
     /* Reset FDC PARAM register */
     ibc_info->param = 0;
-    ibc_info->rom_disabled = FALSE;
+    ibc_info->rom_disabled = false;
     ibc_info->cache_wbase = 0;
     ibc_info->cache_rbase = 0;
     ibc_info->cache_index = 0;
@@ -1706,7 +1707,7 @@ static int32 ibc_rom(const int32 Addr, const int32 write, const int32 data)
         ibc_ram[Addr & IBC_ROM_ADDR_MASK] = (uint8)data;
         return 0;
     } else {
-        if(ibc_info->rom_disabled == FALSE) {
+        if(ibc_info->rom_disabled == false) {
             return(ibc_rom_data[ibc_info->model][Addr & IBC_ROM_ADDR_MASK]);
         } else {
             return(ibc_ram[Addr & IBC_ROM_ADDR_MASK]);
@@ -1804,7 +1805,7 @@ static int32 ibc_banksel(const int32 port, const int32 io, const int32 data)
         case IBC_SCC_ROM_CTRL:
             sim_debug(BANK_MSG, &ibc_dev, DEV_NAME ": " ADDRESS_FORMAT
                 " WR ROM Ctrl Port: 0x%02x=0x%02x (Disable ROM.)\n", PCX, port, data);
-            ibc_info->rom_disabled = TRUE;
+            ibc_info->rom_disabled = true;
             break;
         case IBC_FIFO_CTRL:
         case IBC_SCC_FIFO_CTRL:
@@ -1845,7 +1846,7 @@ static int32 ibc_banksel(const int32 port, const int32 io, const int32 data)
         case 0x5F:
             sim_debug(BANK_MSG, &ibc_dev, DEV_NAME ": " ADDRESS_FORMAT
                 " RD ROM Ctrl Port: 0x%02x=0x%02x (Enable ROM.)\n", PCX, port, result);
-            ibc_info->rom_disabled = FALSE;
+            ibc_info->rom_disabled = false;
             break;
         default:
             sim_debug(SBD_MSG, &ibc_dev, DEV_NAME ": " ADDRESS_FORMAT

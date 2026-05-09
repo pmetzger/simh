@@ -45,6 +45,7 @@
 #ifndef _3B2_PORTS_H_
 #define _3B2_PORTS_H_
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 #define PORTS_ID        0x0003
@@ -190,8 +191,8 @@ typedef struct {
     uint8  rlp;          /* Last known load pointer */
     uint16 iflag;        /* Line Discipline: Input flags */
     uint16 oflag;        /* Line Discipline: Output flags */
-    t_bool crlf;         /* Indicates we are in a CRLF output transform */
-    t_bool conn;         /* TRUE if connected, FALSE otherwise */
+    bool crlf;           /* Indicates we are in a CRLF output transform */
+    bool conn;           /* true if connected, false otherwise */
 } PORTS_LINE_STATE;
 
 typedef struct {

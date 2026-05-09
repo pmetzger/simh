@@ -95,6 +95,7 @@
  */
 
 
+#include <stdbool.h>
 #include "nova_defs.h"
 
 #include "sim_sock.h"
@@ -524,7 +525,7 @@ t_stat qty_detach( UNIT * unitp )
     /*                             qty_clear                        */
     /*--------------------------------------------------------------*/
 
-static t_stat qty_clear( t_bool flag )
+static t_stat qty_clear( bool flag )
     {
     int line ;
 
@@ -553,7 +554,7 @@ static t_stat qty_common_reset( DIB * dibp, UNIT * unitp, DEVICE * dptr )
         if (dptr == &qty_dev) alm_dev.flags |= DEV_DIS;
         else qty_dev.flags |= DEV_DIS;
         }
-    qty_clear( TRUE ) ;
+    qty_clear( true ) ;
     DEV_CLR_BUSY( INT_QTY ) ;                              /*  clear busy  */
     DEV_CLR_DONE( INT_QTY ) ;                              /*  clear done, int */
     DEV_UPDATE_INTR ;
@@ -782,7 +783,7 @@ t_stat qty_setnl( UNIT * uptr, int32 val, const char * cptr, void * desc )
             {
             t = t | qty_ldsc[i].conn ;
             }
-        if ( t && ! get_yn("This will disconnect users; proceed [N]?", FALSE) )
+        if ( t && ! get_yn("This will disconnect users; proceed [N]?", false) )
             {
             return ( SCPE_OK ) ;
             }
@@ -793,7 +794,7 @@ t_stat qty_setnl( UNIT * uptr, int32 val, const char * cptr, void * desc )
                 tmxr_msg( qty_ldsc[i].conn, "\r\nOperator disconnected line\r\n" ) ;
                 tmxr_reset_ln( &qty_ldsc[i] ) ;
                 }
-            qty_clear( TRUE ) ;                         /* reset mux */
+            qty_clear( true ) ;                         /* reset mux */
             }
         }
     qty_max = qty_desc.lines = newln ;

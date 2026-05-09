@@ -55,6 +55,7 @@
 
 #include "i7094_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define DRM_NUMDR       4                               /* drums/controller */
 
@@ -122,7 +123,7 @@ t_stat drm_svc (UNIT *uptr);
 t_stat drm_reset (DEVICE *dptr);
 t_stat drm_chsel (uint32 ch, uint32 sel, uint32 unit);
 t_stat drm_chwr (uint32 ch, t_uint64 val, uint32 flags);
-t_bool drm_da_incr (void);
+bool drm_da_incr (void);
 
 /* DRM data structures
 
@@ -318,13 +319,13 @@ return SCPE_OK;
 
 /* Increment drum address - return true, set new state if end of logical disk */
 
-t_bool drm_da_incr (void)
+bool drm_da_incr (void)
 {
 drm_da = (drm_da + 1) & DRM_LDMASK;
 if (drm_da != 0)
-    return FALSE;
+    return false;
 drm_sta = DRM_EOD;
-return TRUE;
+return true;
 }
 
 /* Reset routine */

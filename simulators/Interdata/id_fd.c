@@ -37,6 +37,7 @@
    non-zero a deleted record.
 */
 
+#include <stdbool.h>
 #include "id_defs.h"
 
 #define FD_NUMTR        77                              /* tracks/disk */
@@ -134,7 +135,7 @@ t_stat fd_svc (UNIT *uptr);
 t_stat fd_reset (DEVICE *dptr);
 t_stat fd_clr (DEVICE *dptr);
 t_stat fd_boot (int32 unitno, DEVICE *dptr);
-t_bool fd_dte (UNIT *uptr, t_bool wr);
+bool fd_dte (UNIT *uptr, bool wr);
 uint32 fd_crc (uint32 crc, uint32 dat, uint32 cnt);
 void fd_done (uint32 u, uint32 nsta, uint32 nes0, uint32 nes1);
 void sched_seek (UNIT *uptr, int32 newlrn);
@@ -328,7 +329,7 @@ switch (fnc) {                                          /* case on function */
     case FNC_RD:                                        /* read, buf empty */
         if (uptr->FNC & FNC_STOPPING)                   /* stopped? */
             break;
-        if (fd_dte (uptr, FALSE))                       /* xfr error? */
+        if (fd_dte (uptr, false))                       /* xfr error? */
             return SCPE_OK;
         da = GET_DA (uptr->LRN);                        /* get disk addr */
         for (i = 0; i < FD_NUMBY; i++)                  /* read sector */
@@ -344,7 +345,7 @@ switch (fnc) {                                          /* case on function */
         break;
 
     case FNC_WR: case FNC_DEL:                          /* write block */
-        if (fd_dte (uptr, TRUE))                        /* xfr error? */
+        if (fd_dte (uptr, true))                        /* xfr error? */
             return SCPE_OK;
         if (fd_bptr) {                                  /* any transfer? */
             da = GET_DA (uptr->LRN);                    /* get disk addr */
@@ -438,23 +439,23 @@ return;
 
 /* Test for data transfer error */
 
-t_bool fd_dte (UNIT *uptr, t_bool wr)
+bool fd_dte (UNIT *uptr, bool wr)
 {
 uint32 u = uptr - fd_dev.units;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not attached? */
     fd_done (u, STA_ERR, ES0_ERR | ES0_FLT, ES1_NRDY);
-    return TRUE;
+    return true;
     }
 if (wr && (uptr->flags & UNIT_WPRT)) {                  /* wr protected? */
     fd_done (u, STA_ERR, ES0_ERR | ES0_WRP, 0);
-    return TRUE;
+    return true;
     }
 if ((uptr->LRN == 0) || (uptr->LRN > FD_NUMLRN)) {      /* bad LRN? */
     fd_done (u, STA_ERR, ES0_ERR | ES0_LRN, 0);
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Header CRC calculation */

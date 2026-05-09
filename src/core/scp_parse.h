@@ -10,14 +10,16 @@
 #ifndef SIM_SCP_PARSE_H_
 #define SIM_SCP_PARSE_H_ 0
 
+#include <stdbool.h>
+
 #include "sim_defs.h"
 
 /* Result codes returned by switch parsing. */
 typedef enum { SW_ERROR, SW_BITMASK, SW_NUMBER } SWITCH_PARSE;
 
 /* Parse one token with selectable case-folding and quote handling. */
-const char *get_glyph_gen(const char *iptr, char *optr, char mchar, t_bool uc,
-                          t_bool quote, char escape_char);
+const char *get_glyph_gen(const char *iptr, char *optr, char mchar, bool uc,
+                          bool quote, char escape_char);
 
 /* Parse the next token and fold alphabetic characters to upper case. */
 const char *get_glyph(const char *iptr, char *optr, char mchar);

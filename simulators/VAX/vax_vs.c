@@ -35,6 +35,8 @@
 
 #if !defined(VAX_620)
 
+#include <stdbool.h>
+
 #include "vax_vs.h"
 
 #define VSXXX_PROMPT    0
@@ -59,9 +61,9 @@ typedef struct {
 int32 vs_mode = VSXXX_PROMPT;
 int32 vs_x = 0;                                         /* X-axis motion */
 int32 vs_y = 0;                                         /* Y-axis motion */
-t_bool vs_l = FALSE;                                    /* Left button state */
-t_bool vs_m = FALSE;                                    /* Middle button state */
-t_bool vs_r = FALSE;                                    /* Right button state */
+bool vs_l = false;                                      /* Left button state */
+bool vs_m = false;                                      /* Middle button state */
+bool vs_r = false;                                      /* Right button state */
 VS_FIFO vs_sndf;                                        /* send FIFO */
 
 t_stat vs_wr (uint8 c);
@@ -207,9 +209,9 @@ t_stat vs_reset (DEVICE *dptr)
 
 vs_x = 0;
 vs_y = 0;
-vs_l = FALSE;
-vs_m = FALSE;
-vs_r = FALSE;
+vs_l = false;
+vs_m = false;
+vs_r = false;
 vs_clear_fifo (&vs_sndf);
 vs_mode = VSXXX_PROMPT;
 return SCPE_OK;

@@ -766,7 +766,7 @@ return eth_show (st, uptr, val, NULL);
 static const char* _eth_getname(int number, char* name, char *desc)
 {
   ETH_LIST  list[ETH_MAX_DEVICE];
-  int count = eth_devices(ETH_MAX_DEVICE, list, FALSE);
+  int count = eth_devices(ETH_MAX_DEVICE, list, false);
 
   if ((number < 0) || (count <= number))
       return NULL;
@@ -783,7 +783,7 @@ static const char* _eth_getname(int number, char* name, char *desc)
 static const char* eth_getname_bydesc(const char* desc, char* name, char *ndesc)
 {
   ETH_LIST  list[ETH_MAX_DEVICE];
-  int count = eth_devices(ETH_MAX_DEVICE, list, FALSE);
+  int count = eth_devices(ETH_MAX_DEVICE, list, false);
   int i;
   size_t j=strlen(desc);
 
@@ -809,7 +809,7 @@ static const char* eth_getname_bydesc(const char* desc, char* name, char *ndesc)
 static char* eth_getname_byname(const char* name, char* temp, char *desc)
 {
   ETH_LIST  list[ETH_MAX_DEVICE];
-  int count = eth_devices(ETH_MAX_DEVICE, list, FALSE);
+  int count = eth_devices(ETH_MAX_DEVICE, list, false);
   size_t n;
   int i, found;
 
@@ -829,7 +829,7 @@ static char* eth_getname_byname(const char* name, char* temp, char *desc)
 static char* eth_getdesc_byname(char* name, char* temp)
 {
   ETH_LIST  list[ETH_MAX_DEVICE];
-  int count = eth_devices(ETH_MAX_DEVICE, list, FALSE);
+  int count = eth_devices(ETH_MAX_DEVICE, list, false);
   size_t n;
   int i, found;
 
@@ -882,7 +882,7 @@ t_stat eth_show (FILE* st, UNIT* uptr, int32 val, const void* desc)
   (void) val;
   (void) desc;
 
-  number = eth_devices(ETH_MAX_DEVICE, list, FALSE);
+  number = eth_devices(ETH_MAX_DEVICE, list, false);
   fprintf(st, "ETH devices:\n");
   if (number == -1)
     fprintf(st, "  network support not available in simulator\n");
@@ -1796,14 +1796,14 @@ static int _eth_get_system_id (char *buf, size_t buf_size)
 static int _eth_get_system_id (char *buf, size_t buf_size)
 {
 FILE *f;
-t_bool popened = FALSE;
+bool popened = false;
 
 memset (buf, 0, buf_size);
 if (buf_size < 37)
     return -1;
 if ((f = fopen ("/etc/machine-id", "r")) == NULL) {
   f = popen ("hostname", "r");
-  popened = TRUE;
+  popened = true;
   }
 if (f) {
   size_t read_size;
@@ -2534,7 +2534,7 @@ _eth_add_to_open_list (dev);
  * simulator install an appropriate filter that reflects the device's
  * configuration.
  */
-return eth_filter_hash (dev, 0, NULL, FALSE, FALSE, NULL);
+return eth_filter_hash (dev, 0, NULL, false, false, NULL);
 }
 
 static t_stat _eth_close_port(int eth_api, pcap_t *pcap, SOCKET pcap_fd)
@@ -2677,7 +2677,7 @@ return (rand() & 0xFF);
 static t_stat eth_check_address_conflict_ex (ETH_DEV* dev,
                                       const ETH_MAC mac,
                                       int *reflections,
-                                      t_bool silent)
+                                      bool silent)
 {
 ETH_PACK send, recv;
 t_stat status;
@@ -2829,7 +2829,7 @@ char mac_string[32];
 eth_mac_fmt(mac, mac_string);
 if (0 == eth_mac_cmp (mac, dev->host_nic_phy_hw_addr))
     return sim_messagef (SCPE_OK, "Sharing the host NIC MAC address %s may cause unexpected behavior\n", mac_string);
-return eth_check_address_conflict_ex (dev, mac, NULL, FALSE);
+return eth_check_address_conflict_ex (dev, mac, NULL, false);
 }
 
 static t_stat eth_reflect(ETH_DEV* dev)
@@ -2843,7 +2843,7 @@ static ETH_MAC mac = {0xfe,0xff,0xff,0xff,0xff,0xfe};
 
 sim_debug(dev->dbit, dev->dptr, "Determining Reflections...\n");
 
-r = eth_check_address_conflict_ex (dev, mac, &dev->reflections, TRUE);
+r = eth_check_address_conflict_ex (dev, mac, &dev->reflections, true);
 if (r != SCPE_OK)
   return sim_messagef (r, "eth: Error determining reflection count\n");
 
@@ -2929,7 +2929,7 @@ if (dev->error_needs_reset) {
   sim_os_sleep (ETH_ERROR_REOPEN_PAUSE);
 
   r = _eth_open_port(dev->name, &dev->eth_api, &dev->handle, &dev->fd_handle, errbuf, dev->bpf_filter, (void *)dev, dev->dptr, dev->dbit);
-  dev->error_needs_reset = FALSE;
+  dev->error_needs_reset = false;
   if (r == SCPE_OK)
     sim_printf ("%s ReOpened: %s \n", msg, dev->name);
   else
@@ -3959,7 +3959,7 @@ t_stat eth_filter(ETH_DEV* dev, int addr_count, const ETH_MAC addresses[],
                   ETH_BOOL all_multicast, ETH_BOOL promiscuous)
 {
 return eth_filter_hash_ex(dev, addr_count, addresses,
-                          all_multicast, promiscuous, FALSE,
+                          all_multicast, promiscuous, false,
                           NULL);
 }
 
@@ -3968,7 +3968,7 @@ t_stat eth_filter_hash(ETH_DEV* dev, int addr_count, const ETH_MAC addresses[],
                        ETH_MULTIHASH* const hash)
 {
 return eth_filter_hash_ex(dev, addr_count, addresses,
-                          all_multicast, promiscuous, TRUE,
+                          all_multicast, promiscuous, true,
                           hash);
 }
 
@@ -4367,7 +4367,7 @@ int bpf_compile_skip_count = 0;
 
 
 memset (&eth_tst, 0, sizeof(eth_tst));
-eth_device_count = eth_devices(ETH_MAX_DEVICE, eth_list, FALSE);
+eth_device_count = eth_devices(ETH_MAX_DEVICE, eth_list, false);
 eth_opened = 0;
 for (eth_num=0; eth_num<eth_device_count; eth_num++) {
   char eth_name[32];

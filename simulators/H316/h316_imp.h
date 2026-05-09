@@ -159,15 +159,15 @@ static inline bool h316_physical_port_switch_requested(int32 switches)
 // current state, COM port, UDP connection , etc...
 struct _MIDB {
   // Receiver data ...
-  t_bool      rxpending;        // TRUE if a read is pending on this line
-  t_bool      rxerror;          // TRUE if any modem error detected
+  bool        rxpending;        // true if a read is pending on this line
+  bool        rxerror;          // true if any modem error detected
   uint32      rxtotal;          // total number of H316 words received
   // Transmitter data ...
   uint32      txtotal;          // total number of H316 words transmitted
   uint32      txdelay;          // RTC ticks until TX done interrupt
   // Other data ...
-  t_bool      lloop;            // line loop back enabled
-  t_bool      iloop;            // interface loop back enabled
+  bool        lloop;            // line loop back enabled
+  bool        iloop;            // interface loop back enabled
   int32       link;             // h316_udp link number
   uint32      bps;              // simulated line speed or COM port baud rate
 };
@@ -177,25 +177,25 @@ typedef struct _MIDB MIDB;
 //   One of these is allocated to every host interface ...
 struct _HIDB {
   // Receiver (HOST -> IMP) data ...
-  t_bool      rxpending;        // TRUE if a read is pending on this line
-  t_bool      rxerror;          // TRUE if any modem error detected
+  bool        rxpending;        // true if a read is pending on this line
+  bool        rxerror;          // true if any modem error detected
   uint32      rxtotal;          // total host messages received
   uint16      rxdata[MAXDATA];  // UDP packet received.
   uint16      rxnext;           // Index to next word in UDP packet.
   uint16      rxsize;           // Size of UDP packet.
   uint16      padding;          // Padding for long leaders.
-  t_bool      convert;          // Convert between 1822 short/long messages.
+  bool        convert;          // Convert between 1822 short/long messages.
   // Transmitter (IMP -> HOST) data ...
   uint32      txdelay;          // RTC ticks until TX done interrupt
   uint32      txtotal;          // total host messages sent
-  t_bool      txfirst;          // First packet in a series
+  bool        txfirst;          // First packet in a series
   // Other data ...
-  t_bool      iloop;            // local loop back enabled
-  t_bool      enabled;          // TRUE if the host is enabled
-  t_bool      error;            // TRUE for any host error
-  t_bool      ready;            // TRUE if the host is ready
-  t_bool      full;             // TRUE if the host buffer is full
-  t_bool      eom;              // TRUE when end of message is reached
+  bool        iloop;            // local loop back enabled
+  bool        enabled;          // true if the host is enabled
+  bool        error;            // true for any host error
+  bool        ready;            // true if the host is ready
+  bool        full;             // true if the host buffer is full
+  bool        eom;              // true when end of message is reached
   int32       link;             // h316_udp link number
   uint32      bps;              // simulated line speed or COM port baud rate
 };
@@ -223,7 +223,7 @@ extern t_stat hi_tx_service (uint32 quantum);
 t_stat udp_create (DEVICE *pdtr, const char *premote, int32 *plink);
 t_stat udp_release (DEVICE *dptr, int32 link);
 t_stat udp_send (DEVICE *pdtr, int32 link, uint16 *pdata, uint16 count);
-t_stat udp_set_link_loopback (DEVICE *dptr, int32 link, t_bool enable_loopback);
+t_stat udp_set_link_loopback (DEVICE *dptr, int32 link, bool enable_loopback);
 int32 udp_receive (DEVICE *dptr, int32 link, uint16 *pdata, uint16 maxbufg);
 
 #endif  // #ifndef _H316_IMP_H_

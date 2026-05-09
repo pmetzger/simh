@@ -137,6 +137,7 @@
     2 - 3 are always DD.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 #include "zx200a_internal.h"
 #include "scp.h"
@@ -204,7 +205,7 @@ extern uint16    PCX;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 extern uint8 get_mbyte(uint16 addr);
 extern void put_mbyte(uint16 addr, uint8 val);
@@ -219,14 +220,14 @@ t_stat zx200a_reset(DEVICE *dptr);
 void zx200a_reset_dev(void);
 t_stat zx200a_attach (UNIT *uptr, const char *cptr);
 t_stat zx200a_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-uint8 zx200ar0SD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar0DD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar1SD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar1DD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar2SD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar2DD(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar3(t_bool io, uint8 data, uint8 devnum);
-uint8 zx200ar7(t_bool io, uint8 data, uint8 devnum);
+uint8 zx200ar0SD(bool io, uint8 data, uint8 devnum);
+uint8 zx200ar0DD(bool io, uint8 data, uint8 devnum);
+uint8 zx200ar1SD(bool io, uint8 data, uint8 devnum);
+uint8 zx200ar1DD(bool io, uint8 data, uint8 devnum);
+uint8 zx200ar2SD(bool io, uint8 data, uint8 devnum);
+uint8 zx200ar2DD(bool io, uint8 data, uint8 devnum);
+uint8 zx200ar3(bool io, uint8 data, uint8 devnum);
+uint8 zx200ar7(bool io, uint8 data, uint8 devnum);
 void zx200a_diskio(void);
 
 /* globals */
@@ -250,7 +251,7 @@ FDCDEF    zx200a;
  * TODO: Share this helper logic with the other Intel diskette controllers
  * after the warning-driven fixes are settled.
  */
-static t_bool zx200a_completion_interrupt_enabled(uint8 cw)
+static bool zx200a_completion_interrupt_enabled(uint8 cw)
 {
     return (cw & CW_INT_CTL) != CW_INT_DIS;
 }
@@ -644,7 +645,7 @@ t_stat zx200a_attach (UNIT *uptr, const char *cptr)
 
 /* zx200a control port functions */
 
-uint8 zx200ar0SD(t_bool io, uint8 data, uint8 devnum)
+uint8 zx200ar0SD(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -657,7 +658,7 @@ uint8 zx200ar0SD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar0DD(t_bool io, uint8 data, uint8 devnum)
+uint8 zx200ar0DD(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -670,7 +671,7 @@ uint8 zx200ar0DD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar1SD(t_bool io, uint8 data, uint8 devnum)
+uint8 zx200ar1SD(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -687,7 +688,7 @@ uint8 zx200ar1SD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar1DD(t_bool io, uint8 data, uint8 devnum)
+uint8 zx200ar1DD(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -704,7 +705,7 @@ uint8 zx200ar1DD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar2SD(t_bool io, uint8 data, uint8 devnum)
+uint8 zx200ar2SD(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -721,7 +722,7 @@ uint8 zx200ar2SD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar2DD(t_bool io, uint8 data, uint8 devnum)
+uint8 zx200ar2DD(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -738,7 +739,7 @@ uint8 zx200ar2DD(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 zx200ar3(t_bool io, uint8 data, uint8 devnum)
+uint8 zx200ar3(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -762,7 +763,7 @@ uint8 zx200ar3(t_bool io, uint8 data, uint8 devnum)
 }
 
 /* reset ZX-200A */
-uint8 zx200ar7(t_bool io, uint8 data, uint8 devnum)
+uint8 zx200ar7(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -788,7 +789,7 @@ void zx200a_diskio(void)
     uint32 i;
     UNIT *uptr;
     uint8 *fbuf;
-    t_bool completion_interrupt;
+    bool completion_interrupt;
 
     //parse the IOPB
     cw = get_mbyte(zx200a.iopb);

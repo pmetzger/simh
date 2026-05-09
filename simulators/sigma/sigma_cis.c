@@ -30,6 +30,7 @@
    02-Jun-2018  RMS     Fixed unsigned < 0 in decimal compare (Mark Pizzolato)
 */
 
+#include <stdbool.h>
 #include "sigma_defs.h"
 
 /* Decimal string structure */
@@ -78,7 +79,7 @@ extern uint32 cpu_model;
 
 uint32 ReadDstr (uint32 lnt, uint32 addr, dstr_t *dec);
 uint32 WriteDstr (uint32 lnt, uint32 addr, dstr_t *dec);
-void WriteDecA (dstr_t *dec, t_bool cln);
+void WriteDecA (dstr_t *dec, bool cln);
 void SetCC2Dstr (uint32 lnt, dstr_t *dst);
 uint32 TestDstrValid (dstr_t *src);
 uint32 DstrInvd (void);
@@ -88,11 +89,11 @@ int32 CmpDstr (dstr_t *src1, dstr_t *src2);
 uint32 LntDstr (dstr_t *dsrc);
 uint32 NibbleLshift (dstr_t *dsrc, uint32 sc, uint32 cin);
 uint32 NibbleRshift (dstr_t *dsrc, uint32 sc, uint32 cin);
-t_bool GenLshift (dstr_t *dsrc, uint32 sc);
+bool GenLshift (dstr_t *dsrc, uint32 sc);
 void GenRshift (dstr_t *dsrc, uint32 sc);
 uint32 ed_getsrc (uint32 sa, uint32 *c, uint32 *d);
 void ed_advsrc (uint32 rn, uint32 c);
-t_bool cis_test_int (dstr_t *src1, uint32 *kint);
+bool cis_test_int (dstr_t *src1, uint32 *kint);
 void cis_dm_int (dstr_t *src, dstr_t *dst, uint32 kint);
 void cis_dd_int (dstr_t *src, dstr_t *dst, uint32 t, uint32 *kint);
 
@@ -114,7 +115,7 @@ switch (op) {                                           /* case on opcode */
     case OP_DL:                                         /* decimal load */
         if ((tr = ReadDstr (lnt, bva, &dst)) != 0)      /* read mem string */
             return tr;
-        WriteDecA (&dst, FALSE);                        /* store result */
+        WriteDecA (&dst, false);                        /* store result */
         break;
 
     case OP_DST:                                        /* decimal store */
@@ -151,7 +152,7 @@ switch (op) {                                           /* case on opcode */
                 }
             dst.sign = src1.sign;                       /* set result sign */
             }
-        WriteDecA (&dst, TRUE);                         /* store result */
+        WriteDecA (&dst, true);                         /* store result */
         break;
 
     case OP_DC:                                         /* decimal compare */
@@ -250,7 +251,7 @@ switch (op) {                                           /* case on opcode */
                 NibbleLshift (&src2x, 1, 0);
                 }                                       /* end for */
             }                                           /* end if != 0 */
-        WriteDecA (&dst, TRUE);                         /* store result */
+        WriteDecA (&dst, true);                         /* store result */
         break;
 
 /* Decimal divide overflow calculation - if the dividend has true length d,
@@ -336,7 +337,7 @@ switch (op) {                                           /* case on opcode */
             if (GenLshift (&dst, sc))                   /* do shift */
                 CC |= CC2;
             }                                           /* end left shift */
-        WriteDecA (&dst, FALSE);                        /* store result */
+        WriteDecA (&dst, false);                        /* store result */
         break;
 
     case OP_PACK:                                       /* zoned to packed */
@@ -359,7 +360,7 @@ switch (op) {                                           /* case on opcode */
                 return DstrInvd ();
             dst.val[i / 8] = dst.val[i / 8] | (d << ((i % 8) * 4));
             }
-        WriteDecA (&dst, FALSE);                        /* write result */
+        WriteDecA (&dst, false);                        /* write result */
         break;
 
     case OP_UNPK:                                       /* packed to zoned */
@@ -386,7 +387,7 @@ return 0;
 
 /* Test for interrupted multiply or divide */
 
-t_bool cis_test_int (dstr_t *src, uint32 *kint)
+bool cis_test_int (dstr_t *src, uint32 *kint)
 {
 int32 i;
 uint32 wd, sc, d;
@@ -397,10 +398,10 @@ for (i = 15; i >= 1; i--) {                             /* test 15 nibbles */
     d = (src->val[wd] >> sc) & 0xF;
     if (d >= 0xA) {
         *kint = (uint32) i;
-        return TRUE;
+        return true;
         }
     }
-return FALSE;
+return false;
 }
 
 /* Resume interrupted multiply
@@ -601,7 +602,7 @@ return 0;
    Sets condition codes CC3 and CC4
    Bad digits and invalid sign are impossible */
 
-void WriteDecA (dstr_t *dst, t_bool cln)
+void WriteDecA (dstr_t *dst, bool cln)
 {
 uint32 i, nz;
 
@@ -808,7 +809,7 @@ return;
         cnt      =      shift count in nibbles
 */
 
-t_bool GenLshift (dstr_t *dsrc, uint32 cnt)
+bool GenLshift (dstr_t *dsrc, uint32 cnt)
 {
 uint32 i, c, sc, sc1;
 
@@ -827,7 +828,7 @@ if (sc) {
     }
 if (sc1)
     c |= NibbleLshift (dsrc, sc1, 0);
-return (c? TRUE: FALSE);
+return (c? true: false);
 }
 
 /* Nibble shift right

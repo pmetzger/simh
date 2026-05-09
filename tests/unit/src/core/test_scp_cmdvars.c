@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +33,7 @@ struct simh_test_saved_env {
     char *value;
 };
 
-extern t_bool sim_runlimit_enabled;
+extern bool sim_runlimit_enabled;
 extern int32 sim_runlimit_value;
 extern const char *sim_runlimit_units;
 extern t_stat set_verify(int32 flag, const char *cptr);
@@ -67,13 +68,13 @@ static int simh_test_uname_hook_cached(struct utsname *utsname_info)
 }
 #endif
 
-static t_bool simh_test_localtime_hook_fail(time_t now, struct tm *tmnow)
+static bool simh_test_localtime_hook_fail(time_t now, struct tm *tmnow)
 {
     (void)now;
     (void)tmnow;
 
     ++simh_test_localtime_calls;
-    return FALSE;
+    return false;
 }
 
 #if defined(_WIN32)
@@ -1133,7 +1134,7 @@ static void test_sim_get_env_special_handles_runlimit_edge_cases(void **state)
 
     (void)state;
 
-    sim_runlimit_enabled = TRUE;
+    sim_runlimit_enabled = true;
     sim_runlimit_value = 12;
     sim_runlimit_units = NULL;
 
@@ -1142,7 +1143,7 @@ static void test_sim_get_env_special_handles_runlimit_edge_cases(void **state)
     assert_null(
         _sim_get_env_special("SIM_RUNLIMIT_UNITS", value, sizeof(value)));
 
-    sim_runlimit_enabled = FALSE;
+    sim_runlimit_enabled = false;
     assert_null(
         _sim_get_env_special("SIM_RUNLIMIT_UNITS", value, sizeof(value)));
 }

@@ -455,6 +455,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_mem.h"
@@ -463,7 +464,7 @@
 
 /* Disable intra-instruction interrupt checking pending testing */
 
-#define cpu_interrupt_pending(x)    FALSE       /* TEMPORARY ONLY */
+#define cpu_interrupt_pending(x)    false       /* TEMPORARY ONLY */
 
 
 /* Program constants */
@@ -517,8 +518,8 @@ typedef char * (*OP_PRINT) (uint32 byte_address, uint32 byte_length);
 static void   branch_external            (HP_WORD segment, HP_WORD offset);
 static uint32 strip_overpunch            (uint8 *byte, NUMERIC_SIGN *sign);
 static uint32 convert                    (HP_WORD sba, HP_WORD tba, HP_WORD count, DISPLAY_MODE mode);
-static t_bool edit                       (t_stat *status, uint32 *trap);
-static t_bool compare                    (BYTE_ACCESS *source, BYTE_ACCESS *target, BYTE_ACCESS *table, t_stat *status);
+static bool edit                       (t_stat *status, uint32 *trap);
+static bool compare                    (BYTE_ACCESS *source, BYTE_ACCESS *target, BYTE_ACCESS *table, t_stat *status);
 static void   fprint_operands            (BYTE_ACCESS *source, BYTE_ACCESS *target, uint32 trap);
 static void   fprint_translated_operands (BYTE_ACCESS *source, BYTE_ACCESS *target, BYTE_ACCESS *table);
 static void   fprint_operand             (BYTE_ACCESS *op, char *label, OP_PRINT operand_printer);
@@ -609,7 +610,7 @@ uint8        byte;
 uint8        source_length, source_lead, source_fraction;
 uint8        target_length, target_lead, target_fraction;
 uint32       opcode;
-t_bool       store, zero_fill;
+bool         store, zero_fill;
 uint32       trap   = trap_None;
 t_stat       status = SCPE_OK;
 
@@ -633,8 +634,8 @@ switch (opcode) {                                       /* dispatch the opcode *
 
         else if (source_length > 0 && target_length > 0) {  /* otherwise if there is an alignment to do */
             sign = Unsigned;                                /*   then assume the source is unsigned */
-            store = TRUE;                                   /* enable storing */
-            zero_fill = TRUE;                               /*   and zero fill of the target */
+            store = true;                                   /* enable storing */
+            zero_fill = true;                               /*   and zero fill of the target */
 
             source_lead = source_length - source_fraction;  /* get the counts of the leading digits */
             target_lead = target_length - target_fraction;  /*   of the source and target numbers */
@@ -664,7 +665,7 @@ switch (opcode) {                                       /* dispatch the opcode *
                         source_lead = source_lead - 1;      /*   then count it */
 
                     if (byte >= '0' && byte <= '9')         /* if it is numeric */
-                        zero_fill = FALSE;                  /*   then turn zero-filling off */
+                        zero_fill = false;                  /*   then turn zero-filling off */
 
                     else if (byte == ' ' && zero_fill)      /* otherwise if it's a blank and zero-filling is on */
                         byte = '0';                         /*   then fill */
@@ -884,9 +885,9 @@ switch (opcode) {                                       /* dispatch the opcode *
 
                 if ((STA & STATUS_CC_MASK) != STATUS_CCI        /* if the condition code is not invalid */
                   && TO_CCF (STA) & opcode << TCCS_CCF_SHIFT)   /*   and the test succeeds */
-                    RA = D16_UMAX;                              /*     then set the TOS to TRUE */
+                    RA = D16_UMAX;                              /*     then set the TOS to true */
                 else                                            /* otherwise */
-                    RA = 0;                                     /*   set the TOS to FALSE */
+                    RA = 0;                                     /*   set the TOS to false */
                 break;
 
 
@@ -1200,8 +1201,8 @@ NUMERIC_SIGN sign;
 HP_WORD      separate_index, overpunch_index;
 uint8        byte, last_digit;
 uint32       trap = trap_None;
-t_bool       zero_fill = TRUE;
-t_bool       bare_sign = FALSE;
+bool         zero_fill = true;
+bool         bare_sign = false;
 
 switch (mode) {                                         /* set up the sign flag and indices */
 
@@ -1276,13 +1277,13 @@ while (count > 0) {                                     /* while there are chara
         trap = strip_overpunch (&byte, &sign);          /*   then strip the overpunch and set the sign */
 
         if (trap == trap_None)                          /* if the overpunch was valid */
-            zero_fill = FALSE;                          /*   then turn zero-filling off */
+            zero_fill = false;                          /*   then turn zero-filling off */
         else                                            /* otherwise the overpunch was not valid */
             break;                                      /*   so abandon the conversion */
         }
 
     if (byte >= '0' && byte <= '9')                     /* if the character is numeric */
-        zero_fill = FALSE;                              /*   then turn zero-filling off */
+        zero_fill = false;                              /*   then turn zero-filling off */
 
     else if (byte == ' ' && zero_fill)                  /* otherwise if it's a blank and zero-filling is on */
         byte = '0';                                     /*   then fill */
@@ -1327,7 +1328,7 @@ return trap;                                            /* return the trap condi
    On return, the "status" parameter is set to the SCP status returned by the
    interrupt test, and "trap" is set to trap_Invalid_ASCII_Digit if an operation
    encountered an invalid digit, or trap_None if the edit succeeded.  The
-   routine returns TRUE if the operation ran to completion, or FALSE if the
+   routine returns true if the operation ran to completion, or false if the
    operation was interrupted and should be resumed.
 
    If an interrupt is detected between operations, two words are pushed onto the
@@ -1392,13 +1393,13 @@ return trap;                                            /* return the trap condi
        subtracts 1 before adding the displacement value.
 
     3. The significance trigger is represented by the "filling" flag; its value
-       is the opposite of the trigger, i.e., FALSE if a significant digit has
-       been seen, TRUE if all leading digits have been zeros, because that more
+       is the opposite of the trigger, i.e., false if a significant digit has
+       been seen, true if all leading digits have been zeros, because that more
        clearly indicates that it controls leading zero suppression and
        replacement.
 */
 
-static t_bool edit (t_stat *status, uint32 *trap)
+static bool edit (t_stat *status, uint32 *trap)
 {
 BYTE_ACCESS  source, target, prog;
 ACCESS_CLASS class;
@@ -1406,8 +1407,8 @@ HP_WORD      bank;
 char         fill_char, float_char;
 uint8        byte, opcode, operand, count;
 uint32       loop_count;
-t_bool       filling = TRUE;                            /* TRUE if zero-filling is enabled */
-t_bool       terminate = FALSE;                         /* TRUE if the operation loop is ending */
+bool         filling = true;                            /* true if zero-filling is enabled */
+bool         terminate = false;                         /* true if the operation loop is ending */
 
 *status = SCPE_OK;                                      /* initialize the return status */
 *trap   = trap_None;                                    /*   and trap condition */
@@ -1423,7 +1424,7 @@ if (RA != 0) {                                          /* if this is a reentry 
     }
 
 else {                                                  /* otherwise this is an initial entry */
-    filling    = TRUE;                                  /*   so set the zero-filling flag */
+    filling    = true;                                  /*   so set the zero-filling flag */
     loop_count = 0;                                     /*     and clear the loop counter */
     fill_char  = ' ';                                   /* set the fill */
     float_char = '$';                                   /*   and float character defaults */
@@ -1446,7 +1447,7 @@ mem_init_byte (&source, data,  &RB, 0);                 /* set up byte accessors
 mem_init_byte (&target, data,  &RC, 0);                 /*   for the source and target strings */
 mem_init_byte (&prog,   class, &RD, 0);                 /*     and the subprogram */
 
-do {                                                    /* process operations while "terminate" is FALSE */
+do {                                                    /* process operations while "terminate" is false */
     operand = mem_read_byte (&prog);                    /* get the next operation */
 
     if (DPRINTING (cpu_dev, DEB_MOPND)) {               /* if operand tracing is enabled */
@@ -1492,7 +1493,7 @@ do {                                                    /* process operations wh
 
                 else {                                  /* otherwise */
                     *trap = trap_Invalid_ASCII_Digit;   /*   the character is not a valid alphabetic */
-                    terminate = TRUE;                   /*     so abandon the subprogram */
+                    terminate = true;                   /*     so abandon the subprogram */
                     break;                              /*       and the move */
                     }
                 }
@@ -1507,11 +1508,11 @@ do {                                                    /* process operations wh
                     byte = '0';                         /*   then fill */
 
                 else if (byte >= '0' && byte <= '9')    /* otherwise if the character is a digit */
-                    filling = FALSE;                    /*   then turn zero-filling off */
+                    filling = false;                    /*   then turn zero-filling off */
 
                 else {                                  /* otherwise */
                     *trap = trap_Invalid_ASCII_Digit;   /*   the character is not a valid numeric */
-                    terminate = TRUE;                   /*     so abandon the subprogram */
+                    terminate = true;                   /*     so abandon the subprogram */
                     break;                              /*       and the move */
                     }
 
@@ -1530,11 +1531,11 @@ do {                                                    /* process operations wh
                     byte = fill_char;                   /*     then substitute the fill character */
 
                 else if (byte >= '0' && byte <= '9')    /* otherwise if the character is a digit */
-                    filling = FALSE;                    /*   then turn zero-filling off */
+                    filling = false;                    /*   then turn zero-filling off */
 
                 else {                                  /* otherwise */
                     *trap = trap_Invalid_ASCII_Digit;   /*   the character is not a valid numeric */
-                    terminate = TRUE;                   /*     so abandon the subprogram */
+                    terminate = true;                   /*     so abandon the subprogram */
                     break;                              /*       and the move */
                     }
 
@@ -1554,7 +1555,7 @@ do {                                                    /* process operations wh
 
                 else if (byte >= '0' && byte <= '9') {  /* otherwise if the character is a digit */
                     if (filling) {                      /*   then if zero-filling is still on */
-                        filling = FALSE;                /*     then turn it off */
+                        filling = false;                /*     then turn it off */
 
                         mem_write_byte (&target, float_char);   /* insert the float character before the digit */
                         }
@@ -1562,7 +1563,7 @@ do {                                                    /* process operations wh
 
                 else {                                  /* otherwise */
                     *trap = trap_Invalid_ASCII_Digit;   /*   the character is not a valid numeric */
-                    terminate = TRUE;                   /*     so abandon the subprogram */
+                    terminate = true;                   /*     so abandon the subprogram */
                     break;                              /*       and the move */
                     }
 
@@ -1619,7 +1620,7 @@ do {                                                    /* process operations wh
 
 
         case 011:                                       /* BRIS - branch if significance */
-            if (filling == FALSE) {                     /* if zero-filling is off */
+            if (filling == false) {                     /* if zero-filling is off */
                 RD = RD - 1 + SEXT8 (operand) & R_MASK; /*   then add the signed displacement to the offset */
                 mem_set_byte (&prog);                   /*     and reset the subprogram accessor */
                 }
@@ -1682,7 +1683,7 @@ do {                                                    /* process operations wh
             switch (operand) {                          /* dispatch on the second operation byte */
 
                 case 000:                               /* TE - terminate edit */
-                    terminate = TRUE;                   /* terminate the subprogram */
+                    terminate = true;                   /* terminate the subprogram */
                     break;
 
 
@@ -1693,12 +1694,12 @@ do {                                                    /* process operations wh
 
 
                 case 002:                               /* SST1 - set significance to 1 */
-                    filling = FALSE;                    /* set zero-filling off */
+                    filling = false;                    /* set zero-filling off */
                     break;
 
 
                 case 003:                               /* SST0 - set significance to 0 */
-                    filling = TRUE;                     /* set zero-filling on */
+                    filling = true;                     /* set zero-filling on */
                     break;
 
 
@@ -1710,7 +1711,7 @@ do {                                                    /* process operations wh
 
                     else if (byte < '0' || byte > '9') {    /* otherwise if the character is not a digit */
                         *trap = trap_Invalid_ASCII_Digit;   /*   then the it is not a valid number */
-                        terminate = TRUE;                   /*     so abandon the subprogram */
+                        terminate = true;                   /*     so abandon the subprogram */
                         break;
                         }
 
@@ -1773,7 +1774,7 @@ do {                                                    /* process operations wh
         }                                               /* all cases are handled */
 
 
-    if (terminate == FALSE                              /* if the subprogram is continuing */
+    if (terminate == false                              /* if the subprogram is continuing */
       && cpu_interrupt_pending (status)) {              /*   and an interrupt is pending */
         cpu_push ();                                    /*     then push the stack down twice */
         cpu_push ();                                    /*       to save the subprogram execution state */
@@ -1784,11 +1785,11 @@ do {                                                    /* process operations wh
         RC = TO_WORD (fill_char, float_char);           /* save the fill and float characters */
 
         mem_update_byte (&target);                      /* update the last word written */
-        return FALSE;                                   /*   and return with an interrupt set up or a status error */
+        return false;                                   /*   and return with an interrupt set up or a status error */
         }
     }
 
-while (terminate == FALSE);                             /* continue subprogram execution until terminated */
+while (terminate == false);                             /* continue subprogram execution until terminated */
 
 
 mem_update_byte (&target);                              /* update the final target byte */
@@ -1805,7 +1806,7 @@ if (DPRINTING (cpu_dev, DEB_MOPND)) {                   /* if operand tracing is
 
 RA = 0;                                                 /* clear the resumption flag */
 
-return TRUE;                                            /* return with completion status */
+return true;                                            /* return with completion status */
 }
 
 
@@ -1829,16 +1830,16 @@ return TRUE;                                            /* return with completio
    the target is PB-relative, no target translation is performed.
 
    The routine is interruptible between bytes.  If an interrupt is pending, the
-   routine will return FALSE with the TOS registers updated to reflect the
+   routine will return false with the TOS registers updated to reflect the
    partial comparison; reentering the routine will complete the operation.  If
    the comparison runs to completion, the condition code will be set, and the
-   routine will return TRUE.  In either case, the "status" parameter is set to
+   routine will return true.  In either case, the "status" parameter is set to
    the SCP status returned by the interrupt test.
 
    This routine implements the CMPS and CMPT instructions.
 */
 
-static t_bool compare (BYTE_ACCESS *source, BYTE_ACCESS *target, BYTE_ACCESS *table, t_stat *status)
+static bool compare (BYTE_ACCESS *source, BYTE_ACCESS *target, BYTE_ACCESS *table, t_stat *status)
 {
 uint8 source_byte, target_byte;
 
@@ -1872,7 +1873,7 @@ while (RA > 0 || RC > 0) {                              /* while there are bytes
         RC = RC - 1;                                    /*   then count the byte (cannot underflow) */
 
     if (cpu_interrupt_pending (status))                 /* if an interrupt is pending */
-        return FALSE;                                   /*   then return with an interrupt set up or a status error */
+        return false;                                   /*   then return with an interrupt set up or a status error */
     }
 
 if (RA == 0 && RC == 0)                                 /* if the counts expired together */
@@ -1882,7 +1883,7 @@ else if (source_byte > target_byte)                     /* otherwise if the sour
 else                                                    /* otherwise the source byte < the target byte */
     SET_CCL;                                            /*   so the source string is less */
 
-return TRUE;                                            /* return comparison completion status */
+return true;                                            /* return comparison completion status */
 }
 
 

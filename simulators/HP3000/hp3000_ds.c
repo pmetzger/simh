@@ -222,6 +222,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
 #include "hp_disclib.h"
@@ -237,7 +238,7 @@
 
 #define OVERRIDE_COUNT      50                          /* count of diagnostic override entries */
 
-#define PRESET_ENABLE       TRUE                        /* Preset Jumper (W1) is enabled */
+#define PRESET_ENABLE       true                        /* Preset Jumper (W1) is enabled */
 
 #define UNUSED_COMMANDS     (BUSY | DSCIF | SELIF | IFPRF | STDFL | FREE)   /* unused disc interface commands */
 
@@ -1035,7 +1036,7 @@ static t_stat ds_load_unload (UNIT *uptr, int32 value, const char *cptr, void *d
 (void) cptr;
 (void) desc;
 
-const t_bool load = (value != UNIT_UNLOAD);             /* TRUE if the heads are loading */
+const bool load = (value != UNIT_UNLOAD);               /* true if the heads are loading */
 t_stat result;
 
 result = dl_load_unload (&mac_cntlr, uptr, load);       /* load or unload the heads */

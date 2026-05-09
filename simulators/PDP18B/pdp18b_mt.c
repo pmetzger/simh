@@ -72,6 +72,7 @@
    of junk.  File marks are represented by a byte count of 0.
 */
 
+#include <stdbool.h>
 #include "pdp18b_defs.h"
 #include "sim_tape.h"
 
@@ -278,7 +279,7 @@ t_stat mt_svc (UNIT *uptr)
 int32 c, c1, c2, c3, f, i, p, u;
 int32 wc, xma;
 t_mtrlnt tbc, cbc;
-t_bool passed_eot;
+bool passed_eot;
 t_stat st, r = SCPE_OK;
 
 u = (int32) (uptr - mt_dev.units);                      /* get unit number */

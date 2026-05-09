@@ -34,6 +34,7 @@
    09-Mar-2017  RMS     Fixed unspecified return value in HIO (COVERITY)
 */
 
+#include <stdbool.h>
 #include "sigma_io_defs.h"
 
 #define VALID_DVA(c,d)  \
@@ -105,8 +106,8 @@ extern UNIT cpu_unit;
 extern cpu_var_t cpu_tab[];
 
 void io_eval_ioint (void);
-t_bool io_init_inst (uint32 ad, uint32 rn, uint32 ch, uint32 dev, uint32 r0);
-uint32 io_set_status (uint32 rn, uint32 ch, uint32 dev, uint32 dvst, t_bool tdv);
+bool io_init_inst (uint32 ad, uint32 rn, uint32 ch, uint32 dev, uint32 r0);
+uint32 io_set_status (uint32 rn, uint32 ch, uint32 dev, uint32 dvst, bool tdv);
 uint32 io_rwd_m0 (uint32 op, uint32 rn, uint32 ad);
 uint32 io_rwd_m1 (uint32 op, uint32 rn, uint32 ad);
 t_stat io_set_eiblks (UNIT *uptr, int32 val, const char *cptr, void *desc);
@@ -488,27 +489,27 @@ return 0;
    address actually agrees with the type of device in that dispatch slot.
 */
 
-t_bool io_init_inst (uint32 rn, uint32 ad, uint32 ch, uint32 dev, uint32 r0)
+bool io_init_inst (uint32 rn, uint32 ad, uint32 ch, uint32 dev, uint32 r0)
 {
 uint32 loc20;
-t_bool ch_mu, dva_mu;
+bool ch_mu, dva_mu;
 
 if ((dev >= CHAN_N_DEV) || (ch >= chan_num))            /* bad dev or chan? */
-    return FALSE;
+    return false;
 ch_mu = (chan[ch].chsf[dev] & CHSF_MU) != 0;            /* does chan think MU? */
 dva_mu = (ad & DVA_MU) != 0;                            /* is dva MU? */
 if (ch_mu != dva_mu)                                    /* not the same? */
-    return FALSE;                                       /* dev not there */
+    return false;                                       /* dev not there */
 loc20 = ((ad & 0xFF) << 24) |                           /* <0:7> = dev ad */
     ((rn & 1) | (rn? 3: 0) << 22) |                     /* <8:9> = reg ind */
     (r0 & (cpu_tab[cpu_model].pamask >> 1));            /* <14/16:31> = r0 */
 WritePW (0x20, loc20);
-return (chan[ch].disp[dev] != NULL)? TRUE: FALSE;
+return (chan[ch].disp[dev] != NULL)? true: false;
 }
 
 /* Set status for I/O instruction */
 
-uint32 io_set_status (uint32 rn, uint32 ch, uint32 dev, uint32 dvst, t_bool tdv)
+uint32 io_set_status (uint32 rn, uint32 ch, uint32 dev, uint32 dvst, bool tdv)
 {
 uint32 mrgst;
 
@@ -590,7 +591,7 @@ return 0;
 
 /* Channel test command flags */
 
-t_bool chan_tst_cmf (uint32 dva, uint32 fl)
+bool chan_tst_cmf (uint32 dva, uint32 fl)
 {
 uint32 ch, dev;
 
@@ -598,8 +599,8 @@ ch = DVA_GETCHAN (dva);                                 /* get chan, dev */
 dev = DVA_GETDEV (dva);
 if (VALID_DVA (ch, dev) &&                              /* valid? */
     (chan[ch].cmf[dev] & fl))
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* Channel unusual end */
@@ -832,14 +833,14 @@ chan[ch].chf[dev] |= CHF_INP;                           /* int pending */
 return;
 }
 
-t_bool chan_chk_dvi (uint32 dva)
+bool chan_chk_dvi (uint32 dva)
 {
 uint32 ch = DVA_GETCHAN (dva);                          /* get ch, dev */
 uint32 dev = DVA_GETDEV (dva);
 
 if ((chan[ch].chf[dev] & CHF_INP) != 0)
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* Channel set Chaining Modifier flag */
@@ -909,20 +910,20 @@ return NO_INT;
 
 /* See if any interrupt is possible (used by WAIT) */
 
-t_bool io_poss_int (void)
+bool io_poss_int (void)
 {
 uint32 i, curr;
 
 for (i = 0, curr = 0; i < INTG_MAX; i++) {              /* loop thru groups */
     if (((int_arm[curr] & int_enb[curr]) != 0) &&
         ((PSW2 & int_tab[curr].psw2_inh) == 0))         /* group not inh? */
-        return TRUE;                                    /* int can occur */
+        return true;                                    /* int can occur */
     curr = int_lnk[curr];                               /* next group */
     if (curr == 0)                                      /* end of list? */
-        return FALSE;                                   /* no int possible */
+        return false;                                   /* no int possible */
     }
 sim_printf ("%%int possible consistency error, list end not found\r\n");
-return FALSE;
+return false;
 }
 
 /* Evaluate I/O interrupts */
@@ -993,7 +994,7 @@ return int_tab[grp].vecbase + bit;
 
 /* Release interrupt and set new armed/disarmed state */
 
-extern uint32 io_rels_int (uint32 hiact, t_bool arm)
+extern uint32 io_rels_int (uint32 hiact, bool arm)
 {
 uint32 grp, bit, mask;
 

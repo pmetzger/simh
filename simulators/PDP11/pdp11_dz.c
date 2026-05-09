@@ -72,6 +72,7 @@
 #define DZ_8B_DFLT      TT_MODE_8B
 #endif
 
+#include <stdbool.h>
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
@@ -271,7 +272,7 @@ t_stat dz_xmt_svc (UNIT *uptr);
 t_stat dz_reset (DEVICE *dptr);
 t_stat dz_attach (UNIT *uptr, const char *cptr);
 t_stat dz_detach (UNIT *uptr);
-t_stat dz_clear (int32 dz, t_bool flag);
+t_stat dz_clear (int32 dz, bool flag);
 uint16 dz_getc (int32 dz);
 void dz_update_rcvi (void);
 void dz_update_xmti (void);
@@ -436,7 +437,7 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
         }
 
 sim_debug(DBG_REG, &dz_dev, "dz_rd(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, dz_rd_regs[(PA >> 1) & 03], access, *data);
-sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), TRUE);
+sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), true);
 
 return SCPE_OK;
 }
@@ -454,7 +455,7 @@ if (dz > DZ_MAXMUX)
     return SCPE_IERR;
 
 sim_debug(DBG_REG, &dz_dev, "dz_wr(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, dz_wr_regs[(PA >> 1) & 03], access, data);
-sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), TRUE);
+sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), true);
 
 switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
 
@@ -464,7 +465,7 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
                     (dz_csr[dz] & 0377) | (data << 8):
                     (dz_csr[dz] & ~0377) | data;
         if (data & CSR_CLR)                             /* clr? reset */
-            dz_clear (dz, FALSE);
+            dz_clear (dz, false);
         if (data & CSR_MSE)                             /* MSE? start poll */
             sim_clock_coschedule (dz_unit, tmxr_poll);
         else
@@ -738,7 +739,7 @@ void dz_set_txint (int32 dz)
 dz_txi = dz_txi | (1 << dz);                            /* set mux xmt int */
 SET_INT (DZTX);                                         /* set master intr */
 sim_debug(DBG_INT, &dz_dev, "dz_set_txint(dz=%d) CSR: ", dz);
-sim_debug_bits(DBG_INT, &dz_dev, dz_csr_bits, dz_csr[dz], dz_csr[dz], TRUE);
+sim_debug_bits(DBG_INT, &dz_dev, dz_csr_bits, dz_csr[dz], dz_csr[dz], true);
 return;
 }
 
@@ -758,7 +759,7 @@ return 0;
 
 /* Device reset */
 
-t_stat dz_clear (int32 dz, t_bool flag)
+t_stat dz_clear (int32 dz, bool flag)
 {
 int32 i, line;
 
@@ -805,7 +806,7 @@ if ((dz_desc.lines % DZ_LINES) != 0) {      /* Transition from Qbus to Unibus de
     }
 tmxr_set_port_speed_control (&dz_desc);
 for (i = 0; i < dz_desc.lines/DZ_LINES; i++)            /* init muxes */
-    dz_clear (i, TRUE);
+    dz_clear (i, true);
 dz_rxi = dz_txi = 0;                                    /* clr master int */
 CLR_INT (DZRX);
 CLR_INT (DZTX);
@@ -915,7 +916,7 @@ if ((newln == 0) || (newln % DZ_LINES))
 if (newln < dz_desc.lines) {
     for (i = newln, t = 0; i < dz_desc.lines; i++)
         t = t | dz_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
         return SCPE_OK;
     for (i = newln; i < dz_desc.lines; i++) {
         if (dz_ldsc[i].conn) {
@@ -924,7 +925,7 @@ if (newln < dz_desc.lines) {
             }
         tmxr_detach_ln (&dz_ldsc[i]);                   /* completely reset line */
         if ((i % DZ_LINES) == (DZ_LINES - 1))
-            dz_clear (i / DZ_LINES, TRUE);              /* reset mux */
+            dz_clear (i / DZ_LINES, true);              /* reset mux */
         }
     }
 dz_dib.lnt = (newln / DZ_LINES) * IOLN_DZ;              /* set length */

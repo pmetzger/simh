@@ -33,6 +33,7 @@
 */
 #include "pdq3_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern UNIT cpu_unit;
 extern UNIT con_unit[];
@@ -247,7 +248,7 @@ t_stat con_termsvc (UNIT *uptr) {
   }
   uptr->pos = uptr->pos + 1;
   setbit(con_status, CONS_THRE); /* set transmitter holding reg empty */
-  cpu_assertInt(INT_CONT, TRUE); /* generate an interrupt because of DRQO */
+  cpu_assertInt(INT_CONT, true); /* generate an interrupt because of DRQO */
   return SCPE_OK;
 }
 
@@ -269,7 +270,7 @@ t_stat con_pollsvc(UNIT *uptr) {
 
     con_rcv = ch & 0xff; /* put in receiver register */
     setbit(con_status, CONS_DR); /* notify: data received */
-    cpu_assertInt(INT_CONR, TRUE); /* generate interrupt because of DRQI */
+    cpu_assertInt(INT_CONR, true); /* generate interrupt because of DRQI */
 
     if (isbitset(con_ctrl1, CONC1_ECHO)) { /* echo? XXX handle in telnet handler? */
       /* XXX use direct send here, not sending via con_termsvc */
@@ -378,7 +379,7 @@ t_stat con_read(t_addr ioaddr, uint16 *data) {
   case 3:
     *data = con_rcv;
     clrbit(con_status,CONS_DR);
-    cpu_assertInt(INT_CONR, FALSE);
+    cpu_assertInt(INT_CONR, false);
   }
   sim_debug(DBG_CON_READ, &con_dev, DBG_PCFORMAT1 "Byte read %02x (pos logic) from $%04x\n", DBG_PC, *data & 0xff, ioaddr);
 
@@ -395,7 +396,7 @@ struct i8253 {
   uint16 cnt;
   uint16 preset;
   uint16 mode;
-  t_bool hilo; /* which half of 16 bit cnt is to be set */
+  bool hilo;   /* which half of 16 bit cnt is to be set */
 };
 struct i8253 tim[3];
 

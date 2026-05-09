@@ -31,6 +31,7 @@
    20-Jul-10    HV      fix disassemble error for LINK
 */
 
+#include <stdbool.h>
 #include "m68k_cpu.h"
 
 t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
@@ -223,7 +224,7 @@ static t_stat m68k_sread(FILE* fptr)
     int typ;
     t_addr addr=0, a;
     int d, len, chksum, i;
-    int end = FALSE;
+    int end = false;
     int line = 0;
 
     fseek(fptr,0l,SEEK_SET);
@@ -269,7 +270,7 @@ dread:
             addr = (addr << 8) | a;
             /*fallthru*/
         case '9':
-            end = TRUE;
+            end = true;
             /*fallthru*/
         case '5':
             if((d = getHex(fptr,&chksum))==EOF) goto error;

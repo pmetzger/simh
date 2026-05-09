@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -104,7 +105,7 @@ static void attach_temp_disk_image(struct sim_disk_fixture *fixture, UNIT *uptr)
 {
     create_temp_disk_image(fixture, 512);
     sim_switches = 0;
-    assert_int_equal(sim_disk_attach_ex(uptr, fixture->image_path, 512, 1, TRUE,
+    assert_int_equal(sim_disk_attach_ex(uptr, fixture->image_path, 512, 1, true,
                                         0, "TEST", 0, 0, NULL),
                      SCPE_OK);
 }
@@ -293,7 +294,7 @@ static void test_sim_disk_detach_restores_auto_format(void **state)
                          fixture->image_path) < (int)sizeof(attach_arg));
     sim_switches = SWMASK('F');
     assert_int_equal(sim_disk_attach_ex(&fixture->sector_unit, attach_arg, 512,
-                                        1, TRUE, 0, "TEST", 0, 0, NULL),
+                                        1, true, 0, "TEST", 0, 0, NULL),
                      SCPE_OK);
 
     assert_int_not_equal(DK_GET_FMT(&fixture->sector_unit), DKUF_F_AUTO);
@@ -319,7 +320,7 @@ static void test_sim_disk_set_noautosize_normalizes_global_flag(void **state)
     assert_int_equal(SCPE_BARE_STATUS(sim_disk_set_noautosize(1, NULL)),
                      SCPE_ARG);
 
-    assert_int_equal(sim_disk_set_noautosize(FALSE, NULL), SCPE_OK);
+    assert_int_equal(sim_disk_set_noautosize(false, NULL), SCPE_OK);
     assert_int_equal(fixture->byte_unit.flags & DKUF_NOAUTOSIZE, 0);
     assert_int_equal(fixture->sector_unit.flags & DKUF_NOAUTOSIZE, 0);
 }

@@ -39,6 +39,7 @@
    18-Oct-02    RMS     Fixed bug in error testing (Hans Pufal)
 */
 
+#include <stdbool.h>
 #include "i1620_defs.h"
 
 #define DP_NUMDR        4                               /* #drives */
@@ -91,9 +92,9 @@ t_stat dp_rdadr (UNIT *uptr, int32 sec, int32 qnr, int32 qwc);
 t_stat dp_rdsec (UNIT *uptr, int32 sec, int32 qnr, int32 qwc);
 t_stat dp_wradr (UNIT *uptr, int32 sec, int32 qnr);
 t_stat dp_wrsec (UNIT *uptr, int32 sec, int32 qnr);
-int32 dp_fndsec (UNIT *uptr, int32 sec, t_bool rd);
-t_stat dp_nexsec (UNIT *uptr, int32 sec, int32 psec, t_bool rd);
-t_bool dp_zeroad (uint8 *ap);
+int32 dp_fndsec (UNIT *uptr, int32 sec, bool rd);
+t_stat dp_nexsec (UNIT *uptr, int32 sec, int32 psec, bool rd);
+bool dp_zeroad (uint8 *ap);
 int32 dp_cvt_ad (uint8 *ap);
 int32 dp_trkop (int32 drv, int32 sec);
 int32 dp_cvt_bcd (uint32 ad, int32 len);
@@ -207,7 +208,7 @@ switch (f1 & ~(FNC_WCH | FNC_NRL)) {                    /* case on function */
     case FNC_SEC:                                       /* read sectors */
         if (cnt <= 0)                                   /* bad count? */
             return STOP_INVDCN;
-        psec = dp_fndsec (uptr, sec, TRUE);             /* find sector */
+        psec = dp_fndsec (uptr, sec, true);             /* find sector */
         if (psec < 0)                                   /* error? */
             CRETIOE (dp_stop, STOP_DACERR);
         do {                                            /* loop on count */
@@ -215,7 +216,7 @@ switch (f1 & ~(FNC_WCH | FNC_NRL)) {                    /* case on function */
                 break;
             sec++; psec++;                              /* next sector */
             } while ((--cnt > 0) &&
-              ((r = dp_nexsec (uptr, sec, psec, TRUE)) == SCPE_OK));
+              ((r = dp_nexsec (uptr, sec, psec, true)) == SCPE_OK));
         break;                                          /* done, clean up */
 
     case FNC_TRK:                                       /* read track */
@@ -232,7 +233,7 @@ switch (f1 & ~(FNC_WCH | FNC_NRL)) {                    /* case on function */
     case FNC_SEC + FNC_WRI:                             /* write sectors */
         if (cnt <= 0)                                   /* bad count? */
             return STOP_INVDCN;
-        psec = dp_fndsec (uptr, sec, FALSE);            /* find sector */
+        psec = dp_fndsec (uptr, sec, false);            /* find sector */
         if (psec < 0)                                   /* error? */
             CRETIOE (dp_stop, STOP_DACERR);
         do {                                            /* loop on count */
@@ -242,7 +243,7 @@ switch (f1 & ~(FNC_WCH | FNC_NRL)) {                    /* case on function */
                 break;
             sec++; psec++;                              /* next sector */
             } while ((--cnt > 0) &&
-              ((r = dp_nexsec (uptr, sec, psec, FALSE)) == SCPE_OK));
+              ((r = dp_nexsec (uptr, sec, psec, false)) == SCPE_OK));
         break;                                          /* done, clean up */
 
     case FNC_TRK + FNC_WRI:                             /* write track */
@@ -284,7 +285,7 @@ int32 i;
 uint8 ad;
 int32 da = (sec % DP_TOTSC) * DP_NUMCH;                 /* char number */
 uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
-t_bool zad = dp_zeroad (ap);                            /* zero address */
+bool zad = dp_zeroad (ap);                              /* zero address */
 static const int32 dec_tab[DP_ADDR] = {                 /* powers of 10 */
     10000, 1000, 100, 10, 1
     } ;
@@ -380,7 +381,7 @@ return SCPE_OK;
 
 /* Find sector */
 
-int32 dp_fndsec (UNIT *uptr, int32 sec, t_bool rd)
+int32 dp_fndsec (UNIT *uptr, int32 sec, bool rd)
 {
 int32 ctrk = sec % (DP_NUMSF * DP_NUMSC);               /* curr trk-sec */
 int32 psec = ((uptr->CYL) * (DP_NUMSF * DP_NUMSC)) + ctrk;
@@ -417,7 +418,7 @@ return -1;
 
 /* Find next sector - must be sequential, cannot cross cylinder boundary */
 
-t_stat dp_nexsec (UNIT *uptr, int32 sec, int32 psec, t_bool rd)
+t_stat dp_nexsec (UNIT *uptr, int32 sec, int32 psec, bool rd)
 {
 int32 ctrk = psec % (DP_NUMSF * DP_NUMSC);              /* curr trk-sec */
 int32 da = psec * DP_NUMCH;                             /* word number */
@@ -440,15 +441,15 @@ return STOP_CYOERR;
 
 /* Test for zero address */
 
-t_bool dp_zeroad (uint8 *ap)
+bool dp_zeroad (uint8 *ap)
 {
 int32 i;
 
 for (i = 0; i < DP_ADDR; i++, ap++) {                   /* loop thru addr */
     if (*ap & DIGIT)                                    /* nonzero? lose */
-        return FALSE;
+        return false;
     }
-return TRUE;                                            /* all zeroes */
+return true;                                            /* all zeroes */
 }
 
 /* Test for group mark when enabled */

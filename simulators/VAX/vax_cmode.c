@@ -38,6 +38,7 @@
    from compatibility mode.
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 #if defined (CMPM_VAX)
@@ -62,12 +63,12 @@ void WrRegW (int32 val, int32 rn);
 
 /* Validate PSL for compatibility mode */
 
-t_bool BadCmPSL (int32 newpsl)
+bool BadCmPSL (int32 newpsl)
 {
 if ((newpsl & (PSL_FPD|PSL_IS|PSL_CUR|PSL_PRV|PSL_IPL|PSW_DV|PSW_FU|PSW_IV)) !=
     ((USER << PSL_V_CUR) | (USER << PSL_V_PRV)))
-    return TRUE;
-else return FALSE;
+    return true;
+else return false;
 }
 
 /* Compatibility mode execution */
@@ -1301,13 +1302,13 @@ return;
    Should never get to instruction execution
 */
 
-t_bool BadCmPSL (int32 newpsl)
+bool BadCmPSL (int32 newpsl)
 {
 /* Shared compatibility-mode signature.
    This build variant does not use every parameter. */
 (void) newpsl;
 
-return TRUE;                                            /* always bad */
+return true;                                            /* always bad */
 }
 
 int32 op_cmode (int32 cc)

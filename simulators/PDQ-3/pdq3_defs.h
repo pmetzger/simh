@@ -30,6 +30,7 @@
 #ifndef _PDQ3_DEFS_H_
 #define _PDQ3_DEFS_H_ 0
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -376,7 +377,7 @@ extern t_stat fdc_binit(void);
 extern t_stat tim_read(t_addr ioaddr, uint16 *data);
 extern t_stat tim_write(t_addr ioaddr, uint16 data);
 
-extern void cpu_assertInt(int level, t_bool tf);
+extern void cpu_assertInt(int level, bool tf);
 extern t_stat cpu_raiseInt(int level);
 extern t_stat cpu_setIntVec(uint16 vector,int level);
 extern void   cpu_setRegs(uint16 ctp, uint16 ssv, uint16 rq);

@@ -29,6 +29,7 @@
    sysd         system devices
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
 #include "sim_ether.h"
@@ -100,7 +101,7 @@ int32 sys_model = 0;                                    /* MicroVAX or VAXstatio
 int32 int_req[IPL_HLVL] = { 0 };                        /* interrupt requests */
 int32 int_mask = 0;                                     /* interrupt mask */
 uint32 tmr_tir = 0;                                     /* curr interval */
-t_bool tmr_inst = FALSE;                                /* wait instructions vs usecs */
+bool tmr_inst = false;                                  /* wait instructions vs usecs */
 int32 cdg_dat[CDASIZE >> 2];                            /* cache data */
 int32 ctg_dat[CTGSIZE >> 2];                            /* cache tags */
 
@@ -959,11 +960,11 @@ tmr_tir = 0;
 
 if ((ADDR_IS_ROM(fault_PC)) &&                      /* running from ROM and */
     (usecs_sched < TMR_INC)) {                      /* short delay? */
-    tmr_inst = TRUE;                                /* wait for instructions */
+    tmr_inst = true;                                /* wait for instructions */
     sim_activate (&sysd_unit, usecs_sched);
     }
 else {
-    tmr_inst = FALSE;
+    tmr_inst = false;
     sim_activate_after (&sysd_unit, usecs_sched);
     }
 }
@@ -1062,7 +1063,7 @@ conpsl = PSL_IS | PSL_IPL1F | CON_PWRUP;
 if (rom == NULL)
     return SCPE_IERR;
 if (*rom == 0) {                                        /* no boot? */
-    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, TRUE, 0);
+    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, true, 0);
     if (r != SCPE_OK)
         return r;
     }
@@ -1097,7 +1098,7 @@ if ((ve_dev.flags & DEV_DIS) == 0)                      /* video option present?
 if (DZ_L3C && (sys_model == 0))                         /* line 3 console */
     ka_cfgtst |= CFGT_L3C;
 tmr_tir = 0;
-tmr_inst = FALSE;
+tmr_inst = false;
 tmr_sched ();                                           /* activate */
 
 if (ddb == NULL)

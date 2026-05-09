@@ -28,6 +28,7 @@
 #ifndef _KA10_DEFS_H_
 #define _KA10_DEFS_H_  0
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -826,7 +827,7 @@ extern void ka10_lights_clear_aux (int);
 /* Global data */
 
 
-extern t_bool sim_idle_enab;
+extern bool sim_idle_enab;
 #if !KS
 extern struct rh_dev rh[];
 #endif

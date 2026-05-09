@@ -1,4 +1,5 @@
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -24,7 +25,7 @@ extern UNIT dz_unit[];
 extern uint16 dz_csr;
 extern uint16 dz_tcr;
 
-t_stat dz_clear(t_bool flag);
+t_stat dz_clear(bool flag);
 void dz_wr(int32 pa, int32 data, int32 access);
 
 int32 int_req[IPL_HLVL];
@@ -185,7 +186,7 @@ static void test_init_reset_clears_interrupt_request(void **state)
     reset_dz_state(lines);
     int_req[0] = INT_DZRX | INT_DZTX;
 
-    assert_int_equal(dz_clear(TRUE), SCPE_OK);
+    assert_int_equal(dz_clear(true), SCPE_OK);
 
     assert_false(int_req[0] & INT_DZRX);
     assert_false(int_req[0] & INT_DZTX);

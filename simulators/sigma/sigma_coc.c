@@ -36,6 +36,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 /* Constants */
 
@@ -108,7 +109,7 @@ t_stat mux_attach (UNIT *uptr, const char *cptr);
 t_stat mux_detach (UNIT *uptr);
 t_stat mux_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc);
 void mux_reset_ln (int32 ln);
-void mux_scan_next (t_bool clr);
+void mux_scan_next (bool clr);
 t_stat muxi_put_char (uint32 c, uint32 ln);
 
 /* MUX data structures
@@ -559,7 +560,7 @@ else return (DVS_AUTO|DVS_CBUSY|DVS_DBUSY|(CC2 << DVT_V_CC));
 
 /* Kick scanner */
 
-void mux_scan_next (t_bool clr)
+void mux_scan_next (bool clr)
 {
 int32 i;
 
@@ -650,7 +651,7 @@ if ((r != SCPE_OK) || (newln == MUX_NUMLIN))
 if (newln == 0) return SCPE_ARG;
 if (newln < MUX_NUMLIN) {
     for (i = newln, t = 0; i < MUX_NUMLIN; i++) t = t | mux_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
             return SCPE_OK;
     for (i = newln; i < MUX_NUMLIN; i++) {
         if (mux_ldsc[i].conn) {

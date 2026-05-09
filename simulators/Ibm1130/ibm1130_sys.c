@@ -27,6 +27,7 @@
 #include "ibm1130_defs.h"
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 extern DEVICE cpu_dev, console_dev, dsk_dev, cr_dev,  cp_dev, ptr_dev, ptp_dev, t2741_dev;
 extern DEVICE tti_dev, tto_dev,     prt_dev, log_dev, sca_dev;
@@ -35,7 +36,7 @@ extern DEVICE gdu_dev, console_dev, plot_dev;
 extern UNIT  cpu_unit;
 extern REG   cpu_reg[];
 extern int32 saved_PC;
-extern t_bool is_1800;
+extern bool is_1800;
 
 /* SCP data structures and interface routines
 
@@ -230,8 +231,8 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
     addr    =   current PC
     spec    =   specifier
     nval    =   next word
-    flag    =   TRUE if decoding for CPU
-    iflag   =   TRUE if decoding integer instruction
+    flag    =   true if decoding for CPU
+    iflag   =   true if decoding integer instruction
    Outputs:
     count   =   -number of extra words retired
 */
@@ -261,14 +262,14 @@ static const char *opcode[] = {
 };
 
 static char relative[] = {                      /*true if short mode displacements are IAR relative */
-    FALSE,      TRUE,       FALSE,      FALSE,
-    FALSE,      TRUE,       FALSE,      FALSE,
-    TRUE,       FALSE,      FALSE,      FALSE,
-    TRUE,       TRUE,       TRUE,       FALSE,
-    TRUE,       TRUE,       TRUE,       TRUE,
-    TRUE,       TRUE,       FALSE,      FALSE,
-    TRUE,       TRUE,       TRUE,       TRUE,
-    TRUE,       TRUE,       TRUE,       FALSE
+    false,      true,       false,      false,
+    false,      true,       false,      false,
+    true,       false,      false,      false,
+    true,       true,       true,       false,
+    true,       true,       true,       true,
+    true,       true,       false,      false,
+    true,       true,       true,       true,
+    true,       true,       true,       false
 };
 
 static const char *lsopcode[] = {"SLA ", "SLCA ", "SLT ", "SLC "};

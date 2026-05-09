@@ -50,6 +50,7 @@
        or MA device is implemented.
 */
 
+#include <stdbool.h>
 
 
 /* Program constants */
@@ -220,7 +221,7 @@ typedef struct {
 
 /* Disc interface global bus routine definitions */
 
-typedef t_bool ACCEPTOR  (uint32  unit, uint8  data);
+typedef bool ACCEPTOR  (uint32  unit, uint8  data);
 typedef void   RESPONDER (CARD_ID card, uint32 unit, uint8 new_cntl);
 
 
@@ -245,7 +246,7 @@ extern t_stat di_show_cable   (FILE *st, UNIT *uptr, int32 value, const void *de
 
 /* Disc interface global bus routines */
 
-extern t_bool di_bus_source    (CARD_ID card, uint8  data);
+extern bool di_bus_source    (CARD_ID card, uint8  data);
 extern void   di_bus_control   (CARD_ID card, uint32 unit, uint8 assert, uint8 deny);
 extern void   di_poll_response (CARD_ID card, uint32 unit, FLIP_FLOP response);
 

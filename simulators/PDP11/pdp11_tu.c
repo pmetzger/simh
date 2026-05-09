@@ -70,6 +70,7 @@
 #endif
 
 #endif
+#include <stdbool.h>
 #include "sim_tape.h"
 
 #define TU_NUMFM        1                               /* #formatters */
@@ -258,7 +259,7 @@ int32 tu_abort (void);
 void tu_set_er (int32 flg);
 void tu_clr_as (int32 mask);
 void tu_update_fs (int32 flg, int32 drv);
-t_stat tu_map_err (int32 drv, t_stat st, t_bool qdt);
+t_stat tu_map_err (int32 drv, t_stat st, bool qdt);
 
 /* TU data structures
 
@@ -862,7 +863,7 @@ return;
 
    Note that tape mark on a data transfer sets FCE and Massbus EXC */
 
-t_stat tu_map_err (int32 drv, t_stat st, t_bool qdt)
+t_stat tu_map_err (int32 drv, t_stat st, bool qdt)
 {
 /* Generic helper signature.
    This implementation does not use every parameter. */

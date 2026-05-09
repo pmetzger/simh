@@ -24,6 +24,7 @@
    in this Software without prior written authorization from Robert M Supnik.
 */
 
+#include <stdbool.h>
 #include "alpha_defs.h"
 #include "alpha_ev5_defs.h"
 
@@ -42,9 +43,9 @@ static t_stat l_ReadPQ (t_uint64 pa, t_uint64 *dat)
 {
 if (ADDR_IS_MEM (pa)) {
     *dat = M[pa >> 3];
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* "SRM" 3-level pte lookup

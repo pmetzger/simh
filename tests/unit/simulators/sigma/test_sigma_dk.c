@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -30,10 +31,10 @@ int32 chan_clr_chi(uint32 dva)
     return -1;
 }
 
-t_bool chan_chk_dvi(uint32 dva)
+bool chan_chk_dvi(uint32 dva)
 {
     (void)dva;
-    return FALSE;
+    return false;
 }
 
 uint32 chan_end(uint32 dva)

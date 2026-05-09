@@ -734,6 +734,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_cpu_ims.h"
@@ -745,7 +746,7 @@
 /* Lost time workaround */
 
 #define sim_idle(timer,decrement) \
-          if (sim_idle (timer, decrement) == TRUE     /* [workaround] idle the simulator; if idling occurred */ \
+          if (sim_idle (timer, decrement) == true     /* [workaround] idle the simulator; if idling occurred */ \
             && sim_interval < 0)                      /* [workaround]   and the time interval is negative */ \
               sim_interval = 0                        /* [workaround]     then reset it to zero */
 
@@ -879,8 +880,8 @@ uint32      cpu_stop_flags;                     /* the simulation stop flag set 
 
 POWER_STATE cpu_power_state   = power_on;       /* the power supply state */
 EXEC_STATE  cpu_micro_state   = halted;         /* the microcode execution state */
-t_bool      cpu_base_changed  = FALSE;          /* TRUE if any base register is changed */
-t_bool      cpu_is_calibrated = TRUE;           /* TRUE if the process clock is calibrated */
+bool        cpu_base_changed  = false;          /* true if any base register is changed */
+bool        cpu_is_calibrated = true;           /* true if the process clock is calibrated */
 UNIT       *cpu_pclk_uptr     = &cpu_unit [0];  /* a (constant) pointer to the process clock unit */
 
 
@@ -1398,7 +1399,7 @@ DEVICE cpu_dev = {
        execution.  Consequently, the enable test is done before the register
        trace, and the disable test is done after.
 
-    6. The execution test (exec_test) is set FALSE even though execution tracing
+    6. The execution test (exec_test) is set false even though execution tracing
        is not specified.  This is done solely to reassure the compiler that the
        value is not clobbered by a longjmp call.
 
@@ -1413,7 +1414,7 @@ t_stat sim_instr (void)
 int        abortval;
 HP_WORD    label, parameter;
 TRAP_CLASS trap;
-t_bool     exec_test;
+bool       exec_test;
 volatile   uint32  debug_save;
 volatile   HP_WORD device;
 volatile   t_stat  status = SCPE_OK;
@@ -1567,7 +1568,7 @@ if (abortval) {                                         /* if a microcode abort 
 
         cpu_call_procedure (label, 0);                  /* set up PB, P, PL, and STA to call the procedure */
 
-        cpu_base_changed = TRUE;                        /* one or more base registers have changed */
+        cpu_base_changed = true;                        /* one or more base registers have changed */
         }
 
     sim_interval = sim_interval - 1;                    /* count the execution cycle that aborted */
@@ -1620,7 +1621,7 @@ while (status == SCPE_OK) {                             /* execute until simulat
                         exec_test =                         /*       then the execution test succeeds if */
                            (NIR & exec_mask) == exec_match; /*         the next instruction matches the test criteria */
                 else                                        /*   otherwise */
-                    exec_test = FALSE;                      /*     there is no execution test */
+                    exec_test = false;                      /*     there is no execution test */
 
                 if (cpu_dev.dctrl & DEB_EXEC                /* if execution tracing is enabled */
                   && cpu_dev.dctrl != DEB_ALL               /*   and is currently inactive */
@@ -1671,7 +1672,7 @@ while (status == SCPE_OK) {                             /* execute until simulat
                                   DBANK, 0, STATUS_CS (STA),
                                   PB, PL, DL, DB, Q, Z);
 
-                        cpu_base_changed = FALSE;           /* clear the base registers changed flag */
+                        cpu_base_changed = false;           /* clear the base registers changed flag */
                         }
                     }
 
@@ -1716,7 +1717,7 @@ while (status == SCPE_OK) {                             /* execute until simulat
 
         else if (sim_idle_enab                          /*   otherwise if idling is enabled */
           && ! sel_request && mpx_request_set == 0)     /*     and there are no channel requests pending */
-            sim_idle (TMR_PCLK, FALSE);                 /*       then idle the simulator */
+            sim_idle (TMR_PCLK, false);                 /*       then idle the simulator */
         }
 
     else if (CPX2 & CPX2_IRQ_SET)                       /* otherwise if a halt-mode interrupt is pending */
@@ -3181,7 +3182,7 @@ if (label & LABEL_EXTERNAL) {                                   /* if the label 
     else                                                /* otherwise */
         label = new_label;                              /*   the PB offset is contained in the new label */
 
-    cpu_base_changed = TRUE;                            /* the program base registers have changed for tracing */
+    cpu_base_changed = true;                            /* the program base registers have changed for tracing */
     }
 
 new_p = PB + (label + offset & LABEL_ADDRESS_MASK);     /* get the procedure starting address */
@@ -3305,7 +3306,7 @@ if (STA & STATUS_R) {                                   /* if a right-hand stack
     cpu_read_memory (fetch, P, &NIR);                   /*     and load the next instruction */
     }
 
-cpu_base_changed = TRUE;                                /* one or more base registers have changed for tracing */
+cpu_base_changed = true;                                /* one or more base registers have changed for tracing */
 
 return;
 }
@@ -3388,7 +3389,7 @@ return;
 
 static t_stat cpu_service (UNIT *uptr)
 {
-const t_bool ics_exec = (CPX1 & cpx1_ICSFLAG) != 0;     /* TRUE if the CPU is executing on the ICS */
+const bool ics_exec = (CPX1 & cpx1_ICSFLAG) != 0;       /* true if the CPU is executing on the ICS */
 t_stat status;
 
 dprintf (cpu_dev, DEB_PSERV, "Process clock service entered on the %s\n",
@@ -3397,7 +3398,7 @@ dprintf (cpu_dev, DEB_PSERV, "Process clock service entered on the %s\n",
 if (!ics_exec)                                          /* if the CPU is not executing on the ICS */
     PCLK = PCLK + pclk_increment & R_MASK;              /*   then increment the process clock */
 
-cpu_is_calibrated = (uptr->flags & UNIT_CALTIME) != 0;  /* TRUE if the process clock is calibrated */
+cpu_is_calibrated = (uptr->flags & UNIT_CALTIME) != 0;  /* true if the process clock is calibrated */
 
 if (cpu_is_calibrated) {                                /* if the process clock is tracking wall-clock time */
     uptr->wait = sim_rtcn_calb (PCLK_RATE, TMR_PCLK);   /*   then calibrate it */
@@ -3413,7 +3414,7 @@ sim_activate (uptr, uptr->wait);                        /* reschedule the timer 
 
 cpu_speed = uptr->wait / (PCLK_PERIOD * pclk_increment);    /* calculate the current CPU speed multiplier */
 
-if (atc_is_polling == FALSE) {                          /* if the ATC is not polling for the simulation console */
+if (atc_is_polling == false) {                          /* if the ATC is not polling for the simulation console */
     status = sim_poll_kbd ();                           /*   then we must poll for a console interrupt */
 
     if (status < SCPE_KFLAG)                            /* if the result is not a character */
@@ -3757,7 +3758,7 @@ if ((uint32) new_size > cpu_features [model].maxmem)    /* if the new memory siz
 
 if (!(sim_switches & SWMASK ('F'))                      /* if truncation is not explicitly forced */
   && ! mem_is_empty (new_size)                          /*   and the truncated part is not empty */
-  && get_yn (confirm, FALSE) == FALSE)                  /*     and the user denies confirmation */
+  && get_yn (confirm, false) == false)                  /*     and the user denies confirmation */
     return SCPE_INCOMP;                                 /*       then abort the command */
 
 MEMSIZE = new_size;                                     /* set the new memory size */
@@ -3901,7 +3902,7 @@ static t_stat show_stops (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) desc;
 
 uint32 stop;
-t_bool need_spacer = FALSE;
+bool need_spacer = false;
 
 if (sim_stops == 0)                                     /* if no simulation stops are set */
     fputs ("Stops disabled", st);                       /*   then report that all are disabled */
@@ -3916,7 +3917,7 @@ else {                                                  /* otherwise at least on
 
             fputs (cpu_stop [stop].name, st);               /* report the stop name */
 
-            need_spacer = TRUE;                             /* a spacer will be needed next time */
+            need_spacer = true;                             /* a spacer will be needed next time */
             }
         }
 
@@ -4127,7 +4128,7 @@ static t_stat halt_mode_interrupt (HP_WORD device_number)
 {
 static HP_WORD cold_device, sio_pointer, status, offset, pointer;
 static uint32 address;
-static t_bool error_recovery;
+static bool error_recovery;
 
 if (CPX2 & cpx2_RUNSWCH) {                              /* if the RUN switch is pressed */
     if (CPX2 & cpx2_SYSHALT) {                          /*   then if the System Halt flip-flop is set */
@@ -4227,7 +4228,7 @@ else if (CPX2 & cpx2_DUMPSWCH) {                        /* otherwise if the DUMP
         CIR = 0;                                        /* clear the memory bank counter */
 
         cpu_write_memory (absolute, cold_device * 4, 01430);    /* point the DRT at the cold dump program */
-        error_recovery = FALSE;
+        error_recovery = false;
 
         iop_direct_io (cold_device, ioSIO, 0);          /* start the device */
 
@@ -4272,7 +4273,7 @@ else if (CPX2 & cpx2_DUMPSWCH) {                        /* otherwise if the DUMP
                                       001430);          /*       of the program */
 
                     if (error_recovery)                 /* if this was a successful error recovery */
-                        error_recovery = FALSE;         /*   then clear the flag and keep the current address */
+                        error_recovery = false;         /*   then clear the flag and keep the current address */
 
                     else {                                  /* otherwise this was a successful write */
                         address = address + 4096;           /*   so bump the memory address */
@@ -4318,7 +4319,7 @@ else if (CPX2 & cpx2_DUMPSWCH) {                        /* otherwise if the DUMP
                                       cold_device * 4,  /*     to the backspace/write gap */
                                       001422);          /*       program */
 
-                    error_recovery = TRUE;              /* indicate that recovery is in progress */
+                    error_recovery = true;              /* indicate that recovery is in progress */
                     }
 
                 iop_direct_io (cold_device, ioSIO, 0);  /* start the device */
@@ -4462,7 +4463,7 @@ HP_WORD       displacement, opcode, offset, operand, operand_1, operand_2, resul
 int32         control, limit;
 ACCESS_CLASS  class;
 BYTE_SELECTOR selector;
-t_bool        branch;
+bool          branch;
 t_stat        status = SCPE_OK;
 
 switch (SUBOP (CIR)) {                                  /* dispatch on bits 0-3 of the instruction */
@@ -4660,7 +4661,7 @@ switch (SUBOP (CIR)) {                                  /* dispatch on bits 0-3 
             }
 
         else if (TO_CCF (STA) & CIR << BCC_CCF_SHIFT)   /* otherwise if the BCC test succeeds */
-            status = cpu_branch_short (TRUE);           /*   then branch to the target address */
+            status = cpu_branch_short (true);           /*   then branch to the target address */
         break;                                          /* otherwise continue execution at P + 1 */
 
 

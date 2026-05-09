@@ -109,6 +109,7 @@
 #ifndef _3B2_IO_H_
 #define _3B2_IO_H_
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 #define CRC_POLYNOMIAL  0xEDB88320
@@ -175,7 +176,7 @@
 #define CIO_NAME_LEN    8
 
 typedef struct {
-    t_bool populated;                    /* Populated?                       */
+    bool populated;                      /* Populated?                       */
     uint16 id;                           /* CIO identifier                   */
     char   name[CIO_NAME_LEN];           /* Device name                      */
     void   (*exp_handler)(uint8 slot);   /* Handler for express jobs         */
@@ -252,10 +253,10 @@ void cio_remove_all(uint16 id);
 uint32 cio_crc32_shift(uint32 crc, uint8 data);
 void cio_cexpress(uint8 slot, uint32 esize, cio_entry *cqe, uint8 *app_data);
 void cio_cqueue(uint8 slot, uint8 cmd_stat, uint32 esize, cio_entry *cqe, uint8 *app_data);
-t_bool cio_cqueue_avail(uint8 slot, uint32 esize);
+bool cio_cqueue_avail(uint8 slot, uint32 esize);
 void cio_rexpress(uint8 slot, uint32 esize, cio_entry *rqe, uint8 *app_data);
 t_stat cio_rqueue(uint8 slot, uint32 qnum, uint32 esize, cio_entry *rqe, uint8 *app_data);
-t_bool cio_rqueue_avail(uint8 slot, uint32 qnum, uint32 esize);
+bool cio_rqueue_avail(uint8 slot, uint32 qnum, uint32 esize);
 uint16 cio_r_lp(uint8 slot, uint32 qnum, uint32 esize);
 uint16 cio_r_ulp(uint8 slot, uint32 qnum, uint32 esize);
 uint16 cio_c_lp(uint8 slot, uint32 esize);

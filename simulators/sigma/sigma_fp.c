@@ -24,6 +24,7 @@
    in this Software without prior written authorization from Robert M Supnik.
 */
 
+#include <stdbool.h>
 #include "sigma_defs.h"
 
 #define UFP_V_GUARD     4
@@ -99,15 +100,15 @@ extern uint32 PSW1;
 extern uint32 CC;
 
 void fp_unpack (uint32 hi, uint32 lo, ufp_t *dst);
-t_bool fp_clnzro (ufp_t *src, t_bool abnorm);
-uint32 fp_pack (ufp_t *src, uint32 rn, t_bool dbl, t_bool rndtrap);
+bool fp_clnzro (ufp_t *src, bool abnorm);
+uint32 fp_pack (ufp_t *src, uint32 rn, bool dbl, bool rndtrap);
 uint32 fp_norm (ufp_t *src);
 
 uint32 fp (uint32 op, uint32 rn, uint32 bva)
 {
 uint32 rh, rl, mh, ml, i, ediff, nsh;
-t_bool s1nz, s2nz;
-t_bool dbl = ((op & 0x20) == 0);
+bool s1nz, s2nz;
+bool dbl = ((op & 0x20) == 0);
 ufp_t fop1, fop2, t;
 ufp_t res = { 0, 0, 0, 0 };
 uint32 tr;
@@ -137,8 +138,8 @@ switch (op) {                                           /* case on opcode */
                                                         /* fall through */
     case OP_FAS:                                        /* add */
     case OP_FAL:
-        s1nz = fp_clnzro (&fop1, TRUE);                 /* test, clean op1 */
-        s2nz = fp_clnzro (&fop2, TRUE);
+        s1nz = fp_clnzro (&fop1, true);                 /* test, clean op1 */
+        s2nz = fp_clnzro (&fop2, true);
         if (!s1nz)                                      /* op1 = 0? res = op2 */
             res = fop2;
         else if (!s2nz)                                 /* op2 = 0? res = op1 */
@@ -184,7 +185,7 @@ switch (op) {                                           /* case on opcode */
                 CC = CC1;                               /* set signif flag */
                 if (PSW1 & PSW1_FS)                     /* trap enabled? */
                     return TR_FLT;
-                return fp_pack (&res, rn, dbl, FALSE);  /* pack up */
+                return fp_pack (&res, rn, dbl, false);  /* pack up */
                 }
             nsh = fp_norm (&res);                       /* normalize */
             if ((res.exp < 0) &&                        /* underflow? */
@@ -200,12 +201,12 @@ switch (op) {                                           /* case on opcode */
                     return TR_FLT;
                 }
             }                                           /* end if postnorm */
-        return fp_pack (&res, rn, dbl, TRUE);           /* pack result */
+        return fp_pack (&res, rn, dbl, true);           /* pack result */
 
     case OP_FMS:
     case OP_FML:                                        /* floating multiply */
-        s1nz = fp_clnzro (&fop1, FALSE);                /* test, clean op1 */
-        s2nz = fp_clnzro (&fop2, FALSE);
+        s1nz = fp_clnzro (&fop1, false);                /* test, clean op1 */
+        s2nz = fp_clnzro (&fop2, false);
         if (s1nz && s2nz) {                             /* both non-zero? */
             fp_norm (&fop1);                            /* prenormalize */
             fp_norm (&fop2);
@@ -232,12 +233,12 @@ switch (op) {                                           /* case on opcode */
                 }
             fp_norm (&res);                             /* normalize result */
             }
-        return fp_pack (&res, rn, dbl, TRUE);           /* pack result */
+        return fp_pack (&res, rn, dbl, true);           /* pack result */
 
     case OP_FDS:
     case OP_FDL:                                        /* floating divide */
-        s1nz = fp_clnzro (&fop1, FALSE);                /* test, clean op1 */
-        s2nz = fp_clnzro (&fop2, FALSE);
+        s1nz = fp_clnzro (&fop1, false);                /* test, clean op1 */
+        s2nz = fp_clnzro (&fop2, false);
         if (!s2nz) {                                    /* divide by zero? */
             CC = CC2;                                   /* set CC2 */
             return TR_FLT;                              /* trap */
@@ -265,7 +266,7 @@ switch (op) {                                           /* case on opcode */
                 }
             fp_norm (&res);                             /* normalize result */
             }
-        return fp_pack (&res, rn, dbl, TRUE);           /* pack result */
+        return fp_pack (&res, rn, dbl, true);           /* pack result */
         }                                               /* end case */
 
 return SCPE_IERR;
@@ -323,7 +324,7 @@ else {                                                  /* left */
     if (src.h & UFP_NORM)                               /* normalized? */
         CC |= CC1;                                      /* set CC1 */
     }
-fp_pack (&src, rn, stype != 0, FALSE);                  /* pack result */
+fp_pack (&src, rn, stype != 0, false);                  /* pack result */
 return;
 }
 
@@ -342,18 +343,18 @@ return;
 /* Test for and clean a floating point zero
    abnorm defines whether to allow "abnormal" zeros */
 
-t_bool fp_clnzro (ufp_t *src, t_bool abnorm)
+bool fp_clnzro (ufp_t *src, bool abnorm)
 {
 if (((src->h | src->l) == 0) &&                         /* frac zero and */
     (!abnorm || (src->exp == 0))) {                     /* exp zero or !ab */
     src->sign = 0;                                      /* true zero */
     src->exp = 0;
-    return FALSE;
+    return false;
     }
-return TRUE;                                            /* non-zero */
+return true;                                            /* non-zero */
 }
 
-uint32 fp_pack (ufp_t *src, uint32 rn, t_bool dbl, t_bool rndtrap)
+uint32 fp_pack (ufp_t *src, uint32 rn, bool dbl, bool rndtrap)
 {
 static ufp_t fp_zero = { 0, 0, 0, 0};
 uint32 opnd, opnd1;

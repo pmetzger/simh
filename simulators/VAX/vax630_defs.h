@@ -58,6 +58,8 @@
 #ifndef VAX_630_DEFS_H_
 #define VAX_630_DEFS_H_ 1
 
+#include <stdbool.h>
+
 /* Microcode constructs */
 
 #define VAX620_SID      (16 << 24)                      /* system ID */
@@ -265,7 +267,7 @@ extern uint32 va_addr;                                  /* QDSS memory offset */
 #define DEV_QBUS        (1u << DEV_V_QBUS)
 #define DEV_Q18         (1u << DEV_V_Q18)
 
-#define UNIBUS          FALSE                           /* 22b only */
+#define UNIBUS          false                           /* 22b only */
 
 #define DEV_RDX         16                              /* default device radix */
 

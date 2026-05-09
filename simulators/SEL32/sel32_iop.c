@@ -31,6 +31,7 @@
 
 */
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 
 #if NUM_DEVS_IOP > 0
@@ -40,7 +41,7 @@
 /* forward definitions */
 t_stat  iop_preio(UNIT *uptr, uint16 chan);
 t_stat  iop_startcmd(UNIT *uptr, uint16 chan, uint8 cmd);
-void    iop_ini(UNIT *uptr, t_bool f);
+void    iop_ini(UNIT *uptr, bool f);
 t_stat  iop_rschnlio(UNIT *uptr);
 t_stat  iop_srv(UNIT *uptr);
 t_stat  iop_reset(DEVICE *dptr);
@@ -108,7 +109,7 @@ DIB             iop_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     iop_rschnlio,   /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    iop_ini,        /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    iop_ini,        /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     iop_unit,       /* UNIT* units */                           /* Pointer to units structure */
     iop_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -131,7 +132,7 @@ DEVICE          iop_dev = {
 
 /* IOP controller routines */
 /* initialize the console chan/unit */
-void iop_ini(UNIT *uptr, t_bool f)
+void iop_ini(UNIT *uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */

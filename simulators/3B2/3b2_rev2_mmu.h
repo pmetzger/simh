@@ -31,6 +31,7 @@
 #ifndef _3B2_REV2_MMU_H_
 #define _3B2_REV2_MMU_H_
 
+#include <stdbool.h>
 #include "sim_defs.h"
 
 /************************************************************************
@@ -294,7 +295,7 @@ typedef struct _mmu_sec {
 } mmu_sec;
 
 typedef struct _mmu_state {
-    t_bool enabled;         /* Global enabled/disabled flag */
+    bool enabled;           /* Global enabled/disabled flag */
 
     uint32 sdcl[MMU_SDCS];  /* SDC low bits (0-31) */
     uint32 sdch[MMU_SDCS];  /* SDC high bits (32-63) */
@@ -326,7 +327,7 @@ const char *mmu_description(DEVICE *dptr);
 /* Virtual memory translation */
 uint32 mmu_xlate_addr(uint32 va, uint8 r_acc);
 t_stat mmu_decode_vaddr(uint32 vaddr, uint8 r_acc,
-                        t_bool fc, uint32 *pa);
+                        bool fc, uint32 *pa);
 
 #define SHOULD_CACHE_PD(pd)                     \
     (fc && PD_PRESENT(pd))
@@ -346,7 +347,7 @@ t_stat mmu_decode_vaddr(uint32 vaddr, uint8 r_acc,
 #define SHOULD_UPDATE_PD_M_BIT(pd)              \
     (r_acc == ACC_W && !((pd) & PD_M_MASK))
 
-t_stat mmu_decode_va(uint32 va, uint8 r_acc, t_bool fc, uint32 *pa);
+t_stat mmu_decode_va(uint32 va, uint8 r_acc, bool fc, uint32 *pa);
 void   mmu_enable(void);
 void   mmu_disable(void);
 

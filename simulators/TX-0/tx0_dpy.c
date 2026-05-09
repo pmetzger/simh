@@ -37,6 +37,8 @@
  *************************************************************************/
 
 #ifdef USE_DISPLAY
+#include <stdbool.h>
+
 #include "tx0_defs.h"
 #include "display/display.h"
 #include "sim_video.h"
@@ -60,11 +62,11 @@ t_stat dpy_reset (DEVICE *dptr);
 UNIT dpy_unit = {
     UDATA (&dpy_svc, UNIT_ATTABLE, 0), DPY_WAIT };
 
-static t_bool dpy_stop_flag = FALSE;
+static bool dpy_stop_flag = false;
 
 static void dpy_quit_callback (void)
 {
-dpy_stop_flag = TRUE;
+dpy_stop_flag = true;
 }
 
 #define DEB_VMOU      SIM_VID_DBG_MOUSE             /* Video mouse */
@@ -140,7 +142,7 @@ t_stat dpy_svc (UNIT *uptr)
     display_age(dpy_unit.wait*CYCLE_TIME, 1);
     sim_activate (&dpy_unit, dpy_unit.wait); /* requeue! */
     if (dpy_stop_flag) {
-        dpy_stop_flag = FALSE;          /* reset flag after we notice it */
+        dpy_stop_flag = false;          /* reset flag after we notice it */
         return SCPE_STOP;
         }
     return SCPE_OK;

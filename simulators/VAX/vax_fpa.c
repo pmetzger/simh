@@ -58,6 +58,7 @@
 
 #include "vax_defs.h"
 #include <setjmp.h>
+#include <stdbool.h>
 
 #if defined (USE_INT64)
 
@@ -103,7 +104,7 @@ void norm (UFP *a);
 int32 rpackfd (UFP *a, int32 *rh);
 int32 rpackg (UFP *a, int32 *rh);
 void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo);
-void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32 mhi, uint32 mlo);
+void vax_fmul (UFP *a, UFP *b, bool qd, int32 bias, uint32 mhi, uint32 mlo);
 void vax_fdiv (UFP *a, UFP *b, int32 prec, int32 bias);
 void vax_fmod (UFP *a, int32 bias, int32 *intgr, int32 *flg);
 
@@ -413,7 +414,7 @@ return;
 
 /* Floating multiply - 64b * 64b with cross products */
 
-void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32 mhi, uint32 mlo)
+void vax_fmul (UFP *a, UFP *b, bool qd, int32 bias, uint32 mhi, uint32 mlo)
 {
 t_uint64 ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
 t_uint64 mask = (((t_uint64) mhi) << 32) | ((t_uint64) mlo);
@@ -665,7 +666,7 @@ void norm (UFP *a);
 int32 rpackfd (UFP *a, int32 *rh);
 int32 rpackg (UFP *a, int32 *rh);
 void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo);
-void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32 mhi, uint32 mlo);
+void vax_fmul (UFP *a, UFP *b, bool qd, int32 bias, uint32 mhi, uint32 mlo);
 void vax_fmod (UFP *a, int32 bias, int32 *intgr, int32 *flg);
 void vax_fdiv (UFP *a, UFP *b, int32 prec, int32 bias);
 void dp_add (UDP *a, UDP *b);
@@ -973,7 +974,7 @@ return;
 
 /* Floating multiply - 64b * 64b with cross products */
 
-void vax_fmul (UFP *a, UFP *b, t_bool qd, int32 bias, uint32 mhi, uint32 mlo)
+void vax_fmul (UFP *a, UFP *b, bool qd, int32 bias, uint32 mhi, uint32 mlo)
 {
 UDP rhi, rlo, rmid1, rmid2;
 
@@ -1413,7 +1414,7 @@ return rpackfd (&a, NULL);
 
 /* Floating add and subtract */
 
-int32 op_addf (uint32 *opnd, t_bool sub)
+int32 op_addf (uint32 *opnd, bool sub)
 {
 UFP a, b;
 
@@ -1425,7 +1426,7 @@ vax_fadd (&a, &b, 0, 0);                                /* add fractions */
 return rpackfd (&a, NULL);
 }
 
-int32 op_addd (uint32 *opnd, int32 *rh, t_bool sub)
+int32 op_addd (uint32 *opnd, int32 *rh, bool sub)
 {
 UFP a, b;
 
@@ -1437,7 +1438,7 @@ vax_fadd (&a, &b, 0, 0);                                /* add fractions */
 return rpackfd (&a, rh);
 }
 
-int32 op_addg (uint32 *opnd, int32 *rh, t_bool sub)
+int32 op_addg (uint32 *opnd, int32 *rh, bool sub)
 {
 UFP a, b;
 

@@ -26,6 +26,7 @@
    VDM1 - Processor Technology VDM-1
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_video.h"
 
@@ -61,11 +62,11 @@ t_stat (*vdm1_kb_callback)(SIM_KEY_EVENT *kev) = NULL;
 
 static uint8 vdm1_ram[VDM1_MEM_SIZE];
 static uint8 vdm1_dstat = 0x00;
-static t_bool vdm1_dirty = TRUE;
-static t_bool vdm1_reverse = FALSE;
-static t_bool vdm1_blink = FALSE;
+static bool vdm1_dirty = true;
+static bool vdm1_reverse = false;
+static bool vdm1_blink = false;
 static uint16 vdm1_counter = 0;
-static t_bool vdm1_active = FALSE;
+static bool vdm1_active = false;
 static uint32 vdm1_surface[VDM1_PIXELS];
 static uint32 vdm1_palette[2];
 
@@ -306,12 +307,12 @@ t_stat vdm1_svc(UNIT *uptr)
     /* Handle blink */
     if ((vdm1_counter % 10 == 0) && (vdm1_cursor == VDM1_BLINK)) {
         vdm1_blink = !vdm1_blink;
-        vdm1_dirty = TRUE;
+        vdm1_dirty = true;
     }
 
     if (vdm1_dirty) {
         vdm1_refresh();
-        vdm1_dirty = TRUE;
+        vdm1_dirty = true;
     }
 
     if (vdm1_kb_callback != NULL) {
@@ -334,21 +335,21 @@ t_stat vdm1_reset(DEVICE *dptr)
     xptr = (VDM1_CTX *) dptr->ctxt;
 
     if (dptr->flags & DEV_DIS) {
-        sim_map_resource(xptr->pnp.mem_base, xptr->pnp.mem_size, RESOURCE_TYPE_MEMORY, &vdm1_mem, "vdm1", TRUE);
-        sim_map_resource(xptr->pnp.io_base, xptr->pnp.io_size, RESOURCE_TYPE_IO, &vdm1_io, "vdm1", TRUE);
+        sim_map_resource(xptr->pnp.mem_base, xptr->pnp.mem_size, RESOURCE_TYPE_MEMORY, &vdm1_mem, "vdm1", true);
+        sim_map_resource(xptr->pnp.io_base, xptr->pnp.io_size, RESOURCE_TYPE_IO, &vdm1_io, "vdm1", true);
 
         sim_cancel(&vdm1_unit);
 
         if (vdm1_active) {
-            vdm1_active = FALSE;
+            vdm1_active = false;
             return vid_close();
         }
 
         return SCPE_OK;
     }
 
-    sim_map_resource(xptr->pnp.mem_base, xptr->pnp.mem_size, RESOURCE_TYPE_MEMORY, &vdm1_mem, "vdm1", FALSE);
-    sim_map_resource(xptr->pnp.io_base, xptr->pnp.io_size, RESOURCE_TYPE_IO, &vdm1_io, "vdm1", FALSE);
+    sim_map_resource(xptr->pnp.mem_base, xptr->pnp.mem_size, RESOURCE_TYPE_MEMORY, &vdm1_mem, "vdm1", false);
+    sim_map_resource(xptr->pnp.io_base, xptr->pnp.io_size, RESOURCE_TYPE_IO, &vdm1_io, "vdm1", false);
 
     if (!vdm1_active)  {
         r = vid_open_window(&vdm1_vptr, &vdm1_dev, "Display", VDM1_XSIZE, VDM1_YSIZE, SIM_VID_IGNORE_VBAR | SIM_VID_RESIZABLE); /* video buffer size */
@@ -366,7 +367,7 @@ t_stat vdm1_reset(DEVICE *dptr)
             vdm1_surface[i] = vdm1_palette[0];
         }
 
-        vdm1_active = TRUE;
+        vdm1_active = true;
     }
 
     sim_activate_after_abs(&vdm1_unit, 25);
@@ -427,7 +428,7 @@ static int32 vdm1_mem(int32 addr, int32 rw, int32 data)
     }
     else {
         vdm1_ram[addr & VDM1_MEM_MASK] = data;
-        vdm1_dirty = TRUE;
+        vdm1_dirty = true;
     }
 
     return data;
@@ -495,8 +496,8 @@ static void vdm1_render(void)
 {
     uint8 x,y,s,c,c1;
     int addr = 0;
-    t_bool eol_blank = FALSE;
-    t_bool eos_blank = FALSE;
+    bool eol_blank = false;
+    bool eos_blank = false;
 
     addr += (vdm1_dstat & VDM1_DSTAT_CMSK) * VDM1_COLS;
     s = (vdm1_dstat & VDM1_DSTAT_RMSK) >> 4; /* Shadowing */
@@ -509,10 +510,10 @@ static void vdm1_render(void)
 
             /* EOL and EOS blanking */
             if (c1 == 0x0d && (vdm1_ctrl == VDM1_MODE2 || vdm1_ctrl == VDM1_MODE3)) {    // CR
-                eol_blank = TRUE;
+                eol_blank = true;
             }
             else if (c1 == 0x0b && (vdm1_ctrl == VDM1_MODE2 || vdm1_ctrl == VDM1_MODE3)) {    // VT
-                eos_blank = TRUE;
+                eos_blank = true;
             }
 
             /* Blanking control */
@@ -593,7 +594,7 @@ static t_stat vdm1_set_ctrl(UNIT *uptr, int32 val, const char *cptr, void *desc)
         return SCPE_ARG;
     }
 
-    vdm1_dirty = TRUE;
+    vdm1_dirty = true;
 
     return SCPE_OK;
 }
@@ -653,12 +654,12 @@ static t_stat vdm1_set_cursor(UNIT *uptr, int32 val, const char *cptr, void *des
         vdm1_cursor = VDM1_BLINK;
     } else if (!strncmp(cptr, "NOBLINK", strlen(cptr))) {
         vdm1_cursor = VDM1_NOBLINK;
-        vdm1_blink = FALSE;
+        vdm1_blink = false;
     } else {
         return SCPE_ARG;
     }
 
-    vdm1_dirty = TRUE;
+    vdm1_dirty = true;
 
     return SCPE_OK;
 }
@@ -718,7 +719,7 @@ static t_stat vdm1_set_display(UNIT *uptr, int32 val, const char *cptr, void *de
         return SCPE_ARG;
     }
 
-    vdm1_dirty = TRUE;
+    vdm1_dirty = true;
 
     return SCPE_OK;
 }

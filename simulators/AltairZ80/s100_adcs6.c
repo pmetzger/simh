@@ -39,6 +39,7 @@
  *                                                                       *
  *************************************************************************/
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "wd179x.h"
 
@@ -63,7 +64,7 @@
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
     uint32 dma_addr;    /* DMA Transfer Address */
-    uint8 rom_disabled; /* TRUE if ROM has been disabled */
+    uint8 rom_disabled; /* true if ROM has been disabled */
     uint8   rom_type;       /* Select ADC or Digitex ROM. */
     uint8   j7;             /* 7-position jumper block J7 */
     uint8 head_sel;
@@ -198,7 +199,7 @@ static const char* adcs6_description(DEVICE *dptr);
 #define CTC_CCW_BIT             (1 << 0)
 #define CTC_TC_FOLLOWS          (1 << 2)
 
-static ADCS6_INFO adcs6_info_data = { { 0xF000, ADCS6_ROM_SIZE, 0x3, 2 }, 0, FALSE, ADCS6_ROM_ADC, ADCS6_S7_DEFAULT_VALUE };
+static ADCS6_INFO adcs6_info_data = { { 0xF000, ADCS6_ROM_SIZE, 0x3, 2 }, 0, false, ADCS6_ROM_ADC, ADCS6_S7_DEFAULT_VALUE };
 static ADCS6_INFO* adcs6_info = &adcs6_info_data;
 
 /* The ADCS6 does not really have RAM associated with it, but for ease of integration with the
@@ -655,21 +656,21 @@ static t_stat adcs6_reset(DEVICE *dptr)
     sim_set_uname(&adcs6_unit[7], "ADCS6_CTC3");
 
     if(dptr->flags & DEV_DIS) { /* Disconnect ROM and I/O Ports */
-        if (adcs6_info->rom_disabled == FALSE) {
-            sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &adcs6rom, "adcs6rom", TRUE);
+        if (adcs6_info->rom_disabled == false) {
+            sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &adcs6rom, "adcs6rom", true);
         }
         /* Unmap I/O Ports (0x3-4,0x5-9,0x34,0x40 */
-        sim_map_resource(ADCS6_DMA, 1, RESOURCE_TYPE_IO, &adcs6_dma, "adcs6_dma", TRUE);
-        sim_map_resource(ADCS6_PIO, 4, RESOURCE_TYPE_IO, &adcs6_pio, "adcs6_pio", TRUE);
-        sim_map_resource(ADCS6_CTC0, 4, RESOURCE_TYPE_IO, &adcs6_ctc, "adcs6_ctc", TRUE);
-        sim_map_resource(ADCS6_CTRL, 1, RESOURCE_TYPE_IO, &adcs6_control, "adcs6_control", TRUE);
-        sim_map_resource(ADCS6_EXTADR, 7, RESOURCE_TYPE_IO, &adcs6_banksel, "adcs6_banksel", TRUE);
-        sim_map_resource(CCS2719, 16, RESOURCE_TYPE_IO, &ccs2719, "ccs2719", TRUE);
+        sim_map_resource(ADCS6_DMA, 1, RESOURCE_TYPE_IO, &adcs6_dma, "adcs6_dma", true);
+        sim_map_resource(ADCS6_PIO, 4, RESOURCE_TYPE_IO, &adcs6_pio, "adcs6_pio", true);
+        sim_map_resource(ADCS6_CTC0, 4, RESOURCE_TYPE_IO, &adcs6_ctc, "adcs6_ctc", true);
+        sim_map_resource(ADCS6_CTRL, 1, RESOURCE_TYPE_IO, &adcs6_control, "adcs6_control", true);
+        sim_map_resource(ADCS6_EXTADR, 7, RESOURCE_TYPE_IO, &adcs6_banksel, "adcs6_banksel", true);
+        sim_map_resource(CCS2719, 16, RESOURCE_TYPE_IO, &ccs2719, "ccs2719", true);
     } else {
         /* Connect ADCS6 ROM at base address */
-        if (adcs6_info->rom_disabled == FALSE) {
+        if (adcs6_info->rom_disabled == false) {
             sim_debug(VERBOSE_MSG, &adcs6_dev, DEV_NAME ": ROM Enabled.\n");
-            if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &adcs6rom, "adcs6rom", FALSE) != 0) {
+            if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &adcs6rom, "adcs6rom", false) != 0) {
                 sim_printf("%s: error mapping MEM resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
                 return SCPE_ARG;
             }
@@ -678,7 +679,7 @@ static t_stat adcs6_reset(DEVICE *dptr)
         }
 
         /* Connect ADCS6 FDC Synchronization / Drive / Density Register */
-        if(sim_map_resource(ADCS6_CTRL, 0x01, RESOURCE_TYPE_IO, &adcs6_control, "adcs6_control", FALSE) != 0) {
+        if(sim_map_resource(ADCS6_CTRL, 0x01, RESOURCE_TYPE_IO, &adcs6_control, "adcs6_control", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
@@ -687,31 +688,31 @@ static t_stat adcs6_reset(DEVICE *dptr)
 #ifdef ADCS6    /* Do not connect these, they conflict with AltairZ80's R and W commands. */
         /* Connect ADCS6 Interrupt, and Aux Disk Registers */
 
-        if(sim_map_resource(ADCS6_DMA, 0x01, RESOURCE_TYPE_IO, &adcs6_dma, "adcs6_dma", FALSE) != 0) {
+        if(sim_map_resource(ADCS6_DMA, 0x01, RESOURCE_TYPE_IO, &adcs6_dma, "adcs6_dma", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
 #endif
         /* Connect ADCS6 PIO Registers */
-        if (sim_map_resource(ADCS6_PIO, 0x08, RESOURCE_TYPE_IO, &adcs6_pio, "adcs6_pio", FALSE) != 0) {
+        if (sim_map_resource(ADCS6_PIO, 0x08, RESOURCE_TYPE_IO, &adcs6_pio, "adcs6_pio", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
 
         /* Connect ADCS6 CTC Registers */
-        if(sim_map_resource(ADCS6_CTC0, 0x04, RESOURCE_TYPE_IO, &adcs6_ctc, "adcs6_ctc", FALSE) != 0) {
+        if(sim_map_resource(ADCS6_CTC0, 0x04, RESOURCE_TYPE_IO, &adcs6_ctc, "adcs6_ctc", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
 
         /* Connect ADCS6 Memory Management / Bank Select Register */
-        if(sim_map_resource(ADCS6_EXTADR, 0x7, RESOURCE_TYPE_IO, &adcs6_banksel, "adcs6_banksel", FALSE) != 0) {
+        if(sim_map_resource(ADCS6_EXTADR, 0x7, RESOURCE_TYPE_IO, &adcs6_banksel, "adcs6_banksel", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
 
         /* Connect CCS-2719 2 SIO / 2 PIO Card */
-        if (sim_map_resource(CCS2719, 16, RESOURCE_TYPE_IO, &ccs2719, "ccs2719", FALSE) != 0) {
+        if (sim_map_resource(CCS2719, 16, RESOURCE_TYPE_IO, &ccs2719, "ccs2719", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
@@ -722,7 +723,7 @@ static t_stat adcs6_reset(DEVICE *dptr)
 
         adcs6_info->j7 &= 0x7F;
         adcs6_info->j7 |= (wd179x_get_nheads() == 1) ? 0x80 : 0;
-        adcs6_info->rom_disabled = FALSE;
+        adcs6_info->rom_disabled = false;
 
     }
 
@@ -738,7 +739,7 @@ static t_stat adcs6_boot(int32 unitno, DEVICE *dptr)
 
     sim_debug(VERBOSE_MSG, &adcs6_dev, "Booting ADCS6 Controller\n");
 
-    adcs6_info->rom_disabled = FALSE;
+    adcs6_info->rom_disabled = false;
 
     /* Set the PC to F000H, and go. */
     *((int32 *) sim_PC->loc) = 0xF000;
@@ -772,7 +773,7 @@ static t_stat adcs6_detach(UNIT *uptr)
 static int32 adcs6rom(const int32 Addr, const int32 write, const int32 data)
 {
     if(write) {
-        if(adcs6_info->rom_disabled == FALSE) {
+        if(adcs6_info->rom_disabled == false) {
             sim_debug(ERROR_MSG, &adcs6_dev, DEV_NAME ": " ADDRESS_FORMAT
                       " Cannot write to ROM.\n", PCX);
         } else {
@@ -780,7 +781,7 @@ static int32 adcs6rom(const int32 Addr, const int32 write, const int32 data)
         }
         return 0;
     } else {
-        if(adcs6_info->rom_disabled == FALSE) {
+        if(adcs6_info->rom_disabled == false) {
             return(adcs6_rom[adcs6_info->rom_type][Addr & ADCS6_ADDR_MASK]);
         } else {
             return(adcs6ram[Addr & ADCS6_ADDR_MASK]);
@@ -1096,7 +1097,7 @@ static int32 adcs6_banksel(const int32 port, const int32 io, const int32 data)
                       (data & MCTRL_ROM_DISABLE) ? "Disabled" : "Enabled",
                       (data & MCTRL_POJ_ENABLED) ? "Enabled" : "Disabled",
                       (data & MCTRL_PARITY_ENABLED) ? "Enabled" : "Disabled");
-            adcs6_info->rom_disabled = (data & MCTRL_ROM_DISABLE) ? TRUE : FALSE; /* Unmap Boot ROM */
+            adcs6_info->rom_disabled = (data & MCTRL_ROM_DISABLE) ? true : false; /* Unmap Boot ROM */
             adcs6_info->mctrl0 = (uint8)data;
             break;
         case ADCS6_MCTRL1:

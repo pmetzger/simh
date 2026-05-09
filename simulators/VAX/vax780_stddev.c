@@ -80,6 +80,7 @@
    RXDB<11:8> = 9       ->      "command" input from floppy (protocol error)
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_tmxr.h"
 
@@ -252,7 +253,7 @@ int32 icr_rd (void);
 void tmr_sched (uint32 incr);
 t_stat todr_resync (void);
 t_stat fl_wr_txdb (int32 data);
-t_bool fl_test_xfr (UNIT *uptr, t_bool wr);
+bool fl_test_xfr (UNIT *uptr, bool wr);
 void fl_protocol_error (void);
 
 extern int32 con_halt (int32 code, int32 cc);
@@ -645,13 +646,13 @@ return "console terminal output";
 
 int32 iccs_rd (void)
 {
-sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_rd()", tmr_iccs_bits, tmr_iccs, tmr_iccs, TRUE);
+sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_rd()", tmr_iccs_bits, tmr_iccs, tmr_iccs, true);
 return tmr_iccs & TMR_CSR_RD;
 }
 
 void iccs_wr (int32 val)
 {
-sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_wr()", tmr_iccs_bits, tmr_iccs, val, TRUE);
+sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_wr()", tmr_iccs_bits, tmr_iccs, val, true);
 if ((val & TMR_CSR_RUN) == 0) {                         /* clearing run? */
     if (tmr_iccs & TMR_CSR_RUN) {                       /* run 1 -> 0? */
         tmr_icr = icr_rd ();                            /* update icr */
@@ -1170,7 +1171,7 @@ switch (fl_state) {                                     /* case on state */
         break;
 
     case FL_READ1:                                      /* read, seek done */
-        if (fl_test_xfr (uptr, FALSE)) {                /* transfer ok? */
+        if (fl_test_xfr (uptr, false)) {                /* transfer ok? */
             da = CALC_DA (fl_track, fl_sector);         /* get disk address */
             for (i = 0; i < FL_NUMBY; i++)              /* copy sector to buf */
                 fl_buf[i] = fbuf[da + i];
@@ -1200,7 +1201,7 @@ switch (fl_state) {                                     /* case on state */
         break;
 
     case FL_WRITE1:                                     /* write, seek done */
-        if (fl_test_xfr (uptr, TRUE)) {                 /* transfer ok? */
+        if (fl_test_xfr (uptr, true)) {                 /* transfer ok? */
             da = CALC_DA (fl_track, fl_sector);         /* get disk address */
             for (i = 0; i < FL_NUMBY; i++)              /* copy buf to sector */
                 fbuf[da + i] = fl_buf[i];
@@ -1242,7 +1243,7 @@ return SCPE_OK;
 
 /* Test for data transfer okay */
 
-t_bool fl_test_xfr (UNIT *uptr, t_bool wr)
+bool fl_test_xfr (UNIT *uptr, bool wr)
 {
 if ((uptr->flags & UNIT_BUF) == 0)                      /* not buffered? */
     fl_ecode = 0110;
@@ -1254,10 +1255,10 @@ else if (wr && (uptr->flags & UNIT_WPRT))               /* write and locked? */
     fl_ecode = 0100;                                    /* done, error */
 else {
     uptr->TRACK = fl_track;                             /* now on track */
-    return TRUE;
+    return true;
     }
 fl_esr = fl_esr | FL_STAERR;                            /* set error */
-return FALSE;
+return false;
 }
 
 /* Set protocol error */

@@ -78,6 +78,7 @@
 #define RK_DIS  0
 #endif
 
+#include <stdbool.h>
 #include "sim_disk.h"
 
 /* Constants */
@@ -929,7 +930,7 @@ t_stat rk_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
 r = sim_disk_attach_ex2 (uptr, cptr, RK_NUMWD * sizeof (uint16),
-                         sizeof (uint16), TRUE, 0,
+                         sizeof (uint16), true, 0,
                          "RK05", 0, 0, NULL, RK_RSRVSEC);
 if (r != SCPE_OK)                                       /* error? */
     return r;

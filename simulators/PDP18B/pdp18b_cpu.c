@@ -280,6 +280,7 @@
         pdp18b_sys.c    add sim_devices table entry
 */
 
+#include <stdbool.h>
 #include "pdp18b_cpu_internal.h"
 
 #define SEXT(x)         ((int32) (((x) & SIGN)? (x) | ~DMASK: (x) & DMASK))
@@ -382,7 +383,7 @@ int32 hst_p = 0;                                        /* history pointer */
 int32 hst_lnt = 0;                                      /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 
-t_bool build_dev_tab (void);
+bool build_dev_tab (void);
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_reset (DEVICE *dptr);
@@ -396,17 +397,17 @@ int32 upd_iors (void);
 int32 api_eval (int32 *pend);
 t_stat Read (int32 ma, int32 *dat, int32 cyc);
 t_stat Write (int32 ma, int32 dat, int32 cyc);
-t_stat Ia (int32 ma, int32 *ea, t_bool jmp);
+t_stat Ia (int32 ma, int32 *ea, bool jmp);
 int32 Incr_addr (int32 addr);
 int32 Jms_word (int32 t);
 #if defined (PDP15)
 #define INDEX(i,x)      if (!memm && ((i) & I_IDX)) \
                             x = ((x) + XR) & DMASK
-int32 Prot15 (int32 ma, t_bool bndchk);
+int32 Prot15 (int32 ma, bool bndchk);
 int32 Reloc15 (int32 ma, int32 acc);
 int32 RelocXVM (int32 ma, int32 acc);
 extern t_stat fp15 (int32 ir);
-extern int32 clk_task_upd (t_bool clr);
+extern int32 clk_task_upd (bool clr);
 #else
 #define INDEX(i,x)
 #endif
@@ -990,17 +991,17 @@ while (reason == 0) {                                   /* loop until halted */
         INDEX (IR, MA);
         PCQ_ENTRY;                                      /* save old PC */
         if (sim_idle_enab) {                            /* idling enabled? */
-            t_bool iof = (ion_inh != 0) ||              /* IOF if inhibited */
+            bool iof = (ion_inh != 0) ||                /* IOF if inhibited */
                 ((ion == 0) && (api_enb == 0));         /* or PI and api off */
             if (((MA ^ (PC - 2)) & AMASK) == 0) {       /* 1) JMP *-1? */
                 if (iof && (last_IR == OP_KSF) &&       /*    iof, prv KSF, */
                     !TST_INT (TTI))                     /*    no TTI flag? */
-                    sim_idle (0, FALSE);                /* we're idle */
+                    sim_idle (0, false);                /* we're idle */
                 }
             else if (((MA ^ (PC - 1)) & AMASK) == 0) {  /* 2) JMP *? */
                 if (iof)                                /*    iof? inf loop */
                     reason = STOP_LOOP;
-                else sim_idle (0, FALSE);               /*    ion? idle */
+                else sim_idle (0, false);               /*    ion? idle */
                 }
             }                                           /* end idle */
         PC = MA & AMASK;
@@ -1627,7 +1628,7 @@ while (reason == 0) {                                   /* loop until halted */
                 else if (pulse == 042)                  /* MPEU */
                      usmd_buf = 1;
                 else if (XVM && (pulse == 062))         /* RDCLK */
-                    iot_data = clk_task_upd (TRUE);
+                    iot_data = clk_task_upd (true);
                 else if (pulse == 004)                  /* MPLD */
                     BR = LAC & t;
                 else if (RELOC && (pulse == 024))       /* MPLR */
@@ -1798,7 +1799,7 @@ if (MEM_ADDR_OK (ma))
 return MM_OK;
 }
 
-t_stat Ia (int32 ma, int32 *ea, t_bool jmp)
+t_stat Ia (int32 ma, int32 *ea, bool jmp)
 {
 int32 t;
 t_stat sta = MM_OK;
@@ -1890,7 +1891,7 @@ else nexm = 1;                                          /* set flag, no trap */
 return MM_OK;
 }
 
-t_stat Ia (int32 ma, int32 *ea, t_bool jmp)
+t_stat Ia (int32 ma, int32 *ea, bool jmp)
 {
 int32 t;
 t_stat sta = MM_OK;
@@ -1990,7 +1991,7 @@ return MM_OK;
 
 /* XVM will do 18b defers if user_mode and G_Mode != 0 */
 
-t_stat Ia (int32 ma, int32 *ea, t_bool jmp)
+t_stat Ia (int32 ma, int32 *ea, bool jmp)
 {
 int32 gmode, t;
 int32 damask = memm? B_DAMASK: P_DAMASK;
@@ -2042,7 +2043,7 @@ return (((LAC & LINK) >> 1) | ((memm & 1) << 16) |
 
 /* PDP-15 protection (KM15 option) */
 
-int32 Prot15 (int32 ma, t_bool bndchk)
+int32 Prot15 (int32 ma, bool bndchk)
 {
 ma = ma & AMASK;                                        /* 17b addressing */
 if (!MEM_ADDR_OK (ma)) {                                /* nxm? */
@@ -2236,7 +2237,7 @@ if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i++)
     mc = mc | M[i];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE; i++)
@@ -2315,7 +2316,7 @@ return (SCPE_IERR << IOT_V_REASON) | AC;                /* broken! */
 
 /* Build device dispatch table */
 
-t_bool build_dev_tab (void)
+bool build_dev_tab (void)
 {
 DEVICE *dptr;
 DIB *dibp;
@@ -2345,14 +2346,14 @@ for (i = p = 0; (dptr = sim_devices[i]) != NULL; i++) { /* add devices */
                 if (dev_tab[dibp->dev + j]) {           /* already filled? */
                     sim_printf ("%s device number conflict at %02o\n",
                             sim_dname (dptr), dibp->dev + j);
-                    return TRUE;
+                    return true;
                     }
                 dev_tab[dibp->dev + j] = dibp->dsp[j];  /* fill */
                 }                                       /* end if dsp */
             }                                           /* end for j */
         }                                               /* end if enb */
     }                                                   /* end for i */
-return FALSE;
+return false;
 }
 
 /* Set in memory 3-cycle databreak register */

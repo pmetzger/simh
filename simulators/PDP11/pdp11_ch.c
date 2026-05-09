@@ -41,6 +41,7 @@
 #error The CH11 device only works with Unibus machines.
 #endif
 
+#include <stdbool.h>
 #include "sim_tmxr.h"
 
 /* CSR bits */
@@ -187,7 +188,7 @@ static t_stat ch_rx_word (int32 *data)
                rx_count, *data);
     rx_count--;
     if (rx_count == 0) {
-      ch_lines[0].rcve = TRUE;
+      ch_lines[0].rcve = true;
       sim_debug (DBG_TRC, &ch_dev, "Read all, rx on\n");
       status &= ~RXD;
     }
@@ -300,7 +301,7 @@ static int ch_receive (void)
     sim_debug (DBG_TRC, &ch_dev, "Rx count, %d\n", rx_count);
     ch_validate (p + CHUDP_HEADER, count);
     status |= RXD;
-    ch_lines[0].rcve = FALSE;
+    ch_lines[0].rcve = false;
     sim_debug (DBG_TRC, &ch_dev, "Rx off\n");
     ch_test_int ();
   } else {
@@ -324,7 +325,7 @@ t_stat ch_rd (int32 *data, int32 PA, int32 access)
   case 00: /* Status */
     *data = status & STATUS_BITS;
     sim_debug (DBG_REG, &ch_dev, "Read status: %06o\n", *data);
-    sim_debug_bits (DBG_TRC, &ch_dev, ch_csr_bits, *data, *data, TRUE);
+    sim_debug_bits (DBG_TRC, &ch_dev, ch_csr_bits, *data, *data, true);
     break;
   case 01: /* Address */
     *data = address;
@@ -373,7 +374,7 @@ static void ch_command (int32 data)
     sim_debug (DBG_REG, &ch_dev, "Clear RX\n");
     rx_count = 0;
     status &= ~(RXD|CRC|LOST);
-    ch_lines[0].rcve = TRUE;
+    ch_lines[0].rcve = true;
     sim_debug (DBG_TRC, &ch_dev, "Rx on\n");
     sim_activate_abs (ch_unit, 100);   /* Force next packet read attempt */
   }
@@ -408,7 +409,7 @@ t_stat ch_wr (int32 data, int32 PA, int32 access)
     if (data & TXIE)
       sim_debug (DBG_REG, &ch_dev, "TX interrupt enable\n");
     status = (status & ~COMMAND_BITS) | (data & COMMAND_BITS);
-    sim_debug_bits (DBG_TRC, &ch_dev, ch_csr_bits, status, status, TRUE);
+    sim_debug_bits (DBG_TRC, &ch_dev, ch_csr_bits, status, status, true);
     ch_test_int ();
     break;
   case 01: /* Write */
@@ -427,7 +428,7 @@ t_stat ch_svc(UNIT *uptr)
     }
   } else {
     if (tmxr_poll_conn (&ch_tmxr) != -1)
-      ch_lines[0].rcve = TRUE;
+      ch_lines[0].rcve = true;
   }
   sim_clock_coschedule (uptr, 1000);
   return SCPE_OK;

@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -224,9 +225,9 @@ test_sim_string_compare_helpers_handle_case_and_whitespace(void **state)
     assert_true(sim_strcasecmp("beta", "ALPHA") > 0);
     assert_int_equal(sim_strcasecmp("Gamma", "gAmMa"), 0);
 
-    assert_int_equal(sim_strwhitecasecmp("Alpha\t beta", "alpha beta", TRUE),
+    assert_int_equal(sim_strwhitecasecmp("Alpha\t beta", "alpha beta", true),
                      0);
-    assert_true(sim_strwhitecasecmp("Alpha Beta", "alpha beta", FALSE) < 0);
+    assert_true(sim_strwhitecasecmp("Alpha Beta", "alpha beta", false) < 0);
 }
 
 /* Verify filepath extraction normalizes paths and returns full, path,
@@ -426,12 +427,12 @@ static void test_sim_byte_swap_helpers_reverse_multibyte_elements(void **state)
     uint16_t buf16[] = {0x1234, 0xABCD};
     uint8_t src32[] = {0x10, 0x20, 0x30, 0x40, 0xAA, 0xBB, 0xCC, 0xDD};
     uint8_t dst32[sizeof(src32)];
-    t_bool saved_sim_end;
+    bool saved_sim_end;
 
     (void)state;
 
     saved_sim_end = sim_end;
-    sim_end = FALSE;
+    sim_end = false;
 
     sim_byte_swap_data(buf16, sizeof(buf16[0]), 2);
     assert_int_equal(buf16[0], 0x3412);
@@ -456,10 +457,10 @@ test_sim_fread_and_fwrite_round_trip_in_big_endian_mode(void **state)
     uint16_t words_in[3] = {0, 0, 0};
     uint8_t raw_bytes[sizeof(words_out)];
     FILE *file;
-    t_bool saved_sim_end;
+    bool saved_sim_end;
 
     saved_sim_end = sim_end;
-    sim_end = FALSE;
+    sim_end = false;
 
     file = sim_fopen(fixture->copy_path, "wb+");
     assert_non_null(file);
@@ -496,7 +497,7 @@ static void test_sim_fwrite_handles_multiple_flip_buffers(void **state)
     uint16_t *words_out;
     uint16_t *words_in;
     FILE *file;
-    t_bool saved_sim_end;
+    bool saved_sim_end;
     size_t i;
 
     words_out = calloc(count + 2, sizeof(*words_out));
@@ -511,7 +512,7 @@ static void test_sim_fwrite_handles_multiple_flip_buffers(void **state)
     words_out[count + 1] = 0xBEEF;
 
     saved_sim_end = sim_end;
-    sim_end = FALSE;
+    sim_end = false;
 
     file = sim_fopen(fixture->copy_path, "wb+");
     assert_non_null(file);
@@ -656,12 +657,12 @@ static void test_sim_file_helpers_report_missing_path_failures(void **state)
                                          fixture->temp_dir, "absent/out.bin"),
                      0);
 
-    status = sim_copyfile(missing_path, fixture->copy_path, TRUE);
+    status = sim_copyfile(missing_path, fixture->copy_path, true);
     assert_true((status & SCPE_NOMESSAGE) != 0);
     assert_int_equal(status & ~(SCPE_NOMESSAGE | SCPE_KFLAG | SCPE_BREAK),
                      SCPE_ARG);
 
-    status = sim_copyfile(fixture->file_path, bad_dest, TRUE);
+    status = sim_copyfile(fixture->file_path, bad_dest, true);
     assert_true((status & SCPE_NOMESSAGE) != 0);
     assert_int_equal(status & ~(SCPE_NOMESSAGE | SCPE_KFLAG | SCPE_BREAK),
                      SCPE_ARG);
@@ -731,7 +732,7 @@ test_sim_dir_scan_get_filelist_and_copyfile_work_together(void **state)
                      0);
     assert_int_equal(simh_test_write_file(second_file, "abc", 3), 0);
 
-    assert_int_equal(sim_copyfile(fixture->file_path, fixture->copy_path, TRUE),
+    assert_int_equal(sim_copyfile(fixture->file_path, fixture->copy_path, true),
                      SCPE_OK);
     assert_int_equal(
         simh_test_files_equal(fixture->file_path, fixture->copy_path), 1);
@@ -771,7 +772,7 @@ static void test_sim_copyfile_honors_overwrite_flag(void **state)
                                           sizeof(replacement_bytes)),
                      0);
 
-    status = sim_copyfile(fixture->file_path, fixture->copy_path, FALSE);
+    status = sim_copyfile(fixture->file_path, fixture->copy_path, false);
     assert_int_equal(status & ~(SCPE_NOMESSAGE | SCPE_KFLAG | SCPE_BREAK),
                      SCPE_ARG);
     assert_int_equal(
@@ -781,7 +782,7 @@ static void test_sim_copyfile_honors_overwrite_flag(void **state)
     assert_memory_equal(copied_bytes, replacement_bytes, copied_size);
     free(copied_bytes);
 
-    assert_int_equal(sim_copyfile(fixture->file_path, fixture->copy_path, TRUE),
+    assert_int_equal(sim_copyfile(fixture->file_path, fixture->copy_path, true),
                      SCPE_OK);
     assert_int_equal(
         simh_test_files_equal(fixture->file_path, fixture->copy_path), 1);

@@ -36,6 +36,7 @@
    represented as 0xffffffff (-1) byte count.
 */
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 #include "sim_tape.h"
 
@@ -156,7 +157,7 @@ t_stat      mt_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd) ;
 t_stat      mt_iocl(CHANP *chp, int32 tic_ok);
 t_stat      mt_srv(UNIT *uptr);
 t_stat      mt_boot(int32 unitnum, DEVICE *dptr);
-void        mt_ini(UNIT *uptr, t_bool);
+void        mt_ini(UNIT *uptr, bool);
 t_stat      mt_rschnlio(UNIT *uptr);
 t_stat      mt_haltio(UNIT *uptr);
 t_stat      mt_reset(DEVICE *dptr);
@@ -309,7 +310,7 @@ DIB             mta_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     mt_rschnlio,    /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    mt_ini,         /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    mt_ini,         /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     mta_unit,       /* UNIT* units */                           /* Pointer to units structure */
     mta_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -356,7 +357,7 @@ DIB             mtb_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     mt_rschnlio,    /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    mt_ini,         /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    mt_ini,         /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     mtb_unit,       /* UNIT* units */                           /* Pointer to units structure */
     mtb_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -1497,7 +1498,7 @@ rewrite:
 }
 
 /* initialize the tape chan/unit */
-void mt_ini(UNIT *uptr, t_bool f)
+void mt_ini(UNIT *uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */

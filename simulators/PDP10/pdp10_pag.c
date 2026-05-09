@@ -76,6 +76,7 @@
    "hardwired" (it required different microcode).
 */
 
+#include <stdbool.h>
 #include "pdp10_defs.h"
 
 /* Page table (contains expanded pte's) */
@@ -267,19 +268,19 @@ else {
 return;
 }
 
-t_bool AccViol (a10 ea, int32 prv, int32 mode)
+bool AccViol (a10 ea, int32 prv, int32 mode)
 {
 int32 vpn, xpte;
 
 if (ea < AC_NUM)                                        /* AC request */
-    return FALSE;
+    return false;
 vpn = PAG_GETVPN (ea);                                  /* get page num */
 xpte = prv? ptbl_prv[vpn]: ptbl_cur[vpn];               /* get exp pte */
 if ((xpte == 0) || ((mode & PTF_WR) && (xpte > 0)))     /* not accessible? */
     xpte = ptbl_fill (ea, prv? ptbl_prv: ptbl_cur, mode | PTF_MAP);
 if (xpte)                                               /* accessible */
-    return FALSE;
-return TRUE;                                            /* not accessible */
+    return false;
+return true;                                            /* not accessible */
 }
 
 void pag_nxm (a10 pa, int32 phys, int32 trap)
@@ -420,7 +421,7 @@ else if (!T20PAG) {                                     /* TOPS-10 paging */
 else {                                                  /* TOPS-20 paging */
     int32 pmi, vpn, xpte;
     int32 flg, t;
-    t_bool stop;
+    bool stop;
     a10 pa, csta = 0;
     d10 ptr, cste;
     d10 acc = PTE_T20_W | PTE_T20_C;                    /* init access bits */
@@ -447,7 +448,7 @@ else {                                                  /* TOPS-20 paging */
     vpn = PAG_GETVPN (ea);                              /* get virt page num */
     pa = (tbl == uptbl)? upta + UPT_T20_SCTN: epta + EPT_T20_SCTN;
     READPT (ptr, pa & PAMASK);                          /* get section 0 ptr */
-    for (stop = FALSE, flg = 0; !stop; flg++) {         /* eval section ptrs */
+    for (stop = false, flg = 0; !stop; flg++) {         /* eval section ptrs */
         acc = acc & ptr;                                /* cascade acc bits */
         switch (T20_GETTYP (ptr)) {                     /* case on ptr type */
 
@@ -456,13 +457,13 @@ else {                                                  /* TOPS-20 paging */
             PAGE_FAIL_TRAP;                             /* page fail */
 
         case T20_IMM:                                   /* immediate */
-            stop = TRUE;                                /* exit */
+            stop = true;                                /* exit */
             break;
 
         case T20_SHR:                                   /* shared */
             pa = (int32) (spt + (ptr & RMASK));         /* get SPT idx */
             READPT (ptr, pa & PAMASK);                  /* get SPT entry */
-            stop = TRUE;                                /* exit */
+            stop = true;                                /* exit */
             break;
 
         case T20_IND:                                   /* indirect */
@@ -487,7 +488,7 @@ else {                                                  /* TOPS-20 paging */
 /* Second phase - found page map ptr, evaluate page pointers */
 
     pa = PAG_PTEPA (ptr, vpn);                          /* get ptbl address */
-    for (stop = FALSE, flg = 0; !stop; flg++) {         /* eval page ptrs */
+    for (stop = false, flg = 0; !stop; flg++) {         /* eval page ptrs */
         if (ptr & PTE_T20_STM) {                        /* non-res? */
             PAGE_FAIL_TRAP;
             }
@@ -509,13 +510,13 @@ else {                                                  /* TOPS-20 paging */
             PAGE_FAIL_TRAP;                             /* page fail */
 
         case T20_IMM:                                   /* immediate */
-            stop = TRUE;                                /* exit */
+            stop = true;                                /* exit */
             break;
 
         case T20_SHR:                                   /* shared */
             pa = (int32) (spt + (ptr & RMASK));         /* get SPT idx */
             READPT (ptr, pa & PAMASK);                  /* get SPT entry */
-            stop = TRUE;                                /* exit */
+            stop = true;                                /* exit */
             break;
 
         case T20_IND:                                   /* indirect */
@@ -644,7 +645,7 @@ else return MAXMEMSIZE;
 
 /* Common pager instructions */
 
-t_bool clrpt (a10 ea, int32 prv)
+bool clrpt (a10 ea, int32 prv)
 {
 /* Instruction dispatch signature.
    This implementation does not use every parameter. */
@@ -662,10 +663,10 @@ else {
     uptbl[vpn] = 0;                                     /* clear entries in */
     eptbl[vpn] = 0;                                     /* both page tables */
     }
-return FALSE;
+return false;
 }
 
-t_bool wrebr (a10 ea, int32 prv)
+bool wrebr (a10 ea, int32 prv)
 {
 /* Instruction dispatch signature.
    This implementation does not use every parameter. */
@@ -674,16 +675,16 @@ t_bool wrebr (a10 ea, int32 prv)
 ebr = ea & EBR_MASK;                                    /* store EBR */
 pag_reset (&pag_dev);                                   /* clear page tables */
 set_dyn_ptrs ();                                        /* set dynamic ptrs */
-return FALSE;
+return false;
 }
 
-t_bool rdebr (a10 ea, int32 prv)
+bool rdebr (a10 ea, int32 prv)
 {
 Write (ea, (ebr & EBR_MASK), prv);
-return FALSE;
+return false;
 }
 
-t_bool wrubr (a10 ea, int32 prv)
+bool wrubr (a10 ea, int32 prv)
 {
 d10 val = Read (ea, prv);
 d10 ubr_mask = (Q_ITS)? PAMASK: UBR_UBRMASK;            /* ITS: ubr is wd addr */
@@ -698,95 +699,95 @@ if (val & UBR_SETUBR) {                                 /* set UBR? */
 else val = val & ~ubr_mask;                             /* no, keep old val */
 ubr = (ubr | val) & (UBR_ACBMASK | ubr_mask);
 set_dyn_ptrs ();
-return FALSE;
+return false;
 }
 
-t_bool rdubr (a10 ea, int32 prv)
+bool rdubr (a10 ea, int32 prv)
 {
 ubr = ubr & (UBR_ACBMASK | (Q_ITS? PAMASK: UBR_UBRMASK));
 Write (ea, UBRWORD, prv);
-return FALSE;
+return false;
 }
 
-t_bool wrhsb (a10 ea, int32 prv)
+bool wrhsb (a10 ea, int32 prv)
 {
 hsb = Read (ea, prv) & PAMASK;
-return FALSE;
+return false;
 }
 
-t_bool rdhsb (a10 ea, int32 prv)
+bool rdhsb (a10 ea, int32 prv)
 {
 Write (ea, hsb, prv);
-return FALSE;
+return false;
 }
 
 /* TOPS20 pager instructions */
 
-t_bool wrspb (a10 ea, int32 prv)
+bool wrspb (a10 ea, int32 prv)
 {
 spt = Read (ea, prv);
-return FALSE;
+return false;
 }
 
-t_bool rdspb (a10 ea, int32 prv)
+bool rdspb (a10 ea, int32 prv)
 {
 Write (ea, spt, prv);
-return FALSE;
+return false;
 }
 
-t_bool wrcsb (a10 ea, int32 prv)
+bool wrcsb (a10 ea, int32 prv)
 {
 cst = Read (ea, prv);
-return FALSE;
+return false;
 }
 
-t_bool rdcsb (a10 ea, int32 prv)
+bool rdcsb (a10 ea, int32 prv)
 {
 Write (ea, cst, prv);
-return FALSE;
+return false;
 }
 
-t_bool wrpur (a10 ea, int32 prv)
+bool wrpur (a10 ea, int32 prv)
 {
 pur = Read (ea, prv);
-return FALSE;
+return false;
 }
 
-t_bool rdpur (a10 ea, int32 prv)
+bool rdpur (a10 ea, int32 prv)
 {
 Write (ea, pur, prv);
-return FALSE;
+return false;
 }
 
-t_bool wrcstm (a10 ea, int32 prv)
+bool wrcstm (a10 ea, int32 prv)
 {
 cstm = Read (ea, prv);
 if ((cpu_unit.flags & UNIT_T20) && (ea == 040127))
     cstm = INT64_C(0770000000000);
-return FALSE;
+return false;
 }
 
-t_bool rdcstm (a10 ea, int32 prv)
+bool rdcstm (a10 ea, int32 prv)
 {
 Write (ea, cstm, prv);
-return FALSE;
+return false;
 }
 
 /* ITS pager instructions
    The KS10 does not implement the JPC option.
 */
 
-t_bool clrcsh (a10 ea, int32 prv)
+bool clrcsh (a10 ea, int32 prv)
 {
 /* Instruction dispatch signature.
    This implementation does not use every parameter. */
 (void) ea;
 (void) prv;
 
-return FALSE;
+return false;
 }
 
-t_bool ldbr1 (a10 ea, int32 prv)
+bool ldbr1 (a10 ea, int32 prv)
 {
 /* Instruction dispatch signature.
    This implementation does not use every parameter. */
@@ -794,16 +795,16 @@ t_bool ldbr1 (a10 ea, int32 prv)
 
 dbr1 = ea;
 pag_reset (&pag_dev);
-return FALSE;
+return false;
 }
 
-t_bool sdbr1 (a10 ea, int32 prv)
+bool sdbr1 (a10 ea, int32 prv)
 {
 Write (ea, dbr1, prv);
-return FALSE;
+return false;
 }
 
-t_bool ldbr2 (a10 ea, int32 prv)
+bool ldbr2 (a10 ea, int32 prv)
 {
 /* Instruction dispatch signature.
    This implementation does not use every parameter. */
@@ -811,16 +812,16 @@ t_bool ldbr2 (a10 ea, int32 prv)
 
 dbr2 = ea;
 pag_reset (&pag_dev);
-return FALSE;
+return false;
 }
 
-t_bool sdbr2 (a10 ea, int32 prv)
+bool sdbr2 (a10 ea, int32 prv)
 {
 Write (ea, dbr2, prv);
-return FALSE;
+return false;
 }
 
-t_bool ldbr3 (a10 ea, int32 prv)
+bool ldbr3 (a10 ea, int32 prv)
 {
 /* Instruction dispatch signature.
    This implementation does not use every parameter. */
@@ -828,16 +829,16 @@ t_bool ldbr3 (a10 ea, int32 prv)
 
 dbr3 = ea;
 pag_reset (&pag_dev);
-return FALSE;
+return false;
 }
 
-t_bool sdbr3 (a10 ea, int32 prv)
+bool sdbr3 (a10 ea, int32 prv)
 {
 Write (ea, dbr3, prv);
-return FALSE;
+return false;
 }
 
-t_bool ldbr4 (a10 ea, int32 prv)
+bool ldbr4 (a10 ea, int32 prv)
 {
 /* Instruction dispatch signature.
    This implementation does not use every parameter. */
@@ -845,28 +846,28 @@ t_bool ldbr4 (a10 ea, int32 prv)
 
 dbr4 = ea;
 pag_reset (&pag_dev);
-return FALSE;
+return false;
 }
 
-t_bool sdbr4 (a10 ea, int32 prv)
+bool sdbr4 (a10 ea, int32 prv)
 {
 Write (ea, dbr4, prv);
-return FALSE;
+return false;
 }
 
-t_bool wrpcst (a10 ea, int32 prv)
+bool wrpcst (a10 ea, int32 prv)
 {
 pcst = Read (ea, prv);
-return FALSE;
+return false;
 }
 
-t_bool rdpcst (a10 ea, int32 prv)
+bool rdpcst (a10 ea, int32 prv)
 {
 Write (ea, pcst, prv);
-return FALSE;
+return false;
 }
 
-t_bool lpmr (a10 ea, int32 prv)
+bool lpmr (a10 ea, int32 prv)
 {
 d10 val;
 
@@ -875,17 +876,17 @@ dbr1 = (a10) (Read (ea, prv) & AMASK);
 dbr2 = (a10) (Read (ADDA (ea, 1), prv) & AMASK);
 quant = val;
 pag_reset (&pag_dev);
-return FALSE;
+return false;
 }
 
-t_bool spm (a10 ea, int32 prv)
+bool spm (a10 ea, int32 prv)
 {
 
 ReadM (ADDA (ea, 2), prv);
 Write (ea, dbr1, prv);
 Write (ADDA (ea, 1), dbr2, prv);
 Write (ADDA (ea, 2), quant, prv);
-return FALSE;
+return false;
 }
 
 /* Simulator interface routines */

@@ -106,6 +106,7 @@
 
 */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -393,7 +394,7 @@ int32 dsk12(int32 io, int32 data)
     }
 }
 
-t_bool writebuf(void)
+bool writebuf(void)
 {
     long pos;
     int32 i;
@@ -408,13 +409,13 @@ t_bool writebuf(void)
     pos = DSK_TRACSIZE * cur_track[cur_disk];           /* calc file pos */
     pos += DSK_SECTSIZE * cur_sect[cur_disk];
     if ((dptr == NULL) || (dptr->fileref == NULL))
-        return FALSE;
+        return false;
     if (altair_dsk_seek_hook(dptr -> fileref, pos, 0) != 0)
-        return FALSE;
+        return false;
     if (altair_dsk_write_hook(dskbuf, 137, 1, dptr -> fileref) != 1)
-        return FALSE;
+        return false;
     cur_flags[cur_disk] &= 0xFE;                        /* ENWD off */
     cur_byte[cur_disk] = 0377;
     dirty = 0;
-    return TRUE;
+    return true;
 }

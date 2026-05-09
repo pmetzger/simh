@@ -29,6 +29,7 @@
     5 October 2017 - Original file.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 /* function prototypes */
@@ -42,9 +43,9 @@ extern t_stat i8251_reset(DEVICE *dptr);
 extern t_stat i8251_cfg(uint16 base, uint16 devnum, uint8 dummy);
 extern t_stat EPROM_reset(DEVICE *dptr);
 extern t_stat EPROM_cfg(uint16 base, uint16 size, uint8 devnum);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
-extern uint8 i3214_monitor_do_boot(t_bool io, uint8 data, uint8 devnum);
+extern uint8 i3214_monitor_do_boot(bool io, uint8 data, uint8 devnum);
 
 // external globals
 

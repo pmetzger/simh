@@ -329,6 +329,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"                        /* this must reflect the machine used */
 #include "hp_tapelib.h"
 
@@ -509,13 +510,13 @@ static const DELAY_PROPS real_times [] = {
 
 typedef struct {
     CNTLR_CLASS  class;                         /* command class */
-    t_bool       valid [CNTLR_COUNT];           /* command validity, indexed by CNTLR_TYPE */
-    t_bool       ready;                         /* command requires a ready drive */
-    t_bool       transfer;                      /* command requires a transfer of data */
+    bool         valid [CNTLR_COUNT];           /* command validity, indexed by CNTLR_TYPE */
+    bool         ready;                         /* command requires a ready drive */
+    bool         transfer;                      /* command requires a transfer of data */
     } COMMAND_PROPERTIES;
 
-#define T               TRUE
-#define F               FALSE
+#define T               true
+#define F               false
 
 static const COMMAND_PROPERTIES cmd_props [] = {        /* command properties, in CNTLR_OPCODE order */
 /*       opcode            valid for      drive  data  */
@@ -769,8 +770,8 @@ typedef enum {
 
 
 typedef struct {
-    t_bool      gap_is_valid;                   /* call may involve an erase gap */
-    t_bool      data_is_valid;                  /* call may involve a data record */
+    bool        gap_is_valid;                   /* call may involve an erase gap */
+    bool        data_is_valid;                  /* call may involve a data record */
     const char  *action;                        /* string describing the call action */
     } TAPELIB_PROPERTIES;
 
@@ -921,7 +922,7 @@ return outbound;
    the rewind completes (because the unit is not ready until then).
 */
 
-t_stat tl_onoffline (CVPTR cvptr, UNIT *uptr, t_bool online)
+t_stat tl_onoffline (CVPTR cvptr, UNIT *uptr, bool online)
 {
 const int32 unit = (int32) (uptr - cvptr->device->units);   /* the unit number */
 t_stat status = SCPE_OK;
@@ -1195,7 +1196,7 @@ for (unit = 0; unit < cvptr->device->numunits; unit++) {    /* look for a write 
                           unit, opcode_names [uptr->OPCODE]);
 
             if (cmd_props [uptr->OPCODE].class == Class_Write   /* if the last command was a write */
-              && cmd_props [uptr->OPCODE].transfer == TRUE      /*   that involves a data transfer */
+              && cmd_props [uptr->OPCODE].transfer == true      /*   that involves a data transfer */
               && uptr->PHASE == Data_Phase)                     /*   that was not completed */
                 cvptr->call_status = MTSE_RECE;                 /*     then the record will be bad */
 
@@ -1721,7 +1722,7 @@ else                                                    /* otherwise optimized t
 if ((flags & CMRDY)                                     /* if command validity is to be checked */
   && (opcode >= Invalid_Opcode                          /*   and the opcode is invalid */
   || cvptr->type > LAST_CNTLR                           /*   or the controller type is undefined */
-  || cmd_props [opcode].valid [cvptr->type] == FALSE    /*   or the opcode is not valid for this controller */
+  || cmd_props [opcode].valid [cvptr->type] == false    /*   or the opcode is not valid for this controller */
   || cmd_props [opcode].ready                           /*   or it requires a ready drive */
     && uptr->flags & (UNIT_OFFLINE | UNIT_REWINDING)    /*     but it's offline or rewinding */
   || cmd_props [opcode].class == Class_Write            /*   or this is a write command */
@@ -2073,14 +2074,14 @@ static CNTLR_IFN_IBUS continue_command (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET 
 {
 const CNTLR_OPCODE opcode = (CNTLR_OPCODE) uptr->OPCODE;    /* the current command opcode */
 const CNTLR_PHASE  phase  = (CNTLR_PHASE)  uptr->PHASE;     /* the current command phase */
-const t_bool       service_entry = (phase > Wait_Phase);    /* TRUE if entered via unit service */
+const bool         service_entry = (phase > Wait_Phase);    /* true if entered via unit service */
 int32              unit;
 TL_BUFFER          data_byte;
 t_mtrlnt           error_flag;
 BYTE_SELECTOR      selector;
 DRIVE_PROPS const  *pptr;
 CNTLR_IFN_IBUS     outbound = NO_ACTION;
-t_bool             complete = FALSE;
+bool               complete = false;
 
 unit = (int32) (uptr - cvptr->device->units);           /* get the unit number */
 
@@ -2174,7 +2175,7 @@ switch (phase) {                                        /* dispatch the phase */
 
             case Write_File_Mark:
                 if ((cvptr->device->flags & DEV_REALTIME) == 0  /* if fast timing is enabled */
-                  || sim_tape_bot (uptr) == FALSE) {            /*   or the tape is not positioned at the BOT */
+                  || sim_tape_bot (uptr) == false) {            /*   or the tape is not positioned at the BOT */
                     uptr->PHASE = Data_Phase;                   /*     then proceed to the data phase */
                     uptr->wait = 2 * cvptr->dlyptr->data_xfer;  /*       with the data delay time */
                     break;
@@ -2244,7 +2245,7 @@ switch (phase) {                                        /* dispatch the phase */
                 outbound = end_command (cvptr, uptr);   /* release the controller */
 
                 if (sim_tape_bot (uptr))                /* if the tape is positioned at the load point */
-                    complete = TRUE;                    /*   then the command is complete */
+                    complete = true;                    /*   then the command is complete */
 
                 else {                                  /* otherwise the tape must be rewound */
                     uptr->flags |= UNIT_REWINDING;      /*   so set rewinding status */
@@ -2593,7 +2594,7 @@ switch (phase) {                                        /* dispatch the phase */
                 outbound =                              /* rewind the tape (which always succeeds) */
                    call_tapelib (cvptr, uptr, lib_rewind, 0);
 
-                complete = TRUE;                        /* mark the command as complete */
+                complete = true;                        /* mark the command as complete */
                 uptr->PHASE = Idle_Phase;               /*   but skip the normal completion action */
                 break;
 
@@ -2617,7 +2618,7 @@ switch (phase) {                                        /* dispatch the phase */
 
         if (uptr->PHASE == Stop_Phase) {                /* if the stop completed normally */
             outbound |= end_command (cvptr, uptr);      /*   then terminate the command */
-            complete = TRUE;                            /*     and mark it as complete */
+            complete = true;                            /*     and mark it as complete */
             }
 
         break;                                          /* end of the stop phase handlers */
@@ -2809,7 +2810,7 @@ return NO_ACTION;                                       /* no drives are request
 
 static CNTLR_IFN_IBUS call_tapelib (CVPTR cvptr, UNIT *uptr, TAPELIB_CALL lib_call, t_mtrlnt parameter)
 {
-t_bool         do_gap, do_data;
+bool           do_gap, do_data;
 int32          unit;
 uint32         gap_inches, gap_tenths;
 CNTLR_IFN_IBUS result = (CNTLR_IFN_IBUS) NO_FUNCTIONS;  /* the expected case */
@@ -2963,10 +2964,10 @@ switch (cvptr->call_status) {                           /* dispatch on the call 
 if (DPPRINTING (cvptr->device, TL_DEB_INCO)) {          /* if tracing is enabled */
     unit = (int32) (uptr - cvptr->device->units);       /*   then get the unit number */
 
-    do_data =                                           /* TRUE if the data record length is valid and present */
+    do_data =                                           /* true if the data record length is valid and present */
        lib_props [lib_call].data_is_valid && cvptr->length > 0;
 
-    do_gap =                                            /* TRUE if the erase gap length is valid and present */
+    do_gap =                                            /* true if the erase gap length is valid and present */
        lib_props [lib_call].gap_is_valid && cvptr->gaplen > 0;
 
     if (cvptr->gaplen > 0) {                            /* if a gap or rewind spacing exists */

@@ -247,6 +247,7 @@
   ------------------------------------------------------------------------------
 */
 
+#include <stdbool.h>
 #include "pdp11_xq.h"
 #include "pdp11_xq_bootrom.h"
 #include "uint_bits.h"
@@ -2508,7 +2509,7 @@ static t_stat xq_wr_srqr_action(CTLR* xq)
           xq->var->sanity.quarter_secs = 4*xq->var->init.hit_timeout;
         }
         xq->var->icr = xq->var->init.options & XQ_IN_OP_INT;
-        status = eth_filter_hash_ex (xq->var->etherface, 1, &xq->var->init.phys, 0, xq->var->init.mode & XQ_IN_MO_PRO, TRUE, &xq->var->init.hash_filter);
+        status = eth_filter_hash_ex (xq->var->etherface, 1, &xq->var->init.phys, 0, xq->var->init.mode & XQ_IN_MO_PRO, true, &xq->var->init.hash_filter);
         xq->dev->dctrl = saved_debug; /* restore original debugging */
       }
       /* start the read service timer or enable asynch reading as appropriate */
@@ -2661,7 +2662,7 @@ t_stat xq_reset(DEVICE* dptr)
   if (!xq->var->initialized) {
     char uname[16];
 
-    xq->var->initialized = TRUE;
+    xq->var->initialized = true;
     sprintf (uname, "%s-SVC", dptr->name);
     sim_set_uname (&dptr->units[0], uname);
     sprintf (uname, "%s-TMRSVC", dptr->name);
@@ -3030,7 +3031,7 @@ t_stat xq_attach(UNIT* uptr, const char* cptr)
     }
 
   if (xq->var->mode == XQ_T_DELQA_PLUS) {
-    eth_filter_hash_ex (xq->var->etherface, 1, &xq->var->init.phys, 0, xq->var->init.mode & XQ_IN_MO_PRO, TRUE, &xq->var->init.hash_filter);
+    eth_filter_hash_ex (xq->var->etherface, 1, &xq->var->init.phys, 0, xq->var->init.mode & XQ_IN_MO_PRO, true, &xq->var->init.hash_filter);
     }
   else
     if (xq->var->setup.valid) {

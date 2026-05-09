@@ -21,6 +21,7 @@
    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 
 #if NUM_DEVS_ETHER > 0
@@ -232,7 +233,7 @@ t_stat      ec_haltio(UNIT *uptr);
 t_stat      ec_iocl(CHANP *chp, int32 tic_ok);
 void        ec_packet_debug(const char *action, ETH_PACK *packet);
 t_stat      ec_reset (DEVICE *dptr);
-void        ec_ini(UNIT *, t_bool);
+void        ec_ini(UNIT *, bool);
 t_stat      ec_rsctrl(UNIT *uptr);
 t_stat      ec_rschnlio(UNIT *uptr);
 t_stat      ec_show_mac (FILE* st, UNIT* uptr, int32 val, const void* desc);
@@ -1547,7 +1548,7 @@ t_stat  ec_haltio(UNIT *uptr) {
 }
 
 /* initialize the ethernet */
-void ec_ini(UNIT *uptr, t_bool f)
+void ec_ini(UNIT *uptr, bool f)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

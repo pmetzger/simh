@@ -270,6 +270,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -394,20 +395,20 @@ typedef struct {
     uint32  line_length;                        /* the maximum number of print positions */
     uint32  char_set;                           /* the size of the character set */
     uint32  vfu_channels;                       /* the number of VFU channels */
-    t_bool  not_ready;                          /* TRUE if the printer reports a separate not ready status */
-    t_bool  overprints;                         /* TRUE if the printer supports overprinting */
-    t_bool  autoprints;                         /* TRUE if the printer automatically prints on buffer overflow */
-    t_bool  fault_at_eol;                       /* TRUE if a paper fault is reported at the end of any line */
+    bool    not_ready;                          /* true if the printer reports a separate not ready status */
+    bool    overprints;                         /* true if the printer supports overprinting */
+    bool    autoprints;                         /* true if the printer automatically prints on buffer overflow */
+    bool    fault_at_eol;                       /* true if a paper fault is reported at the end of any line */
     } PRINTER_PROPS;
 
 static const PRINTER_PROPS print_props [] = {   /* printer properties, indexed by PRINTER_TYPE */
 /*     line    char    VFU      not     over    auto   fault  */
 /*    length   set   channels  ready   prints  prints  at EOL */
 /*    ------  -----  --------  ------  ------  ------  ------ */
-    {  132,   128,      8,     FALSE,  FALSE,  TRUE,   FALSE  },    /* HP_2607 */
-    {  136,    96,     12,     TRUE,   TRUE,   FALSE,  TRUE   },    /* HP_2613 */
-    {  136,    96,     12,     TRUE,   TRUE,   FALSE,  TRUE   },    /* HP_2617 */
-    {  132,    96,     12,     TRUE,   TRUE,   FALSE,  TRUE   }     /* HP_2618 */
+    {  132,   128,      8,     false,  false,  true,   false  },    /* HP_2607 */
+    {  136,    96,     12,     true,   true,   false,  true   },    /* HP_2613 */
+    {  136,    96,     12,     true,   true,   false,  true   },    /* HP_2617 */
+    {  132,    96,     12,     true,   true,   false,  true   }     /* HP_2618 */
     };
 
 
@@ -523,8 +524,8 @@ typedef struct {
     FLIP_FLOP    control;                       /* control flip-flop */
     FLIP_FLOP    flag;                          /* flag flip-flop */
     FLIP_FLOP    flag_buffer;                   /* flag buffer flip-flop */
-    t_bool       strobe;                        /* STROBE signal to the printer */
-    t_bool       demand;                        /* DEMAND signal from the printer */
+    bool         strobe;                        /* STROBE signal to the printer */
+    bool         demand;                        /* DEMAND signal from the printer */
     } CARD_STATE;
 
 static CARD_STATE lpt;                          /* per-card state */
@@ -532,9 +533,9 @@ static CARD_STATE lpt;                          /* per-card state */
 
 /* Printer state */
 
-static t_bool paper_fault     = TRUE;           /* TRUE if the printer is out of paper */
-static t_bool tape_fault      = FALSE;          /* TRUE if there is no punch in a commanded VFU channel */
-static t_bool offline_pending = FALSE;          /* TRUE if an offline request is waiting for the printer to finish */
+static bool paper_fault     = true;             /* true if the printer is out of paper */
+static bool tape_fault      = false;            /* true if there is no punch in a commanded VFU channel */
+static bool offline_pending = false;            /* true if an offline request is waiting for the printer to finish */
 static uint32 overprint_char  = DEL;            /* character to use if overprinted */
 static uint32 current_line    = 1;              /* current form line */
 static uint32 buffer_index    = 0;              /* current index into the print buffer */
@@ -580,8 +581,8 @@ static t_stat lp_show_vfu       (FILE *st,   UNIT *uptr,  int32 value,      cons
 /* Printer local utility routines */
 
 static void   lp_master_clear (UNIT *uptr);
-static t_bool lp_set_alarm    (UNIT *uptr);
-static t_bool lp_set_locality (UNIT *uptr, LOCALITY printer_state);
+static bool lp_set_alarm    (UNIT *uptr);
+static bool lp_set_locality (UNIT *uptr, LOCALITY printer_state);
 static t_stat lp_load_vfu     (UNIT *uptr, FILE *vf);
 static int32  lp_read_line    (FILE *vf,   char *line, uint32 size);
 
@@ -772,7 +773,7 @@ static SIGNALS_VALUE lp_interface (const DIB *dibptr, INBOUND_SET inbound_signal
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -843,7 +844,7 @@ while (working_set) {                                   /* while signals remain 
 
             lpt.control = CLEAR;                        /* clear the control flip-flop */
             lpt.command = CLEAR;                        /*   and the command flip-flop */
-            lpt.strobe = FALSE;                         /*     and deny STROBE to the printer */
+            lpt.strobe = false;                         /*     and deny STROBE to the printer */
 
             sim_cancel (lpt_unit);                      /* cancel any operation in progress */
             break;
@@ -852,7 +853,7 @@ while (working_set) {                                   /* while signals remain 
         case ioCLC:                                     /* Clear Control flip-flop */
             lpt.control = CLEAR;                        /* clear the control flip-flop */
             lpt.command = CLEAR;                        /*   and the command flip-flop */
-            lpt.strobe = FALSE;                         /*     and deny STROBE to the printer */
+            lpt.strobe = false;                         /*     and deny STROBE to the printer */
             break;
 
 
@@ -861,7 +862,7 @@ while (working_set) {                                   /* while signals remain 
             lpt.command = SET;                          /*   and the command flip-flop */
 
             if (lpt.status_word & ST_ONLINE) {          /* if the printer is online */
-                lpt.strobe = TRUE;                      /*   then assert STROBE to the printer */
+                lpt.strobe = true;                      /*   then assert STROBE to the printer */
 
                 lpt_unit [0].wait = 0;                  /* set for immediate service entry */
                 activate_unit (lpt_unit);               /*   and call the service routine */
@@ -889,7 +890,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -1060,7 +1061,7 @@ return outbound;                                        /* return the outbound s
 static t_stat lp_service (UNIT *uptr)
 {
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);                 /* the printer model number */
-const t_bool       printing = ((lpt.output_word & CN_FORMAT) != 0); /* TRUE if a print command was received */
+const bool         printing = ((lpt.output_word & CN_FORMAT) != 0); /* true if a print command was received */
 static uint32      overprint_index = 0;                             /* the "high-water" mark while overprinting */
 uint8              data_byte, format_byte;
 uint16             channel;
@@ -1071,7 +1072,7 @@ tprintf (lpt_dev, TRACE_SERV, "Printer service entered\n");
 if (uptr->flags & UNIT_POWEROFF)                        /* if the printer power is off */
     return SCPE_OK;                                     /*   then no action is taken */
 
-else if (lpt.strobe == FALSE) {                         /* otherwise if STROBE has denied */
+else if (lpt.strobe == false) {                         /* otherwise if STROBE has denied */
     if (printing) {                                     /*   then if printing occurred */
         buffer_index = 0;                               /*     then clear the buffer */
 
@@ -1093,20 +1094,20 @@ else if (lpt.strobe == FALSE) {                         /* otherwise if STROBE h
             }
         }
 
-    lpt.demand = TRUE;                                  /* assert DEMAND to complete the handshake */
+    lpt.demand = true;                                  /* assert DEMAND to complete the handshake */
     uptr->wait = 0;                                     /*   and request immediate entry when STROBE next asserts */
 
     lpt.flag_buffer = SET;                              /* set the flag buffer */
     io_assert (&lpt_dev, ioa_ENF);                      /*   and flag flip-flops on DEMAND assertion */
     }
 
-else if (lpt.demand == TRUE) {                          /* otherwise if STROBE has asserted while DEMAND is asserted */
-    lpt.demand = FALSE;                                 /*   then deny DEMAND */
-    lpt.strobe = FALSE;                                 /*     which resets STROBE */
+else if (lpt.demand == true) {                          /* otherwise if STROBE has asserted while DEMAND is asserted */
+    lpt.demand = false;                                 /*   then deny DEMAND */
+    lpt.strobe = false;                                 /*     which resets STROBE */
 
     data_byte = (uint8) (lpt.output_word & DATA_MASK);  /* only the lower 7 bits are sent to the printer */
 
-    if (printing == FALSE) {                            /* if loading the print buffer */
+    if (printing == false) {                            /* if loading the print buffer */
         if (data_byte > '_'                             /*   then if the character is "lowercase" */
           && print_props [model].char_set == 64)        /*     but the printer doesn't support it */
             data_byte = data_byte - 040;                /*       then shift it to "uppercase" */
@@ -1488,13 +1489,13 @@ else {
     if (sim_switches & (SWMASK ('F') | SIM_SW_SHUT)) {  /* if this is a forced detach or shut down request */
         current_line = 1;                               /*   then reset the printer to TOF to enable the detach */
         sim_cancel (uptr);                              /*     and terminate */
-        lpt.strobe = FALSE;                             /*       any print action in progress */
+        lpt.strobe = false;                             /*       any print action in progress */
         }
 
     if ((print_props [model].fault_at_eol               /* otherwise if the printer faults at the end of any line */
       || current_line == 1)                             /*   or the printer is at the top of the form */
       && lp_set_alarm (uptr)) {                         /*   and a paper alarm is accepted */
-        paper_fault = TRUE;                             /*     then set the out-of-paper condition */
+        paper_fault = true;                             /*     then set the out-of-paper condition */
 
         tprintf (lpt_dev, TRACE_CMD, "Printer is out of paper\n");
 
@@ -1502,8 +1503,8 @@ else {
         }
 
     else {                                              /* otherwise the alarm was rejected at this time */
-        paper_fault = TRUE;                             /*   so set the out-of-paper condition now */
-        offline_pending = TRUE;                         /*     but defer the detach */
+        paper_fault = true;                             /*   so set the out-of-paper condition now */
+        offline_pending = true;                         /*     but defer the detach */
 
         tprintf (lpt_dev, TRACE_CMD, "Paper out request deferred until print completes\n");
 
@@ -1628,14 +1629,14 @@ if ((uptr->flags & UNIT_ATT) == 0)                      /* if the printer is det
 
 else if (value == UNIT_ONLINE)                          /* otherwise if this is an online request */
     if (paper_fault && offline_pending) {               /*   then if an out-of-paper condition is deferred */
-        paper_fault = FALSE;                            /*     then cancel the request */
-        offline_pending = FALSE;                        /*       leaving the file attached */
+        paper_fault = false;                            /*     then cancel the request */
+        offline_pending = false;                        /*       leaving the file attached */
         }
 
     else                                                /*   otherwise it's a normal online request */
         lp_set_locality (uptr, Online);                 /*     so set the printer online */
 
-else if (lp_set_locality (uptr, Offline) == FALSE) {    /* otherwise if it cannot be set offline now */
+else if (lp_set_locality (uptr, Offline) == false) {    /* otherwise if it cannot be set offline now */
     tprintf (lpt_dev, TRACE_CMD, "Offline request deferred until print completes\n");
     return SCPE_INCOMP;                                 /*   then let the user know */
     }
@@ -1814,14 +1815,14 @@ const PRINTER_TYPE model = GET_MODEL (uptr->flags);     /* the printer model num
 
 sim_cancel (uptr);                                      /* deactivate the unit */
 
-lpt.strobe = FALSE;                                     /* deny STROBE to the printer */
-lpt.demand = FALSE;                                     /*   and assume that DEMAND is also denied */
+lpt.strobe = false;                                     /* deny STROBE to the printer */
+lpt.demand = false;                                     /*   and assume that DEMAND is also denied */
 
 buffer_index = 0;                                       /* clear the buffer without printing */
 
-offline_pending = FALSE;                                /* cancel any pending offline request */
+offline_pending = false;                                /* cancel any pending offline request */
 
-tape_fault  = FALSE;                                    /* clear any tape fault */
+tape_fault  = false;                                    /* clear any tape fault */
 paper_fault = (uptr->flags & UNIT_ATT) == 0;            /* set a paper fault if the printer is out of paper */
 
 if (sim_is_active (uptr)) {                             /* if the event service is scheduled */
@@ -1836,7 +1837,7 @@ if (! (uptr->flags & UNIT_POWEROFF)) {                  /* if the printer power 
         lpt.status_word |= ST_NOT_READY;                /*   then add not-ready status */
 
     if (! (uptr->flags & UNIT_OFFLINE)) {               /* if the printer is online */
-        lpt.demand = TRUE;                              /*   then DEMAND is asserted */
+        lpt.demand = true;                              /*   then DEMAND is asserted */
 
         lpt.status_word |= ST_ONLINE;                   /* set ONLINE status */
         }
@@ -1861,7 +1862,7 @@ return;
    not-ready when printing completes.
 */
 
-static t_bool lp_set_alarm (UNIT *uptr)
+static bool lp_set_alarm (UNIT *uptr)
 {
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);     /* the printer model number */
 
@@ -1869,18 +1870,18 @@ if (lp_set_locality (uptr, Offline)) {                  /* if the printer went o
     if (print_props [model].not_ready)                  /*   then if the printer reports ready status separately */
         lpt.status_word |= ST_NOT_READY;                /*     then add not-ready status */
 
-    return TRUE;                                        /* return completion success */
+    return true;                                        /* return completion success */
     }
 
 else                                                    /* otherwise the offline request is pending */
-    return FALSE;                                       /*   so return deferral status */
+    return false;                                       /*   so return deferral status */
 }
 
 
 /* Set the printer locality.
 
-   This routine is called to set the printer online or offline and returns TRUE
-   if the request succeeded or FALSE if it was deferred.  An online request
+   This routine is called to set the printer online or offline and returns true
+   if the request succeeded or false if it was deferred.  An online request
    always succeeds, so it is up to the caller to ensure that going online is
    permissible (e.g., that paper is loaded into the printer).  An offline
    request succeeds only if the printer is idle.  If characters are present in
@@ -1893,33 +1894,33 @@ else                                                    /* otherwise the offline
    is clear, then the flag buffer flip-flop is set.
 */
 
-static t_bool lp_set_locality (UNIT *uptr, LOCALITY printer_state)
+static bool lp_set_locality (UNIT *uptr, LOCALITY printer_state)
 {
 if (printer_state == Offline) {                         /* if the printer is going offline */
     if (buffer_index == 0                               /*   then if the buffer is empty */
-      && sim_is_active (uptr) == FALSE) {               /*     and the printer is idle */
+      && sim_is_active (uptr) == false) {               /*     and the printer is idle */
         uptr->flags |= UNIT_OFFLINE;                    /*       then set the printer offline now */
 
         lpt.status_word &= ~ST_ONLINE;                  /* update the printer status */
 
-        lpt.demand = FALSE;                             /* DEMAND denies while the printer is not ready */
+        lpt.demand = false;                             /* DEMAND denies while the printer is not ready */
         }
 
     else {                                              /*   otherwise the request must wait */
-        offline_pending = TRUE;                         /*     until the line is printed */
-        return FALSE;                                   /* report that the command is not complete */
+        offline_pending = true;                         /*     until the line is printed */
+        return false;                                   /* report that the command is not complete */
         }
     }
 
 else {                                                  /* otherwise the printer is going online */
     uptr->flags &= ~UNIT_OFFLINE;                       /*   so clear the unit flag */
 
-    paper_fault = FALSE;                                /* clear any paper fault */
-    tape_fault  = FALSE;                                /*   and any tape fault */
+    paper_fault = false;                                /* clear any paper fault */
+    tape_fault  = false;                                /*   and any tape fault */
 
     lpt.status_word = lpt.status_word & ~ST_NOT_READY | ST_ONLINE;  /* update the printer status */
 
-    lpt.demand = TRUE;                                  /* DEMAND asserts when the printer is online */
+    lpt.demand = true;                                  /* DEMAND asserts when the printer is online */
 
     if (lpt.flag == CLEAR) {                            /* if the flag flip-flop is clear */
         lpt.flag_buffer = SET;                          /* then DEMAND assertion sets the flag buffer */
@@ -1930,8 +1931,8 @@ else {                                                  /* otherwise the printer
 tprintf (lpt_dev, TRACE_CMD, "Printer set %s\n",
          (printer_state == Offline ? "offline" : "online"));
 
-offline_pending = FALSE;                                /* the operation completed */
-return TRUE;                                            /*   successfully */
+offline_pending = false;                                /* the operation completed */
+return true;                                            /*   successfully */
 }
 
 

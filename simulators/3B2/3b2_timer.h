@@ -31,6 +31,7 @@
 #ifndef _3B2_TIMER_H_
 #define _3B2_TIMER_H_
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 #define TIMER_REG_DIVA    0x03
@@ -57,18 +58,18 @@ struct timer_ctr {
     uint8  ctrl_latch;
     uint16 cnt_latch;
     uint8  ctrl;
-    t_bool r_lmb;
-    t_bool w_lmb;
-    t_bool enabled;
-    t_bool gate;
-    t_bool r_ctrl_latch;
-    t_bool r_cnt_latch;
+    bool r_lmb;
+    bool w_lmb;
+    bool enabled;
+    bool gate;
+    bool r_ctrl_latch;
+    bool r_cnt_latch;
 };
 
 t_stat timer_reset(DEVICE *dptr);
 uint32 timer_read(uint32 pa, size_t size);
 void timer_write(uint32 pa, uint32 val, size_t size);
-void timer_gate(uint8 ctrnum, t_bool inhibit);
+void timer_gate(uint8 ctrnum, bool inhibit);
 
 t_stat tmr_svc(UNIT *uptr);
 t_stat tmr_int_svc(UNIT *uptr);

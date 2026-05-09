@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_io.h"
 
 #include "3b2_cpu.h"
@@ -114,7 +115,7 @@ t_stat cio_install(uint16 id,
             /* Ensure the slot is in a clean state */
             cio_remove(s);
             /* Populate the slot */
-            cio[s].populated = TRUE;
+            cio[s].populated = true;
             cio[s].id = id;
             cio[s].ipl = ipl;
             strncpy(cio[s].name, name, CIO_NAME_LEN);
@@ -135,7 +136,7 @@ t_stat cio_install(uint16 id,
 void cio_remove(uint8 slot)
 {
     memset(&cio[slot], 0, sizeof(CIO_STATE));
-    /*    cio[slot].populated = FALSE; */
+    /*    cio[slot].populated = false; */
     CIO_CLR_INT(slot);
 }
 
@@ -413,7 +414,7 @@ uint16 cio_c_ulp(uint8 slot, uint32 esize)
  * Returns true if there is room in the completion queue
  * for a new entry.
  */
-t_bool cio_cqueue_avail(uint8 slot, uint32 esize)
+bool cio_cqueue_avail(uint8 slot, uint32 esize)
 {
     uint32 lp, ulp;
 
@@ -423,7 +424,7 @@ t_bool cio_cqueue_avail(uint8 slot, uint32 esize)
     return(((lp + esize) % (cio[slot].cqs * esize)) != ulp);
 }
 
-t_bool cio_rqueue_avail(uint8 slot, uint32 qnum, uint32 esize)
+bool cio_rqueue_avail(uint8 slot, uint32 qnum, uint32 esize)
 {
     uint32 rqp, lp, ulp;
 
@@ -447,7 +448,7 @@ uint32 io_read(uint32 pa, size_t size)
     if (pa >= VCACHE_BOTTOM && pa < VCACHE_TOP) {
         sim_debug(EXECUTE_MSG, &cpu_dev,
                   "[UBUB] (VCACHE) Read addr %08x\n", pa);
-        CSRBIT(CSRTIMO, TRUE);
+        CSRBIT(CSRTIMO, true);
         cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
         return 0;
     }
@@ -455,7 +456,7 @@ uint32 io_read(uint32 pa, size_t size)
     if (pa >= BUB_BOTTOM && pa < BUB_TOP) {
         sim_debug(EXECUTE_MSG, &cpu_dev,
                   "[BUB] Read addr %08x\n", pa);
-        CSRBIT(CSRTIMO, TRUE);
+        CSRBIT(CSRTIMO, true);
         cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
         return 0;
     }
@@ -516,7 +517,7 @@ uint32 io_read(uint32 pa, size_t size)
             sim_debug(IO_DBG, &cpu_dev,
                       "[READ] No card at slot=%d reg=%d\n",
                       slot, reg);
-            CSRBIT(CSRTIMO, TRUE);
+            CSRBIT(CSRTIMO, true);
             cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
             return 0;
         }
@@ -620,7 +621,7 @@ uint32 io_read(uint32 pa, size_t size)
             sim_debug(CIO_DBG, &cpu_dev,
                       "[READ] No card at slot=%d reg=%d\n",
                       slot, reg);
-            CSRBIT(CSRTIMO, TRUE);
+            CSRBIT(CSRTIMO, true);
             cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
             return 0;
         }
@@ -637,7 +638,7 @@ uint32 io_read(uint32 pa, size_t size)
     sim_debug(IO_DBG, &cpu_dev,
               "[io_read] ADDR=%08x: No device found.\n",
               pa);
-    CSRBIT(CSRTIMO, TRUE);
+    CSRBIT(CSRTIMO, true);
     cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
     return 0;
 }
@@ -652,7 +653,7 @@ void io_write(uint32 pa, uint32 val, size_t size)
         sim_debug(EXECUTE_MSG, &cpu_dev,
                   "[UBUB] (VCACHE) Write addr %08x val 0x%x\n",
                   pa, val);
-        CSRBIT(CSRTIMO, TRUE);
+        CSRBIT(CSRTIMO, true);
         cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
         return;
     }
@@ -661,7 +662,7 @@ void io_write(uint32 pa, uint32 val, size_t size)
         sim_debug(EXECUTE_MSG, &cpu_dev,
                   "[BUB] Write addr %08x val 0x%x\n",
                   pa, val);
-        CSRBIT(CSRTIMO, TRUE);
+        CSRBIT(CSRTIMO, true);
         cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
         return;
     }
@@ -677,7 +678,7 @@ void io_write(uint32 pa, uint32 val, size_t size)
             sim_debug(CIO_DBG, &cpu_dev,
                       "[WRITE] No card at slot=%d reg=%d\n",
                       slot, reg);
-            CSRBIT(CSRTIMO, TRUE);
+            CSRBIT(CSRTIMO, true);
             cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
             return;
         }
@@ -772,7 +773,7 @@ void io_write(uint32 pa, uint32 val, size_t size)
             sim_debug(CIO_DBG, &cpu_dev,
                       "[WRITE] No card at slot=%d reg=%d\n",
                       slot, reg);
-            CSRBIT(CSRTIMO, TRUE);
+            CSRBIT(CSRTIMO, true);
             cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
             return;
         }
@@ -790,6 +791,6 @@ void io_write(uint32 pa, uint32 val, size_t size)
     sim_debug(IO_DBG, &cpu_dev,
               "[io_write] ADDR=%08x: No device found.\n",
               pa);
-    CSRBIT(CSRTIMO, TRUE);
+    CSRBIT(CSRTIMO, true);
     cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
 }

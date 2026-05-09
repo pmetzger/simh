@@ -30,6 +30,7 @@
 
 #include "i1620_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #define LINE_LNT        50
 
@@ -284,7 +285,7 @@ struct opc opcode[] = {
 
 /* Print an address from five characters */
 
-static void fprint_addr (FILE *of, int32 spc, t_value *dig, t_bool flg)
+static void fprint_addr (FILE *of, int32 spc, t_value *dig, bool flg)
 {
 int32 i, idx;
 

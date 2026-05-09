@@ -117,6 +117,7 @@
    with 8 represented as 0, and an invalid unit as -1.
 */
 
+#include <stdbool.h>
 #include "pdp18b_defs.h"
 
 #define DT_NUMDR        8                               /* #drives */
@@ -360,7 +361,7 @@ t_stat dt_detach (UNIT *uptr);
 void dt_deselect (int32 oldf);
 void dt_newsa (int32 newf);
 void dt_newfnc (UNIT *uptr, int32 newsta);
-t_bool dt_setpos (UNIT *uptr);
+bool dt_setpos (UNIT *uptr);
 void dt_schedez (UNIT *uptr, int32 dir);
 void dt_seterr (UNIT *uptr, int32 e);
 int32 dt_comobv (int32 val);
@@ -846,7 +847,7 @@ return;
    (floating point) time, to allow save and restore of the start times.
 */
 
-t_bool dt_setpos (UNIT *uptr)
+bool dt_setpos (UNIT *uptr)
 {
 uint32 new_time, ut, ulin, udelt;
 int32 mot = DTS_GETMOT (uptr->STATE);
@@ -855,7 +856,7 @@ int32 unum, delta = 0;
 new_time = sim_grtime ();                               /* current time */
 ut = new_time - uptr->LASTT;                            /* elapsed time */
 if (ut == 0)                                            /* no time gone? exit */
-    return FALSE;
+    return false;
 uptr->LASTT = new_time;                                 /* update last time */
 switch (mot & ~DTS_DIR) {                               /* case on motion */
 
@@ -890,9 +891,9 @@ if (((int32) uptr->pos < 0) ||
     unum = (int32) (uptr - dt_dev.units);
     if (unum == DTA_GETUNIT (dtsa))                     /* if selected, */
         dt_seterr (uptr, DTB_SEL);                      /* error */
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Unit service
@@ -1086,7 +1087,7 @@ switch (fnc) {                                          /* at speed, check fnc *
             if (dir)                                    /* rev? comp obv */
                 dtdb = dt_comobv (dtdb);
             fbuf[ba] = dtdb;                            /* write word */
-            uptr->WRITTEN = TRUE;
+            uptr->WRITTEN = true;
             if (ba >= uptr->hwmark)
                 uptr->hwmark = ba + 1;
             if (M[DT_WC] == 0)
@@ -1568,7 +1569,7 @@ if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO)== 0)) {    /* any 
     if (ferror (uptr->fileref))
         sim_perror ("I/O error");
     }
-uptr->WRITTEN = FALSE;                                  /* no longer dirty */
+uptr->WRITTEN = false;                                  /* no longer dirty */
 }
 
 t_stat dt_detach (UNIT* uptr)

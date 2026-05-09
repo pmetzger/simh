@@ -129,6 +129,7 @@
 
 */
 #ifdef VM_IMPTIP
+#include <stdbool.h>
 #include "sim_defs.h"           // simh machine independent definitions
 #include "sim_tmxr.h"           // The MUX layer exposes packet send and receive semantics
 #include "h316_imp.h"           // ARPAnet IMP/TIP definitions
@@ -138,7 +139,7 @@
 // UDP connection data structure ...
 //   One of these blocks is allocated for every simulated modem link.
 struct _UDP_LINK {
-  t_bool  used;                 // TRUE if this UDP_LINK is in use
+  bool    used;                 // true if this UDP_LINK is in use
   char    rhostport[90];        // Remote host:port
   char    lport[64];            // Local port
   uint32  rxsequence;           // next message sequence number for receive
@@ -266,7 +267,7 @@ t_stat udp_create (DEVICE *dptr, const char *premote, int32 *pln)
   if (ret != SCPE_OK) return ret;
 
   // All done - mark the TCP_LINK data as "used" and return the index.
-  udp_links[link].used = TRUE;  *pln = link;
+  udp_links[link].used = true;  *pln = link;
   udp_lines[link].dptr = udp_links[link].dptr = dptr;      // save device
   udp_tmxr.uptr = dptr->units;
   udp_tmxr.last_poll_time = 1;          // h316's use of TMXR doesn't poll periodically for connects
@@ -286,7 +287,7 @@ t_stat udp_release (DEVICE *dptr, int32 link)
   if (dptr != udp_links[link].dptr) return SCPE_IERR;
 
   tmxr_detach_ln (&udp_lines[link]);
-  udp_links[link].used = FALSE;
+  udp_links[link].used = false;
   sim_debug(IMP_DBG_UDP, dptr, "link %d - closed\n", link);
 
   return SCPE_OK;
@@ -323,7 +324,7 @@ t_stat udp_send (DEVICE *dptr, int32 link, uint16 *pdata, uint16 count)
   return SCPE_OK;
 }
 
-t_stat udp_set_link_loopback (DEVICE *dptr, int32 link, t_bool enable_loopback)
+t_stat udp_set_link_loopback (DEVICE *dptr, int32 link, bool enable_loopback)
 {
   // Enable or disable the local (interface) loopback on this link...
   if ((link < 0) || (link >= MAXLINKS)) return SCPE_IERR;
@@ -347,10 +348,10 @@ static int32 udp_receive_packet (int32 link, UDP_PACKET *ppkt)
   const uint8 *pbuf;
   t_stat ret;
 
-  udp_lines[link].rcve = TRUE;          // Enable receiver
+  udp_lines[link].rcve = true;          // Enable receiver
   tmxr_poll_rx (&udp_tmxr);
   ret = tmxr_get_packet_ln (&udp_lines[link], &pbuf, &pktsiz);
-  udp_lines[link].rcve = FALSE;          // Disable receiver
+  udp_lines[link].rcve = false;          // Disable receiver
   if (ret != SCPE_OK) {
     sim_messagef (ret, "UDP%d - tmxr_get_packet_ln() failed with error %s\n", link, sim_error_text(ret));
     return NOLINK;

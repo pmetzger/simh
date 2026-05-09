@@ -7,6 +7,7 @@
 // SPDX-FileCopyrightText: 1993-2022 Robert M Supnik
 // SPDX-License-Identifier: MIT
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "scp.h"
 
@@ -22,7 +23,7 @@ static t_stat attach_err(UNIT *uptr, t_stat stat)
 t_stat attach_unit(UNIT *uptr, const char *cptr)
 {
     DEVICE *dptr;
-    t_bool open_rw = FALSE;
+    bool open_rw = false;
 
     if (!(uptr->flags & UNIT_ATTABLE))
         return SCPE_NOATT;
@@ -93,7 +94,7 @@ t_stat attach_unit(UNIT *uptr, const char *cptr)
                                  sim_uname(uptr));
                 }
             } else
-                open_rw = TRUE;
+                open_rw = true;
         }
     }
     if (uptr->flags & UNIT_BUFABLE) {

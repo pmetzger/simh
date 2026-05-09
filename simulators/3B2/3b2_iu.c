@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_iu.h"
 
 #include "sim_tmxr.h"
@@ -111,8 +112,8 @@ IU_PORT iu_contty;
 IU_TIMER_STATE iu_timer_state;
 
 /* Flags for incrementing mode pointers */
-t_bool iu_increment_a = FALSE;
-t_bool iu_increment_b = FALSE;
+bool iu_increment_a = false;
+bool iu_increment_b = false;
 
 double iu_timer_multiplier = IU_TIMER_MULTIPLIER;
 
@@ -382,7 +383,7 @@ t_stat contty_detach(UNIT *uptr)
 
 void increment_modep_a(void)
 {
-    iu_increment_a = FALSE;
+    iu_increment_a = false;
     iu_console.modep++;
 
     if (iu_console.modep > 1) {
@@ -392,7 +393,7 @@ void increment_modep_a(void)
 
 void increment_modep_b(void)
 {
-    iu_increment_b = FALSE;
+    iu_increment_b = false;
     iu_contty.modep++;
 
     if (iu_contty.modep > 1) {
@@ -466,7 +467,7 @@ static void iu_rx(IU_PORT *port, uint8 val)
 
             /* Save the character */
             port->rxr = val;
-            port->rxr_full = TRUE;
+            port->rxr_full = true;
         }
 
         port->sr |= STS_RXR;
@@ -498,7 +499,7 @@ static uint8 iu_rx_getc(IU_PORT *port)
             port->w_p = (port->w_p + 1) % IU_BUF_SIZE;
             /* FIFO can logically never be full here, since we just
              * freed up space above. */
-            port->rxr_full = FALSE;
+            port->rxr_full = false;
         }
 
         if (!(port->mode[0] & 0x20)) {
@@ -589,7 +590,7 @@ t_stat iu_svc_tto(UNIT *uptr)
             iu_console.sr |= STS_TXR;
             iu_state.isr |= ISTS_TXRA;
             /* DRQ is always tied to TxRDY */
-            iu_console.drq = TRUE;
+            iu_console.drq = true;
         }
 
         sim_activate_after_abs(uptr, uptr->wait);
@@ -706,7 +707,7 @@ t_stat iu_svc_contty_xmt(UNIT *uptr)
             iu_contty.sr |= STS_TXR;
             iu_state.isr |= ISTS_TXRB;
             /* DRQ is always tied to TxRDY */
-            iu_contty.drq = TRUE;
+            iu_contty.drq = true;
         }
 
         sim_activate_after_abs(uptr, uptr->wait);
@@ -780,7 +781,7 @@ uint32 iu_read(uint32 pa, size_t size)
     case MR12A:
         modep = iu_console.modep;
         data = iu_console.mode[modep];
-        iu_increment_a = TRUE;
+        iu_increment_a = true;
         break;
     case SRA:
         data = iu_console.sr;
@@ -805,7 +806,7 @@ uint32 iu_read(uint32 pa, size_t size)
     case MR12B:
         modep = iu_contty.modep;
         data = iu_contty.mode[modep];
-        iu_increment_b = TRUE;
+        iu_increment_b = true;
         break;
     case SRB:
         data = iu_contty.sr;
@@ -858,7 +859,7 @@ void iu_write(uint32 pa, uint32 val, size_t size)
     case MR12A:
         modep = iu_console.modep;
         iu_console.mode[modep] = bval;
-        iu_increment_a = TRUE;
+        iu_increment_a = true;
         break;
     case CSRA:
         /* Nothing supported */
@@ -893,7 +894,7 @@ void iu_write(uint32 pa, uint32 val, size_t size)
         modep = iu_contty.modep;
         iu_contty.mode[modep] = bval;
         sim_debug(EXECUTE_MSG, &tto_dev, "MR12B: Page %d Mode = %02x\n", modep, bval);
-        iu_increment_b = TRUE;
+        iu_increment_b = true;
         if (modep == 0) {
             if ((bval >> 4) & 1) {
                 /* No parity */
@@ -982,7 +983,7 @@ t_stat iu_tx(IU_PORT *port, uint8 val)
     if (c >= 0) {
         port->tx_state |= T_HOLD;
         port->sr &= ~(STS_TXR|STS_TXE);
-        port->drq = FALSE;
+        port->drq = false;
         iu_state.isr &= ~(tx_ists);
         port->thr = c;
         sim_activate_after(uptr, uptr->wait);
@@ -1001,7 +1002,7 @@ static void iu_w_cmd(IU_PORT *port, uint8 cmd)
     if (cmd & CMD_DTX) {
         port->conf &= ~TX_EN;
         port->sr &= ~(STS_TXR|STS_TXE);
-        port->drq = FALSE;
+        port->drq = false;
         iu_state.isr &= ~tx_ists;
         UPDATE_IRQ;
         sim_debug(EXECUTE_MSG, &tto_dev,
@@ -1011,7 +1012,7 @@ static void iu_w_cmd(IU_PORT *port, uint8 cmd)
             /* TXE and TXR are always set by an ENABLE if prior state
                was DISABLED */
             port->sr |= (STS_TXR|STS_TXE);
-            port->drq = TRUE;
+            port->drq = true;
         }
         port->conf |= TX_EN;
         iu_state.isr |= tx_ists;
@@ -1053,7 +1054,7 @@ static void iu_w_cmd(IU_PORT *port, uint8 cmd)
            hardware reset had been applied. */
         port->sr &= ~STS_TXR;
         port->sr &= ~STS_TXE;
-        port->drq = FALSE;           /* drq is tied to TXR */
+        port->drq = false;           /* drq is tied to TXR */
         port->conf &= ~TX_EN;
         break;
     case CR_RST_ERR:
@@ -1118,7 +1119,7 @@ void iu_dma_console(uint8 channel, uint32 service_address)
     if (iu_console.dma && chan->wcount_c < 0) {
         sim_debug(EXECUTE_MSG, &tto_dev,
                   "iu_svc_tto: DMA Complete.\n");
-        iu_console.dma = FALSE;
+        iu_console.dma = false;
         dma_state.mask |= (1 << DMA_IUA_CHAN);
         dma_state.status |= (1 << DMA_IUA_CHAN);
         SET_DMA_INT;
@@ -1126,7 +1127,7 @@ void iu_dma_console(uint8 channel, uint32 service_address)
     }
 
     /* Mark that IUA is in DMA */
-    port->dma = TRUE;
+    port->dma = true;
 
     switch (DMA_XFER(DMA_IUA_CHAN)) {
     case DMA_XFER_READ:
@@ -1163,7 +1164,7 @@ void iu_dma_contty(uint8 channel, uint32 service_address)
     if (iu_contty.dma && chan->wcount_c < 0) {
         sim_debug(EXECUTE_MSG, &contty_dev,
                   "iu_svc_contty_xmt: DMA Complete.\n");
-        iu_contty.dma = FALSE;
+        iu_contty.dma = false;
         dma_state.mask |= (1 << DMA_IUB_CHAN);
         dma_state.status |= (1 << DMA_IUB_CHAN);
         SET_DMA_INT;
@@ -1171,7 +1172,7 @@ void iu_dma_contty(uint8 channel, uint32 service_address)
     }
 
     /* Mark that IUB is in DMA */
-    port->dma = TRUE;
+    port->dma = true;
 
     switch (DMA_XFER(DMA_IUB_CHAN)) {
     case DMA_XFER_READ:

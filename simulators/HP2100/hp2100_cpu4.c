@@ -52,6 +52,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -324,7 +325,7 @@ switch (entry) {                                        /* decode IR<6:0> */
         stk_ptr = PR;                                   /* save ptr to next buf */
         rtn_addr = op[0].word;                          /* save return address */
 
-        while (TRUE) {
+        while (true) {
             PR = ReadW (stk_ptr) & LA_MASK;             /* point at next instruction set */
             stk_ptr = (stk_ptr + 1) & LA_MASK;
 
@@ -557,7 +558,7 @@ OP arg, coeff, pwr, product, count, result;
 int16 f, p;
 int32 multiple, power, exponent, rsltexp;
 uint32 entry, i;
-t_bool flag, sign;
+bool flag, sign;
 t_stat reason = SCPE_OK;
 
 static const OP tan_c4  = { { 0137763, 0051006 } };     /* DEC -4.0030956 */

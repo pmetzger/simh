@@ -37,6 +37,7 @@
    included by the interface-specific modules (DA, DS, etc.).
 */
 
+#include <stdbool.h>
 
 
 /* Program limits */
@@ -361,16 +362,16 @@ typedef CNTLR_VARS *CVPTR;                              /* pointer to controller
 
 /* Disc library global controller routines */
 
-extern t_bool  dl_prepare_command    (CVPTR cvptr, UNIT *units, uint32 unit_limit);
+extern bool    dl_prepare_command    (CVPTR cvptr, UNIT *units, uint32 unit_limit);
 extern UNIT   *dl_start_command      (CVPTR cvptr, UNIT *units, uint32 unit_limit);
 extern void    dl_end_command        (CVPTR cvptr, CNTLR_STATUS status);
-extern t_bool  dl_poll_drives        (CVPTR cvptr, UNIT *units, uint32 unit_limit);
+extern bool    dl_poll_drives        (CVPTR cvptr, UNIT *units, uint32 unit_limit);
 extern t_stat  dl_service_drive      (CVPTR cvptr, UNIT *uptr);
 extern t_stat  dl_service_controller (CVPTR cvptr, UNIT *uptr);
 extern t_stat  dl_service_timer      (CVPTR cvptr, UNIT *uptr);
 extern void    dl_idle_controller    (CVPTR cvptr);
 extern t_stat  dl_clear_controller   (CVPTR cvptr, UNIT *uptr, CNTLR_CLEAR clear_type);
-extern t_stat  dl_load_unload        (CVPTR cvptr, UNIT *uptr, t_bool load);
+extern t_stat  dl_load_unload        (CVPTR cvptr, UNIT *uptr, bool load);
 
 /* Disc library global utility routines */
 

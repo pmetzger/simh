@@ -78,6 +78,7 @@
  *    did not require any changes to allow this to work.
  */
 
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 #define SASTATUS        iod_readR[2]
@@ -88,12 +89,12 @@ extern char INTprefix[];
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
-extern t_bool doDirectorFunc(DEVICE *, t_bool);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
+extern bool doDirectorFunc(DEVICE *, bool);
+extern bool fw_reject(IO_DEVICE *, bool, uint8);
 extern void fw_IOunderwayEOP2(IO_DEVICE *, uint16);
-extern void fw_IOcompleteEOP2(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-extern void fw_IOalarm(t_bool, DEVICE *, IO_DEVICE *, const char *);
-extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
+extern void fw_IOcompleteEOP2(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern void fw_IOalarm(bool, DEVICE *, IO_DEVICE *, const char *);
+extern void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
 
 extern void rebuildPending(void);
 
@@ -108,12 +109,12 @@ extern t_stat set_stoponrej(UNIT *, int32, const char *, void *);
 extern t_stat clr_stoponrej(UNIT *, int32, const char *, void *);
 
 extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern bool IOStoreToMem(uint16, uint16, bool);
 
 extern uint16 M[], Areg, IOAreg;
 extern t_uint64 Instructions;
 
-extern t_bool IOFWinitialized;
+extern bool IOFWinitialized;
 
 extern UNIT cpu_unit;
 
@@ -154,11 +155,11 @@ t_stat drm_detach(UNIT *);
 t_stat drm_set_size(UNIT *, int32, const char *, void *);
 
 void DRMstate(const char *, DEVICE *, IO_DEVICE *);
-t_bool DRMreject(IO_DEVICE *, t_bool, uint8);
+bool DRMreject(IO_DEVICE *, bool, uint8);
 enum IOstatus DRMin(IO_DEVICE *, uint8);
 enum IOstatus DRMout(IO_DEVICE *, uint8);
 void DRMclear(DEVICE *);
-uint8 DRMdecode(IO_DEVICE *, t_bool, uint8);
+uint8 DRMdecode(IO_DEVICE *, bool, uint8);
 
 /*
         1752-A/B/C/D Drum memory controller
@@ -317,7 +318,7 @@ IO_DEVICE DRMdev = IODEV(NULL, "1752", 1752, 2, 0xFF, 0,
  * Define usage for "private" IO_DEVICE data areas.
  */
 #define iod_tracks      iod_private     /* # of tracks on device */
-#define iod_compare     iod_private4    /* TRUE if DMA of last buffer word */
+#define iod_compare     iod_private4    /* true if DMA of last buffer word */
 #define iod_isa         iod_private6    /* Initial sector address */
 #define iod_ica         iod_private7    /* Initial core address */
 #define iod_fca         iod_private8    /* Final core address */
@@ -446,12 +447,12 @@ void DRMstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
 /*
  * Load and validate drum address in the Initial Sector Address Register
  */
-static t_bool LoadDrumAddress(void)
+static bool LoadDrumAddress(void)
 {
   uint16 track = (DRMdev.iod_isa & DRM_TRK_MASK) >> DRM_TRK_SHIFT;
 
   if (track >= DRMdev.iod_tracks)
-    return FALSE;
+    return false;
 
   /*
    * The sector field initially holds (sector # - 1) and needs to be
@@ -459,13 +460,13 @@ static t_bool LoadDrumAddress(void)
    */
   DRMdev.iod_trk = track;
   DRMdev.iod_sec = (DRMdev.iod_isa + 1) & DRM_SEC_MASK;
-  return TRUE;
+  return true;
 }
 
 /*
  * Set up a drum I/O operation using the currently set parameters
  */
-static void StartDrumIO(t_bool wr)
+static void StartDrumIO(bool wr)
 {
   if (LoadDrumAddress()) {
     DRMdev.iod_compare =(DRMdev.iod_fca >= DRMdev.CASTATUS) &&
@@ -492,7 +493,7 @@ static void StartDrumIO(t_bool wr)
    */
   DRMdev.STATUS &= ~IO_ST_DATA;
   DRMdev.STATUS |= IO_1752_OVERR;
-  fw_IOalarm(FALSE, &drm_dev, &DRMdev, "Invalid track #");
+  fw_IOalarm(false, &drm_dev, &DRMdev, "Invalid track #");
 }
 
 /*
@@ -527,7 +528,7 @@ static enum drmio_status DrumIORead(UNIT *uptr)
 
   for (i = 0; i < DRM_NUMWD; i++) {
     /*** TODO: fix protect check ***/
-    if (!IOStoreToMem(DRMdev.iod_ca, buf[i], TRUE))
+    if (!IOStoreToMem(DRMdev.iod_ca, buf[i], true))
       return DRMIO_PROTECT;
 
     DRMdev.DATASTATUS = buf[i];
@@ -555,7 +556,7 @@ static enum drmio_status DrumIOWrite(UNIT *uptr)
 {
   uint16 buf[DRM_NUMWD];
   uint32 lba = (DRMdev.iod_trk << DRM_TRK_SHIFT) | DRMdev.iod_sec;
-  t_bool done = FALSE;
+  bool done = false;
   int i;
 
   if (DRMdev.iod_trk >= DRMdev.iod_tracks)
@@ -567,7 +568,7 @@ static enum drmio_status DrumIOWrite(UNIT *uptr)
     DRMdev.DATASTATUS = buf[i] = LoadFromMem(DRMdev.iod_ca);
     if (DRMdev.iod_ca++ == DRMdev.iod_fca) {
       DRMdev.CASTATUS = DRMdev.iod_ca;
-      done = TRUE;
+      done = true;
       break;
     }
   }
@@ -632,7 +633,7 @@ static void DrumIO(UNIT *uptr, uint8 iotype)
       DRMdev.STATUS |= IO_1752_OVERR;
       error = "Address Error";
   err:
-      DRMdev.iod_compare = FALSE;
+      DRMdev.iod_compare = false;
       DRMdev.iod_state = DRM_IDLE;
 
       if ((drm_dev.dctrl & DBG_DERROR) != 0)
@@ -640,11 +641,11 @@ static void DrumIO(UNIT *uptr, uint8 iotype)
                 "%sDRM - Read/Write failed - %s\r\n",
                 INTprefix, error);
 
-      fw_IOalarm(FALSE, &drm_dev, &DRMdev, "Alarm");
+      fw_IOalarm(false, &drm_dev, &DRMdev, "Alarm");
       break;
 
     case DRMIO_DONE:
-      DRMdev.iod_compare = FALSE;
+      DRMdev.iod_compare = false;
       DRMdev.iod_event = Instructions;
       DRMdev.iod_state = DRM_IDLE;
 
@@ -653,7 +654,7 @@ static void DrumIO(UNIT *uptr, uint8 iotype)
                 "%sDRM - Read/Write transfer complete\r\n", INTprefix);
 
       DRMdev.STATUS |= IO_ST_DATA;
-      fw_IOcompleteEOP2(FALSE, &drm_dev, &DRMdev, 0xFFFF, "Transfer complete");
+      fw_IOcompleteEOP2(false, &drm_dev, &DRMdev, 0xFFFF, "Transfer complete");
       break;
   }
 }
@@ -783,7 +784,7 @@ t_stat drm_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* Check if I/O should be rejected */
 
-t_bool DRMreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+bool DRMreject(IO_DEVICE *iod, bool output, uint8 reg)
 {
   /* Registered I/O reject signature.
      This implementation does not use every parameter. */
@@ -793,7 +794,7 @@ t_bool DRMreject(IO_DEVICE *iod, t_bool output, uint8 reg)
     if (reg != 0x1)
       return (DRMdev.STATUS & IO_ST_BUSY) != 0;
   }
-  return FALSE;
+  return false;
 }
 
 /* Perform I/O */
@@ -857,21 +858,21 @@ enum IOstatus DRMout(IO_DEVICE *iod, uint8 reg)
       /*
        * Initiate Drum Write Operation
        */
-      StartDrumIO(TRUE);
+      StartDrumIO(true);
       break;
 
     case 0x01:
       /*
        * Director function.
        */
-      doDirectorFunc(&drm_dev, FALSE);
+      doDirectorFunc(&drm_dev, false);
       break;
 
     case 0x04:
       /*
        * Initiate Drum Read Operation
        */
-      StartDrumIO(FALSE);
+      StartDrumIO(false);
       break;
 
     case 0x08:
@@ -934,7 +935,7 @@ void DRMclear(DEVICE *dptr)
  * Address decode routine. If bit 0 of an output  register address is set,
  * clear bits 1 - 7 since they are ignored.
  */
-uint8 DRMdecode(IO_DEVICE *iod, t_bool output, uint8 reg)
+uint8 DRMdecode(IO_DEVICE *iod, bool output, uint8 reg)
 {
   /* Registered address decode signature.
      This implementation does not use every parameter. */

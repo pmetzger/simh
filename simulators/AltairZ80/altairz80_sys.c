@@ -29,6 +29,7 @@
     03/27/14 -- MWD Add MITS Hard Disk device (mhdsk_dev)
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "m68k/m68k.h"
 
@@ -575,11 +576,11 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw) {
         return SCPE_ARG;
     switch (chiptype) {
         case CHIP_TYPE_8080:
-            r = DAsm(disasm_result, val, FALSE, addr);
+            r = DAsm(disasm_result, val, false, addr);
             break;
 
         case CHIP_TYPE_Z80:
-            r = DAsm(disasm_result, val, TRUE, addr);
+            r = DAsm(disasm_result, val, true, addr);
             break;
 
         case CHIP_TYPE_8086:
@@ -601,15 +602,15 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw) {
 }
 
 /*  checkbase determines the base of the number (ch, *numString)
-    and returns FALSE if the number is bad */
+    and returns false if the number is bad */
 static int32 checkbase(char ch, const char *numString) {
     int32 decimal = (ch <= '9');
     if (toupper(ch) == 'H')
-        return FALSE;
+        return false;
     while (isxdigit(ch = *numString++))
         if (ch > '9')
-            decimal = FALSE;
-    return toupper(ch) == 'H' ? 16 : (decimal ? 10 : FALSE);
+            decimal = false;
+    return toupper(ch) == 'H' ? 16 : (decimal ? 10 : false);
 }
 
 static int32 numok(char ch, const char **numString, const int32 minvalue,
@@ -622,10 +623,10 @@ static int32 numok(char ch, const char **numString, const int32 minvalue,
             sign = -1;
             ch = *(*numString)++;
         } else
-            return FALSE;
+            return false;
     }
     if (!(base = checkbase(ch, *numString)))
-        return FALSE;
+        return false;
     while (isxdigit(ch)) {
         value = base * value + ((ch <= '9') ? (ch - '0') : (toupper(ch) - 'A' + 10));
         ch = *(*numString)++;
@@ -644,7 +645,7 @@ static int32 match(const char *pattern, const char *input, char *xyFirst, char *
         switch(pat) {
 
             case '_': /* patterns containing '_' should never match */
-                return FALSE;
+                return false;
 
             case ',':
                 if (inp == ' ') {
@@ -654,7 +655,7 @@ static int32 match(const char *pattern, const char *input, char *xyFirst, char *
 
             case ' ':
                 if (inp != pat)
-                    return FALSE;
+                    return false;
                 pat = *pattern++;
                 inp = *input++;
                 while (inp == ' ')
@@ -668,53 +669,53 @@ static int32 match(const char *pattern, const char *input, char *xyFirst, char *
                         if (*xyFirst == inp)
                             *xy = inp;
                         else
-                            return FALSE;
+                            return false;
                     else { /* take note of first '%' for later */
                         *xyFirst = inp;
                         *xy = inp;
                     }
                 else
-                    return FALSE;
+                    return false;
                 break;
 
             case '#':
-                if (numok(inp, &input, 0, 65535, FALSE, number))
+                if (numok(inp, &input, 0, 65535, false, number))
                     pattern++; /* skip h */
                 else
-                    return FALSE;
+                    return false;
                 break;
 
             case '*':
-                if (numok(inp, &input, 0, 255, FALSE, star))
+                if (numok(inp, &input, 0, 255, false, star))
                     pattern++;     /* skip h */
                 else
-                    return FALSE;
+                    return false;
                 break;
 
             case '@':
-                if (numok(inp, &input, -128, 65535, TRUE, at))
+                if (numok(inp, &input, -128, 65535, true, at))
                     pattern++;   /* skip h */
                 else
-                    return FALSE;
+                    return false;
                 break;
 
             case '$':
-                if (numok(inp, &input, 0, 65535, FALSE, dollar))
+                if (numok(inp, &input, 0, 65535, false, dollar))
                     pattern++; /* skip h */
                 else
-                    return FALSE;
+                    return false;
                 break;
 
             case '^':
-                if (numok(inp, &input, 0, 255, FALSE, hat))
+                if (numok(inp, &input, 0, 255, false, hat))
                     pattern++;      /* skip h */
                 else
-                    return FALSE;
+                    return false;
                 break;
 
             default:
                 if (toupper(pat) != toupper(inp))
-                    return FALSE;
+                    return false;
         }
         pat = *pattern++;
         inp = *input++;
@@ -844,11 +845,11 @@ static int32 parse_X80(const char *cptr, const int32 addr, uint32 *val, const ch
         status  =   error status
 */
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw) {
-    static t_bool symbolicInputNotImplementedMessage8086 = FALSE;
+    static bool symbolicInputNotImplementedMessage8086 = false;
     if ((sw & (SWMASK('M'))) && (chiptype == CHIP_TYPE_8086)) {
         if (!symbolicInputNotImplementedMessage8086) {
             sim_printf("Symbolic input is not supported for the 8086.\n");
-            symbolicInputNotImplementedMessage8086 = TRUE;
+            symbolicInputNotImplementedMessage8086 = true;
         }
         return SCPE_NOFNC;
     }

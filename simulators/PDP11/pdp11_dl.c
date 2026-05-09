@@ -42,6 +42,7 @@
 #else                                                   /* PDP-11 version */
 #include "pdp11_defs.h"
 #endif
+#include <stdbool.h>
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
@@ -656,7 +657,7 @@ if (newln == 0)
 if (newln < dlx_desc.lines) {
     for (i = newln, t = 0; i < dlx_desc.lines; i++)
         t = t | dlx_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
         return SCPE_OK;
     for (i = newln; i < dlx_desc.lines; i++) {
         if (dlx_ldsc[i].conn) {

@@ -31,6 +31,7 @@
 #ifndef _3B2_DMAC_H_
 #define _3B2_DMAC_H_
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 #define DMA_XFER_VERIFY  0
@@ -71,7 +72,7 @@ typedef struct {
 typedef struct {
     uint8  channel;
     uint32 service_address;
-    t_bool *drq;
+    bool *drq;
     void  (*dma_handler)(uint8 channel, uint32 service_address);
     void  (*after_dma_callback)(void);
 } dmac_dma_handler;

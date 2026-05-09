@@ -201,6 +201,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_fp.h"
@@ -362,20 +363,20 @@ typedef struct {
 
 /* Arithmetic shift right for mantissa only.
 
-   Returns TRUE if any one-bits are shifted out (for F-series only).
+   Returns true if any one-bits are shifted out (for F-series only).
 */
 
-static t_bool asr (FPU *operand, int32 shift)
+static bool asr (FPU *operand, int32 shift)
 {
 t_uint64 mask;
-t_bool bits_lost;
+bool bits_lost;
 
 if (cpu_configuration & CPU_1000_F) {                   /* F-Series? */
     mask = ((t_uint64) 1 << shift) - 1;                 /* mask for lost bits */
     bits_lost = ((operand->mantissa & mask) != 0);      /* flag if any lost */
     }
 else
-    bits_lost = FALSE;
+    bits_lost = false;
 
 operand->mantissa = operand->mantissa >> shift;         /* mantissa is int, so ASR */
 return bits_lost;
@@ -385,20 +386,20 @@ return bits_lost;
 /* Logical shift right for mantissa and exponent.
 
    Shifts mantissa and corrects exponent for mantissa overflow.
-   Returns TRUE if any one-bits are shifted out (for F-series only).
+   Returns true if any one-bits are shifted out (for F-series only).
 */
 
-static t_bool lsrx (FPU *operand, int32 shift)
+static bool lsrx (FPU *operand, int32 shift)
 {
 t_uint64 mask;
-t_bool bits_lost;
+bool bits_lost;
 
 if (cpu_configuration & CPU_1000_F) {                   /* F-Series? */
     mask = ((t_uint64) 1 << shift) - 1;                 /* mask for lost bits */
     bits_lost = ((operand->mantissa & mask) != 0);      /* flag if any lost */
     }
 else
-    bits_lost = FALSE;
+    bits_lost = false;
 
 operand->mantissa = (t_uint64) operand->mantissa >> shift;  /* uint, so LSR */
 operand->exponent = operand->exponent + shift;          /* correct exponent */
@@ -599,10 +600,10 @@ return;
    The number to be rounded must be normalized upon entry.
 */
 
-static uint32 roundovf (FPU *unpacked, t_bool expand)
+static uint32 roundovf (FPU *unpacked, bool expand)
 {
 uint32 overflow;
-t_bool sign;
+bool sign;
 
 sign = (unpacked->mantissa < 0);                        /* save mantissa sign */
 
@@ -654,7 +655,7 @@ return overflow;
 
 /* Normalize, round, and pack an unpacked floating-point number */
 
-static uint32 nrpack (OP *packed, FPU unpacked, t_bool expand)
+static uint32 nrpack (OP *packed, FPU unpacked, bool expand)
 {
 uint32 overflow;
 
@@ -698,7 +699,7 @@ return;
 static void add (FPU *sum, FPU augend, FPU addend)
 {
 int32 magn;
-t_bool bits_lost;
+bool bits_lost;
 
 if (augend.mantissa == 0)
     *sum = addend;                                      /* X + 0 = X */
@@ -832,7 +833,7 @@ static void multiply (FPU *product, FPU multiplicand, FPU multiplier)
 uint32 ah, al, bh, bl, sign = 0;
 t_uint64 hh, hl, lh, ll, carry;
 int16 ch, cl, dh, dl;
-t_bool firmware;
+bool firmware;
 
 product->precision = multiplicand.precision;            /* set precision */
 
@@ -936,7 +937,7 @@ static void divide (FPU *quotient, FPU dividend, FPU divisor)
 uint32 sign = 0;
 t_int64 bh, bl, r1, r0, p1, p0;
 t_uint64 q, q1, q0;
-t_bool firmware;
+bool firmware;
 int32 ah, div, cp;
 int16 dh, dl, pq1, pq2, cq;
 
@@ -1048,7 +1049,7 @@ return;
 static uint32 fix (FPU *result, FPU operand)
 {
 uint32 overflow;
-t_bool bits_lost;
+bool bits_lost;
 
 if (operand.exponent < 0) {                             /* value < 0.5? */
     result->mantissa = 0;                               /* result rounds to zero */
@@ -1368,7 +1369,7 @@ FPU unpacked;
 unpacked.mantissa = unpack_int (mantissa, precision);   /* unpack mantissa */
 unpacked.exponent = exponent;                           /* set exponent */
 unpacked.precision = precision;                         /* set precision */
-return nrpack (result, unpacked, FALSE);                /* norm/rnd/pack them */
+return nrpack (result, unpacked, false);                /* norm/rnd/pack them */
 }
 
 
@@ -1425,7 +1426,7 @@ FPU unpacked;
 
 unpacked = unpack (*packed, precision);                 /* unpack the number */
 complement (&unpacked);                                 /* negate it */
-return nrpack (packed, unpacked, FALSE);                /* and norm/rnd/pack */
+return nrpack (packed, unpacked, false);                /* and norm/rnd/pack */
 }
 
 
@@ -1433,7 +1434,7 @@ return nrpack (packed, unpacked, FALSE);                /* and norm/rnd/pack */
 
 uint32 fp_trun (OP *result, OP source, OPSIZE precision)
 {
-t_bool bits_lost;
+bool bits_lost;
 FPU unpacked;
 FPU one = { FP_ONEHALF, 1, fp_t };                      /* 0.5 * 2 ** 1 = 1.0 */
 OP zero = { { 0, 0, 0, 0, 0 } };                        /* 0.0 */
@@ -1450,7 +1451,7 @@ else {
     unpacked.mantissa = unpacked.mantissa & ~mask;      /* mask off fraction */
     if ((unpacked.mantissa < 0) && bits_lost)           /* negative? */
         add (&unpacked, unpacked, one);                 /* truncate toward zero */
-    nrpack (result, unpacked, FALSE);                   /* (overflow cannot occur) */
+    nrpack (result, unpacked, false);                   /* (overflow cannot occur) */
     }
 return 0;                                               /* clear overflow on return */
 }
@@ -1464,7 +1465,7 @@ FPU unpacked;
 
 unpacked = unpack (*result, source_precision);
 unpacked.precision = dest_precision;
-return nrpack (result, unpacked, FALSE);                /* norm/rnd/pack */
+return nrpack (result, unpacked, false);                /* norm/rnd/pack */
 }
 
 

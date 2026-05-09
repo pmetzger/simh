@@ -5,6 +5,8 @@
 #ifndef SIM_DYNSTR_H_
 #define SIM_DYNSTR_H_ 0
 
+#include <stdbool.h>
+
 #include "sim_defs.h"
 
 typedef struct sim_dynstr {
@@ -20,14 +22,14 @@ void sim_dynstr_init(sim_dynstr_t *ds);
 void sim_dynstr_free(sim_dynstr_t *ds);
 
 /* Append one NUL-terminated string. */
-t_bool sim_dynstr_append(sim_dynstr_t *ds, const char *text);
+bool sim_dynstr_append(sim_dynstr_t *ds, const char *text);
 
 /* Append one formatted string fragment. */
-t_bool sim_dynstr_appendf(sim_dynstr_t *ds, const char *fmt,
+bool sim_dynstr_appendf(sim_dynstr_t *ds, const char *fmt,
                           ...) PRINTF_FMT(2, 3);
 
 /* Append one single character. */
-t_bool sim_dynstr_append_ch(sim_dynstr_t *ds, char ch);
+bool sim_dynstr_append_ch(sim_dynstr_t *ds, char ch);
 
 /* Return the current contents as a conventional C string. */
 const char *sim_dynstr_cstr(const sim_dynstr_t *ds);

@@ -109,6 +109,7 @@
                 addresses.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 #include "i8080_symbol_internal.h"
 
@@ -248,7 +249,7 @@ extern int32 sim_int_char;
 extern uint32 sim_brk_types, sim_brk_dflt, sim_brk_summ; /* breakpoint info */
 
 struct idev {
-    uint8 (*routine)(t_bool io, uint8 data, uint8 devnum);
+    uint8 (*routine)(bool io, uint8 data, uint8 devnum);
     uint16 port;
     uint16 devnum;
     uint8 dummy;

@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_sys.h"
 
 #include "3b2_cpu.h"
@@ -108,7 +109,7 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
     }
 
     if (sim_switches & SWMASK('R')) {
-        rom_loaded = TRUE;
+        rom_loaded = true;
         return sim_messagef(SCPE_OK, "%d bytes loaded into ROM\n", cnt);
     } else {
         return sim_messagef(SCPE_OK, "%d bytes loaded at address 0x%08x\n", cnt, origin - cnt);

@@ -33,6 +33,7 @@
         Teletype Model 33 ASR.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #if defined (IO_NUM) && (IO_NUM > 0)
@@ -100,7 +101,7 @@
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint8, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint8, uint8);
 
 /* globals */
 
@@ -115,10 +116,10 @@ t_stat IO_reset (DEVICE *dptr);
 t_stat IO_attach (UNIT *uptr, const char *cptr);
 t_stat PTR_reset(DEVICE *dptr);
 t_stat PTR_attach (UNIT *uptr, const char *cptr);
-uint8 IO_is(t_bool io, uint8 data, uint8 devnum);
-uint8 IO_id(t_bool io, uint8 data, uint8 devnum);
-uint8 IO_oc(t_bool io, uint8 data, uint8 devnum);
-uint8 IO_od(t_bool io, uint8 data, uint8 devnum);
+uint8 IO_is(bool io, uint8 data, uint8 devnum);
+uint8 IO_id(bool io, uint8 data, uint8 devnum);
+uint8 IO_oc(bool io, uint8 data, uint8 devnum);
+uint8 IO_od(bool io, uint8 data, uint8 devnum);
 void IO_reset_dev(uint8 devnum);
 
 /* imm-60 Standard I/O Data Structures */
@@ -336,7 +337,7 @@ t_stat PTR_attach (UNIT *uptr, const char *cptr)
 
 // status/command
 
-uint8 IO_is(t_bool io, uint8 data, uint8 devnum)
+uint8 IO_is(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                  /* read status port - works*/
         return status;
@@ -352,7 +353,7 @@ uint8 IO_is(t_bool io, uint8 data, uint8 devnum)
 
 // TTY in/out
 
-uint8 IO_id(t_bool io, uint8 data, uint8 devnum)
+uint8 IO_id(bool io, uint8 data, uint8 devnum)
 {
     char val;
 
@@ -374,7 +375,7 @@ uint8 IO_id(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 IO_oc(t_bool io, uint8 data, uint8 devnum)
+uint8 IO_oc(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                  /* read status port */
         data = data;
@@ -385,7 +386,7 @@ uint8 IO_oc(t_bool io, uint8 data, uint8 devnum)
 }
 
 // TTY RDR in/PCH out
-uint8 IO_od(t_bool io, uint8 data, uint8 devnum)
+uint8 IO_od(bool io, uint8 data, uint8 devnum)
 {
     char val;
 

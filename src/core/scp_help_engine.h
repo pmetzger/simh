@@ -11,25 +11,26 @@
 #define SCP_HELP_ENGINE_H_ 0
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 /* Generic SCP and device-help output helpers. */
 void fprint_help(FILE *st);
 
 void fprint_reg_help(FILE *st, DEVICE *dptr);
 
-void fprint_reg_help_ex(FILE *st, DEVICE *dptr, t_bool silent);
+void fprint_reg_help_ex(FILE *st, DEVICE *dptr, bool silent);
 
-void fprint_attach_help_ex(FILE *st, DEVICE *dptr, t_bool silent);
+void fprint_attach_help_ex(FILE *st, DEVICE *dptr, bool silent);
 
 void fprint_set_help(FILE *st, DEVICE *dptr);
 
-void fprint_set_help_ex(FILE *st, DEVICE *dptr, t_bool silent);
+void fprint_set_help_ex(FILE *st, DEVICE *dptr, bool silent);
 
 void fprint_show_help(FILE *st, DEVICE *dptr);
 
-void fprint_show_help_ex(FILE *st, DEVICE *dptr, t_bool silent);
+void fprint_show_help_ex(FILE *st, DEVICE *dptr, bool silent);
 
-void fprint_brk_help_ex(FILE *st, DEVICE *dptr, t_bool silent);
+void fprint_brk_help_ex(FILE *st, DEVICE *dptr, bool silent);
 
 t_stat help_dev_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                      const char *cptr);

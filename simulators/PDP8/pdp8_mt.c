@@ -63,6 +63,7 @@
    of junk.  File marks are represented by a byte count of 0.
 */
 
+#include <stdbool.h>
 #include "pdp8_defs.h"
 #include "sim_tape.h"
 
@@ -380,7 +381,7 @@ t_stat mt_svc (UNIT *uptr)
 {
 int32 f, i, p, u, wc, xma;
 t_mtrlnt tbc, cbc;
-t_bool passed_eot;
+bool passed_eot;
 uint16 c, c1, c2;
 t_stat st, r = SCPE_OK;
 

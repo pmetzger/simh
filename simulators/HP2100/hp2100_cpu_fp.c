@@ -89,6 +89,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_fp.h"
@@ -179,7 +180,7 @@ return 0;                                               /* clr overflow */
 
 /* Floating point add/subtract */
 
-uint32 f_as (uint32 opnd, t_bool sub)
+uint32 f_as (uint32 opnd, bool sub)
 {
 struct ufp fop1, fop2, t;
 int32 ediff;

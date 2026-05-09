@@ -75,6 +75,7 @@
         multibus boards in the simulated system.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 
 #define i8255_NAME    "Intel i8255 PIA Chip"
@@ -86,14 +87,14 @@ t_stat i8255_clr(void);
 t_stat i8255_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat i8255_reset (DEVICE *dptr);
 t_stat i8255_reset_dev (void);
-uint8 i8255a(t_bool io, uint8 data, uint8 devnum);
-uint8 i8255b(t_bool io, uint8 data, uint8 devnum);
-uint8 i8255c(t_bool io, uint8 data, uint8 devnum);
-uint8 i8255s(t_bool io, uint8 data, uint8 devnum);
+uint8 i8255a(bool io, uint8 data, uint8 devnum);
+uint8 i8255b(bool io, uint8 data, uint8 devnum);
+uint8 i8255c(bool io, uint8 data, uint8 devnum);
+uint8 i8255s(bool io, uint8 data, uint8 devnum);
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 
 /* globals */
@@ -296,7 +297,7 @@ t_stat i8255_reset_dev (void)
 
 /* i8255 functions */
 
-uint8 i8255s(t_bool io, uint8 data, uint8 devnum)
+uint8 i8255s(bool io, uint8 data, uint8 devnum)
 {
     uint8 bit;
 
@@ -319,7 +320,7 @@ uint8 i8255s(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8255a(t_bool io, uint8 data, uint8 devnum)
+uint8 i8255a(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read data port */
         return (i8255_A[devnum]);
@@ -329,7 +330,7 @@ uint8 i8255a(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8255b(t_bool io, uint8 data, uint8 devnum)
+uint8 i8255b(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read data port */
         return (i8255_B[devnum]);
@@ -339,7 +340,7 @@ uint8 i8255b(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8255c(t_bool io, uint8 data, uint8 devnum)
+uint8 i8255c(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read data port */
         return (i8255_C[devnum]);

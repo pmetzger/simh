@@ -139,13 +139,14 @@
  *                  Added conditional assembly directives
  ********************************************************************************************/
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <setjmp.h>
-#include <time.h>
 #include <ctype.h>
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -178,10 +179,6 @@
 
 #define SYSTEM_TABLE "SYMBOLS.SYS"
 
-#define BOOL  int
-#define TRUE  1
-#define FALSE 0
-
 #define ISTV    0x33                        /* magic number from DMS R2V12 monitorm symbol @ISTV */
 
 #define MAXLITERALS 300
@@ -213,7 +210,7 @@ typedef struct tag_symbol {         /* symbol table entry: */
 typedef struct tag_xref {           /* cross reference entry */
     char *fname;                    /* filename */
     int  lno;                       /* line number */
-    BOOL definition;                /* true = definition, false = reference */
+    bool definition;                /* true = definition, false = reference */
     struct tag_xref *next;          /* next reference */
 } XREF, *PXREF;
 
@@ -267,18 +264,18 @@ char *usestr =
 "-r  set dms version to VN RM for system SBRK cards\n"
 "-f  apply offset XXXX (hex) to APPARENT assembly address listing\n";
 
-BOOL verbose = FALSE;                           /* verbose mode flag */
-BOOL tabformat = FALSE;                         /* TRUE if tabs were seen in the file */
-BOOL enable_1800 = FALSE;                       /* TRUE if 1800 mode is enabled by flag or executable name */
+bool verbose = false;                           /* verbose mode flag */
+bool tabformat = false;                         /* true if tabs were seen in the file */
+bool enable_1800 = false;                       /* true if 1800 mode is enabled by flag or executable name */
 int  listoffset = 0;                            /* offset to use for listing assembly address column */
 int  pass;                                      /* current assembler pass (1 or 2) */
 char curfn[256];                                /* current input file name */
 char progname[8];                               /* base name of primary input file */
 char *outfn = NULL;                             /* output file name */
 int  lno;                                       /* current input file line number */
-BOOL preload = FALSE;                           /* preload system symbol table */
-BOOL savetable = FALSE;                         /* write system symbol table */
-BOOL saveprompt = TRUE;                         /* prompt before overwriting */
+bool preload = false;                           /* preload system symbol table */
+bool savetable = false;                         /* write system symbol table */
+bool saveprompt = true;                         /* prompt before overwriting */
 int  nerrors = 0;                               /* count of errors */
 int  nwarnings = 0;                             /* count of warnings */
 FILE *fin = NULL;                               /* current input file */
@@ -289,24 +286,24 @@ int maxiplcols = 80;
 char cardid[9];                                 /* characters used for IPL card ID */
 FILE *flist = NULL;                             /* listing file stream */
 char *listfn = NULL;                            /* listing filename */
-BOOL do_list = FALSE;                           /* flag: create listing */
-BOOL passcount = FALSE;                         /* flag: count passes only */
-BOOL list_on = TRUE;                            /* listing is currently enabled */
-BOOL do_xref = FALSE;                           /* cross reference listing */
-BOOL do_syms = FALSE;                           /* symbol table listing */
-BOOL ended = FALSE;                             /* end of current file */
-BOOL hasforward = FALSE;                        /* true if there are any forward references */
+bool do_list = false;                           /* flag: create listing */
+bool passcount = false;                         /* flag: count passes only */
+bool list_on = true;                            /* listing is currently enabled */
+bool do_xref = false;                           /* cross reference listing */
+bool do_syms = false;                           /* symbol table listing */
+bool ended = false;                             /* end of current file */
+bool hasforward = false;                        /* true if there are any forward references */
 char listline[350];                             /* output listing line */
-BOOL line_error;                                /* already saw an error on current line */
+bool line_error;                                /* already saw an error on current line */
 RELOC relocate = RELATIVE;                      /* relocatable assembly mode */
-BOOL assembled = FALSE;                         /* true if any output has been generated */
+bool assembled = false;                         /* true if any output has been generated */
 int  nwout;                                     /* number of words written on current line */
 int  org = 0;                                   /* output address (origin) */
 int  org_advanced;                              /* if nonzero, value of * is (instruction address + org_advanced) during evaluation */
 int  pta = -1;                                  /* program transfer address */
-BOOL cexpr = FALSE;                             /* "C" expression syntax (nonstandard, not enabled by default) */
+bool cexpr = false;                             /* "C" expression syntax (nonstandard, not enabled by default) */
 PSYMBOL symbols = NULL;                         /* the symbol table (linear search) */
-BOOL check_control = TRUE;                      /* check for control cards */
+bool check_control = true;                      /* check for control cards */
 PROGTYPE progtype = PROGTYPE_RELOCATABLE;       /* program type */
 INTMODE intmode   = INTMODE_UNSPECIFIED;        /* integer mode */
 REALMODE realmode = REALMODE_UNSPECIFIED;       /* real mode */
@@ -320,13 +317,13 @@ int ndefined_files = 0;
 struct lit {                                    /* accumulated literals waiting to be output */
     int  value;                                 /* constant value */
     int  tagno;                                 /* constant symbol tag number (e.g. _L001) */
-    BOOL hex;                                   /* constant was expressed in hex */
-    BOOL even;                                  /* constant was operand of a double-width instruction (e.g. AD) */
+    bool hex;                                   /* constant was expressed in hex */
+    bool even;                                  /* constant was operand of a double-width instruction (e.g. AD) */
 } literal[MAXLITERALS];
 
 int n_literals = 0, lit_tag = 0;
-BOOL requires_even_address;                     /* target of current instruction */
-BOOL dmes_saved;                                /* odd character left over from dmes ending in ' */
+bool requires_even_address;                     /* target of current instruction */
+bool dmes_saved;                                /* odd character left over from dmes ending in ' */
 int dmes_savew;
 char opfield[256];                              /* extracted operand field from source line */
 char dmsversion[12] = DMSVERSION;               /* version number for SBRK cards */
@@ -386,8 +383,8 @@ void errprintf (char *fmt, ...);
 void asm_error (char *fmt, ...);
 void asm_warning (char *fmt, ...);
 char *astring (char *str);
-PSYMBOL lookup_symbol (char *name, BOOL define);
-void add_xref (PSYMBOL s, BOOL definition);
+PSYMBOL lookup_symbol (char *name, bool define);
+void add_xref (PSYMBOL s, bool definition);
 int  get_symbol (char *name);
 void set_symbol (char *name, int value, int known, RELOC relative);
 char * gtok (char **pc, char *tok);
@@ -395,10 +392,10 @@ char *skipbl (char *c);
 void sym_list (void);
 void xref_list (void);
 void listhdr (void);
-int  getexpr (char *pc, BOOL undefined_ok, EXPR *expr);
+int  getexpr (char *pc, bool undefined_ok, EXPR *expr);
 void passreport (void);
-void listout (BOOL reset);
-void output_literals (BOOL eof);
+void listout (bool reset);
+void output_literals (bool eof);
 char *upcase (char *str);
 void prep_line (char *line);
 int ascii_to_hollerith (int ch);
@@ -424,7 +421,7 @@ int  signextend (int v);
 
 int main (int argc, char **argv)
 {
-    int i, sawfile = FALSE;
+    int i, sawfile = false;
 
     init(argc, argv);                           /* initialize, process flags */
 
@@ -432,7 +429,7 @@ int main (int argc, char **argv)
 
     for (i = 1; i < argc; i++)
         if (*argv[i] != '-')
-            proc(argv[i]), sawfile = TRUE;
+            proc(argv[i]), sawfile = true;
 
     if (! sawfile)                              /* should have seen at least one file */
         bail(usestr);
@@ -520,35 +517,35 @@ void flag (char *arg)
                 return;
 
             case 'p':
-                passcount = TRUE;
+                passcount = true;
                 break;
 
             case 'v':                           /* mumble while running */
-                verbose = TRUE;
+                verbose = true;
                 break;
 
             case 'x':                           /* print cross reference table */
-                do_xref = TRUE;
+                do_xref = true;
                 break;
 
             case 's':                           /* print symbol table */
-                do_syms = TRUE;
+                do_syms = true;
                 break;
 
             case 'l':                           /* listing file name */
                 listfn = (* arg) ? arg : NULL;
-                do_list = TRUE;
+                do_list = true;
                 return;
 
             case 'W':
-                saveprompt = FALSE;
+                saveprompt = false;
                 /* fall through */
             case 'w':
-                savetable = TRUE;
+                savetable = true;
                 break;
 
             case 'y':
-                preload = TRUE;
+                preload = true;
                 break;
 
             case 'b':
@@ -556,7 +553,7 @@ void flag (char *arg)
                 break;
 
             case '8':
-                enable_1800 = TRUE;
+                enable_1800 = true;
                 break;
 
             case 'r':
@@ -629,8 +626,8 @@ void asm_error (char *fmt, ...)
     putc('\n', stderr);
 
     if (flist != NULL && list_on) {
-        listout(FALSE);
-        line_error = TRUE;
+        listout(false);
+        line_error = true;
 
         fprintf(flist, "**** Error: ");
         vfprintf(flist, fmt, args);                 /* write errors to listing file */
@@ -659,8 +656,8 @@ void asm_warning (char *fmt, ...)
     putc('\n', stderr);
 
     if (flist != NULL && list_on) {
-        listout(FALSE);
-        line_error = TRUE;
+        listout(false);
+        line_error = true;
 
         fprintf(flist, "**** Warning: ");
         vfprintf(flist, fmt, args);                 /* write errors to listing file */
@@ -810,10 +807,10 @@ char *astring (char *str)
 
 /********************************************************************************************
  * lookup_symbol - get pointer to a symbol.
- * If define is TRUE, creates and marks 'undefined' if not previously defined.
+ * If define is true, creates and marks 'undefined' if not previously defined.
  ********************************************************************************************/
 
-PSYMBOL lookup_symbol (char *name, BOOL define)
+PSYMBOL lookup_symbol (char *name, bool define)
 {
     PSYMBOL s, n, prv = NULL;
     int c;
@@ -845,9 +842,9 @@ PSYMBOL lookup_symbol (char *name, BOOL define)
 
     n->name    = astring(name);         /* symbol was undefined -- add it now */
     n->value   = 0;
-    n->defined = FALSE;
+    n->defined = false;
     n->xrefs   = NULL;
-    n->defined = FALSE;
+    n->defined = false;
 
     n->next    = s;                     /* link in alpha order */
 
@@ -863,7 +860,7 @@ PSYMBOL lookup_symbol (char *name, BOOL define)
  * add_xref - add a cross reference entry to a symbol
  ********************************************************************************************/
 
-void add_xref (PSYMBOL s, BOOL definition)
+void add_xref (PSYMBOL s, bool definition)
 {
     PXREF x, prv = NULL, n;
 
@@ -897,20 +894,20 @@ int get_symbol (char *name)
 {
     PSYMBOL s;
 
-    s = lookup_symbol(name, TRUE);          /* lookup, define if necessary */
+    s = lookup_symbol(name, true);          /* lookup, define if necessary */
 
     if (pass == 2)                          /* should be defined by now */
         if (! s->defined)
             asm_error("Symbol '%s' is undefined", name);
 
-    add_xref(s, FALSE);                     /* note the reference */
+    add_xref(s, false);                     /* note the reference */
 
     return s->value;
 }
 
 /********************************************************************************************
- * set_symbol - set a symbol value. Known = TRUE means we really know the value;
- * FALSE means we're calculating it with forward referenced values or something like
+ * set_symbol - set a symbol value. Known = true means we really know the value;
+ * false means we're calculating it with forward referenced values or something like
  * that.
  ********************************************************************************************/
 
@@ -929,7 +926,7 @@ void set_symbol (char *name, int value, int known, RELOC relative)
         *at = '\'';
 #endif
 
-    s = lookup_symbol(name, TRUE);
+    s = lookup_symbol(name, true);
 
     if (s->defined == S_DEFINED)            /* once defined, it should not change */
         if (s->value != value)
@@ -941,9 +938,9 @@ void set_symbol (char *name, int value, int known, RELOC relative)
     s->pass     = pass;
 
     if (! known)
-        hasforward = TRUE;
+        hasforward = true;
 
-    add_xref(s, TRUE);                      /* record the place of definition */
+    add_xref(s, true);                      /* record the place of definition */
 }
 
 /********************************************************************************************
@@ -1017,7 +1014,7 @@ char *trim (char *s)
  * for a given input statement.
  ********************************************************************************************/
 
-void listout (BOOL reset)
+void listout (bool reset)
 {
     if (flist && list_on && ! line_error) {
         trim(listline);
@@ -1055,7 +1052,7 @@ void storew (int word, RELOC relative)
     if (relative != LIBF)
         org++;
 
-    assembled = TRUE;                   /* remember that we wrote something */
+    assembled = true;                   /* remember that we wrote something */
 }
 
 /********************************************************************************************
@@ -1089,10 +1086,10 @@ void setw (int pos, int word, RELOC relative)
 void writew (int word, RELOC relative)
 {                                       /* first, the listing stuff... */
     if (nwout == 0) {                   /* on first output word, display address in column 0 */
-        setw(0, org+listoffset, FALSE);
+        setw(0, org+listoffset, false);
     }
     else if (nwout >= 4) {              /* if 4 words have already been written, start new line */
-        listout(TRUE);
+        listout(true);
         nwout = 0;
     }
 
@@ -1109,7 +1106,7 @@ void writew (int word, RELOC relative)
 void setorg (int neworg)
 {
     if (pass == 2) {
-        setw(0, neworg+listoffset, FALSE);          /* display in listing file in column 0 */
+        setw(0, neworg+listoffset, false);          /* display in listing file in column 0 */
 
         if (outmode == OUTMODE_LOAD) {              /* write new load address to the output file */
             fprintf(fout, "@%04X%s" ENDLINE, neworg & 0xFFFF, relocate ? "R" : "");
@@ -1181,14 +1178,14 @@ void tabtok (char *c, char *tok, int i, char *save)
  * of the input from ifrom to the end is saved there. In this routine
  * if condense is true, we save all nonwhite characters in the column range;
  * not the usual thing. This helps us coalesce the format, tag, & index things
- * nto one string for the simple minded parser. If condense is FALSE, we terminate
+ * nto one string for the simple minded parser. If condense is false, we terminate
  * on the first nonblank, except that if we start with a (, we take up to ) and
  * then terminate on a space.
  *
  * ifrom and ito on entry are column numbers, not indices; we change that right away
  ********************************************************************************************/
 
-void coltok (char *c, char *tok, int ifrom, int ito, BOOL condense, char *save)
+void coltok (char *c, char *tok, int ifrom, int ito, bool condense, char *save)
 {
     char *otok = tok;
     int i;
@@ -1447,35 +1444,35 @@ char *addextn (char *fname, char *extn, char *outbuf)
  * controlcard - examine an assembler control card (* in column 1)
  ********************************************************************************************/
 
-BOOL controlcard (char *line)
+bool controlcard (char *line)
 {
     if (strnicmp(line, "*LIST", 5) == 0) {      /* turn on listing file even if not specified on command line */
-        do_list = list_on = TRUE;
-        return TRUE;
+        do_list = list_on = true;
+        return true;
     }
 
     if (strnicmp(line, "*XREF", 5) == 0) {
-        do_xref = TRUE;
-        return TRUE;
+        do_xref = true;
+        return true;
     }
 
     if (strnicmp(line, "*PRINT SYMBOL TABLE", 19) == 0) {
-        do_syms = TRUE;
-        return TRUE;
+        do_syms = true;
+        return true;
     }
 
     if (strnicmp(line, "*SAVE SYMBOL TABLE", 18) == 0) {
-        savetable = TRUE;
-        return TRUE;
+        savetable = true;
+        return true;
     }
 
     if (strnicmp(line, "*SYSTEM SYMBOL TABLE", 20) == 0) {
-        preload = TRUE;
+        preload = true;
         preload_symbols();
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 /********************************************************************************************
@@ -1545,7 +1542,7 @@ int bincard_n   = 0;            /* number of object words stored in bincard (0-4
 int bincard_seq = 0;            /* card output sequence number */
 int bincard_org = 0;            /* origin of current card-full */
 int bincard_maxaddr = 0;
-BOOL bincard_first = TRUE;      /* TRUE when we're to write the program type card */
+bool bincard_first = true;      /* true when we're to write the program type card */
 
 /********************************************************************************************
  * bincard_init - prepare a new object data output card
@@ -1635,7 +1632,7 @@ void bincard_writedata (void)
     if (nflag > 0)
         bincard[j] = rflag << (16 - 2*nflag);
 
-    bincard_writecard(FALSE);                   /* emit the card */
+    bincard_writecard(false);                   /* emit the card */
 }
 
 /********************************************************************************************
@@ -1701,7 +1698,7 @@ void bincard_typecard (void)
     if (! bincard_first)
         return;
 
-    bincard_first = FALSE;
+    bincard_first = false;
 
     memset(bincard, 0, sizeof(bincard));
 
@@ -1859,7 +1856,7 @@ void parse_line (char *line)
     if (line[0] == '*') {                       /* control card comment or comment in tab-format file */
         if (check_control)                      /* pay attention to control cards only at top of file */
             if (! controlcard(line))
-                check_control = FALSE;          /* first non-control card shuts off sensitivity to them */
+                check_control = false;          /* first non-control card shuts off sensitivity to them */
 
         if (strnicmp(line+1, "SBRK", 4) == 0)
             handle_sbrk(line);
@@ -1867,7 +1864,7 @@ void parse_line (char *line)
         return;
     }
 
-    check_control = FALSE;                      /* non-control card, consider them no more */
+    check_control = false;                      /* non-control card, consider them no more */
 
     label[0] = '\0';                            /* prepare to extract fields */
     mods[0]  = '\0';
@@ -1875,7 +1872,7 @@ void parse_line (char *line)
     arg[0]   = '\0';
 
     if (tabformat || strchr(line, '\t') != NULL) {  /* if input line has tabs, parse loosely */
-        tabformat = TRUE;                           /* this is a tab-formatted file */
+        tabformat = true;                           /* this is a tab-formatted file */
 
         for (c = line; *c && *c <= ' '; c++)    /* find first nonblank */
             ;
@@ -1894,24 +1891,24 @@ void parse_line (char *line)
 
         line[72] = '\0';                        /* clip off sequence */
 
-        coltok(line, label, 21, 25, TRUE, NULL);
-        coltok(line, mnem,  27, 30, TRUE, NULL);
-        coltok(line, mods,  32, 33, TRUE, NULL);
-        coltok(line, arg,   35, 72, FALSE, opfield);
+        coltok(line, label, 21, 25, true, NULL);
+        coltok(line, mnem,  27, 30, true, NULL);
+        coltok(line, mods,  32, 33, true, NULL);
+        coltok(line, arg,   35, 72, false, opfield);
     }
 
     if (*label)                                 /* display org in any line with a label */
-        setw(0, org+listoffset, FALSE);
+        setw(0, org+listoffset, false);
 
     if (! *mnem) {                              /* label w/o mnemonic, just define the symbol */
         if (*label)
-            set_symbol(label, org, TRUE, relocate);
+            set_symbol(label, org, true, relocate);
         return;
     }
 
     if ((op = lookup_op(mnem)) == NULL) {       /* look up mnemonic */
         if (*label)
-            set_symbol(label, org, TRUE, relocate);/* at least define the label */
+            set_symbol(label, org, true, relocate);/* at least define the label */
 
         asm_error("Unknown opcode '%s'", mnem);
         return;
@@ -1949,21 +1946,21 @@ void parse_line (char *line)
  * get one input line from current file or macro
  ********************************************************************************************/
 
-BOOL get_line (char *buf, int nbuf, BOOL onelevel)
+bool get_line (char *buf, int nbuf, bool onelevel)
 {
     char *retval;
 
     if (ended)                              /* we hit the END command */
-        return FALSE;
+        return false;
 
     /* if macro active, return line from macro buffer, otherwise read from file */
-    /* do not pop end-of-macro if onelevel is TRUE  */
+    /* do not pop end-of-macro if onelevel is true  */
 
     if ((retval = fgets(buf, nbuf, fin)) == NULL)
-        return FALSE;
+        return false;
 
     lno++;                                  /* count the line */
-    return TRUE;
+    return true;
 }
 
 /********************************************************************************************
@@ -1998,7 +1995,7 @@ void proc (char *fname)
     }
 
     lno   = 0;                                  /* reset global input line number */
-    ended = FALSE;                              /* have not seen END statement */
+    ended = false;                              /* have not seen END statement */
 
     if (listfn == NULL)                         /* if list file name is undefined, */
         listfn = addextn(fname, ".lst", NULL);  /* create from first filename */
@@ -2018,20 +2015,20 @@ void proc (char *fname)
         listline[i] = ' ';
         fputs(listline, flist);
         putc('\n', flist);
-        list_on = TRUE;
+        list_on = true;
     }
                                                 /* read all lines till EOF or END statement */
-    while (get_line(line, sizeof(line), FALSE)) {
+    while (get_line(line, sizeof(line), false)) {
         prep_line(line);                        /* preform standard line prep */
         parse_line(line);                       /* parse */
-        listout(FALSE);                         /* complete the listing */
+        listout(false);                         /* complete the listing */
     }
 
     fclose(fin);
 
     if (n_literals > 0) {                       /* force out any pending literal constants at end of file */
-        output_literals(TRUE);
-        listout(FALSE);
+        output_literals(true);
+        listout(false);
     }
 }
 
@@ -2045,7 +2042,7 @@ void prep_line (char *line)
 
     upcase(line);                           /* uppercase it */
     nwout = 0;                              /* number of words output so far */
-    line_error = FALSE;                     /* no errors on this line so far */
+    line_error = false;                     /* no errors on this line so far */
 
     for (c = line; *c; c++) {               /* truncate at newline */
         if (*c == '\r' || *c == '\n') {
@@ -2087,19 +2084,19 @@ void preload_symbols (void)
     FILE *fd;
     char str[200], sym[20];
     int v;
-    static BOOL preloaded_already = FALSE;
+    static bool preloaded_already = false;
 
     if (pass > 1 || preloaded_already)
         return;
 
-    preloaded_already = TRUE;
+    preloaded_already = true;
 
     if ((fd = fopen(SYSTEM_TABLE, "r")) == NULL)                /* read the system symbol tabl */
         perror(SYSTEM_TABLE);
     else {
         while (fgets(str, sizeof(str), fd) != NULL) {
             if (sscanf(str, "%s %x", sym, &v) == 2)
-                set_symbol(sym, v, TRUE, FALSE);
+                set_symbol(sym, v, true, false);
         }
         fclose(fd);
     }
@@ -2155,10 +2152,10 @@ void startpass (int n)
     nerrors    = 0;                             /* error count */
     org        = 0;                             /* load address (origin) */
     lno        = 0;                             /* input line number */
-    relocate   = TRUE;                          /* relocatable assembly mode */
-    assembled  = FALSE;                         /* true if any output has been generated */
+    relocate   = true;                          /* relocatable assembly mode */
+    assembled  = false;                         /* true if any output has been generated */
     list_on    = do_list;                       /* listing enable */
-    dmes_saved = FALSE;                         /* partial character strings output */
+    dmes_saved = false;                         /* partial character strings output */
 
     n_literals = 0;                             /* literal values pending output */
     lit_tag    = 0;
@@ -2206,12 +2203,12 @@ void x_dc (struct tag_op *op, char *label, char *mods, char *arg)
     if (strchr(mods, 'E') != NULL)              /* force even address */
         org_even();
 
-    setw(0, org+listoffset, FALSE);             /* display org in listing line */
+    setw(0, org+listoffset, false);             /* display org in listing line */
 
     if (*label)                                 /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
-    getexpr(arg, FALSE, &expr);
+    getexpr(arg, false, &expr);
     writew(expr.value, expr.relative);          /* store value */
 }
 
@@ -2375,7 +2372,7 @@ void getDconstant (char *tok, unsigned short *wd)
     char *b, *fmt;
     double d;
     int bexp;
-    BOOL fixed = FALSE;
+    bool fixed = false;
 
     wd[0] = 0;
     wd[1] = 0;
@@ -2400,7 +2397,7 @@ void getDconstant (char *tok, unsigned short *wd)
     }
     else {
         if ((b = strchr(tok, 'B')) != NULL) {
-            fixed = TRUE;
+            fixed = true;
             bexp  = atoi(b+1);                              /* get binary exponent, after the B */
             *b    = '\0';                                   /* truncate at the B */
         }
@@ -2428,14 +2425,14 @@ void x_dec (struct tag_op *op, char *label, char *mods, char *arg)
     org_advanced = 2;                   /* assume * means address after this location, since it's +1 for dc? */
 
     org_even();                         /* even address is implied */
-    setw(0, org+listoffset, FALSE);     /* display the origin */
+    setw(0, org+listoffset, false);     /* display the origin */
 
     if (*label)                         /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     getDconstant(arg, wd);
-    writew(wd[0], FALSE);               /* write hiword, then loword */
-    writew(wd[1], FALSE);
+    writew(wd[0], false);               /* write hiword, then loword */
+    writew(wd[1], false);
 }
 
 /********************************************************************************************
@@ -2448,13 +2445,13 @@ void x_decs (struct tag_op *op, char *label, char *mods, char *arg)
 
     org_advanced = 1;                   /* assume * means address after this location */
 
-    setw(0, org+listoffset, FALSE);     /* display the origin */
+    setw(0, org+listoffset, false);     /* display the origin */
 
     if (*label)                         /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     getDconstant(arg, wd);
-    writew(wd[0], FALSE);               /* write hiword ONLY */
+    writew(wd[0], false);               /* write hiword ONLY */
 }
 
 /********************************************************************************************
@@ -2470,10 +2467,10 @@ void x_xflc (struct tag_op *op, char *label, char *mods, char *arg)
 
     org_advanced = 2;                   /* who knows? */
 
-    setw(0, org+listoffset, FALSE);     /* display the origin */
+    setw(0, org+listoffset, false);     /* display the origin */
 
     if (*label)                         /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if ((tok = strtok(arg, ",")) == NULL) { /* pick up value */
         tok = "0";                      /* if there is no argument at all, spit out a zero */
@@ -2483,7 +2480,7 @@ void x_xflc (struct tag_op *op, char *label, char *mods, char *arg)
     bexp = 0;                           /* parse the value */
     if ((b = strchr(tok, 'B')) != NULL) {
         bexp = atoi(b+1);
-        fixed = TRUE;
+        fixed = true;
         *b = '\0';                      /* truncate at the b */
         asm_warning("Fixed point extended floating constant?");
     }
@@ -2510,12 +2507,12 @@ void x_equ (struct tag_op *op, char *label, char *mods, char *arg)
 
     org_advanced = 0;                   /* * means this address, not incremented */
 
-    getexpr(arg, FALSE, &expr);
+    getexpr(arg, false, &expr);
 
     setw(0, expr.value, expr.relative); /* show this as address */
 
     if (*label)                         /* EQU is all about defining labels, better have one */
-        set_symbol(label, expr.value, TRUE, expr.relative);
+        set_symbol(label, expr.value, true, expr.relative);
 /*  else                                // IBM assembler doesn't complain about this */
 /*      asm_error("EQU without label?"); */
 }
@@ -2527,7 +2524,7 @@ void x_equ (struct tag_op *op, char *label, char *mods, char *arg)
 void x_lorg  (struct tag_op *op, char *label, char *mods, char *arg)
 {
     org_advanced = 0;                   /* * means this address (not used, though) */
-    output_literals(FALSE);             /* generate .DC's for queued literal values */
+    output_literals(false);             /* generate .DC's for queued literal values */
 }
 
 /********************************************************************************************
@@ -2570,7 +2567,7 @@ void x_call (struct tag_op *op, char *label, char *mods, char *arg)
     static struct tag_op *bsi = NULL;
 
     if (*label)                         /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if (! *arg) {
         asm_error("CALL missing argument");
@@ -2582,9 +2579,9 @@ void x_call (struct tag_op *op, char *label, char *mods, char *arg)
         return;
     }
 
-    setw(0, org+listoffset, FALSE);         /* display origin */
+    setw(0, org+listoffset, false);         /* display origin */
 
-    if (lookup_symbol(arg, FALSE) != NULL) {/* it's a defined symbol? */
+    if (lookup_symbol(arg, false) != NULL) {/* it's a defined symbol? */
         if (bsi == NULL)
             if ((bsi = lookup_op("BSI")) == NULL)
                 bail("Can't find BSI op");
@@ -2616,9 +2613,9 @@ void x_org (struct tag_op *op, char *label, char *mods, char *arg)
     org_advanced = 0;                   /* * means this address */
 
     if (*label)                         /* label is defined BEFORE the new origin is set!!! */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
-    if (getexpr(arg, FALSE, &expr) != S_DEFINED)
+    if (getexpr(arg, false, &expr) != S_DEFINED)
         return;
 
     setorg(expr.value);                 /* set origin to this value */
@@ -2635,16 +2632,16 @@ void x_end (struct tag_op *op, char *label, char *mods, char *arg)
     org_advanced = 0;                   /* * means this address */
 
     if (*arg) {                         /* they're specifing the program start address */
-        if (getexpr(arg, FALSE, &expr) == S_DEFINED)
+        if (getexpr(arg, false, &expr) == S_DEFINED)
             pta = expr.value;
     }
 
     if (*label)                         /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
-    setw(0, org+listoffset, FALSE);     /* display origin */
+    setw(0, org+listoffset, false);     /* display origin */
 
-    ended = TRUE;                       /* assembly is done, stop reading file */
+    ended = true;                       /* assembly is done, stop reading file */
 }
 
 /********************************************************************************************
@@ -2661,14 +2658,14 @@ void x_ent (struct tag_op *op, char *label, char *mods, char *arg)
         return;
 
 /*  if (*label)                         // define label */
-/*      set_symbol(label, org, TRUE, relocate); */
+/*      set_symbol(label, org, true, relocate); */
 /* */
-/*  setw(0, org+listoffset, FALSE);     // display origin */
+/*  setw(0, org+listoffset, false);     // display origin */
 
     if (! *arg)
         asm_error("No entry label specified");
 
-    else if ((s = lookup_symbol(arg, FALSE)) == NULL)
+    else if ((s = lookup_symbol(arg, false)) == NULL)
         asm_error("Entry symbol %s not defined", arg);
 
     else if (nentries >= MAXENTRIES)
@@ -2829,10 +2826,10 @@ void x_dsa  (struct tag_op *op, char *label, char *mods, char *arg)
 {
     unsigned short words[2];
 
-    setw(0, org+listoffset, FALSE);         /* display origin */
+    setw(0, org+listoffset, false);         /* display origin */
 
     if (*label)                             /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if (! *arg) {
         asm_error("DSA missing filename");
@@ -2859,10 +2856,10 @@ void x_link (struct tag_op *op, char *label, char *mods, char *arg)
     unsigned short words[2];
     char nline[128];
 
-    setw(0, org+listoffset, FALSE);         /* display origin */
+    setw(0, org+listoffset, false);         /* display origin */
 
     if (*label)                             /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if (! *arg) {
         asm_error("LINK missing program name");
@@ -2893,7 +2890,7 @@ void x_libf (struct tag_op *op, char *label, char *mods, char *arg)
     unsigned short words[2];
 
     if (*label)                             /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if (! *arg) {
         asm_error("LIBF missing argument");
@@ -2905,7 +2902,7 @@ void x_libf (struct tag_op *op, char *label, char *mods, char *arg)
         return;
     }
 
-    setw(0, org+listoffset, FALSE);         /* display origin */
+    setw(0, org+listoffset, false);         /* display origin */
 
     if (outmode == OUTMODE_BINARY) {
         namecode(words, arg);               /* emit namecode for loader */
@@ -2941,7 +2938,7 @@ void x_file (struct tag_op *op, char *label, char *mods, char *arg)
             if (strcmpi(tok, "U") != 0)
                 asm_error("Argument 4 must be the letter U");
         }
-        else if (getexpr(tok, FALSE, &vals[i]) == S_DEFINED) {
+        else if (getexpr(tok, false, &vals[i]) == S_DEFINED) {
             if (i <= 3 && vals[i].relative)
                 asm_error("Argument %d must be absolute", i+1);
             else if (pass == 2 && vals[i].value == 0)
@@ -2987,7 +2984,7 @@ void x_ces (struct tag_op *op, char *label, char *mods, char *arg)
     if (outmode != OUTMODE_LOAD)                /* this works only in our loader format */
         return;
 
-    if (getexpr(arg, FALSE, &expr) != S_DEFINED)
+    if (getexpr(arg, false, &expr) != S_DEFINED)
         return;
 
     if (pass == 2)
@@ -3008,7 +3005,7 @@ void x_bss (struct tag_op *op, char *label, char *mods, char *arg)
         expr.value = 0;
         expr.relative = ABSOLUTE;
     }
-    else if (getexpr(arg, FALSE, &expr) != S_DEFINED)
+    else if (getexpr(arg, false, &expr) != S_DEFINED)
         return;
 
     if (strchr(mods, 'E') != NULL)      /* force even address */
@@ -3017,10 +3014,10 @@ void x_bss (struct tag_op *op, char *label, char *mods, char *arg)
     if (expr.relative)
         asm_error("BSS size must be an absolute value");
 
-    setw(0, org+listoffset, FALSE);     /* display origin */
+    setw(0, org+listoffset, false);     /* display origin */
 
     if (*label)                         /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     expr.value &= 0xFFFF;               /* truncate to 16 bits */
 
@@ -3055,7 +3052,7 @@ void x_bes (struct tag_op *op, char *label, char *mods, char *arg)
         expr.value = 0;
         expr.relative = ABSOLUTE;
     }
-    else if (getexpr(arg, FALSE, &expr) != S_DEFINED)
+    else if (getexpr(arg, false, &expr) != S_DEFINED)
         return;
 
     if (strchr(mods, 'E') != NULL && (org & 1) != 0)
@@ -3068,7 +3065,7 @@ void x_bes (struct tag_op *op, char *label, char *mods, char *arg)
         asm_warning("Negative BES size");
 
     else if (expr.value > 0) {
-        setw(0, org+expr.value+listoffset, FALSE);  /* display NEW origin */
+        setw(0, org+expr.value+listoffset, false);  /* display NEW origin */
 
         if (outmode == OUTMODE_LOAD) {
             org += expr.value;          /* advance the origin */
@@ -3082,7 +3079,7 @@ void x_bes (struct tag_op *op, char *label, char *mods, char *arg)
     }
 
     if (*label)                         /* NOW define the label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 }
 
 /********************************************************************************************
@@ -3098,7 +3095,7 @@ void x_dmes (struct tag_op *op, char *label, char *mods, char *arg)
 {
     int rpt;
     char *c = opfield;
-    BOOL cont = FALSE;
+    bool cont = false;
 
     if (dmes_saved) {                   /* previous DMES had an odd character saved */
         dmes_wd = dmes_savew;
@@ -3108,10 +3105,10 @@ void x_dmes (struct tag_op *op, char *label, char *mods, char *arg)
         dmes_nc = dmes_wd = 0;          /* clear output buffer */
 
     trim(opfield);                      /* remove trailing blanks from rest of input line (use whole thing) */
-    setw(0, org+listoffset, FALSE);     /* display origin */
+    setw(0, org+listoffset, false);     /* display origin */
 
     if (*label)                         /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if (strchr(mods, '1') != NULL)      /* determine the encoding scheme */
         dmes_cs = CODESET_1403;
@@ -3155,7 +3152,7 @@ void x_dmes (struct tag_op *op, char *label, char *mods, char *arg)
 
                 case ' ':
                 case '\0':
-                    cont = TRUE;
+                    cont = true;
                     *c = '\0';                  /* end */
                     break;
 
@@ -3205,11 +3202,11 @@ badcode:                asm_error("Invalid ' escape for selected printer");
             c++;
     }
 
-    dmes_saved = FALSE;
+    dmes_saved = false;
 
     if (dmes_nc) {                              /* odd number of characters */
         if (cont) {
-            dmes_saved = TRUE;
+            dmes_saved = true;
             dmes_savew = dmes_wd;               /* save for next time */
         }
         else
@@ -3276,7 +3273,7 @@ void stuff_dmes (int ch, int rpt)
         }
         else {
             dmes_wd |= (nch & 0xFF);
-            writew(dmes_wd, FALSE);
+            writew(dmes_wd, false);
             dmes_nc = 0;
         }
     }
@@ -3290,9 +3287,9 @@ void x_ebc (struct tag_op *op, char *label, char *mods, char *arg)
 {
     char *p;
 
-/*  setw(0, org+listoffset, FALSE); */
+/*  setw(0, org+listoffset, false); */
     if (*label)
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     p = trim(opfield);                      /* remove trailing blanks from rest of input line (use whole thing) */
 
@@ -3324,10 +3321,10 @@ void x_dn (struct tag_op *op, char *label, char *mods, char *arg)
 {
     unsigned short words[2];
 
-    setw(0, org+listoffset, FALSE);         /* display origin */
+    setw(0, org+listoffset, false);         /* display origin */
 
     if (*label)                             /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     namecode(words, arg);
 
@@ -3356,7 +3353,7 @@ void x_pdmp (struct tag_op *op, char *label, char *mods, char *arg)
     int i;
 
     for (i = 0, tok = strtok(arg, ","); i < 3 && tok != NULL; i++, tok = strtok(NULL, ",")) {
-        if (getexpr(tok, FALSE, addr+i) != S_DEFINED) {
+        if (getexpr(tok, false, addr+i) != S_DEFINED) {
             addr[i].value = (i == 1) ? 0x3FFF : 0;
             addr[i].relative = ABSOLUTE;
         }
@@ -3383,11 +3380,11 @@ void x_hdng (struct tag_op *op, char *label, char *mods, char *arg)
     /* label is not entered into the symbol table */
 
     if (flist == NULL || ! list_on) {
-        line_error = TRUE;                  /* inhibit listing: don't print the HDNG statement */
+        line_error = true;                  /* inhibit listing: don't print the HDNG statement */
         return;
     }
 
-    line_error = TRUE;                      /* don't print the statement */
+    line_error = true;                      /* don't print the statement */
 
     c = skipbl(opfield);
     trim(c);
@@ -3400,20 +3397,20 @@ void x_hdng (struct tag_op *op, char *label, char *mods, char *arg)
 
 void x_list (struct tag_op *op, char *label, char *mods, char *arg)
 {
-    BOOL on;
+    bool on;
 
     /* label is not entered into the symbol table */
 
-    line_error = TRUE;          /* don't print the LIST statement */
+    line_error = true;          /* don't print the LIST statement */
 
     if (flist == NULL || ! list_on) {
         return;
     }
 
     if (strcmpi(arg, "ON") == 0)
-        on = TRUE;
+        on = true;
     else if (strcmpi(arg, "OFF") == 0)
-        on = FALSE;
+        on = false;
     else
         on = do_list;
 
@@ -3431,14 +3428,14 @@ void x_spac (struct tag_op *op, char *label, char *mods, char *arg)
     /* label is not entered into the symbol table */
 
     if (flist == NULL || ! list_on) {
-        line_error = TRUE;          /* don't print the SPAC statement */
+        line_error = true;          /* don't print the SPAC statement */
         return;
     }
 
-    if (getexpr(arg, FALSE, &expr) != S_DEFINED)
+    if (getexpr(arg, false, &expr) != S_DEFINED)
         return;
 
-    line_error = TRUE;          /* don't print the statement */
+    line_error = true;          /* don't print the statement */
 
     while (--expr.value >= 0)
         putc('\n', flist);
@@ -3453,11 +3450,11 @@ void x_ejct (struct tag_op *op, char *label, char *mods, char *arg)
     /* label is not entered into the symbol table */
 
     if (flist == NULL || ! list_on) {
-        line_error = TRUE;          /* don't print the EJCT statement */
+        line_error = true;          /* don't print the EJCT statement */
         return;
     }
 
-    line_error = TRUE;          /* don't print the statement */
+    line_error = true;          /* don't print the statement */
 
     putc('\f', flist);
 }
@@ -3494,22 +3491,22 @@ void std_op (struct tag_op *op, char *label, char *mods, char *arg)
 {
     EXPR expr;
     int opcode = basic_opcode(op, mods);
-    BOOL val_ok = FALSE;
+    bool val_ok = false;
 
     if (*label)                                     /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if (*arg && ! (op->flags & NO_ARGS)) {          /* get value argument */
-        if (getexpr(arg, FALSE, &expr) == S_DEFINED)
-            val_ok = TRUE;
+        if (getexpr(arg, false, &expr) == S_DEFINED)
+            val_ok = true;
     }
     else {
         expr.value = 0;
-        expr.relative = FALSE;
+        expr.relative = false;
     }
 
     if (opcode & OP_LONG) {                         /* two-word format, just write code and value */
-        writew(opcode, FALSE);
+        writew(opcode, false);
         writew(expr.value, expr.relative);
     }
     else {                                          /* one-word format */
@@ -3524,7 +3521,7 @@ void std_op (struct tag_op *op, char *label, char *mods, char *arg)
             expr.value = 0;
         }
 
-        writew(opcode | (expr.value & 0x00FF), FALSE);/* that's the code */
+        writew(opcode | (expr.value & 0x00FF), false);/* that's the code */
     }
 }
 
@@ -3534,12 +3531,12 @@ void std_op (struct tag_op *op, char *label, char *mods, char *arg)
 
 void mdx_op (struct tag_op *op, char *label, char *mods, char *arg)
 {
-    EXPR dest, incr = {0, FALSE};
+    EXPR dest, incr = {0, false};
     int opcode = basic_opcode(op, mods);
     char *tok;
 
     if (*label)                                     /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if ((tok = strtok(arg, ",")) == NULL) {         /* argument format is dest[,increment] */
 /*      asm_error("Destination not specified");     // seems not to be an error, IBM omits it sometimes */
@@ -3547,7 +3544,7 @@ void mdx_op (struct tag_op *op, char *label, char *mods, char *arg)
         dest.relative = ABSOLUTE;
     }
     else
-        getexpr(tok, FALSE, &dest);                 /* parse the address */
+        getexpr(tok, false, &dest);                 /* parse the address */
 
     tok = strtok(NULL, ",");                        /* look for second argument */
 
@@ -3566,7 +3563,7 @@ void mdx_op (struct tag_op *op, char *label, char *mods, char *arg)
                 incr.relative = ABSOLUTE;
             }
             else
-                getexpr(tok, FALSE, &incr);
+                getexpr(tok, false, &incr);
 
             if (incr.value < -128 || incr.value > 127)          /* displacement style (fixed in ver 1.08) */
                 asm_error("Invalid increment value (8 bits signed)");
@@ -3587,7 +3584,7 @@ void mdx_op (struct tag_op *op, char *label, char *mods, char *arg)
         if (dest.value < -128 || dest.value > 127)
             asm_error("Offset/Increment of %d is too large", dest.value);
 
-        writew(opcode | (dest.value & 0xFF), FALSE);
+        writew(opcode | (dest.value & 0xFF), false);
     }
 }
 
@@ -3634,7 +3631,7 @@ void bsc_op (struct tag_op *op, char *label, char *mods, char *arg)
     char *tok, *tests;
 
     if (*label)                                     /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if (opcode & OP_LONG) {                         /* two word format */
         if ((tok = strtok(arg, ",")) == NULL) {     /* format is BSC dest[,tests] */
@@ -3643,7 +3640,7 @@ void bsc_op (struct tag_op *op, char *label, char *mods, char *arg)
             dest.relative = ABSOLUTE;
         }
         else
-            getexpr(tok, FALSE, &dest);
+            getexpr(tok, false, &dest);
 
         tests = strtok(NULL, ",");                  /* get test characters */
     }
@@ -3682,14 +3679,14 @@ void shf_op (struct tag_op *op, char *label, char *mods, char *arg)
     int opcode = basic_opcode(op, mods);
 
     if (*label)                                     /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
 
     if (opcode & OP_INDEXED) {                      /* shift value comes from index register */
         expr.value = 0;
         expr.relative = ABSOLUTE;
     }
     else
-        getexpr(arg, FALSE, &expr);
+        getexpr(arg, false, &expr);
 
     if (expr.relative) {
         asm_error("Shift value is a relative address");
@@ -3701,7 +3698,7 @@ void shf_op (struct tag_op *op, char *label, char *mods, char *arg)
         expr.value = 0;
     }
 
-    writew(opcode | (expr.value & 0x3F), FALSE);    /* put shift count into displacement field */
+    writew(opcode | (expr.value & 0x3F), false);    /* put shift count into displacement field */
 }
 
 /********************************************************************************************
@@ -3713,7 +3710,7 @@ void x_mdm (struct tag_op *op, char *label, char *mods, char *arg)
     int opcode = basic_opcode(op, mods);
 
     if (*label)                                     /* define label */
-        set_symbol(label, org, TRUE, relocate);
+        set_symbol(label, org, true, relocate);
                                                     /* oh dear: bug here */
     asm_error("'%s' is not yet supported", op->mnem);
 }
@@ -3752,7 +3749,7 @@ void x_opt (struct tag_op *op, char *label, char *mods, char *arg)
                                         /* look for OPT arguments */
     for (tok = strtok(arg, ","); tok != NULL; tok = strtok(NULL, ",")) {
         if (strcmp(tok, "CEXPR") == 0) {
-            cexpr = TRUE;               /* use C expression precedence (untested) */
+            cexpr = true;               /* use C expression precedence (untested) */
         }
         else
             asm_error("Unknown .OPT: '%s'", tok);
@@ -3767,8 +3764,8 @@ void askip (char *target)
 {
     char nline[200], cur_label[20], *c;
 
-    while (get_line(nline, sizeof(nline), TRUE)) {  /* read next line (but don't exit a macro) */
-        listout(FALSE);                             /* end listing of previous input line */
+    while (get_line(nline, sizeof(nline), true)) {  /* read next line (but don't exit a macro) */
+        listout(false);                             /* end listing of previous input line */
 
         prep_line(nline);                           /* preform standard line prep */
 
@@ -3797,7 +3794,7 @@ void x_aif (struct tag_op *op, char *label, char *mods, char *arg)
 {
     char *target, *tok;
     EXPR expr1, expr2;
-    BOOL istrue;
+    bool istrue;
     enum {OP_EQ, OP_LT, OP_GT, OP_NE, OP_LE, OP_GE} cmp_op;
 
     /* label is not entered into the symbol table */
@@ -3818,7 +3815,7 @@ void x_aif (struct tag_op *op, char *label, char *mods, char *arg)
         return;
     }
 
-    getexpr(tok, FALSE, &expr1);
+    getexpr(tok, false, &expr1);
 
     if ((tok = strtok(NULL, whitespace)) == NULL) {
         asm_error("AIF missing conditional operator");
@@ -3847,7 +3844,7 @@ void x_aif (struct tag_op *op, char *label, char *mods, char *arg)
         return;
     }
 
-    getexpr(tok, FALSE, &expr2);
+    getexpr(tok, false, &expr2);
 
     switch (cmp_op) {                               /* test the condition */
         case OP_EQ: istrue = expr1.value == expr2.value; break;
@@ -4001,7 +3998,7 @@ jmp_buf exprjmp;
  * getexpr
  ********************************************************************************************/
 
-int getexpr (char *pc, BOOL undefined_ok, EXPR *pval)
+int getexpr (char *pc, bool undefined_ok, EXPR *pval)
 {
     symbest = S_DEFINED;            /* assume no questionable symbols */
 
@@ -4040,7 +4037,7 @@ int getexpr (char *pc, BOOL undefined_ok, EXPR *pval)
  * constant values that have accumulated.
  ********************************************************************************************/
 
-void output_literals (BOOL eof)
+void output_literals (bool eof)
 {
     char line[120], label[12], num[20];
     int i;
@@ -4059,11 +4056,11 @@ void output_literals (BOOL eof)
         format_line(line, label, literal[i].even ? "DEC" : "DC", "", num, "GENERATED LITERAL CONSTANT");
 
         if (eof) {
-            eof = FALSE;                            /* at end of file, for first literal, only prepare blank line */
+            eof = false;                            /* at end of file, for first literal, only prepare blank line */
             sprintf(listline, LEFT_MARGIN, org);
         }
         else
-            listout(TRUE);                          /* push out any pending line(s) */
+            listout(true);                          /* push out any pending line(s) */
 
         if (flist && list_on)                       /* this makes stuff appear in the listing */
             sprintf(listline, LEFT_MARGIN " %s", detab(line));
@@ -4131,8 +4128,8 @@ void a1130_term (EXPR *ap)
         UNGET;
         *t++ = '\0';
 
-        s = lookup_symbol(token, TRUE);
-        add_xref(s, FALSE);
+        s = lookup_symbol(token, true);
+        add_xref(s, false);
         ap->value    = s->value;
         ap->relative = s->relative;
 
@@ -4380,10 +4377,10 @@ void c_term (EXPR *ap)
         UNGET;
         *t++ = '\0';
 
-        s = lookup_symbol(token, TRUE);
+        s = lookup_symbol(token, true);
         ap->value = s->value;
         ap->relative = s->relative;
-        add_xref(s, FALSE);
+        add_xref(s, false);
         symbest = MIN(symbest, s->defined);     /* this goes to lowest value (undefined < provisional < defined) */
 
         if (pass == 2 && s->defined != S_DEFINED)

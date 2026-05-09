@@ -97,6 +97,7 @@
    is converted to 1.1...0 with exp+1.
 */
 
+#include <stdbool.h>
 #include "pdp8_defs.h"
 
 extern int32 int_req;
@@ -183,11 +184,11 @@ uint32 fpp_adxr (uint32 ir, uint32 base_ad);
 void fpp_add (FPN *a, FPN *b, uint32 sub);
 void fpp_mul (FPN *a, FPN *b);
 void fpp_div (FPN *a, FPN *b);
-t_bool fpp_imul (FPN *a, FPN *b);
+bool fpp_imul (FPN *a, FPN *b);
 uint32 fpp_fr_add (uint32 *c, uint32 *a, uint32 *b, uint32 cnt);
 void fpp_fr_sub (uint32 *c, uint32 *a, uint32 *b, uint32 cnt);
-void fpp_fr_mul (uint32 *c, uint32 *a, uint32 *b, t_bool fix);
-t_bool fpp_fr_div (uint32 *c, uint32 *a, uint32 *b);
+void fpp_fr_mul (uint32 *c, uint32 *a, uint32 *b, bool fix);
+bool fpp_fr_div (uint32 *c, uint32 *a, uint32 *b);
 uint32 fpp_fr_neg (uint32 *a, uint32 cnt);
 int32 fpp_fr_cmp (uint32 *a, uint32 *b, uint32 cnt);
 int32 fpp_fr_test (uint32 *a, uint32 v0, uint32 cnt);
@@ -198,10 +199,10 @@ void fpp_fr_lsh12 (uint32 *a, uint32 cnt);
 void fpp_fr_lsh1 (uint32 *a, uint32 cnt);
 void fpp_fr_rsh1 (uint32 *a, uint32 sign, uint32 cnt);
 void fpp_fr_algn (uint32 *a, uint32 sc, uint32 cnt);
-t_bool fpp_cond_met (uint32 cond);
-t_bool fpp_norm (FPN *a, uint32 cnt);
+bool fpp_cond_met (uint32 cond);
+bool fpp_norm (FPN *a, uint32 cnt);
 void fpp_round (FPN *a);
-t_bool fpp_test_xp (FPN *a);
+bool fpp_test_xp (FPN *a);
 void fpp_copy (FPN *a, FPN *b);
 void fpp_zcopy (FPN *a, FPN *b);
 void fpp_read_op (uint32 ea, FPN *a);
@@ -900,14 +901,14 @@ if ((fpp_fr_test(y.fr, 0, EXACT-1) == 0) && (y.fr[EXACT-1] < 2)) {
     y.fr[EXACT-1] = 0;
 }
 if (fpp_sta & FPS_DP) {                                 /* dp? */
-    fpp_fr_mul (z.fr, x.fr, y.fr, TRUE);                /* mult frac */
+    fpp_fr_mul (z.fr, x.fr, y.fr, true);                /* mult frac */
     z.exp = 0;                                          /* not used in DP */
     }
 else {                                                  /* fp or ep */
     fpp_norm (&x, EXACT);
     fpp_norm (&y, EXACT);
     z.exp = x.exp + y.exp;                              /* add exp */
-    fpp_fr_mul (z.fr, x.fr, y.fr, TRUE);                /* mult frac */
+    fpp_fr_mul (z.fr, x.fr, y.fr, true);                /* mult frac */
     if (fpp_norm (&z, EXTEND))                          /* norm, !exact? */
         fpp_round (&z);                                 /* round */
     fpp_copy (a, &z);
@@ -968,14 +969,14 @@ return;
 
 /* Integer multiply - returns true if overflow */
 
-t_bool fpp_imul (FPN *a, FPN *b)
+bool fpp_imul (FPN *a, FPN *b)
 {
 uint32 sext;
 FPN x, y, z;
 
 fpp_zcopy (&x, a);                                      /* copy args */
 fpp_zcopy (&y, b);
-fpp_fr_mul (z.fr, x.fr, y.fr, FALSE);                   /* mult fracs */
+fpp_fr_mul (z.fr, x.fr, y.fr, false);                   /* mult fracs */
 a->fr[0] = z.fr[1];                                     /* low 24b */
 a->fr[1] = z.fr[2];
 if ((a->fr[0] == 0) && (a->fr[1] == 0))                 /* fpp zeroes exp */
@@ -984,14 +985,14 @@ sext = (z.fr[2] & FPN_FRSIGN)? 07777: 0;
 if (((z.fr[0] | z.fr[1] | sext) != 0) &&                /* hi 25b == 0 */
     ((z.fr[0] & z.fr[1] & sext) != 07777)) {            /* or 777777774? */
     fpp_dump_apt (fpp_apta, FPS_IOVX);
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Auxiliary floating point routines */
 
-t_bool fpp_cond_met (uint32 cond)
+bool fpp_cond_met (uint32 cond)
 {
 switch (cond) {
 
@@ -1022,13 +1023,13 @@ switch (cond) {
 return 0;
 }
 
-/* Normalization - returns TRUE if rounding possible, FALSE if exact */
+/* Normalization - returns true if rounding possible, false if exact */
 
-t_bool fpp_norm (FPN *a, uint32 cnt)
+bool fpp_norm (FPN *a, uint32 cnt)
 {
 if (fpp_fr_test (a->fr, 0, cnt) == 0) {                 /* zero? */
     a->exp = 0;                                         /* clean exp */
-    return FALSE;                                       /* don't round */
+    return false;                                       /* don't round */
     }
 while (((a->fr[0] == 0) && !(a->fr[1] & 04000)) ||      /* lead 13b same? */
        ((a->fr[0] == 07777) && (a->fr[1] & 04000))) {
@@ -1042,9 +1043,9 @@ while (((a->fr[0] ^ (a->fr[0] << 1)) & FPN_FRSIGN) == 0) { /* until norm */
 if (fpp_fr_test (a->fr, 04000, EXACT) == 0) {           /* 4000...0000? */
     a->fr[0] = 06000;                                   /* chg to 6000... */
     a->exp = a->exp + 1;                                /* with exp+1 */
-    return FALSE;                                       /* don't round */
+    return false;                                       /* don't round */
     }
-return TRUE;
+return true;
 }
 
 /* Exact fp number copy */
@@ -1077,22 +1078,22 @@ a->fr[i] = 0;
 return;
 }
 
-/* Test exp for overflow or underflow, returns TRUE on trap */
+/* Test exp for overflow or underflow, returns true on trap */
 
-t_bool fpp_test_xp (FPN *a)
+bool fpp_test_xp (FPN *a)
 {
 if (a->exp > 2047) {                                /* overflow? */
     fpp_dump_apt (fpp_apta, FPS_FOVX);              /* trap */
-    return TRUE;
+    return true;
     }
 if (a->exp < -2048) {                               /* underflow? */
     if (fpp_cmd & FPC_UNFX) {                       /* trap? */
         fpp_dump_apt (fpp_apta, FPS_UNF);
-        return TRUE;
+        return true;
         }
     fpp_copy (a, &fpp_zero);                        /* flush to 0 */
     }
-return FALSE;
+return false;
 }
 
 /* Round dp/fp value */
@@ -1169,7 +1170,7 @@ return;
    If a-sign != c-sign, shift-in = result-sign
    */
 
-void fpp_fr_mul (uint32 *c, uint32 *a, uint32 *b, t_bool fix)
+void fpp_fr_mul (uint32 *c, uint32 *a, uint32 *b, bool fix)
 {
 uint32 i, cnt, lo, wc, fill, b_sign;
 
@@ -1217,7 +1218,7 @@ return;
 
 /* Fraction divide */
 
-t_bool fpp_fr_div (uint32 *c, uint32 *a, uint32 *b)
+bool fpp_fr_div (uint32 *c, uint32 *a, uint32 *b)
 {
 uint32 i, old_c, lo, cnt, sign, b_sign, addsub, limit;
 /* Number of words processed by each divide step */
@@ -1251,8 +1252,8 @@ old_c = c[0];                                       /* save ho quo */
 if (sign)                                           /* expect neg ans? */
     fpp_fr_neg (c, EXTEND);                         /* -quo */
 if (old_c & FPN_FRSIGN)                             /* sign set before */
-    return TRUE;                                    /* neg? */
-return FALSE;
+    return true;                                    /* neg? */
+return false;
 }
 
 /* Negate - 24b or 60b */

@@ -36,14 +36,15 @@
 #ifndef PDP11_TD_H
 #define PDP11_TD_H
 
+#include <stdbool.h>
 #include "sim_defs.h"
 
 typedef struct CTLR CTLR;
 
 
 t_stat td_connect_console_device (DEVICE *dptr,
-                                  void (*rx_set_int) (int32 ctlr_num, t_bool val),
-                                  void (*tx_set_int) (int32 ctlr_num, t_bool val));
+                                  void (*rx_set_int) (int32 ctlr_num, bool val),
+                                  void (*tx_set_int) (int32 ctlr_num, bool val));
 
 t_stat td_rd_i_csr (CTLR *ctlr, int32 *data);
 t_stat td_rd_i_buf (CTLR *ctlr, int32 *data);

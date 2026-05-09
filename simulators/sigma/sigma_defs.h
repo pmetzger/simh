@@ -32,6 +32,7 @@
 #ifndef SIGMA_DEFS_H_
 #define SIGMA_DEFS_H_  0
 
+#include <stdbool.h>
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -493,10 +494,10 @@ uint32 io_tdv (uint32 rn, uint32 bva);
 uint32 io_hio (uint32 rn, uint32 bva);
 uint32 io_aio (uint32 rn, uint32 bva);
 uint32 io_eval_int (void);
-t_bool io_poss_int (void);
+bool io_poss_int (void);
 uint32 io_actv_int (void);
 uint32 io_ackn_int (uint32 hireq);
-uint32 io_rels_int (uint32 hiact, t_bool arm);
+uint32 io_rels_int (uint32 hiact, bool arm);
 t_stat io_set_pint (void);
 t_stat io_init (void);
 t_stat io_set_nchan (UNIT *uptr, int32 val, const char *cptr, void *desc);

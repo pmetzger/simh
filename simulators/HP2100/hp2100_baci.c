@@ -164,6 +164,7 @@
 */
 
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
@@ -365,7 +366,7 @@ static  int32 baci_uart_tr  = CLEAR_R;                         /* UART transmitt
 static  int32 baci_uart_rr  = CLEAR_R;                         /* UART receiver register */
 static uint32 baci_uart_clk = 0;                               /* UART transmit/receive clock */
 
-static t_bool baci_enq_seen = FALSE;                           /* ENQ seen flag */
+static bool baci_enq_seen = false;                             /* ENQ seen flag */
 static uint32 baci_enq_cntr = 0;                               /* ENQ seen counter */
 
 
@@ -603,7 +604,7 @@ uint32             mask;
 INBOUND_SIGNAL     signal;
 INBOUND_SET        working_set = inbound_signals;
 SIGNALS_VALUE      outbound    = { ioNONE, 0 };
-t_bool             irq_enabled = FALSE;
+bool               irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -823,7 +824,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -956,11 +957,11 @@ return outbound;                                        /* return the outbound s
 static t_stat baci_term_svc (UNIT *uptr)
 {
 uint32 data_bits, data_mask;
-const t_bool fast_timing = (baci_term.flags & UNIT_FASTTIME) != 0;
-const t_bool is_attached = (baci_term.flags & UNIT_ATT) != 0;
+const bool fast_timing = (baci_term.flags & UNIT_FASTTIME) != 0;
+const bool is_attached = (baci_term.flags & UNIT_ATT) != 0;
 t_stat status = SCPE_OK;
-t_bool recv_loop = TRUE;
-t_bool xmit_loop = (baci_ldsc [0].xmte != 0);           /* TRUE if the transmit buffer is not full */
+bool recv_loop = true;
+bool xmit_loop = (baci_ldsc [0].xmte != 0);             /* true if the transmit buffer is not full */
 
 
 /* Transmission */
@@ -975,9 +976,9 @@ while (xmit_loop && (baci_uart_thr & IN_VALID)) {       /* valid character in UA
     baci_uart_tr = baci_uart_thr & data_mask;           /* mask data into transmitter register */
 
     if ((baci_uart_tr == ENQ) && fast_timing) {         /* char is ENQ and fast timing? */
-        baci_enq_seen = TRUE;                           /* set flag instead of transmitting */
+        baci_enq_seen = true;                           /* set flag instead of transmitting */
         baci_enq_cntr = baci_enq_cntr + 1;              /* bump ENQ counter */
-        recv_loop = FALSE;                              /* skip recv to allow time before ACK */
+        recv_loop = false;                              /* skip recv to allow time before ACK */
 
         tprintf (baci_dev, DEB_XFER, "Character ENQ absorbed internally, "
                                      "ENQ count = %d\n", baci_enq_cntr);
@@ -1021,7 +1022,7 @@ while (xmit_loop && (baci_uart_thr & IN_VALID)) {       /* valid character in UA
         }
 
     else                                                /* otherwise transmission failed */
-        xmit_loop = FALSE;                              /*   so drop out of the loop */
+        xmit_loop = false;                              /*   so drop out of the loop */
     }
 
 
@@ -1080,7 +1081,7 @@ while (recv_loop) {                                     /* OK to process? */
 
     else {                                              /* xmit or ENQ/ACK, leave char in RHR */
         baci_uart_rhr = baci_uart_rhr | IN_VALID;       /* set character valid bit */
-        recv_loop = FALSE;                              /* terminate loop */
+        recv_loop = false;                              /* terminate loop */
         }
     }
 
@@ -1088,7 +1089,7 @@ while (recv_loop) {                                     /* OK to process? */
 /* Housekeeping */
 
 if (recv_loop && baci_enq_seen) {                       /* OK to process and ENQ seen? */
-    baci_enq_seen = FALSE;                              /* reset flag */
+    baci_enq_seen = false;                              /* reset flag */
 
     tprintf (baci_dev, DEB_XFER, "Character ACK generated internally\n");
 
@@ -1159,7 +1160,7 @@ baci_ibuf = 0;                                          /* clear input buffer */
 baci_obuf = 0;                                          /* clear output buffer */
 baci_uart_rhr = CLEAR_HR;                               /* clear receiver holding register */
 
-baci_enq_seen = FALSE;                                  /* reset ENQ seen flag */
+baci_enq_seen = false;                                  /* reset ENQ seen flag */
 baci_enq_cntr = 0;                                      /* clear ENQ counter */
 
 baci_term.wait = service_time (baci_icw);               /* set terminal I/O time */
@@ -1496,7 +1497,7 @@ return data;                                            /* return character */
 static void fifo_put (uint8 ch)
 {
 uint32 index = 0;
-t_bool pass_thru;
+bool pass_thru;
 
 pass_thru = (IO_MODE == XMIT) &&                        /* pass thru if XMIT and THR empty */
             !(baci_uart_thr & IN_VALID);

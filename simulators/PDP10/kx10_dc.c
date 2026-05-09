@@ -25,6 +25,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -467,7 +468,7 @@ t_stat dc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     if (newln < dc_desc.lines) {
         for (i = newln - 1, t = 0; i < dc_desc.lines; i++)
             t = t | dc_ldsc[i].conn;
-        if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+        if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
             return SCPE_OK;
         for (i = newln - 1; i < dc_desc.lines; i++) {
             if (dc_ldsc[i].conn) {

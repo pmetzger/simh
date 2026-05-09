@@ -111,6 +111,7 @@
  * the user to press any key)!
  */
 
+#include <stdbool.h>
 #include "pdp18b_defs.h"
 #ifdef GRAPHICS2
 #include "sim_tmxr.h"
@@ -163,12 +164,12 @@ extern int32 tmxr_poll;
 extern int32 stop_inst;
 
 /* SIMH G2IN DEVICE */
-t_bool g2kb_test_done (void);
+bool g2kb_test_done (void);
 void g2kb_set_done (void);
 void g2kb_clr_done (void);
 int32 g2kb_iot (int32 dev, int32 pulse, int32 dat); /* device 043 */
 
-t_bool g2bb_test_flag (void);
+bool g2bb_test_flag (void);
 void g2bb_set_flag (void);
 void g2bb_clr_flag (void);
 int32 g2bb_iot (int32 dev, int32 pulse, int32 dat); /* device 044 */
@@ -380,7 +381,7 @@ return SCPE_OK;
 
 /* Interrupt handling routines */
 
-t_bool g2kb_test_done (void)
+bool g2kb_test_done (void)
 {
 return g2kb_done != 0;
 }
@@ -399,7 +400,7 @@ CLR_INT (G2);
 return;
 }
 
-t_bool g2bb_test_flag (void)
+bool g2bb_test_flag (void)
 {
 return g2bb_flag != 0;
 }

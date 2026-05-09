@@ -31,6 +31,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 
 #define ipc_cont_NAME    "Intel IPB/IPC Controller"
@@ -40,12 +41,12 @@
 t_stat ipc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
 t_stat ipc_cont_clr(void);
 t_stat ipc_cont_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
-uint8 ipc_cont(t_bool io, uint8 data, uint8 devnum);    /* ipc_cont*/
+uint8 ipc_cont(bool io, uint8 data, uint8 devnum);      /* ipc_cont*/
 t_stat ipc_cont_reset (DEVICE *dptr);
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 
 /* globals */
@@ -168,7 +169,7 @@ t_stat ipc_cont_reset(DEVICE *dptr)
 
 /* IPC control port functions */
 
-uint8 ipc_cont(t_bool io, uint8 data, uint8 devnum)
+uint8 ipc_cont(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */

@@ -22,6 +22,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i650_defs.h"
 
 #define UNIT_DSK       UNIT_ATTABLE | UNIT_DISABLE | UNIT_FIX
@@ -35,7 +36,7 @@
 /* Definitions */
 uint32              dsk_cmd(int opcode, int32 addr, uint16 fast);
 t_stat              dsk_srv(UNIT *);
-void                dsk_ini(UNIT *, t_bool f);
+void                dsk_ini(UNIT *, bool f);
 t_stat              dsk_reset(DEVICE *);
 t_stat              dsk_attach(UNIT *, const char *);
 t_stat              dsk_detach(UNIT *);
@@ -434,7 +435,7 @@ t_stat dsk_srv(UNIT * uptr)
     return SCPE_OK;
 }
 
-void dsk_ini(UNIT * uptr, t_bool f)
+void dsk_ini(UNIT * uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */

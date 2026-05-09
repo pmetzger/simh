@@ -10,6 +10,7 @@
 #ifndef SCP_EXPR_H
 #define SCP_EXPR_H
 
+#include <stdbool.h>
 #include "sim_defs.h"
 
 /* Install the active argument vector used for $-style substitutions. */
@@ -17,6 +18,6 @@ void scp_set_exp_argv(char **argv);
 
 /* Evaluate one SCP expression and return the unconsumed remainder. */
 const char *sim_eval_expression(const char *cptr, t_svalue *value,
-                                t_bool parens_required, t_stat *stat);
+                                bool parens_required, t_stat *stat);
 
 #endif

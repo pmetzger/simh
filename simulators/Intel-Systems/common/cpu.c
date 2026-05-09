@@ -29,6 +29,7 @@
     5 October 2017 - Original file.
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 /* function prototypes */
@@ -50,7 +51,7 @@ extern t_stat i8080_reset (DEVICE *dptr);   /* reset the 8080 emulator */
 extern uint8 EPROM_get_mbyte(uint16 addr, uint8 devnum);
 extern uint8 multibus_get_mbyte(uint16 addr);
 extern void multibus_put_mbyte(uint16 addr, uint8 val);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 extern t_stat i3214_cfg(uint16 base, uint16 devnum, uint8 dummy);
 

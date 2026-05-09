@@ -39,6 +39,7 @@
  */
 
 #include "sim_video.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "ws.h"
@@ -153,7 +154,7 @@ map_key(int k)
 static void
 key_to_ascii (SIM_KEY_EVENT *kev)
 {
-    static t_bool k_ctrl, k_shift, k_alt, k_win;
+    static bool k_ctrl, k_shift, k_alt, k_win;
 
 #define MODKEY(L, R, mod)   \
     case L: case R: mod = (kev->state != SIM_KEYPRESS_UP); break;

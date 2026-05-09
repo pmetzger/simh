@@ -104,6 +104,7 @@
    mark character in the first character position of a record.
 */
 
+#include <stdbool.h>
 #include "i1401_defs.h"
 #include "sim_tape.h"
 
@@ -281,7 +282,7 @@ t_stat mt_io (int32 unit, int32 flag, int32 mod)
 int32 t, wm_seen;
 t_mtrlnt i, tbc;
 t_stat st;
-t_bool passed_eot;
+bool passed_eot;
 UNIT *uptr;
 
 if ((uptr = mt_sel_unit (unit)) == NULL)                /* sel unit, save */

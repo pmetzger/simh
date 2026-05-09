@@ -9,6 +9,7 @@
 // SPDX-FileCopyrightText: 1993-2022 Robert M Supnik
 // SPDX-License-Identifier: MIT
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "scp.h"
 
@@ -143,7 +144,7 @@ t_stat sim_register_internal_device(DEVICE *dptr)
 }
 
 /* Return whether a device is currently disabled. */
-t_bool qdisable(DEVICE *dptr)
+bool qdisable(DEVICE *dptr)
 {
     return ((dptr->flags & DEV_DIS) != 0);
 }

@@ -8,6 +8,7 @@
 // SPDX-FileCopyrightText: 1993-2022 Robert M Supnik
 // SPDX-License-Identifier: MIT
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "scp.h"
 
@@ -57,7 +58,7 @@ static void delete_Stack(Stack *sp)
 }
 
 /* Check whether the given expression stack currently holds any values. */
-static t_bool isempty_Stack(Stack *this_Stack)
+static bool isempty_Stack(Stack *this_Stack)
 {
     return (this_Stack->pointer == 0);
 }
@@ -74,13 +75,13 @@ static Stack *new_Stack(void)
 }
 
 /* Pop the top stack element into the provided data and operator slots. */
-static t_bool pop_Stack(Stack *this_Stack, char *data, Operator **op)
+static bool pop_Stack(Stack *this_Stack, char *data, Operator **op)
 {
     *op = NULL;
     *data = '\0';
 
     if (isempty_Stack(this_Stack))
-        return FALSE;
+        return false;
 
     strcpy(data, this_Stack->elements[this_Stack->pointer - 1].data);
     *op = this_Stack->elements[this_Stack->pointer - 1].op;
@@ -94,14 +95,14 @@ static t_bool pop_Stack(Stack *this_Stack, char *data, Operator **op)
         sim_debug(SIM_DBG_EXP_STACK, &sim_scp_dev, "[Stack %d - Popping %s]\n",
                   this_Stack->id, data);
 
-    return TRUE;
+    return true;
 }
 
 /* Push a value or operator onto the specified stack. */
-static t_bool push_Stack(Stack *this_Stack, char *data, Operator *op)
+static bool push_Stack(Stack *this_Stack, char *data, Operator *op)
 {
     if (this_Stack == NULL)
-        return FALSE;
+        return false;
 
     if (this_Stack->pointer == this_Stack->size) {
         this_Stack->size += STACK_GROW_AMOUNT;
@@ -125,14 +126,14 @@ static t_bool push_Stack(Stack *this_Stack, char *data, Operator *op)
         sim_debug(SIM_DBG_EXP_STACK, &sim_scp_dev, "[Stack %d - Pushing %s]\n",
                   this_Stack->id, data);
 
-    return TRUE;
+    return true;
 }
 
 /* Peek at the top element of a stack without removing it. */
-static t_bool top_Stack(Stack *this_Stack, char *data, Operator **op)
+static bool top_Stack(Stack *this_Stack, char *data, Operator **op)
 {
     if (isempty_Stack(this_Stack))
-        return FALSE;
+        return false;
 
     strcpy(data, this_Stack->elements[this_Stack->pointer - 1].data);
     *op = this_Stack->elements[this_Stack->pointer - 1].op;
@@ -145,7 +146,7 @@ static t_bool top_Stack(Stack *this_Stack, char *data, Operator **op)
         sim_debug(SIM_DBG_EXP_STACK, &sim_scp_dev, "[Stack %d - Topping %s]\n",
                   this_Stack->id, data);
 
-    return TRUE;
+    return true;
 }
 
 static t_svalue _op_add(t_svalue augend, t_svalue addend)
@@ -400,7 +401,7 @@ static const char *get_glyph_exp(const char *cptr, char *buf, Operator **oper,
     } else {
         if ((*cptr == '"') || (*cptr == '\'')) {
             cptr = (const char *)get_glyph_gen(
-                cptr, buf, 0, ((sim_switches & SWMASK('I')) != 0), TRUE, '\\');
+                cptr, buf, 0, ((sim_switches & SWMASK('I')) != 0), true, '\\');
         } else {
             Operator *op;
 
@@ -425,7 +426,7 @@ static const char *get_glyph_exp(const char *cptr, char *buf, Operator **oper,
 
 /* Convert one infix expression string into postfix form on stack1. */
 static const char *sim_into_postfix(Stack *stack1, const char *cptr,
-                                    t_stat *stat, t_bool parens_required)
+                                    t_stat *stat, bool parens_required)
 {
     const char *last_cptr;
     int parens = 0;
@@ -517,7 +518,7 @@ static const char *sim_into_postfix(Stack *stack1, const char *cptr,
 }
 
 /* Resolve one token into either a numeric value or a string representation. */
-static t_bool _value_of(const char *data, t_svalue *svalue, char *string,
+static bool _value_of(const char *data, t_svalue *svalue, char *string,
                         size_t string_size)
 {
     const char *gptr;
@@ -554,7 +555,7 @@ static t_bool _value_of(const char *data, t_svalue *svalue, char *string,
             sprint_val(string, *svalue, 10, string_size - 1, PV_LEFTSIGN);
             sim_debug(SIM_DBG_EXP_EVAL, &sim_scp_dev, "[Value: %s=%s]\n", data,
                       string);
-            return TRUE;
+            return true;
         }
         gptr = _sim_get_env_special(data, string, string_size - 1);
         if (NULL != gptr) {
@@ -613,12 +614,12 @@ static t_svalue sim_eval_postfix(Stack *stack1, t_stat *stat)
     while (!isempty_Stack(stack2)) {
         pop_Stack(stack2, temp_data, &temp_op);
         if (temp_op) {
-            t_bool num1;
+            bool num1;
             t_svalue val1;
             char item1[CBUFSIZE];
             char string1[CBUFSIZE + 2];
             Operator *op1;
-            t_bool num2;
+            bool num2;
             t_svalue val2;
             char item2[CBUFSIZE];
             char string2[CBUFSIZE + 2];
@@ -670,7 +671,7 @@ void scp_set_exp_argv(char **argv)
 
 /* Evaluate one SCP expression and return the remaining unparsed text. */
 const char *sim_eval_expression(const char *cptr, t_svalue *value,
-                                t_bool parens_required, t_stat *stat)
+                                bool parens_required, t_stat *stat)
 {
     const char *iptr = cptr;
     Stack *postfix = new_Stack();

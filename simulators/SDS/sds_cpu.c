@@ -134,6 +134,7 @@
         sds_sys.c       add pointer to data structures to sim_devices
 */
 
+#include <stdbool.h>
 #include "sds_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -170,7 +171,7 @@ uint32 int_req = 0;                                     /* int requests */
 uint32 int_reqhi = 0;                                   /* highest int request */
 uint32 api_lvl = 0;                                     /* api active */
 uint32 api_lvlhi = 0;                                   /* highest api active */
-t_bool chan_req;                                        /* chan request */
+bool chan_req;                                          /* chan request */
 uint32 cpu_mode = NML_MODE;                             /* normal mode */
 uint32 mon_usr_trap = 0;                                /* mon-user trap */
 uint32 EM2 = 2, EM3 = 3;                                /* extension registers */
@@ -200,7 +201,7 @@ int32 rtc_tps = 60;                                     /* rtc ticks/sec */
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
 t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
@@ -226,7 +227,7 @@ t_stat rtc_reset (DEVICE *dptr);
 t_stat rtc_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
-extern t_bool io_init (void);
+extern bool io_init (void);
 extern t_stat op_wyim (uint32 inst, uint32 *dat);
 extern t_stat op_miwy (uint32 inst, uint32 dat);
 extern t_stat op_pin (uint32 *dat);
@@ -1551,15 +1552,15 @@ return SCPE_OK;
 
 /* For Next command, determine if should use breakpoints
    to step over a subroutine branch or POP or SYSPOP.  Return
-   TRUE if so with a list of addresses where dynamic (temporary)
+   true if so with a list of addresses where dynamic (temporary)
    breakpoints should be set.
 */
 typedef enum Next_Case {      /*    Next            Next Atomic         Next Forward */
-    Next_BadOp  = 0,          /*    FALSE           FALSE               FALSE        */
-    Next_Branch,              /*    FALSE           EA                  FALSE        */
+    Next_BadOp  = 0,          /*    false           false               false        */
+    Next_Branch,              /*    false           EA                  false        */
     Next_BRM,                 /*    P+1,P+2,P+3     EA+1,P+1,P+2,P+3    P+1,P+2,P+3  */
-    Next_BRX,                 /*    FALSE           EA,P+1              P+1          */
-    Next_Simple,              /*    FALSE           P+1                 P+1          */
+    Next_BRX,                 /*    false           EA,P+1              P+1          */
+    Next_Simple,              /*    false           P+1                 P+1          */
     Next_POP,                 /*    P+1,P+2         100+OP,P+1,P+2      P+1,P+2      */
     Next_Skip,                /*    P+1,P+2         P+1,P+2             P+1,P+2      */
     Next_EXU                  /*      ??              ??                  ??         */
@@ -1583,7 +1584,7 @@ Next_Case Op_Cases[64] = {
  Next_Skip,     Next_Simple,    Next_Skip,      Next_Skip,      /*  SKM LDX SKA SKG  */
  Next_Skip,     Next_Simple,    Next_Simple,    Next_Simple };  /*  SKD LDB LDA EAX  */
 
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 {
 static t_addr returns[10];
 uint32 inst;
@@ -1598,7 +1599,7 @@ atomic = sim_switches & SWMASK('A');
 forward = sim_switches & SWMASK('F');
 
 if (Read (P, &inst) != SCPE_OK)         /* get instruction */
-    return FALSE;
+    return false;
 
 Exu_Loop:
 if (I_POP & inst) {                     /* determine inst case */
@@ -1619,21 +1620,21 @@ switch (op_case) {
         *return_p++ = (P + 3) & VA_MASK;
         if (atomic) {
             if (Ea (inst, &va) != SCPE_OK)
-                return FALSE;
+                return false;
             *return_p++ = (va + 1) & VA_MASK;
         }
         break;
     case Next_Branch:
         if (atomic) {
             if (Ea (inst, &va) != SCPE_OK)
-                return FALSE;
+                return false;
             *return_p++ = va & VA_MASK;
         }
         break;
     case Next_BRX:
         if (atomic) {
             if (Ea (inst, &va) != SCPE_OK)
-                return FALSE;
+                return false;
             *return_p++ = va & VA_MASK;
         }
         /* -- fall through to Next_Simple case -- */
@@ -1651,18 +1652,18 @@ switch (op_case) {
         break;
     case Next_EXU:                          /* execute inst at EA */
         if (++exu_cnt > exu_lim)            /* too many? */
-            return FALSE;
+            return false;
         if (Ea (inst, &va) != SCPE_OK)      /* decode eff addr */
-            return FALSE;
+            return false;
         if (Read (va, &inst) != SCPE_OK)    /* get operand */
-            return FALSE;
+            return false;
         goto Exu_Loop;
     }
 if (return_p == returns)            /* if no cases added, */
-    return FALSE;                   /*  return FALSE      */
+    return false;                   /*  return false      */
 else
     *return_p = (t_addr)0;          /* else append terminator */
-return TRUE;                        /*  and return TRUE       */
+return true;                        /*  and return true       */
 }
 
 /* Memory examine */
@@ -1721,7 +1722,7 @@ if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 037777) != 0))
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i++)
     mc = mc | M[i];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE; i++)

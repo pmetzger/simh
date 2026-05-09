@@ -80,6 +80,7 @@
 #include "pdp18b_defs.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #define UNIT_V_RASCII   (UNIT_V_UF + 0)                 /* reader ASCII */
 #define UNIT_RASCII     (1 << UNIT_V_RASCII)
@@ -161,7 +162,7 @@ t_stat ptr_boot (int32 unitno, DEVICE *dptr);
 t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
-int32 clk_task_upd (t_bool clr);
+int32 clk_task_upd (bool clr);
 
 extern int32 upd_iors (void);
 
@@ -448,7 +449,7 @@ t = sim_rtc_calb (clk_tps);                             /* calibrate clock */
 tmxr_poll = t;                                          /* set mux poll */
 sim_activate_after (uptr, 1000000/clk_tps);             /* reactivate unit */
 #if defined (PDP15)
-clk_task_upd (FALSE);                                   /* update task timer */
+clk_task_upd (false);                                   /* update task timer */
 #endif
 if (clk_state) {                                        /* clock on? */
     M[7] = (M[7] + 1) & DMASK;                          /* incr counter */
@@ -467,7 +468,7 @@ return SCPE_OK;
    reading.  The timer is also updated at clock events to keep the cycle
    counters from wrapping around more than once between updates. */
 
-int32 clk_task_upd (t_bool clr)
+int32 clk_task_upd (bool clr)
 {
 uint32 delta, val, iusec10;
 uint32 cur = sim_grtime ();

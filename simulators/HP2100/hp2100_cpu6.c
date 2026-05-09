@@ -359,6 +359,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -434,7 +435,7 @@ typedef enum {
    will be the system map when we are called, and memory protect will be off.
 */
 
-static void save_regs (t_bool int_ack)
+static void save_regs (bool int_ack)
 {
 HP_WORD save_area, priv_fence;
 
@@ -502,7 +503,7 @@ WriteW (mptfl, 1);                                      /* show MP is off */
 
 if (CIR != MPPE) {                                      /* only if not MP interrupt */
     io_control (CIR, iog_CLF);                          /* issue CLF to device */
-    save_regs (TRUE);                                   /* save CPU registers */
+    save_regs (true);                                   /* save CPU registers */
     }
 
 return;
@@ -614,7 +615,7 @@ else
        execution of the "dual use" instructions by testing the CPU flag.
        Interrupt vectoring sets the flag; a normal instruction fetch clears it.
        Under simulation, interrupt vectoring is indicated by the value of the
-       "int_ack" parameter (FALSE = normal instruction, TRUE = interrupt
+       "int_ack" parameter (false = normal instruction, true = interrupt
        acknowledge instruction).
 
     2. The operand patterns for .ENTN and .ENTC normally would be coded as
@@ -682,7 +683,7 @@ static const OP_PAT op_os [16] = {
   OP_N,    OP_N,    OP_N,    OP_N                       /* .ENTN  $OTST  .ENTC  .DSPI  */
   };
 
-t_stat cpu_rte_os (t_bool int_ack)
+t_stat cpu_rte_os (bool int_ack)
 {
 static const char * const no      [2] = { "",     "no " };
 static const char * const not     [2] = { "not ", ""    };
@@ -695,7 +696,7 @@ uint32  i, irq;
 HP_WORD entry, count, cp, sa, da, ma, eqta;
 HP_WORD vectors, save_area, priv_fence, eoreg, eqt, key;
 char    test [6], target [6];
-t_bool  mpv;
+bool    mpv;
 t_stat  reason = SCPE_OK;
 
 entry = IR & 017;                                       /* mask to entry point */
@@ -743,7 +744,7 @@ switch (entry) {                                        /* decode IR<3:0> */
 
         if (count == 0) {                               /* end of priv mode? */
             meu_set_state (ME_Enabled, System_Map);     /* set system map */
-            save_regs (FALSE);                          /* save registers */
+            save_regs (false);                          /* save registers */
             vectors = ReadW (vctr);                     /* get address of vectors */
             PR = ReadW (vectors + lxnd_offset);         /* vector to $LXND for processing */
             }
@@ -821,7 +822,7 @@ switch (entry) {                                        /* decode IR<3:0> */
         for (i = 0; i < count; i++) {
             MR = ReadW (PR);                            /* get operand address */
 
-            reason = cpu_resolve_indirects (TRUE);      /* resolve indirects */
+            reason = cpu_resolve_indirects (true);      /* resolve indirects */
 
             if (reason != SCPE_OK) {                    /* resolution failed? */
                 PR = err_PR;                            /* IRQ restarts instruction */
@@ -982,7 +983,7 @@ switch (entry) {                                        /* decode IR<3:0> */
                 MR = ReadW (sa);                        /* get addr of actual */
                 sa = (sa + 1) & LA_MASK;                /* increment address */
 
-                reason = cpu_resolve_indirects (TRUE);  /* resolve indirects */
+                reason = cpu_resolve_indirects (true);  /* resolve indirects */
 
                 if (reason != SCPE_OK) {                /* resolution failed? */
                     PR = err_PR;                        /* irq restarts instruction */
@@ -1007,7 +1008,7 @@ switch (entry) {                                        /* decode IR<3:0> */
             vectors = ReadW (vctr);                     /* get address of vectors (in SMAP) */
 
             if (mpv) {                                  /* MP/DMS violation */
-                save_regs (TRUE);                       /* save registers */
+                save_regs (true);                       /* save registers */
                 PR = ReadW (vectors + rqst_offset);     /* vector to $RQST for processing */
                 }
 

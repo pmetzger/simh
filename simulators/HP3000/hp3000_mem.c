@@ -162,6 +162,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_mem.h"
@@ -280,11 +281,11 @@ else {                                                  /* otherwise */
    The array of MEMORY_WORDs that represent the main memory of the HP 3000
    system is allocated and initialized to zero if the global pointer M has not
    been set.  The number of words to be allocated is supplied.  The routine
-   returns TRUE if the allocation was successful or memory had already been
-   allocated earlier, or FALSE if the allocation failed.
+   returns true if the allocation was successful or memory had already been
+   allocated earlier, or false if the allocation failed.
 */
 
-t_bool mem_initialize (uint32 memory_size)
+bool mem_initialize (uint32 memory_size)
 {
 if (M == NULL)                                          /* if memory has not been allocated */
     M = (MEMORY_WORD *) calloc (memory_size,            /*   then allocate the maximum amount of memory needed */
@@ -298,19 +299,19 @@ return (M != NULL);
 
    A range of memory locations is checked for the presence of a non-zero value.
    The starting address of the range is supplied, and the check continues
-   through the end of defined memory.  The routine returns TRUE if the memory
-   range was empty (i.e., contained only zero values) and FALSE otherwise.
+   through the end of defined memory.  The routine returns true if the memory
+   range was empty (i.e., contained only zero values) and false otherwise.
 */
 
-t_bool mem_is_empty (uint32 starting_address)
+bool mem_is_empty (uint32 starting_address)
 {
 uint32 address;
 
 for (address = starting_address; address < MEMSIZE; address++)  /* loop through the specified address range */
     if (M [address] != NOP)                                     /* if this location is non-zero */
-        return FALSE;                                           /*   then indicate that memory is not empty */
+        return false;                                           /*   then indicate that memory is not empty */
 
-return TRUE;                                            /* return TRUE if all locations contain zero values */
+return true;                                            /* return true if all locations contain zero values */
 }
 
 
@@ -336,9 +337,9 @@ return;
 /* Read a word from memory.
 
    Read and return a word from memory at the indicated offset and implied bank.
-   If the access succeeds, the routine returns TRUE.  If the accessed word is
+   If the access succeeds, the routine returns true.  If the accessed word is
    outside of physical memory, the Illegal Address interrupt flag is set for
-   CPU accesses, the value is set to 0, and the routine returns FALSE.  If
+   CPU accesses, the value is set to 0, and the routine returns false.  If
    access checking is requested, and the check fails, a Bounds Violation trap is
    taken.
 
@@ -381,7 +382,7 @@ return;
        "_checked" versions of the desired access classifications.
 */
 
-t_bool mem_read (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD *value)
+bool mem_read (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD *value)
 {
 uint32 bank, address;
 
@@ -401,7 +402,7 @@ if (address >= MEMSIZE) {                               /* if this access is bey
         CPX1 |= cpx1_ILLADDR;                           /*     then set the Illegal Address interrupt */
 
     *value = 0;                                         /* return a zero value */
-    return FALSE;                                       /*   and indicate failure to the caller */
+    return false;                                       /*   and indicate failure to the caller */
     }
 
 else {                                                  /* otherwise the access is within the memory range */
@@ -466,7 +467,7 @@ else {                                                  /* otherwise the access 
               mem_access [classification].name,
               mem_access [classification].debug_flag == DEB_MDATA ? " read" : "");
 
-    return TRUE;                                        /* indicate success with the returned value stored */
+    return true;                                        /* indicate success with the returned value stored */
     }
 }
 
@@ -474,9 +475,9 @@ else {                                                  /* otherwise the access 
 /* Write a word to memory.
 
    Write a word to memory at the indicated offset and implied bank.  If the
-   write succeeds, the routine returns TRUE.  If the accessed location is outside
+   write succeeds, the routine returns true.  If the accessed location is outside
    of physical memory, the Illegal Address interrupt flag is set for CPU
-   accesses, the write is ignored, and the routine returns FALSE.  If access
+   accesses, the write is ignored, and the routine returns false.  If access
    checking is requested, and the check fails, a Bounds Violation trap is taken.
 
    For data and stack accesses, there are three cases, depending on the
@@ -512,7 +513,7 @@ else {                                                  /* otherwise the access 
        through.
 */
 
-t_bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD value)
+bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD value)
 {
 uint32 bank, address;
 
@@ -531,7 +532,7 @@ if (address >= MEMSIZE) {                               /* if this access is bey
     if (dptr == &cpu_dev)                               /*   then if an interrupt is requested */
         CPX1 |= cpx1_ILLADDR;                           /*     then set the Illegal Address interrupt */
 
-    return FALSE;                                       /* indicate failure to the caller */
+    return false;                                       /* indicate failure to the caller */
     }
 
 else {                                                  /* otherwise the access is within the memory range */
@@ -574,7 +575,7 @@ else {                                                  /* otherwise the access 
         case program:
         case program_checked:                           /* these classes cannot be used for writing */
             CPX1 |= cpx1_ADDRPAR;                       /*   so set an Address Parity Error interrupt */
-            return FALSE;                               /*     and indicate failure to the caller */
+            return false;                               /*     and indicate failure to the caller */
 
         }                                               /* all cases are handled */
 
@@ -582,7 +583,7 @@ else {                                                  /* otherwise the access 
               BOV_FORMAT "  %s write\n", bank, offset, value,
               mem_access [classification].name);
 
-    return TRUE;                                        /* indicate success with the value written */
+    return true;                                        /* indicate success with the value written */
     }
 }
 
@@ -620,7 +621,7 @@ else {                                                  /* otherwise the access 
 void mem_init_byte (BYTE_ACCESS *bap, ACCESS_CLASS class, HP_WORD *byte_offset, uint32 block_length)
 {
 bap->class = INVERT_CHECK (class);                      /* invert the access check for succeeding calls */
-bap->write_needed = FALSE;                              /*   and clear the word buffer occupation flag */
+bap->write_needed = false;                              /*   and clear the word buffer occupation flag */
 
 bap->byte_offset = byte_offset;                         /* save the pointer to the relative byte offset variable */
 bap->first_byte_offset = *byte_offset;                  /*   and initialize the lowest byte offset */
@@ -778,7 +779,7 @@ if (*bap->byte_offset & 1) {                            /* if the byte offset is
 
 else {                                                      /* otherwise */
     if (bap->write_needed) {                                /*   if the buffer is occupied */
-        bap->write_needed = FALSE;                          /*     then mark it written */
+        bap->write_needed = false;                          /*     then mark it written */
         cpu_write_memory (bap->class, bap->word_address,    /*        and write the word back */
                           bap->data_word);
         }
@@ -823,13 +824,13 @@ if (*bap->byte_offset & 1) {                                /* if the byte offse
     bap->data_word = REPLACE_LOWER (bap->data_word, byte);  /* replace the lower byte */
     cpu_write_memory (bap->class, bap->word_address,        /*   and write the word to memory */
                       bap->data_word);
-    bap->write_needed = FALSE;                              /* clear the occupancy flag */
+    bap->write_needed = false;                              /* clear the occupancy flag */
     }
 
 else {                                                      /* otherwise the offset is even */
     bap->word_address = bap->word_address + 1 & LA_MASK;    /*   so update the word address */
     bap->data_word = REPLACE_UPPER (bap->data_word, byte);  /* replace the upper byte */
-    bap->write_needed = TRUE;                               /*   and set the occupancy flag */
+    bap->write_needed = true;                               /*   and set the occupancy flag */
     }
 
 *bap->byte_offset = *bap->byte_offset + 1 & LA_MASK;        /* update the byte offset */
@@ -852,14 +853,14 @@ void mem_modify_byte (BYTE_ACCESS *bap, uint8 byte)
 {
 if (*bap->byte_offset & 1) {                                /* if the last byte offset was even */
     bap->data_word = REPLACE_UPPER (bap->data_word, byte);  /*   then replace the upper byte */
-    bap->write_needed = TRUE;                               /*     and set the occupancy flag */
+    bap->write_needed = true;                               /*     and set the occupancy flag */
     }
 
 else {                                                      /* otherwise the last offset was odd */
     bap->data_word = REPLACE_LOWER (bap->data_word, byte);  /*   so replace the lower byte */
     cpu_write_memory (bap->class, bap->word_address,        /* write the word back */
                       bap->data_word);
-    bap->write_needed = FALSE;                              /* clear the occupancy flag */
+    bap->write_needed = false;                              /* clear the occupancy flag */
     }
 
 return;
@@ -886,7 +887,7 @@ return;
 void mem_post_byte (BYTE_ACCESS *bap)
 {
 if (bap->write_needed) {                                /* if the buffer needs to be written */
-    bap->write_needed = FALSE;                          /*   then clear the occupancy flag */
+    bap->write_needed = false;                          /*   then clear the occupancy flag */
     cpu_write_memory (bap->class, bap->word_address,    /*     and write the word to memory */
                       bap->data_word);
     }
@@ -913,7 +914,7 @@ void mem_update_byte (BYTE_ACCESS *bap)
 HP_WORD target_word;
 
 if (bap->write_needed) {                                /* if the buffer needs to be written */
-    bap->write_needed = FALSE;                          /*   then clear the occupancy flag */
+    bap->write_needed = false;                          /*   then clear the occupancy flag */
 
     cpu_read_memory (bap->class, bap->word_address, &target_word);      /* read the data word */
     bap->data_word = REPLACE_LOWER (bap->data_word, target_word);       /*   and replace the lower byte */

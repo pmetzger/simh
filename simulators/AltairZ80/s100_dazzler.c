@@ -29,6 +29,7 @@
    Console.
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_video.h"
 
@@ -254,7 +255,7 @@ static t_stat daz_reset(DEVICE *dptr)
     t_stat r = SCPE_OK;
 
     if (dptr->flags & DEV_DIS) {
-        sim_map_resource(daz_ctx.pnp.io_base, daz_ctx.pnp.io_size, RESOURCE_TYPE_IO, &daz_io, "dazio", TRUE);
+        sim_map_resource(daz_ctx.pnp.io_base, daz_ctx.pnp.io_size, RESOURCE_TYPE_IO, &daz_io, "dazio", true);
 
         sim_cancel(&daz_unit);
 
@@ -262,7 +263,7 @@ static t_stat daz_reset(DEVICE *dptr)
             return daz_close_video();
         }
     } else {
-        r = sim_map_resource(daz_ctx.pnp.io_base, daz_ctx.pnp.io_size, RESOURCE_TYPE_IO, &daz_io, "dazio", FALSE);
+        r = sim_map_resource(daz_ctx.pnp.io_base, daz_ctx.pnp.io_size, RESOURCE_TYPE_IO, &daz_io, "dazio", false);
 
         if (daz_vptr == NULL) {
             daz_open_video();
@@ -768,9 +769,9 @@ static t_stat js1_reset(DEVICE *dptr)
     t_stat r = SCPE_OK;
 
     if (dptr->flags & DEV_DIS) {
-        sim_map_resource(js1_ctx.pnp.io_base, js1_ctx.pnp.io_size, RESOURCE_TYPE_IO, &js1_io, "js1io", TRUE);
+        sim_map_resource(js1_ctx.pnp.io_base, js1_ctx.pnp.io_size, RESOURCE_TYPE_IO, &js1_io, "js1io", true);
     } else {
-        r = sim_map_resource(js1_ctx.pnp.io_base, js1_ctx.pnp.io_size, RESOURCE_TYPE_IO, &js1_io, "js1io", FALSE);
+        r = sim_map_resource(js1_ctx.pnp.io_base, js1_ctx.pnp.io_size, RESOURCE_TYPE_IO, &js1_io, "js1io", false);
     }
 
     return r;

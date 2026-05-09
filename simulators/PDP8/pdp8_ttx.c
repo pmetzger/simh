@@ -61,6 +61,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 #define TTX_MAXL        16
 #define TTX_INIL        4
@@ -507,7 +508,7 @@ if (newln == 0)
 if (newln < ttx_lines) {
     for (i = newln, t = 0; i < ttx_lines; i++)
         t = t | ttx_ldsc[i].conn;
-    if (t && !get_yn ("This will disconnect users; proceed [N]?", FALSE))
+    if (t && !get_yn ("This will disconnect users; proceed [N]?", false))
         return SCPE_OK;
     for (i = newln; i < ttx_lines; i++) {
         if (ttx_ldsc[i].conn) {

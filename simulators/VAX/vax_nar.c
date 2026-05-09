@@ -26,12 +26,13 @@
    nar          Network address ROM
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_ether.h"
 
 uint32 nar[NARSIZE];                                    /* network address ROM */
 ETH_MAC nar_mac = {0x08, 0x00, 0x2B, 0xCC, 0xDD, 0xEE};
-t_bool nar_init = FALSE;
+bool nar_init = false;
 
 int32 nar_rd (int32 pa);
 t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
@@ -162,7 +163,7 @@ uint16 i, c, w;
 t_stat r;
 
 if (!nar_init) {                                        /* set initial MAC */
-    nar_init = TRUE;
+    nar_init = true;
     r = eth_mac_scan (nar_mac, "08:00:2B:00:00:00/24");
     if (r != SCPE_OK)
         return r;

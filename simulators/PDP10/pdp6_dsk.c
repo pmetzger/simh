@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_DSK
@@ -134,7 +135,7 @@ t_stat          dsk_svc(UNIT *);
 t_stat          dsk_boot(int32, DEVICE *);
 t_stat          dsk_set_dct (UNIT *, int32, const char *, void *);
 t_stat          dsk_show_dct (FILE *, UNIT *, int32, const void *);
-void            dsk_ini(UNIT *, t_bool);
+void            dsk_ini(UNIT *, bool);
 t_stat          dsk_reset(DEVICE *);
 t_stat          dsk_attach(UNIT *, const char *);
 t_stat          dsk_detach(UNIT *);

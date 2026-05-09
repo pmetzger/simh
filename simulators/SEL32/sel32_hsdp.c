@@ -21,6 +21,7 @@
    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 
 /* uncomment to use fast sim_activate times when running UTX */
@@ -527,7 +528,7 @@ t_stat  hsdp_rsctl(UNIT *uptr);
 t_stat  hsdp_iocl(CHANP *chp, int32 tic_ok);
 t_stat  hsdp_srv(UNIT *);
 t_stat  hsdp_boot(int32 unitnum, DEVICE *);
-void    hsdp_ini(UNIT *, t_bool);
+void    hsdp_ini(UNIT *, bool);
 t_stat  hsdp_reset(DEVICE *);
 t_stat  hsdp_attach(UNIT *, const char *);
 t_stat  hsdp_detach(UNIT *);
@@ -592,7 +593,7 @@ DIB             dpa_dib = {
     hsdp_rsctl,     /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     NULL,           /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     hsdp_iocl,      /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    hsdp_ini,       /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    hsdp_ini,       /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     dpa_unit,       /* UNIT* units */                           /* Pointer to units structure */
     dpa_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     dpa_ioclq,      /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -641,7 +642,7 @@ DIB             dpb_dib = {
     hsdp_rsctl,     /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     NULL,           /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     hsdp_iocl,      /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    hsdp_ini,       /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    hsdp_ini,       /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     dpb_unit,       /* UNIT* units */                           /* Pointer to units structure */
     dpb_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     dpb_ioclq,      /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -2894,7 +2895,7 @@ iha_error:
 }
 
 /* initialize the disk */
-void hsdp_ini(UNIT *uptr, t_bool f)
+void hsdp_ini(UNIT *uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */
@@ -3241,12 +3242,12 @@ static int hsdp_format(UNIT *uptr) {
     if (!(sim_switches & SWMASK('N')) && !(sim_switches & SWMASK('I'))) {
         sim_switches = 0;                       /* simh tests 'N' & 'Y' switches */
         /* see if user wants to initialize the disk */
-        if (!get_yn("Initialize disk? [Y] ", TRUE)) {
+        if (!get_yn("Initialize disk? [Y] ", true)) {
             sim_switches = oldsw;
             return 1;
         }
     }
-    if (!get_yn("Use Sector/Track replacement format? [N] ", FALSE)) {
+    if (!get_yn("Use Sector/Track replacement format? [N] ", false)) {
         use_st_format = 0;                      /* do not use s/t replacement */
     }
     sim_switches = oldsw;                       /* restore switches */
@@ -3573,7 +3574,7 @@ ldone:
             file, hsdp_type[type].name);
         printf("File %s attached to %s creating labels\r\n",
             file, hsdp_type[type].name);
-        if (!get_yn("Use Sector/Track replacement format for labels? [Y] ", TRUE)) {
+        if (!get_yn("Use Sector/Track replacement format for labels? [Y] ", true)) {
             use_st_format = 0;
         }
         /* create labels for disk */

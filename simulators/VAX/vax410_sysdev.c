@@ -29,6 +29,7 @@
    sysd         system devices
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
 #include "uint_bits.h"
@@ -884,7 +885,7 @@ conpsl = PSL_IS | PSL_IPL1F | CON_PWRUP;
 if (rom == NULL)
     return SCPE_IERR;
 if (*rom == 0) {                                        /* no boot? */
-    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, TRUE, 0);
+    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, true, 0);
     if (r != SCPE_OK)
         return r;
     }

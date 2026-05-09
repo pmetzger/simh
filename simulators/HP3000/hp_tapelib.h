@@ -41,6 +41,7 @@
 
 
 
+#include <stdbool.h>
 #include "sim_tape.h"
 
 
@@ -530,7 +531,7 @@ typedef CNTLR_VARS *CVPTR;                      /* a pointer to a controller sta
 /* Tape library global controller routines */
 
 extern CNTLR_IFN_IBUS tl_controller (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags, CNTLR_IBUS data);
-extern t_stat         tl_onoffline  (CVPTR cvptr, UNIT *uptr, t_bool online);
+extern t_stat         tl_onoffline  (CVPTR cvptr, UNIT *uptr, bool online);
 
 extern HP_WORD tl_status (CVPTR cvptr);
 extern t_stat  tl_reset  (CVPTR cvptr);

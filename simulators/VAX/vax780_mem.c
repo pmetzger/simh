@@ -28,6 +28,7 @@
    mctl0, mctl1         MS780C/E memory controllers
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 
 /* Memory controller register A */
@@ -163,7 +164,7 @@ DEVICE mctl_dev[] = {
 t_stat mctl_rdreg (int32 *val, int32 pa, int32 lnt)
 {
 int32 mctl, ofs;
-t_bool extmem = MEMSIZE > MAXMEMSIZE;
+bool extmem = MEMSIZE > MAXMEMSIZE;
 
 if ((pa & 3) || (lnt != L_LONG)) {                      /* unaligned or not lw? */
     sim_printf (">>MCTL: invalid adapter read mask, pa = %X, lnt = %d\r\n", pa, lnt);
@@ -208,7 +209,7 @@ return SCPE_OK;
 t_stat mctl_wrreg (int32 val, int32 pa, int32 lnt)
 {
 int32 mctl, ofs, mask;
-t_bool extmem = MEMSIZE > MAXMEMSIZE;
+bool extmem = MEMSIZE > MAXMEMSIZE;
 
 if ((pa & 3) || (lnt != L_LONG)) {                      /* unaligned or not lw? */
     sim_printf (">>MCTL: invalid adapter write mask, pa = %X, lnt = %d\r\n", pa, lnt);
@@ -269,7 +270,7 @@ t_stat mctl_reset (DEVICE *dptr)
 (void) dptr;
 
 int32 i, amb, akb;
-t_bool extmem = MEMSIZE > MAXMEMSIZE;
+bool extmem = MEMSIZE > MAXMEMSIZE;
 
 amb = (int32) (MEMSIZE / MCTL_NUM) >> 20;               /* array size MB */
 akb = (int32) (MEMSIZE / MCTL_NUM) >> 10;               /* array size KB */

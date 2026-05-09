@@ -21,6 +21,7 @@
 
 */
 
+#include <stdbool.h>
 #include "kx10_defs.h"
 #include "kx10_disk.h"
 
@@ -172,7 +173,7 @@ int           readin_flag = 0;
 t_stat        dp_devio(uint32 dev, uint64 *data);
 t_stat        dp_svc(UNIT *);
 t_stat        dp_boot(int32, DEVICE *);
-void          dp_ini(UNIT *, t_bool);
+void          dp_ini(UNIT *, bool);
 t_stat        dp_reset(DEVICE *);
 t_stat        dp_attach(UNIT *, const char *);
 t_stat        dp_detach(UNIT *);

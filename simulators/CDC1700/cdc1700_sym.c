@@ -30,6 +30,7 @@
 
 #include "cdc1700_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern UNIT cpu_unit;
 
@@ -137,7 +138,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
   (void)uptr;
 
   int32 i, j, l, rdx;
-  t_bool neg;
+  bool neg;
   t_value temp;
   t_stat r;
   char gbuf[CBUFSIZE], mode;
@@ -177,7 +178,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
   while (isspace(*cptr))
     cptr++;
 
-  neg = FALSE;
+  neg = false;
   rdx = 10;
 
   switch (opc_val[i] & I_MASK) {
@@ -188,7 +189,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
         cptr++;
 
         if (*cptr == '-') {
-          neg = TRUE;
+          neg = true;
           cptr++;
         }
 
@@ -276,7 +277,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
         case I_REL:
         case I_SIGNED:
           if (*cptr == '-') {
-            neg = TRUE;
+            neg = true;
             cptr++;
           }
           if (*cptr == '$') {

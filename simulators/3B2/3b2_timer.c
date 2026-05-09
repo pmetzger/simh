@@ -79,6 +79,7 @@
  *    it drives system interrupts in System V UNIX.
  */
 
+#include <stdbool.h>
 #include "3b2_cpu.h"
 #include "3b2_csr.h"
 #include "3b2_defs.h"
@@ -195,15 +196,15 @@ t_stat timer_reset(DEVICE *dptr) {
 /*
  * Inhibit or allow a timer externally.
  */
-void timer_gate(uint8 ctrnum, t_bool inhibit)
+void timer_gate(uint8 ctrnum, bool inhibit)
 {
     struct timer_ctr *ctr = &TIMERS[ctrnum];
 
     if (inhibit) {
-        ctr->gate = FALSE;
+        ctr->gate = false;
         sim_cancel(&timer_unit[ctrnum]);
     } else {
-        ctr->gate = TRUE;
+        ctr->gate = true;
         if (ctr->enabled && !sim_is_active(&timer_unit[ctrnum])) {
             sim_activate_after(&timer_unit[ctrnum], DELAY_US(ctr, ctrnum));
             ctr->val--;
@@ -253,8 +254,8 @@ t_stat tmr_svc(UNIT *uptr)
     case TMR_SANITY:
 #if defined (REV3)
         if (!CSR(CSRISTIM) && TIMER_MODE(ctr) != 4) {
-            cpu_nmi = TRUE;
-            CSRBIT(CSRSTIMO, TRUE);
+            cpu_nmi = true;
+            CSRBIT(CSRSTIMO, true);
             CPU_SET_INT(INT_BUS_TMO);
             ctr->val = 0xffff;
         }
@@ -262,7 +263,7 @@ t_stat tmr_svc(UNIT *uptr)
         break;
     case TMR_INT:
         if (!CSR(CSRITIM)) {
-            CSRBIT(CSRCLK, TRUE);
+            CSRBIT(CSRCLK, true);
             CPU_SET_INT(INT_CLOCK);
             if (ctr->enabled && ctr->gate) {
                 usec_delay = DELAY_US(ctr, TMR_INT);
@@ -279,7 +280,7 @@ t_stat tmr_svc(UNIT *uptr)
         if (TIMER_RW(ctr) == CLK_LSB) {
             sim_debug(EXECUTE_MSG, &timer_dev,
                       "[tmr_svc] BUS TIMER FIRING. Setting memory fault and interrupt\n");
-            CSRBIT(CSRTIMO, TRUE);
+            CSRBIT(CSRTIMO, true);
             CPU_SET_INT(INT_BUS_TMO);
             cpu_abort(NORMAL_EXCEPTION, EXTERNAL_MEMORY_FAULT);
             ctr->val = 0xffff;
@@ -325,22 +326,22 @@ uint32 timer_read(uint32 pa, size_t size)
             break;
         case CLK_LMB:
             if (ctr->r_ctrl_latch) {
-                ctr->r_ctrl_latch = FALSE;
+                ctr->r_ctrl_latch = false;
                 retval = ctr->ctrl_latch;
             } else if (ctr->r_cnt_latch) {
                 if (ctr->r_lmb) {
-                    ctr->r_lmb = FALSE;
+                    ctr->r_lmb = false;
                     retval = (ctr->cnt_latch & 0xff00) >> 8;
-                    ctr->r_cnt_latch = FALSE;
+                    ctr->r_cnt_latch = false;
                 } else {
-                    ctr->r_lmb = TRUE;
+                    ctr->r_lmb = true;
                     retval = ctr->cnt_latch & 0xff;
                 }
             } else if (ctr->r_lmb) {
-                ctr->r_lmb = FALSE;
+                ctr->r_lmb = false;
                 retval = (ctr_val & 0xff00) >> 8;
             } else {
-                ctr->r_lmb = TRUE;
+                ctr->r_lmb = true;
                 retval = ctr_val & 0xff;
             }
             break;
@@ -355,7 +356,7 @@ uint32 timer_read(uint32 pa, size_t size)
     case TIMER_CLR_LATCH:
         /* Clearing the timer latch has a side-effect
            of also clearing pending interrupts */
-        CSRBIT(CSRCLK, FALSE);
+        CSRBIT(CSRCLK, false);
         CPU_CLR_INT(INT_CLOCK);
         retval = 0;
         break;
@@ -373,7 +374,7 @@ static void handle_timer_write(uint8 ctrnum, uint32 val)
     struct timer_ctr *ctr;
 
     ctr = &TIMERS[ctrnum];
-    ctr->enabled = TRUE;
+    ctr->enabled = true;
 
     switch(TIMER_RW(ctr)) {
     case CLK_LSB:
@@ -390,13 +391,13 @@ static void handle_timer_write(uint8 ctrnum, uint32 val)
         break;
     case CLK_LMB:
         if (ctr->w_lmb) {
-            ctr->w_lmb = FALSE;
+            ctr->w_lmb = false;
             ctr->divider = (uint16) ((ctr->divider & 0x00ff) | ((val & 0xff) << 8));
             ctr->val = ctr->divider;
             sim_debug(EXECUTE_MSG, &timer_dev, "TIMER_WRITE: CTR=%d (L/M) MSB=%02x\n", ctrnum, val & 0xff);
             timer_activate(ctrnum);
         } else {
-            ctr->w_lmb = TRUE;
+            ctr->w_lmb = true;
             ctr->divider = (ctr->divider & 0xff00) | (val & 0xff);
             ctr->val = ctr->divider;
             sim_debug(EXECUTE_MSG, &timer_dev, "TIMER_WRITE: CTR=%d (L/M) LSB=%02x\n", ctrnum, val & 0xff);
@@ -439,41 +440,41 @@ void timer_write(uint32 pa, uint32 val, size_t size)
                 ctr = &TIMERS[0];
                 if ((val & 0x20) == 0) {
                     ctr->ctrl_latch = (uint16) TIMERS[2].ctrl;
-                    ctr->r_ctrl_latch = TRUE;
+                    ctr->r_ctrl_latch = true;
                 }
                 if ((val & 0x20) == 0) {
                     ctr->cnt_latch = ctr->val;
-                    ctr->r_cnt_latch = TRUE;
+                    ctr->r_cnt_latch = true;
                 }
             }
             if (val & 4) {
                 ctr = &TIMERS[1];
                 if ((val & 0x10) == 0) {
                     ctr->ctrl_latch = (uint16) TIMERS[2].ctrl;
-                    ctr->r_ctrl_latch = TRUE;
+                    ctr->r_ctrl_latch = true;
                 }
                 if ((val & 0x20) == 0) {
                     ctr->cnt_latch = ctr->val;
-                    ctr->r_cnt_latch = TRUE;
+                    ctr->r_cnt_latch = true;
                 }
             }
             if (val & 8) {
                 ctr = &TIMERS[2];
                 if ((val & 0x10) == 0) {
                     ctr->ctrl_latch = (uint16) TIMERS[2].ctrl;
-                    ctr->r_ctrl_latch = TRUE;
+                    ctr->r_ctrl_latch = true;
                 }
                 if ((val & 0x20) == 0) {
                     ctr->cnt_latch = ctr->val;
-                    ctr->r_cnt_latch = TRUE;
+                    ctr->r_cnt_latch = true;
                 }
             }
         } else {
             ctr = &TIMERS[ctrnum];
             ctr->ctrl = (uint8) val;
-            ctr->enabled = FALSE;
-            ctr->w_lmb = FALSE;
-            ctr->r_lmb = FALSE;
+            ctr->enabled = false;
+            ctr->w_lmb = false;
+            ctr->r_lmb = false;
             ctr->val = 0xffff;
             ctr->divider = 0xffff;
         }

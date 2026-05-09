@@ -41,6 +41,7 @@
 /*#define DBG_MSG */
 #define USE_VGI     /* Use 275-byte VGI-format sectors (includes all metadata) */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 
@@ -212,10 +213,10 @@ static t_stat vfdhd_reset(DEVICE *dptr)
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) {
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &vfdhddev, "vfdhddev", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &vfdhddev, "vfdhddev", true);
     } else {
         /* Connect MFDC at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &vfdhddev, "vfdhddev", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &vfdhddev, "vfdhddev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }

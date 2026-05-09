@@ -5,6 +5,7 @@
 #ifndef SCP_CMDVARS_H_
 #define SCP_CMDVARS_H_ 0
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #if !defined(_WIN32)
 #include <sys/utsname.h>
@@ -46,7 +47,7 @@ typedef int (*sim_cmdvars_uname_hook_fn)(struct utsname *utsname_info);
 /* Replace the underlying uname(3) call used by SIM_OSTYPE lookup. */
 void sim_cmdvars_set_test_uname_hook(sim_cmdvars_uname_hook_fn hook);
 #endif
-typedef t_bool (*sim_cmdvars_localtime_hook_fn)(time_t now, struct tm *tmnow);
+typedef bool (*sim_cmdvars_localtime_hook_fn)(time_t now, struct tm *tmnow);
 
 /* Replace the underlying localtime call used by time-variable lookup. */
 void sim_cmdvars_set_test_localtime_hook(sim_cmdvars_localtime_hook_fn hook);

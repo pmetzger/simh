@@ -19,6 +19,7 @@
  * Mail to simh@ibm1130.org
  */
 
+#include <stdbool.h>
 #include "ibm1130_defs.h"
 
 #ifndef ENABLE_PLOT_SUPPORT
@@ -172,9 +173,9 @@ static int grey_pen;                                /* holds grey */
 static int white_background;                        /* holds white of paper roll */
 static int plot_pwidth;                             /* set and display variable */
 static int plot_pcolor;                             /* set and display variable */
-static int need_update = FALSE;                     /* flag to force and update_pen() */
-static int plot_used = FALSE;                       /* flag set to true if anything was actually plotted between attach and detach */
-static int delete_if_unused = FALSE;                /* if TRUE and no plotter activity was seen, delete file on detach. This flag is set by -w option on attach command. */
+static int need_update = false;                     /* flag to force and update_pen() */
+static int plot_used = false;                       /* flag set to true if anything was actually plotted between attach and detach */
+static int delete_if_unused = false;                /* if true and no plotter activity was seen, delete file on detach. This flag is set by -w option on attach command. */
 static gdImagePtr image = NULL;                     /* pointer to our canvas */
 
 #define UNIT_V_COLOR    (UNIT_V_UF + 0)             /* color of selected pen - 3 bits */
@@ -371,11 +372,11 @@ static t_stat plot_svc (UNIT *uptr)
 static t_stat plot_reset (DEVICE *dptr)
 {
 #ifdef NONDLL
-    static int show_notice = FALSE;
+    static int show_notice = false;
 
     if (show_notice && ! cgi) {
         printf("Plotter support included. Please see www.libgd.org for libgd copyright information.\n");
-        show_notice = FALSE;
+        show_notice = false;
     }
 #endif
 
@@ -451,7 +452,7 @@ static t_stat plot_attach (UNIT *uptr, const char *cptr)
     CLRBIT(plot_unit->flags, UNIT_PEN);
 
     update_pen();                                           /* routine to ensure pen is okay */
-    plot_used = FALSE;                                      /* plotter page is blank */
+    plot_used = false;                                      /* plotter page is blank */
     return SCPE_OK;
 }
 
@@ -618,7 +619,7 @@ static void process_cmd (void)
     /* first see if we set any changes to pen or position, do an update */
     if (need_update) {
        update_pen();
-       need_update = FALSE;
+       need_update = false;
     }
 
     /* will move pen one step or flip pen up or down */
@@ -709,7 +710,7 @@ static void process_cmd (void)
     /* only draw a line if the pen was down during the movement command */
     if (plot_pen) {
         gdImageLine(image, plot_ymax-plot_ypos, plot_xmax-plot_xpos, plot_ymax-oldy, plot_xmax-oldx, gdAntiAliased);
-        plot_used = TRUE;                                       /* remember that we drew something */
+        plot_used = true;                                       /* remember that we drew something */
        /* semantics are 0,0 point is lower right */
     }
 
@@ -792,7 +793,7 @@ static t_stat plot_show_nl(FILE *fp, UNIT *uptr, int32 val, const void *descrip)
 
 static t_stat plot_validate_change (UNIT *uptr, int32 set, const char *ptr, void *desc)
 {
-    need_update = TRUE;
+    need_update = true;
     return SCPE_OK;
 }
 

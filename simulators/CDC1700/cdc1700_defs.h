@@ -31,6 +31,7 @@
 #ifndef _CDC1700_DEFS_H
 #define _CDC1700_DEFS_H
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "sim_tape.h"
 
@@ -555,17 +556,17 @@ struct io_device {
   DEVICE                *iod_indev;
   DEVICE                *iod_outdev;
   UNIT                  *iod_unit;
-  t_bool                (*iod_reject)(struct io_device *, t_bool, uint8);
+  bool                  (*iod_reject)(struct io_device *, bool, uint8);
   enum IOstatus         (*iod_IOread)(struct io_device *, uint8);
   enum IOstatus         (*iod_IOwrite)(struct io_device *, uint8);
   enum IOstatus         (*iod_BDCread)(struct io_device *, uint16 *, uint8);
   enum IOstatus         (*iod_BDCwrite)(struct io_device *, uint16 *, uint8);
   void                  (*iod_state)(const char *, DEVICE *, struct io_device *);
-  t_bool                (*iod_intr)(struct io_device *);
+  bool                  (*iod_intr)(struct io_device *);
   uint16                (*iod_raised)(DEVICE *);
   void                  (*iod_clear)(DEVICE *);
-  uint8                 (*iod_decode)(struct io_device *, t_bool, uint8);
-  t_bool                (*iod_chksta)(t_bool, uint8);
+  uint8                 (*iod_decode)(struct io_device *, bool, uint8);
+  bool                  (*iod_chksta)(bool, uint8);
   uint16                iod_ienable;
   uint16                iod_oldienable;
   uint16                iod_imask;
@@ -588,13 +589,13 @@ struct io_device {
   uint16                iod_private;
   void                  *iod_private2;
   uint16                iod_private3;
-  t_bool                iod_private4;
+  bool                  iod_private4;
   const char            *iod_private5;
   uint16                iod_private6;
   uint16                iod_private7;
   uint16                iod_private8;
   uint8                 iod_private9;
-  t_bool                iod_private10;
+  bool                  iod_private10;
   uint16                iod_private11;
   uint16                iod_private12;
   uint8                 iod_private13;
@@ -646,7 +647,7 @@ struct io_device {
     { 0, 0, 0, 0, 0, 0, 0, 0, }, \
     { 0, 0, 0, 0, 0, 0, 0, 0, }, \
     { 0, 0, 0, 0, 0, 0, 0, 0, }, \
-    0, 0, 0, devspec, 0, FALSE, NULL, 0, 0, 0, 0, FALSE \
+    0, 0, 0, devspec, 0, false, NULL, 0, 0, 0, 0, false \
   }
 
 typedef struct io_device IO_DEVICE;
@@ -666,29 +667,29 @@ typedef struct io_device IO_DEVICE;
  */
 typedef uint16 devINTR(DEVICE *);
 
-int disassem(char *, uint16, t_bool, t_bool, t_bool);
+int disassem(char *, uint16, bool, bool, bool);
 
-enum IOstatus doIO(t_bool, DEVICE **);
-t_bool doDirectorFunc(DEVICE *, t_bool);
+enum IOstatus doIO(bool, DEVICE **);
+bool doDirectorFunc(DEVICE *, bool);
 void rebuildPending(void);
 void buildIOtable(void);
 void loadBootstrap(uint16 *, int, uint16, uint16);
 
 void fw_init(void);
-enum IOstatus fw_doIO(DEVICE *, t_bool);
-enum IOstatus fw_doBDCIO(IO_DEVICE *, uint16 *, t_bool, uint8);
-void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16,
+enum IOstatus fw_doIO(DEVICE *, bool);
+enum IOstatus fw_doBDCIO(IO_DEVICE *, uint16 *, bool, uint8);
+void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16,
                const char *);
 void fw_IOunderwayData(IO_DEVICE *, uint16);
-void fw_IOcompleteData(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+void fw_IOcompleteData(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
 void fw_IOunderwayEOP(IO_DEVICE *, uint16);
-void fw_IOcompleteEOP(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+void fw_IOcompleteEOP(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
 void fw_IOunderwayEOP2(IO_DEVICE *, uint16);
-void fw_IOcompleteEOP2(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-void fw_IOalarm(t_bool, DEVICE *, IO_DEVICE *, const char *);
+void fw_IOcompleteEOP2(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+void fw_IOalarm(bool, DEVICE *, IO_DEVICE *, const char *);
 void fw_setForced(IO_DEVICE *, uint16);
 void fw_clearForced(IO_DEVICE *, uint16);
-t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
+bool fw_reject(IO_DEVICE *, bool, uint8);
 void fw_state(char *, DEVICE *, IO_DEVICE *);
 IO_DEVICE *fw_findChanDevice(IO_DEVICE *, uint16);
 
@@ -1202,10 +1203,10 @@ t_stat set_equipment(UNIT *, int32, const char *, void *);
 t_stat checkReset(DEVICE *, uint8);
 void MSOS5request(uint16, uint16);
 
-t_bool inProtectedMode(void);
+bool inProtectedMode(void);
 void RaiseExternalInterrupt(DEVICE *);
 uint16 LoadFromMem(uint16);
-t_bool IOStoreToMem(uint16, uint16, t_bool);
+bool IOStoreToMem(uint16, uint16, bool);
 uint16 doADDinternal(uint16, uint16);
 t_stat disEffectiveAddr(uint16, uint16, uint16 *, uint16 *);
 

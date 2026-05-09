@@ -30,6 +30,7 @@
    Channel, and Selector Channel to interface with the HP 3000 memory subsystem.
 */
 
+#include <stdbool.h>
 
 
 /* Debug flags.
@@ -103,7 +104,7 @@ typedef struct {                                        /* byte access descripto
     HP_WORD       data_word;                            /*   memory data word containing the current byte */
     ACCESS_CLASS  class;                                /*   memory access classification */
     uint32        word_address;                         /*   logical word address containing the next byte */
-    t_bool        write_needed;                         /*   TRUE if the data word must be written to memory */
+    bool          write_needed;                         /*   true if the data word must be written to memory */
     uint32        count;                                /*   current count of bytes accessed */
     uint32        length;                               /*   (trace) length of extent of access */
     uint32        initial_byte_address;                 /*   (trace) initial absolute byte address */
@@ -141,12 +142,12 @@ t_stat mem_deposit (t_value value,       t_addr address, UNIT *uptr, int32 switc
    fmt_bcd_operand  : format a BCD operand in memory into a character string
 */
 
-extern t_bool mem_initialize (uint32 memory_size);
-extern t_bool mem_is_empty   (uint32 starting_address);
+extern bool mem_initialize (uint32 memory_size);
+extern bool mem_is_empty   (uint32 starting_address);
 extern void   mem_fill       (uint32 starting_address, HP_WORD fill_value);
 
-extern t_bool mem_read  (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD *value);
-extern t_bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD  value);
+extern bool mem_read  (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD *value);
+extern bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32 offset, HP_WORD  value);
 
 extern void   mem_init_byte   (BYTE_ACCESS *bap, ACCESS_CLASS class, HP_WORD *byte_offset, uint32 block_length);
 extern void   mem_set_byte    (BYTE_ACCESS *bap);

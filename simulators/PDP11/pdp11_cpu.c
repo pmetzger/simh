@@ -242,6 +242,7 @@
 
 /* Definitions */
 
+#include <stdbool.h>
 #include "pdp11_defs.h"
 #include "pdp11_cpumod.h"
 
@@ -340,7 +341,7 @@ t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_reset (DEVICE *dptr);
 t_stat cpu_boot (int32 unitno, DEVICE *dptr);
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
 t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat cpu_show_virt (FILE *st, UNIT *uptr, int32 val, const void *desc);
@@ -353,7 +354,7 @@ int32 relocW (int32 addr);
 void relocR_test (int32 va, int32 apridx);
 void relocW_test (int32 va, int32 apridx);
 int32 relocC (int32 va, int32 sw);
-t_bool PLF_test (int32 va, int32 apr);
+bool PLF_test (int32 va, int32 apr);
 void reloc_abort (int32 err, int32 apridx);
 int32 ReadE (int32 addr);
 int32 ReadW (int32 addr);
@@ -372,7 +373,7 @@ void set_r_display (int32 rs, int32 cm);
 t_stat CPU_wr (int32 data, int32 addr, int32 access);
 void set_stack_trap (int32 adr);
 int32 get_PSW (void);
-void put_PSW (int32 val, t_bool prot);
+void put_PSW (int32 val, bool prot);
 void put_PIRQ (int32 val);
 
 extern void fp11 (int32 IR);
@@ -393,11 +394,11 @@ int32 trap_vec[TRAP_V_MAX] = {                          /* trap req to vector */
     VEC_YEL, VEC_PWRFL, VEC_FPE
     };
 
-t_bool trap_load_mmr2[TRAP_V_MAX + 1] = {               /* do trap requests load MMR2? */
-    TRUE, TRUE, TRUE, TRUE,
-    TRUE, FALSE, FALSE, FALSE,
-    FALSE, FALSE, FALSE, TRUE,
-    TRUE, TRUE, TRUE, TRUE                              /* last is interrupt */
+bool trap_load_mmr2[TRAP_V_MAX + 1] = {                 /* do trap requests load MMR2? */
+    true, true, true, true,
+    true, false, false, false,
+    false, false, false, true,
+    true, true, true, true                              /* last is interrupt */
     };
 
 int32 trap_clear[TRAP_V_MAX] = {                        /* trap clears */
@@ -953,7 +954,7 @@ while (reason == 0)  {
     if (tbit)
         setTRAP (TRAP_TRC);
     if (wait_state) {                                   /* wait state? */
-        sim_idle (TMR_CLK, TRUE);
+        sim_idle (TMR_CLK, true);
         continue;
         }
 
@@ -2939,7 +2940,7 @@ reloc_abort (err, apridx);
 return;
 }
 
-t_bool PLF_test (int32 va, int32 apr)
+bool PLF_test (int32 va, int32 apr)
 {
 int32 dbn = va & VA_BN;                                 /* extr block num */
 int32 plf = (apr & PDR_PLF) >> 2;                       /* extr page length */
@@ -3297,7 +3298,7 @@ return SCPE_OK;
 
 /* Store pieces of new PSW - implements RTI/RTT protection */
 
-void put_PSW (int32 val, t_bool prot)
+void put_PSW (int32 val, bool prot)
 {
 val = val & cpu_tab[cpu_model].psw;                     /* mask off invalid bits */
 if (prot) {                                             /* protected? */
@@ -3497,11 +3498,11 @@ static const char *cpu_next_caveats =
 "locations due to a trap, stack unwind or any other reason, instruction\n"
 "execution will continue until some other reason causes execution to stop.\n";
 
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 {
 #define MAX_SUB_RETURN_SKIP 10
 static t_addr returns[MAX_SUB_RETURN_SKIP + 1] = {0};
-static t_bool caveats_displayed = FALSE;
+static bool caveats_displayed = false;
 static int32 swmap[4] = {
     SWMASK ('K') | SWMASK ('V'), SWMASK ('S') | SWMASK ('V'),
     SWMASK ('U') | SWMASK ('V'), SWMASK ('U') | SWMASK ('V')
@@ -3509,11 +3510,11 @@ static int32 swmap[4] = {
 int32 cm = ((PSW >> PSW_V_CM) & 03);
 
 if (!caveats_displayed) {
-    caveats_displayed = TRUE;
+    caveats_displayed = true;
     sim_printf ("%s", cpu_next_caveats);
     }
 if (SCPE_OK != get_aval (relocC(PC, swmap[cm]), &cpu_dev, &cpu_unit))/* get data */
-    return FALSE;
+    return false;
 if ((sim_eval[0] & 0177000) == 0004000) {               /* JSR */
     int32 dst, dstspec;
     t_addr i, max_returns = MAX_SUB_RETURN_SKIP;
@@ -3534,9 +3535,9 @@ if ((sim_eval[0] & 0177000) == 0004000) {               /* JSR */
         returns[i] = returns[i-1] + 2;      /* Possible skip return */
     returns[i] = 0;                         /* Make sure the address list ends with a zero */
     *ret_addrs = returns;
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Boot setup routine */

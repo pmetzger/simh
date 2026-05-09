@@ -32,6 +32,7 @@
 */
 #include "pdq3_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 t_stat parse_sym_m (char *cptr, t_value *val, int32 sw);
 static t_stat pdq3_cmd_exstack(int32 arg, const char *buf);
@@ -458,7 +459,7 @@ static uint16 B(t_value arg1, t_value arg2, int* sz) {
   }
 }
 
-static t_stat print_hd(FILE *of, t_value val, t_bool hexdec, t_bool isbyte)
+static t_stat print_hd(FILE *of, t_value val, bool hexdec, bool isbyte)
 {
   uint16 data = isbyte ? (val & 0xff) : (val & 0xffff);
 
@@ -480,7 +481,7 @@ t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val,
   int16 sarg;
   t_stat size = 0;
   int optype, sz;
-  t_bool hexdec = (sw & SWMASK('H')) ? TRUE : FALSE;
+  bool hexdec = (sw & SWMASK('H')) ? true : false;
   addr = ADDR_OFF(addr);
 
   op = val[0];
@@ -494,11 +495,11 @@ t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val,
       break;
     case OP_UB:
       size = 1; arg1 = UB(val[1]);
-      print_hd(of, arg1, hexdec, FALSE);
+      print_hd(of, arg1, hexdec, false);
       break;
     case OP_W:
       size = 2; sarg = W(val[1],val[2]);
-      print_hd(of, sarg, hexdec, FALSE);
+      print_hd(of, sarg, hexdec, false);
       break;
     case OP_AB:
       arg1 = B(val[1],val[2], &sz); size = sz;
@@ -506,25 +507,25 @@ t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val,
       break;
     case OP_B:
       arg1 = B(val[1],val[2], &sz); size = sz;
-      print_hd(of, arg1, hexdec, FALSE);
+      print_hd(of, arg1, hexdec, false);
       break;
     case OP_DBB:
       arg1 = DB(val[1]);
       arg2 = B(val[2],val[3], &sz); size = sz+1;
-      print_hd(of, arg1, hexdec, TRUE); fputc(',',of);
-      print_hd(of, arg2, hexdec, FALSE);
+      print_hd(of, arg1, hexdec, true); fputc(',',of);
+      print_hd(of, arg2, hexdec, false);
       break;
     case OP_UBB:
       arg1 = UB(val[1]);
       arg2 = B(val[2],val[3], &sz); size = sz+1;
-      print_hd(of, arg1, hexdec, TRUE); fputc(',',of);
-      print_hd(of, arg2, hexdec, FALSE);
+      print_hd(of, arg1, hexdec, true); fputc(',',of);
+      print_hd(of, arg2, hexdec, false);
       break;
     case OP_BUB:
       arg1 = B(val[1],val[2], &sz); size = sz+1;
       arg2 = UB(val[sz+1]);
-      print_hd(of, arg1, hexdec, FALSE); fputc(',',of);
-      print_hd(of, arg2, hexdec, TRUE);
+      print_hd(of, arg1, hexdec, false); fputc(',',of);
+      print_hd(of, arg2, hexdec, true);
       break;
     case OP_SB:
       size = 1; sarg = SB(val[1]);
@@ -537,31 +538,31 @@ t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val,
     case OP_DBUB:
       size = 2; arg1 = DB(val[1]);
       arg2 = UB(val[2]);
-      print_hd(of, arg1, hexdec, TRUE); fputc(',',of);
-      print_hd(of, arg2, hexdec, TRUE);
+      print_hd(of, arg1, hexdec, true); fputc(',',of);
+      print_hd(of, arg2, hexdec, true);
       break;
     case OP_UBUB:
       size = 2; arg1 = UB(val[1]);
       arg2 = UB(val[2]);
-      print_hd(of, arg1, hexdec, TRUE); fputc(',',of);
-      print_hd(of, arg2, hexdec, TRUE);
+      print_hd(of, arg1, hexdec, true); fputc(',',of);
+      print_hd(of, arg2, hexdec, true);
       break;
     case OP_UBDBUB:
       size  = 3; arg1 = UB(val[1]);
       arg2 = DB(val[2]);
       arg3 = UB(val[3]);
-      print_hd(of, arg1, hexdec, TRUE); fputc(',',of);
-      print_hd(of, arg2, hexdec, TRUE); fputc(',',of);
-      print_hd(of, arg3, hexdec, TRUE);
+      print_hd(of, arg1, hexdec, true); fputc(',',of);
+      print_hd(of, arg2, hexdec, true); fputc(',',of);
+      print_hd(of, arg3, hexdec, true);
       break;
     case OP_DB:
       size = 1; arg1 = DB(val[1]);
-      print_hd(of, arg1, hexdec, TRUE);
+      print_hd(of, arg1, hexdec, true);
       break;
     }
     return -size;
   } else {
-    fprintf(of,"%-8s","DB"); print_hd(of, op, hexdec, TRUE);
+    fprintf(of,"%-8s","DB"); print_hd(of, op, hexdec, true);
     return SCPE_OK;
   }
 }

@@ -49,6 +49,7 @@
    of junk.  File marks are represented by a byte count of 0.
 */
 
+#include <stdbool.h>
 #include "h316_defs.h"
 #include "sim_tape.h"
 
@@ -344,7 +345,7 @@ t_stat mt_svc (UNIT *uptr)
 int32 ch = mt_dib.chan - 1;                             /* DMA/DMC ch */
 uint32 i, c1, c2, c3;
 t_mtrlnt tbc;
-t_bool passed_eot;
+bool passed_eot;
 t_stat st, r = SCPE_OK;
 
 if ((uptr->flags & UNIT_ATT) == 0) {                    /* offline? */

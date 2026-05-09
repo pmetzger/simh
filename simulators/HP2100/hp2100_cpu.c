@@ -935,6 +935,7 @@
 
 
 #include <setjmp.h>
+#include <stdbool.h>
 
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
@@ -945,7 +946,7 @@
 /* Lost time workaround */
 
 #define sim_idle(timer,decrement) \
-          if (sim_idle (timer, decrement) == TRUE     /* [workaround] idle the simulator; if idling occurred */ \
+          if (sim_idle (timer, decrement) == true     /* [workaround] idle the simulator; if idling occurred */ \
             && sim_interval < 0)                      /* [workaround]   and the time interval is negative */ \
               sim_interval = 0                        /* [workaround]     then reset it to zero */
 
@@ -1150,8 +1151,8 @@ static uint32    exec_mask        = 0;          /* the current instruction execu
 static uint32    exec_match       = D16_UMAX;   /* the current instruction execution trace matching value */
 static uint32    indirect_limit   = 16;         /* the indirect chain length limit */
 
-static t_bool    is_1000          = FALSE;      /* TRUE if the CPU is a 1000 M/E/F-Series */
-static t_bool    mp_is_present    = FALSE;      /* TRUE if Memory Protect is present */
+static bool      is_1000          = false;      /* true if the CPU is a 1000 M/E/F-Series */
+static bool      mp_is_present    = false;      /* true if Memory Protect is present */
 static uint32    last_select_code = 0;          /* the last select code sent over the I/O backplane */
 static HP_WORD   saved_MR         = 0;          /* the M-register value between SCP commands */
 
@@ -1252,8 +1253,8 @@ static t_stat show_speed (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
 static t_stat  mrg_address         (void);
 static HP_WORD srg_uop             (HP_WORD value, HP_WORD operation);
-static t_stat  machine_instruction (t_bool int_ack, uint32 *idle_save);
-static t_bool  reenable_interrupts (void);
+static t_stat  machine_instruction (bool int_ack, uint32 *idle_save);
+static bool    reenable_interrupts (void);
 
 
 /* CPU SCP data structures */
@@ -1681,7 +1682,7 @@ static const INBOUND_SET assert_set [] = {      /* indexed by IO_ASSERTION */
    the disable rules are different for the 21xx and 1000 machines.
 */
 
-static const t_bool enable_map [2] [18] = {             /* interrupt enable table, indexed by is_1000 and IO_GROUP_OP */
+static const bool enable_map [2] [18] = {               /* interrupt enable table, indexed by is_1000 and IO_GROUP_OP */
 /*    HLT    STF    SFC    SFS    MIx    LIx    OTx    STC   */
 /*    HLT_C  CLF    SFC_C  SFS_C  MIx_C  LIx_C  OTx_C  STC_C */
 /*    CLC    CLC_C                                           */
@@ -1742,7 +1743,7 @@ static IO_TABLE iot [SC_MAX + 1] = {         /* index by select code for I/O ins
 
 /* I/O subsystem local utility routine declarations */
 
-static t_bool initialize_io (t_bool is_executing);
+static bool initialize_io (bool is_executing);
 
 
 
@@ -1990,8 +1991,8 @@ t_stat sim_instr (void)
 static uint32 exec_save;                                /* the trace flag settings saved by an EXEC match */
 static uint32 idle_save;                                /* the trace flag settings saved by an idle match */
 MICRO_ABORT abort_reason;
-t_bool      exec_test;                                  /* set after setjmp */
-t_bool      interrupt_acknowledge;                      /* set after setjmp */
+bool        exec_test;                                  /* set after setjmp */
+bool        interrupt_acknowledge;                      /* set after setjmp */
 t_stat      status;                                     /* set after setjmp */
 
 
@@ -2004,7 +2005,7 @@ else                                                    /* otherwise */
 
 sim_switches &= ~SWMASK ('P');                          /* clear the power-on switch to prevent interference */
 
-if (initialize_io (TRUE) == FALSE)                      /* set up the I/O table; if there's a select code conflict */
+if (initialize_io (true) == false)                      /* set up the I/O table; if there's a select code conflict */
     return SCPE_STOP;                                   /*   then inhibit execution */
 
 mp_is_present = mp_initialize ();                       /* set up memory protect */
@@ -2042,7 +2043,7 @@ switch (abort_reason) {                                 /* dispatch on the abort
         break;
     }
 
-exec_test = FALSE;                                      /* clear the execution test flag */
+exec_test = false;                                      /* clear the execution test flag */
 
 
 /* Instruction execution loop */
@@ -2070,7 +2071,7 @@ while (status == SCPE_OK) {                             /* execute until simulat
         if (sim_brk_summ                                        /*     then if any breakpoints are defined */
           && sim_brk_test (interrupt_request,                   /*       and an unconditional breakpoint */
                            SWMASK ('E')                         /*         or a breakpoint matching */
-                             | meu_breakpoint_type (TRUE))) {   /*           the current MEM map is set */
+                             | meu_breakpoint_type (true))) {   /*           the current MEM map is set */
             status = STOP_BRKPNT;                               /*             then stop simulation */
             break;
             }
@@ -2079,7 +2080,7 @@ while (status == SCPE_OK) {                             /* execute until simulat
         interrupt_request = 0;                          /*   and then clear the request */
 
         cpu_interrupt_enable = CLEAR;                   /* inhibit interrupts */
-        interrupt_acknowledge = TRUE;                   /*   while in an interrupt acknowledge cycle */
+        interrupt_acknowledge = true;                   /*   while in an interrupt acknowledge cycle */
 
         if (idle_save != 0) {                           /* if idle loop tracing is suppressed */
             cpu_dev.dctrl = idle_save;                  /*   then restore the saved trace flag set */
@@ -2100,11 +2101,11 @@ while (status == SCPE_OK) {                             /* execute until simulat
         }
 
     else {                                              /* otherwise this is a normal instruction execution */
-        interrupt_acknowledge = FALSE;                  /*   so clear the interrupt acknowledgement status */
+        interrupt_acknowledge = false;                  /*   so clear the interrupt acknowledgement status */
 
         if (sim_brk_summ                                        /* if any breakpoints are defined */
           && sim_brk_test (PR, SWMASK ('E')                     /*   and an unconditional breakpoint or a */
-                             | meu_breakpoint_type (FALSE))) {  /*     breakpoint matching the current map is set */
+                             | meu_breakpoint_type (false))) {  /*     breakpoint matching the current map is set */
             status = STOP_BRKPNT;                               /*       then stop simulation */
             break;
             }
@@ -2190,7 +2191,7 @@ else if (idle_save != 0)                                /* otherwise if idle tra
 saved_MR = MR;                                          /* save the current M value to detect a user change */
 
 if (status == STOP_HALT)                                /* if this is a programmed halt */
-    set_loader (NULL, FALSE, NULL, NULL);               /*   then disable the 21xx loader */
+    set_loader (NULL, false, NULL, NULL);               /*   then disable the 21xx loader */
 
 else if (status <= STOP_RERUN)                          /* otherwise if this is a simulation stop */
     PR = err_PR;                                        /*   then restore P to reexecute the instruction */
@@ -2200,7 +2201,7 @@ meu_update_violation ();                                /*   and the violation r
 
 pcq_r->qptr = pcq_p;                                    /* update the PC queue pointer */
 
-sim_brk_dflt = meu_breakpoint_type (FALSE);             /* base the default breakpoint type on the current MEM state */
+sim_brk_dflt = meu_breakpoint_type (false);             /* base the default breakpoint type on the current MEM state */
 
 tprintf (cpu_dev, cpu_dev.dctrl,
          DMS_FORMAT "simulation stop: %s\n",
@@ -2228,7 +2229,7 @@ return status;                                          /* return the status cod
        instruction in the loader reenables loader protection.
 */
 
-void cpu_post_cmd (t_bool from_scp)
+void cpu_post_cmd (bool from_scp)
 {
 /* SCP post-command hook signature.
    This implementation does not use every parameter. */
@@ -2335,7 +2336,7 @@ else                                                    /* otherwise */
    This routine resolves a possibly indirect memory address into a direct
    address by following an indirect chain, if any.  On entry, the M register
    contains the address to resolve, and the "interruptible" parameter is set to
-   TRUE if the instruction is interruptible or FALSE if it is not.  On exit, the
+   true if the instruction is interruptible or false if it is not.  On exit, the
    M register contains the direct address, and SCPE_OK is returned.  If an
    interrupt is pending and permitted, NOTE_INDINT is returned to abort the
    instruction.  If the indirect chain length is greater than the chain limit,
@@ -2421,14 +2422,14 @@ else                                                    /* otherwise */
     6. In hardware, all instructions that resolve indirects are interruptible.
        In simulation, some instruction executors are not written to handle an
        instruction abort (e.g., the P register is not backed up properly to
-       rerun the instruction); these will pass FALSE for the "interruptible"
+       rerun the instruction); these will pass false for the "interruptible"
        parameter.
 */
 
-t_stat cpu_resolve_indirects (t_bool interruptible)
+t_stat cpu_resolve_indirects (bool interruptible)
 {
 uint32 level;
-t_bool pending;
+bool pending;
 
 if (MR & IR_IND) {                                      /* if the address is indirect */
     MR = ReadW (MR & LA_MASK);                          /*   then follow the chain (first level) */
@@ -2592,7 +2593,7 @@ else                                                    /* otherwise this is a s
 loader_start = mem_size - 1 & ~IBL_MASK & LA_MASK;          /* get the base memory address of the loader */
 PR = loader_start + boot [is_1000].start_index & R_MASK;    /*   and store the starting program address in P */
 
-set_loader (NULL, TRUE, NULL, NULL);                    /* enable the loader (ignore errors if not 21xx) */
+set_loader (NULL, true, NULL, NULL);                    /* enable the loader (ignore errors if not 21xx) */
 
 for (index = 0; index < IBL_SIZE; index++) {            /* copy the bootstrap loader to memory */
     word = boot [is_1000].loader [index];               /* get the next word */
@@ -2644,20 +2645,20 @@ return PR;                                              /* return the starting e
    print "No tape loaded in the PTR device" and will stop the simulator.
 
    Such devices will call this routine and pass a pointer to the unit that
-   encountered the error condition.  The routine returns TRUE and saves the
-   pointer to the failing unit if the IOERR stop is enabled, and FALSE
+   encountered the error condition.  The routine returns true and saves the
+   pointer to the failing unit if the IOERR stop is enabled, and false
    otherwise.
 */
 
-t_bool cpu_io_stop (UNIT *uptr)
+bool cpu_io_stop (UNIT *uptr)
 {
 if (cpu_ss_ioerr != SCPE_OK) {                          /* if the I/O error stop is enabled */
     cpu_ioerr_uptr = uptr;                              /*   then save the failing unit */
-    return TRUE;                                        /*     and return TRUE to indicate that the stop is enabled */
+    return true;                                        /*     and return true to indicate that the stop is enabled */
     }
 
 else                                                    /* otherwise */
-    return FALSE;                                       /*   return FALSE to indicate that the stop is disabled */
+    return false;                                       /*   return false to indicate that the stop is disabled */
 }
 
 
@@ -2775,7 +2776,7 @@ SIGNALS_VALUE outbound;
 uint32        sc_rank, sc_bit, previous_holdoff;
 
 if (iot [select_code].dibptr == NULL) {                 /* if the I/O slot is empty */
-    result.skip = FALSE;                                /*   then SKF cannot be asserted */
+    result.skip = false;                                /*   then SKF cannot be asserted */
 
     if (inbound_signals & ioIOI && select_code < SC_VAR /* if this is an input request for an internal device */
       && cpu_configuration & CPU_1000)                  /*   of a 1000 CPU */
@@ -2831,7 +2832,7 @@ else {                                                  /* otherwise the slot is
     if (outbound.signals & ioSRQ)                       /* if SRQ is asserted */
         dma_assert_SRQ (select_code);                   /*   then check if DMA is controlling this interface */
 
-    result.skip = (outbound.signals & ioSKF) != 0;      /* return TRUE if the skip-on-flag signal is present */
+    result.skip = (outbound.signals & ioSKF) != 0;      /* return true if the skip-on-flag signal is present */
     result.data = outbound.value;                       /*   and return the outbound data from the interface */
     }
 
@@ -2843,8 +2844,8 @@ return result;                                          /* return the result of 
 
    This routine performs an I/O control operation on the interface specified by
    the "select_code" parameter.  I/O control operations are all those that do
-   not pass data to or from the interface.  The routine returns TRUE if the
-   interface asserted the SKF signal as a result of the operation and FALSE if
+   not pass data to or from the interface.  The routine returns true if the
+   interface asserted the SKF signal as a result of the operation and false if
    it did not.
 
    Certain microcode extension instructions perform I/O operations as part of
@@ -2858,7 +2859,7 @@ return result;                                          /* return the result of 
    to the interface indicated by the supplied select code.
 */
 
-t_bool io_control (uint32 select_code, IO_GROUP_OP micro_op)
+bool io_control (uint32 select_code, IO_GROUP_OP micro_op)
 {
 SKPF_DATA result;
 
@@ -2867,7 +2868,7 @@ mp_check_io (select_code, micro_op);                    /* check that the I/O op
 result = io_dispatch (select_code,                      /* send the signal set */
                       control_set [micro_op], 0);       /*   to the indicated interface */
 
-return result.skip;                                     /* return TRUE if the interface asserted SKF */
+return result.skip;                                     /* return true if the interface asserted SKF */
 }
 
 
@@ -3557,7 +3558,7 @@ if (sim_PC == NULL) {                                   /* if this is the first 
         loader_rom [3] = find_dev ("DS");               /*   and the 12992B ROM in socket 3 */
 
         loader_rom [0]->boot (0, loader_rom [0]);       /* install the BBL via the paper tape reader boot routine */
-        set_loader (NULL, FALSE, NULL, NULL);           /*   and then disable the loader, which had been enabled */
+        set_loader (NULL, false, NULL, NULL);           /*   and then disable the loader, which had been enabled */
         }
 
     else                                                /* otherwise memory initialization failed */
@@ -3785,14 +3786,14 @@ if ((uint32) new_size > cpu_features [model].maxmem)    /* if the new memory siz
 
 if (!(sim_switches & SWMASK ('F'))                      /* if truncation is not explicitly forced */
   && ! mem_is_empty (new_size)                          /*   and the truncated part is not empty */
-  && get_yn (confirm, FALSE) == FALSE)                  /*     and the user denies confirmation */
+  && get_yn (confirm, false) == false)                  /*     and the user denies confirmation */
     return SCPE_INCOMP;                                 /*       then abort the command */
 
 if (cpu_configuration & CPU_1000)                       /* if the CPU is a 1000-series machine */
     cpu_unit [0].capac = mem_size = mem_end = new_size; /*   then memory is not reserved for the loader */
 
 else {                                                  /* otherwise */
-    set_loader (uptr, FALSE, NULL, NULL);               /* save loader to shadow RAM */
+    set_loader (uptr, false, NULL, NULL);               /* save loader to shadow RAM */
     cpu_unit [0].capac = mem_size = new_size;           /* set new memory size */
     mem_end = mem_size - IBL_SIZE;                      /* reserve memory for loader */
     }
@@ -3883,12 +3884,12 @@ if (result == SCPE_OK) {                                /* if the change succeed
         meu_configure (ME_Disabled);                    /*   disable the MEM and mapping */
 
     if (cpu_configuration & CPU_1000) {                 /* if the CPU is a 1000-series machine */
-        is_1000 = TRUE;                                 /*   then set the model index */
+        is_1000 = true;                                 /*   then set the model index */
         mem_end = mem_size;                             /* memory is not reserved for the loader  */
         }
 
     else {                                              /* otherwise this is a 2100 or 211x */
-        is_1000 = FALSE;                                /*   so set the model index */
+        is_1000 = false;                                /*   so set the model index */
         mem_end = mem_size - IBL_SIZE;                  /*     and reserve memory for the loader */
         }
     }
@@ -4051,7 +4052,7 @@ static t_stat set_loader (UNIT *uptr, int32 enable, const char *cptr, void *desc
 (void) desc;
 
 static MEMORY_WORD loader [IBL_SIZE];                       /* the shadow memory for the currently disabled loader */
-const  t_bool currently_enabled = (mem_end == mem_size);    /* TRUE if the loader is currently enabled */
+const  bool currently_enabled = (mem_end == mem_size);      /* true if the loader is currently enabled */
 
 if (cpu_configuration & CPU_1000)                       /* if the current CPU is a 1000-series */
     return SCPE_NOFNC;                                  /*   then the protected loader does not exist */
@@ -4283,7 +4284,7 @@ static t_stat show_stops (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) desc;
 
 uint32 stop;
-t_bool need_spacer = FALSE;
+bool need_spacer = false;
 
 if (val == 2)                                           /* if the indirect limit is requested */
     fprintf (st, "Limit=%d\n", indirect_limit);         /*   then show it */
@@ -4298,7 +4299,7 @@ else {                                                      /* otherwise show th
 
             fputs (cpu_stop [stop].name, st);               /* report the stop name */
 
-            need_spacer = TRUE;                             /* a spacer will be needed next time */
+            need_spacer = true;                             /* a spacer will be needed next time */
             }
 
     if (need_spacer)                                    /* if at least one simulation stop was enabled */
@@ -4470,7 +4471,7 @@ uint32 sc, last_sc;
 
 fputc ('\n', st);                                       /* skip a line */
 
-if (initialize_io (FALSE) == FALSE)                     /* set up the I/O tables; if a conflict was reported */
+if (initialize_io (false) == false)                     /* set up the I/O tables; if a conflict was reported */
     fputc ('\n', st);                                   /*   then separate it from the interface list */
 
 fputs ("SC  Device  Interface Description\n", st);      /* print */
@@ -4673,11 +4674,11 @@ return SCPE_OK;                                         /*   and report success 
        and SZA,RSS/SZB,RSS) are independent.
 */
 
-static t_stat machine_instruction (t_bool int_ack, uint32 *idle_save)
+static t_stat machine_instruction (bool int_ack, uint32 *idle_save)
 {
 uint32  ab_selector, result, skip;
 HP_WORD data;
-t_bool  rss;
+bool    rss;
 t_stat  status = SCPE_OK;
 
 switch (UPPER_BYTE (IR)) {                              /* dispatch on bits 15-8 of the instruction */
@@ -4753,7 +4754,7 @@ switch (UPPER_BYTE (IR)) {                              /* dispatch on bits 15-8
                 cpu_dev.dctrl = 0;                      /*         and turn off tracing for the idle loop */
                 }
 
-            sim_idle (TMR_POLL, FALSE);                 /* idle the simulator */
+            sim_idle (TMR_POLL, false);                 /* idle the simulator */
             }
 
         PCQ_ENTRY;                                      /* save P in the queue */
@@ -5042,7 +5043,7 @@ else                                                    /* otherwise */
     MR = IR & (IR_IND | IR_OFFSET);                     /*   the offset is on the base page */
 
 if (MR & IR_IND)                                        /* if the address is indirect */
-    return cpu_resolve_indirects (TRUE);                /*   then resolve it to a direct address with interruptibility */
+    return cpu_resolve_indirects (true);                /*   then resolve it to a direct address with interruptibility */
 else                                                    /* otherwise */
     return SCPE_OK;                                     /*   the address in MR is already direct */
 }
@@ -5162,7 +5163,7 @@ switch (operation) {                                        /* dispatch on the m
    the Model 2100A Computer Installation and Maintenance Manual for details.
 */
 
-static t_bool reenable_interrupts (void)
+static bool reenable_interrupts (void)
 {
 HP_WORD next_instruction;
 
@@ -5172,13 +5173,13 @@ if (!(cpu_configuration & CPU_1000)) {                  /* if the CPU is a 21xx 
     if (MRGOP (next_instruction)                        /* if it is an MRG instruction */
       && (next_instruction & IR_MRG_I) != IR_JSB_I      /*   but not JSB,I */
       && (next_instruction & IR_MRG)   != IR_JMP)       /*   and not JMP or JMP,I */
-        return TRUE;                                    /*     then reenable interrupts */
+        return true;                                    /*     then reenable interrupts */
     }
 
 if (interrupt_request == MPPE || mp_reenable_interrupts ()) /* if MP is interrupting or the INT jumper is out */
-    return TRUE;                                            /*   then reenable interrupts */
+    return true;                                            /*   then reenable interrupts */
 else                                                        /* otherwise */
-    return FALSE;                                           /*   interrupts remain disabled */
+    return false;                                           /*   interrupts remain disabled */
 }
 
 
@@ -5243,14 +5244,14 @@ else                                                        /* otherwise */
        enables all trace options for a given instruction or instruction class.
 */
 
-static t_bool initialize_io (t_bool is_executing)
+static bool initialize_io (bool is_executing)
 {
 DEVICE       *dptr;
 DIB          *dibptr;
 const DEBTAB *tptr;
 uint32       dev, sc, count;
 size_t       device_length, flag_length, device_size, flag_size;
-t_bool       is_conflict = FALSE;
+bool         is_conflict = false;
 
 interrupt_request_set [0] = interrupt_request_set [1] = 0;  /* clear all interrupt requests */
 priority_holdoff_set  [0] = priority_holdoff_set  [1] = 0;  /* clear all priority inhibits */
@@ -5270,7 +5271,7 @@ for (dev = 0; sim_devices [dev] != NULL; dev++) {       /* loop through all of t
         iot [sc].dibptr = dibptr;                       /*     and set the DIB pointer into the dispatch table */
 
         if (sc >= SC_VAR && ++iot [sc].references > 1)  /* increment the count of references; if more than one */
-            is_conflict = TRUE;                         /*   then a conflict occurs */
+            is_conflict = true;                         /*   then a conflict occurs */
 
         if (is_executing)                               /* if the CPU is executing instructions */
             io_assert (dptr, ioa_SIR);                  /*   then set the interrupt request state */
@@ -5326,7 +5327,7 @@ if (is_conflict) {                                      /* if a conflict exists 
             cputs (")\n");                              /* tie off the line */
             }                                           /*   and continue to look for other conflicting select codes */
 
-    return FALSE;                                       /* report that initialization has failed */
+    return false;                                       /* report that initialization has failed */
     }
 
 else {                                                  /* otherwise no conflicts were found */
@@ -5344,6 +5345,6 @@ else {                                                  /* otherwise no conflict
         }
 
     hp_initialize_trace (device_size, flag_size);       /* initialize the trace routine */
-    return TRUE;                                        /*   and report that initialization has succeeded */
+    return true;                                        /*   and report that initialization has succeeded */
     }
 }

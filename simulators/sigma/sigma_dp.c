@@ -68,6 +68,7 @@
 
 #include "sigma_io_defs.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define UNIT_V_AUTO     (UNIT_V_UF + 1)                 /* autosize */
 #define UNIT_AUTO       (1u << UNIT_V_AUTO)
@@ -301,13 +302,13 @@ t_stat dp_chan_err (uint32 dva, uint32 st);
 t_stat dp_svc (UNIT *uptr);
 t_stat dps_svc (UNIT *uptr);
 t_stat dp_reset (DEVICE *dptr);
-t_bool dp_inv_ad (UNIT *uptr, uint32 *da);
-t_bool dp_inc_ad (UNIT *uptr);
+bool dp_inv_ad (UNIT *uptr, uint32 *da);
+bool dp_inc_ad (UNIT *uptr);
 t_stat dp_read (UNIT *uptr, uint32 da);
 t_stat dp_write (UNIT *uptr, uint32 da);
 t_stat dp_ioerr (UNIT *uptr);
-t_bool dp_test_mode (uint32 cidx);
-t_bool dp_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
+bool dp_test_mode (uint32 cidx);
+bool dp_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
 int32 dp_clr_int (uint32 cidx);
 void dp_set_ski (uint32 cidx, uint32 un);
 void dp_clr_ski (uint32 cidx, uint32 un);
@@ -972,13 +973,13 @@ return SCPE_OK;
 
 /* Common read/write sector end routine
 
-   case 1 - more to transfer, not end cylinder - reschedule, return TRUE
-   case 2 - more to transfer, end cylinder - uend, return TRUE
-   case 3 - transfer done, length error - uend, return TRUE
-   case 4 - transfer done, no length error - return FALSE (sched end state)
+   case 1 - more to transfer, not end cylinder - reschedule, return true
+   case 2 - more to transfer, end cylinder - uend, return true
+   case 3 - transfer done, length error - uend, return true
+   case 4 - transfer done, no length error - return false (sched end state)
 */
 
-t_bool dp_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
+bool dp_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
 {
 uint32 cidx = uptr->UCTX;
 uint32 un = uptr - dp_dev[cidx].units;
@@ -991,16 +992,16 @@ if (st != CHS_ZBC) {                                    /* end record? */
         chan_uen (dva);                                 /* uend */
         }
     else sim_activate (uptr, ctx->dp_time * 16);        /* no, next sector */
-    return TRUE;
+    return true;
     }
 dp_inc_ad (uptr);                                       /* just incr addr */
 if (lnt != exp) {                                       /* length error at end? */
     if (exp == 8)                                       /* hdr op? */
         ctx->dp_flags |= DPF_PGE;                       /* set PGE */
     if (chan_set_chf (dva, CHF_LNTE))                   /* do we care? */
-        return TRUE;
+        return true;
     }
-return FALSE;                                           /* cmd done */
+return false;                                           /* cmd done */
 }
 
 /* DP status routines */
@@ -1033,7 +1034,7 @@ uint32 dp_tdv_status (uint32 cidx, uint32 un)
 {
 uint32 st;
 UNIT *dp_unit = dp_dev[cidx].units;
-t_bool on_cyl;
+bool on_cyl;
 
 st = 0;
 on_cyl = !sim_is_active (&dp_unit[un + DP_SEEK]) ||
@@ -1050,7 +1051,7 @@ uint32 dp_aio_status (uint32 cidx, uint32 un)
 {
 uint32 st;
 UNIT *dp_unit = dp_dev[cidx].units;
-t_bool on_cyl;
+bool on_cyl;
 
 st = 0;
 on_cyl = !sim_is_active (&dp_unit[un + DP_SEEK]) ||
@@ -1091,7 +1092,7 @@ return;
 
 /* Validate disk address */
 
-t_bool dp_inv_ad (UNIT *uptr, uint32 *da)
+bool dp_inv_ad (UNIT *uptr, uint32 *da)
 {
 uint32 dtype = GET_DTYPE (uptr->flags);
 uint32 cy = DPA_GETCY (uptr->UDA);
@@ -1101,15 +1102,15 @@ uint32 sc = DPA_GETSC (uptr->UDA);
 if ((cy >= dp_tab[dtype].cy) ||
     (hd >= dp_tab[dtype].hd) ||
     (sc >= dp_tab[dtype].sc))
-    return TRUE;
+    return true;
 if (da)                                                 /* return word addr */
     *da = ((((cy * dp_tab[dtype].hd) + hd) * dp_tab[dtype].sc) + sc) * DP_WDSC;
-return FALSE;
+return false;
 }
 
 /* Increment disk address */
 
-t_bool dp_inc_ad (UNIT *uptr)
+bool dp_inc_ad (UNIT *uptr)
 {
 uint32 dtype = GET_DTYPE (uptr->flags);
 uint32 cy = DPA_GETCY (uptr->UDA);
@@ -1125,8 +1126,8 @@ if (sc >= dp_tab[dtype].sc) {                           /* overflow? */
     }
 uptr->UDA = (cy << DPA_V_CY) | (hd << DPA_V_HD) | (sc << DPA_V_SC);
 if ((hd == 0) && (sc == 0))
-    return TRUE;
-return FALSE;
+    return true;
+return false;
 }
 
 /* Read and write sector */
@@ -1177,7 +1178,7 @@ return SCPE_IOERR;
 
 /* Test mode */
 
-t_bool dp_test_mode (uint32 cidx)
+bool dp_test_mode (uint32 cidx)
 {
 DP_CTX *ctx = &dp_ctx[cidx];
 uint32 dva = dp_dib[cidx].dva;
@@ -1189,13 +1190,13 @@ for (i = 0, st = 0; i < DPT_NBY; i++) {                 /* sector loop */
         st = chan_RdMemB (dva, &wd);                    /* read word */
         if (CHS_IFERR (st)) {
             dp_chan_err (dva, st);
-            return FALSE;
+            return false;
             }
         }
     else wd = 0;
     ctx->dp_test |= (wd & 0xFF) << (i * 8);
     }
-return TRUE;
+return true;
 }
 
 /* Channel error */

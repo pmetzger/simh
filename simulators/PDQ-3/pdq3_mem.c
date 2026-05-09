@@ -25,6 +25,7 @@
 
    20130920 hv initial version, moved some code from pdq3_cpu.c
 */
+#include <stdbool.h>
 #include "pdq3_defs.h"
 
 /* the memory */
@@ -34,7 +35,7 @@ uint16 M[MAXMEMSIZE];
  * IO dispatcher
  *****************************************************************************/
 
-static t_bool initio = FALSE;
+static bool initio = false;
 #define IOSIZE 4096
 #define IOPAGEMASK 0x0fff
 IOREAD ioreaders[IOSIZE];
@@ -53,7 +54,7 @@ t_stat pdq3_ioinit(void) {
     }
     for (i=8; i < 32; i++)
       cpu_setIntVec(NIL, i);
-    initio = TRUE;
+    initio = true;
   }
   return SCPE_OK;
 }
@@ -96,7 +97,7 @@ t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc) {
   DEVICE* dptr;
   DEVCTXT* ctxt;
   IOINFO* ioi;
-  t_bool first = TRUE;
+  bool first = true;
   if (!uptr) return SCPE_IERR;
   if ((dptr = find_dev_from_unit(uptr)) == 0) return SCPE_IERR;
   ctxt = (DEVCTXT*)dptr->ctxt;
@@ -105,7 +106,7 @@ t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc) {
     if (ioi->iobase) {
       if (ioi->iobase > 0xfc00) {
         fprintf(st, first ? "IOBASE=$%04x":",$%04x", ioi->iobase);
-        first = FALSE;
+        first = false;
       }
     }
     ioi = ioi->next;
@@ -164,7 +165,7 @@ t_stat show_iovec(FILE *st, UNIT *uptr, int value, const void *desc) {
   DEVICE* dptr;
   DEVCTXT* ctxt;
   IOINFO* ioi;
-  t_bool first = TRUE;
+  bool first = true;
   if (!uptr) return SCPE_IERR;
   if ((dptr = find_dev_from_unit(uptr)) == 0) return SCPE_IERR;
   ctxt = (DEVCTXT*)dptr->ctxt;
@@ -172,7 +173,7 @@ t_stat show_iovec(FILE *st, UNIT *uptr, int value, const void *desc) {
   while (ioi) {
     if (ioi->qprio < 32) {
       fprintf(st, first ? "VECTOR=$%04x":",$%04x", ioi->qvector);
-      first = FALSE;
+      first = false;
     }
     ioi = ioi->next;
   }
@@ -209,7 +210,7 @@ t_stat show_ioprio(FILE *st, UNIT *uptr, int value, const void *desc) {
   DEVICE* dptr;
   DEVCTXT* ctxt;
   IOINFO* ioi;
-  t_bool first = TRUE;
+  bool first = true;
   if (!uptr) return SCPE_IERR;
   if ((dptr = find_dev_from_unit(uptr)) == 0) return SCPE_IERR;
   ctxt = (DEVCTXT*)dptr->ctxt;
@@ -217,7 +218,7 @@ t_stat show_ioprio(FILE *st, UNIT *uptr, int value, const void *desc) {
   while (ioi) {
     if (ioi->qprio < 32) {
       fprintf(st, first ? "PRIO=%d":",%d", ioi->qprio);
-      first = FALSE;
+      first = false;
     }
     ioi = ioi->next;
   }
@@ -364,7 +365,7 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
   for (mc = 0, i = val; i < memorysize; i++)
     mc = mc | M[i];
 
-  if (mc && !get_yn ("Really truncate memory [N]?", FALSE))
+  if (mc && !get_yn ("Really truncate memory [N]?", false))
     return SCPE_OK;
 
   memorysize = val;

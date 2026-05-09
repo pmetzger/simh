@@ -37,6 +37,7 @@
     for output.
 */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "sim_tmxr.h"
@@ -107,8 +108,8 @@ static int32 jair_shadow_rom(int32 Addr, int32 rw, int32 data);
 #define JAIR_ROM_SIZE   8192
 #define JAIR_ROM_MASK   (JAIR_ROM_SIZE-1)
 
-#define JAIR_ROM_READ   FALSE
-#define JAIR_ROM_WRITE  TRUE
+#define JAIR_ROM_READ   false
+#define JAIR_ROM_WRITE  true
 
 static uint8 jair_rom_v25[JAIR_ROM_SIZE] = {
     0x3e, 0x02, 0x21, 0x00, 0x00, 0x01, 0x01, 0x00,
@@ -671,8 +672,8 @@ typedef struct {
     uint32    rom_size;       /* Memory Address space requirement */
     uint32    io_base;        /* I/O Base Address */
     uint32    io_size;        /* I/O Address Space requirement */
-    t_bool    sr_ena;         /* Shadow ROM enable */
-    t_bool    spi_cs;         /* SPI *CS (Active Low) */
+    bool      sr_ena;         /* Shadow ROM enable */
+    bool      spi_cs;         /* SPI *CS (Active Low) */
     uint8     sd_istate;      /* SD Card Input State */
     uint8     sd_ostate;      /* SD Card Output State */
     uint8     sd_cmd[512+6];  /* SD Card Command */
@@ -681,7 +682,7 @@ typedef struct {
     uint8     sd_resp[512+6]; /* SD Card Response */
     uint16    sd_resp_len;
     uint16    sd_resp_idx;
-    t_bool    sd_appcmd;      /* SD app command flag */
+    bool      sd_appcmd;      /* SD app command flag */
 } JAIR_CTX;
 
 static JAIR_CTX jair_ctx = {
@@ -756,7 +757,7 @@ typedef struct {
     uint8     rdr;          /* Receive Data Ready */
     uint8     rxd;          /* Receive Data Buffer */
     uint8     txd;          /* Transmit Data Buffer */
-    t_bool    txp;          /* Transmit Data Pending */
+    bool      txp;          /* Transmit Data Pending */
     uint8     ier;          /* Interrupt Enable Register */
     uint8     iir;          /* Interrupt Ident Register */
     uint8     lcr;          /* Line Control Register */
@@ -1052,19 +1053,19 @@ static const char* jairp_description(DEVICE *dptr) {
  */
 static t_stat jair_reset(DEVICE *dptr)
 {
-    static t_bool first = TRUE;
+    static bool first = true;
 
     if (dptr->flags & DEV_DIS) { /* Disconnect Resources */
-        sim_map_resource(jair_ctx.io_base, jair_ctx.io_size, RESOURCE_TYPE_IO, &jairio, "jairio", TRUE);
-        sim_map_resource(jair_ctx.rom_base, jair_ctx.rom_size, RESOURCE_TYPE_MEMORY, &jair_shadow_rom, "jairrom", TRUE);
+        sim_map_resource(jair_ctx.io_base, jair_ctx.io_size, RESOURCE_TYPE_IO, &jairio, "jairio", true);
+        sim_map_resource(jair_ctx.rom_base, jair_ctx.rom_size, RESOURCE_TYPE_MEMORY, &jair_shadow_rom, "jairrom", true);
     }
     else {
         /* Connect I/O Ports at base address */
-        if (sim_map_resource(jair_ctx.io_base, jair_ctx.io_size, RESOURCE_TYPE_IO, &jairio, "jairio", FALSE) != 0) {
+        if (sim_map_resource(jair_ctx.io_base, jair_ctx.io_size, RESOURCE_TYPE_IO, &jairio, "jairio", false) != 0) {
             sim_debug(ERROR_MSG, &jair_dev, "Error mapping I/O resource at 0x%02x\n", jair_ctx.io_base);
             return SCPE_ARG;
         }
-        if (sim_map_resource(jair_ctx.rom_base, jair_ctx.rom_size, RESOURCE_TYPE_MEMORY, &jair_shadow_rom, "jairrom", FALSE) != 0) {
+        if (sim_map_resource(jair_ctx.rom_base, jair_ctx.rom_size, RESOURCE_TYPE_MEMORY, &jair_shadow_rom, "jairrom", false) != 0) {
             sim_debug(ERROR_MSG, &jair_dev, "Error mapping ROM resource at 0x%02x\n", jair_ctx.io_base);
             return SCPE_ARG;
         }
@@ -1074,13 +1075,13 @@ static t_stat jair_reset(DEVICE *dptr)
             set_dev_enbdis(&jairs1_dev, NULL, 1, NULL);
             set_dev_enbdis(&jairp_dev, NULL, 1, NULL);
 
-            first = FALSE;
+            first = false;
         }
     }
 
-    jair_ctx.sr_ena = TRUE;
-    jair_ctx.spi_cs = TRUE;
-    jair_ctx.sd_appcmd = FALSE;
+    jair_ctx.sr_ena = true;
+    jair_ctx.spi_cs = true;
+    jair_ctx.sd_appcmd = false;
     jair_ctx.sd_istate = JAIR_STATE_IDLE;
     jair_ctx.sd_ostate = JAIR_STATE_IDLE;
 
@@ -1101,14 +1102,14 @@ static t_stat jair_port_reset(DEVICE *dptr) {
     }
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Port(s) */
-        sim_map_resource(port->pnp.io_base, port->pnp.io_size, RESOURCE_TYPE_IO, &jairio, dptr->name, TRUE);
+        sim_map_resource(port->pnp.io_base, port->pnp.io_size, RESOURCE_TYPE_IO, &jairio, dptr->name, true);
         for (u = 0; u < dptr->numunits; u++) {
             sim_cancel(&dptr->units[u]);  /* cancel timer */
         }
     }
     else {
         /* Connect I/O Ports at base address */
-        if (sim_map_resource(port->pnp.io_base, port->pnp.io_size, RESOURCE_TYPE_IO, &jairio, dptr->name, FALSE) != 0) {
+        if (sim_map_resource(port->pnp.io_base, port->pnp.io_size, RESOURCE_TYPE_IO, &jairio, dptr->name, false) != 0) {
             sim_debug(ERROR_MSG, dptr, "Error mapping I/O resource at 0x%02x\n", port->pnp.io_base);
             return SCPE_ARG;
         }
@@ -1125,8 +1126,8 @@ static t_stat jair_port_reset(DEVICE *dptr) {
         sim_set_uname(&dptr->units[JAIR_UNIT_TX], uname);
 
         port->status = 0x00;
-        port->rdr = FALSE;
-        port->txp = FALSE;
+        port->rdr = false;
+        port->txp = false;
         port->lsr = JAIR_TEMT | JAIR_THRE;
         port->msr = 0;
         port->iobufin = 0;
@@ -1237,16 +1238,16 @@ static t_stat jair_tx_svc(UNIT *uptr)
     uptr = uptr->dptr->units;
 
     /* TX byte pending? */
-    if (port->txp == TRUE) {
+    if (port->txp == true) {
         if (uptr->flags & UNIT_ATT) {
             if (uptr->fileref) {
                 r = (sim_fwrite(&port->txd, 1, 1, uptr->fileref) == 1) ? SCPE_OK : SCPE_IOERR;
-                port->txp = FALSE;
+                port->txp = false;
                 port->lsr |= (JAIR_TEMT | JAIR_THRE);
             } else if (port->conn) {
                 if ((r = tmxr_putc_ln(&port->tmln[0], port->txd)) == SCPE_OK) {
                     tmxr_poll_tx(port->tmxr);
-                    port->txp = FALSE;
+                    port->txp = false;
                 } else if (r == SCPE_LOST) {
                     port->conn = 0;          /* Connection was lost */
                     sim_printf("%s: lost connection.\n", uptr->dptr->name);
@@ -1257,13 +1258,13 @@ static t_stat jair_tx_svc(UNIT *uptr)
         }
         else {
             sim_putchar(port->txd);
-            port->txp = FALSE;
+            port->txp = false;
             port->lsr |= (JAIR_TEMT | JAIR_THRE);
         }
     }
 
     /* Update LSR if no character pending */
-    if (port->txp == FALSE && port->conn && !(port->lsr & (JAIR_TEMT | JAIR_THRE))) {
+    if (port->txp == false && port->conn && !(port->lsr & (JAIR_TEMT | JAIR_THRE))) {
         port->lsr |= tmxr_txdone_ln(port->tmln) ? (JAIR_TEMT | JAIR_THRE) : 0;
     }
 
@@ -1430,7 +1431,7 @@ static void jair_get_rxdata(UNIT *uptr)
 
     if (c & (TMXR_VALID | SCPE_KFLAG)) {
         port->rxd = c & 0xff;
-        port->rdr = TRUE;
+        port->rdr = true;
         port->lsr |= JAIR_DR;
     }
 }
@@ -1593,13 +1594,13 @@ static uint8 jair_io_in(uint32 addr)
 
         case JAIR_UART0 + JAIR_SDATA:
             data = jairs0_ctx.rxd;
-            jairs0_ctx.rdr = FALSE;
+            jairs0_ctx.rdr = false;
             jairs0_ctx.lsr &= ~(JAIR_DR | JAIR_OE);
             break;
 
         case JAIR_UART1 + JAIR_SDATA:
             data = jairs1_ctx.rxd;
-            jairs1_ctx.rdr = FALSE;
+            jairs1_ctx.rdr = false;
             jairs1_ctx.lsr &= ~(JAIR_DR | JAIR_OE);
             break;
 
@@ -1623,7 +1624,7 @@ static uint8 jair_io_in(uint32 addr)
 
         case JAIR_PPORT:
             data = jairp_ctx.rxd;
-            jairp_ctx.rdr = FALSE;
+            jairp_ctx.rdr = false;
             break;
 
         case JAIR_SPI:
@@ -1673,7 +1674,7 @@ static uint8 jair_io_out(uint32 addr, int32 data)
                 jair_new_baud(jairs0_unit);
             } else {
                 jairs0_ctx.txd = data;
-                jairs0_ctx.txp = TRUE;
+                jairs0_ctx.txp = true;
                 jairs0_ctx.lsr &= ~(JAIR_THRE | JAIR_TEMT);
             }
             break;
@@ -1684,7 +1685,7 @@ static uint8 jair_io_out(uint32 addr, int32 data)
                 jair_new_baud(jairs1_unit);
             } else {
                 jairs1_ctx.txd = data;
-                jairs1_ctx.txp = TRUE;
+                jairs1_ctx.txp = true;
                 jairs1_ctx.lsr &= ~(JAIR_THRE | JAIR_TEMT);
             }
             break;
@@ -1735,7 +1736,7 @@ static uint8 jair_io_out(uint32 addr, int32 data)
 
         case JAIR_PPORT:
             jairp_ctx.txd = data;
-            jairp_ctx.txp = TRUE;
+            jairp_ctx.txp = true;
 
             jair_ctx.sr_ena = (data & 0x01) == 0;
             break;
@@ -1744,7 +1745,7 @@ static uint8 jair_io_out(uint32 addr, int32 data)
             jair_ctx.spi_cs = (data & 0x01) != 0;
 
             if (jair_ctx.spi_cs) {    /* If chip is disable, reset */
-                jair_ctx.sd_appcmd = FALSE;
+                jair_ctx.sd_appcmd = false;
                 jair_ctx.sd_istate = JAIR_STATE_IDLE;
                 jair_ctx.sd_ostate = JAIR_STATE_IDLE;
             }
@@ -1774,7 +1775,7 @@ static uint8 jair_io_out(uint32 addr, int32 data)
 
                         if (jair_ctx.sd_appcmd) {
                             jair_ctx.sd_cmd[0] |= 0x80;
-                            jair_ctx.sd_appcmd = FALSE;
+                            jair_ctx.sd_appcmd = false;
                         }
 
                         switch (jair_ctx.sd_cmd[0]) {
@@ -1840,7 +1841,7 @@ static uint8 jair_io_out(uint32 addr, int32 data)
                                 break;
 
                             case JAIR_CMD55:
-                                jair_ctx.sd_appcmd = TRUE;
+                                jair_ctx.sd_appcmd = true;
                                 jair_ctx.sd_resp[0] |= 0x01;
                                 jair_ctx.sd_resp_idx = 0;
                                 jair_ctx.sd_resp_len = 1;
@@ -1926,7 +1927,7 @@ static t_stat jair_set_rom(UNIT *uptr, int32 value, const char *cptr, void *desc
     (void) cptr;
     (void) desc;
 
-    jair_ctx.sr_ena = TRUE;
+    jair_ctx.sr_ena = true;
     return SCPE_OK;
 }
 
@@ -1938,7 +1939,7 @@ static t_stat jair_set_norom(UNIT *uptr, int32 value, const char *cptr, void *de
     (void) cptr;
     (void) desc;
 
-    jair_ctx.sr_ena = FALSE;
+    jair_ctx.sr_ena = false;
     return SCPE_OK;
 }
 
@@ -1955,7 +1956,7 @@ static int32 jair_shadow_rom(int32 Addr, int32 rw, int32 data)
     if (rw == JAIR_ROM_WRITE) {
         jair_ram[Addr & JAIR_ROM_MASK] = data;
     } else {
-        if (jair_ctx.sr_ena == TRUE && Addr < JAIR_ROM_SIZE) {
+        if (jair_ctx.sr_ena == true && Addr < JAIR_ROM_SIZE) {
             return(jair_rom_v25[Addr & JAIR_ROM_MASK]);
         } else {
             return(jair_ram[Addr & JAIR_ROM_MASK]);

@@ -25,7 +25,7 @@
 UNIT cpu_unit = {0};
 bool cgi = false;
 bool cgiwritable = false;
-t_bool sim_gui = FALSE;
+bool sim_gui = false;
 uint16 M[MAXMEMSIZE] = {0};
 uint16 ILSW[6] = {0};
 int32 IAR = 0;
@@ -53,8 +53,8 @@ int32 int_mask = 0;
 int32 mem_mask = MAXMEMSIZE - 1;
 int32 cpu_dsw = 0;
 int32 con_dsw = 0;
-t_bool running = FALSE;
-t_bool power = FALSE;
+bool running = false;
+bool power = false;
 t_stat reason = SCPE_OK;
 
 static t_stat test_break_reason = SCPE_OK;

@@ -10,16 +10,17 @@
 
 #include "sim_host_path_internal.h"
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "sim_defs.h"
 
 /* Copy a path only when caller-provided storage can hold the full string. */
-static t_bool sim_host_path_copy(char *buf, size_t buf_size, const char *path)
+static bool sim_host_path_copy(char *buf, size_t buf_size, const char *path)
 {
     if (strlcpy(buf, path, buf_size) >= buf_size)
-        return FALSE;
-    return TRUE;
+        return false;
+    return true;
 }
 
 #if defined(_WIN32)
@@ -31,7 +32,7 @@ typedef enum {
 
 static sim_host_win32_temp_path_fn sim_win32_get_temp_path2_hook = NULL;
 static sim_host_win32_temp_path_fn sim_win32_get_temp_path_hook = NULL;
-static t_bool sim_win32_temp_path_hooks_installed = FALSE;
+static bool sim_win32_temp_path_hooks_installed = false;
 
 /* Return the Windows GetTempPath2A result, or zero if it is unavailable. */
 static DWORD sim_win32_default_get_temp_path2(DWORD buf_size, LPSTR buf)
@@ -60,7 +61,7 @@ void sim_host_path_set_test_win32_temp_hooks(
 {
     sim_win32_get_temp_path2_hook = get_temp_path2;
     sim_win32_get_temp_path_hook = get_temp_path;
-    sim_win32_temp_path_hooks_installed = TRUE;
+    sim_win32_temp_path_hooks_installed = true;
 }
 
 /* Restore default host-backed path hooks. */
@@ -68,7 +69,7 @@ void sim_host_path_reset_test_hooks(void)
 {
     sim_win32_get_temp_path2_hook = NULL;
     sim_win32_get_temp_path_hook = NULL;
-    sim_win32_temp_path_hooks_installed = FALSE;
+    sim_win32_temp_path_hooks_installed = false;
 }
 
 /* Return the Windows temporary-directory path from the best available API. */

@@ -95,6 +95,7 @@
 #include "b5500_defs.h"
 #include "sim_timer.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define UNIT_V_MSIZE    (UNIT_V_UF + 0)
 #define UNIT_MSIZE      (7 << UNIT_V_MSIZE)
@@ -3069,7 +3070,7 @@ control:
                              if (sim_idle_enab) {
                              /* Check if possible idle loop */
                                  if (check_idle())
-                                    sim_idle (TMR_RTC, FALSE);
+                                    sim_idle (TMR_RTC, false);
                              }
                              break;
                         }
@@ -3945,7 +3946,7 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
         return SCPE_ARG;
     for (i = v-1; i < MEMSIZE; i++)
         mc |= M[i];
-    if ((mc != 0) && (!get_yn("Really truncate memory [N]?", FALSE)))
+    if ((mc != 0) && (!get_yn("Really truncate memory [N]?", false)))
         return SCPE_OK;
     cpu_unit[0].flags &= ~UNIT_MSIZE;
     cpu_unit[0].flags |= val;

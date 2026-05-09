@@ -32,6 +32,7 @@
 
 */
 
+#include <stdbool.h>
 #include "sel32_defs.h"
 
 #if NUM_DEVS_MFP > 0
@@ -41,7 +42,7 @@
 /* forward definitions */
 t_stat  mfp_preio(UNIT *uptr, uint16 chan);
 t_stat  mfp_startcmd(UNIT *uptr, uint16 chan, uint8 cmd);
-void    mfp_ini(UNIT *uptr, t_bool f);
+void    mfp_ini(UNIT *uptr, bool f);
 t_stat  mfp_rschnlio(UNIT *uptr);
 t_stat  mfp_srv(UNIT *uptr);
 t_stat  mfp_reset(DEVICE *dptr);
@@ -113,7 +114,7 @@ DIB             mfp_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     mfp_rschnlio,   /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    mfp_ini,        /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    mfp_ini,        /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     mfp_unit,       /* UNIT* units */                           /* Pointer to units structure */
     mfp_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -136,7 +137,7 @@ DEVICE          mfp_dev = {
 
 /* MFP controller routines */
 /* initialize the console chan/unit */
-void mfp_ini(UNIT *uptr, t_bool f)
+void mfp_ini(UNIT *uptr, bool f)
 {
     /* Generic device initialization signature.
        This implementation does not use every parameter. */

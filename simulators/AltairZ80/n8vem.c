@@ -38,6 +38,7 @@
 
 /* #define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 #ifdef DBG_MSG
@@ -170,18 +171,18 @@ static t_stat n8vem_reset(DEVICE *dptr)
     sim_debug(VERBOSE_MSG, &n8vem_dev, "N8VEM: Reset.\n");
 
     if(dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &n8vemdev, "n8vemdev", TRUE);
-        sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &n8vem_mem, "n8vem_mem", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &n8vemdev, "n8vemdev", true);
+        sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &n8vem_mem, "n8vem_mem", true);
         free(n8vem_info->ram);
         free(n8vem_info->rom);
     } else {
         /* Connect N8VEM at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &n8vemdev, "n8vemdev", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &n8vemdev, "n8vemdev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
         /* Connect N8VEM Memory (512K RAM, 1MB FLASH) */
-        if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &n8vem_mem, "n8vem_mem", FALSE) != 0) {
+        if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &n8vem_mem, "n8vem_mem", false) != 0) {
             sim_printf("%s: error mapping MEM resource at 0x%04x\n", __FUNCTION__, pnp->mem_base);
             return SCPE_ARG;
         }
@@ -236,7 +237,7 @@ static t_stat n8vem_attach(UNIT *uptr, const char *cptr)
     sim_debug(VERBOSE_MSG, &n8vem_dev, "N8VEM: Attach %s.\n", i == 0 ? "ROM" : "RAM");
 
     if(i == 0) { /* Attaching ROM */
-        n8vem_info->rom_attached = TRUE;
+        n8vem_info->rom_attached = true;
 
         /* Erase ROM */
         memset(n8vem_info->rom, 0xFF, N8VEM_ROM_SIZE);

@@ -127,6 +127,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -187,7 +188,7 @@
        user microcode dispatcher.
 */
 
-t_stat cpu_uig_0 (uint32 intrq, t_bool int_ack)
+t_stat cpu_uig_0 (uint32 intrq, bool int_ack)
 {
 const CPU_OPTION_SET cpu_2100_iop = CPU_2100 | CPU_IOP;
 
@@ -730,7 +731,7 @@ for (i = 0; i < OP_N_F; i++) {
     if (flags >= OP_ADR) {                              /* address operand? */
         MR = ReadW (PR);                                /* get the pointer */
 
-        reason = cpu_resolve_indirects (TRUE);          /* resolve indirects */
+        reason = cpu_resolve_indirects (true);          /* resolve indirects */
 
         if (reason != SCPE_OK)                          /* resolution failed? */
             return reason;

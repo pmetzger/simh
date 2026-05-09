@@ -48,6 +48,7 @@
  *
  */
 
+#include <stdbool.h>
 #include <string.h>
 
 #include "3b2_cpu.h"
@@ -100,17 +101,17 @@ static inline void cpu_on_reset_exception(uint8 isc);
 static inline void cpu_perform_gate(uint32 index1, uint32 index2);
 static inline void clear_instruction(instr *inst);
 static inline int8 op_type(operand *op);
-static inline t_bool op_signed(operand *op);
+static inline bool op_signed(operand *op);
 static inline uint32 sign_extend_b(uint8 val);
 static inline uint32 sign_extend_h(uint16 val);
-static inline t_bool cpu_z_flag(void);
-static inline t_bool cpu_n_flag(void);
-static inline t_bool cpu_c_flag(void);
-static inline t_bool cpu_v_flag(void);
-static inline void cpu_set_z_flag(t_bool val);
-static inline void cpu_set_n_flag(t_bool val);
-static inline void cpu_set_c_flag(t_bool val);
-static inline void cpu_set_v_flag(t_bool val);
+static inline bool cpu_z_flag(void);
+static inline bool cpu_n_flag(void);
+static inline bool cpu_c_flag(void);
+static inline bool cpu_v_flag(void);
+static inline void cpu_set_z_flag(bool val);
+static inline void cpu_set_n_flag(bool val);
+static inline void cpu_set_c_flag(bool val);
+static inline void cpu_set_v_flag(bool val);
 static inline void cpu_set_v_flag_op(t_uint64 val, operand *op);
 static inline uint8 cpu_execution_level(void);
 static inline void cpu_push_word(uint32 val);
@@ -121,7 +122,7 @@ static t_stat cpu_load_builtin_rom(void);
 static inline void cpu_context_switch_1(uint32 pcbp);
 static inline void cpu_context_switch_2(uint32 pcbp);
 static inline void cpu_context_switch_3(uint32 pcbp);
-static inline t_bool op_is_psw(operand *op);
+static inline bool op_is_psw(operand *op);
 static inline void add(t_uint64 a, t_uint64 b, operand *dst);
 static inline void sub(t_uint64 a, t_uint64 b, operand *dst);
 #if defined(REV3)
@@ -150,7 +151,7 @@ instr *INST = NULL;
 uint32 cpu_hist_size = 0;
 uint32 cpu_hist_p = 0;
 
-t_bool cpu_in_wait = FALSE;
+bool cpu_in_wait = false;
 
 volatile size_t cpu_exception_stack_depth = 0;
 volatile int32 stop_reason;
@@ -161,7 +162,7 @@ uint32 R[NUM_REGISTERS];
 
 /* Other global CPU state */
 
-t_bool rom_loaded = FALSE;    /* True if ROM has been loaded, false otherwise */
+bool rom_loaded = false;      /* True if ROM has been loaded, false otherwise */
 
 /* Interrupt request bitfield */
 /* Note: Only the lowest 8 bits are used by Rev 2, and only the lowest
@@ -169,11 +170,11 @@ t_bool rom_loaded = FALSE;    /* True if ROM has been loaded, false otherwise */
 uint16 sbd_int_req = 0;       /* Currently set interrupt sources */
 uint8 int_map[INT_MAP_LEN];   /* Map of  interrupt sources  to highest
                                  priority IPL */
-t_bool cpu_nmi = FALSE;       /* If set, there has been an NMI */
+bool cpu_nmi = false;         /* If set, there has been an NMI */
 int32 pc_incr = 0;            /* Length (in bytes) of instruction
                                  currently being executed */
-t_bool cpu_ex_halt = FALSE;   /* Flag to halt on exceptions / traps */
-t_bool cpu_km = FALSE;        /* If true, kernel mode has been forced
+bool cpu_ex_halt = false;     /* Flag to halt on exceptions / traps */
+bool cpu_km = false;          /* If true, kernel mode has been forced
                                  for memory access */
 uint16 cpu_int_ack;           /* The most recently acknowledged
                                  interrupt */
@@ -941,7 +942,7 @@ static t_stat cpu_load_builtin_rom(void)
     }
 
     memcpy(ROM, BOOT_CODE_ARRAY, BOOT_CODE_SIZE);
-    rom_loaded = TRUE;
+    rom_loaded = true;
     return SCPE_OK;
 #endif /* defined(DONT_USE_INTERNAL_ROM) */
 }
@@ -1143,7 +1144,7 @@ t_stat cpu_reset(DEVICE *dptr)
 
         abort_context = C_NONE;
 
-        cpu_in_wait = FALSE;
+        cpu_in_wait = false;
     }
 
     sim_brk_types = SWMASK('E');
@@ -1164,20 +1165,20 @@ static const char *cpu_next_caveats =
 "locations due to a trap, stack unwind or any other reason, instruction\n"
 "execution will continue until some other reason causes execution to stop.\n";
 
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 {
     static t_addr returns[MAX_SUB_RETURN_SKIP+1] = {0};
-    static t_bool caveats_displayed = FALSE;
+    static bool caveats_displayed = false;
     int i;
 
     if (!caveats_displayed) {
-        caveats_displayed = TRUE;
+        caveats_displayed = true;
         sim_printf ("%s", cpu_next_caveats);
     }
 
     /* get data */
     if (SCPE_OK != get_aval (R[NUM_PC], &cpu_dev, &cpu_unit)) {
-        return FALSE;
+        return false;
     }
 
     switch (sim_eval[0]) {
@@ -1196,9 +1197,9 @@ t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
         }
         returns[i] = 0;  /* Make sure the address list ends with a zero */
         *ret_addrs = returns;
-        return TRUE;
+        return true;
     default:
-        return FALSE;
+        return false;
     }
 }
 
@@ -1514,7 +1515,7 @@ t_stat cpu_show_virt(FILE *of, UNIT *uptr, int32 val, const void *desc)
     if (cptr) {
         va = (uint32) get_uint(cptr, 16, 0xffffffff, &r);
         if (r == SCPE_OK) {
-            r = mmu_decode_va(va, 0, FALSE, &pa);
+            r = mmu_decode_va(va, 0, false, &pa);
             if (r == SCPE_OK) {
                 fprintf(of, "Virtual %08x = Physical %08x\n", va, pa);
                 return SCPE_OK;
@@ -1546,7 +1547,7 @@ t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
     /* Clear the history buffer if no argument */
     if (cptr == NULL) {
         for (i = 0; i < cpu_hist_size; i++) {
-            INST[i].valid = FALSE;
+            INST[i].valid = false;
         }
         return SCPE_OK;
     }
@@ -1563,7 +1564,7 @@ t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
     if (size == 0) {
         if (INST != NULL) {
             for (i = 0; i < cpu_hist_size; i++) {
-                INST[i].valid = FALSE;
+                INST[i].valid = false;
             }
         }
         cpu_hist_size = 0;
@@ -2294,7 +2295,7 @@ void cpu_on_interrupt(uint16 vec)
 {
     uint32 new_psw_ptr, new_psw, new_pc; /* Quick-Interrupt */
     uint32 new_pcbp, new_pcbp_ptr;       /* Full-Interrupt */
-    t_bool quick;
+    bool quick;
 
     cpu_int_ack = vec;
 
@@ -2312,10 +2313,10 @@ void cpu_on_interrupt(uint16 vec)
      */
     if (cpu_nmi) {
         vec = 0;
-        cpu_nmi = FALSE;
+        cpu_nmi = false;
     }
 
-    cpu_km = TRUE;
+    cpu_km = true;
 
     if (quick) {
         /*
@@ -2399,7 +2400,7 @@ void cpu_on_interrupt(uint16 vec)
         abort_context = C_NONE;
     }
 
-    cpu_km = FALSE;
+    cpu_km = false;
 }
 
 t_stat sim_instr(void)
@@ -2542,13 +2543,13 @@ t_stat sim_instr(void)
          *  - IO Bus boards are handled last.
          */
         if (cpu_nmi) {
-            cpu_nmi = FALSE;
-            cpu_in_wait = FALSE;
+            cpu_nmi = false;
+            cpu_in_wait = false;
             cpu_on_interrupt(0);
         } else if (cio_int_req) {
             for (i = 0; i < CIO_SLOTS; i++) {
                 if ((cio_int_req & (1 << i)) && (PSW_CUR_IPL < cio[i].ipl)) {
-                    cpu_in_wait = FALSE;
+                    cpu_in_wait = false;
                     CIO_CLR_INT(i);
                     cpu_on_interrupt(cio[i].ivec);
                     break;
@@ -2559,13 +2560,13 @@ t_stat sim_instr(void)
             if (PSW_CUR_IPL < ipl) {
                 /* For the system board, interrupt vector is always
                    equal to IPL */
-                cpu_in_wait = FALSE;
+                cpu_in_wait = false;
                 cpu_on_interrupt(ipl);
             }
         }
 
         if (cpu_in_wait) {
-            sim_idle(TMR_CLK, TRUE);
+            sim_idle(TMR_CLK, true);
             continue;
         }
 
@@ -2586,7 +2587,7 @@ t_stat sim_instr(void)
 
         /* Make sure to update the valid bit for history keeping (if
          * enabled) */
-        cpu_instr->valid = TRUE;
+        cpu_instr->valid = true;
 
         /*
          * Operate on the decoded instruction.
@@ -2836,7 +2837,7 @@ t_stat sim_instr(void)
 
             a = R[0];
 
-            cpu_km = TRUE;
+            cpu_km = true;
 
             abort_context = C_RESET_INT_STACK;
 
@@ -2861,7 +2862,7 @@ t_stat sim_instr(void)
 
             abort_context = C_NONE;
 
-            cpu_km = FALSE;
+            cpu_km = false;
             pc_incr = 0;
             break;
         case CLRW:
@@ -3150,7 +3151,7 @@ t_stat sim_instr(void)
             cpu_set_v_flag_op(a, dst);
             break;
         case GATE:
-            cpu_km = TRUE;
+            cpu_km = true;
             if (R[NUM_SP] < read_w(R[NUM_PCBP] + 12, ACC_AF, BUS_CPU) ||
                 R[NUM_SP] > read_w(R[NUM_PCBP] + 16, ACC_AF, BUS_CPU)) {
                 sim_debug(EXECUTE_MSG, &cpu_dev,
@@ -3163,7 +3164,7 @@ t_stat sim_instr(void)
                           read_w(R[NUM_PCBP] + 16, ACC_AF, BUS_CPU));
                 cpu_abort(STACK_EXCEPTION, STACK_BOUND);
             }
-            cpu_km = FALSE;
+            cpu_km = false;
 
             abort_context = C_STACK_FAULT;
 
@@ -3542,7 +3543,7 @@ t_stat sim_instr(void)
             }
 
             /* Force kernel memory access */
-            cpu_km = TRUE;
+            cpu_km = true;
 
             abort_context = C_RESET_INT_STACK;
             /* Restore process state */
@@ -3580,7 +3581,7 @@ t_stat sim_instr(void)
             abort_context = C_NONE;
 
             /* Un-force kernel memory access */
-            cpu_km = FALSE;
+            cpu_km = false;
             pc_incr = 0;
             break;
         case INTACK:
@@ -3763,7 +3764,7 @@ t_stat sim_instr(void)
                 cpu_abort(NORMAL_EXCEPTION, PRIVILEGED_OPCODE);
                 break;
             }
-            cpu_in_wait = TRUE;
+            cpu_in_wait = true;
             break;
         case XORW2:
         case XORH2:
@@ -3977,7 +3978,7 @@ t_stat sim_instr(void)
                 cpu_abort(NORMAL_EXCEPTION, ILLEGAL_OPCODE);
             }
 
-            cpu_km = TRUE;
+            cpu_km = true;
 
             /* Get the new PCBP */
             abort_context = C_RESET_SYSTEM_DATA;
@@ -4006,7 +4007,7 @@ t_stat sim_instr(void)
             cpu_context_switch_3(a);
 
             abort_context = C_NONE;
-            cpu_km = FALSE;
+            cpu_km = false;
 
             break;
 #endif
@@ -4046,7 +4047,7 @@ static inline void cpu_on_process_exception(uint8 isc)
               "[cpu_on_process_exception %d] SP=%08x PCBP=%08x ISP=%08x\n",
               isc, R[NUM_SP], R[NUM_PCBP], R[NUM_ISP]);
 
-    cpu_km = TRUE;
+    cpu_km = true;
 
     abort_context = C_RESET_SYSTEM_DATA;
     new_pcbp = read_w(0x84, ACC_AF, BUS_CPU);
@@ -4060,7 +4061,7 @@ static inline void cpu_on_process_exception(uint8 isc)
     R[NUM_PSW] &= ~(PSW_TM_MASK|PSW_ET_MASK);
     R[NUM_PSW] |= (3 << PSW_ET);
 
-    cpu_km = FALSE;
+    cpu_km = false;
     abort_context = C_NONE;
     return;
 }
@@ -4077,7 +4078,7 @@ static inline void cpu_on_reset_exception(uint8 isc)
         R[NUM_PSW] &= ~(PSW_R_MASK);
     }
 
-    cpu_km = TRUE;
+    cpu_km = true;
 
     mmu_disable();
 
@@ -4087,7 +4088,7 @@ static inline void cpu_on_reset_exception(uint8 isc)
     abort_context = C_RESET_NEW_PCB;
     cpu_context_switch_2(new_pcbp);
 
-    cpu_km = FALSE;
+    cpu_km = false;
     abort_context = C_NONE;
 }
 
@@ -4100,7 +4101,7 @@ static inline void cpu_on_stack_exception(uint8 isc)
               isc, R[NUM_SP], R[NUM_PCBP], R[NUM_ISP]);
 
     abort_context = C_RESET_SYSTEM_DATA;
-    cpu_km = TRUE;
+    cpu_km = true;
     new_pcbp = read_w(0x88, ACC_AF, BUS_CPU);
 
     abort_context = C_RESET_INT_STACK;
@@ -4119,7 +4120,7 @@ static inline void cpu_on_stack_exception(uint8 isc)
     R[NUM_PSW] |= (7 << PSW_ISC);
     R[NUM_PSW] |= (3 << PSW_ET);
 
-    cpu_km = FALSE;
+    cpu_km = false;
     abort_context = C_NONE;
 }
 
@@ -4129,7 +4130,7 @@ static inline void cpu_on_normal_exception(uint8 isc)
               "[cpu_on_normal_exception %d] %%sp=%08x abort_context=%d\n",
               isc, R[NUM_SP], abort_context);
 
-    cpu_km = TRUE;
+    cpu_km = true;
     if (R[NUM_SP] < read_w(R[NUM_PCBP] + 12, ACC_AF, BUS_CPU) ||
         R[NUM_SP] > read_w(R[NUM_PCBP] + 16, ACC_AF, BUS_CPU)) {
         sim_debug(EXECUTE_MSG, &cpu_dev,
@@ -4141,7 +4142,7 @@ static inline void cpu_on_normal_exception(uint8 isc)
                   read_w(R[NUM_PCBP] + 16, ACC_AF, BUS_CPU));
         cpu_abort(STACK_EXCEPTION, STACK_BOUND);
     }
-    cpu_km = FALSE;
+    cpu_km = false;
 
     /* Set context for STACK (FAULT) */
     abort_context = C_STACK_FAULT;
@@ -4169,7 +4170,7 @@ static inline void cpu_perform_gate(uint32 index1, uint32 index2)
     uint32 gate_l2, new_psw;
 
     abort_context = C_NORMAL_GATE_VECTOR;
-    cpu_km = TRUE;
+    cpu_km = true;
 
     gate_l2 = read_w(index1, ACC_AF, BUS_CPU) + index2;
 
@@ -4193,7 +4194,7 @@ static inline void cpu_perform_gate(uint32 index1, uint32 index2)
     R[NUM_PC] = read_w(gate_l2 + 4, ACC_AF, BUS_CPU);
     R[NUM_PSW] = new_psw;
 
-    cpu_km = FALSE;
+    cpu_km = false;
     abort_context = C_NONE;
 }
 
@@ -4631,7 +4632,7 @@ static inline int8 op_type(operand *op) {
     }
 }
 
-static inline t_bool op_signed(operand *op) {
+static inline bool op_signed(operand *op) {
     return (op_type(op) == WD || op_type(op) == HW || op_type(op) == SB);
 }
 
@@ -4657,34 +4658,34 @@ static inline uint8 cpu_execution_level(void)
     return (R[NUM_PSW] & PSW_CM_MASK) >> PSW_CM;
 }
 
-static inline t_bool cpu_z_flag(void)
+static inline bool cpu_z_flag(void)
 {
     return (R[NUM_PSW] & PSW_Z_MASK) != 0;
 }
 
-static inline t_bool cpu_n_flag(void)
+static inline bool cpu_n_flag(void)
 {
     return (R[NUM_PSW] & PSW_N_MASK) != 0;
 }
 
-static inline t_bool cpu_c_flag(void)
+static inline bool cpu_c_flag(void)
 {
     return (R[NUM_PSW] & PSW_C_MASK) != 0;
 }
 
-static inline t_bool cpu_v_flag(void)
+static inline bool cpu_v_flag(void)
 {
     return (R[NUM_PSW] & PSW_V_MASK) != 0;
 }
 
 #if defined(REV3)
-static inline t_bool cpu_x_flag(void)
+static inline bool cpu_x_flag(void)
 {
     return (R[NUM_PSW] & PSW_X_MASK) != 0;
 }
 #endif
 
-static inline void cpu_set_z_flag(t_bool val)
+static inline void cpu_set_z_flag(bool val)
 {
     if (val) {
         R[NUM_PSW] |= PSW_Z_MASK;
@@ -4693,7 +4694,7 @@ static inline void cpu_set_z_flag(t_bool val)
     }
 }
 
-static inline void cpu_set_n_flag(t_bool val)
+static inline void cpu_set_n_flag(bool val)
 {
     if (val) {
         R[NUM_PSW] |= PSW_N_MASK;
@@ -4702,7 +4703,7 @@ static inline void cpu_set_n_flag(t_bool val)
     }
 }
 
-static inline void cpu_set_c_flag(t_bool val)
+static inline void cpu_set_c_flag(bool val)
 {
     if (val) {
         R[NUM_PSW] |= PSW_C_MASK;
@@ -4712,7 +4713,7 @@ static inline void cpu_set_c_flag(t_bool val)
 }
 
 #if defined(REV3)
-static inline void cpu_set_x_flag(t_bool val)
+static inline void cpu_set_x_flag(bool val)
 {
     if (val) {
         R[NUM_PSW] |= PSW_X_MASK;
@@ -4741,7 +4742,7 @@ static inline void cpu_set_v_flag_op(t_uint64 val, operand *op)
     }
 }
 
-static inline void cpu_set_v_flag(t_bool val)
+static inline void cpu_set_v_flag(bool val)
 {
     if (val) {
         R[NUM_PSW] |= PSW_V_MASK;
@@ -4804,7 +4805,7 @@ static inline uint32 irq_pop_word(void)
     return read_w(R[NUM_ISP], ACC_AF, BUS_CPU);
 }
 
-static inline t_bool op_is_psw(operand *op)
+static inline bool op_is_psw(operand *op)
 {
     return (op->mode == 4 && op->reg == NUM_PSW);
 }

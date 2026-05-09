@@ -152,6 +152,7 @@ In addtion, many of the operate-class micro-orders changed.
 
 See TX-0 memo M-5001-19 for a simple formula for cry, used in the code below.
 */
+#include <stdbool.h>
 #include "tx0_defs.h"
 
 #define OPR_CLA         0100000 /* 0.8 */
@@ -1094,7 +1095,7 @@ static t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
     if ((val <= 0) || (val > (int32)MAXMEMSIZE) || ((val & 07777) != 0))
         return SCPE_ARG;
     for (i = val; i < MEMSIZE; i++) mc = mc | M[i];
-    if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+    if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
         return SCPE_OK;
     MEMSIZE = val;
     for (i = MEMSIZE; i < MAXMEMSIZE; i++) M[i] = 0;

@@ -15,21 +15,16 @@
 // usage:
 //      diskview -v diskfile
 
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include "util_io.h"
 
 #define BETWEEN(v,a,b) (((v) >= (a)) && ((v) <= (b)))
 #define MIN(a,b)       (((a) <= (b)) ? (a) : (b))
 #define MAX(a,b)       (((a) >= (b)) ? (a) : (b))
-
-#ifndef TRUE
-#   define TRUE  1
-#   define FALSE 0
-#   define BOOL  int
-#endif
 
 #define NOT_DEF 0x0658              // defective cylinder table entry means no defect
 
@@ -56,7 +51,7 @@ struct tag_slet {
 #pragma pack()
 
 WORD dcyl[3];
-BOOL verbose = FALSE;
+bool verbose = false;
 
 void checksectors (void);
 void dump_id      (void);
@@ -89,7 +84,7 @@ int main (int argc, char **argv)
             while (*arg) {
                 switch (*arg++) {
                     case 'v':
-                        verbose = TRUE;
+                        verbose = true;
                         break;
 
                     default:
@@ -377,33 +372,33 @@ struct {
     int printed;
     char *name;
 } sletinfo[] = {
-    0x01,   0x12,   FALSE, "DUP",
-    0x1F,   0x39,   FALSE, "Fortran",
-    0x51,   0x5C,   FALSE, "Cobol",
-    0x6E,   0x74,   FALSE, "Supervisor",
-    0x78,   0x84,   FALSE, "Core Load Builder",
-    0x8C,   0x8C,   FALSE, "Sys 1403 prt",
-    0x8D,   0x8D,   FALSE, "Sys 1132 prt",
-    0x8E,   0x8E,   FALSE, "Sys console prt",
-    0x8F,   0x8F,   FALSE, "Sys 2501 rdr",
-    0x90,   0x90,   FALSE, "Sys 1442 rdr/pun",
-    0x91,   0x91,   FALSE, "Sys 1134 paper tape",
-    0x92,   0x92,   FALSE, "Sys kbd",
-    0x93,   0x93,   FALSE, "Sys 2501/1442 conv",
-    0x94,   0x94,   FALSE, "Sys 1134 conv",
-    0x95,   0x95,   FALSE, "Sys kbd conv",
-    0x96,   0x96,   FALSE, "Sys diskz",
-    0x97,   0x97,   FALSE, "Sys disk1",
-    0x98,   0x98,   FALSE, "Sys diskn",
-    0x99,   0x99,   FALSE, "(primary print)",
-    0x9A,   0x9A,   FALSE, "(primary input)",
-    0x9B,   0x9B,   FALSE, "(primary input excl kbd)",
-    0x9C,   0x9C,   FALSE, "(primary sys conv)",
-    0x9D,   0x9D,   FALSE, "(primary conv excl kbd)",
-    0xA0,   0xA1,   FALSE, "Core Image Loader",
-    0xB0,   0xCC,   FALSE, "RPG",
-    0xCD,   0xCE,   FALSE, "Dup Part 2",
-    0xCF,   0xF6,   FALSE, "Macro Assembler",
+    0x01,   0x12,   false, "DUP",
+    0x1F,   0x39,   false, "Fortran",
+    0x51,   0x5C,   false, "Cobol",
+    0x6E,   0x74,   false, "Supervisor",
+    0x78,   0x84,   false, "Core Load Builder",
+    0x8C,   0x8C,   false, "Sys 1403 prt",
+    0x8D,   0x8D,   false, "Sys 1132 prt",
+    0x8E,   0x8E,   false, "Sys console prt",
+    0x8F,   0x8F,   false, "Sys 2501 rdr",
+    0x90,   0x90,   false, "Sys 1442 rdr/pun",
+    0x91,   0x91,   false, "Sys 1134 paper tape",
+    0x92,   0x92,   false, "Sys kbd",
+    0x93,   0x93,   false, "Sys 2501/1442 conv",
+    0x94,   0x94,   false, "Sys 1134 conv",
+    0x95,   0x95,   false, "Sys kbd conv",
+    0x96,   0x96,   false, "Sys diskz",
+    0x97,   0x97,   false, "Sys disk1",
+    0x98,   0x98,   false, "Sys diskn",
+    0x99,   0x99,   false, "(primary print)",
+    0x9A,   0x9A,   false, "(primary input)",
+    0x9B,   0x9B,   false, "(primary input excl kbd)",
+    0x9C,   0x9C,   false, "(primary sys conv)",
+    0x9D,   0x9D,   false, "(primary conv excl kbd)",
+    0xA0,   0xA1,   false, "Core Image Loader",
+    0xB0,   0xCC,   false, "RPG",
+    0xCD,   0xCE,   false, "Dup Part 2",
+    0xCF,   0xF6,   false, "Macro Assembler",
     0
 };
 
@@ -451,7 +446,7 @@ void dump_slet (void)
             printf(" ???");
         else if (! sletinfo[j].printed) {
             printf(" %s", sletinfo[j].name);
-            sletinfo[j].printed = TRUE;
+            sletinfo[j].printed = true;
         }
 
         for (j = 0; j < i; j++) {
@@ -516,17 +511,17 @@ void dump_hdng(void)
     printf("%s\n", str);
 }
 
-BOOL mget (int offset, char *name)
+bool mget (int offset, char *name)
 {
     char title[80];
 
     if (dcom[offset] == 0)
-        return FALSE;
+        return false;
 
     getsector(dcom[offset], buf);
     sprintf(title, "Sector %x - %s", dcom[offset], name);
     showmajor(title);
-    return TRUE;
+    return true;
 }
 
 void dump_scra (void)

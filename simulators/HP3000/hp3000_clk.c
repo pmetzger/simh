@@ -178,6 +178,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
 
@@ -363,8 +364,8 @@ static uint32  rate;                            /* clock rate */
 static uint32  prescaler;                       /* clock rate prescaler */
 
 static uint32 increment     = 1;                /* count register increment */
-static t_bool coschedulable = FALSE;            /* TRUE if the clock can be coscheduled with PCLK */
-static t_bool coscheduled   = FALSE;            /* TRUE if the clock is coscheduled with PCLK */
+static bool coschedulable = false;              /* true if the clock can be coscheduled with PCLK */
+static bool coscheduled   = false;              /* true if the clock is coscheduled with PCLK */
 
 
 /* System clock local SCP support routines */
@@ -813,19 +814,19 @@ if (prescaler == 0) {                                       /* if the prescaler 
 if (!(uptr->flags & UNIT_CALTIME)) {                    /* if the clock is in real timing mode */
     uptr->wait = delay [rate];                          /*   then set an event-based delay */
     increment = 1;                                      /*     equal to the selected period */
-    coscheduled = FALSE;                                /* the clock is not coscheduled with the process clock */
+    coscheduled = false;                                /* the clock is not coscheduled with the process clock */
     }
 
 else if (coschedulable && cpu_is_calibrated) {          /* otherwise if the process clock is calibrated */
     uptr->wait = sim_activate_time (cpu_pclk_uptr);     /*   then synchronize with it */
     increment = CLK_MULTIPLIER;                         /*     at one-tenth of the selected period */
-    coscheduled = TRUE;                                 /* the clock is coscheduled with the process clock */
+    coscheduled = true;                                 /* the clock is coscheduled with the process clock */
     }
 
 else {                                                  /* otherwise */
     uptr->wait = sim_rtcn_calb (ticks [rate], TMR_CLK); /*   calibrate the clock to a delay */
     increment = 1;                                      /*     equal to the selected period */
-    coscheduled = FALSE;                                /* the clock is not coscheduled with the process clock */
+    coscheduled = false;                                /* the clock is not coscheduled with the process clock */
     }
 
 dprintf (clk_dev, DEB_PSERV, "Rate %s delay %d service %s\n",
@@ -925,12 +926,12 @@ if (clk_unit [0].flags & UNIT_CALTIME                       /* if the clock is i
   && coschedulable                                          /*   and may be coscheduled with the process clock */
   && cpu_is_calibrated) {                                   /*   and the process clock is calibrated */
     clk_unit [0].wait = sim_activate_time (cpu_pclk_uptr);  /*     then synchronize with it */
-    coscheduled = TRUE;                                     /* the clock is coscheduled with the process clock */
+    coscheduled = true;                                     /* the clock is coscheduled with the process clock */
     }
 
 else {                                                  /* otherwise */
     clk_unit [0].wait = delay [rate];                   /*   set up an independent clock */
-    coscheduled = FALSE;                                /* the clock is not coscheduled with the process clock */
+    coscheduled = false;                                /* the clock is not coscheduled with the process clock */
     }
 
 dprintf (clk_dev, DEB_PSERV, "Rate %s delay %d service rescheduled\n",

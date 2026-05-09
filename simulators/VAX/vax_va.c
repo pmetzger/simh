@@ -161,10 +161,10 @@ uint32 va_mcsr = 0;                                     /* memory csr */
 
 int32 va_cur_x = 0;                                     /* last cursor X-position */
 int32 va_cur_y = 0;                                     /* last cursor Y-position */
-t_bool va_cur_v = FALSE;                                /* last cursor visible */
+bool va_cur_v = false;                                  /* last cursor visible */
 
-t_bool va_active = FALSE;
-t_bool va_updated[VA_BYSIZE];
+bool va_active = false;
+bool va_updated[VA_BYSIZE];
 bool va_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
 uint32 *va_buf = NULL;                                  /* Video memory */
 uint32 va_addr;                                         /* QDSS Qbus memory window address */
@@ -266,11 +266,11 @@ MTAB va_mod[] = {
         &va_set_enable, NULL, NULL, "Enable VCB02 (QDSS)" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
         &va_set_enable, NULL, NULL, "Disable VCB02 (QDSS)" },
-    { MTAB_XTD|MTAB_VDV, TRUE, NULL, "CAPTURE",
+    { MTAB_XTD|MTAB_VDV, true, NULL, "CAPTURE",
         &va_set_capture, &va_show_capture, NULL, "Enable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, FALSE, NULL, "NOCAPTURE",
+    { MTAB_XTD|MTAB_VDV, false, NULL, "NOCAPTURE",
         &va_set_capture, NULL, NULL, "Disable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, TRUE, "OSCURSOR", NULL,
+    { MTAB_XTD|MTAB_VDV, true, "OSCURSOR", NULL,
         NULL, &va_show_capture, NULL, "Display Input Capture mode" },
     { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "VIDEO", NULL,
         NULL, &vid_show_video, NULL, "Display the host system video capabilities" },
@@ -649,7 +649,7 @@ if (rg >= VA_GRN_OF) {                                  /* green colour map */
     va_palette[rg] = vid_map_rgb (va_red_map[rg], va_grn_map[rg], va_blu_map[rg]);
     sim_debug (DBG_REG, &va_dev, "grn_map_wr: %d, %X from PC %08X\n", rg, val, fault_PC);
     for (i = 0; i < VA_YSIZE; i++)
-        va_updated[i] = TRUE;
+        va_updated[i] = true;
     return;
     }
 if (rg >= VA_BLU_OF) {                                  /* blue colour map */
@@ -658,7 +658,7 @@ if (rg >= VA_BLU_OF) {                                  /* blue colour map */
     va_palette[rg] = vid_map_rgb (va_red_map[rg], va_grn_map[rg], va_blu_map[rg]);
     sim_debug (DBG_REG, &va_dev, "blu_map_wr: %d, %X from PC %08X\n", rg, val, fault_PC);
     for (i = 0; i < VA_YSIZE; i++)
-        va_updated[i] = TRUE;
+        va_updated[i] = true;
     return;
     }
 if (rg >= VA_RED_OF) {                                  /* red colour map */
@@ -667,7 +667,7 @@ if (rg >= VA_RED_OF) {                                  /* red colour map */
     va_palette[rg] = vid_map_rgb (va_red_map[rg], va_grn_map[rg], va_blu_map[rg]);
     sim_debug (DBG_REG, &va_dev, "red_map_wr: %d, %X from PC %08X\n", rg, val, fault_PC);
     for (i = 0; i < VA_YSIZE; i++)
-        va_updated[i] = TRUE;
+        va_updated[i] = true;
     return;
     }
 if (rg >= VA_COM2_OF) {                                 /* memory CSR */
@@ -711,7 +711,7 @@ if (rg >= VA_RAM_OF) {                                  /* RAM */
 
 void va_dlist (void)
 {
-t_bool nodec = FALSE;
+bool nodec = false;
 uint32 inst, saved_inst;
 int32 val;
 
@@ -725,7 +725,7 @@ if ((va_dla < VA_TMP_OF) || (saved_inst & 0x2000)) {
 else
     inst = va_ram[va_dla++];
 if (saved_inst & 0x1000)                                /* saved decode flag */
-    nodec = TRUE;
+    nodec = true;
 
 sim_debug (DBG_ROP, &va_dev, "Begin display list\n");
 sim_debug (DBG_ROP, &va_dev, "DLIST: %04X = %04X ", (va_dla == 0) ? 0 : (va_dla - 1), inst);
@@ -733,7 +733,7 @@ for (;;) {
     if (nodec) {                                        /* decode disabled? */
         sim_debug (DBG_ROP, &va_dev, "(data - full word)\n");
         va_adp_wr (ADP_ADCT, inst);                     /* write to adder (full word) */
-        nodec = FALSE;                                  /* enable decode */
+        nodec = false;                                  /* enable decode */
         }
     else if (inst & 0x8000) {                           /* command? */
         sim_debug (DBG_ROP, &va_dev, "(command");
@@ -747,7 +747,7 @@ for (;;) {
         if ((inst & 0x4000) == 0)                       /* write enabled? */
             va_adp_wr (ADP_ADCT, (0x8000 | (inst & 0xFFF))); /* update counter */
         if (inst & 0x1000)                              /* decode disable? */
-            nodec = TRUE;
+            nodec = true;
         if (inst & 0x2000) {                            /* read fifo? */
             if (va_dga_fifo_sz == 0) {
                 va_dla = va_dla | (inst << 16);         /* save current instruction */
@@ -891,7 +891,7 @@ static inline void va_invalidate (uint32 y1, uint32 y2)
 uint32 ln;
 
 for (ln = y1; ln < y2; ln++)
-    va_updated[ln] = TRUE;                              /* flag as updated */
+    va_updated[ln] = true;                              /* flag as updated */
 }
 
 /* Screen update service routine */
@@ -900,7 +900,7 @@ t_stat va_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
-t_bool updated = FALSE;                                 /* flag for refresh */
+bool updated = false;                                   /* flag for refresh */
 uint32 lines;
 uint32 col, off, pix;
 uint16 *plna, *plnb;
@@ -990,15 +990,15 @@ for (ln = 0; ln < VA_YSIZE; ln++) {
                     }
                 }
             }
-        va_updated[ln + va_yoff] = FALSE;               /* set valid */
+        va_updated[ln + va_yoff] = false;               /* set valid */
         if ((ln == (VA_YSIZE-1)) ||                     /* if end of window OR */
-            (va_updated[ln+va_yoff+1] == FALSE)) {      /* next is already valid? */
+            (va_updated[ln+va_yoff+1] == false)) {      /* next is already valid? */
             vid_draw (0, ln-lines, VA_XSIZE, lines+1, va_lines+(ln-lines)*VA_XSIZE); /* update region */
             lines = 0;
             }
         else
             lines++;
-        updated = TRUE;
+        updated = true;
         }
     }
 
@@ -1146,7 +1146,7 @@ va_dla = 0;
 va_rom_poll = 0;
 
 for (i = 0; i < VA_YSIZE; i++)
-    va_updated[i] = TRUE;
+    va_updated[i] = true;
 
 if (dptr->flags & DEV_DIS) {
     if (va_active) {
@@ -1154,7 +1154,7 @@ if (dptr->flags & DEV_DIS) {
         va_buf = NULL;
         free (va_lines);
         va_lines = NULL;
-        va_active = FALSE;
+        va_active = false;
         return vid_close ();
         }
     else
@@ -1187,7 +1187,7 @@ if (!vid_active)  {
     if (sim_log)
         va_show_capture (sim_log, NULL, 0, NULL);
     sim_printf ("\n");
-    va_active = TRUE;
+    va_active = true;
     }
 return auto_config (NULL, 0);                           /* run autoconfig */
 }
@@ -1207,7 +1207,7 @@ if (cptr == NULL)
     return SCPE_ARG;
 va_yoff = (int32) get_uint (cptr, 10, 2048, &r);
 for (i = 0; i < VA_YSIZE; i++)
-    va_updated[i + va_yoff] = TRUE;
+    va_updated[i + va_yoff] = true;
 return r;
 }
 
@@ -1242,7 +1242,7 @@ if (va_dpln > 0) {
     va_dpln = (1u << va_dpln);
     }
 for (i = 0; i < VA_YSIZE; i++)
-    va_updated[i + va_yoff] = TRUE;
+    va_updated[i + va_yoff] = true;
 return r;
 }
 

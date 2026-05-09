@@ -79,6 +79,7 @@
    bit bucket.
 */
 
+#include <stdbool.h>
 #include "pdp8_defs.h"
 
 #define DT_NUMDR        2                               /* #drives */
@@ -197,8 +198,8 @@ t_stat td_attach (UNIT *uptr, const char *cptr);
 void td_flush (UNIT *uptr);
 t_stat td_detach (UNIT *uptr);
 t_stat td_boot (int32 unitno, DEVICE *dptr);
-t_bool td_newsa (int32 newf);
-t_bool td_setpos (UNIT *uptr);
+bool td_newsa (int32 newf);
+bool td_setpos (UNIT *uptr);
 int32 td_header (UNIT *uptr, int32 blk, int32 line);
 int32 td_trailer (UNIT *uptr, int32 blk, int32 line);
 int32 td_read (UNIT *uptr, int32 blk, int32 line);
@@ -345,14 +346,14 @@ return AC;
         - schedule stop
 */
 
-t_bool td_newsa (int32 newf)
+bool td_newsa (int32 newf)
 {
 int32 prev_mving, new_mving, prev_dir, new_dir;
 UNIT *uptr;
 
 uptr = td_dev.units + TDC_GETUNIT (newf);               /* new unit */
 if ((uptr->flags & UNIT_ATT) == 0)                      /* new unit attached? */
-    return FALSE;
+    return false;
 
 new_mving = ((newf & TDC_STPGO) != 0);                  /* new moving? */
 prev_mving = (uptr->STATE != STA_STOP);                 /* previous moving? */
@@ -362,32 +363,32 @@ prev_dir = ((uptr->STATE & STA_DIR) != 0);              /* previous dir? */
 td_mtk = 0;                                             /* mark trk reg cleared */
 
 if (!prev_mving && !new_mving)                          /* stop from stop? */
-    return FALSE;
+    return false;
 
 if (new_mving && !prev_mving) {                         /* start from stop? */
     if (td_setpos (uptr))                               /* update pos */
-        return TRUE;
+        return true;
     sim_cancel (uptr);                                  /* stop current */
     sim_activate (uptr, td_dctime - (td_dctime >> 2));  /* sched accel */
     uptr->STATE = STA_ACC | new_dir;                    /* set status */
     td_slf = td_qlf = td_qlctr = 0;                     /* clear state */
-    return FALSE;
+    return false;
     }
 
 if ((prev_mving && !new_mving) ||                       /* stop from moving? */
     (prev_dir != new_dir)) {                            /* dir chg while moving? */
     if (uptr->STATE >= STA_ACC) {                       /* not stopping? */
         if (td_setpos (uptr))                           /* update pos */
-            return TRUE;
+            return true;
         sim_cancel (uptr);                              /* stop current */
         sim_activate (uptr, td_dctime);                 /* schedule decel */
         uptr->STATE = STA_DEC | prev_dir;               /* set status */
         td_slf = td_qlf = td_qlctr = 0;                 /* clear state */
         }
-    return FALSE;
+    return false;
     }
 
-return FALSE;
+return false;
 }
 
 /* Update DECtape position
@@ -408,7 +409,7 @@ return FALSE;
    (floating point) time, to allow save and restore of the start times.
 */
 
-t_bool td_setpos (UNIT *uptr)
+bool td_setpos (UNIT *uptr)
 {
 uint32 new_time, ut, ulin, udelt;
 int32 delta = 0;
@@ -416,7 +417,7 @@ int32 delta = 0;
 new_time = sim_grtime ();                               /* current time */
 ut = new_time - uptr->LASTT;                            /* elapsed time */
 if (ut == 0)                                            /* no time gone? exit */
-    return FALSE;
+    return false;
 uptr->LASTT = new_time;                                 /* update last time */
 switch (uptr->STATE & ~STA_DIR) {                       /* case on motion */
 
@@ -448,9 +449,9 @@ if (((int32) uptr->pos < 0) ||
     ((int32) uptr->pos > (DTU_FWDEZ (uptr) + DT_EZLIN))) {
     detach_unit (uptr);                                 /* off reel */
     sim_cancel (uptr);                                  /* no timing pulses */
-    return TRUE;
+    return true;
     }
-return FALSE;
+return false;
 }
 
 /* Unit service - unit is either changing speed, or it is up to speed */
@@ -666,7 +667,7 @@ int32 nibp = 3 * (DT_WSIZE - 1 - (line % DT_WSIZE));    /* nibble pos */
 
 ba = ba + (line / DT_WSIZE);                            /* block addr */
 fbuf[ba] = (fbuf[ba] & ~(07 << nibp)) | (dat << nibp);  /* upd data nibble */
-uptr->WRITTEN = TRUE;
+uptr->WRITTEN = true;
 if (ba >= uptr->hwmark)                                 /* upd length */
     uptr->hwmark = ba + 1;
 return;
@@ -909,7 +910,7 @@ if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO)== 0)) {    /* any 
     if (ferror (uptr->fileref))
         sim_perror ("I/O error");
     }
-uptr->WRITTEN = FALSE;                                  /* no longer dirty */
+uptr->WRITTEN = false;                                  /* no longer dirty */
 }
 
 t_stat td_detach (UNIT* uptr)

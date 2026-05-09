@@ -34,6 +34,7 @@
    of junk.  File marks are represented by a byte count of 0.
 */
 
+#include <stdbool.h>
 #include "i7000_defs.h"
 #include "sim_tape.h"
 
@@ -117,7 +118,7 @@
 uint32              mt_cmd(UNIT *, uint16, uint16);
 t_stat              mt_srv(UNIT *);
 t_stat              mt_boot(int32, DEVICE *);
-void                mt_ini(UNIT *, t_bool);
+void                mt_ini(UNIT *, bool);
 t_stat              mt_reset(DEVICE *);
 t_stat              mt_attach(UNIT *, const char *);
 t_stat              mt_detach(UNIT *);
@@ -1348,7 +1349,7 @@ mt_boot(int32 unit_num, DEVICE * dptr)
 }
 
 void
-mt_ini(UNIT * uptr, t_bool f)
+mt_ini(UNIT * uptr, bool f)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

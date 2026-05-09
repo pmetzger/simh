@@ -57,6 +57,7 @@
    29-Mar-2011  MB      First Version
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_tmxr.h"
 
@@ -402,7 +403,7 @@ DEVICE td_dev = {
     &td_description
     };
 
-static void set_csi_int (int32 ctlr, t_bool val)
+static void set_csi_int (int32 ctlr, bool val)
 {
 /* Generic controller callback signature.
    This implementation does not use every parameter. */
@@ -414,7 +415,7 @@ if (csi_int ^ val) {
     }
 }
 
-static void set_cso_int (int32 ctlr, t_bool val)
+static void set_cso_int (int32 ctlr, bool val)
 {
 /* Generic controller callback signature.
    This implementation does not use every parameter. */
@@ -684,13 +685,13 @@ return "console terminal output";
 
 int32 iccs_rd (void)
 {
-sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_rd()", tmr_iccs_bits, tmr_iccs, tmr_iccs, TRUE);
+sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_rd()", tmr_iccs_bits, tmr_iccs, tmr_iccs, true);
 return tmr_iccs & TMR_CSR_RD;
 }
 
 void iccs_wr (int32 val)
 {
-sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_wr()", tmr_iccs_bits, tmr_iccs, val, TRUE);
+sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_wr()", tmr_iccs_bits, tmr_iccs, val, true);
 if ((val & TMR_CSR_RUN) == 0) {                         /* clearing run? */
     if (tmr_iccs & TMR_CSR_RUN) {                       /* run 1 -> 0? */
         tmr_icr = icr_rd ();                            /* update icr */

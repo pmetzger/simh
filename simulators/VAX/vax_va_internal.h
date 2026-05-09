@@ -3,6 +3,7 @@
 #ifndef VAX_VA_INTERNAL_H_
 #define VAX_VA_INTERNAL_H_
 
+#include <stdbool.h>
 #include "sim_defs.h"
 
 #define VA_DGA_CSR_DMA_ERROR 0x0080u
@@ -13,7 +14,7 @@
 typedef struct {
     uint32 bytes;
     uint32 words;
-    t_bool bus_timeout;
+    bool bus_timeout;
 } VA_DGA_MAP_STATUS;
 
 /*

@@ -33,6 +33,7 @@
 
 */
 
+#include <stdbool.h>
 #include "i7080_defs.h"
 
 #ifdef NUM_DEVS_DR
@@ -50,7 +51,7 @@
 uint32              drm_cmd(UNIT *, uint16, uint16);
 t_stat              drm_srv(UNIT *);
 t_stat              drm_boot(int32, DEVICE *);
-void                drm_ini(UNIT *, t_bool);
+void                drm_ini(UNIT *, bool);
 t_stat              drm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
                         const char *cptr);
 const char          *drm_description (DEVICE *dptr);
@@ -171,7 +172,7 @@ drm_boot(int32 unit_num, DEVICE * dptr)
 }
 
 void
-drm_ini(UNIT *uptr, t_bool f) {
+drm_ini(UNIT *uptr, bool f) {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void)f;

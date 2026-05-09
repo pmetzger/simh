@@ -27,6 +27,7 @@
    24-Jul-10    HV      Added TMXR code to attach CONS and SIO to network
 */
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "sim_timer.h"
 #include "sage_defs.h"
@@ -318,7 +319,7 @@ static t_stat cons_reset(DEVICE* dptr)
     wait = mux->poll->wait = CONS_POLL_WAIT;
     sim_rtcn_init(wait, TMR_CONS);
 
-    u57.oob = TRUE; /* this is the console */
+    u57.oob = true; /* this is the console */
     sim_activate(mux->poll, wait);
     sim_cancel(mux->term);
     return SCPE_OK;

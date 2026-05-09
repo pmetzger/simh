@@ -33,6 +33,7 @@
  *                                                                       *
  *************************************************************************/
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 
 /* Debug flags */
@@ -252,22 +253,22 @@ static t_stat scp300f_reset(DEVICE *dptr)
     sim_cancel(&dptr->units[0]);
 
     if(dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &scp300fdev, "scp300fdev", TRUE);
-        sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &scp300f_mem, "scp300f_mem", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &scp300fdev, "scp300fdev", true);
+        sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &scp300f_mem, "scp300f_mem", true);
     } else {
         /* Connect SCP300F at base address */
-        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &scp300fdev, "scp300fdev", FALSE) != 0) {
+        if(sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &scp300fdev, "scp300fdev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
         /* Connect SCP300F Memory */
-        if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &scp300f_mem, "scp300f_mem", FALSE) != 0) {
+        if(sim_map_resource(pnp->mem_base, pnp->mem_size, RESOURCE_TYPE_MEMORY, &scp300f_mem, "scp300f_mem", false) != 0) {
             sim_printf("%s: error mapping MEM resource at 0x%04x\n", __FUNCTION__, pnp->mem_base);
             return SCPE_ARG;
         }
 
         /* Re-enable ROM */
-        scp300f_info->rom_enabled = TRUE;
+        scp300f_info->rom_enabled = true;
 
         scp300f_pic[MASTER_PIC].IMR = 0xFF;
         scp300f_pic[SLAVE_PIC].IMR = 0xFF;
@@ -285,7 +286,7 @@ static t_stat scp300f_boot(int32 unitno, DEVICE* dptr)
 
     sim_debug(VERBOSE_MSG, &scp300f_dev, "Booting SCP300F Controller\n");
 
-    scp300f_info->rom_enabled = TRUE;
+    scp300f_info->rom_enabled = true;
 
     sim_activate(&scp300f_unit[0], 1000);
 

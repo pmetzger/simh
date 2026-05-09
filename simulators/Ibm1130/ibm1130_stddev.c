@@ -84,6 +84,7 @@
 
 #include "ibm1130_defs.h"
 #include <memory.h>
+#include <stdbool.h>
 
 /* #define DEBUG_CONSOLE */
 
@@ -164,7 +165,7 @@ static void   strsort (int n, unsigned char *s);        /* sorts an array of n c
 static int    os_map_comp (OS_MAP *a, OS_MAP *b);       /* compares two mapping entries */
 static t_stat font_cmd(int32 flag, const char *cptr);           /* handles font command */
 static void   read_map_file(FILE *fd);                  /* reads a font map file */
-static t_bool str_match(const char *str, const char *keyword);/* keyword/string comparison */
+static bool str_match(const char *str, const char *keyword);/* keyword/string comparison */
 static const char * handle_map_ansi_definition(char **pc);  /* input line parsers for map file sections */
 static const char * handle_map_input_definition(char **pc);
 static const char * handle_map_output_definition(char **pc);
@@ -274,7 +275,7 @@ void xio_1131_console (int32 iocc_addr, int32 func, int32 modify)
     switch (func) {
         case XIO_CONTROL:
             SETBIT(tti_dsw, TT_DSW_KEYBOARD_BUSY);      /* select and unlock the keyboard */
-            keyboard_selected(TRUE);
+            keyboard_selected(true);
             CLRBIT(tti_unit.flags, KEYBOARD_LOCKED);
             tti_unit.buf = 0;                           /* no key character yet */
             break;
@@ -282,7 +283,7 @@ void xio_1131_console (int32 iocc_addr, int32 func, int32 modify)
         case XIO_READ:
             WriteW(iocc_addr, tti_unit.buf);            /* return keycode */
             CLRBIT(tti_dsw, TT_DSW_KEYBOARD_BUSY);      /* this ends selected mode */
-            keyboard_selected(FALSE);
+            keyboard_selected(false);
             SETBIT(tti_unit.flags, KEYBOARD_LOCKED);    /* keyboard is locked when not selected */
             tti_unit.buf = 0;                           /* subsequent reads will return zero */
             break;
@@ -454,7 +455,7 @@ static t_stat tti_reset (DEVICE *dptr)
 
     CLRBIT(ILSW[4], ILSW_4_CONSOLE);
     calc_ints();
-    keyboard_selected(FALSE);
+    keyboard_selected(false);
 
     SETBIT(tti_unit.flags, KEYBOARD_LOCKED);
 
@@ -497,7 +498,7 @@ const char * quotefix (const char *cptr, char * buf)
     return cptr;                                /* return pointer to cleaned-up name */
 }
 
-t_bool keyboard_is_busy (void)                  /* return TRUE if keyboard is not expecting a character */
+bool keyboard_is_busy (void)                    /* return true if keyboard is not expecting a character */
 {
     return (tti_dsw & TT_DSW_KEYBOARD_BUSY) != 0;
 }
@@ -1014,7 +1015,7 @@ static t_stat font_cmd (int32 flag, const char *iptr)
 
 /* str_match - compare the string str to the keyword, case insensitive */
 
-static t_bool str_match (const char *str, const char *keyword)
+static bool str_match (const char *str, const char *keyword)
 {
     char kch, sch;
 
@@ -1026,7 +1027,7 @@ static t_bool str_match (const char *str, const char *keyword)
         if (BETWEEN(sch, 'A', 'Z')) sch += 32;
 
         if (kch != sch)                         /* characters must match; if not, quit */
-            return FALSE;
+            return false;
     }
 
     return *str <= ' ' || *str == ';';          /* success if the input string ended or is in whitespace or comment */

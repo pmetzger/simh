@@ -31,6 +31,7 @@
 #ifndef __3B2_IU_H__
 #define __3B2_IU_H__
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 
 #define CMD_ERX         0x01              /* Enable receiver */
@@ -183,9 +184,9 @@ typedef struct iu_port {
     uint8 w_p;                /* Receive Buffer Write Pointer */
     uint8 r_p;                /* Receive Buffer Read Pointer */
     uint8 tx_state;           /* Transmitting state flags (HOLD, XMIT) */
-    t_bool dma;               /* DMA currently active */
-    t_bool drq;               /* DMA request enabled */
-    t_bool rxr_full;          /* Receive Shift Register is full */
+    bool dma;                 /* DMA currently active */
+    bool drq;                 /* DMA request enabled */
+    bool rxr_full;            /* Receive Shift Register is full */
 } IU_PORT;
 
 typedef struct iu_state {
@@ -199,7 +200,7 @@ typedef struct iu_state {
 
 typedef struct iu_timer_state {
     uint16 c_set;
-    t_bool c_en;
+    bool c_en;
 } IU_TIMER_STATE;
 
 /* Function prototypes */
@@ -228,7 +229,7 @@ void increment_modep_b(void);
 
 extern IU_PORT iu_console;
 extern IU_PORT iu_contty;
-extern t_bool iu_increment_a;
-extern t_bool iu_increment_b;
+extern bool iu_increment_a;
+extern bool iu_increment_b;
 
 #endif

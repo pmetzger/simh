@@ -26,6 +26,7 @@
    ve          SPX colour video
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_video.h"
 #include "vax_lk.h"
@@ -160,12 +161,12 @@ uint32 tbc_timing_setup = 0;
 uint32 spx_timing_csr = 0;
 uint32 tbc_ltrr = 0;
 uint32 tbc_timing = 0;
-t_bool ve_input_captured = FALSE;                       /* Mouse and Keyboard input captured in video window */
+bool ve_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
 uint8 *ve_buf = NULL;                                   /* Video memory */
 uint32 *ve_lines = NULL;                                /* Video Display Lines */
 uint32 ve_palette[256];
-t_bool ve_updated[VE_YSIZE];
-t_bool ve_active = FALSE;
+bool ve_updated[VE_YSIZE];
+bool ve_active = false;
 
 t_stat ve_svc (UNIT *uptr);
 t_stat ve_micro_svc (UNIT *uptr);
@@ -225,11 +226,11 @@ MTAB ve_mod[] = {
         &ve_set_enable, NULL, NULL, "Enable VCB01 (QVSS)" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
         &ve_set_enable, NULL, NULL, "Disable VCB01 (QVSS)" },
-    { MTAB_XTD|MTAB_VDV, TRUE, NULL, "CAPTURE",
+    { MTAB_XTD|MTAB_VDV, true, NULL, "CAPTURE",
         &ve_set_capture, &ve_show_capture, NULL, "Enable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, FALSE, NULL, "NOCAPTURE",
+    { MTAB_XTD|MTAB_VDV, false, NULL, "NOCAPTURE",
         &ve_set_capture, NULL, NULL, "Disable Captured Input Mode" },
-    { MTAB_XTD|MTAB_VDV, TRUE, "OSCURSOR", NULL,
+    { MTAB_XTD|MTAB_VDV, true, "OSCURSOR", NULL,
         NULL, &ve_show_capture, NULL, "Display Input Capture mode" },
     { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "VIDEO", NULL,
         NULL, &vid_show_video, NULL, "Display the host system video capabilities" },
@@ -453,7 +454,7 @@ else
 
 scrln = ((rg / VE_BXSIZE) + (vc_org << VE_ORSC));
 if (scrln < VE_YSIZE)
-    ve_updated[scrln] = TRUE;                           /* flag as updated */
+    ve_updated[scrln] = true;                           /* flag as updated */
 return;
 }
 
@@ -1139,7 +1140,7 @@ if ((spx_destloop & 0xFFFF) != 0x2006) {
             ve_buf[((y * 1280) + x + dstpix)] = (spx_fg & 0xFF);
             }
         if (y < VE_YSIZE)
-            ve_updated[y] = TRUE;                       /* FIXME: map to screen line */
+            ve_updated[y] = true;                       /* FIXME: map to screen line */
         }
     }
 cp_int_status |= 0x2;
@@ -1176,7 +1177,7 @@ for (y = ystart; y < yend; y++) {
             (ve_buf[(((y - ystart) * 1280) + (x - xstart) + srcpix)] & spx_smask);
         }
     if (y < VE_YSIZE)
-        ve_updated[y] = TRUE;                           /* FIXME: map to screen line */
+        ve_updated[y] = true;                           /* FIXME: map to screen line */
     }
 cp_int_status |= 0x2;
 }
@@ -1210,7 +1211,7 @@ if (tbc_csr & TBC_CSR_STRDIR) {                         /* write */
             ve_buf[((spx_stry * 1280) + spx_strx + dstpix)] = ((data >> (i << 3)) & 0xFF);
             spx_strx++;
             if (spx_stry < VE_YSIZE)
-                ve_updated[spx_stry] = TRUE;
+                ve_updated[spx_stry] = true;
             if (spx_strx > xend) {
                 spx_strx = xstart;
                 spx_stry++;
@@ -1287,14 +1288,14 @@ static inline void ve_invalidate (uint32 y1, uint32 y2)
 uint32 ln;
 
 for (ln = y1; ln < y2; ln++)
-    ve_updated[ln] = TRUE;                              /* flag as updated */
+    ve_updated[ln] = true;                              /* flag as updated */
 }
 
 t_stat ve_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
-t_bool updated = FALSE;                                 /* flag for refresh */
+bool updated = false;                                   /* flag for refresh */
 uint32 lines;
 uint32 ln, col, off;
 uint32 i, c;
@@ -1384,15 +1385,15 @@ for (ln = 0; ln < VE_YSIZE; ln++) {
                 }
             }
 #endif
-        ve_updated[ln] = FALSE;                         /* set valid */
+        ve_updated[ln] = false;                         /* set valid */
         if ((ln == (VE_YSIZE-1)) ||                     /* if end of window OR */
-            (ve_updated[ln+1] == FALSE)) {              /* next is already valid? */
+            (ve_updated[ln+1] == false)) {              /* next is already valid? */
             vid_draw (0, ln-lines, VE_XSIZE, lines+1, ve_lines+(ln-lines)*VE_XSIZE); /* update region */
             lines = 0;
             }
         else
             lines++;
-        updated = TRUE;
+        updated = true;
         }
     }
 
@@ -1448,7 +1449,7 @@ for (i = 0; i < 4; i++)
     ve_clear_fifo (i);
 
 for (i = 0; i < VE_YSIZE; i++)
-    ve_updated[i] = FALSE;
+    ve_updated[i] = false;
 
 if (dptr->flags & DEV_DIS) {
     if (ve_active) {
@@ -1456,7 +1457,7 @@ if (dptr->flags & DEV_DIS) {
         ve_buf = NULL;
         free (ve_lines);
         ve_lines = NULL;
-        ve_active = FALSE;
+        ve_active = false;
         return vid_close ();
         }
     else
@@ -1484,7 +1485,7 @@ if (!vid_active && !ve_active)  {
     if (sim_log)
         ve_show_capture (sim_log, NULL, 0, NULL);
     sim_printf ("\n");
-    ve_active = TRUE;
+    ve_active = true;
     }
 sim_activate_abs (&ve_unit[0], tmxr_poll);
 return SCPE_OK;

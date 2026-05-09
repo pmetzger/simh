@@ -404,7 +404,7 @@
 
 /* Card Reader state */
 static const char *cardFormat = "unknown";
-static t_bool   (*readRtn)(UNIT *, int16 *, char *, char *);
+static bool     (*readRtn)(UNIT *, int16 *, char *, char *);
 static char     ascii_code[4096];                       /* 2^12 possible values */
 static int      currCol;                                /* current column when reading */
 static int      colStart;                               /* starting column */
@@ -602,7 +602,7 @@ fp) and fill in three arrays.  The first array 'hcard' contains the
 'ccard' contains the 8-bit DEC encoded representation of the
 corresponding column; the third array 'acard' contains the ASCII
 representation (if possible) of the character.  The routines return
-TRUE if a card was read (possibly with errors) and FALSE if the
+true if a card was read (possibly with errors) and false if the
 "hopper is empty" (EOF) or fatal file errors prevented any portion
 of a card from being read.
 
@@ -624,7 +624,7 @@ check".  Retry 3 times.  After that, give up with error.
 
 /* Common handling for end of file and errors on input */
 
-static t_bool fileEOF ( UNIT  *uptr,
+static bool fileEOF ( UNIT  *uptr,
                         int16 *hcard,
                         char  *ccard,
                         char  *acard,
@@ -651,7 +651,7 @@ static t_bool fileEOF ( UNIT  *uptr,
         }
         /* The CR11 doesn't set SUPPPLY at this time, but waits until the EOF card is done. */
         cdst |= CDCSR_HOPPER;
-        return (TRUE);
+        return (true);
     }
 
     /* Not auto EOF, or EOF already handled. This is an attempt to read
@@ -671,10 +671,10 @@ static t_bool fileEOF ( UNIT  *uptr,
         cdst |= CDCSR_EOF;
         eofPending = false;
     }
-    return (FALSE);
+    return (false);
 }
 
-static t_bool readCardImage (   UNIT    *uptr,
+static bool readCardImage (   UNIT    *uptr,
                                 int16   *hcard,
                                 char    *ccard,
                                 char    *acard    )
@@ -738,10 +738,10 @@ static t_bool readCardImage (   UNIT    *uptr,
 
     if (DEBUG_PRS (cr_dev))
         fprintf (sim_deb, "successfully loaded card\n");
-    return (TRUE);
+    return (true);
 }
 
-static t_bool readColumnBinary (    UNIT    *uptr,
+static bool readColumnBinary (    UNIT    *uptr,
                                     int16   *hcard,
                                     char    *ccard,
                                     char    *acard    )
@@ -764,7 +764,7 @@ static t_bool readColumnBinary (    UNIT    *uptr,
         ccard[col] = (char)h2c_code[i];
         acard[col] = ascii_code[i];
     }
-    return (TRUE);
+    return (true);
 }
 
 /*
@@ -775,7 +775,7 @@ representation? (In DEC026/DEC029 they all do...)
 
 */
 
-static t_bool readCardASCII (   UNIT    *uptr,
+static bool readCardASCII (   UNIT    *uptr,
                                 int16   *hcard,
                                 char    *ccard,
                                 char    *acard    )
@@ -864,7 +864,7 @@ static t_bool readCardASCII (   UNIT    *uptr,
     if (DEBUG_PRS (cr_dev))
         fprintf (sim_deb, "successfully loaded card\n");
     uptr->pos = ftell (fp);
-    return (TRUE);
+    return (true);
 }
 
 /*
@@ -1273,7 +1273,7 @@ t_stat cr_svc ( UNIT    *uptr    )
         crs &= ~CRCSR_CRDDONE; /* This line WAS commented out - JGP 2013.02.05 */
 
         /* Call the appropriate read card routine.
-         * If no card is read (FALSE return), we tried to read with an empty hopper.
+         * If no card is read (false return), we tried to read with an empty hopper.
          * The card read routine set the appropriate error bits.  Shutdown.
          */
         if (!readRtn (uptr, hcard, ccard, acard)) {

@@ -28,6 +28,7 @@
 /* cdc1700_cd.c: cartridge disk drive controller support
  *               Simh devices: cd0, cd1, cd2, cd3, cd4, cd5, cd6, cd7
  */
+#include <stdbool.h>
 #include "cdc1700_defs.h"
 
 #define CYLADRSTATUS    iod_readR[2]
@@ -40,12 +41,12 @@ extern char INTprefix[];
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
-extern t_bool doDirectorFunc(DEVICE *, t_bool);
-extern t_bool fw_reject(IO_DEVICE *, t_bool, uint8);
+extern bool doDirectorFunc(DEVICE *, bool);
+extern bool fw_reject(IO_DEVICE *, bool, uint8);
 extern void fw_IOunderwayEOP2(IO_DEVICE *, uint16);
-extern void fw_IOcompleteEOP2(t_bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-extern void fw_IOalarm(t_bool, DEVICE *, IO_DEVICE *, const char *);
-extern void fw_IOintr(t_bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
+extern void fw_IOcompleteEOP2(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern void fw_IOalarm(bool, DEVICE *, IO_DEVICE *, const char *);
+extern void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
 
 extern void rebuildPending(void);
 
@@ -62,13 +63,13 @@ extern t_stat set_stoponrej(UNIT *, int32, const char *, void *);
 extern t_stat clr_stoponrej(UNIT *, int32, const char *, void *);
 
 extern uint16 LoadFromMem(uint16);
-extern t_bool IOStoreToMem(uint16, uint16, t_bool);
+extern bool IOStoreToMem(uint16, uint16, bool);
 
 extern uint16 M[], Areg, IOAreg;
 
-extern t_bool IOFWinitialized;
+extern bool IOFWinitialized;
 
-extern t_bool ExecutionStarted;
+extern bool ExecutionStarted;
 
 extern UNIT cpu_unit;
 
@@ -143,8 +144,8 @@ struct cdio_unit {
   UNIT                  *ondrive[2];    /* Units which are part of drive */
   UNIT                  *active;        /* Currently active unit */
   uint16                seekComplete;   /* Drive seek complete mask */
-  t_bool                oncyl;          /* Unit on-cylinder status */
-  t_bool                busy;           /* Drive busy status */
+  bool                  oncyl;          /* Unit on-cylinder status */
+  bool                  busy;           /* Drive busy status */
 } CDunits[CD_NUMDR];
 
 enum cdio_status {
@@ -161,10 +162,10 @@ t_stat cd_attach(UNIT *, const char *);
 t_stat cd_detach(UNIT *);
 
 void CDstate(const char *, DEVICE *, IO_DEVICE *);
-t_bool CDreject(IO_DEVICE *, t_bool, uint8);
+bool CDreject(IO_DEVICE *, bool, uint8);
 enum IOstatus CDin(IO_DEVICE *, uint8);
 enum IOstatus CDout(IO_DEVICE *, uint8);
-t_bool CDintr(IO_DEVICE *);
+bool CDintr(IO_DEVICE *);
 
 /*
         1733-2 Cartridge Disk Drive Controller
@@ -623,7 +624,7 @@ void CDstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
 /*
  * Determine if a non-standard interrupt condition is present.
  */
-t_bool CDintr(IO_DEVICE *iod)
+bool CDintr(IO_DEVICE *iod)
 {
   return (ISENABLED(iod, IO_1733_RBINT) &&
           ((DEVSTATUS(iod) & (IO_ST_READY | IO_ST_BUSY)) == IO_ST_READY));
@@ -632,7 +633,7 @@ t_bool CDintr(IO_DEVICE *iod)
 /*
  * Load and validate disk address in the A register
  */
-static t_bool LoadDiskAddress(UNIT *uptr, struct cdio_unit *iou, uint16 state)
+static bool LoadDiskAddress(UNIT *uptr, struct cdio_unit *iou, uint16 state)
 {
   uint16 numcy = ((uptr->flags & UNIT_856_4) != 0) ? CD_856_4CY : CD_856_2CY;
   uint16 current = iou->cylinder;
@@ -642,7 +643,7 @@ static t_bool LoadDiskAddress(UNIT *uptr, struct cdio_unit *iou, uint16 state)
    */
   if ((((IOAreg & CD_CYL_MASK) >> CD_CYL_SHIFT) >= numcy) ||
       ((IOAreg & CD_SECTOR_MASK) >= CD_NUMSC))
-    return FALSE;
+    return false;
 
   CDdev.CYLADRSTATUS = iou->sectorAddr = IOAreg;
 
@@ -673,17 +674,17 @@ static t_bool LoadDiskAddress(UNIT *uptr, struct cdio_unit *iou, uint16 state)
      */
     if (iou->cylinder == current) {
       CDdev.STATUS |= IO_1733_ONCYL;
-      iou->oncyl = TRUE;
-      return TRUE;
+      iou->oncyl = true;
+      return true;
     }
   }
 
   CDdev.STATUS &= ~IO_1733_ONCYL;
 
-  iou->busy = TRUE;
-  iou->oncyl = FALSE;
+  iou->busy = true;
+  iou->oncyl = false;
   iou->state = state;
-  return TRUE;
+  return true;
 }
 
 /*
@@ -771,7 +772,7 @@ static enum cdio_status CDDiskIORead(UNIT *uptr)
 
   for (i = 0; i < CD_NUMWD; i++) {
     /*** TODO: fix protect check ***/
-    if (!IOStoreToMem(CDdev.CWA, iou->buf[i], TRUE))
+    if (!IOStoreToMem(CDdev.CWA, iou->buf[i], true))
       return CDIO_PROTECT;
 
     CDdev.CWA++;
@@ -791,7 +792,7 @@ static enum cdio_status CDDiskIOWrite(UNIT *uptr)
 {
   struct cdio_unit *iou = (struct cdio_unit *)uptr->up7;
   uint32 lba = CDLBA(iou);
-  t_bool fill = FALSE;
+  bool fill = false;
   int i;
 
   if (iou->cylinder >= iou->maxcylinder)
@@ -802,7 +803,7 @@ static enum cdio_status CDDiskIOWrite(UNIT *uptr)
       iou->buf[i] = LoadFromMem(CDdev.CWA);
       CDdev.CWA++;
       if (--CDdev.BUFLEN == 0)
-        fill = TRUE;
+        fill = true;
     } else iou->buf[i] = 0;
   }
 
@@ -913,7 +914,7 @@ static void CDDiskIO(UNIT *uptr, uint16 iotype)
                 "%sCD - Read/Write/Compare failed - %s\r\n",
                 INTprefix, error);
 
-      fw_IOalarm(FALSE, &cd_dev, &CDdev, "Alarm");
+      fw_IOalarm(false, &cd_dev, &CDdev, "Alarm");
       break;
 
     case CDIO_MISMATCH:
@@ -927,7 +928,7 @@ static void CDDiskIO(UNIT *uptr, uint16 iotype)
         fprintf(DBGOUT,
                 "%sCD - Read/Write/Compare transfer complete\r\n", INTprefix);
 
-      fw_IOcompleteEOP2(TRUE, &cd_dev, &CDdev, 0xFFFF, "Transfer complete");
+      fw_IOcompleteEOP2(true, &cd_dev, &CDdev, 0xFFFF, "Transfer complete");
       break;
   }
 }
@@ -967,8 +968,8 @@ t_stat cd_svc(UNIT *uptr)
 
   seekdone:
       iou->state = CD_IDLE;
-      iou->busy = FALSE;
-      iou->oncyl = TRUE;
+      iou->busy = false;
+      iou->oncyl = true;
 
       CDdev.DCYLSTATUS &= ~CD_CYL_MASK;
       CDdev.DCYLSTATUS |= (iou->cylinder << CD_CYL_SHIFT) | iou->seekComplete;
@@ -984,7 +985,7 @@ t_stat cd_svc(UNIT *uptr)
           fprintf(DBGOUT, "%sCD - %s\r\n", INTprefix, why);
 
         if ((CDdev.STATUS & IO_ST_BUSY) == 0)
-          fw_IOcompleteEOP2(FALSE, &cd_dev, &CDdev, 0xFFFF, why);
+          fw_IOcompleteEOP2(false, &cd_dev, &CDdev, 0xFFFF, why);
       }
       break;
 
@@ -1003,8 +1004,8 @@ t_stat cd_svc(UNIT *uptr)
 
   WriteAddrDone:
       iou->state = CD_IDLE;
-      iou->oncyl = TRUE;
-      iou->busy = FALSE;
+      iou->oncyl = true;
+      iou->busy = false;
 
       /*
        * Set sector address to the start of this track.
@@ -1020,7 +1021,7 @@ t_stat cd_svc(UNIT *uptr)
       if ((cd_dev.dctrl & DBG_DTRACE) != 0)
         fprintf(DBGOUT, "%sCD - %s complete\r\n", INTprefix, why);
 
-      fw_IOintr(TRUE, &cd_dev, &CDdev, 0, 0, 0xFFFF, why);
+      fw_IOintr(true, &cd_dev, &CDdev, 0, 0, 0xFFFF, why);
       break;
   }
 
@@ -1069,11 +1070,11 @@ static t_stat CDreset(DEVICE *dptr)
 
     CDunits[i].state = CD_IDLE;
     CDunits[i].disk = CD_NONE;
-    CDunits[i].busy = FALSE;
-    CDunits[i].oncyl = FALSE;
+    CDunits[i].busy = false;
+    CDunits[i].oncyl = false;
     if (((CDunits[i].ondrive[0]->flags & UNIT_ATT) != 0) ||
         ((CDunits[i].ondrive[1]->flags & UNIT_ATT) != 0))
-      CDunits[i].oncyl = TRUE;
+      CDunits[i].oncyl = true;
 
     CDunits[i].seekComplete = 1 << i;
   }
@@ -1141,7 +1142,7 @@ t_stat cd_attach(UNIT *uptr, const char *cptr)
   iou->cylinder = 0;
   iou->surface = 0;
   iou->sector = 0;
-  iou->oncyl = FALSE;
+  iou->oncyl = false;
 
   return SCPE_OK;
 }
@@ -1156,7 +1157,7 @@ t_stat cd_detach(UNIT *uptr)
   sim_cancel(uptr);
   stat = detach_unit(uptr);
 
-  iou->oncyl = FALSE;
+  iou->oncyl = false;
   if (iou->disk != CD_NONE)
     if (iou->ondrive[iou->disk] == uptr)
       iou->disk = CD_NONE;
@@ -1166,7 +1167,7 @@ t_stat cd_detach(UNIT *uptr)
 
 /* Check if I/O should be rejected */
 
-t_bool CDreject(IO_DEVICE *iod, t_bool output, uint8 reg)
+bool CDreject(IO_DEVICE *iod, bool output, uint8 reg)
 {
   if (output) {
     switch (reg) {
@@ -1198,7 +1199,7 @@ t_bool CDreject(IO_DEVICE *iod, t_bool output, uint8 reg)
                 (IO_ST_READY | IO_1733_ONCYL));
     }
   }
-  return FALSE;
+  return false;
 }
 
 /* Perform I/O */
@@ -1225,7 +1226,7 @@ enum IOstatus CDin(IO_DEVICE *iod, uint8 reg)
         iou->active = iou->ondrive[first];
       else iou->active = iou->ondrive[first ^ 0x01];
 
-      iou->busy = TRUE;
+      iou->busy = true;
       iou->state = CD_RTZS;
       sim_activate(iou->active, CD_RTZS_WAIT);
     }
@@ -1265,7 +1266,7 @@ enum IOstatus CDout(IO_DEVICE *iod, uint8 reg)
        * Changing the device interrupt mask does not cause an interrupt if
        * any of the newly masked conditions are true.
        */
-      doDirectorFunc(&cd_dev, TRUE);
+      doDirectorFunc(&cd_dev, true);
 
       /*
        * Handle select/de-select.
@@ -1334,7 +1335,7 @@ enum IOstatus CDout(IO_DEVICE *iod, uint8 reg)
             fprintf(DBGOUT,
                     "%sCD - Bad Load Address (%04X)\r\n", INTprefix, Areg);
 
-          fw_IOintr(FALSE, &cd_dev, &CDdev, IO_1733_ADDRERR | IO_ST_EOP |IO_ST_ALARM, 0, 0xFFFF, "Bad load address");
+          fw_IOintr(false, &cd_dev, &CDdev, IO_1733_ADDRERR | IO_ST_EOP |IO_ST_ALARM, 0, 0xFFFF, "Bad load address");
         }
       } else return IO_REJECT;
       break;
@@ -1389,7 +1390,7 @@ enum IOstatus CDout(IO_DEVICE *iod, uint8 reg)
                     "%sCD: Bad Checkword Address (%04X)\r\n",
                     INTprefix, Areg);
 
-          fw_IOintr(FALSE, &cd_dev, &CDdev, IO_1733_ADDRERR | IO_ST_EOP | IO_ST_ALARM, 0, 0xFFFF, "Bad checkword");
+          fw_IOintr(false, &cd_dev, &CDdev, IO_1733_ADDRERR | IO_ST_EOP | IO_ST_ALARM, 0, 0xFFFF, "Bad checkword");
         }
       } else return IO_REJECT;
       break;

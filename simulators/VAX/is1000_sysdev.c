@@ -29,6 +29,7 @@
    sysd         system devices
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_tmxr.h"
 #include "sim_ether.h"
@@ -287,7 +288,7 @@ return 0;
 
 /* Map an address via the translation map */
 
-static t_bool dma_map_addr (uint32 da, uint32 *ma, t_bool map)
+static bool dma_map_addr (uint32 da, uint32 *ma, bool map)
 {
 if (map) {                                              /* using map? */
     int32 dblk = (da >> VA_V_VPN);                      /* DMA blk */
@@ -297,19 +298,19 @@ if (map) {                                              /* using map? */
             if (dmap & DMAMAP_VLD) {                    /* valid? */
                 *ma = ((dmap & DMAMAP_PAG) << VA_V_VPN) + VA_GETOFF (da);
                 if (ADDR_IS_MEM (*ma))                  /* legit addr */
-                    return TRUE;
+                    return true;
                 }
             }
         else {
             *ma = (ka_mapbase << 7) + da;
-            return TRUE;
+            return true;
             }
         }
-    return FALSE;
+    return false;
     }
 else
     *ma = da;
-return TRUE;
+return true;
 }
 
 /* DMA buffer routines, aligned access
@@ -320,7 +321,7 @@ return TRUE;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, t_bool map)
+int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, bool map)
 {
 int32 i;
 uint32 ma, dat;
@@ -354,7 +355,7 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, t_bool map)
+int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, bool map)
 {
 int32 i;
 uint32 ma,dat;
@@ -388,7 +389,7 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, t_bool map)
+int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, bool map)
 {
 int32 i;
 uint32 ma, dat;
@@ -422,7 +423,7 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, t_bool map)
+int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, bool map)
 {
 int32 i;
 uint32 ma, dat;
@@ -955,7 +956,7 @@ conpsl = PSL_IS | PSL_IPL1F | CON_PWRUP;
 if (rom == NULL)
     return SCPE_IERR;
 if (*rom == 0) {                                        /* no boot? */
-    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, TRUE, 0);
+    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, true, 0);
     if (r != SCPE_OK)
         return r;
     }

@@ -28,6 +28,7 @@
 
 #include "alpha_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
@@ -39,7 +40,7 @@ int32 parse_reg (const char *cptr);
 
 extern t_stat fprint_pal_hwre (FILE *of, uint32 inst);
 extern t_stat parse_pal_hwre (const char *cptr, t_value *inst);
-extern t_bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt);
+extern bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt);
 
 /* SCP data structures and interface routines
 

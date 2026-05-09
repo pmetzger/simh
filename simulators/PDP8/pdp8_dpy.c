@@ -25,6 +25,8 @@
    in this Software without prior written authorization from the authors.
 */
 
+#include <stdbool.h>
+
 #include "pdp8_defs.h"
 #include "display/display.h"
 #include "sim_video.h"
@@ -49,12 +51,12 @@ UNIT dpy_unit = {
   UDATA (&dpy_svc, UNIT_IDLE, 0), 0
 };
 
-static t_bool dpy_quit = FALSE;
+static bool dpy_quit = false;
 static uint16 dpy_x, dpy_y;
 
 static void dpy_quit_callback (void)
 {
-  dpy_quit = TRUE;
+  dpy_quit = true;
 }
 
 DEVICE dpy_dev = {
@@ -74,7 +76,7 @@ dpy_svc(UNIT *uptr)
   display_age (100, 0);
   sim_activate_after (uptr, 100);
   if (dpy_quit) {
-    dpy_quit = FALSE;
+    dpy_quit = false;
     return SCPE_STOP;
   }
 #endif

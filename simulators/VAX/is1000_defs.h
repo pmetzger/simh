@@ -48,6 +48,8 @@
 #ifndef _IS_1000_DEFS_H_
 #define _IS_1000_DEFS_H_ 1
 
+#include <stdbool.h>
+
 /* Microcode constructs */
 
 #define CVAX_SID        (10 << 24)                      /* system ID */
@@ -248,27 +250,27 @@ extern int32 sys_model;
 
 /* Machine specific definitions - RZ94 */
 
-#define RZ_READB(ba,bc,buf)    Map_ReadB(ba, bc, buf, TRUE)
-#define RZ_READW(ba,bc,buf)    Map_ReadW(ba, bc, buf, TRUE)
-#define RZ_WRITEB(ba,bc,buf)   Map_WriteB(ba, bc, buf, TRUE)
-#define RZ_WRITEW(ba,bc,buf)   Map_WriteW(ba, bc, buf, TRUE)
+#define RZ_READB(ba,bc,buf)    Map_ReadB(ba, bc, buf, true)
+#define RZ_READW(ba,bc,buf)    Map_ReadW(ba, bc, buf, true)
+#define RZ_WRITEB(ba,bc,buf)   Map_WriteB(ba, bc, buf, true)
+#define RZ_WRITEW(ba,bc,buf)   Map_WriteW(ba, bc, buf, true)
 
 /* Machine specific definitions - XS */
 
 #define XS_ROM_INDEX    -1                              /* no ROM needed */
 #define XS_FLAGS        0
-#define XS_READB(ba,bc,buf)    Map_ReadB(ba, bc, buf, FALSE)
-#define XS_READW(ba,bc,buf)    Map_ReadW(ba, bc, buf, FALSE)
-#define XS_WRITEB(ba,bc,buf)   Map_WriteB(ba, bc, buf, FALSE)
-#define XS_WRITEW(ba,bc,buf)   Map_WriteW(ba, bc, buf, FALSE)
+#define XS_READB(ba,bc,buf)    Map_ReadB(ba, bc, buf, false)
+#define XS_READW(ba,bc,buf)    Map_ReadW(ba, bc, buf, false)
+#define XS_WRITEB(ba,bc,buf)   Map_WriteB(ba, bc, buf, false)
+#define XS_WRITEW(ba,bc,buf)   Map_WriteW(ba, bc, buf, false)
 #define XS_ADRMBO       (0)
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, t_bool map);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, t_bool map);
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, t_bool map);
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, t_bool map);
+int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, bool map);
+int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, bool map);
+int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, bool map);
+int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, bool map);
 
 /* Function prototypes for system-specific unaligned support */
 

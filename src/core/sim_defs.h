@@ -104,6 +104,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
@@ -162,11 +163,6 @@
 #define MIN(a, b) (((a) <= (b)) ? (a) : (b))
 #endif
 
-#ifndef TRUE
-#define TRUE            1
-#define FALSE           0
-#endif
-
 /* Prefer the C23 fallthrough attribute when available. This compatibility
    macro can be removed once all supported compilers accept [[fallthrough]]. */
 #ifndef FALLTHROUGH
@@ -202,7 +198,6 @@ typedef uint16_t        uint16;
 typedef uint32_t        uint32;
 
 typedef int             t_stat;                         /* status */
-typedef int             t_bool;                         /* boolean */
 
 /* 64b integers */
 
@@ -549,20 +544,20 @@ struct UNIT {
     void                *tmxr;                          /* TMXR linkage */
     size_t              recsize;                        /* Tape specific info */
     t_addr              tape_eom;                       /* Tape specific info */
-    t_bool              (*cancel)(UNIT *);
+    bool                (*cancel)(UNIT *);
     double              usecs_remaining;                /* time balance for long delays */
     char                *uname;                         /* Unit name */
     DEVICE              *dptr;                          /* DEVICE linkage (backpointer) */
     uint32              dctrl;                          /* debug control */
 #ifdef SIM_ASYNCH_IO
     void                (*a_check_completion)(UNIT *);
-    t_bool              (*a_is_active)(UNIT *);
+    bool                (*a_is_active)(UNIT *);
     UNIT                *a_next;                        /* next asynch active */
     int32               a_event_time;
     ACTIVATE_API        a_activate_call;
     /* Asynchronous Polling control */
     /* These fields should only be referenced when holding the sim_tmxr_poll_lock */
-    t_bool              a_polling_now;                  /* polling active flag */
+    bool                a_polling_now;                  /* polling active flag */
     int32               a_poll_waiter_count;            /* count of polling threads */
                                                         /* waiting for this unit */
     /* Asynchronous Timer control */
@@ -1161,13 +1156,13 @@ extern pthread_mutex_t sim_asynch_lock;
 extern pthread_cond_t sim_asynch_wake;
 extern pthread_mutex_t sim_timer_lock;
 extern pthread_cond_t sim_timer_wake;
-extern t_bool sim_timer_event_canceled;
+extern bool sim_timer_event_canceled;
 extern int32 sim_tmxr_poll_count;
 extern pthread_cond_t sim_tmxr_poll_cond;
 extern pthread_mutex_t sim_tmxr_poll_lock;
 extern pthread_t sim_asynch_main_threadid;
 extern UNIT * volatile sim_asynch_queue;
-extern volatile t_bool sim_idle_wait;
+extern volatile bool sim_idle_wait;
 extern int32 sim_asynch_check;
 extern int32 sim_asynch_latency;
 extern int32 sim_asynch_inst_latency;
@@ -1211,12 +1206,12 @@ extern int32 sim_asynch_inst_latency;
     pthread_mutex_lock(&sim_asynch_lock)
 #define AIO_UNLOCK                                                \
     pthread_mutex_unlock(&sim_asynch_lock)
-#define AIO_IS_ACTIVE(uptr) (((uptr)->a_is_active ? (uptr)->a_is_active (uptr) : FALSE) || ((uptr)->a_next))
+#define AIO_IS_ACTIVE(uptr) (((uptr)->a_is_active ? (uptr)->a_is_active (uptr) : false) || ((uptr)->a_next))
 #if defined(SIM_ASYNCH_MUX)
 #define AIO_CANCEL(uptr)                                      \
     if (((uptr)->dynflags & UNIT_TM_POLL) &&                  \
         !((uptr)->next) && !((uptr)->a_next)) {               \
-        (uptr)->a_polling_now = FALSE;                        \
+        (uptr)->a_polling_now = false;                        \
         sim_tmxr_poll_count -= (uptr)->a_poll_waiter_count;   \
         (uptr)->a_poll_waiter_count = 0;                      \
         }
@@ -1230,7 +1225,7 @@ extern int32 sim_asynch_inst_latency;
 #define AIO_EVENT_COMPLETE(uptr, reason)                          \
         if (__was_poll) {                                         \
             pthread_mutex_lock (&sim_tmxr_poll_lock);             \
-            uptr->a_polling_now = FALSE;                          \
+            uptr->a_polling_now = false;                          \
             if (uptr->a_poll_waiter_count) {                      \
                 sim_tmxr_poll_count -= uptr->a_poll_waiter_count; \
                 uptr->a_poll_waiter_count = 0;                    \
@@ -1370,13 +1365,13 @@ extern int32 sim_asynch_inst_latency;
 #define AIO_VALIDATE(uptr)
 #define AIO_CHECK_EVENT
 #define AIO_INIT
-#define AIO_MAIN_THREAD TRUE
+#define AIO_MAIN_THREAD true
 #define AIO_LOCK
 #define AIO_UNLOCK
 #define AIO_CLEANUP
 #define AIO_EVENT_BEGIN(uptr)
 #define AIO_EVENT_COMPLETE(uptr, reason)
-#define AIO_IS_ACTIVE(uptr) FALSE
+#define AIO_IS_ACTIVE(uptr) false
 #define AIO_CANCEL(uptr)
 #define AIO_SET_INTERRUPT_LATENCY(instpersec)
 #define AIO_TLS

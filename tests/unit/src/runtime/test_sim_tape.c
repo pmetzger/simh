@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -566,9 +567,9 @@ static void test_sim_tape_async_spfilebyrecf_normalizes_check_leot(void **state)
     uint32 records_skipped = 99;
     t_stat queued_status;
 #if defined(SIM_ASYNCH_IO)
-    t_bool saved_asynch_enabled = sim_asynch_enabled;
+    bool saved_asynch_enabled = sim_asynch_enabled;
 
-    sim_asynch_enabled = TRUE;
+    sim_asynch_enabled = true;
 #endif
 
     active_tape_callback_state = &callback_state;
@@ -1513,7 +1514,7 @@ static void test_sim_tape_spfilebyrecf_reports_counts_and_leot(void **state)
     assert_int_equal(sim_tape_rewind(&fixture->unit), MTSE_OK);
 
     assert_int_equal(sim_tape_spfilebyrecf(&fixture->unit, 1, &files_skipped,
-                                           &records_skipped, FALSE),
+                                           &records_skipped, false),
                      MTSE_OK);
     assert_int_equal(files_skipped, 1);
     assert_int_equal(records_skipped, 1);
@@ -1526,7 +1527,7 @@ static void test_sim_tape_spfilebyrecf_reports_counts_and_leot(void **state)
 
     assert_int_equal(sim_tape_rewind(&fixture->unit), MTSE_OK);
     assert_int_equal(sim_tape_spfilebyrecf(&fixture->unit, 2, &files_skipped,
-                                           &records_skipped, TRUE),
+                                           &records_skipped, true),
                      MTSE_LEOT);
     assert_int_equal(files_skipped, 1);
     assert_int_equal(records_skipped, 1);

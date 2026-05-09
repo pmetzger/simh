@@ -30,6 +30,7 @@
 #include "pdq3_defs.h"
 #include "sim_imd.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 /* FDC/DMA bit definitions */
 /* declarations of FDC and DMA chip */
@@ -154,7 +155,7 @@ uint8 fdc_intpending; /* currently executing force interrupt command, 0=none */
 uint8 fdc_recbuf[1024];
 uint32 fdc_recsize;
 
-t_bool dma_isautoload;
+bool dma_isautoload;
 
 /* externals */
 extern UNIT cpu_unit;
@@ -361,13 +362,13 @@ static void fdc_update_rdonly(DRVDATA *curdrv) {
     clrbit(reg_fdc_status,FDC_ST1_WRTPROT);
 }
 
-static t_bool fdc_driveready(DRVDATA *curdrv) {
+static bool fdc_driveready(DRVDATA *curdrv) {
   /* some drive selected, and disk in drive? */
   if (curdrv==NULL || curdrv->dr_ready == 0) {
     setbit(reg_fdc_status,FDC_ST1_NOTREADY);
     clrbit(reg_fdc_status,FDC_ST1_BUSY);
     reg_fdc_cmd = FDC_IDLECMD;
-    return FALSE;
+    return false;
   }
 
   /* drive is ready */
@@ -375,33 +376,33 @@ static t_bool fdc_driveready(DRVDATA *curdrv) {
 
   /* read only drive? */
   fdc_update_rdonly(curdrv);
-  return TRUE;
+  return true;
 }
 
-static t_bool fdc_istrk0(DRVDATA *curdrv,int8 trk) {
+static bool fdc_istrk0(DRVDATA *curdrv,int8 trk) {
   curdrv->dr_trk = trk;
   if (trk <= 0) {
     setbit(reg_fdc_status,FDC_ST1_TRACK0);
     reg_fdc_track = 0;
-    return TRUE;
+    return true;
   }
-  return FALSE;
+  return false;
 }
 
 /* return true if invalid track (CRC error) */
-static t_bool fdc_stepin(DRVDATA *curdrv, t_bool upd) {
+static bool fdc_stepin(DRVDATA *curdrv, bool upd) {
   curdrv->dr_stepdir = FDC_STEPIN;
   curdrv->dr_trk++;
   if (upd) reg_fdc_track = curdrv->dr_trk;
   if (curdrv->dr_trk > FDC_MAX_TRACKS) {
     setbit(reg_fdc_status,FDC_ST1_CRCERROR);
-    return TRUE;
+    return true;
   }
-  return FALSE;
+  return false;
 }
 
 /* return true if trk0 reached */
-static t_bool fdc_stepout(DRVDATA *curdrv, t_bool upd) {
+static bool fdc_stepout(DRVDATA *curdrv, bool upd) {
    curdrv->dr_stepdir = FDC_STEPOUT;
    curdrv->dr_trk--;
    if (upd) reg_fdc_track = curdrv->dr_trk;
@@ -419,7 +420,7 @@ static void dma_interrupt(int bit) {
   }
 }
 
-static t_bool dma_abort(t_bool fromfinish) {
+static bool dma_abort(bool fromfinish) {
   clrbit(reg_dma_status,DMA_ST_BUSY);
   clrbit(reg_dma_ctrl,DMA_CTRL_RUN);
 
@@ -428,17 +429,17 @@ static t_bool dma_abort(t_bool fromfinish) {
   if (dma_isautoload) {
     sim_debug(DBG_FD_DMA, & fdc_dev, DBG_PCFORMAT2 "AUTOLOAD finished by end-of-track (DMA aborted)\n", DBG_PC);
     cpu_finishAutoload();
-    dma_isautoload = FALSE;
+    dma_isautoload = false;
   } else if (!fromfinish) {
     sim_debug(DBG_FD_DMA, & fdc_dev, DBG_PCFORMAT2 "Aborted transfer\n", DBG_PC);
   }
-  return FALSE;
+  return false;
 }
 
 /* all data transferred */
 static void dma_finish(void) {
   setbit(reg_dma_status,DMA_ST_TCZI);
-  dma_abort(TRUE);
+  dma_abort(true);
   dma_interrupt(DMA_CTRL_TCIE);
   sim_debug(DBG_FD_DMA, & fdc_dev, DBG_PCFORMAT2 "Finished transfer\n", DBG_PC);
 }
@@ -458,8 +459,8 @@ static void dma_fix_regs(void) {
 }
 
 /* return true if successfully transferred */
-static t_bool dma_transfer_to_ram(uint8 *buf, int bufsize) {
-  t_bool rc = TRUE;
+static bool dma_transfer_to_ram(uint8 *buf, int bufsize) {
+  bool rc = true;
   int i;
   uint16 data;
   t_addr tstart = _reg_dma_addr/2;
@@ -482,11 +483,11 @@ static t_bool dma_transfer_to_ram(uint8 *buf, int bufsize) {
     data = buf[i];
 //    sim_printf("addr=%04x data=%02x\n",_reg_dma_addr, data);
 
-    if (WriteB(0, _reg_dma_addr++, data, FALSE) != SCPE_OK) {
-      (void)dma_abort(FALSE);
+    if (WriteB(0, _reg_dma_addr++, data, false) != SCPE_OK) {
+      (void)dma_abort(false);
       setbit(reg_dma_status,DMA_ST_TOI);
       dma_interrupt(DMA_CTRL_TOIE);
-      return FALSE; /* write fault */
+      return false; /* write fault */
     }
     _reg_dma_cnt++;
     if (_reg_dma_cnt == 0) /* all data done? */
@@ -494,7 +495,7 @@ static t_bool dma_transfer_to_ram(uint8 *buf, int bufsize) {
   }
   if (_reg_dma_cnt == 0) { /* all data done? */
     dma_finish();
-    rc = FALSE;
+    rc = false;
   }
 
   dma_fix_regs();
@@ -502,8 +503,8 @@ static t_bool dma_transfer_to_ram(uint8 *buf, int bufsize) {
 }
 
 /* return true if successfully transferred */
-static t_bool dma_transfer_from_ram(uint8 *buf, int bufsize) {
-  t_bool rc = TRUE;
+static bool dma_transfer_from_ram(uint8 *buf, int bufsize) {
+  bool rc = true;
   int i;
   uint16 data;
   uint32 tstart = _reg_dma_addr/2;
@@ -517,11 +518,11 @@ static t_bool dma_transfer_from_ram(uint8 *buf, int bufsize) {
     sim_printf("Warning: wrong IOM direction for DMA transfer from RAM\n");
 
   for (i=0; i<bufsize; i++) {
-    if (ReadB(0, _reg_dma_addr++, &data, FALSE)) {
-      (void)dma_abort(FALSE);
+    if (ReadB(0, _reg_dma_addr++, &data, false)) {
+      (void)dma_abort(false);
       setbit(reg_dma_status,DMA_ST_TOI);
       dma_interrupt(DMA_CTRL_TOIE);
-      return FALSE; /* write fault */
+      return false; /* write fault */
     }
     buf[i] = data & 0xff;
     _reg_dma_cnt++;
@@ -537,7 +538,7 @@ static t_bool dma_transfer_from_ram(uint8 *buf, int bufsize) {
 
   if (_reg_dma_cnt == 0) { /* all data done? */
     dma_finish();
-    rc = FALSE;
+    rc = false;
   }
 
   dma_fix_regs();
@@ -545,13 +546,13 @@ static t_bool dma_transfer_from_ram(uint8 *buf, int bufsize) {
 }
 
 /* return true if read satisfied, false if error */
-static t_bool fdc_readsec(DRVDATA *curdrv) {
+static bool fdc_readsec(DRVDATA *curdrv) {
   uint32 flags;
 
   /* does sector exist? */
   if (sectSeek(curdrv->dr_imd, curdrv->dr_trk, curdrv->dr_head)) {
     setbit(reg_fdc_status,FDC_ST2_RECNOTFND);
-    return FALSE;
+    return false;
   }
 
   /* get sector size available */
@@ -563,37 +564,37 @@ static t_bool fdc_readsec(DRVDATA *curdrv) {
   if (sectRead(curdrv->dr_imd, curdrv->dr_trk, curdrv->dr_head, curdrv->dr_sec,
      fdc_recbuf, fdc_recsize, &flags, &fdc_recsize)) {
     setbit(reg_fdc_status,FDC_ST2_RECNOTFND);
-    return FALSE;
+    return false;
   }
   if (isbitset(flags,IMD_DISK_IO_ERROR_CRC)) {
     setbit(reg_fdc_status,FDC_ST2_CRCERROR);
-    return FALSE; /* terminate read */
+    return false; /* terminate read */
   }
   if (isbitset(flags,IMD_DISK_IO_DELETED_ADDR_MARK))
     setbit(reg_fdc_status,FDC_ST2_TYPEWFLT);
 
   /* trigger DMA transfer */
   if (!dma_transfer_to_ram(fdc_recbuf, fdc_recsize))
-    return FALSE;
+    return false;
 
   /* now finished */
-  return TRUE;
+  return true;
 }
 
-static t_bool fdc_writesec(DRVDATA *curdrv) {
+static bool fdc_writesec(DRVDATA *curdrv) {
   uint32 flags;
 
   /* write protect? */
   if (imdIsWriteLocked(curdrv->dr_imd)) {
-    dma_abort(FALSE);
+    dma_abort(false);
     setbit(reg_fdc_status,FDC_ST2_WRTPROT);
-    return FALSE;
+    return false;
   }
 
   /* is sector available? */
   if (sectSeek(curdrv->dr_imd, curdrv->dr_trk, curdrv->dr_head)) {
     setbit(reg_fdc_status,FDC_ST2_RECNOTFND);
-    return FALSE;
+    return false;
   }
   /* clear errors. Also clear LOSTDATA bit due to aliasing to TRACK00 bit from previous seek operation */
   clrbit(reg_fdc_status,FDC_ST2_NOTREADY|FDC_ST2_LOSTDATA|FDC_ST2_WRTPROT);
@@ -603,20 +604,20 @@ static t_bool fdc_writesec(DRVDATA *curdrv) {
 
   /* get from ram into write buffer */
   if (!dma_transfer_from_ram(fdc_recbuf, fdc_recsize))
-    return FALSE;
+    return false;
 
   if (sectWrite(curdrv->dr_imd, curdrv->dr_trk, curdrv->dr_head, curdrv->dr_sec,
      fdc_recbuf, fdc_recsize, &flags, &fdc_recsize)) {
     setbit(reg_fdc_status,FDC_ST2_RECNOTFND);
-    return FALSE;
+    return false;
   }
   if (isbitset(flags,IMD_DISK_IO_ERROR_GENERAL)) {
     setbit(reg_fdc_status,FDC_ST2_TYPEWFLT);
-    return FALSE;
+    return false;
   }
   if (isbitset(flags,IMD_DISK_IO_ERROR_WPROT)) {
     setbit(reg_fdc_status,FDC_ST2_WRTPROT);
-    return FALSE;
+    return false;
   }
   /* advance to next sector for multiwrite */
   if (isbitset(reg_fdc_cmd,FDC_BIT_MULTI)) { /* multi bit */
@@ -625,10 +626,10 @@ static t_bool fdc_writesec(DRVDATA *curdrv) {
   }
 
   /* now finished */
-  return TRUE;
+  return true;
 }
 
-static t_bool fdc_rwerror(void) {
+static bool fdc_rwerror(void) {
  /* note: LOSTDATA cannot occur */
  return isbitset(reg_fdc_status,FDC_ST2_TYPEWFLT|FDC_ST2_RECNOTFND|FDC_ST2_CRCERROR /*|FDC_ST2_LOSTDATA*/);
 }
@@ -676,8 +677,8 @@ t_stat fdc_svc(UNIT *uptr) {
   (void) uptr;
 
   DRVDATA *curdrv = fdc_selected==-1 ? NULL : &fdc_drv[fdc_selected];
-  t_bool rdy = fdc_driveready(curdrv);
-  t_bool um_flg; /* update or multi bit */
+  bool rdy = fdc_driveready(curdrv);
+  bool um_flg;   /* update or multi bit */
 
   sim_debug(DBG_FD_SVC,&fdc_dev, DBG_PCFORMAT2 "Calling FDC_SVC for unit=%x cmd=%x\n",
     DBG_PC, fdc_selected, reg_fdc_cmd);
@@ -694,10 +695,10 @@ t_stat fdc_svc(UNIT *uptr) {
     break;
   case FDC_SEEK:
     if (reg_fdc_track > reg_fdc_data) {
-      if (fdc_stepout(curdrv, TRUE)) break;
+      if (fdc_stepout(curdrv, true)) break;
       return fdc_start(curdrv->dr_unit,FDC_WAIT_STEP);
     } else if (reg_fdc_track < reg_fdc_data) {
-      if (fdc_stepin(curdrv, TRUE)) break;
+      if (fdc_stepin(curdrv, true)) break;
       return fdc_start(curdrv->dr_unit,FDC_WAIT_STEP);
     }
     /* found position */
@@ -725,7 +726,7 @@ t_stat fdc_svc(UNIT *uptr) {
   case FDC_READSEC_M:
   case FDC_READSEC: /* type II: read a sector via DMA */
     if (!fdc_readsec(curdrv) || fdc_rwerror()) {
-      dma_abort(TRUE);
+      dma_abort(true);
       break;
     }
     if (isbitset(reg_dma_status,DMA_ST_BUSY) && um_flg)
@@ -734,7 +735,7 @@ t_stat fdc_svc(UNIT *uptr) {
   case FDC_WRITESEC_M:
   case FDC_WRITESEC: /* type II: read a sector via DMA */
     if (!fdc_writesec(curdrv) || fdc_rwerror()) {
-      dma_abort(TRUE);
+      dma_abort(true);
       break;
     }
     if (isbitset(reg_dma_status,DMA_ST_BUSY) && um_flg)
@@ -948,7 +949,7 @@ static void dma_docmd(uint16 data) {
 t_stat fdc_autoload(int unitnum) {
   int unitbit = 1 << unitnum;
   sim_debug(DBG_FD_CMD, &fdc_dev, DBG_PCFORMAT2 "Autoload Unit=%d\n", DBG_PC, unitnum);
-  dma_isautoload = TRUE;
+  dma_isautoload = true;
 
   /* note: this is partly in microcode/ROM. The DMA cntrlr itself does not set the
    * FDC register for multi_read */
@@ -959,11 +960,11 @@ t_stat fdc_autoload(int unitnum) {
   return fdc_docmd(FDC_READSEC_M);
 }
 
-static t_bool fd_reg16bit[] = {
-  FALSE,FALSE,FALSE,FALSE,
-  TRUE, TRUE, TRUE, TRUE,
-  FALSE,FALSE,FALSE,FALSE,
-  FALSE,FALSE,FALSE,FALSE
+static bool fd_reg16bit[] = {
+  false,false,false,false,
+  true, true, true, true,
+  false,false,false,false,
+  false,false,false,false
 };
 
 t_stat fdc_write(t_addr ioaddr, uint16 data) {

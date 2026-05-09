@@ -8,6 +8,7 @@
 // SPDX-FileCopyrightText: 1993-2022 Robert M Supnik
 // SPDX-License-Identifier: MIT
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "scp.h"
 #include "scp_pcre2.h"
@@ -76,7 +77,7 @@ DEVICE sim_expect_dev = {"INT-EXPECT",
                          NULL,
                          sim_int_expect_description};
 
-t_bool sim_expect_is_unit(const UNIT *uptr)
+bool sim_expect_is_unit(const UNIT *uptr)
 {
     return uptr == &sim_expect_unit;
 }
@@ -184,7 +185,7 @@ static void sim_exp_export_regex_groups(EXPECT *exp, const char *cbuf,
         char env_name[32];
         size_t start_offs;
         size_t end_offs;
-        t_bool have_range;
+        bool have_range;
 
         start_offs = (size_t)ovector[2 * j];
         end_offs = (size_t)ovector[2 * j + 1];
@@ -214,7 +215,7 @@ static void sim_exp_export_regex_groups(EXPECT *exp, const char *cbuf,
 }
 
 /* Return whether SCP expect debug logging is active for one context. */
-static t_bool sim_exp_debug_enabled(const EXPECT *exp)
+static bool sim_exp_debug_enabled(const EXPECT *exp)
 {
     return sim_deb && exp->dptr && (exp->dptr->dctrl & exp->dbit);
 }
@@ -255,7 +256,7 @@ static void sim_exp_log_exact_check(const EXPECT *exp, const uint8 *data,
 }
 
 /* Run one regex rule against the current expect buffer. */
-static t_bool sim_exp_check_regex_rule(EXPECT *exp, EXPTAB *ep, char **tstr,
+static bool sim_exp_check_regex_rule(EXPECT *exp, EXPTAB *ep, char **tstr,
                                        size_t *sim_exp_match_sub_count)
 {
     char *cbuf;
@@ -267,7 +268,7 @@ static t_bool sim_exp_check_regex_rule(EXPECT *exp, EXPTAB *ep, char **tstr,
     sim_exp_log_regex_check(exp, cbuf, ep);
     match_data = pcre2_match_data_create_from_pattern(ep->regex, NULL);
     if (NULL == match_data)
-        return FALSE;
+        return false;
     rc = pcre2_match(ep->regex, (PCRE2_SPTR)cbuf, (PCRE2_SIZE)exp->buf_ins,
                      0, PCRE2_NOTBOL, match_data, NULL);
     if (rc >= 0) {
@@ -275,10 +276,10 @@ static t_bool sim_exp_check_regex_rule(EXPECT *exp, EXPTAB *ep, char **tstr,
         sim_exp_export_regex_groups(exp, cbuf, ovector, rc,
                                     sim_exp_match_sub_count, ep->re_nsub);
         pcre2_match_data_free(match_data);
-        return TRUE;
+        return true;
     }
     pcre2_match_data_free(match_data);
-    return FALSE;
+    return false;
 }
 
 /* Remove one expect rule from a context and compact the table. */
@@ -334,7 +335,7 @@ static void sim_exp_show_context_state(FILE *st, const EXPECT *exp,
                                        uint32 default_haltafter);
 
 /* Return whether one command token looks like a TMXR dev:line target. */
-static t_bool sim_exp_has_line_target(const char *token)
+static bool sim_exp_has_line_target(const char *token)
 {
     return sim_isalpha(token[0]) && (strchr(token, ':') != NULL);
 }
@@ -364,7 +365,7 @@ static t_stat sim_exp_resolve_send_target(const char **cptr, SEND **snd,
 
 /* Resolve an optional EXPECT dev:line prefix and advance past it. */
 static t_stat sim_exp_resolve_expect_target(const char **cptr, EXPECT **exp,
-                                            t_bool show_error)
+                                            bool show_error)
 {
     char gbuf[CBUFSIZE];
     const char *tptr;
@@ -392,9 +393,9 @@ t_stat send_cmd(int32 flag, const char *cptr)
     uint8 dbuf[CBUFSIZE];
     uint32 dsize = 0;
     uint32 delay;
-    t_bool delay_set = FALSE;
+    bool delay_set = false;
     uint32 after;
-    t_bool after_set = FALSE;
+    bool after_set = false;
     t_stat r;
     SEND *snd;
 
@@ -415,7 +416,7 @@ t_stat send_cmd(int32 flag, const char *cptr)
                                     &gbuf[6]);
             cptr = tptr;
             tptr = get_glyph(cptr, gbuf, ',');
-            delay_set = TRUE;
+            delay_set = true;
             if (!after_set)
                 after = delay;
             continue;
@@ -427,7 +428,7 @@ t_stat send_cmd(int32 flag, const char *cptr)
                                     &gbuf[6]);
             cptr = tptr;
             tptr = get_glyph(cptr, gbuf, ',');
-            after_set = TRUE;
+            after_set = true;
             continue;
         }
         if ((*cptr == '"') || (*cptr == '\''))
@@ -477,7 +478,7 @@ t_stat expect_cmd(int32 flag, const char *cptr)
     EXPECT *exp;
 
     GET_SWITCHES(cptr);
-    r = sim_exp_resolve_expect_target(&cptr, &exp, TRUE);
+    r = sim_exp_resolve_expect_target(&cptr, &exp, true);
     if (r != SCPE_OK)
         return r;
     if (flag)
@@ -497,7 +498,7 @@ t_stat sim_show_expect(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
     (void)uptr;
     (void)flag;
 
-    r = sim_exp_resolve_expect_target(&cptr, &exp, FALSE);
+    r = sim_exp_resolve_expect_target(&cptr, &exp, false);
     if (r != SCPE_OK)
         return r;
     if (*cptr && (*cptr != '"') && (*cptr != '\''))
@@ -517,7 +518,7 @@ t_stat sim_set_expect(EXPECT *exp, const char *cptr)
     const char *tptr;
     const char *c1ptr;
     uint32 after;
-    t_bool after_set = FALSE;
+    bool after_set = false;
     int32 cnt = 0;
     t_stat r;
 
@@ -541,7 +542,7 @@ t_stat sim_set_expect(EXPECT *exp, const char *cptr)
             return sim_messagef(SCPE_ARG, "Invalid Halt After Value: %s\n",
                                 &gbuf[10]);
         cptr = tptr;
-        after_set = TRUE;
+        after_set = true;
     }
     if ((*cptr != '\0') && (*cptr != '"') && (*cptr != '\''))
         return sim_messagef(SCPE_ARG, "String must be quote delimited\n");
@@ -818,10 +819,10 @@ static void sim_show_send_timing(FILE *st, const SEND *snd, uint32 delay,
 }
 
 /* Check one exact-match rule against the current expect buffer. */
-static t_bool sim_exp_check_exact_rule(EXPECT *exp, EXPTAB *ep)
+static bool sim_exp_check_exact_rule(EXPECT *exp, EXPTAB *ep)
 {
     if (exp->buf_data < ep->size)
-        return FALSE;
+        return false;
     if (exp->buf_ins < ep->size) {
         if (exp->buf_ins > 0) {
             sim_exp_log_exact_check(exp, exp->buf, exp->buf_ins,
@@ -829,7 +830,7 @@ static t_bool sim_exp_check_exact_rule(EXPECT *exp, EXPTAB *ep)
                                     exp->buf_ins, 0);
             if (memcmp(exp->buf, &ep->match[ep->size - exp->buf_ins],
                        exp->buf_ins))
-                return FALSE;
+                return false;
         }
         sim_exp_log_exact_check(
             exp, &exp->buf[exp->buf_size - (ep->size - exp->buf_ins)],
@@ -979,7 +980,7 @@ t_stat sim_show_send_input(FILE *st, const SEND *snd)
     return SCPE_OK;
 }
 
-t_bool sim_send_poll_data(SEND *snd, t_stat *stat)
+bool sim_send_poll_data(SEND *snd, t_stat *stat)
 {
     if ((NULL != snd) && (snd->extoff < snd->insoff)) {
         if (sim_gtime() < snd->next_time) {
@@ -995,7 +996,7 @@ t_bool sim_send_poll_data(SEND *snd, t_stat *stat)
             sim_debug(snd->dbit, snd->dptr, "Byte value: 0x%02X%s injected\n",
                       *stat & 0xFF, dstr);
         }
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }

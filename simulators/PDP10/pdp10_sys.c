@@ -44,6 +44,7 @@
 
 #include "pdp10_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern DEVICE cpu_dev;
 extern DEVICE pag_dev;
@@ -193,7 +194,7 @@ static t_stat load_rim (FILE *fileref)
 d10 count, cksm, data;
 a10 pa;
 int32 op, i, ldrc;
-t_bool its_rim;
+bool its_rim;
 extern d10 rot (d10 val, a10 ea);
 
 data = getrimw (fileref);                               /* get first word */
@@ -201,9 +202,9 @@ if ((data < 0) || ((data & AMASK) != 0))                /* error? SA != 0? */
     return SCPE_FMT;
 ldrc = 01000000 - ((int32) (LRZ (data)));               /* get loader count */
 if (ldrc == 016)                                        /* 16? RIM10B */
-    its_rim = FALSE;
+    its_rim = false;
 else if (ldrc == 017)                                   /* 17? ITS RIM */
-    its_rim = TRUE;
+    its_rim = true;
 else return SCPE_FMT;                                   /* unknown */
 
 for (i = 0; i < ldrc; i++) {                            /* skip the loader */

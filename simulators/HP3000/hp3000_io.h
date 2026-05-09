@@ -37,6 +37,7 @@
    required by any module that uses Device Information Blocks (DIBs).
 */
 
+#include <stdbool.h>
 
 
 /* I/O bus signals.
@@ -318,7 +319,7 @@ struct dib {                                    /* the Device Information Block 
     uint32      card_index;                     /*   the card index if multiple interfaces are supported */
     FLIP_FLOP   interrupt_request;              /*   an interrupt has been requested */
     FLIP_FLOP   interrupt_active;               /*   an interrupt is active */
-    t_bool      service_request;                /*   channel service has been requested */
+    bool        service_request;                /*   channel service has been requested */
     };
 
 #define DIB_REGS(dib) \
@@ -352,7 +353,7 @@ typedef enum {
 /* Global CPU state and functions */
 
 extern UNIT  *cpu_pclk_uptr;                            /* pointer to the process clock unit */
-extern t_bool cpu_is_calibrated;                        /* TRUE if the process clock is calibrated */
+extern bool cpu_is_calibrated;                          /* true if the process clock is calibrated */
 
 extern void cpu_front_panel (HP_WORD    switch_reg,     /* set the CPU front panel switches as directed */
                              PANEL_TYPE request);
@@ -372,13 +373,13 @@ extern void sel_assert_CHANSR (DIB *dib_pointer);       /* assert the selector c
 
 /* Global channel state */
 
-extern t_bool mpx_is_idle;                              /* TRUE if the multiplexer channel is idle */
-extern t_bool sel_is_idle;                              /* TRUE if the selector channel is idle */
+extern bool mpx_is_idle;                                /* true if the multiplexer channel is idle */
+extern bool sel_is_idle;                                /* true if the selector channel is idle */
 
 
 /* Global ATC state */
 
-extern t_bool atc_is_polling;                           /* TRUE if the ATC is polling for the simulation console */
+extern bool atc_is_polling;                             /* true if the ATC is polling for the simulation console */
 
 
 /* Global CLK functions */

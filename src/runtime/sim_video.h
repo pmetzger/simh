@@ -10,6 +10,8 @@
 #ifndef SIM_VIDEO_H_
 #define SIM_VIDEO_H_     0
 
+#include <stdbool.h>
+
 #include "sim_defs.h"
 
 #define SIM_KEYPRESS_DOWN      0                        /* key states */
@@ -145,9 +147,9 @@ struct mouse_event {
     int32 y_rel;                                          /* Y axis relative motion */
     int32 x_pos;                                          /* X axis position */
     int32 y_pos;                                          /* Y axis position */
-    t_bool b1_state;                                      /* state of button 1 */
-    t_bool b2_state;                                      /* state of button 2 */
-    t_bool b3_state;                                      /* state of button 3 */
+    bool b1_state;                                        /* state of button 1 */
+    bool b2_state;                                        /* state of button 2 */
+    bool b3_state;                                        /* state of button 3 */
     DEVICE *dev;                                          /* which device */
     VID_DISPLAY *vptr;                                    /* which display */
     };
@@ -196,14 +198,14 @@ void vid_beep (void);
 void vid_refresh (void);
 const char *vid_version (void);
 const char *vid_key_name (uint32 key);
-t_stat vid_set_cursor (t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
+t_stat vid_set_cursor (bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
 t_stat vid_set_release_key (FILE* st, UNIT* uptr, int32 val, const void* desc);
 t_stat vid_show_release_key (FILE* st, UNIT* uptr, int32 val, const void* desc);
 t_stat vid_show_video (FILE* st, UNIT* uptr, int32 val, const void* desc);
 t_stat vid_show (FILE* st, DEVICE *dptr,  UNIT* uptr, int32 val, const char* desc);
 t_stat vid_screenshot (const char *filename);
-t_bool vid_is_fullscreen (void);
-t_stat vid_set_fullscreen (t_bool flag);
+bool vid_is_fullscreen (void);
+t_stat vid_set_fullscreen (bool flag);
 
 extern int vid_active;
 void vid_set_cursor_position (int32 x, int32 y);        /* cursor position (set by calling code) */
@@ -217,9 +219,9 @@ uint32 vid_map_rgb_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b);
 uint32 vid_map_rgba_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b, uint8 a);
 void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32 *buf);
 void vid_refresh_window (VID_DISPLAY *vptr);
-t_stat vid_set_cursor_window (VID_DISPLAY *vptr, t_bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
-t_bool vid_is_fullscreen_window (VID_DISPLAY *vptr);
-t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, t_bool flag);
+t_stat vid_set_cursor_window (VID_DISPLAY *vptr, bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
+bool vid_is_fullscreen_window (VID_DISPLAY *vptr);
+t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, bool flag);
 void vid_set_cursor_position_window (VID_DISPLAY *vptr, int32 x, int32 y);        /* cursor position (set by calling code) */
 t_stat vid_set_alpha_mode (VID_DISPLAY *vptr, int mode);
 

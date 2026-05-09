@@ -287,6 +287,7 @@
 
 
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
@@ -562,7 +563,7 @@ static uint16 mux_xbuf [SEND_CHAN_COUNT];       /* xmt buf */
 
 /* Multiplexer local routines */
 
-static void mux_receive (int32 ln, int32 c, t_bool diag);
+static void mux_receive (int32 ln, int32 c, bool diag);
 static void mux_data_int (void);
 static void mux_ctrl_int (void);
 static void mux_diag (int32 c);
@@ -945,7 +946,7 @@ int32          ln;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -1119,7 +1120,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -1222,7 +1223,7 @@ int32          ln, old;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -1369,7 +1370,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -1403,7 +1404,7 @@ return outbound;                                        /* return the outbound s
 t_stat muxi_svc (UNIT *uptr)
 {
 int32 ln, c;
-t_bool loopback;
+bool loopback;
 
 tprintf (muxu_dev, TRACE_PSERV, "Poll delay %d service entered\n",
          uptr->wait);
@@ -1472,7 +1473,7 @@ t_stat muxo_svc (UNIT *uptr)
 const int32 ln = uptr - muxl_unit;                      /* line # */
 const int32 altln = ln ^ 1;                             /* alt. line for diag mode */
 int32 c, fc;
-t_bool loopback;
+bool loopback;
 t_stat result = SCPE_OK;
 
 tprintf (muxl_dev, TRACE_SERV, "Channel %d service entered\n",
@@ -1540,7 +1541,7 @@ return SCPE_OK;
 
 /* Process a character received from a multiplexer port */
 
-void mux_receive (int32 ln, int32 c, t_bool diag)
+void mux_receive (int32 ln, int32 c, bool diag)
 {
 if (c & SCPE_BREAK) {                                   /* break? */
     if (mux_defer[ln] || diag) {                        /* break deferred or diagnostic mode? */

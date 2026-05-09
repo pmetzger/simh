@@ -32,6 +32,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"                /* system header in system dir */
 
 //option board types
@@ -98,7 +99,7 @@ t_stat sys_show_model (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 extern uint8 unreg_dev(uint16);
 extern t_stat i3214_cfg(uint16 base, uint16 devnum, uint8 dummy);
 extern t_stat i8251_cfg(uint16 base, uint16 devnum, uint8 dummy);

@@ -275,6 +275,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -346,7 +347,7 @@ uint32 mem_end  = 0;                            /* address of the first word bey
 
 static MEMORY_WORD *M          = NULL;          /* the pointer to allocated memory */
 static DIB         *tbg_dibptr = NULL;          /* a pointer to the time-base generator DIB (for RTE idle check) */
-static t_bool      is_1000     = FALSE;         /* TRUE if the CPU is a 1000 M/E/F-Series */
+static bool        is_1000     = false;         /* true if the CPU is a 1000 M/E/F-Series */
 
 
 /* Memory Expansion Unit command line switches */
@@ -446,7 +447,7 @@ uint32 meu_page;                                /* last physical page number acc
 /* Memory Expansion Unit local state declarations */
 
 static MEU_MAP_SELECTOR meu_current_map = System_Map;       /* the current map */
-static t_bool           meu_bus_enabled = FALSE;            /* TRUE if the memory expansion bus is enabled */
+static bool             meu_bus_enabled = false;            /* true if the memory expansion bus is enabled */
 static HP_WORD          meu_status      = 0;                /* the MEM status register */
 static HP_WORD          meu_violation   = 0;                /* the MEM violation register */
 static HP_WORD          meu_maps [MAP_COUNT] [REG_COUNT];   /* the MEM map registers */
@@ -460,7 +461,7 @@ static t_stat meu_reset (DEVICE *dptr);
 /* Memory Expansion Unit local utility routine declarations */
 
 static void   dm_violation (HP_WORD violation);
-static t_bool is_mapped    (HP_WORD address);
+static bool is_mapped    (HP_WORD address);
 static uint32 map_address  (HP_WORD address, MEU_MAP_SELECTOR map, HP_WORD protection);
 
 
@@ -568,7 +569,7 @@ static FLIP_FLOP mp_mevff       = CLEAR;        /* memory expansion violation fl
 static FLIP_FLOP mp_evrff       = SET;          /* enable violation register flip-flop */
 static FLIP_FLOP mp_enabled     = CLEAR;        /* MP was enabled at interrupt */
 static FLIP_FLOP mp_reenable    = CLEAR;        /* MP will be reenabled after IAK */
-static t_bool    mp_mem_changed = TRUE;         /* TRUE if the MP or MEM registers have been altered */
+static bool      mp_mem_changed = true;         /* true if the MP or MEM registers have been altered */
 static uint32    jsb_bound      = 2;            /* protected lower bound for JSB */
 
 
@@ -1112,20 +1113,20 @@ return;
 
    This routine checks a range of memory locations for the presence of a
    non-zero value.  The starting address of the range is supplied, and the check
-   continues through the end of defined memory.  The routine returns TRUE if the
-   memory range was empty (i.e., contained only zero values) and FALSE
+   continues through the end of defined memory.  The routine returns true if the
+   memory range was empty (i.e., contained only zero values) and false
    otherwise.
 */
 
-t_bool mem_is_empty (uint32 starting_address)
+bool mem_is_empty (uint32 starting_address)
 {
 uint32 address;
 
 for (address = starting_address; address < mem_size; address++) /* loop through the specified address range */
     if (M [address] != 0)                                       /* if this location is non-zero */
-        return FALSE;                                           /*   then indicate that memory is not empty */
+        return false;                                           /*   then indicate that memory is not empty */
 
-return TRUE;                                            /* return TRUE if all locations contain zero values */
+return true;                                            /* return true if all locations contain zero values */
 }
 
 
@@ -1169,10 +1170,10 @@ return;
    instructions.  We test for certain known patterns when a JMP instruction is
    executed to decide if the simulator should idle.
 
-   If execution is within a recognized idle loop, the routine returns TRUE; in
+   If execution is within a recognized idle loop, the routine returns true; in
    response, the simulator will call the "sim_idle" routine to suspend execution
    until the next event service is due.  If the CPU is not executing an idle
-   loop, the routine returns FALSE to continue normal execution.
+   loop, the routine returns false to continue normal execution.
 
    On entry, MR contains the address of the jump target, and "err_PR" contains
    the address of the jump instruction.  The difference gives the jump
@@ -1201,7 +1202,7 @@ return;
    RTE.
 */
 
-t_bool mem_is_idle_loop (void)
+bool mem_is_idle_loop (void)
 {
 const int32 displacement = (int32) MR - (int32) err_PR; /* the jump displacement */
 
@@ -1217,10 +1218,10 @@ if ((displacement == 0                                  /* if the jump target is
   && BR == 0177777u                                     /*     are both set to -1 */
   && M [m64] == 0177700u                                /*   and the -64 and +64 base-page constants */
   && M [p64] == 0000100u)                               /*     are set as expected */
-    return TRUE;                                        /*   then the system is executing an idle lop */
+    return true;                                        /*   then the system is executing an idle lop */
 
 else                                                    /* otherwise */
-    return FALSE;                                       /*   the system is not executing an idle loop */
+    return false;                                       /*   the system is not executing an idle loop */
 }
 
 
@@ -1272,7 +1273,7 @@ if (mp_mem_changed) {                       /* if the MP/MEM registers have been
                   mp_value [mp_control],
                   mp_fence, mp_VR);
 
-    mp_mem_changed = FALSE;                 /* clear the MP/MEM registers changed flag */
+    mp_mem_changed = false;                 /* clear the MP/MEM registers changed flag */
     }
 }
 
@@ -1401,7 +1402,7 @@ void meu_set_fence (HP_WORD new_fence)
 meu_status = meu_status & ~(MEST_BELOW | MEST_FENCE_MASK)   /* mask off the old mapping and address */
            | new_fence & (MEST_BELOW | MEST_FENCE_MASK);    /*   and merge in the new values */
 
-mp_mem_changed = TRUE;                                  /* set the MP/MEM registers changed flag */
+mp_mem_changed = true;                                  /* set the MP/MEM registers changed flag */
 
 return;
 }
@@ -1420,11 +1421,11 @@ if (operation == ME_Enabled)                            /* if the MEM is being e
 
 else {                                                  /* otherwise disable the MEM */
     meu_status &= ~MEST_ENABLED;                        /*   by clearing the MEM enabled status bit */
-    meu_bus_enabled = FALSE;                            /*     and disabling the MEM expansion bus */
+    meu_bus_enabled = false;                            /*     and disabling the MEM expansion bus */
     }
 
 meu_current_map = map;                                  /* set the current map in either case */
-mp_mem_changed = TRUE;                                  /*   and set the MP/MEM registers changed flag */
+mp_mem_changed = true;                                  /*   and set the MP/MEM registers changed flag */
 
 return;
 }
@@ -1471,7 +1472,7 @@ if (mp_control && mp_mevff == CLEAR) {                  /* if the violation regi
     if (meu_bus_enabled)                                /* if the last memory address was mapped */
         meu_violation |= MEVI_BUS_ENABLED;              /*  then add the "ME bus is enabled" bit */
 
-    mp_mem_changed = TRUE;                              /* set the MP/MEM registers changed flag */
+    mp_mem_changed = true;                              /* set the MP/MEM registers changed flag */
     }
 
 return meu_violation;                                   /* return the violation register content */
@@ -1510,7 +1511,7 @@ if (meu_current_map == User_Map)                        /* if the user map is en
 if (mp_control)                                         /* if MP is enabled */
     meu_status |= MEST_PROTECTED;                       /*   then set the protected mode bit */
 
-mp_mem_changed = TRUE;                                  /* set the MP/MEM registers changed flag */
+mp_mem_changed = true;                                  /* set the MP/MEM registers changed flag */
 
 return meu_status;                                      /* return the status register value */
 }
@@ -1543,7 +1544,7 @@ if (TRACING (cpu_dev, TRACE_INSTR))                     /* if instruction tracin
 
 meu_current_map = System_Map;                           /* switch to the system map for the interrupt */
 
-mp_mem_changed = TRUE;                                  /* set the MP/MEM registers changed flag */
+mp_mem_changed = true;                                  /* set the MP/MEM registers changed flag */
 
 return;
 }
@@ -1589,7 +1590,7 @@ return;
    returned type is "S", as the IAK will be handled in the system map.
 */
 
-uint32 meu_breakpoint_type (t_bool is_iak)
+uint32 meu_breakpoint_type (bool is_iak)
 {
 if (meu_status & MEST_ENABLED)                          /* if MEM is currently enabled */
     if (meu_current_map == User_Map && !is_iak)         /*   then if the user map is currently enabled */
@@ -1682,7 +1683,7 @@ meu_current_map = System_Map;                           /* enable the system map
 meu_status = 0;                                         /* disable MEM and clear the status register */
 meu_violation = 0;                                      /* clear the violation register */
 
-mp_mem_changed = TRUE;                                  /* set the MP/MEM registers changed flag */
+mp_mem_changed = true;                                  /* set the MP/MEM registers changed flag */
 
 return SCPE_OK;
 }
@@ -1705,7 +1706,7 @@ static void dm_violation (HP_WORD violation)
 meu_violation = violation | meu_update_violation ();    /* set the cause in the violation register */
 
 if (mp_control) {                                       /* if memory protect is on */
-    mp_mem_changed = TRUE;                              /*   then set the MP/MEM registers changed flag */
+    mp_mem_changed = true;                              /*   then set the MP/MEM registers changed flag */
 
     mp_mevff = SET;                                     /* record a memory expansion violation */
     mp_violation ();                                    /*   and a memory protect violation */
@@ -1721,17 +1722,17 @@ return;
    address or represents a physical address itself.  It corresponds to the
    hardware MEBEN (Memory Expansion Bus Enable) signal and indicates that a
    memory access is not in the unmapped portion of the base page.  The routine
-   is called only if the MEM is enabled and returns TRUE if the address is
-   mapped or FALSE if it is unmapped.  Before returning, "meu_bus_enabled" is
+   is called only if the MEM is enabled and returns true if the address is
+   mapped or false if it is unmapped.  Before returning, "meu_bus_enabled" is
    set to reflect the mapping state.
 */
 
-static t_bool is_mapped (HP_WORD address)
+static bool is_mapped (HP_WORD address)
 {
 HP_WORD dms_fence;
 
 if (address <= 1)                                       /* if the reference is to the A or B register */
-    meu_bus_enabled = FALSE;                            /*   then the location is not mapped */
+    meu_bus_enabled = false;                            /*   then the location is not mapped */
 
 else if (address <= LWA_BASE_PAGE) {                    /* otherwise if the address is on the base page */
     dms_fence = meu_status & MEST_FENCE_MASK;           /*   then get the base-page fence value */
@@ -1743,7 +1744,7 @@ else if (address <= LWA_BASE_PAGE) {                    /* otherwise if the addr
     }
 
 else                                                    /* otherwise the address is not on page 0 */
-    meu_bus_enabled = TRUE;                             /*   so it is always mapped */
+    meu_bus_enabled = true;                             /*   so it is always mapped */
 
 return meu_bus_enabled;                                 /* return the mapping state */
 }
@@ -1884,7 +1885,7 @@ static SIGNALS_VALUE mp_interface (const DIB *dibptr, INBOUND_SET inbound_signal
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set  = inbound_signals;
 SIGNALS_VALUE  outbound     = { ioNONE, 0 };
-t_bool         irq_enabled  = FALSE;
+bool           irq_enabled  = false;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -1934,7 +1935,7 @@ while (working_set) {                                   /* while signals remain 
             if (cpu_configuration & CPU_2100)           /* the 2100 IOP instructions */
                 SPR = mp_fence;                         /*   use the MP fence as a stack pointer */
 
-            mp_mem_changed = TRUE;                      /* set the MP/MEM registers changed flag */
+            mp_mem_changed = true;                      /* set the MP/MEM registers changed flag */
             break;
 
 
@@ -1949,7 +1950,7 @@ while (working_set) {                                   /* while signals remain 
             mp_reenable = CLEAR;                        /* clear the MP reenable */
             mp_enabled  = CLEAR;                        /*   and MP currently enabled flip-flops */
 
-            mp_mem_changed = TRUE;                      /* set the MP/MEM registers changed flag */
+            mp_mem_changed = true;                      /* set the MP/MEM registers changed flag */
             break;
 
 
@@ -1983,7 +1984,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 
@@ -2022,13 +2023,13 @@ return outbound;                                        /* return the outbound s
    global.
 */
 
-t_bool mp_initialize (void)
+bool mp_initialize (void)
 {
 is_1000 = (cpu_configuration & CPU_1000) != 0;          /* set the CPU model index */
 
-mp_mem_changed = TRUE;                                  /* request an initial MP/MEM trace */
+mp_mem_changed = true;                                  /* request an initial MP/MEM trace */
 
-return (mp_dev.flags & DEV_DIS) == 0;                   /* return TRUE if MP is enabled and FALSE if not */
+return (mp_dev.flags & DEV_DIS) == 0;                   /* return true if MP is enabled and false if not */
 }
 
 
@@ -2042,7 +2043,7 @@ return (mp_dev.flags & DEV_DIS) == 0;                   /* return TRUE if MP is 
    the device state.
 */
 
-void mp_configure (t_bool is_enabled, t_bool is_optional)
+void mp_configure (bool is_enabled, bool is_optional)
 {
 if (is_enabled)                                         /* if MP is to be enabled */
     mp_dev.flags &= ~DEV_DIS;                           /*   then remove the "disabled" flag */
@@ -2236,32 +2237,32 @@ return;
 
 /* Report the memory protect state.
 
-   This routine returns TRUE if MP is on and FALSE otherwise.  It is used by the
+   This routine returns true if MP is on and false otherwise.  It is used by the
    RTE OS microcode executors to check the protection state.  In hardware, this
    is done by reading the MEM status register and checking the protected mode
    bit (bit 11).  In simulation, the MP control flip-flop is checked, as the
    MEM status register is not global.
 */
 
-t_bool mp_is_on (void)
+bool mp_is_on (void)
 {
-return (mp_control == SET);                             /* return TRUE if MP is on and FALSE if it is off */
+return (mp_control == SET);                             /* return true if MP is on and false if it is off */
 }
 
 
 /* Report the INT (W6) jumper position.
 
-   This routine returns TRUE if jumper W6 is not installed and MP is on, and
-   FALSE otherwise.  It is called when an interrupt is pending but deferred
+   This routine returns true if jumper W6 is not installed and MP is on, and
+   false otherwise.  It is called when an interrupt is pending but deferred
    because the Interrupt Enable flip-flop is clear.  If jumper W6 is installed,
    instructions that reference memory will hold off pending but deferred
    interrupts until three levels of indirection have been followed.  If W6 is
    removed, then deferred interrupts are recognized immediately if MP is on.
 */
 
-t_bool mp_reenable_interrupts (void)
+bool mp_reenable_interrupts (void)
 {
-return mp_unit [0].flags & UNIT_MP_INT && mp_control;   /* return TRUE if interrupts are always recognized */
+return mp_unit [0].flags & UNIT_MP_INT && mp_control;   /* return true if interrupts are always recognized */
 }
 
 
@@ -2271,11 +2272,11 @@ return mp_unit [0].flags & UNIT_MP_INT && mp_control;   /* return TRUE if interr
    memory protect trap cell instruction is executed.  It reports the reason for
    the interrupt (MP, MEM, or PE violation).
 
-   The routine returns TRUE for a MP/MEM violation and FALSE for a PE violation.
+   The routine returns true for a MP/MEM violation and false for a PE violation.
    This information is used by the instruction microcode.
 */
 
-t_bool mp_trace_violation (void)
+bool mp_trace_violation (void)
 {
 tprintf (cpu_dev, TRACE_OPND, OPND_FORMAT "  entry is for a %s\n",
          PR, IR,
@@ -2285,7 +2286,7 @@ tprintf (cpu_dev, TRACE_OPND, OPND_FORMAT "  entry is for a %s\n",
                ? "dynamic mapping violation"
                : "memory protect violation")));
 
-return (mp_VR & MPVR_PARITY_ERROR) == 0;                /* return TRUE for MP, FALSE for PE */
+return (mp_VR & MPVR_PARITY_ERROR) == 0;                /* return true for MP, false for PE */
 }
 
 
@@ -2395,7 +2396,7 @@ static t_stat mp_reset (DEVICE *dptr)
 {
 io_assert (dptr, ioa_POPIO);                            /* PRESET the device (does not use PON) */
 
-mp_mem_changed = TRUE;                                  /* set the MP/MEM registers changed flag */
+mp_mem_changed = true;                                  /* set the MP/MEM registers changed flag */
 
 return SCPE_OK;
 }

@@ -93,6 +93,7 @@
 #if !defined (VM_PDP11)
 #error "KG11 is not supported!"
 #endif
+#include <stdbool.h>
 #include "pdp11_defs.h"
 
 extern REG cpu_reg[];
@@ -239,7 +240,7 @@ static const struct {
 static t_stat kg_rd (int32 *, int32, int32);
 static t_stat kg_wr (int32, int32, int32);
 static t_stat kg_reset (DEVICE *);
-static void do_poly (int, t_bool);
+static void do_poly (int, bool);
 static t_stat set_units (UNIT *, int32, const char *, void *);
 t_stat kg_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *kg_description (DEVICE *dptr);
@@ -354,7 +355,7 @@ static t_stat kg_rd (int32 *data, int32 PA, int32 access)
             break;
     }
     sim_debug (DBG_REG, &kg_dev, "kg_rd(PA=%o [%s], access=%d, data=0x%X) ", PA, kg_regs[(PA >> 1) & 03], access, *data);
-    sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), TRUE);
+    sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), true);
     return (SCPE_OK);
 }
 
@@ -378,7 +379,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                 data = (PA & 1) ?
                     (kg_unit[unit].SR & 0377) | (data << 8) :
                     (kg_unit[unit].SR & ~0377) | data;
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, TRUE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, true);
             if (data & KGSR_M_CLR) {
                 kg_unit[unit].PULSCNT = 0;              /* not sure about this */
                 kg_unit[unit].BCC = 0;
@@ -392,20 +393,20 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                 kg_unit[unit].PULSCNT = 0;
             }
             if ((saved_SR & KG_SR_POLYMASK) != (data & KG_SR_POLYMASK))
-                sim_debug_bits(DBG_POLY, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, FALSE);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, FALSE);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[01], (uint32)saved_BCC, (uint32)data, FALSE);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32)saved_DR, (uint32)data, TRUE);
+                sim_debug_bits(DBG_POLY, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, false);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, false);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[01], (uint32)saved_BCC, (uint32)data, false);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32)saved_DR, (uint32)data, true);
             if (data & KGSR_M_SEN)
                 break;
             if (data & KGSR_M_STEP) {
-                do_poly (unit, TRUE);
+                do_poly (unit, true);
                 break;
             }
             break;
 
         case 01:                                        /* BCC */
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32)saved_BCC, (uint32)data, TRUE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32)saved_BCC, (uint32)data, true);
             break;                                      /* ignored */
 
         case 02:                                        /* DR */
@@ -414,7 +415,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                     (kg_unit[unit].DR & 0377) | (data << 8) :
                     (kg_unit[unit].DR & ~0377) | data;
             kg_unit[unit].DR = data & DMASK;
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32)saved_DR, (uint32)data, TRUE);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32)saved_DR, (uint32)data, true);
             kg_unit[unit].SR &= ~KGSR_M_DONE;
             kg_unit[unit].PULSCNT = 0;
 
@@ -431,7 +432,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
    if there were software to validate correct operation. */
 
             if (kg_unit[unit].SR & KGSR_M_SEN)
-                do_poly (unit, FALSE);
+                do_poly (unit, false);
             sim_debug (DBG_REG, &kg_dev, ">>KG%d: wr DR %06o[0x%x], data %06o[0x%x], PC %06o\n",
                                          unit, kg_unit[unit].DR, kg_unit[unit].DR, data, data, PC);
             break;
@@ -493,7 +494,7 @@ static void cycleOneBit (int unit)
                                     kg_unit[unit].PULSCNT);
 }
 
-static void do_poly (int unit, t_bool step)
+static void do_poly (int unit, bool step)
 {
     if (kg_unit[unit].SR & KGSR_M_DONE)
         return;

@@ -51,6 +51,8 @@
 #ifndef VAX_610_DEFS_H_
 #define VAX_610_DEFS_H_ 1
 
+#include <stdbool.h>
+
 /* Microcode constructs */
 
 #define VAX610_SID      (7 << 24)                       /* system ID */
@@ -202,7 +204,7 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc
 #define DEV_QBUS        (1u << DEV_V_QBUS)
 #define DEV_Q18         (1u << DEV_V_Q18)
 
-#define UNIBUS          FALSE                           /* 22b only */
+#define UNIBUS          false                           /* 22b only */
 
 #define DEV_RDX         16                              /* default device radix */
 

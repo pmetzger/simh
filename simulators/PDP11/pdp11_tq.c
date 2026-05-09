@@ -87,6 +87,7 @@
 #define INIT_CAP        TQ5_CAP
 #endif
 
+#include <stdbool.h>
 #include "pdp11_uqssp.h"
 #include "pdp11_mscp.h"
 #include "sim_tape.h"
@@ -361,47 +362,47 @@ t_stat tq_show_plug (FILE *st, UNIT *uptr, int32 val, const void *desc);
 static t_stat tq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 const char *tq_description (DEVICE *dptr);
 
-t_bool tq_step4 (void);
-t_bool tq_mscp (uint16 pkt, t_bool q);
-t_bool tq_abo (uint16 pkt);
-t_bool tq_avl (uint16 pkt);
-t_bool tq_erase (uint16 pkt);
-t_bool tq_flu (uint16 pkt);
-t_bool tq_gcs (uint16 pkt);
-t_bool tq_gus (uint16 pkt);
-t_bool tq_onl (uint16 pkt);
-t_bool tq_pos (uint16 pkt);
-t_bool tq_rw (uint16 pkt);
-t_bool tq_scc (uint16 pkt);
-t_bool tq_suc (uint16 pkt);
-t_bool tq_wtm (uint16 pkt);
-t_bool tq_plf (uint32 err);
-t_bool tq_dte (UNIT *uptr, uint16 err);
-t_bool tq_hbe (UNIT *uptr, uint32 ba);
-t_bool tq_una (UNIT *uptr);
+bool tq_step4 (void);
+bool tq_mscp (uint16 pkt, bool q);
+bool tq_abo (uint16 pkt);
+bool tq_avl (uint16 pkt);
+bool tq_erase (uint16 pkt);
+bool tq_flu (uint16 pkt);
+bool tq_gcs (uint16 pkt);
+bool tq_gus (uint16 pkt);
+bool tq_onl (uint16 pkt);
+bool tq_pos (uint16 pkt);
+bool tq_rw (uint16 pkt);
+bool tq_scc (uint16 pkt);
+bool tq_suc (uint16 pkt);
+bool tq_wtm (uint16 pkt);
+bool tq_plf (uint32 err);
+bool tq_dte (UNIT *uptr, uint16 err);
+bool tq_hbe (UNIT *uptr, uint32 ba);
+bool tq_una (UNIT *uptr);
 uint32 tq_map_status (UNIT *uptr, t_stat st);
 void tq_rdbuff_top (UNIT *uptr, t_mtrlnt *tbc);
 uint32 tq_rdbuff_bottom (UNIT *uptr, t_mtrlnt *tbc);
 void tq_rdbufr_top (UNIT *uptr, t_mtrlnt *tbc);
 uint32 tq_rdbufr_bottom (UNIT *uptr, t_mtrlnt *tbc);
-t_bool tq_deqf (uint16 *pkt);
+bool tq_deqf (uint16 *pkt);
 uint16 tq_deqh (uint16 *lh);
 void tq_enqh (uint16 *lh, int16 pkt);
 void tq_enqt (uint16 *lh, int16 pkt);
-t_bool tq_getpkt (uint16 *pkt);
-t_bool tq_putpkt (uint16 pkt, t_bool qt);
-t_bool tq_getdesc (struct uq_ring *ring, uint32 *desc);
-t_bool tq_putdesc (struct uq_ring *ring, uint32 desc);
+bool tq_getpkt (uint16 *pkt);
+bool tq_putpkt (uint16 pkt, bool qt);
+bool tq_getdesc (struct uq_ring *ring, uint32 *desc);
+bool tq_putdesc (struct uq_ring *ring, uint32 desc);
 uint16 tq_mot_valid (UNIT *uptr, uint32 cmd);
 t_stat tq_mot_err (UNIT *uptr, uint32 rsiz);
-t_bool tq_mot_end (UNIT *uptr, uint32 flg, uint16 sts, uint32 rsiz);
+bool tq_mot_end (UNIT *uptr, uint32 flg, uint16 sts, uint32 rsiz);
 void tq_putr (int32 pkt, uint32 cmd, uint32 flg, uint16 sts, uint16 lnt, uint16 typ);
-void tq_putr_unit (int16 pkt, UNIT *uptr, uint16 lu, t_bool all);
+void tq_putr_unit (int16 pkt, UNIT *uptr, uint16 lu, bool all);
 void tq_setf_unit (int16 pkt, UNIT *uptr);
 uint32 tq_efl (UNIT *uptr);
 void tq_init_int (void);
 void tq_ring_int (struct uq_ring *ring);
-t_bool tq_fatal (uint32 err);
+bool tq_fatal (uint32 err);
 UNIT *tq_getucb (uint16 lu);
 
 /* TQ data structures
@@ -621,7 +622,7 @@ return SCPE_OK;
 
 /* Transition to step 4 - init communications region */
 
-t_bool tq_step4 (void)
+bool tq_step4 (void)
 {
 int32 i, lnt;
 uint32 base;
@@ -745,7 +746,7 @@ for (i = 0; i < TQ_NUMDR; i++) {                        /* chk unit q's */
     tpkt = nuptr->pktq;
     pkt = tq_deqh (&tpkt);                              /* get top of q */
     nuptr->pktq = tpkt;
-    if (!tq_mscp (pkt, FALSE))                          /* process */
+    if (!tq_mscp (pkt, false))                          /* process */
         return SCPE_OK;
     }
 if ((pkt == 0) && tq_pip) {                             /* polling? */
@@ -772,12 +773,12 @@ if ((pkt == 0) && tq_pip) {                             /* polling? */
             return tq_fatal (PE_PIE);                   /* no, term thread */
         cnid = GETP (pkt, UQ_HCTC, CID);                /* get conn ID */
         if (cnid == UQ_CID_TMSCP) {                     /* TMSCP packet? */
-            if (!tq_mscp (pkt, TRUE))                   /* proc, q non-seq */
+            if (!tq_mscp (pkt, true))                   /* proc, q non-seq */
                 return SCPE_OK;
             }
         else if (cnid == UQ_CID_DUP) {                  /* DUP packet? */
             tq_putr (pkt, OP_END, 0, ST_CMD | I_OPCD, RSP_LNT, UQ_TYP_SEQ);
-            if (!tq_putpkt (pkt, TRUE))                 /* ill cmd */
+            if (!tq_putpkt (pkt, true))                 /* ill cmd */
                 return SCPE_OK;
             }
         else return tq_fatal (PE_ICI);                  /* no, term thread */
@@ -786,7 +787,7 @@ if ((pkt == 0) && tq_pip) {                             /* polling? */
     }                                                   /* end if pip */
 if (tq_rspq) {                                          /* resp q? */
     pkt = tq_deqh ((uint16 *)&tq_rspq);                 /* get top of q */
-    if (!tq_putpkt (pkt, FALSE))                        /* send to host */
+    if (!tq_putpkt (pkt, false))                        /* send to host */
         return SCPE_OK;
     }                                                   /* end if resp q */
 if (pkt)                                                /* more to do? */
@@ -821,7 +822,7 @@ return SCPE_OK;
 
 /* MSCP packet handling */
 
-t_bool tq_mscp (uint16 pkt, t_bool q)
+bool tq_mscp (uint16 pkt, bool q)
 {
 uint16 sts;
 uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* command */
@@ -911,12 +912,12 @@ else {                                                  /* valid cmd */
         }                                               /* end switch */
     }                                                   /* end else */
 tq_putr (pkt, cmd, 0, sts, RSP_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Abort a command - 1st parameter is ref # of cmd to abort */
 
-t_bool tq_abo (uint16 pkt)
+bool tq_abo (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint32 ref = GETP32 (pkt, ABO_REFL);                    /* cmd ref # */
@@ -951,18 +952,18 @@ if ((uptr = tq_getucb (lu))) {                          /* get unit */
     if (tpkt) {                                         /* found target? */
         uint32 tcmd = GETP (tpkt, CMD_OPC, OPC);        /* get opcode */
         tq_putr (tpkt, tcmd | OP_END, 0, ST_ABO, RSP_LNT, UQ_TYP_SEQ);
-        if (!tq_putpkt (tpkt, TRUE))
+        if (!tq_putpkt (tpkt, true))
             return ERR;
         }
     }                                                   /* end if unit */
 tq_putr (pkt, OP_ABO | OP_END, 0, ST_SUC, ABO_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Unit available - set unit status to available
    Deferred if q'd cmds, bypassed if ser exc */
 
-t_bool tq_avl (uint16 pkt)
+bool tq_avl (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint32 mdf = tq_pkt[pkt].d[CMD_MOD];                    /* modifiers */
@@ -988,12 +989,12 @@ if ((uptr = tq_getucb (lu))) {                          /* unit exist? */
     }
 else sts = ST_OFL;                                      /* offline */
 tq_putr (pkt, OP_AVL | OP_END, tq_efl (uptr), sts, AVL_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Get command status - only interested in active xfr cmd */
 
-t_bool tq_gcs (uint16 pkt)
+bool tq_gcs (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint32 ref = GETP32 (pkt, GCS_REFL);                    /* ref # */
@@ -1011,12 +1012,12 @@ if ((uptr = tq_getucb (lu)) &&                          /* valid lu? */
     }
 else tq_pkt[pkt].d[GCS_STSL] = tq_pkt[pkt].d[GCS_STSH] = 0;
 tq_putr (pkt, OP_GCS | OP_END, 0, ST_SUC, GCS_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Get unit status */
 
-t_bool tq_gus (uint16 pkt)
+bool tq_gus (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint16 sts;
@@ -1036,7 +1037,7 @@ if ((uptr = tq_getucb (lu))) {                          /* unit exist? */
     else if (uptr->flags & UNIT_ONL)                    /* online */
         sts = ST_SUC;
     else sts = ST_AVL;                                  /* avail */
-    tq_putr_unit (pkt, uptr, lu, FALSE);                /* fill unit fields */
+    tq_putr_unit (pkt, uptr, lu, false);                /* fill unit fields */
     tq_pkt[pkt].d[GUS_MENU] = drv_tab[tq_typ].fmt;      /* format menu */
     tq_pkt[pkt].d[GUS_CAP] = 0;                         /* free capacity */
     tq_pkt[pkt].d[GUS_FVER] = drv_tab[tq_typ].fver;     /* formatter version */
@@ -1044,12 +1045,12 @@ if ((uptr = tq_getucb (lu))) {                          /* unit exist? */
     }
 else sts = ST_OFL;                                      /* offline */
 tq_putr (pkt, OP_GUS | OP_END, tq_efl (uptr), sts, GUS_LNT_T, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Unit online - deferred if q'd commands */
 
-t_bool tq_onl (uint16 pkt)
+bool tq_onl (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint16 sts;
@@ -1070,16 +1071,16 @@ if ((uptr = tq_getucb (lu))) {                          /* unit exist? */
             ~(UNIT_TMK | UNIT_POL);                     /* onl, pos ok */
         tq_setf_unit (pkt, uptr);                       /* hack flags */
         }
-    tq_putr_unit (pkt, uptr, lu, TRUE);                 /* set fields */
+    tq_putr_unit (pkt, uptr, lu, true);                 /* set fields */
     }
 else sts = ST_OFL;                                      /* offline */
 tq_putr (pkt, OP_ONL | OP_END, tq_efl (uptr), sts, ONL_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Set controller characteristics */
 
-t_bool tq_scc (uint16 pkt)
+bool tq_scc (uint16 pkt)
 {
 sim_debug(DBG_TRC, &tq_dev, "tq_scc\n");
 
@@ -1101,12 +1102,12 @@ else {
     PUTP32 (pkt, SCC_MBCL, TQ_MAXFR);                   /* max bc */
     tq_putr (pkt, OP_SCC | OP_END, 0, ST_SUC, SCC_LNT, UQ_TYP_SEQ);
     }
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Set unit characteristics - defer if q'd commands */
 
-t_bool tq_suc (uint16 pkt)
+bool tq_suc (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint16 sts;
@@ -1121,16 +1122,16 @@ if ((uptr = tq_getucb (lu))) {                          /* unit exist? */
         sts = ST_SUC;                                   /* avail or onl */
         tq_setf_unit (pkt, uptr);                       /* hack flags */
         }
-    tq_putr_unit (pkt, uptr, lu, TRUE);                 /* set fields */
+    tq_putr_unit (pkt, uptr, lu, true);                 /* set fields */
     }
 else sts = ST_OFL;                                      /* offline */
 tq_putr (pkt, OP_SUC | OP_END, 0, sts, SUC_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Flush - sequential nop - deferred if q'd cmds, bypassed if ser exc */
 
-t_bool tq_flu (uint16 pkt)
+bool tq_flu (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint16 sts;
@@ -1142,12 +1143,12 @@ if ((uptr = tq_getucb (lu)))                            /* unit exist? */
     sts = tq_mot_valid (uptr, OP_FLU);                  /* validate req */
 else sts = ST_OFL;                                      /* offline */
 tq_putr (pkt, OP_FLU | OP_END, tq_efl (uptr), sts, FLU_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Erase, erase gap - deferred if q'd cmds, bypassed if ser exc */
 
-t_bool tq_erase (uint16 pkt)
+bool tq_erase (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* opcode */
@@ -1167,12 +1168,12 @@ if ((uptr = tq_getucb (lu))) {                          /* unit exist? */
     }
 else sts = ST_OFL;                                      /* offline */
 tq_putr (pkt, cmd | OP_END, tq_efl (uptr), sts, ERS_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Write tape mark - deferred if q'd cmds, bypassed if ser exc */
 
-t_bool tq_wtm (uint16 pkt)
+bool tq_wtm (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint16 sts;
@@ -1194,12 +1195,12 @@ if ((uptr = tq_getucb (lu))) {                          /* unit exist? */
 else sts = ST_OFL;                                      /* offline */
 PUTP32 (pkt, WTM_POSL, objp);                           /* set obj pos */
 tq_putr (pkt, OP_WTM | OP_END, tq_efl (uptr), sts, WTM_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Position - deferred if q'd cmds, bypassed if ser exc */
 
-t_bool tq_pos (uint16 pkt)
+bool tq_pos (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint16 sts;
@@ -1233,12 +1234,12 @@ PUTP32 (pkt, POS_RCL, 0);                               /* clear #skipped */
 PUTP32 (pkt, POS_TMCL, 0);
 PUTP32 (pkt, POS_POSL, objp);                           /* set obj pos */
 tq_putr (pkt, OP_POS | OP_END, tq_efl (uptr), sts, POS_LNT, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Data transfer commands - deferred if q'd commands, bypassed if ser exc */
 
-t_bool tq_rw (uint16 pkt)
+bool tq_rw (uint16 pkt)
 {
 uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
 uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* opcode */
@@ -1270,7 +1271,7 @@ PUTP32 (pkt, RW_BCL, 0);                                /* no bytes processed */
 PUTP32 (pkt, RW_POSL, objp);                            /* set obj pos */
 PUTP32 (pkt, RW_RSZL, 0);                               /* clr rec size */
 tq_putr (pkt, cmd | OP_END, tq_efl (uptr), sts, RW_LNT_T, UQ_TYP_SEQ);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Validity checks */
@@ -1518,7 +1519,7 @@ return SCPE_IOERR;
 
 /* Motion command complete */
 
-t_bool tq_mot_end (UNIT *uptr, uint32 flg, uint16 sts, uint32 rsiz)
+bool tq_mot_end (UNIT *uptr, uint32 flg, uint16 sts, uint32 rsiz)
 {
 uint16 pkt = uptr->cpkt;                                /* packet */
 uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* get cmd */
@@ -1539,7 +1540,7 @@ if (lnt > ERG_LNT) {                                    /* xfer cmd? */
     PUTP32 (pkt, RW_RSZL, rsiz);                        /* record size */
     }
 tq_putr (pkt, cmd | OP_END, flg | tq_efl (uptr), sts, lnt, UQ_TYP_SEQ);
-if (!tq_putpkt (pkt, TRUE))                             /* send pkt */
+if (!tq_putpkt (pkt, true))                             /* send pkt */
     return ERR;
 if (uptr->pktq)                                         /* more to do? */
     sim_activate (&tq_unit[TQ_QUEUE], tq_qtime);        /* activate thread */
@@ -1652,7 +1653,7 @@ return ST_SUC;
 
 /* Data transfer error log packet */
 
-t_bool tq_dte (UNIT *uptr, uint16 err)
+bool tq_dte (UNIT *uptr, uint16 err)
 {
 uint16 pkt, tpkt;
 uint16 lu;
@@ -1684,12 +1685,12 @@ tq_pkt[pkt].d[DTE_UVER] = drv_tab[tq_typ].uver;         /* unit ver */
 PUTP32 (pkt, DTE_POSL, uptr->objp);                     /* position */
 tq_pkt[pkt].d[DTE_FVER] = drv_tab[tq_typ].fver;         /* fmtr ver */
 tq_putr (pkt, FM_TAP, LF_SNR, err, DTE_LNT, UQ_TYP_DAT);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Host bus error log packet */
 
-t_bool tq_hbe (UNIT *uptr, uint32 ba)
+bool tq_hbe (UNIT *uptr, uint32 ba)
 {
 uint16 pkt, tpkt;
 
@@ -1711,12 +1712,12 @@ tq_pkt[pkt].d[HBE_VER] = drv_tab[tq_typ].cver;          /* ctrl ver */
 tq_pkt[pkt].d[HBE_RSV] = 0;
 PUTP32 (pkt, HBE_BADL, ba);                             /* bad addr */
 tq_putr (pkt, FM_BAD, LF_SNR, ST_HST | SB_HST_NXM, HBE_LNT, UQ_TYP_DAT);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Port last failure error log packet */
 
-t_bool tq_plf (uint32 err)
+bool tq_plf (uint32 err)
 {
 uint16 pkt = 0;
 
@@ -1733,12 +1734,12 @@ tq_pkt[pkt].d[PLF_VER] = drv_tab[tq_typ].cver;
 tq_pkt[pkt].d[PLF_ERR] = (uint16)err;
 tq_putr (pkt, FM_CNT, LF_SNR, ST_CNT, PLF_LNT, UQ_TYP_DAT);
 tq_pkt[pkt].d[UQ_HCTC] |= (UQ_CID_DIAG << UQ_HCTC_V_CID);
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* Unit now available attention packet */
 
-t_bool tq_una (UNIT *uptr)
+bool tq_una (UNIT *uptr)
 {
 uint16 pkt;
 uint16 lu;
@@ -1749,9 +1750,9 @@ lu = (uint16) (uptr->unit_plug);                        /* get unit */
 tq_pkt[pkt].d[RSP_REFL] = tq_pkt[pkt].d[RSP_REFH] = 0;  /* ref = 0 */
 tq_pkt[pkt].d[RSP_UN] = lu;
 tq_pkt[pkt].d[RSP_RSV] = 0;
-tq_putr_unit (pkt, uptr, lu, FALSE);                    /* fill unit fields */
+tq_putr_unit (pkt, uptr, lu, false);                    /* fill unit fields */
 tq_putr (pkt, OP_AVA, 0, 0, UNA_LNT, UQ_TYP_SEQ);       /* fill std fields */
-return tq_putpkt (pkt, TRUE);
+return tq_putpkt (pkt, true);
 }
 
 /* List handling
@@ -1762,7 +1763,7 @@ return tq_putpkt (pkt, TRUE);
    tq_enqt      -       enqueue at tail of list
 */
 
-t_bool tq_deqf (uint16 *pkt)
+bool tq_deqf (uint16 *pkt)
 {
 if (tq_freq == 0)                                       /* no free pkts?? */
     return tq_fatal (PE_NSR);
@@ -1810,7 +1811,7 @@ return;
 
 /* Get packet from command ring */
 
-t_bool tq_getpkt (uint16 *pkt)
+bool tq_getpkt (uint16 *pkt)
 {
 uint32 addr, desc;
 
@@ -1834,7 +1835,7 @@ return tq_putdesc (&tq_cq, desc);                       /* release desc */
    supplies one credit for every response packet sent over.  Simple!
 */
 
-t_bool tq_putpkt (uint16 pkt, t_bool qt)
+bool tq_putpkt (uint16 pkt, bool qt)
 {
 uint32 addr, desc, lnt, cr;
 UNIT *up = tq_getucb (tq_pkt[pkt].d[CMD_UN]);
@@ -1876,7 +1877,7 @@ return tq_putdesc (&tq_rq, desc);                       /* release desc */
 
 /* Get a descriptor from the host */
 
-t_bool tq_getdesc (struct uq_ring *ring, uint32 *desc)
+bool tq_getdesc (struct uq_ring *ring, uint32 *desc)
 {
 uint32 addr = ring->ba + ring->idx;
 uint16 d[2];
@@ -1893,7 +1894,7 @@ return OK;
    Actually, test whether previous ring entry was owned by host.
 */
 
-t_bool tq_putdesc (struct uq_ring *ring, uint32 desc)
+bool tq_putdesc (struct uq_ring *ring, uint32 desc)
 {
 uint32 prvd, newd = (desc & ~UQ_DESC_OWN) | UQ_DESC_F;
 uint32 prva, addr = ring->ba + ring->idx;
@@ -1967,7 +1968,7 @@ return t;
 
 /* Unit response fields */
 
-void tq_putr_unit (int16 pkt, UNIT *uptr, uint16 lu, t_bool all)
+void tq_putr_unit (int16 pkt, UNIT *uptr, uint16 lu, bool all)
 {
 tq_pkt[pkt].d[ONL_MLUN] = (uint16)lu;                   /* multi-unit */
 tq_pkt[pkt].d[ONL_UFL] = (uint16)(uptr->uf | TQ_WPH (uptr));/* unit flags */
@@ -2033,7 +2034,7 @@ return tq_dib.vec;                                      /* prog vector */
 
 /* Fatal error */
 
-t_bool tq_fatal (uint32 err)
+bool tq_fatal (uint32 err)
 {
 sim_debug (DBG_TRC, &tq_dev, "tq_fatal\n");
 
@@ -2079,7 +2080,7 @@ t_stat tq_reset (DEVICE *dptr)
 {
 int32 i, j;
 UNIT *uptr;
-static t_bool plugs_inited = FALSE;
+static bool plugs_inited = false;
 
 for (i=tq_max_plug=0; i<TQ_NUMDR; i++)
     if (dptr->units[i].unit_plug > tq_max_plug)
@@ -2092,7 +2093,7 @@ if (!plugs_inited ) {
     sim_set_uname (&dptr->units[4], uname);
     sprintf (uname, "%s-QUESVC", dptr->name);
     sim_set_uname (&dptr->units[5], uname);
-    plugs_inited  = TRUE;
+    plugs_inited  = true;
     for (d = 0; d < tq_dev.numunits - 2; d++)
         tq_unit[d].unit_plug = d;
     }

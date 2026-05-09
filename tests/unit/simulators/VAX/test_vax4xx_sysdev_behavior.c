@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -35,7 +36,7 @@ extern int32 int_req[];
 
 #if !defined(VAX_410)
 extern UNIT sysd_unit;
-extern t_bool tmr_inst;
+extern bool tmr_inst;
 extern uint32 tmr_tir;
 #endif
 
@@ -100,7 +101,7 @@ TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat)
 
 t_stat cpu_load_bootcode(const char *filename,
                          const unsigned char *builtin_code, size_t size,
-                         t_bool load_rom, t_addr offset)
+                         bool load_rom, t_addr offset)
 {
     /* Stubbed boot-code loader for uncalled boot paths. */
     (void)filename;
@@ -217,7 +218,7 @@ static void reset_sysdev_behavior_state(void)
 
 #if !defined(VAX_410)
     assert_int_equal(sim_cancel(&sysd_unit), SCPE_OK);
-    tmr_inst = FALSE;
+    tmr_inst = false;
     tmr_tir = 0;
 #endif
 }
@@ -381,7 +382,7 @@ static void test_ka420_timer_read_preserves_high_half(void **state)
 
     reset_sysdev_behavior_state();
     fault_PC = ROMBASE;
-    tmr_inst = TRUE;
+    tmr_inst = true;
     assert_int_equal(sim_activate(&sysd_unit, 0x611a), SCPE_OK);
 
     assert_int_equal((uint32)ReadReg(KABASE + (7u << 2), L_LONG),

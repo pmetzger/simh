@@ -28,6 +28,7 @@
 #define SIM_TMXR_H_    0
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 #ifndef SIMH_SERHANDLE_DEFINED
 #define SIMH_SERHANDLE_DEFINED 0
@@ -131,8 +132,8 @@ struct tmln {
     int32               rcve;                           /* rcv enable */
     int32               xmte;                           /* xmt enable */
     int32               dstb;                           /* disable Telnet binary mode */
-    t_bool              notelnet;                       /* raw binary data (no telnet interpretation) */
-    t_bool              nomessage;                      /* no connect/disconnect message on line even if telnet */
+    bool                notelnet;                       /* raw binary data (no telnet interpretation) */
+    bool                nomessage;                      /* no connect/disconnect message on line even if telnet */
     uint8               *telnet_sent_opts;              /* Telnet Options which we have sent a DON'T/WON'T */
     int32               rxbpr;                          /* rcv buf remove */
     int32               rxbpi;                          /* rcv buf insert */
@@ -147,8 +148,8 @@ struct tmln {
     int32               txstall;                        /* xmt stall count */
     int32               txbsz;                          /* xmt buffer size */
     int32               txbfd;                          /* xmt buffered flag */
-    t_bool              modem_control;                  /* line supports modem control behaviors */
-    t_bool              port_speed_control;             /* line programmatically sets port speed */
+    bool                modem_control;                  /* line supports modem control behaviors */
+    bool                port_speed_control;             /* line programmatically sets port speed */
     int32               modembits;                      /* modem bits which are currently set */
     FILE                *txlog;                         /* xmt log file */
     FILEREF             *txlogref;                      /* xmt log file reference */
@@ -167,7 +168,7 @@ struct tmln {
     uint32              txbps;                          /* xmt bps speed (0 - unlimited) */
     uint32              txdeltausecs;                   /* xmt inter character min time (usecs) */
     double              txnexttime;                     /* min time for next transmit character */
-    t_bool              txdone;                         /* sent data complete indicator - private */
+    bool                txdone;                         /* sent data complete indicator - private */
     uint8               *txpb;                          /* xmt packet buffer */
     uint32              txpbsize;                       /* xmt packet buffer size */
     uint32              txppsize;                       /* xmt packet packet size */
@@ -175,13 +176,13 @@ struct tmln {
     TMXR                *mp;                            /* back pointer to mux */
     char                *serconfig;                     /* line config */
     SERHANDLE           serport;                        /* serial port handle */
-    t_bool              ser_connect_pending;            /* serial connection notice pending */
+    bool                ser_connect_pending;            /* serial connection notice pending */
     SOCKET              connecting;                     /* Outgoing socket while connecting */
     char                *destination;                   /* Outgoing destination address:port */
-    t_bool              loopback;                       /* Line in loopback mode */
-    t_bool              halfduplex;                     /* Line in half-duplex mode */
-    t_bool              datagram;                       /* Line is datagram packet oriented */
-    t_bool              packet;                         /* Line is packet oriented */
+    bool                loopback;                       /* Line in loopback mode */
+    bool                halfduplex;                     /* Line in half-duplex mode */
+    bool                datagram;                       /* Line is datagram packet oriented */
+    bool                packet;                         /* Line is packet oriented */
     int32               lpbpr;                          /* loopback buf remove */
     int32               lpbpi;                          /* loopback buf insert */
     int32               lpbcnt;                         /* loopback buf used count */
@@ -215,12 +216,12 @@ struct tmxr {
     uint32              ring_start_time;                /* time ring signal was raised */
     char                *ring_ipad;                     /* incoming connection address awaiting DTR */
     SOCKET              ring_sock;                      /* incoming connection socket awaiting DTR */
-    t_bool              notelnet;                       /* default telnet capability for incoming connections */
-    t_bool              nomessage;                      /* no connect/disconnect message on line even if telnet */
-    t_bool              modem_control;                  /* multiplexer supports modem control behaviors */
-    t_bool              port_speed_control;             /* multiplexer programmatically sets port speed */
-    t_bool              packet;                         /* Lines are packet oriented */
-    t_bool              datagram;                       /* Lines use datagram packet transport */
+    bool                notelnet;                       /* default telnet capability for incoming connections */
+    bool                nomessage;                      /* no connect/disconnect message on line even if telnet */
+    bool                modem_control;                  /* multiplexer supports modem control behaviors */
+    bool                port_speed_control;             /* multiplexer programmatically sets port speed */
+    bool                packet;                         /* Lines are packet oriented */
+    bool                datagram;                       /* Lines use datagram packet transport */
     };
 
 int32 tmxr_poll_conn (TMXR *mp);
@@ -239,10 +240,10 @@ int32 tmxr_send_buffered_data (TMLN *lp);
 t_stat tmxr_open_master (TMXR *mp, const char *cptr);
 t_stat tmxr_close_master (TMXR *mp);
 t_stat tmxr_connection_poll_interval (TMXR *mp, uint32 seconds);
-t_stat tmxr_attach_ex (TMXR *mp, UNIT *uptr, const char *cptr, t_bool async);
+t_stat tmxr_attach_ex (TMXR *mp, UNIT *uptr, const char *cptr, bool async);
 t_stat tmxr_detach (TMXR *mp, UNIT *uptr);
 t_stat tmxr_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-char *tmxr_connection_message(const TMXR *mp, const TMLN *lp, t_bool force);
+char *tmxr_connection_message(const TMXR *mp, const TMLN *lp, bool force);
 char *tmxr_line_attach_string(TMLN *lp);
 t_stat tmxr_set_modem_control_passthru (TMXR *mp);
 t_stat tmxr_clear_modem_control_passthru (TMXR *mp);
@@ -255,13 +256,13 @@ t_stat tmxr_clear_port_speed_control (TMXR *mp);
 t_stat tmxr_set_line_port_speed_control (TMXR *mp, int line);
 t_stat tmxr_clear_line_port_speed_control (TMXR *mp, int line);
 t_stat tmxr_set_get_modem_bits (TMLN *lp, int32 bits_to_set, int32 bits_to_clear, int32 *incoming_bits);
-t_stat tmxr_set_line_loopback (TMLN *lp, t_bool enable_loopback);
-t_bool tmxr_get_line_loopback (TMLN *lp);
-t_stat tmxr_set_line_halfduplex (TMLN *lp, t_bool enable_loopback);
-t_bool tmxr_get_line_halfduplex (TMLN *lp);
+t_stat tmxr_set_line_loopback (TMLN *lp, bool enable_loopback);
+bool tmxr_get_line_loopback (TMLN *lp);
+t_stat tmxr_set_line_halfduplex (TMLN *lp, bool enable_loopback);
+bool tmxr_get_line_halfduplex (TMLN *lp);
 t_stat tmxr_set_line_speed (TMLN *lp, const char *speed);
 t_stat tmxr_set_config_line (TMLN *lp, const char *config);
-t_stat tmxr_set_line_modem_control (TMLN *lp, t_bool enab_disab);
+t_stat tmxr_set_line_modem_control (TMLN *lp, bool enab_disab);
 t_stat tmxr_set_line_unit (TMXR *mp, int line, UNIT *uptr_poll);
 t_stat tmxr_set_line_output_unit (TMXR *mp, int line, UNIT *uptr_poll);
 t_stat tmxr_set_console_units (UNIT *rxuptr, UNIT *txuptr);
@@ -282,7 +283,7 @@ int32 tmxr_rqln (const TMLN *lp);
 int32 tmxr_tqln (const TMLN *lp);
 int32 tmxr_tpqln (const TMLN *lp);
 int32 tmxr_txdone_ln (TMLN *lp);
-t_bool tmxr_tpbusyln (const TMLN *lp);
+bool tmxr_tpbusyln (const TMLN *lp);
 t_stat tmxr_set_lnorder (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat tmxr_show_lnorder (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat tmxr_show_summ (FILE *st, UNIT *uptr, int32 val, const void *desc);
@@ -330,9 +331,9 @@ t_stat tmxr_add_debug (DEVICE *dptr);
 #endif /* defined(SIM_ASYNCH_MUX) && !defined(SIM_ASYNCH_IO) */
 
 #if defined(SIM_ASYNCH_MUX)
-#define tmxr_attach(mp, uptr, cptr) tmxr_attach_ex(mp, uptr, cptr, TRUE)
+#define tmxr_attach(mp, uptr, cptr) tmxr_attach_ex(mp, uptr, cptr, true)
 #else
-#define tmxr_attach(mp, uptr, cptr) tmxr_attach_ex(mp, uptr, cptr, FALSE)
+#define tmxr_attach(mp, uptr, cptr) tmxr_attach_ex(mp, uptr, cptr, false)
 #endif
 #if (!defined(NOT_MUX_USING_CODE))
 #define sim_activate tmxr_activate

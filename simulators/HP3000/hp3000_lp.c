@@ -569,20 +569,20 @@ typedef struct {
     uint32  line_length;                        /* the maximum number of print positions */
     uint32  char_set;                           /* the size of the character set */
     uint32  vfu_channels;                       /* the number of VFU channels */
-    t_bool  not_ready;                          /* TRUE if the printer reports a separate not ready status */
-    t_bool  overprints;                         /* TRUE if the printer supports overprinting */
-    t_bool  autoprints;                         /* TRUE if the printer automatically prints on buffer overflow */
-    t_bool  fault_at_eol;                       /* TRUE if a paper fault is reported at the end of any line */
+    bool    not_ready;                          /* true if the printer reports a separate not ready status */
+    bool    overprints;                         /* true if the printer supports overprinting */
+    bool    autoprints;                         /* true if the printer automatically prints on buffer overflow */
+    bool    fault_at_eol;                       /* true if a paper fault is reported at the end of any line */
     } PRINTER_PROPS;
 
 static const PRINTER_PROPS print_props [] = {   /* printer properties, indexed by PRINTER_TYPE */
 /*     line    char    VFU      not     over    auto   fault  */
 /*    length   set   channels  ready   prints  prints  at EOL */
 /*    ------  -----  --------  ------  ------  ------  ------ */
-    {  132,   128,      8,     FALSE,  FALSE,  TRUE,   FALSE  },    /* HP_2607 */
-    {  136,    96,     12,     TRUE,   TRUE,   FALSE,  TRUE   },    /* HP_2613 */
-    {  136,    96,     12,     TRUE,   TRUE,   FALSE,  TRUE   },    /* HP_2617 */
-    {  132,    96,     12,     TRUE,   TRUE,   FALSE,  TRUE   }     /* HP_2618 */
+    {  132,   128,      8,     false,  false,  true,   false  },    /* HP_2607 */
+    {  136,    96,     12,     true,   true,   false,  true   },    /* HP_2613 */
+    {  136,    96,     12,     true,   true,   false,  true   },    /* HP_2617 */
+    {  132,    96,     12,     true,   true,   false,  true   }     /* HP_2618 */
     };
 
 
@@ -1052,21 +1052,21 @@ static HP_WORD data_out           = 0;          /* external DATA OUT signal bus 
 static bool    device_command_out = false;      /* external DEV CMD signal state */
 
 static HP_WORD data_in            = 0;          /* external DATA IN signal bus */
-static t_bool  device_flag_in     = FALSE;      /* external DEV FLAG signal state */
-static t_bool  device_end_in      = FALSE;      /* external DEV END signal state */
+static bool    device_flag_in     = false;      /* external DEV FLAG signal state */
+static bool    device_end_in      = false;      /* external DEV END signal state */
 
 
 /* Diagnostic Hardware Assembly state */
 
 static HP_WORD dha_control_word = 0;            /* Diagnostic Hardware Assembly control word */
-static t_bool  power_warning    = FALSE;        /* PFWARN is not asserted to the DHA */
+static bool    power_warning    = false;        /* PFWARN is not asserted to the DHA */
 
 
 /* Printer state */
 
-static t_bool paper_fault     = TRUE;           /* TRUE if the printer is out of paper */
-static t_bool tape_fault      = FALSE;          /* TRUE if there is no punch in a commanded VFU channel */
-static t_bool offline_pending = FALSE;          /* TRUE if an offline request is waiting for the printer to finish */
+static bool paper_fault     = true;             /* true if the printer is out of paper */
+static bool tape_fault      = false;            /* true if there is no punch in a commanded VFU channel */
+static bool offline_pending = false;            /* true if an offline request is waiting for the printer to finish */
 static uint32 overprint_char  = DEL;            /* character to use if overprinted */
 static uint32 current_line    = 1;              /* current form line */
 static uint32 buffer_index    = 0;              /* current index into the print buffer */
@@ -1093,7 +1093,7 @@ static t_stat      ui_reset      (DEVICE *dptr);
 
 /* Interface local utility routines */
 
-static t_stat       master_reset          (t_bool programmed_clear);
+static t_stat       master_reset          (bool programmed_clear);
 static void         clear_interface_logic (void);
 static void         activate_unit         (UNIT   *uptr);
 static void         report_error          (FILE   *stream);
@@ -1109,7 +1109,7 @@ static t_stat diag_service (UNIT *uptr);
 
 /* Diagnostic Hardware Assembly local utility routines */
 
-static t_stat       diag_reset   (t_bool programmed_clear);
+static t_stat       diag_reset   (bool programmed_clear);
 static OUTBOUND_SET diag_control (uint32 control_word);
 
 
@@ -1129,10 +1129,10 @@ static t_stat lp_show_vfu       (FILE *st,   UNIT *uptr,  int32 value,      cons
 
 /* Printer local utility routines */
 
-static t_stat       lp_reset        (t_bool programmed_clear);
+static t_stat       lp_reset        (bool programmed_clear);
 static OUTBOUND_SET lp_control      (uint32 control_word);
-static t_bool       lp_set_alarm    (UNIT   *uptr);
-static t_bool       lp_set_locality (UNIT   *uptr, LOCALITY printer_state);
+static bool         lp_set_alarm    (UNIT   *uptr);
+static bool         lp_set_locality (UNIT   *uptr, LOCALITY printer_state);
 static t_stat       lp_load_vfu     (UNIT   *uptr, FILE *vf);
 static int32        lp_read_line    (FILE   *vf,   char *line, uint32 size);
 
@@ -1387,7 +1387,7 @@ INBOUND_SIGNAL signal;
 INBOUND_SET    working_set      = inbound_signals;
 HP_WORD        outbound_value   = 0;
 OUTBOUND_SET   outbound_signals = NO_SIGNALS;
-t_bool         abort_transfer   = FALSE;
+bool           abort_transfer   = false;
 
 dprintf (lp_dev, DEB_IOB, "Received data %06o with signals %s\n",
          inbound_value, fmt_bitset (inbound_signals, inbound_format));
@@ -1455,7 +1455,7 @@ while (working_set) {
                      dha_fn_name [CN_DHA_FN (inbound_value)]);
 
             if (inbound_value & CN_MR)                  /* if the programmed master reset bit is set */
-                master_reset (TRUE);                    /*   then reset the interface and the control word */
+                master_reset (true);                    /*   then reset the interface and the control word */
 
             else if (inbound_value & CN_RIN) {          /* otherwise if the reset interrupt bit is set */
                 dibptr->interrupt_request = CLEAR;      /*   then clear the interrupt request */
@@ -1555,7 +1555,7 @@ while (working_set) {
         case ACKSR:
             device_sr = CLEAR;                          /* acknowledge the service request */
 
-            abort_transfer = (t_bool) device_end;       /* TRUE if the transfer is to be aborted */
+            abort_transfer = (bool) device_end;         /* true if the transfer is to be aborted */
             device_end = CLEAR;                         /* clear the device end flip-flop */
             break;
 
@@ -1576,7 +1576,7 @@ while (working_set) {
         case TOGGLEINXFER:
             TOGGLE (input_xfer);                        /* set or clear the input transfer flip-flop */
 
-            device_end_in = FALSE;                      /* clear the external device end condition */
+            device_end_in = false;                      /* clear the external device end condition */
             break;
 
 
@@ -1586,7 +1586,7 @@ while (working_set) {
             if (output_xfer == SET)                     /* if starting an output transfer */
                 device_sr = SET;                        /*   request the first word to write */
 
-            device_end_in = FALSE;                      /* clear the external device end condition */
+            device_end_in = false;                      /* clear the external device end condition */
             break;
 
 
@@ -1658,7 +1658,7 @@ while (working_set) {
 
 
         case PFWARN:
-            power_warning = TRUE;                       /* system power is in the process of failing */
+            power_warning = true;                       /* system power is in the process of failing */
             break;
 
 
@@ -1719,7 +1719,7 @@ return IORETURN (outbound_signals, outbound_value);     /* return the outbound s
 
 static t_stat xfer_service (UNIT *uptr)
 {
-static t_bool device_flag_last = FALSE;
+static bool device_flag_last = false;
 t_stat        result;
 OUTBOUND_SET  signals;
 
@@ -1824,7 +1824,7 @@ return SCPE_OK;                                         /* return success */
 
    Implementation notes:
 
-    1. Calling "master_reset" with a FALSE parameter indicates that this is a
+    1. Calling "master_reset" with a false parameter indicates that this is a
        commanded reset.  This allows the connected device-specific reset
        routines to distinguish from a Programmed Master Clear.
 */
@@ -1835,7 +1835,7 @@ static t_stat ui_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-return master_reset (FALSE);                            /* perform a non-programmed master reset */
+return master_reset (false);                            /* perform a non-programmed master reset */
 }
 
 
@@ -1861,7 +1861,7 @@ return master_reset (FALSE);                            /* perform a non-program
        the MASTER CLEAR signal.
 */
 
-static t_stat master_reset (t_bool programmed_clear)
+static t_stat master_reset (bool programmed_clear)
 {
 interrupt_mask = SET;                                   /* set the interrupt mask flip-flop */
 
@@ -1884,7 +1884,7 @@ device_flag    = CLEAR;                                 /*   and device flag fli
 
 data_out      = 0;                                      /* clear the external state */
 data_in       = 0;                                      /*   of the I/O lines */
-device_end_in = FALSE;                                  /*     and the external device end line */
+device_end_in = false;                                  /*     and the external device end line */
 
 clear_interface_logic ();                               /* clear the interface to abort any transfer in progress */
 
@@ -2190,7 +2190,7 @@ return outbound_signals;                                    /* return INTREQ if 
 static OUTBOUND_SET handshake_xfer (void)
 {
 const SEQ_STATE entry_state      = sequencer;           /* the state of the sequencer at entry */
-t_bool          reset            = FALSE;               /* TRUE if the sequencer is reset */
+bool            reset            = false;               /* true if the sequencer is reset */
 OUTBOUND_SET    outbound_signals = NO_SIGNALS;
 SEQ_STATE       last_state;
 
@@ -2236,14 +2236,14 @@ do {                                                    /* run the sequencer as 
                     write_xfer     = CLEAR;             /*     and write transfer flip-flops */
 
                     sequencer = Idle;                   /* idle the sequencer */
-                    reset     = TRUE;                   /*   and indicate that it was reset */
+                    reset     = true;                   /*   and indicate that it was reset */
 
                     device_sr = SET;                    /* request channel service */
                     break;
                     }
 
                 else                                    /* otherwise no transfer is in progress */
-                    device_end_in = FALSE;              /*   so clear the signal */
+                    device_end_in = false;              /*   so clear the signal */
 
             if (device_flag == SET) {                   /* if the device flag has been set */
                 sequencer = Device_Flag_1;              /*   then proceed to the next state */
@@ -2296,7 +2296,7 @@ do {                                                    /* run the sequencer as 
 
                 read_word &= ~D8_MASK;                  /* clear the lower byte */
 
-                if (device_end_in == FALSE)             /* if the transfer succeeded */
+                if (device_end_in == false)             /* if the transfer succeeded */
                     read_word |= LOWER_BYTE (data_in);  /*   then merge the received lower byte */
                 }
             break;
@@ -2396,7 +2396,7 @@ return SCPE_OK;
        to the DEV CMD state if the lines are connected.
 */
 
-static t_stat diag_reset (t_bool programmed_clear)
+static t_stat diag_reset (bool programmed_clear)
 {
 if (programmed_clear) {                                 /* if this is a programmed master clear */
     dha_control_word |= DHA_MR;                         /*   then record the master reset */
@@ -2455,7 +2455,7 @@ if (control_word & CN_DHA_FN_ENABLE)                    /* if the decoder is ena
             break;
 
         case 2:                                         /* assert the Device End signal */
-            device_end_in = TRUE;                       /* set the external device end line */
+            device_end_in = true;                       /* set the external device end line */
             break;
 
         case 4:                                                 /* set the Transfer Error flip-flop */
@@ -2485,7 +2485,7 @@ if (control_word & CN_DHA_FN_ENABLE)                    /* if the decoder is ena
 if (dha_control_word & DHA_STAT_SEL) {                  /* if status follows master clear/power on/power fail */
     new_status = ST_DHA_PON;                            /*   then indicate that power is on */
 
-    if (power_warning == FALSE)                         /* if we have seen a PFWARN signal */
+    if (power_warning == false)                         /* if we have seen a PFWARN signal */
         new_status |= ST_DHA_NOT_PF;                    /*   then indicate that power has not failed */
 
     if (dha_control_word & DHA_MR)                      /* if a master reset is requested */
@@ -2635,8 +2635,8 @@ return outbound_signals;                                /* return INTREQ if any 
        potential change in the flag state.
 
     8. If printing is attempted with the printer offline, this routine will be
-       called with STROBE asserted (device_command_in TRUE) and DEMAND denied
-       (device_flag_in TRUE).  The printer ignores STROBE if DEMAND is not
+       called with STROBE asserted (device_command_in true) and DEMAND denied
+       (device_flag_in true).  The printer ignores STROBE if DEMAND is not
        asserted, so we simply return in this case.  This will hang the handshake
        until the printer is set online, and we are reentered with DEMAND
        asserted.  As a consequence, explicit protection against "uptr->fileref"
@@ -2649,7 +2649,7 @@ return outbound_signals;                                /* return INTREQ if any 
 
 static t_stat lp_service (UNIT *uptr)
 {
-const t_bool  printing = ((control_word & CN_FORMAT) != 0);    /* TRUE if a print command was received */
+const bool    printing = ((control_word & CN_FORMAT) != 0);    /* true if a print command was received */
 static uint32 overprint_index = 0;
 PRINTER_TYPE  model;
 uint8         data_byte, format_byte;
@@ -2664,7 +2664,7 @@ else                                                    /* otherwise */
 dprintf (lp_dev, DEB_SERV, "%s state printer service entered\n",
          state_name [sequencer]);
 
-if (device_command_out == FALSE) {                      /* if STROBE has denied */
+if (device_command_out == false) {                      /* if STROBE has denied */
     if (printing) {                                     /*   then if printing occurred */
         buffer_index = 0;                               /*     then clear the buffer */
 
@@ -2686,16 +2686,16 @@ if (device_command_out == FALSE) {                      /* if STROBE has denied 
             }
         }
 
-    device_flag_in = FALSE;                             /* assert DEMAND to complete the handshake */
+    device_flag_in = false;                             /* assert DEMAND to complete the handshake */
     uptr->wait = 0;                                     /*   and request direct entry when STROBE next asserts */
     }
 
-else if (device_flag_in == FALSE) {                     /* otherwise if STROBE has asserted while DEMAND is asserted */
-    device_flag_in = TRUE;                              /*   then deny DEMAND */
+else if (device_flag_in == false) {                     /* otherwise if STROBE has asserted while DEMAND is asserted */
+    device_flag_in = true;                              /*   then deny DEMAND */
 
     data_byte = (uint8) (data_out & DATA_MASK);         /* only the lower 7 bits are connected */
 
-    if (printing == FALSE) {                            /* if loading the print buffer */
+    if (printing == false) {                            /* if loading the print buffer */
         if (data_byte > '_'                             /*   then if the character is "lowercase" */
           && print_props [model].char_set == 64)        /*     but the printer doesn't support it */
             data_byte = data_byte - 040;                /*       then shift it to "uppercase" */
@@ -2953,7 +2953,7 @@ if (result == SCPE_OK                                   /* if the attach was suc
         }
     }
 
-paper_fault = FALSE;                                    /* clear any existing paper fault */
+paper_fault = false;                                    /* clear any existing paper fault */
 
 if (lp_dev.flags & DEV_REALTIME)                        /* if the printer is in real-time mode */
     dlyptr = &real_times [GET_MODEL (uptr->flags)];     /*   then point at the times for the current model */
@@ -3013,13 +3013,13 @@ if (uptr->flags & UNIT_ATTABLE)                         /* if we're being called
         if (sim_switches & (SWMASK ('F') | SIM_SW_SHUT)) {  /* if this is a forced detach or shut down request */
             current_line = 1;                               /*   then reset the printer to TOF to enable detaching */
             sim_cancel (uptr);                              /*     and terminate */
-            device_command_out = FALSE;                     /*       any print action in progress */
+            device_command_out = false;                     /*       any print action in progress */
             }
 
         if ((print_props [model].fault_at_eol           /* otherwise if the printer faults at the end of any line */
           || current_line == 1)                         /*   or the printer is at the top of the form */
           && lp_set_alarm (uptr)) {                     /*   and a paper alarm is accepted */
-            paper_fault = TRUE;                         /*     then set the out-of-paper condition */
+            paper_fault = true;                         /*     then set the out-of-paper condition */
 
             dprintf (lp_dev, DEB_CMD, "Printer is out of paper\n");
 
@@ -3027,8 +3027,8 @@ if (uptr->flags & UNIT_ATTABLE)                         /* if we're being called
             }
 
         else {                                          /* otherwise the alarm was rejected at this time */
-            paper_fault = TRUE;                         /*   so set the out-of-paper condition */
-            offline_pending = TRUE;                     /*     but defer the detach */
+            paper_fault = true;                         /*   so set the out-of-paper condition */
+            offline_pending = true;                     /*     but defer the detach */
 
             dprintf (lp_dev, DEB_CMD, "Paper out request deferred until print completes\n");
 
@@ -3175,14 +3175,14 @@ if ((uptr->flags & UNIT_ATT) == 0)                      /* if the printer is det
 
 else if (value == UNIT_ONLINE)                          /* otherwise if this is an online request */
     if (paper_fault && offline_pending) {               /*   then if an out-of-paper condition is deferred */
-        paper_fault = FALSE;                            /*     then cancel the request */
-        offline_pending = FALSE;                        /*       leaving the file attached */
+        paper_fault = false;                            /*     then cancel the request */
+        offline_pending = false;                        /*       leaving the file attached */
         }
 
     else                                                /*   otherwise it's a normal online request */
         lp_set_locality (uptr, Online);                 /*     so set the printer online */
 
-else if (lp_set_locality (uptr, Offline) == FALSE) {    /* otherwise if it cannot be set offline now */
+else if (lp_set_locality (uptr, Offline) == false) {    /* otherwise if it cannot be set offline now */
     dprintf (lp_dev, DEB_CMD, "Offline request deferred until print completes\n");
     return SCPE_INCOMP;                                 /*   then let the user know */
     }
@@ -3341,8 +3341,8 @@ return SCPE_OK;
 /* Printer reset.
 
    This routine is called when the MASTER CLEAR signal is asserted to the
-   printer.  The "programmed_clear" parameter is TRUE if the routine is called
-   for a Programmed Master Clear or IORESET assertion, and FALSE if the routine
+   printer.  The "programmed_clear" parameter is true if the routine is called
+   for a Programmed Master Clear or IORESET assertion, and false if the routine
    is called for a RESET or RESET LP command.  In the latter case, the presence
    of the "-P" switch indicates that this is a power-on reset.  In either case,
    the interface reset has already been performed; this routine is responsible
@@ -3367,7 +3367,7 @@ return SCPE_OK;
    warning is cleared.
 */
 
-static t_stat lp_reset (t_bool programmed_clear)
+static t_stat lp_reset (bool programmed_clear)
 {
 const PRINTER_TYPE model = GET_MODEL (xfer_unit.flags); /* the printer model number */
 OUTBOUND_SET signals;
@@ -3381,29 +3381,29 @@ if (! programmed_clear && (sim_switches & SWMASK ('P'))) {  /* if this is a comm
 
     result = lp_load_vfu (xfer_uptr, NULL);                 /* load the standard VFU tape */
 
-    power_warning = FALSE;                                  /* clear the power failure warning */
+    power_warning = false;                                  /* clear the power failure warning */
     }
 
 buffer_index = 0;                                       /* clear the buffer without printing */
 
-offline_pending = FALSE;                                /* cancel any pending offline request */
+offline_pending = false;                                /* cancel any pending offline request */
 
-tape_fault  = FALSE;                                    /* clear any tape fault */
+tape_fault  = false;                                    /* clear any tape fault */
 paper_fault = (xfer_unit.flags & UNIT_ATT) == 0;        /*   and set paper fault if out of paper */
 
 if (paper_fault && print_props [model].not_ready)       /* if paper is out and the printer reports it separately */
     new_status |= ST_NOT_READY;                         /*   then set not-ready status */
 
 if (xfer_unit.flags & UNIT_OFFLINE) {                   /* if the printer is offline */
-    device_flag_in = TRUE;                              /*   then DEMAND denies while the printer is not ready */
-    device_end_in  = TRUE;                              /*     and DEV END asserts while the printer is offline */
+    device_flag_in = true;                              /*   then DEMAND denies while the printer is not ready */
+    device_end_in  = true;                              /*     and DEV END asserts while the printer is offline */
     }
 
 else {                                                  /* otherwise the printer is online */
     new_status |= ST_ONLINE;                            /*   so set online status */
 
-    device_flag_in = FALSE;                             /* DEMAND asserts when the printer is ready */
-    device_end_in  = FALSE;                             /*   and DEV END denies when the printer is online */
+    device_flag_in = false;                             /* DEMAND asserts when the printer is ready */
+    device_end_in  = false;                             /*   and DEV END denies when the printer is online */
     }
 
 xfer_service (NULL);                                    /* tell the data transfer service that signals have changed */
@@ -3448,7 +3448,7 @@ return NO_SIGNALS;                                      /* no special control ac
    not-ready when printing completes.
 */
 
-static t_bool lp_set_alarm (UNIT *uptr)
+static bool lp_set_alarm (UNIT *uptr)
 {
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);     /* the printer model number */
 
@@ -3456,18 +3456,18 @@ if (lp_set_locality (uptr, Offline)) {                  /* if the printer went o
     if (print_props [model].not_ready)                  /*   then if the printer reports ready status separately */
         set_device_status (ST_NOT_READY, ST_NOT_READY); /*     then set the printer not-ready */
 
-    return TRUE;                                        /* return completion success */
+    return true;                                        /* return completion success */
     }
 
 else                                                    /* otherwise the offline request is pending */
-    return FALSE;                                       /*   so return deferral status */
+    return false;                                       /*   so return deferral status */
 }
 
 
 /* Set the printer locality.
 
-   This routine is called to set the printer online or offline and returns TRUE
-   if the request succeeded or FALSE if it was deferred.  An online request
+   This routine is called to set the printer online or offline and returns true
+   if the request succeeded or false if it was deferred.  An online request
    always succeeds, so it is up to the caller to ensure that going online is
    permissible (e.g., that paper is loaded into the printer).  An offline
    request succeeds only if the printer is idle.  If characters are present in
@@ -3494,40 +3494,40 @@ else                                                    /* otherwise the offline
        sequence.
 */
 
-static t_bool lp_set_locality (UNIT *uptr, LOCALITY printer_state)
+static bool lp_set_locality (UNIT *uptr, LOCALITY printer_state)
 {
 OUTBOUND_SET signals;
 
 if (printer_state == Offline) {                         /* if the printer is going offline */
     if (buffer_index == 0                               /*   then if the buffer is empty */
-      && sim_is_active (uptr) == FALSE) {               /*     and the printer is idle */
+      && sim_is_active (uptr) == false) {               /*     and the printer is idle */
         uptr->flags |= UNIT_OFFLINE;                    /*       then set the printer offline now */
 
         signals = set_device_status (ST_ONLINE, 0);     /* update the printer status */
 
-        device_flag_in = TRUE;                          /* DEMAND denies while the printer is offline */
-        device_end_in  = TRUE;                          /* DEV END asserts while the printer is offline */
+        device_flag_in = true;                          /* DEMAND denies while the printer is offline */
+        device_end_in  = true;                          /* DEV END asserts while the printer is offline */
 
         xfer_service (NULL);                            /* inform the service routine of the signal changes */
         }
 
     else {                                              /*   otherwise the request must wait */
-        offline_pending = TRUE;                         /*     until the line is printed */
-        return FALSE;                                   /*       and the command is not complete */
+        offline_pending = true;                         /*     until the line is printed */
+        return false;                                   /*       and the command is not complete */
         }
     }
 
 else {                                                  /* otherwise the printer is going online */
     uptr->flags &= ~UNIT_OFFLINE;                       /*   so clear the unit flag */
 
-    paper_fault = FALSE;                                /* clear any paper fault */
-    tape_fault  = FALSE;                                /*   and any tape fault */
+    paper_fault = false;                                /* clear any paper fault */
+    tape_fault  = false;                                /*   and any tape fault */
 
     signals = set_device_status (ST_ONLINE | ST_NOT_READY,  /* set online status */
                                  ST_ONLINE);                /*   and clear not ready status */
 
-    device_flag_in = FALSE;                             /* DEMAND asserts when the printer is online */
-    device_end_in  = FALSE;                             /*   and DEV END denies when the printer is online */
+    device_flag_in = false;                             /* DEMAND asserts when the printer is online */
+    device_end_in  = false;                             /*   and DEV END denies when the printer is online */
 
     if (sequencer != Idle)                              /* if the transfer handshake is in progress */
         xfer_service (uptr);                            /*   then complete the suspended operation */
@@ -3541,8 +3541,8 @@ dprintf (lp_dev, DEB_CMD, "Printer set %s\n",
 if (signals & INTREQ)                                   /* if the transition caused an interrupt */
     iop_assert_INTREQ (&lp_dib);                        /*   then assert the INTREQ signal */
 
-offline_pending = FALSE;                                /* the operation completed */
-return TRUE;                                            /*   successfully */
+offline_pending = false;                                /* the operation completed */
+return true;                                            /*   successfully */
 }
 
 

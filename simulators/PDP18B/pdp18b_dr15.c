@@ -61,6 +61,7 @@
    information relating to PIREX operation.
 */
 
+#include <stdbool.h>
 #include "pdp18b_defs.h"
 #include "uc15_defs.h"
 
@@ -214,7 +215,7 @@ UC15_SHARED_WR (UC15_TCBP, tcbp);                       /* new value */
 UC15_ATOMIC_CAS (UC15_TCBP_WR, 0, 1);                   /* signal UC15 */
 if (DEBUG_PRS (dr15_dev)) {
     uint32 apiv, apil, fnc, tsk;
-    t_bool spl;
+    bool spl;
 
     apiv = (M[tcbp] >> 8) & 0377;
     apil = M[tcbp] & 0377;

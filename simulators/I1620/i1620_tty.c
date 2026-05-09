@@ -38,9 +38,10 @@
    22-Dec-02    RMS     Added break test
 */
 
+#include <stdbool.h>
 #include "i1620_defs.h"
 
-#define NUM_1_DIGIT TRUE /* indicate numeric output will use single digit format (tfm) */
+#define NUM_1_DIGIT true /* indicate numeric output will use single digit format (tfm) */
 
 /* Maximum number of characters per line, or one-based column number of last char cell */
 

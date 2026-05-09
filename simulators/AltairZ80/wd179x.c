@@ -35,6 +35,7 @@
  *                                                                       *
  *************************************************************************/
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "wd179x.h"
@@ -117,19 +118,19 @@ typedef struct {
     uint8 fdc_status;   /* WD179X Status Register */
     uint8 verify;       /* WD179X Type 1 command Verify flag */
     uint8 fdc_data;     /* WD179X Data Register */
-    uint8 fdc_read;     /* TRUE when reading */
-    uint8 fdc_write;    /* TRUE when writing */
-    uint8 fdc_write_track;  /* TRUE when writing an entire track */
+    uint8 fdc_read;     /* true when reading */
+    uint8 fdc_write;    /* true when writing */
+    uint8 fdc_write_track;  /* true when writing an entire track */
     uint8 fdc_fmt_state;    /* Format track statemachine state */
     uint8 fdc_gap[4];       /* Gap I - Gap IV lengths */
     uint8 fdc_fmt_sector_count; /* sector count for format track */
     uint8 fdc_sectormap[WD179X_MAX_SECTOR]; /* Physical to logical sector map */
     uint8 fdc_header_index; /* Index into header */
-    uint8 fdc_read_addr;    /* TRUE when READ ADDRESS command is in progress */
-    uint8 fdc_multiple;     /* TRUE for multi-sector read/write */
+    uint8 fdc_read_addr;    /* true when READ ADDRESS command is in progress */
+    uint8 fdc_multiple;     /* true for multi-sector read/write */
     uint16 fdc_datacount;   /* Read or Write data remaining transfer length */
     uint16 fdc_dataindex;   /* index of current byte in sector data */
-    uint8 index_pulse_wait; /* TRUE if waiting for interrupt on next index pulse. */
+    uint8 index_pulse_wait; /* true if waiting for interrupt on next index pulse. */
     uint8 fdc_sector;       /* R Record (Sector) */
     uint8 fdc_sec_len;      /* N Sector Length */
     int8 step_dir;
@@ -311,8 +312,8 @@ t_stat wd179x_svc (UNIT *uptr)
 {
     if (uptr == NULL) return SCPE_IERR;
 
-    if (wd179x_info->index_pulse_wait == TRUE) {
-        wd179x_info->index_pulse_wait = FALSE;
+    if (wd179x_info->index_pulse_wait == true) {
+        wd179x_info->index_pulse_wait = false;
         wd179x_info->intrq = 1;
     }
 
@@ -326,10 +327,10 @@ static t_stat wd179x_reset(DEVICE *dptr)
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &wd179xdev, "wd179xdev", TRUE);
+        sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &wd179xdev, "wd179xdev", true);
     } else {
         /* Connect I/O Ports at base address */
-        if (sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &wd179xdev, "wd179xdev", FALSE) != 0) {
+        if (sim_map_resource(pnp->io_base, pnp->io_size, RESOURCE_TYPE_IO, &wd179xdev, "wd179xdev", false) != 0) {
             sim_printf("%s: error mapping I/O resource at 0x%04x\n", __FUNCTION__, pnp->io_base);
             return SCPE_ARG;
         }
@@ -656,11 +657,11 @@ uint8 WD179X_Read(const uint32 Addr)
             break;
         case WD179X_DATA:
             cData = 0xFF;      /* Return High-Z data */
-            if (wd179x_info->fdc_read == TRUE) {
+            if (wd179x_info->fdc_read == true) {
                 if (wd179x_info->fdc_dataindex < wd179x_info->fdc_datacount) {
                     wd179x_info->fdc_status &= ~(WD179X_STAT_BUSY);       /* Clear BUSY */
                     cData = sdata.raw[wd179x_info->fdc_dataindex];
-                    if (wd179x_info->fdc_read_addr == TRUE) {
+                    if (wd179x_info->fdc_read_addr == true) {
                         sim_debug(STATUS_MSG, &wd179x_dev, "WD179X[%d]: " ADDRESS_FORMAT
                                   " READ_ADDR[%d/%d] = 0x%02x\n",
                                   wd179x_info->sel_drive, PCX,
@@ -669,12 +670,12 @@ uint8 WD179X_Read(const uint32 Addr)
 
                     wd179x_info->fdc_dataindex++;
                     if (wd179x_info->fdc_dataindex == wd179x_info->fdc_datacount) {
-                        if (wd179x_info->fdc_multiple == FALSE) {
+                        if (wd179x_info->fdc_multiple == false) {
                             wd179x_info->fdc_status &= ~(WD179X_STAT_DRQ | WD179X_STAT_BUSY); /* Clear DRQ, BUSY */
                             wd179x_info->drq = 0;
                             wd179x_info->intrq = 1;
-                            wd179x_info->fdc_read = FALSE;
-                            wd179x_info->fdc_read_addr = FALSE;
+                            wd179x_info->fdc_read = false;
+                            wd179x_info->fdc_read_addr = false;
                         } else {
 
                             /* Compute Sector Size */
@@ -735,9 +736,9 @@ uint8 WD179X_Write(const uint32 Addr, uint8 cData)
     case WD179X_STATUS:
         sim_debug(STATUS_MSG, &wd179x_dev, "WD179X: " ADDRESS_FORMAT
             " WR CMD   = 0x%02x\n", PCX, cData);
-        wd179x_info->fdc_read = FALSE;
-        wd179x_info->fdc_write = FALSE;
-        wd179x_info->fdc_write_track = FALSE;
+        wd179x_info->fdc_read = false;
+        wd179x_info->fdc_write = false;
+        wd179x_info->fdc_write_track = false;
         wd179x_info->fdc_datacount = 0;
         wd179x_info->fdc_dataindex = 0;
         if (wd179x_info->intenable) {
@@ -760,7 +761,7 @@ uint8 WD179X_Write(const uint32 Addr, uint8 cData)
     case WD179X_DATA:
         sim_debug(VERBOSE_MSG, &wd179x_dev, "WD179X: " ADDRESS_FORMAT
             " WR DATA  = 0x%02x\n", PCX, cData);
-        if (wd179x_info->fdc_write == TRUE) {
+        if (wd179x_info->fdc_write == true) {
             if (wd179x_info->fdc_dataindex < wd179x_info->fdc_datacount) {
                 sdata.raw[wd179x_info->fdc_dataindex] = cData;
 
@@ -788,12 +789,12 @@ uint8 WD179X_Write(const uint32 Addr, uint8 cData)
                         &flags,
                         &writelen);
 
-                    wd179x_info->fdc_write = FALSE;
+                    wd179x_info->fdc_write = false;
                 }
             }
         }
 
-        if (wd179x_info->fdc_write_track == TRUE) {
+        if (wd179x_info->fdc_write_track == true) {
             if (wd179x_info->fdc_fmt_state == FMT_GAP1) {
                 if (cData != 0xFC) {
                     wd179x_info->fdc_gap[0]++;
@@ -1071,7 +1072,7 @@ static uint8 Do1793Command(uint8 cCommand)
                 return 0xFF;
             }
 
-            wd179x_info->fdc_multiple = (cCommand & 0x10) ? TRUE : FALSE;
+            wd179x_info->fdc_multiple = (cCommand & 0x10) ? true : false;
             sim_debug(RD_DATA_MSG, &wd179x_dev, "WD179X[%d]: " ADDRESS_FORMAT
                       " CMD=READ_REC, T:%2d/S:%d/N:%2d, %s, %s len=%d\n",
                       wd179x_info->sel_drive, PCX, pDrive->track,
@@ -1114,10 +1115,10 @@ static uint8 Do1793Command(uint8 cCommand)
             wd179x_info->drq = 1;
             wd179x_info->fdc_datacount = WD179X_SECTOR_LEN_BYTES;
             wd179x_info->fdc_dataindex = 0;
-            wd179x_info->fdc_write = TRUE;
-            wd179x_info->fdc_write_track = FALSE;
-            wd179x_info->fdc_read = FALSE;
-            wd179x_info->fdc_read_addr = FALSE;
+            wd179x_info->fdc_write = true;
+            wd179x_info->fdc_write_track = false;
+            wd179x_info->fdc_read = false;
+            wd179x_info->fdc_read_addr = false;
 
             sdata.raw[wd179x_info->fdc_dataindex] = wd179x_info->fdc_data;
 
@@ -1149,7 +1150,7 @@ static uint8 Do1793Command(uint8 cCommand)
                     &flags,
                     &writelen);
 
-                wd179x_info->fdc_write = FALSE;
+                wd179x_info->fdc_write = false;
             }
             break;
         /* Type III Commands */
@@ -1181,8 +1182,8 @@ static uint8 Do1793Command(uint8 cCommand)
                 wd179x_info->drq = 1;
                 wd179x_info->fdc_datacount = 6;
                 wd179x_info->fdc_dataindex = 0;
-                wd179x_info->fdc_read = TRUE;
-                wd179x_info->fdc_read_addr = TRUE;
+                wd179x_info->fdc_read = true;
+                wd179x_info->fdc_read_addr = true;
 
                 sdata.raw[0] = pDrive->track;
                 sdata.raw[1] = wd179x_info->fdc_head;
@@ -1211,11 +1212,11 @@ static uint8 Do1793Command(uint8 cCommand)
             wd179x_info->drq = 1;
             wd179x_info->fdc_datacount = WD179X_SECTOR_LEN_BYTES;
             wd179x_info->fdc_dataindex = 0;
-            wd179x_info->fdc_write = FALSE;
-            wd179x_info->fdc_write_track = TRUE;
-            wd179x_info->fdc_read = FALSE;
-            wd179x_info->fdc_read_addr = FALSE;
-            wd179x_info->fdc_fmt_state = FMT_GAP1;  /* TRUE when writing an entire track */
+            wd179x_info->fdc_write = false;
+            wd179x_info->fdc_write_track = true;
+            wd179x_info->fdc_read = false;
+            wd179x_info->fdc_read_addr = false;
+            wd179x_info->fdc_fmt_state = FMT_GAP1;  /* true when writing an entire track */
             wd179x_info->fdc_fmt_sector_count = 0;
 
             break;
@@ -1226,10 +1227,10 @@ static uint8 Do1793Command(uint8 cCommand)
             if ((cCommand & 0x0F) == 0) { /* I0-I3 == 0, no intr, but clear BUSY and terminate command */
                 wd179x_info->fdc_status &= ~(WD179X_STAT_DRQ | WD179X_STAT_BUSY); /* Clear DRQ, BUSY */
                 wd179x_info->drq = 0;
-                wd179x_info->fdc_write = FALSE;
-                wd179x_info->fdc_read = FALSE;
-                wd179x_info->fdc_write_track = FALSE;
-                wd179x_info->fdc_read_addr = FALSE;
+                wd179x_info->fdc_write = false;
+                wd179x_info->fdc_read = false;
+                wd179x_info->fdc_write_track = false;
+                wd179x_info->fdc_read_addr = false;
                 wd179x_info->fdc_datacount = 0;
                 wd179x_info->fdc_dataindex = 0;
             } else {
@@ -1239,7 +1240,7 @@ static uint8 Do1793Command(uint8 cCommand)
                 }
 
                 if (cCommand & 0x04) {
-                    wd179x_info->index_pulse_wait = TRUE;
+                    wd179x_info->index_pulse_wait = true;
                     if (wd179x_info->sel_drive < WD179X_MAX_DRIVES) {
                         sim_activate(wd179x_unit,
                                      wd179x_index_pulse_rotation(pDrive));
@@ -1402,8 +1403,8 @@ done:
         wd179x_info->intrq = 0;
         wd179x_info->fdc_datacount = WD179X_SECTOR_LEN_BYTES;
         wd179x_info->fdc_dataindex = 0;
-        wd179x_info->fdc_read = TRUE;
-        wd179x_info->fdc_read_addr = FALSE;
+        wd179x_info->fdc_read = true;
+        wd179x_info->fdc_read_addr = false;
         if (wd179x_info->external_fifo_len) {
             /* Save the FDC data in the external FIFO */
             memcpy(&wd179x_info->external_fifo[wd179x_info->fdc_fifo_index], sdata.raw, 128 << wd179x_info->fdc_sec_len);
@@ -1415,8 +1416,8 @@ done:
         wd179x_info->fdc_status |= WD179X_STAT_NOT_FOUND;
         wd179x_info->drq = 0;
         wd179x_info->intrq = 1;
-        wd179x_info->fdc_read = FALSE;
-        wd179x_info->fdc_read_addr = FALSE;
+        wd179x_info->fdc_read = false;
+        wd179x_info->fdc_read_addr = false;
     }
 
     return(SCPE_OK);

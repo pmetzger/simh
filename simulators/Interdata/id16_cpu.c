@@ -141,6 +141,7 @@
         id16_sys.c      add sim_devices table entry
 */
 
+#include <stdbool.h>
 #include "id_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -244,10 +245,10 @@ t_stat cpu_set_consint (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
 
-extern t_bool devtab_init (void);
+extern bool devtab_init (void);
 extern void int_eval (void);
 extern uint32 int_getdev (void);
-extern t_bool sch_blk (uint32 dev);
+extern bool sch_blk (uint32 dev);
 extern uint32 f_l (uint32 op, uint32 r1, uint32 r2, uint32 ea);
 extern uint32 f_c (uint32 op, uint32 r1, uint32 r2, uint32 ea);
 extern uint32 f_as (uint32 op, uint32 r1, uint32 r2, uint32 ea);
@@ -646,7 +647,7 @@ while (reason == 0) {                                   /* loop until halted */
             }
 
         if (PSW & PSW_WAIT) {                           /* wait state? */
-            sim_idle (TMR_LFC, TRUE);                   /* idling */
+            sim_idle (TMR_LFC, true);                   /* idling */
             continue;
             }
 
@@ -1611,8 +1612,8 @@ else return 0;
 uint32 int_auto (uint32 dev, uint32 cc)
 {
 int32 ba, ea, by, vec, ccw, bpi, fnc, trm, st, i, t;
-t_bool sysqe = FALSE;
-t_bool rpt = FALSE;
+bool sysqe = false;
+bool rpt = false;
 
 do {
     vec = ReadH (INTSVT + dev + dev);                   /* get vector */
@@ -1695,13 +1696,13 @@ do {
             WriteH (SQOP, vec);                         /* write to ovflo */
             return swap_psw (SQVPSW, cc);               /* take exception */
             }
-        else sysqe = TRUE;                              /* made an entry */
+        else sysqe = true;                              /* made an entry */
         }
     if (ccw & CCW16_CHN) {                              /* chain */
         t = ReadH ((vec + CCB16_CHN) & VAMASK);         /* get chain wd */
         WriteH (INTSVT + dev + dev, t);                 /* wr int svc tab */
         if (ccw & CCW16_CON)                            /* cont? */
-            rpt = TRUE;
+            rpt = true;
         }
     } while (rpt);
 
@@ -1948,7 +1949,7 @@ if ((val <= 0) || ((val & 0xFFF) != 0) ||
     return SCPE_ARG;
 for (i = val; i < MEMSIZE; i = i + 2)
     mc = mc | M[i >> 1];
-if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", FALSE)))
+if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
     return SCPE_OK;
 MEMSIZE = val;
 for (i = MEMSIZE; i < MAXMEMSIZE16E; i = i + 2)

@@ -46,6 +46,7 @@
    write followed by move mode read).
 */
 
+#include <stdbool.h>
 #include "i1401_defs.h"
 
 #define DP_NUMDR        5                               /* #drives */
@@ -108,8 +109,8 @@ t_stat dp_wradr (UNIT *uptr, int32 sec, int32 flg);
 t_stat dp_wrsec (UNIT *uptr, int32 sec, int32 flg);
 int32 dp_fndsec (UNIT *uptr, int32 sec, int32 dcf);
 t_stat dp_nexsec (UNIT *uptr, int32 psec, int32 dcf);
-t_bool dp_zeroad (uint8 *ap);
-t_bool dp_cmp_ad (uint8 *ap, int32 dcf);
+bool dp_zeroad (uint8 *ap);
+bool dp_cmp_ad (uint8 *ap, int32 dcf);
 int32 dp_trkop (int32 drv, int32 sec);
 int32 dp_cvt_bcd (int32 ad, int32 len);
 void dp_cvt_bin (int32 ad, int32 len, int32 val, int32 flg);
@@ -365,7 +366,7 @@ int32 i;
 uint8 ac;
 int32 da = (sec % DP_TOTSC) * DP_NUMCH;                 /* char number */
 uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
-t_bool zad = dp_zeroad (ap);                            /* zero address */
+bool zad = dp_zeroad (ap);                              /* zero address */
 static const int32 dec_tab[DP_ADDR] = {                 /* powers of 10 */
     100000, 10000, 1000, 100, 10, 1
     } ;
@@ -534,20 +535,20 @@ return STOP_INVDAD;
 
 /* Test for zero address */
 
-t_bool dp_zeroad (uint8 *ap)
+bool dp_zeroad (uint8 *ap)
 {
 int32 i;
 
 for (i = 0; i < DP_ADDR; i++, ap++) {                   /* loop thru addr */
     if (*ap & CHAR)                                     /* nonzero? lose */
-        return FALSE;
+        return false;
     }
-return TRUE;                                            /* all zeroes */
+return true;                                            /* all zeroes */
 }
 
 /* Compare disk address to memory sector address - always omit word marks */
 
-t_bool dp_cmp_ad (uint8 *ap, int32 dcf)
+bool dp_cmp_ad (uint8 *ap, int32 dcf)
 {
 int32 i;
 uint8 c;
@@ -555,9 +556,9 @@ uint8 c;
 for (i = 0; i < DP_ADDR; i++, ap++) {                   /* loop thru addr */
     c = M[dcf + DCF_SEC + i];                           /* sector addr char */
     if ((c & CHAR) != (*ap & CHAR))                     /* cmp w/o WM */
-        return FALSE;
+        return false;
     }
-return TRUE;                                            /* compare ok */
+return true;                                            /* compare ok */
 }
 
 /* Track operation setup */

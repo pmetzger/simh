@@ -29,6 +29,7 @@
    sysd         system devices
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
 #include "sim_ether.h"
@@ -248,7 +249,7 @@ return 0;
 
 /* Map an address via the translation map */
 
-static t_bool dma_map_addr (uint32 da, uint32 *ma)
+static bool dma_map_addr (uint32 da, uint32 *ma)
 {
 int32 dblk = (da >> VA_V_VPN);                          /* DMA blk */
 if (dblk <= DMANMAPR) {
@@ -256,10 +257,10 @@ if (dblk <= DMANMAPR) {
     if (dmap & DMAMAP_VLD) {                            /* valid? */
         *ma = ((dmap & DMAMAP_PAG) << VA_V_VPN) + VA_GETOFF (da);
         if (ADDR_IS_MEM (*ma))                          /* legit addr */
-            return TRUE;
+            return true;
         }
     }
-return FALSE;
+return false;
 }
 
 /* DMA buffer routines, aligned access
@@ -1029,7 +1030,7 @@ conpsl = PSL_IS | PSL_IPL1F | CON_PWRUP;
 if (rom == NULL)
     return SCPE_IERR;
 if (*rom == 0) {                                        /* no boot? */
-    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, TRUE, 0);
+    r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, true, 0);
     if (r != SCPE_OK)
         return r;
     }

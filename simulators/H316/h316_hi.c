@@ -120,7 +120,7 @@ t_stat hi_show_convert (FILE *st, UNIT *uptr, int32 val, const void *desc);
 // Host interface data blocks ...
 //   The HIDB is our own internal data structure for each host.  It keeps data
 // about the TCP/IP connection, buffers, etc.
-#define HI_HIDB(N)  {FALSE, FALSE, 0, {0}, 0, 0, 0, FALSE, 0, 0, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, 0, HI_TXBPS}
+#define HI_HIDB(N)  {false, false, 0, {0}, 0, 0, 0, false, 0, 0, true, false, false, false, false, false, false, 0, HI_TXBPS}
 HIDB hi1_db = HI_HIDB(1), hi2_db = HI_HIDB(2);
 HIDB hi3_db = HI_HIDB(3), hi4_db = HI_HIDB(4);
 
@@ -221,15 +221,15 @@ HIDB   *const hi_hidbs  [HI_NUM] = {&hi1_db,   &hi2_db,   &hi3_db,   &hi4_db  };
 #define CLR_RX_IEN(h)  CLR_EXT_ENB((1u << (PDIB(h)->rxint - INT_V_EXTD)))
 #define CLR_TX_IEN(h)  CLR_EXT_ENB((1u << (PDIB(h)->txint - INT_V_EXTD)))
 
-// TRUE if the host has the specified debugging output enabled ...
+// true if the host has the specified debugging output enabled ...
 #define ISHDBG(l,f)    ((PDEVICE(l)->dctrl & (f)) != 0)
 
 // Reset receiver (clear flags AND initialize all data) ...
 static void hi_reset_rx (uint16 host)
 {
-  PHIDB(host)->iloop = PHIDB(host)->error = FALSE;
-  PHIDB(host)->ready = FALSE;
-  PHIDB(host)->eom = FALSE;
+  PHIDB(host)->iloop = PHIDB(host)->error = false;
+  PHIDB(host)->ready = false;
+  PHIDB(host)->eom = false;
   PHIDB(host)->rxsize = PHIDB(host)->rxnext = 0;
   PHIDB(host)->rxtotal = 0;
   CLR_RX_IRQ(host);  CLR_RX_IEN(host);
@@ -238,9 +238,9 @@ static void hi_reset_rx (uint16 host)
 // Reset transmitter (clear flags AND initialize all data) ...
 static void hi_reset_tx (uint16 host)
 {
-  PHIDB(host)->iloop = PHIDB(host)->enabled = PHIDB(host)->full = FALSE;
+  PHIDB(host)->iloop = PHIDB(host)->enabled = PHIDB(host)->full = false;
   PHIDB(host)->txtotal = 0;
-  PHIDB(host)->txfirst = TRUE;
+  PHIDB(host)->txfirst = true;
   CLR_TX_IRQ(host);  CLR_TX_IEN(host);
 }
 
@@ -444,7 +444,7 @@ static void hi_start_rx (uint16 line)
   if (PHIDB(line)->rxpending) {
     sim_debug(IMP_DBG_WARN,PDEVICE(line),"start input while input already pending\n");
   }
-  PHIDB(line)->rxpending = TRUE;  PHIDB(line)->rxerror = FALSE;
+  PHIDB(line)->rxpending = true;  PHIDB(line)->rxerror = false;
   CLR_RX_IRQ(line);
 }
 
@@ -482,12 +482,12 @@ static void hi_poll_rx (uint16 line)
   } else if (!PHIDB(line)->eom && (PHIDB(line)->rxdata[0] & PFLG_FINAL)
              && PHIDB(line)->rxsize > 1) {
     // No data left, time to signal end of message if the UDP packet said so.
-    PHIDB(line)->eom = TRUE;
+    PHIDB(line)->eom = true;
   } else {
     // Get a new UDP packet.
     count = udp_receive(PDEVICE(line), PHIDB(line)->link, PHIDB(line)->rxdata, MAXDATA);
     if (PHIDB(line)->convert) count = hi_convert_long_to_short(PHIDB(line), count);
-    PHIDB(line)->eom = FALSE;
+    PHIDB(line)->eom = false;
     PHIDB(line)->rxsize = count;
     if (count == 0) { return; }
     if (count < 0) { hi_link_error(line); return; }
@@ -518,7 +518,7 @@ static void hi_poll_rx (uint16 line)
   }
 
   // Assert the interrupt request and we're done!
-  SET_RX_IRQ(line);  PHIDB(line)->rxpending = FALSE;
+  SET_RX_IRQ(line);  PHIDB(line)->rxpending = false;
   sim_debug(IMP_DBG_IOT, PDEVICE(line), "receive done (message #%d, intreq=%06o)\n", PHIDB(line)->rxtotal, dev_ext_int);
 }
 
@@ -540,13 +540,13 @@ void hi_rx_local (uint16 line, uint16 txnext, uint16 txcount)
 
   // Get the DMC words for the receiver and copy data from one buffer to the other.
   hi_get_dmc(PDIB(line)->rxdmc, &rxnext, &rxlast, &maxbuf);
-  if (txcount > maxbuf) {txcount = maxbuf;  PHIDB(line)->rxerror = TRUE;}
+  if (txcount > maxbuf) {txcount = maxbuf;  PHIDB(line)->rxerror = true;}
   memmove(&M[rxnext], &M[txnext], txcount * sizeof(uint16));
 
   // Update the receiver DMC pointers, assert IRQ and we're done!
   hi_update_dmc(PDIB(line)->rxdmc, txcount);
   hi_debug_msg (line, rxnext, txcount, "received");
-  SET_RX_IRQ(line);  PHIDB(line)->rxpending = FALSE;  PHIDB(line)->rxtotal++;
+  SET_RX_IRQ(line);  PHIDB(line)->rxpending = false;  PHIDB(line)->rxtotal++;
   sim_debug(IMP_DBG_IOT, PDEVICE(line), "receive done (message #%d, intreq=%06o)\n", PHIDB(line)->rxtotal, dev_ext_int);
 }
 
@@ -595,21 +595,21 @@ int32 hi_io (uint16 host, int32 inst, int32 fnc, int32 dat, int32 dev)
       case 003:
         // HnXP - cross patch ...
         sim_debug(IMP_DBG_IOT, PDEVICE(host), "enable cross patch (PC=%06o)\n", PC-1);
-        PHIDB(host)->iloop = TRUE;
-        udp_set_link_loopback (PDEVICE(host), PHIDB(host)->link, TRUE);
+        PHIDB(host)->iloop = true;
+        udp_set_link_loopback (PDEVICE(host), PHIDB(host)->link, true);
         return dat;
       case 004:
         // HnUNXP - un-cross patch ...
         sim_debug(IMP_DBG_IOT, PDEVICE(host), "disable cross patch (PC=%06o)\n", PC-1);
-        PHIDB(host)->iloop = FALSE;
-        udp_set_link_loopback (PDEVICE(host), PHIDB(host)->link, FALSE);
-        PHIDB(host)->enabled = FALSE;
+        PHIDB(host)->iloop = false;
+        udp_set_link_loopback (PDEVICE(host), PHIDB(host)->link, false);
+        PHIDB(host)->enabled = false;
         // Send out the IMP not ready bit.
         tmp = PFLG_FINAL;
         udp_send(PDEVICE(host), PHIDB(host)->link, &tmp, 1);
         return dat;
       case 005:
-        PHIDB(host)->enabled = TRUE;
+        PHIDB(host)->enabled = true;
         // Send out the IMP ready bit.
         tmp = PFLG_FINAL | PFLG_READY;
         udp_send(PDEVICE(host), PHIDB(host)->link, &tmp, 1);

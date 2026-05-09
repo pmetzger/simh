@@ -28,6 +28,7 @@
    from the author.
 */
 
+#include <stdbool.h>
 #include "3b2_scsi.h"
 #include "3b2_scsi_internal.h"
 
@@ -42,8 +43,8 @@
 #define HA_MAXFR        (1u << 16)
 
 static void ha_cmd(uint8 op, uint8 subdev, uint32 addr,
-                   int32 len, t_bool express);
-static void ha_build_req(uint8 tc, uint8 subdev, t_bool express);
+                   int32 len, bool express);
+static void ha_build_req(uint8 tc, uint8 subdev, bool express);
 static void ha_ctrl(uint8 tc);
 
 static uint32 diag_crc[] = {
@@ -64,7 +65,7 @@ int8     ha_subdev_tab[8];    /* Map of subdevice to SCSI target */
 uint8    ha_subdev_cnt;
 uint32   ha_crc = 0;
 uint32   cq_offset = 0;
-t_bool   ha_conf = FALSE;
+bool     ha_conf = false;
 
 static struct scsi_dev_t ha_tab[] = {
     HA_DISK(SD155),
@@ -183,7 +184,7 @@ t_stat ha_reset(DEVICE *dptr)
 
     if (dptr->flags & DEV_DIS) {
         cio_remove_all(HA_ID);
-        ha_conf = FALSE;
+        ha_conf = false;
         return SCPE_OK;
     }
 
@@ -215,7 +216,7 @@ t_stat ha_reset(DEVICE *dptr)
 
         if (dptr->flags & DEV_DIS) {
             cio_remove_all(HA_ID);
-            ha_conf = FALSE;
+            ha_conf = false;
             return SCPE_OK;
         }
 
@@ -228,7 +229,7 @@ t_stat ha_reset(DEVICE *dptr)
         }
 
         ha_state.slot = slot;
-        ha_conf = TRUE;
+        ha_conf = true;
     }
 
     return SCPE_OK;
@@ -289,7 +290,7 @@ t_stat ha_svc(UNIT *uptr)
                           tc);
                 req = &ha_state.ts[i].req;
                 rep = &ha_state.ts[i].rep;
-                ha_state.ts[i].pending = FALSE;
+                ha_state.ts[i].pending = false;
             }
             svc_req++;
         }
@@ -379,7 +380,7 @@ void ha_sysgen(uint8 slot)
     ha_state.ts[HA_SCSI_ID].rep.len = 0;
     ha_state.ts[HA_SCSI_ID].rep.status = 3;
     ha_state.ts[HA_SCSI_ID].rep.op = 0;
-    ha_state.ts[HA_SCSI_ID].pending = TRUE;
+    ha_state.ts[HA_SCSI_ID].pending = true;
 
     ha_state.pump_state = PUMP_NONE;
 
@@ -416,7 +417,7 @@ void ha_fast_queue_check(void)
                   "[ha_fast_queue_check] Job pending (opcode=0x%02x subdev=%02x)\n",
                   op, subdev);
         pwrite_b(rqp, 0, BUS_PER); /* Job has been taken */
-        ha_cmd(op, subdev, addr, len, FALSE);
+        ha_cmd(op, subdev, addr, len, false);
     }
 }
 
@@ -433,7 +434,7 @@ void ha_express(uint8 slot)
         ha_fast_queue_check();
     } else {
         cio_rexpress(slot, SCQRESIZE, &rqe, rapp_data);
-        ha_cmd(rqe.opcode, rqe.subdevice, rqe.address, rqe.byte_count, TRUE);
+        ha_cmd(rqe.opcode, rqe.subdevice, rqe.address, rqe.byte_count, true);
     }
 }
 
@@ -665,7 +666,7 @@ static void ha_write_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_build_req(uint8 tc, uint8 subdev, t_bool express)
+static void ha_build_req(uint8 tc, uint8 subdev, bool express)
 {
     uint32 i, rqp, ptr, dma_lst, daddr_ptr;
     uint32 len, addr;
@@ -706,12 +707,12 @@ static void ha_build_req(uint8 tc, uint8 subdev, t_bool express)
         dma_lst = pread_h(rqp + 16, BUS_PER) / 8;
 
         if (dma_lst) {
-            t_bool link;
+            bool link;
 
             /* There's a list of address / lengths. Each entry is 8
              * bytes long. */
             ptr = pread_w(rqp + 8, BUS_PER);
-            link = FALSE;
+            link = false;
 
             sim_debug(HA_TRACE, &ha_dev,
                       "[build_req] Building a list of scatter/gather addresses.\n");
@@ -734,7 +735,7 @@ static void ha_build_req(uint8 tc, uint8 subdev, t_bool express)
                     sim_debug(HA_TRACE, &ha_dev,
                               "[build_req] New ptr=%08x\n",
                               ptr);
-                    link = TRUE;
+                    link = true;
                     continue;
                 }
 
@@ -788,9 +789,9 @@ static void ha_build_req(uint8 tc, uint8 subdev, t_bool express)
     }
 }
 
-static inline void ha_cmd_prep(uint8 tc, uint8 op, uint8 subdev, t_bool express)
+static inline void ha_cmd_prep(uint8 tc, uint8 op, uint8 subdev, bool express)
 {
-    ha_state.ts[tc].pending = TRUE;
+    ha_state.ts[tc].pending = true;
     ha_state.ts[tc].rep.op = op;
     ha_state.ts[tc].rep.subdev = subdev;
     ha_state.ts[tc].rep.status = CIO_FAILURE;
@@ -816,14 +817,14 @@ static inline void ha_cmd_prep(uint8 tc, uint8 op, uint8 subdev, t_bool express)
  * attached target. Since there is no device target state slot to update, use
  * the host adapter's own target slot to report the timeout completion.
  */
-static void ha_invalid_subdev(uint8 op, uint8 subdev, t_bool express)
+static void ha_invalid_subdev(uint8 op, uint8 subdev, bool express)
 {
     ha_cmd_prep(HA_SCSI_ID, op, subdev, express);
     ha_state.ts[HA_SCSI_ID].rep.status = CIO_TIMEOUT;
     sim_activate_abs(cio_unit, 1000);
 }
 
-static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, t_bool express)
+static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, bool express)
 {
     int32 i, block;
     UNIT *uptr;
@@ -1257,7 +1258,7 @@ static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, t_bool expres
  */
 void ha_ctrl(uint8 tc)
 {
-    volatile t_bool txn_done;
+    volatile bool txn_done;
     uint32 i, j;
     uint32 plen, ha_ptr;
     uint32 in_len, out_len;
@@ -1320,7 +1321,7 @@ void ha_ctrl(uint8 tc)
     lu = 0x80 | ha_state.ts[tc].req.lu;
     scsi_write(&ha_bus, &lu, 1);
 
-    txn_done = FALSE;
+    txn_done = false;
 
     /* TODO: Fix this. Work around a bug in command length. The host
      * occasionally sends a command length of 8 for 6-byte SCSI
@@ -1453,7 +1454,7 @@ void ha_ctrl(uint8 tc)
                           i, msgi_buf[i]);
             }
 
-            txn_done = TRUE;
+            txn_done = true;
             break;
         }
     }

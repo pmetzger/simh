@@ -161,6 +161,7 @@
 
 /* #define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 
@@ -538,7 +539,7 @@ typedef struct {
 
 static ICOM_INFO icom_info_data = {
     ICOM_MEM_BASE, ICOM_MEM_SIZE, ICOM_IO_BASE, ICOM_IO_SIZE, ICOM_PROM_BASE, ICOM_PROM_SIZE,
-    TRUE, ICOM_TYPE_3812, 6, 10
+    true, ICOM_TYPE_3812, 6, 10
 };
 
 static ICOM_INFO *icom_info = &icom_info_data;
@@ -698,20 +699,20 @@ static t_stat icom_reset(DEVICE *dptr)
     uint8 i;
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", TRUE);
-        sim_map_resource(icom_info->mem_base, icom_info->mem_size, RESOURCE_TYPE_MEMORY, &icommem, "icommem", TRUE);
-        sim_map_resource(icom_info->io_base, icom_info->io_size, RESOURCE_TYPE_IO, &icomdev, "icomdev", TRUE);
+        sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", true);
+        sim_map_resource(icom_info->mem_base, icom_info->mem_size, RESOURCE_TYPE_MEMORY, &icommem, "icommem", true);
+        sim_map_resource(icom_info->io_base, icom_info->io_size, RESOURCE_TYPE_IO, &icomdev, "icomdev", true);
     } else {
-        if (sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", FALSE) != 0) {
+        if (sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", false) != 0) {
             sim_debug(ERROR_MSG, &icom_dev, "Error mapping PROM resource at 0x%04x\n", icom_info->prom_base);
             return SCPE_ARG;
         }
-        if (sim_map_resource(icom_info->mem_base, icom_info->mem_size, RESOURCE_TYPE_MEMORY, &icommem, "icommem", FALSE) != 0) {
+        if (sim_map_resource(icom_info->mem_base, icom_info->mem_size, RESOURCE_TYPE_MEMORY, &icommem, "icommem", false) != 0) {
             sim_debug(ERROR_MSG, &icom_dev, "Error mapping MEM resource at 0x%04x\n", icom_info->mem_base);
             return SCPE_ARG;
         }
         /* Connect I/O Ports at base address */
-        if (sim_map_resource(icom_info->io_base, icom_info->io_size, RESOURCE_TYPE_IO, &icomdev, "icomdev", FALSE) != 0) {
+        if (sim_map_resource(icom_info->io_base, icom_info->io_size, RESOURCE_TYPE_IO, &icomdev, "icomdev", false) != 0) {
             sim_debug(ERROR_MSG, &icom_dev, "Error mapping I/O resource at 0x%02x\n", icom_info->io_base);
             return SCPE_ARG;
         }
@@ -863,7 +864,7 @@ static t_stat icom_set_membase(UNIT *uptr, int32 val, const char *cptr, void *de
         }
     }
     else if (icom_info->mem_base) {
-        sim_map_resource(icom_info->mem_base, icom_info->mem_size, RESOURCE_TYPE_MEMORY, &icommem, "icommem", TRUE);
+        sim_map_resource(icom_info->mem_base, icom_info->mem_size, RESOURCE_TYPE_MEMORY, &icommem, "icommem", true);
         icom_info->mem_base = 0;
         sim_debug(VERBOSE_MSG, &icom_dev, "disabled memory at 0x%04x\n", icom_info->mem_base);
     }
@@ -946,14 +947,14 @@ static t_stat icom_set_prom(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     /* this assumes that the parameter has already been upcased */
     if (!strncmp(cptr, "ENABLE", strlen(cptr))) {
-        if (sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", FALSE) != 0) {
+        if (sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", false) != 0) {
             sim_debug(ERROR_MSG, &icom_dev, "Error mapping MEM resource at 0x%04x\n", icom_info->prom_base);
             return SCPE_ARG;
         }
-        icom_info->promEnabled = TRUE;
+        icom_info->promEnabled = true;
     } else if (!strncmp(cptr, "DISABLE", strlen(cptr))) {
-        sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", TRUE);
-        icom_info->promEnabled = FALSE;
+        sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", true);
+        icom_info->promEnabled = false;
     } else {
         return SCPE_ARG;
     }
@@ -1522,7 +1523,7 @@ static int32 icomprom(int32 Addr, int32 rw, int32 Data)
     ** The iCOM controller PROM occupies 1024 bytes (1K) of RAM at
     ** location F000H.
     */
-    if (icom_info->promEnabled == TRUE) {
+    if (icom_info->promEnabled == true) {
         return(icom_prom[Addr & ICOM_PROM_MASK]);
     }
 

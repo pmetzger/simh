@@ -27,6 +27,7 @@
    dz           DZ terminal multiplexor
 */
 
+#include <stdbool.h>
 #include "vax_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -238,7 +239,7 @@ t_stat dz_xmt_svc (UNIT *uptr);
 t_stat dz_reset (DEVICE *dptr);
 t_stat dz_attach (UNIT *uptr, const char *cptr);
 t_stat dz_detach (UNIT *uptr);
-t_stat dz_clear (t_bool flag);
+t_stat dz_clear (bool flag);
 uint16 dz_getc (void);
 t_stat dz_putc (int32 line, uint16 data);
 void dz_update_rcvi (void);
@@ -395,7 +396,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
             (dz_csr & BMASK) | (data << 8):
             (dz_csr & ~BMASK) | data;
         if (data & CSR_CLR)                             /* clr? reset */
-            dz_clear (FALSE);
+            dz_clear (false);
         if (data & CSR_MSE)                             /* MSE? start poll */
             sim_clock_coschedule (&dz_unit[0], tmxr_poll);
         else
@@ -675,7 +676,7 @@ return;
 
 /* Device reset */
 
-t_stat dz_clear (t_bool flag)
+t_stat dz_clear (bool flag)
 {
 int32 i;
 
@@ -751,7 +752,7 @@ if (dz_ldsc != NULL) {
     }
 else
     dz_desc.ldsc = dz_ldsc = (TMLN *)calloc (DZ_LINES, sizeof(*dz_ldsc));
-dz_clear (TRUE);                                        /* init mux */
+dz_clear (true);                                        /* init mux */
 CLR_INT (DZRX);
 CLR_INT (DZTX);
 sim_cancel (&dz_unit[0]);                               /* stop poll */

@@ -29,6 +29,7 @@
 #ifndef ALTAIRZ80_DEFS_H_
 #define ALTAIRZ80_DEFS_H_    0
 
+#include <stdbool.h>
 #include "sim_defs.h"                                       /* simulator definitions                        */
 
 #define MAXBANKSIZE             65536                       /* maximum memory size, a power of 2            */
@@ -108,7 +109,7 @@ extern void hdsk_setSelectedSector(const int32 sector);
 extern void hdsk_setSelectedTrack(const int32 track);
 extern void hdsk_setSelectedDMA(const int32 dma);
 extern int32 hdsk_getStatus(void);
-extern t_bool hdsk_checkParameters(void);
+extern bool hdsk_checkParameters(void);
 extern int32 hdsk_read(void);
 extern int32 hdsk_write(void);
 extern int32 hdsk_flush(void);

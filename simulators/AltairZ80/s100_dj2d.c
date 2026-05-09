@@ -41,6 +41,7 @@
 
 /* #define DBG_MSG */
 
+#include <stdbool.h>
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "sim_tmxr.h"
@@ -81,8 +82,8 @@ static uint16 dj2d_sector_len[] = {128, 256, 512, 1024, 0};
 static uint16 dj2d_spt[] = {26, 26, 15, 8, 0};
 static uint16 dj2d_track_len[] = {5000, 9800, 10300, 9700, 0};
 
-#define DJ2D_MEM_READ         FALSE
-#define DJ2D_MEM_WRITE        TRUE
+#define DJ2D_MEM_READ         false
+#define DJ2D_MEM_WRITE        true
 
 #define DJ2D_PROM_BASE   0xe000
 #define DJ2D_PROM_SIZE   1024
@@ -725,7 +726,7 @@ static DJ2D_INFO dj2d_info_data = {
     DJ2D_MEM_BASE, DJ2D_MEM_SIZE,
     DJ2D_PROM_BASE, DJ2D_PROM_SIZE,
     0, dj2d_tmln, &dj2d_tmxr,
-    TRUE, TRUE,
+    true, true,
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     {0, 0, 0, 0}
 };
@@ -1025,18 +1026,18 @@ static t_stat dj2d_reset(DEVICE *dptr)
     }
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
-        sim_map_resource(pInfo->prom_base, pInfo->prom_size, RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", TRUE);
-        sim_map_resource(pInfo->mem_base, pInfo->mem_size, RESOURCE_TYPE_MEMORY, &dj2dmem, "dj2dmem", TRUE);
+        sim_map_resource(pInfo->prom_base, pInfo->prom_size, RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", true);
+        sim_map_resource(pInfo->mem_base, pInfo->mem_size, RESOURCE_TYPE_MEMORY, &dj2dmem, "dj2dmem", true);
 
         /* Cancel timers */
         sim_cancel(dj2d_info->uptr[0]);
         sim_cancel(dj2d_info->uptr[DJ2D_SIO_UNIT]);
     } else {
-        if (sim_map_resource(pInfo->prom_base, pInfo->prom_size, RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", FALSE) != 0) {
+        if (sim_map_resource(pInfo->prom_base, pInfo->prom_size, RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", false) != 0) {
             sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": Error mapping PROM resource at 0x%04x\n", pInfo->prom_base);
             return SCPE_ARG;
         }
-        if (sim_map_resource(pInfo->mem_base, pInfo->mem_size, RESOURCE_TYPE_MEMORY, &dj2dmem, "dj2dmem", FALSE) != 0) {
+        if (sim_map_resource(pInfo->mem_base, pInfo->mem_size, RESOURCE_TYPE_MEMORY, &dj2dmem, "dj2dmem", false) != 0) {
             sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": Error mapping MEM resource at 0x%04x\n", pInfo->mem_base);
             return SCPE_ARG;
         }
@@ -1060,34 +1061,34 @@ static t_stat dj2d_reset(DEVICE *dptr)
 
     /* Reset Registers */
     pInfo->currentDrive = 0;
-    pInfo->promEnabled = TRUE;
-    pInfo->writeProtect = FALSE;
+    pInfo->promEnabled = true;
+    pInfo->writeProtect = false;
 
     pInfo->DJ2D.uart_status = DJ2D_STAT_TBRE;
-    pInfo->DJ2D.uart_txp = FALSE;
+    pInfo->DJ2D.uart_txp = false;
     pInfo->DJ2D.uart_baud = DJ2D_BAUD;
-    pInfo->DJ2D.led = FALSE;
+    pInfo->DJ2D.led = false;
 
     pInfo->WD1791.track = 0;
     pInfo->WD1791.sector = 1;
     pInfo->WD1791.command = 0;
     pInfo->WD1791.status = 0;
     pInfo->WD1791.data = 0;
-    pInfo->WD1791.drq = FALSE;
-    pInfo->WD1791.index = FALSE;
-    pInfo->WD1791.intrq = FALSE;
+    pInfo->WD1791.drq = false;
+    pInfo->WD1791.index = false;
+    pInfo->WD1791.intrq = false;
     pInfo->WD1791.stepDir = 1;
     pInfo->WD1791.dataCount = 0;
     pInfo->WD1791.trkCount = 0;
-    pInfo->WD1791.addrActive = FALSE;
-    pInfo->WD1791.readActive = FALSE;
-    pInfo->WD1791.readTrkActive = FALSE;
-    pInfo->WD1791.writeActive = FALSE;
-    pInfo->WD1791.writeTrkActive = FALSE;
-    pInfo->WD1791.addrActive = FALSE;
+    pInfo->WD1791.addrActive = false;
+    pInfo->WD1791.readActive = false;
+    pInfo->WD1791.readTrkActive = false;
+    pInfo->WD1791.writeActive = false;
+    pInfo->WD1791.writeTrkActive = false;
+    pInfo->WD1791.addrActive = false;
 
     for (i = 0; i < DJ2D_MAX_DRIVES; i++) {
-        dj2d_info->headLoaded[i] = FALSE;
+        dj2d_info->headLoaded[i] = false;
     }
 
     sim_debug(STATUS_MSG, &dj2d_dev, DJ2D_SNAME ": reset controller.\n");
@@ -1120,7 +1121,7 @@ static t_stat dj2d_sio_svc(UNIT *uptr)
             r = sim_putchar(dj2d_info->DJ2D.uart_txd);
         }
 
-        dj2d_info->DJ2D.uart_txp = FALSE;
+        dj2d_info->DJ2D.uart_txp = false;
 
         if (r == SCPE_LOST) {
             dj2d_info->conn = 0;          /* Connection was lost */
@@ -1171,24 +1172,24 @@ static t_stat dj2d_svc(UNIT *uptr)
 
     if (dj2d_info->headTimeout) {
         if (!(--dj2d_info->headTimeout)) {
-            DJ2D_HeadLoad(uptr, pWD1791, FALSE);
+            DJ2D_HeadLoad(uptr, pWD1791, false);
         }
     }
 
     if (dj2d_info->indexTimeout) {
         if (!(--dj2d_info->indexTimeout)) {
-            pWD1791->index = FALSE;
+            pWD1791->index = false;
             dj2d_info->indexTimeout = DJ2D_INDEX_TIMEOUT;
         } else {
-            pWD1791->index = TRUE;
+            pWD1791->index = true;
         }
     }
 
     if (dj2d_info->busyTimeout) {
         if (!(--dj2d_info->busyTimeout)) {
             pWD1791->status &= ~WD1791_STAT_BUSY;
-            pWD1791->drq = FALSE;
-            pWD1791->intrq = TRUE;
+            pWD1791->drq = false;
+            pWD1791->intrq = true;
         }
     }
 
@@ -1228,17 +1229,17 @@ static t_stat dj2d_set_prombase(UNIT *uptr, int32 val, const char *cptr, void *d
     /*
     ** Release previous memory maps
     */
-    sim_map_resource(dj2d_info->prom_base, dj2d_info->prom_size, RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", TRUE);
-    sim_map_resource(dj2d_info->mem_base, dj2d_info->mem_size, RESOURCE_TYPE_MEMORY, &dj2dmem, "dj2dmem", TRUE);
+    sim_map_resource(dj2d_info->prom_base, dj2d_info->prom_size, RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", true);
+    sim_map_resource(dj2d_info->mem_base, dj2d_info->mem_size, RESOURCE_TYPE_MEMORY, &dj2dmem, "dj2dmem", true);
 
     dj2d_info->prom_base = newba;
     dj2d_info->mem_base = newba+DJ2D_PROM_SIZE;
 
-    if (sim_map_resource(dj2d_info->prom_base, dj2d_info->prom_size, RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", FALSE) != 0) {
+    if (sim_map_resource(dj2d_info->prom_base, dj2d_info->prom_size, RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", false) != 0) {
         sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": Error mapping PROM resource at 0x%04x\n", dj2d_info->prom_base);
         return SCPE_ARG;
     }
-    if (sim_map_resource(dj2d_info->mem_base, dj2d_info->mem_size, RESOURCE_TYPE_MEMORY, &dj2dmem, "dj2dmem", FALSE) != 0) {
+    if (sim_map_resource(dj2d_info->mem_base, dj2d_info->mem_size, RESOURCE_TYPE_MEMORY, &dj2dmem, "dj2dmem", false) != 0) {
         sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": Error mapping MEM resource at 0x%04x\n", dj2d_info->mem_base);
         return SCPE_ARG;
     }
@@ -1301,9 +1302,9 @@ static t_stat dj2d_set_model(UNIT *uptr, int32 val, const char *cptr, void *desc
 
     /* this assumes that the parameter has already been upcased */
     if (!strcmp(cptr, "B")) {
-        dj2d_info->modelB = TRUE;
+        dj2d_info->modelB = true;
     } else if (!strcmp(cptr, "A")) {
-        dj2d_info->modelB = FALSE;
+        dj2d_info->modelB = false;
     } else {
         return SCPE_ARG;
     }
@@ -1348,9 +1349,9 @@ static t_stat dj2d_set_sides(UNIT *uptr, int32 val, const char *cptr, void *desc
     /* this assumes that the parameter has already been upcased */
     if (i < DJ2D_MAX_DRIVES) {
         if (!strcmp(cptr, "1")) {
-            dj2d_info->sides2[i] = FALSE;
+            dj2d_info->sides2[i] = false;
         } else if (!strcmp(cptr, "2")) {
-            dj2d_info->sides2[i] = TRUE;
+            dj2d_info->sides2[i] = true;
         } else {
             return SCPE_ARG;
         }
@@ -1419,17 +1420,17 @@ static t_stat dj2d_attach(UNIT *uptr, const char *cptr)
     /* Default is 1024 byte sectors */
     dj2d_info->format[i] = FMT_1024;
     dj2d_info->sectorLen[i] = dj2d_sector_len[FMT_1024];
-    dj2d_info->sides2[i] = FALSE;
+    dj2d_info->sides2[i] = false;
 
     for (f = 0; f < FMT_UNKNOWN; f++) {
         if (uptr->capac == dj2d_image_size[f]) {
             dj2d_info->format[i] = f;
             dj2d_info->sectorLen[i] = dj2d_sector_len[f];
-            dj2d_info->sides2[i] = FALSE;
+            dj2d_info->sides2[i] = false;
         } else if (uptr->capac == dj2d_2s_image_size[f]) {
             dj2d_info->format[i] = f;
             dj2d_info->sectorLen[i] = dj2d_sector_len[f];
-            dj2d_info->sides2[i] = TRUE;
+            dj2d_info->sides2[i] = true;
         }
     }
 
@@ -1481,7 +1482,7 @@ static t_stat dj2d_detach(UNIT *uptr)
 
     dj2d_dev.units[i].fileref = NULL;
 
-    dj2d_info->WD1791.index = TRUE;
+    dj2d_info->WD1791.index = true;
     dj2d_info->indexTimeout = 0;
 
     sim_debug(VERBOSE_MSG, uptr->dptr, DJ2D_SNAME "%d: detached\n", i);
@@ -1571,12 +1572,12 @@ static t_stat dj2d_set_prom(UNIT *uptr, int32 val, const char *cptr, void *desc)
     /* this assumes that the parameter has already been upcased */
     if (!strncmp(cptr, "ENABLE", strlen(cptr))) {
         sim_map_resource(dj2d_info->prom_base, dj2d_info->prom_size,
-            RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", FALSE);
-        dj2d_info->promEnabled = TRUE;
+            RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", false);
+        dj2d_info->promEnabled = true;
     } else if (!strncmp(cptr, "DISABLE", strlen(cptr))) {
-        dj2d_info->promEnabled = FALSE;
+        dj2d_info->promEnabled = false;
         sim_map_resource(dj2d_info->prom_base, dj2d_info->prom_size,
-            RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", TRUE);
+            RESOURCE_TYPE_MEMORY, &dj2dprom, "dj2dprom", true);
     } else {
         return SCPE_ARG;
     }
@@ -1717,13 +1718,13 @@ static void DJ2D_HeadLoad(UNIT *uptr, WD1791_REG *pWD1791, uint8 load)
     if (load) {
         dj2d_info->headTimeout = DJ2D_HEAD_TIMEOUT;
 
-        if (dj2d_info->headLoaded[dj2d_info->currentDrive] == FALSE) {
+        if (dj2d_info->headLoaded[dj2d_info->currentDrive] == false) {
             sim_debug(STATUS_MSG, &dj2d_dev, DJ2D_SNAME ": Drive %d head Loaded.\n", dj2d_info->currentDrive);
         }
     } else {
         dj2d_info->headTimeout = 0;
 
-        if (dj2d_info->headLoaded[dj2d_info->currentDrive] == TRUE) {
+        if (dj2d_info->headLoaded[dj2d_info->currentDrive] == true) {
             sim_debug(STATUS_MSG, &dj2d_dev, DJ2D_SNAME ": Drive %d head Unloaded.\n", dj2d_info->currentDrive);
         }
     }
@@ -1807,39 +1808,39 @@ static uint8 DJ2D_Read(uint32 Addr)
 
                 /* If we reached the end of the sector, terminate command and set INTRQ */
                 if (pWD1791->dataCount == sector_len(driveNum, pWD1791->track)) {
-                    pWD1791->readActive = FALSE;
+                    pWD1791->readActive = false;
                     pWD1791->dataCount = 0;
                     pWD1791->status = 0x00;
-                    pWD1791->drq = FALSE;
-                    pWD1791->intrq = TRUE;
+                    pWD1791->drq = false;
+                    pWD1791->intrq = true;
                 }
 
-                DJ2D_HeadLoad(uptr, pWD1791, TRUE);
+                DJ2D_HeadLoad(uptr, pWD1791, true);
             } else if (pWD1791->readTrkActive) {
                 /* If we reached the end of the track data, terminate command and set INTRQ */
                 if (pWD1791->trkCount == bytes_per_track(pWD1791->track)) {
-                    pWD1791->readTrkActive = FALSE;
+                    pWD1791->readTrkActive = false;
                     pWD1791->status = 0x00;
-                    pWD1791->drq = FALSE;
-                    pWD1791->intrq = TRUE;
+                    pWD1791->drq = false;
+                    pWD1791->intrq = true;
                 } else {
                     pWD1791->trkCount++;
                 }
 
-                DJ2D_HeadLoad(uptr, pWD1791, TRUE);
+                DJ2D_HeadLoad(uptr, pWD1791, true);
             } else if (pWD1791->addrActive) {
                 /* Store byte in DATA register */
                 pWD1791->data = sdata[pWD1791->dataCount++];
 
                 /* If we reached the end of the address data, terminate command and set INTRQ */
                 if (pWD1791->dataCount > WD1791_ADDR_CRC2) {
-                    pWD1791->addrActive = FALSE;
+                    pWD1791->addrActive = false;
                     pWD1791->status = 0x00;
-                    pWD1791->drq = FALSE;
-                    pWD1791->intrq = TRUE;
+                    pWD1791->drq = false;
+                    pWD1791->intrq = true;
                 }
 
-                DJ2D_HeadLoad(uptr, pWD1791, TRUE);
+                DJ2D_HeadLoad(uptr, pWD1791, true);
             }
 
             cData = pWD1791->data;
@@ -1882,7 +1883,7 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
     switch(Addr & 0x07) {
         case DJ2D_REG_UART_DATA:
             pDJ2D->uart_txd = ~Data;  /* Character is inverted */
-            pDJ2D->uart_txp = TRUE;
+            pDJ2D->uart_txp = true;
             pDJ2D->uart_status &= ~DJ2D_STAT_TBRE;
             break;
 
@@ -1896,11 +1897,11 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
             if (dj2d_info->modelB) {
                 switch (Data & DJ2D_FUNC_HDMASK) {
                     case DJ2D_FUNC_HDLOAD:
-                        DJ2D_HeadLoad(uptr, pWD1791, TRUE);
+                        DJ2D_HeadLoad(uptr, pWD1791, true);
                         break;
 
                     case DJ2D_FUNC_HDUNLD:
-                        DJ2D_HeadLoad(uptr, pWD1791, FALSE);
+                        DJ2D_HeadLoad(uptr, pWD1791, false);
                         break;
 
                     default:
@@ -1912,11 +1913,11 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
             } else {
                 switch (Data & DJ2DA_FUNC_HDMASK) {
                     case DJ2DA_FUNC_HDLOAD:
-                        DJ2D_HeadLoad(uptr, pWD1791, TRUE);
+                        DJ2D_HeadLoad(uptr, pWD1791, true);
                         break;
 
                     case DJ2DA_FUNC_HDUNLD:
-                        DJ2D_HeadLoad(uptr, pWD1791, FALSE);
+                        DJ2D_HeadLoad(uptr, pWD1791, false);
                         break;
 
                     default:
@@ -1940,20 +1941,20 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
 
                     rtn = DJ2D_WriteSector(uptr, pWD1791->track, pWD1791->sector, sdata);
 
-                    showdata(FALSE);
+                    showdata(false);
 
                     if (rtn != sector_len(driveNum, pWD1791->track)) {
                         sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": sim_fwrite errno=%d\n", errno);
 
                         pWD1791->status |= WD1791_STAT_WRITEFAULT;
                     }
-                    pWD1791->writeActive = FALSE;
+                    pWD1791->writeActive = false;
                     pWD1791->dataCount = 0;
-                    pWD1791->drq = FALSE;
-                    pWD1791->intrq = TRUE;
+                    pWD1791->drq = false;
+                    pWD1791->intrq = true;
                 }
 
-                DJ2D_HeadLoad(uptr, pWD1791, TRUE);
+                DJ2D_HeadLoad(uptr, pWD1791, true);
             } else if (pWD1791->writeTrkActive) {
 
                 if (pWD1791->idAddrMrk) {
@@ -1971,7 +1972,7 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
                     if (pWD1791->dataCount == sector_len(driveNum, pWD1791->track)) {
                         pWD1791->status &= ~WD1791_STAT_WRITEFAULT;  /* Clear Status Bit */
 
-                        showdata(FALSE);
+                        showdata(false);
 
                         rtn = DJ2D_WriteSector(uptr, pWD1791->track, pWD1791->sector, sdata);
 
@@ -1983,17 +1984,17 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
                         sim_debug(DEBUG_MSG, &dj2d_dev, DJ2D_SNAME ": WRITE TRACK drive=%d track=%03d sector=%03d trkcount=%d datacount=%d data=%02X status=%02X\n", driveNum, pWD1791->track, pWD1791->sector, pWD1791->trkCount, pWD1791->dataCount, pWD1791->data, pWD1791->status);
 
                         pWD1791->dataCount = 0;
-                        pWD1791->idAddrMrk = FALSE;
-                        pWD1791->dataAddrMrk = FALSE;
+                        pWD1791->idAddrMrk = false;
+                        pWD1791->dataAddrMrk = false;
 
                         if (pWD1791->sector < secs_per_track(pWD1791->track)) {
                             pWD1791->sector++;
                         }
                     }
                 } else if (pWD1791->data == 0xFE) {
-                        pWD1791->idAddrMrk = TRUE;
+                        pWD1791->idAddrMrk = true;
                 } else if (pWD1791->data == 0xFB) {
-                        pWD1791->dataAddrMrk = TRUE;
+                        pWD1791->dataAddrMrk = true;
                 }
 
                 /*
@@ -2003,14 +2004,14 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
 
                 if (pWD1791->trkCount == bytes_per_track(pWD1791->track)) {
                     pWD1791->status = 0x00;  /* Clear Status Bits */
-                    pWD1791->drq = FALSE;
-                    pWD1791->intrq = TRUE;
-                    pWD1791->writeTrkActive = FALSE;
+                    pWD1791->drq = false;
+                    pWD1791->intrq = true;
+                    pWD1791->writeTrkActive = false;
 
                     sim_debug(WR_DATA_MSG, &dj2d_dev, DJ2D_SNAME ": WRITE TRACK COMPLETE track=%03d sector=%03d trkcount=%d datacount=%d data=%02X status=%02X\n", pWD1791->track, pWD1791->sector, pWD1791->trkCount, pWD1791->dataCount, pWD1791->data, pWD1791->status);
                 }
 
-                DJ2D_HeadLoad(uptr, pWD1791, TRUE);
+                DJ2D_HeadLoad(uptr, pWD1791, true);
             }
 
             break;
@@ -2046,7 +2047,7 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
             if (dj2d_info->sides2[cData]) {
                 dj2d_info->side[cData] = (Data & DJ2D_CTRL_SIDE0) == 0x00;
             } else {
-                dj2d_info->side[cData] = FALSE;
+                dj2d_info->side[cData] = false;
             }
 
             if (dj2d_info->currentDrive != cData) {
@@ -2062,15 +2063,15 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
                     pWD1791->track = 0;
                     pWD1791->dataCount = 0;
                     pWD1791->trkCount = 0;
-                    pWD1791->readActive = FALSE;
-                    pWD1791->readTrkActive = FALSE;
-                    pWD1791->writeActive = FALSE;
-                    pWD1791->writeTrkActive = FALSE;
-                    pWD1791->addrActive = FALSE;
-                    pWD1791->dataAddrMrk = FALSE;
-                    pWD1791->idAddrMrk = FALSE;
-                    pWD1791->drq = FALSE;
-                    pWD1791->intrq = FALSE;
+                    pWD1791->readActive = false;
+                    pWD1791->readTrkActive = false;
+                    pWD1791->writeActive = false;
+                    pWD1791->writeTrkActive = false;
+                    pWD1791->addrActive = false;
+                    pWD1791->dataAddrMrk = false;
+                    pWD1791->idAddrMrk = false;
+                    pWD1791->drq = false;
+                    pWD1791->intrq = false;
                 }
             } else {
                 DJ2D_LED(pDJ2D, !(Data & DJ2DA_CTRL_LEDOFF));
@@ -2205,7 +2206,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
     int32 rtn;
 
     cData = 0;
-    statusUpdate = TRUE;
+    statusUpdate = true;
 
     if (uptr == NULL) {
         return cData;
@@ -2217,15 +2218,15 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
     ** Type II-IV Command
     */
     if (pWD1791->command & 0x80) {
-        pWD1791->readActive = FALSE;
-        pWD1791->writeActive = FALSE;
-        pWD1791->readTrkActive = FALSE;
-        pWD1791->writeTrkActive = FALSE;
-        pWD1791->addrActive = FALSE;
+        pWD1791->readActive = false;
+        pWD1791->writeActive = false;
+        pWD1791->readTrkActive = false;
+        pWD1791->writeTrkActive = false;
+        pWD1791->addrActive = false;
         pWD1791->dataCount = 0;
 
         pWD1791->status &= ~WD1791_STAT_DRQ;    /* Reset DRQ */
-        pWD1791->drq = FALSE;
+        pWD1791->drq = false;
     }
 
     /*
@@ -2236,7 +2237,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
         dj2d_info->busyTimeout = DJ2D_BUSY_TIMEOUT;
     }
 
-    pWD1791->intrq = FALSE;
+    pWD1791->intrq = false;
 
     switch(pWD1791->command & 0xf0) {
         case WD1791_CMD_RESTORE:
@@ -2244,11 +2245,11 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
 
             sim_debug(SEEK_MSG, &dj2d_dev, DJ2D_SNAME ": RESTORE track=%03d\n", pWD1791->track);
 
-            DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? TRUE : FALSE);
+            DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? true : false);
 
             pWD1791->status &= ~WD1791_STAT_SEEKERROR;
             pWD1791->status &= ~WD1791_STAT_DRQ;
-            pWD1791->drq = FALSE;
+            pWD1791->drq = false;
             break;
 
         case WD1791_CMD_SEEK:
@@ -2259,7 +2260,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
             if (newTrack < DJ2D_TRACKS) {
                 pWD1791->track = newTrack;
 
-                DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? TRUE : FALSE);
+                DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? true : false);
 
                 sim_debug(SEEK_MSG, &dj2d_dev, DJ2D_SNAME ": SEEK       track=%03d\n", pWD1791->track);
             } else {
@@ -2268,7 +2269,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
             }
 
             pWD1791->status &= ~WD1791_STAT_DRQ;
-            pWD1791->drq = FALSE;
+            pWD1791->drq = false;
             break;
 
         case WD1791_CMD_STEP:
@@ -2287,10 +2288,10 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
                 sim_debug(SEEK_MSG, &dj2d_dev, DJ2D_SNAME ": STEP ERR    track=%03d\n", newTrack);
             }
 
-            DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? TRUE : FALSE);
+            DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? true : false);
 
             pWD1791->status &= ~WD1791_STAT_DRQ;
-            pWD1791->drq = FALSE;
+            pWD1791->drq = false;
             break;
 
         case WD1791_CMD_STEPIN:
@@ -2302,7 +2303,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
                     pWD1791->track++;
                 }
 
-                DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? TRUE : FALSE);
+                DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? true : false);
 
                 sim_debug(SEEK_MSG, &dj2d_dev, DJ2D_SNAME ": STEPIN      track=%03d\n", pWD1791->track);
             } else {
@@ -2312,7 +2313,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
 
             pWD1791->stepDir = 1;
             pWD1791->status &= ~WD1791_STAT_DRQ;
-            pWD1791->drq = FALSE;
+            pWD1791->drq = false;
             break;
 
         case WD1791_CMD_STEPOUT:
@@ -2324,7 +2325,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
                     pWD1791->track--;
                 }
 
-                DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? TRUE : FALSE);
+                DJ2D_HeadLoad(uptr, pWD1791, (Data & WD1791_FLAG_H) ? true : false);
 
                 sim_debug(SEEK_MSG, &dj2d_dev, DJ2D_SNAME ": STEPOUT     track=%03d\n", pWD1791->track);
             } else {
@@ -2334,7 +2335,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
 
             pWD1791->stepDir = -1;
             pWD1791->status &= ~WD1791_STAT_DRQ;
-            pWD1791->drq = FALSE;
+            pWD1791->drq = false;
             break;
 
         case WD1791_CMD_READ:
@@ -2350,17 +2351,17 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
             rtn = DJ2D_ReadSector(uptr, pWD1791->track, pWD1791->sector, sdata);
 
             if (rtn == sector_len(dj2d_info->currentDrive, pWD1791->track)) {
-                pWD1791->readActive = TRUE;
-                pWD1791->drq = TRUE;
+                pWD1791->readActive = true;
+                pWD1791->drq = true;
 
                 dj2d_info->busyTimeout = 0;  /* BUSY not cleared until all bytes read */
 
-                showdata(TRUE);
+                showdata(true);
             } else {
                 sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": sim_fread errno=%d rtn=%d len=%d\n", errno, rtn, sector_len(dj2d_info->currentDrive, pWD1791->track));
 
                 pWD1791->status |= WD1791_STAT_NOTFOUND;
-                pWD1791->intrq = TRUE;
+                pWD1791->intrq = true;
             }
 
             break;
@@ -2377,13 +2378,13 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
 
             if ((uptr->flags & UNIT_DJ2D_WPROTECT) || dj2d_info->writeProtect) {
                 sim_debug(VERBOSE_MSG, &dj2d_dev, DJ2D_SNAME  ": Disk write protected. uptr->flags=%04x writeProtect=%04x\n", uptr->flags & UNIT_DJ2D_WPROTECT, dj2d_info->writeProtect);
-                pWD1791->intrq = TRUE;
+                pWD1791->intrq = true;
             } else {
                 dj2d_info->busyTimeout = 0;  /* BUSY not cleared until all bytes written */
 
-                pWD1791->writeActive = TRUE;
+                pWD1791->writeActive = true;
                 pWD1791->dataCount = 0;
-                pWD1791->drq = TRUE;
+                pWD1791->drq = true;
             }
 
             break;
@@ -2396,33 +2397,33 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
             sdata[WD1791_ADDR_CRC1] = 0;
             sdata[WD1791_ADDR_CRC2] = 0;
 
-            pWD1791->addrActive = TRUE;
-            pWD1791->drq = TRUE;
+            pWD1791->addrActive = true;
+            pWD1791->drq = true;
 
             break;
 
         case WD1791_CMD_READ_TRACK:
             dj2d_info->busyTimeout = 0;  /* BUSY not cleared until all bytes read */
-            pWD1791->readTrkActive = TRUE;
+            pWD1791->readTrkActive = true;
             pWD1791->trkCount = 0;
             pWD1791->dataCount = 0;
             pWD1791->sector = 1;
-            pWD1791->drq = TRUE;
+            pWD1791->drq = true;
             break;
 
         case WD1791_CMD_WRITE_TRACK:
             if ((uptr->flags & UNIT_DJ2D_WPROTECT) || dj2d_info->writeProtect) {
                 sim_debug(DEBUG_MSG, &dj2d_dev, DJ2D_SNAME ": Disk write protected. uptr->flags=%04x writeProtect=%04x\n", uptr->flags & UNIT_DJ2D_WPROTECT, dj2d_info->writeProtect);
-                pWD1791->intrq = TRUE;
+                pWD1791->intrq = true;
             } else {
                 dj2d_info->busyTimeout = 0;  /* BUSY not cleared until all bytes written */
-                pWD1791->writeTrkActive = TRUE;
+                pWD1791->writeTrkActive = true;
                 pWD1791->trkCount = 0;
                 pWD1791->dataCount = 0;
                 pWD1791->sector = 1;
                 pWD1791->idAddrMrk = 0;
                 pWD1791->dataAddrMrk = 0;
-                pWD1791->drq = TRUE;
+                pWD1791->drq = true;
             }
             break;
 
@@ -2430,23 +2431,23 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
             if (pWD1791->status & WD1791_STAT_BUSY) {
                 pWD1791->status &= ~WD1791_STAT_BUSY;
                 dj2d_info->busyTimeout = 0;
-                statusUpdate = FALSE;
+                statusUpdate = false;
             }
 
             /* Reset Status */
             pWD1791->dataCount = 0;
             pWD1791->trkCount = 0;
-            pWD1791->readActive = FALSE;
-            pWD1791->readTrkActive = FALSE;
-            pWD1791->writeActive = FALSE;
-            pWD1791->writeTrkActive = FALSE;
-            pWD1791->addrActive = FALSE;
+            pWD1791->readActive = false;
+            pWD1791->readTrkActive = false;
+            pWD1791->writeActive = false;
+            pWD1791->writeTrkActive = false;
+            pWD1791->addrActive = false;
             break;
 
         default:
             cData = 0xFF;
             sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": UNRECOGNIZED CMD %02X\n", pWD1791->command);
-            pWD1791->intrq = TRUE;
+            pWD1791->intrq = true;
             break;
     }
 

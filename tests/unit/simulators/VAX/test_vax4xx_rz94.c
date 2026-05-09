@@ -1,4 +1,5 @@
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -131,8 +132,8 @@ static void test_reset_chip_disconnects_without_bus_reset(void **state)
     rz_bus.initiator = RZ_SCSI_ID;
     rz_bus.target = 4;
     rz_bus.phase = SCSI_MSGI;
-    rz_bus.atn = TRUE;
-    rz_bus.req = TRUE;
+    rz_bus.atn = true;
+    rz_bus.req = true;
     rz_bus.buf_b = 2;
     rz_bus.buf_t = 4;
     rz_bus.sense_key = 0x05;
@@ -186,7 +187,7 @@ static void test_message_accepted_keeps_bus_for_pending_message(void **state)
     rz_bus.initiator = RZ_SCSI_ID;
     rz_bus.target = 4;
     rz_bus.phase = SCSI_MSGI;
-    rz_bus.req = TRUE;
+    rz_bus.req = true;
     rz_bus.buf[0] = 0x04;
     rz_bus.buf[1] = 0x00;
     rz_bus.buf_t = 1;
@@ -211,7 +212,7 @@ static void test_message_accepted_disconnects_after_last_message(void **state)
     rz_bus.initiator = RZ_SCSI_ID;
     rz_bus.target = 4;
     rz_bus.phase = SCSI_MSGI;
-    rz_bus.req = FALSE;
+    rz_bus.req = false;
     rz_bus.buf_t = 0;
     rz_bus.buf_b = 0;
 

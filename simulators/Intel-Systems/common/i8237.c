@@ -233,6 +233,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define i8237_NAME    "Intel i8237 DMA Chip"
@@ -247,26 +248,26 @@ t_stat i8237_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat i8237_reset (DEVICE *dptr);
 void i8237_reset_dev (void);
 t_stat i8237_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-uint8 i8237_r0x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r1x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r2x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r3x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r4x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r5x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r6x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r7x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r8x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_r9x(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rAx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rBx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rCx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rDx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rEx(t_bool io, uint8 data, uint8 devnum);
-uint8 i8237_rFx(t_bool io, uint8 data, uint8 devnum);
+uint8 i8237_r0x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r1x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r2x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r3x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r4x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r5x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r6x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r7x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r8x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_r9x(bool io, uint8 data, uint8 devnum);
+uint8 i8237_rAx(bool io, uint8 data, uint8 devnum);
+uint8 i8237_rBx(bool io, uint8 data, uint8 devnum);
+uint8 i8237_rCx(bool io, uint8 data, uint8 devnum);
+uint8 i8237_rDx(bool io, uint8 data, uint8 devnum);
+uint8 i8237_rEx(bool io, uint8 data, uint8 devnum);
+uint8 i8237_rFx(bool io, uint8 data, uint8 devnum);
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint8, uint8);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint8, uint8);
 extern uint8 unreg_dev(uint16);
 
 /* globals */
@@ -483,7 +484,7 @@ t_stat i8237_set_mode(UNIT *uptr, int32 val, const char *cptr, void *desc)
     to the device.
 */
 
-uint8 i8237_r0x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r0x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read current address CH 0 */
         if (i8237_rD) {                 /* high byte */
@@ -509,7 +510,7 @@ uint8 i8237_r0x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r1x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r1x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read current word count CH 0 */
         if (i8237_rD) {                 /* high byte */
@@ -535,7 +536,7 @@ uint8 i8237_r1x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r2x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r2x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read current address CH 1 */
         if (i8237_rD) {                 /* high byte */
@@ -561,7 +562,7 @@ uint8 i8237_r2x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r3x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r3x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read current word count CH 1 */
         if (i8237_rD) {                 /* high byte */
@@ -587,7 +588,7 @@ uint8 i8237_r3x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r4x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r4x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read current address CH 2 */
         if (i8237_rD) {                 /* high byte */
@@ -613,7 +614,7 @@ uint8 i8237_r4x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r5x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r5x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read current word count CH 2 */
         if (i8237_rD) {                 /* high byte */
@@ -639,7 +640,7 @@ uint8 i8237_r5x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r6x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r6x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read current address CH 3 */
         if (i8237_rD) {                 /* high byte */
@@ -665,7 +666,7 @@ uint8 i8237_r6x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r7x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r7x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read current word count CH 3 */
         if (i8237_rD) {                 /* high byte */
@@ -691,7 +692,7 @@ uint8 i8237_r7x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r8x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r8x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read status register */
         sim_debug (DEBUG_reg, &i8237_dev, "i8237_r8 (status) read as %02X\n", i8237_r8);
@@ -703,7 +704,7 @@ uint8 i8237_r8x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_r9x(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_r9x(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_r9\n");
@@ -715,7 +716,7 @@ uint8 i8237_r9x(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rAx(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_rAx(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rA\n");
@@ -752,7 +753,7 @@ uint8 i8237_rAx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rBx(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_rBx(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rB\n");
@@ -764,7 +765,7 @@ uint8 i8237_rBx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rCx(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_rCx(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rC\n");
@@ -776,7 +777,7 @@ uint8 i8237_rCx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rDx(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_rDx(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {                      /* read temporary register */
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rD\n");
@@ -788,7 +789,7 @@ uint8 i8237_rDx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rEx(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_rEx(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rE\n");
@@ -800,7 +801,7 @@ uint8 i8237_rEx(t_bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8237_rFx(t_bool io, uint8 data, uint8 devnum)
+uint8 i8237_rFx(bool io, uint8 data, uint8 devnum)
 {
     if (io == 0) {
         sim_debug (DEBUG_reg, &i8237_dev, "Illegal read of i8237_rF\n");

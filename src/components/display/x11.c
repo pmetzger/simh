@@ -133,7 +133,7 @@ handle_button_press(w, d, e, b)
     }
 
     if (b)
-        *b = TRUE;
+        *b = True;
 }
 
 static void
@@ -159,7 +159,7 @@ handle_button_release(w, d, e, b)
     }
 
     if (b)
-        *b = TRUE;
+        *b = True;
 }
 
 /*
@@ -223,7 +223,7 @@ handle_key_press(w, d, e, b)
         display_keydown(k);
 
     if (b)
-        *b = TRUE;
+        *b = True;
 }
 
 static void
@@ -238,7 +238,7 @@ handle_key_release(w, d, e, b)
         display_keyup(k);
 
     if (b)
-        *b = TRUE;
+        *b = True;
 }
 
 static void
@@ -251,7 +251,7 @@ handle_exposure(w, d, e, b)
     display_repaint();
 
     if (b)
-        *b = TRUE;
+        *b = True;
 }
 
 int
@@ -352,15 +352,15 @@ ws_init(const char *crtname,    /* crt type name */
      * Setup to handle events
      */
 
-    XtAddEventHandler(crt, ButtonPressMask|ButtonMotionMask, FALSE,
+    XtAddEventHandler(crt, ButtonPressMask|ButtonMotionMask, False,
                       handle_button_press, NULL);
-    XtAddEventHandler(crt, ButtonReleaseMask, FALSE,
+    XtAddEventHandler(crt, ButtonReleaseMask, False,
                       handle_button_release, NULL);
-    XtAddEventHandler(crt, KeyPressMask, FALSE,
+    XtAddEventHandler(crt, KeyPressMask, False,
                       handle_key_press, NULL);
-    XtAddEventHandler(crt, KeyReleaseMask, FALSE,
+    XtAddEventHandler(crt, KeyReleaseMask, False,
                       handle_key_release, NULL);
-    XtAddEventHandler(crt, ExposureMask, FALSE,
+    XtAddEventHandler(crt, ExposureMask, False,
                       handle_exposure, NULL);
     return 1;
 } /* ws_init */
@@ -535,7 +535,7 @@ os_elapsed(void)
  */
 
 /*
- * sleep for maxus microseconds, returning TRUE sooner if fd is readable
+ * sleep for maxus microseconds, returning 1 sooner if fd is readable
  * used by X11 driver
  */
 static int

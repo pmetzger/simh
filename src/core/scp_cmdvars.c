@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 1993-2022 Robert M Supnik
 // SPDX-License-Identifier: MIT
 
+#include <stdbool.h>
 #include "scp.h"
 
 #include "sim_console.h"
@@ -35,14 +36,14 @@ static size_t *sim_sub_instr_off = NULL;
 static struct timespec cmd_time;
 static char sim_host_ostype[64];
 
-extern t_bool sim_runlimit_enabled;
+extern bool sim_runlimit_enabled;
 extern int32 sim_runlimit_value;
 extern const char *sim_runlimit_units;
-extern t_bool sim_file_compare_diff_valid;
+extern bool sim_file_compare_diff_valid;
 extern size_t sim_file_compare_diff_offset;
 
-static t_bool sim_cmdvars_probe_uname(char *buf, size_t size);
-static t_bool sim_cmdvars_localtime(time_t now, struct tm *tmnow);
+static bool sim_cmdvars_probe_uname(char *buf, size_t size);
+static bool sim_cmdvars_localtime(time_t now, struct tm *tmnow);
 #if !defined(_WIN32)
 /* Tests can replace the underlying uname(3) call to drive failure paths. */
 /* Call uname(3) through the default host implementation. */
@@ -57,7 +58,7 @@ static sim_cmdvars_uname_hook_fn sim_cmdvars_uname_hook =
 
 /* Tests can replace the underlying localtime call to drive failure paths. */
 /* Break down one time_t value with the platform local-time routine. */
-static t_bool sim_cmdvars_default_localtime_call(time_t now, struct tm *tmnow)
+static bool sim_cmdvars_default_localtime_call(time_t now, struct tm *tmnow)
 {
 #if defined(_WIN32)
     return localtime_s(tmnow, &now) == 0;
@@ -70,7 +71,7 @@ static sim_cmdvars_localtime_hook_fn sim_cmdvars_localtime_hook =
     sim_cmdvars_default_localtime_call;
 
 /* Assemble the %* expansion into one growable temporary string. */
-static t_bool sim_cmdvars_expand_star_args(sim_dynstr_t *ds, char *do_arg[])
+static bool sim_cmdvars_expand_star_args(sim_dynstr_t *ds, char *do_arg[])
 {
     size_t i;
 
@@ -78,7 +79,7 @@ static t_bool sim_cmdvars_expand_star_args(sim_dynstr_t *ds, char *do_arg[])
         if (do_arg[i] == NULL)
             break;
         if ((i != 1) && !sim_dynstr_append(ds, " "))
-            return FALSE;
+            return false;
         if (strchr(do_arg[i], ' ')) {
             char quote = '"';
 
@@ -87,15 +88,15 @@ static t_bool sim_cmdvars_expand_star_args(sim_dynstr_t *ds, char *do_arg[])
             if (!sim_dynstr_append_ch(ds, quote) ||
                 !sim_dynstr_append(ds, do_arg[i]) ||
                 !sim_dynstr_append_ch(ds, quote))
-                return FALSE;
+                return false;
         } else if (!sim_dynstr_append(ds, do_arg[i]))
-            return FALSE;
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
 /* Break down one wall-clock time value using the platform local-time API. */
-static t_bool sim_cmdvars_localtime(time_t now, struct tm *tmnow)
+static bool sim_cmdvars_localtime(time_t now, struct tm *tmnow)
 {
     return sim_cmdvars_localtime_hook(now, tmnow);
 }
@@ -136,7 +137,7 @@ static void sim_cmdvars_copy_expansion(const char *ap, char **op, char *oend,
 }
 
 /* Apply any %~ filepath-part fixup, then copy one expansion to the output. */
-static void sim_cmdvars_expand_and_copy(const char *ap, t_bool expand_it,
+static void sim_cmdvars_expand_and_copy(const char *ap, bool expand_it,
                                         char *parts, char **op, char *oend,
                                         const char *instr, const char *ip,
                                         size_t *outstr_off)
@@ -156,21 +157,21 @@ static void sim_cmdvars_expand_and_copy(const char *ap, t_bool expand_it,
 /* Parse one %-form after the leading percent character. */
 static const char *sim_cmdvars_parse_percent(const char **ipp, char *gbuf,
                                              char *rbuf, size_t rbuf_size,
-                                             char *do_arg[], t_bool *expand_it,
+                                             char *do_arg[], bool *expand_it,
                                              char *parts,
                                              sim_dynstr_t *star_args,
-                                             t_bool *emit_percent)
+                                             bool *emit_percent)
 {
     const char *ip = *ipp;
     const char *ap = NULL;
-    t_bool malformed_parts = FALSE;
+    bool malformed_parts = false;
     uint32 i;
 
-    *emit_percent = FALSE;
-    *expand_it = FALSE;
+    *emit_percent = false;
+    *expand_it = false;
     parts[0] = '\0';
     if (*ip == '~') {
-        *expand_it = TRUE;
+        *expand_it = true;
         ++ip;
         for (i = 0;
              (i < (SIM_CMDVARS_PARTS_SIZE - 1)) && (strchr("fpnxtz", *ip));
@@ -179,7 +180,7 @@ static const char *sim_cmdvars_parse_percent(const char **ipp, char *gbuf,
             parts[i + 1] = '\0';
         }
         if ((i == (SIM_CMDVARS_PARTS_SIZE - 1)) && strchr("fpnxtz", *ip)) {
-            malformed_parts = TRUE;
+            malformed_parts = true;
             while (strchr("fpnxtz", *ip))
                 ++ip;
         }
@@ -209,7 +210,7 @@ static const char *sim_cmdvars_parse_percent(const char **ipp, char *gbuf,
             ap = sim_dynstr_cstr(star_args);
         ++ip;
     } else if (*ip == '\0') {
-        *emit_percent = TRUE;
+        *emit_percent = true;
     } else {
         get_glyph_nc(ip, gbuf, '%');
         ap = _sim_get_env_special(gbuf, rbuf, rbuf_size);
@@ -222,7 +223,7 @@ static const char *sim_cmdvars_parse_percent(const char **ipp, char *gbuf,
 }
 
 /* Expand the initial command token if it names one command variable. */
-static t_bool sim_cmdvars_expand_initial_token(char **ipp, char **op,
+static bool sim_cmdvars_expand_initial_token(char **ipp, char **op,
                                                char *oend, const char *instr,
                                                char *gbuf, char *rbuf,
                                                size_t rbuf_size,
@@ -234,11 +235,11 @@ static t_bool sim_cmdvars_expand_initial_token(char **ipp, char **op,
     get_glyph(ip, gbuf, 0);
     ap = _sim_get_env_special(gbuf, rbuf, rbuf_size);
     if (ap == NULL)
-        return FALSE;
+        return false;
     sim_cmdvars_copy_expansion(ap, op, oend, instr, ip, outstr_off);
     ip += strlen(gbuf);
     *ipp = ip;
-    return TRUE;
+    return true;
 }
 
 /* Return the value of one SCP-owned substitution variable, if present. */
@@ -303,16 +304,16 @@ static const char *sim_bin_name_value(char *rbuf, size_t rbuf_size)
 }
 
 /* Probe the host OS type with uname(3). */
-static t_bool sim_cmdvars_probe_uname(char *buf, size_t size)
+static bool sim_cmdvars_probe_uname(char *buf, size_t size)
 {
 #if defined(_WIN32)
     strlcpy(buf, "Windows", size);
-    return TRUE;
+    return true;
 #else
     struct utsname utsname_info;
 
     if (sim_cmdvars_uname_hook(&utsname_info) != 0)
-        return FALSE;
+        return false;
     strlcpy(buf, utsname_info.sysname, size);
     return buf[0] != '\0';
 #endif
@@ -391,7 +392,7 @@ static void sim_subststr_substr(const char *ops, char *rbuf, size_t rbuf_size)
             const char *curr = tstr;
             char *match = (char *)malloc(1 + (eq - ops));
             size_t copy_left = rbuf_size ? rbuf_size - 1 : 0;
-            t_bool asterisk_match;
+            bool asterisk_match;
 
             strlcpy(match, ops, 1 + (eq - ops));
             asterisk_match = (*ops == '*');
@@ -405,7 +406,7 @@ static void sim_subststr_substr(const char *ops, char *rbuf, size_t rbuf_size)
                     copy_left -= move_size;
                     rbuf += move_size;
                 } else
-                    asterisk_match = FALSE;
+                    asterisk_match = false;
                 size_t move_size = MIN(strlen(eq + 1), copy_left);
 
                 memcpy(rbuf, eq + 1, move_size);
@@ -802,13 +803,13 @@ void sim_sub_args(char *instr, size_t instr_size, char *do_arg[])
             ip++;
             *op++ = *ip++;
         } else {
-            t_bool expand_it = FALSE;
+            bool expand_it = false;
             char parts[SIM_CMDVARS_PARTS_SIZE];
 
             if (*ip == '%') {
                 const char *percent_ip;
                 sim_dynstr_t star_args;
-                t_bool emit_percent;
+                bool emit_percent;
 
                 sim_dynstr_init(&star_args);
                 ++ip;
@@ -914,7 +915,7 @@ t_stat sim_set_environment(int32 flag, const char *cptr)
                 t_stat stat;
                 const char *eptr = sim_unsub_args(cptr);
 
-                cptr = sim_eval_expression(eptr, &val, FALSE, &stat);
+                cptr = sim_eval_expression(eptr, &val, false, &stat);
                 if (stat == SCPE_OK) {
                     sprintf(cbuf, "%ld", (long)val);
                     cptr = cbuf;

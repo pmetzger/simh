@@ -31,6 +31,7 @@
 #ifndef _3B2_NI_H_
 #define _3B2_NI_H_
 
+#include <stdbool.h>
 #include "3b2_defs.h"
 #include "sim_ether.h"
 
@@ -166,7 +167,7 @@ typedef struct {
 
 typedef struct {
     uint8           slot;
-    t_bool          enabled;
+    bool            enabled;
     uint32          crc;
     uint32          poll_rate;
     char            mac_str[MAC_SIZE_CHARS];

@@ -18,6 +18,7 @@
 #define SIM_SCP_H_     0
 
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "sim_defs.h"
 
@@ -143,7 +144,7 @@ t_stat sim_activate_after_abs (UNIT *uptr, uint32 usecs_walltime);
 t_stat sim_activate_after_abs_d (UNIT *uptr, double usecs_walltime);
 t_stat _sim_activate_after_abs (UNIT *uptr, double usecs_walltime);
 t_stat sim_cancel (UNIT *uptr);
-t_bool sim_is_active (UNIT *uptr);
+bool sim_is_active (UNIT *uptr);
 int32 sim_activate_time (UNIT *uptr);
 int32 _sim_activate_queue_time (UNIT *uptr);
 int32 _sim_activate_time (UNIT *uptr);
@@ -158,7 +159,7 @@ t_stat reset_all (uint32 start_device);
 t_stat reset_all_p (uint32 start_device);
 t_stat set_writelock (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat show_writelock (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_bool get_yn (const char *ques, t_bool deflt);
+bool get_yn (const char *ques, bool deflt);
 void sim_srand (unsigned int seed);
 int sim_rand (void);
 #ifdef RAND_MAX
@@ -199,8 +200,8 @@ char *read_line_p (const char *prompt, char *ptr, int32 size, FILE *stream);
 CTAB *find_cmd (const char *gbuf);
 CTAB *scp_cmd_table (void);
 const char *scp_argv0 (void);
-t_bool scp_has_oline (void);
-t_bool scp_do_echo_enabled(void);
+bool scp_has_oline (void);
+bool scp_do_echo_enabled(void);
 int32 scp_do_depth(void);
 const char *_get_dbg_verb(uint32 dbits, DEVICE *dptr, UNIT *uptr);
 REG *find_reg (const char *ptr, const char **optr, DEVICE *dptr);
@@ -275,15 +276,15 @@ extern size_t sim_debug_buffer_offset;                  /* debug memory buffer i
 extern size_t sim_debug_buffer_inuse;                   /* debug memory buffer inuse count */
 extern struct timespec sim_deb_basetime;                /* debug base time for relative time output */
 extern UNIT *sim_clock_queue;
-extern volatile t_bool sim_is_running;
-extern t_bool sim_processing_event;                     /* Called from sim_process_event */
+extern volatile bool sim_is_running;
+extern bool sim_processing_event;                       /* Called from sim_process_event */
 extern char *sim_prompt;                                /* prompt string */
 extern const char *sim_savename;                        /* Simulator Name used in Save/Restore files */
 extern t_value *sim_eval;
-extern volatile t_bool stop_cpu;
+extern volatile bool stop_cpu;
 extern const char *sim_prog_name;                       /* executable program name */
 extern FILE *stdnul;
-extern t_bool sim_asynch_enabled;
+extern bool sim_asynch_enabled;
 #if defined(SIM_ASYNCH_IO)
 int sim_aio_update_queue (void);
 void sim_aio_activate (ACTIVATE_API caller, UNIT *uptr, int32 event_time);
@@ -317,14 +318,14 @@ extern void (*sim_vm_init) (void);
 
  */
 extern char *(*sim_vm_read) (char *ptr, int32 size, FILE *stream);
-extern void (*sim_vm_post) (t_bool from_scp);
+extern void (*sim_vm_post) (bool from_scp);
 extern CTAB *sim_vm_cmd;
 extern void (*sim_vm_sprint_addr) (char *buf, DEVICE *dptr, t_addr addr);
 extern void (*sim_vm_fprint_addr) (FILE *st, DEVICE *dptr, t_addr addr);
 extern t_addr (*sim_vm_parse_addr) (DEVICE *dptr, const char *cptr, const char **tptr);
-extern t_bool (*sim_vm_fprint_stopped) (FILE *st, t_stat reason);
+extern bool (*sim_vm_fprint_stopped) (FILE *st, t_stat reason);
 extern t_value (*sim_vm_pc_value) (void);
-extern t_bool (*sim_vm_is_subroutine_call) (t_addr **ret_addrs);
+extern bool (*sim_vm_is_subroutine_call) (t_addr **ret_addrs);
 extern void (*sim_vm_reg_update) (REG *rptr, uint32 idx, t_value prev_val, t_value new_val);
 extern const char **sim_clock_precalibrate_commands;
 extern int32 sim_vm_initial_ips;                        /* base estimate of simulated instructions per second */

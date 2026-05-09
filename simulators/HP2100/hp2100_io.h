@@ -32,6 +32,7 @@
    Information Blocks (DIBs), i.e., is addressed by an I/O select code.
 */
 
+#include <stdbool.h>
 
 
 /* I/O devices - fixed select code assignments */
@@ -444,7 +445,7 @@ typedef BOOT_LOADER LOADER_ARRAY [2];           /* array (21xx, 1000) of bootstr
 /* CPU global utility routine declarations */
 
 extern uint32 cpu_copy_loader (const LOADER_ARRAY boot, uint32 sc, HP_WORD sr_clear, HP_WORD sr_set);
-extern t_bool cpu_io_stop     (UNIT *uptr);
+extern bool cpu_io_stop     (UNIT *uptr);
 
 
 /* I/O subsystem global utility routine declarations */

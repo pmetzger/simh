@@ -42,6 +42,7 @@
  *
  */
 
+#include <stdbool.h>
 #include "3b2_ports.h"
 
 #include "sim_tmxr.h"
@@ -113,7 +114,7 @@ static uint32 diag_crc[] = {
 int8    ports_base_slot;          /* First slot in our contiguous block */
 uint8   ports_int_slot;           /* Interrupting card ID   */
 uint8   ports_int_subdev;         /* Interrupting subdevice */
-t_bool  ports_conf = FALSE;       /* Have PORTS cards been configured? */
+bool    ports_conf = false;       /* Have PORTS cards been configured? */
 uint32  ports_crc;                /* CRC32 of downloaded memory */
 
 /* Mapping of line number to CIO card slot. Up to 32 lines spread over 8
@@ -297,7 +298,7 @@ t_stat ports_setnl(UNIT *uptr, int32 val, const char *cptr, void *desc)
             t = t | ports_ldsc[i].conn;
         }
 
-        if (t && !get_yn("This will disconnect users; proceed [N]?", FALSE)) {
+        if (t && !get_yn("This will disconnect users; proceed [N]?", false)) {
             return SCPE_OK;
         }
 
@@ -322,7 +323,7 @@ t_stat ports_setnl(UNIT *uptr, int32 val, const char *cptr, void *desc)
     ports_desc.lines = newln;
 
     /* setup lines and auto config */
-    ports_conf = FALSE;
+    ports_conf = false;
     return ports_reset(&ports_dev);
 }
 
@@ -496,7 +497,7 @@ static void ports_cmd(uint8 slot, cio_entry *rentry, uint8 *rapp_data)
                   rentry->subdevice);
 
         if (rentry->subdevice < PORTS_LINES) {
-            ports_state[ln].conn = TRUE;
+            ports_state[ln].conn = true;
         }
 
         centry.opcode = PPC_CONN;
@@ -587,11 +588,11 @@ static void ports_update_conn(uint8 slot, uint8 subdev)
     } else {
         if (ports_ldsc[ln].conn) {
             app_data[0] = AC_CON;
-            ports_state[ln].conn = TRUE;
+            ports_state[ln].conn = true;
         } else {
             if (ports_state[ln].conn) {
                 app_data[0] = AC_DIS;
-                ports_state[ln].conn = FALSE;
+                ports_state[ln].conn = false;
             } else {
                 app_data[0] = 0;
             }
@@ -672,7 +673,7 @@ t_stat ports_reset(DEVICE *dptr)
 
     if ((dptr->flags & DEV_DIS)) {
         cio_remove_all(PORTS_ID);
-        ports_conf = FALSE;
+        ports_conf = false;
         return SCPE_OK;
     }
 
@@ -699,7 +700,7 @@ t_stat ports_reset(DEVICE *dptr)
             }
         }
 
-        ports_conf = TRUE;
+        ports_conf = true;
     }
 
     /* If attached, start polling for connections */
@@ -813,7 +814,7 @@ t_stat ports_xmt_svc(UNIT *uptr)
 {
     uint8 slot, ln;
     char c;
-    t_bool tx = FALSE; /* Did a tx ever occur? */
+    bool tx = false;   /* Did a tx ever occur? */
     cio_entry centry = {0};
     uint8 app_data[4] = {0};
     uint32 wait = 0x7fffffff;
@@ -822,7 +823,7 @@ t_stat ports_xmt_svc(UNIT *uptr)
     for (ln = 0; ln < ports_desc.lines; ln++) {
         slot = LSLOT(ln);
         if (ports_ldsc[ln].conn && ports_state[ln].tx_chars > 0) {
-            tx = TRUE; /* Even an attempt at TX counts for rescheduling */
+            tx = true; /* Even an attempt at TX counts for rescheduling */
             c = sim_tt_outcvt(pread_b(ports_state[ln].tx_addr, BUS_PER),
                               TT_GET_MODE(ports_unit[0].flags));
 
@@ -836,10 +837,10 @@ t_stat ports_xmt_svc(UNIT *uptr)
                               "[ports_xmt_svc] [LINE %d] XMIT (crlf):  %02x (%c)\n",
                               ln, 0xd, 0xd);
                     /* Indicate that we're in a CRLF translation */
-                    ports_state[ln].crlf = TRUE;
+                    ports_state[ln].crlf = true;
                 }
             } else {
-                ports_state[ln].crlf = FALSE;
+                ports_state[ln].crlf = false;
 
                 if (tmxr_putc_ln(&ports_ldsc[ln], c) == SCPE_OK) {
                     wait = MIN(wait, ports_ldsc[ln].txdeltausecs);
@@ -862,7 +863,7 @@ t_stat ports_xmt_svc(UNIT *uptr)
 
     /* Scan LPT line for output */
     if (lpt_state.conn && lpt_state.tx_chars > 0) {
-        tx = TRUE;
+        tx = true;
         /* This is a hack -- we just want the slot of the first installed
            PORTS board */
         slot = LSLOT(0);
@@ -872,10 +873,10 @@ t_stat ports_xmt_svc(UNIT *uptr)
         /* The PORTS card optionally handles NL->CRLF */
         if (c == 0xa && (lpt_state.oflag & ONLCR) && !(lpt_state.crlf)) {
             /* Indicate that we're in a CRLF translation */
-            lpt_state.crlf = TRUE;
+            lpt_state.crlf = true;
             lpt_out(0xd);
         } else {
-            lpt_state.crlf = FALSE;
+            lpt_state.crlf = false;
             lpt_state.tx_chars--;
             lpt_state.tx_addr++;
             lpt_out(c);
@@ -969,7 +970,7 @@ t_stat lpt_attach(UNIT *uptr, const char *cptr)
     }
 
     if ((reason = attach_unit(uptr, cptr)) == SCPE_OK) {
-        lpt_state.conn = TRUE;
+        lpt_state.conn = true;
     }
 
     return reason;
@@ -977,7 +978,7 @@ t_stat lpt_attach(UNIT *uptr, const char *cptr)
 
 t_stat lpt_detach(UNIT *uptr)
 {
-    lpt_state.conn = FALSE;
+    lpt_state.conn = false;
     return detach_unit(uptr);
 }
 

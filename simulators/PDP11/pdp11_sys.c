@@ -72,6 +72,7 @@
 
 #include "pdp11_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 extern DEVICE cpu_dev;
 extern DEVICE sys_dev;
@@ -538,8 +539,8 @@ static const char r50_to_asc[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ$._0123456789";
         addr    =       current PC
         spec    =       specifier
         nval    =       next word
-        flag    =       TRUE if decoding for CPU
-        iflag   =       TRUE if decoding integer instruction
+        flag    =       true if decoding for CPU
+        iflag   =       true if decoding integer instruction
    Outputs:
         count   =       -number of extra words retired
 */
@@ -692,7 +693,7 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
 
         case I_V_SOP:                                   /* sop */
             fprintf (of, "%s ", opcode[i]);
-            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, TRUE);
+            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, true);
             break;
 
         case I_V_3B:                                    /* 3b */
@@ -701,12 +702,12 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
 
         case I_V_FOP:                                   /* fop */
             fprintf (of, "%s ", opcode[i]);
-            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, FALSE);
+            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, false);
             break;
 
         case I_V_AFOP:                                  /* afop */
             fprintf (of, "%s %s,", opcode[i], fname[fac]);
-            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, FALSE);
+            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, false);
             break;
 
         case I_V_6B:                                    /* 6b */
@@ -739,37 +740,37 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
 
         case I_V_RSOP:                                  /* rsop */
             fprintf (of, "%s %s,", opcode[i], rname[srcr]);
-            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, TRUE);
+            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, true);
             break;
 
         case I_V_SOPR:                                  /* sopr */
             fprintf (of, "%s ", opcode[i]);
-            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, TRUE);
+            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, true);
             fprintf (of, ",%s", rname[srcr]);
             break;
 
         case I_V_ASOP: case I_V_ASMD:                   /* asop, asmd */
             fprintf (of, "%s %s,", opcode[i], fname[fac]);
-            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, TRUE);
+            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, true);
             break;
 
         case I_V_DOP:                                   /* dop */
             fprintf (of, "%s ", opcode[i]);
-            wd1 = fprint_spec (of, addr, srcm, val[1], cflag, TRUE);
+            wd1 = fprint_spec (of, addr, srcm, val[1], cflag, true);
             fprintf (of, ",");
             wd2 = fprint_spec (of, addr - wd1 - wd1, dstm,
-                val[1 - wd1], cflag, TRUE);
+                val[1 - wd1], cflag, true);
             break;
 
         case I_V_FOPA:                                  /* fopa */
             fprintf (of, "%s ", opcode[i]);
-            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, FALSE);
+            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, false);
             fprintf (of, ",%s", fname[fac]);
             break;
 
         case I_V_SOPA: case I_V_SMDA:                   /* sopa, smda */
             fprintf (of, "%s ", opcode[i]);
-            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, TRUE);
+            wd1 = fprint_spec (of, addr, dstm, val[1], cflag, true);
             fprintf (of, ",%s", fname[fac]);
             break;
             }                                           /* end case */
@@ -1106,14 +1107,14 @@ switch (j) {                                            /* case on class */
         val[0] = val[0] | (reg << 6);                   /* fall through */
     case I_V_SOP:                                       /* sop */
         cptr = get_glyph (cptr, gbuf, 0);               /* get glyph */
-        if ((n1 = get_spec (gbuf, addr, 0, &spec, &val[1], cflag, TRUE)) > 0)
+        if ((n1 = get_spec (gbuf, addr, 0, &spec, &val[1], cflag, true)) > 0)
             return SCPE_ARG;
         val[0] = val[0] | spec;
         break;
 
     case I_V_SOPR:                                      /* dop, reg */
         cptr = get_glyph (cptr, gbuf, ',');             /* get glyph */
-        if ((n1 = get_spec (gbuf, addr, 0, &spec, &val[1], cflag, TRUE)) > 0)
+        if ((n1 = get_spec (gbuf, addr, 0, &spec, &val[1], cflag, true)) > 0)
             return SCPE_ARG;
         val[0] = val[0] | spec;
         cptr = get_glyph (cptr, gbuf, 0);               /* get glyph */
@@ -1139,12 +1140,12 @@ switch (j) {                                            /* case on class */
 
     case I_V_DOP:                                       /* double op */
         cptr = get_glyph (cptr, gbuf, ',');             /* get glyph */
-        if ((n1 = get_spec (gbuf, addr, 0, &spec, &val[1], cflag, TRUE)) > 0)
+        if ((n1 = get_spec (gbuf, addr, 0, &spec, &val[1], cflag, true)) > 0)
             return SCPE_ARG;
         val[0] = val[0] | (spec << 6);
         cptr = get_glyph (cptr, gbuf, 0);               /* get glyph */
         if ((n2 = get_spec (gbuf, addr, n1, &spec, &val[1 - n1],
-            cflag, TRUE)) > 0)
+            cflag, true)) > 0)
             return SCPE_ARG;
         val[0] = val[0] | spec;
         break;

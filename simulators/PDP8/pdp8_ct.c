@@ -83,6 +83,7 @@
             <ready flag sets, CRC on tape>
 */
 
+#include <stdbool.h>
 #include "pdp8_defs.h"
 #include "sim_tape.h"
 
@@ -168,8 +169,8 @@ int32 ct_go_start (int32 AC);
 int32 ct_go_cont (UNIT *uptr, int32 AC);
 t_stat ct_map_err (UNIT *uptr, t_stat st);
 UNIT *ct_busy (void);
-void ct_set_df (t_bool timchk);
-t_bool ct_read_char (void);
+void ct_set_df (bool timchk);
+bool ct_read_char (void);
 uint32 ct_crc (uint8 *buf, uint32 cnt);
 
 /* CT data structures
@@ -417,7 +418,7 @@ switch (uptr->FNC) {                                    /* case on function */
     case SRA_READ|SRA_2ND:                              /* read char */
         if (!ct_read_char ())                           /* read, overrun? */
             break;
-        ct_set_df (TRUE);                               /* set data flag */
+        ct_set_df (true);                               /* set data flag */
         sim_activate (uptr, ct_ctime);                  /* sched next char */
         return SCPE_OK;
 
@@ -432,7 +433,7 @@ switch (uptr->FNC) {                                    /* case on function */
         if ((ct_bptr < CT_MAXFR) &&                     /* room in buf? */
             ((uptr->pos + ct_bptr) < uptr->capac))      /* room on tape? */
             ct_xb[ct_bptr++] = ct_db;                   /* store char */
-        ct_set_df (TRUE);                               /* set data flag */
+        ct_set_df (true);                               /* set data flag */
         sim_activate (uptr, ct_ctime);                  /* sched next char */
         return SCPE_OK;
 
@@ -443,7 +444,7 @@ switch (uptr->FNC) {                                    /* case on function */
            break;                                       /* write done */
            }
         ct_read_char ();                                /* get second CRC */
-        ct_set_df (FALSE);                              /* set df */
+        ct_set_df (false);                              /* set df */
         uptr->FNC |= SRA_2ND;                           /* next state */
         sim_activate (uptr, ct_ctime);
         return SCPE_OK;
@@ -527,7 +528,7 @@ return srb;
 
 /* Set data flag */
 
-void ct_set_df (t_bool timchk)
+void ct_set_df (bool timchk)
 {
 if (ct_df && timchk)                                    /* flag still set? */
     ct_srb |= SRB_TIM;
@@ -539,15 +540,15 @@ return;
 
 /* Read character */
 
-t_bool ct_read_char (void)
+bool ct_read_char (void)
 {
 if (ct_bptr < ct_blnt) {                                /* more chars? */
     ct_db = ct_xb[ct_bptr++];
-    return TRUE;
+    return true;
     }
 ct_db = 0;
 ct_srb |= SRB_CRC;                                      /* overrun */
-return FALSE;
+return false;
 }
 
 /* Test if controller busy */

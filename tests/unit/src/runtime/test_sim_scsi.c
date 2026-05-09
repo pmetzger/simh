@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -55,7 +56,7 @@ static void setup_message_bus(SCSI_BUS *bus)
     bus->initiator = 6;
     bus->target = 4;
     bus->phase = SCSI_MSGO;
-    bus->req = TRUE;
+    bus->req = true;
 }
 
 static void teardown_message_bus(SCSI_BUS *bus)
@@ -74,7 +75,7 @@ static void setup_cdrom_bus(struct scsi_cdrom_case *cdrom_case)
     cdrom_case->scsi_device.devtype = SCSI_CDROM;
     cdrom_case->scsi_device.pqual = 0;
     cdrom_case->scsi_device.scsiver = 2;
-    cdrom_case->scsi_device.removeable = TRUE;
+    cdrom_case->scsi_device.removeable = true;
     cdrom_case->scsi_device.block_size = 2048;
     cdrom_case->scsi_device.manufacturer = "SIMH";
     cdrom_case->scsi_device.product = "CD-ROM";
@@ -91,7 +92,7 @@ static void setup_cdrom_bus(struct scsi_cdrom_case *cdrom_case)
     cdrom_case->bus.initiator = 6;
     cdrom_case->bus.target = 4;
     cdrom_case->bus.phase = SCSI_CMD;
-    cdrom_case->bus.req = TRUE;
+    cdrom_case->bus.req = true;
 }
 
 static void teardown_cdrom_bus(struct scsi_cdrom_case *cdrom_case)
@@ -133,7 +134,7 @@ static void setup_disk_bus(struct scsi_disk_case *disk_case)
     disk_case->bus.initiator = 6;
     disk_case->bus.target = 0;
     disk_case->bus.phase = SCSI_CMD;
-    disk_case->bus.req = TRUE;
+    disk_case->bus.req = true;
 }
 
 static void teardown_disk_bus(struct scsi_disk_case *disk_case)
@@ -488,7 +489,7 @@ static void test_scsi_release_clears_bus_signals_not_sense(void **state)
     (void)state;
 
     setup_message_bus(&bus);
-    bus.atn = TRUE;
+    bus.atn = true;
     bus.sense_key = 0x05;
     bus.sense_code = 0x24;
     bus.sense_qual = 0x01;
@@ -519,8 +520,8 @@ static void test_scsi_release_cleans_already_free_bus(void **state)
     bus.initiator = -1;
     bus.target = -1;
     bus.phase = SCSI_MSGI;
-    bus.atn = TRUE;
-    bus.req = TRUE;
+    bus.atn = true;
+    bus.req = true;
     bus.buf_b = 2;
     bus.buf_t = 4;
 
@@ -544,7 +545,7 @@ static void test_scsi_reset_clears_bus_signals_and_sense(void **state)
     (void)state;
 
     setup_message_bus(&bus);
-    bus.atn = TRUE;
+    bus.atn = true;
     bus.sense_key = 0x05;
     bus.sense_code = 0x24;
     bus.sense_qual = 0x01;

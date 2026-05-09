@@ -31,6 +31,7 @@
 
 #include "sel32_defs.h"
 #include <ctype.h>
+#include <stdbool.h>
 
 /****  COMMANDS TO PRINT BUFFER THEN DO FORMS CONTROL */
 /*
@@ -161,7 +162,7 @@ struct _lpr_data lpr_data[NUM_DEVS_LPR];
 /* forward definitions */
 t_stat      lpr_preio(UNIT *uptr, uint16 chan);
 t_stat      lpr_startcmd(UNIT *, uint16, uint8);
-void        lpr_ini(UNIT *, t_bool);
+void        lpr_ini(UNIT *, bool);
 t_stat      lpr_haltio(UNIT *uptr);
 t_stat      lpr_rschnlio(UNIT *uptr);
 t_stat      lpr_srv(UNIT *);
@@ -201,7 +202,7 @@ DIB         lpr_dib = {
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     lpr_rschnlio,   /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
     NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
-    lpr_ini,        /* void  (*dev_ini)(UNIT *, t_bool) */      /* init function */
+    lpr_ini,        /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     lpr_unit,       /* UNIT* units */                           /* Pointer to units structure */
     lpr_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
@@ -223,7 +224,7 @@ DEVICE      lpr_dev = {
 };
 
 /* initialize the line printer */
-void lpr_ini(UNIT *uptr, t_bool f) {
+void lpr_ini(UNIT *uptr, bool f) {
     /* Generic device init signature.
        This implementation does not use every parameter. */
     (void) f;

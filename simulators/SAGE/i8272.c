@@ -40,6 +40,7 @@
     - 25-Jul-2010, Holger Veit, One-Off error in i8251_datawrite
 */
 
+#include <stdbool.h>
 #include "m68k_cpu.h"
 #include "chip_defs.h"
 
@@ -768,12 +769,12 @@ static t_stat i8272_sensedrive(I8272* chip)
 {
     uint8 st3;
     I8272_DRIVE_INFO* dip;
-    t_bool track0;
+    bool track0;
 
     if ((dip = i8272_select_drive(chip,chip->cmd[1])) == NULL) {
         sim_printf("i8272_sensedrive: i8272_select_drive returns 0\n");
         st3 = DRIVE_STATUS_FAULT;
-        track0 = FALSE;
+        track0 = false;
     } else {
         track0 = dip->track == 0;
         st3 = dip->ready ? DRIVE_STATUS_READY : 0; /* Drive Ready */
@@ -828,11 +829,11 @@ static t_stat i8272_specify(I8272* chip)
     return SCPE_OK;
 }
 
-static t_bool i8272_secrw(I8272* chip,uint8 cmd)
+static bool i8272_secrw(I8272* chip,uint8 cmd)
 {
     TRACK_INFO* curtrk;
     I8272_DRIVE_INFO* dip;
-    if ((dip = i8272_decodecmdbits(chip)) == NULL) return FALSE;
+    if ((dip = i8272_decodecmdbits(chip)) == NULL) return false;
 
     chip->fdc_seek_end = dip->track != chip->cmd[2] ? 1 : 0;
     if (dip->track != chip->cmd[2]) {
@@ -873,10 +874,10 @@ static t_bool i8272_secrw(I8272* chip,uint8 cmd)
             chip->fdc_sec_len);
     chip->result_cnt = 0;
     chip->fdc_nd_cnt = 0; /* start buffer transfer */
-    return TRUE;
+    return true;
 }
 
-static t_bool i8272_secwrite(I8272* chip)
+static bool i8272_secwrite(I8272* chip)
 {
     unsigned int readlen;
     unsigned int flags = 0;
@@ -890,19 +891,19 @@ static t_bool i8272_secwrite(I8272* chip)
     chip->fdc_sector++;
     if (chip->fdc_sector > chip->fdc_eot) {
         i8272_resultphase(chip,200);
-        return TRUE;
+        return true;
     }
 
     NEXTSTATE(S_DATAWRITE);
     if (chip->fdc_nd) { /* non-DMA */
         chip->fdc_nd_cnt = 0;
         i8272_interrupt(chip,10); /* non-DMA: initiate next sector write */
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
-static t_bool i8272_datawrite(I8272* chip,uint32 value,I8272_DRIVE_INFO* dip)
+static bool i8272_datawrite(I8272* chip,uint32 value,I8272_DRIVE_INFO* dip)
 {
     int i;
 
@@ -910,7 +911,7 @@ static t_bool i8272_datawrite(I8272* chip,uint32 value,I8272_DRIVE_INFO* dip)
     if (chip->fdc_sector > chip->fdc_eot) {
         TRACE_PRINT0(DBG_FD_WRDATA,"Finished sector write");
         i8272_resultphase(chip,200);
-        return TRUE;
+        return true;
     }
     if (chip->fdc_nd == 0) { /* DMA */
         for (i=0; i< chip->fdc_secsz; i++) {
@@ -929,11 +930,11 @@ static t_bool i8272_datawrite(I8272* chip,uint32 value,I8272_DRIVE_INFO* dip)
             /* not yet finished buffering data, leave writer routine */
             i8272_interrupt(chip,10);
             TRACE_PRINT0(DBG_FD_WRDATA,"Expect more data");
-            return TRUE;
+            return true;
         }
     }
     TRACE_PRINT0(DBG_FD_WRDATA,"Finished with data write");
-    return FALSE;
+    return false;
 }
 
 t_stat i8272_write(I8272* chip, int addr, uint32 value)

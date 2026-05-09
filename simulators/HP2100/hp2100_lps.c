@@ -138,6 +138,7 @@
 
 
 
+#include <stdbool.h>
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -183,7 +184,7 @@ static struct {
 static int32  lps_ccnt = 0;                     /* character count */
 static int32  lps_lcnt = 0;                     /* line count */
 static int32  lps_sta = 0;                      /* printer status */
-static t_bool lps_fast_timing = TRUE;           /* timing type */
+static bool lps_fast_timing = true;             /* timing type */
 static uint32 lps_power = LPS_ON;               /* power state */
 
 /* Hardware timing:
@@ -342,7 +343,7 @@ static SIGNALS_VALUE lps_interface (const DIB *dibptr, INBOUND_SET inbound_signa
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
-t_bool         irq_enabled = FALSE;
+bool           irq_enabled = false;
 int32          current_line, current_char;
 
 while (working_set) {                                   /* while signals remain */
@@ -499,7 +500,7 @@ while (working_set) {                                   /* while signals remain 
 
 
         case ioIEN:                                     /* Interrupt Enable */
-            irq_enabled = TRUE;                         /* permit IRQ to be asserted */
+            irq_enabled = true;                         /* permit IRQ to be asserted */
             break;
 
 

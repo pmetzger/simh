@@ -32,6 +32,7 @@
    09-Mar-2017  RMS     Fixed unclosed file returns in CCT load (COVERITY)
 */
 
+#include <stdbool.h>
 #include "sigma_io_defs.h"
 
 /* Device definitions */
@@ -134,7 +135,7 @@ t_stat lp_load_cct (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat lp_read_cct (FILE *cfile);
 uint32 lp_fmt (UNIT *uptr);
 uint32 lp_skip (UNIT *uptr, uint32 ch);
-uint32 lp_space (UNIT *uptr, uint32 lines, t_bool skp);
+uint32 lp_space (UNIT *uptr, uint32 lines, bool skp);
 uint32 lp_print (UNIT *uptr);
 
 /* LP data structures
@@ -348,7 +349,7 @@ else if ((c & ~(((lp_model == LP_7450)? 0x20: 0) | SPC_MASK)) == FMT_SPC) {
         if (CHP (CH_BOF, lp_cct[(lp_cctp + i) % lp_cctl]))
             return lp_skip (uptr, CH_TOF);              /* found, TOF */
         }
-    return lp_space (uptr, c, FALSE);                   /* space */
+    return lp_space (uptr, c, false);                   /* space */
     }
 else if ((c & ~CCH_MASK) == FMT_SKP)                    /* skip? */
     return lp_skip (uptr, c & CCH_MASK);                /* skip to chan */
@@ -363,15 +364,15 @@ uint32 i;
 
 for (i = 1; i < (lp_cctl + 1); i++) {                   /* sweep thru CCT */
     if (CHP (ch, lp_cct[(lp_cctp + i) % lp_cctl]))      /* channel punched? */
-        return lp_space (uptr, i, TRUE);                /* space to chan */
+        return lp_space (uptr, i, true);                /* space to chan */
     }
 lp_run = LPDV_RUN;                                      /* runaway CCT */
-return lp_space (uptr, lp_cctl, TRUE);                  /* space max */
+return lp_space (uptr, lp_cctl, true);                  /* space max */
 }
 
 /* Space routine */
 
-uint32 lp_space (UNIT *uptr, uint32 cnt, t_bool skp)
+uint32 lp_space (UNIT *uptr, uint32 cnt, bool skp)
 {
 uint32 i, cc;
 

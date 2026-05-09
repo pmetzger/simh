@@ -7,6 +7,7 @@
 // SPDX-FileCopyrightText: 1993-2022 Robert M Supnik
 // SPDX-License-Identifier: MIT
 
+#include <stdbool.h>
 #include "sim_defs.h"
 #include "scp.h"
 
@@ -27,7 +28,7 @@ static int32 sim_brk_lnt = 0;
 static int32 sim_brk_ins = 0;
 
 /* Search one breakpoint address for an entry matching the given type. */
-static BRKTAB *sim_brk_fnd_ex(t_addr loc, uint32 btyp, t_bool any_typ,
+static BRKTAB *sim_brk_fnd_ex(t_addr loc, uint32 btyp, bool any_typ,
                               uint32 spc)
 {
     BRKTAB *bp = sim_brk_fnd(loc);
@@ -246,7 +247,7 @@ t_stat sim_brk_clrall(int32 sw)
 /* Show one breakpoint definition. */
 t_stat sim_brk_show(FILE *st, t_addr loc, int32 sw)
 {
-    BRKTAB *bp = sim_brk_fnd_ex(loc, sw & (~SWMASK('C')), FALSE, 0);
+    BRKTAB *bp = sim_brk_fnd_ex(loc, sw & (~SWMASK('C')), false, 0);
     DEVICE *dptr;
     int32 i, any;
 
@@ -360,7 +361,7 @@ uint32 sim_brk_test(t_addr loc, uint32 btyp)
     if (sim_brk_summ & BRK_TYP_DYN_ALL)
         btyp |= BRK_TYP_DYN_ALL;
 
-    if ((bp = sim_brk_fnd_ex(loc, btyp, TRUE, spc))) {
+    if ((bp = sim_brk_fnd_ex(loc, btyp, true, spc))) {
         double s_gtime = sim_gtime();
 
         if (bp->time_fired[spc] == s_gtime)

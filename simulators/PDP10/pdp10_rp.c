@@ -72,6 +72,7 @@
 #include "pdp10_defs.h"
 #include "sim_disk.h"
 #include <math.h>
+#include <stdbool.h>
 
 #define RP_NUMDR        8                               /* #drives */
 #define RP_NUMWD        128                             /* 36b words/sector */
@@ -1158,7 +1159,7 @@ t_stat r;
 static const char *drives[] = {"RM03", "RP04", "RM80", "RP06", "RM05", "RP07", NULL};
 
 uptr->capac = drv_tab[GET_DTYPE (uptr->flags)].size;
-r = sim_disk_attach_ex (uptr, cptr, RP_NUMWD * sizeof (d10), sizeof (d10), TRUE, DBG_DSK,
+r = sim_disk_attach_ex (uptr, cptr, RP_NUMWD * sizeof (d10), sizeof (d10), true, DBG_DSK,
                            drv_tab[GET_DTYPE (uptr->flags)].name,
                            0, 0, (uptr->flags & UNIT_NOAUTO) ? NULL : drives);
 if (r != SCPE_OK)

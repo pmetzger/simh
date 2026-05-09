@@ -138,6 +138,7 @@
 
 #include "pdp10_defs.h"
 #include <setjmp.h>
+#include <stdbool.h>
 
 #define PCQ_SIZE        64                              /* must be 2**n */
 #define PCQ_MASK        (PCQ_SIZE - 1)
@@ -166,8 +167,8 @@ a10 saved_PC = 0;                                       /* scp: saved PC */
 d10 pager_word = 0;                                     /* pager: error word */
 a10 pager_PC = 0;                                       /* pager: saved PC */
 int32 pager_flags = 0;                                  /* pager: trap flags */
-t_bool pager_pi = FALSE;                                /* pager: in pi seq */
-t_bool pager_tc = FALSE;                                /* pager: trap cycle */
+bool pager_pi = false;                                  /* pager: in pi seq */
+bool pager_tc = false;                                  /* pager: trap cycle */
 d10 ebr = 0;                                            /* exec base reg */
 d10 ubr = 0;                                            /* user base reg */
 d10 hsb = 0;                                            /* halt status block */
@@ -210,7 +211,7 @@ int32 apr_serial = -1;                                  /* CPU Serial number */
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
 t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
 t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
 t_stat cpu_set_serial (UNIT *uptr, int32 val, const char *cptr, void *desc);
@@ -239,16 +240,16 @@ a10 calc_ea (d10 inst, int32 prv);
 a10 calc_ioea (d10 inst, int32 prv);
 d10 calc_jrstfea (d10 inst, int32 pflgs);
 void pi_dismiss (void);
-void set_newflags (d10 fl, t_bool jrst);
-extern t_bool aprid (a10 ea, int32 prv);
-t_bool wrpi (a10 ea, int32 prv);
-t_bool rdpi (a10 ea, int32 prv);
-t_bool czpi (a10 ea, int32 prv);
-t_bool copi (a10 ea, int32 prv);
-t_bool wrapr (a10 ea, int32 prv);
-t_bool rdapr (a10 ea, int32 prv);
-t_bool czapr (a10 ea, int32 prv);
-t_bool coapr (a10 ea, int32 prv);
+void set_newflags (d10 fl, bool jrst);
+extern bool aprid (a10 ea, int32 prv);
+bool wrpi (a10 ea, int32 prv);
+bool rdpi (a10 ea, int32 prv);
+bool czpi (a10 ea, int32 prv);
+bool copi (a10 ea, int32 prv);
+bool wrapr (a10 ea, int32 prv);
+bool rdapr (a10 ea, int32 prv);
+bool czapr (a10 ea, int32 prv);
+bool coapr (a10 ea, int32 prv);
 int32 pi_eval (void);
 int32 test_int (void);
 void set_ac_display (d10 *acbase);
@@ -263,63 +264,63 @@ extern void dfmp (int32 ac, d10 *rs);
 extern void dfdv (int32 ac, d10 *rs);
 extern void dmul (int32 ac, d10 *rs);
 extern void ddiv (int32 ac, d10 *rs);
-extern void fix (int32 ac, d10 mb, t_bool rnd);
-extern d10 fad (d10 val, d10 mb, t_bool rnd, int32 inv);
-extern d10 fmp (d10 val, d10 mb, t_bool rnd);
-extern t_bool fdv (d10 val, d10 mb, d10 *rs, t_bool rnd);
+extern void fix (int32 ac, d10 mb, bool rnd);
+extern d10 fad (d10 val, d10 mb, bool rnd, int32 inv);
+extern d10 fmp (d10 val, d10 mb, bool rnd);
+extern bool fdv (d10 val, d10 mb, d10 *rs, bool rnd);
 extern d10 fsc (d10 val, a10 ea);
 extern d10 fltr (d10 mb);
 extern int xtend (int32 ac, a10 ea, int32 pflgs);
 extern void xtcln (int32 rlog);
 extern d10 map (a10 ea, int32 prv);
 extern d10 imul (d10 val, d10 mb);
-extern t_bool idiv (d10 val, d10 mb, d10 *rs);
+extern bool idiv (d10 val, d10 mb, d10 *rs);
 extern void mul (d10 val, d10 mb, d10 *rs);
-extern t_bool divi (int32 ac, d10 mb, d10 *rs);
-extern t_bool io710 (int32 ac, a10 ea);
-extern t_bool io711 (int32 ac, a10 ea);
+extern bool divi (int32 ac, d10 mb, d10 *rs);
+extern bool io710 (int32 ac, a10 ea);
+extern bool io711 (int32 ac, a10 ea);
 extern d10 io712 (a10 ea);
 extern void io713 (d10 val, a10 ea);
 extern void io714 (d10 val, a10 ea);
 extern void io715 (d10 val, a10 ea);
-extern t_bool io720 (int32 ac, a10 ea);
-extern t_bool io721 (int32 ac, a10 ea);
+extern bool io720 (int32 ac, a10 ea);
+extern bool io721 (int32 ac, a10 ea);
 extern d10 io722 (a10 ea);
 extern void io723 (d10 val, a10 ea);
 extern void io724 (d10 val, a10 ea);
 extern void io725 (d10 val, a10 ea);
-extern t_bool clrcsh (a10 ea, int32 prv);
-extern t_bool clrpt (a10 ea, int32 prv);
-extern t_bool wrubr (a10 ea, int32 prv);
-extern t_bool wrebr (a10 ea, int32 prv);
-extern t_bool wrhsb (a10 ea, int32 prv);
-extern t_bool wrspb (a10 ea, int32 prv);
-extern t_bool wrcsb (a10 ea, int32 prv);
-extern t_bool wrpur (a10 ea, int32 prv);
-extern t_bool wrcstm (a10 ea, int32 prv);
-extern t_bool ldbr1 (a10 ea, int32 prv);
-extern t_bool ldbr2 (a10 ea, int32 prv);
-extern t_bool ldbr3 (a10 ea, int32 prv);
-extern t_bool ldbr4 (a10 ea, int32 prv);
-extern t_bool rdubr (a10 ea, int32 prv);
-extern t_bool rdebr (a10 ea, int32 prv);
-extern t_bool rdhsb (a10 ea, int32 prv);
-extern t_bool rdspb (a10 ea, int32 prv);
-extern t_bool rdcsb (a10 ea, int32 prv);
-extern t_bool rdpur (a10 ea, int32 prv);
-extern t_bool rdcstm (a10 ea, int32 prv);
-extern t_bool sdbr1 (a10 ea, int32 prv);
-extern t_bool sdbr2 (a10 ea, int32 prv);
-extern t_bool sdbr3 (a10 ea, int32 prv);
-extern t_bool sdbr4 (a10 ea, int32 prv);
-extern t_bool rdtim (a10 ea, int32 prv);
-extern t_bool rdint (a10 ea, int32 prv);
-extern t_bool wrtim (a10 ea, int32 prv);
-extern t_bool wrint (a10 ea, int32 prv);
-extern t_bool rdpcst (a10 ea, int32 prv);
-extern t_bool wrpcst (a10 ea, int32 prv);
-extern t_bool spm (a10 ea, int32 prv);
-extern t_bool lpmr (a10 ea, int32 prv);
+extern bool clrcsh (a10 ea, int32 prv);
+extern bool clrpt (a10 ea, int32 prv);
+extern bool wrubr (a10 ea, int32 prv);
+extern bool wrebr (a10 ea, int32 prv);
+extern bool wrhsb (a10 ea, int32 prv);
+extern bool wrspb (a10 ea, int32 prv);
+extern bool wrcsb (a10 ea, int32 prv);
+extern bool wrpur (a10 ea, int32 prv);
+extern bool wrcstm (a10 ea, int32 prv);
+extern bool ldbr1 (a10 ea, int32 prv);
+extern bool ldbr2 (a10 ea, int32 prv);
+extern bool ldbr3 (a10 ea, int32 prv);
+extern bool ldbr4 (a10 ea, int32 prv);
+extern bool rdubr (a10 ea, int32 prv);
+extern bool rdebr (a10 ea, int32 prv);
+extern bool rdhsb (a10 ea, int32 prv);
+extern bool rdspb (a10 ea, int32 prv);
+extern bool rdcsb (a10 ea, int32 prv);
+extern bool rdpur (a10 ea, int32 prv);
+extern bool rdcstm (a10 ea, int32 prv);
+extern bool sdbr1 (a10 ea, int32 prv);
+extern bool sdbr2 (a10 ea, int32 prv);
+extern bool sdbr3 (a10 ea, int32 prv);
+extern bool sdbr4 (a10 ea, int32 prv);
+extern bool rdtim (a10 ea, int32 prv);
+extern bool rdint (a10 ea, int32 prv);
+extern bool wrtim (a10 ea, int32 prv);
+extern bool wrint (a10 ea, int32 prv);
+extern bool rdpcst (a10 ea, int32 prv);
+extern bool wrpcst (a10 ea, int32 prv);
+extern bool spm (a10 ea, int32 prv);
+extern bool lpmr (a10 ea, int32 prv);
 extern int32 pi_ub_vec (int32 lvl, int32 *uba);
 extern t_stat tim_set_mod (UNIT *uptr, int32 val, const char *cptr, void *desc);
 
@@ -447,24 +448,24 @@ const d10 bytemask[64] = { 0,
  ONES, ONES, ONES, ONES, ONES, ONES, ONES, ONES, ONES
  };
 
-static t_bool (*io700d[16])(a10, int32) = {
+static bool (*io700d[16])(a10, int32) = {
     &aprid, NULL, NULL, NULL, &wrapr, &rdapr, &czapr, &coapr,
     NULL, NULL, NULL, NULL, &wrpi, &rdpi, &czpi, &copi
     };
-static t_bool (*io701d[16])(a10, int32) = {
+static bool (*io701d[16])(a10, int32) = {
     NULL, &rdubr, &clrpt, &wrubr, &wrebr, &rdebr, NULL, NULL,
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     };
-static t_bool (*io702d[16])(a10, int32) = {
+static bool (*io702d[16])(a10, int32) = {
     &rdspb, &rdcsb, &rdpur, &rdcstm, &rdtim, &rdint, &rdhsb, NULL,
     &wrspb, &wrcsb, &wrpur, &wrcstm, &wrtim, &wrint, &wrhsb, NULL
     };
 #define io700i io700d
-static t_bool (*io701i[16])(a10, int32) = {
+static bool (*io701i[16])(a10, int32) = {
     &clrcsh, &rdubr, &clrpt, &wrubr, &wrebr, &rdebr, NULL, NULL,
     NULL, &rdpcst, NULL, &wrpcst, NULL, NULL, NULL, NULL
     };
-static t_bool (*io702i[16])(a10, int32) = {
+static bool (*io702i[16])(a10, int32) = {
     &sdbr1, &sdbr2, &sdbr3, &sdbr4, &rdtim, &rdint, &rdhsb, &spm,
     &ldbr1, &ldbr2, &ldbr3, &ldbr4, &wrtim, &wrint, &wrhsb, &lpmr
     };
@@ -545,14 +546,14 @@ static t_stat jrst_tab[16] = {
 #define CIBP            if (!TSTF (F_FPD)) { ibp (ea, pflgs); SETF (F_FPD); }
 #define LDB             AC(ac) = ldb (ea, pflgs)
 #define DPB             dpb (AC(ac), ea, pflgs)
-#define FAD(s)          fad (AC(ac), s, FALSE, 0)
-#define FADR(s)         fad (AC(ac), s, TRUE, 0)
-#define FSB(s)          fad (AC(ac), s, FALSE, 1)
-#define FSBR(s)         fad (AC(ac), s, TRUE, 1)
-#define FMP(s)          fmp (AC(ac), s, FALSE)
-#define FMPR(s)         fmp (AC(ac), s, TRUE)
-#define FDV(s)          fdv (AC(ac), s, rs, FALSE)
-#define FDVR(s)         fdv (AC(ac), s, rs, TRUE)
+#define FAD(s)          fad (AC(ac), s, false, 0)
+#define FADR(s)         fad (AC(ac), s, true, 0)
+#define FSB(s)          fad (AC(ac), s, false, 1)
+#define FSBR(s)         fad (AC(ac), s, true, 1)
+#define FMP(s)          fmp (AC(ac), s, false)
+#define FMPR(s)         fmp (AC(ac), s, true)
+#define FDV(s)          fdv (AC(ac), s, rs, false)
+#define FDVR(s)         fdv (AC(ac), s, rs, true)
 #define MOVN(s)         NEG (s); MOVNF(s)
 #define MOVM(s)         ABS (s); MOVMF(s)
 #define ADD(s)          add (AC(ac), s)
@@ -640,8 +641,8 @@ if ((r = build_dib_tab ()) != SCPE_OK)                  /* build, chk dib_tab */
     return r;
 pager_PC = PC = saved_PC & AMASK;                       /* load local PC */
 set_dyn_ptrs ();                                        /* set up local ptrs */
-pager_tc = FALSE;                                       /* not in trap cycle */
-pager_pi = FALSE;                                       /* not in pi sequence */
+pager_tc = false;                                       /* not in trap cycle */
+pager_pi = false;                                       /* not in pi sequence */
 rlog = 0;                                               /* not in extend */
 pi_eval ();                                             /* eval pi system */
 if (!Q_ITS)                                             /* ~ITS, clr 1-proc */
@@ -694,7 +695,7 @@ else if (abortval == PAGE_FAIL) {                       /* page fail */
         mb = ReadP (ADDA (ea, 2));
         }
     JUMP (mb);                                          /* set new PC */
-    set_newflags (mb, FALSE);                           /* set new flags */
+    set_newflags (mb, false);                           /* set new flags */
     pi_eval ();                                         /* eval pi system */
     }
 else PC = pager_PC;                                     /* intr, restore PC */
@@ -705,10 +706,10 @@ for ( ;; ) {                                            /* loop until ABORT */
 int32 op, ac, i, st, xr, xct_cnt, its_2pr, pflgs;
 a10 ea;
 d10 inst, mb, indrct, rs[2];
-t_bool (*fptr)(int32, int32);
+bool (*fptr)(int32, int32);
 
 pager_PC = PC;                                          /* update pager PC */
-pager_tc = FALSE;                                       /* not in trap cycle */
+pager_tc = false;                                       /* not in trap cycle */
 pflgs = 0;                                              /* not in PXCT */
 xct_cnt = 0;                                            /* count XCT's */
 if (sim_interval <= 0) {                                /* check clock queue */
@@ -745,18 +746,18 @@ if (sim_interval <= 0) {                                /* check clock queue */
 
 if (qintr) {
     int32 vec, uba;
-    pager_pi = TRUE;                                    /* flag in pi seq */
+    pager_pi = true;                                    /* flag in pi seq */
     if (fe_xct) {                                       /* Console forced execute? */
         qintr = 0;
         if (fe_xct == 1) {                              /* Forced reload */
             PC = saved_PC;                              /* Bootstrap PC */
-            pager_pi = FALSE;
+            pager_pi = false;
             ebr = ubr = 0;                              /* Exec mode, paging & PI off */
             pag_reset (&pag_dev);
             pi_on = pi_enb = pi_act= pi_prq =
                 apr_enb = apr_flg = apr_lvl = its_1pr = 0;
             rlog = 0;
-            set_newflags (0, FALSE);
+            set_newflags (0, false);
             fe_xct = 0;
             continue;
         }
@@ -779,7 +780,7 @@ if (qintr) {
     if (op == OP_JSR) {                                 /* JSR? */
         d10 flpc = FLPC;
 
-        set_newflags (0, FALSE);                        /* set new flags */
+        set_newflags (0, false);                        /* set new flags */
         ea = calc_ea (inst, MM_CUR);                    /* calc ea, cur mode */
         WriteE (ea, flpc);                              /* save flags+PC, exec */
         JUMP (INCA (ea));                               /* PC = ea + 1 */
@@ -787,14 +788,14 @@ if (qintr) {
     else if ((op == OP_JRST) && (ac == AC_XPCW)) {      /* XPCW? */
         d10 flz = XWD (flags, 0);
 
-        set_newflags (0, FALSE);                        /* set exec flags */
+        set_newflags (0, false);                        /* set exec flags */
         ea = calc_ea (inst, MM_CUR);                    /* calc ea, cur mode */
         WriteE (ea, flz);                               /* write flags, exec */
         WriteE (ADDA (ea, 1), PC);                      /* write PC, exec */
         rs[0] = ReadE (ADDA (ea, 2));                   /* read new flags */
         rs[1] = ReadE (ADDA (ea, 3));                   /* read new PC */
         JUMP (rs[1]);                                   /* set new PC */
-        set_newflags (rs[0], FALSE);                    /* set new flags */
+        set_newflags (rs[0], false);                    /* set new flags */
         }
     else {
         fe_xct = 0;
@@ -806,7 +807,7 @@ if (qintr) {
         pi_act = pi_act | pi_l2bit[qintr];              /* set level active */
         pi_eval ();                                     /* eval pi system */
         }
-    pager_pi = FALSE;                                   /* end of sequence */
+    pager_pi = false;                                   /* end of sequence */
     if (sim_interval)                                   /* charge for instr */
         sim_interval--;
     continue;
@@ -823,7 +824,7 @@ if (qintr) {
 
 if (TSTF (F_T1 | F_T2) && PAGING) {
     Read (pager_PC = PC, MM_CUR);                       /* test fetch */
-    pager_tc = TRUE;                                    /* in a trap sequence */
+    pager_tc = true;                                    /* in a trap sequence */
     pager_flags = flags;                                /* save flags */
     ea = (TSTF (F_USR)? upta + UPT_TRBASE: epta + EPT_TRBASE)
         + GET_TRAPS (flags);
@@ -1151,7 +1152,7 @@ case 0344:  AOJ; JUMP(ea);                              /* AOJA */
             if (Q_ITS &&                                /* ITS idle? */
                 TSTF (F_USR) && (pager_PC == 017) &&    /* user mode, loc 17? */
                 (ac == 0) && (ea == 017))               /* AOJA 0,17? */
-                sim_idle (0, FALSE);
+                sim_idle (0, false);
             break;
 case 0345:  AOJ; if (TGE (AC(ac))) JUMP (ea); break;    /* AOJGE */
 case 0346:  AOJ; if (TN (AC(ac))) JUMP (ea); break;     /* AOJN */
@@ -1175,10 +1176,10 @@ case 0367:  SOJ; if (TG (AC(ac))) JUMP (ea);            /* SOJG */
             if (ea == pager_PC) {                       /* to self? */
                 if ((ac == 6) && (ea == 1) &&           /* SOJG 6,1? */
                     TSTF (F_USR) && Q_T10)              /* T10, user mode? */
-                    sim_idle (0, FALSE);                /* idle */
+                    sim_idle (0, false);                /* idle */
                 else if ((ac == 2) && (ea == 3) &&      /* SOJG 2,3? */
                     !TSTF (F_USR) && Q_T20)             /* T20, mon mode? */
-                    sim_idle (0, FALSE);                /* idle */
+                    sim_idle (0, false);                /* idle */
                 }
             break;
 case 0370:  SOS; break;                                 /* SOS */
@@ -1457,7 +1458,7 @@ MUUO:
     JUMP (mb);                                          /* set new PC */
     if (TSTF (F_USR))                                   /* set PCU */
         mb = mb | XWD (F_UIO, 0);
-    set_newflags (mb, FALSE);                           /* set new flags */
+    set_newflags (mb, false);                           /* set new flags */
     break;
 
 /* JRST - checked against KS10 ucode
@@ -1483,7 +1484,7 @@ case 0254:                                              /* JRST */
     case 002:                                           /* JRST 2 = JRSTF */
         mb = calc_jrstfea (inst, pflgs);                /* recalc addr w flgs */
         JUMP (ea);                                      /* set new PC */
-        set_newflags (mb, TRUE);                        /* set new flags */
+        set_newflags (mb, true);                        /* set new flags */
         break;
 
     case 004:                                           /* JRST 4 = halt */
@@ -1495,14 +1496,14 @@ case 0254:                                              /* JRST */
     case 005:                                           /* JRST 5 = XJRSTF */
         RD2;                                            /* read doubleword */
         JUMP (rs[1]);                                   /* set new PC */
-        set_newflags (rs[0], TRUE);                     /* set new flags */
+        set_newflags (rs[0], true);                     /* set new flags */
         break;
 
     case 006:                                           /* JRST 6 = XJEN */
         RD2;                                            /* read doubleword */
         pi_dismiss ();                                  /* page ok, dismiss */
         JUMP (rs[1]);                                   /* set new PC */
-        set_newflags (rs[0], FALSE);                    /* known to be exec */
+        set_newflags (rs[0], false);                    /* known to be exec */
         break;
 
     case 007:                                           /* JRST 7 = XPCW */
@@ -1512,7 +1513,7 @@ case 0254:                                              /* JRST */
         Write (i, XWD (flags, 0), MM_OPND);             /* write flags */
         Write (INCA (i), PC, MM_OPND);                  /* write PC */
         JUMP (rs[1]);                                   /* set new PC */
-        set_newflags (rs[0], FALSE);                    /* known to be exec */
+        set_newflags (rs[0], false);                    /* known to be exec */
         break;
 
     case 010:                                           /* JRST 10 = dismiss */
@@ -1523,7 +1524,7 @@ case 0254:                                              /* JRST */
     case 012:                                           /* JRST 12 = JEN */
         mb = calc_jrstfea (inst, pflgs);                /* recalc addr w flgs */
         JUMP (ea);                                      /* set new PC */
-        set_newflags (mb, TRUE);                        /* set new flags */
+        set_newflags (mb, true);                        /* set new flags */
         pi_dismiss ();                                  /* dismiss int */
         break;
 
@@ -1546,7 +1547,7 @@ if (its_2pr) {                                          /* 1-proc trap? */
         WriteP (upta + UPT_1PO, FLPC);                  /* wr old flgs, PC */
         mb = ReadP (upta + UPT_1PN);                    /* rd new flgs, PC */
         JUMP (mb);                                      /* set PC */
-        set_newflags (mb, FALSE);                       /* set new flags */
+        set_newflags (mb, false);                       /* set new flags */
         }
     }                                                   /* end if 2-proc */
 }                                                       /* end for */
@@ -2176,7 +2177,7 @@ return;
         (CONSZ APR)             test system flags
 */
 
-t_bool aprid (a10 ea, int32 prv)
+bool aprid (a10 ea, int32 prv)
 {
 d10 value = (Q_ITS)? UC_AIDITS: UC_AIDDEC;
 
@@ -2186,12 +2187,12 @@ else
     value |= apr_serial;
 
 Write (ea, value, prv);
-return FALSE;
+return false;
 }
 
 /* Checked against KS10 ucode */
 
-t_bool wrapr (a10 ea, int32 prv)
+bool wrapr (a10 ea, int32 prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
@@ -2214,39 +2215,39 @@ if (apr_flg & APRF_ITC) {                               /* interrupt console? */
     apr_flg = apr_flg & ~APRF_ITC;                      /* interrupt clears */
     }
 pi_eval ();                                             /* eval pi system */
-return FALSE;
+return false;
 }
 
-t_bool rdapr (a10 ea, int32 prv)
+bool rdapr (a10 ea, int32 prv)
 {
 Write (ea, (d10) APRWORD, prv);
-return FALSE;
+return false;
 }
 
-t_bool czapr (a10 ea, int32 prv)
+bool czapr (a10 ea, int32 prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
 (void) prv;
 
-return ((APRHWORD & ea)? FALSE: TRUE);
+return ((APRHWORD & ea)? false: true);
 }
 
-t_bool coapr (a10 ea, int32 prv)
+bool coapr (a10 ea, int32 prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
 (void) prv;
 
-return ((APRHWORD & ea)? TRUE: FALSE);
+return ((APRHWORD & ea)? true: false);
 }
 
 /* Routine to change the processor flags, called from JRST, MUUO, interrupt.
-   If jrst is TRUE, must munge flags for executive security.
+   If jrst is true, must munge flags for executive security.
    Because the KS10 lacks the public flag, these checks are simplified.
 */
 
-void set_newflags (d10 newf, t_bool jrst)
+void set_newflags (d10 newf, bool jrst)
 {
 int32 fl = (int32) LRZ (newf);
 
@@ -2288,7 +2289,7 @@ return;
    Checked against KS10 ucode - KS10 UUO's if <18:21> are non-zero
 */
 
-t_bool wrpi (a10 ea, int32 prv)
+bool wrpi (a10 ea, int32 prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
@@ -2311,31 +2312,31 @@ if (ea & PI_SON)                                        /* enable pi? */
 if (ea & PI_CON)                                        /* disable pi? */
     pi_on = 0;
 pi_eval ();                                             /* eval pi system */
-return FALSE;
+return false;
 }
 
-t_bool rdpi (a10 ea, int32 prv)
+bool rdpi (a10 ea, int32 prv)
 {
 Write (ea, (d10) PIWORD, prv);
-return FALSE;
+return false;
 }
 
-t_bool czpi (a10 ea, int32 prv)
+bool czpi (a10 ea, int32 prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
 (void) prv;
 
-return ((PIHWORD & ea)? FALSE: TRUE);
+return ((PIHWORD & ea)? false: true);
 }
 
-t_bool copi (a10 ea, int32 prv)
+bool copi (a10 ea, int32 prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
 (void) prv;
 
-return ((PIHWORD & ea)? TRUE: FALSE);
+return ((PIHWORD & ea)? true: false);
 }
 
 /* Priority interrupt evaluation
@@ -2429,11 +2430,11 @@ static const char *cpu_next_caveats =
 "other reason, instruction execution will continue until some other\n"
 "reason causes execution to stop.\n";
 
-t_bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
+bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 {
 #define MAX_SUB_RETURN_SKIP 10
 static t_addr returns[MAX_SUB_RETURN_SKIP+1] = {0};
-static t_bool caveats_displayed = FALSE;
+static bool caveats_displayed = false;
 a10 ea;
 d10 inst, indrct;
 int32 i, pflgs = 0;
@@ -2441,11 +2442,11 @@ t_addr adn, max_returns = MAX_SUB_RETURN_SKIP;
 int32 xr;
 
 if (!caveats_displayed) {
-    caveats_displayed = TRUE;
+    caveats_displayed = true;
     sim_printf ("%s", cpu_next_caveats);
     }
 if (SCPE_OK != get_aval ((saved_PC & AMASK), &cpu_dev, &cpu_unit))  /* get data */
-    return FALSE;
+    return false;
 inst = sim_eval[0];
 switch (GET_OP(inst))
     {
@@ -2463,7 +2464,7 @@ switch (GET_OP(inst))
             else break;
             }
         if (i >= ind_max)
-            return FALSE;                       /* too many ind? stop */
+            return false;                       /* too many ind? stop */
         returns[0] = (saved_PC & AMASK) + (1 - fprint_sym (stdnul, (saved_PC & AMASK), sim_eval, &cpu_unit, SWMASK ('M')));
         if (((t_addr)ea > returns[0]) && ((ea - returns[0]) < max_returns))
             max_returns = (t_addr)(ea - returns[0]);
@@ -2471,9 +2472,9 @@ switch (GET_OP(inst))
             returns[adn] = returns[adn-1] + 1;  /* Possible skip return */
         returns[adn] = 0;                       /* Make sure the address list ends with a zero */
         *ret_addrs = returns;
-        return TRUE;
+        return true;
     default:
-        return FALSE;
+        return false;
     }
 }
 

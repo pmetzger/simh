@@ -40,6 +40,7 @@ end
 
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,13 +50,9 @@ end
 #  include <fcntl.h>
 #endif
 
-#define TRUE  1
-#define FALSE 0
-typedef int BOOL;
-
 #define BETWEEN(v,a,b) (((v) >= (a)) && ((v) <= (b)))
 
-BOOL failed = FALSE;
+bool failed = false;
 int ncards = 0;
 
 void tobinary (char *fnin, char *fnout);
@@ -143,7 +140,7 @@ char *alltrim (char *str)
 void tobinary (char *fnin, char *fnout)
 {
     FILE *fin, *fout;
-    BOOL gotnum;
+    bool gotnum;
     int col, v, lineno = 0;
     char str[256], *c;
     unsigned short buf[80], punches;
@@ -186,7 +183,7 @@ void tobinary (char *fnin, char *fnout)
                 col = 1;
             else {
                 fprintf(stderr, "\"start\" encountered where column %d was expected, at line %d\n", lineno);
-                failed = TRUE;
+                failed = true;
             }
         }
         else if (strnicmp(str, "end", 3) == 0) {    // end is expected as 81'st data line
@@ -204,7 +201,7 @@ void tobinary (char *fnin, char *fnout)
                     fprintf(stderr, "column %d", col);
 
                 fprintf(stderr, " was expected, at line %d\n", lineno);
-                failed = TRUE;
+                failed = true;
             }
         }
         else if (BETWEEN(col, 1, 80)) {             // for column 1 to 80, we expect a data line
@@ -216,19 +213,19 @@ void tobinary (char *fnin, char *fnout)
                 punches = 0;                        // prepare to parse a data line. Punches is output binary value for column
 
                 v = 0;                              // v is current punch number
-                gotnum = FALSE;                     // gotnum indicates we've seen a punch number
+                gotnum = false;                     // gotnum indicates we've seen a punch number
 
                 for (c = str; ! failed; c++) {
                     if (BETWEEN(*c, '0', '9')) {    // this is a digit, accumulate into current punch number
                         v = v*10 + *c - '0';
-                        gotnum = TRUE;              // note that we've seen a value
+                        gotnum = true;              // note that we've seen a value
                     }
                     else if (*c == '-' || *c == '\0') {                 // at - separator or at end of string
                         if (gotnum && BETWEEN(v, 0, 12) && v != 10)
                             punches |= punchval[v];                     // add correct bit to column binary value
                         else {                                          // error if number not seen or punch number not 0..9, 11, or 12
                             fprintf(stderr, "Invalid punch value %d at line %d\n", v, lineno);
-                            failed = TRUE;
+                            failed = true;
                             break;
                         }
 
@@ -239,7 +236,7 @@ void tobinary (char *fnin, char *fnout)
                         }
                         else {
                             v = 0;                  // at separator, reset for next punch value
-                            gotnum = FALSE;
+                            gotnum = false;
                         }
                     }
                     else if (*c == '#' || *c == ';' || *c == '*') {
@@ -247,7 +244,7 @@ void tobinary (char *fnin, char *fnout)
                     }
                     else {                          // invalid character
                         fprintf(stderr, "Unexpected character '%c' at line %d\n", *c, lineno);
-                        failed = TRUE;
+                        failed = true;
                         break;
                     }
                 }
@@ -256,7 +253,7 @@ void tobinary (char *fnin, char *fnout)
         else {                                      // we expected start or end when not expecting column data
             fprintf(stderr, "\"%s\" encountered where \"%s\" was expected, at line %d\n", str,
                 (col == 0) ? "start" : "end", lineno);
-            failed = TRUE;
+            failed = true;
         }
     }
 
@@ -269,7 +266,7 @@ void toascii (char *fnin, char *fnout)
     FILE *fin, *fout;
     unsigned short buf[80], mask;
     int nread, col, row;
-    BOOL first;
+    bool first;
     static char *punchname[] = {"12", "11", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
     if (fnin == NULL) {
@@ -303,15 +300,15 @@ void toascii (char *fnin, char *fnout)
             }
             else if (buf[col] & 0x000F) {               // if low bits are set it is not a valid IBM1130 card image
                 fprintf(stderr, "Input file is not an IBM 1130 card image, low bits set found at card image %d\n", ncards);
-                failed = TRUE;
+                failed = true;
                 break;
             }
             else {
-                first = TRUE;                           // scan the 12 punch bits
+                first = true;                           // scan the 12 punch bits
                 for (mask = 0x8000, row = 0; row < 12; row++, mask >>= 1) {
                     if (buf[col] & mask) {              // output name of punch row for each bit set (12, 10, 0, ..., 9)
                         fprintf(fout, "%s%s", first ? "" : "-", punchname[row]);
-                        first = FALSE;                  // next punch will need a hyphen
+                        first = false;                  // next punch will need a hyphen
                     }
                 }
                 putc('\n', fout);
@@ -323,7 +320,7 @@ void toascii (char *fnin, char *fnout)
 
     if (nread != 0) {                           // oops, file wasn't a multiple of 160 bytes in length
         fprintf(stderr, "Input file invalid or contained a partial card image\n");
-        failed = TRUE;
+        failed = true;
     }
 
     fclose(fin);

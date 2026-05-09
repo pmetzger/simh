@@ -31,6 +31,7 @@
 
 */
 
+#include <stdbool.h>
 #include "system_defs.h"
 
 #define port_NAME       "Intel Port Map Simulator"
@@ -39,8 +40,8 @@
 
 t_stat port_svc(UNIT *uptr);
 t_stat port_reset(DEVICE *dptr);
-uint8 nulldev(t_bool io, uint8 port, uint8 devnum);
-extern uint8 reg_dev(uint8 (*routine)(t_bool, uint8, uint8), uint16, uint16, uint8);
+uint8 nulldev(bool io, uint8 port, uint8 devnum);
+extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
 void clr_dev(void);
 uint8 unreg_dev(uint16 port);
 
@@ -148,7 +149,7 @@ device addresses, if a device is plugged to a port it's routine
 address is here, 'nulldev' means no device has been registered.
 */
 struct idev {
-    uint8 (*routine)(t_bool io, uint8 data, uint8 devnum);
+    uint8 (*routine)(bool io, uint8 data, uint8 devnum);
     uint16 port;
     uint16 devnum;
     uint8 dummy;
@@ -221,7 +222,7 @@ struct idev dev_table[256] = {
 {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev}          /* 0FCH */
 };
 
-uint8 nulldev(t_bool io, uint8 data, uint8 devnum)
+uint8 nulldev(bool io, uint8 data, uint8 devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -234,7 +235,7 @@ uint8 nulldev(t_bool io, uint8 data, uint8 devnum)
     return 0;                           //corrects "illegal disk at port X8H" error in ISIS
 }
 
-uint8 reg_dev(uint8 (*routine)(t_bool io, uint8 data, uint8 devnum),
+uint8 reg_dev(uint8 (*routine)(bool io, uint8 data, uint8 devnum),
     uint16 port, uint16 devnum, uint8 dummy)
 {
     /* Shared registration signature.
