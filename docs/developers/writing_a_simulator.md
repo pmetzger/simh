@@ -191,7 +191,10 @@ defines some unambiguous data types for its interfaces:
 | `t_svalue`            | simulated signed value, `int32` or `t_int64` |
 | `t_mtrlnt`            | mag tape record length, `uint32`             |
 | `t_stat`              | status code, `int`                           |
-| `t_bool`              | true/false value, `int`                      |
+| `bool`                | true/false value from `<stdbool.h>`          |
+
+Any source file that uses `bool`, `true`, or `false` must include
+`<stdbool.h>` directly.
 
 \[The inconsistency in naming `t_int64` and `t_uint64` is due to Microsoft
 VC++, which uses `int64` as a structure name member in the master
@@ -255,9 +258,9 @@ In addition, there are several optional interfaces, which can be used for specia
 | `void (*sim_vm_sprint_addr)(…) ` | pointer to address format routine  |
 | `char (*sim_vm_read)(…)`         | pointer to command input routine   |
 | `void (*sim_vm_post)(…)` | pointer to command post-processing routine |
-| `t_bool (*sim_vm_fprint_stopped)(…)` | pointer to stop message format routine |
+| `bool (*sim_vm_fprint_stopped)(…)` | pointer to stop message format routine |
 | `t_value (*sim_vm_pc_value)(…)` | pointer to routine returning the VM PC value |
-| `t_bool (*sim_vm_is_subroutine_call)(…)` | pointer to routine that determines if the current<br>instruction is a subroutine call|
+| `bool (*sim_vm_is_subroutine_call)(…)` | pointer to routine that determines if the current<br>instruction is a subroutine call|
 | `const char *sim_vm_release` | pointer to string specifying the simulator specific<br>release version |
 | `CTAB *sim_vm_cmd` | pointer to simulator-specific command table |
 
@@ -722,9 +725,9 @@ timing subroutines are:
   unit from the active queue. If the unit is not on the queue, no
   error occurs.
 
-- `t_bool sim_is_active(UNIT *uptr)`. This routine tests whether a unit
-  is in the active queue. If it is, the routine returns `TRUE`; if it
-  is not, the routine returns `FALSE`.
+- `bool sim_is_active(UNIT *uptr)`. This routine tests whether a unit
+  is in the active queue. If it is, the routine returns `true`; if it
+  is not, the routine returns `false`.
 
 - `int32 sim_activate_time(UNIT *uptr)`. This routine returns the time the device has remaining in the queue + 1. If it is not pending, the routine returns 0.
 
@@ -886,7 +889,7 @@ Idling is a way of pausing simulation when no real work is happening,
 without losing clock calibration. The VM must detect when it is idle;
 it can then inform the host of this situation by calling `sim_idle`:
 
-- `t_bool sim_idle(int32 clk, int tick_decrement)` – attempt to idle
+- `bool sim_idle(int32 clk, int tick_decrement)` – attempt to idle
   the VM until the next scheduled I/O event, using simulated clock
   `clk` as the time base, and decrement `sim_interval` by an
   appropriate number of cycles. If a calibrated timer is not
@@ -894,7 +897,7 @@ it can then inform the host of this situation by calling `sim_idle`:
   decrement `sim_interval` by `tick_decrement`; otherwise, leave
   `sim_interval` unchanged.
 
-`sim_idle` returns `TRUE` if the VM actually idled, `FALSE` if it did not.
+`sim_idle` returns `true` if the VM actually idled, `false` if it did not.
 
 In order for idling to be well behaved on the host system, simulated
 devices which poll for input (console and terminal multiplexors are
@@ -2145,8 +2148,8 @@ If the VM responds to the `LOAD` (or `DUMP`) command, the load routine
 sequence is:
 
 - `t_stat sim_load(FILE *fptr, const char *buf, const char *fnam,
-  t_bool flag)` - If `flag = 0`, load data from binary file `fptr`. If
-  `flag = 1`, dump data to binary file `fptr`. For either command,
+  int flag)` - If `flag == 0`, load data from binary file `fptr`. If
+  `flag == 1`, dump data to binary file `fptr`. For either command,
   `buf` contains any VM-specific arguments, and `fnam` contains the
   file name.
 
@@ -2345,28 +2348,28 @@ to return `NULL` on end of file.
 
 SCP defines a pointer:
 
-`void *(sim_vm_post)(t_bool from_scp)`
+`void (*sim_vm_post)(bool from_scp)`
 
 This is initialized to `NULL`. If filled in by the VM, SCP will call
 the specified routine at the end of every command. This allows the VM
 to update any local state, such as a GUI console display. The calling
 sequence for the vm_post routine is:
 
-- `void sim_vm_postupdate(t_bool from_scp)` – if called from SCP, the
-  argument `from_scp` is `TRUE`; otherwise, it is `FALSE`.
+- `void sim_vm_postupdate(bool from_scp)` – if called from SCP, the
+  argument `from_scp` is `true`; otherwise, it is `false`.
 
 ### Simulator Stop Message Formatting
 
 SCP defines a pointer, `sim_vm_fprint_stopped`, to a function taking
 parameters of type `FILE *` and `t_stat` and returning a value of type
-`t_bool`. It is initialized to `NULL` but may be reset by the VM to
+`bool`. It is initialized to `NULL` but may be reset by the VM to
 point at a routine that will be called when a simulator stop
 occurs. The calling sequence is:
 
-- `t_bool vm_fprint_stopped(FILE *stream, t_stat reason)` – write a
+- `bool vm_fprint_stopped(FILE *stream, t_stat reason)` – write a
   simulator stop message to `stream` for the `reason` specified, and
-  return `TRUE` if SCP should append the program counter value or
-  `FALSE` if SCP should not
+  return `true` if SCP should append the program counter value or
+  `false` if SCP should not
 
 When the instruction loop is exited, SCP regains control and prints a simulator stop message. By default, the message is printed with this format:
 
@@ -2381,7 +2384,7 @@ For VM stops, this routine is called after the reason has been printed
 and before the comma, program counter label, address, and instruction
 mnemonic are printed. Depending on the reason for the stop, the
 routine may insert additional information, and it may request omission
-of the PC value by returning `FALSE` instead of `TRUE`. For example, a
+of the PC value by returning `false` instead of `true`. For example, a
 VM may define these stops and their associated formats:
 
 - `STOP_SYSHALT` prints `"System halt 3, P: 24713 (LOAD 1)"`
@@ -2389,9 +2392,9 @@ VM may define these stops and their associated formats:
 - `STOP_CDUMP` prints `"Cold dump complete, CIR: 000020"`
 
 For these examples, the VM’s `vm_fprint_stopped` routine prints `" 3"`
-and returns `TRUE` for `STOP_SYSHALT`, prints `", CIR: 030365 (HALT 5)"`
-and returns `TRUE` for `STOP_HALT`, prints `", CIR: 000020"` and returns
-`FALSE` for `STOP_CDUMP`, and prints nothing and returns `TRUE` for all
+and returns `true` for `STOP_SYSHALT`, prints `", CIR: 030365 (HALT 5)"`
+and returns `true` for `STOP_HALT`, prints `", CIR: 000020"` and returns
+`false` for `STOP_CDUMP`, and prints nothing and returns `true` for all
 other VM stops.
 
 ### VM-Specific Commands
@@ -2450,17 +2453,17 @@ execution when the subroutine returns.
 
 SCP defines a pointer:
 
-`t_bool *(sim_vm_is_subroutine_call)(t_addr **ret_addrs)`
+`bool (*sim_vm_is_subroutine_call)(t_addr **ret_addrs)`
 
 This is initialized to `NULL`.
 
 If filled in by the VM, SCP will call the specified routine to
 determine where to dynamically place breakpoints to support the `NEXT`
-command. The function return value is `TRUE` if the next instruction
+command. The function return value is `true` if the next instruction
 is a subroutine call, and argument `ret_addrs` is used to return the
 address of a zero-terminated array of addresses where breakpoints are
 to be set (i.e., the possible return addresses for the subroutine
-being called). The function return value is `FALSE` and `ret_addrs` is
+being called). The function return value is `false` and `ret_addrs` is
 unused if the next instruction is not a subroutine call.
 
 ### Displaying the simulator PC value in debug output
@@ -2577,8 +2580,8 @@ struct tmln {
     int32 txdrp; /* xmt drop count */
     int32 txbsz; /* xmt buffer size */
     int32 txbfd; /* xmt buffered flag */
-    t_bool modem_control; /* line modem control support */
-    t_bool port_speed_control; /* line programmatically sets port speed */
+    bool modem_control; /* line modem control support */
+    bool port_speed_control; /* line programmatically sets port speed */
     int32 modembits; /* modem bits which are set */
     FILE *txlog; /* xmt log file */
     FILEREF *txlogref; /* xmt log file reference */
@@ -2589,7 +2592,7 @@ struct tmln {
     TMXR *mp; /* back pointer to mux */
     char *serconfig; /* line config */
     SERHANDLE serport; /* serial port handle */
-    t_bool ser_connect_pending; /* serial connection notice pending */
+    bool ser_connect_pending; /* serial connection notice pending */
     SOCKET connecting; /* Outgoing socket while connecting */
     char *destination; /* Outgoing destination address:port */
     UNIT *uptr; /* input polling unit -default to mp-\>uptr */
@@ -2640,9 +2643,9 @@ struct tmxr {
     int23 buffered; /* Buffered line behavior and buffer size*/
     int32 sessions; /* count of tcp connections received */
     uint32 last_poll_time; /* time of last connection poll */
-    t_bool notelnet; /* default telnet capability for incoming connections */
-    t_bool modem_control; /* multiplexer supports modem control behaviors */
-    t_bool port_speed_control; /* multiplexer programmatically sets port speed */
+    bool notelnet; /* default telnet capability for incoming connections */
+    bool modem_control; /* multiplexer supports modem control behaviors */
+    bool port_speed_control; /* multiplexer programmatically sets port speed */
 };
 ```
 
@@ -3025,13 +3028,13 @@ emulated magnetic tapes. These are declared in header file
   `skipped` and call callback routine on completion.
 
 - `t_stat sim_tape_spfilebyrecf(UNIT *uptr, uint32 count, uint32
-  *skipped, uint32 *recsskipped, t_bool check_leot)` – Space unit
+  *skipped, uint32 *recsskipped, bool check_leot)` – Space unit
   `uptr` forward `count` files. The number of files actually skipped
   is returned in `skipped`. The number of records skipped is returned
   in `recsskipped`.
 
 - `t_stat sim_tape_spfilebyrecf_a(UNIT *uptr, uint32 count, uint32
-  *skipped, uint32 *recsskipped, t_bool check_leot, TAPE_PCALLBACK
+  *skipped, uint32 *recsskipped, bool check_leot, TAPE_PCALLBACK
   callback)` – Space unit `uptr` forward `count` files. The number of
   files actually skipped is returned in `skipped`. The number of
   records skipped is returned in `recsskipped` and call callback
@@ -3106,13 +3109,13 @@ emulated magnetic tapes. These are declared in header file
 - `t_stat sim_tape_reset(UNIT *uptr)` – Reset unit `uptr`. This
   routine should be called when a tape unit is reset.
 
-- `t_bool sim_tape_bot(UNIT *uptr)` – Return `TRUE` if unit `uptr` is
+- `bool sim_tape_bot(UNIT *uptr)` – Return `true` if unit `uptr` is
   at beginning-of-tape.
 
-- `t_bool sim_tape_wrp(UNIT *uptr)` – Return `TRUE` if unit `uptr` is
+- `bool sim_tape_wrp(UNIT *uptr)` – Return `true` if unit `uptr` is
    write-protected.
 
-- `t_bool sim_tape_eot(UNIT *uptr)` – Return `TRUE` if unit `uptr` has
+- `bool sim_tape_eot(UNIT *uptr)` – Return `true` if unit `uptr` has
   exceeded the capacity specified for the unit (kept in
   uptr-\>capac).
 
@@ -3201,14 +3204,14 @@ Library `sim_disk.c` provides the following routines to support
 emulated disk drives. These are declared in include file `sim_disk.h`.
 
 - `t_stat sim_disk_attach(UNIT *uptr, const char *cptr, size_t
-  sector_size, size_t xfer_element_size, t_bool dontautosize, uint32
+  sector_size, size_t xfer_element_size, bool dontchangecapac, uint32
   debugbit, const char *drivetype, uint32 pdp11_tracksize, int
   completion_delay)` – Attach disk unit `uptr` to file `cptr`. Disk
   simulators should call this routine, rather than the standard
   attach_unit routine,
 
 - `t_stat sim_disk_attach_ex(UNIT *uptr, const char *cptr, size_t
-  sector_size, size_t xfer_element_size, t_bool dontchangecapac,
+  sector_size, size_t xfer_element_size, bool dontchangecapac,
   uint32 debugbit, const char *drivetype, uint32 pdp11_tracksize, int
   completion_delay, const char **drivetypes)` – Attach disk unit
   `uptr` to file `cptr`. Disk simulators should call this routine,
@@ -3216,7 +3219,7 @@ emulated disk drives. These are declared in include file `sim_disk.h`.
   `NULL` terminated list of drive types available to autosize.
 
 - `t_stat sim_disk_attach_ex2(UNIT *uptr, const char *cptr, size_t
-  sector_size, size_t xfer_element_size, t_bool dontchangecapac,
+  sector_size, size_t xfer_element_size, bool dontchangecapac,
   uint32 debugbit, const char *drivetype, uint32 pdp11_tracksize, int
   completion_delay, const char **drivetypes, size_t reserved_sectors)`
   – Attach disk unit `uptr` to file `cptr`. Disk simulators should
@@ -3278,14 +3281,14 @@ emulated disk drives. These are declared in include file `sim_disk.h`.
 - `t_stat sim_disk_reset(UNIT *uptr)` – Reset unit `uptr`. This
   routine should be called when a disk unit is reset.
 
-- `t_bool sim_disk_isavailable(UNIT *uptr)` – Check to see if disk is
-  available for I/O, return `TRUE` if so.
+- `bool sim_disk_isavailable(UNIT *uptr)` – Check to see if disk is
+  available for I/O, return `true` if so.
 
-- `t_bool sim_disk_isavailable_a(UNIT *uptr, DISK_PCALLBACK callback)`
+- `bool sim_disk_isavailable_a(UNIT *uptr, DISK_PCALLBACK callback)`
   – Check to see if disk is available for I/O asynchronously. Return
-  `TRUE` if so.
+  `true` if so.
 
-- `t_bool sim_disk_wrp(UNIT *uptr)` – Return `TRUE` if unit `uptr` is
+- `bool sim_disk_wrp(UNIT *uptr)` – Return `true` if unit `uptr` is
   write-protected.
 
 - `t_addr sim_disk_size(UNIT *uptr)` – get disk size.
