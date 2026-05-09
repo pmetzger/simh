@@ -800,8 +800,12 @@ for (p = &regtable[0]; p->low != 0; p++) {
     if ((pa >= p->low) && (pa < p->high) && p->read) {
         if (lnt == L_BYTE)
             val = p->read (pa & ~03, L_LONG);
-        else
-            val = (p->read (pa & ~03, L_LONG) & WMASK) | (p->read ((pa & ~03) + 2, L_LONG) & (WMASK << 16));
+        else {
+            uint32 low = (uint32) p->read (pa & ~03, L_LONG);
+            uint32 high = (uint32) p->read ((pa & ~03) + 2, L_LONG);
+
+            val = (int32) u32_from_u16_pair (low, u32_high_u16 (high));
+            }
         return val;
         }
     }

@@ -14,6 +14,7 @@ void rom_wr_B(int32 pa, int32 val);
 
 #if defined(TEST_VAX630_SYSDEV)
 int32 rom_rd(int32 pa, int32 lnt);
+int32 ReadRegU(uint32 pa, int32 lnt);
 #else
 int32 rom_rd(int32 pa);
 #endif
@@ -325,10 +326,40 @@ static void test_rom_byte_write_preserves_legacy_lanes(void **state)
     }
 }
 
+#if defined(TEST_VAX630_SYSDEV)
+/* Verify unaligned register reads preserve legacy high-half composition. */
+static void test_unaligned_read_preserves_high_half(void **state)
+{
+    static const struct {
+        uint32 stored;
+        uint32 expected;
+    } cases[] = {
+        {0x12345678u, 0x12345678u},
+        {0x80015678u, 0x80015678u},
+        {0xffff5678u, 0xffff5678u},
+    };
+
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        reset_rom_byte_write_state();
+        test_rom[0] = cases[i].stored;
+        assert_int_equal((uint32)ReadRegU(ROMBASE + 1, L_WORD),
+                         cases[i].expected);
+        assert_int_equal((uint32)ReadRegU(ROMBASE + 1, 3), cases[i].expected);
+    }
+}
+#endif
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_rom_byte_write_preserves_legacy_lanes),
+#if defined(TEST_VAX630_SYSDEV)
+        cmocka_unit_test(test_unaligned_read_preserves_high_half),
+#endif
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
