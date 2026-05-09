@@ -191,10 +191,24 @@ defines some unambiguous data types for its interfaces:
 | `t_svalue`            | simulated signed value, `int32` or `t_int64` |
 | `t_mtrlnt`            | mag tape record length, `uint32`             |
 | `t_stat`              | status code, `int`                           |
-| `bool`                | true/false value from `<stdbool.h>`          |
+
+The code also depends on a number of standard C data types; many of
+the legacy integer types in the previous table will eventually be
+migrated to types from `<stdint.h>`.
+
+| Standard C data type | Interpretation                              |
+|----------------------|---------------------------------------------|
+| `bool`               | true/false value from `<stdbool.h>`         |
 
 Any source file that uses `bool`, `true`, or `false` must include
 `<stdbool.h>` directly.
+
+Machine words, registers, addresses, and similar simulated hardware
+values should be represented with unsigned types. C does not define
+signed integer overflow, and shifting signed values can produce
+surprising or non-portable results. Legacy uses of signed integers for
+machine words are being phased out of existing simulators; new
+simulators should use unsigned types consistently for these values.
 
 \[The inconsistency in naming `t_int64` and `t_uint64` is due to Microsoft
 VC++, which uses `int64` as a structure name member in the master
