@@ -13,6 +13,10 @@
 
 int32 ReadReg(uint32 pa, int32 lnt);
 int32 ReadRegU(uint32 pa, int32 lnt);
+void WriteReg(uint32 pa, int32 val, int32 lnt);
+void WriteRegU(uint32 pa, int32 val, int32 lnt);
+void ddb_WriteB(uint32 ba, uint32 bc, uint8 *buf);
+void ddb_WriteW(uint32 ba, uint32 bc, uint16 *buf);
 int32 nar_rd(int32 pa);
 int32 dz_rd(int32 pa);
 int32 rd_rd(int32 pa);
@@ -244,11 +248,99 @@ static void test_word_width_register_reads_preserve_high_half(void **state)
     assert_int_equal((uint32)ReadReg(VABASE + 2, L_WORD), 0x80010000u);
 }
 
+/* Verify DDB partial writes preserve high-bit byte and word values. */
+static void test_ddb_register_writes_preserve_high_lanes(void **state)
+{
+    static const struct {
+        uint32 addr;
+        int32 val;
+        int32 lnt;
+        uint32 expected;
+    } cases[] = {
+        {TEST_DDB_BASE, 0xa5, L_BYTE, 0x123456a5u},
+        {TEST_DDB_BASE + 3, 0xa5, L_BYTE, 0xa5345678u},
+        {TEST_DDB_BASE, 0xd617, L_WORD, 0x1234d617u},
+        {TEST_DDB_BASE + 2, 0xd617, L_WORD, 0xd6175678u},
+    };
+
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        reset_sysdev_behavior_state();
+        test_ddb[0] = 0x12345678u;
+        WriteReg(cases[i].addr, cases[i].val, cases[i].lnt);
+        assert_int_equal(test_ddb[0], cases[i].expected);
+        assert_int_equal((uint32)ReadReg(TEST_DDB_BASE, L_LONG),
+                         cases[i].expected);
+    }
+}
+
+/* Verify unaligned DDB register writes preserve high-bit field groups. */
+static void test_ddb_unaligned_register_writes_preserve_high_lanes(
+    void **state)
+{
+    static const struct {
+        uint32 addr;
+        int32 val;
+        int32 lnt;
+        uint32 expected;
+    } cases[] = {
+        {TEST_DDB_BASE + 3, 0x80, L_BYTE, 0x80345678u},
+        {TEST_DDB_BASE + 2, 0x8034, L_WORD, 0x80345678u},
+        {TEST_DDB_BASE + 1, 0x803456, 3, 0x80345678u},
+    };
+
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        reset_sysdev_behavior_state();
+        test_ddb[0] = 0x12345678u;
+        WriteRegU(cases[i].addr, cases[i].val, cases[i].lnt);
+        assert_int_equal(test_ddb[0], cases[i].expected);
+        assert_int_equal((uint32)ReadReg(TEST_DDB_BASE, L_LONG),
+                         cases[i].expected);
+    }
+}
+
+/* Verify direct DDB byte and word writes preserve high-bit lanes. */
+static void test_ddb_direct_writes_preserve_high_lanes(void **state)
+{
+    uint8 bytes[] = {0x78, 0x56, 0x34, 0x80};
+    uint8 high_byte = 0x80;
+    uint16 high_word = 0x8034;
+
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    reset_sysdev_behavior_state();
+    test_ddb[0] = 0x12345678u;
+    ddb_WriteB(3, 1, &high_byte);
+    assert_int_equal(test_ddb[0], 0x80345678u);
+
+    reset_sysdev_behavior_state();
+    ddb_WriteB(0, sizeof(bytes), bytes);
+    assert_int_equal(test_ddb[0], 0x80345678u);
+
+    reset_sysdev_behavior_state();
+    test_ddb[0] = 0x12345678u;
+    ddb_WriteW(2, sizeof(high_word), &high_word);
+    assert_int_equal(test_ddb[0], 0x80345678u);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_unaligned_register_read_preserves_high_half),
         cmocka_unit_test(test_word_width_register_reads_preserve_high_half),
+        cmocka_unit_test(test_ddb_register_writes_preserve_high_lanes),
+        cmocka_unit_test(
+            test_ddb_unaligned_register_writes_preserve_high_lanes),
+        cmocka_unit_test(test_ddb_direct_writes_preserve_high_lanes),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

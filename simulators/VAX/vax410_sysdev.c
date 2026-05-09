@@ -315,14 +315,12 @@ return 0;
 
 void ddb_WriteB (uint32 ba, uint32 bc, uint8 *buf)
 {
-uint32 i, id, sc, mask, dat;
+uint32 i, id, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
         id = (ba >> 2) & 0xFFF;
-        sc = (ba & 3) << 3;
-        mask = 0xFF << sc;
-        ddb[id] = (ddb[id] & ~mask) | (*buf << sc);
+        ddb[id] = u32_put_addr_u8_le (ddb[id], (uint32) *buf, ba);
         ba++;
         }
     }
@@ -348,8 +346,7 @@ bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i = i + 2, buf++) {             /* by words */
         id = (ba >> 2) & 0xFFF;
-        ddb[id] = (ba & 2)? (ddb[id] & 0xFFFF) | (*buf << 16):
-            (ddb[id] & ~0xFFFF) | *buf;
+        ddb[id] = u32_put_addr_u16_le (ddb[id], (uint32) *buf, ba);
         ba = ba + 2;
         }
     }
@@ -416,19 +413,20 @@ else {
 
 static int32 ddb_rd (int32 pa)
 {
-int32 rg = (pa - D16BASE) >> 2;
+uint32 rg = ((uint32) pa - D16BASE) >> 2;
 return ddb[rg];
 }
 
 static void ddb_wr (int32 pa, int32 val, int32 lnt)
 {
-int32 rg = (pa - D16BASE) >> 2;
+uint32 rg = ((uint32) pa - D16BASE) >> 2;
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
-    ddb[rg] = ((val & mask) << sc) | (ddb[rg] & ~(mask << sc));
+    if (lnt == L_WORD)
+        ddb[rg] = u32_put_addr_u16_le (ddb[rg], (uint32) val, (uint32) pa);
+    else
+        ddb[rg] = u32_put_addr_u8_le (ddb[rg], (uint32) val, (uint32) pa);
     }
-else ddb[rg] = val;
+else ddb[rg] = (uint32) val;
 }
 
 static int32 cfg_rd (int32 pa)
@@ -706,11 +704,11 @@ for (p = &regtable[0]; p->low != 0; p++) {
                 }
             }
         else if (p->read) {
-            int32 sc = (pa & 03) << 3;
-            int32 dat = p->read (pa & ~03);
+            uint32 dat = (uint32) p->read (pa & ~03);
 
-            dat = (dat & ~(insert[lnt] << sc)) | ((val & insert[lnt]) << sc);
-            p->write (pa & ~03, dat, L_LONG);
+            dat = u32_put_addr_u8_count_le (dat, (uint32) val, pa,
+                                            (uint_t) lnt);
+            p->write (pa & ~03, (int32) dat, L_LONG);
             }
         return;
         }
