@@ -1081,6 +1081,13 @@ static const char simh_help1[] =
       "3ATTACH\n"
       " The ATTACH (abbreviation AT) command associates a unit and a file:\n"
       "++ATTACH <unit> <filename>\n\n"
+#if defined (HAVE_FMEMOPEN)
+      " Disk devices using the common disk library can also attach volatile\n"
+      " memory-backed storage instead of a host file:\n"
+      "++ATTACH <disk_unit> RAMDISK:\n"
+      "++ATTACH <disk_unit> RAMDISK:TYPE=<drive-type>,SIZE=<size>\n"
+      "++ATTACH <disk_unit> RAMDISK:FROM=<diskfile>,SAVE=<diskfile>\n\n"
+#endif
       " Some devices have more detailed or specific help available with:\n\n"
       "++HELP <device> ATTACH\n\n"
       "4Switches\n"
@@ -5026,6 +5033,8 @@ if (uptr->flags & UNIT_FIX) {
 if (uptr->flags & UNIT_ATT) {
     fprint_sep (st, &toks);
     fprintf (st, "attached to %s", uptr->filename);
+    if (uptr->dynflags & UNIT_VOLATILE)
+        fprintf (st, ", volatile");
     if (uptr->flags & UNIT_RO)
         fprintf (st, ", read only");
     }
@@ -7092,6 +7101,9 @@ for (i = 0; i < (device_count + sim_internal_device_count); i++) {/* loop thru d
         fprintf (sfile, "%.0f\n", uptr->usecs_remaining);/* [V4.0] remaining wait */
         WRITE_I (uptr->pos);
         if (uptr->flags & UNIT_ATT) {
+            r = sim_disk_save_if_ramdisk (uptr);
+            if (r != SCPE_OK)
+                return r;
             fputs (uptr->filename, sfile);
             if ((uptr->flags & UNIT_BUF) &&             /* writable buffered */
                 uptr->hwmark &&                         /* files need to be */

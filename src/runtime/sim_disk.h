@@ -108,6 +108,8 @@ t_stat sim_disk_set_test_backend (UNIT *uptr,
 void sim_disk_clear_test_backend (UNIT *uptr);
 void sim_disk_clear_all_test_backends (void);
 t_stat sim_disk_detach (UNIT *uptr);
+/* Persist ramdisk contents to its SAVE= image when this unit is a ramdisk. */
+t_stat sim_disk_save_if_ramdisk (UNIT *uptr);
 t_stat sim_disk_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 t_stat sim_disk_rdsect (UNIT *uptr, t_lba lba, uint8 *buf, t_seccnt *sectsread, t_seccnt sects);
 t_stat sim_disk_rdsect_a (UNIT *uptr, t_lba lba, uint8 *buf, t_seccnt *sectsread, t_seccnt sects, DISK_PCALLBACK callback);

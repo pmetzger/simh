@@ -57,9 +57,11 @@ Internal routines:
 
 #include "sim_defs.h"
 #include "sim_disk.h"
+#include "sim_disk_ramdisk.h"
 #include "sim_ether.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
 #if defined SIM_ASYNCH_IO
@@ -138,6 +140,7 @@ struct disk_context {
     uint32              is_cdrom;           /* Host system CDROM Device */
     uint32              media_removed;      /* Media not available flag */
     bool                auto_format;        /* Format determined dynamically */
+    sim_disk_ramdisk    *ramdisk;           /* Volatile memory-backed disk */
     uint32              read_count;         /* Number of read operations performed */
     uint32              write_count;        /* Number of write operations performed */
     struct simh_disk_footer
@@ -641,6 +644,8 @@ int32 saved_quiet = sim_quiet;
 if ((uptr->flags & UNIT_ATT) == 0)
     return (t_offset)-1;
 physical_size = ctx->container_size;
+if (ctx->ramdisk != NULL)
+    return physical_size;
 sim_quiet = true;
 filesystem_size = get_filesystem_size (uptr, NULL);
 sim_quiet = saved_quiet;
@@ -894,6 +899,8 @@ sim_debug_unit (ctx->dbit, uptr, "sim_disk_wrsect(unit=%d, lba=0x%X, sects=%d)\n
 
 if (sectswritten)
     *sectswritten = 0;
+if (sim_disk_wrp (uptr))
+    return SCPE_RO;
 ctx->write_count++;                                     /* record write operation */
 if (uptr->dynflags & UNIT_DISK_CHK) {
     DEVICE *dptr = find_dev_from_unit (uptr);
@@ -1068,6 +1075,11 @@ switch (f) {                                            /* case on format */
 
 static t_stat _err_return (UNIT *uptr, t_stat stat)
 {
+struct disk_context *ctx = (struct disk_context *)uptr->disk_ctx;
+
+if (ctx != NULL)
+    sim_disk_ramdisk_free (ctx->ramdisk);
+uptr->dynflags &= ~UNIT_VOLATILE;
 free (uptr->filename);
 uptr->filename = NULL;
 free (uptr->disk_ctx);
@@ -2443,6 +2455,11 @@ uint32 bytesread;
 if (f == NULL)
     return SCPE_MEM;
 sim_debug_unit (ctx->dbit, uptr, "get_disk_footer(%s)\n", sim_uname (uptr));
+if (ctx->ramdisk != NULL) {
+    free (f);
+    ctx->container_size = sim_disk_ramdisk_size (ctx->ramdisk);
+    return SCPE_OK;
+}
 switch (DK_GET_FMT (uptr)) {                            /* case on format */
     case DKUF_F_STD:                                    /* SIMH format */
         container_size = sim_fsize_ex (uptr->fileref);
@@ -2656,6 +2673,18 @@ switch (f->AccessFormat) {
 return SCPE_OK;
 }
 
+#if defined (HAVE_FMEMOPEN)
+/* Return the default RAMDISK: size used when SIZE= is omitted. */
+static t_offset
+sim_disk_default_ramdisk_size (UNIT *uptr,
+                               struct disk_context *ctx,
+                               DEVICE *dptr)
+{
+    return ((t_offset)uptr->capac) * ctx->capac_factor *
+           ((dptr->flags & DEV_SECTORS) ? 512 : 1);
+}
+#endif
+
 t_stat sim_disk_attach (UNIT *uptr, const char *cptr, size_t sector_size, size_t xfer_element_size, bool dontchangecapac,
                         uint32 dbit, const char *dtype, uint32 pdp11tracksize, int completion_delay)
 {
@@ -2676,11 +2705,15 @@ t_stat sim_disk_attach_ex2 (UNIT *uptr, const char *cptr, size_t sector_size, si
 struct disk_context *ctx;
 DEVICE *dptr;
 char tbuf[4*CBUFSIZE];
+#if defined (HAVE_FMEMOPEN)
+char ramdisk_dtype[CBUFSIZE];
+#endif
 FILE *(*open_function)(const char *filename, const char *mode) = sim_fopen;
 FILE *(*create_function)(const char *filename, t_offset desiredsize) = NULL;
 t_stat (*storage_function)(FILE *file, uint32 *sector_size, uint32 *removable, uint32 *is_cdrom) = NULL;
 bool created = false, copied = false, autosized = false;
 bool auto_format = false;
+bool ramdisk_attach;
 t_offset container_size, filesystem_size, current_unit_size;
 size_t tmp_size = 1;
 
@@ -2712,6 +2745,15 @@ if (sim_switches & SWMASK ('F')) {                      /* format spec? */
         return sim_messagef (SCPE_ARG, "Invalid Override Disk Format: %s\n", gbuf);
     sim_switches = sim_switches & ~(SWMASK ('F'));      /* Record Format specifier already processed */
     auto_format = true;
+    }
+uptr->dynflags &= ~UNIT_VOLATILE;
+ramdisk_attach = sim_disk_ramdisk_is_spec (cptr);
+if (ramdisk_attach) {
+    t_stat r;
+
+    r = sim_disk_ramdisk_reject_container_switches (uptr);
+    if (r != SCPE_OK)
+        return r;
     }
 if (sim_switches & SWMASK ('D')) {                      /* create difference disk? */
     char gbuf[CBUFSIZE];
@@ -2913,7 +2955,24 @@ else
         return SCPE_ARG;
         }
 
-switch (DK_GET_FMT (uptr)) {                            /* case on format */
+if (ramdisk_attach) {
+    switch (DK_GET_FMT (uptr)) {                        /* case on format */
+    case DKUF_F_AUTO:                                   /* RAMDISK uses SIMH I/O */
+        auto_format = true;
+        sim_disk_set_fmt (uptr, 0, "SIMH", NULL);
+        break;
+    case DKUF_F_STD:                                    /* RAMDISK uses SIMH I/O */
+        break;
+    case DKUF_F_RAW:
+    case DKUF_F_VHD:
+        return sim_messagef (SCPE_ARG,
+                             "RAMDISK: is not a %s disk container\n",
+                             sim_disk_fmt (uptr));
+    default:
+        return SCPE_IERR;
+    }
+}
+else switch (DK_GET_FMT (uptr)) {                       /* case on format */
     case DKUF_F_AUTO:                                   /* SIMH format */
         auto_format = true;
         if (NULL != (uptr->fileref = sim_vhd_disk_open (cptr, "rb"))) { /* Try VHD */
@@ -2983,7 +3042,68 @@ ctx->media_removed = 0;                                 /* default present */
 sim_debug_unit (ctx->dbit, uptr, "sim_disk_attach(unit=%d,filename='%s')\n", (int)(uptr - ctx->dptr->units), uptr->filename);
 ctx->auto_format = auto_format;                         /* save that we auto selected format */
 ctx->storage_sector_size = (uint32)sector_size;         /* Default */
-if ((sim_switches & SWMASK ('R')) ||                    /* read only? */
+if (ramdisk_attach) {
+#if defined (HAVE_FMEMOPEN)
+    sim_disk_ramdisk_spec *options;
+    const char *mode = "r+b";
+    bool read_only = (sim_switches & SWMASK ('R')) ||
+        ((uptr->flags & UNIT_RO) != 0);
+    bool restoring = (sim_switches & SIM_SW_REST) != 0;
+    t_offset default_size;
+    t_stat r;
+
+    if (read_only) {
+        if (((uptr->flags & UNIT_ROABLE) == 0) &&
+            ((uptr->flags & UNIT_RO) == 0))
+            return sim_messagef (_err_return (uptr, SCPE_NORO),
+                                 "%s: Read Only operation not allowed\n",
+                                 sim_uname (uptr));
+        mode = "rb";
+        }
+    r = sim_disk_ramdisk_parse_spec (cptr, &options);
+    if (r == SCPE_MEM)
+        return _err_return (uptr, r);
+    if (r != SCPE_OK)
+        return sim_messagef (_err_return (uptr, r),
+                             "%s: Invalid RAMDISK: specification '%s'\n",
+                             sim_uname (uptr), cptr);
+    if (sim_disk_ramdisk_spec_has_type (options) &&
+        ((dtype == NULL) ||
+         (strcasecmp (sim_disk_ramdisk_spec_type (options), dtype) != 0))) {
+        char cmd[CBUFSIZE];
+        const char *ramdisk_type = sim_disk_ramdisk_spec_type (options);
+
+        strlcpy (ramdisk_dtype, ramdisk_type, sizeof (ramdisk_dtype));
+        snprintf (cmd, sizeof (cmd), "%s %s", sim_uname (uptr),
+                  ramdisk_dtype);
+        r = set_cmd (0, cmd);
+        if (r != SCPE_OK) {
+            sim_disk_ramdisk_free_spec (options);
+            return sim_messagef (_err_return (uptr, r),
+                                 "%s: Cannot set drive type %s\n",
+                                 sim_uname (uptr), ramdisk_dtype);
+            }
+        dtype = ramdisk_dtype;
+        }
+    default_size = sim_disk_default_ramdisk_size (uptr, ctx, dptr);
+    r = sim_disk_ramdisk_create (uptr, options, default_size, ctx->sector_size,
+                                 restoring, mode, &uptr->fileref,
+                                 &ctx->ramdisk);
+    sim_disk_ramdisk_free_spec (options);
+    if (r != SCPE_OK)
+        return _err_return (uptr, r);
+    if (read_only) {
+        uptr->flags = uptr->flags | UNIT_RO;
+        sim_messagef (SCPE_OK, "%s: Unit is read only\n", sim_uname (uptr));
+        }
+    uptr->dynflags |= UNIT_VOLATILE;
+    ctx->container_size = sim_disk_ramdisk_size (ctx->ramdisk);
+    created = true;
+#else
+    return _err_return (uptr, sim_disk_ramdisk_unavailable (uptr));
+#endif
+    }
+else if ((sim_switches & SWMASK ('R')) ||               /* read only? */
     ((uptr->flags & UNIT_RO) != 0)) {
     if (((uptr->flags & UNIT_ROABLE) == 0) &&           /* allowed? */
         ((uptr->flags & UNIT_RO) == 0))
@@ -3118,7 +3238,7 @@ uptr->pos = 0;
 if (storage_function)
     storage_function (uptr->fileref, &ctx->storage_sector_size, &ctx->removable, &ctx->is_cdrom);
 
-if ((created) && (!copied)) {
+if ((created) && (!copied) && (!ramdisk_attach)) {
     t_stat r = SCPE_OK;
     uint8 *secbuf = (uint8 *)calloc (128, ctx->sector_size);     /* alloc temp sector buf */
 
@@ -3258,7 +3378,9 @@ if ((filesystem_size == (t_offset)-1) &&
     (ctx->footer != NULL))                      /* The presence of metadata means we already */
     filesystem_size = ctx->container_size;      /* know the interesting disk size */
 current_unit_size = ((t_offset)uptr->capac)*ctx->capac_factor*((dptr->flags & DEV_SECTORS) ? ctx->sector_size : 1);
-if (container_size && (container_size != (t_offset)-1)) {
+if (ramdisk_attach)
+    autosized = true;
+else if (container_size && (container_size != (t_offset)-1)) {
     if (dontchangecapac) {  /* autosize by changing drive type */
         t_addr saved_capac = uptr->capac;
 
@@ -3393,7 +3515,7 @@ if (container_size && (container_size != (t_offset)-1)) {
         }
     }
 
-if ((uptr->flags & UNIT_RO) == 0) {
+if (!ramdisk_attach && ((uptr->flags & UNIT_RO) == 0)) {
     bool readonly;
     int32 saved_quiet = sim_quiet;
 
@@ -3409,7 +3531,9 @@ if ((uptr->flags & UNIT_RO) == 0) {
         }
     sim_quiet = saved_quiet;
     }
-if (dtype && (created || (autosized && (ctx->footer == NULL))))
+if (!ramdisk_attach &&
+    dtype &&
+    (created || (autosized && (ctx->footer == NULL))))
     store_disk_footer (uptr, dtype);
 
 #if defined (SIM_ASYNCH_IO)
@@ -3450,6 +3574,7 @@ struct disk_context *ctx;
 int (*close_function)(FILE *f);
 FILE *fileref;
 bool auto_format;
+sim_disk_ramdisk *ramdisk;
 
 if (uptr == NULL)
     return SCPE_IERR;
@@ -3501,14 +3626,19 @@ if ((uptr->flags & UNIT_BUF) && (uptr->filebuf)) {
 update_disk_footer (uptr);                              /* Update meta data if highwater has changed */
 
 auto_format = ctx->auto_format;
+ramdisk = ctx->ramdisk;
 
 if (uptr->io_flush)
     uptr->io_flush (uptr);                              /* flush buffered data */
 
+if (ramdisk != NULL)
+    sim_messagef (SCPE_OK, "%s: discarding volatile ramdisk contents\n",
+                  sim_uname (uptr));
+
 sim_disk_clr_async (uptr);
 
 uptr->flags &= ~(UNIT_ATT | UNIT_RO);
-uptr->dynflags &= ~(UNIT_NO_FIO | UNIT_DISK_CHK);
+uptr->dynflags &= ~(UNIT_NO_FIO | UNIT_DISK_CHK | UNIT_VOLATILE);
 free (uptr->filename);
 uptr->filename = NULL;
 uptr->fileref = NULL;
@@ -3519,9 +3649,25 @@ uptr->io_flush = NULL;
 if (auto_format)
     sim_disk_set_fmt (uptr, 0, "AUTO", NULL);           /* restore file format */
 
-if (close_function (fileref) == EOF)
+if (close_function (fileref) == EOF) {
+    sim_disk_ramdisk_free (ramdisk);
     return SCPE_IOERR;
+    }
+sim_disk_ramdisk_free (ramdisk);
 return SCPE_OK;
+}
+
+/* Persist ramdisk contents to its SAVE= image when this unit is a ramdisk. */
+t_stat
+sim_disk_save_if_ramdisk (UNIT *uptr)
+{
+    struct disk_context *ctx;
+
+    if ((uptr == NULL) || ((uptr->flags & UNIT_ATT) == 0) ||
+        (uptr->disk_ctx == NULL))
+        return SCPE_OK;
+    ctx = (struct disk_context *)uptr->disk_ctx;
+    return sim_disk_ramdisk_save (uptr, ctx->ramdisk);
 }
 
 t_stat sim_disk_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
@@ -3590,6 +3736,20 @@ fprintf (st, "which describes the drive size and the simh device type in use whe
 fprintf (st, "was created.  This metadata is therefore available whenever that VHD is\n");
 fprintf (st, "attached to an emulated disk device in the future so the device type and\n");
 fprintf (st, "size can be automatically be configured.\n\n");
+#if defined (HAVE_FMEMOPEN)
+fprintf (st, "Volatile memory-backed disks are attached with RAMDISK: instead of a\n");
+fprintf (st, "disk container file:\n\n");
+fprintf (st, "    RAMDISK:                         use the current drive type size\n");
+fprintf (st, "    RAMDISK:<size>                   allocate an explicit byte size\n");
+fprintf (st, "    RAMDISK:SIZE=<size>              allocate an explicit byte size\n");
+fprintf (st, "    RAMDISK:TYPE=<type>,SIZE=<size>  select type before sizing\n\n");
+fprintf (st, "    RAMDISK:FROM=<diskfile>          copy a SIMH disk image into memory\n\n");
+fprintf (st, "    RAMDISK:SAVE=<diskfile>          image for simulator SAVE/RESTORE\n\n");
+fprintf (st, "RAMDISK: sizes accept binary K, M, and G suffixes.  FROM= copies the\n");
+fprintf (st, "source before read-only write protection is enforced.  Disk-container\n");
+fprintf (st, "management and initialization switches such as -C, -D, -E, -I, -K,\n");
+fprintf (st, "-M, -O, -V, and -X are rejected.\n\n");
+#endif
 
 if (dptr->numunits > 1) {
     uint32 i, attachable_count = 0, out_count = 0, skip_count;
@@ -3672,6 +3832,11 @@ fprintf (st, "  sim> attach %s2 -f vhd %s.vhd\n", ex->dname, ex->dtype4);
 fprintf (st, "  %s2: creating new file\n", ex->dname);
 fprintf (st, "  sim> show %s2\n", ex->dname);
 fprintf (st, "  %s2, %s, attached to %s.vhd, write enabled, %s, autosize, VHD format\n", ex->dname, ex->dsize4, ex->dtype4, ex->dtype4);
+#if defined (HAVE_FMEMOPEN)
+fprintf (st, "  sim> # attach a volatile memory-backed disk\n");
+fprintf (st, "  sim> attach %s2 RAMDISK:TYPE=%s,SIZE=%s\n",
+         ex->dname, ex->dtype4, ex->dsize4);
+#endif
 fprintf (st, "  sim> # examine the size consumed by the %s VHD file\n", ex->dsize4);
 fprintf (st, "  sim> dir %s.vhd\n", ex->dtype4);
 fprintf (st, "   Directory of H:\\Data\n\n");
@@ -5652,7 +5817,6 @@ return (t_offset)(NtoHll (hVHD->Footer.CurrentSize));
 }
 
 
-#include <stdlib.h>
 #include <time.h>
 static void
 _rand_uuid_gen (void *uuidaddr)

@@ -606,6 +606,7 @@ struct UNIT {
 #define UNIT_TM_POLL        0000002         /* TMXR Polling unit */
 #define UNIT_NO_FIO         0000004         /* fileref is NOT a FILE * */
 #define UNIT_DISK_CHK       0000010         /* disk data debug checking (sim_disk) */
+#define UNIT_VOLATILE       0000020         /* attachment storage is volatile */
 #define UNIT_TMR_UNIT       0000200         /* Unit registered as a calibrated timer */
 #define UNIT_TAPE_MRK       0000400         /* Tape Unit Tapemark */
 #define UNIT_TAPE_PNU       0001000         /* Tape Unit Position Not Updated */

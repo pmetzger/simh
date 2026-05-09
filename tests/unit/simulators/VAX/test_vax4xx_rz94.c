@@ -6,8 +6,11 @@
 
 #include "test_cmocka.h"
 
+#include "scp.h"
 #include "vax_defs.h"
 #include "sim_scsi.h"
+#include "test_simh_personality.h"
+#include "test_support.h"
 
 #define RZ_INT_ILLCMD 0x40
 #define RZ_INT_DIS 0x20
@@ -31,6 +34,7 @@ extern uint32 rz_fifo_c;
 extern uint32 rz_fifo_t;
 extern uint32 rz_txc;
 
+extern t_stat rz_reset(DEVICE *dptr);
 void rz_cmd(uint32 cmd);
 
 int32 int_req[IPL_HLVL];
@@ -42,6 +46,28 @@ jmp_buf save_env;
 
 static uint8 rz_test_scsi_buffer[256];
 static uint8 rz_test_transfer_buffer[256];
+
+#if defined (HAVE_FMEMOPEN)
+/* Install the RZ device in a minimal simulator environment for ramdisk tests. */
+static void install_rz_device(void)
+{
+    DEVICE *devices[] = {
+        &rz_dev,
+        NULL,
+    };
+
+    simh_test_reset_simulator_state();
+    assert_int_equal(simh_test_set_sim_name("VAX-RAMDISK"), 0);
+    assert_int_equal(simh_test_set_devices(devices), 0);
+    sim_dflt_dev = &rz_dev;
+    sim_switches = 0;
+    sim_switch_number = 0;
+    sim_quiet = 0;
+    sim_show_message = 1;
+    assert_int_equal(rz_reset(&rz_dev), SCPE_OK);
+    rz_unit[0].flags &= ~UNIT_DIS;
+}
+#endif
 
 int32 Map_ReadB(uint32 ba, int32 bc, uint8 *buf)
 {
@@ -95,6 +121,69 @@ static void reset_rz_command_state(void)
         rz_unit[i].up7 = NULL;
     }
 }
+
+#if defined (HAVE_FMEMOPEN)
+/* Begin a SCSI command transaction against an RZ target. */
+static void start_rz_scsi_command(uint32 target)
+{
+    rz_bus.initiator = RZ_SCSI_ID;
+    rz_bus.target = (int32)target;
+    rz_bus.phase = SCSI_CMD;
+    rz_bus.req = true;
+    rz_bus.buf_b = 0;
+    rz_bus.buf_t = 0;
+}
+
+/* Verify an RZ SCSI command completed with good status. */
+static void assert_rz_scsi_good_status(void)
+{
+    uint8 status;
+
+    assert_int_equal(rz_bus.phase, SCSI_STS);
+    assert_int_equal(scsi_read(&rz_bus, &status, 1), 1);
+    assert_int_equal(status, 0);
+}
+
+/* Write one 512-byte sector through the RZ SCSI command interface. */
+static void write_rz0_sector(uint32 lba, const uint8 *data)
+{
+    uint8 command[6] = {
+        0x0A,
+        (uint8)((lba >> 16) & 0x1F),
+        (uint8)(lba >> 8),
+        (uint8)lba,
+        1,
+        0,
+    };
+
+    start_rz_scsi_command(0);
+    assert_int_equal(scsi_write(&rz_bus, command, sizeof(command)),
+                     sizeof(command));
+    assert_int_equal(rz_bus.phase, SCSI_DATO);
+    assert_int_equal(scsi_write(&rz_bus, (uint8 *)data, 512), 512);
+    assert_rz_scsi_good_status();
+}
+
+/* Read one 512-byte sector through the RZ SCSI command interface. */
+static void read_rz0_sector(uint32 lba, uint8 *data)
+{
+    uint8 command[6] = {
+        0x08,
+        (uint8)((lba >> 16) & 0x1F),
+        (uint8)(lba >> 8),
+        (uint8)lba,
+        1,
+        0,
+    };
+
+    start_rz_scsi_command(0);
+    assert_int_equal(scsi_write(&rz_bus, command, sizeof(command)),
+                     sizeof(command));
+    assert_int_equal(rz_bus.phase, SCSI_DATI);
+    assert_int_equal(scsi_read(&rz_bus, data, 512), 512);
+    assert_rz_scsi_good_status();
+}
+#endif
 
 static void test_flush_fifo_does_not_set_interrupt(void **state)
 {
@@ -260,6 +349,62 @@ static void test_select_with_atn3_sends_three_messages_then_command(
     assert_false(rz_int & RZ_INT_DIS);
 }
 
+#if defined (HAVE_FMEMOPEN)
+/* Verify the user-facing attach/save/restore path preserves a VAX RZ
+   ramdisk's guest-visible SCSI contents. */
+static void test_ramdisk_attach_save_restore_via_rz_device(void **state)
+{
+    char temp_dir[CBUFSIZE];
+    char save_image[CBUFSIZE];
+    char state_image[CBUFSIZE];
+    char command[2 * CBUFSIZE];
+    uint8 expected[512];
+    uint8 clobber[512];
+    uint8 actual[512];
+
+    (void)state;
+
+    install_rz_device();
+    assert_int_equal(simh_test_make_temp_dir(temp_dir, sizeof(temp_dir),
+                                             "vax-rz-ramdisk"),
+                     0);
+    assert_int_equal(simh_test_join_path(save_image, sizeof(save_image),
+                                         temp_dir, "rz0-save.dsk"),
+                     0);
+    assert_int_equal(simh_test_join_path(state_image, sizeof(state_image),
+                                         temp_dir, "rz0-state.sav"),
+                     0);
+
+    assert_true(snprintf(command, sizeof(command),
+                         "RZ0 RAMDISK:SIZE=4096,SAVE=%s",
+                         save_image) < (int)sizeof(command));
+    sim_switches = 0;
+    assert_int_equal(attach_cmd(0, command), SCPE_OK);
+    assert_true((rz_unit[0].flags & UNIT_ATT) != 0);
+
+    for (size_t index = 0; index < sizeof(expected); index++)
+        expected[index] = (uint8)(index ^ 0xA5);
+    memset(clobber, 0x3C, sizeof(clobber));
+    write_rz0_sector(2, expected);
+
+    sim_switches = 0;
+    assert_int_equal(save_cmd(0, state_image), SCPE_OK);
+    write_rz0_sector(2, clobber);
+
+    sim_switches = 0;
+    assert_int_equal(restore_cmd(0, state_image), SCPE_OK);
+    assert_true((rz_unit[0].flags & UNIT_ATT) != 0);
+
+    memset(actual, 0, sizeof(actual));
+    read_rz0_sector(2, actual);
+    assert_memory_equal(actual, expected, sizeof(actual));
+
+    assert_int_equal(scsi_detach(&rz_unit[0]), SCPE_OK);
+    assert_int_equal(simh_test_remove_path(temp_dir), 0);
+    simh_test_reset_simulator_state();
+}
+#endif
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -270,6 +415,9 @@ int main(void)
         cmocka_unit_test(test_message_accepted_disconnects_after_last_message),
         cmocka_unit_test(
             test_select_with_atn3_sends_three_messages_then_command),
+#if defined (HAVE_FMEMOPEN)
+        cmocka_unit_test(test_ramdisk_attach_save_restore_via_rz_device),
+#endif
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

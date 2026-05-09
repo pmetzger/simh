@@ -88,7 +88,12 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES ".*Clang")
 endif ()
 check_symbol_exists(strlcpy string.h HAVE_STRLCPY)
 check_symbol_exists(strlcat string.h HAVE_STRLCAT)
+check_symbol_exists(fmemopen stdio.h HAVE_FMEMOPEN)
 cmake_pop_check_state()
+
+if (HAVE_FMEMOPEN)
+    target_compile_definitions(os_features INTERFACE HAVE_FMEMOPEN)
+endif ()
 
 set(SIMH_COMPAT_SOURCES)
 

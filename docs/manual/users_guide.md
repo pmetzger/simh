@@ -546,6 +546,55 @@ output-only device (like a line printer, paper tape punch, etc.), the
 file being attached will be opened in append mode thus adding to any
 existing file data beyond what may have already been there.
 
+For simulated disks that use the common disk library, `ATTACH` can also
+create a volatile memory-backed disk instead of using a host file:
+
+```
+ATTACH <disk_unit> RAMDISK:
+ATTACH <disk_unit> RAMDISK:<size>
+ATTACH <disk_unit> RAMDISK:SIZE=<size>
+ATTACH <disk_unit> RAMDISK:TYPE=<drive-type>
+ATTACH <disk_unit> RAMDISK:TYPE=<drive-type>,SIZE=<size>
+ATTACH <disk_unit> RAMDISK:TYPE=<drive-type>,FROM=<diskfile>
+ATTACH <disk_unit> RAMDISK:TYPE=<drive-type>,SAVE=<diskfile>
+```
+
+The `RAMDISK:` spelling is required.  Bare `RAMDISK` is treated as a
+normal host file name.  If no size is specified, the ramdisk uses the
+same size that would be used when creating a new disk container file for
+the current disk type.  The unnamed parameter is a size, so
+`RAMDISK:456M` is equivalent to `RAMDISK:SIZE=456M`.  Keyed options are
+order-independent.  For example, `RAMDISK:SIZE=456M,TYPE=RA81` and
+`RAMDISK:TYPE=RA81,SIZE=456M` are equivalent.
+
+Explicit sizes are byte counts by default and may use `K`, `M`, or `G`
+suffixes.  The suffixes are binary: `RAMDISK:4K` allocates 4096 bytes.
+
+`FROM=<diskfile>` copies the contents of an existing SIMH disk image into
+the ramdisk at attach time and then closes the source file.  If the source
+image is smaller than the ramdisk, the remainder is zero-filled.  If the
+source image is larger than the ramdisk, the attach is rejected.
+`FROM=` may be used with read-only attach; the ramdisk is seeded first, then
+guest writes are rejected.
+
+`SAVE=<diskfile>` names the SIMH disk image to write when simulator `SAVE`
+is run.  The `SAVE=` path is not opened, created, truncated, or validated at
+attach time.  If `SAVE=` is omitted, the host null file is used and the attach
+command warns that simulator `SAVE` and `RESTORE` will not preserve this
+ramdisk.  When simulator `RESTORE` reattaches the ramdisk, it reads the
+contents from the `SAVE=` image.  The restore image must match the ramdisk
+size exactly.
+
+Ramdisk contents are volatile.  They are discarded when the unit is
+detached or the simulator exits.  Ramdisk support requires host
+`fmemopen` support; hosts without `fmemopen`, including Windows, reject
+`RAMDISK:` attach requests.  Read-only `RAMDISK:` attaches are accepted;
+they create volatile storage that the guest can read but not write.
+
+Disk-container management and file initialization switches such as `-c`, `-d`,
+`-e`, `-i`, `-k`, `-m`, `-o`, `-v`, and `-x` do not apply to `RAMDISK:` and
+are rejected.
+
 For simulated magnetic tapes, the `ATTACH` command can specify the
 format of the attached tape image file:
 

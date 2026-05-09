@@ -3207,6 +3207,13 @@ which have sectors which are a multiple of 512 bytes. This allows
 support for alternate disk formats or disk access to physical devices
 on the host system, without change to disk device simulators.
 
+Disk simulators that attach through the `sim_disk_attach` family also
+get volatile ramdisk attach support where the host C library provides
+`fmemopen`.  Ramdisks are useful for simulator tests, including unit
+tests that need fast scratch disks and integration tests that do not need
+long-term media survival.  The user-visible `RAMDISK:` command syntax is
+documented in the user guide.
+
 The disk library does not require any special data structures.
 
 If disk drive simulators need to define private unit flags, those
