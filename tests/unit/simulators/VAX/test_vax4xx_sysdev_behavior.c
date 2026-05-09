@@ -1,9 +1,11 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "test_cmocka.h"
 
+#include "sim_types.h"
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
 
@@ -12,32 +14,32 @@
  * read behavior at the real disk data buffer entry point.
  */
 
-int32 ReadReg(uint32 pa, int32 lnt);
-int32 ReadRegU(uint32 pa, int32 lnt);
-void WriteReg(uint32 pa, int32 val, int32 lnt);
-void WriteRegU(uint32 pa, int32 val, int32 lnt);
-void ddb_WriteB(uint32 ba, uint32 bc, uint8 *buf);
-void ddb_WriteW(uint32 ba, uint32 bc, uint16 *buf);
-int32 ka_rd(int32 pa);
-int32 nar_rd(int32 pa);
-int32 dz_rd(int32 pa);
-int32 rd_rd(int32 pa);
-int32 va_rd(int32 pa);
-int32 ve_rd(int32 pa);
-void dz_wr(int32 pa, int32 val, int32 lnt);
-void rd_wr(int32 pa, int32 val, int32 lnt);
-void vc_wr(int32 pa, int32 val, int32 lnt);
-void va_wr(int32 pa, int32 val, int32 lnt);
-void ve_wr(int32 pa, int32 val, int32 lnt);
+int32_t ReadReg(uint32_t pa, int32_t lnt);
+int32_t ReadRegU(uint32_t pa, int32_t lnt);
+void WriteReg(uint32_t pa, int32_t val, int32_t lnt);
+void WriteRegU(uint32_t pa, int32_t val, int32_t lnt);
+void ddb_WriteB(uint32_t ba, uint32_t bc, uint8_t *buf);
+void ddb_WriteW(uint32_t ba, uint32_t bc, uint16_t *buf);
+int32_t ka_rd(int32_t pa);
+int32_t nar_rd(int32_t pa);
+int32_t dz_rd(int32_t pa);
+int32_t rd_rd(int32_t pa);
+int32_t va_rd(int32_t pa);
+int32_t ve_rd(int32_t pa);
+void dz_wr(int32_t pa, int32_t val, int32_t lnt);
+void rd_wr(int32_t pa, int32_t val, int32_t lnt);
+void vc_wr(int32_t pa, int32_t val, int32_t lnt);
+void va_wr(int32_t pa, int32_t val, int32_t lnt);
+void ve_wr(int32_t pa, int32_t val, int32_t lnt);
 
-extern uint32 *ddb;
-extern int32 int_mask;
-extern int32 int_req[];
+extern uint32_t *ddb;
+extern int32_t int_mask;
+extern int32_t int_req[];
 
 #if !defined(VAX_410)
 extern UNIT sysd_unit;
 extern bool tmr_inst;
-extern uint32 tmr_tir;
+extern uint32_t tmr_tir;
 #endif
 
 #if defined(VAX_410)
@@ -48,34 +50,34 @@ extern uint32 tmr_tir;
 #define TEST_DDB_WORDS (D128SIZE >> 2)
 #endif
 
-static uint32 test_ddb[TEST_DDB_WORDS];
+static uint32_t test_ddb[TEST_DDB_WORDS];
 
-uint32 *rom;
-uint32 *M;
-uint32 R[16];
-uint32 STK[5];
-uint32 PSL;
-uint32 SISR;
-uint32 fault_PC;
-uint32 p1;
-uint32 p2;
-uint32 pcq[PCQ_SIZE];
-uint32 mchk_va;
-uint32 mchk_ref;
-uint32 trpirq;
-int32 pcq_p;
-int32 in_ie;
-int32 ibcnt;
-int32 ppc;
-int32 mapen;
+uint32_t *rom;
+uint32_t *M;
+uint32_t R[16];
+uint32_t STK[5];
+uint32_t PSL;
+uint32_t SISR;
+uint32_t fault_PC;
+uint32_t p1;
+uint32_t p2;
+uint32_t pcq[PCQ_SIZE];
+uint32_t mchk_va;
+uint32_t mchk_ref;
+uint32_t trpirq;
+int32_t pcq_p;
+int32_t in_ie;
+int32_t ibcnt;
+int32_t ppc;
+int32_t mapen;
 TLBENT stlb[VA_TBSIZE];
 TLBENT ptlb[VA_TBSIZE];
-int32 hlt_pin;
-int32 crd_err;
-int32 tmr_int;
-int32 tmr_poll;
-uint32 vc_sel;
-uint32 vc_org;
+int32_t hlt_pin;
+int32_t crd_err;
+int32_t tmr_int;
+int32_t tmr_poll;
+uint32_t vc_sel;
+uint32_t vc_org;
 DEVICE cpu_dev;
 UNIT cpu_unit;
 UNIT clk_unit;
@@ -88,7 +90,7 @@ DEVICE vs_dev;
 DEVICE xs_dev;
 jmp_buf save_env;
 
-TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat)
+TLBENT fill(uint32_t va, int32_t lnt, int32_t acc, int32_t *stat)
 {
     /* Stubbed MMU fill for uncalled memory access paths. */
     (void)va;
@@ -100,7 +102,7 @@ TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat)
 }
 
 t_stat cpu_load_bootcode(const char *filename,
-                         const unsigned char *builtin_code, size_t size,
+                         const uchar_t *builtin_code, size_t size,
                          bool load_rom, t_addr offset)
 {
     /* Stubbed boot-code loader for uncalled boot paths. */
@@ -115,14 +117,14 @@ t_stat cpu_load_bootcode(const char *filename,
 
 void cpu_idle(void) {}
 
-void rom_wr_B(int32 pa, int32 val)
+void rom_wr_B(int32_t pa, int32_t val)
 {
     /* Stubbed ROM byte write for uncalled boot-code load paths. */
     (void)pa;
     (void)val;
 }
 
-t_stat or_map(uint32 index, uint8 *rom_buf, t_addr size)
+t_stat or_map(uint32_t index, uint8_t *rom_buf, t_addr size)
 {
     /* Stubbed option ROM map helper for uncalled boot paths. */
     (void)index;
@@ -132,7 +134,7 @@ t_stat or_map(uint32 index, uint8 *rom_buf, t_addr size)
     return SCPE_OK;
 }
 
-t_stat or_unmap(uint32 index)
+t_stat or_unmap(uint32_t index)
 {
     /* Stubbed option ROM unmap helper for uncalled boot paths. */
     (void)index;
@@ -140,7 +142,7 @@ t_stat or_unmap(uint32 index)
     return SCPE_OK;
 }
 
-int32 intexc(int32 vec, int32 cc, int32 ipl, int ei)
+int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei)
 {
     /* Stubbed interrupt helper for uncalled legacy paths. */
     (void)vec;
@@ -151,19 +153,19 @@ int32 intexc(int32 vec, int32 cc, int32 ipl, int ei)
     return 0;
 }
 
-int32 iccs_rd(void)
+int32_t iccs_rd(void)
 {
     return 0;
 }
 
-void iccs_wr(int32 data)
+void iccs_wr(int32_t data)
 {
     /* Stubbed interval clock write for uncalled legacy paths. */
     (void)data;
 }
 
 #define STUB_READ(name)                                                        \
-    int32 name(int32 pa)                                                       \
+    int32_t name(int32_t pa)                                                   \
     {                                                                          \
         /* Stubbed register read for uncalled dispatch entries. */             \
         (void)pa;                                                              \
@@ -172,7 +174,7 @@ void iccs_wr(int32 data)
     }
 
 #define STUB_WRITE(name)                                                       \
-    void name(int32 pa, int32 val, int32 lnt)                                  \
+    void name(int32_t pa, int32_t val, int32_t lnt)                            \
     {                                                                          \
         /* Stubbed register write for uncalled dispatch entries. */            \
         (void)pa;                                                              \
@@ -200,7 +202,7 @@ STUB_WRITE(ve_wr)
 STUB_WRITE(nvr_wr)
 STUB_WRITE(rz_wr)
 
-int32 va_rd(int32 pa)
+int32_t va_rd(int32_t pa)
 {
     /* Return a low or high 16-bit register value for word-width read tests. */
     return (pa & 2) ? 0x8001 : 0x5678;
@@ -230,8 +232,8 @@ static void reset_sysdev_behavior_state(void)
 static void test_unaligned_register_read_preserves_high_half(void **state)
 {
     static const struct {
-        uint32 stored;
-        uint32 expected;
+        uint32_t stored;
+        uint32_t expected;
     } cases[] = {
         {0x12345678u, 0x12345678u},
         {0x80015678u, 0x80015678u},
@@ -245,9 +247,9 @@ static void test_unaligned_register_read_preserves_high_half(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_sysdev_behavior_state();
         test_ddb[0] = cases[i].stored;
-        assert_int_equal((uint32)ReadRegU(TEST_DDB_BASE + 1, L_WORD),
+        assert_int_equal((uint32_t)ReadRegU(TEST_DDB_BASE + 1, L_WORD),
                          cases[i].expected);
-        assert_int_equal((uint32)ReadRegU(TEST_DDB_BASE + 1, 3),
+        assert_int_equal((uint32_t)ReadRegU(TEST_DDB_BASE + 1, 3),
                          cases[i].expected);
     }
 }
@@ -262,21 +264,21 @@ static void test_word_width_register_reads_preserve_high_half(void **state)
        This implementation does not use every parameter. */
     (void)state;
 
-    assert_int_equal((uint32)ReadRegU(VABASE, L_LONG), 0x80015678u);
-    assert_int_equal((uint32)ReadRegU(VABASE + 1, L_WORD), 0x80015678u);
-    assert_int_equal((uint32)ReadRegU(VABASE + 2, L_WORD), 0x80010000u);
-    assert_int_equal((uint32)ReadReg(VABASE, L_LONG), 0x80015678u);
-    assert_int_equal((uint32)ReadReg(VABASE + 2, L_WORD), 0x80010000u);
+    assert_int_equal((uint32_t)ReadRegU(VABASE, L_LONG), 0x80015678u);
+    assert_int_equal((uint32_t)ReadRegU(VABASE + 1, L_WORD), 0x80015678u);
+    assert_int_equal((uint32_t)ReadRegU(VABASE + 2, L_WORD), 0x80010000u);
+    assert_int_equal((uint32_t)ReadReg(VABASE, L_LONG), 0x80015678u);
+    assert_int_equal((uint32_t)ReadReg(VABASE + 2, L_WORD), 0x80010000u);
 }
 
 /* Verify DDB partial writes preserve high-bit byte and word values. */
 static void test_ddb_register_writes_preserve_high_lanes(void **state)
 {
     static const struct {
-        uint32 addr;
-        int32 val;
-        int32 lnt;
-        uint32 expected;
+        uint32_t addr;
+        int32_t val;
+        int32_t lnt;
+        uint32_t expected;
     } cases[] = {
         {TEST_DDB_BASE, 0xa5, L_BYTE, 0x123456a5u},
         {TEST_DDB_BASE + 3, 0xa5, L_BYTE, 0xa5345678u},
@@ -293,7 +295,7 @@ static void test_ddb_register_writes_preserve_high_lanes(void **state)
         test_ddb[0] = 0x12345678u;
         WriteReg(cases[i].addr, cases[i].val, cases[i].lnt);
         assert_int_equal(test_ddb[0], cases[i].expected);
-        assert_int_equal((uint32)ReadReg(TEST_DDB_BASE, L_LONG),
+        assert_int_equal((uint32_t)ReadReg(TEST_DDB_BASE, L_LONG),
                          cases[i].expected);
     }
 }
@@ -303,10 +305,10 @@ static void test_ddb_unaligned_register_writes_preserve_high_lanes(
     void **state)
 {
     static const struct {
-        uint32 addr;
-        int32 val;
-        int32 lnt;
-        uint32 expected;
+        uint32_t addr;
+        int32_t val;
+        int32_t lnt;
+        uint32_t expected;
     } cases[] = {
         {TEST_DDB_BASE + 3, 0x80, L_BYTE, 0x80345678u},
         {TEST_DDB_BASE + 2, 0x8034, L_WORD, 0x80345678u},
@@ -322,7 +324,7 @@ static void test_ddb_unaligned_register_writes_preserve_high_lanes(
         test_ddb[0] = 0x12345678u;
         WriteRegU(cases[i].addr, cases[i].val, cases[i].lnt);
         assert_int_equal(test_ddb[0], cases[i].expected);
-        assert_int_equal((uint32)ReadReg(TEST_DDB_BASE, L_LONG),
+        assert_int_equal((uint32_t)ReadReg(TEST_DDB_BASE, L_LONG),
                          cases[i].expected);
     }
 }
@@ -330,9 +332,9 @@ static void test_ddb_unaligned_register_writes_preserve_high_lanes(
 /* Verify direct DDB byte and word writes preserve high-bit lanes. */
 static void test_ddb_direct_writes_preserve_high_lanes(void **state)
 {
-    uint8 bytes[] = {0x78, 0x56, 0x34, 0x80};
-    uint8 high_byte = 0x80;
-    uint16 high_word = 0x8034;
+    uint8_t bytes[] = {0x78, 0x56, 0x34, 0x80};
+    uint8_t high_byte = 0x80;
+    uint16_t high_word = 0x8034;
 
     /* Cmocka test callback signature.
        This implementation does not use every parameter. */
@@ -366,9 +368,9 @@ static void test_ka_register_read_preserves_high_lanes(void **state)
     vc_org = 0x7e;
     int_mask = 0xa5;
 
-    assert_int_equal((uint32)ka_rd((int32)(KABASE + (3u << 2))),
+    assert_int_equal((uint32_t)ka_rd((int32_t)(KABASE + (3u << 2))),
                      0x91017ea5u);
-    assert_int_equal((uint32)ReadReg(KABASE + (3u << 2), L_LONG),
+    assert_int_equal((uint32_t)ReadReg(KABASE + (3u << 2), L_LONG),
                      0x91017ea5u);
 }
 
@@ -385,7 +387,7 @@ static void test_ka420_timer_read_preserves_high_half(void **state)
     tmr_inst = true;
     assert_int_equal(sim_activate(&sysd_unit, 0x611a), SCPE_OK);
 
-    assert_int_equal((uint32)ReadReg(KABASE + (7u << 2), L_LONG),
+    assert_int_equal((uint32_t)ReadReg(KABASE + (7u << 2), L_LONG),
                      0x9ee60000u);
 }
 
@@ -398,7 +400,7 @@ static void test_ka420_timer_write_preserves_high_half(void **state)
 
     reset_sysdev_behavior_state();
 
-    WriteReg(KABASE + (7u << 2), (int32)0xe0ad0000u, L_LONG);
+    WriteReg(KABASE + (7u << 2), (int32_t)0xe0ad0000u, L_LONG);
     assert_int_equal(tmr_tir & 0xffffu, 0xe0adu);
 }
 #endif

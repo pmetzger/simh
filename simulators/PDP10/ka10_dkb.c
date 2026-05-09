@@ -25,6 +25,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #ifndef NUM_DEVS_DKB
 #define NUM_DEVS_DKB 0
@@ -52,11 +54,11 @@
 #define PIA               u5
 #define LINE              u6
 
-t_stat dkb_devio(uint32 dev, uint64 *data);
+t_stat dkb_devio(uint32_t dev, uint64 *data);
 t_stat dkb_svc(UNIT *uptr);
 int dkb_keyboard (SIM_KEY_EVENT *kev);
 t_stat dkb_reset(DEVICE *dptr);
-t_stat dkb_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat dkb_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *dkb_description (DEVICE *dptr);
 
 
@@ -81,32 +83,32 @@ DEVICE dkb_dev = {
     NULL, NULL, &dkb_help, NULL, NULL, &dkb_description
     };
 
-t_stat dkb_devio(uint32 dev, uint64 *data) {
+t_stat dkb_devio(uint32_t dev, uint64 *data) {
      UNIT    *uptr = &dkb_unit[0];
      switch(dev & 3) {
      case CONI:
         *data = (uint64)(uptr->STATUS|uptr->PIA);
-        sim_debug(DEBUG_CONI, &dkb_dev, "DKB %03o CONI %06o\n", dev, (uint32)*data);
+        sim_debug(DEBUG_CONI, &dkb_dev, "DKB %03o CONI %06o\n", dev, (uint32_t)*data);
         break;
      case CONO:
          uptr->PIA = (int)(*data&7);
          if (*data & DONE)
             uptr->STATUS = 0;
          clr_interrupt(DKB_DEVNUM);
-         sim_debug(DEBUG_CONO, &dkb_dev, "DKB %03o CONO %06o\n", dev, (uint32)*data);
+         sim_debug(DEBUG_CONO, &dkb_dev, "DKB %03o CONO %06o\n", dev, (uint32_t)*data);
          break;
      case DATAI:
          *data = (uint64)((uptr->LINE << 18) | (uptr->DATA));
          uptr->STATUS = 0;
          clr_interrupt(DKB_DEVNUM);
-         sim_debug(DEBUG_DATAIO, &dkb_dev, "DKB %03o DATAI %06o\n", dev, (uint32)*data);
+         sim_debug(DEBUG_DATAIO, &dkb_dev, "DKB %03o DATAI %06o\n", dev, (uint32_t)*data);
          break;
     case DATAO:
          if (*data & 010000) {
              uptr->STATUS |= SPW;
              uptr->LINE = (int)(*data & 077);
          }
-         sim_debug(DEBUG_DATAIO, &dkb_dev, "DKB %03o DATAO %06o\n", dev, (uint32)*data);
+         sim_debug(DEBUG_DATAIO, &dkb_dev, "DKB %03o DATAO %06o\n", dev, (uint32_t)*data);
          break;
     }
     return SCPE_OK;
@@ -433,7 +435,7 @@ int dkb_keys (SIM_KEY_EVENT *kev, UNIT *uptr)
   }
 }
 
-uint32 dkb_line (SIM_KEY_EVENT *kev)
+uint32_t dkb_line (SIM_KEY_EVENT *kev)
 {
 #if NUM_DEVS_III
     if (kev->dev == &iii_dev)
@@ -482,7 +484,7 @@ t_stat dkb_reset( DEVICE *dptr)
 }
 
 
-t_stat dkb_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dkb_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     fprintf (stderr, "Keyboard input for the Stanford III and Data Disc displays\n");
     return SCPE_OK;

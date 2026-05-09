@@ -29,6 +29,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "i7000_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -49,18 +51,18 @@
    cdr_mod      Card Reader modifiers list
 */
 
-uint32              cdr_cmd(UNIT *, uint16, uint16);
-t_stat              cdr_boot(int32, DEVICE *);
+uint32_t            cdr_cmd(UNIT *, uint16_t, uint16_t);
+t_stat              cdr_boot(int32_t, DEVICE *);
 t_stat              cdr_srv(UNIT *);
 t_stat              cdr_reset(DEVICE *);
 t_stat              cdr_attach(UNIT *, const char *);
 t_stat              cdr_detach(UNIT *);
-extern t_stat       chan_boot(int32, DEVICE *);
+extern t_stat       chan_boot(int32_t, DEVICE *);
 #ifdef I7070
-t_stat              cdr_setload(UNIT *, int32, const char *, void *);
-t_stat              cdr_getload(FILE *, UNIT *, int32, const void *);
+t_stat              cdr_setload(UNIT *, int32_t, const char *, void *);
+t_stat              cdr_getload(FILE *, UNIT *, int32_t, const void *);
 #endif
-t_stat              cdr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              cdr_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *cdr_description(DEVICE *dptr);
 
 UNIT                cdr_unit[] = {
@@ -99,7 +101,7 @@ DEVICE              cdr_dev = {
 /*
  * Device entry points for card reader.
  */
-uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cdr_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdr_unit);
@@ -155,7 +157,7 @@ uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
 
     /* If at eof, just return EOF */
     if (sim_card_eof(uptr)) {
-        uint16             *image = (uint16 *)(uptr->up7);
+        uint16_t           *image = (uint16_t *)(uptr->up7);
         sim_debug(DEBUG_DETAIL, &cdr_dev, "%d: EOF\n", u);
         chan_set_eof(chan);
         chan_set_attn(chan);
@@ -180,7 +182,7 @@ t_stat
 cdr_srv(UNIT *uptr) {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdr_unit);
-    uint16             *image = (uint16 *)(uptr->up7);
+    uint16_t           *image = (uint16_t *)(uptr->up7);
 
     /* Waiting for disconnect */
     if (uptr->u5 & URCSTA_WDISCO) {
@@ -254,7 +256,7 @@ cdr_srv(UNIT *uptr) {
 
     /* Copy next column over */
     if (uptr->u5 & URCSTA_READ && uptr->u4 < 80) {
-        uint8                ch = 0;
+        uint8_t              ch = 0;
 
 #ifdef I7080
         /* Detect RSU */
@@ -312,7 +314,7 @@ cdr_srv(UNIT *uptr) {
 
 /* Boot from given device */
 t_stat
-cdr_boot(int32 unit_num, DEVICE * dptr)
+cdr_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
     t_stat              r;
@@ -335,7 +337,7 @@ cdr_attach(UNIT * uptr, const char *file)
     if ((r = sim_card_attach(uptr, file)) != SCPE_OK)
         return r;
     if (uptr->up7 == 0) {
-        uptr->up7 = malloc(sizeof(uint16)*80);
+        uptr->up7 = malloc(sizeof(uint16_t)*80);
         uptr->u5 &= URCSTA_BUSY|URCSTA_WDISCO;
         uptr->u4 = 0;
         uptr->u6 = 0;
@@ -361,7 +363,7 @@ cdr_detach(UNIT * uptr)
 
 #ifdef I7070
 t_stat
-cdr_setload(UNIT *uptr, int32 val, const char *cptr, void *desc)
+cdr_setload(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -386,7 +388,7 @@ cdr_setload(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-cdr_getload(FILE *st, UNIT *uptr, int32 v, const void *desc)
+cdr_getload(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -401,7 +403,7 @@ cdr_getload(FILE *st, UNIT *uptr, int32 v, const void *desc)
 #endif
 
 t_stat
-cdr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cdr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    fprintf (st, "%s\n\n", cdr_description(dptr));
 #if NUM_DEVS_CDR > 1

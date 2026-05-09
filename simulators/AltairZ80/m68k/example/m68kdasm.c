@@ -33,10 +33,13 @@
 /* ================================ INCLUDES ============================== */
 /* ======================================================================== */
 
-#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
 #include "m68k.h"
+#include "sim_types.h"
 
 #ifndef uint32
 #define uint32 uint
@@ -54,9 +57,9 @@
 /* ============================ GENERAL DEFINES =========================== */
 /* ======================================================================== */
 
-/* unsigned int and int must be at least 32 bits wide */
+/* uint_t and int must be at least 32 bits wide */
 #undef uint
-#define uint unsigned int
+#define uint uint_t
 
 /* Bit Isolation Functions */
 #define BIT_0(A)  ((A) & 0x00000001)
@@ -212,7 +215,7 @@ static void (*g_instruction_table[0x10000])(void);
 static int  g_initialized = 0;
 
 /* Address mask to simulate address lines */
-static unsigned int g_address_mask = 0xffffffff;
+static uint_t g_address_mask = 0xffffffff;
 
 static char g_dasm_str[100]; /* string to hold disassembly */
 static char g_helper_str[100]; /* string to hold helpful info */
@@ -220,7 +223,7 @@ static uint g_cpu_pc;        /* program counter */
 static uint g_cpu_ir;        /* instruction register */
 static uint g_cpu_type;
 static uint g_opcode_type;
-static const unsigned char* g_rawop;
+static const uchar_t* g_rawop;
 static uint g_rawbasepc;
 
 /* used by ops like asr, ror, addq, etc */
@@ -1721,7 +1724,7 @@ static void d68040_fpu(void)
 	};
 
 	char mnemonic[40];
-	uint32 w2, src, dst_reg;
+	uint32_t w2, src, dst_reg;
 	LIMIT_CPU_TYPES(M68030_PLUS);
 	w2 = read_imm_16();
 
@@ -3259,22 +3262,22 @@ static void d68851_p000(void)
 
 static void d68851_pbcc16(void)
 {
-	uint32 temp_pc = g_cpu_pc;
+	uint32_t temp_pc = g_cpu_pc;
 
 	sprintf(g_dasm_str, "pb%s %x", g_mmucond[g_cpu_ir&0xf], temp_pc + make_int_16(read_imm_16()));
 }
 
 static void d68851_pbcc32(void)
 {
-	uint32 temp_pc = g_cpu_pc;
+	uint32_t temp_pc = g_cpu_pc;
 
 	sprintf(g_dasm_str, "pb%s %x", g_mmucond[g_cpu_ir&0xf], temp_pc + make_int_32(read_imm_32()));
 }
 
 static void d68851_pdbcc(void)
 {
-	uint32 temp_pc = g_cpu_pc;
-	uint16 modes = read_imm_16();
+	uint32_t temp_pc = g_cpu_pc;
+	uint16_t modes = read_imm_16();
 
 	sprintf(g_dasm_str, "pb%s %x", g_mmucond[modes&0xf], temp_pc + make_int_16(read_imm_16()));
 }
@@ -3722,7 +3725,7 @@ static void build_opcode_table(void)
 /* ======================================================================== */
 
 /* Disasemble one instruction at pc and store in str_buff */
-unsigned int m68k_disassemble(char* str_buff, unsigned int pc, unsigned int cpu_type)
+uint_t m68k_disassemble(char* str_buff, uint_t pc, uint_t cpu_type)
 {
 	if(!g_initialized)
 	{
@@ -3771,7 +3774,7 @@ unsigned int m68k_disassemble(char* str_buff, unsigned int pc, unsigned int cpu_
 	return COMBINE_OPCODE_FLAGS(g_cpu_pc - pc);
 }
 
-char* m68ki_disassemble_quick(unsigned int pc, unsigned int cpu_type)
+char* m68ki_disassemble_quick(uint_t pc, uint_t cpu_type)
 {
 	static char buff[100];
 	buff[0] = 0;
@@ -3779,9 +3782,9 @@ char* m68ki_disassemble_quick(unsigned int pc, unsigned int cpu_type)
 	return buff;
 }
 
-unsigned int m68k_disassemble_raw(char* str_buff, unsigned int pc, const unsigned char* opdata, const unsigned char* argdata, unsigned int cpu_type)
+uint_t m68k_disassemble_raw(char* str_buff, uint_t pc, const uchar_t* opdata, const uchar_t* argdata, uint_t cpu_type)
 {
-	unsigned int result;
+	uint_t result;
 	(void)argdata;
 
 	g_rawop = opdata;
@@ -3792,7 +3795,7 @@ unsigned int m68k_disassemble_raw(char* str_buff, unsigned int pc, const unsigne
 }
 
 /* Check if the instruction is a valid one */
-unsigned int m68k_is_valid_instruction(unsigned int instruction, unsigned int cpu_type)
+uint_t m68k_is_valid_instruction(uint_t instruction, uint_t cpu_type)
 {
 	if(!g_initialized)
 	{

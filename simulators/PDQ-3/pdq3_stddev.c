@@ -34,6 +34,7 @@
 #include "pdq3_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern UNIT cpu_unit;
 extern UNIT con_unit[];
@@ -61,7 +62,7 @@ static t_stat tim2_svc(UNIT* uptr);
 #define CONC1_RE   0x04 /* 1=enable receiver */
 #define CONC1_RTS  0x02 /* 1=enable transmitter if CTS */
 #define CONC1_DTR  0x01 /* 1=enable CD, DSR,RI interrupts */
-static uint8 con_ctrl1;
+static uint8_t con_ctrl1;
 #define CONC2_CLENMASK 0xc0 /* number of bits */
 #define  CONC2_CLEN8   0x00
 #define  CONC2_CLEN7   0x40
@@ -72,7 +73,7 @@ static uint8 con_ctrl1;
 #define CONC2_RXCLK    0x08 /* not used, set to 1 */
 #define CONC2_CLKMASK  0x07 /* clock selector */
 #define  CONC2_CLK110  0x06 /* must be set to 001 (rate 1 clock) */
-static uint8 con_ctrl2;
+static uint8_t con_ctrl2;
 #define CONS_DSC    0x80 /* set to 1 after status read, cleared by DSR/DCD/RI */
 #define CONS_DSR    0x40 /* DSR input */
 #define CONS_CD     0x20 /* DCD input */
@@ -81,9 +82,9 @@ static uint8 con_ctrl2;
 #define CONS_OE     0x04 /* 1= overrun error */
 #define CONS_DR     0x02 /* set to 1 if data received, 0 if data read */
 #define CONS_THRE   0x01 /* set to 1 if data xmit buffer empty */
-static uint8 con_status;
-static uint8 con_xmit;
-static uint8 con_rcv;
+static uint8_t con_status;
+static uint8_t con_xmit;
+static uint8_t con_rcv;
 
 /************************************************************************************************
  * Onboard Console
@@ -168,7 +169,7 @@ t_stat con_binit(void) {
 static t_stat con_reset(DEVICE* dptr)
 {
   DEVCTXT* ctxt = (DEVCTXT*)dptr->ctxt;
-  int32 wait = con_tti->wait = CON_POLLRATE;
+  int32_t wait = con_tti->wait = CON_POLLRATE;
 
   sim_rtcn_init (wait, TMR_CONPOLL); /* init poll timer */
 
@@ -254,7 +255,7 @@ t_stat con_termsvc (UNIT *uptr) {
 
 /* Terminal input service */
 t_stat con_pollsvc(UNIT *uptr) {
-  int32 ch;
+  int32_t ch;
 
   uptr->wait = sim_rtcn_calb(CON_TPS, TMR_CONPOLL); /* calibrate timer */
   sim_activate(uptr, uptr->wait); /* restart polling */
@@ -307,7 +308,7 @@ static int get_parity(int c, int even)
 //
 // The logic in here uses the positive logic conventions as
 // described in the WD1931 data sheet, not the ones in the PDQ-3_Hardware_Users_Manual
-t_stat con_write(t_addr ioaddr, uint16 data) {
+t_stat con_write(t_addr ioaddr, uint16_t data) {
 
   /* note usart has inverted bus, so all data is inverted */
   data = (~data) & 0xff;
@@ -361,7 +362,7 @@ t_stat con_write(t_addr ioaddr, uint16 data) {
   return SCPE_OK;
 }
 
-t_stat con_read(t_addr ioaddr, uint16 *data) {
+t_stat con_read(t_addr ioaddr, uint16_t *data) {
   switch (ioaddr & 0x0003) {
   case 0: /* CTRL1 */
     *data = con_ctrl1;
@@ -393,9 +394,9 @@ t_stat con_read(t_addr ioaddr, uint16 *data) {
  ***********************************************************************************************/
 
 struct i8253 {
-  uint16 cnt;
-  uint16 preset;
-  uint16 mode;
+  uint16_t cnt;
+  uint16_t preset;
+  uint16_t mode;
   bool hilo;   /* which half of 16 bit cnt is to be set */
 };
 struct i8253 tim[3];
@@ -472,7 +473,7 @@ t_stat tim_reset(DEVICE *dptr)
   return SCPE_OK;
 }
 
-t_stat tim_read(t_addr ioaddr, uint16 *data)
+t_stat tim_read(t_addr ioaddr, uint16_t *data)
 {
   int n = ioaddr & 0x0003;
   if (n == 3)
@@ -486,17 +487,17 @@ t_stat tim_read(t_addr ioaddr, uint16 *data)
   return SCPE_OK;
 }
 
-static uint16 sethi(uint16 val, uint16 data) {
+static uint16_t sethi(uint16_t val, uint16_t data) {
   val &= 0xff;
   val |= (data << 8);
   return val;
 }
-static uint16 setlo(uint16 val, uint16 data) {
+static uint16_t setlo(uint16_t val, uint16_t data) {
   val &= 0xff00;
   val |= data;
   return val;
 }
-t_stat tim_write(t_addr ioaddr, uint16 data)
+t_stat tim_write(t_addr ioaddr, uint16_t data)
 {
   int n = ioaddr & 0x0003;
   data &= 0xff;
@@ -526,7 +527,7 @@ t_stat tim_write(t_addr ioaddr, uint16 data)
       tim[n].preset = sethi(tim[n].preset, data);
       tim[n].cnt = sethi(tim[n].cnt, data);
       if (n < 2) { /* timer 2 is triggered by timer 1 */
-        int32 time = 1250000 / tim[n].cnt;
+        int32_t time = 1250000 / tim[n].cnt;
         sim_cancel(&tim_unit[n]);
         sim_activate(&tim_unit[n], time);
       }
@@ -544,7 +545,7 @@ t_stat tim_write(t_addr ioaddr, uint16 data)
 /* baud rate timer 0 is programmed in mode 2 - actually, this is ignored */
 static t_stat tim0_svc(UNIT* uptr)
 {
-  int32 time = 1250000 / tim[0].preset;
+  int32_t time = 1250000 / tim[0].preset;
   sim_activate(uptr, time);
   sim_debug(DBG_TIM_SVC, &tim_dev, DBG_PCFORMAT2 "Timer0: SVC call\n", DBG_PC);
   return SCPE_OK;
@@ -553,7 +554,7 @@ static t_stat tim0_svc(UNIT* uptr)
 /* system timer 1 is programmed in mode 2, causes interrupt each time it is 0 */
 static t_stat tim1_svc(UNIT* uptr)
 {
-  int32 time = 1250000 / tim[0].preset;
+  int32_t time = 1250000 / tim[0].preset;
   sim_debug(DBG_TIM_SVC, &tim_dev, DBG_PCFORMAT2 "Timer1: SVC call\n", DBG_PC);
   sim_activate(uptr, time);
   cpu_raiseInt(INT_TICK);

@@ -8,6 +8,7 @@
 
 #include "altair_defs.h"
 #include "sim_tempfile.h"
+#include "sim_types.h"
 #include "test_support.h"
 
 DEVICE cpu_dev;
@@ -18,8 +19,8 @@ DEVICE sio_dev;
 DEVICE ptr_dev;
 DEVICE ptp_dev;
 DEVICE lpt_dev;
-unsigned char M[MAXMEMSIZE];
-int32 saved_PC;
+uchar_t M[MAXMEMSIZE];
+int32_t saved_PC;
 
 /*
  * Satisfy the simulator core's execution hook.  These tests only exercise the

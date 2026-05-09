@@ -34,6 +34,8 @@
    of junk.  File marks are represented by a byte count of 0.
 */
 
+#include <stdint.h>
+
 #include "b5500_defs.h"
 #include "sim_tape.h"
 
@@ -86,11 +88,11 @@ t_stat              mt_srv(UNIT *);
 t_stat              mt_attach(UNIT *, const char *);
 t_stat              mt_detach(UNIT *);
 t_stat              mt_reset(DEVICE *);
-t_stat              mt_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              mt_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *mt_description(DEVICE *dptr);
 
 /* One buffer per channel */
-uint8               mt_buffer[NUM_CHAN][BUFFSIZE];
+uint8_t             mt_buffer[NUM_CHAN][BUFFSIZE];
 
 UNIT                mt_unit[] = {
 /* Controller 1 */
@@ -156,7 +158,7 @@ DEVICE              mt_dev = {
 
 /* Start off a mag tape command */
 t_stat
-mt_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
+mt_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc)
 {
     UNIT        *uptr;
     int         unit = dev >> 1;
@@ -278,7 +280,7 @@ t_stat mt_srv(UNIT * uptr)
     DEVICE              *dptr = find_dev_from_unit(uptr);
     t_mtrlnt            reclen;
     t_stat              r = SCPE_ARG;   /* Force error if not set */
-    uint8               ch;
+    uint8_t             ch;
     int                 mode;
     t_mtrlnt            loc;
 
@@ -363,7 +365,7 @@ t_stat mt_srv(UNIT * uptr)
         ch = mt_buffer[chan][uptr->POS++] & 0177;
         /* 00 characters are not transfered in BCD mode */
         if (ch == 0) {
-              if (((uint32)uptr->POS) >= uptr->hwmark) {
+              if (((uint32_t)uptr->POS) >= uptr->hwmark) {
                    sim_activate(uptr, 4000);
                    return mt_error(uptr, chan, MTSE_OK, dptr);
               } else {
@@ -373,7 +375,7 @@ t_stat mt_srv(UNIT * uptr)
         }
 
         if (chan_write_char(chan, &ch,
-                             (((uint32)uptr->POS) >= uptr->hwmark) ? 1 : 0)) {
+                             (((uint32_t)uptr->POS) >= uptr->hwmark) ? 1 : 0)) {
                 sim_debug(DEBUG_DATA, dptr, "Read unit=%d %d EOR\n", unit,
                          uptr->hwmark-uptr->POS);
                 sim_activate(uptr, 4000);
@@ -616,7 +618,7 @@ mt_reset(DEVICE *dptr)
 }
 
 t_stat
-mt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+mt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic help signature.
       This implementation does not use every parameter. */

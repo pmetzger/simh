@@ -33,6 +33,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 
 #define FLAG_C  1
@@ -83,7 +85,7 @@
     }
 
 #define POP(x)  {                               \
-    uint32 y = RAM_PP(SP);                      \
+    uint32_t y = RAM_PP(SP);                    \
     x = y + (RAM_PP(SP) << 8);                  \
 }
 
@@ -97,7 +99,7 @@
 
 #define CALLC(cond) {                           \
     if (cond) {                                 \
-        uint32 adrr = GET_WORD(PC);             \
+        uint32_t adrr = GET_WORD(PC);           \
         PUSH(PC + 2);                           \
         PC = adrr;                              \
     } else {                                    \
@@ -111,24 +113,24 @@
 /* function prototypes */
 t_stat sim_instr_nommu(void);
 
-extern void out(const uint32 Port, const uint32 Value);
-extern uint32 in(const uint32 Port);
+extern void out(const uint32_t Port, const uint32_t Value);
+extern uint32_t in(const uint32_t Port);
 extern UNIT cpu_unit;
-extern uint32 PCX;  /* external view of PC                          */
-extern int32 AF_S;  /* AF register                                  */
-extern int32 BC_S;  /* BC register                                  */
-extern int32 DE_S;  /* DE register                                  */
-extern int32 HL_S;  /* HL register                                  */
-extern int32 IX_S;  /* IX register                                  */
-extern int32 IY_S;  /* IY register                                  */
-extern int32 PC_S;  /* program counter                              */
-extern int32 SP_S;  /* SP register                                  */
-extern int32 AF1_S; /* alternate AF register                        */
-extern int32 BC1_S; /* alternate BC register                        */
-extern int32 DE1_S; /* alternate DE register                        */
-extern int32 HL1_S; /* alternate HL register                        */
-extern int32 IFF_S; /* Interrupt Flip Flop                          */
-extern int32 IR_S;  /* Interrupt (upper) / Refresh (lower) register */
+extern uint32_t PCX; /* external view of PC                          */
+extern int32_t AF_S; /* AF register                                  */
+extern int32_t BC_S; /* BC register                                  */
+extern int32_t DE_S; /* DE register                                  */
+extern int32_t HL_S; /* HL register                                  */
+extern int32_t IX_S; /* IX register                                  */
+extern int32_t IY_S; /* IY register                                  */
+extern int32_t PC_S; /* program counter                              */
+extern int32_t SP_S; /* SP register                                  */
+extern int32_t AF1_S; /* alternate AF register                        */
+extern int32_t BC1_S; /* alternate BC register                        */
+extern int32_t DE1_S; /* alternate DE register                        */
+extern int32_t HL1_S; /* alternate HL register                        */
+extern int32_t IFF_S; /* Interrupt Flip Flop                          */
+extern int32_t IR_S; /* Interrupt (upper) / Refresh (lower) register */
 
 /* the following tables precompute some common subexpressions
     parityTable[i]          0..255  (number of 1's in i is odd) ? 0 : 4
@@ -162,7 +164,7 @@ extern int32 IR_S;  /* Interrupt (upper) / Refresh (lower) register */
 */
 
 /* parityTable[i] = (number of 1's in i is odd) ? 0 : 4, i = 0..255 */
-static const uint8 parityTable[256] = {
+static const uint8_t parityTable[256] = {
     4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,
     0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
     0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
@@ -182,7 +184,7 @@ static const uint8 parityTable[256] = {
 };
 
 /* incTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0) << 4), i = 0..256 */
-static const uint8 incTable[257] = {
+static const uint8_t incTable[257] = {
      80,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      48, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -202,7 +204,7 @@ static const uint8 incTable[257] = {
 };
 
 /* decTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0xf) << 4) | 2, i = 0..255 */
-static const uint8 decTable[256] = {
+static const uint8_t decTable[256] = {
      66,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 58,
@@ -222,7 +224,7 @@ static const uint8 decTable[256] = {
 };
 
 /* cbitsTable[i] = (i & 0x10) | ((i >> 8) & 1), i = 0..511 */
-static const uint8 cbitsTable[512] = {
+static const uint8_t cbitsTable[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -259,7 +261,7 @@ static const uint8 cbitsTable[512] = {
 
 /* cbitsDup8Table[i] = (i & 0x10) | ((i >> 8) & 1) | ((i & 0xff) << 8) | (i & 0xa8) |
                                                 (((i & 0xff) == 0) << 6), i = 0..511 */
-static const uint16 cbitsDup8Table[512] = {
+static const uint16_t cbitsDup8Table[512] = {
     0x0040,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
     0x0808,0x0908,0x0a08,0x0b08,0x0c08,0x0d08,0x0e08,0x0f08,
     0x1010,0x1110,0x1210,0x1310,0x1410,0x1510,0x1610,0x1710,
@@ -327,7 +329,7 @@ static const uint16 cbitsDup8Table[512] = {
 };
 
 /* cbitsDup16Table[i] = (i & 0x10) | ((i >> 8) & 1) | (i & 0x28), i = 0..511 */
-static const uint8 cbitsDup16Table[512] = {
+static const uint8_t cbitsDup16Table[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8,
     16,16,16,16,16,16,16,16,24,24,24,24,24,24,24,24,
     32,32,32,32,32,32,32,32,40,40,40,40,40,40,40,40,
@@ -363,7 +365,7 @@ static const uint8 cbitsDup16Table[512] = {
 };
 
 /* cbits2Table[i] = (i & 0x10) | ((i >> 8) & 1) | 2, i = 0..511 */
-static const uint8 cbits2Table[512] = {
+static const uint8_t cbits2Table[512] = {
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -399,7 +401,7 @@ static const uint8 cbits2Table[512] = {
 };
 
 /* rrcaTable[i] = ((i & 1) << 15) | ((i >> 1) << 8) | ((i >> 1) & 0x28) | (i & 1), i = 0..255 */
-static const uint16 rrcaTable[256] = {
+static const uint16_t rrcaTable[256] = {
     0x0000,0x8001,0x0100,0x8101,0x0200,0x8201,0x0300,0x8301,
     0x0400,0x8401,0x0500,0x8501,0x0600,0x8601,0x0700,0x8701,
     0x0808,0x8809,0x0908,0x8909,0x0a08,0x8a09,0x0b08,0x8b09,
@@ -435,7 +437,7 @@ static const uint16 rrcaTable[256] = {
 };
 
 /* rraTable[i] = ((i >> 1) << 8) | ((i >> 1) & 0x28) | (i & 1), i = 0..255 */
-static const uint16 rraTable[256] = {
+static const uint16_t rraTable[256] = {
     0x0000,0x0001,0x0100,0x0101,0x0200,0x0201,0x0300,0x0301,
     0x0400,0x0401,0x0500,0x0501,0x0600,0x0601,0x0700,0x0701,
     0x0808,0x0809,0x0908,0x0909,0x0a08,0x0a09,0x0b08,0x0b09,
@@ -471,7 +473,7 @@ static const uint16 rraTable[256] = {
 };
 
 /* addTable[i] = ((i & 0xff) << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6), i = 0..511 */
-static const uint16 addTable[512] = {
+static const uint16_t addTable[512] = {
     0x0040,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
     0x0808,0x0908,0x0a08,0x0b08,0x0c08,0x0d08,0x0e08,0x0f08,
     0x1000,0x1100,0x1200,0x1300,0x1400,0x1500,0x1600,0x1700,
@@ -539,7 +541,7 @@ static const uint16 addTable[512] = {
 };
 
 /* subTable[i] = ((i & 0xff) << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | 2, i = 0..255 */
-static const uint16 subTable[256] = {
+static const uint16_t subTable[256] = {
     0x0042,0x0102,0x0202,0x0302,0x0402,0x0502,0x0602,0x0702,
     0x080a,0x090a,0x0a0a,0x0b0a,0x0c0a,0x0d0a,0x0e0a,0x0f0a,
     0x1002,0x1102,0x1202,0x1302,0x1402,0x1502,0x1602,0x1702,
@@ -575,7 +577,7 @@ static const uint16 subTable[256] = {
 };
 
 /* andTable[i] = (i << 8) | (i & 0xa8) | ((i == 0) << 6) | 0x10 | parityTable[i], i = 0..255 */
-static const uint16 andTable[256] = {
+static const uint16_t andTable[256] = {
     0x0054,0x0110,0x0210,0x0314,0x0410,0x0514,0x0614,0x0710,
     0x0818,0x091c,0x0a1c,0x0b18,0x0c1c,0x0d18,0x0e18,0x0f1c,
     0x1010,0x1114,0x1214,0x1310,0x1414,0x1510,0x1610,0x1714,
@@ -611,7 +613,7 @@ static const uint16 andTable[256] = {
 };
 
 /* xororTable[i] = (i << 8) | (i & 0xa8) | ((i == 0) << 6) | parityTable[i], i = 0..255 */
-static const uint16 xororTable[256] = {
+static const uint16_t xororTable[256] = {
     0x0044,0x0100,0x0200,0x0304,0x0400,0x0504,0x0604,0x0700,
     0x0808,0x090c,0x0a0c,0x0b08,0x0c0c,0x0d08,0x0e08,0x0f0c,
     0x1000,0x1104,0x1204,0x1300,0x1404,0x1500,0x1600,0x1704,
@@ -647,7 +649,7 @@ static const uint16 xororTable[256] = {
 };
 
 /* rotateShiftTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | parityTable[i & 0xff], i = 0..255 */
-static const uint8 rotateShiftTable[256] = {
+static const uint8_t rotateShiftTable[256] = {
      68,  0,  0,  4,  0,  4,  4,  0,  8, 12, 12,  8, 12,  8,  8, 12,
       0,  4,  4,  0,  4,  0,  0,  4, 12,  8,  8, 12,  8, 12, 12,  8,
      32, 36, 36, 32, 36, 32, 32, 36, 44, 40, 40, 44, 40, 44, 44, 40,
@@ -668,7 +670,7 @@ static const uint8 rotateShiftTable[256] = {
 
 /* incZ80Table[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) |
                                             (((i & 0xf) == 0) << 4) | ((i == 0x80) << 2), i = 0..256 */
-static const uint8 incZ80Table[257] = {
+static const uint8_t incZ80Table[257] = {
      80,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      48, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -689,7 +691,7 @@ static const uint8 incZ80Table[257] = {
 
 /* decZ80Table[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) |
                                             (((i & 0xf) == 0xf) << 4) | ((i == 0x7f) << 2) | 2, i = 0..255 */
-static const uint8 decZ80Table[256] = {
+static const uint8_t decZ80Table[256] = {
      66,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 58,
@@ -709,7 +711,7 @@ static const uint8 decZ80Table[256] = {
 };
 
 /* cbitsZ80Table[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1), i = 0..511 */
-static const uint8 cbitsZ80Table[512] = {
+static const uint8_t cbitsZ80Table[512] = {
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -746,7 +748,7 @@ static const uint8 cbitsZ80Table[512] = {
 
 /* cbitsZ80DupTable[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) |
                                                         ((i >> 8) & 1) | (i & 0xa8), i = 0..511 */
-static const uint8 cbitsZ80DupTable[512] = {
+static const uint8_t cbitsZ80DupTable[512] = {
       0,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
      16, 16, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24, 24,
      32, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -782,7 +784,7 @@ static const uint8 cbitsZ80DupTable[512] = {
 };
 
 /* cbits2Z80Table[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1) | 2, i = 0..511 */
-static const uint8 cbits2Z80Table[512] = {
+static const uint8_t cbits2Z80Table[512] = {
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -819,7 +821,7 @@ static const uint8 cbits2Z80Table[512] = {
 
 /* cbits2Z80DupTable[i] = (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1) | 2 |
                                                         (i & 0xa8), i = 0..511 */
-static const uint8 cbits2Z80DupTable[512] = {
+static const uint8_t cbits2Z80DupTable[512] = {
       2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 10,
      18, 18, 18, 18, 18, 18, 18, 18, 26, 26, 26, 26, 26, 26, 26, 26,
      34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 42,
@@ -855,7 +857,7 @@ static const uint8 cbits2Z80DupTable[512] = {
 };
 
 /* negTable[i] = (((i & 0x0f) != 0) << 4) | ((i == 0x80) << 2) | 2 | (i != 0), i = 0..255 */
-static const uint8 negTable[256] = {
+static const uint8_t negTable[256] = {
      2,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
      3,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
      3,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,
@@ -875,7 +877,7 @@ static const uint8 negTable[256] = {
 };
 
 /* rrdrldTable[i] = (i << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | parityTable[i], i = 0..255 */
-static const uint16 rrdrldTable[256] = {
+static const uint16_t rrdrldTable[256] = {
     0x0044,0x0100,0x0200,0x0304,0x0400,0x0504,0x0604,0x0700,
     0x0808,0x090c,0x0a0c,0x0b08,0x0c0c,0x0d08,0x0e08,0x0f0c,
     0x1000,0x1104,0x1204,0x1300,0x1404,0x1500,0x1600,0x1704,
@@ -911,7 +913,7 @@ static const uint16 rrdrldTable[256] = {
 };
 
 /* cpTable[i] = (i & 0x80) | (((i & 0xff) == 0) << 6), i = 0..255 */
-static const uint8 cpTable[256] = {
+static const uint8_t cpTable[256] = {
      64,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -932,22 +934,22 @@ static const uint8 cpTable[256] = {
 
 /* Memory management    */
 
-uint8 MOPT[MAXBANKSIZE]; /* RAM which is present */
+uint8_t MOPT[MAXBANKSIZE]; /* RAM which is present */
 
-static uint8 GET_BYTE(uint32 Addr) {
+static uint8_t GET_BYTE(uint32_t Addr) {
     return MOPT[Addr & ADDRMASK];
 }
 
-static void PUT_BYTE(uint32 Addr, uint32 Value) {
+static void PUT_BYTE(uint32_t Addr, uint32_t Value) {
     MOPT[Addr & ADDRMASK] = Value;
 }
 
-static void PUT_WORD(uint32 Addr, uint32 Value) {
+static void PUT_WORD(uint32_t Addr, uint32_t Value) {
     MOPT[Addr & ADDRMASK] = Value;
     MOPT[(Addr + 1) & ADDRMASK] = Value >> 8;
 }
 
-static uint16 GET_WORD(uint32 a) {
+static uint16_t GET_WORD(uint32_t a) {
     return GET_BYTE(a) | (GET_BYTE(a + 1) << 8);
 }
 
@@ -993,22 +995,22 @@ static uint16 GET_WORD(uint32 a) {
         parityTable[((acu + (x)) & 7) ^ HIGH_REGISTER(BC)] /* PF    */
 
 t_stat sim_instr_nommu(void) {
-    int32 reason = SCPE_OK;
-    uint32 AF;
-    uint32 BC;
-    uint32 DE;
-    uint32 HL;
-    uint32 PC;
-    uint32 SP;
-    uint32 IX;
-    uint32 IY;
-    uint32 temp = 0;
-    uint32 acu = 0;
-    uint32 sum;
-    uint32 cbits;
-    uint32 op;
-    uint32 adr;
-    int32 l_sim_brk_summ;
+    int32_t reason = SCPE_OK;
+    uint32_t AF;
+    uint32_t BC;
+    uint32_t DE;
+    uint32_t HL;
+    uint32_t PC;
+    uint32_t SP;
+    uint32_t IX;
+    uint32_t IY;
+    uint32_t temp = 0;
+    uint32_t acu = 0;
+    uint32_t sum;
+    uint32_t cbits;
+    uint32_t op;
+    uint32_t adr;
+    int32_t l_sim_brk_summ;
 
     AF = AF_S;
     BC = BC_S;
@@ -1134,7 +1136,7 @@ t_stat sim_instr_nommu(void) {
             case 0x10:      /* DJNZ dd */
                 CHECK_CPU_8080;
                 if ((BC -= 0x100) & 0xff00)
-                    PC += (int8) GET_BYTE(PC) + 1;
+                    PC += (int8_t) GET_BYTE(PC) + 1;
                 else
                     PC++;
                 break;
@@ -1180,7 +1182,7 @@ t_stat sim_instr_nommu(void) {
 
             case 0x18:      /* JR dd */
                 CHECK_CPU_8080;
-                PC += (int8) GET_BYTE(PC) + 1;
+                PC += (int8_t) GET_BYTE(PC) + 1;
                 break;
 
             case 0x19:      /* ADD HL,DE */
@@ -1232,7 +1234,7 @@ t_stat sim_instr_nommu(void) {
                 if (TSTFLAG(Z))
                     PC++;
                 else
-                    PC += (int8) GET_BYTE(PC) + 1;
+                    PC += (int8_t) GET_BYTE(PC) + 1;
                 break;
 
             case 0x21:      /* LD HL,nnnn */
@@ -1296,7 +1298,7 @@ t_stat sim_instr_nommu(void) {
             case 0x28:      /* JR Z,dd */
                 CHECK_CPU_8080;
                 if (TSTFLAG(Z))
-                    PC += (int8) GET_BYTE(PC) + 1;
+                    PC += (int8_t) GET_BYTE(PC) + 1;
                 else
                     PC++;
                 break;
@@ -1351,7 +1353,7 @@ t_stat sim_instr_nommu(void) {
                 if (TSTFLAG(C))
                     PC++;
                 else
-                    PC += (int8) GET_BYTE(PC) + 1;
+                    PC += (int8_t) GET_BYTE(PC) + 1;
                 break;
 
             case 0x31:      /* LD SP,nnnn */
@@ -1397,7 +1399,7 @@ t_stat sim_instr_nommu(void) {
             case 0x38:      /* JR C,dd */
                 CHECK_CPU_8080;
                 if (TSTFLAG(C))
-                    PC += (int8) GET_BYTE(PC) + 1;
+                    PC += (int8_t) GET_BYTE(PC) + 1;
                 else
                     PC++;
                 break;
@@ -2558,21 +2560,21 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x34:      /* INC (IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr) + 1;
                         PUT_BYTE(adr, temp);
                         AF = (AF & ~0xfe) | incZ80Table[temp];
                         break;
 
                     case 0x35:      /* DEC (IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr) - 1;
                         PUT_BYTE(adr, temp);
                         AF = (AF & ~0xfe) | decZ80Table[temp & 0xff];
                         break;
 
                     case 0x36:      /* LD (IX+dd),nn */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, RAM_PP(PC));
                         break;
 
@@ -2593,7 +2595,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x46:      /* LD B,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         SET_HIGH_REGISTER(BC, GET_BYTE(adr));
                         break;
 
@@ -2606,7 +2608,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x4e:      /* LD C,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         SET_LOW_REGISTER(BC, GET_BYTE(adr));
                         break;
 
@@ -2619,7 +2621,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x56:      /* LD D,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         SET_HIGH_REGISTER(DE, GET_BYTE(adr));
                         break;
 
@@ -2632,7 +2634,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x5e:      /* LD E,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         SET_LOW_REGISTER(DE, GET_BYTE(adr));
                         break;
 
@@ -2660,7 +2662,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x66:      /* LD H,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         SET_HIGH_REGISTER(HL, GET_BYTE(adr));
                         break;
 
@@ -2692,7 +2694,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x6e:      /* LD L,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         SET_LOW_REGISTER(HL, GET_BYTE(adr));
                         break;
 
@@ -2701,37 +2703,37 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x70:      /* LD (IX+dd),B */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, HIGH_REGISTER(BC));
                         break;
 
                     case 0x71:      /* LD (IX+dd),C */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, LOW_REGISTER(BC));
                         break;
 
                     case 0x72:      /* LD (IX+dd),D */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, HIGH_REGISTER(DE));
                         break;
 
                     case 0x73:      /* LD (IX+dd),E */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, LOW_REGISTER(DE));
                         break;
 
                     case 0x74:      /* LD (IX+dd),H */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, HIGH_REGISTER(HL));
                         break;
 
                     case 0x75:      /* LD (IX+dd),L */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, LOW_REGISTER(HL));
                         break;
 
                     case 0x77:      /* LD (IX+dd),A */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, HIGH_REGISTER(AF));
                         break;
 
@@ -2744,7 +2746,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x7e:      /* LD A,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         SET_HIGH_REGISTER(AF, GET_BYTE(adr));
                         break;
 
@@ -2763,7 +2765,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x86:      /* ADD A,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         acu = HIGH_REGISTER(AF);
                         sum = acu + temp;
@@ -2785,7 +2787,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x8e:      /* ADC A,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         acu = HIGH_REGISTER(AF);
                         sum = acu + temp + TSTFLAG(C);
@@ -2793,7 +2795,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x96:      /* SUB (IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         acu = HIGH_REGISTER(AF);
                         sum = acu - temp;
@@ -2821,7 +2823,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x9e:      /* SBC A,(IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         acu = HIGH_REGISTER(AF);
                         sum = acu - temp - TSTFLAG(C);
@@ -2837,7 +2839,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xa6:      /* AND (IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         AF = andTable[((AF >> 8) & GET_BYTE(adr)) & 0xff];
                         break;
 
@@ -2850,7 +2852,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xae:      /* XOR (IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         AF = xororTable[((AF >> 8) ^ GET_BYTE(adr)) & 0xff];
                         break;
 
@@ -2863,7 +2865,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xb6:      /* OR (IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         AF = xororTable[((AF >> 8) | GET_BYTE(adr)) & 0xff];
                         break;
 
@@ -2886,7 +2888,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xbe:      /* CP (IX+dd) */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         AF = (AF & ~0x28) | (temp & 0x28);
                         acu = HIGH_REGISTER(AF);
@@ -2896,7 +2898,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xcb:      /* CB prefix */
-                        adr = IX + (int8) RAM_PP(PC);
+                        adr = IX + (int8_t) RAM_PP(PC);
                         switch ((op = GET_BYTE(PC)) & 7) {
 
                             case 0:
@@ -3806,21 +3808,21 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x34:      /* INC (IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr) + 1;
                         PUT_BYTE(adr, temp);
                         AF = (AF & ~0xfe) | incZ80Table[temp];
                         break;
 
                     case 0x35:      /* DEC (IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr) - 1;
                         PUT_BYTE(adr, temp);
                         AF = (AF & ~0xfe) | decZ80Table[temp & 0xff];
                         break;
 
                     case 0x36:      /* LD (IY+dd),nn */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, RAM_PP(PC));
                         break;
 
@@ -3841,7 +3843,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x46:      /* LD B,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         SET_HIGH_REGISTER(BC, GET_BYTE(adr));
                         break;
 
@@ -3854,7 +3856,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x4e:      /* LD C,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         SET_LOW_REGISTER(BC, GET_BYTE(adr));
                         break;
 
@@ -3867,7 +3869,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x56:      /* LD D,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         SET_HIGH_REGISTER(DE, GET_BYTE(adr));
                         break;
 
@@ -3880,7 +3882,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x5e:      /* LD E,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         SET_LOW_REGISTER(DE, GET_BYTE(adr));
                         break;
 
@@ -3908,7 +3910,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x66:      /* LD H,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         SET_HIGH_REGISTER(HL, GET_BYTE(adr));
                         break;
 
@@ -3940,7 +3942,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x6e:      /* LD L,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         SET_LOW_REGISTER(HL, GET_BYTE(adr));
                         break;
 
@@ -3949,37 +3951,37 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x70:      /* LD (IY+dd),B */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, HIGH_REGISTER(BC));
                         break;
 
                     case 0x71:      /* LD (IY+dd),C */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, LOW_REGISTER(BC));
                         break;
 
                     case 0x72:      /* LD (IY+dd),D */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, HIGH_REGISTER(DE));
                         break;
 
                     case 0x73:      /* LD (IY+dd),E */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, LOW_REGISTER(DE));
                         break;
 
                     case 0x74:      /* LD (IY+dd),H */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, HIGH_REGISTER(HL));
                         break;
 
                     case 0x75:      /* LD (IY+dd),L */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, LOW_REGISTER(HL));
                         break;
 
                     case 0x77:      /* LD (IY+dd),A */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         PUT_BYTE(adr, HIGH_REGISTER(AF));
                         break;
 
@@ -3992,7 +3994,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x7e:      /* LD A,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         SET_HIGH_REGISTER(AF, GET_BYTE(adr));
                         break;
 
@@ -4011,7 +4013,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x86:      /* ADD A,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         acu = HIGH_REGISTER(AF);
                         sum = acu + temp;
@@ -4033,7 +4035,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x8e:      /* ADC A,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         acu = HIGH_REGISTER(AF);
                         sum = acu + temp + TSTFLAG(C);
@@ -4041,7 +4043,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x96:      /* SUB (IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         acu = HIGH_REGISTER(AF);
                         sum = acu - temp;
@@ -4069,7 +4071,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0x9e:      /* SBC A,(IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         acu = HIGH_REGISTER(AF);
                         sum = acu - temp - TSTFLAG(C);
@@ -4085,7 +4087,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xa6:      /* AND (IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         AF = andTable[((AF >> 8) & GET_BYTE(adr)) & 0xff];
                         break;
 
@@ -4098,7 +4100,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xae:      /* XOR (IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         AF = xororTable[((AF >> 8) ^ GET_BYTE(adr)) & 0xff];
                         break;
 
@@ -4111,7 +4113,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xb6:      /* OR (IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         AF = xororTable[((AF >> 8) | GET_BYTE(adr)) & 0xff];
                         break;
 
@@ -4134,7 +4136,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xbe:      /* CP (IY+dd) */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         temp = GET_BYTE(adr);
                         AF = (AF & ~0x28) | (temp & 0x28);
                         acu = HIGH_REGISTER(AF);
@@ -4144,7 +4146,7 @@ t_stat sim_instr_nommu(void) {
                         break;
 
                     case 0xcb:      /* CB prefix */
-                        adr = IY + (int8) RAM_PP(PC);
+                        adr = IY + (int8_t) RAM_PP(PC);
                         switch ((op = GET_BYTE(PC)) & 7) {
 
                             case 0:

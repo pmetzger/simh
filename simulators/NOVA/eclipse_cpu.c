@@ -337,6 +337,8 @@
 --------------------------------------------------------------------------*/
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "nova_defs.h"
 
 #define UNIT_V_MICRO    (UNIT_V_UF)                     /* Microeclipse? */
@@ -348,28 +350,28 @@
 #define UNIT_UP         (1 << UNIT_V_UP)
 #define UNIT_MSIZE      (1 << UNIT_V_MSIZE)
 
-uint16 M[MAXMEMSIZE] = { 0 };                           /* memory */
-int32 AC[4] = { 0 };                                    /* accumulators */
-int32 C = 0;                                            /* carry flag */
-int32 saved_PC = 0;                                     /* program counter */
-int32 SR = 0;                                           /* switch register */
-int32 dev_done = 0;                                     /* device done flags */
-int32 dev_busy = 0;                                     /* device busy flags */
-int32 dev_disable = 0;                                  /* int disable flags */
-int32 iot_enb = -1;                                     /* IOT enables */
-int32 int_req = 0;                                      /* interrupt requests */
-int32 pimask = 0;                                       /* priority int mask */
-int32 pwr_low = 0;                                      /* power fail flag */
-int32 ind_max = 15;                                     /* iadr nest limit */
-int32 stop_dev = 0;                                     /* stop on ill dev */
-int32 old_PC = 0;                                       /* previous PC */
-int32 model = 140;                                      /* Model of Eclipse */
-int32 speed = 0;                                        /* Delay for each instruction */
+uint16_t M[MAXMEMSIZE] = { 0 };                         /* memory */
+int32_t AC[4] = { 0 };                                  /* accumulators */
+int32_t C = 0;                                          /* carry flag */
+int32_t saved_PC = 0;                                   /* program counter */
+int32_t SR = 0;                                         /* switch register */
+int32_t dev_done = 0;                                   /* device done flags */
+int32_t dev_busy = 0;                                   /* device busy flags */
+int32_t dev_disable = 0;                                /* int disable flags */
+int32_t iot_enb = -1;                                   /* IOT enables */
+int32_t int_req = 0;                                    /* interrupt requests */
+int32_t pimask = 0;                                     /* priority int mask */
+int32_t pwr_low = 0;                                    /* power fail flag */
+int32_t ind_max = 15;                                   /* iadr nest limit */
+int32_t stop_dev = 0;                                   /* stop on ill dev */
+int32_t old_PC = 0;                                     /* previous PC */
+int32_t model = 140;                                    /* Model of Eclipse */
+int32_t speed = 0;                                      /* Delay for each instruction */
 
-int32 XCT_mode = 0;                                     /* 1 if XCT mode */
-int32 XCT_inst = 0;                                     /* XCT instruction */
-int32 PrevPC = -1;
-int32 AMASK = 077777;
+int32_t XCT_mode = 0;                                   /* 1 if XCT mode */
+int32_t XCT_inst = 0;                                   /* XCT instruction */
+int32_t PrevPC = -1;
+int32_t AMASK = 077777;
 
 struct ndev dev_table[64];                              /* dispatch table */
 
@@ -377,16 +379,16 @@ struct ndev dev_table[64];                              /* dispatch table */
 
 #define HISTMAX 4096
 
-int32 hnext = 0;                                        /* # of current entry */
-int32 hwrap = 0;                                        /* 1 if wrapped */
-int32 hmax = HISTMAX;                                   /* Maximum entries b4 wrap */
-uint16 hpc[HISTMAX];
-uint16 hinst[HISTMAX];
-uint16 hinst2[HISTMAX];
-uint16 hac0[HISTMAX];
-uint16 hac1[HISTMAX];
-uint16 hac2[HISTMAX];
-uint16 hac3[HISTMAX];
+int32_t hnext = 0;                                      /* # of current entry */
+int32_t hwrap = 0;                                      /* 1 if wrapped */
+int32_t hmax = HISTMAX;                                 /* Maximum entries b4 wrap */
+uint16_t hpc[HISTMAX];
+uint16_t hinst[HISTMAX];
+uint16_t hinst2[HISTMAX];
+uint16_t hac0[HISTMAX];
+uint16_t hac1[HISTMAX];
+uint16_t hac2[HISTMAX];
+uint16_t hac3[HISTMAX];
 unsigned short hflags[HISTMAX];
 
 /* Flags:       0x01 - carry bit
@@ -425,53 +427,53 @@ unsigned short hflags[HISTMAX];
 #define PAGEMASK 01777                                  /* Largest physical page possible */
 #define MAPMASK 0101777                                 /* Valid page bits in map */
 #define INVALID 0101777                                 /* Mask indicating an invalid page */
-int32 MapStat = 0;                                      /* Map status register */
-int32 Inhibit = 0;                                      /* !0=inhibit interrupts : */
+int32_t MapStat = 0;                                    /* Map status register */
+int32_t Inhibit = 0;                                    /* !0=inhibit interrupts : */
                                                         /*    1 = single cycle inhibit   */
                                                         /*    2 = inhibit until indirection   */
                                                         /*    3 = inhibit next instruction only */
-int32 Enable = 0;                                       /* User map to activate 1=A 2=B */
-int32 Usermap = 0;                                      /* Active Map? 0=supvr mode, 1=user A, 2 = user B */
-int32 Map[8][32];                                       /* The actual MAPs 0=dch A, 1=A, 2=B, 3-5=dchB-D 6-7 User C-D */
-int32 Map31 = 037;                                      /* Map for block 31 in supervisor mode */
-int32 SingleCycle = 0;                                  /* Map one LDA/STA */
-int32 Check = 0;                                        /* Page Check Register */
-int32 Fault = 0;                                        /* Fault register */
-int32 MapInit = 0;                                      /* 1 when map initialized */
-int32 MapIntMode = 0;                                   /* Save of map user mode when int occurs */
+int32_t Enable = 0;                                     /* User map to activate 1=A 2=B */
+int32_t Usermap = 0;                                    /* Active Map? 0=supvr mode, 1=user A, 2 = user B */
+int32_t Map[8][32];                                     /* The actual MAPs 0=dch A, 1=A, 2=B, 3-5=dchB-D 6-7 User C-D */
+int32_t Map31 = 037;                                    /* Map for block 31 in supervisor mode */
+int32_t SingleCycle = 0;                                /* Map one LDA/STA */
+int32_t Check = 0;                                      /* Page Check Register */
+int32_t Fault = 0;                                      /* Fault register */
+int32_t MapInit = 0;                                    /* 1 when map initialized */
+int32_t MapIntMode = 0;                                 /* Save of map user mode when int occurs */
 
 /* The Eclipse Floating Point Unit:  This unit is optional on all Eclipse
    models.
 */
 
-int32 FPSR = 0;                                         /* 32-bit FPU Status Register */
-t_int64 FPAC[4] = { 0,0,0,0 };                          /* 4 64-bit Accumulators */
-int32 FPFault = 0;                                      /* Save Fault State */
+int32_t FPSR = 0;                                       /* 32-bit FPU Status Register */
+int64_t FPAC[4] = { 0,0,0,0 };                          /* 4 64-bit Accumulators */
+int32_t FPFault = 0;                                    /* Save Fault State */
 
 /* Definitions for internal floating point arithmetic */
 
 typedef struct _SHORT_FLOAT {
-        int32   short_fract;                            /* Fraction                  */
+        int32_t short_fract;                            /* Fraction                  */
         short   expo;                                   /* Exponent + 64             */
-        uint8   sign;                                   /* Sign                      */
+        uint8_t sign;                                   /* Sign                      */
 } SHORT_FLOAT;
 
 typedef struct _LONG_FLOAT {
-        t_int64 long_fract;                             /* Fraction                  */
+        int64_t long_fract;                             /* Fraction                  */
         short   expo;                                   /* Exponent + 64             */
-        uint8   sign;                                   /* Sign                      */
+        uint8_t sign;                                   /* Sign                      */
 } LONG_FLOAT;
 
 LONG_FLOAT dfl,dfl2;                                    /* Double Precision Work Fields */
 SHORT_FLOAT sfl,sfl2;                                   /* Single Precision Work Fields */
-t_int64 tempfp, holdfp;                                 /* Working area for FPAC */
+int64_t tempfp, holdfp;                                 /* Working area for FPAC */
 int     shift,m3;
-t_int64 lsfract;
+int64_t lsfract;
 
-void get_sf(SHORT_FLOAT *fl, t_int64 *fpr);
-void store_sf(SHORT_FLOAT *fl, t_int64 *fpr);
-void get_lf(LONG_FLOAT *fl, t_int64 *fpr);
-void store_lf(LONG_FLOAT *fl, t_int64 *fpr);
+void get_sf(SHORT_FLOAT *fl, int64_t *fpr);
+void store_sf(SHORT_FLOAT *fl, int64_t *fpr);
+void get_lf(LONG_FLOAT *fl, int64_t *fpr);
+void store_lf(LONG_FLOAT *fl, int64_t *fpr);
 int normal_sf (SHORT_FLOAT *fl);
 int normal_lf (LONG_FLOAT *fl);
 int overflow_sf(SHORT_FLOAT *fl);
@@ -491,38 +493,38 @@ static int over_under_flow_lf(LONG_FLOAT *fl);
 
 /* Special Debugging Info */
 
-int32 Debug_Flags = 0;                                  /* Debug register - selects debug features */
-int32 Debug_Char = 0;                                   /* Debug Character Register */
+int32_t Debug_Flags = 0;                                /* Debug register - selects debug features */
+int32_t Debug_Char = 0;                                 /* Debug Character Register */
 
-int32 Tron = 0;                                         /* For trace files */
+int32_t Tron = 0;                                       /* For trace files */
 FILE *Trace;
 
 
 t_stat reason;
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_boot (int32 unitno, DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat Debug_Dump (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat Dump_History (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat map_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat map_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat Debug_Dump (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat Dump_History (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat map_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat map_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat map_reset (DEVICE *dptr);
 t_stat map_svc (UNIT *uptr);
 t_stat fpu_svc (UNIT *uptr);
-int32 GetMap(int32 addr);
-int32 PutMap(int32 addr, int32 data);
-static int32 effective(int32 PC, int32 index, int32 disp);
-static int32 indirect(int32 d);
-static int32 LEFmode(int32 PC, int32 index, int32 disp, int32 indirect);
-static int32 LoadMap(int32 w);
-static int32 Bytepointer(int32 PC, int32 index);
-static int32 unimp(int32 PC);
-static int32 pushrtn(int32 pc);
-static void mask_out (int32 mask);
-int32 Debug_Entry(int32 PC, int32 inst, int32 inst2, int32 AC0, int32 AC1, int32 AC2, int32 AC3, int32 flags);
+int32_t GetMap(int32_t addr);
+int32_t PutMap(int32_t addr, int32_t data);
+static int32_t effective(int32_t PC, int32_t index, int32_t disp);
+static int32_t indirect(int32_t d);
+static int32_t LEFmode(int32_t PC, int32_t index, int32_t disp, int32_t indirect);
+static int32_t LoadMap(int32_t w);
+static int32_t Bytepointer(int32_t PC, int32_t index);
+static int32_t unimp(int32_t PC);
+static int32_t pushrtn(int32_t pc);
+static void mask_out (int32_t mask);
+int32_t Debug_Entry(int32_t PC, int32_t inst, int32_t inst2, int32_t AC0, int32_t AC1, int32_t AC2, int32_t AC3, int32_t flags);
 t_stat build_devtab (void);
 
 /* CPU data structures
@@ -661,15 +663,15 @@ DEVICE fpu_dev = {
 
 /* ---- Programmable Interval Timer Device ----------- */
 
-int32 pit_time = 100;
-int32 pit_tps = 10000;                                  /* ticks per sec */
-int32 pit_adj = 20;                                     /* tmxr adjust */
-int32 pit_poll = 16000;                                 /* tmxr poll */
-int32 pit_initial = 0;                                  /* initial counter reg */
-int32 pit_counter = 0;                                  /* Counter */
-int32 pit_flag = 0;                                     /* Initial setting flag */
+int32_t pit_time = 100;
+int32_t pit_tps = 10000;                                /* ticks per sec */
+int32_t pit_adj = 20;                                   /* tmxr adjust */
+int32_t pit_poll = 16000;                               /* tmxr poll */
+int32_t pit_initial = 0;                                /* initial counter reg */
+int32_t pit_counter = 0;                                /* Counter */
+int32_t pit_flag = 0;                                   /* Initial setting flag */
 
-int32 pit (int32 pulse, int32 code, int32 AC);
+int32_t pit (int32_t pulse, int32_t code, int32_t AC);
 t_stat pit_svc (UNIT *uptr);
 t_stat pit_reset (DEVICE *dptr);
 
@@ -705,20 +707,20 @@ DEVICE pit_dev = {
 
 t_stat sim_instr (void)
 {
-int32 PC, IR, i, t, MA, j, k, tac;
-uint32 mddata, uAC0, uAC1, uAC2, uAC3;
-int16 sAC0, sAC1, sAC2;
-int32 sddata, mi1, mi2, fpnum32;
-t_int64 fpnum, expon;
+int32_t PC, IR, i, t, MA, j, k, tac;
+uint32_t mddata, uAC0, uAC1, uAC2, uAC3;
+int16_t sAC0, sAC1, sAC2;
+int32_t sddata, mi1, mi2, fpnum32;
+int64_t fpnum, expon;
 t_value simeval[20];
 /* char debstr[128]; */
 /* char debadd[64]; */
 char debmap[4], debion[4];
 int debcar, iodev, iodata, debflags;
-int32 DisMap, debpc;
-/* int32 sp, sl; */
+int32_t DisMap, debpc;
+/* int32_t sp, sl; */
 int cmdptr, cmsptr, cmopt, cmptr;
-int16 cmslen, cmdlen;
+int16_t cmslen, cmdlen;
 int tabaddr, tabptr;
 /* Restore register state */
 
@@ -892,7 +894,7 @@ if (Debug_Flags) {
          if (Usermap == 2) debflags |= 0x08;
          if (Usermap == 3) debflags |= 0x10;
          if (Usermap == 4) debflags |= 0x20;
-         Debug_Entry(debpc, (int32)simeval[0], (int32)simeval[1], AC[0], AC[1], AC[2], AC[3], debflags);
+         Debug_Entry(debpc, (int32_t)simeval[0], (int32_t)simeval[1], AC[0], AC[1], AC[2], AC[3], debflags);
     }
 }
 
@@ -1051,7 +1053,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
     /* Shift operations */
 
     if ((IR & 0103777) == 0101210) {                    /* LSH: Logical Shift */
-        int16 sh;
+        int16_t sh;
         sh = AC[(IR >> 13) & 3] & 0377;
         i = (IR >> 11) & 3;
         if (sh & 0200) {
@@ -1065,7 +1067,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0101310) {                    /* DLSH: Double logical shift */
-        int16 sh;
+        int16_t sh;
         sh = AC[(IR >> 13) & 3] & 0377;
         i = (IR >> 11) & 3;
         uAC0 = AC[i] << 16;
@@ -1193,7 +1195,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0102310) {                    /* SZBO: skip on zero bit & set to 1 */
-        int32 save;
+        int32_t save;
         i = (IR >> 11) & 3;
         j = (IR >> 13) & 3;
         if (i != j) {
@@ -1213,8 +1215,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0102410) {                    /* LOB: Locate lead bit */
-        int32 a, r;
-        int16 b;
+        int32_t a, r;
+        int16_t b;
         a = AC[(IR >> 13) & 3] & 0xffff;
         for (i = 0; i < 16; i++) {
             if ((a << i) & 0100000) break;
@@ -1226,8 +1228,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0102510) {                    /* LRB: Locate & reset lead bit */
-        int32 a, r;
-        int16 b;
+        int32_t a, r;
+        int16_t b;
         j = (IR >> 13) & 3;
         a = AC[j];
         for (i = 0; i < 16; i++) {
@@ -1242,8 +1244,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0102610) {                    /* COB: Count bits */
-        int32 a;
-        int16 b, c = 0;
+        int32_t a;
+        int16_t b, c = 0;
         a = AC[(IR >> 13) & 3];
         for (i = 0; i < 16; i++) {
             if ((a >> i) & 1) c++;
@@ -1282,7 +1284,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0101010) {                    /* SGT: Skip if ACS > ACD */
-        int16 a1, d1;
+        int16_t a1, d1;
         a1 = AC[(IR >> 13) & 3] & 0xffff;
         d1 = AC[(IR >> 11) & 3] & 0xffff;
         if (a1 > d1)
@@ -1290,7 +1292,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0101110) {                    /* SGE: Skip if ACS >= ACD */
-        int16 a1, d1;
+        int16_t a1, d1;
         a1 = AC[(IR >> 13) & 3] & 0xffff;
         d1 = AC[(IR >> 11) & 3] & 0xffff;
         if (a1 >= d1)
@@ -1298,8 +1300,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0102370) {                    /* CLM: Compare to limits */
-        int32 s, d, MA;
-        int16 H, L, ca;
+        int32_t s, d, MA;
+        int16_t H, L, ca;
         s = (IR >> 13) & 3;
         d = (IR >> 11) & 3;
         if (s == d) {
@@ -1325,7 +1327,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
     /* Memory block operations */
 
     if (IR == 0113710) {                                /* BAM: Block add & move */
-        int32 w;
+        int32_t w;
         t = AC[1];
         if (t < 1 || t > 0100000)
             continue;
@@ -1371,7 +1373,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
     /* Stack operations */
 
     if ((IR & 0103777) == 0103110) {                    /* PSH: Push multiple accums */
-        int32 j;
+        int32_t j;
         j = (IR >> 11) & 3;
         t = GetMap(040) & AMASK;
         i = (IR >> 13) & 3;
@@ -1454,7 +1456,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if (IR == 0163710) {                                /* SAVE */
-        int32 savep;
+        int32_t savep;
         savep = ((GetMap(PC) + GetMap(040)) + 5) & AMASK;
         if (savep  > GetMap(042)) {
             pushrtn(PC-1);
@@ -1585,7 +1587,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if (IR == 0167710) {                                /* RSTR: Restore */
-        int32 SVPC;
+        int32_t SVPC;
 
         SVPC = PC;
         PC = GetMap(GetMap(040)) & AMASK;
@@ -1628,9 +1630,9 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
     /* Multiply / Divide */
 
     if (IR == 0143710) {                                /* MUL: Unsigned Multiply */
-        uAC0 = (uint32) AC[0];
-        uAC1 = (uint32) AC[1];
-        uAC2 = (uint32) AC[2];
+        uAC0 = (uint32_t) AC[0];
+        uAC1 = (uint32_t) AC[1];
+        uAC2 = (uint32_t) AC[2];
 
         mddata = (uAC1 * uAC2) + uAC0;
         AC[0] = (mddata >> 16) & 0177777;
@@ -1648,9 +1650,9 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if (IR == 0153710) {                                /* DIV: Unsigned Divide */
-        uAC0 = (uint32) AC[0];
-        uAC1 = (uint32) AC[1];
-        uAC2 = (uint32) AC[2];
+        uAC0 = (uint32_t) AC[0];
+        uAC1 = (uint32_t) AC[1];
+        uAC2 = (uint32_t) AC[2];
 
         if (uAC0 >= uAC2) C = 0200000;
         else {
@@ -1681,7 +1683,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if (IR == 0137710) {                                /* DIVX: Sign extend and Divide */
-        int32 q;
+        int32_t q;
         if (AC[1] & 0100000) {
             AC[0] = 0177777;
         } else {
@@ -1750,8 +1752,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
     /* Exotic, complex instructions */
 
     if ((IR & 0162377) == 0142170) {                    /* DSPA: Dispatch */
-        int32 d;
-        int16 a, H, L;
+        int32_t d;
+        int16_t a, H, L;
         MA = effective(PC, (IR >> 8) & 3, GetMap(PC));
         H = GetMap(MA - 1) & 0177777;
         L = GetMap(MA - 2) & 0177777;
@@ -1771,7 +1773,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
 
     if (((IR & 0100077) == 0100030) ||
         ((IR & 0102077) == 0100070)) {                  /* XOP: Extended Operation */
-        int32 op, d, sa, da;
+        int32_t op, d, sa, da;
         op = (IR >> 6) & 037;
         if ((IR & 077) == 070) op += 32;
         t = GetMap(040) & AMASK;
@@ -1798,7 +1800,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if ((IR & 0103777) == 0103510) {                    /* SYC: System call */
-        int32 j;
+        int32_t j;
         DisMap = Usermap;
         Usermap = 0;
         MapStat &= ~1;                                  /* Disable MAP */
@@ -1831,7 +1833,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         continue;
     }
     if (IR == 0113410) {                                /* LMP: Load Map */
-        int32 w, m;
+        int32_t w, m;
         if ((Debug_Flags & 077) == 03)
             fprintf(Trace, "%o LMP (Map=%o)\n", PC - 1, (MapStat>>7)&07);
         t = AC[1];
@@ -2281,9 +2283,9 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         FPAC[i] = 0;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
         t = GetMap(MA) & 0xffff;
-        FPAC[i] = (t_int64) t << 48;
+        FPAC[i] = (int64_t) t << 48;
         t = GetMap(MA+1) & 0xffff;
-        FPAC[i] |= (t_int64) t << 32;
+        FPAC[i] |= (int64_t) t << 32;
         if ((FPAC[i] & 0x00ffffffffffffff) == 0)
             FPAC[i] = 0;
         FPSR &= 0xFCFFFFFF;
@@ -2324,13 +2326,13 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         FPAC[i] = 0;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
         t = GetMap(MA) & 0xffff;
-        FPAC[i] = (t_int64) t << 48;
+        FPAC[i] = (int64_t) t << 48;
         t = GetMap(MA+1) & 0xffff;
-        FPAC[i] |= (t_int64) t << 32;
+        FPAC[i] |= (int64_t) t << 32;
         t = GetMap(MA+2) & 0xffff;
-        FPAC[i] |= (t_int64) t << 16;
+        FPAC[i] |= (int64_t) t << 16;
         t = GetMap(MA+3) & 0xffff;
-        FPAC[i] |= (t_int64) t;
+        FPAC[i] |= (int64_t) t;
         if ((FPAC[i] & 0x00ffffffffffffff) == 0)
             FPAC[i] = 0;
         FPSR &= 0xFCFFFFFF;
@@ -2369,8 +2371,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         i = (IR >> 11) & 0x03;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        PutMap(MA, (int32)(FPAC[i] >> 48) & 0xffff);
-        PutMap(MA+1, (int32)(FPAC[i] >> 32) & 0xffff);
+        PutMap(MA, (int32_t)(FPAC[i] >> 48) & 0xffff);
+        PutMap(MA+1, (int32_t)(FPAC[i] >> 32) & 0xffff);
         FPSR &= 0xFFFF0000;                             /* Success: put addr in FPSR */
         FPSR |= ((PC - 1) & AMASK);
         PC = (PC + 1) & AMASK;
@@ -2402,10 +2404,10 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         i = (IR >> 11) & 0x03;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        PutMap(MA, (int32)(FPAC[i] >> 48) & 0xffff);
-        PutMap(MA+1, (int32)(FPAC[i] >> 32) & 0xffff);
-        PutMap(MA+2, (int32)(FPAC[i] >> 16) & 0xffff);
-        PutMap(MA+3, (int32)(FPAC[i] & 0xffff));
+        PutMap(MA, (int32_t)(FPAC[i] >> 48) & 0xffff);
+        PutMap(MA+1, (int32_t)(FPAC[i] >> 32) & 0xffff);
+        PutMap(MA+2, (int32_t)(FPAC[i] >> 16) & 0xffff);
+        PutMap(MA+3, (int32_t)(FPAC[i] & 0xffff));
         FPSR &= 0xFFFF0000;                             /* Success: put addr in FPSR */
         FPSR |= ((PC - 1) & AMASK);
         PC = (PC + 1) & AMASK;
@@ -2539,7 +2541,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
             FPSR |= 0x02000000;
             continue;
         }
-        fpnum = (t_int64)(AC[i] & 077777) << 32;
+        fpnum = (int64_t)(AC[i] & 077777) << 32;
         if (AC[i] & 0x8000)
                 fpnum = 0 - fpnum;
         expon = 70;
@@ -2603,7 +2605,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
             FPSR |= 0x02000000;
             continue;
         }
-        fpnum = (t_int64)(fpnum32 & 0xffffffff) << 32;
+        fpnum = (int64_t)(fpnum32 & 0xffffffff) << 32;
         if (fpnum32 < 0)
             fpnum = (0 - fpnum);
         expon = 70;
@@ -2714,10 +2716,10 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
             if (dfl.sign) {
                 /* negative */
                 //FPSR |= 0x01000000;                   /* N bit on */
-                k = -(int32)dfl.long_fract & 0xFFFFFFFF;
+                k = -(int32_t)dfl.long_fract & 0xFFFFFFFF;
             } else {
                 /* positive */
-                k = (int32)dfl.long_fract & 0xFFFFFFFF;
+                k = (int32_t)dfl.long_fract & 0xFFFFFFFF;
             }
         } else {
             /* zero */
@@ -2822,10 +2824,10 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
             if (dfl.sign) {
                 /* negative */
                 //FPSR |= 0x01000000;                   /* N bit on */
-                i = -(int32)dfl.long_fract & 0xFFFFFFFF;
+                i = -(int32_t)dfl.long_fract & 0xFFFFFFFF;
             } else {
                 /* positive */
-                i = (int32)dfl.long_fract & 0xFFFFFFFF;
+                i = (int32_t)dfl.long_fract & 0xFFFFFFFF;
             }
         } else {
             /* zero */
@@ -2927,8 +2929,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         j = (IR >> 11) & 3;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        tempfp = ((t_uint64)GetMap(MA) << 48);
-        tempfp |= ((t_uint64)GetMap(MA + 1) << 32);
+        tempfp = ((uint64_t)GetMap(MA) << 48);
+        tempfp |= ((uint64_t)GetMap(MA + 1) << 32);
         if ((tempfp & 0x00ffffffffffffff) == 0)
             tempfp = 0;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
@@ -3036,10 +3038,10 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         j = (IR >> 11) & 3;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        tempfp = ((t_uint64)GetMap(MA) << 48);
-        tempfp |= ((t_uint64)GetMap(MA + 1) << 32);
-        tempfp |= ((t_uint64)GetMap(MA + 2) << 16);
-        tempfp |= ((t_uint64)GetMap(MA + 3));
+        tempfp = ((uint64_t)GetMap(MA) << 48);
+        tempfp |= ((uint64_t)GetMap(MA + 1) << 32);
+        tempfp |= ((uint64_t)GetMap(MA + 2) << 16);
+        tempfp |= ((uint64_t)GetMap(MA + 3));
         if ((tempfp & 0x00ffffffffffffff) == 0)
             tempfp = 0;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
@@ -3148,8 +3150,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         j = (IR >> 11) & 3;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        tempfp = ((t_uint64)GetMap(MA) << 48);
-        tempfp |= ((t_uint64)GetMap(MA + 1) << 32);
+        tempfp = ((uint64_t)GetMap(MA) << 48);
+        tempfp |= ((uint64_t)GetMap(MA + 1) << 32);
         if ((tempfp & 0x00ffffffffffffff) == 0)
             tempfp = 0;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
@@ -3259,10 +3261,10 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         j = (IR >> 11) & 3;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        tempfp = ((t_uint64)GetMap(MA) << 48);
-        tempfp |= ((t_uint64)GetMap(MA + 1) << 32);
-        tempfp |= ((t_uint64)GetMap(MA + 2) << 16);
-        tempfp |= ((t_uint64)GetMap(MA + 3));
+        tempfp = ((uint64_t)GetMap(MA) << 48);
+        tempfp |= ((uint64_t)GetMap(MA + 1) << 32);
+        tempfp |= ((uint64_t)GetMap(MA + 2) << 16);
+        tempfp |= ((uint64_t)GetMap(MA + 3));
         if ((tempfp & 0x00ffffffffffffff) == 0)
             tempfp = 0;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
@@ -3371,8 +3373,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         j = (IR >> 11) & 3;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        tempfp = ((t_uint64)GetMap(MA) << 48);
-        tempfp |= ((t_uint64)GetMap(MA + 1) << 32);
+        tempfp = ((uint64_t)GetMap(MA) << 48);
+        tempfp |= ((uint64_t)GetMap(MA + 1) << 32);
         if ((tempfp & 0x00ffffffffffffff) == 0)
             tempfp = 0;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
@@ -3480,10 +3482,10 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         j = (IR >> 11) & 3;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        tempfp = ((t_uint64)GetMap(MA) << 48);
-        tempfp |= ((t_uint64)GetMap(MA + 1) << 32);
-        tempfp |= ((t_uint64)GetMap(MA + 2) << 16);
-        tempfp |= ((t_uint64)GetMap(MA + 3));
+        tempfp = ((uint64_t)GetMap(MA) << 48);
+        tempfp |= ((uint64_t)GetMap(MA + 1) << 32);
+        tempfp |= ((uint64_t)GetMap(MA + 2) << 16);
+        tempfp |= ((uint64_t)GetMap(MA + 3));
         if ((tempfp & 0x00ffffffffffffff) == 0)
             tempfp = 0;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
@@ -3594,8 +3596,8 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         j = (IR >> 11) & 3;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        tempfp = ((t_uint64)GetMap(MA) << 48);
-        tempfp |= ((t_uint64)GetMap(MA + 1) << 32);
+        tempfp = ((uint64_t)GetMap(MA) << 48);
+        tempfp |= ((uint64_t)GetMap(MA + 1) << 32);
         if ((tempfp & 0x00ffffffffffffff) == 0)
             tempfp = 0;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
@@ -3709,10 +3711,10 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         j = (IR >> 11) & 3;
         MA = effective(PC, (IR >> 13) & 3, GetMap(PC));
-        tempfp = ((t_uint64)GetMap(MA) << 48);
-        tempfp |= ((t_uint64)GetMap(MA + 1) << 32);
-        tempfp |= ((t_uint64)GetMap(MA + 2) << 16);
-        tempfp |= ((t_uint64)GetMap(MA + 3));
+        tempfp = ((uint64_t)GetMap(MA) << 48);
+        tempfp |= ((uint64_t)GetMap(MA + 1) << 32);
+        tempfp |= ((uint64_t)GetMap(MA + 2) << 16);
+        tempfp |= ((uint64_t)GetMap(MA + 3));
         if ((tempfp & 0x00ffffffffffffff) == 0)
             tempfp = 0;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
@@ -3892,7 +3894,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
             continue;
         }
         j = (IR >> 11) & 3;
-        AC[0] = (int32)(FPAC[j] >> 48) & 0xFFFF;        /* No cond bits set, always to AC0 */
+        AC[0] = (int32_t)(FPAC[j] >> 48) & 0xFFFF;      /* No cond bits set, always to AC0 */
         FPSR &= 0xFFFF0000;                             /* Success: put addr in FPSR */
         FPSR |= ((PC - 1) & AMASK);
         continue;
@@ -3925,7 +3927,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         j = (IR >> 11) & 3;
         i = (AC[0] >> 8) & 0x007F;
         FPAC[j] &= 0x80FFFFFFFFFFFFFF;                  /* clear exponent */
-        FPAC[j] |= ((t_int64) i << 56);
+        FPAC[j] |= ((int64_t) i << 56);
         if ((FPAC[j] & 0x00ffffffffffffff) == 0)
             FPAC[j] = 0;
         if (FPAC[j] == 0)
@@ -4001,37 +4003,37 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         t++;
         PutMap(t, (FPSR & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[0] >> 48) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[0] >> 48) & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[0] >> 32) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[0] >> 32) & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[0] >> 16) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[0] >> 16) & 0xFFFF));
         t++;
-        PutMap(t, (int16)(FPAC[0] & 0xFFFF));
+        PutMap(t, (int16_t)(FPAC[0] & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[1] >> 48) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[1] >> 48) & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[1] >> 32) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[1] >> 32) & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[1] >> 16) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[1] >> 16) & 0xFFFF));
         t++;
-        PutMap(t, (int16)(FPAC[1] & 0xFFFF));
+        PutMap(t, (int16_t)(FPAC[1] & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[2] >> 48) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[2] >> 48) & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[2] >> 32) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[2] >> 32) & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[2] >> 16) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[2] >> 16) & 0xFFFF));
         t++;
-        PutMap(t, (int16)(FPAC[2] & 0xFFFF));
+        PutMap(t, (int16_t)(FPAC[2] & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[3] >> 48) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[3] >> 48) & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[3] >> 32) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[3] >> 32) & 0xFFFF));
         t++;
-        PutMap(t, (int16)((FPAC[3] >> 16) & 0xFFFF));
+        PutMap(t, (int16_t)((FPAC[3] >> 16) & 0xFFFF));
         t++;
-        PutMap(t, (int16)(FPAC[3] & 0xFFFF));
+        PutMap(t, (int16_t)(FPAC[3] & 0xFFFF));
         PutMap(040, t);                                 /* Update Stack Pointer */
         continue;
     }
@@ -4044,37 +4046,37 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         }
         /* Note: FPSH and FPOP do not trap on error */
         t = GetMap(040) & AMASK;                        /* Get Stack Pointer */
-        FPAC[3] = ((t_uint64)GetMap(t) & 0xFFFF);
+        FPAC[3] = ((uint64_t)GetMap(t) & 0xFFFF);
         t--;
-        FPAC[3] |= (((t_uint64)GetMap(t) << 16) & 0xFFFF0000);
+        FPAC[3] |= (((uint64_t)GetMap(t) << 16) & 0xFFFF0000);
         t--;
-        FPAC[3] |= (((t_uint64)GetMap(t) << 32) & 0xFFFF00000000);
+        FPAC[3] |= (((uint64_t)GetMap(t) << 32) & 0xFFFF00000000);
         t--;
-        FPAC[3] |= (((t_uint64)GetMap(t) << 48) & 0xFFFF000000000000);
+        FPAC[3] |= (((uint64_t)GetMap(t) << 48) & 0xFFFF000000000000);
         t--;
-        FPAC[2] = ((t_uint64)GetMap(t) & 0xFFFF);
+        FPAC[2] = ((uint64_t)GetMap(t) & 0xFFFF);
         t--;
-        FPAC[2] |= (((t_uint64)GetMap(t) << 16) & 0xFFFF0000);
+        FPAC[2] |= (((uint64_t)GetMap(t) << 16) & 0xFFFF0000);
         t--;
-        FPAC[2] |= (((t_uint64)GetMap(t) << 32) & 0xFFFF00000000);
+        FPAC[2] |= (((uint64_t)GetMap(t) << 32) & 0xFFFF00000000);
         t--;
-        FPAC[2] |= (((t_uint64)GetMap(t) << 48) & 0xFFFF000000000000);
+        FPAC[2] |= (((uint64_t)GetMap(t) << 48) & 0xFFFF000000000000);
         t--;
-        FPAC[1] = ((t_uint64)GetMap(t) & 0xFFFF);
+        FPAC[1] = ((uint64_t)GetMap(t) & 0xFFFF);
         t--;
-        FPAC[1] |= (((t_uint64)GetMap(t) << 16) & 0xFFFF0000);
+        FPAC[1] |= (((uint64_t)GetMap(t) << 16) & 0xFFFF0000);
         t--;
-        FPAC[1] |= (((t_uint64)GetMap(t) << 32) & 0xFFFF00000000);
+        FPAC[1] |= (((uint64_t)GetMap(t) << 32) & 0xFFFF00000000);
         t--;
-        FPAC[1] |= (((t_uint64)GetMap(t) << 48) & 0xFFFF000000000000);
+        FPAC[1] |= (((uint64_t)GetMap(t) << 48) & 0xFFFF000000000000);
         t--;
-        FPAC[0] = ((t_uint64)GetMap(t) & 0xFFFF);
+        FPAC[0] = ((uint64_t)GetMap(t) & 0xFFFF);
         t--;
-        FPAC[0] |= (((t_uint64)GetMap(t) << 16) & 0xFFFF0000);
+        FPAC[0] |= (((uint64_t)GetMap(t) << 16) & 0xFFFF0000);
         t--;
-        FPAC[0] |= (((t_uint64)GetMap(t) << 32) & 0xFFFF00000000);
+        FPAC[0] |= (((uint64_t)GetMap(t) << 32) & 0xFFFF00000000);
         t--;
-        FPAC[0] |= (((t_uint64)GetMap(t) << 48) & 0xFFFF000000000000);
+        FPAC[0] |= (((uint64_t)GetMap(t) << 48) & 0xFFFF000000000000);
         t--;
         FPSR = (GetMap(t) & 0xFFFF);
         t--;
@@ -4151,7 +4153,7 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
         i = (IR >> 11) & 3;
         FPSR &= 0xFCFFFFFF;                             /* Z+N bits off */
         j = (AC[0] >> 8) & 0x7F;                        /* expo of AC0 */
-        k = (int32)(FPAC[i] >> 56) & 0x7F;              /* expo of FPAC */
+        k = (int32_t)(FPAC[i] >> 56) & 0x7F;            /* expo of FPAC */
         tempfp = FPAC[i] & 0x8000000000000000;          /* save sign */
         t = j - k;
         if (t > 0) {                                    /* Positive shift */
@@ -4695,9 +4697,9 @@ if ((IR & 0100017) == 0100010) {                        /* This pattern for all 
 }
 
 if (IR == 061777) {                                     /* VCT: Vector on Interrupt */
-    int32 stkchg, vtable;
-    int32 ventry, dctadr;
-    int32 old40, old41, old42, old43;
+    int32_t stkchg, vtable;
+    int32_t ventry, dctadr;
+    int32_t old40, old41, old42, old43;
 
     /* Ok, folks, this is one helluva instruction */
 
@@ -4785,7 +4787,7 @@ if (IR == 061777) {                                     /* VCT: Vector on Interr
 /* Memory reference instructions */
 
 if (t < 014) {                                          /* mem ref? */
-    int32 src, MA;
+    int32_t src, MA;
 
     MA = IR & 0377;
     switch ((IR >> 8) & 03) {                           /* decode IR<6:7> */
@@ -4937,7 +4939,7 @@ if (t < 014) {                                          /* mem ref? */
 /* Operate instruction */
 
 else if (t & 020) {                                     /* operate? */
-    int32 src, srcAC, dstAC;
+    int32_t src, srcAC, dstAC;
 
     srcAC = (t >> 2) & 3;                               /* get reg decodes */
     dstAC = t & 03;
@@ -5031,7 +5033,7 @@ else if (t & 020) {                                     /* operate? */
 /* IOT instruction */
 
 else {                                                  /* IOT */
-    int32 dstAC, pulse, code, device, iodata;
+    int32_t dstAC, pulse, code, device, iodata;
     char pulcode[4];
 
     if ((MapStat & 0100)                                /* LEF mode bit on? */
@@ -5331,9 +5333,9 @@ return reason;
    program counter, index, and a displacement.
 */
 
-static int32 effective(int32 PC, int32 index, int32 disp)
+static int32_t effective(int32_t PC, int32_t index, int32_t disp)
 {
-    int32 i, MA;
+    int32_t i, MA;
 
     MA = disp & 077777;
     switch (index) {                                    /* decode IR<6:7> */
@@ -5377,10 +5379,10 @@ static int32 effective(int32 PC, int32 index, int32 disp)
    opposed to the ELEF instruction.
 */
 
-static int32 LEFmode(int32 PC, int32 index, int32 disp, int32 indirect)
+static int32_t LEFmode(int32_t PC, int32_t index, int32_t disp, int32_t indirect)
 {
-    int32 i, MA;
-    int16 sMA;
+    int32_t i, MA;
+    int16_t sMA;
 
     MA = disp & 077777;
     switch (index) {                                    /* decode IR<6:7> */
@@ -5431,9 +5433,9 @@ static int32 LEFmode(int32 PC, int32 index, int32 disp, int32 indirect)
 /* Computes a "Byte pointer" for the Character Instruction set */
 /* This address in 'PC' must point to the displacement word of the instruction */
 
-static int32 Bytepointer(int32 PC, int32 index)
+static int32_t Bytepointer(int32_t PC, int32_t index)
 {
-    int32 MA;
+    int32_t MA;
 
     switch (index) {                                    /* decode IR<6:7> */
     case 0:                                             /* page zero */
@@ -5458,7 +5460,7 @@ static int32 Bytepointer(int32 PC, int32 index)
    or follows an indirection chain until bit 0 is 0
 */
 
-static int32 indirect(int32 d)
+static int32_t indirect(int32_t d)
 {
     int i;
 
@@ -5488,9 +5490,9 @@ static int32 indirect(int32 d)
 
 /* Push a standard return block onto the stack */
 
-static int32 pushrtn(int32 pc)
+static int32_t pushrtn(int32_t pc)
 {
-    int32 t;
+    int32_t t;
 
     t = (GetMap(040) + 1) & AMASK;
     PutMap(t, AC[0]);
@@ -5509,9 +5511,9 @@ static int32 pushrtn(int32 pc)
 
 /* Eclipse memory get/put - uses MAP if enabled */
 
-int32 GetMap(int32 addr)
+int32_t GetMap(int32_t addr)
 {
-     int32 page;
+     int32_t page;
      t_addr paddr;
 
     switch (Usermap) {
@@ -5571,9 +5573,9 @@ int32 GetMap(int32 addr)
      }
 }
 
-int32 PutMap(int32 addr, int32 data)
+int32_t PutMap(int32_t addr, int32_t data)
 {
-    int32 page;
+    int32_t page;
         t_addr paddr;
 
     switch (Usermap) {
@@ -5621,7 +5623,7 @@ int32 PutMap(int32 addr, int32 data)
 }
 
 #if 0
-int16 GetDCHMap(int32 map, int32 addr)
+int16_t GetDCHMap(int32_t map, int32_t addr)
 {
      t_addr paddr;
      if (!(MapStat & 02)) return M[addr];
@@ -5631,7 +5633,7 @@ int16 GetDCHMap(int32 map, int32 addr)
      return (0);
 }
 
-int16 PutDCHMap(int32 map, int32 addr, int16 data)
+int16_t PutDCHMap(int32_t map, int32_t addr, int16_t data)
 {
      t_addr paddr;
      if (!(MapStat & 02)) {
@@ -5650,9 +5652,9 @@ int16 PutDCHMap(int32 map, int32 addr, int16 data)
    used primarily by the I/O routines to map data channel read/writes.
 */
 
-int32 MapAddr(int32 map, int32 addr)
+int32_t MapAddr(int32_t map, int32_t addr)
 {
-     int32 paddr;
+     int32_t paddr;
      if ((map == 0 || map > 2) && !(MapStat & 02)) return addr;
      if (map > 0 && map < 3 && Usermap == 0) return addr;
      paddr = ((Map[map][(addr >> 10) & 037] & PAGEMASK) << 10) | (addr & 001777);
@@ -5661,9 +5663,9 @@ int32 MapAddr(int32 map, int32 addr)
 
 /* Loads a word into the Eclipse Maps */
 
-static int32 LoadMap(int32 w)
+static int32_t LoadMap(int32_t w)
 {
-    int32 m;
+    int32_t m;
 
     m = (w >> 10) & 037;
     switch ((MapStat >> 7) & 07) {
@@ -5699,7 +5701,7 @@ static int32 LoadMap(int32 w)
 
 /* Displays an error on a unimplemented (in this sim) instr. */
 
-static int32 unimp(int32 PC)
+static int32_t unimp(int32_t PC)
 {
     if (Debug_Flags)
          printf("\n\r\007<<<Unimplemented instruction: [%o] %o>>>\n\r", PC - 1, GetMap(PC - 1));
@@ -5708,9 +5710,9 @@ static int32 unimp(int32 PC)
 
 /* New priority mask out */
 
-static void mask_out (int32 newmask)
+static void mask_out (int32_t newmask)
 {
-int32 i;
+int32_t i;
 
 dev_disable = 0;
 for (i = DEV_LOW; i <= DEV_HIGH; i++)  {
@@ -5739,7 +5741,7 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -5758,7 +5760,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -5766,18 +5768,18 @@ t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 
 if (sw & SWMASK ('V')) {
     if (addr > 077777) return SCPE_NXM;
-    PutMap (addr, (int32) val);
+    PutMap (addr, (int32_t) val);
 }
 else {
     if (addr >= MEMSIZE) return SCPE_NXM;
-    M[addr] = (int32) val & 0177777;
+    M[addr] = (int32_t) val & 0177777;
 }
 return SCPE_OK;
 }
 
 /* Alter memory size */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -5785,7 +5787,7 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
+int32_t mc = 0;
 t_addr i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
@@ -5811,7 +5813,7 @@ return SCPE_OK;
 
 /* Map examine */
 
-t_stat map_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat map_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -5825,7 +5827,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat map_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat map_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -5833,7 +5835,7 @@ t_stat map_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 
 if ((addr & 077) >= 037 || addr > 0737) return SCPE_NXM;
 uptr->u4 = -2;  /* signal to print_sys in eclipse_sys.c: do not map */
-Map[(addr >> 6) & 3][addr & 037] = (int32)val & 0177777;
+Map[(addr >> 6) & 3][addr & 037] = (int32_t)val & 0177777;
 return SCPE_OK;
 }
 
@@ -5852,9 +5854,9 @@ return SCPE_OK;
 
 /* IOT routine */
 
-int32 pit (int32 pulse, int32 code, int32 AC)
+int32_t pit (int32_t pulse, int32_t code, int32_t AC)
 {
-int32 iodata = 0;
+int32_t iodata = 0;
 
 if (code == ioDIA) {                                    /* DIA */
     if (pit_flag == 0) {
@@ -5893,7 +5895,7 @@ t_stat pit_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 t;
+int32_t t;
 t = sim_rtcn_calb (pit_tps, 1);                         /* calibrate delay */
 sim_activate (&pit_unit, t);                            /* reactivate unit */
 pit_poll = t / (-pit_adj);                              /* adjust poll */
@@ -5929,7 +5931,7 @@ return SCPE_OK;
 #define BOOT_START 00000
 #define BOOT_LEN (sizeof (boot_rom) / sizeof (int))
 
-static const int32 boot_rom[] = {
+static const int32_t boot_rom[] = {
 
     062677,                     /*      IORST           ;Reset all I/O  */
     060477,                     /*      READS 0         ;Read SR into AC0 */
@@ -5968,7 +5970,7 @@ static const int32 boot_rom[] = {
     0                           /*      0               ;padding */
 };
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -5976,14 +5978,14 @@ t_stat cpu_boot (int32 unitno, DEVICE *dptr)
 (void) dptr;
 
 size_t i;
-extern int32 saved_PC;
+extern int32_t saved_PC;
 
 for (i = 0; i < BOOT_LEN; i++) M[BOOT_START + i] = boot_rom[i];
 saved_PC = BOOT_START;
 return SCPE_OK;
 }
 
-int32 Debug_Entry(int32 PC, int32 inst, int32 inst2, int32 AC0, int32 AC1, int32 AC2, int32 AC3, int32 flags)
+int32_t Debug_Entry(int32_t PC, int32_t inst, int32_t inst2, int32_t AC0, int32_t AC1, int32_t AC2, int32_t AC3, int32_t flags)
 {
      hpc[hnext] = PC & 0xffff;
      hinst[hnext] = inst & 0xffff;
@@ -6001,7 +6003,7 @@ int32 Debug_Entry(int32 PC, int32 inst, int32 inst2, int32 AC0, int32 AC1, int32
     return 0;
 }
 
-t_stat Debug_Dump(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat Debug_Dump(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -6013,7 +6015,7 @@ t_stat Debug_Dump(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat Dump_History (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat Dump_History (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -6079,7 +6081,7 @@ t_stat build_devtab (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-int32 i, dn;
+int32_t i, dn;
 
 for (i = 0; i < 64; i++) {                              /* clr dev_table */
     dev_table[i].mask = 0;
@@ -6105,40 +6107,40 @@ return SCPE_OK;
 
 /* Get short float from FPAC */
 
-void get_sf (SHORT_FLOAT *fl, t_int64 *fpr)
+void get_sf (SHORT_FLOAT *fl, int64_t *fpr)
 {
-    fl->sign = (uint8)(*fpr >> 63) & 1;
+    fl->sign = (uint8_t)(*fpr >> 63) & 1;
     fl->expo = (short)(*fpr >> 56) & 0x007F;
-    fl->short_fract = (int32)(*fpr >> 32) & 0x00FFFFFF;
+    fl->short_fract = (int32_t)(*fpr >> 32) & 0x00FFFFFF;
 }
 
 /* Store short float to FPAC */
 
-void store_sf (SHORT_FLOAT *fl, t_int64 *fpr)
+void store_sf (SHORT_FLOAT *fl, int64_t *fpr)
 {
     *fpr = 0;
-    *fpr = ((t_int64)fl->sign << 63)
-         | ((t_int64)fl->expo << 56)
-         | ((t_int64)fl->short_fract <<32);
+    *fpr = ((int64_t)fl->sign << 63)
+         | ((int64_t)fl->expo << 56)
+         | ((int64_t)fl->short_fract <<32);
 }
 
 /* Get long float from FPAC */
 
-void get_lf (LONG_FLOAT *fl, t_int64 *fpr)
+void get_lf (LONG_FLOAT *fl, int64_t *fpr)
 {
-    fl->sign = (uint8)(*fpr >> 63) & 1;
+    fl->sign = (uint8_t)(*fpr >> 63) & 1;
     fl->expo = (short)(*fpr >> 56) & 0x007F;
-    fl->long_fract = (t_int64)*fpr & 0x00FFFFFFFFFFFFFF;
+    fl->long_fract = (int64_t)*fpr & 0x00FFFFFFFFFFFFFF;
 
 }
 
 /* Store long float to FPAC */
 
-void store_lf (LONG_FLOAT *fl, t_int64 *fpr)
+void store_lf (LONG_FLOAT *fl, int64_t *fpr)
 {
     *fpr = 0;
-    *fpr = (t_int64)fl->sign << 63;
-    *fpr |= ((t_int64)fl->expo << 56) & 0x7f00000000000000;
+    *fpr = (int64_t)fl->sign << 63;
+    *fpr |= ((int64_t)fl->expo << 56) & 0x7f00000000000000;
     *fpr |= fl->long_fract;
 }
 
@@ -6631,7 +6633,7 @@ int    shift;
 
 int mul_sf(SHORT_FLOAT *fl, SHORT_FLOAT *mul_fl)
 {
-t_int64     wk;
+int64_t     wk;
 
     if (fl->short_fract
     && mul_fl->short_fract) {
@@ -6640,14 +6642,14 @@ t_int64     wk;
         normal_sf( mul_fl );
 
         /* multiply fracts */
-        wk = (t_int64) fl->short_fract * mul_fl->short_fract;
+        wk = (int64_t) fl->short_fract * mul_fl->short_fract;
 
         /* normalize result and compute expo */
         if (wk & 0x0000F00000000000) {
-            fl->short_fract = (int32)wk >> 24;
+            fl->short_fract = (int32_t)wk >> 24;
             fl->expo = (short)fl->expo + mul_fl->expo - 64;
         } else {
-            fl->short_fract = (int32)wk >> 20;
+            fl->short_fract = (int32_t)wk >> 20;
             fl->expo = (short)fl->expo + mul_fl->expo - 65;
         }
 
@@ -6679,8 +6681,8 @@ t_int64     wk;
 /*-------------------------------------------------------------------*/
 int mul_lf(LONG_FLOAT *fl, LONG_FLOAT *mul_fl)
 {
-t_int64   wk;
-int32     v;
+int64_t   wk;
+int32_t   v;
 
     if (fl->long_fract
     && mul_fl->long_fract) {
@@ -6693,7 +6695,7 @@ int32     v;
 
         wk += ((fl->long_fract & 0x00000000FFFFFFFF) * (mul_fl->long_fract >> 32));
         wk += ((fl->long_fract >> 32) * (mul_fl->long_fract & 0x00000000FFFFFFFF));
-        v = (int32)wk;
+        v = (int32_t)wk;
 
         fl->long_fract = (wk >> 32) + ((fl->long_fract >> 32) * (mul_fl->long_fract >> 32));
 
@@ -6736,7 +6738,7 @@ int32     v;
 /*-------------------------------------------------------------------*/
 int div_sf(SHORT_FLOAT *fl, SHORT_FLOAT *div_fl)
 {
-t_int64     wk;
+int64_t     wk;
 
     if (div_fl->short_fract) {
         if (fl->short_fract) {
@@ -6746,14 +6748,14 @@ t_int64     wk;
 
             /* position fracts and compute expo */
             if (fl->short_fract < div_fl->short_fract) {
-                wk = (t_int64) fl->short_fract << 24;
+                wk = (int64_t) fl->short_fract << 24;
                 fl->expo = fl->expo - div_fl->expo + 64;
             } else {
-                wk = (t_int64) fl->short_fract << 20;
+                wk = (int64_t) fl->short_fract << 20;
                 fl->expo = fl->expo - div_fl->expo + 65;
             }
             /* divide fractions */
-            fl->short_fract = (int32)wk / div_fl->short_fract;
+            fl->short_fract = (int32_t)wk / div_fl->short_fract;
 
             /* determine sign */
             fl->sign = (fl->sign == div_fl->sign) ? 0 : 1;
@@ -6788,8 +6790,8 @@ t_int64     wk;
 /*-------------------------------------------------------------------*/
 int div_lf(LONG_FLOAT *fl, LONG_FLOAT *div_fl)
 {
-t_int64 wk;
-t_int64 wk2;
+int64_t wk;
+int64_t wk2;
 int     i;
 
     if (div_fl->long_fract) {

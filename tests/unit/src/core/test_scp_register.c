@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -7,7 +8,7 @@
 #include "scp.h"
 #include "test_support.h"
 
-static uint8 register_buffer[4];
+static uint8_t register_buffer[4];
 static REG test_registers[] = {
     {BRDATA(RBUF, register_buffer, 8, 8, 4)},
     {NULL},

@@ -29,6 +29,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_cpu.h"
 #include "3b2_csr.h"
 #include "3b2_if.h"
@@ -94,7 +96,7 @@ DEVICE csr_dev = {
     DEV_DEBUG, 0, sys_deb_tab
 };
 
-t_stat csr_ex(t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat csr_ex(t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
     /* Generic examine signature.
        This implementation does not use every parameter. */
@@ -106,7 +108,7 @@ t_stat csr_ex(t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
     return SCPE_OK;
 }
 
-t_stat csr_dep(t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat csr_dep(t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
     /* Generic deposit signature.
        This implementation does not use every parameter. */
@@ -135,13 +137,13 @@ t_stat csr_reset(DEVICE *dptr)
     return SCPE_OK;
 }
 
-uint32 csr_read(uint32 pa, size_t size)
+uint32_t csr_read(uint32_t pa, size_t size)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) size;
 
-    uint32 reg = (pa - CSRBASE) & 0xff;
+    uint32_t reg = (pa - CSRBASE) & 0xff;
 
     switch (reg & 0xf0) {
     case 0x00:
@@ -168,13 +170,13 @@ uint32 csr_read(uint32 pa, size_t size)
         }                                        \
     }
 
-void csr_write(uint32 pa, uint32 val, size_t size)
+void csr_write(uint32_t pa, uint32_t val, size_t size)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) size;
 
-    uint32 reg = pa - CSRBASE;
+    uint32_t reg = pa - CSRBASE;
 
     switch (reg) {
 

@@ -18,6 +18,7 @@
 #define SIM_CONSOLE_H_ 0
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define TTUF_V_MODE     (UNIT_V_UF + 0)
 #define TTUF_W_MODE     2
@@ -51,74 +52,74 @@
    since they together are passed into sim_tt_inpcvt() */
 #define TT_GET_MODE(x)  (((x) >> TTUF_V_MODE) & (TTUF_M_MODE | (TTUF_M_PAR << TTUF_W_MODE)))
 
-t_stat sim_set_console (int32 flag, const char *cptr);
-t_stat sim_set_remote_console (int32 flag, const char *cptr);
+t_stat sim_set_console (int32_t flag, const char *cptr);
+t_stat sim_set_remote_console (int32_t flag, const char *cptr);
 void sim_remote_process_command (void);
-t_stat sim_set_kmap (int32 flag, const char *cptr);
-t_stat sim_set_telnet (int32 flag, const char *cptr);
-t_stat sim_set_notelnet (int32 flag, const char *cptr);
-t_stat sim_set_serial (int32 flag, const char *cptr);
-t_stat sim_set_noserial (int32 flag, const char *cptr);
-t_stat sim_set_logon (int32 flag, const char *cptr);
-t_stat sim_set_logoff (int32 flag, const char *cptr);
-int32 sim_set_deb_switches (int32 switches);
-t_stat sim_set_debon (int32 flag, const char *cptr);
-t_stat sim_set_cons_debug (int32 flg, const char *cptr);
-t_stat sim_set_cons_buff (int32 flg, const char *cptr);
-t_stat sim_set_cons_unbuff (int32 flg, const char *cptr);
-t_stat sim_set_cons_log (int32 flg, const char *cptr);
-t_stat sim_set_cons_nolog (int32 flg, const char *cptr);
-t_stat sim_set_deboff (int32 flag, const char *cptr);
-t_stat sim_set_cons_expect (int32 flg, const char *cptr);
-t_stat sim_set_cons_noexpect (int32 flg, const char *cptr);
-t_stat sim_set_pchar (int32 flag, const char *cptr);
-t_stat sim_set_cons_speed (int32 flag, const char *cptr);
-t_stat sim_show_console (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_remote_console (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_kmap (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_telnet (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_log (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_debug (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_pchar (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_cons_speed (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_cons_buff (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_cons_log (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_cons_debug (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_show_cons_expect (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat sim_check_console (int32 sec);
+t_stat sim_set_kmap (int32_t flag, const char *cptr);
+t_stat sim_set_telnet (int32_t flag, const char *cptr);
+t_stat sim_set_notelnet (int32_t flag, const char *cptr);
+t_stat sim_set_serial (int32_t flag, const char *cptr);
+t_stat sim_set_noserial (int32_t flag, const char *cptr);
+t_stat sim_set_logon (int32_t flag, const char *cptr);
+t_stat sim_set_logoff (int32_t flag, const char *cptr);
+int32_t sim_set_deb_switches (int32_t switches);
+t_stat sim_set_debon (int32_t flag, const char *cptr);
+t_stat sim_set_cons_debug (int32_t flg, const char *cptr);
+t_stat sim_set_cons_buff (int32_t flg, const char *cptr);
+t_stat sim_set_cons_unbuff (int32_t flg, const char *cptr);
+t_stat sim_set_cons_log (int32_t flg, const char *cptr);
+t_stat sim_set_cons_nolog (int32_t flg, const char *cptr);
+t_stat sim_set_deboff (int32_t flag, const char *cptr);
+t_stat sim_set_cons_expect (int32_t flg, const char *cptr);
+t_stat sim_set_cons_noexpect (int32_t flg, const char *cptr);
+t_stat sim_set_pchar (int32_t flag, const char *cptr);
+t_stat sim_set_cons_speed (int32_t flag, const char *cptr);
+t_stat sim_show_console (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_remote_console (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_kmap (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_telnet (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_log (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_debug (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_pchar (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_cons_speed (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_cons_buff (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_cons_log (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_cons_debug (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_show_cons_expect (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat sim_check_console (int32_t sec);
 t_stat sim_open_logfile (const char *filename, bool binary, FILE **pf, FILEREF **pref);
 t_stat sim_close_logfile (FILEREF **pref);
 const char *sim_logfile_name (FILE *st, FILEREF *ref);
 SEND *sim_cons_get_send (void);
 EXPECT *sim_cons_get_expect (void);
-t_stat sim_show_cons_send_input (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat sim_show_cons_send_input (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 t_stat sim_set_noconsole_port (void);
 t_stat sim_set_stable_registers_state (void);
 t_stat sim_poll_kbd (void);
-t_stat sim_putchar (int32 c);
-t_stat sim_putchar_s (int32 c);
+t_stat sim_putchar (int32_t c);
+t_stat sim_putchar_s (int32_t c);
 t_stat sim_ttinit (void);
 t_stat sim_ttrun (void);
 t_stat sim_ttcmd (void);
 t_stat sim_ttclose (void);
 bool sim_ttisatty (void);
 bool sim_fd_isatty (int fd);
-int32 sim_tt_inpcvt (int32 c, uint32 mode);
-int32 sim_tt_outcvt (int32 c, uint32 mode);
-t_stat sim_tt_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat sim_tt_set_parity (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat sim_tt_show_modepar (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat sim_tt_settabs (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat sim_tt_showtabs (FILE *st, UNIT *uptr, int32 val, const void *desc);
+int32_t sim_tt_inpcvt (int32_t c, uint32_t mode);
+int32_t sim_tt_outcvt (int32_t c, uint32_t mode);
+t_stat sim_tt_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat sim_tt_set_parity (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat sim_tt_show_modepar (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat sim_tt_settabs (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat sim_tt_showtabs (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 bool sim_is_remote_console_master_line (void *lp);
 
-extern int32 sim_rem_cmd_active_line;   /* command in progress on line # */
+extern int32_t sim_rem_cmd_active_line; /* command in progress on line # */
 
-extern int32 sim_int_char;              /* interrupt character */
-extern int32 sim_brk_char;              /* break character */
-extern int32 sim_tt_pchar;              /* printable character mask */
-extern int32 sim_del_char;              /* delete character */
+extern int32_t sim_int_char;            /* interrupt character */
+extern int32_t sim_brk_char;            /* break character */
+extern int32_t sim_tt_pchar;            /* printable character mask */
+extern int32_t sim_del_char;            /* delete character */
 extern bool sim_signaled_int_char;      /* WRU character detected by signal while running  */
-extern uint32 sim_last_poll_kbd_time;   /* time when sim_poll_kbd was called */
+extern uint32_t sim_last_poll_kbd_time; /* time when sim_poll_kbd was called */
 
 #endif

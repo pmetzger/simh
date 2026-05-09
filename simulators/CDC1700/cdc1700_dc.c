@@ -30,44 +30,46 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "cdc1700_defs.h"
 
 extern char INTprefix[];
 
-extern uint16 Areg, Preg, Qreg, IOAreg, IOQreg, M[];
+extern uint16_t Areg, Preg, Qreg, IOAreg, IOQreg, M[];
 
 extern bool IOFWinitialized;
 
 extern DEVICE *IOdev[];
 extern UNIT cpu_unit;
 
-extern uint16 LoadFromMem(uint16);
-extern bool IOStoreToMem(uint16, uint16, bool);
+extern uint16_t LoadFromMem(uint16_t);
+extern bool IOStoreToMem(uint16_t, uint16_t, bool);
 
 extern void rebuildPending(void);
 extern void RaiseExternalInterrupt(DEVICE *);
 
-extern IO_DEVICE *fw_findChanDevice(IO_DEVICE *, uint16);
+extern IO_DEVICE *fw_findChanDevice(IO_DEVICE *, uint16_t);
 extern enum IOstatus fw_doIO(DEVICE *, bool);
-extern enum IOstatus fw_doBDCIO(IO_DEVICE *, uint16 *, bool, uint8);
+extern enum IOstatus fw_doBDCIO(IO_DEVICE *, uint16_t *, bool, uint8_t);
 
-extern uint16 LoadFromMem(uint16);
-extern bool IOStoreToMem(uint16, uint16, bool);
+extern uint16_t LoadFromMem(uint16_t);
+extern bool IOStoreToMem(uint16_t, uint16_t, bool);
 
-static t_stat set_intr(UNIT *uptr, int32 val, const char *, void *);
-static t_stat show_intr(FILE *, UNIT *, int32, const void *);
-static t_stat show_target(FILE *, UNIT *, int32, const void *);
+static t_stat set_intr(UNIT *uptr, int32_t val, const char *, void *);
+static t_stat show_intr(FILE *, UNIT *, int32_t, const void *);
+static t_stat show_target(FILE *, UNIT *, int32_t, const void *);
 static const char *description(DEVICE *);
 
 static t_stat dc_svc(UNIT *);
 static t_stat dc_reset(DEVICE *);
 
 void DCstate(const char *, DEVICE *, IO_DEVICE *);
-bool DCreject(IO_DEVICE *, bool, uint8);
-enum IOstatus DCin(IO_DEVICE *, uint8);
-enum IOstatus DCout(IO_DEVICE *, uint8);
+bool DCreject(IO_DEVICE *, bool, uint8_t);
+enum IOstatus DCin(IO_DEVICE *, uint8_t);
+enum IOstatus DCout(IO_DEVICE *, uint8_t);
 
-static t_stat dc_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+static t_stat dc_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 
 /*
         1706-A Buffered Data Channel
@@ -318,7 +320,7 @@ static t_stat dc_svc(UNIT *uptr)
 {
   DEVICE *dptr;
   enum IOstatus status;
-  uint16 temp = 0;
+  uint16_t temp = 0;
 
   if ((dptr = find_dev_from_unit(uptr)) != NULL) {
     IO_DEVICE *iod = (IO_DEVICE *)dptr->ctxt;
@@ -493,7 +495,7 @@ static t_stat dc_reset(DEVICE *dptr)
 /*
  * Set the interrupt level for a buffered data channel.
  */
-static t_stat set_intr(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat set_intr(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   IO_DEVICE *iod = (IO_DEVICE *)uptr->up7;
   t_value v;
@@ -521,7 +523,7 @@ static t_stat set_intr(UNIT *uptr, int32 val, const char *cptr, void *desc)
 /*
  * Display the current interrupt level.
  */
-static t_stat show_intr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_intr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   IO_DEVICE *iod = (IO_DEVICE *)uptr->up7;
 
@@ -540,7 +542,7 @@ static t_stat show_intr(FILE *st, UNIT *uptr, int32 val, const void *desc)
 /*
  * Display buffered data channel target device and equipment address
  */
-static t_stat show_target(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_target(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   IO_DEVICE *iod;
 
@@ -571,7 +573,7 @@ static t_stat show_target(FILE *st, UNIT *uptr, int32 val, const void *desc)
  *  02          Not busy                        Always allowed
  *  03          Not busy                        Always allowed
  */
-bool DCreject(IO_DEVICE *iod, bool output, uint8 reg)
+bool DCreject(IO_DEVICE *iod, bool output, uint8_t reg)
 {
   if (output || (reg == 0))
     return (DCSTATUS(iod) & IO_ST_BUSY) != 0;
@@ -615,7 +617,7 @@ static enum IOstatus DCxfer(IO_DEVICE *iod, IO_DEVICE *target, bool output)
 /*
  * Perform a buffered data channel input operation
  */
-enum IOstatus DCin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus DCin(IO_DEVICE *iod, uint8_t reg)
 {
   IO_DEVICE *target;
   enum IOstatus status;
@@ -677,7 +679,7 @@ enum IOstatus DCin(IO_DEVICE *iod, uint8 reg)
 /*
  * Perform a buffered data channel output operation
  */
-enum IOstatus DCout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus DCout(IO_DEVICE *iod, uint8_t reg)
 {
   IO_DEVICE *target;
   enum IOstatus status;
@@ -754,7 +756,7 @@ enum IOstatus DCout(IO_DEVICE *iod, uint8 reg)
 void buildDCtables(void)
 {
   int i;
-  uint8 chan;
+  uint8_t chan;
   DEVICE *dptr;
   UNIT *uptr;
 
@@ -786,9 +788,9 @@ void buildDCtables(void)
 /*
  * Create bit map of interrupts asserted by the Buffered Data Channels.
  */
-uint16 dcINTR(void)
+uint16_t dcINTR(void)
 {
-  uint16 result = 0;
+  uint16_t result = 0;
 
   if ((DCSTATUS(&DCAdev) & IO_ST_INT) != 0)
     result |= DCAdev.iod_interrupt;
@@ -800,7 +802,7 @@ uint16 dcINTR(void)
   return result;
 }
 
-static t_stat dc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+static t_stat dc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                       const char *cptr)
 {
   const char helpString[] =

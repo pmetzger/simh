@@ -20,32 +20,32 @@
 extern DEVICE rz_dev;
 extern UNIT rz_unit[];
 extern SCSI_BUS rz_bus;
-extern uint8 rz_cfg1;
-extern uint8 rz_cfg2;
-extern uint8 rz_cfg3;
-extern uint8 rz_dest;
-extern uint8 rz_int;
-extern uint8 rz_seq;
-extern uint8 rz_stat;
-extern uint8 *rz_buf;
-extern uint8 rz_fifo[];
-extern uint32 rz_fifo_b;
-extern uint32 rz_fifo_c;
-extern uint32 rz_fifo_t;
-extern uint32 rz_txc;
+extern uint8_t rz_cfg1;
+extern uint8_t rz_cfg2;
+extern uint8_t rz_cfg3;
+extern uint8_t rz_dest;
+extern uint8_t rz_int;
+extern uint8_t rz_seq;
+extern uint8_t rz_stat;
+extern uint8_t *rz_buf;
+extern uint8_t rz_fifo[];
+extern uint32_t rz_fifo_b;
+extern uint32_t rz_fifo_c;
+extern uint32_t rz_fifo_t;
+extern uint32_t rz_txc;
 
 extern t_stat rz_reset(DEVICE *dptr);
-void rz_cmd(uint32 cmd);
+void rz_cmd(uint32_t cmd);
 
-int32 int_req[IPL_HLVL];
-int32 sys_model;
-uint32 trpirq;
-uint32 fault_PC;
-int32 hlt_pin;
+int32_t int_req[IPL_HLVL];
+int32_t sys_model;
+uint32_t trpirq;
+uint32_t fault_PC;
+int32_t hlt_pin;
 jmp_buf save_env;
 
-static uint8 rz_test_scsi_buffer[256];
-static uint8 rz_test_transfer_buffer[256];
+static uint8_t rz_test_scsi_buffer[256];
+static uint8_t rz_test_transfer_buffer[256];
 
 #if defined (HAVE_FMEMOPEN)
 /* Install the RZ device in a minimal simulator environment for ramdisk tests. */
@@ -69,14 +69,14 @@ static void install_rz_device(void)
 }
 #endif
 
-int32 Map_ReadB(uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_ReadB(uint32_t ba, int32_t bc, uint8_t *buf)
 {
     (void)ba;
     memset(buf, 0, (size_t)bc);
     return 0;
 }
 
-int32 Map_WriteB(uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_WriteB(uint32_t ba, int32_t bc, uint8_t *buf)
 {
     (void)ba;
     (void)bc;
@@ -84,12 +84,12 @@ int32 Map_WriteB(uint32 ba, int32 bc, uint8 *buf)
     return 0;
 }
 
-int32 eval_int(void)
+int32_t eval_int(void)
 {
     return 0;
 }
 
-static void load_rz_fifo(const uint8 *data, uint32 len)
+static void load_rz_fifo(const uint8_t *data, uint32_t len)
 {
     assert_true(len <= 16);
     memcpy(rz_fifo, data, len);
@@ -124,10 +124,10 @@ static void reset_rz_command_state(void)
 
 #if defined (HAVE_FMEMOPEN)
 /* Begin a SCSI command transaction against an RZ target. */
-static void start_rz_scsi_command(uint32 target)
+static void start_rz_scsi_command(uint32_t target)
 {
     rz_bus.initiator = RZ_SCSI_ID;
-    rz_bus.target = (int32)target;
+    rz_bus.target = (int32_t)target;
     rz_bus.phase = SCSI_CMD;
     rz_bus.req = true;
     rz_bus.buf_b = 0;
@@ -137,7 +137,7 @@ static void start_rz_scsi_command(uint32 target)
 /* Verify an RZ SCSI command completed with good status. */
 static void assert_rz_scsi_good_status(void)
 {
-    uint8 status;
+    uint8_t status;
 
     assert_int_equal(rz_bus.phase, SCSI_STS);
     assert_int_equal(scsi_read(&rz_bus, &status, 1), 1);
@@ -145,13 +145,13 @@ static void assert_rz_scsi_good_status(void)
 }
 
 /* Write one 512-byte sector through the RZ SCSI command interface. */
-static void write_rz0_sector(uint32 lba, const uint8 *data)
+static void write_rz0_sector(uint32_t lba, const uint8_t *data)
 {
-    uint8 command[6] = {
+    uint8_t command[6] = {
         0x0A,
-        (uint8)((lba >> 16) & 0x1F),
-        (uint8)(lba >> 8),
-        (uint8)lba,
+        (uint8_t)((lba >> 16) & 0x1F),
+        (uint8_t)(lba >> 8),
+        (uint8_t)lba,
         1,
         0,
     };
@@ -160,18 +160,18 @@ static void write_rz0_sector(uint32 lba, const uint8 *data)
     assert_int_equal(scsi_write(&rz_bus, command, sizeof(command)),
                      sizeof(command));
     assert_int_equal(rz_bus.phase, SCSI_DATO);
-    assert_int_equal(scsi_write(&rz_bus, (uint8 *)data, 512), 512);
+    assert_int_equal(scsi_write(&rz_bus, (uint8_t *)data, 512), 512);
     assert_rz_scsi_good_status();
 }
 
 /* Read one 512-byte sector through the RZ SCSI command interface. */
-static void read_rz0_sector(uint32 lba, uint8 *data)
+static void read_rz0_sector(uint32_t lba, uint8_t *data)
 {
-    uint8 command[6] = {
+    uint8_t command[6] = {
         0x08,
-        (uint8)((lba >> 16) & 0x1F),
-        (uint8)(lba >> 8),
-        (uint8)lba,
+        (uint8_t)((lba >> 16) & 0x1F),
+        (uint8_t)(lba >> 8),
+        (uint8_t)lba,
         1,
         0,
     };
@@ -320,7 +320,7 @@ static void test_select_with_atn3_sends_three_messages_then_command(
     static SCSI_DEV disk = {
         .devtype = SCSI_DISK,
     };
-    const uint8 select_bytes[] = {
+    const uint8_t select_bytes[] = {
         0x80,       /* identify LUN 0 */
         0x20, 0x44, /* simple queue tag 0x44 */
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* test unit ready */
@@ -358,9 +358,9 @@ static void test_ramdisk_attach_save_restore_via_rz_device(void **state)
     char save_image[CBUFSIZE];
     char state_image[CBUFSIZE];
     char command[2 * CBUFSIZE];
-    uint8 expected[512];
-    uint8 clobber[512];
-    uint8 actual[512];
+    uint8_t expected[512];
+    uint8_t clobber[512];
+    uint8_t actual[512];
 
     (void)state;
 
@@ -383,7 +383,7 @@ static void test_ramdisk_attach_save_restore_via_rz_device(void **state)
     assert_true((rz_unit[0].flags & UNIT_ATT) != 0);
 
     for (size_t index = 0; index < sizeof(expected); index++)
-        expected[index] = (uint8)(index ^ 0xA5);
+        expected[index] = (uint8_t)(index ^ 0xA5);
     memset(clobber, 0x3C, sizeof(clobber));
     write_rz0_sector(2, expected);
 

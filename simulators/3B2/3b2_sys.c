@@ -29,16 +29,18 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "3b2_sys.h"
 
 #include "3b2_cpu.h"
 #include "3b2_mem.h"
+#include "sim_types.h"
 
 REG *sim_PC = &cpu_reg[NUM_PC];
 
 /* All opcodes are 1 or 2 bytes. Operands may be up to 6 bytes, and
    there may be up to 3 operands, for a maximum of 20 bytes */
-int32 sim_emax = 20;
+int32_t sim_emax = 20;
 
 const char *sim_stop_messages[SCPE_BASE] = {
     "Unknown error",
@@ -68,9 +70,9 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
     (void)fnam;
 
     t_stat r;
-    int32 i;
-    uint32 origin = 0, limit = 0;
-    int32 cnt = 0;
+    int32_t i;
+    uint32_t origin = 0, limit = 0;
+    int32_t cnt = 0;
 
     if (flag) {
         return sim_messagef(SCPE_NOFNC, "Command not implemented.\n");
@@ -80,8 +82,8 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
         limit = ROM_BASE + ROM_SIZE;
         origin = ROM_BASE;
     } else if (sim_switches & SWMASK('O')) {
-        limit = PHYS_MEM_BASE + (uint32) cpu_unit.capac;
-        origin = (uint32) get_uint(cptr, 16, 0xffffffff, &r);
+        limit = PHYS_MEM_BASE + (uint32_t) cpu_unit.capac;
+        origin = (uint32_t) get_uint(cptr, 16, 0xffffffff, &r);
         if (r != SCPE_OK) {
             return SCPE_ARG;
         }
@@ -100,9 +102,9 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
             return SCPE_NXM;
         }
         if (sim_switches & SWMASK('R')) {
-            pwrite_b_rom(origin, (uint8)i);
+            pwrite_b_rom(origin, (uint8_t)i);
         } else {
-            pwrite_b(origin, (uint8)i, BUS_CPU);
+            pwrite_b(origin, (uint8_t)i, BUS_CPU);
         }
         origin++;
         cnt++;
@@ -116,7 +118,7 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
     }
 }
 
-t_stat parse_sym(const char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym(const char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32_t sw)
 {
     /* Generic symbolic input signature.
        This implementation does not use every parameter. */
@@ -124,19 +126,19 @@ t_stat parse_sym(const char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32 
 
     DEVICE *dptr;
     t_stat r;
-    int32 k, num, vp;
-    int32 len = 4;
+    int32_t k, num, vp;
+    int32_t len = 4;
 
-    if (sw & (int32) SWMASK ('B')) {
+    if (sw & (int32_t) SWMASK ('B')) {
         len = 1;
-    } else if (sw & (int32) SWMASK ('H')) {
+    } else if (sw & (int32_t) SWMASK ('H')) {
         len = 2;
-    } else if (sw & (int32) SWMASK ('W')) {
+    } else if (sw & (int32_t) SWMASK ('W')) {
         len = 4;
     }
 
     // Parse cptr
-    num = (int32) get_uint(cptr, 16, WORD_MASK, &r);
+    num = (int32_t) get_uint(cptr, 16, WORD_MASK, &r);
 
     if (r != SCPE_OK) {
         return r;
@@ -160,35 +162,35 @@ t_stat parse_sym(const char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32 
     return -(vp - 1);
 }
 
-t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
     (void)uptr;
 
-    uint32 len = 4;
-    int32 k, vp, num;
-    unsigned int c;
+    uint32_t len = 4;
+    int32_t k, vp, num;
+    uint_t c;
 
     num = 0;
     vp = 0;
 
-    if (sw & (int32) SWMASK('M')) {
+    if (sw & (int32_t) SWMASK('M')) {
         return fprint_sym_m(of, addr, val);
     }
 
-    if (sw & (int32) SWMASK ('B')) {
+    if (sw & (int32_t) SWMASK ('B')) {
         len = 1;
-    } else if (sw & (int32) SWMASK ('H')) {
+    } else if (sw & (int32_t) SWMASK ('H')) {
         len = 2;
-    } else if (sw & (int32) SWMASK ('W')) {
+    } else if (sw & (int32_t) SWMASK ('W')) {
         len = 4;
     }
 
-    if (sw & (int32) SWMASK('C')) {
+    if (sw & (int32_t) SWMASK('C')) {
         len = 16;
-        for (k = (int32) len - 1; k >= 0; k--) {
-            c = (unsigned int)val[vp++];
+        for (k = (int32_t) len - 1; k >= 0; k--) {
+            c = (uint_t)val[vp++];
             if (c >= 0x20 && c < 0x7f) {
                 fprintf(of, "%c", c);
             } else {
@@ -199,10 +201,10 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
     }
 
     for (k = len - 1; k >= 0; k--) {
-        num = num | (((int32) val[vp++]) << (k * 8));
+        num = num | (((int32_t) val[vp++]) << (k * 8));
     }
 
-    fprint_val(of, (uint32) num, 16, len * 8, PV_RZRO);
+    fprint_val(of, (uint32_t) num, 16, len * 8, PV_RZRO);
 
     return -(vp - 1);
 }

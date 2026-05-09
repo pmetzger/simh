@@ -42,6 +42,8 @@
      device control.
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 /* Constants */
@@ -194,27 +196,27 @@
 #define DBG_RD          0x0004                          /* disk reads */
 #define DBG_WR          0x0008                          /* disk writes */
 
-uint16 *rbxb = NULL;                                     /* xfer buffer */
-int32 rbcs = 0;                                         /* control/status */
-int32 rbba = 0;                                         /* memory address */
-int32 rbbc = 0;                                         /* bytes count */
-int32 rbda = 0;                                         /* disk addr */
-int32 rbmp = 0, rbmp1 = 0, rbmp2 = 0;                   /* mp register queue */
-int32 rb_swait = 150;                                   /* seek wait */
-int32 rb_mwait = 300;                                   /* seek wait */
-int32 rb_cwait = 50;                                    /* seek wait */
+uint16_t *rbxb = NULL;                                   /* xfer buffer */
+int32_t rbcs = 0;                                       /* control/status */
+int32_t rbba = 0;                                       /* memory address */
+int32_t rbbc = 0;                                       /* bytes count */
+int32_t rbda = 0;                                       /* disk addr */
+int32_t rbmp = 0, rbmp1 = 0, rbmp2 = 0;                 /* mp register queue */
+int32_t rb_swait = 150;                                 /* seek wait */
+int32_t rb_mwait = 300;                                 /* seek wait */
+int32_t rb_cwait = 50;                                  /* seek wait */
 
-t_stat rb_rd16 (int32 *data, int32 PA, int32 access);
-t_stat rb_wr16 (int32 data, int32 PA, int32 access);
-t_stat rb_rd32 (int32 *data, int32 PA, int32 access);
-t_stat rb_wr32 (int32 data, int32 PA, int32 access);
+t_stat rb_rd16 (int32_t *data, int32_t PA, int32_t access);
+t_stat rb_wr16 (int32_t data, int32_t PA, int32_t access);
+t_stat rb_rd32 (int32_t *data, int32_t PA, int32_t access);
+t_stat rb_wr32 (int32_t data, int32_t PA, int32_t access);
 t_stat rb_svc (UNIT *uptr);
 t_stat rb_reset (DEVICE *dptr);
 const char *rb_description (DEVICE *dptr);
-void rb_set_done (int32 error);
+void rb_set_done (int32_t error);
 t_stat rb_attach (UNIT *uptr, const char *cptr);
-t_stat rb_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rb_set_bad (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat rb_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rb_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* RB730 data structures
 
@@ -290,7 +292,7 @@ DEVICE rb_dev = {
    17775606     RBDCS    dummy csr to trigger sysgen
 */
 
-t_stat rb_rd16 (int32 *data, int32 PA, int32 access)
+t_stat rb_rd16 (int32_t *data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -301,7 +303,7 @@ t_stat rb_rd16 (int32 *data, int32 PA, int32 access)
 return SCPE_OK;
 }
 
-t_stat rb_wr16 (int32 data, int32 PA, int32 access)
+t_stat rb_wr16 (int32_t data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -312,7 +314,7 @@ t_stat rb_wr16 (int32 data, int32 PA, int32 access)
 return SCPE_OK;
 }
 
-t_stat rb_rd32 (int32 *data, int32 PA, int32 access)
+t_stat rb_rd32 (int32_t *data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -365,7 +367,7 @@ sim_debug(DBG_REG, &rb_dev, "reg %d read, value = %X\n", (PA >> 2) & 07, *data);
 return SCPE_OK;
 }
 
-t_stat rb_wr32 (int32 data, int32 PA, int32 access)
+t_stat rb_wr32 (int32_t data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -455,11 +457,11 @@ return SCPE_OK;
 
 t_stat rb_svc (UNIT *uptr)
 {
-int32 curr, newc, swait;
-int32 err, wc, maxwc, t;
-int32 i, func, da, awc;
-uint32 ma;
-uint16 comp;
+int32_t curr, newc, swait;
+int32_t err, wc, maxwc, t;
+int32_t i, func, da, awc;
+uint32_t ma;
+uint16_t comp;
 
 func = GET_FUNC (rbcs);                                 /* get function */
 if (func == RBCS_GSTA) {                                /* get status */
@@ -513,7 +515,7 @@ if (func == RBCS_SEEK) {                                /* seek? */
     if (uptr->SIP == 0) {
         sim_debug(DBG_CMD, &rb_dev, "Seek, CYL=%d, TRK=%d, SECT=%d\n", GET_CYL(rbda), GET_TRACK(rbda), GET_SECT(rbda));
         uptr->SIP = 1;
-        if ((uint32)rbda == 0xFFFFFFFF) swait = rb_swait;
+        if ((uint32_t)rbda == 0xFFFFFFFF) swait = rb_swait;
         else {
             curr = GET_CYL (uptr->TRK);                     /* current cylinder */
             newc = GET_CYL (rbda);                          /* offset */
@@ -550,11 +552,11 @@ wc = ((rbbc * -1) >> 1);                                /* get true wc */
 maxwc = (RB_NUMSC(uptr) - GET_SECT (rbda)) * RB_NUMWD(uptr);    /* max transfer */
 if (wc > maxwc)                                         /* track overrun? */
     wc = maxwc;
-err = sim_fseek (uptr->fileref, da * sizeof (int16), SEEK_SET);
+err = sim_fseek (uptr->fileref, da * sizeof (int16_t), SEEK_SET);
 
 if ((func >= RBCS_READ) && (err == 0)) {                /* read (no hdr)? */
     sim_debug(DBG_CMD, &rb_dev, "Read, CYL=%d, TRK=%d, SECT=%d, WC=%d, DA=%d\n", GET_CYL(rbda), GET_TRACK(rbda), GET_SECT(rbda), wc, da);
-    i = sim_fread (rbxb, sizeof (uint16), wc, uptr->fileref);
+    i = sim_fread (rbxb, sizeof (uint16_t), wc, uptr->fileref);
     err = ferror (uptr->fileref);
     for ( ; i < wc; i++)                                /* fill buffer */
         rbxb[i] = 0;
@@ -574,14 +576,14 @@ if ((func == RBCS_WRITE) && (err == 0)) {               /* write? */
         awc = (wc + (RB_NUMWD(uptr) - 1)) & ~(RB_NUMWD(uptr) - 1);  /* clr to */
         for (i = wc; i < awc; i++)                      /* end of blk */
             rbxb[i] = 0;
-        sim_fwrite (rbxb, sizeof (uint16), awc, uptr->fileref);
+        sim_fwrite (rbxb, sizeof (uint16_t), awc, uptr->fileref);
         err = ferror (uptr->fileref);
         }
     }                                                   /* end write */
 
 if ((func == RBCS_WCHK) && (err == 0)) {                /* write check? */
     sim_debug(DBG_CMD, &rb_dev, "WCheck, CYL=%d, TRK=%d, SECT=%d, WC=%d, DA=%d\n", GET_CYL(rbda), GET_TRACK(rbda), GET_SECT(rbda), wc, da);
-    i = sim_fread (rbxb, sizeof (uint16), wc, uptr->fileref);
+    i = sim_fread (rbxb, sizeof (uint16_t), wc, uptr->fileref);
     err = ferror (uptr->fileref);
     for ( ; i < wc; i++)                                /* fill buffer */
         rbxb[i] = 0;
@@ -615,7 +617,7 @@ return SCPE_OK;
 
 /* Set done and possibly errors */
 
-void rb_set_done (int32 status)
+void rb_set_done (int32_t status)
 {
 rbcs = rbcs | status | CSR_DONE;                        /* set done */
 rbcs = rbcs | RBCS_IRQ;
@@ -638,7 +640,7 @@ t_stat rb_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 rbcs = CSR_DONE;
@@ -651,7 +653,7 @@ for (i = 0; i < RB_NUMDR; i++) {
     uptr->SIP = 0;
     }
 if (rbxb == NULL)
-    rbxb = (uint16 *) calloc (RB_MAXFR, sizeof (uint16));
+    rbxb = (uint16_t *) calloc (RB_MAXFR, sizeof (uint16_t));
 if (rbxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -670,7 +672,7 @@ return "RB730 disk controller";
 
 t_stat rb_attach (UNIT *uptr, const char *cptr)
 {
-uint32 p;
+uint32_t p;
 t_stat r;
 
 uptr->capac = (uptr->flags & UNIT_RB80)? RB80_SIZE: RB02_SIZE;
@@ -690,7 +692,7 @@ return SCPE_OK;
 
 /* Set size routine */
 
-t_stat rb_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rb_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -705,7 +707,7 @@ return SCPE_OK;
 
 /* Set bad block routine */
 
-t_stat rb_set_bad (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rb_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

@@ -31,53 +31,55 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7094_defs.h"
 
-#define FP_HIFRAC(x)    ((uint32) ((x) >> FP_N_FR) & FP_FMASK)
-#define FP_LOFRAC(x)    ((uint32) (x) & FP_FMASK)
+#define FP_HIFRAC(x)    ((uint32_t) ((x) >> FP_N_FR) & FP_FMASK)
+#define FP_LOFRAC(x)    ((uint32_t) (x) & FP_FMASK)
 
-#define FP_PACK38(s,e,f) (((s)? AC_S: 0) | ((t_uint64) (f)) | \
-                        (((t_uint64) ((e) & FP_M_ACCH)) << FP_V_CH))
-#define FP_PACK36(s,e,f) (((s)? SIGN: 0) | ((t_uint64) (f)) | \
-                        (((t_uint64) ((e) & FP_M_CH)) << FP_V_CH))
+#define FP_PACK38(s,e,f) (((s)? AC_S: 0) | ((uint64_t) (f)) | \
+                        (((uint64_t) ((e) & FP_M_ACCH)) << FP_V_CH))
+#define FP_PACK36(s,e,f) (((s)? SIGN: 0) | ((uint64_t) (f)) | \
+                        (((uint64_t) ((e) & FP_M_CH)) << FP_V_CH))
 
-extern t_uint64 AC, MQ, SI, KEYS;
-extern uint32 PC;
-extern uint32 SLT, SSW;
-extern uint32 cpu_model, stop_illop;
-extern uint32 ind_ovf, ind_dvc, ind_ioc, ind_mqo;
-extern uint32 mode_ttrap, mode_strap, mode_ctrap, mode_ftrap;
-extern uint32 mode_storn, mode_multi;
-extern uint32 chtr_pend, chtr_inht, chtr_inhi;
-extern uint32 ch_flags[NUM_CHAN];
+extern uint64_t AC, MQ, SI, KEYS;
+extern uint32_t PC;
+extern uint32_t SLT, SSW;
+extern uint32_t cpu_model, stop_illop;
+extern uint32_t ind_ovf, ind_dvc, ind_ioc, ind_mqo;
+extern uint32_t mode_ttrap, mode_strap, mode_ctrap, mode_ftrap;
+extern uint32_t mode_storn, mode_multi;
+extern uint32_t chtr_pend, chtr_inht, chtr_inhi;
+extern uint32_t ch_flags[NUM_CHAN];
 
-extern bool prot_trap (uint32 decr);
+extern bool prot_trap (uint32_t decr);
 
 typedef struct {                                        /* unpacked fp */
-    uint32              s;                              /* sign: 0 +, 1 - */
-    int32               ch;                             /* exponent */
-    t_uint64            fr;                             /* fraction (54b) */
+    uint32_t            s;                              /* sign: 0 +, 1 - */
+    int32_t             ch;                             /* exponent */
+    uint64_t            fr;                             /* fraction (54b) */
     } UFP;
 
-uint32 op_frnd (void);
-t_uint64 fp_fracdiv (t_uint64 dvd, t_uint64 dvr, t_uint64 *rem);
+uint32_t op_frnd (void);
+uint64_t fp_fracdiv (uint64_t dvd, uint64_t dvr, uint64_t *rem);
 void fp_norm (UFP *op);
-void fp_unpack (t_uint64 h, t_uint64 l, bool q_ac, UFP *op);
-uint32 fp_pack (UFP *op, uint32 mqs, int32 mqch);
+void fp_unpack (uint64_t h, uint64_t l, bool q_ac, UFP *op);
+uint32_t fp_pack (UFP *op, uint32_t mqs, int32_t mqch);
 
-extern bool fp_trap (uint32 spill);
-extern bool sel_trap (uint32 va);
-extern t_stat ch_op_reset (uint32 ch, bool ch7909);
+extern bool fp_trap (uint32_t spill);
+extern bool sel_trap (uint32_t va);
+extern t_stat ch_op_reset (uint32_t ch, bool ch7909);
 
 /* Integer add
 
    Sherman: "As the result of an addition or subtraction, if the C(AC) is
    zero, the sign of AC is unchanged." */
 
-void op_add (t_uint64 op)
+void op_add (uint64_t op)
 {
-t_uint64 mac = AC & AC_MMASK;                           /* get magnitudes */
-t_uint64 mop = op & MMASK;
+uint64_t mac = AC & AC_MMASK;                           /* get magnitudes */
+uint64_t mop = op & MMASK;
 
 AC = AC & AC_S;                                         /* isolate AC sign */
 if ((AC? 1: 0) ^ ((op & SIGN)? 1: 0)) {                 /* signs diff? sub */
@@ -95,9 +97,9 @@ return;
 
 /* Multiply */
 
-void op_mpy (t_uint64 ac, t_uint64 sr, uint32 sc)
+void op_mpy (uint64_t ac, uint64_t sr, uint32_t sc)
 {
-uint32 sign;
+uint32_t sign;
 
 if (sc == 0)                                            /* sc = 0? nop */
     return;
@@ -124,9 +126,9 @@ return;
 
 /* Divide */
 
-bool op_div (t_uint64 sr, uint32 sc)
+bool op_div (uint64_t sr, uint32_t sc)
 {
-uint32 signa, signm;
+uint32_t signa, signm;
 
 if (sc == 0)                                            /* sc = 0? nop */
     return false;
@@ -154,9 +156,9 @@ return false;                                           /* div ok */
 
 /* Shifts */
 
-void op_als (uint32 addr)
+void op_als (uint32_t addr)
 {
-uint32 sc = addr & SCMASK;
+uint32_t sc = addr & SCMASK;
 
 if ((sc >= 35)?                                         /* shift >= 35? */
     ((AC & MMASK) != 0):                                /* test all bits for ovf */
@@ -168,9 +170,9 @@ else AC = (AC & AC_S) | ((AC << sc) & AC_MMASK);        /* shift, save sign */
 return;
 }
 
-void op_ars (uint32 addr)
+void op_ars (uint32_t addr)
 {
-uint32 sc = addr & SCMASK;
+uint32_t sc = addr & SCMASK;
 
 if (sc >= 37)                                           /* sc >= 37? result 0 */
     AC = AC & AC_S;
@@ -178,9 +180,9 @@ else AC = (AC & AC_S) | ((AC & AC_MMASK) >> sc);        /* shift, save sign */
 return;
 }
 
-void op_lls (uint32 addr)
+void op_lls (uint32_t addr)
 {
-uint32 sc;                                              /* get sc */
+uint32_t sc;                                            /* get sc */
 
 AC = AC & AC_MMASK;                                     /* clear AC sign */
 for (sc = addr & SCMASK; sc != 0; sc--) {               /* for SC */
@@ -194,10 +196,10 @@ if (MQ & SIGN)                                          /* set ACS from MQS */
 return;
 }
 
-void op_lrs (uint32 addr)
+void op_lrs (uint32_t addr)
 {
-uint32 sc = addr & SCMASK;
-t_uint64 mac;
+uint32_t sc = addr & SCMASK;
+uint64_t mac;
 
 MQ = MQ & MMASK;                                        /* get MQ magnitude */
 if (sc != 0) {
@@ -220,9 +222,9 @@ if (AC & AC_S)                                          /* set MQS from ACS */
 return;
 }
 
-void op_lgl (uint32 addr)
+void op_lgl (uint32_t addr)
 {
-uint32 sc;                                              /* get sc */
+uint32_t sc;                                            /* get sc */
 
 for (sc = addr & SCMASK; sc != 0; sc--) {               /* for SC */
     AC = (AC & AC_S) | ((AC << 1) & AC_MMASK) |         /* AC'MQ << 1 */
@@ -234,10 +236,10 @@ for (sc = addr & SCMASK; sc != 0; sc--) {               /* for SC */
 return;
 }
 
-void op_lgr (uint32 addr)
+void op_lgr (uint32_t addr)
 {
-uint32 sc = addr & SCMASK;
-t_uint64 mac;
+uint32_t sc = addr & SCMASK;
+uint64_t mac;
 
 if (sc != 0) {
     mac = AC & AC_MMASK;                                /* get AC magnitude, */
@@ -259,9 +261,9 @@ return;
 
 /* Plus sense - undefined operations are NOPs */
 
-t_stat op_pse (uint32 addr)
+t_stat op_pse (uint32_t addr)
 {
-uint32 ch, spill;
+uint32_t ch, spill;
 
 switch (addr) {
 
@@ -309,7 +311,7 @@ switch (addr) {
 
     case 00010:                                         /* RND */
         if ((cpu_model & I_9X) && (MQ & B1))            /* 709X only, MQ1 set? */
-            op_add ((t_uint64) 1);                      /* incr AC */
+            op_add ((uint64_t) 1);                      /* incr AC */
         break;
 
     case 00011:                                         /* FRN */
@@ -411,9 +413,9 @@ return SCPE_OK;
 
 /* Minus sense */
 
-t_stat op_mse (uint32 addr)
+t_stat op_mse (uint32_t addr)
 {
-uint32 t, ch;
+uint32_t t, ch;
 
 switch (addr) {
 
@@ -535,10 +537,10 @@ return SCPE_OK;
      AC > SR.  However, any shift >= 54 will produce a zero fraction,
      so the difference can be ignored */
 
-uint32 op_fad (t_uint64 sr, bool norm)
+uint32_t op_fad (uint64_t sr, bool norm)
 {
 UFP op1, op2, t;
-int32 mqch, diff;
+int32_t mqch, diff;
 
 MQ = 0;                                                 /* clear MQ */
 fp_unpack (AC, 0, 1, &op1);                             /* unpack AC */
@@ -584,11 +586,11 @@ return fp_pack (&op2, op2.s, mqch);                     /* pack AC, MQ */
 
 /* Floating multiply */
 
-uint32 op_fmp (t_uint64 sr, bool norm)
+uint32_t op_fmp (uint64_t sr, bool norm)
 {
 UFP op1, op2;
-int32 mqch;
-uint32 f1h, f2h;
+int32_t mqch;
+uint32_t f1h, f2h;
 
 fp_unpack (MQ, 0, 0, &op1);                             /* unpack MQ */
 fp_unpack (sr, 0, 0, &op2);                             /* unpack sr */
@@ -600,7 +602,7 @@ if ((op2.ch == 0) && (op2.fr == 0)) {                   /* sr a normal 0? */
     }
 f1h = FP_HIFRAC (op1.fr);                               /* get hi fracs */
 f2h = FP_HIFRAC (op2.fr);
-op1.fr = ((t_uint64) f1h) * ((t_uint64) f2h);           /* f1h * f2h */
+op1.fr = ((uint64_t) f1h) * ((uint64_t) f2h);           /* f1h * f2h */
 op1.ch = (op1.ch & FP_M_CH) + op2.ch - FP_BIAS;         /* result exponent */
 if (norm) {                                             /* normalize? */
     if (!(op1.fr & FP_FNORM)) {                         /* not normalized? */
@@ -617,12 +619,12 @@ return fp_pack (&op1, op1.s, mqch);                     /* pack AC, MQ */
 
 /* Floating divide */
 
-uint32 op_fdv (t_uint64 sr)
+uint32_t op_fdv (uint64_t sr)
 {
 UFP op1, op2;
-int32 mqch;
-uint32 spill, quos;
-t_uint64 rem;
+int32_t mqch;
+uint32_t spill, quos;
+uint64_t rem;
 
 fp_unpack (AC, 0, 1, &op1);                             /* unpack AC */
 fp_unpack (sr, 0, 0, &op2);                             /* unpack sr */
@@ -665,10 +667,10 @@ return (spill? (spill | TRAP_F_SGL): 0);                /* if spill, set SGL */
      In case (a), SI is unchanged.  In case (b), SI ends up with the SR sign
      and characteristic but the MQ (!) fraction */
 
-uint32 op_dfad (t_uint64 sr, t_uint64 sr1, bool norm)
+uint32_t op_dfad (uint64_t sr, uint64_t sr1, bool norm)
 {
 UFP op1, op2, t;
-int32 mqch, diff;
+int32_t mqch, diff;
 
 fp_unpack (AC, MQ, 1, &op1);                            /* unpack AC'MQ */
 fp_unpack (sr, sr1, 0, &op2);                           /* unpack sr'sr1 */
@@ -727,12 +729,12 @@ return fp_pack (&op2, op2.s, mqch);                     /* pack AC, MQ */
    - For the A+B' both zero 'early end' case SI ends up with A or C,
      depending on whether the operation is normalized or not */
 
-uint32 op_dfmp (t_uint64 sr, t_uint64 sr1, bool norm)
+uint32_t op_dfmp (uint64_t sr, uint64_t sr1, bool norm)
 {
 UFP op1, op2;
-int32 mqch;
-uint32 f1h, f2h, f1l, f2l;
-t_uint64 tx;
+int32_t mqch;
+uint32_t f1h, f2h, f1l, f2l;
+uint64_t tx;
 
 fp_unpack (AC, MQ, 1, &op1);                            /* unpack AC'MQ */
 fp_unpack (sr, sr1, 0, &op2);                           /* unpack sr'sr1 */
@@ -751,10 +753,10 @@ if (((op1.ch == 0) && (op1.fr == 0)) ||                 /* AC'MQ normal 0? */
     }
 op1.ch = (op1.ch & FP_M_CH) + op2.ch - FP_BIAS;         /* result exponent */
 if (op1.fr) {                                           /* A'B != 0? */
-    op1.fr = ((t_uint64) f1h) * ((t_uint64) f2h);       /* A * C */
-    tx = ((t_uint64) f1h) * ((t_uint64) f2l);           /* A * D */
+    op1.fr = ((uint64_t) f1h) * ((uint64_t) f2h);       /* A * C */
+    tx = ((uint64_t) f1h) * ((uint64_t) f2l);           /* A * D */
     op1.fr = op1.fr + (tx >> FP_N_FR);                  /* add in hi 27b */
-    tx = ((t_uint64) f1l) * ((t_uint64) f2h);           /* B * C */
+    tx = ((uint64_t) f1l) * ((uint64_t) f2h);           /* B * C */
     op1.fr = op1.fr + (tx >> FP_N_FR);                  /* add in hi 27b */
     SI = tx >> FP_N_FR;                                 /* SI keeps B * C */
     }
@@ -808,12 +810,12 @@ return fp_pack (&op1, op1.s, mqch);                     /* pack AC, MQ */
    - A late ECO added full post-normalization; single precision divide
      does no normalization */
 
-uint32 op_dfdv (t_uint64 sr, t_uint64 sr1)
+uint32_t op_dfdv (uint64_t sr, uint64_t sr1)
 {
 UFP op1, op2;
-int32 mqch;
-uint32 csign, ac_s;
-t_uint64 f1h, f2h, tr, tq1, tq1d, trmq1d, tq2;
+int32_t mqch;
+uint32_t csign, ac_s;
+uint64_t f1h, f2h, tr, tq1, tq1d, trmq1d, tq2;
 
 fp_unpack (AC, MQ, 1, &op1);                            /* unpack AC'MQ */
 fp_unpack (sr, 0, 0, &op2);                             /* unpack sr only */
@@ -838,8 +840,8 @@ if (f1h >= f2h) {                                       /* |A| >= |C|? */
 op1.ch = op1.ch - op2.ch + FP_BIAS;                     /* exp of quotient */
 tq1 = fp_fracdiv (op1.fr, op2.fr, &tr);                 /* |A+B| / |C| */
 tr = tr << FP_N_FR;                                     /* R << 27 */
-tq1d = (tq1 * ((t_uint64) FP_LOFRAC (sr1))) &           /* Q1 * D */
-    ~((t_uint64) FP_FMASK);                             /* top 27 bits */
+tq1d = (tq1 * ((uint64_t) FP_LOFRAC (sr1))) &           /* Q1 * D */
+    ~((uint64_t) FP_FMASK);                             /* top 27 bits */
 csign = (tr < tq1d);                                    /* correction sign */
 if (csign)                                              /* |R|<|Q1*D|? compl */
     trmq1d = tq1d - tr;
@@ -852,7 +854,7 @@ if (trmq1d >= (2 * op2.fr)) {                           /* |R-Q1*D| >= 2*|C|? */
     }
 tq2 = fp_fracdiv (trmq1d, op2.fr, NULL);                /* |R-Q1*D| / |C| */
 if (trmq1d >= op2.fr)                                   /* can only gen 27b quo */
-    tq2 &= ~((t_uint64) 1);
+    tq2 &= ~((uint64_t) 1);
 op1.fr = tq1 << FP_N_FR;                                /* shift Q1 into place */
 if (csign)                                              /* sub or add Q2 */
     op1.fr = op1.fr - tq2;
@@ -866,15 +868,15 @@ return fp_pack (&op1, op1.s, mqch);                     /* pack AC, MQ */
 
 /* Floating round */
 
-uint32 op_frnd (void)
+uint32_t op_frnd (void)
 {
 UFP op;
-uint32 spill;
+uint32_t spill;
 
 spill = 0;                                              /* no error */
 if (MQ & B9) {                                          /* MQ9 set? */
     fp_unpack (AC, 0, 1, &op);                          /* unpack AC */
-    op.fr = op.fr + ((t_uint64) (1 << FP_N_FR));        /* round up */
+    op.fr = op.fr + ((uint64_t) (1 << FP_N_FR));        /* round up */
     if (op.fr & FP_FCRY) {                              /* carry out? */
         op.fr = op.fr >> 1;                             /* renormalize */
         op.ch++;                                        /* incr exp */
@@ -888,7 +890,7 @@ return spill;
 
 /* Fraction divide - 54/27'0 yielding quotient and remainder */
 
-t_uint64 fp_fracdiv (t_uint64 dvd, t_uint64 dvr, t_uint64 *rem)
+uint64_t fp_fracdiv (uint64_t dvd, uint64_t dvr, uint64_t *rem)
 {
 dvr = dvr >> FP_N_FR;
 if (rem)
@@ -912,26 +914,26 @@ return;
 
 /* Floating point unpack */
 
-void fp_unpack (t_uint64 h, t_uint64 l, bool q_ac, UFP *op)
+void fp_unpack (uint64_t h, uint64_t l, bool q_ac, UFP *op)
 {
 if (q_ac) {                                             /* AC? */
     op->s = (h & AC_S)? 1: 0;                           /* get sign */
-    op->ch = (uint32) ((h >> FP_V_CH) & FP_M_ACCH);     /* get exp */
+    op->ch = (uint32_t) ((h >> FP_V_CH) & FP_M_ACCH);   /* get exp */
     }
 else {
     op->s = (h & SIGN)? 1: 0;                           /* no, mem */
-    op->ch = (uint32) ((h >> FP_V_CH) & FP_M_CH);
+    op->ch = (uint32_t) ((h >> FP_V_CH) & FP_M_CH);
     }
-op->fr = (((t_uint64) FP_LOFRAC (h)) << FP_N_FR) |      /* get frac hi */
-    ((t_uint64) FP_LOFRAC (l));                         /* get frac lo */
+op->fr = (((uint64_t) FP_LOFRAC (h)) << FP_N_FR) |      /* get frac hi */
+    ((uint64_t) FP_LOFRAC (l));                         /* get frac lo */
 return;
 }
 
 /* Floating point pack */
 
-uint32 fp_pack (UFP *op, uint32 mqs, int32 mqch)
+uint32_t fp_pack (UFP *op, uint32_t mqs, int32_t mqch)
 {
-uint32 spill;
+uint32_t spill;
 
 AC = FP_PACK38 (op->s, op->ch, FP_HIFRAC (op->fr));     /* pack AC */
 MQ = FP_PACK36 (mqs, mqch, FP_LOFRAC (op->fr));         /* pack MQ */

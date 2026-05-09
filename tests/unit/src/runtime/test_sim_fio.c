@@ -557,15 +557,15 @@ static void test_sim_file_size_helpers_report_sizes_consistently(void **state)
    capability flags from the current build. */
 static void test_sim_finit_sets_endian_and_large_file_flags(void **state)
 {
-    int32 result;
+    int32_t result;
 
     (void)state;
 
     result = sim_finit();
     assert_int_equal(result, sim_end);
-    assert_int_equal(sim_toffset_64, sizeof(t_offset) > sizeof(int32));
+    assert_int_equal(sim_toffset_64, sizeof(t_offset) > sizeof(int32_t));
     assert_int_equal(sim_taddr_64,
-                     sim_toffset_64 && (sizeof(t_addr) > sizeof(int32)));
+                     sim_toffset_64 && (sizeof(t_addr) > sizeof(int32_t)));
 }
 
 /* Verify the t_addr wrapper seek helper delegates to the extended seek

@@ -34,24 +34,26 @@
    28-Jan-02    RMS     Cleaned up compiler warnings
 */
 
+#include <stdint.h>
+
 #include "nova_defs.h"
 #include "sim_tmxr.h"
 
 #define UNIT_V_DASHER   (UNIT_V_UF + 0)                 /* Dasher mode */
 #define UNIT_DASHER (1 << UNIT_V_DASHER)
 
-extern int32 int_req, dev_busy, dev_done, dev_disable;
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
 
-int32 tti (int32 pulse, int32 code, int32 AC);
-int32 tto (int32 pulse, int32 code, int32 AC);
+int32_t tti (int32_t pulse, int32_t code, int32_t AC);
+int32_t tto (int32_t pulse, int32_t code, int32_t AC);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tti_reset (DEVICE *dptr);
 t_stat tto_reset (DEVICE *dptr);
-t_stat ttx_setmod (UNIT *uptr, int32 value, const char *cptr, void *desc);
+t_stat ttx_setmod (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 void translate_in(void);
-int32 translate_out(int32 c);
-int32 putseq(char *seq);
+int32_t translate_out(int32_t c);
+int32_t putseq(char *seq);
 
 /* TTI data structures
 
@@ -124,13 +126,13 @@ DEVICE tto_dev = {
 
 /* Terminal input: IOT routine */
 
-int32 tti (int32 pulse, int32 code, int32 AC)
+int32_t tti (int32_t pulse, int32_t code, int32_t AC)
 {
 /* Device IOT signature.
    This implementation does not use every parameter. */
 (void) AC;
 
-int32 iodata;
+int32_t iodata;
 
 iodata = (code == ioDIA)? tti_unit.buf & 0377: 0;
 switch (pulse) {                                        /* decode IR<8:9> */
@@ -159,7 +161,7 @@ t_stat tti_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp;
+int32_t temp;
 
 sim_activate (&tti_unit, tti_unit.wait);                /* continue poll */
 if ((temp = sim_poll_kbd ()) < SCPE_KFLAG) return temp; /* no char or error? */
@@ -216,7 +218,7 @@ return SCPE_OK;
 
 /* Terminal output: IOT routine */
 
-int32 tto (int32 pulse, int32 code, int32 AC)
+int32_t tto (int32_t pulse, int32_t code, int32_t AC)
 {
 if (code == ioDOA) tto_unit.buf = AC & 0377;
 switch (pulse) {                                        /* decode IR<8:9> */
@@ -247,7 +249,7 @@ t_stat tto_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 c, temp;
+int32_t c, temp;
 
 dev_busy = dev_busy & ~INT_TTO;                         /* clear busy */
 dev_done = dev_done | INT_TTO;                          /* set done */
@@ -268,9 +270,9 @@ return SCPE_OK;
 
 /* Translation routine - D200 screen controls to VT-100 controls. */
 
-int32 translate_out(int32 c)
+int32_t translate_out(int32_t c)
 {
-    int32 temp;
+    int32_t temp;
     char outstr[32];
 
     if (spec200 == 1) {                                 /* Special terminal control seq */
@@ -411,7 +413,7 @@ int32 translate_out(int32 c)
     return SCPE_OK;
 }
 
-int32 putseq(char *seq)
+int32_t putseq(char *seq)
 {
     int i, len, temp;
 
@@ -442,7 +444,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat ttx_setmod (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat ttx_setmod (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

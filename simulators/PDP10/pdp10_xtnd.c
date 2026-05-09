@@ -66,6 +66,7 @@
 
 #include "pdp10_defs.h"
 #include <setjmp.h>
+#include <stdint.h>
 
 #define MM_XSRC         (pflgs & XSRC_PXCT)
 #define MM_XDST         (pflgs & XDST_PXCT)
@@ -101,7 +102,7 @@
 #define XT_M_CODE       07
 #define XT_BYMASK       07777                           /* byte mask */
 #define XT_DGMASK       017                             /* digit mask */
-#define XT_GETCODE(x)   ((int32) (((x) >> XT_V_CODE) & XT_M_CODE))
+#define XT_GETCODE(x)   ((int32_t) (((x) >> XT_V_CODE) & XT_M_CODE))
 
 /* AC masks */
 
@@ -124,11 +125,11 @@
 #define ED_V_PBYN       30                              /* pattern byte # */
 #define ED_M_PBYN       03
 #define ED_PBYNO        INT64_C(0040000000000)          /* overflow bit */
-#define ED_GETPBYN(x)   ((int32) (((x) >> ED_V_PBYN) & ED_M_PBYN))
+#define ED_GETPBYN(x)   ((int32_t) (((x) >> ED_V_PBYN) & ED_M_PBYN))
 #define ED_V_POPC       6                               /* pattern byte opcode */
 #define ED_M_PAT        0777                            /* pattern byte mask */
 #define ED_M_NUM        0077                            /* number for msg, etc */
-#define ED_PBYTE(x,y)   ((int32) (((x) >> (27 - (ED_GETPBYN (y) * 9))) & ED_M_PAT))
+#define ED_PBYTE(x,y)   ((int32_t) (((x) >> (27 - (ED_GETPBYN (y) * 9))) & ED_M_PAT))
 #define ED_STOP         0000                            /* stop */
 #define ED_SELECT       0001                            /* select source */
 #define ED_SIGST        0002                            /* start significance */
@@ -139,17 +140,17 @@
 #define ED_SKPN         0600                            /* skip if N */
 #define ED_SKPA         0700                            /* skip always */
 
-extern int32 rlog;
+extern int32_t rlog;
 
-extern d10 Read (int32 ea, int32 prv);
-extern void Write (int32 ea, d10 val, int32 prv);
-extern a10 calc_ea (d10 inst, int32 prv);
-extern int32 test_int (void);
+extern d10 Read (int32_t ea, int32_t prv);
+extern void Write (int32_t ea, d10 val, int32_t prv);
+extern a10 calc_ea (d10 inst, int32_t prv);
+extern int32_t test_int (void);
 d10 incbp (d10 bp);
-d10 incloadbp (int32 ac, int32 pflgs);
-void incstorebp (d10 val, int32 ac, int32 pflgs);
-d10 xlate (d10 by, a10 tblad, d10 *xflgs, int32 pflgs);
-void filldst (d10 fill, int32 ac, d10 cnt, int32 pflgs);
+d10 incloadbp (int32_t ac, int32_t pflgs);
+void incstorebp (d10 val, int32_t ac, int32_t pflgs);
+d10 xlate (d10 by, a10 tblad, d10 *xflgs, int32_t pflgs);
+void filldst (d10 fill, int32_t ac, d10 cnt, int32_t pflgs);
 
 static const d10 pwrs10[23][2] = {
 {           INT64_C(0),           INT64_C(0),},
@@ -177,16 +178,16 @@ static const d10 pwrs10[23][2] = {
 { INT64_C(29103830456), INT64_C(25209864192),},
  };
 
-int xtend (int32 ac, int32 ea, int32 pflgs)
+int xtend (int32_t ac, int32_t ea, int32_t pflgs)
 {
 d10 b1, b2, ppi;
 d10 xinst, xoff = 0, digit, f1, f2, rs[2];
 d10 xflgs = 0;
 a10 e1 = 0, entad;
-int32 p1 = ADDAC (ac, 1);
-int32 p3 = ADDAC (ac, 3);
-int32 p4 = ADDAC (ac, 4);
-int32 flg, i, s2 = 0, t, pp, pat, xop, xac, ret;
+int32_t p1 = ADDAC (ac, 1);
+int32_t p3 = ADDAC (ac, 3);
+int32_t p4 = ADDAC (ac, 4);
+int32_t flg, i, s2 = 0, t, pp, pat, xop, xac, ret;
 
 xinst = Read (ea, MM_OPND);                             /* get extended instr */
 xop = GET_OP (xinst);                                   /* get opcode */
@@ -294,7 +295,7 @@ switch (xop) {                                          /* case on opcode */
             if (flg && (t = test_int ()))
                 ABORT (t);
             rlog = 0;                                   /* clear log */
-            i = (int32) AC(p3) & XLNTMASK;              /* get length */
+            i = (int32_t) AC(p3) & XLNTMASK;            /* get length */
             if (i > 22)                                 /* put in range */
                 i = 22;
             for (digit = 0; (digit < 10) && DCMPGE (rs, pwrs10[i]); digit++) {
@@ -304,7 +305,7 @@ switch (xop) {                                          /* case on opcode */
             if (xop == XT_CVTBDO)                       /* offset? */
                 digit = (digit + xoff) & DMASK;
             else {                                      /* translate */
-                f1 = Read (e1 + (int32) digit, MM_OPND);/* get xlation */
+                f1 = Read (e1 + (int32_t) digit, MM_OPND);/* get xlation */
                 if ((i == 1) && (AC(p3) & XT_MFLG))     /* last digit, minus? */
                     f1 = f1 >> 18;                      /* use left */
                 digit = f1 & RMASK;
@@ -479,7 +480,7 @@ switch (xop) {                                          /* case on opcode */
             if (flg && (t = test_int ()))
                 ABORT (t);
             rlog = 0;                                   /* clear log */
-            pp = (int32) AC(ac) & AMASK;                /* get pattern ptr */
+            pp = (int32_t) AC(ac) & AMASK;              /* get pattern ptr */
             b1 = Read (pp, MM_OPND);                    /* get pattern word */
             pat = ED_PBYTE (b1, AC(ac));                /* get pattern byte */
             switch ((pat < 0100)? pat: ((pat >> ED_V_POPC) + 0100)) {
@@ -490,7 +491,7 @@ switch (xop) {                                          /* case on opcode */
 
             case ED_SELECT:                             /* select source */
                 b1 = incloadbp (p1, pflgs);             /* get src */
-                entad = (e1 + ((int32) b1 >> 1)) & AMASK;
+                entad = (e1 + ((int32_t) b1 >> 1)) & AMASK;
                 f1 = ((Read (entad, MM_OPND) >> ((b1 & 1)? 0: 18)) & RMASK);
                 i = XT_GETCODE (f1);
                 if (i & 2)
@@ -547,8 +548,8 @@ switch (xop) {                                          /* case on opcode */
                 break;
 
             case ED_EXCHMD:                             /* exchange */
-                f2 = Read ((int32) (AC(p3) & AMASK), MM_OPND);
-                Write ((int32) (AC(p3) & AMASK), AC(p4), MM_OPND);
+                f2 = Read ((int32_t) (AC(p3) & AMASK), MM_OPND);
+                Write ((int32_t) (AC(p3) & AMASK), AC(p4), MM_OPND);
                 AC(p4) = f2;
                 break;
 
@@ -595,7 +596,7 @@ return XT_MUUO;
 
 d10 incbp (d10 bp)
 {
-int32 p, s;
+int32_t p, s;
 
 p = GET_P (bp);                                         /* get P and S */
 s = GET_S (bp);
@@ -610,11 +611,11 @@ return bp;
 
 /* Increment and load byte, extended version - uses register log */
 
-d10 incloadbp (int32 ac, int32 pflgs)
+d10 incloadbp (int32_t ac, int32_t pflgs)
 {
 a10 ba;
 d10 bp, wd;
-int32 p, s;
+int32_t p, s;
 
 bp = AC(ac) = incbp (AC(ac));                           /* increment bp */
 XT_INSRLOG (ac, rlog);                                  /* log change */
@@ -628,11 +629,11 @@ return wd;
 
 /* Increment and deposit byte, extended version - uses register log */
 
-void incstorebp (d10 val, int32 ac, int32 pflgs)
+void incstorebp (d10 val, int32_t ac, int32_t pflgs)
 {
 a10 ba;
 d10 bp, wd, mask;
-int32 p, s;
+int32_t p, s;
 
 bp = AC(ac) = incbp (AC(ac));                           /* increment bp */
 XT_INSRLOG (ac, rlog);                                  /* log change */
@@ -659,13 +660,13 @@ return;
                         < 0, terminate translation
 */
 
-d10 xlate (d10 by, a10 tblad, d10 *xflgs, int32 prv)
+d10 xlate (d10 by, a10 tblad, d10 *xflgs, int32_t prv)
 {
 a10 ea;
-int32 tcode;
+int32_t tcode;
 d10 tblent;
 
-ea = (tblad + ((int32) by >> 1)) & AMASK;
+ea = (tblad + ((int32_t) by >> 1)) & AMASK;
 tblent = ((Read (ea, prv) >> ((by & 1)? 0: 18)) & RMASK);
 tcode = XT_GETCODE (tblent);                            /* get xlate code */
 switch (tcode) {
@@ -713,10 +714,10 @@ return -1;
         pflgs   =       PXCT flags
 */
 
-void filldst (d10 fill, int32 ac, d10 cnt, int32 pflgs)
+void filldst (d10 fill, int32_t ac, d10 cnt, int32_t pflgs)
 {
-int32 i, t;
-int32 p1 = ADDA (ac, 1);
+int32_t i, t;
+int32_t p1 = ADDA (ac, 1);
 
 for (i = 0; i < cnt; i++) {
     if (i && (t = test_int ()))
@@ -739,9 +740,9 @@ return;
    do a full decrement calculation but merely adds S to P.
 */
 
-void xtcln (int32 logv)
+void xtcln (int32_t logv)
 {
-int32 p, reg;
+int32_t p, reg;
 
 while (logv) {
     XT_REMRLOG (reg, logv);                             /* get next reg */

@@ -38,6 +38,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_stddev.h"
 
 #include "3b2_cpu.h"
@@ -54,7 +56,7 @@ DEBTAB sys_deb_tab[] = {
     { NULL,         0                                   }
 };
 
-uint32 *NVRAM = NULL;
+uint32_t *NVRAM = NULL;
 
 /* NVRAM */
 UNIT nvram_unit = {
@@ -75,14 +77,14 @@ DEVICE nvram_dev = {
     &nvram_description
 };
 
-t_stat nvram_ex(t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat nvram_ex(t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
     /* Generic examine signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)sw;
 
-    uint32 addr = (uint32) exta;
+    uint32_t addr = (uint32_t) exta;
 
     if ((vptr == NULL) || (addr & 03)) {
         return SCPE_ARG;
@@ -97,14 +99,14 @@ t_stat nvram_ex(t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
     return SCPE_OK;
 }
 
-t_stat nvram_dep(t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat nvram_dep(t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
     /* Generic deposit signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)sw;
 
-    uint32 addr = (uint32) exta;
+    uint32_t addr = (uint32_t) exta;
 
     if (addr & 03) {
         return SCPE_ARG;
@@ -114,7 +116,7 @@ t_stat nvram_dep(t_value val, t_addr exta, UNIT *uptr, int32 sw)
         return SCPE_NXM;
     }
 
-    NVRAM[addr >> 2] = (uint32) val;
+    NVRAM[addr >> 2] = (uint32_t) val;
 
     return SCPE_OK;
 }
@@ -126,8 +128,8 @@ t_stat nvram_reset(DEVICE *dptr)
     (void)dptr;
 
     if (NVRAM == NULL) {
-        NVRAM = (uint32 *)calloc(NVRSIZE >> 2, sizeof(uint32));
-        memset(NVRAM, 0, sizeof(uint32) * NVRSIZE >> 2);
+        NVRAM = (uint32_t *)calloc(NVRSIZE >> 2, sizeof(uint32_t));
+        memset(NVRAM, 0, sizeof(uint32_t) * NVRSIZE >> 2);
         nvram_unit.filebuf = NVRAM;
     }
 
@@ -147,7 +149,7 @@ const char *nvram_description(DEVICE *dptr)
     return "Non-Volatile RAM.\n";
 }
 
-t_stat nvram_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat nvram_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic device help signature.
        This implementation does not use every parameter. */
@@ -178,9 +180,9 @@ t_stat nvram_attach(UNIT *uptr, const char *cptr)
 
     if (r != SCPE_OK) {
         /* Unset the ATTABLE and BUFABLE flags if we failed. */
-        uptr->flags = uptr->flags & (uint32) ~(UNIT_ATTABLE | UNIT_BUFABLE);
+        uptr->flags = uptr->flags & (uint32_t) ~(UNIT_ATTABLE | UNIT_BUFABLE);
     } else {
-        uptr->hwmark = (uint32) uptr->capac;
+        uptr->hwmark = (uint32_t) uptr->capac;
     }
 
     return r;
@@ -193,17 +195,17 @@ t_stat nvram_detach(UNIT *uptr)
     r = detach_unit(uptr);
 
     if ((uptr->flags & UNIT_ATT) == 0) {
-        uptr->flags = uptr->flags & (uint32) ~(UNIT_ATTABLE | UNIT_BUFABLE);
+        uptr->flags = uptr->flags & (uint32_t) ~(UNIT_ATTABLE | UNIT_BUFABLE);
     }
 
     return r;
 }
 
-uint32 nvram_read(uint32 pa, size_t size)
+uint32_t nvram_read(uint32_t pa, size_t size)
 {
-    uint32 offset = pa - NVRBASE;
-    uint32 data = 0;
-    uint32 sc = (~(offset & 3) << 3) & 0x1f;
+    uint32_t offset = pa - NVRBASE;
+    uint32_t data = 0;
+    uint32_t sc = (~(offset & 3) << 3) & 0x1f;
 
     switch(size) {
     case 8:
@@ -224,16 +226,16 @@ uint32 nvram_read(uint32 pa, size_t size)
     return data;
 }
 
-void nvram_write(uint32 pa, uint32 val, size_t size)
+void nvram_write(uint32_t pa, uint32_t val, size_t size)
 {
-    uint32 offset = pa - NVRBASE;
-    uint32 index = offset >> 2;
-    uint32 sc, mask;
+    uint32_t offset = pa - NVRBASE;
+    uint32_t index = offset >> 2;
+    uint32_t sc, mask;
 
     switch(size) {
     case 8:
         sc = (~(pa & 3) << 3) & 0x1f;
-        mask = (uint32) (0xff << sc);
+        mask = (uint32_t) (0xff << sc);
         NVRAM[index] = (NVRAM[index] & ~mask) | (val << sc);
         break;
     case 16:
@@ -284,8 +286,8 @@ static void tod_tick(UNIT *uptr);
 static t_stat tod_svc(UNIT *uptr);
 static bool tod_enabled;
 
-int32 tmr_poll = CLK_DELAY;
-int32 tmxr_poll = CLK_DELAY;
+int32_t tmr_poll = CLK_DELAY;
+int32_t tmxr_poll = CLK_DELAY;
 
 UNIT tod_unit = {
     UDATA(&tod_svc, UNIT_FIX|UNIT_BINK|UNIT_IDLE, sizeof(TOD_DATA)), CLK_DELAY
@@ -319,7 +321,7 @@ static void tod_resync(UNIT *uptr)
 {
     TOD_DATA *td;
     time_t delta;
-    uint32 catchup_ticks;
+    uint32_t catchup_ticks;
 
     if (!(uptr->flags & UNIT_ATT) || uptr->filebuf == NULL) {
         return;
@@ -330,7 +332,7 @@ static void tod_resync(UNIT *uptr)
     if (td->time > 0) {
         delta = time(NULL) - td->time;
         if (delta > MIN_DIFF && delta < MAX_DIFF) {
-            catchup_ticks = (uint32) delta * CLK_TPS;
+            catchup_ticks = (uint32_t) delta * CLK_TPS;
             sim_debug(EXECUTE_MSG, &tod_dev,
                       "Catching up with a delta of %ld seconds (%d ticks).\n",
                       delta, catchup_ticks);
@@ -349,7 +351,7 @@ t_stat tod_reset(DEVICE *dptr)
        This implementation does not use every parameter. */
     (void)dptr;
 
-    int32 t;
+    int32_t t;
 
     if (tod_unit.filebuf == NULL) {
         tod_unit.filebuf = calloc(1, sizeof(TOD_DATA));
@@ -378,9 +380,9 @@ t_stat tod_attach(UNIT *uptr, const char *cptr)
     r = attach_unit(uptr, cptr);
 
     if (r != SCPE_OK) {
-        uptr->flags = uptr->flags & (uint32) ~(UNIT_ATTABLE | UNIT_BUFABLE);
+        uptr->flags = uptr->flags & (uint32_t) ~(UNIT_ATTABLE | UNIT_BUFABLE);
     } else {
-        uptr->hwmark = (uint32) uptr->capac;
+        uptr->hwmark = (uint32_t) uptr->capac;
     }
 
     return r;
@@ -393,7 +395,7 @@ t_stat tod_detach(UNIT *uptr)
     r = detach_unit(uptr);
 
     if ((uptr->flags & UNIT_ATT) == 0) {
-        uptr->flags = uptr->flags & (uint32) ~(UNIT_ATTABLE | UNIT_BUFABLE);
+        uptr->flags = uptr->flags & (uint32_t) ~(UNIT_ATTABLE | UNIT_BUFABLE);
     }
 
     return r;
@@ -402,7 +404,7 @@ t_stat tod_detach(UNIT *uptr)
 static t_stat tod_svc(UNIT *uptr)
 {
     TOD_DATA *td = (TOD_DATA *)uptr->filebuf;
-    int32 t;
+    int32_t t;
 
     /* Re-sync the recorded system time once every second */
     if (tod_enabled) {
@@ -512,13 +514,13 @@ static void tod_tick(UNIT *uptr)
 }
 
 
-uint32 tod_read(uint32 pa, size_t size)
+uint32_t tod_read(uint32_t pa, size_t size)
 {
     /* Shared memory access signature.
        This implementation does not use every parameter. */
     (void)size;
 
-    uint8 reg, val;
+    uint8_t reg, val;
     TOD_DATA *td = (TOD_DATA *)(tod_unit.filebuf);
 
     reg = pa & 0xfc;
@@ -589,13 +591,13 @@ uint32 tod_read(uint32 pa, size_t size)
     return val;
 }
 
-void tod_write(uint32 pa, uint32 val, size_t size)
+void tod_write(uint32_t pa, uint32_t val, size_t size)
 {
     /* Shared memory access signature.
        This implementation does not use every parameter. */
     (void)size;
 
-    uint32 reg;
+    uint32_t reg;
     TOD_DATA *td = (TOD_DATA *)(tod_unit.filebuf);
 
     /* reg = pa - TODBASE; */
@@ -604,7 +606,7 @@ void tod_write(uint32 pa, uint32 val, size_t size)
     switch(reg) {
 #if defined(REV3)
     case TOD_CTRL:
-        td->ctrl = (uint8) val;
+        td->ctrl = (uint8_t) val;
         if (val & CTRL_DISABLE) {
             tod_enabled = false;
             td->tsec = 0;
@@ -617,51 +619,51 @@ void tod_write(uint32 pa, uint32 val, size_t size)
 #endif
         break;
     case TOD_TSEC:
-        td->tsec = (uint8) val * 10;
+        td->tsec = (uint8_t) val * 10;
         break;
     case TOD_1SEC:
-        td->sec = ((td->sec / 10) * 10) + (uint8) val;
+        td->sec = ((td->sec / 10) * 10) + (uint8_t) val;
         break;
     case TOD_10SEC:
-        td->sec = ((uint8) val * 10) + (td->sec % 10);
+        td->sec = ((uint8_t) val * 10) + (td->sec % 10);
         break;
     case TOD_1MIN:
-        td->min = ((td->min / 10) * 10) + (uint8) val;
+        td->min = ((td->min / 10) * 10) + (uint8_t) val;
         break;
     case TOD_10MIN:
-        td->min = ((uint8) val * 10) + (td->min % 10);
+        td->min = ((uint8_t) val * 10) + (td->min % 10);
         break;
     case TOD_1HOUR:
-        td->hour = ((td->hour / 10) * 10) + (uint8) val;
+        td->hour = ((td->hour / 10) * 10) + (uint8_t) val;
         break;
     case TOD_10HOUR:
-        td->hour = ((uint8) val * 10) + (td->hour % 10);
+        td->hour = ((uint8_t) val * 10) + (td->hour % 10);
         break;
     case TOD_1DAY:
-        td->day = ((td->day / 10) * 10) + (uint8) val;
+        td->day = ((td->day / 10) * 10) + (uint8_t) val;
         break;
     case TOD_10DAY:
-        td->day = ((uint8) val * 10) + (td->day % 10);
+        td->day = ((uint8_t) val * 10) + (td->day % 10);
         break;
     case TOD_1MON:
-        td->mon = ((td->mon / 10) * 10) + (uint8) val;
+        td->mon = ((td->mon / 10) * 10) + (uint8_t) val;
         break;
     case TOD_10MON:
-        td->mon = ((uint8) val * 10) + (td->mon % 10);
+        td->mon = ((uint8_t) val * 10) + (td->mon % 10);
         break;
     case TOD_1YEAR:
 #if defined(REV3)
-        td->year = ((td->year / 10) * 10) + (uint8) val;
+        td->year = ((td->year / 10) * 10) + (uint8_t) val;
 #else
-        td->lyear = (uint8) val;
+        td->lyear = (uint8_t) val;
 #endif
         break;
 #if defined(REV3)
     case TOD_10YEAR:
-        td->year = ((uint8) val * 10) + (td->year % 10);
+        td->year = ((uint8_t) val * 10) + (td->year % 10);
         break;
     case TOD_SET_INT:
-        td->clkset = (uint8) val;
+        td->clkset = (uint8_t) val;
         if (!TOD_12H(td)) {
             /* The AM/PM indicator is always 0 if not in 12H mode */
             td->clkset &= ~(CLKSET_PM);
@@ -674,7 +676,7 @@ void tod_write(uint32 pa, uint32 val, size_t size)
         break;
 #endif
     case TOD_WDAY:
-        td->wday = (uint8)val & 0x7;
+        td->wday = (uint8_t)val & 0x7;
         break;
     default:
         break;
@@ -694,7 +696,7 @@ const char *tod_description(DEVICE *dptr)
 #endif
 }
 
-t_stat tod_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tod_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic device help signature.
        This implementation does not use every parameter. */
@@ -761,7 +763,7 @@ t_stat tod_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr
  *
  */
 
-uint32 flt[2] = {0, 0};
+uint32_t flt[2] = {0, 0};
 
 UNIT flt_unit = {
     UDATA(NULL, UNIT_FIX+UNIT_BINK, 64)
@@ -786,7 +788,7 @@ DEVICE flt_dev = {
 /*
  * Return the configured memory size for a given backplane location.
  */
-static uint32 mem_size(uint8 slot) {
+static uint32_t mem_size(uint8_t slot) {
     switch(MEM_SIZE) {
     case MSIZ_4M:
         if (slot == 0) {
@@ -815,7 +817,7 @@ static uint32 mem_size(uint8 slot) {
     }
 }
 
-uint32 flt_read(uint32 pa, size_t size)
+uint32_t flt_read(uint32_t pa, size_t size)
 {
     /* Shared memory access signature.
        This implementation does not use every parameter. */
@@ -844,7 +846,7 @@ uint32 flt_read(uint32 pa, size_t size)
     }
 }
 
-void flt_write(uint32 pa, uint32 val, size_t size)
+void flt_write(uint32_t pa, uint32_t val, size_t size)
 {
     /* Shared memory access signature.
        This implementation does not use every parameter. */
@@ -857,7 +859,7 @@ void flt_write(uint32 pa, uint32 val, size_t size)
     return;
 }
 
-t_stat flt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat flt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic device help signature.
        This implementation does not use every parameter. */

@@ -42,6 +42,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_tape.h"
 
 
@@ -58,7 +60,7 @@
    for compatibility with the simulator tape support library (sim_tape).
 */
 
-typedef uint8               TL_BUFFER;          /* a buffer containing 8-bit tape data words */
+typedef uint8_t             TL_BUFFER;          /* a buffer containing 8-bit tape data words */
 
 
 /* Program limits */
@@ -241,7 +243,7 @@ typedef HP_WORD CNTLR_IBUS;                     /* the interface data bus */
 #define NO_DATA         (CNTLR_IBUS) 0          /* no data asserted */
 
 
-typedef uint32 CNTLR_IFN_IBUS;                  /* a combined interface function set and data bus value */
+typedef uint32_t CNTLR_IFN_IBUS;                /* a combined interface function set and data bus value */
 
 
 /* Controller opcodes.
@@ -350,13 +352,13 @@ typedef enum {
 */
 
 typedef struct {
-    int32 rewind_start;                         /* rewind initiation time */
-    int32 rewind_rate;                          /* rewind time per inch */
-    int32 rewind_stop;                          /* rewind completion time */
-    int32 bot_start;                            /* beginning of tape gap traverse time */
-    int32 ir_start;                             /* interrecord traverse time */
-    int32 data_xfer;                            /* per-byte data transfer time */
-    int32 overhead;                             /* controller execution overhead */
+    int32_t rewind_start;                       /* rewind initiation time */
+    int32_t rewind_rate;                        /* rewind time per inch */
+    int32_t rewind_stop;                        /* rewind completion time */
+    int32_t bot_start;                          /* beginning of tape gap traverse time */
+    int32_t ir_start;                           /* interrecord traverse time */
+    int32_t data_xfer;                          /* per-byte data transfer time */
+    int32_t overhead;                           /* controller execution overhead */
     } DELAY_PROPS;
 
 #define DELAY_INIT(rstart,rrate,rstop,bot,ir,dxfr,ovhd) \
@@ -369,9 +371,9 @@ typedef struct {
     CNTLR_TYPE        type;                     /* controller type */
     DEVICE            *device;                  /* controlling device pointer */
     CNTLR_STATE       state;                    /* controller state */
-    uint32            status;                   /* controller status */
-    uint32            unit_selected;            /* unit number currently selected */
-    uint32            unit_attention;           /* bitmap of units needing attention */
+    uint32_t          status;                   /* controller status */
+    uint32_t          unit_selected;            /* unit number currently selected */
+    uint32_t          unit_attention;           /* bitmap of units needing attention */
     TL_BUFFER         *buffer;                  /* data buffer pointer */
     t_stat            call_status;              /* simulator tape support library call status */
     t_mtrlnt          length;                   /* data buffer valid length */
@@ -540,18 +542,18 @@ extern void    tl_clear  (CVPTR cvptr);
 /* Tape library global utility routines */
 
 extern const char *tl_opcode_name (CNTLR_OPCODE opcode);
-extern const char *tl_unit_name   (int32        unit);
+extern const char *tl_unit_name   (int32_t      unit);
 
 /* Tape library global SCP support routines */
 
 extern t_stat tl_attach (CVPTR cvptr, UNIT *uptr, const char *cptr);
 extern t_stat tl_detach (UNIT  *uptr);
 
-extern t_stat tl_set_timing   (UNIT *uptr, int32 value, const char *cptr, void *desc);
-extern t_stat tl_set_model    (UNIT *uptr, int32 value, const char *cptr, void *desc);
-extern t_stat tl_set_density  (UNIT *uptr, int32 value, const char *cptr, void *desc);
-extern t_stat tl_set_reelsize (UNIT *uptr, int32 value, const char *cptr, void *desc);
+extern t_stat tl_set_timing   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+extern t_stat tl_set_model    (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+extern t_stat tl_set_density  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+extern t_stat tl_set_reelsize (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
-extern t_stat tl_show_timing   (FILE *st, UNIT *uptr, int32 value, const void *desc);
-extern t_stat tl_show_density  (FILE *st, UNIT *uptr, int32 value, const void *desc);
-extern t_stat tl_show_reelsize (FILE *st, UNIT *uptr, int32 value, const void *desc);
+extern t_stat tl_show_timing   (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+extern t_stat tl_show_density  (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+extern t_stat tl_show_reelsize (FILE *st, UNIT *uptr, int32_t value, const void *desc);

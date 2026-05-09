@@ -38,7 +38,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "sim_frontpanel.h"
+#include "sim_types.h"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -87,8 +89,8 @@ const char *sim_config =
             "VAX-PANEL.ini";
 
 /* Registers visible on the Front Panel */
-static unsigned int PC, SP, FP, AP, PSL, R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, atPC;
-static unsigned int PCQ[32];
+static uint_t PC, SP, FP, AP, PSL, R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, atPC;
+static uint_t PCQ[32];
 
 int PSL_bits[32];
 int PC_bits[32];
@@ -274,7 +276,7 @@ if (1) {
         }
     }
 if (1) {
-    unsigned int noop_noop_noop_halt = 0x00010101, addr400 = 0x00000400, pc_value;
+    uint_t noop_noop_noop_halt = 0x00010101, addr400 = 0x00000400, pc_value;
     int mstime = 0;
 
     if (sim_panel_mem_deposit (panel, sizeof(addr400), &addr400, sizeof(noop_noop_noop_halt), &noop_noop_noop_halt)) {
@@ -394,7 +396,7 @@ if (sim_panel_get_registers (panel, NULL)) {
     goto Done;
     }
 if (1) {
-    unsigned int deadbeef = 0xdeadbeef, beefdead = 0xbeefdead, addr200 = 0x00000200, beefdata;
+    uint_t deadbeef = 0xdeadbeef, beefdead = 0xbeefdead, addr200 = 0x00000200, beefdata;
 
     if (sim_panel_set_register_value (panel, "R0", "DEADBEEF")) {
         printf ("Error setting R0 to DEADBEEF: %s\n", sim_panel_get_error());
@@ -511,7 +513,7 @@ if (sim_panel_add_register_bits (panel, "PCQ[3]",  NULL, 32, PCQ_3_bits)) {
     goto Done;
     }
 if (1) {
-    unsigned int noop_noop_noop_halt = 0x00010101, brb_self = 0x0000FE11, addr400 = 0x00000400, pc_value;
+    uint_t noop_noop_noop_halt = 0x00010101, brb_self = 0x0000FE11, addr400 = 0x00000400, pc_value;
     int mstime;
 
     if (sim_panel_mem_deposit (panel, sizeof(addr400), &addr400, sizeof(noop_noop_noop_halt), &noop_noop_noop_halt)) {
@@ -650,7 +652,7 @@ return (i > 0) && (arg ? 1 : (string[i] == '\0'));
 }
 
 struct execution_breakpoint {
-    unsigned int addr;
+    uint_t addr;
     const char *desc;
     const char *extra;
     } breakpoints[] = {
@@ -677,7 +679,7 @@ if (panel_setup())
     goto Done;
 if (1) {
     struct {
-        unsigned int addr;
+        uint_t addr;
         const char *instr;
         } long_running_program[] = {
             {0x2000,  "MOVL #7FFFFFFF,R0"},
@@ -745,7 +747,7 @@ while (1) {
         if (!was_halted) {
             const char *haltmsg = sim_panel_halt_text (panel);
             const char *bpt;
-            unsigned int Bpt_PC;
+            uint_t Bpt_PC;
 
             DisplayRegisters (panel, 0, 1);
             if (*haltmsg)

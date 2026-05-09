@@ -24,11 +24,13 @@
    in this Software without prior written authorization from the authors.
 */
 
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 #include "sim_tmxr.h"
 
-t_stat dh_rd(int32 *data, int32 PA, int32 access);
-t_stat dh_wr(int32 data, int32 PA, int32 access);
+t_stat dh_rd(int32_t *data, int32_t PA, int32_t access);
+t_stat dh_wr(int32_t data, int32_t PA, int32_t access);
 t_stat dh_input_svc(UNIT *uptr);
 t_stat dh_output_svc(UNIT *uptr);
 t_stat dh_reset(DEVICE *dptr);
@@ -38,15 +40,15 @@ const char *dh_description (DEVICE *dptr);
 
 #define DH_LINES 16
 
-uint16 dh_scr;             /* System Control Register */
-uint16 dh_nrcr;            /* Next Received Character Register */
-uint16 dh_lpr[DH_LINES];   /* Line Parameter Regiser */
-uint32 dh_car[DH_LINES];   /* Current Address Register */
-uint16 dh_bcr[DH_LINES];   /* Byte Count Register */
-uint16 dh_bar;             /* Buffer Active Register */
-uint16 dh_brcr;            /* Break Control Register */
-uint16 dh_ssr;             /* Silo Status Register */
-uint16 dh_silo[64];
+uint16_t dh_scr;           /* System Control Register */
+uint16_t dh_nrcr;          /* Next Received Character Register */
+uint16_t dh_lpr[DH_LINES]; /* Line Parameter Regiser */
+uint32_t dh_car[DH_LINES]; /* Current Address Register */
+uint16_t dh_bcr[DH_LINES]; /* Byte Count Register */
+uint16_t dh_bar;           /* Buffer Active Register */
+uint16_t dh_brcr;          /* Break Control Register */
+uint16_t dh_ssr;           /* Silo Status Register */
+uint16_t dh_silo[64];
 
 #define LN (dh_scr & 017)
 
@@ -133,7 +135,7 @@ DEVICE dh_dev = {
 };
 
 t_stat
-dh_rd(int32 *data, int32 PA, int32 access)
+dh_rd(int32_t *data, int32_t PA, int32_t access)
 {
   /* Memory-mapped I/O dispatch signature.
      This implementation does not use every parameter. */
@@ -188,7 +190,7 @@ dh_rd(int32 *data, int32 PA, int32 access)
 }
 
 t_stat
-dh_wr(int32 data, int32 PA, int32 access)
+dh_wr(int32_t data, int32_t PA, int32_t access)
 {
   t_stat stat = SCPE_OK;
 
@@ -232,7 +234,7 @@ dh_wr(int32 data, int32 PA, int32 access)
   case 006:
     sim_debug (DBG_IO, &dh_dev, "WRITE DHCAR[%o] %06o\n", LN, data);
     dh_car[LN] = data;
-    dh_car[LN] |= ((uint32)dh_scr & 060) << 12;
+    dh_car[LN] |= ((uint32_t)dh_scr & 060) << 12;
     break;
   case 010:
     sim_debug (DBG_IO, &dh_dev, "WRITE DHBCR[%o] %06o\n", LN, data);
@@ -275,7 +277,7 @@ t_stat dh_detach (UNIT *uptr)
 
 t_stat dh_input_svc(UNIT *uptr)
 {
-  int32 ch;
+  int32_t ch;
   int i;
 
   sim_clock_coschedule (uptr, 100);
@@ -308,7 +310,7 @@ t_stat dh_input_svc(UNIT *uptr)
 
 t_stat dh_output_svc(UNIT *uptr)
 {
-  int32 ch;
+  int32_t ch;
   int i;
 
   sim_clock_coschedule (uptr, 100);

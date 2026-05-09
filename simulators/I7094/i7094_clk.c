@@ -30,14 +30,15 @@
 */
 
 #include "i7094_defs.h"
+#include <stdint.h>
 #include <time.h>
 
-uint32 chtr_clk = 0;
-extern t_uint64 *M;
+uint32_t chtr_clk = 0;
+extern uint64_t *M;
 
 t_stat clk_svc (UNIT *uptr);
 t_stat clk_reset (DEVICE *dptr);
-uint8 bcd_2d (uint32 n, uint8 *b2);
+uint8_t bcd_2d (uint32_t n, uint8_t *b2);
 
 /* CLK data structures
 
@@ -66,7 +67,7 @@ DEVICE clk_dev = {
 
 t_stat clk_svc (UNIT *uptr)
 {
-t_uint64 ctr;
+uint64_t ctr;
 
 if ((clk_dev.flags & DEV_DIS) == 0) {                   /* clock enabled? */
     ctr = ReadP (CLK_CTR);
@@ -82,10 +83,10 @@ return SCPE_OK;
 
 /* Chronolog clock */
 
-uint32 chrono_rd (uint8 *buf, uint32 bufsiz)
+uint32_t chrono_rd (uint8_t *buf, uint32_t bufsiz)
 {
 time_t curtim;
-t_uint64 ctr;
+uint64_t ctr;
 struct tm *tptr;
 
 if (bufsiz < 12)
@@ -101,15 +102,15 @@ buf[4] = bcd_2d (tptr->tm_hour, buf + 5);
 buf[6] = bcd_2d (tptr->tm_min, buf + 7);
 buf[8] = bcd_2d (tptr->tm_sec, buf + 9);
 ctr = ReadP (CLK_CTR);
-buf[10] = bcd_2d ((uint32) (ctr % 60), buf + 11);
+buf[10] = bcd_2d ((uint32_t) (ctr % 60), buf + 11);
 return 12;
 }
 
 /* Convert number (0-99) to BCD */
 
-uint8 bcd_2d (uint32 n, uint8 *b2)
+uint8_t bcd_2d (uint32_t n, uint8_t *b2)
 {
-uint8 d1, d2;
+uint8_t d1, d2;
 
 d1 = n / 10;
 d2 = n % 10;

@@ -68,6 +68,8 @@
         lpt_eor                 DMA/DMC end of range
 */
 
+#include <stdint.h>
+
 #include "h316_defs.h"
 
 #define LPT_WIDTH       120                             /* width */
@@ -76,26 +78,26 @@
 #define LPT_SVCSH       01                              /* shuttle */
 #define LPT_SVCPA       02                              /* paper advance */
 
-extern int32 dev_int, dev_enb;
-extern int32 stop_inst;
-extern uint32 chan_req;
+extern int32_t dev_int, dev_enb;
+extern int32_t stop_inst;
+extern uint32_t chan_req;
 
-int32 lpt_wdpos = 0;                                    /* word position */
-int32 lpt_drpos = 0;                                    /* drum position */
-int32 lpt_crpos = 0;                                    /* carriage position */
-int32 lpt_svcst = 0;                                    /* service state */
-int32 lpt_svcch = 0;                                    /* service channel */
-int32 lpt_rdy = 0;                                      /* transfer flag */
-int32 lpt_prdn = 1;                                     /* printing done */
-int32 lpt_dma = 0;                                      /* use DMA/DMC */
-int32 lpt_eor = 0;                                      /* DMA/DMC end range */
+int32_t lpt_wdpos = 0;                                  /* word position */
+int32_t lpt_drpos = 0;                                  /* drum position */
+int32_t lpt_crpos = 0;                                  /* carriage position */
+int32_t lpt_svcst = 0;                                  /* service state */
+int32_t lpt_svcch = 0;                                  /* service channel */
+int32_t lpt_rdy = 0;                                    /* transfer flag */
+int32_t lpt_prdn = 1;                                   /* printing done */
+int32_t lpt_dma = 0;                                    /* use DMA/DMC */
+int32_t lpt_eor = 0;                                    /* DMA/DMC end range */
 char lpt_buf[LPT_WIDTH + 1] = { 0 };                    /* line buffer */
-int32 lpt_xtime = 5;                                    /* transfer time */
-int32 lpt_etime = 50;                                   /* end of scan time */
-int32 lpt_ptime = 5000;                                 /* paper adv time */
-int32 lpt_stopioe = 0;                                  /* stop on error */
+int32_t lpt_xtime = 5;                                  /* transfer time */
+int32_t lpt_etime = 50;                                 /* end of scan time */
+int32_t lpt_ptime = 5000;                               /* paper adv time */
+int32_t lpt_stopioe = 0;                                /* stop on error */
 
-int32 lptio (int32 inst, int32 fnc, int32 dat, int32 dev);
+int32_t lptio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *cptr);
@@ -143,14 +145,14 @@ DEVICE lpt_dev = {
 
 /* IO routine */
 
-int32 lptio (int32 inst, int32 fnc, int32 dat, int32 dev)
+int32_t lptio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev)
 {
 /* Shared I/O routine signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 ch = lpt_dib.chan - 1;                            /* DMA/DMC chan */
-int32 chr;
+int32_t ch = lpt_dib.chan - 1;                          /* DMA/DMC chan */
+int32_t chr;
 
 switch (inst) {                                         /* case on opcode */
 
@@ -297,8 +299,8 @@ return dat;
 
 t_stat lpt_svc (UNIT *uptr)
 {
-int32 i;
-int32 ch = lpt_dib.chan - 1;                            /* DMA/DMC chan */
+int32_t i;
+int32_t ch = lpt_dib.chan - 1;                          /* DMA/DMC chan */
 static const char *lpt_cc[] = {
     "\r",
     "\n",
@@ -359,7 +361,7 @@ t_stat lpt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 lpt_wdpos = lpt_drpos = lpt_crpos = 0;                  /* clear positions */
 lpt_svcst = lpt_svcch = 0;                              /* idle state */

@@ -26,6 +26,8 @@
    mctl0, mctl1         MS820 memory controllers
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 /* Memory CSR 1 */
@@ -41,13 +43,13 @@
 
 #define MCSR2_OF        0x41
 
-uint32 mcsr_1[MCTL_NUM];
-uint32 mcsr_2[MCTL_NUM];
+uint32_t mcsr_1[MCTL_NUM];
+uint32_t mcsr_2[MCTL_NUM];
 
 t_stat mctl_reset (DEVICE *dptr);
 const char *mctl_description (DEVICE *dptr);
-t_stat mctl_rdreg (int32 *val, int32 pa, int32 mode);
-t_stat mctl_wrreg (int32 val, int32 pa, int32 mode);
+t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
+t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
 
 /* MCTLx data structures
 
@@ -110,13 +112,13 @@ DEVICE mctl_dev[] = {
 
 /* Memory controller register read */
 
-t_stat mctl_rdreg (int32 *val, int32 pa, int32 lnt)
+t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 /* Nexus register read signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 mctl, ofs;
+int32_t mctl, ofs;
 
 mctl = NEXUS_GETNEX (pa) - TR_MCTL0;                    /* get mctl num */
 ofs = NEXUS_GETOFS (pa);                                /* get offset */
@@ -134,11 +136,11 @@ switch (ofs) {
         break;
 
     case BI_SA:                                         /* start address */
-        *val = (mctl == 0) ? 0 : (int32)(MEMSIZE >> 1);
+        *val = (mctl == 0) ? 0 : (int32_t)(MEMSIZE >> 1);
         break;
 
     case BI_EA:                                         /* end address */
-        *val = (mctl == 0) ? (int32)(MEMSIZE >> 1) : (int32)MEMSIZE;
+        *val = (mctl == 0) ? (int32_t)(MEMSIZE >> 1) : (int32_t)MEMSIZE;
         break;
 
     case MCSR1_OF:                                       /* CSR 1 */
@@ -158,14 +160,14 @@ return SCPE_OK;
 
 /* Memory controller register write */
 
-t_stat mctl_wrreg (int32 val, int32 pa, int32 lnt)
+t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 /* Nexus register write signature.
    This implementation does not use every parameter. */
 (void) val;
 (void) lnt;
 
-int32 mctl, ofs;
+int32_t mctl, ofs;
 
 mctl = NEXUS_GETNEX (pa) - TR_MCTL0;                    /* get mctl num */
 ofs = NEXUS_GETOFS (pa);                                /* get offset */
@@ -190,7 +192,7 @@ return SCPE_OK;
 
 /* Used by CPU and loader */
 
-void rom_wr_B (int32 pa, int32 val)
+void rom_wr_B (int32_t pa, int32_t val)
 {
 /* Shared ROM write hook.
    This model does not use every parameter. */
@@ -208,7 +210,7 @@ t_stat mctl_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 for (i = 0; i < MCTL_NUM; i++) {                        /* init for MS820 */
     mcsr_1[i] = (MCSR1_M_SIZE << MCSR1_V_SIZE);
     mcsr_2[i] = 0;
@@ -225,7 +227,7 @@ const char *mctl_description (DEVICE *dptr)
 return "memory controller";
 }
 
-t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

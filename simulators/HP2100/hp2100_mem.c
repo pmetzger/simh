@@ -276,6 +276,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -293,7 +295,7 @@
 /* Main memory access classification table */
 
 typedef struct {
-    uint32      debug_flag;                     /* the debug flag for tracing */
+    uint32_t    debug_flag;                     /* the debug flag for tracing */
     const char  *name;                          /* the classification name */
     } ACCESS_PROPERTIES;
 
@@ -312,11 +314,11 @@ static const ACCESS_PROPERTIES mem_access [] = {    /* indexed by ACCESS_CLASS *
 
 /* Main memory OS base page addresses */
 
-static const uint32 m64  = 0000040u;            /* (DOS) constant -64 address */
-static const uint32 p64  = 0000067u;            /* (DOS) constant +64 address */
+static const uint32_t m64  = 0000040u;          /* (DOS) constant -64 address */
+static const uint32_t p64  = 0000067u;          /* (DOS) constant +64 address */
 
-static const uint32 xeqt = 0001717u;            /* (RTE) XEQT address */
-static const uint32 tbg  = 0001674u;            /* (RTE) TBG address */
+static const uint32_t xeqt = 0001717u;          /* (RTE) XEQT address */
+static const uint32_t tbg  = 0001674u;          /* (RTE) TBG address */
 
 
 /* Main memory tracing constants */
@@ -339,8 +341,8 @@ static const char mp_value [] = {               /* memory protection value, inde
 
 /* Main memory global state declarations */
 
-uint32 mem_size = 0;                            /* size of main memory in words */
-uint32 mem_end  = 0;                            /* address of the first word beyond installed memory */
+uint32_t mem_size = 0;                          /* size of main memory in words */
+uint32_t mem_end  = 0;                          /* address of the first word beyond installed memory */
 
 
 /* Main memory local state declarations */
@@ -441,7 +443,7 @@ static const char map_indicator [] = {          /* MEU map indicator, indexed by
 /* Memory Expansion Unit global state declarations */
 
 char   meu_indicator;                           /* last map access indicator (S | U | A | B | -) */
-uint32 meu_page;                                /* last physical page number accessed */
+uint32_t meu_page;                              /* last physical page number accessed */
 
 
 /* Memory Expansion Unit local state declarations */
@@ -462,7 +464,7 @@ static t_stat meu_reset (DEVICE *dptr);
 
 static void   dm_violation (HP_WORD violation);
 static bool is_mapped    (HP_WORD address);
-static uint32 map_address  (HP_WORD address, MEU_MAP_SELECTOR map, HP_WORD protection);
+static uint32_t map_address  (HP_WORD address, MEU_MAP_SELECTOR map, HP_WORD protection);
 
 
 /* Memory Expansion Unit SCP data declarations */
@@ -570,7 +572,7 @@ static FLIP_FLOP mp_evrff       = SET;          /* enable violation register fli
 static FLIP_FLOP mp_enabled     = CLEAR;        /* MP was enabled at interrupt */
 static FLIP_FLOP mp_reenable    = CLEAR;        /* MP will be reenabled after IAK */
 static bool      mp_mem_changed = true;         /* true if the MP or MEM registers have been altered */
-static uint32    jsb_bound      = 2;            /* protected lower bound for JSB */
+static uint32_t  jsb_bound      = 2;            /* protected lower bound for JSB */
 
 
 /* Memory Protect I/O interface routine declarations */
@@ -580,7 +582,7 @@ static INTERFACE mp_interface;
 
 /* Memory Protect local SCP support routine declarations */
 
-static t_stat mp_set_jsb (UNIT *uptr, int32 value, const char *cptr, void *desc);
+static t_stat mp_set_jsb (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 static t_stat mp_reset   (DEVICE *dptr);
 
 
@@ -719,7 +721,7 @@ DEVICE mp_dev = {
        not exist when we are called.
 */
 
-t_stat mem_initialize (uint32 memory_size)
+t_stat mem_initialize (uint32_t memory_size)
 {
 DEVICE *tbg_dptr;
 
@@ -786,7 +788,7 @@ else                                                    /* otherwise */
 
 HP_WORD mem_read (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD address)
 {
-uint32  index;
+uint32_t index;
 MEU_MAP_SELECTOR map;
 HP_WORD protection;
 
@@ -921,7 +923,7 @@ return TR;                                              /* return the word that 
 
 void mem_write (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD address, HP_WORD value)
 {
-uint32  index;
+uint32_t index;
 MEU_MAP_SELECTOR map;
 HP_WORD protection;
 
@@ -1018,7 +1020,7 @@ return;
        microcode does a full word read for each byte accessed.
 */
 
-uint8 mem_read_byte (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD byte_address)
+uint8_t mem_read_byte (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD byte_address)
 {
 const HP_WORD word_address = byte_address >> 1;         /* the address of the word containing the byte */
 HP_WORD word;
@@ -1055,7 +1057,7 @@ else                                                    /* otherwise */
        bytes, but that is to minimize the number of map switches.)
 */
 
-void mem_write_byte (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD byte_address, uint8 value)
+void mem_write_byte (DEVICE *dptr, ACCESS_CLASS classification, HP_WORD byte_address, uint8_t value)
 {
 const HP_WORD word_address = byte_address >> 1;         /* the address of the word containing the byte */
 HP_WORD word;
@@ -1100,7 +1102,7 @@ return mem_examine (map_address (address, map, NO_PROTECTION)); /* return the va
    reduced (so that non-existent locations will read as zero).
 */
 
-void mem_zero (uint32 starting_address, uint32 fill_count)
+void mem_zero (uint32_t starting_address, uint32_t fill_count)
 {
 memset (M + starting_address, 0,                        /* zero the words */
         fill_count * sizeof (MEMORY_WORD));             /*   in the specified memory range */
@@ -1118,9 +1120,9 @@ return;
    otherwise.
 */
 
-bool mem_is_empty (uint32 starting_address)
+bool mem_is_empty (uint32_t starting_address)
 {
-uint32 address;
+uint32_t address;
 
 for (address = starting_address; address < mem_size; address++) /* loop through the specified address range */
     if (M [address] != 0)                                       /* if this location is non-zero */
@@ -1142,7 +1144,7 @@ return true;                                            /* return true if all lo
    reserved loader area).
 */
 
-void mem_copy_loader (MEMORY_WORD *buffer, uint32 starting_address, COPY_DIRECTION mode)
+void mem_copy_loader (MEMORY_WORD *buffer, uint32_t starting_address, COPY_DIRECTION mode)
 {
 if (mode == To_Memory)                                  /* if copying into memory */
     memcpy (M + starting_address, buffer,               /*   then transfer the loader */
@@ -1204,7 +1206,7 @@ return;
 
 bool mem_is_idle_loop (void)
 {
-const int32 displacement = (int32) MR - (int32) err_PR; /* the jump displacement */
+const int32_t displacement = (int32_t) MR - (int32_t) err_PR; /* the jump displacement */
 
 if ((displacement == 0                                  /* if the jump target is * (RTE through RTE-IVB) */
   || displacement == -1 && (M [MR] & IR_MRG) == IR_ISZ) /*   or the target is *-1 (RTE-6/VM) and *-1 is ISZ <n> */
@@ -1285,7 +1287,7 @@ if (mp_mem_changed) {                       /* if the MP/MEM registers have been
    returned.  There are no protections or error indications.
 */
 
-HP_WORD mem_examine (uint32 address)
+HP_WORD mem_examine (uint32_t address)
 {
 if (address <= 1 && !(sim_switches & SIM_SW_REST))      /* if the address is 0 or 1 and not restoring memory */
     return ABREG [address];                             /*   then return the A or B register value */
@@ -1305,7 +1307,7 @@ else                                                    /* otherwise the access 
    no protections or error indications.
 */
 
-void mem_deposit (uint32 address, HP_WORD value)
+void mem_deposit (uint32_t address, HP_WORD value)
 {
 if (address <= 1 && !(sim_switches & SIM_SW_REST))      /* if the address is 0 or 1 and not restoring memory */
     ABREG [address] = value & DV_MASK;                  /*   then store into the A or B register */
@@ -1356,7 +1358,7 @@ return;
    to the logical page number specified by the index) is returned.
 */
 
-HP_WORD meu_read_map (MEU_MAP_SELECTOR map, uint32 index)
+HP_WORD meu_read_map (MEU_MAP_SELECTOR map, uint32_t index)
 {
 if (map == Linear_Map)                                  /* if linear access is specified */
     return meu_maps [index / REG_COUNT & MAP_MASK]      /*   then use the upper index bits for the map */
@@ -1377,7 +1379,7 @@ else                                                    /* otherwise */
    is stored in the indicated register.
 */
 
-void meu_write_map (MEU_MAP_SELECTOR map, uint32 index, uint32 value)
+void meu_write_map (MEU_MAP_SELECTOR map, uint32_t index, uint32_t value)
 {
 if (map == Linear_Map)                                      /* if linear access is specified */
     meu_maps [index / REG_COUNT & MAP_MASK]                 /*   then use the upper index bits for the map */
@@ -1590,7 +1592,7 @@ return;
    returned type is "S", as the IAK will be handled in the system map.
 */
 
-uint32 meu_breakpoint_type (bool is_iak)
+uint32_t meu_breakpoint_type (bool is_iak)
 {
 if (meu_status & MEST_ENABLED)                          /* if MEM is currently enabled */
     if (meu_current_map == User_Map && !is_iak)         /*   then if the user map is currently enabled */
@@ -1628,7 +1630,7 @@ else                                                    /* otherwise MEM is disa
    memory size is returned to indicate that a translation error occurred.
 */
 
-uint32 meu_map_address (HP_WORD logical, int32 switches)
+uint32_t meu_map_address (HP_WORD logical, int32_t switches)
 {
 MEU_MAP_SELECTOR map;
 
@@ -1768,9 +1770,9 @@ return meu_bus_enabled;                                 /* return the mapping st
    enabled, or will return if protection is off.
 */
 
-static uint32 map_address (HP_WORD address, MEU_MAP_SELECTOR map, HP_WORD protection)
+static uint32_t map_address (HP_WORD address, MEU_MAP_SELECTOR map, HP_WORD protection)
 {
-uint32 map_register;
+uint32_t map_register;
 
 if (meu_status & MEST_ENABLED) {                        /* if the Memory Expansion Unit is enabled */
     meu_indicator = map_indicator [map];                /*   then set the map indicator to the applied map */
@@ -2093,9 +2095,9 @@ return;
    flip-flop is clear), and MEM violations are inhibited if the MEM is disabled.
 */
 
-void mp_check_jmp (HP_WORD address, uint32 lower_bound)
+void mp_check_jmp (HP_WORD address, uint32_t lower_bound)
 {
-const uint32 lp = PAGE (address);                       /* the logical page number */
+const uint32_t lp = PAGE (address);                     /* the logical page number */
 HP_WORD violation = 0;                                  /* the MEM violation conditions */
 
 if (mp_control) {                                               /* if memory protect is enabled */
@@ -2159,7 +2161,7 @@ return;
    violation.
 */
 
-void mp_check_io (uint32 select_code, IO_GROUP_OP micro_op)
+void mp_check_io (uint32_t select_code, IO_GROUP_OP micro_op)
 {
 if (mp_control == CLEAR) {                              /* if memory protect is off */
     if (micro_op != iog_HLT && micro_op != iog_HLT_C)   /*   then if the instruction is not a HLT */
@@ -2366,7 +2368,7 @@ return SCPE_OK;
    with JMP.
 */
 
-static t_stat mp_set_jsb (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat mp_set_jsb (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

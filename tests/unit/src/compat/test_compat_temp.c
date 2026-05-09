@@ -15,17 +15,18 @@
 
 #include "test_cmocka.h"
 
+#include "sim_types.h"
 #include "sim_win32_compat.h"
 
 static const char test_temp_chars[] =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-static unsigned int test_process_id(void)
+static uint_t test_process_id(void)
 {
 #if defined(_WIN32)
-    return (unsigned int)_getpid();
+    return (uint_t)_getpid();
 #else
-    return (unsigned int)getpid();
+    return (uint_t)getpid();
 #endif
 }
 
@@ -39,21 +40,21 @@ static int test_open_exclusive(const char *path)
 #endif
 }
 
-static void test_fill_temp_suffix(char *first_x, unsigned int value)
+static void test_fill_temp_suffix(char *first_x, uint_t value)
 {
     int i;
 
     for (i = 0; i < 6; i++) {
         first_x[i] = test_temp_chars[value % (sizeof(test_temp_chars) - 1)];
-        value /= (unsigned int)(sizeof(test_temp_chars) - 1);
+        value /= (uint_t)(sizeof(test_temp_chars) - 1);
     }
 }
 
 static void test_expected_attempt(char *path, size_t size, char *template_ptr,
-                                  unsigned int attempt)
+                                  uint_t attempt)
 {
     char *first_x;
-    unsigned int seed;
+    uint_t seed;
 
     assert_true(size >= strlen(template_ptr) + 1);
     strcpy(path, template_ptr);
@@ -61,7 +62,7 @@ static void test_expected_attempt(char *path, size_t size, char *template_ptr,
     assert_non_null(first_x);
 
     seed = test_process_id();
-    seed ^= (unsigned int)(uintptr_t)template_ptr;
+    seed ^= (uint_t)(uintptr_t)template_ptr;
     test_fill_temp_suffix(first_x, seed + attempt);
 }
 

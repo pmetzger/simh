@@ -39,8 +39,11 @@
 
 /*#define DBG_MSG*/
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_imd.h"
+#include "sim_types.h"
 
 #ifdef DBG_MSG
 #define DBG_PRINT(args) sim_printf args
@@ -59,11 +62,11 @@
 #define RD_DATA_DETAIL_MSG  (1 << 7)
 #define WR_DATA_DETAIL_MSG  (1 << 8)
 
-extern uint32 PCX;
-extern t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t PCX;
+extern t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
 #define MDSAD_MAX_DRIVES        4
 #define MDSAD_SECTOR_LEN_DD     512
@@ -85,37 +88,37 @@ extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_typ
 
 typedef union {
     struct {
-        uint8 zeros[MDSAD_ZEROS_LEN_DD];
-        uint8 sync[MDSAD_SYNC_LEN_DD];
-        uint8 data[MDSAD_SECTOR_LEN_DD];
-        uint8 checksum;
+        uint8_t zeros[MDSAD_ZEROS_LEN_DD];
+        uint8_t sync[MDSAD_SYNC_LEN_DD];
+        uint8_t data[MDSAD_SECTOR_LEN_DD];
+        uint8_t checksum;
     } u_dd;
     struct {
-        uint8 zeros[MDSAD_ZEROS_LEN_SD];
-        uint8 sync[MDSAD_SYNC_LEN_SD];
-        uint8 data[MDSAD_SECTOR_LEN_SD];
-        uint8 checksum;
+        uint8_t zeros[MDSAD_ZEROS_LEN_SD];
+        uint8_t sync[MDSAD_SYNC_LEN_SD];
+        uint8_t data[MDSAD_SECTOR_LEN_SD];
+        uint8_t checksum;
     } u_sd;
-    uint8 raw[MDSAD_RAW_LEN_DD];
+    uint8_t raw[MDSAD_RAW_LEN_DD];
 
 } SECTOR_FORMAT;
 
 typedef struct {
     UNIT *uptr;
-    uint8 track;
-    uint8 wp;       /* Disk write protected */
-    uint8 sector;   /* Current Sector number */
-    uint32 sector_wait_count;
-    uint16 sector_len;
+    uint8_t track;
+    uint8_t wp;     /* Disk write protected */
+    uint8_t sector; /* Current Sector number */
+    uint32_t sector_wait_count;
+    uint16_t sector_len;
 } MDSAD_DRIVE_INFO;
 
 typedef struct {
-    uint8 dd;       /* Controls density on write DD=1 for double density and DD=0 for single density. */
-    uint8 ss;       /* Specifies the side of a double-sided diskette. The bottom side (and only side of a single-sided diskette) is selected when SS=0. The second (top) side is selected when SS=1. */
-    uint8 dp;       /* has shared use. During stepping operations, DP=O specifies a step out and DP=1 specifies a step in. During write operations, write precompensation is invoked if and only if DP=1. */
-    uint8 st;       /* controls the level of the head step signal to the disk drives. */
-    uint8 pst;      /* value of step signal (st) on previous order */
-    uint8 ds;       /* is the drive select field, encoded as follows: */
+    uint8_t dd;     /* Controls density on write DD=1 for double density and DD=0 for single density. */
+    uint8_t ss;     /* Specifies the side of a double-sided diskette. The bottom side (and only side of a single-sided diskette) is selected when SS=0. The second (top) side is selected when SS=1. */
+    uint8_t dp;     /* has shared use. During stepping operations, DP=O specifies a step out and DP=1 specifies a step in. During write operations, write precompensation is invoked if and only if DP=1. */
+    uint8_t st;     /* controls the level of the head step signal to the disk drives. */
+    uint8_t pst;    /* value of step signal (st) on previous order */
+    uint8_t ds;     /* is the drive select field, encoded as follows: */
                     /* 0=no drive selected
                      * 1=drive 1 selected
                      * 2=drive 2 selected
@@ -125,28 +128,28 @@ typedef struct {
 } ORDERS;
 
 typedef struct {
-    uint8 sf;       /* Sector Flag: set when sector hole detected, reset by software. */
-    uint8 ix;       /* Index Detect: true if index hole detected during previous sector. */
-    uint8 dd;       /* Double Density Indicator: true if data being read is encoded in double density. */
-    uint8 mo;       /* Motor On: true while motor(s) are on. */
+    uint8_t sf;     /* Sector Flag: set when sector hole detected, reset by software. */
+    uint8_t ix;     /* Index Detect: true if index hole detected during previous sector. */
+    uint8_t dd;     /* Double Density Indicator: true if data being read is encoded in double density. */
+    uint8_t mo;     /* Motor On: true while motor(s) are on. */
 } COM_STATUS;
 
 typedef struct {
-    uint8 wi;       /* Window: true during 96-microsecond window at beginning of sector. */
-    uint8 re;       /* Read Enable: true while phase-locked loop is enabled. */
-    uint8 sp;       /* Spare: reserved for future use. */
-    uint8 bd;       /* Body: set when sync character is detected. */
+    uint8_t wi;     /* Window: true during 96-microsecond window at beginning of sector. */
+    uint8_t re;     /* Read Enable: true while phase-locked loop is enabled. */
+    uint8_t sp;     /* Spare: reserved for future use. */
+    uint8_t bd;     /* Body: set when sync character is detected. */
 } A_STATUS;
 
 typedef struct {
-    uint8 wr;       /* Write: true during valid write operation. */
-    uint8 sp;       /* Spare: reserved for future use. */
-    uint8 wp;       /* Write Protect: true while the diskette installed in the selected drive is write protected. */
-    uint8 t0;       /* Track 0: true if selected drive is at track zero. */
+    uint8_t wr;     /* Write: true during valid write operation. */
+    uint8_t sp;     /* Spare: reserved for future use. */
+    uint8_t wp;     /* Write Protect: true while the diskette installed in the selected drive is write protected. */
+    uint8_t t0;     /* Track 0: true if selected drive is at track zero. */
 } B_STATUS;
 
 typedef struct {
-    uint8 sc;       /* Sector Counter: indicates the current sector position. */
+    uint8_t sc;     /* Sector Counter: indicates the current sector position. */
 } C_STATUS;
 
 typedef struct {
@@ -158,8 +161,8 @@ typedef struct {
     B_STATUS    b_status;
     C_STATUS    c_status;
 
-    uint8 int_enable;   /* Interrupt Enable */
-    uint32 datacount;   /* Number of data bytes transferred from controller for current sector */
+    uint8_t int_enable; /* Interrupt Enable */
+    uint32_t datacount; /* Number of data bytes transferred from controller for current sector */
     MDSAD_DRIVE_INFO drive[MDSAD_MAX_DRIVES];
 } MDSAD_INFO;
 
@@ -226,11 +229,11 @@ static SECTOR_FORMAT sdata;
 static t_stat mdsad_reset(DEVICE *mdsad_dev);
 static t_stat mdsad_attach(UNIT *uptr, const char *cptr);
 static t_stat mdsad_detach(UNIT *uptr);
-static t_stat mdsad_boot(int32 unitno, DEVICE *dptr);
-static uint8 MDSAD_Read(const uint32 Addr);
+static t_stat mdsad_boot(int32_t unitno, DEVICE *dptr);
+static uint8_t MDSAD_Read(const uint32_t Addr);
 static const char* mdsad_description(DEVICE *dptr);
 
-static int32 mdsaddev(const int32 Addr, const int32 rw, const int32 data);
+static int32_t mdsaddev(const int32_t Addr, const int32_t rw, const int32_t data);
 
 static UNIT mdsad_unit[] = {
     { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, MDSAD_CAPACITY) },
@@ -314,7 +317,7 @@ static t_stat mdsad_attach(UNIT *uptr, const char *cptr)
 {
     char header[4];
     t_stat r;
-    unsigned int i = 0;
+    uint_t i = 0;
 
     r = attach_unit(uptr, cptr);    /* attach unit  */
     if(r != SCPE_OK)                /* error?       */
@@ -372,7 +375,7 @@ static t_stat mdsad_attach(UNIT *uptr, const char *cptr)
 static t_stat mdsad_detach(UNIT *uptr)
 {
     t_stat r;
-    int8 i;
+    int8_t i;
 
     for(i = 0; i < MDSAD_MAX_DRIVES; i++) {
         if(mdsad_dev.units[i].fileref == uptr->fileref) {
@@ -393,7 +396,7 @@ static t_stat mdsad_detach(UNIT *uptr)
     return SCPE_OK;
 }
 
-static t_stat mdsad_boot(int32 unitno, DEVICE *dptr)
+static t_stat mdsad_boot(int32_t unitno, DEVICE *dptr)
 {
 
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
@@ -402,11 +405,11 @@ static t_stat mdsad_boot(int32 unitno, DEVICE *dptr)
         pnp->mem_base+1+(unitno&3), unitno & 3));
 
     /* Unit 3 can't be booted yet.  This involves modifying the A register. */
-    *((int32 *) sim_PC->loc) = pnp->mem_base+1+(unitno&3);
+    *((int32_t *) sim_PC->loc) = pnp->mem_base+1+(unitno&3);
     return SCPE_OK;
 }
 
-static int32 mdsaddev(const int32 Addr, const int32 rw, const int32 data)
+static int32_t mdsaddev(const int32_t Addr, const int32_t rw, const int32_t data)
 {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
@@ -428,7 +431,7 @@ static int32 mdsaddev(const int32 Addr, const int32 rw, const int32 data)
 /* it boots from floppy 0; jump to base_addr+2 you boot from floppy 1;  */
 /* jump to base_addr+3 and you boot from floppy 2.  You can boot from   */
 /* floppy 3 by loading A with 08H and jumping to base_addr+7.           */
-static uint8 mdsad_rom[] = {
+static uint8_t mdsad_rom[] = {
     0x44, 0x01, 0x01, 0x01, 0x82, 0x84, 0x78, 0xE6, 0x07, 0x4F, 0x00, 0x31, 0x30, 0x00, 0x21, 0x29, /* 0x00 */
     0x00, 0xE5, 0x21, 0x2C, 0xC2, 0xE5, 0x21, 0x77, 0x13, 0xE5, 0x21, 0xC9, 0x1A, 0xE5, 0xCD, 0x28, /* 0x10 */
     0x00, 0x21, 0x30, 0x00, 0x5B, 0x52, 0x44, 0x54, 0x5D, 0x3A, 0x27, 0x00, 0x57, 0xC3, 0x29, 0x00, /* 0x20 */
@@ -447,8 +450,8 @@ static uint8 mdsad_rom[] = {
     0xC2, 0xE7, 0x00, 0xC9, 0xF1, 0x3D, 0xF5, 0xC2, 0x55, 0x00, 0xC3, 0xFA, 0x00, 0x52, 0x44, 0x54  /* 0xF0 */
 };
 
-static void showdata(int32 isRead) {
-    int32 i;
+static void showdata(int32_t isRead) {
+    int32_t i;
     MDSAD_DRIVE_INFO* pDrive;
 
     pDrive = &mdsad_info->drive[mdsad_info->orders.ds];
@@ -462,9 +465,9 @@ static void showdata(int32 isRead) {
 }
 
 static int checksum;
-static uint32 sec_offset;
+static uint32_t sec_offset;
 
-static uint32 calculate_mdsad_sec_offset(uint8 track, uint8 head, uint8 sector)
+static uint32_t calculate_mdsad_sec_offset(uint8_t track, uint8_t head, uint8_t sector)
 {
     MDSAD_DRIVE_INFO* pDrive;
 
@@ -479,12 +482,12 @@ static uint32 calculate_mdsad_sec_offset(uint8 track, uint8 head, uint8 sector)
     }
 }
 
-static uint8 MDSAD_Read(const uint32 Addr)
+static uint8_t MDSAD_Read(const uint32_t Addr)
 {
-    uint8 cData;
-    uint8 ds;
+    uint8_t cData;
+    uint8_t ds;
     MDSAD_DRIVE_INFO *pDrive;
-    int32 rtn;
+    int32_t rtn;
 
     cData = 0x00;
 
@@ -513,7 +516,7 @@ static uint8 MDSAD_Read(const uint32 Addr)
                 " WRITE-DATA[offset:%06x+%03x]=%02x\n",
                 PCX, sec_offset, mdsad_info->datacount, Addr & 0xFF));
             mdsad_info->datacount++;
-            if(mdsad_info->datacount < (uint32)MDSAD_RAW_LEN)
+            if(mdsad_info->datacount < (uint32_t)MDSAD_RAW_LEN)
                 sdata.raw[mdsad_info->datacount] = Addr & 0xFF;
 
             if(mdsad_info->datacount == (MDSAD_RAW_LEN - 1)) {

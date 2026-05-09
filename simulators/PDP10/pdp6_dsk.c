@@ -22,6 +22,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_DSK
@@ -124,22 +126,22 @@
 #define DSK_SIZE       (DSK_SECS * DSK_CYL * DSK_WDS)
 
 uint64          dsk_buf[DSK_WDS];
-uint8           dsk_octflp;
-uint32          dsk_status;
-uint32          dsk_cmd;
-uint32          dsk_addr;
+uint8_t         dsk_octflp;
+uint32_t        dsk_status;
+uint32_t        dsk_cmd;
+uint32_t        dsk_addr;
 int             dsk_dct = 0;
 
-t_stat          dsk_devio(uint32 dev, uint64 *data);
+t_stat          dsk_devio(uint32_t dev, uint64 *data);
 t_stat          dsk_svc(UNIT *);
-t_stat          dsk_boot(int32, DEVICE *);
-t_stat          dsk_set_dct (UNIT *, int32, const char *, void *);
-t_stat          dsk_show_dct (FILE *, UNIT *, int32, const void *);
+t_stat          dsk_boot(int32_t, DEVICE *);
+t_stat          dsk_set_dct (UNIT *, int32_t, const char *, void *);
+t_stat          dsk_show_dct (FILE *, UNIT *, int32_t, const void *);
 void            dsk_ini(UNIT *, bool);
 t_stat          dsk_reset(DEVICE *);
 t_stat          dsk_attach(UNIT *, const char *);
 t_stat          dsk_detach(UNIT *);
-t_stat          dsk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat          dsk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                      const char *cptr);
 const char      *dsk_description (DEVICE *dptr);
 
@@ -186,7 +188,7 @@ DEVICE              dsk_dev = {
 
 
 t_stat
-dsk_devio(uint32 dev, uint64 *data) {
+dsk_devio(uint32_t dev, uint64 *data) {
      UNIT        *uptr = &dsk_unit[(dsk_addr >> 16) & 03];
      uint64       res;
 
@@ -225,7 +227,7 @@ dsk_devio(uint32 dev, uint64 *data) {
           if ((dsk_cmd & EFR) != 0 && dsk_status & SECT_END)
               set_interrupt(dev, dsk_cmd);
           sim_debug(DEBUG_CONO, &dsk_dev, "DSK %03o CONO %06o PC=%o %06o\n", dev,
-                    (uint32)*data, PC, dsk_status);
+                    (uint32_t)*data, PC, dsk_status);
           break;
      case DATAI:
           sim_debug(DEBUG_DATAIO, &dsk_dev, "DSK %03o DATI %012llo PC=%o\n",
@@ -418,7 +420,7 @@ dsk_svc (UNIT *uptr)
 
 /* set DCT channel and unit. */
 t_stat
-dsk_set_dct (UNIT *uptr, int32 val, const char *cptr, void *desc)
+dsk_set_dct (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -426,12 +428,12 @@ dsk_set_dct (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 dct;
+    int32_t dct;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    dct = (int32) get_uint (cptr, 8, 20, &r);
+    dct = (int32_t) get_uint (cptr, 8, 20, &r);
     if (r != SCPE_OK)
         return r;
     dsk_dct = dct;
@@ -439,7 +441,7 @@ dsk_set_dct (UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-dsk_show_dct (FILE *st, UNIT *uptr, int32 val, const void *desc)
+dsk_show_dct (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
    /* Generic show modifier signature.
       This implementation does not use every parameter. */
@@ -471,7 +473,7 @@ dsk_reset(DEVICE * dptr)
 
 /* Boot from given device */
 t_stat
-dsk_boot(int32 unit_num, DEVICE * dptr)
+dsk_boot(int32_t unit_num, DEVICE * dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -507,7 +509,7 @@ dsk_detach (UNIT *uptr)
 }
 
 t_stat
-dsk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+dsk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

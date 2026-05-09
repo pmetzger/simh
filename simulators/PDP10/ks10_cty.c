@@ -29,6 +29,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #if KS
 #define UNIT_DUMMY      (1 << UNIT_V_UF)
@@ -62,14 +63,14 @@
 #define KLINK_ACT     0000000001000LL      /* KLINK ACTIVE */
 #define KLINK_HANG    0000000001400LL      /* KLINK HANGUP */
 
-extern int32 tmxr_poll;
+extern int32_t tmxr_poll;
 t_stat ctyi_svc (UNIT *uptr);
 t_stat ctyo_svc (UNIT *uptr);
 t_stat ctyrtc_srv(UNIT * uptr);
 t_stat cty_reset (DEVICE *dptr);
-t_stat cty_stop_os (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cty_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat cty_stop_os (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cty_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *cty_description (DEVICE *dptr);
 uint64 keep_alive = 0;
 int    keep_num = 0;
@@ -77,7 +78,7 @@ int    keep_num = 0;
 extern DEVICE *rh_boot_dev;
 extern int     rh_boot_unit;
 
-static int32   rtc_tps = 1;
+static int32_t rtc_tps = 1;
 
 MTAB cty_mod[] = {
     { UNIT_DUMMY, 0, NULL, "STOP", &cty_stop_os },
@@ -120,7 +121,7 @@ cty_wakeup(void)
 t_stat ctyi_svc (UNIT *uptr)
 {
     uint64   buffer;
-    int32    ch;
+    int32_t  ch;
 
     sim_clock_coschedule (uptr, tmxr_poll * 3);
 
@@ -156,7 +157,7 @@ t_stat ctyo_svc (UNIT *uptr)
         return SCPE_OK;
     sim_debug(DEBUG_DETAIL, &cty_dev, "CTY Write %012llo\n", buffer);
     if (buffer & CTY_CHAR) {
-        int32    ch;
+        int32_t  ch;
         ch = buffer & 0377;
         ch = sim_tt_outcvt ( ch, TT_GET_MODE (uptr->flags));
         if (sim_putchar_s(ch) != SCPE_OK) {
@@ -245,7 +246,7 @@ t_stat cty_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -259,7 +260,7 @@ t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* Stop operating system */
 
-t_stat cty_stop_os (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cty_stop_os (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -273,7 +274,7 @@ t_stat cty_stop_os (UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 
-t_stat cty_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cty_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

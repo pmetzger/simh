@@ -28,6 +28,8 @@
    ka0, ka1         KA820 CPU
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #define PCSR_RSTH       0x80000000                      /* restart halt */
@@ -67,32 +69,32 @@
                          PCSR_CRDEN)
 #define PCSR_W1C        (PCSR_EVLCK | PCSR_PER | PCSR_TIMEOUT)
 
-int32 rxcd_count = 0;
+int32_t rxcd_count = 0;
 char rxcd_ibuf[20];
 char rxcd_obuf[20];
-int32 rxcd_iptr = 0;
-int32 rxcd_optr = 0;
+int32_t rxcd_iptr = 0;
+int32_t rxcd_optr = 0;
 char rxcd_char = '\0';
 BIIC ka_biic[KA_NUM];
-uint32 ka_rxcd[KA_NUM];
-uint32 ka_pcsr[KA_NUM];
+uint32_t ka_rxcd[KA_NUM];
+uint32_t ka_pcsr[KA_NUM];
 
-extern int32 rxcd_int;
-extern int32 ipir;
+extern int32_t rxcd_int;
+extern int32_t ipir;
 #if defined (VAX_MP)
-extern int32 cur_cpu;
+extern int32_t cur_cpu;
 #else
-int32 cur_cpu;
+int32_t cur_cpu;
 #endif
 
 t_stat ka_reset (DEVICE *dptr);
-t_stat ka_rdreg (int32 *val, int32 pa, int32 mode);
-t_stat ka_wrreg (int32 val, int32 pa, int32 mode);
+t_stat ka_rdreg (int32_t *val, int32_t pa, int32_t mode);
+t_stat ka_wrreg (int32_t val, int32_t pa, int32_t mode);
 t_stat ka_svc (UNIT *uptr);
 
 #if defined (VAX_MP)
-extern void cpu_setreg (int32 cpu, int32 rg, int32 val);
-extern void cpu_start (int32 cpu, uint32 addr);
+extern void cpu_setreg (int32_t cpu, int32_t rg, int32_t val);
+extern void cpu_start (int32_t cpu, uint32_t addr);
 #endif
 
 /* KAx data structures
@@ -148,13 +150,13 @@ DEVICE ka_dev[] = {
 
 /* KA read */
 
-t_stat ka_rdreg (int32 *val, int32 pa, int32 lnt)
+t_stat ka_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 /* Nexus register dispatch signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 ka, ofs;
+int32_t ka, ofs;
 
 ka = NEXUS_GETNEX (pa) - TR_KA0;                        /* get CPU num */
 ofs = NEXUS_GETOFS (pa);                                /* get offset */
@@ -194,13 +196,13 @@ return SCPE_OK;
 
 /* KA write */
 
-t_stat ka_wrreg (int32 val, int32 pa, int32 lnt)
+t_stat ka_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 /* Nexus register dispatch signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 ka, ofs;
+int32_t ka, ofs;
 
 ka = NEXUS_GETNEX (pa) - TR_KA0;                        /* get CPU num */
 ofs = NEXUS_GETOFS (pa);                                /* get offset */
@@ -241,7 +243,7 @@ t_stat ka_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 rxcd_count = 0;
 ka_rxcd[0] = 0;
@@ -267,9 +269,9 @@ rxcd_int = 1;
 return SCPE_OK;
 }
 
-int32 rxcd_rd (void)
+int32_t rxcd_rd (void)
 {
-int32 val;
+int32_t val;
 
 if (rxcd_count) {                                       /* data available? */
     val = rxcd_obuf[rxcd_optr] | (1 << 8);
@@ -286,12 +288,12 @@ else {
 return val;
 }
 
-void rxcd_wr (int32 val)
+void rxcd_wr (int32_t val)
 {
-int32 cpu = (val >> 8) & 7;
-int32 ch = val & 0xFF;
-int32 rg;
-int32 rval;
+int32_t cpu = (val >> 8) & 7;
+int32_t ch = val & 0xFF;
+int32_t rg;
+int32_t rval;
 t_stat r;
 char conv[10];
 
@@ -308,9 +310,9 @@ switch (ch) {
         if (rxcd_ibuf[0] == 'D') {                      /* DEPOSIT */
             conv[0] = rxcd_ibuf[4];
             conv[1] = '\0';
-            rg = (int32)get_uint (conv, 16, 0xF, &r); /* get register number */
+            rg = (int32_t)get_uint (conv, 16, 0xF, &r); /* get register number */
             strlcpy (conv, &rxcd_ibuf[6], 9);
-            rval = (int32)get_uint (conv, 16, 0xFFFFFFFF, &r); /* get deposit value */
+            rval = (int32_t)get_uint (conv, 16, 0xFFFFFFFF, &r); /* get deposit value */
 #if defined (VAX_MP)
             cpu_setreg (cpu, rg, rval);
 #endif
@@ -325,7 +327,7 @@ switch (ch) {
             }
         else if (rxcd_ibuf[0] == 'S') {                 /* START */
             strlcpy (conv, &rxcd_ibuf[2], 9);
-            rval = (int32)get_uint (conv, 16, 0xFFFFFFFF, &r);
+            rval = (int32_t)get_uint (conv, 16, 0xFFFFFFFF, &r);
 #if defined (VAX_MP)
             cpu_start (cpu, rval);
 #endif
@@ -355,19 +357,19 @@ if (rxcd_count) {
 return;
 }
 
-int32 pcsr_rd (int32 pa)
+int32_t pcsr_rd (int32_t pa)
 {
 /* Register dispatch signature.
    This implementation does not use every parameter. */
 (void) pa;
 
-int32 data;
-int32 ip_int = (ipir >> cur_cpu) & 0x1;
+int32_t data;
+int32_t ip_int = (ipir >> cur_cpu) & 0x1;
 data = ka_pcsr[cur_cpu] | (rxcd_int << PCSR_V_CONINT) | (ip_int << PCSR_V_IPINT);
 return data;
 }
 
-void pcsr_wr (int32 pa, int32 val, int32 lnt)
+void pcsr_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register dispatch signature.
    This implementation does not use every parameter. */

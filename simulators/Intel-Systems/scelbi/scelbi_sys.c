@@ -29,6 +29,9 @@
 
 */
 
+#include <stdint.h>
+
+#include "sim_types.h"
 #include "system_defs.h"
 
 extern DEVICE cpu_dev;
@@ -36,8 +39,8 @@ extern UNIT cpu_unit;
 extern REG cpu_reg[];
 extern DEVICE tty_dev;
 extern DEVICE ptr_dev;
-extern unsigned char Mem[];
-extern int32 saved_PCreg;
+extern uchar_t Mem[];
+extern int32_t saved_PCreg;
 
 /* SCP data structures
 
@@ -53,7 +56,7 @@ char sim_name[] = "SCELBI";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -80,7 +83,7 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
    This implementation does not use every parameter. */
 (void)fnam;
 
-int32 i, addr = 0, cnt = 0;
+int32_t i, addr = 0, cnt = 0;
 
 if (*cptr != 0)
     return SCPE_ARG;

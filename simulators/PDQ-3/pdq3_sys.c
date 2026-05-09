@@ -33,14 +33,15 @@
 #include "pdq3_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-t_stat parse_sym_m (char *cptr, t_value *val, int32 sw);
-static t_stat pdq3_cmd_exstack(int32 arg, const char *buf);
-static t_stat pdq3_cmd_exmscw(int32 arg, const char *buf);
-static t_stat pdq3_cmd_extib(int32 arg, const char *buf);
-static t_stat pdq3_cmd_exseg(int32 arg, const char *buf);
-static t_stat pdq3_cmd_calltree(int32 arg, const char *buf);
-static t_stat pdq3_cmd_namealias(int32 arg, const char *buf);
+t_stat parse_sym_m (char *cptr, t_value *val, int32_t sw);
+static t_stat pdq3_cmd_exstack(int32_t arg, const char *buf);
+static t_stat pdq3_cmd_exmscw(int32_t arg, const char *buf);
+static t_stat pdq3_cmd_extib(int32_t arg, const char *buf);
+static t_stat pdq3_cmd_exseg(int32_t arg, const char *buf);
+static t_stat pdq3_cmd_calltree(int32_t arg, const char *buf);
+static t_stat pdq3_cmd_namealias(int32_t arg, const char *buf);
 
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
@@ -48,8 +49,8 @@ extern DEVICE tty_dev;
 extern DEVICE fdc_dev;
 extern DEVICE tim_dev;
 extern REG cpu_reg[];
-extern uint16 M[];
-extern uint16 reg_pc;
+extern uint16_t M[];
+extern uint16_t reg_pc;
 
 /* SCP data structures and interface routines
    sim_name             simulator name string
@@ -62,7 +63,7 @@ extern uint16 reg_pc;
 
 char sim_name[] = "PDQ3";
 REG *sim_PC = &cpu_reg[0]; /* note this is the artifical register PCX */
-int32 sim_emax = 6;
+int32_t sim_emax = 6;
 DEVICE *sim_devices[] = {
     &cpu_dev,
     &con_dev,
@@ -121,7 +122,7 @@ t_stat sim_load (FILE *fi, const char *cptr, const char *fnam, int flag)
   while (!feof(fi) && i<0x1ff) {
     if ((c1 = fgetc(fi))==EOF) return SCPE_EOF;
     if ((c2 = fgetc(fi))==EOF) return SCPE_EOF;
-    rom_write(rombase+i, (uint16)(c1 + c2*256));
+    rom_write(rombase+i, (uint16_t)(c1 + c2*256));
     i++;
   }
   reg_romsize = i;
@@ -198,14 +199,14 @@ void pdq3_vm_init (void)
 return;
 }
 
-static t_stat pdq3_cmd_exstack(int32 arg, const char *buf)
+static t_stat pdq3_cmd_exstack(int32_t arg, const char *buf)
 {
   /* Generic command signature.
      This implementation does not use every parameter. */
   (void) arg;
 
   t_stat rc;
-  uint16 data;
+  uint16_t data;
   int i;
   int n = buf[0] ? atol(buf) : 0;
   if (n < 0) n = 0;
@@ -219,7 +220,7 @@ static t_stat pdq3_cmd_exstack(int32 arg, const char *buf)
   return SCPE_OK;
 }
 
-static t_stat pdq3_cmd_exmscw(int32 arg, const char *buf)
+static t_stat pdq3_cmd_exmscw(int32_t arg, const char *buf)
 {
   /* Generic command signature.
      This implementation does not use every parameter. */
@@ -229,7 +230,7 @@ static t_stat pdq3_cmd_exmscw(int32 arg, const char *buf)
   return dbg_dump_mscw(stdout, buf[0] ? pdq3_parse_addr(&cpu_dev, buf, &next) : reg_mp);
 }
 
-static t_stat pdq3_cmd_extib(int32 arg, const char *buf)
+static t_stat pdq3_cmd_extib(int32_t arg, const char *buf)
 {
   /* Generic command signature.
      This implementation does not use every parameter. */
@@ -239,15 +240,15 @@ static t_stat pdq3_cmd_extib(int32 arg, const char *buf)
   return dbg_dump_tib(stdout, buf[0] ? pdq3_parse_addr(&cpu_dev, buf, &next) : reg_ctp);
 }
 
-static t_stat pdq3_cmd_exseg(int32 arg, const char *buf)
+static t_stat pdq3_cmd_exseg(int32_t arg, const char *buf)
 {
   /* Generic command signature.
      This implementation does not use every parameter. */
   (void) arg;
 
   t_stat rc;
-  uint16 nsegs;
-  uint16 segnum, segptr;
+  uint16_t nsegs;
+  uint16_t segnum, segptr;
   const char* next;
   FILE* fd = stdout; /* XXX */
 
@@ -272,7 +273,7 @@ static t_stat pdq3_cmd_exseg(int32 arg, const char *buf)
   return rc;
 }
 
-static t_stat pdq3_cmd_calltree(int32 arg, const char *buf) {
+static t_stat pdq3_cmd_calltree(int32_t arg, const char *buf) {
   /* Generic command signature.
      This implementation does not use every parameter. */
   (void) arg;
@@ -281,7 +282,7 @@ static t_stat pdq3_cmd_calltree(int32 arg, const char *buf) {
   return dbg_calltree(stdout);
 }
 
-static t_stat pdq3_cmd_namealias(int32 arg, const char *buf) {
+static t_stat pdq3_cmd_namealias(int32_t arg, const char *buf) {
   /* Generic command signature.
      This implementation does not use every parameter. */
   (void) arg;
@@ -420,34 +421,34 @@ OPTABLE optable[] = {
 /*e6*/  { "IND",    OP_B },        { "INC",    OP_B },
 };
 
-static uint16 UB(t_value arg)
+static uint16_t UB(t_value arg)
 {
   return arg & 0xff;
 }
-static uint16 DB(t_value arg)
+static uint16_t DB(t_value arg)
 {
   return UB(arg);
 }
-static int16 W(t_value arg1, t_value arg2)
+static int16_t W(t_value arg1, t_value arg2)
 {
-  uint16 wl = arg1 & 0xff;
-  uint16 wh = arg2 & 0xff;
+  uint16_t wl = arg1 & 0xff;
+  uint16_t wh = arg2 & 0xff;
   return wl | ((wh << 8) & 0xff00);
 }
 
-static int16 SW(t_value arg1, t_value arg2)
+static int16_t SW(t_value arg1, t_value arg2)
 {
   return W(arg1,arg2);
 }
-static int16 SB(t_value arg)
+static int16_t SB(t_value arg)
 {
-  int16 w = arg & 0xff;
+  int16_t w = arg & 0xff;
   if (w & 0x80) w |= 0xff00;
   return w;
 }
-static uint16 B(t_value arg1, t_value arg2, int* sz) {
-  uint16 wh = arg1 & 0xff;
-  uint16 wl;
+static uint16_t B(t_value arg1, t_value arg2, int* sz) {
+  uint16_t wh = arg1 & 0xff;
+  uint16_t wl;
   if (wh & 0x80) {
     wl = arg2 & 0xff;
     wl |= ((wh & 0x7f) << 8);
@@ -461,7 +462,7 @@ static uint16 B(t_value arg1, t_value arg2, int* sz) {
 
 static t_stat print_hd(FILE *of, t_value val, bool hexdec, bool isbyte)
 {
-  uint16 data = isbyte ? (val & 0xff) : (val & 0xffff);
+  uint16_t data = isbyte ? (val & 0xff) : (val & 0xffff);
 
   if (hexdec)
     fprintf(of,"%0xh",data);
@@ -471,14 +472,14 @@ static t_stat print_hd(FILE *of, t_value val, bool hexdec, bool isbyte)
 }
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
   /* Generic symbolic output signature.
      This implementation does not use every parameter. */
   (void) uptr;
 
-  uint16 op, arg1, arg2, arg3;
-  int16 sarg;
+  uint16_t op, arg1, arg2, arg3;
+  int16_t sarg;
   t_stat size = 0;
   int optype, sz;
   bool hexdec = (sw & SWMASK('H')) ? true : false;
@@ -578,7 +579,7 @@ t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val,
         return  =       status code
 */
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
   t_addr off;
   T_FLCVT t;
@@ -657,7 +658,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
    Outputs:
         status  =       error status
 */
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
   /* Generic symbolic input signature.
      This implementation does not use every parameter. */

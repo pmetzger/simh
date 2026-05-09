@@ -34,34 +34,36 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "system_defs.h"
 
-int32   nmiflg = 0;                     //mask NMI off
-uint8   dmapagreg0, dmapagreg1, dmapagreg2, dmapagreg3;
-extern uint16 port;                     //port called in dev_table[port]
+int32_t nmiflg = 0;                     //mask NMI off
+uint8_t dmapagreg0, dmapagreg1, dmapagreg2, dmapagreg3;
+extern uint16_t port;                   //port called in dev_table[port]
 
 /* function prototypes */
 
-uint8 get_mbyte(uint32 addr);
-uint16 get_mword(uint32 addr);
-void put_mbyte(uint32 addr, uint8 val);
-void put_mword(uint32 addr, uint16 val);
-t_stat SBC_reset (DEVICE *dptr, uint16 base);
-uint8 enbnmi(bool io, uint8 data);
-uint8 dmapag(bool io, uint8 data);
-uint8 dmapag0(bool io, uint8 data);
-uint8 dmapag1(bool io, uint8 data);
-uint8 dmapag2(bool io, uint8 data);
-uint8 dmapag3(bool io, uint8 data);
+uint8_t get_mbyte(uint32_t addr);
+uint16_t get_mword(uint32_t addr);
+void put_mbyte(uint32_t addr, uint8_t val);
+void put_mword(uint32_t addr, uint16_t val);
+t_stat SBC_reset (DEVICE *dptr, uint16_t base);
+uint8_t enbnmi(bool io, uint8_t data);
+uint8_t dmapag(bool io, uint8_t data);
+uint8_t dmapag0(bool io, uint8_t data);
+uint8_t dmapag1(bool io, uint8_t data);
+uint8_t dmapag2(bool io, uint8_t data);
+uint8_t dmapag3(bool io, uint8_t data);
 
 /* external function prototypes */
 
 extern t_stat i8088_reset (DEVICE *dptr);   /* reset the 8088 emulator */
-extern uint8 xtbus_get_mbyte(uint32 addr);
-extern void  xtbus_put_mbyte(uint32 addr, uint8 val);
-extern uint8 EPROM_get_mbyte(uint32 addr);
-extern uint8 RAM_get_mbyte(uint32 addr);
-extern void RAM_put_mbyte(uint32 addr, uint8 val);
+extern uint8_t xtbus_get_mbyte(uint32_t addr);
+extern void  xtbus_put_mbyte(uint32_t addr, uint8_t val);
+extern uint8_t EPROM_get_mbyte(uint32_t addr);
+extern uint8_t RAM_get_mbyte(uint32_t addr);
+extern void RAM_put_mbyte(uint32_t addr, uint8_t val);
 extern UNIT i8255_unit[];
 extern UNIT EPROM_unit;
 extern UNIT RAM_unit;
@@ -71,11 +73,11 @@ extern t_stat i8255_reset (DEVICE *dptr);
 extern t_stat i8259_reset (DEVICE *dptr);
 extern t_stat EPROM_reset (DEVICE *dptr);
 extern t_stat RAM_reset (DEVICE *dptr);
-extern uint16 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint8);
+extern uint16_t reg_dev(uint8_t (*routine)(bool, uint8_t, uint8_t), uint16_t, uint8_t);
 
 /*  SBC reset routine */
 
-t_stat SBC_reset (DEVICE *dptr, uint16 base)
+t_stat SBC_reset (DEVICE *dptr, uint16_t base)
 {
     sim_printf("Initializing IBM PC:\n");
     i8088_reset (NULL);
@@ -93,7 +95,7 @@ t_stat SBC_reset (DEVICE *dptr, uint16 base)
     return SCPE_OK;
 }
 
-uint8 dmapag0(bool io, uint8 data)
+uint8_t dmapag0(bool io, uint8_t data)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -104,7 +106,7 @@ uint8 dmapag0(bool io, uint8 data)
     return 0;
 }
 
-uint8 dmapag1(bool io, uint8 data)
+uint8_t dmapag1(bool io, uint8_t data)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -115,7 +117,7 @@ uint8 dmapag1(bool io, uint8 data)
     return 0;
 }
 
-uint8 dmapag2(bool io, uint8 data)
+uint8_t dmapag2(bool io, uint8_t data)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -126,7 +128,7 @@ uint8 dmapag2(bool io, uint8 data)
     return 0;
 }
 
-uint8 dmapag3(bool io, uint8 data)
+uint8_t dmapag3(bool io, uint8_t data)
 {
     //sim_printf("dmapag3: entered\n");
     if (io == 0) {                      /* read data port */
@@ -138,7 +140,7 @@ uint8 dmapag3(bool io, uint8 data)
     return 0;
 }
 
-uint8 enbnmi(bool io, uint8 data)
+uint8_t enbnmi(bool io, uint8_t data)
 {
     if (io == 0) {                      /* read data port */
         ;
@@ -156,15 +158,15 @@ uint8 enbnmi(bool io, uint8 data)
 
 /*  get a byte from memory - handle RAM, ROM, I/O, and pcbus memory */
 
-uint8 get_mbyte(uint32 addr)
+uint8_t get_mbyte(uint32_t addr)
 {
     /* if local EPROM handle it */
-    if ((addr >= (uint32)EPROM_unit.u3) && (addr <= (uint32)(EPROM_unit.u3 + EPROM_unit.capac))) {
+    if ((addr >= (uint32_t)EPROM_unit.u3) && (addr <= (uint32_t)(EPROM_unit.u3 + EPROM_unit.capac))) {
 //        sim_printf("Write to R/O memory address %05X - ignored\n", addr);
         return EPROM_get_mbyte(addr);
     }
     /* if local RAM handle it */
-    if ((addr >= (uint32)RAM_unit.u3) && (addr <= (uint32)(RAM_unit.u3 + RAM_unit.capac))) {
+    if ((addr >= (uint32_t)RAM_unit.u3) && (addr <= (uint32_t)(RAM_unit.u3 + RAM_unit.capac))) {
         return RAM_get_mbyte(addr);
     }
     /* otherwise, try the pcbus */
@@ -173,9 +175,9 @@ uint8 get_mbyte(uint32 addr)
 
 /*  get a word from memory - handle RAM, ROM, I/O, and pcbus memory */
 
-uint16 get_mword(uint32 addr)
+uint16_t get_mword(uint32_t addr)
 {
-    uint16 val;
+    uint16_t val;
 
     val = get_mbyte(addr);
     val |= (get_mbyte(addr+1) << 8);
@@ -184,14 +186,14 @@ uint16 get_mword(uint32 addr)
 
 /*  put a byte to memory - handle RAM, ROM, I/O, and pcbus memory */
 
-void put_mbyte(uint32 addr, uint8 val)
+void put_mbyte(uint32_t addr, uint8_t val)
 {
     /* if local EPROM handle it */
-    if ((addr >= (uint32)EPROM_unit.u3) && (addr <= (uint32)(EPROM_unit.u3 + EPROM_unit.capac))) {
+    if ((addr >= (uint32_t)EPROM_unit.u3) && (addr <= (uint32_t)(EPROM_unit.u3 + EPROM_unit.capac))) {
         sim_printf("Write to R/O memory address %04X - ignored\n", addr);
         return;
     } /* if local RAM handle it */
-    if ((addr >= (uint32)RAM_unit.u3) && (addr <= (uint32)(RAM_unit.u3 + RAM_unit.capac))) {
+    if ((addr >= (uint32_t)RAM_unit.u3) && (addr <= (uint32_t)(RAM_unit.u3 + RAM_unit.capac))) {
         RAM_put_mbyte(addr, val);
         return;
     } /* otherwise, try the pcbus */
@@ -200,7 +202,7 @@ void put_mbyte(uint32 addr, uint8 val)
 
 /*  put a word to memory - handle RAM, ROM, I/O, and pcbus memory */
 
-void put_mword(uint32 addr, uint16 val)
+void put_mword(uint32_t addr, uint16_t val)
 {
     put_mbyte(addr, val & 0xff);
     put_mbyte(addr+1, val >> 8);

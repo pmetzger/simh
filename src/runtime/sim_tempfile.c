@@ -11,6 +11,7 @@
 #include <time.h>
 
 #include "sim_defs.h"
+#include "sim_types.h"
 
 #if defined(_WIN32)
 #include <fcntl.h>
@@ -30,12 +31,12 @@ static const char sim_tempfile_chars[] =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 /* Return the current host process ID for temporary-name seeding. */
-static unsigned int sim_tempfile_process_id(void)
+static uint_t sim_tempfile_process_id(void)
 {
 #if defined(_WIN32)
-    return (unsigned int)_getpid();
+    return (uint_t)_getpid();
 #else
-    return (unsigned int)getpid();
+    return (uint_t)getpid();
 #endif
 }
 
@@ -148,14 +149,14 @@ static int sim_tempfile_build_template(char *path, size_t path_size,
 }
 
 /* Replace the six template X characters with one base-62 attempt value. */
-static void sim_tempfile_fill_suffix(char *first_x, unsigned int value)
+static void sim_tempfile_fill_suffix(char *first_x, uint_t value)
 {
     int i;
 
     for (i = 0; i < 6; i++) {
         first_x[i] =
             sim_tempfile_chars[value % (sizeof(sim_tempfile_chars) - 1)];
-        value /= (unsigned int)(sizeof(sim_tempfile_chars) - 1);
+        value /= (uint_t)(sizeof(sim_tempfile_chars) - 1);
     }
 }
 
@@ -196,8 +197,8 @@ int sim_tempfile_open(char *path, size_t path_size, const char *prefix,
 {
     char temp_dir[PATH_MAX + 1];
     char *first_x;
-    unsigned int seed;
-    unsigned int attempt;
+    uint_t seed;
+    uint_t attempt;
 
     if (path == NULL || path_size == 0) {
         errno = EINVAL;
@@ -216,8 +217,8 @@ int sim_tempfile_open(char *path, size_t path_size, const char *prefix,
         return -1;
 
     seed = sim_tempfile_process_id();
-    seed ^= (unsigned int)(uintptr_t)path;
-    seed ^= (unsigned int)time(NULL);
+    seed ^= (uint_t)(uintptr_t)path;
+    seed ^= (uint_t)time(NULL);
 
     for (attempt = 0; attempt < 10000; attempt++) {
         int fd;

@@ -11,6 +11,7 @@
 #define SIM_VIDEO_H_     0
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "sim_defs.h"
 
@@ -143,10 +144,10 @@
 typedef struct VID_DISPLAY VID_DISPLAY;
 
 struct mouse_event {
-    int32 x_rel;                                          /* X axis relative motion */
-    int32 y_rel;                                          /* Y axis relative motion */
-    int32 x_pos;                                          /* X axis position */
-    int32 y_pos;                                          /* Y axis position */
+    int32_t x_rel;                                        /* X axis relative motion */
+    int32_t y_rel;                                        /* Y axis relative motion */
+    int32_t x_pos;                                        /* X axis position */
+    int32_t y_pos;                                        /* Y axis position */
     bool b1_state;                                        /* state of button 1 */
     bool b2_state;                                        /* state of button 2 */
     bool b3_state;                                        /* state of button 3 */
@@ -155,8 +156,8 @@ struct mouse_event {
     };
 
 struct key_event {
-    uint32 key;                                           /* key sym */
-    uint32 state;                                         /* key state change */
+    uint32_t key;                                         /* key sym */
+    uint32_t state;                                       /* key state change */
     DEVICE *dev;                                          /* which device */
     VID_DISPLAY *vptr;                                    /* which display */
     };
@@ -164,7 +165,7 @@ struct key_event {
 typedef struct mouse_event SIM_MOUSE_EVENT;
 typedef struct key_event SIM_KEY_EVENT;
 
-t_stat vid_open (DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags);
+t_stat vid_open (DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags);
 #define SIM_VID_INPUTCAPTURED       1                       /* Mouse and Keyboard input captured (calling */
                                                             /* code responsible for cursor display in video) */
 #define SIM_VID_IGNORE_VBAR         2                       /* ignore video buffer aspect ratio */
@@ -192,37 +193,37 @@ t_stat vid_unregister_gamepad_button_callback (VID_GAMEPAD_CALLBACK);
 t_stat vid_close (void);
 t_stat vid_poll_kb (SIM_KEY_EVENT *ev);
 t_stat vid_poll_mouse (SIM_MOUSE_EVENT *ev);
-uint32 vid_map_rgb (uint8 r, uint8 g, uint8 b);
-void vid_draw (int32 x, int32 y, int32 w, int32 h, uint32 *buf);
+uint32_t vid_map_rgb (uint8_t r, uint8_t g, uint8_t b);
+void vid_draw (int32_t x, int32_t y, int32_t w, int32_t h, uint32_t *buf);
 void vid_beep (void);
 void vid_refresh (void);
 const char *vid_version (void);
-const char *vid_key_name (uint32 key);
-t_stat vid_set_cursor (bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
-t_stat vid_set_release_key (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat vid_show_release_key (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat vid_show_video (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat vid_show (FILE* st, DEVICE *dptr,  UNIT* uptr, int32 val, const char* desc);
+const char *vid_key_name (uint32_t key);
+t_stat vid_set_cursor (bool visible, uint32_t width, uint32_t height, uint8_t *data, uint8_t *mask, uint32_t hot_x, uint32_t hot_y);
+t_stat vid_set_release_key (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat vid_show_release_key (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat vid_show_video (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat vid_show (FILE* st, DEVICE *dptr,  UNIT* uptr, int32_t val, const char* desc);
 t_stat vid_screenshot (const char *filename);
 bool vid_is_fullscreen (void);
 t_stat vid_set_fullscreen (bool flag);
 
 extern int vid_active;
-void vid_set_cursor_position (int32 x, int32 y);        /* cursor position (set by calling code) */
-void vid_set_window_size (VID_DISPLAY *vptr, int32 x, int32 y);            /* window size (set by calling code) */
-void vid_render_set_logical_size (VID_DISPLAY *vptr, int32 w, int32 h);
+void vid_set_cursor_position (int32_t x, int32_t y);    /* cursor position (set by calling code) */
+void vid_set_window_size (VID_DISPLAY *vptr, int32_t x, int32_t y);        /* window size (set by calling code) */
+void vid_render_set_logical_size (VID_DISPLAY *vptr, int32_t w, int32_t h);
 
-t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32 width, uint32 height, int flags);
+t_stat vid_open_window (VID_DISPLAY **vptr, DEVICE *dptr, const char *title, uint32_t width, uint32_t height, int flags);
 t_stat vid_close_window (VID_DISPLAY *vptr);
 t_stat vid_close_all (void);
-uint32 vid_map_rgb_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b);
-uint32 vid_map_rgba_window (VID_DISPLAY *vptr, uint8 r, uint8 g, uint8 b, uint8 a);
-void vid_draw_window (VID_DISPLAY *vptr, int32 x, int32 y, int32 w, int32 h, uint32 *buf);
+uint32_t vid_map_rgb_window (VID_DISPLAY *vptr, uint8_t r, uint8_t g, uint8_t b);
+uint32_t vid_map_rgba_window (VID_DISPLAY *vptr, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+void vid_draw_window (VID_DISPLAY *vptr, int32_t x, int32_t y, int32_t w, int32_t h, uint32_t *buf);
 void vid_refresh_window (VID_DISPLAY *vptr);
-t_stat vid_set_cursor_window (VID_DISPLAY *vptr, bool visible, uint32 width, uint32 height, uint8 *data, uint8 *mask, uint32 hot_x, uint32 hot_y);
+t_stat vid_set_cursor_window (VID_DISPLAY *vptr, bool visible, uint32_t width, uint32_t height, uint8_t *data, uint8_t *mask, uint32_t hot_x, uint32_t hot_y);
 bool vid_is_fullscreen_window (VID_DISPLAY *vptr);
 t_stat vid_set_fullscreen_window (VID_DISPLAY *vptr, bool flag);
-void vid_set_cursor_position_window (VID_DISPLAY *vptr, int32 x, int32 y);        /* cursor position (set by calling code) */
+void vid_set_cursor_position_window (VID_DISPLAY *vptr, int32_t x, int32_t y);    /* cursor position (set by calling code) */
 t_stat vid_set_alpha_mode (VID_DISPLAY *vptr, int mode);
 
 /* A device simulator can optionally set the vid_display_kb_event_process

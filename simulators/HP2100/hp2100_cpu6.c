@@ -360,6 +360,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -692,7 +694,7 @@ static const char * const compare [3] = { "equal",      "less than", "greater th
 
 OPS     op;
 OP_PAT  pattern;
-uint32  i, irq;
+uint32_t i, irq;
 HP_WORD entry, count, cp, sa, da, ma, eqta;
 HP_WORD vectors, save_area, priv_fence, eoreg, eqt, key;
 char    test [6], target [6];
@@ -799,7 +801,7 @@ switch (entry) {                                        /* decode IR<3:0> */
             if (strncmp (target, test, 5) == 0) {       /* names match? */
                 AR = key + 15 & R_MASK;                 /* A = addr of IDSEG [15] */
                 BR = key;                               /* B = addr of IDSEG [0] */
-                E = (uint32) ((test[5] >> 4) & 1);      /* E = short ID segment bit */
+                E = (uint32_t) ((test[5] >> 4) & 1);    /* E = short ID segment bit */
                 PR = (PR + 1) & LA_MASK;                /* P+2 for found return */
                 break;
                 }

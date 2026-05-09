@@ -14,6 +14,8 @@
 #define SIM_SCP_CONTEXT_H_ 0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 /* Default device selected for SCP commands that operate on a device. */
@@ -26,7 +28,7 @@ extern UNIT *sim_dfunit;
 extern DEVICE **sim_internal_devices;
 
 /* Number of devices currently registered in sim_internal_devices. */
-extern uint32 sim_internal_device_count;
+extern uint32_t sim_internal_device_count;
 
 /* Return the display name for a device, preferring any assigned alias. */
 const char *sim_dname(DEVICE *dptr);

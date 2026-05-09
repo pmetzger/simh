@@ -294,6 +294,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
@@ -515,7 +516,7 @@ static const BITSET_FORMAT tdi_status_format =          /* names, offset, direct
 #define PAD_BITS(c)         (~((1u << bits_per_char [DPI_CHAR_SIZE (c)] - 2) - 1))
 
 
-static const uint32 bits_per_char [8] = {       /* bits per character, indexed by DPI_CHAR_SIZE encoding */
+static const uint32_t bits_per_char [8] = {     /* bits per character, indexed by DPI_CHAR_SIZE encoding */
     9, 10, 11, 12, 5, 6, 7, 8
     };
 
@@ -733,7 +734,7 @@ static HP_WORD tdi_write_word   = 0;            /* write word */
 static FLIP_FLOP tdi_interrupt_mask = SET;      /* interrupt mask flip-flop */
 static FLIP_FLOP tdi_data_flag      = CLEAR;    /* data flag */
 
-static int32 fast_data_time = FAST_IO_TIME;     /* fast receive/send time */
+static int32_t fast_data_time = FAST_IO_TIME;   /* fast receive/send time */
 
 
 /* TDI per-channel state */
@@ -751,7 +752,7 @@ static HP_WORD send_buffer [SEND_CHAN_COUNT];   /* send character buffers */
 
 static HP_WORD tci_control_word = 0;            /* control word */
 static HP_WORD tci_status_word  = 0;            /* status word */
-static uint32  tci_cntr         = 0;            /* channel counter */
+static uint32_t tci_cntr         = 0;           /* channel counter */
 
 static FLIP_FLOP tci_interrupt_mask = SET;      /* interrupt mask flip-flop */
 static FLIP_FLOP tci_scan           = CLEAR;    /* scanning enabled flip-flop */
@@ -759,8 +760,8 @@ static FLIP_FLOP tci_scan           = CLEAR;    /* scanning enabled flip-flop */
 
 /* TCI per-channel state */
 
-static uint8 cntl_status [TERM_COUNT];          /* C2/C1/S2/S1 line status */
-static uint8 cntl_param  [TERM_COUNT];          /* ES2/ES1/S2/S1 parameter RAM */
+static uint8_t cntl_status [TERM_COUNT];        /* C2/C1/S2/S1 line status */
+static uint8_t cntl_param  [TERM_COUNT];        /* ES2/ES1/S2/S1 parameter RAM */
 
 
 /* ATC local SCP support routines */
@@ -768,10 +769,10 @@ static uint8 cntl_param  [TERM_COUNT];          /* ES2/ES1/S2/S1 parameter RAM *
 static CNTLR_INTRF atcd_interface;
 static CNTLR_INTRF atcc_interface;
 
-static t_stat atc_set_endis   (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat atc_set_mode    (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat atc_show_mode   (FILE *st,   UNIT  *uptr, int32 value, const void *desc);
-static t_stat atc_show_status (FILE *st,   UNIT  *uptr, int32 value, const void *desc);
+static t_stat atc_set_endis   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat atc_set_mode    (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat atc_show_mode   (FILE *st,   UNIT  *uptr, int32_t value, const void *desc);
+static t_stat atc_show_status (FILE *st,   UNIT  *uptr, int32_t value, const void *desc);
 
 static t_stat atcd_reset (DEVICE *dptr);
 static t_stat atcc_reset (DEVICE *dptr);
@@ -788,12 +789,12 @@ static void tci_master_reset  (void);
 
 static t_stat  line_service  (UNIT    *uptr);
 static t_stat  poll_service  (UNIT    *uptr);
-static int32   activate_unit (UNIT    *uptr,   ACTIVATOR reason);
-static uint32  service_time  (HP_WORD control, ACTIVATOR reason);
+static int32_t activate_unit (UNIT    *uptr,   ACTIVATOR reason);
+static uint32_t service_time  (HP_WORD control, ACTIVATOR reason);
 static void    store         (HP_WORD control, HP_WORD   data);
-static void    receive       (int32   channel, int32 data, bool loopback);
-static void    diagnose      (HP_WORD control, int32 data);
-static void    scan_channels (int32   channel);
+static void    receive       (int32_t channel, int32_t data, bool loopback);
+static void    diagnose      (HP_WORD control, int32_t data);
+static void    scan_channels (int32_t channel);
 static HP_WORD scan_status   (void);
 
 
@@ -813,7 +814,7 @@ DEVICE atcc_dev;                                /* incomplete device structure *
    User-defined line order is not supported.
 */
 
-static int32 atcd_order [TERM_COUNT] = {        /* line connection order */
+static int32_t atcd_order [TERM_COUNT] = {      /* line connection order */
     1,  1,  2,  3,  4,  5,  6,  7,
     8,  9, 10, 11, 12, 13, 14, 15 };
 
@@ -1383,7 +1384,7 @@ INBOUND_SIGNAL signal;
 INBOUND_SET    working_set      = inbound_signals;
 HP_WORD        outbound_value   = 0;
 OUTBOUND_SET   outbound_signals = NO_SIGNALS;
-int32          set_lines, clear_lines;
+int32_t        set_lines, clear_lines;
 
 dprintf (atcc_dev, DEB_IOB, "Received data %06o with signals %s\n",
          inbound_value, fmt_bitset (inbound_signals, inbound_format));
@@ -1571,7 +1572,7 @@ return IORETURN (outbound_signals, outbound_value);     /* return the outbound s
    as appropriate.
 */
 
-static t_stat atc_set_endis (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat atc_set_endis (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1620,7 +1621,7 @@ return atcd_reset (&atcd_dev);                          /* reset the TDI and res
        the internal loopback connections from the send to the receive channels.
 */
 
-static t_stat atc_set_mode (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat atc_set_mode (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1666,7 +1667,7 @@ return SCPE_OK;
    the TCI.  The unit pointer is not used.
 */
 
-static t_stat atc_show_mode (FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat atc_show_mode (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1697,7 +1698,7 @@ return SCPE_OK;
    and value parameters are not used.
 */
 
-static t_stat atc_show_status (FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat atc_show_status (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 if (poll_unit.flags & UNIT_ATT)                         /* if the poll unit is attached */
     fprintf (st, "attached to port %s, ",               /*   then report it */
@@ -1786,7 +1787,7 @@ static t_stat atcc_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 channel;
+uint32_t channel;
 
 tci_master_reset ();                                        /* perform a master reset */
 
@@ -1867,7 +1868,7 @@ return status;
 
 static t_stat atcd_detach (UNIT *uptr)
 {
-uint32 channel;
+uint32_t channel;
 t_stat status = SCPE_OK;
 
 if (uptr == line_unit || uptr == &poll_unit) {                  /* if we're detaching the base unit or poll unit */
@@ -1930,7 +1931,7 @@ return;
 
 static void tdi_master_reset (void)
 {
-uint32 chan;
+uint32_t chan;
 
 atcd_dib.interrupt_request = CLEAR;                     /* clear any current */
 atcd_dib.interrupt_active  = CLEAR;                     /*   interrupt request */
@@ -1989,7 +1990,7 @@ return;
 
 static void tci_master_reset (void)
 {
-uint32 chan;
+uint32_t chan;
 
 atcc_dib.interrupt_request = CLEAR;                     /* clear any current */
 atcc_dib.interrupt_active  = CLEAR;                     /*   interrupt request */
@@ -2126,10 +2127,10 @@ return;
 
 static t_stat line_service (UNIT *uptr)
 {
-const  int32 channel = (int32) (uptr - line_unit);          /* the channel number */
-const  int32 alt_channel = channel ^ 1;                     /* alternate channel number for diagnostic mode */
+const  int32_t channel = (int32_t) (uptr - line_unit);      /* the channel number */
+const  int32_t alt_channel = channel ^ 1;                   /* alternate channel number for diagnostic mode */
 const  bool loopback = (atcd_dev.flags & DEV_DIAG) != 0;    /* true if device is set for diagnostic mode */
-int32  recv_data, send_data, char_data, cvtd_data;
+int32_t recv_data, send_data, char_data, cvtd_data;
 t_stat result = SCPE_OK;
 
 dprintf (atcd_dev, DEB_SERV, "Channel %d service entered\n",
@@ -2326,7 +2327,7 @@ return result;                                          /* return the result of 
 
 static t_stat poll_service (UNIT *uptr)
 {
-int32  chan, line_state;
+int32_t chan, line_state;
 t_stat status = SCPE_OK;
 
 dprintf (atcd_dev, DEB_PSERV, "Poll delay %d service entered\n",
@@ -2422,10 +2423,10 @@ return status;                                          /* return the service st
        called.
 */
 
-static int32 activate_unit (UNIT *uptr, ACTIVATOR reason)
+static int32_t activate_unit (UNIT *uptr, ACTIVATOR reason)
 {
-const int32 channel = (int32) (uptr - line_unit);       /* the channel number */
-int32 delay = 0;
+const int32_t channel = (int32_t) (uptr - line_unit);   /* the channel number */
+int32_t delay = 0;
 
 if (atcd_dev.flags & (DEV_DIAG | DEV_REALTIME))         /* if either diagnostic or real-time mode is set */
     switch (reason) {                                   /*   then dispatch the REALTIME activation */
@@ -2585,11 +2586,11 @@ return delay;                                           /*   and return the acti
        "addition" of the receive overhead may actually be a subtraction.
 */
 
-static uint32 service_time (HP_WORD control, ACTIVATOR reason)
+static uint32_t service_time (HP_WORD control, ACTIVATOR reason)
 {
 const  double recirc_time = 69.44;                                  /* microseconds per memory recirculation */
-const  uint32 recirc_per_bit = DPI_BAUD_RATE (control) + 1;         /* number of memory recirculations per bit */
-const  uint32 char_size = bits_per_char [DPI_CHAR_SIZE (control)];  /* number of bits per character */
+const  uint32_t recirc_per_bit = DPI_BAUD_RATE (control) + 1;       /* number of memory recirculations per bit */
+const  uint32_t char_size = bits_per_char [DPI_CHAR_SIZE (control)]; /* number of bits per character */
 double usec_per_char;
 
 usec_per_char = recirc_time *                           /* calculate the overhead for sending */
@@ -2600,7 +2601,7 @@ if (reason == Receive)                                  /* if we're receiving */
                        (12 - char_size + 1
                         - recirc_per_bit / 2.0);
 
-return (uint32) (usec_per_char / USEC_PER_EVENT);       /* return the service time for indicated rate */
+return (uint32_t) (usec_per_char / USEC_PER_EVENT);     /* return the service time for indicated rate */
 }
 
 
@@ -2632,7 +2633,7 @@ return (uint32) (usec_per_char / USEC_PER_EVENT);       /* return the service ti
 
 static void store (HP_WORD control, HP_WORD data)
 {
-const uint32 channel = DCN_CHAN (control);              /* current channel number */
+const uint32_t channel = DCN_CHAN (control);            /* current channel number */
 
 if (data & DDS_IS_SEND)                                 /* if this is a send parameter or data */
     if (channel > LAST_TERM)                            /*   then report if the channel number is out of range */
@@ -2723,9 +2724,9 @@ else                                                    /* otherwise this is a r
        the buffer to empty.
 */
 
-static void receive (int32 channel, int32 data, bool loopback)
+static void receive (int32_t channel, int32_t data, bool loopback)
 {
-int32 recv_data, char_data, char_echo, pad;
+int32_t recv_data, char_data, char_echo, pad;
 
 recv_data = data & DDR_DATA_MASK;                       /* mask to just the character data */
 char_data = recv_data & ASCII_MASK;                     /*   and to the equivalent ASCII character */
@@ -2829,10 +2830,10 @@ return;
    character only if it is configured for the same baud rate and character size.
 */
 
-static void diagnose (HP_WORD control, int32 data)
+static void diagnose (HP_WORD control, int32_t data)
 {
 const HP_WORD config = control & DPI_CHAR_CONFIG;           /* main channel character size and baud rate */
-int32 channel;
+int32_t channel;
 
 for (channel = FIRST_AUX; channel <= LAST_AUX; channel++)   /* scan the auxiliary channels */
     if ((recv_param [channel] & DPI_CHAR_CONFIG) == config) /* if the character configurations match */
@@ -2871,9 +2872,9 @@ return;
     1. After a send completion, the data word contains all ones (stop bits).
 */
 
-static void scan_channels (int32 channel)
+static void scan_channels (int32_t channel)
 {
-int32 chan, first_chan, last_chan;
+int32_t chan, first_chan, last_chan;
 
 if (channel == SCAN_ALL) {                              /* if all channels are to be scanned */
     first_chan = FIRST_TERM;                            /*   then set the loop limits */
@@ -2964,7 +2965,7 @@ return;                                                     /* no channel has co
 
 static HP_WORD scan_status (void)
 {
-uint32  chan_count;
+uint32_t chan_count;
 HP_WORD interrupts;
 
 if (tci_scan)                                               /* if the control interface is scanning */

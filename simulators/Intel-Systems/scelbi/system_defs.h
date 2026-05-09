@@ -28,6 +28,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                    /* simulator defines */
 
 /* Memory */
@@ -35,7 +37,7 @@
 #define MAXMEMSIZE      16384                            /* max memory size */
 #define MEMSIZE         (cpu_unit.capac)                 /* actual memory size */
 #define ADDRMASK        (MAXMEMSIZE - 1)                 /* address mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Simulator stop codes */
 
@@ -46,5 +48,5 @@
 
 /* I/O device entries */
 struct idev {
-    int32 (*routine)(int32, int32);
+    int32_t (*routine)(int32_t, int32_t);
 };

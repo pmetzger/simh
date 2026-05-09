@@ -9,6 +9,8 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "scp.h"
 
@@ -84,7 +86,7 @@ const char *get_glyph_cmd(const char *iptr, char *optr)
 }
 
 /* Decode either symbolic switches or a numeric switch argument. */
-SWITCH_PARSE get_switches(const char *cptr, int32 *sw, int32 *number)
+SWITCH_PARSE get_switches(const char *cptr, int32_t *sw, int32_t *number)
 {
     *sw = 0;
     if (*cptr != '-')
@@ -97,7 +99,7 @@ SWITCH_PARSE get_switches(const char *cptr, int32 *sw, int32 *number)
 
         if ((*end != 0) || (number == NULL))
             return SW_ERROR;
-        *number = (int32)val;
+        *number = (int32_t)val;
         return SW_NUMBER;
     }
     for (cptr++; (sim_isspace(*cptr) == 0) && (*cptr != 0); cptr++) {
@@ -111,7 +113,7 @@ SWITCH_PARSE get_switches(const char *cptr, int32 *sw, int32 *number)
 /* Consume leading SCP simulator switches from a command string. */
 const char *get_sim_sw(const char *cptr)
 {
-    int32 lsw, lnum;
+    int32_t lsw, lnum;
     char gbuf[CBUFSIZE];
 
     while (*cptr == '-') {

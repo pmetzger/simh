@@ -243,6 +243,8 @@
 /* Definitions */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 #include "pdp11_cpumod.h"
 
@@ -269,125 +271,125 @@
 #define HIST_ILNT       4                               /* max inst length */
 
 typedef struct {
-    uint16              pc;
-    uint16              psw;
-    uint16              src;
-    uint16              dst;
-    uint16              sp;
-    uint16              pad;
-    uint16              inst[HIST_ILNT];
+    uint16_t            pc;
+    uint16_t            psw;
+    uint16_t            src;
+    uint16_t            dst;
+    uint16_t            sp;
+    uint16_t            pad;
+    uint16_t            inst[HIST_ILNT];
     } InstHistory;
 
 /* Global state */
 
-uint16 *M = NULL;                                       /* memory */
-int32 REGFILE[6][2] = { {0} };                          /* R0-R5, two sets */
-int32 STACKFILE[4] = { 0 };                             /* SP, four modes */
-int32 saved_PC = 0;                                     /* program counter */
-int32 R[8] = { 0 };                                     /* working registers */
-int32 PSW = 0;                                          /* PSW */
-  int32 cm = 0;                                         /*   current mode */
-  int32 pm = 0;                                         /*   previous mode */
-  int32 rs = 0;                                         /*   register set */
-  int32 fpd = 0;                                        /*   first part done */
-  int32 ipl = 0;                                        /*   int pri level */
-  int32 tbit = 0;                                       /*   trace flag */
-  int32 N = 0, Z = 0, V = 0, C = 0;                     /*   condition codes */
-int32 wait_state = 0;                                   /* wait state */
-int32 trap_req = 0;                                     /* trap requests */
-int32 int_req[IPL_HLVL] = { 0 };                        /* interrupt requests */
-int32 PIRQ = 0;                                         /* programmed int req */
-int32 STKLIM = 0;                                       /* stack limit */
+uint16_t *M = NULL;                                     /* memory */
+int32_t REGFILE[6][2] = { {0} };                        /* R0-R5, two sets */
+int32_t STACKFILE[4] = { 0 };                           /* SP, four modes */
+int32_t saved_PC = 0;                                   /* program counter */
+int32_t R[8] = { 0 };                                   /* working registers */
+int32_t PSW = 0;                                        /* PSW */
+  int32_t cm = 0;                                       /*   current mode */
+  int32_t pm = 0;                                       /*   previous mode */
+  int32_t rs = 0;                                       /*   register set */
+  int32_t fpd = 0;                                      /*   first part done */
+  int32_t ipl = 0;                                      /*   int pri level */
+  int32_t tbit = 0;                                     /*   trace flag */
+  int32_t N = 0, Z = 0, V = 0, C = 0;                   /*   condition codes */
+int32_t wait_state = 0;                                 /* wait state */
+int32_t trap_req = 0;                                   /* trap requests */
+int32_t int_req[IPL_HLVL] = { 0 };                      /* interrupt requests */
+int32_t PIRQ = 0;                                       /* programmed int req */
+int32_t STKLIM = 0;                                     /* stack limit */
 fpac_t FR[6] = { {0} };                                 /* fp accumulators */
-int32 FPS = 0;                                          /* fp status */
-int32 FEC = 0;                                          /* fp exception code */
-int32 FEA = 0;                                          /* fp exception addr */
-int32 APRFILE[64] = { 0 };                              /* PARs/PDRs */
-int32 MMR0 = 0;                                         /* MMR0 - status */
-int32 MMR1 = 0;                                         /* MMR1 - R+/-R */
-int32 MMR2 = 0;                                         /* MMR2 - saved PC */
-int32 MMR3 = 0;                                         /* MMR3 - 22b status */
-int32 cpu_bme = 0;                                      /* bus map enable */
-int32 cpu_astop = 0;                                    /* address stop */
-int32 isenable = 0, dsenable = 0;                       /* i, d space flags */
-int32 stop_trap = 1;                                    /* stop on trap */
-int32 stop_vecabort = 1;                                /* stop on vec abort */
-int32 stop_spabort = 1;                                 /* stop on SP abort */
-int32 autcon_enb = 1;                                   /* autoconfig enable */
-uint32 cpu_model = INIMODEL;                            /* CPU model */
-uint32 cpu_type = 1u << INIMODEL;                       /* model as bit mask */
-uint32 cpu_opt = INIOPTNS;                              /* CPU options */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+int32_t FPS = 0;                                        /* fp status */
+int32_t FEC = 0;                                        /* fp exception code */
+int32_t FEA = 0;                                        /* fp exception addr */
+int32_t APRFILE[64] = { 0 };                            /* PARs/PDRs */
+int32_t MMR0 = 0;                                       /* MMR0 - status */
+int32_t MMR1 = 0;                                       /* MMR1 - R+/-R */
+int32_t MMR2 = 0;                                       /* MMR2 - saved PC */
+int32_t MMR3 = 0;                                       /* MMR3 - 22b status */
+int32_t cpu_bme = 0;                                    /* bus map enable */
+int32_t cpu_astop = 0;                                  /* address stop */
+int32_t isenable = 0, dsenable = 0;                     /* i, d space flags */
+int32_t stop_trap = 1;                                  /* stop on trap */
+int32_t stop_vecabort = 1;                              /* stop on vec abort */
+int32_t stop_spabort = 1;                               /* stop on SP abort */
+int32_t autcon_enb = 1;                                 /* autoconfig enable */
+uint32_t cpu_model = INIMODEL;                          /* CPU model */
+uint32_t cpu_type = 1u << INIMODEL;                     /* model as bit mask */
+uint32_t cpu_opt = INIOPTNS;                            /* CPU options */
+uint16_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 jmp_buf save_env;                                       /* abort handler */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
-int32 dsmask[4] = { MMR3_KDS, MMR3_SDS, 0, MMR3_UDS };  /* dspace enables */
-int16 inst_pc;                                          /* PC of current instr */
-int32 inst_psw;                                         /* PSW at instr. start */
-int16 reg_mods;                                         /* reg deltas */
-int32 last_pa;                                          /* pa from ReadMW/ReadMB */
-int32 saved_sim_interval;                               /* saved at inst start */
+int32_t dsmask[4] = { MMR3_KDS, MMR3_SDS, 0, MMR3_UDS }; /* dspace enables */
+int16_t inst_pc;                                        /* PC of current instr */
+int32_t inst_psw;                                       /* PSW at instr. start */
+int16_t reg_mods;                                       /* reg deltas */
+int32_t last_pa;                                        /* pa from ReadMW/ReadMB */
+int32_t saved_sim_interval;                             /* saved at inst start */
 t_stat reason;                                          /* stop reason */
 
-extern int32 CPUERR, MAINT;
+extern int32_t CPUERR, MAINT;
 extern CPUTAB cpu_tab[];
 
 /* Function declarations */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_boot (int32 unitno, DEVICE *dptr);
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr);
 bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_show_virt (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_show_virt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *cpu_description (DEVICE *dptr);
-int32 GeteaB (int32 spec);
-int32 GeteaW (int32 spec);
-int32 relocR (int32 addr);
-int32 relocW (int32 addr);
-void relocR_test (int32 va, int32 apridx);
-void relocW_test (int32 va, int32 apridx);
-int32 relocC (int32 va, int32 sw);
-bool PLF_test (int32 va, int32 apr);
-void reloc_abort (int32 err, int32 apridx);
-int32 ReadE (int32 addr);
-int32 ReadW (int32 addr);
-int32 ReadB (int32 addr);
-int32 ReadCW (int32 addr);
-int32 ReadMW (int32 addr);
-int32 ReadMB (int32 addr);
-int32 PReadW (int32 addr);
-int32 PReadB (int32 addr);
-void WriteW (int32 data, int32 addr);
-void WriteB (int32 data, int32 addr);
-void WriteCW (int32 data, int32 addr);
-void PWriteW (int32 data, int32 addr);
-void PWriteB (int32 data, int32 addr);
-void set_r_display (int32 rs, int32 cm);
-t_stat CPU_wr (int32 data, int32 addr, int32 access);
-void set_stack_trap (int32 adr);
-int32 get_PSW (void);
-void put_PSW (int32 val, bool prot);
-void put_PIRQ (int32 val);
+int32_t GeteaB (int32_t spec);
+int32_t GeteaW (int32_t spec);
+int32_t relocR (int32_t addr);
+int32_t relocW (int32_t addr);
+void relocR_test (int32_t va, int32_t apridx);
+void relocW_test (int32_t va, int32_t apridx);
+int32_t relocC (int32_t va, int32_t sw);
+bool PLF_test (int32_t va, int32_t apr);
+void reloc_abort (int32_t err, int32_t apridx);
+int32_t ReadE (int32_t addr);
+int32_t ReadW (int32_t addr);
+int32_t ReadB (int32_t addr);
+int32_t ReadCW (int32_t addr);
+int32_t ReadMW (int32_t addr);
+int32_t ReadMB (int32_t addr);
+int32_t PReadW (int32_t addr);
+int32_t PReadB (int32_t addr);
+void WriteW (int32_t data, int32_t addr);
+void WriteB (int32_t data, int32_t addr);
+void WriteCW (int32_t data, int32_t addr);
+void PWriteW (int32_t data, int32_t addr);
+void PWriteB (int32_t data, int32_t addr);
+void set_r_display (int32_t rs, int32_t cm);
+t_stat CPU_wr (int32_t data, int32_t addr, int32_t access);
+void set_stack_trap (int32_t adr);
+int32_t get_PSW (void);
+void put_PSW (int32_t val, bool prot);
+void put_PIRQ (int32_t val);
 
-extern void fp11 (int32 IR);
-extern t_stat cis11 (int32 IR);
-extern t_stat fis11 (int32 IR);
+extern void fp11 (int32_t IR);
+extern t_stat cis11 (int32_t IR);
+extern t_stat fis11 (int32_t IR);
 extern t_stat build_dib_tab (void);
-extern t_stat iopageR (int32 *data, uint32 addr, int32 access);
-extern t_stat iopageW (int32 data, uint32 addr, int32 access);
-extern int32 calc_ints (int32 nipl, int32 trq);
-extern int32 get_vector (int32 nipl);
+extern t_stat iopageR (int32_t *data, uint32_t addr, int32_t access);
+extern t_stat iopageW (int32_t data, uint32_t addr, int32_t access);
+extern int32_t calc_ints (int32_t nipl, int32_t trq);
+extern int32_t get_vector (int32_t nipl);
 
 /* Trap data structures */
 
-int32 trap_vec[TRAP_V_MAX] = {                          /* trap req to vector */
+int32_t trap_vec[TRAP_V_MAX] = {                        /* trap req to vector */
     VEC_RED, VEC_ODD, VEC_NXM, VEC_MME,
     VEC_PAR, VEC_PRV, VEC_ILL, VEC_BPT,
     VEC_IOT, VEC_EMT, VEC_TRAP, VEC_TRC,
@@ -401,7 +403,7 @@ bool trap_load_mmr2[TRAP_V_MAX + 1] = {                 /* do trap requests load
     true, true, true, true                              /* last is interrupt */
     };
 
-int32 trap_clear[TRAP_V_MAX] = {                        /* trap clears */
+int32_t trap_clear[TRAP_V_MAX] = {                      /* trap clears */
     TRAP_RED+TRAP_ODD+TRAP_NXM+TRAP_PAR+TRAP_YEL+TRAP_TRC+TRAP_MME, /* red stack abort */
     TRAP_ODD+TRAP_NXM+TRAP_PAR+TRAP_YEL+TRAP_TRC+TRAP_MME, /* odd address abort */
     TRAP_NXM+TRAP_PAR+TRAP_YEL+TRAP_TRC+TRAP_MME,       /* nxm abort */
@@ -727,7 +729,7 @@ return (t_value)PC;
 t_stat sim_instr (void)
 {
 int abortval, i;
-volatile int32 trapea;                                  /* used by setjmp */
+volatile int32_t trapea;                                /* used by setjmp */
 InstHistory *hst_ent = NULL;
 
 sim_vm_pc_value = &pdp11_pc_value;
@@ -837,9 +839,9 @@ else {
 
 while (reason == 0)  {
 
-    int32 IR, srcspec, srcreg, dstspec, dstreg;
-    int32 src, src2, dst, ea;
-    int32 i, t, sign, oldrs, trapnum;
+    int32_t IR, srcspec, srcreg, dstspec, dstreg;
+    int32_t src, src2, dst, ea;
+    int32_t i, t, sign, oldrs, trapnum;
 
     if (cpu_astop) {
         cpu_astop = 0;
@@ -985,8 +987,8 @@ while (reason == 0)  {
     dstreg = (dstspec <= 07);
     if (hst_lnt) {                                      /* record history? */
         t_value val;
-        uint32 i;
-        static int32 swmap[4] = {
+        uint32_t i;
+        static int32_t swmap[4] = {
             SWMASK ('K') | SWMASK ('V'), SWMASK ('S') | SWMASK ('V'),
             SWMASK ('U') | SWMASK ('V'), SWMASK ('U') | SWMASK ('V')
             };
@@ -1000,7 +1002,7 @@ while (reason == 0)  {
         for (i = 1; i < HIST_ILNT; i++) {
             if (cpu_ex (&val, (PC + (i << 1)) & 0177777, &cpu_unit, swmap[cm & 03]))
                 hst_ent->inst[i] = 0;
-            else hst_ent->inst[i] = (uint16) val;
+            else hst_ent->inst[i] = (uint16_t) val;
             }
         hst_p = (hst_p + 1);
         if (hst_p >= hst_lnt)
@@ -1442,7 +1444,7 @@ while (reason == 0)  {
                     else dst = R[dstspec];
                     }
                 else {
-                    i = ((cm == pm) && (cm == MD_USR))? (int32)calc_ds (pm): (int32)calc_is (pm);
+                    i = ((cm == pm) && (cm == MD_USR))? (int32_t)calc_ds (pm): (int32_t)calc_is (pm);
                     dst = ReadW ((GeteaW (dstspec) & 0177777) | i);
                     }
                 N = GET_SIGN_W (dst);
@@ -1738,13 +1740,13 @@ while (reason == 0)  {
                 break;
                 }
             src2 = dstreg? R[dstspec]: ReadW (GeteaW (dstspec));
-            src = (((uint32) R[srcspec]) << 16) | R[srcspec | 1];
+            src = (((uint32_t) R[srcspec]) << 16) | R[srcspec | 1];
             if (src2 == 0) {
                 N = 0;                                  /* J11,11/70 compat */
                 Z = V = C = 1;                          /* N = 0, Z = 1 */
                 break;
                 }
-            if ((((uint32)src) == 020000000000) && (src2 == 0177777)) {
+            if ((((uint32_t)src) == 020000000000) && (src2 == 0177777)) {
                 V = 1;                                  /* J11,11/70 compat */
                 N = Z = C = 0;                          /* N = Z = 0 */
                 break;
@@ -1821,13 +1823,13 @@ while (reason == 0)  {
             src2 = dstreg? R[dstspec]: ReadW (GeteaW (dstspec));
             src2 = src2 & 077;
             sign = GET_SIGN_W (R[srcspec]);
-            src = (((uint32) R[srcspec]) << 16) | R[srcspec | 1];
+            src = (((uint32_t) R[srcspec]) << 16) | R[srcspec | 1];
             if (src2 == 0) {                            /* [0] */
                 dst = src;
                 V = C = 0;
                 }
             else if (src2 <= 31) {                      /* [1,31] */
-                dst = ((uint32) src) << src2;
+                dst = ((uint32_t) src) << src2;
                 i = (src >> (32 - src2)) | (-sign << src2);
                 V = (i != ((dst & 020000000000)? -1: 0));
                 C = (i & 1);
@@ -2497,9 +2499,9 @@ return reason;
 
 /* Effective address calculation for words */
 
-int32 GeteaW (int32 spec)
+int32_t GeteaW (int32_t spec)
 {
-int32 adr, reg, ds;
+int32_t adr, reg, ds;
 
 reg = spec & 07;                                        /* register number */
 ds = (reg == 7)? isenable: dsenable;                    /* dspace if not PC */
@@ -2558,9 +2560,9 @@ switch (spec >> 3) {                                    /* decode spec<5:3> */
 
 /* Effective address calculation for bytes */
 
-int32 GeteaB (int32 spec)
+int32_t GeteaB (int32_t spec)
 {
-int32 adr, reg, ds, delta;
+int32_t adr, reg, ds, delta;
 
 reg = spec & 07;                                        /* reg number */
 ds = (reg == 7)? isenable: dsenable;                    /* dspace if not PC */
@@ -2627,9 +2629,9 @@ switch (spec >> 3) {                                    /* decode spec<5:3> */
         data    =       data read from memory or I/O space
 */
 
-int32 ReadE (int32 va)
+int32_t ReadE (int32_t va)
 {
-int32 pa, data;
+int32_t pa, data;
 
 if ((va & 1) && CPUT (HAS_ODD)) {                       /* odd address? */
     setCPUERR (CPUE_ODD);
@@ -2654,9 +2656,9 @@ if (iopageR (&data, pa, READ) != SCPE_OK) {             /* invalid I/O addr? */
 return data;
 }
 
-int32 ReadW (int32 va)
+int32_t ReadW (int32_t va)
 {
-int32 pa;
+int32_t pa;
 
 if ((va & 1) && CPUT (HAS_ODD)) {                       /* odd address? */
     setCPUERR (CPUE_ODD);
@@ -2670,9 +2672,9 @@ if (BPT_SUMM_RD &&
 return PReadW (pa);
 }
 
-int32 ReadB (int32 va)
+int32_t ReadB (int32_t va)
 {
-int32 pa;
+int32_t pa;
 
 pa = relocR (va);                                       /* relocate */
 if (BPT_SUMM_RD &&
@@ -2685,9 +2687,9 @@ return PReadB (pa);
 /* Read word with breakpoint check: if a data breakpoint is encountered,
    set reason accordingly but don't do an ABORT.  This is used when we want
    to break after doing the operation, used for interrupt processing.  */
-int32 ReadCW (int32 va)
+int32_t ReadCW (int32_t va)
 {
-int32 pa;
+int32_t pa;
 
 if ((va & 1) && CPUT (HAS_ODD)) {                       /* odd address? */
     setCPUERR (CPUE_ODD);
@@ -2701,7 +2703,7 @@ if (BPT_SUMM_RD &&
 return PReadW (pa);
 }
 
-int32 ReadMW (int32 va)
+int32_t ReadMW (int32_t va)
 {
 if ((va & 1) && CPUT (HAS_ODD)) {                       /* odd address? */
     setCPUERR (CPUE_ODD);
@@ -2715,7 +2717,7 @@ if (BPT_SUMM_RW &&
 return PReadW (last_pa);
 }
 
-int32 ReadMB (int32 va)
+int32_t ReadMB (int32_t va)
 {
 last_pa = relocW (va);                                  /* reloc, wrt chk */
 if (BPT_SUMM_RW &&
@@ -2725,9 +2727,9 @@ if (BPT_SUMM_RW &&
 return PReadB (last_pa);
 }
 
-int32 PReadW (int32 pa)
+int32_t PReadW (int32_t pa)
 {
-int32 data;
+int32_t data;
 
 if (ADDR_IS_MEM (pa))                                   /* memory address? */
     return RdMemW (pa);
@@ -2742,9 +2744,9 @@ if (iopageR (&data, pa, READ) != SCPE_OK) {             /* invalid I/O addr? */
 return data;
 }
 
-int32 PReadB (int32 pa)
+int32_t PReadB (int32_t pa)
 {
-int32 data;
+int32_t data;
 
 if (ADDR_IS_MEM (pa))                                   /* memory address? */
     return RdMemB (pa);
@@ -2768,9 +2770,9 @@ return ((pa & 1)? data >> 8: data) & 0377;
    Outputs: none
 */
 
-void WriteW (int32 data, int32 va)
+void WriteW (int32_t data, int32_t va)
 {
-int32 pa;
+int32_t pa;
 
 if ((va & 1) && CPUT (HAS_ODD)) {                       /* odd address? */
     setCPUERR (CPUE_ODD);
@@ -2784,9 +2786,9 @@ if (BPT_SUMM_WR &&
 PWriteW (data, pa);
 }
 
-void WriteB (int32 data, int32 va)
+void WriteB (int32_t data, int32_t va)
 {
-int32 pa;
+int32_t pa;
 
 pa = relocW (va);                                       /* relocate */
 if (BPT_SUMM_WR &&
@@ -2799,9 +2801,9 @@ PWriteB (data, pa);
 /* Write word with breakpoint check: if a data breakpoint is encountered,
    set reason accordingly but don't do an ABORT.  This is used when we want
    to break after doing the operation, used for interrupt processing.  */
-void WriteCW (int32 data, int32 va)
+void WriteCW (int32_t data, int32_t va)
 {
-int32 pa;
+int32_t pa;
 
 if ((va & 1) && CPUT (HAS_ODD)) {                       /* odd address? */
     setCPUERR (CPUE_ODD);
@@ -2815,7 +2817,7 @@ if (BPT_SUMM_WR &&
 PWriteW (data, pa);
 }
 
-void PWriteW (int32 data, int32 pa)
+void PWriteW (int32_t data, int32_t pa)
 {
 if (ADDR_IS_MEM (pa)) {                                 /* memory address? */
     WrMemW (pa, data);
@@ -2832,7 +2834,7 @@ if (iopageW (data, pa, WRITE) != SCPE_OK) {             /* invalid I/O addr? */
 return;
 }
 
-void PWriteB (int32 data, int32 pa)
+void PWriteB (int32_t data, int32_t pa)
 {
 if (ADDR_IS_MEM (pa)) {                                 /* memory address? */
     WrMemB (pa, data);
@@ -2865,9 +2867,9 @@ return;
    - Aborts must update MMR0<15:13,6:1> if updating is enabled
 */
 
-int32 relocR (int32 va)
+int32_t relocR (int32_t va)
 {
-int32 apridx, apr, pa;
+int32_t apridx, apr, pa;
 
 if (MMR0 & MMR0_MME) {                                  /* if mmgt */
     apridx = (va >> VA_V_APF) & 077;                    /* index into APR */
@@ -2905,9 +2907,9 @@ return pa;
    7                    abort NR                -
 */
 
-void relocR_test (int32 va, int32 apridx)
+void relocR_test (int32_t va, int32_t apridx)
 {
-int32 apr, err;
+int32_t apr, err;
 
 err = 0;                                                /* init status */
 apr = APRFILE[apridx];                                  /* get APR */
@@ -2915,7 +2917,7 @@ switch (apr & PDR_ACF) {                                /* case on ACF */
 
     case 1: case 4:                                     /* trap read */
         if (CPUT (HAS_MMTR)) {                          /* traps implemented? */
-            int32 old_mmr0 = MMR0;
+            int32_t old_mmr0 = MMR0;
             APRFILE[apridx] |= PDR_A;                   /* set A */
             MMR0 = MMR0 | MMR0_TRAP;                    /* set trap flag */
             if ((MMR0 & MMR0_TENB) != 0) {              /* traps enabled? */
@@ -2940,15 +2942,15 @@ reloc_abort (err, apridx);
 return;
 }
 
-bool PLF_test (int32 va, int32 apr)
+bool PLF_test (int32_t va, int32_t apr)
 {
-int32 dbn = va & VA_BN;                                 /* extr block num */
-int32 plf = (apr & PDR_PLF) >> 2;                       /* extr page length */
+int32_t dbn = va & VA_BN;                               /* extr block num */
+int32_t plf = (apr & PDR_PLF) >> 2;                     /* extr page length */
 
 return ((apr & PDR_ED)? (dbn < plf): (dbn > plf));      /* pg lnt error? */
 }
 
-void reloc_abort (int32 err, int32 apridx)
+void reloc_abort (int32_t err, int32_t apridx)
 {
 if (update_MM) {                                        /* MMR0 not frozen? */
     MMR0 = (MMR0 & ~MMR0_PAGE) | (apridx << MMR0_V_PAGE); /* record page */
@@ -2974,9 +2976,9 @@ return;
    - Aborts must update MMR0<15:13,6:1> if updating is enabled
 */
 
-int32 relocW (int32 va)
+int32_t relocW (int32_t va)
 {
-int32 apridx, apr, pa;
+int32_t apridx, apr, pa;
 
 if (MMR0 & MMR0_MME) {                                  /* if mmgt */
     apridx = (va >> VA_V_APF) & 077;                    /* index into APR */
@@ -3015,9 +3017,9 @@ return pa;
    7                    abort NR                -
 */
 
-void relocW_test (int32 va, int32 apridx)
+void relocW_test (int32_t va, int32_t apridx)
 {
-int32 apr, err;
+int32_t apr, err;
 
 err = 0;                                                /* init status */
 apr = APRFILE[apridx];                                  /* get APR */
@@ -3025,7 +3027,7 @@ switch (apr & PDR_ACF) {                                /* case on ACF */
 
     case 4: case 5:                                     /* trap write */
         if (CPUT (HAS_MMTR)) {                          /* traps implemented? */
-            int32 old_mmr0 = MMR0;
+            int32_t old_mmr0 = MMR0;
             APRFILE[apridx] |= PDR_A;                   /* set PDR <A> */
             MMR0 = MMR0 | MMR0_TRAP;                    /* set trap flag */
             if ((MMR0 & MMR0_TENB) != 0) {              /* traps enabled? */
@@ -3063,9 +3065,9 @@ return;
    On aborts, this routine returns MAXMEMSIZE
 */
 
-int32 relocC (int32 va, int32 sw)
+int32_t relocC (int32_t va, int32_t sw)
 {
-int32 mode, dbn, plf, apridx, apr, pa;
+int32_t mode, dbn, plf, apridx, apr, pa;
 
 if (MMR0 & MMR0_MME) {                                  /* if mmgt */
     if (sw & SWMASK ('K'))
@@ -3109,7 +3111,7 @@ return pa;
    MMR3 17772516        read/write, certain bits unimplemented
 */
 
-t_stat MMR012_rd (int32 *data, int32 pa, int32 access)
+t_stat MMR012_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -3136,7 +3138,7 @@ switch ((pa >> 1) & 3) {                                /* decode pa<2:1> */
 return SCPE_OK;
 }
 
-t_stat MMR012_wr (int32 data, int32 pa, int32 access)
+t_stat MMR012_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 3) {                                /* decode pa<2:1> */
 
@@ -3155,7 +3157,7 @@ switch ((pa >> 1) & 3) {                                /* decode pa<2:1> */
         }                                               /* end switch pa */
 }
 
-t_stat MMR3_rd (int32 *data, int32 pa, int32 access)    /* MMR3 */
+t_stat MMR3_rd (int32_t *data, int32_t pa, int32_t access) /* MMR3 */
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -3166,7 +3168,7 @@ t_stat MMR3_rd (int32 *data, int32 pa, int32 access)    /* MMR3 */
 return SCPE_OK;
 }
 
-t_stat MMR3_wr (int32 data, int32 pa, int32 access)     /* MMR3 */
+t_stat MMR3_wr (int32_t data, int32_t pa, int32_t access) /* MMR3 */
 {
 /* Generic I/O write signature.
    This implementation does not use every parameter. */
@@ -3198,7 +3200,7 @@ return SCPE_OK;
    Note: the A,W bits are read only; they are cleared by any write to an APR
 */
 
-t_stat APR_rd (int32 *data, int32 pa, int32 access)
+t_stat APR_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -3218,9 +3220,9 @@ else *data = APRFILE[idx] & cpu_tab[cpu_model].pdr;
 return SCPE_OK;
 }
 
-t_stat APR_wr (int32 data, int32 pa, int32 access)
+t_stat APR_wr (int32_t data, int32_t pa, int32_t access)
 {
-int32 left, idx, curr;
+int32_t left, idx, curr;
 
 idx = (pa >> 1) & 017;                                  /* dspace'page */
 left = (pa >> 5) & 1;                                   /* PDR vs PAR */
@@ -3235,7 +3237,7 @@ if (access == WRITEB)
     data = (pa & 1)? (curr & 0377) | (data << 8): (curr & ~0377) | data;
 if (left)
     APRFILE[idx] = ((APRFILE[idx] & 0177777) |
-        (((uint32) (data & cpu_tab[cpu_model].par)) << 16)) & ~(PDR_A|PDR_W);
+        (((uint32_t) (data & cpu_tab[cpu_model].par)) << 16)) & ~(PDR_A|PDR_W);
 else APRFILE[idx] = ((APRFILE[idx] & ~0177777) |
     (data & cpu_tab[cpu_model].pdr)) & ~(PDR_A|PDR_W);
 return SCPE_OK;
@@ -3243,7 +3245,7 @@ return SCPE_OK;
 
 /* Explicit PSW read */
 
-t_stat PSW_rd (int32 *data, int32 pa, int32 access)
+t_stat PSW_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -3257,7 +3259,7 @@ return SCPE_OK;
 
 /* Assemble PSW from pieces */
 
-int32 get_PSW (void)
+int32_t get_PSW (void)
 {
 return (cm << PSW_V_CM) | (pm << PSW_V_PM) |
     (rs << PSW_V_RS) | (fpd << PSW_V_FPD) |
@@ -3268,9 +3270,9 @@ return (cm << PSW_V_CM) | (pm << PSW_V_PM) |
 
 /* Explicit PSW write - T-bit may be protected */
 
-t_stat PSW_wr (int32 data, int32 pa, int32 access)
+t_stat PSW_wr (int32_t data, int32_t pa, int32_t access)
 {
-int32 i, curr, oldrs;
+int32_t i, curr, oldrs;
 
 if (access == WRITEC) {                                 /* console access? */
     PSW = data & cpu_tab[cpu_model].psw;
@@ -3298,7 +3300,7 @@ return SCPE_OK;
 
 /* Store pieces of new PSW - implements RTI/RTT protection */
 
-void put_PSW (int32 val, bool prot)
+void put_PSW (int32_t val, bool prot)
 {
 val = val & cpu_tab[cpu_model].psw;                     /* mask off invalid bits */
 if (prot) {                                             /* protected? */
@@ -3323,9 +3325,9 @@ return;
 
 /* PIRQ write routine */
 
-void put_PIRQ (int32 val)
+void put_PIRQ (int32_t val)
 {
-int32 pl;
+int32_t pl;
 
 PIRQ = val & PIRQ_RW;
 pl = 0;
@@ -3370,7 +3372,7 @@ return;
 
 /* Stack trap routine */
 
-void set_stack_trap (int32 adr)
+void set_stack_trap (int32_t adr)
 {
 if (CPUT (HAS_STKLF)) {                                 /* fixed stack? */
     setTRAP (TRAP_YEL);                                 /* always yellow trap */
@@ -3410,7 +3412,7 @@ static const char *pdp11_clock_precalibrate_commands[] = {
 
 */
 
-static t_stat pdp11_boot (int32 flag, const char *ptr)
+static t_stat pdp11_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -3432,7 +3434,7 @@ CTAB pdp11_cmd[] = {
     };
 
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic simulator boot signature.
    This implementation does not use every parameter. */
@@ -3464,7 +3466,7 @@ MMR3 = 0;
 trap_req = 0;
 wait_state = 0;
 if (M == NULL) {                    /* First time init */
-    M = (uint16 *) calloc (MEMSIZE >> 1, sizeof (uint16));
+    M = (uint16_t *) calloc (MEMSIZE >> 1, sizeof (uint16_t));
     if (M == NULL)
         return SCPE_MEM;
     sim_set_pchar (0, "01000023640"); /* ESC, CR, LF, TAB, BS, BEL, ENQ */
@@ -3503,11 +3505,11 @@ bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 #define MAX_SUB_RETURN_SKIP 10
 static t_addr returns[MAX_SUB_RETURN_SKIP + 1] = {0};
 static bool caveats_displayed = false;
-static int32 swmap[4] = {
+static int32_t swmap[4] = {
     SWMASK ('K') | SWMASK ('V'), SWMASK ('S') | SWMASK ('V'),
     SWMASK ('U') | SWMASK ('V'), SWMASK ('U') | SWMASK ('V')
     };
-int32 cm = ((PSW >> PSW_V_CM) & 03);
+int32_t cm = ((PSW >> PSW_V_CM) & 03);
 
 if (!caveats_displayed) {
     caveats_displayed = true;
@@ -3516,9 +3518,9 @@ if (!caveats_displayed) {
 if (SCPE_OK != get_aval (relocC(PC, swmap[cm]), &cpu_dev, &cpu_unit))/* get data */
     return false;
 if ((sim_eval[0] & 0177000) == 0004000) {               /* JSR */
-    int32 dst, dstspec;
+    int32_t dst, dstspec;
     t_addr i, max_returns = MAX_SUB_RETURN_SKIP;
-    int32 save_Regs[8];
+    int32_t save_Regs[8];
 
     memcpy (save_Regs, R, sizeof(R));       /* save register state */
     PC = PC + 2;                            /* account for instruction fetch */
@@ -3542,7 +3544,7 @@ return false;
 
 /* Boot setup routine */
 
-void cpu_set_boot (int32 pc)
+void cpu_set_boot (int32_t pc)
 {
 saved_PC = pc;
 PSW = 000340;
@@ -3551,13 +3553,13 @@ return;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 iodata;
+int32_t iodata;
 t_stat stat;
 
 if (vptr == NULL)
@@ -3582,7 +3584,7 @@ return stat;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -3601,15 +3603,15 @@ if (ADDR_IS_MEM (addr)) {
     }
 if (addr < IOPAGEBASE)
     return SCPE_NXM;
-return iopageW ((int32) val, addr, WRITEC);
+return iopageW ((int32_t) val, addr, WRITEC);
 }
 
 /* Set R, SP register display addresses */
 
-void set_r_display (int32 rs, int32 cm)
+void set_r_display (int32_t rs, int32_t cm)
 {
 REG *rptr;
-int32 i;
+int32_t i;
 
 rptr = find_reg ("R0", NULL, &cpu_dev);
 if (rptr == NULL)
@@ -3622,7 +3624,7 @@ return;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3630,7 +3632,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -3639,7 +3641,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -3659,14 +3661,14 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 j, k, di, lnt, ir;
+int32_t j, k, di, lnt, ir;
 const char *cptr = (const char *) desc;
 t_value sim_eval[HIST_ILNT];
 t_stat r;
@@ -3675,7 +3677,7 @@ InstHistory *h;
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }
@@ -3709,7 +3711,7 @@ return SCPE_OK;
 
 /* Virtual address translation */
 
-t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -3718,10 +3720,10 @@ t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc)
 
 t_stat r;
 const char *cptr = (const char *) desc;
-uint32 va, pa;
+uint32_t va, pa;
 
 if (cptr) {
-    va = (uint32) get_uint (cptr, 8, VAMASK, &r);
+    va = (uint32_t) get_uint (cptr, 8, VAMASK, &r);
     if (r == SCPE_OK) {
         pa = relocC (va, sim_switches);                 /* relocate */
         if (pa < MAXMEMSIZE)
@@ -3743,7 +3745,7 @@ const char *cpu_description (DEVICE *dptr)
 return "PDP-11 CPU";
 }
 
-t_stat cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */

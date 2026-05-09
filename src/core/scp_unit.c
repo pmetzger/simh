@@ -8,6 +8,8 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "scp.h"
 
@@ -98,7 +100,7 @@ t_stat attach_unit(UNIT *uptr, const char *cptr)
         }
     }
     if (uptr->flags & UNIT_BUFABLE) {
-        uint32 cap = ((uint32)uptr->capac) / dptr->aincr;
+        uint32_t cap = ((uint32_t)uptr->capac) / dptr->aincr;
 
         uptr->filebuf2 = calloc(cap, scp_device_data_size_bytes(dptr));
         if (uptr->filebuf2 == NULL)
@@ -116,7 +118,7 @@ t_stat attach_unit(UNIT *uptr, const char *cptr)
         sim_messagef(SCPE_OK, "%s: buffering file in memory\n",
                      sim_uname(uptr));
         uptr->hwmark =
-            (uint32)sim_fread(uptr->filebuf, scp_device_data_size_bytes(dptr),
+            (uint32_t)sim_fread(uptr->filebuf, scp_device_data_size_bytes(dptr),
                               cap, uptr->fileref);
         memcpy(uptr->filebuf2, uptr->filebuf,
                cap * scp_device_data_size_bytes(dptr));
@@ -149,7 +151,7 @@ t_stat detach_unit(UNIT *uptr)
     if ((dptr = find_dev_from_unit(uptr)) == NULL)
         return SCPE_OK;
     if ((uptr->flags & UNIT_BUF) && (uptr->filebuf)) {
-        uint32 cap = (uptr->hwmark + dptr->aincr - 1) / dptr->aincr;
+        uint32_t cap = (uptr->hwmark + dptr->aincr - 1) / dptr->aincr;
 
         if (((uptr->flags & UNIT_RO) == 0) &&
             (memcmp(uptr->filebuf, uptr->filebuf2,
@@ -190,7 +192,7 @@ t_stat detach_unit(UNIT *uptr)
 DEVICE *find_dev_from_unit(UNIT *uptr)
 {
     DEVICE *dptr;
-    uint32 i, j;
+    uint32_t i, j;
 
     if (uptr == NULL)
         return NULL;

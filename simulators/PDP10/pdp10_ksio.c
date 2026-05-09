@@ -75,6 +75,8 @@
 #include <ctype.h>
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
@@ -103,11 +105,11 @@
 
 /* Unibus adapter data */
 
-int32 ubcs[UBANUM] = { 0 };                             /* status registers */
-int32 ubmap[UBANUM][UMAP_MEMSIZE] = {{ 0 }};            /* Unibus maps */
-int32 int_req = 0;                                      /* interrupt requests */
+int32_t ubcs[UBANUM] = { 0 };                           /* status registers */
+int32_t ubmap[UBANUM][UMAP_MEMSIZE] = {{ 0 }};          /* Unibus maps */
+int32_t int_req = 0;                                    /* interrupt requests */
 
-int32 autcon_enb = 1;                                   /* auto configure enabled */
+int32_t autcon_enb = 1;                                 /* auto configure enabled */
 
 
 /* Map IO controller numbers to Unibus adapters: -1 = non-existent */
@@ -116,13 +118,13 @@ static int iocmap[IO_N_UBA] = {                         /* map I/O ext to UBA # 
  -1, 0, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
  };
 
-static const int32 ubabr76[UBANUM] = {
+static const int32_t ubabr76[UBANUM] = {
     INT_UB1 & (INT_IPL7 | INT_IPL6), INT_UB3 & (INT_IPL7 | INT_IPL6)
     };
-static const int32 ubabr54[UBANUM] = {
+static const int32_t ubabr54[UBANUM] = {
     INT_UB1 & (INT_IPL5 | INT_IPL4), INT_UB3 & (INT_IPL5 | INT_IPL4)
     };
-static const uint32 iplmask[4] = {
+static const uint32_t iplmask[4] = {
     INT_IPL4, INT_IPL5, INT_IPL6, INT_IPL7
     };
 
@@ -153,21 +155,21 @@ static const uint32 iplmask[4] = {
 #define M_WORD0 (~INT64_C (0777777000000)) /* Clear word 0 + XX */
 #define M_WORD1 (~INT64_C (0000000777777)) /* Clear word 1 + XX */
 
-extern int32 pi_eval (void);
+extern int32_t pi_eval (void);
 
-t_stat ubmap_rd (int32 *data, int32 addr, int32 access);
-t_stat ubmap_wr (int32 data, int32 addr, int32 access);
-t_stat ubs_rd (int32 *data, int32 addr, int32 access);
-t_stat ubs_wr (int32 data, int32 addr, int32 access);
-t_stat rd_zro (int32 *data, int32 addr, int32 access);
-t_stat wr_nop (int32 data, int32 addr, int32 access);
-t_stat uba_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat uba_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat ubmap_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat ubmap_wr (int32_t data, int32_t addr, int32_t access);
+t_stat ubs_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat ubs_wr (int32_t data, int32_t addr, int32_t access);
+t_stat rd_zro (int32_t *data, int32_t addr, int32_t access);
+t_stat wr_nop (int32_t data, int32_t addr, int32_t access);
+t_stat uba_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat uba_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat uba_reset (DEVICE *dptr);
-void uba_debug_dma_in  (uint32 ba, a10 pa_start, a10 pa_end);
-void uba_debug_dma_out (uint32 ba, a10 pa_start, a10 pa_end);
+void uba_debug_dma_in  (uint32_t ba, a10 pa_start, a10 pa_end);
+void uba_debug_dma_out (uint32_t ba, a10 pa_start, a10 pa_end);
 d10 ReadIO (a10 ea);
-void WriteIO (a10 ea, d10 val, int32 mode);
+void WriteIO (a10 ea, d10 val, int32_t mode);
 
 /* Unibus adapter data structures
 
@@ -219,9 +221,9 @@ DEVICE uba_dev = {
 
 DIB *dib_tab[DIB_MAX];                                  /* run-time DIBs */
 
-int32 (*int_ack[32])(void);                             /* int ack routines */
+int32_t (*int_ack[32])(void);                           /* int ack routines */
 
-int32 int_vec[32];                                      /* int vectors */
+int32_t int_vec[32];                                    /* int vectors */
 
 DIB *std_dib[] = {                                      /* standard DIBs */
     &ubmp1_dib,
@@ -239,7 +241,7 @@ DIB *std_dib[] = {                                      /* standard DIBs */
                 returns true if skip, false otherwise
 */
 
-bool io710 (int32 ac, a10 ea)
+bool io710 (int32_t ac, a10 ea)
 {
 d10 val;
 
@@ -258,7 +260,7 @@ return false;
                 returns true if skip, false otherwise
 */
 
-bool io711 (int32 ac, a10 ea)
+bool io711 (int32_t ac, a10 ea)
 {
 d10 val;
 
@@ -332,7 +334,7 @@ return;
                 returns true if skip, false otherwise
 */
 
-bool io720 (int32 ac, a10 ea)
+bool io720 (int32_t ac, a10 ea)
 {
 d10 val;
 
@@ -354,7 +356,7 @@ return false;
                 returns true if skip, false otherwise
 */
 
-bool io721 (int32 ac, a10 ea)
+bool io721 (int32_t ac, a10 ea)
 {
 d10 val;
 
@@ -445,10 +447,10 @@ return;
  * UBA NXM page fails for unassigned IO addresses.
  */
 
-static t_stat UBReadIO (int32 *data, int32 ba, int32 access)
+static t_stat UBReadIO (int32_t *data, int32_t ba, int32_t access)
 {
-uint32 pa = (uint32) ba;
-int32 i, val;
+uint32_t pa = (uint32_t) ba;
+int32_t i, val;
 DIB *dibp;
 
 for (i = 0; (dibp = dib_tab[i]); i++ ) {
@@ -465,8 +467,8 @@ return SCPE_NXM;
 
 d10 ReadIO (a10 ea)
 {
-uint32 pa = (uint32) ea;
-int32 n, val;
+uint32_t pa = (uint32_t) ea;
+int32_t n, val;
 
     if (UBReadIO (&val, pa, READ) == SCPE_OK)
         return ((d10) val);
@@ -474,10 +476,10 @@ int32 n, val;
 }
 
 
-static t_stat UBWriteIO (int32 data, int32 ba, int32 access)
+static t_stat UBWriteIO (int32_t data, int32_t ba, int32_t access)
 {
-uint32 pa = (uint32) ba;
-int32 i;
+uint32_t pa = (uint32_t) ba;
+int32_t i;
 DIB *dibp;
 
 for (i = 0; (dibp = dib_tab[i]); i++ ) {
@@ -494,12 +496,12 @@ for (i = 0; (dibp = dib_tab[i]); i++ ) {
 return SCPE_NXM;
 }
 
-void WriteIO (a10 ea, d10 val, int32 mode)
+void WriteIO (a10 ea, d10 val, int32_t mode)
 {
-uint32 pa = (uint32) ea;
-int32 n;
+uint32_t pa = (uint32_t) ea;
+int32_t n;
 
-if (UBWriteIO ((int32) val, (int32) pa, mode) == SCPE_OK)
+if (UBWriteIO ((int32_t) val, (int32_t) pa, mode) == SCPE_OK)
     return;
 UBNXM_FAIL (pa, mode);
 }
@@ -509,11 +511,11 @@ UBNXM_FAIL (pa, mode);
  * not be mapped by the UBA, so I/O space (and more) can not be mapped to -10 memory.
  */
 
-static a10 Map_Addr10 (a10 ba, int32 ub, int32 *ubmp)
+static a10 Map_Addr10 (a10 ba, int32_t ub, int32_t *ubmp)
 {
 a10 pa10;
-int32 vpn = PAG_GETVPN (ba >> 2);                       /* get PDP-10 page number */
-int32 ubm;
+int32_t vpn = PAG_GETVPN (ba >> 2);                     /* get PDP-10 page number */
+int32_t ubm;
 
 if ((vpn >= UMAP_MEMSIZE) || (ba & XBA_MBZ)) {          /* Validate bus address */
     if (ubmp)
@@ -605,18 +607,18 @@ return pa10;
  *   tail : 0-3 bytes remaining after the body.
  */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf)
 {
-uint32 ea, ofs, cp, np;
-int32 seg;
+uint32_t ea, ofs, cp, np;
+int32_t seg;
 a10 pa10 = ~0u;
 d10 m;
-uint32 dpy_ba = ba;
+uint32_t dpy_ba = ba;
 a10 dpy_pa10 = ~0u;
 
 if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
     /* IOPAGE: device register read */
-    int32 csr;
+    int32_t csr;
 
     while (bc) {
         if (UBReadIO (&csr, ba & ~1, READ) != SCPE_OK)
@@ -652,15 +654,15 @@ if (seg) {                                              /* Unaligned head */
     bc -= seg;
     switch (ofs) {
     case 1:
-        *buf++ = (uint8) ((m >> V_BYTE1) & M_BYTE);
+        *buf++ = (uint8_t) ((m >> V_BYTE1) & M_BYTE);
         if (!--seg)
             break;
     case 2:
-        *buf++ = (uint8) (m & M_BYTE); /* V_BYTE2 */
+        *buf++ = (uint8_t) (m & M_BYTE); /* V_BYTE2 */
         if (!--seg)
             break;
     case 3:
-        *buf++ = (uint8) ((m >> V_BYTE3) & M_BYTE);
+        *buf++ = (uint8_t) ((m >> V_BYTE3) & M_BYTE);
         --seg;
         break;
     default:
@@ -694,13 +696,13 @@ if (seg > 0) { /* Body: Whole PDP-10 words, 4 bytes */
             cp = np;
             }
         m = M[pa10++];                          /* Next word from -10 */
-        buf[2] = (uint8) (m & M_BYTE);          /* Byte 2 */
+        buf[2] = (uint8_t) (m & M_BYTE);        /* Byte 2 */
         m >>= 8;
-        buf[3] = (uint8) (m & M_BYTE);          /* Byte 3 */
+        buf[3] = (uint8_t) (m & M_BYTE);        /* Byte 3 */
         m >>= 10;
-        buf[0] = (uint8) (m & M_BYTE);          /* Byte 0 */
+        buf[0] = (uint8_t) (m & M_BYTE);        /* Byte 0 */
         m >>= 8;
-        buf[1] = (uint8) (m & M_BYTE);          /* Byte 1 */
+        buf[1] = (uint8_t) (m & M_BYTE);        /* Byte 1 */
         buf += 4;
         }
     } /* Body */
@@ -723,11 +725,11 @@ if (bc) {
     m = M[pa10++];
     switch (bc) {
     case 3:
-        buf[2] = (uint8) (m & M_BYTE);          /* V_BYTE2 */
+        buf[2] = (uint8_t) (m & M_BYTE);        /* V_BYTE2 */
     case 2:
-        buf[1] = (uint8) ((m >> V_BYTE1) & M_BYTE);
+        buf[1] = (uint8_t) ((m >> V_BYTE1) & M_BYTE);
     case 1:
-        buf[0] = (uint8) ((m >> V_BYTE0) & M_BYTE);
+        buf[0] = (uint8_t) ((m >> V_BYTE0) & M_BYTE);
         break;
     default:
         ASSURE (false);
@@ -738,18 +740,18 @@ uba_debug_dma_out (dpy_ba, dpy_pa10, pa10);
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf)
 {
-uint32 ea, cp, np;
-int32 seg;
+uint32_t ea, cp, np;
+int32_t seg;
 a10 pa10 = ~0u;
 d10 m;
-uint32 dpy_ba = ba;
+uint32_t dpy_ba = ba;
 a10 dpy_pa10 = ~0u;
 
 if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
     /* IOPAGE: device register read */
-    int32 csr;
+    int32_t csr;
 
     if ((ba | bc) & 1)
         ABORT (STOP_IOALIGN);
@@ -757,7 +759,7 @@ if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
     while (bc) {
         if (UBReadIO (&csr, ba, READ) != SCPE_OK)
             break;
-        *buf++ = (uint16)csr;
+        *buf++ = (uint16_t)csr;
         ba += 2;
         bc -= 2;
         }
@@ -789,7 +791,7 @@ if (seg) {                                      /* Unaligned head, can only be W
         return bc;                              /* return bc */
         }
     ba += seg;
-    *buf++ = (uint16) (M[pa10++] & M_WORD);
+    *buf++ = (uint16_t) (M[pa10++] & M_WORD);
     if ((bc -= seg) == 0) {
         uba_debug_dma_out (dpy_ba, dpy_pa10, pa10);
         return 0;
@@ -816,9 +818,9 @@ if (seg > 0) {
             cp = np;
             }
         m = M[pa10++];                          /* Next word from -10 */
-        buf[1] = (uint16) (m & M_WORD);         /* Bytes 3,,2 */
+        buf[1] = (uint16_t) (m & M_WORD);       /* Bytes 3,,2 */
         m >>= 18;
-        buf[0] = (uint16) (m & M_WORD);         /* Bytes 1,,0 */
+        buf[0] = (uint16_t) (m & M_WORD);       /* Bytes 1,,0 */
         buf += 2;
         }
     } /* Body */
@@ -838,7 +840,7 @@ if (bc) {
             return (bc);                        /* return bc */
             }
         }
-    *buf = (uint16) ((M[pa10++] >> V_WORD0) & M_WORD);
+    *buf = (uint16_t) ((M[pa10++] >> V_WORD0) & M_WORD);
     }
 
 uba_debug_dma_out (dpy_ba, dpy_pa10, pa10);
@@ -847,22 +849,22 @@ return 0;
 
 /* Word reads returning 18-bit data
  *
- * Identical to 16-bit reads except that buffer is uint32
+ * Identical to 16-bit reads except that buffer is uint32_t
  * and masked to 18 bits.
  */
 
-int32 Map_ReadW18 (uint32 ba, int32 bc, uint32 *buf)
+int32_t Map_ReadW18 (uint32_t ba, int32_t bc, uint32_t *buf)
 {
-uint32 ea, cp, np;
-int32 seg;
+uint32_t ea, cp, np;
+int32_t seg;
 a10 pa10 = ~0u;
 d10 m;
-uint32 dpy_ba = ba;
+uint32_t dpy_ba = ba;
 a10 dpy_pa10 = ~0u;
 
 if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
     /* IOPAGE: device register read */
-    int32 csr;
+    int32_t csr;
 
     if ((ba | bc) & 1)
         ABORT (STOP_IOALIGN);
@@ -870,7 +872,7 @@ if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
     while (bc) {
         if (UBReadIO (&csr, ba, READ) != SCPE_OK)
             break;
-        *buf++ = (uint32)csr;
+        *buf++ = (uint32_t)csr;
         ba += 2;
         bc -= 2;
         }
@@ -902,7 +904,7 @@ if (seg) {                                      /* Unaligned head */
         return bc;                              /* return bc */
         }
     ba += seg;
-    *buf++ = (uint32) (M[pa10++] & M_RH);
+    *buf++ = (uint32_t) (M[pa10++] & M_RH);
     if ((bc -= seg) == 0) {
         uba_debug_dma_out (dpy_ba, dpy_pa10, pa10);
         return 0;
@@ -929,9 +931,9 @@ if (seg > 0) {
             cp = np;
             }
         m = M[pa10++];                          /* Next word from -10 */
-        buf[1] = (uint32) (m & M_RH);           /* Bytes 3,,2 */
+        buf[1] = (uint32_t) (m & M_RH);         /* Bytes 3,,2 */
         m >>= 18;
-        buf[0] = (uint32) (m & M_RH);           /* Bytes 1,,0 */
+        buf[0] = (uint32_t) (m & M_RH);         /* Bytes 1,,0 */
         buf += 2;
         }
     } /* Body */
@@ -951,7 +953,7 @@ if (bc) {
             return (bc);                        /* return bc */
             }
         }
-    *buf++ = (uint32) ((M[pa10++] >> V_WORD0) & M_RH);
+    *buf++ = (uint32_t) ((M[pa10++] >> V_WORD0) & M_RH);
     }
 
 uba_debug_dma_out (dpy_ba, dpy_pa10, pa10);
@@ -964,18 +966,18 @@ return 0;
  * and masked to 36 bits.
  */
 
-int32 Map_ReadW36 (uint32 ba, int32 bc, d10 *buf)
+int32_t Map_ReadW36 (uint32_t ba, int32_t bc, d10 *buf)
 {
-uint32 ea, cp, np;
-int32 seg;
+uint32_t ea, cp, np;
+int32_t seg;
 a10 pa10 = ~0u;
-int32 ub = ADDR2UBA (ba);
-uint32 dpy_ba = ba;
+int32_t ub = ADDR2UBA (ba);
+uint32_t dpy_ba = ba;
 a10 dpy_pa10 = ~0u;
 
 if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
     /* IOPAGE: device register read */
-    int32 csr;
+    int32_t csr;
 
     if ((ba | bc) & 3)
         ABORT (STOP_IOALIGN);
@@ -983,7 +985,7 @@ if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
     while (bc) {
         if (UBReadIO (&csr, ba, READ) != SCPE_OK)
             break;
-        *buf++ = (uint32)csr;
+        *buf++ = (uint32_t)csr;
         ba += 2;
         bc -= 2;
         }
@@ -1032,13 +1034,13 @@ return 0;
 
 /* Byte-mode writes */
 
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
+int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf)
 {
-uint32 ea, ofs, cp, np;
-int32 seg, ubm = 0;
+uint32_t ea, ofs, cp, np;
+int32_t seg, ubm = 0;
 a10 pa10 = ~0u;
 d10 m;
-uint32 dpy_ba = ba;
+uint32_t dpy_ba = ba;
 a10 dpy_pa10 = ~0u;
 
 if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
@@ -1179,12 +1181,12 @@ return 0;
 
 /* Word mode writes; 16-bit data */
 
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
+int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf)
 {
-uint32 ea, cp, np;
-int32 seg, ubm = 0;
+uint32_t ea, cp, np;
+int32_t seg, ubm = 0;
 a10 pa10 = ~0u;
-uint32 dpy_ba = ba;
+uint32_t dpy_ba = ba;
 a10 dpy_pa10 = ~0u;
 
 if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000) {
@@ -1291,12 +1293,12 @@ return 0;
 
 /* Word mode writes; 18-bit data */
 
-int32 Map_WriteW18 (uint32 ba, int32 bc, const uint32 *buf)
+int32_t Map_WriteW18 (uint32_t ba, int32_t bc, const uint32_t *buf)
 {
-uint32 ea, cp, np;
-int32 seg, ubm = 0;
+uint32_t ea, cp, np;
+int32_t seg, ubm = 0;
 a10 pa10 = ~0u;
-uint32 dpy_ba = ba;
+uint32_t dpy_ba = ba;
 a10 dpy_pa10 = ~0u;
 
 if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000)
@@ -1400,12 +1402,12 @@ return 0;
 
 /* Word mode writes; 36-bit data */
 
-int32 Map_WriteW36 (uint32 ba, int32 bc, const a10 *buf)
+int32_t Map_WriteW36 (uint32_t ba, int32_t bc, const a10 *buf)
 {
-uint32 ea, cp, np;
-int32 seg, ubm = 0;
+uint32_t ea, cp, np;
+int32_t seg, ubm = 0;
 a10 pa10 = ~0u;
-uint32 dpy_ba = ba;
+uint32_t dpy_ba = ba;
 a10 dpy_pa10 = ~0u;
 
 if ((ba & ~((IO_M_UBA<<IO_V_UBA)|0017777)) == 0760000)
@@ -1464,10 +1466,10 @@ return 0;
 }
 
 static void
-uba_debug_dma (int32 mask, uint32 ba, a10 pa_start, a10 pa_end)
+uba_debug_dma (int32_t mask, uint32_t ba, a10 pa_start, a10 pa_end)
 {
-int32 i;
-int32 wc = (int32)(pa_end - pa_start);
+int32_t i;
+int32_t wc = (int32_t)(pa_end - pa_start);
 
 if ((!wc) || (!(sim_deb && (uba_dev.dctrl & mask))))
     return;
@@ -1509,28 +1511,28 @@ for (i=0; i<wc; i++)
 }
 
 void
-uba_debug_dma_in (uint32 ba, a10 pa_start, a10 pa_end)
+uba_debug_dma_in (uint32_t ba, a10 pa_start, a10 pa_end)
 {
 uba_debug_dma (DBG_DMA_IN, ba, pa_start, pa_end);
 }
 
 void
-uba_debug_dma_out (uint32 ba, a10 pa_start, a10 pa_end)
+uba_debug_dma_out (uint32_t ba, a10 pa_start, a10 pa_end)
 {
 uba_debug_dma (DBG_DMA_OUT, ba, pa_start, pa_end);
 }
 
 void
-uba_debug_dma_nxm (const char *msg, a10 pa10, uint32 ba, int32 bc)
+uba_debug_dma_nxm (const char *msg, a10 pa10, uint32_t ba, int32_t bc)
 {
 sim_debug (DBG_DMA_NXM, &uba_dev, "%s Error at address=%7o, ba=%o, bc=%o\n", msg, pa10, ba, bc);
 }
 
 /* Evaluate Unibus priority interrupts */
 
-int32 pi_ub_eval (void)
+int32_t pi_ub_eval (void)
 {
-int32 i, lvl;
+int32_t i, lvl;
 
 for (i = lvl = 0; i < UBANUM; i++) {
     if (int_req & ubabr76[i])
@@ -1548,9 +1550,9 @@ return lvl;
         otherwise, returns 0
 */
 
-int32 pi_ub_vec (int32 rlvl, int32 *uba)
+int32_t pi_ub_vec (int32_t rlvl, int32_t *uba)
 {
-int32 i, masked_irq;
+int32_t i, masked_irq;
 
 for (i = masked_irq = 0; i < UBANUM; i++) {
     if ((rlvl == UBCS_GET_HI (ubcs[i])) &&              /* req on hi level? */
@@ -1574,13 +1576,13 @@ return 0;
 
 /* Unibus adapter map routines */
 
-t_stat ubmap_rd (int32 *val, int32 pa, int32 mode)
+t_stat ubmap_rd (int32_t *val, int32_t pa, int32_t mode)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) mode;
 
-int32 n = iocmap[GET_IOUBA (pa)];
+int32_t n = iocmap[GET_IOUBA (pa)];
 
 if (n < 0)
     ABORT (STOP_ILLIOC);
@@ -1588,13 +1590,13 @@ if (n < 0)
 return SCPE_OK;
 }
 
-t_stat ubmap_wr (int32 val, int32 pa, int32 mode)
+t_stat ubmap_wr (int32_t val, int32_t pa, int32_t mode)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) mode;
 
-int32 n = iocmap[GET_IOUBA (pa)];
+int32_t n = iocmap[GET_IOUBA (pa)];
 
 if (n < 0)
     ABORT (STOP_ILLIOC);
@@ -1604,13 +1606,13 @@ return SCPE_OK;
 
 /* Unibus adapter control/status routines */
 
-t_stat ubs_rd (int32 *val, int32 pa, int32 mode)
+t_stat ubs_rd (int32_t *val, int32_t pa, int32_t mode)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) mode;
 
-int32 n = iocmap[GET_IOUBA (pa)];
+int32_t n = iocmap[GET_IOUBA (pa)];
 
 if (n < 0)
     ABORT (STOP_ILLIOC);
@@ -1622,13 +1624,13 @@ if (int_req & ubabr54[n])
 return SCPE_OK;
 }
 
-t_stat ubs_wr (int32 val, int32 pa, int32 mode)
+t_stat ubs_wr (int32_t val, int32_t pa, int32_t mode)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) mode;
 
-int32 n = iocmap[GET_IOUBA (pa)];
+int32_t n = iocmap[GET_IOUBA (pa)];
 
 if (n < 0)
     ABORT (STOP_ILLIOC);
@@ -1662,7 +1664,7 @@ return SCPE_OK;
 
 /* Unibus adapter read zero/write ignore routines */
 
-t_stat rd_zro (int32 *val, int32 pa, int32 mode)
+t_stat rd_zro (int32_t *val, int32_t pa, int32_t mode)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -1673,7 +1675,7 @@ t_stat rd_zro (int32 *val, int32 pa, int32 mode)
 return SCPE_OK;
 }
 
-t_stat wr_nop (int32 val, int32 pa, int32 mode)
+t_stat wr_nop (int32_t val, int32_t pa, int32_t mode)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -1686,13 +1688,13 @@ return SCPE_OK;
 
 /* Simulator interface routines */
 
-t_stat uba_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat uba_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) sw;
 
-int32 uba = uptr - uba_unit;
+int32_t uba = uptr - uba_unit;
 
 if (addr >= UMAP_MEMSIZE)
     return SCPE_NXM;
@@ -1700,17 +1702,17 @@ if (addr >= UMAP_MEMSIZE)
 return SCPE_OK;
 }
 
-t_stat uba_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat uba_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) sw;
 
-int32 uba = uptr - uba_unit;
+int32_t uba = uptr - uba_unit;
 
 if (addr >= UMAP_MEMSIZE)
     return SCPE_NXM;
-ubmap[uba][addr] = (int32) val & UMAP_MASK;
+ubmap[uba][addr] = (int32_t) val & UMAP_MASK;
 return SCPE_OK;
 }
 
@@ -1720,7 +1722,7 @@ t_stat uba_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i, uba;
+int32_t i, uba;
 
 int_req = 0;
 for (uba = 0; uba < UBANUM; uba++) {
@@ -1734,7 +1736,7 @@ return SCPE_OK;
 
 /* Change device address */
 
-t_stat set_addr (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_addr (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1742,7 +1744,7 @@ t_stat set_addr (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newba;
+uint32_t newba;
 t_stat r;
 
 if (cptr == NULL)
@@ -1755,12 +1757,12 @@ if (dptr == NULL)
 dibp = (DIB *) dptr->ctxt;
 if (dibp == NULL)
     return SCPE_IERR;
-newba = (uint32) get_uint (cptr, 8, PAMASK, &r);        /* get new */
+newba = (uint32_t) get_uint (cptr, 8, PAMASK, &r);      /* get new */
 if ((r != SCPE_OK) || (newba == dibp->ba))
     return r;
 if (GET_IOUBA (newba) != GET_IOUBA (dibp->ba))
     return SCPE_ARG;
-if (newba % ((uint32) val))                             /* check modulus */
+if (newba % ((uint32_t) val))                           /* check modulus */
     return SCPE_ARG;
 dibp->ba = newba;                                       /* store */
 autcon_enb = 0;                                         /* autoconfig off */
@@ -1769,7 +1771,7 @@ return SCPE_OK;
 
 /* Show device address */
 
-t_stat show_addr (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_addr (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1800,7 +1802,7 @@ return SCPE_OK;
 
 /* Change device vector */
 
-t_stat set_vec (UNIT *uptr, int32 arg, const char *cptr, void *desc)
+t_stat set_vec (UNIT *uptr, int32_t arg, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1809,7 +1811,7 @@ t_stat set_vec (UNIT *uptr, int32 arg, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newvec;
+uint32_t newvec;
 t_stat r;
 
 if (cptr == NULL)
@@ -1822,7 +1824,7 @@ if (dptr == NULL)
 dibp = (DIB *) dptr->ctxt;
 if (dibp == NULL)
     return SCPE_IERR;
-newvec = (uint32) get_uint (cptr, 8, 01000, &r);
+newvec = (uint32_t) get_uint (cptr, 8, 01000, &r);
 if ((r != SCPE_OK) ||
     ((newvec + (dibp->vnum * 4)) >= (01000)) ||
     (newvec & ((dibp->vnum > 1)? 07: 03)))
@@ -1834,7 +1836,7 @@ return SCPE_OK;
 
 /* Show device vector */
 
-t_stat show_vec (FILE *st, UNIT *uptr, int32 arg, const void *desc)
+t_stat show_vec (FILE *st, UNIT *uptr, int32_t arg, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1842,7 +1844,7 @@ t_stat show_vec (FILE *st, UNIT *uptr, int32 arg, const void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j, vec, numvec, br_bit;
+uint32_t i, j, vec, numvec, br_bit;
 
 if (uptr == NULL)
     return SCPE_IERR;
@@ -1878,7 +1880,7 @@ return SCPE_OK;
 
 /* Show vector for terminal multiplexor */
 
-t_stat show_vec_mux (FILE *st, UNIT *uptr, int32 arg, const void *desc)
+t_stat show_vec_mux (FILE *st, UNIT *uptr, int32_t arg, const void *desc)
 {
 const TMXR *mp = (const TMXR *) desc;
 
@@ -1891,7 +1893,7 @@ return show_vec (st, uptr, ((mp->lines * 2) / arg), desc);
 
 static bool dev_conflict (DIB *curr)
 {
-uint32 i, end;
+uint32_t i, end;
 DEVICE *dptr;
 DIB *dibp;
 
@@ -1915,7 +1917,7 @@ return false;
 
 /* Build interrupt tables */
 
-static void build_int_vec (int32 vloc, int32 ivec, int32 (*iack)(void) )
+static void build_int_vec (int32_t vloc, int32_t ivec, int32_t (*iack)(void) )
 {
 if (iack != NULL)
     int_ack[vloc] = iack;
@@ -1927,7 +1929,7 @@ return;
 
 t_stat build_dib_tab (void)
 {
-int32 i, j, k;
+int32_t i, j, k;
 DEVICE *dptr;
 DIB *dibp;
 
@@ -1965,7 +1967,7 @@ return SCPE_OK;
 
 /* Show dib_tab */
 
-t_stat show_iospace (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_iospace (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1973,7 +1975,7 @@ t_stat show_iospace (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) val;
 (void) desc;
 
-int32 i, j, done = 0;
+int32_t i, j, done = 0;
 DEVICE *dptr;
 DIB *dibt;
 
@@ -2045,12 +2047,12 @@ return SCPE_OK;
 
 typedef struct {
     const char  *dnam[AUTO_MAXC];
-    int32       numc;
-    int32       numv;
-    uint32      amod;
-    uint32      vmod;
-    uint32      fixa[AUTO_MAXC];
-    uint32      fixv[AUTO_MAXC];
+    int32_t     numc;
+    int32_t     numv;
+    uint32_t    amod;
+    uint32_t    vmod;
+    uint32_t    fixa[AUTO_MAXC];
+    uint32_t    fixv[AUTO_MAXC];
     } AUTO_CON;
 
 AUTO_CON auto_tab[] = {/*c  #v  am vm  fxa   fxv */
@@ -2284,14 +2286,14 @@ AUTO_CON auto_tab[] = {/*c  #v  am vm  fxa   fxv */
 #define DEV_NEXUS 0
 #endif
 #endif
-t_stat auto_config (const char *name, int32 nctrl)
+t_stat auto_config (const char *name, int32_t nctrl)
 {
-uint32 csr = IOPAGEBASE + AUTO_CSRBASE;
-uint32 vec = AUTO_VECBASE;
+uint32_t csr = IOPAGEBASE + AUTO_CSRBASE;
+uint32_t vec = AUTO_VECBASE;
 AUTO_CON *autp;
 DEVICE *dptr;
 DIB *dibp;
-uint32 j, vmask, amask;
+uint32_t j, vmask, amask;
 
 if (autcon_enb == 0)                                    /* enabled? */
     return SCPE_OK;
@@ -2333,7 +2335,7 @@ for (autp = auto_tab; autp->numc >= 0; autp++) {        /* loop thru table */
                     dibp->vec = autp->fixv[j];          /* use it */
                 }
             else {                                      /* no fixed left */
-                uint32 numv = abs (autp->numv);         /* get num vec */
+                uint32_t numv = abs (autp->numv);       /* get num vec */
                 vmask = autp->vmod - 1;
                 vec = (vec + vmask) & ~vmask;           /* align vector */
                 if (autp->numv > 0)
@@ -2351,7 +2353,7 @@ return SCPE_OK;
 
 /* Set address floating */
 
-t_stat set_addr_flt (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_addr_flt (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

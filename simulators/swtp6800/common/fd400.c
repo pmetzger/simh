@@ -134,7 +134,9 @@
         (for unit 0), and optionally "set lfd-4001 enabled" (for unit 1) and so on.
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "swtp_defs.h"
 
 #define UNIT_V_ENABLE   (UNIT_V_UF + 0) /* Write Enable */
@@ -162,19 +164,19 @@ t_stat fd400_attach (UNIT *, const char *);
 
 /* SS-50 I/O address space functions */
 
-int32 fd400_fdcstatus(int32 io, int32 data);
-int32 fd400_cstatus(int32 io, int32 data);
-int32 fd400_data(int32 io, int32 data);
-int32 fd400_cursect(int32 io, int32 data);
-int32 fd400_startrw(int32 io, int32 data);
+int32_t fd400_fdcstatus(int32_t io, int32_t data);
+int32_t fd400_cstatus(int32_t io, int32_t data);
+int32_t fd400_data(int32_t io, int32_t data);
+int32_t fd400_cursect(int32_t io, int32_t data);
+int32_t fd400_startrw(int32_t io, int32_t data);
 
 /* Local Variables */
 
 struct {
-    int32   cur_dsk;                        /* Currently selected drive */
-    int32   SectorPulse;                    // Head positioned at beginning of sector
-    int32   StepBit;
-    uint8   FillChar;
+    int32_t cur_dsk;                        /* Currently selected drive */
+    int32_t SectorPulse;                    // Head positioned at beginning of sector
+    int32_t StepBit;
+    uint8_t FillChar;
 } fd400 = {0};
 
 /* Floppy Disk Controller data structures
@@ -263,9 +265,9 @@ t_stat fd400_dsk_reset (DEVICE *dptr)
 
 /* FDC STATUS register $CC03 */
 
-int32 fd400_fdcstatus(int32 io, int32 data)
+int32_t fd400_fdcstatus(int32_t io, int32_t data)
 {
-    int32 val;
+    int32_t val;
     UNIT * uptr;
 
     uptr = &fd400_dsk_unit[fd400.cur_dsk];
@@ -322,7 +324,7 @@ int32 fd400_fdcstatus(int32 io, int32 data)
 
 /* CONTROLLER STATUS register (read $CC00)*/
 
-int32 fd400_cstatus(int32 io, int32 data)
+int32_t fd400_cstatus(int32_t io, int32_t data)
 {
     /* Memory-mapped I/O callback signature.
        This implementation does not use every parameter. */
@@ -336,12 +338,12 @@ int32 fd400_cstatus(int32 io, int32 data)
 
 /* DATA register */
 
-int32 fd400_data(int32 io, int32 data)
+int32_t fd400_data(int32_t io, int32_t data)
 {
-    uint32 loc;
+    uint32_t loc;
     UNIT * uptr = &fd400_dsk_unit[fd400.cur_dsk];
-    uint8 dsk_sect[SECT_SIZE]; // image of sector read/saved in disk image
-    uint8 * p = (uint8 *)(uptr->filebuf); // sector byte stream as seen by program
+    uint8_t dsk_sect[SECT_SIZE]; // image of sector read/saved in disk image
+    uint8_t * p = (uint8_t *)(uptr->filebuf); // sector byte stream as seen by program
     int i, n;
 
     if ((uptr->flags & UNIT_ATT) == 0) return 0; // not attached
@@ -427,7 +429,7 @@ int32 fd400_data(int32 io, int32 data)
     loc=(TRK * NUM_SECT + SECT) * SECT_SIZE;
     if (loc >= uptr->capac) {
        // writing past image file current size -> extend disk image size
-       uint8 buf[SECT_SIZE];
+       uint8_t buf[SECT_SIZE];
        memset(buf, 0, sizeof(buf));
        sim_fseek(uptr->fileref, uptr->capac, SEEK_SET);
        while (uptr->capac <= loc) {
@@ -475,7 +477,7 @@ int32 fd400_data(int32 io, int32 data)
 
 /* CURRENT SECTOR / FILL CHAR REGISTER */
 
-int32 fd400_cursect(int32 io, int32 data)
+int32_t fd400_cursect(int32_t io, int32_t data)
 {
     UNIT * uptr;
 
@@ -496,7 +498,7 @@ int32 fd400_cursect(int32 io, int32 data)
 
 /*  RECEIVER RESTART / WRITE PULSE $CC00 */
 
-int32 fd400_startrw(int32 io, int32 data)
+int32_t fd400_startrw(int32_t io, int32_t data)
 {
     /* Memory-mapped I/O callback signature.
        This implementation does not use every parameter. */

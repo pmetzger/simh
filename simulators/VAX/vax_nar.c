@@ -27,21 +27,23 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_ether.h"
 
-uint32 nar[NARSIZE];                                    /* network address ROM */
+uint32_t nar[NARSIZE];                                  /* network address ROM */
 ETH_MAC nar_mac = {0x08, 0x00, 0x2B, 0xCC, 0xDD, 0xEE};
 bool nar_init = false;
 
-int32 nar_rd (int32 pa);
-t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
-t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
+int32_t nar_rd (int32_t pa);
+t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
 t_stat nar_reset (DEVICE *dptr);
-t_stat nar_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat nar_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *nar_description (DEVICE *dptr);
-t_stat nar_showmac (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat nar_setmac (UNIT* uptr, int32 val, const char* cptr, void* desc);
+t_stat nar_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat nar_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc);
 
 /* NAR data structures
 
@@ -73,13 +75,13 @@ DEVICE nar_dev = {
 
 /* NAR read */
 
-int32 nar_rd (int32 pa)
+int32_t nar_rd (int32_t pa)
 {
-int32 rg = (pa >> 2) & 0x1F;
+int32_t rg = (pa >> 2) & 0x1F;
 return nar[rg];
 }
 
-t_stat nar_showmac (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat nar_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -94,7 +96,7 @@ fprintf (st, "MAC=%s", buffer);
 return SCPE_OK;
 }
 
-t_stat nar_setmac (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat nar_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -115,14 +117,14 @@ return SCPE_OK;
 
 /* NAR examine */
 
-t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -134,20 +136,20 @@ return SCPE_OK;
 
 /* NAR deposit */
 
-t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= NARSIZE)
     return SCPE_NXM;
-nar[addr] = (uint32) val;
+nar[addr] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -159,7 +161,7 @@ t_stat nar_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint16 i, c, w;
+uint16_t i, c, w;
 t_stat r;
 
 if (!nar_init) {                                        /* set initial MAC */
@@ -170,9 +172,9 @@ if (!nar_init) {                                        /* set initial MAC */
     }
 
 for (i = c = 0; i < 6; i += 2) {
-    c = c + c + ((uint32)((uint32)c + (uint32)c) > 0xFFFF ? 1 : 0);
+    c = c + c + ((uint32_t)((uint32_t)c + (uint32_t)c) > 0xFFFF ? 1 : 0);
     w = (nar_mac[i] << 8) | nar_mac[i + 1];
-    c = c + w + ((uint32)((uint32)c + (uint32)w) > 0xFFFF ? 1 : 0);
+    c = c + w + ((uint32_t)((uint32_t)c + (uint32_t)w) > 0xFFFF ? 1 : 0);
     }
 nar[0] = nar_mac[0];                                    /* MAC Address */
 nar[1] = nar_mac[1];
@@ -209,7 +211,7 @@ nar[31] = 0xAA;
 return SCPE_OK;
 }
 
-t_stat nar_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat nar_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

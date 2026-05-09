@@ -33,6 +33,8 @@
    25-Apr-03    RMS     Revised for extended file support
 */
 
+#include <stdint.h>
+
 #include "sds_defs.h"
 #include "sim_tmxr.h"
 
@@ -40,33 +42,33 @@
 #define TT_TB           072
 #define TT_BS           032
 
-extern uint32 xfr_req;
-extern int32 stop_invins, stop_invdev, stop_inviop;
-int32 ptr_sor = 0;                                      /* start of rec */
-int32 ptr_stopioe = 0;                                  /* no stop on err */
-int32 ptp_ldr = 0;                                      /* no leader */
-int32 ptp_stopioe = 1;
-int32 tto_ldr = 0;                                      /* no leader */
-int32 tto_retry = 0;                                    /* retry due to stall */
+extern uint32_t xfr_req;
+extern int32_t stop_invins, stop_invdev, stop_inviop;
+int32_t ptr_sor = 0;                                    /* start of rec */
+int32_t ptr_stopioe = 0;                                /* no stop on err */
+int32_t ptp_ldr = 0;                                    /* no leader */
+int32_t ptp_stopioe = 1;
+int32_t tto_ldr = 0;                                    /* no leader */
+int32_t tto_retry = 0;                                  /* retry due to stall */
 DSPT std_tplt[] = { { 1, 0 }, { 0, 0 }  };              /* template */
 
-t_stat ptr (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat ptr (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
-t_stat ptr_boot (int32 unitno, DEVICE *dptr);
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr);
 void ptr_set_err (void);
-t_stat ptp (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat ptp (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptp_reset (DEVICE *dptr);
-t_stat ptp_out (int32 dat);
+t_stat ptp_out (int32_t dat);
 void ptp_set_err (void);
-t_stat tti (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat tti (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat tti_svc (UNIT *uptr);
 t_stat tti_reset (DEVICE *dptr);
-t_stat tto (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat tto (uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat tto_svc (UNIT *uptr);
 t_stat tto_reset (DEVICE *dptr);
-t_stat tto_out (int32 dat);
+t_stat tto_out (int32_t dat);
 
 /* PTR data structures
 
@@ -226,9 +228,9 @@ DEVICE tto_dev = {
    is ignored; leader after the current record sets channel EndOfRecord.
 */
 
-t_stat ptr (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat ptr (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-int32 new_ch;
+int32_t new_ch;
 
 switch (fnc) {                                          /* case function */
 
@@ -273,7 +275,7 @@ t_stat ptr_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp;
+int32_t temp;
 
 if ((ptr_unit.flags & UNIT_ATT) == 0) {                 /* attached? */
     ptr_set_err ();                                     /* no, err, disc */
@@ -331,14 +333,14 @@ return SCPE_OK;
 
 /* Boot routine - simulate FILL console command */
 
-t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
 (void) unitno;
 (void) dptr;
 
-extern uint32 P, M[];
+extern uint32_t P, M[];
 
 M[0] = 077777771;                                       /* -7B */
 M[1] = 007100000;                                       /* LDX 0 */
@@ -363,9 +365,9 @@ return SCPE_OK;
    it can never cause a channel rate error; if no data is available, it waits.
 */
 
-t_stat ptp (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat ptp (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-int32 new_ch;
+int32_t new_ch;
 
 switch (fnc) {                                          /* case function */
 
@@ -409,7 +411,7 @@ t_stat ptp_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 i;
+int32_t i;
 t_stat r = SCPE_OK;
 
 if (ptp_ldr) {                                          /* need leader? */
@@ -425,7 +427,7 @@ return r;
 
 /* Punch I/O */
 
-t_stat ptp_out (int32 dat)
+t_stat ptp_out (int32_t dat)
 {
 if ((ptp_unit.flags & UNIT_ATT) == 0) {                 /* attached? */
     ptp_set_err ();                                     /* no, disc, err */
@@ -482,9 +484,9 @@ return SCPE_OK;
    never cause a channel rate error; if no data is available, it waits.
 */
 
-t_stat tti (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat tti (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-int32 new_ch;
+int32_t new_ch;
 
 switch (fnc) {                                          /* case function */
 
@@ -523,7 +525,7 @@ t_stat tti_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp;
+int32_t temp;
 
 sim_activate (&tti_unit, tti_unit.wait);                /* continue poll */
 if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)              /* no char or error? */
@@ -574,9 +576,9 @@ return SCPE_OK;
    connection, so the output routine must be able to try output repeatedly.
 */
 
-t_stat tto (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat tto (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-int32 new_ch;
+int32_t new_ch;
 
 switch (fnc) {                                          /* case function */
 
@@ -629,9 +631,9 @@ if (tto_retry == 0)                                     /* now no retry? */
 return SCPE_OK;
 }
 
-t_stat tto_out (int32 dat)
+t_stat tto_out (int32_t dat)
 {
-int32 asc;
+int32_t asc;
 t_stat r;
 
 tto_retry = 0;                                          /* assume no retry */

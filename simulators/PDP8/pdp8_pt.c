@@ -34,20 +34,22 @@
    30-Mar-98    RMS     Added RIM loader as PTR bootstrap
 */
 
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
-extern int32 int_req, int_enable, dev_done, stop_inst;
+extern int32_t int_req, int_enable, dev_done, stop_inst;
 
-int32 ptr_stopioe = 0, ptp_stopioe = 0;                 /* stop on error */
+int32_t ptr_stopioe = 0, ptp_stopioe = 0;               /* stop on error */
 
-int32 ptr (int32 IR, int32 AC);
-int32 ptp (int32 IR, int32 AC);
+int32_t ptr (int32_t IR, int32_t AC);
+int32_t ptp (int32_t IR, int32_t AC);
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
 t_stat ptp_reset (DEVICE *dptr);
 t_stat ptp_attach (UNIT *uptr, const char *cptr);
-t_stat ptr_boot (int32 unitno, DEVICE *dptr);
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr);
 const char *ptr_description (DEVICE *dptr);
 const char *ptp_description (DEVICE *dptr);
 
@@ -132,7 +134,7 @@ DEVICE ptp_dev = {
 
 /* Paper tape reader: IOT routine */
 
-int32 ptr (int32 IR, int32 AC)
+int32_t ptr (int32_t IR, int32_t AC)
 {
 switch (IR & 07) {                                      /* decode IR<9:11> */
 
@@ -171,7 +173,7 @@ t_stat ptr_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp;
+int32_t temp;
 
 if ((ptr_unit.flags & UNIT_ATT) == 0)                   /* attached? */
     return IORETURN (ptr_stopioe, SCPE_UNATT);
@@ -210,7 +212,7 @@ return SCPE_OK;
 
 /* Paper tape punch: IOT routine */
 
-int32 ptp (int32 IR, int32 AC)
+int32_t ptp (int32_t IR, int32_t AC)
 {
 switch (IR & 07) {                                      /* decode IR<9:11> */
 
@@ -288,9 +290,9 @@ return attach_unit (uptr, cptr);
 /* Bootstrap routine */
 
 #define BOOT_START 07756
-#define BOOT_LEN (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN (sizeof (boot_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     06014,                      /* 7756, RFC */
     06011,                      /* 7757, LOOP, RSF */
     05357,                      /* JMP .-1 */
@@ -311,7 +313,7 @@ static const uint16 boot_rom[] = {
     05301                       /* 7777, JMP 7701 */
     };
 
-t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -319,7 +321,7 @@ t_stat ptr_boot (int32 unitno, DEVICE *dptr)
 (void) dptr;
 
 size_t i;
-extern uint16 M[];
+extern uint16_t M[];
 
 if (ptr_dib.dev != DEV_PTR)                             /* only std devno */
     return STOP_NOTSTD;

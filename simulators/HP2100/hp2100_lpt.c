@@ -271,6 +271,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -392,9 +394,9 @@ typedef enum {
 */
 
 typedef struct {
-    uint32  line_length;                        /* the maximum number of print positions */
-    uint32  char_set;                           /* the size of the character set */
-    uint32  vfu_channels;                       /* the number of VFU channels */
+    uint32_t line_length;                       /* the maximum number of print positions */
+    uint32_t char_set;                          /* the size of the character set */
+    uint32_t vfu_channels;                      /* the number of VFU channels */
     bool    not_ready;                          /* true if the printer reports a separate not ready status */
     bool    overprints;                         /* true if the printer supports overprinting */
     bool    autoprints;                         /* true if the printer automatically prints on buffer overflow */
@@ -430,9 +432,9 @@ static const PRINTER_PROPS print_props [] = {   /* printer properties, indexed b
 */
 
 typedef struct {
-    int32  buffer_load;                         /* per-character transfer time */
-    int32  print;                               /* print time */
-    int32  advance;                             /* paper advance time per line */
+    int32_t buffer_load;                        /* per-character transfer time */
+    int32_t print;                              /* print time */
+    int32_t advance;                            /* paper advance time per line */
     } DELAY_PROPS;
 
 static const DELAY_PROPS real_times [] = {      /* real-time delays, indexed by PRINTER_TYPE */
@@ -536,17 +538,17 @@ static CARD_STATE lpt;                          /* per-card state */
 static bool paper_fault     = true;             /* true if the printer is out of paper */
 static bool tape_fault      = false;            /* true if there is no punch in a commanded VFU channel */
 static bool offline_pending = false;            /* true if an offline request is waiting for the printer to finish */
-static uint32 overprint_char  = DEL;            /* character to use if overprinted */
-static uint32 current_line    = 1;              /* current form line */
-static uint32 buffer_index    = 0;              /* current index into the print buffer */
+static uint32_t overprint_char  = DEL;          /* character to use if overprinted */
+static uint32_t current_line    = 1;            /* current form line */
+static uint32_t buffer_index    = 0;            /* current index into the print buffer */
 
-static uint32 form_length;                      /* form length in lines */
-static uint8  buffer [BUFFER_SIZE];             /* character and paper advance buffer */
-static uint16 VFU [VFU_SIZE];                   /* vertical format unit tape */
+static uint32_t form_length;                    /* form length in lines */
+static uint8_t buffer [BUFFER_SIZE];            /* character and paper advance buffer */
+static uint16_t VFU [VFU_SIZE];                 /* vertical format unit tape */
 static char   vfu_title [LINE_SIZE];            /* descriptive title of the tape currently in the VFU */
 
-static int32  punched_char   = 'O';             /* character to display if VFU channel is punched */
-static int32  unpunched_char = '.';             /* character to display if VFU channel is not punched */
+static int32_t punched_char   = 'O';            /* character to display if VFU channel is punched */
+static int32_t unpunched_char = '.';            /* character to display if VFU channel is not punched */
 
 static const DELAY_PROPS *dlyptr = &fast_times; /* pointer to the event delay times to use */
 
@@ -570,12 +572,12 @@ static void report_error  (FILE *stream);
 static t_stat lp_attach         (UNIT *uptr, const char *cptr);
 static t_stat lp_detach         (UNIT *uptr);
 
-static t_stat lp_set_mode       (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lp_set_model      (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lp_set_on_offline (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lp_set_vfu        (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lp_show_mode      (FILE *st,   UNIT *uptr,  int32 value,      const void *desc);
-static t_stat lp_show_vfu       (FILE *st,   UNIT *uptr,  int32 value,      const void *desc);
+static t_stat lp_set_mode       (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lp_set_model      (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lp_set_on_offline (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lp_set_vfu        (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lp_show_mode      (FILE *st,   UNIT *uptr,  int32_t value,      const void *desc);
+static t_stat lp_show_vfu       (FILE *st,   UNIT *uptr,  int32_t value,      const void *desc);
 
 
 /* Printer local utility routines */
@@ -584,7 +586,7 @@ static void   lp_master_clear (UNIT *uptr);
 static bool lp_set_alarm    (UNIT *uptr);
 static bool lp_set_locality (UNIT *uptr, LOCALITY printer_state);
 static t_stat lp_load_vfu     (UNIT *uptr, FILE *vf);
-static int32  lp_read_line    (FILE *vf,   char *line, uint32 size);
+static int32_t lp_read_line    (FILE *vf,   char *line, uint32_t size);
 
 
 /* Interface SCP data structures */
@@ -1062,10 +1064,10 @@ static t_stat lp_service (UNIT *uptr)
 {
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);                 /* the printer model number */
 const bool         printing = ((lpt.output_word & CN_FORMAT) != 0); /* true if a print command was received */
-static uint32      overprint_index = 0;                             /* the "high-water" mark while overprinting */
-uint8              data_byte, format_byte;
-uint16             channel;
-uint32             line_count, slew_count;
+static uint32_t    overprint_index = 0;                             /* the "high-water" mark while overprinting */
+uint8_t            data_byte, format_byte;
+uint16_t           channel;
+uint32_t           line_count, slew_count;
 
 tprintf (lpt_dev, TRACE_SERV, "Printer service entered\n");
 
@@ -1105,7 +1107,7 @@ else if (lpt.demand == true) {                          /* otherwise if STROBE h
     lpt.demand = false;                                 /*   then deny DEMAND */
     lpt.strobe = false;                                 /*     which resets STROBE */
 
-    data_byte = (uint8) (lpt.output_word & DATA_MASK);  /* only the lower 7 bits are sent to the printer */
+    data_byte = (uint8_t) (lpt.output_word & DATA_MASK); /* only the lower 7 bits are sent to the printer */
 
     if (printing == false) {                            /* if loading the print buffer */
         if (data_byte > '_'                             /*   then if the character is "lowercase" */
@@ -1124,7 +1126,7 @@ else if (lpt.demand == true) {                          /* otherwise if STROBE h
 
             else if (data_byte != ' '                           /* otherwise if we're overprinting a character */
               && data_byte != buffer [buffer_index])            /*   with a different character */
-                buffer [buffer_index] = (uint8) overprint_char; /*     then substitute the overprint character */
+                buffer [buffer_index] = (uint8_t) overprint_char; /*     then substitute the overprint character */
 
             buffer_index++;                             /* increment the buffer index */
 
@@ -1522,7 +1524,7 @@ else {
    cleared.  The unit, character, and descriptor pointers are not used.
 */
 
-static t_stat lp_set_mode (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lp_set_mode (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1569,7 +1571,7 @@ return SCPE_OK;                                         /* mode changes always s
    the real-time delays accordingly.
 */
 
-static t_stat lp_set_model (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lp_set_model (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1617,7 +1619,7 @@ return SCPE_OK;                                         /* allow the reassignmen
        before the printer actually goes offline.
 */
 
-static t_stat lp_set_on_offline (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lp_set_on_offline (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1667,7 +1669,7 @@ return SCPE_OK;                                         /* return operation succ
    load the VFU tape image contained therein.
 */
 
-static t_stat lp_set_vfu (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lp_set_vfu (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1705,7 +1707,7 @@ return result;                                          /* return the result of 
    ignored.  The timing mode and connection mode are printed.
 */
 
-static t_stat lp_show_mode (FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat lp_show_mode (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1741,7 +1743,7 @@ return SCPE_OK;
        appropriate number of channels.
 */
 
-static t_stat lp_show_vfu (FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat lp_show_vfu (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1751,8 +1753,8 @@ static const char header_1 [] = " Ch 1 Ch 2 Ch 3 Ch 4 Ch 5 Ch 6 Ch 7 Ch 8 Ch 9 C
 static const char header_2 [] = " ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----";
 
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);             /* the printer model number */
-const uint32 channel_count = print_props [model].vfu_channels;  /* the count of VFU channels */
-uint32 chan, line, current_channel;
+const uint32_t channel_count = print_props [model].vfu_channels; /* the count of VFU channels */
+uint32_t chan, line, current_channel;
 
 if (value == 0)                                         /* if we're called for a summary display */
     fputs (vfu_title, st);                              /*   then output only the VFU title */
@@ -2058,11 +2060,11 @@ return true;                                            /*   successfully */
 static t_stat lp_load_vfu (UNIT *uptr, FILE *vf)
 {
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);     /* the printer model number */
-uint32             line, channel;
-int32              len;
+uint32_t           line, channel;
+int32_t            len;
 char               buffer [LINE_SIZE], punch [LINE_SIZE], no_punch;
 char               *bptr, *tptr;
-uint16             tape [VFU_SIZE] = { 0 };
+uint16_t           tape [VFU_SIZE] = { 0 };
 
 if (vf == NULL) {                                       /* if the standard VFU is requested */
     tape [ 1] = VFU_CHANNEL_1;                          /*   then punch channel 1 for the top of form */
@@ -2204,10 +2206,10 @@ return SCPE_OK;                                         /* the VFU was successfu
        the end-of-line removal.
 */
 
-static int32 lp_read_line (FILE *vf, char *line, uint32 size)
+static int32_t lp_read_line (FILE *vf, char *line, uint32_t size)
 {
 char  *result;
-int32 len = 0;
+int32_t len = 0;
 
 while (len == 0) {
     result = fgets (line, size, vf);                    /* get the next line from the file */
@@ -2230,7 +2232,7 @@ while (len == 0) {
 
     if (result != NULL) {                               /* if one was found */
         *result = '\0';                                 /*   then truncate the line at that point */
-        len = (int32) (result - line);                  /*     and recalculate the line length */
+        len = (int32_t) (result - line);                /*     and recalculate the line length */
         }
     }
 

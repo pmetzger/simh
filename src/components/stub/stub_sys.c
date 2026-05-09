@@ -26,12 +26,14 @@
    21-Apr-20    LB      New simulator.
 */
 
+#include <stdint.h>
+
 #include "stub_defs.h"
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 char sim_name[] = "Stub";
 
-uint16 M[040000];
+uint16_t M[040000];
 REG *sim_PC = &cpu_reg[0];
 
 DEVICE *sim_devices[] = {
@@ -65,7 +67,7 @@ t_stat build_dev_tab (void)
 }
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-                   UNIT *uptr, int32 sw)
+                   UNIT *uptr, int32_t sw)
 {
   /* Generic symbolic-print callback signature.
      This implementation does not use every parameter. */
@@ -79,7 +81,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
 }
 
 t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr,
-                  t_value *val, int32 sw)
+                  t_value *val, int32_t sw)
 {
   /* Generic symbolic-parse callback signature.
      This implementation does not use every parameter. */

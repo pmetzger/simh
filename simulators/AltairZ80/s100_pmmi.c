@@ -42,6 +42,8 @@
    additional information.
 */
 
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
@@ -109,31 +111,31 @@
 
 typedef struct {
     PNP_INFO pnp;        /* Must be first    */
-    int32 conn;          /* Connected Status */
+    int32_t conn;        /* Connected Status */
     TMLN *tmln;          /* TMLN pointer     */
     TMXR *tmxr;          /* TMXR pointer     */
-    int32 baud;          /* Baud rate        */
-    int32 dtr;           /* DTR Status       */
-    int32 txp;           /* Transmit Pending */
-    int32 stb;           /* Status Buffer    */
-    int32 ireg0;         /* In Register 0    */
-    int32 ireg1;         /* In Register 1    */
-    int32 ireg2;         /* In Register 2    */
-    int32 ireg3;         /* In Register 3    */
-    int32 oreg0;         /* Out Register 0   */
-    int32 oreg1;         /* Out Register 1   */
-    int32 oreg2;         /* Out Register 2   */
-    int32 oreg3;         /* Out Register 3   */
-    int32 intmsk;        /* Interrupt Mask   */
-    uint32 ptimer;       /* Next Pulse Timer */
-    uint32 dtimer;       /* Next DT Timer    */
-    uint32 flags;        /* Original Flags   */
+    int32_t baud;        /* Baud rate        */
+    int32_t dtr;         /* DTR Status       */
+    int32_t txp;         /* Transmit Pending */
+    int32_t stb;         /* Status Buffer    */
+    int32_t ireg0;       /* In Register 0    */
+    int32_t ireg1;       /* In Register 1    */
+    int32_t ireg2;       /* In Register 2    */
+    int32_t ireg3;       /* In Register 3    */
+    int32_t oreg0;       /* Out Register 0   */
+    int32_t oreg1;       /* Out Register 1   */
+    int32_t oreg2;       /* Out Register 2   */
+    int32_t oreg3;       /* Out Register 3   */
+    int32_t intmsk;      /* Interrupt Mask   */
+    uint32_t ptimer;     /* Next Pulse Timer */
+    uint32_t dtimer;     /* Next DT Timer    */
+    uint32_t flags;      /* Original Flags   */
 } PMMI_CTX;
 
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
 
 static const char* pmmi_description(DEVICE *dptr);
@@ -141,14 +143,14 @@ static t_stat pmmi_svc(UNIT *uptr);
 static t_stat pmmi_reset(DEVICE *dptr);
 static t_stat pmmi_attach(UNIT *uptr, const char *cptr);
 static t_stat pmmi_detach(UNIT *uptr);
-static t_stat pmmi_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat pmmi_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc);
+static t_stat pmmi_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat pmmi_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc);
 static t_stat pmmi_config_line(UNIT *uptr);
-static int32 pmmi_io(int32 addr, int32 io, int32 data);
-static int32 pmmi_reg0(int32 io, int32 data);
-static int32 pmmi_reg1(int32 io, int32 data);
-static int32 pmmi_reg2(int32 io, int32 data);
-static int32 pmmi_reg3(int32 io, int32 data);
+static int32_t pmmi_io(int32_t addr, int32_t io, int32_t data);
+static int32_t pmmi_reg0(int32_t io, int32_t data);
+static int32_t pmmi_reg1(int32_t io, int32_t data);
+static int32_t pmmi_reg2(int32_t io, int32_t data);
+static int32_t pmmi_reg3(int32_t io, int32_t data);
 
 /* Debug Flags */
 static DEBTAB pmmi_dt[] = {
@@ -300,9 +302,9 @@ static t_stat pmmi_reset(DEVICE *dptr)
 
 static t_stat pmmi_svc(UNIT *uptr)
 {
-    int32 c,s,ireg2;
+    int32_t c,s,ireg2;
     t_stat r = SCPE_OK;
-    uint32 ms;
+    uint32_t ms;
 
     /* Check for new incoming connection */
     if (uptr->flags & UNIT_ATT) {
@@ -481,14 +483,14 @@ static t_stat pmmi_detach(UNIT *uptr)
     return SCPE_UNATT;
 }
 
-static t_stat pmmi_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat pmmi_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) value;
     (void) desc;
 
-    int32 baud;
+    int32_t baud;
     t_stat r = SCPE_ARG;
 
     if (!(uptr->flags & UNIT_ATT)) {
@@ -507,7 +509,7 @@ static t_stat pmmi_set_baud(UNIT *uptr, int32 value, const char *cptr, void *des
     return r;
 }
 
-static t_stat pmmi_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat pmmi_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -584,9 +586,9 @@ static t_stat pmmi_config_line(UNIT *uptr)
     return r;
 }
 
-static int32 pmmi_io(int32 addr, int32 io, int32 data)
+static int32_t pmmi_io(int32_t addr, int32_t io, int32_t data)
 {
-    int32 r = 0;
+    int32_t r = 0;
 
     addr &= 0xff;
     data &= 0xff;
@@ -618,9 +620,9 @@ static int32 pmmi_io(int32 addr, int32 io, int32 data)
     return(r);
 }
 
-static int32 pmmi_reg0(int32 io, int32 data)
+static int32_t pmmi_reg0(int32_t io, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     if (io == IO_RD) {
         r = pmmi_ctx.ireg0;
@@ -648,9 +650,9 @@ static int32 pmmi_reg0(int32 io, int32 data)
     return(r);
 }
 
-static int32 pmmi_reg1(int32 io, int32 data)
+static int32_t pmmi_reg1(int32_t io, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     if (io == IO_RD) {
         r = pmmi_ctx.ireg1;
@@ -666,9 +668,9 @@ static int32 pmmi_reg1(int32 io, int32 data)
     return(r);
 }
 
-static int32 pmmi_reg2(int32 io, int32 data)
+static int32_t pmmi_reg2(int32_t io, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     if (io == IO_RD) {
         r = pmmi_ctx.ireg2;
@@ -692,9 +694,9 @@ static int32 pmmi_reg2(int32 io, int32 data)
     return(r);
 }
 
-static int32 pmmi_reg3(int32 io, int32 data)
+static int32_t pmmi_reg3(int32_t io, int32_t data)
 {
-    int32 s;
+    int32_t s;
 
     if (io == IO_RD) {
         pmmi_ctx.intmsk = pmmi_ctx.oreg2;  /* Load int mask from rate generator */

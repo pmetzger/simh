@@ -39,6 +39,7 @@
 #include "sigma_io_defs.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Constants */
 
@@ -95,19 +96,19 @@
 #define RADV_BADS       0x20                            /* bad sector */
 #define RADV_WPE        0x10
 
-#define GET_PSC(x)      ((int32) fmod (sim_gtime() / ((double) (x * RAD_WDSC)), \
+#define GET_PSC(x)      ((int32_t) fmod (sim_gtime() / ((double) (x * RAD_WDSC)), \
                         ((double) rad_tab[rad_model].sctk)))
 
 /* Model table */
 
 typedef struct {
-    uint32        tk_v;                                 /* track extract */
-    uint32        tk_m;
-    uint32        sc_v;                                 /* sector extract */
-    uint32        sc_m;
-    uint32        sctk;                                 /* sectors/track */
-    uint32        tkun;                                 /* tracks/unit */
-    uint32        nbys;                                 /* bytes of status */
+    uint32_t      tk_v;                                 /* track extract */
+    uint32_t      tk_m;
+    uint32_t      sc_v;                                 /* sector extract */
+    uint32_t      sc_m;
+    uint32_t      sctk;                                 /* sectors/track */
+    uint32_t      tkun;                                 /* tracks/unit */
+    uint32_t      nbys;                                 /* bytes of status */
     } rad_t;
 
 static rad_t rad_tab[] = {
@@ -115,27 +116,27 @@ static rad_t rad_tab[] = {
     { RADA_V_TK3, RADA_M_TK3, RADA_V_SC3, RADA_M_SC3, RAD_SCTK3, RAD_TKUN3, RADS_NBY3 }
     };
 
-uint32 rad_model = RAD_7212;                            /* model */
-uint32 rad_cmd = 0;                                     /* state */
-uint32 rad_flags = 0;                                   /* status flags */
-uint32 rad_ad = 0;                                      /* rad address */
-uint32 rad_wlk = 0;                                     /* write lock */
-uint32 rad_time = 2;                                    /* inter-word time */
+uint32_t rad_model = RAD_7212;                          /* model */
+uint32_t rad_cmd = 0;                                   /* state */
+uint32_t rad_flags = 0;                                 /* status flags */
+uint32_t rad_ad = 0;                                    /* rad address */
+uint32_t rad_wlk = 0;                                   /* write lock */
+uint32_t rad_time = 2;                                  /* inter-word time */
 
-extern uint32 chan_ctl_time;
+extern uint32_t chan_ctl_time;
 
-uint32 rad_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 rad_tio_status (uint32 un);
-uint32 rad_tdv_status (uint32 un);
-t_stat rad_chan_err (uint32 dva, uint32 st);
+uint32_t rad_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t rad_tio_status (uint32_t un);
+uint32_t rad_tdv_status (uint32_t un);
+t_stat rad_chan_err (uint32_t dva, uint32_t st);
 t_stat rad_svc (UNIT *uptr);
 t_stat rad_reset (DEVICE *dptr);
-t_stat rad_settype (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rad_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc);
-bool rad_inv_ad (uint32 *da);
+t_stat rad_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rad_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+bool rad_inv_ad (uint32_t *da);
 bool rad_inc_ad (void);
-bool rad_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st);
-bool rad_wp_trk (uint32 adr);
+bool rad_end_sec (UNIT *uptr, uint32_t lnt, uint32_t exp, uint32_t st);
+bool rad_wp_trk (uint32_t adr);
 
 /* RAD data structures
 
@@ -202,11 +203,11 @@ DEVICE rad_dev = {
    For AIO, the handler must return the unit number
 */
 
-uint32 rad_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t rad_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
-uint32 i;
-uint32 un = DVA_GETUNIT (dva);
-int32 iu;
+uint32_t i;
+uint32_t un = DVA_GETUNIT (dva);
+int32_t iu;
 UNIT *uptr;
 
 if ((un >= RAD_NUMDR) ||                                /* inv unit num? */
@@ -270,12 +271,12 @@ return 0;
 
 t_stat rad_svc (UNIT *uptr)
 {
-uint32 i, sc, da, cmd, wd, wd1, c[4];
-uint32 *fbuf = (uint32 *) uptr->filebuf;
-uint32 un = uptr - rad_unit;
-uint32 dva = rad_dib.dva | un;
-uint32 st;
-int32 t;
+uint32_t i, sc, da, cmd, wd, wd1, c[4];
+uint32_t *fbuf = (uint32_t *) uptr->filebuf;
+uint32_t un = uptr - rad_unit;
+uint32_t dva = rad_dib.dva | un;
+uint32_t st;
+int32_t t;
 
 switch (rad_cmd) {
 
@@ -424,10 +425,10 @@ return SCPE_OK;
    case 4 - transfer done, no length error - return false (sched end state)
 */
 
-bool rad_end_sec (UNIT *uptr, uint32 lnt, uint32 exp, uint32 st)
+bool rad_end_sec (UNIT *uptr, uint32_t lnt, uint32_t exp, uint32_t st)
 {
-uint32 un = uptr - rad_unit;
-uint32 dva = rad_dib.dva | un;
+uint32_t un = uptr - rad_unit;
+uint32_t dva = rad_dib.dva | un;
 
 if (st != CHS_ZBC) {                                    /* end record? */
     if (rad_inc_ad ())                                  /* inc addr, ovf? */
@@ -444,9 +445,9 @@ return false;                                           /* cmd done */
 
 /* RAD status routine */
 
-uint32 rad_tio_status (uint32 un)
+uint32_t rad_tio_status (uint32_t un)
 {
-uint32 i, st;
+uint32_t i, st;
 
 st = DVS_AUTO;                                          /* flags */
 if (sim_is_active (&rad_unit[un]))                      /* active => busy */
@@ -462,9 +463,9 @@ for (i = 0; i < RAD_NUMDR; i++) {                       /* loop thru units */
 return st;
 }
 
-uint32 rad_tdv_status (uint32 un)
+uint32_t rad_tdv_status (uint32_t un)
 {
-uint32 st;
+uint32_t st;
 
 st = rad_flags;
 if (rad_inv_ad (NULL))                                  /* bad address? */
@@ -474,10 +475,10 @@ return st;
 
 /* Validate disk address */
 
-bool rad_inv_ad (uint32 *da)
+bool rad_inv_ad (uint32_t *da)
 {
-uint32 tk = RADA_GETTK (rad_ad);
-uint32 sc = RADA_GETSC (rad_ad);
+uint32_t tk = RADA_GETTK (rad_ad);
+uint32_t sc = RADA_GETSC (rad_ad);
 
 if ((tk >= rad_tab[rad_model].tkun) ||                  /* bad sec or trk? */
     (sc >= rad_tab[rad_model].sctk)) {
@@ -492,8 +493,8 @@ return false;
 
 bool rad_inc_ad (void)
 {
-uint32 tk = RADA_GETTK (rad_ad);
-uint32 sc = RADA_GETSC (rad_ad);
+uint32_t tk = RADA_GETTK (rad_ad);
+uint32_t sc = RADA_GETSC (rad_ad);
 
 sc = sc + 1;                                            /* sector++ */
 if (sc >= rad_tab[rad_model].sctk) {                    /* overflow? */
@@ -509,10 +510,10 @@ return false;
 
 /* Test disk addr for protected tracks */
 
-bool rad_wp_trk (uint32 adr)
+bool rad_wp_trk (uint32_t adr)
 {
-uint32 trk = RADA_GETTK (adr);                          /* track */
-uint32 sw = (trk * RAD_N_WLK) / rad_tab[rad_model].tkun; /* switch num */
+uint32_t trk = RADA_GETTK (adr);                        /* track */
+uint32_t sw = (trk * RAD_N_WLK) / rad_tab[rad_model].tkun; /* switch num */
 
 if ((rad_wlk >> sw) & 1)                                /* switch set? */
     return true;
@@ -521,7 +522,7 @@ return false;
 
 /* Channel error */
 
-t_stat rad_chan_err (uint32 dva, uint32 st)
+t_stat rad_chan_err (uint32_t dva, uint32_t st)
 {
 chan_uen (dva);                                         /* uend */
 if (st < CHS_ERR)
@@ -537,7 +538,7 @@ t_stat rad_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < RAD_NUMDR; i++)
     sim_cancel (&rad_unit[i]);                          /* stop dev thread */
@@ -550,7 +551,7 @@ return SCPE_OK;
 
 /* Set controller type */
 
-t_stat rad_settype (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rad_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -558,7 +559,7 @@ t_stat rad_settype (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < RAD_NUMDR; i++) {                       /* all units unatt? */
     if (rad_unit[i].flags & UNIT_ATT)
@@ -573,7 +574,7 @@ return SCPE_OK;
 
 /* Show controller type */
 
-t_stat rad_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rad_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

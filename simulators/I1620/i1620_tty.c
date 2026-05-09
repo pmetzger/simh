@@ -39,6 +39,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i1620_defs.h"
 
 #define NUM_1_DIGIT true /* indicate numeric output will use single digit format (tfm) */
@@ -51,11 +53,11 @@
 #define UTTI            1
 #define UTTO            0
 
-uint32 tti_unlock = 0;                                  /* expecting input */
-uint32 tti_flag = 0;                                    /* flag typed */
-int32 tto_col = 1;                                      /* one-based, char loc to print next */
+uint32_t tti_unlock = 0;                                /* expecting input */
+uint32_t tti_flag = 0;                                  /* flag typed */
+int32_t tto_col = 1;                                    /* one-based, char loc to print next */
 
-uint8 tto_tabs[TTO_COLMAX + 1] = {  /* Zero-based access, one-based UI */
+uint8_t tto_tabs[TTO_COLMAX + 1] = { /* Zero-based access, one-based UI */
  0,0,0,0,0,0,0,0,
  1,0,0,0,0,0,0,0,
  1,0,0,0,0,0,0,0,
@@ -69,19 +71,19 @@ uint8 tto_tabs[TTO_COLMAX + 1] = {  /* Zero-based access, one-based UI */
  1
 };
 
-extern uint8 M[MAXMEMSIZE];
-extern uint8 ind[NUM_IND];
+extern uint8_t M[MAXMEMSIZE];
+extern uint8_t ind[NUM_IND];
 extern UNIT cpu_unit;
-extern uint32 io_stop;
-extern uint32 cpuio_inp, cpuio_opc, cpuio_cnt, PAR;
+extern uint32_t io_stop;
+extern uint32_t cpuio_inp, cpuio_opc, cpuio_cnt, PAR;
 
 t_stat tto_num (void);
-t_stat tto_write (uint32 c);
+t_stat tto_write (uint32_t c);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tty_reset (DEVICE *dptr);
-t_stat tty_set_fixtabs (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_set_12digit (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat tty_set_fixtabs (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_set_12digit (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* TTY data structures
 
@@ -168,7 +170,7 @@ const char tti_position_to_internal[35] = {
 
 /* Keyboard to alphameric (digit pair) - translates LC to UC */
 
-const int8 tti_to_alp[128] = {
+const int8_t tti_to_alp[128] = {
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,        /* 00 */
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,        /* 10 */
@@ -251,7 +253,7 @@ const char alp_to_tto[256] = {
      If IO stop is set, the system halts at the end of the operation.
 */
 
-t_stat tty (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat tty (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 /* Shared I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -311,9 +313,9 @@ return SCPE_OK;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 temp;
-uint8 raw;
-int8 c;
+int32_t temp;
+uint8_t raw;
+int8_t c;
 const char *cp;
 
 DEFIO_ACTIVATE (uptr);                                  /* continue poll */
@@ -321,7 +323,7 @@ if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)              /* no char or error? */
     return temp;
 if (tti_unlock == 0)                                    /* expecting input? */
     return SCPE_OK;                                     /* no, ignore */
-raw = (int8) (temp & 0x7F);
+raw = (int8_t) (temp & 0x7F);
 
 if (raw == '\r') {                                      /* return? */
     tto_write (raw);                                    /* echo */
@@ -390,8 +392,8 @@ return SCPE_OK;
 
 t_stat tto_svc (UNIT *uptr) {
 
-uint8 d;
-int8 ttc;
+uint8_t d;
+int8_t ttc;
 t_stat sta = SCPE_OK;
 
 if ((cpuio_opc != OP_DN) && (cpuio_cnt >= MEMSIZE)) {   /* wrap, ~dump? */
@@ -442,7 +444,7 @@ return sta;
 t_stat tto_num (void)
 {
 t_stat r;
-uint8 d;
+uint8_t d;
 
 d = M[PAR];                                             /* get char */
 if (tty_unit[UTTO].flags & UF_1DIG)                     /* how display flagged digits? */
@@ -472,7 +474,7 @@ if (tto_col > TTO_COLMAX) {                             /* line wrap? */
 
 /* Write, maintaining position */
 
-t_stat tto_write (uint32 c)
+t_stat tto_write (uint32_t c)
 {
 if (c == '\t') {                                        /* tab? */
     tto_wrap();
@@ -520,7 +522,7 @@ return SCPE_OK;
 
 /* Set tab stops at fixed modulus */
 
-t_stat tty_set_fixtabs (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_fixtabs (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -528,7 +530,7 @@ t_stat tty_set_fixtabs (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 i;
+int32_t i;
 
 for (i = 0; i < TTO_COLMAX; i++) {
     if ((val != 0) && (i != 0) && ((i % val) == 0))
@@ -540,7 +542,7 @@ return SCPE_OK;
 
 /* Assure consistency of 1DIG/2DIG setting */
 
-t_stat tty_set_12digit (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_12digit (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */

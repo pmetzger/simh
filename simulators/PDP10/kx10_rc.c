@@ -22,6 +22,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_RC
@@ -94,11 +96,11 @@
 #define RM10_SIZE       (RM10_SEGS * RM10_CYL * RM10_WDS)
 
 struct drvtyp {
-    int32       wd_seg;                                 /* Number of words per segment */
-    int32       seg;                                    /* segments */
-    int32       cyl;                                    /* cylinders */
-    int32       size;                                   /* #blocks */
-    int32       devtype;                                /* device type */
+    int32_t     wd_seg;                                 /* Number of words per segment */
+    int32_t     seg;                                    /* segments */
+    int32_t     cyl;                                    /* cylinders */
+    int32_t     size;                                   /* #blocks */
+    int32_t     devtype;                                /* device type */
     };
 
 struct drvtyp rc_drv_tab[] = {
@@ -109,17 +111,17 @@ struct drvtyp rc_drv_tab[] = {
 
 struct  df10    rc_df10[NUM_DEVS_RC];
 uint64          rc_buf[NUM_DEVS_RC][RM10_WDS];
-uint32          rc_ipr[NUM_DEVS_RC];
+uint32_t        rc_ipr[NUM_DEVS_RC];
 
-t_stat          rc_devio(uint32 dev, uint64 *data);
+t_stat          rc_devio(uint32_t dev, uint64 *data);
 t_stat          rc_svc(UNIT *);
-t_stat          rc_boot(int32, DEVICE *);
+t_stat          rc_boot(int32_t, DEVICE *);
 void            rc_ini(UNIT *, bool);
 t_stat          rc_reset(DEVICE *);
 t_stat          rc_attach(UNIT *, const char *);
 t_stat          rc_detach(UNIT *);
-t_stat          rc_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat          rc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat          rc_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat          rc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                      const char *cptr);
 const char      *rc_description (DEVICE *dptr);
 
@@ -218,7 +220,7 @@ DEVICE *rc_devs[] = {
 };
 
 
-t_stat rc_devio(uint32 dev, uint64 *data) {
+t_stat rc_devio(uint32_t dev, uint64 *data) {
      int          ctlr = (dev - RC_DEVNUM) >> 2;
      struct df10 *df10;
      UNIT        *uptr;
@@ -244,7 +246,7 @@ t_stat rc_devio(uint32 dev, uint64 *data) {
 #endif
         *data |= PRTLT;
         sim_debug(DEBUG_CONI, dptr, "HK %03o CONI %06o PC=%o\n", dev,
-                          (uint32)*data, PC);
+                          (uint32_t)*data, PC);
         break;
      case CONO:
          if (*data & PI_ENABLE)
@@ -274,7 +276,7 @@ t_stat rc_devio(uint32 dev, uint64 *data) {
          } else
             df10->status &= ~CCW_COMP;
          sim_debug(DEBUG_CONO, dptr, "HK %03o CONO %06o PC=%o %06o\n", dev,
-                   (uint32)*data, PC, df10->status);
+                   (uint32_t)*data, PC, df10->status);
          break;
      case DATAI:
          *data = rc_ipr[ctlr];
@@ -310,9 +312,9 @@ t_stat rc_devio(uint32 dev, uint64 *data) {
             df10_setirq(df10);
             return SCPE_OK;
          }
-         df10_setup(df10, (uint32)*data);
+         df10_setup(df10, (uint32_t)*data);
          df10->status &= ~CCW_COMP;
-         tmp = (uint32)(*data >> 15) & ~07;
+         tmp = (uint32_t)(*data >> 15) & ~07;
          cyl = (tmp >> 10) & 0777;
          if (((cyl & 017) > 9) || (((cyl >> 4) & 017) > 9)) {
               sim_debug(DEBUG_DETAIL, dptr, "HK %d non-bcd cyl %02x\n",
@@ -465,7 +467,7 @@ t_stat rc_svc (UNIT *uptr)
 
 
 t_stat
-rc_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+rc_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -505,16 +507,16 @@ rc_reset(DEVICE * dptr)
 
 /* Boot from given device */
 t_stat
-rc_boot(int32 unit_num, DEVICE * dptr)
+rc_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
     int                 dtype = GET_DTYPE(uptr->flags);
-    uint32              addr;
+    uint32_t            addr;
     int                 wc;
     int                 wps;
     int                 seg;
     int                 sect;
-    uint32              ptr;
+    uint32_t            ptr;
 
    addr = (MEMSIZE - 512) & RMASK;
    wps = rc_drv_tab[dtype].wd_seg;
@@ -557,7 +559,7 @@ if (sim_is_active (uptr))                              /* unit active? */
 return detach_unit (uptr);
 }
 
-t_stat rc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

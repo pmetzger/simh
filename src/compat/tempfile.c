@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: The ZIMH Project
 // SPDX-License-Identifier: MIT
 
+#include "sim_types.h"
 #include "sim_win32_compat.h"
 
 #if defined(_WIN32) || defined(SIMH_COMPAT_TEST)
@@ -31,12 +32,12 @@
 static const char temp_chars[] =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-static unsigned int tempfile_process_id(void)
+static uint_t tempfile_process_id(void)
 {
 #if defined(_WIN32)
-    return (unsigned int)_getpid();
+    return (uint_t)_getpid();
 #else
-    return (unsigned int)getpid();
+    return (uint_t)getpid();
 #endif
 }
 
@@ -55,13 +56,13 @@ static int open_temp_file(const char *path)
 }
 
 /* Replace six template X characters with a base-62 attempt value. */
-static void fill_temp_suffix(char *first_x, unsigned int value)
+static void fill_temp_suffix(char *first_x, uint_t value)
 {
     int i;
 
     for (i = 0; i < 6; i++) {
         first_x[i] = temp_chars[value % (sizeof(temp_chars) - 1)];
-        value /= (unsigned int)(sizeof(temp_chars) - 1);
+        value /= (uint_t)(sizeof(temp_chars) - 1);
     }
 }
 
@@ -70,8 +71,8 @@ int mkstemps(char *path_template, int suffix_len)
 {
     size_t len;
     char *first_x;
-    unsigned int seed;
-    unsigned int attempt;
+    uint_t seed;
+    uint_t attempt;
 
     if (path_template == NULL || suffix_len < 0) {
         errno = EINVAL;
@@ -91,7 +92,7 @@ int mkstemps(char *path_template, int suffix_len)
     }
 
     seed = tempfile_process_id();
-    seed ^= (unsigned int)(uintptr_t)path_template;
+    seed ^= (uint_t)(uintptr_t)path_template;
 
     for (attempt = 0; attempt < 10000; attempt++) {
         int fd;

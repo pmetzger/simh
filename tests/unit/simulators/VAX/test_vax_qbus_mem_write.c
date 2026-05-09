@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "test_cmocka.h"
@@ -18,51 +19,51 @@
 #define TEST_QBUS_MAP_VALID 0x80000000u
 
 #if defined(VAX_630)
-t_stat qbmem_wr(int32 dat, int32 pa, int32 md);
+t_stat qbmem_wr(int32_t dat, int32_t pa, int32_t md);
 #define mapped_qbus_write qbmem_wr
-extern int32 qb_map[];
+extern int32_t qb_map[];
 #else
-t_stat cqm_wr(int32 dat, int32 pa, int32 md);
+t_stat cqm_wr(int32_t dat, int32_t pa, int32_t md);
 #define mapped_qbus_write cqm_wr
-extern int32 cq_mbr;
+extern int32_t cq_mbr;
 #endif
 
-int32 vc_mem_rd(int32 pa);
-void vc_mem_wr(int32 pa, int32 val, int32 lnt);
-int32 va_mem_rd(int32 pa);
-void va_mem_wr(int32 pa, int32 val, int32 lnt);
+int32_t vc_mem_rd(int32_t pa);
+void vc_mem_wr(int32_t pa, int32_t val, int32_t lnt);
+int32_t va_mem_rd(int32_t pa);
+void va_mem_wr(int32_t pa, int32_t val, int32_t lnt);
 
 typedef struct {
-    uint32 qbus_pa;
-    int32 val;
-    int32 mode;
-    uint32 expected;
+    uint32_t qbus_pa;
+    int32_t val;
+    int32_t mode;
+    uint32_t expected;
 } mapped_qbus_write_case;
 
-static uint32 test_memory[TEST_MEM_WORDS];
+static uint32_t test_memory[TEST_MEM_WORDS];
 
-uint32 *M;
-uint32 R[16];
-uint32 PSL;
-uint32 SISR;
-uint32 fault_PC;
-uint32 p1;
-uint32 p2;
-uint32 mchk_ref;
-uint32 trpirq;
-uint32 *vc_buf;
-uint32 *va_buf;
-uint32 va_addr;
+uint32_t *M;
+uint32_t R[16];
+uint32_t PSL;
+uint32_t SISR;
+uint32_t fault_PC;
+uint32_t p1;
+uint32_t p2;
+uint32_t mchk_ref;
+uint32_t trpirq;
+uint32_t *vc_buf;
+uint32_t *va_buf;
+uint32_t va_addr;
 jmp_buf save_env;
-int32 hlt_pin;
-int32 mem_err;
-int32 crd_err;
-int32 sys_model;
-int32 ka_mser;
+int32_t hlt_pin;
+int32_t mem_err;
+int32_t crd_err;
+int32_t sys_model;
+int32_t ka_mser;
 DEVICE cpu_dev;
 UNIT cpu_unit;
 
-int32 ReadReg(uint32 pa, int32 lnt)
+int32_t ReadReg(uint32_t pa, int32_t lnt)
 {
     /* Stubbed register-space read for uncalled legacy helpers. */
     (void)pa;
@@ -71,7 +72,7 @@ int32 ReadReg(uint32 pa, int32 lnt)
     return 0;
 }
 
-void WriteReg(uint32 pa, int32 val, int32 lnt)
+void WriteReg(uint32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed register-space write for uncalled legacy helpers. */
     (void)pa;
@@ -79,7 +80,7 @@ void WriteReg(uint32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 vc_mem_rd(int32 pa)
+int32_t vc_mem_rd(int32_t pa)
 {
     /* Stubbed video memory read for uncalled legacy helpers. */
     (void)pa;
@@ -87,7 +88,7 @@ int32 vc_mem_rd(int32 pa)
     return 0;
 }
 
-void vc_mem_wr(int32 pa, int32 val, int32 lnt)
+void vc_mem_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed video memory write for uncalled legacy helpers. */
     (void)pa;
@@ -95,7 +96,7 @@ void vc_mem_wr(int32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 va_mem_rd(int32 pa)
+int32_t va_mem_rd(int32_t pa)
 {
     /* Stubbed video memory read for uncalled legacy helpers. */
     (void)pa;
@@ -103,7 +104,7 @@ int32 va_mem_rd(int32 pa)
     return 0;
 }
 
-void va_mem_wr(int32 pa, int32 val, int32 lnt)
+void va_mem_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed video memory write for uncalled legacy helpers. */
     (void)pa;
@@ -124,7 +125,7 @@ t_stat build_ubus_tab(DEVICE *dptr, DIB *dibp)
     return SCPE_OK;
 }
 
-t_stat set_autocon(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_autocon(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)uptr;
@@ -135,7 +136,7 @@ t_stat set_autocon(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_autocon(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_autocon(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)st;
@@ -146,7 +147,7 @@ t_stat show_autocon(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat show_iospace(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_iospace(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)st;
@@ -157,8 +158,8 @@ t_stat show_iospace(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat show_bus_map(FILE *st, const char *cptr, uint32 *busmap,
-                    uint32 nmapregs, const char *busname, uint32 mapvalid)
+t_stat show_bus_map(FILE *st, const char *cptr, uint32_t *busmap,
+                    uint32_t nmapregs, const char *busname, uint32_t mapvalid)
 {
     /* Stubbed map display helper for uncalled show helpers. */
     (void)st;
@@ -171,7 +172,7 @@ t_stat show_bus_map(FILE *st, const char *cptr, uint32 *busmap,
     return SCPE_OK;
 }
 
-static void reset_mapped_qbus_memory(uint32 initial)
+static void reset_mapped_qbus_memory(uint32_t initial)
 {
     memset(test_memory, 0, sizeof(test_memory));
     M = test_memory;
@@ -181,7 +182,7 @@ static void reset_mapped_qbus_memory(uint32 initial)
     test_memory[TEST_TARGET_WORD] = initial;
 
 #if defined(VAX_630)
-    qb_map[0] = (int32)(TEST_QBUS_MAP_VALID | TEST_QBUS_PAGE);
+    qb_map[0] = (int32_t)(TEST_QBUS_MAP_VALID | TEST_QBUS_PAGE);
     ka_mser = 0;
 #else
     cq_mbr = 0;
@@ -204,7 +205,7 @@ static void test_mapped_qbus_word_writes_preserve_behavior(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_mapped_qbus_memory(0x12345678u);
         assert_int_equal(mapped_qbus_write(cases[i].val,
-                                           (int32)cases[i].qbus_pa,
+                                           (int32_t)cases[i].qbus_pa,
                                            cases[i].mode),
                          SCPE_OK);
         assert_int_equal(test_memory[TEST_TARGET_WORD], cases[i].expected);
@@ -228,7 +229,7 @@ static void test_mapped_qbus_byte_writes_preserve_behavior(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_mapped_qbus_memory(0x12345678u);
         assert_int_equal(mapped_qbus_write(cases[i].val,
-                                           (int32)cases[i].qbus_pa,
+                                           (int32_t)cases[i].qbus_pa,
                                            cases[i].mode),
                          SCPE_OK);
         assert_int_equal(test_memory[TEST_TARGET_WORD], cases[i].expected);

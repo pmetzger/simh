@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,30 +19,30 @@ DEVICE dp_dev;
 DEVICE mt_dev;
 UNIT cpu_unit;
 REG cpu_reg[1];
-uint8 M[MAXMEMSIZE];
+uint8_t M[MAXMEMSIZE];
 bool conv_old = false;
-int32 cct[CCT_LNT];
-int32 cctlnt;
-int32 cctptr;
-const int32 op_table[64] = {
+int32_t cct[CCT_LNT];
+int32_t cctlnt;
+int32_t cctptr;
+const int32_t op_table[64] = {
     [OP_LCA] = L1 | L4 | L7 | L8 | BREQ | MLS | IO,
 };
-const int32 len_table[9] = {0, L1, L2, 0, L4, L5, 0, L7, L8};
-const int32 hun_table[64];
-const int32 ten_table[64];
-const int32 one_table[64];
+const int32_t len_table[9] = {0, L1, L2, 0, L4, L5, 0, L7, L8};
+const int32_t hun_table[64];
+const int32_t ten_table[64];
+const int32_t one_table[64];
 
-int32 store_addr_h(int32 addr)
+int32_t store_addr_h(int32_t addr)
 {
     return addr;
 }
 
-int32 store_addr_t(int32 addr)
+int32_t store_addr_t(int32_t addr)
 {
     return addr;
 }
 
-int32 store_addr_u(int32 addr)
+int32_t store_addr_u(int32_t addr)
 {
     return addr;
 }

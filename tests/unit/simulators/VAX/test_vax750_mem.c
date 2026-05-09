@@ -1,18 +1,20 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
+#include "sim_types.h"
 #include "test_cmocka.h"
 
 #include "vax750_mem_internal.h"
 
-extern uint32 rom[];
+extern uint32_t rom[];
 
-void rom_wr_B(int32 pa, int32 val);
+void rom_wr_B(int32_t pa, int32_t val);
 
 UNIT cpu_unit;
 
-t_stat show_nexus(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_nexus(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Stubbed modifier callback for the MCTL modifier table. */
     (void)st;
@@ -24,7 +26,7 @@ t_stat show_nexus(FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 t_stat cpu_load_bootcode(const char *filename,
-                         const unsigned char *builtin_code, size_t size,
+                         const uchar_t *builtin_code, size_t size,
                          bool load_rom, t_addr offset)
 {
     /* Stubbed boot-code loader for uncalled boot paths. */
@@ -41,8 +43,8 @@ t_stat cpu_load_bootcode(const char *filename,
 static void test_mcsr2_reset_value_covers_supported_memory_sizes(void **state)
 {
     static const struct {
-        uint32 memsize;
-        uint32 mcsr2;
+        uint32_t memsize;
+        uint32_t mcsr2;
     } cases[] = {
         {1u << 20, 0x000100ff},
         {1u << 21, 0x0001ffff},
@@ -65,9 +67,9 @@ static void test_mcsr2_reset_value_covers_supported_memory_sizes(void **state)
 static void test_rom_write_byte_updates_each_byte(void **state)
 {
     static const struct {
-        uint32 addr;
-        uint32 val;
-        uint32 expected;
+        uint32_t addr;
+        uint32_t val;
+        uint32_t expected;
     } cases[] = {
         {0, 0x1a5, 0x123456a5},
         {1, 0x180, 0x12348078},
@@ -81,7 +83,7 @@ static void test_rom_write_byte_updates_each_byte(void **state)
     for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         memset(rom, 0, ROMSIZE);
         rom[0] = 0x12345678;
-        rom_wr_B((int32)(ROMBASE + cases[i].addr), (int32)cases[i].val);
+        rom_wr_B((int32_t)(ROMBASE + cases[i].addr), (int32_t)cases[i].val);
         assert_int_equal(rom[0], cases[i].expected);
     }
 }

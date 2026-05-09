@@ -57,8 +57,9 @@
         to the data port writes the character to the device.
 */
 
-#include    <stdio.h>
 #include    <ctype.h>
+#include    <stdint.h>
+#include    <stdio.h>
 #include    "swtp_defs.h"
 
 #define UNIT_V_TTY  (UNIT_V_UF)         // TTY or ANSI mode
@@ -71,13 +72,13 @@
 
 /* local global variables */
 
-int32 ptr_stopioe = 0;                  // stop on error
-int32 ptp_stopioe = 0;                  // stop on error
-int32 odata;
-int32 status;
+int32_t ptr_stopioe = 0;                // stop on error
+int32_t ptp_stopioe = 0;                // stop on error
+int32_t odata;
+int32_t status;
 
-int32 ptp_flag = 0;
-int32 ptr_flag = 0;
+int32_t ptp_flag = 0;
+int32_t ptr_flag = 0;
 
 /* function prototypes */
 
@@ -87,10 +88,10 @@ t_stat ptp_svc (UNIT *uptr);
 t_stat sio_reset (DEVICE *dptr);
 t_stat ptr_reset (DEVICE *dptr);
 t_stat ptp_reset (DEVICE *dptr);
-int32 sio0s(int32 io, int32 data);
-int32 sio0d(int32 io, int32 data);
-int32 sio1s(int32 io, int32 data);
-int32 sio1d(int32 io, int32 data);
+int32_t sio0s(int32_t io, int32_t data);
+int32_t sio0d(int32_t io, int32_t data);
+int32_t sio1s(int32_t io, int32_t data);
+int32_t sio1d(int32_t io, int32_t data);
 
 /* sio data structures
 
@@ -199,7 +200,7 @@ t_stat sio_svc (UNIT *uptr)
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 temp;
+    int32_t temp;
 
     sim_activate (&sio_unit, sio_unit.wait); // continue poll
     if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)
@@ -223,7 +224,7 @@ t_stat ptr_svc (UNIT *uptr)
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 temp;
+    int32_t temp;
 
     sim_activate (&ptr_unit, ptr_unit.wait); // continue poll
     if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)
@@ -292,7 +293,7 @@ t_stat ptp_reset (DEVICE *dptr)
 /*  I/O instruction handlers, called from the MP-B2 module when a
    read or write occur to addresses 0x8004-0x8007. */
 
-int32 sio0s(int32 io, int32 data)
+int32_t sio0s(int32_t io, int32_t data)
 {
     if (io == 0) {                      // control register read
         if (ptr_flag) {                 // reader enabled?
@@ -327,7 +328,7 @@ int32 sio0s(int32 io, int32 data)
     }
 }
 
-int32 sio0d(int32 io, int32 data)
+int32_t sio0d(int32_t io, int32_t data)
 {
     if (io == 0) {                      // data register read
         if (ptr_flag) {                 // RDR enabled?
@@ -392,7 +393,7 @@ int32 sio0d(int32 io, int32 data)
     the same data as was read the last time on the low ports.
 */
 
-int32 sio1s(int32 io, int32 data)
+int32_t sio1s(int32_t io, int32_t data)
 {
     /* Memory-mapped I/O callback signature.
        This implementation does not use every parameter. */
@@ -402,7 +403,7 @@ int32 sio1s(int32 io, int32 data)
     return status;
 }
 
-int32 sio1d(int32 io, int32 data)
+int32_t sio1d(int32_t io, int32_t data)
 {
     /* Memory-mapped I/O callback signature.
        This implementation does not use every parameter. */

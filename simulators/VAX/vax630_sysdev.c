@@ -34,6 +34,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "uint_bits.h"
 
@@ -55,8 +57,8 @@
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
 #define UNIT_NODELAY    (1u << UNIT_V_NODELAY)
 
-t_stat vax630_boot (int32 flag, const char *ptr);
-int32 sys_model = 0;                                    /* MicroVAX or VAXstation */
+t_stat vax630_boot (int32_t flag, const char *ptr);
+int32_t sys_model = 0;                                  /* MicroVAX or VAXstation */
 
 /* Special boot command, overrides regular boot */
 
@@ -123,61 +125,61 @@ CTAB vax630_cmd[] = {
 #define DEAR_RD         (DEAR_LMADD)
 
 extern UNIT clk_unit;
-extern int32 tmr_poll;
+extern int32_t tmr_poll;
 extern DEVICE va_dev, vc_dev, lk_dev, vs_dev;
 
-uint32 *rom = NULL;                                     /* boot ROM */
-uint8 *nvr = NULL;                                     /* non-volatile mem */
-int32 conisp, conpc, conpsl;                            /* console reg */
-int32 ka_bdr = BDR_BRKENB;                              /* KA630 boot diag */
-int32 ka_mser = 0;                                      /* KA630 mem sys err */
-int32 ka_cear = 0;                                      /* KA630 cpu err */
-int32 ka_dear = 0;                                      /* KA630 dma err */
+uint32_t *rom = NULL;                                   /* boot ROM */
+uint8_t *nvr = NULL;                                   /* non-volatile mem */
+int32_t conisp, conpc, conpsl;                          /* console reg */
+int32_t ka_bdr = BDR_BRKENB;                            /* KA630 boot diag */
+int32_t ka_mser = 0;                                    /* KA630 mem sys err */
+int32_t ka_cear = 0;                                    /* KA630 cpu err */
+int32_t ka_dear = 0;                                    /* KA630 dma err */
 bool ka_diag_full = false;
 bool ka_hltenab = true;                                 /* Halt Enable / Autoboot flag */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
+t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
 t_stat rom_reset (DEVICE *dptr);
-t_stat rom_set_diag (UNIT *uptr, int32 val, const char *cptr, const void *desc);
-t_stat rom_show_diag (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat rom_set_diag (UNIT *uptr, int32_t val, const char *cptr, const void *desc);
+t_stat rom_show_diag (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *rom_description (DEVICE *dptr);
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
+t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
 t_stat nvr_reset (DEVICE *dptr);
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 t_stat nvr_attach (UNIT *uptr, const char *cptr);
 t_stat nvr_detach (UNIT *uptr);
 const char *nvr_description (DEVICE *dptr);
 t_stat sysd_reset (DEVICE *dptr);
-t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *sysd_description (DEVICE *dptr);
 
-int32 rom_rd (int32 pa, int32 lnt);
-int32 nvr_rd (int32 pa, int32 lnt);
-void nvr_wr (int32 pa, int32 val, int32 lnt);
-int32 ka_rd (int32 pa, int32 lnt);
-void ka_wr (int32 pa, int32 val, int32 lnt);
+int32_t rom_rd (int32_t pa, int32_t lnt);
+int32_t nvr_rd (int32_t pa, int32_t lnt);
+void nvr_wr (int32_t pa, int32_t val, int32_t lnt);
+int32_t ka_rd (int32_t pa, int32_t lnt);
+void ka_wr (int32_t pa, int32_t val, int32_t lnt);
 t_stat sysd_powerup (void);
-int32 sysd_hlt_enb (void);
-int32 con_halt (int32 code, int32 cc);
+int32_t sysd_hlt_enb (void);
+int32_t con_halt (int32_t code, int32_t cc);
 
-extern int32 qbmap_rd (int32 pa, int32 lnt);
-extern void qbmap_wr (int32 pa, int32 val, int32 lnt);
-extern int32 qbmem_rd (int32 pa, int32 lnt);
-extern void qbmem_wr (int32 pa, int32 val, int32 lnt);
-extern int32 iccs_rd (void);
-extern int32 todr_rd (void);
-extern int32 rxcs_rd (void);
-extern int32 rxdb_rd (void);
-extern int32 txcs_rd (void);
-extern void iccs_wr (int32 dat);
-extern void todr_wr (int32 dat);
-extern void rxcs_wr (int32 dat);
-extern void txcs_wr (int32 dat);
-extern void txdb_wr (int32 dat);
-extern void ioreset_wr (int32 dat);
+extern int32_t qbmap_rd (int32_t pa, int32_t lnt);
+extern void qbmap_wr (int32_t pa, int32_t val, int32_t lnt);
+extern int32_t qbmem_rd (int32_t pa, int32_t lnt);
+extern void qbmem_wr (int32_t pa, int32_t val, int32_t lnt);
+extern int32_t iccs_rd (void);
+extern int32_t todr_rd (void);
+extern int32_t rxcs_rd (void);
+extern int32_t rxdb_rd (void);
+extern int32_t txcs_rd (void);
+extern void iccs_wr (int32_t dat);
+extern void todr_wr (int32_t dat);
+extern void rxcs_wr (int32_t dat);
+extern void txcs_wr (int32_t dat);
+extern void txdb_wr (int32_t dat);
+extern void ioreset_wr (int32_t dat);
 
 /* debugging bitmaps */
 #define DBG_REG  0x0001                                 /* trace read/write registers */
@@ -293,40 +295,40 @@ DEVICE sysd_dev = {
    issues with the embedded timing loops.
 */
 
-int32 rom_rd (int32 pa, int32 lnt)
+int32_t rom_rd (int32_t pa, int32_t lnt)
 {
 /* Generic memory read signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-uint32 rg = (((uint32) pa - ROMBASE) & ROMAMASK) >> 2;
-uint32 val = rom[rg];
+uint32_t rg = (((uint32_t) pa - ROMBASE) & ROMAMASK) >> 2;
+uint32_t val = rom[rg];
 
 if (rom_unit.flags & UNIT_NODELAY)
-    return (int32) val;
+    return (int32_t) val;
 
 return sim_rom_read_with_delay (val);
 }
 
-void rom_wr_B (int32 pa, int32 val)
+void rom_wr_B (int32_t pa, int32_t val)
 {
-uint32 addr = (uint32) pa;
-uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
+uint32_t addr = (uint32_t) pa;
+uint32_t rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32) val, addr);
+rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32_t) val, addr);
 return;
 }
 
 /* ROM examine */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -338,20 +340,20 @@ return SCPE_OK;
 
 /* ROM deposit */
 
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= ROMSIZE)
     return SCPE_NXM;
-rom[addr >> 2] = (uint32) val;
+rom[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -364,13 +366,13 @@ t_stat rom_reset (DEVICE *dptr)
 (void) dptr;
 
 if (rom == NULL)
-    rom = (uint32 *) calloc (ROMSIZE >> 2, sizeof (uint32));
+    rom = (uint32_t *) calloc (ROMSIZE >> 2, sizeof (uint32_t));
 if (rom == NULL)
     return SCPE_MEM;
 return SCPE_OK;
 }
 
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -411,14 +413,14 @@ return "read-only memory";
 
 /* NVR: non-volatile RAM - stored in a buffered file */
 
-int32 nvr_rd (int32 pa, int32 lnt)
+int32_t nvr_rd (int32_t pa, int32_t lnt)
 {
 /* Generic memory read signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa + 1 - NVRBASE) >> 1;
-int32 result;
+int32_t rg = (pa + 1 - NVRBASE) >> 1;
+int32_t result;
 
 if (rg < 14) {                                           /* watch chip */
     result = wtc_rd (rg);
@@ -426,7 +428,7 @@ if (rg < 14) {                                           /* watch chip */
         result = (result << 16);                         /* word aligned */
     }
 else {
-    result = (nvr[rg] & WMASK) | (((uint32)nvr[rg]) << 16);
+    result = (nvr[rg] & WMASK) | (((uint32_t)nvr[rg]) << 16);
     if (pa & 1)
         result = result << 8;
     }
@@ -436,19 +438,19 @@ sim_debug (DBG_REG, &nvr_dev, "nvr_rd(pa=0x%X) nvr[0x%X] returns: 0x%X\n", pa, r
 return result;
 }
 
-void nvr_wr (int32 pa, int32 val, int32 lnt)
+void nvr_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 rg = (pa + 1 - NVRBASE) >> 1;
+int32_t rg = (pa + 1 - NVRBASE) >> 1;
 
 if (rg < 14)                                             /* watch chip */
     wtc_wr (rg, val);
 else {
-    int32 orig_nvr = (int32)nvr[rg];
+    int32_t orig_nvr = (int32_t)nvr[rg];
 
     switch (pa & 03) {
         case 0:
         case 2:
-            nvr[rg] = (uint8)val;
+            nvr[rg] = (uint8_t)val;
             break;
         case 1:
             nvr[rg] = 0;
@@ -467,14 +469,14 @@ else {
 
 /* NVR examine */
 
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -486,21 +488,21 @@ return SCPE_OK;
 
 /* NVR deposit */
 
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= NVRASIZE)
     return SCPE_NXM;
-nvr[addr >> 1] = (uint8)val;
-nvr[(addr >> 1) + 1] = (uint8)(val >> 16);
+nvr[addr >> 1] = (uint8_t)val;
+nvr[(addr >> 1) + 1] = (uint8_t)(val >> 16);
 return SCPE_OK;
 }
 
@@ -513,7 +515,7 @@ t_stat nvr_reset (DEVICE *dptr)
 (void) dptr;
 
 if (nvr == NULL) {
-    nvr = (uint8 *) calloc (NVRSIZE, sizeof (*nvr));
+    nvr = (uint8_t *) calloc (NVRSIZE, sizeof (*nvr));
     nvr_unit.filebuf = (void *)nvr;
     }
 if (nvr == NULL)
@@ -521,7 +523,7 @@ if (nvr == NULL)
 return SCPE_OK;
 }
 
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -546,7 +548,7 @@ return SCPE_OK;
    ROM behavior the first time the NVR device is attached (to an empty
    file).  Attaching a already existing file will overwrite this initial
    contents with whatever the NVRAM file contains.  */
-uint8 nvr_empty_valid[NVRSIZE] = {
+uint8_t nvr_empty_valid[NVRSIZE] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00,
     0x00, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE,
     0xFF, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x48, 0x45, 0x41, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -556,7 +558,7 @@ uint8 nvr_empty_valid[NVRSIZE] = {
 t_stat nvr_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
-int32 saved_sim_quiet = sim_quiet;
+int32_t saved_sim_quiet = sim_quiet;
 
 uptr->flags = uptr->flags | (UNIT_ATTABLE | UNIT_BUFABLE);
 sim_quiet = 1;
@@ -567,7 +569,7 @@ if (r != SCPE_OK)
 else {
     if (uptr->hwmark == 0)
         memcpy (nvr, nvr_empty_valid, NVRSIZE);
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     wtc_set_valid ();
     }
 return r;
@@ -598,9 +600,9 @@ return "non-volatile memory";
 
 /* Read KA630 specific IPR's */
 
-int32 ReadIPR (int32 rg)
+int32_t ReadIPR (int32_t rg)
 {
-int32 val;
+int32_t val;
 
 switch (rg) {
 
@@ -677,7 +679,7 @@ return val;
 
 /* Write KA630 specific IPR's */
 
-void WriteIPR (int32 rg, int32 val)
+void WriteIPR (int32_t rg, int32_t val)
 {
 switch (rg) {
 
@@ -748,10 +750,10 @@ return;
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
-    int32       (*read)(int32 pa, int32 lnt);           /* read routine */
-    void        (*write)(int32 pa, int32 val, int32 lnt);/* write routine */
+    uint32_t    low;                                    /* low addr */
+    uint32_t    high;                                   /* high addr */
+    int32_t     (*read)(int32_t pa, int32_t lnt);       /* read routine */
+    void        (*write)(int32_t pa, int32_t val, int32_t lnt);/* write routine */
     };
 
 struct reglink regtable[] = {
@@ -771,7 +773,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32_t ReadReg (uint32_t pa, int32_t lnt)
 {
 struct reglink *p;
 
@@ -792,20 +794,20 @@ MACH_CHECK (MCHK_READ);
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32_t ReadRegU (uint32_t pa, int32_t lnt)
 {
 struct reglink *p;
-int32 val;
+int32_t val;
 
 for (p = &regtable[0]; p->low != 0; p++) {
     if ((pa >= p->low) && (pa < p->high) && p->read) {
         if (lnt == L_BYTE)
             val = p->read (pa & ~03, L_LONG);
         else {
-            uint32 low = (uint32) p->read (pa & ~03, L_LONG);
-            uint32 high = (uint32) p->read ((pa & ~03) + 2, L_LONG);
+            uint32_t low = (uint32_t) p->read (pa & ~03, L_LONG);
+            uint32_t high = (uint32_t) p->read ((pa & ~03) + 2, L_LONG);
 
-            val = (int32) u32_from_u16_pair (low, u32_high_u16 (high));
+            val = (int32_t) u32_from_u16_pair (low, u32_high_u16 (high));
             }
         return val;
         }
@@ -824,7 +826,7 @@ MACH_CHECK (MCHK_READ);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32_t val, int32_t lnt)
 {
 struct reglink *p;
 
@@ -848,10 +850,10 @@ MACH_CHECK (MCHK_WRITE);
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32_t val, int32_t lnt)
 {
-int32 sc = (pa & 03) << 3;
-int32 dat = ReadReg (pa & ~03, L_LONG);
+int32_t sc = (pa & 03) << 3;
+int32_t dat = ReadReg (pa & ~03, L_LONG);
 
 dat = (dat & ~(insert[lnt] << sc)) | ((val & insert[lnt]) << sc);
 WriteReg (pa & ~03, dat, L_LONG);
@@ -859,13 +861,13 @@ WriteReg (pa & ~03, dat, L_LONG);
 
 /* KA630 registers */
 
-int32 ka_rd (int32 pa, int32 lnt)
+int32_t ka_rd (int32_t pa, int32_t lnt)
 {
 /* Generic memory read signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - KABASE) >> 2;
+int32_t rg = (pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -885,13 +887,13 @@ switch (rg) {
 return 0;
 }
 
-void ka_wr (int32 pa, int32 val, int32 lnt)
+void ka_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Generic memory write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - KABASE) >> 2;
+int32_t rg = (pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -911,21 +913,21 @@ switch (rg) {
 return;
 }
 
-int32 sysd_hlt_enb (void)
+int32_t sysd_hlt_enb (void)
 {
 return ka_bdr & BDR_BRKENB;
 }
 
 /* Machine check */
 
-int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
+int32_t machine_check (int32_t p1, int32_t opc, int32_t cc, int32_t delta)
 {
 /* Generic system machine-check signature.
    This implementation does not use every parameter. */
 (void) opc;
 (void) delta;
 
-int32 st, p2, acc;
+int32_t st, p2, acc;
 
 if (in_ie) {
     in_ie = 0;
@@ -953,9 +955,9 @@ return cc;
 
 /* Console entry */
 
-int32 con_halt (int32 code, int32 cc)
+int32_t con_halt (int32_t code, int32_t cc)
 {
-int32 temp;
+int32_t temp;
 
 conisp = IS;                                            /* save ISP */
 conpc = PC;                                             /* save PC */
@@ -980,7 +982,7 @@ return 0;                                               /* new cc = 0 */
 
 */
 
-t_stat vax630_boot (int32 flag, const char *ptr)
+t_stat vax630_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -995,7 +997,7 @@ return run_cmd (flag, "CPU");
 
 /* Bootstrap */
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1019,7 +1021,7 @@ if (*rom == 0) {                                        /* no boot? */
 return SCPE_OK;
 }
 
-t_stat sysd_set_diag (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat sysd_set_diag (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1031,7 +1033,7 @@ if (cptr != NULL) ka_diag_full = (strcmp(cptr, "MIN") != 0);
 return SCPE_OK;
 }
 
-t_stat sysd_show_diag (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat sysd_show_diag (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1043,7 +1045,7 @@ fprintf(st, "DIAG=%s", (ka_diag_full ? "full" :"min"));
 return SCPE_OK;
 }
 
-t_stat sysd_set_halt (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat sysd_set_halt (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1055,7 +1057,7 @@ ka_hltenab = (val != 0);
 return SCPE_OK;
 }
 
-t_stat sysd_show_halt (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat sysd_show_halt (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1067,7 +1069,7 @@ fprintf(st, "%s", ka_hltenab ? "NOAUTOBOOT" : "AUTOBOOT");
 return SCPE_OK;
 }
 
-t_stat sysd_show_leds (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat sysd_show_leds (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1123,7 +1125,7 @@ ka_diag_full = 0;
 return SCPE_OK;
 }
 
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1198,7 +1200,7 @@ switch (sys_model) {
 return SCPE_OK;
 }
 
-t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -1218,7 +1220,7 @@ fprintf (st, "   sim> BOOT\n\n");
 return SCPE_OK;
 }
 
-t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1226,10 +1228,10 @@ t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
 (void) val;
 (void) desc;
 
-uint32 memsize = (uint32)(MEMSIZE>>20);
-uint32 baseaddr = 0;
+uint32_t memsize = (uint32_t)(MEMSIZE>>20);
+uint32_t baseaddr = 0;
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         { 16, "MS630-CA"},
@@ -1237,7 +1239,7 @@ struct {
         {  2, "MS630-BA"},
         {  1, "MS630-AA"},
         {  0, NULL}};
-int32 i;
+int32_t i;
 
 while (memsize > 1) {
     for (i=0; boards[i].capacity > memsize; ++i)

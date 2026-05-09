@@ -38,21 +38,23 @@
    Note: includes the IOT's for both the PDP-8/E and PDP-8/A clocks
 */
 
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
 #define UNIT_V_DIAG     (UNIT_V_UF + 0)                 /* diag mode */
 #define UNIT_DIAG       (1 << UNIT_V_DIAG)
 
-extern int32 int_req, int_enable, dev_done, stop_inst;
+extern int32_t int_req, int_enable, dev_done, stop_inst;
 
-int32 clk_tps = 60;                                     /* ticks/second */
-int32 tmxr_poll = 8000;                                 /* term mux poll */
+int32_t clk_tps = 60;                                   /* ticks/second */
+int32_t tmxr_poll = 8000;                               /* term mux poll */
 
-int32 clk (int32 IR, int32 AC);
+int32_t clk (int32_t IR, int32_t AC);
 t_stat clk_svc (UNIT *uptr);
 t_stat clk_reset (DEVICE *dptr);
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 const char *clk_description (DEVICE *dptr);
 
 /* CLK data structures
@@ -104,7 +106,7 @@ DEVICE clk_dev = {
    IOT's 6135-6137 are the PDP-8/A clock
 */
 
-int32 clk (int32 IR, int32 AC)
+int32_t clk (int32_t IR, int32_t AC)
 {
 switch (IR & 07) {                                      /* decode IR<9:11> */
 
@@ -150,7 +152,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
 
 t_stat clk_svc (UNIT *uptr)
 {
-int32 t;
+int32_t t;
 
 dev_done = dev_done | INT_CLK;                          /* set done */
 int_req = INT_UPDATE;                                   /* update interrupts */
@@ -186,7 +188,7 @@ return SCPE_OK;
 
 /* Set frequency */
 
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -203,7 +205,7 @@ return SCPE_OK;
 
 /* Show frequency */
 
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

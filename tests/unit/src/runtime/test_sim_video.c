@@ -24,7 +24,7 @@ static void test_no_video_stubs_report_unavailable(void **state)
     VID_DISPLAY *display = (VID_DISPLAY *)0x1;
     SIM_KEY_EVENT key_event = {0};
     SIM_MOUSE_EVENT mouse_event = {0};
-    uint32 pixel = 0x12345678;
+    uint32_t pixel = 0x12345678;
 
     (void)state;
 

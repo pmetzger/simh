@@ -91,6 +91,7 @@
 #include "h316_defs.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #define UNIT_V_ASC      (TTUF_V_UF + 0)                 /* ASCII */
 #define UNIT_V_UASC     (TTUF_V_UF + 1)                 /* Unix ASCII */
@@ -105,53 +106,53 @@
 #define XOFF            0023
 #define RUBOUT          0377
 
-extern uint16 M[];
-extern int32 PC;
-extern int32 stop_inst;
-extern int32 C, dp, ext, extoff_pending, sc;
-extern int32 dev_int, dev_enb;
+extern uint16_t M[];
+extern int32_t PC;
+extern int32_t stop_inst;
+extern int32_t C, dp, ext, extoff_pending, sc;
+extern int32_t dev_int, dev_enb;
 extern UNIT cpu_unit;
 
-uint32 ptr_motion = 0;                                  /* read motion */
-uint32 ptr_stopioe = 0;                                 /* stop on error */
-uint32 ptp_stopioe = 0;
-uint32 ptp_power = 0;                                   /* punch power, time */
-int32 ptp_ptime;
-uint32 ttr_stopioe = 0;
-uint32 tty_mode = 0;                                    /* input (0), output (1) */
-uint32 tty_buf = 0;                                     /* tty buffer */
-uint32 tty_ready = 1;                                   /* tty ready */
-uint32 tty_busy = 0;                                    /* tty busy */
-uint32 tty_2nd = 0;                                     /* tty input second state */
-uint32 ttr_xoff_read = 0;
-uint32 ttp_tape_rcvd = 0;
-uint32 ttp_xoff_rcvd = 0;
-int32 tty_busy_wait = SERIAL_IN_WAIT;                   /* busy state on input */
-int32 clk_tps = 60;                                     /* ticks per second */
+uint32_t ptr_motion = 0;                                /* read motion */
+uint32_t ptr_stopioe = 0;                               /* stop on error */
+uint32_t ptp_stopioe = 0;
+uint32_t ptp_power = 0;                                 /* punch power, time */
+int32_t ptp_ptime;
+uint32_t ttr_stopioe = 0;
+uint32_t tty_mode = 0;                                  /* input (0), output (1) */
+uint32_t tty_buf = 0;                                   /* tty buffer */
+uint32_t tty_ready = 1;                                 /* tty ready */
+uint32_t tty_busy = 0;                                  /* tty busy */
+uint32_t tty_2nd = 0;                                   /* tty input second state */
+uint32_t ttr_xoff_read = 0;
+uint32_t ttp_tape_rcvd = 0;
+uint32_t ttp_xoff_rcvd = 0;
+int32_t tty_busy_wait = SERIAL_IN_WAIT;                 /* busy state on input */
+int32_t clk_tps = 60;                                   /* ticks per second */
 
-int32 ptrio (int32 inst, int32 fnc, int32 dat, int32 dev);
+int32_t ptrio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
-t_stat ptr_boot (int32 unitno, DEVICE *dptr);
-int32 ptpio (int32 inst, int32 fnc, int32 dat, int32 dev);
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr);
+int32_t ptpio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptp_reset (DEVICE *dptr);
-int32 ttyio (int32 inst, int32 fnc, int32 dat, int32 dev);
+int32_t ttyio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tty_reset (DEVICE *dptr);
-t_stat ttio_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ttrp_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ttrp_set_start_stop (UNIT *uptr, int32 val, const char *cptr, void *desc);
-int32 clkio (int32 inst, int32 fnc, int32 dat, int32 dev);
+t_stat ttio_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ttrp_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ttrp_set_start_stop (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+int32_t clkio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
 t_stat clk_svc (UNIT *uptr);
 t_stat clk_reset (DEVICE *dptr);
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat pt_attach (UNIT *uptr, const char *cptr);
 t_stat pt_detach (UNIT *uptr);
-t_stat tto_write (int32 c);
-t_stat ttp_write (int32 c);
+t_stat tto_write (int32_t c);
+t_stat ttp_write (int32_t c);
 
 /* PTR data structures
 
@@ -343,7 +344,7 @@ DEVICE clk_dev = {
 
 /* Paper tape reader: IO routine */
 
-int32 ptrio (int32 inst, int32 fnc, int32 dat, int32 dev)
+int32_t ptrio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -387,7 +388,7 @@ return dat;
 
 t_stat ptr_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* attached? */
     return IORETURN (ptr_stopioe, SCPE_UNATT);
@@ -425,7 +426,7 @@ return SCPE_OK;
 t_stat pt_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
-int32 saved_switches = sim_switches;
+int32_t saved_switches = sim_switches;
 
 if (!(uptr->flags & UNIT_ATTABLE))                      /* not tti,tto */
     return SCPE_NOFNC;
@@ -477,9 +478,9 @@ return SCPE_OK;
 /* Paper tape reader bootstrap routine */
 
 #define PBOOT_START     1
-#define PBOOT_SIZE      (sizeof (pboot) / sizeof (int32))
+#define PBOOT_SIZE      (sizeof (pboot) / sizeof (int32_t))
 
-static const int32 pboot[] = {
+static const int32_t pboot[] = {
     0010057,                                            /*        STA 57 */
     0030001,                                            /*        OCP 1 */
     0131001,                                            /* READ,  INA 1001 */
@@ -497,7 +498,7 @@ static const int32 pboot[] = {
     0100040                                             /*        SZE */
     };
 
-t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -514,7 +515,7 @@ return SCPE_OK;
 
 /* Paper tape punch: IO routine */
 
-int32 ptpio (int32 inst, int32 fnc, int32 dat, int32 dev)
+int32_t ptpio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -563,7 +564,7 @@ return dat;
 
 t_stat ptp_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 SET_INT (INT_PTP);                                      /* set flag */
 if (ptp_power == 0) {                                   /* power on? */
@@ -609,7 +610,7 @@ return SCPE_OK;
 
 /* Terminal: IO routine */
 
-int32 ttyio (int32 inst, int32 fnc, int32 dat, int32 dev)
+int32_t ttyio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -684,7 +685,7 @@ return dat;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 out, c;
+int32_t out, c;
 UNIT *ruptr = &tty_unit[TTR];
 
 sim_activate (uptr, uptr->wait);                        /* continue poll */
@@ -758,7 +759,7 @@ return SCPE_OK;
 
 t_stat tto_svc (UNIT *uptr)
 {
-uint32 c7b;
+uint32_t c7b;
 UNIT *ruptr = &tty_unit[TTR];
 UNIT *puptr = &tty_unit[TTP];
 t_stat r;
@@ -801,7 +802,7 @@ return SCPE_OK;
 
 /* Output to printer */
 
-t_stat tto_write (int32 c)
+t_stat tto_write (int32_t c)
 {
 UNIT *tuptr = &tty_unit[TTO];
 
@@ -814,9 +815,9 @@ else return SCPE_OK;
 
 /* Output to punch */
 
-t_stat ttp_write (int32 c)
+t_stat ttp_write (int32_t c)
 {
-uint32 p, c7b;
+uint32_t p, c7b;
 UNIT *puptr = &tty_unit[TTP];
 
 if ((puptr->flags & UNIT_ATT) &&                        /* TTP attached */
@@ -866,7 +867,7 @@ return SCPE_OK;
 
 /* Set keyboard/printer mode - make sure flags agree */
 
-t_stat ttio_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttio_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -884,7 +885,7 @@ return SCPE_OK;
 
 /* Set reader/punch mode */
 
-t_stat ttrp_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttrp_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -900,7 +901,7 @@ return SCPE_OK;
 
 /* Set reader/punch start/stop */
 
-t_stat ttrp_set_start_stop (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttrp_set_start_stop (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -922,7 +923,7 @@ return SCPE_OK;
 
 /* Clock/options: IO routine */
 
-int32 clkio (int32 inst, int32 fnc, int32 dat, int32 dev)
+int32_t clkio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -1005,7 +1006,7 @@ return SCPE_OK;
 
 /* Set frequency */
 
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1022,7 +1023,7 @@ return SCPE_OK;
 
 /* Show frequency */
 
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

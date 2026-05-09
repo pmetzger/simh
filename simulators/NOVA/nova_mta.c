@@ -71,6 +71,8 @@
    not duplicated; end of tape by end of file.
 */
 
+#include <stdint.h>
+
 #include "nova_defs.h"
 #include "sim_tape.h"
 
@@ -151,33 +153,33 @@
 #define STA_MON         (STA_REW | STA_BOT | STA_WLK | STA_RDY | \
                          STA_PEM)                       /* set status chg */
 
-extern uint16 M[];
+extern uint16_t M[];
 extern UNIT cpu_unit;
-extern int32 int_req, dev_busy, dev_done, dev_disable;
-extern int32 SR, AMASK;
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
+extern int32_t SR, AMASK;
 
-extern t_stat  cpu_boot(int32 unitno, DEVICE * dptr ) ;
+extern t_stat  cpu_boot(int32_t unitno, DEVICE * dptr ) ;
 
 
-int32 mta_ma = 0;                                       /* memory address */
-int32 mta_wc = 0;                                       /* word count */
-int32 mta_cu = 0;                                       /* command/unit */
-int32 mta_sta = 0;                                      /* status register */
-int32 mta_ep = 0;                                       /* enable polling */
-int32 mta_cwait = 100;                                  /* command latency */
-int32 mta_rwait = 100;                                  /* record latency */
-uint8 *mtxb = NULL;                                     /* transfer buffer */
+int32_t mta_ma = 0;                                     /* memory address */
+int32_t mta_wc = 0;                                     /* word count */
+int32_t mta_cu = 0;                                     /* command/unit */
+int32_t mta_sta = 0;                                    /* status register */
+int32_t mta_ep = 0;                                     /* enable polling */
+int32_t mta_cwait = 100;                                /* command latency */
+int32_t mta_rwait = 100;                                /* record latency */
+uint8_t *mtxb = NULL;                                   /* transfer buffer */
 
-int32 mta (int32 pulse, int32 code, int32 AC);
+int32_t mta (int32_t pulse, int32_t code, int32_t AC);
 t_stat mta_svc (UNIT *uptr);
 t_stat mta_reset (DEVICE *dptr);
-t_stat mta_boot (int32 unitno, DEVICE *dptr);
+t_stat mta_boot (int32_t unitno, DEVICE *dptr);
 t_stat mta_attach (UNIT *uptr, const char *cptr);
 t_stat mta_detach (UNIT *uptr);
-int32 mta_updcsta (UNIT *uptr);
-void mta_upddsta (UNIT *uptr, int32 newsta);
+int32_t mta_updcsta (UNIT *uptr);
+void mta_upddsta (UNIT *uptr, int32_t newsta);
 t_stat mta_map_err (UNIT *uptr, t_stat st);
-t_stat mta_vlock (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat mta_vlock (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 static const int ctype[32] = {                          /* c vs r timing */
  0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
@@ -244,10 +246,10 @@ DEVICE mta_dev = {
 
 /* IOT routine */
 
-int32 mta (int32 pulse, int32 code, int32 AC)
+int32_t mta (int32_t pulse, int32_t code, int32_t AC)
 {
 UNIT *uptr;
-int32 u, c, rval;
+int32_t u, c, rval;
 
 rval = 0;
 uptr = mta_dev.units + GET_UNIT(mta_cu);                /* get unit */
@@ -343,9 +345,9 @@ return rval;
 
 t_stat mta_svc (UNIT *uptr)
 {
-int32 c, p, pa, u;
+int32_t c, p, pa, u;
 t_mtrlnt i, cbc, tbc, wc;
-uint16 c1, c2;
+uint16_t c1, c2;
 t_stat st, r = SCPE_OK;
 
 u = uptr - mta_dev.units;                               /* get unit number */
@@ -474,7 +476,7 @@ return r;
 
 /* Update controller status */
 
-int32 mta_updcsta (UNIT *uptr)                          /* update ctrl */
+int32_t mta_updcsta (UNIT *uptr)                        /* update ctrl */
 {
 mta_sta = (mta_sta & ~(STA_DYN | STA_CLR | STA_ERR1 | STA_ERR2)) |
     (uptr->USTAT & STA_DYN) | STA_SET;
@@ -487,9 +489,9 @@ return mta_sta;
 
 /* Update drive status */
 
-void mta_upddsta (UNIT *uptr, int32 newsta)             /* drive status */
+void mta_upddsta (UNIT *uptr, int32_t newsta)           /* drive status */
 {
-int32 change;
+int32_t change;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* offline? */
     newsta = 0;
@@ -567,7 +569,7 @@ t_stat mta_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 dev_busy = dev_busy & ~INT_MTA;                         /* clear busy */
@@ -594,7 +596,7 @@ for (u = 0; u < MTA_NUMDR; u++) {                       /* loop thru units */
     }
 mta_updcsta (&mta_unit[0]);                             /* update status */
 if (mtxb == NULL)
-    mtxb = (uint8 *) calloc (MTA_MAXFR, sizeof (uint8));
+    mtxb = (uint8_t *) calloc (MTA_MAXFR, sizeof (uint8_t));
 if (mtxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -628,7 +630,7 @@ return sim_tape_detach (uptr);
 
 /* Write lock/unlock validate routine */
 
-t_stat mta_vlock (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat mta_vlock (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -643,7 +645,7 @@ return SCPE_OK;
 
 /*  Boot routine  */
 
-t_stat mta_boot (int32 unitno, DEVICE *dptr)
+t_stat mta_boot (int32_t unitno, DEVICE *dptr)
     {
     sim_tape_rewind( &mta_unit[unitno] ) ;
     /*

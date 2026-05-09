@@ -20,13 +20,13 @@
 #define TEST_MODE_SENSE10_PAGE_OFFSET 16
 
 struct scsi_message_case {
-    uint8 message;
+    uint8_t message;
     SCSI_BUS bus;
 };
 
 struct scsi_cdrom_case {
-    uint8 command[10];
-    uint32 command_len;
+    uint8_t command[10];
+    uint32_t command_len;
     SCSI_BUS bus;
     DEVICE device;
     UNIT unit;
@@ -34,8 +34,8 @@ struct scsi_cdrom_case {
 };
 
 struct scsi_disk_case {
-    uint8 command[10];
-    uint32 command_len;
+    uint8_t command[10];
+    uint32_t command_len;
     SCSI_BUS bus;
     DEVICE device;
     UNIT unit;
@@ -143,7 +143,7 @@ static void teardown_disk_bus(struct scsi_disk_case *disk_case)
     free(disk_case->bus.buf);
 }
 
-static t_stat failing_disk_read(UNIT *unit, t_lba lba, uint8 *buf,
+static t_stat failing_disk_read(UNIT *unit, t_lba lba, uint8_t *buf,
                                 t_seccnt *sectsread, t_seccnt sects)
 {
     (void)unit;
@@ -156,7 +156,7 @@ static t_stat failing_disk_read(UNIT *unit, t_lba lba, uint8 *buf,
     return SCPE_IOERR;
 }
 
-static t_stat partial_disk_read(UNIT *unit, t_lba lba, uint8 *buf,
+static t_stat partial_disk_read(UNIT *unit, t_lba lba, uint8_t *buf,
                                 t_seccnt *sectsread, t_seccnt sects)
 {
     (void)unit;
@@ -169,7 +169,7 @@ static t_stat partial_disk_read(UNIT *unit, t_lba lba, uint8 *buf,
     return SCPE_OK;
 }
 
-static t_stat failing_disk_write(UNIT *unit, t_lba lba, uint8 *buf,
+static t_stat failing_disk_write(UNIT *unit, t_lba lba, uint8_t *buf,
                                  t_seccnt *sectswritten, t_seccnt sects)
 {
     (void)unit;
@@ -182,7 +182,7 @@ static t_stat failing_disk_write(UNIT *unit, t_lba lba, uint8 *buf,
     return SCPE_IOERR;
 }
 
-static t_stat partial_disk_write(UNIT *unit, t_lba lba, uint8 *buf,
+static t_stat partial_disk_write(UNIT *unit, t_lba lba, uint8_t *buf,
                                  t_seccnt *sectswritten, t_seccnt sects)
 {
     (void)unit;
@@ -197,7 +197,7 @@ static t_stat partial_disk_write(UNIT *unit, t_lba lba, uint8 *buf,
 
 static void set_disk_read_backend(
     struct scsi_disk_case *disk_case,
-    t_stat (*rdsect)(UNIT *, t_lba, uint8 *, t_seccnt *, t_seccnt))
+    t_stat (*rdsect)(UNIT *, t_lba, uint8_t *, t_seccnt *, t_seccnt))
 {
     SIM_DISK_TEST_BACKEND backend = {
         .rdsect = rdsect,
@@ -209,7 +209,7 @@ static void set_disk_read_backend(
 
 static void set_disk_write_backend(
     struct scsi_disk_case *disk_case,
-    t_stat (*wrsect)(UNIT *, t_lba, uint8 *, t_seccnt *, t_seccnt))
+    t_stat (*wrsect)(UNIT *, t_lba, uint8_t *, t_seccnt *, t_seccnt))
 {
     SIM_DISK_TEST_BACKEND backend = {
         .wrsect = wrsect,
@@ -222,7 +222,7 @@ static void set_disk_write_backend(
 static void write_scsi_message(void *context)
 {
     struct scsi_message_case *message_case = context;
-    uint8 message = message_case->message;
+    uint8_t message = message_case->message;
 
     assert_int_equal(scsi_write(&message_case->bus, &message, 1), 1);
 }
@@ -278,20 +278,20 @@ static void assert_disk_command_writes_silently(
 }
 
 static void assert_scsi_data_in(const struct scsi_cdrom_case *cdrom_case,
-                                const uint8 *expected, size_t expected_size)
+                                const uint8_t *expected, size_t expected_size)
 {
-    uint8 data[64];
+    uint8_t data[64];
 
     assert_true(expected_size <= sizeof(data));
     assert_int_equal(cdrom_case->bus.phase, SCSI_DATI);
     assert_int_equal(scsi_read((SCSI_BUS *)&cdrom_case->bus, data,
-                               (uint32)expected_size),
+                               (uint32_t)expected_size),
                      expected_size);
     assert_memory_equal(data, expected, expected_size);
 }
 
-static void read_scsi_bus_data(SCSI_BUS *bus, uint8 *data, uint32 data_size,
-                               uint32 expected_size)
+static void read_scsi_bus_data(SCSI_BUS *bus, uint8_t *data, uint32_t data_size,
+                               uint32_t expected_size)
 {
     assert_int_equal(bus->phase, SCSI_DATI);
     assert_true(expected_size <= data_size);
@@ -300,7 +300,7 @@ static void read_scsi_bus_data(SCSI_BUS *bus, uint8 *data, uint32 data_size,
 
 static void assert_scsi_bus_good_status(SCSI_BUS *bus)
 {
-    uint8 status;
+    uint8_t status;
 
     assert_int_equal(bus->phase, SCSI_STS);
     assert_int_equal(scsi_read(bus, &status, 1), 1);
@@ -312,10 +312,10 @@ static void assert_scsi_good_status(struct scsi_cdrom_case *cdrom_case)
     assert_scsi_bus_good_status(&cdrom_case->bus);
 }
 
-static void assert_scsi_bus_check_status(SCSI_BUS *bus, uint32 sense_key,
-                                         uint32 sense_code)
+static void assert_scsi_bus_check_status(SCSI_BUS *bus, uint32_t sense_key,
+                                         uint32_t sense_code)
 {
-    uint8 status;
+    uint8_t status;
 
     assert_int_equal(bus->phase, SCSI_STS);
     assert_int_equal(scsi_read(bus, &status, 1), 1);
@@ -325,7 +325,7 @@ static void assert_scsi_bus_check_status(SCSI_BUS *bus, uint32 sense_key,
 }
 
 static void assert_scsi_check_status(struct scsi_cdrom_case *cdrom_case,
-                                     uint32 sense_key, uint32 sense_code)
+                                     uint32_t sense_key, uint32_t sense_code)
 {
     assert_scsi_bus_check_status(&cdrom_case->bus, sense_key, sense_code);
 }
@@ -333,13 +333,13 @@ static void assert_scsi_check_status(struct scsi_cdrom_case *cdrom_case,
 static void write_scsi_disk_data(void *context)
 {
     struct scsi_disk_case *disk_case = context;
-    uint8 data[512] = {0};
+    uint8_t data[512] = {0};
 
     assert_int_equal(scsi_write(&disk_case->bus, data, sizeof(data)),
                      sizeof(data));
 }
 
-static void assert_standard_message_is_accepted_silently(uint8 message)
+static void assert_standard_message_is_accepted_silently(uint8_t message)
 {
     struct scsi_message_case message_case = {
         .message = message,
@@ -363,7 +363,7 @@ static void assert_standard_message_is_accepted_silently(uint8 message)
     teardown_message_bus(&message_case.bus);
 }
 
-static void assert_message_disconnects_silently(uint8 message)
+static void assert_message_disconnects_silently(uint8_t message)
 {
     struct scsi_message_case message_case = {
         .message = message,
@@ -421,7 +421,7 @@ static void test_scsi_message_accepts_identify_with_simple_queue_tag(
     SCSI_BUS bus;
     UNIT unit;
     SCSI_DEV scsi_device;
-    uint8 messages[] = {0x80, 0x20, 0x44};
+    uint8_t messages[] = {0x80, 0x20, 0x44};
 
     (void)state;
 
@@ -834,7 +834,7 @@ static void test_disk_write10_short_write_reports_medium_error(void **state)
 static void test_disk_mode_sense6_current_page_reports_values(void **state)
 {
     struct scsi_disk_case disk_case;
-    uint8 data[64];
+    uint8_t data[64];
 
     (void)state;
 
@@ -858,8 +858,8 @@ static void test_disk_mode_sense6_changeable_page_returns_zero_mask(
     void **state)
 {
     struct scsi_disk_case disk_case;
-    uint8 data[64];
-    const uint8 zeros[10] = {0};
+    uint8_t data[64];
+    const uint8_t zeros[10] = {0};
 
     (void)state;
 
@@ -883,7 +883,7 @@ static void test_disk_mode_sense6_changeable_page_returns_zero_mask(
 static void test_disk_mode_sense6_default_page_reports_values(void **state)
 {
     struct scsi_disk_case disk_case;
-    uint8 data[64];
+    uint8_t data[64];
 
     (void)state;
 
@@ -906,7 +906,7 @@ static void test_disk_mode_sense6_default_page_reports_values(void **state)
 static void test_disk_mode_sense10_default_page_reports_values(void **state)
 {
     struct scsi_disk_case disk_case;
-    uint8 data[64];
+    uint8_t data[64];
 
     (void)state;
 
@@ -930,8 +930,8 @@ static void test_disk_mode_sense10_changeable_page_returns_zero_mask(
     void **state)
 {
     struct scsi_disk_case disk_case;
-    uint8 data[64];
-    const uint8 zeros[10] = {0};
+    uint8_t data[64];
+    const uint8_t zeros[10] = {0};
 
     (void)state;
 
@@ -995,7 +995,7 @@ static void test_disk_mode_sense10_saved_values_are_rejected(void **state)
 static void test_cdrom_read_toc_returns_single_data_track(void **state)
 {
     struct scsi_cdrom_case cdrom_case;
-    const uint8 expected[] = {
+    const uint8_t expected[] = {
         0x00, 0x12,             /* TOC data length */
         0x01, 0x01,             /* first and last track number */
         0x00, 0x14, 0x01, 0x00, /* track 1 data descriptor */
@@ -1022,7 +1022,7 @@ static void test_cdrom_read_toc_returns_single_data_track(void **state)
 static void test_cdrom_read_toc_obeys_allocation_length(void **state)
 {
     struct scsi_cdrom_case cdrom_case;
-    const uint8 expected[] = {0x00, 0x12, 0x01, 0x01, 0x00, 0x14};
+    const uint8_t expected[] = {0x00, 0x12, 0x01, 0x01, 0x00, 0x14};
 
     (void)state;
 
@@ -1042,7 +1042,7 @@ static void test_cdrom_read_toc_obeys_allocation_length(void **state)
 static void test_cdrom_read_toc_format_one_returns_session_info(void **state)
 {
     struct scsi_cdrom_case cdrom_case;
-    const uint8 expected[] = {
+    const uint8_t expected[] = {
         0x00, 0x0a,             /* TOC data length */
         0x01, 0x01,             /* first and last complete session */
         0x00, 0x14, 0x01, 0x00, /* first track in last session */
@@ -1089,7 +1089,7 @@ static void test_cdrom_read_disc_information_returns_complete_cdrom(
     void **state)
 {
     struct scsi_cdrom_case cdrom_case;
-    const uint8 expected[] = {
+    const uint8_t expected[] = {
         0x00, 0x20, /* disc information length */
         0x0e,       /* complete disc, complete last session, not erasable */
         0x01,       /* first track on disc */
@@ -1127,7 +1127,7 @@ static void test_cdrom_read_disc_information_obeys_allocation_length(
     void **state)
 {
     struct scsi_cdrom_case cdrom_case;
-    const uint8 expected[] = {0x00, 0x20, 0x0e, 0x01, 0x01, 0x01};
+    const uint8_t expected[] = {0x00, 0x20, 0x0e, 0x01, 0x01, 0x01};
 
     (void)state;
 
@@ -1148,7 +1148,7 @@ static void test_cdrom_read_track_information_returns_complete_data_track(
     void **state)
 {
     struct scsi_cdrom_case cdrom_case;
-    const uint8 expected[] = {
+    const uint8_t expected[] = {
         0x00, 0x22,                         /* track info length */
         0x01, 0x01,                         /* track and session */
         0x00, 0x04, 0x01, 0x02,             /* data track, LRA valid */
@@ -1182,7 +1182,7 @@ static void test_cdrom_read_track_information_obeys_allocation_length(
     void **state)
 {
     struct scsi_cdrom_case cdrom_case;
-    const uint8 expected[] = {0x00, 0x22, 0x01, 0x01, 0x00, 0x04};
+    const uint8_t expected[] = {0x00, 0x22, 0x01, 0x01, 0x00, 0x04};
 
     (void)state;
 

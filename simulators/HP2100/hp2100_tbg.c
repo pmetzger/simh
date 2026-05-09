@@ -119,6 +119,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -126,7 +128,7 @@
 
 /* Program constants */
 
-static const int32 delay [8] = {                /* clock delays, in event ticks per interval */
+static const int32_t delay [8] = {              /* clock delays, in event ticks per interval */
     uS (100),                                   /*   000 = 100 microseconds */
     mS (1),                                     /*   001 = 1 millisecond */
     mS (10),                                    /*   010 = 10 milliseconds */
@@ -137,7 +139,7 @@ static const int32 delay [8] = {                /* clock delays, in event ticks 
     S (1000)                                    /*   111 = 1000 seconds */
     };
 
-static const int32 ticks [8] = {                /* clock ticks per second */
+static const int32_t ticks [8] = {              /* clock ticks per second */
     10000,                                      /*   000 = 100 microseconds */
     1000,                                       /*   001 = 1 millisecond */
     100,                                        /*   010 = 10 milliseconds */
@@ -148,7 +150,7 @@ static const int32 ticks [8] = {                /* clock ticks per second */
     10                                          /*   111 = 1000 seconds */
     };
 
-static const int32 scale [8] = {                /* prescaler counts per clock tick */
+static const int32_t scale [8] = {              /* prescaler counts per clock tick */
     1,                                          /*   000 = 100 microseconds */
     1,                                          /*   001 = 1 millisecond */
     1,                                          /*   010 = 10 milliseconds */
@@ -231,8 +233,8 @@ static CARD_STATE tbg;                          /* per-card state */
 
 /* Time base generator state */
 
-static int32     rate;                          /* clock rate */
-static int32     prescaler;                     /* clock rate prescaler */
+static int32_t   rate;                          /* clock rate */
+static int32_t   prescaler;                     /* clock rate prescaler */
 static FLIP_FLOP lost_tick;                     /* lost tick error flip-flop */
 
 
@@ -254,7 +256,7 @@ typedef enum {
     Prescaler_Count
     } DELAY_TYPE;
 
-static int32 get_delay (DELAY_TYPE selector);
+static int32_t get_delay (DELAY_TYPE selector);
 
 
 /* Interface SCP data structures */
@@ -386,7 +388,7 @@ INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
 bool           irq_enabled = false;
-int32          tick_count;
+int32_t        tick_count;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -545,7 +547,7 @@ return outbound;                                        /* return the outbound s
 
 static t_stat tbg_service (UNIT *uptr)
 {
-int32 tick_count;
+int32_t tick_count;
 
 tprintf (tbg_dev, TRACE_PSERV, "Service entered with prescaler %d\n",
          prescaler);
@@ -613,9 +615,9 @@ return SCPE_OK;
 
 /* Clock delay routine */
 
-static int32 get_delay (DELAY_TYPE selector)
+static int32_t get_delay (DELAY_TYPE selector)
 {
-int32 rate_index;
+int32_t rate_index;
 
 if (tbg_unit [0].flags & UNIT_W2B && rate >= 4)         /* if jumper W2 is in position B */
     rate_index = rate - 3;                              /*   then rates 4-7 rescale to 1-4 */

@@ -25,6 +25,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "linc_defs.h"
 #include "sim_video.h"
 #include "display/display.h"
@@ -113,7 +115,7 @@ crt_reset (DEVICE *dptr)
 }
 
 void
-crt_point (uint16 x, uint16 y)
+crt_point (uint16_t x, uint16_t y)
 {
   sim_debug(DBG, &crt_dev, "Point %o,%o\n", x, y);
 #ifdef USE_DISPLAY

@@ -42,6 +42,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i1620_defs.h"
 
 #define PT_EL   0x80                                    /* end record */
@@ -50,22 +52,22 @@
 #define PT_C    0x10                                    /* C */
 #define PT_FD   0x7F                                    /* deleted */
 
-static uint32 ptr_mode = 0;                             /* normal/binary */
-static uint32 ptp_mode = 0;
+static uint32_t ptr_mode = 0;                           /* normal/binary */
+static uint32_t ptp_mode = 0;
 
-extern uint8 M[MAXMEMSIZE];
-extern uint8 ind[NUM_IND];
+extern uint8_t M[MAXMEMSIZE];
+extern uint8_t ind[NUM_IND];
 extern UNIT cpu_unit;
-extern uint32 io_stop;
-extern uint32 PAR, cpuio_opc, cpuio_cnt;
+extern uint32_t io_stop;
+extern uint32_t PAR, cpuio_opc, cpuio_cnt;
 
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
-t_stat ptr_boot (int32 unitno, DEVICE *dptr);
-t_stat ptr_read (uint8 *c, bool ignfeed);
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr);
+t_stat ptr_read (uint8_t *c, bool ignfeed);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptp_reset (DEVICE *dptr);
-t_stat ptp_write (uint32 c);
+t_stat ptp_write (uint32_t c);
 t_stat ptp_num (void);
 
 /* PTR data structures
@@ -124,7 +126,7 @@ DEVICE ptp_dev = {
 
 /* Paper tape reader odd parity chart: 1 = bad, 0 = ok */
 
-const int8 bad_par[128] = {
+const int8_t bad_par[128] = {
  1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,        /* 00 */
  0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,        /* 10 */
  0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,        /* 20 */
@@ -137,7 +139,7 @@ const int8 bad_par[128] = {
 
 /* Paper tape read (7b) to numeric (one digit) */
 
-const int8 ptr_to_num[128] = {
+const int8_t ptr_to_num[128] = {
    -1, 0x01, 0x02,   -1, 0x04,   -1,   -1, 0x07,        /* - */
  0x08,   -1,   -1, 0x0B,   -1,   -1,   -1,   -1,
  0x00,   -1,   -1, 0x03,   -1, 0x05, 0x06,   -1,        /* C */
@@ -158,7 +160,7 @@ const int8 ptr_to_num[128] = {
 
 /* Paper tape read (7b) to alphameric (two digits) */
 
-const int8 ptr_to_alp[128] = {
+const int8_t ptr_to_alp[128] = {
  0x00, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,        /* - */
  0x78, 0x79,   -1, 0x33, 0x34,   -1,   -1,   -1,
  0x00, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,        /* C */
@@ -179,7 +181,7 @@ const int8 ptr_to_alp[128] = {
 
 /* Numeric (flag + digit) to paper tape punch */
 
-const int8 num_to_ptp[32] = {
+const int8_t num_to_ptp[32] = {
  0x20, 0x01, 0x02, 0x13, 0x04, 0x15, 0x16, 0x07,        /* 0 */
  0x08, 0x19, 0x2A,   -1, 0x1C,   -1,   -1, 0x2F,
  0x40, 0x51, 0x52, 0x43, 0x54, 0x45, 0x46, 0x57,        /* F + 0 */
@@ -188,7 +190,7 @@ const int8 num_to_ptp[32] = {
 
 /* Alphameric (two digits) to paper tape punch */
 
-const int8 alp_to_ptp[256] = {
+const int8_t alp_to_ptp[256] = {
  0x10,   -1,   -1, 0x6B, 0x7C,   -1,   -1,   -1,        /* 00 */
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
  0x70,   -1,   -1, 0x5B, 0x4C,   -1,   -1,   -1,        /* 10 */
@@ -225,7 +227,7 @@ const int8 alp_to_ptp[256] = {
 
 /* Paper tape reader IO init routine */
 
-t_stat ptr (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat ptr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 /* Shared I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -244,7 +246,7 @@ return SCPE_OK;
 
 /* Binary paper tape reader IO init routine */
 
-t_stat btr (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat btr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 /* Shared I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -275,8 +277,8 @@ return SCPE_OK;
 t_stat ptr_svc (UNIT *uptr)
 {
 t_stat r;
-uint8 ptc;
-int8 mc;
+uint8_t ptc;
+int8_t mc;
 
 if (cpuio_cnt >= MEMSIZE) {                             /* over the limit? */
     cpuio_clr_inp (uptr);                               /* done */
@@ -349,9 +351,9 @@ return SCPE_OK;
 
 /* Read ptr frame - all errors are 'hard' errors and halt the system */
 
-t_stat ptr_read (uint8 *c, bool ignfeed)
+t_stat ptr_read (uint8_t *c, bool ignfeed)
 {
-int32 temp;
+int32_t temp;
 
 do {
     if ((temp = getc (ptr_unit.fileref)) == EOF) {      /* read char */
@@ -386,14 +388,14 @@ return SCPE_OK;
 
 /* Bootstrap routine */
 
-static const uint8 boot_rom[] = {
+static const uint8_t boot_rom[] = {
  3, 6, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0,                    /* RNPT 0 */
  };
 
 #define BOOT_START      0
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint8_t))
 
-t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic bootstrap signature.
    This implementation does not use every parameter. */
@@ -401,7 +403,7 @@ t_stat ptr_boot (int32 unitno, DEVICE *dptr)
 (void) dptr;
 
 size_t i;
-extern uint32 saved_PC;
+extern uint32_t saved_PC;
 
 for (i = 0; i < BOOT_LEN; i++)
     M[BOOT_START + i] = boot_rom[i];
@@ -411,7 +413,7 @@ return SCPE_OK;
 
 /* Paper tape punch IO init routine */
 
-t_stat ptp (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat ptp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 /* Shared I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -430,7 +432,7 @@ return SCPE_OK;
 
 /* Binary paper tape punch IO init routine */
 
-t_stat btp (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat btp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 /* Shared I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -451,8 +453,8 @@ return SCPE_OK;
 
 t_stat ptp_svc (UNIT *uptr)
 {
-int8 ptc;
-uint8 z, d;
+int8_t ptc;
+uint8_t z, d;
 t_stat r;
 
 if ((cpuio_opc != OP_DN) && (cpuio_cnt >= MEMSIZE)) {   /* wrap, ~dump? */
@@ -515,8 +517,8 @@ return SCPE_OK;
 t_stat ptp_num (void)
 {
 t_stat r;
-uint8 d;
-int8 ptc;
+uint8_t d;
+int8_t ptc;
 
 d = M[PAR] & (FLAG | DIGIT);                            /* get char */
 ptc = num_to_ptp[d];                                    /* translate digit */
@@ -534,7 +536,7 @@ return SCPE_OK;
 
 /* Write ptp frame - all errors are hard errors */
 
-t_stat ptp_write (uint32 c)
+t_stat ptp_write (uint32_t c)
 {
 if (putc (c, ptp_unit.fileref) == EOF) {                /* write char */
     sim_perror ("PTP I/O error");

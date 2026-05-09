@@ -24,6 +24,8 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <stdint.h>
+
 #include "linc_defs.h"
 
 
@@ -41,17 +43,17 @@
 #define C03    (C & BMASK)
 
 /* CPU state. */
-static uint16 P;
-static uint16 C;
-static uint16 S;
-static uint16 B;
-static uint16 A;
-static uint16 L;
-static uint16 Z;
-static uint16 R;
-static uint16 LSW, RSW, SSW;
-static uint16 SAM[16];
-static uint16 XL[12];
+static uint16_t P;
+static uint16_t C;
+static uint16_t S;
+static uint16_t B;
+static uint16_t A;
+static uint16_t L;
+static uint16_t Z;
+static uint16_t R;
+static uint16_t LSW, RSW, SSW;
+static uint16_t SAM[16];
+static uint16_t XL[12];
 static int paused;
 static int IBZ;
 static int OVF;
@@ -63,24 +65,24 @@ static int DO = 0;
 static t_stat stop_reason;
 
 typedef struct {
-  uint16 P;
-  uint16 C;
-  uint16 S;
-  uint16 B;
-  uint16 A;
-  uint16 L;
+  uint16_t P;
+  uint16_t C;
+  uint16_t S;
+  uint16_t B;
+  uint16_t A;
+  uint16_t L;
 } HISTORY;
 static HISTORY *history = NULL;
-static uint32 history_i, history_m, history_n;
+static uint32_t history_i, history_m, history_n;
 
 /* Function declaration. */
-static t_stat cpu_ex(t_value *vptr, t_addr ea, UNIT *uptr, int32 sw);
-static t_stat cpu_dep(t_value val, t_addr ea, UNIT *uptr, int32 sw);
+static t_stat cpu_ex(t_value *vptr, t_addr ea, UNIT *uptr, int32_t sw);
+static t_stat cpu_dep(t_value val, t_addr ea, UNIT *uptr, int32_t sw);
 static t_stat cpu_reset(DEVICE *dptr);
-static t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat linc_boot(int32 flag, const char *ptr);
-static t_stat linc_do(int32 flag, const char *ptr);
+static t_stat cpu_set_hist(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat linc_boot(int32_t flag, const char *ptr);
+static t_stat linc_do(int32_t flag, const char *ptr);
 
 static UNIT cpu_unit = { UDATA(NULL, UNIT_FIX + UNIT_BINK, MEMSIZE) };
 
@@ -150,12 +152,12 @@ static void cpu_ndxc(void)
   C = (C & ~BMASK) | ((C + 1) & BMASK);
 }
 
-static void cpu_set_S(uint16 addr)
+static void cpu_set_S(uint16_t addr)
 {
   S = addr & WMASK;
 }
 
-static void cpu_set_B(uint16 data)
+static void cpu_set_B(uint16_t data)
 {
   B = data & WMASK;
 }
@@ -225,7 +227,7 @@ static int cpu_halfword(void)
 
 static void cpu_index(void)
 {
-  uint16 tmp;
+  uint16_t tmp;
   if (C & IMASK) {
     if (cpu_halfword()) {
       B += HMASK;
@@ -240,7 +242,7 @@ static void cpu_index(void)
 
 static void cpu_indexing(void)
 {
-  uint16 a = C03;
+  uint16_t a = C03;
   if (a == 0) {
     cpu_insn_addr();
     if ((C & IMASK) == 0) {
@@ -511,7 +513,7 @@ static void cpu_lam(void)
 
 static void cpu_mul(void)
 {
-  uint32 factor, product;
+  uint32_t factor, product;
   cpu_mem_read();
 
   C &= ~BMASK;
@@ -637,7 +639,7 @@ static void cpu_stc(void)
 
 static void cpu_jmp(void)
 {
-  uint16 tmp = P;
+  uint16_t tmp = P;
   P = X(C);
   if (P != 0) {
     cpu_set_B(INSN_JMP | tmp);
@@ -944,7 +946,7 @@ t_stat sim_instr(void)
   return SCPE_OK;
 }
 
-static t_stat cpu_ex(t_value *vptr, t_addr ea, UNIT *uptr, int32 sw)
+static t_stat cpu_ex(t_value *vptr, t_addr ea, UNIT *uptr, int32_t sw)
 {
   /* Generic examine signature.
      This implementation does not use every parameter. */
@@ -959,7 +961,7 @@ static t_stat cpu_ex(t_value *vptr, t_addr ea, UNIT *uptr, int32 sw)
   return SCPE_OK;
 }
 
-static t_stat cpu_dep(t_value val, t_addr ea, UNIT *uptr, int32 sw)
+static t_stat cpu_dep(t_value val, t_addr ea, UNIT *uptr, int32_t sw)
 {
   /* Generic deposit signature.
      This implementation does not use every parameter. */
@@ -973,7 +975,7 @@ static t_stat cpu_dep(t_value val, t_addr ea, UNIT *uptr, int32 sw)
 }
 
 static t_stat
-cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
+cpu_set_hist(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -982,7 +984,7 @@ cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
   (void)desc;
 
   t_stat r;
-  uint32 x;
+  uint32_t x;
 
   if (cptr == NULL)
     return SCPE_ARG;
@@ -1002,7 +1004,7 @@ cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 static t_stat
-cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
+cpu_show_hist(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -1011,7 +1013,7 @@ cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
   (void)desc;
 
   t_value insn;
-  uint32 i, j;
+  uint32_t i, j;
 
   fprintf (st, "P___ C___ S___ B___ A___ L\n");
 
@@ -1053,7 +1055,7 @@ cpu_reset(DEVICE *dptr)
   return SCPE_OK;
 }
 
-static t_stat linc_boot(int32 flag, const char *cptr)
+static t_stat linc_boot(int32_t flag, const char *cptr)
 {
   /* Generic command signature.
      This implementation does not use every parameter. */
@@ -1104,7 +1106,7 @@ static t_stat linc_boot(int32 flag, const char *cptr)
   return run_cmd(RU_GO, gbuf);
 }
 
-static t_stat linc_do(int32 flag, const char *cptr)
+static t_stat linc_do(int32_t flag, const char *cptr)
 {
   /* With arguments, regular DO to execute script. */
   if (*cptr != 0)

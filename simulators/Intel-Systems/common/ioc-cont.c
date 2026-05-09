@@ -33,6 +33,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "system_defs.h"                /* system header in system dir */
 
 //dbb status flag bits
@@ -74,21 +76,21 @@
 
 /* external globals */
 
-extern uint16    PCX;
+extern uint16_t  PCX;
 
 /* function prototypes */
 
-t_stat ioc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat ioc_cont_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat ioc_cont_clr(void);
-t_stat ioc_cont_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat ioc_cont_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat ioc_cont_reset (DEVICE *dptr);
-uint8 ioc_cont0(bool io, uint8 data, uint8 devnum);      /* ioc_cont*/
-uint8 ioc_cont1(bool io, uint8 data, uint8 devnum);      /* ioc_cont*/
+uint8_t ioc_cont0(bool io, uint8_t data, uint8_t devnum); /* ioc_cont*/
+uint8_t ioc_cont1(bool io, uint8_t data, uint8_t devnum); /* ioc_cont*/
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
+extern uint8_t reg_dev(uint8_t (*routine)(bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
 
 /* globals */
 
@@ -99,11 +101,11 @@ static const char* ioc_cont_desc(DEVICE *dptr) {
 
     return ioc_cont_NAME;
 }
-uint8   dbb_stat;
-uint8   dbb_cmd;
-uint8   dbb_in;
-uint8   dbb_out;
-uint8   ioc_cont_baseport = -1;         //base port
+uint8_t dbb_stat;
+uint8_t dbb_cmd;
+uint8_t dbb_in;
+uint8_t dbb_out;
+uint8_t ioc_cont_baseport = -1;         //base port
 
 UNIT ioc_cont_unit[] = {
     { UDATA (0, 0, 0) },                /* ioc_cont*/
@@ -158,7 +160,7 @@ DEVICE ioc_cont_dev = {
 
 // ioc_cont configuration
 
-t_stat ioc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat ioc_cont_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     /* Shared configuration signature.
        This implementation does not use every parameter. */
@@ -183,7 +185,7 @@ t_stat ioc_cont_clr(void)
 
 // show configuration parameters
 
-t_stat ioc_cont_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat ioc_cont_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -216,7 +218,7 @@ t_stat ioc_cont_reset(DEVICE *dptr)
 
 /* IOC data port functions */
 
-uint8 ioc_cont0(bool io, uint8 data, uint8 devnum)
+uint8_t ioc_cont0(bool io, uint8_t data, uint8_t devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -234,7 +236,7 @@ uint8 ioc_cont0(bool io, uint8 data, uint8 devnum)
 
 /* IOC control port functions */
 
-uint8 ioc_cont1(bool io, uint8 data, uint8 devnum)
+uint8_t ioc_cont1(bool io, uint8_t data, uint8_t devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */

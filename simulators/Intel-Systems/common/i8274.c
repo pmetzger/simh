@@ -101,6 +101,7 @@
 
 */
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "multibus_defs.h"
@@ -110,7 +111,7 @@
 
 /* register definitions */
 /* channel A */
-uint8   wr0a = 0,                       /* command register */
+uint8_t wr0a = 0,                       /* command register */
         wr1a = 0,                       /* enable register */
         wr2a = 0,                       /* mode register */
         wr3a = 0,                       /* configuration register 1 */
@@ -122,7 +123,7 @@ uint8   wr0a = 0,                       /* command register */
         rr1a = 0,                       /* error register */
         rr2a = 0;                       /* read interrupt vector */
 /* channel B */
-uint8   wr0b = 0,                       /* command register */
+uint8_t wr0b = 0,                       /* command register */
         wr1b = 0,                       /* enable register */
         wr2b = 0,                       /* CH B interrups vector */
         wr3b = 0,                       /* configuration register 1 */
@@ -138,10 +139,10 @@ uint8   wr0b = 0,                       /* command register */
 
 t_stat i8274_svc (UNIT *uptr);
 t_stat i8274_reset (DEVICE *dptr);
-int32 i8274As(int32 io, int32 data);
-int32 i8274Ad(int32 io, int32 data);
-int32 i8274Bs(int32 io, int32 data);
-int32 i8274Bd(int32 io, int32 data);
+int32_t i8274As(int32_t io, int32_t data);
+int32_t i8274Ad(int32_t io, int32_t data);
+int32_t i8274Bs(int32_t io, int32_t data);
+int32_t i8274Bd(int32_t io, int32_t data);
 
 /* i8274 Standard I/O Data Structures */
 
@@ -219,7 +220,7 @@ DEVICE i8274_dev = {
 
 t_stat i8274_svc (UNIT *uptr)
 {
-    int32 temp;
+    int32_t temp;
 
     sim_activate (&i8274_unit, i8274_unit.wait); /* continue poll */
     if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)
@@ -255,7 +256,7 @@ t_stat i8274_reset (DEVICE *dptr)
 */
 
 /* channel A command/status */
-int32 i8274As(int32 io, int32 data)
+int32_t i8274As(int32_t io, int32_t data)
 {
     if (io == 0) {                      /* read status port */
         switch(wr0a & 0x7) {
@@ -305,7 +306,7 @@ int32 i8274As(int32 io, int32 data)
 }
 
 /* channel A data */
-int32 i8274Ad(int32 io, int32 data)
+int32_t i8274Ad(int32_t io, int32_t data)
 {
     if (io == 0) {                          /* read data port */
         rr0a &= 0xFE;
@@ -317,7 +318,7 @@ int32 i8274Ad(int32 io, int32 data)
 }
 
 /* channel B command/status */
-int32 i8274Bs(int32 io, int32 data)
+int32_t i8274Bs(int32_t io, int32_t data)
 {
     if (io == 0) {                          /* read status port */
         return i8274_unit.u3;
@@ -337,7 +338,7 @@ int32 i8274Bs(int32 io, int32 data)
 }
 
 /* channel B data */
-int32 i8274Bd(int32 io, int32 data)
+int32_t i8274Bd(int32_t io, int32_t data)
 {
     if (io == 0) {                          /* read data port */
         i8274_unit.u3 &= 0xFD;

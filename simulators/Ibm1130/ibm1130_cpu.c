@@ -149,6 +149,7 @@
 
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "ibm1130_defs.h"
 
@@ -180,29 +181,29 @@ CTAB x_cmds[MAX_EXTRA_COMMANDS];
 #define SIGN_BIT(v)   ((v) & 0x8000)
 #define DWSIGN_BIT(v) ((v) & 0x80000000)
 
-uint16 M[MAXMEMSIZE];               /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
-uint16 ILSW[6] = {0,0,0,0,0,0};     /* interrupt level status words */
-uint16 XR[3] = {0,0,0};             /* IBM 1800 index registers */
-int32 IAR;                          /* instruction address register */
-int32 prev_IAR;                     /* instruction address register at start of current instruction */
-int32 SAR, SBR;                     /* storage address/buffer registers */
-int32 OP, TAG, CCC;                 /* instruction decoded pieces */
-int32 CES;                          /* console entry switches */
-int32 ACC, EXT;                     /* accumulator and extension */
-int32 ARF;                          /* arithmetic factor, a non-addressable internal CPU register */
-int32 RUNMODE;                      /* processor run/step mode */
-int32 ipl = -1;                     /* current interrupt level (-1 = not handling irq) */
-int32 iplpending = 0;               /* interrupted IPL's */
-int32 tbit = 0;                     /* trace flag (causes level 5 IRQ after each instr) */
-int32 V = 0, C = 0;                 /* condition codes */
-int32 wait_state = 0;               /* wait state (waiting for an IRQ) */
-int32 wait_lamp = true;             /* alternate indicator to light the wait lamp on the GUI */
-int32 int_req = 0;                  /* sum of interrupt request levels active */
-int32 int_lamps = 0;                /* accumulated version of int_req - gives lamp persistence */
-int32 int_mask;                     /* current active interrupt mask (ipl sensitive) */
-int32 mem_mask;                     /* mask for memory address bits based on current memory size */
-int32 cpu_dsw = 0;                  /* CPU device status word */
-int32 ibkpt_addr = -1;              /* breakpoint addr */
+uint16_t M[MAXMEMSIZE];             /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
+uint16_t ILSW[6] = {0,0,0,0,0,0};   /* interrupt level status words */
+uint16_t XR[3] = {0,0,0};           /* IBM 1800 index registers */
+int32_t IAR;                        /* instruction address register */
+int32_t prev_IAR;                   /* instruction address register at start of current instruction */
+int32_t SAR, SBR;                   /* storage address/buffer registers */
+int32_t OP, TAG, CCC;               /* instruction decoded pieces */
+int32_t CES;                        /* console entry switches */
+int32_t ACC, EXT;                   /* accumulator and extension */
+int32_t ARF;                        /* arithmetic factor, a non-addressable internal CPU register */
+int32_t RUNMODE;                    /* processor run/step mode */
+int32_t ipl = -1;                   /* current interrupt level (-1 = not handling irq) */
+int32_t iplpending = 0;             /* interrupted IPL's */
+int32_t tbit = 0;                   /* trace flag (causes level 5 IRQ after each instr) */
+int32_t V = 0, C = 0;               /* condition codes */
+int32_t wait_state = 0;             /* wait state (waiting for an IRQ) */
+int32_t wait_lamp = true;           /* alternate indicator to light the wait lamp on the GUI */
+int32_t int_req = 0;                /* sum of interrupt request levels active */
+int32_t int_lamps = 0;              /* accumulated version of int_req - gives lamp persistence */
+int32_t int_mask;                   /* current active interrupt mask (ipl sensitive) */
+int32_t mem_mask;                   /* mask for memory address bits based on current memory size */
+int32_t cpu_dsw = 0;                /* CPU device status word */
+int32_t ibkpt_addr = -1;            /* breakpoint addr */
 bool sim_gui = true;                /* enable gui */
 bool running = false;               /* true if CPU is running */
 bool power   = true;                /* true if CPU power is on */
@@ -211,7 +212,7 @@ bool cgiwritable = false;           /* true if we can write the disk images back
 bool is_1800 = false;               /* true if we are simulating an IBM 1800 processor */
 t_stat reason;                      /* CPU execution loop control */
 
-static int32 int_masks[6] = {
+static int32_t int_masks[6] = {
     0x00, 0x20, 0x30, 0x38, 0x3C, 0x3E      /* IPL 0 is highest prio (sees no other interrupts) */
 };
 
@@ -219,22 +220,22 @@ static int32 int_masks[6] = {
  * Function declarations
  * ------------------------------------------------------------------------ */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
 t_stat cpu_svc (UNIT *uptr);
-t_stat cpu_set_size (UNIT *uptr, int32 value, const char *cptr, void *desc);
-t_stat cpu_set_type (UNIT *uptr, int32 value, const char *cptr, void *desc);
+t_stat cpu_set_size (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat cpu_set_type (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 void calc_ints (void);
 
-extern t_stat ts_wr (int32 data, int32 addr, int32 access);
+extern t_stat ts_wr (int32_t data, int32_t addr, int32_t access);
 extern UNIT cr_unit, prt_unit[];
 
 #ifdef ENABLE_BACKTRACE
     static void   archive_backtrace(const char *inst);
     static void   reset_backtrace (void);
     static void   show_backtrace (int nshow);
-    static t_stat backtrace_cmd (int32 flag, const char *cptr);
+    static t_stat backtrace_cmd (int32_t flag, const char *cptr);
 #else
     #define archive_backtrace(inst)
     #define reset_backtrace()
@@ -247,9 +248,9 @@ extern UNIT cr_unit, prt_unit[];
 #  define ARFSET(v)                         /* without GUI, no need for setting ARF */
 #endif
 
-static t_stat view_cmd (int32 flag, const char *cptr);
+static t_stat view_cmd (int32_t flag, const char *cptr);
 static t_stat cpu_attach (UNIT *uptr, const char *cptr);
-static bool bsctest (int32 DSPLC);
+static bool bsctest (int32_t DSPLC);
 static void   exit_irq (void);
 static void   trace_instruction (void);
 
@@ -340,18 +341,18 @@ DEVICE cpu_dev = {
  * to read/set and index register -- they could using the address in the normal way).
  * ------------------------------------------------------------------------ */
 
-int32 ReadW  (int32 a)
+int32_t ReadW  (int32_t a)
 {
     SAR = a;
-    SBR = (int32) M[(a) & mem_mask];
+    SBR = (int32_t) M[(a) & mem_mask];
     return SBR;
 }
 
-void WriteW (int32 a, int32 d)
+void WriteW (int32_t a, int32_t d)
 {
     SAR = a;
     SBR = d;
-    M[a & mem_mask] = (int16) d;
+    M[a & mem_mask] = (int16_t) d;
 }
 
 /* ------------------------------------------------------------------------
@@ -359,7 +360,7 @@ void WriteW (int32 a, int32 d)
  * on the 1800, they're separate registers
  * ------------------------------------------------------------------------ */
 
-static uint16 ReadIndex (int32 tag)
+static uint16_t ReadIndex (int32_t tag)
 {
 #ifdef ENABLE_1800_SUPPORT
     if (is_1800)
@@ -367,11 +368,11 @@ static uint16 ReadIndex (int32 tag)
 #endif
 
     SAR = tag;                                  /* 1130: ordinary read from memory (like ReadW) */
-    SBR = (int32) M[(tag) & mem_mask];
+    SBR = (int32_t) M[(tag) & mem_mask];
     return SBR;
 }
 
-static void WriteIndex (int32 tag, int32 d)
+static void WriteIndex (int32_t tag, int32_t d)
 {
 #ifdef ENABLE_1800_SUPPORT
     if (is_1800) {
@@ -382,7 +383,7 @@ static void WriteIndex (int32 tag, int32 d)
 
     SAR = tag;                                  /* 1130: ordinary write to memory (same as WriteW) */
     SBR = d;
-    M[tag & mem_mask] = (int16) d;
+    M[tag & mem_mask] = (int16_t) d;
 }
 
 /* ------------------------------------------------------------------------
@@ -425,7 +426,7 @@ char *upcase (char *str)
 void calc_ints (void)
 {
     int i;
-    int32 newbits = 0;
+    int32_t newbits = 0;
 
     GUI_BEGIN_CRITICAL_SECTION              /* using critical section here so we don't mislead the GUI thread */
 
@@ -474,9 +475,9 @@ static const char *xio_funcs[] = {
     "func0?",  "write", "read",  "sense_irq",
     "control", "initw", "initr", "sense"
 };
-static int32 ibm1130_qcount (void)
+static int32_t ibm1130_qcount (void)
 {
-    int32 i, cnt;
+    int32_t i, cnt;
     UNIT *uptr;
     DEVICE *dptr;
 
@@ -494,8 +495,8 @@ static int32 ibm1130_qcount (void)
 
 t_stat sim_instr (void)
 {
-    int32 i, eaddr, INDIR, IR, F, DSPLC, word2 = 0, oldval, newval, src, src2, dst, abit, xbit;
-    int32 iocc_addr, iocc_op, iocc_dev, iocc_func, iocc_mod, result;
+    int32_t i, eaddr, INDIR, IR, F, DSPLC, word2 = 0, oldval, newval, src, src2, dst, abit, xbit;
+    int32_t iocc_addr, iocc_op, iocc_dev, iocc_func, iocc_mod, result;
     char msg[50];
     int status;
 #ifdef GUI_SUPPORT
@@ -1027,7 +1028,7 @@ t_stat sim_instr (void)
                 ACC  = (dst >> 16) & 0xFFFF;
                 EXT  = dst & 0xFFFF;
 
-                C = (uint32) dst < (uint32) src;
+                C = (uint32_t) dst < (uint32_t) src;
                 if (! V)
                     V = DWSIGN_BIT((~src ^ src2) & (src ^ dst));
                 break;
@@ -1051,7 +1052,7 @@ t_stat sim_instr (void)
                 ACC  = (dst >> 16) & 0xFFFF;
                 EXT  = dst & 0xFFFF;
 
-                C = (uint32) src < (uint32) src2;
+                C = (uint32_t) src < (uint32_t) src2;
                 if (! V)
                     V = DWSIGN_BIT((src ^ src2) & (src ^ dst));
                 break;
@@ -1081,7 +1082,7 @@ t_stat sim_instr (void)
                 if (src2 == 0) {
                     V = 1;                          /* divide by zero just sets overflow, ACC & EXT are undefined */
                 }
-                else if ((src2 == -1) && ((uint32)src == 0x80000000)) {
+                else if ((src2 == -1) && ((uint32_t)src == 0x80000000)) {
                     V = 1;                          /* another special case: max negative int / -1 also overflows */
                 }
                 else {
@@ -1148,7 +1149,7 @@ t_stat sim_instr (void)
                         src  = ((ACC << 16) | (EXT & 0xFFFF));
                         src2 = (ReadW(eaddr) << 16) + ReadW(eaddr|1);
                         dst  = src - src2;
-                        C    = (uint32) src < (uint32) src2;
+                        C    = (uint32_t) src < (uint32_t) src2;
 
                         if (dst & 0x80000000)           /* if ACC_EXT <  operand, skip 1 instruction */
                             IAR = IAR+1;
@@ -1235,7 +1236,7 @@ static int simh_status_to_stopcode (int status)
  * Testing overflow resets the flag in both long and short forms.
  * ------------------------------------------------------------------------ */
 
-static bool bsctest (int32 DSPLC)
+static bool bsctest (int32_t DSPLC)
 {
     if (DSPLC & 0x01) {                     /* Overflow off (note inverted sense) */
         if (! V)
@@ -1364,7 +1365,7 @@ t_stat cpu_reset (DEVICE *dptr)
  * Memory examine
  * ------------------------------------------------------------------------ */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -1386,7 +1387,7 @@ t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
  * Memory deposit
  * ------------------------------------------------------------------------ */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -1394,7 +1395,7 @@ t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
     (void) sw;
 
     if (addr < MEMSIZE) {
-        M[addr] = (uint16) (val & 0xFFFF);
+        M[addr] = (uint16_t) (val & 0xFFFF);
         return SCPE_OK;
     }
     return SCPE_NXM;
@@ -1421,10 +1422,10 @@ t_stat cpu_svc (UNIT *uptr)
  * Memory allocation
  * ------------------------------------------------------------------------ */
 
-t_stat cpu_set_size (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     bool used;
-    int32 i;
+    int32_t i;
 
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -1435,7 +1436,7 @@ t_stat cpu_set_size (UNIT *uptr, int32 value, const char *cptr, void *desc)
     if ((value <= 0) || (value > MAXMEMSIZE) || ((value & 0xFFF) != 0))
         return SCPE_ARG;
 
-    for (i = value, used = false; i < (int32) MEMSIZE; i++) {
+    for (i = value, used = false; i < (int32_t) MEMSIZE; i++) {
         if (M[i] != 0) {
             used = true;
             break;
@@ -1456,7 +1457,7 @@ t_stat cpu_set_size (UNIT *uptr, int32 value, const char *cptr, void *desc)
 
 /* processor type */
 
-t_stat cpu_set_type (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat cpu_set_type (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     REG *r;
 
@@ -1484,7 +1485,7 @@ t_stat cpu_set_type (UNIT *uptr, int32 value, const char *cptr, void *desc)
  * IO function for console switches
  * ------------------------------------------------------------------------ */
 
-void xio_1131_switches (int32 addr, int32 func, int32 modify)
+void xio_1131_switches (int32_t addr, int32_t func, int32_t modify)
 {
     char msg[80];
 
@@ -1522,7 +1523,7 @@ void xio_error (const char *msg)
  * register_cmd - add a command to the extensible command table
  * ------------------------------------------------------------------------ */
 
-t_stat register_cmd (const char *name, t_stat (*action)(int32 flag, const char *ptr), int arg, const char *help)
+t_stat register_cmd (const char *name, t_stat (*action)(int32_t flag, const char *ptr), int arg, const char *help)
 {
     int i;
 
@@ -1555,7 +1556,7 @@ t_stat register_cmd (const char *name, t_stat (*action)(int32 flag, const char *
  * echo_cmd - just echo the command line
  * ------------------------------------------------------------------------ */
 
-static t_stat echo_cmd (int32 flag, const char *cptr)
+static t_stat echo_cmd (int32_t flag, const char *cptr)
 {
     printf("%s\n", cptr);
     return SCPE_OK;
@@ -1656,7 +1657,7 @@ static void show_backtrace (int nshow)
         putchar('\n');
 }
 
-static t_stat backtrace_cmd (int32 flag, const char *cptr)
+static t_stat backtrace_cmd (int32_t flag, const char *cptr)
 {
     int n;
 
@@ -1733,7 +1734,7 @@ void void_backtrace (int afrom, int ato)
  * The register values shown are the values BEFORE the instruction is executed.
  *************************************************************************************/
 
-t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw);
+t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
 
 typedef struct tag_symentry {
     struct tag_symentry *next;
@@ -1986,7 +1987,7 @@ void debug_print (const char *fmt, ...)
 
 /* view_cmd - let user view and/or edit a file (e.g. a printer output file, script, or source deck) */
 
-static t_stat view_cmd (int32 flag, const char *cptr)
+static t_stat view_cmd (int32_t flag, const char *cptr)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

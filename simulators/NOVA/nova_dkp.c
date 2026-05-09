@@ -64,6 +64,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "nova_defs.h"
 
 #define DKP_NUMDR       4                               /* #drives */
@@ -295,11 +297,11 @@
 #define NFMT_4231       true
 
 struct drvtyp {
-    int32       sect;                                   /* sectors */
-    int32       surf;                                   /* surfaces */
-    int32       cyl;                                    /* cylinders */
-    int32       size;                                   /* #blocks */
-    int32       newf;                                   /* new format flag */
+    int32_t     sect;                                   /* sectors */
+    int32_t     surf;                                   /* surfaces */
+    int32_t     cyl;                                    /* cylinders */
+    int32_t     size;                                   /* #blocks */
+    int32_t     newf;                                   /* new format flag */
     };
 
 struct drvtyp drv_tab[] = {
@@ -328,29 +330,29 @@ struct drvtyp drv_tab[] = {
     4   post read/write events
  */
 
-extern uint16 M[];
+extern uint16_t M[];
 extern UNIT cpu_unit;
-extern int32 int_req, dev_busy, dev_done, dev_disable;
-extern int32 saved_PC, SR, AMASK;
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
+extern int32_t saved_PC, SR, AMASK;
 
-int32 dkp_ma = 0;                                       /* memory address */
-int32 dkp_map = 0;                                      /* DCH map 0=A 3=B */
-int32 dkp_ussc = 0;                                     /* unit/sf/sc/cnt */
-int32 dkp_fccy = 0;                                     /* flags/cylinder */
-int32 dkp_sta = 0;                                      /* status register */
-int32 dkp_swait = 100;                                  /* seek latency */
-int32 dkp_rwait = 100;                                  /* rotate latency */
-int32 dkp_diagmode = 0;                                 /* diagnostic mode */
+int32_t dkp_ma = 0;                                     /* memory address */
+int32_t dkp_map = 0;                                    /* DCH map 0=A 3=B */
+int32_t dkp_ussc = 0;                                   /* unit/sf/sc/cnt */
+int32_t dkp_fccy = 0;                                   /* flags/cylinder */
+int32_t dkp_sta = 0;                                    /* status register */
+int32_t dkp_swait = 100;                                /* seek latency */
+int32_t dkp_rwait = 100;                                /* rotate latency */
+int32_t dkp_diagmode = 0;                               /* diagnostic mode */
 
-int32 dkp_trace = 0 ;
+int32_t dkp_trace = 0 ;
 
-int32 dkp (int32 pulse, int32 code, int32 AC);
+int32_t dkp (int32_t pulse, int32_t code, int32_t AC);
 t_stat dkp_svc (UNIT *uptr);
 t_stat dkp_reset (DEVICE *dptr);
-t_stat dkp_boot (int32 unitno, DEVICE *dptr);
+t_stat dkp_boot (int32_t unitno, DEVICE *dptr);
 t_stat dkp_attach (UNIT *uptr, const char *cptr);
-t_stat dkp_go ( int32 pulse );
-t_stat dkp_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat dkp_go ( int32_t pulse );
+t_stat dkp_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* DKP data structures
 
@@ -503,10 +505,10 @@ DEVICE dkp_dev = {
 
 /* IOT routine */
 
-int32 dkp (int32 pulse, int32 code, int32 AC)
+int32_t dkp (int32_t pulse, int32_t code, int32_t AC)
 {
 UNIT *uptr;
-int32 u, rval, dtype;
+int32_t u, rval, dtype;
 
 rval = 0;
 uptr = dkp_dev.units + GET_UNIT (dkp_ussc);             /* select unit */
@@ -658,10 +660,10 @@ return rval;
    Returns true if command ok, false if error
 */
 
-t_stat dkp_go ( int32 pulse )
+t_stat dkp_go ( int32_t pulse )
 {
 UNIT *uptr;
-int32 oldCyl, u, dtype;
+int32_t oldCyl, u, dtype;
 
 dkp_sta = dkp_sta & ~STA_EFLGS;                         /* clear errors */
 u = GET_UNIT (dkp_ussc);                                /* get unit number */
@@ -686,10 +688,10 @@ uptr->CYL  = GET_CYL (dkp_fccy, dtype) ;
 
 if ( DKP_TRACE(1) )
     {
-    int32        xSect ;
-    int32        xSurf ;
-    int32        xCyl ;
-    int32        xCnt ;
+    int32_t      xSect ;
+    int32_t      xSurf ;
+    int32_t      xCyl ;
+    int32_t      xCnt ;
 
     xSect = GET_SECT(dkp_ussc, dtype) ;
     xSurf = GET_SURF(dkp_ussc, dtype) ;
@@ -795,12 +797,12 @@ return ( true ) ;                                       /* no error */
 
 t_stat dkp_svc (UNIT *uptr)
 {
-int32 sa, bda;
-int32 dx, pa, u;
-int32 dtype, err, newsect, newsurf;
-uint32 awc;
+int32_t sa, bda;
+int32_t dx, pa, u;
+int32_t dtype, err, newsect, newsurf;
+uint32_t awc;
 t_stat rval;
-static uint16 tbuf[DKP_NUMWD];                          /* transfer buffer */
+static uint16_t tbuf[DKP_NUMWD];                        /* transfer buffer */
 
 
 rval  = SCPE_OK;
@@ -902,11 +904,11 @@ do  {
         }
     sa = GET_SA (uptr->CYL, GET_SURF (dkp_ussc, dtype),
          GET_SECT (dkp_ussc, dtype), dtype);            /* get disk block */
-    bda = sa * DKP_NUMWD * sizeof(uint16) ;             /* to words, bytes */
+    bda = sa * DKP_NUMWD * sizeof(uint16_t) ;           /* to words, bytes */
     err = fseek (uptr->fileref, bda, SEEK_SET);         /* position drive */
 
     if (uptr->FUNC == FCCY_READ) {                      /* read? */
-            awc = fxread (tbuf, sizeof(uint16), DKP_NUMWD, uptr->fileref);
+            awc = fxread (tbuf, sizeof(uint16_t), DKP_NUMWD, uptr->fileref);
             for ( ; awc < DKP_NUMWD; awc++) tbuf[awc] = 0;
             if ((err = ferror (uptr->fileref)))
                 break;
@@ -923,7 +925,7 @@ do  {
                 tbuf[dx] = M[pa];
                 dkp_ma = (dkp_ma + 1) & AMASK;
                 }
-            fxwrite (tbuf, sizeof(int16), DKP_NUMWD, uptr->fileref);
+            fxwrite (tbuf, sizeof(int16_t), DKP_NUMWD, uptr->fileref);
             if ((err = ferror (uptr->fileref)))
                 break;
             }
@@ -973,7 +975,7 @@ t_stat dkp_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 DEV_CLR_BUSY( INT_DKP ) ;                               /*  clear busy    */
@@ -994,7 +996,7 @@ return SCPE_OK;
 
 t_stat dkp_attach (UNIT *uptr, const char *cptr)
 {
-int32 i, p;
+int32_t i, p;
 t_stat   r;
 
 uptr->capac = drv_tab[GET_DTYPE (uptr->flags)].size;    /* restore capac */
@@ -1004,7 +1006,7 @@ if ((r != SCPE_OK) || !(uptr->flags & UNIT_AUTO))
 if ((p = sim_fsize (uptr->fileref)) == 0)               /* get file size */
     return SCPE_OK;
 for (i = 0; drv_tab[i].sect != 0; i++) {
-    if (p <= (drv_tab[i].size * (int32) sizeof (uint16))) {
+    if (p <= (drv_tab[i].size * (int32_t) sizeof (uint16_t))) {
         uptr->flags = (uptr->flags & ~UNIT_DTYPE) | (i << UNIT_V_DTYPE);
         uptr->capac = drv_tab[i].size;
         return SCPE_OK;
@@ -1015,7 +1017,7 @@ return SCPE_OK;
 
 /* Set size command validation routine */
 
-t_stat dkp_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dkp_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1035,9 +1037,9 @@ return SCPE_OK;
 #define BOOT_START  02000
 #define BOOT_UNIT   02021
 #define BOOT_SEEK   02022
-#define BOOT_LEN    (sizeof(boot_rom) / sizeof(int32))
+#define BOOT_LEN    (sizeof(boot_rom) / sizeof(int32_t))
 
-static const int32 boot_rom[] = {
+static const int32_t boot_rom[] = {
     0060233,                    /* NIOC 0,DKP           ; clear disk */
     0020420,                    /* LDA 0,USSC           ; unit, sfc, sec, cnt */
     0063033,                    /* DOC 0,DKP            ; select disk */
@@ -1062,10 +1064,10 @@ static const int32 boot_rom[] = {
     };
 
 
-t_stat dkp_boot (int32 unitno, DEVICE *dptr)
+t_stat dkp_boot (int32_t unitno, DEVICE *dptr)
 {
-int32 i, dtype;
-extern int32 saved_PC, SR;
+int32_t i, dtype;
+extern int32_t saved_PC, SR;
 
 for (i = 0; i < BOOT_LEN; i++) M[BOOT_START + i] = boot_rom[i];
 unitno = unitno & USSC_M_UNIT;
@@ -1082,16 +1084,16 @@ return SCPE_OK;
 
 
 #define BOOT_START  0375
-#define BOOT_LEN    (sizeof (boot_rom) / sizeof (int32))
+#define BOOT_LEN    (sizeof (boot_rom) / sizeof (int32_t))
 
-static const int32 boot_rom[] = {
+static const int32_t boot_rom[] = {
       0062677                     /* IORST                ; reset the I/O system  */
     , 0060133                     /* NIOS DKP             ; start the disk        */
     , 0000377                     /* JMP 377              ; wait for the world    */
     } ;
 
 
-t_stat dkp_boot (int32 unitno, DEVICE *dptr)
+t_stat dkp_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1101,7 +1103,7 @@ t_stat dkp_boot (int32 unitno, DEVICE *dptr)
 size_t i;
 
 for (i = 0; i < BOOT_LEN; i++)
-    M[BOOT_START + i] = (uint16) boot_rom[i];
+    M[BOOT_START + i] = (uint16_t) boot_rom[i];
 saved_PC = BOOT_START;
 SR = 0100000 + DEV_DKP;
 return SCPE_OK;

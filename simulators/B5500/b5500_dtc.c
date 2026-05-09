@@ -22,6 +22,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "b5500_defs.h"
 #include "sim_timer.h"
 #include "sim_sock.h"
@@ -148,26 +150,26 @@ t_stat              dtco_srv(UNIT *);
 t_stat              dtc_attach(UNIT *, const char *);
 t_stat              dtc_detach(UNIT *);
 t_stat              dtc_reset(DEVICE *);
-t_stat              dtc_setnl (UNIT *, int32, const char *, void *);
-t_stat              dtc_set_log (UNIT *, int32, const char *, void *);
-t_stat              dtc_set_nolog (UNIT *, int32, const char *, void *);
-t_stat              dtc_show_log (FILE *, UNIT *, int32, const void *);
-t_stat              dtc_set_buf (UNIT *, int32, const char *, void *);
-t_stat              dtc_show_buf (FILE *, UNIT *, int32, const void *);
-t_stat              dtc_help(FILE *, DEVICE *, UNIT *, int32, const char *);
-t_stat              dtc_help_attach (FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              dtc_setnl (UNIT *, int32_t, const char *, void *);
+t_stat              dtc_set_log (UNIT *, int32_t, const char *, void *);
+t_stat              dtc_set_nolog (UNIT *, int32_t, const char *, void *);
+t_stat              dtc_show_log (FILE *, UNIT *, int32_t, const void *);
+t_stat              dtc_set_buf (UNIT *, int32_t, const char *, void *);
+t_stat              dtc_show_buf (FILE *, UNIT *, int32_t, const void *);
+t_stat              dtc_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
+t_stat              dtc_help_attach (FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *dtc_description(DEVICE *);
 
 
-int32               tmxr_poll;
+int32_t             tmxr_poll;
 
-uint8               dtc_buf[DTC_MLINES][DTC_BUFSIZ];
+uint8_t             dtc_buf[DTC_MLINES][DTC_BUFSIZ];
 TMLN                dtc_ldsc[DTC_MLINES];                       /* line descriptors */
 TMXR                dtc_desc = { DTC_TLINES, 0, 0, dtc_ldsc };  /* mux descriptor */
-uint8               dtc_lstatus[DTC_MLINES];                    /* Line status */
-uint16              dtc_bufptr[DTC_MLINES];                     /* Buffer pointer */
-uint16              dtc_bsize[DTC_MLINES];                      /* Buffer size */
-uint16              dtc_blimit[DTC_MLINES];                     /* Buffer size */
+uint8_t             dtc_lstatus[DTC_MLINES];                    /* Line status */
+uint16_t            dtc_bufptr[DTC_MLINES];                     /* Buffer pointer */
+uint16_t            dtc_bsize[DTC_MLINES];                      /* Buffer size */
+uint16_t            dtc_blimit[DTC_MLINES];                     /* Buffer size */
 int                 dtc_bufsize = DTC_BUFSIZ;
 
 
@@ -198,9 +200,9 @@ REG                 dtc_reg[] = {
     {ORDATAD(NLINES, dtc_desc.lines, 8, "Buffer size"), REG_HRO},
     {CRDATA(BUF, dtc_buf, 16, 8, sizeof(dtc_buf)), REG_HRO},
     {BRDATA(LSTAT, dtc_lstatus, 16, 8, sizeof(dtc_lstatus)), REG_HRO},
-    {BRDATA(BUFPTR, dtc_bufptr, 16, 16, sizeof(dtc_bufptr)/sizeof(uint16)), REG_HRO},
-    {BRDATA(BUFSIZ, dtc_bsize, 16, 16, sizeof(dtc_bsize)/sizeof(uint16)), REG_HRO},
-    {BRDATA(BUFLIM, dtc_blimit, 16, 16, sizeof(dtc_blimit)/sizeof(uint16)), REG_HRO},
+    {BRDATA(BUFPTR, dtc_bufptr, 16, 16, sizeof(dtc_bufptr)/sizeof(uint16_t)), REG_HRO},
+    {BRDATA(BUFSIZ, dtc_bsize, 16, 16, sizeof(dtc_bsize)/sizeof(uint16_t)), REG_HRO},
+    {BRDATA(BUFLIM, dtc_blimit, 16, 16, sizeof(dtc_blimit)/sizeof(uint16_t)), REG_HRO},
     {0}
 };
 
@@ -223,7 +225,7 @@ DEVICE              dtc_dev = {
 
 
 /* Start off a terminal controller command */
-t_stat dtc_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
+t_stat dtc_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc)
 {
     /* Shared device command signature.
        This implementation does not use every parameter. */
@@ -280,7 +282,7 @@ t_stat dtc_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
 t_stat dtc_srv(UNIT * uptr)
 {
     int                 chan = uptr->CMD & DTC_CHAN;
-    uint8               ch;
+    uint8_t             ch;
     int                 ttu;
     int                 buf;
     int                 i;
@@ -818,7 +820,7 @@ dtc_detach(UNIT * uptr)
 
 /* SET LINES processor */
 
-t_stat dtc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dtc_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -826,12 +828,12 @@ t_stat dtc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 newln, i, t;
+    int32_t newln, i, t;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    newln = (int32) get_uint (cptr, 10, DTC_MLINES, &r);
+    newln = (int32_t) get_uint (cptr, 10, DTC_MLINES, &r);
     if ((r != SCPE_OK) || (newln == dtc_desc.lines))
         return r;
     if ((newln == 0) || (newln > DTC_MLINES))
@@ -857,7 +859,7 @@ t_stat dtc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SET LOG processor */
 
-t_stat dtc_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dtc_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -866,14 +868,14 @@ t_stat dtc_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     t_stat r;
     char gbuf[CBUFSIZE];
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
     cptr = get_glyph (cptr, gbuf, '=');
     if ((cptr == NULL) || (*cptr == 0) || (gbuf[0] == 0))
         return SCPE_ARG;
-    ln = (int32) get_uint (gbuf, 10, dtc_desc.lines, &r);
+    ln = (int32_t) get_uint (gbuf, 10, dtc_desc.lines, &r);
     if ((r != SCPE_OK) || (ln >= dtc_desc.lines))
         return SCPE_ARG;
     return tmxr_set_log (NULL, ln, cptr, desc);
@@ -881,7 +883,7 @@ t_stat dtc_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SET NOLOG processor */
 
-t_stat dtc_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dtc_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -889,11 +891,11 @@ t_stat dtc_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
 
     t_stat r;
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    ln = (int32) get_uint (cptr, 10, dtc_desc.lines, &r);
+    ln = (int32_t) get_uint (cptr, 10, dtc_desc.lines, &r);
     if ((r != SCPE_OK) || (ln >= dtc_desc.lines))
         return SCPE_ARG;
     return tmxr_set_nolog (NULL, ln, NULL, desc);
@@ -901,14 +903,14 @@ t_stat dtc_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SHOW LOG processor */
 
-t_stat dtc_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dtc_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) val;
 
-    int32 i;
+    int32_t i;
 
     for (i = 0; i < dtc_desc.lines; i++) {
         fprintf (st, "line %d: ", i);
@@ -920,7 +922,7 @@ t_stat dtc_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 /* SET BUFFER processor */
 
-t_stat dtc_set_buf (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dtc_set_buf (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -929,11 +931,11 @@ t_stat dtc_set_buf (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) desc;
 
     t_stat r;
-    int32 bufsiz;
+    int32_t bufsiz;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    bufsiz = (int32) get_uint (cptr, 10, DTC_BUFSIZ, &r);
+    bufsiz = (int32_t) get_uint (cptr, 10, DTC_BUFSIZ, &r);
     if ((r != SCPE_OK) || (bufsiz >= DTC_BUFSIZ))
         return SCPE_ARG;
     if (bufsiz > 0 && (bufsiz % 28) == 0) {
@@ -945,7 +947,7 @@ t_stat dtc_set_buf (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SHOW BUFFER processor */
 
-t_stat dtc_show_buf (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dtc_show_buf (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -959,7 +961,7 @@ t_stat dtc_show_buf (FILE *st, UNIT *uptr, int32 val, const void *desc)
 /* Show summary processor */
 
 static t_stat
-dtc_summ(FILE * st, UNIT * uptr, int32 val, const void *desc)
+dtc_summ(FILE * st, UNIT * uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -967,7 +969,7 @@ dtc_summ(FILE * st, UNIT * uptr, int32 val, const void *desc)
     (void) val;
     (void) desc;
 
-    uint32              i, t;
+    uint32_t            i, t;
 
     t = 0;
     for (i = 0; i < DTC_MLINES; i++)
@@ -982,14 +984,14 @@ dtc_summ(FILE * st, UNIT * uptr, int32 val, const void *desc)
 /* SHOW CONN/STAT processor */
 
 static t_stat
-dtc_show(FILE * st, UNIT * uptr, int32 val, const void *desc)
+dtc_show(FILE * st, UNIT * uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) desc;
 
-    int32               i, cc;
+    int32_t             i, cc;
 
     for (cc = 0; (cc < DTC_MLINES) && dtc_ldsc[cc].conn; cc++) ;
     if (cc) {
@@ -1006,7 +1008,7 @@ dtc_show(FILE * st, UNIT * uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat dtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 
 fprintf (st, "B249 Terminal Control Unit\n\n");
@@ -1042,7 +1044,7 @@ dtc_help_attach (st, dptr, uptr, flag, cptr);
 return SCPE_OK;
 }
 
-t_stat dtc_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dtc_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 tmxr_attach_help (st, dptr, uptr, flag, cptr);
 fprintf (st, "The terminal lines perform input and output through Telnet sessions connected\n");

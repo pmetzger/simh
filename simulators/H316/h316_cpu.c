@@ -226,6 +226,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "h316_defs.h"
 #ifdef VM_IMPTIP
 #include "h316_imp.h"
@@ -253,69 +255,69 @@
 #define HIST_MAX        65536
 
 typedef struct {
-    int32               pc;
-    int32               ir;
-    int32               ar;
-    int32               br;
-    int32               xr;
-    int32               ea;
-    int32               opnd;
+    int32_t             pc;
+    int32_t             ir;
+    int32_t             ar;
+    int32_t             br;
+    int32_t             xr;
+    int32_t             ea;
+    int32_t             opnd;
     bool                iack;      // [RLA] true if an interrupt occurred
     } InstHistory;
 
-uint16 M[MAXMEMSIZE] = { 0 };                           /* memory */
-int32 saved_AR = 0;                                     /* A register */
-int32 saved_BR = 0;                                     /* B register */
-int32 saved_XR = 0;                                     /* X register */
-int32 XR = 0;                                           /* live copy - must be global */
-int32 PC = 0;                                           /* P register */
-int32 C = 0;                                            /* C register */
-int32 ext = 0;                                          /* extend mode */
-int32 pme = 0;                                          /* prev mode extend */
-int32 extoff_pending = 0;                               /* extend off pending */
-int32 dp = 0;                                           /* double mode */
-int32 sc = 0;                                           /* shift count */
-int32 ss[4];                                            /* sense switches */
-int32 dev_int = 0;                                      /* dev ready */
-int32 dev_enb = 0;                                      /* dev enable */
-uint32 ext_ints = 0;                                    // [RLA] 16 if extended interrupts enabled
-uint16 dev_ext_int = 0;                                 // [RLA] extended interrupt request bitmap
-uint16 dev_ext_enb = 0;                                 // [RLA] extended interrupt enable bitmap
-int32 ind_max = 8;                                      /* iadr nest limit */
-int32 stop_inst = 1;                                    /* stop on ill inst */
-int32 stop_dev = 2;                                     /* stop on ill dev */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+uint16_t M[MAXMEMSIZE] = { 0 };                         /* memory */
+int32_t saved_AR = 0;                                   /* A register */
+int32_t saved_BR = 0;                                   /* B register */
+int32_t saved_XR = 0;                                   /* X register */
+int32_t XR = 0;                                         /* live copy - must be global */
+int32_t PC = 0;                                         /* P register */
+int32_t C = 0;                                          /* C register */
+int32_t ext = 0;                                        /* extend mode */
+int32_t pme = 0;                                        /* prev mode extend */
+int32_t extoff_pending = 0;                             /* extend off pending */
+int32_t dp = 0;                                         /* double mode */
+int32_t sc = 0;                                         /* shift count */
+int32_t ss[4];                                          /* sense switches */
+int32_t dev_int = 0;                                    /* dev ready */
+int32_t dev_enb = 0;                                    /* dev enable */
+uint32_t ext_ints = 0;                                  // [RLA] 16 if extended interrupts enabled
+uint16_t dev_ext_int = 0;                               // [RLA] extended interrupt request bitmap
+uint16_t dev_ext_enb = 0;                               // [RLA] extended interrupt enable bitmap
+int32_t ind_max = 8;                                    /* iadr nest limit */
+int32_t stop_inst = 1;                                  /* stop on ill inst */
+int32_t stop_dev = 2;                                   /* stop on ill dev */
+uint16_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-uint32 dma_nch = DMA_MAX;                               /* number of chan */
-uint32 dma_ad[DMA_MAX] = { 0 };                         /* DMA addresses */
-uint32 dma_wc[DMA_MAX] = { 0 };                         /* DMA word count */
-uint32 dma_eor[DMA_MAX] = { 0 };                        /* DMA end of range */
-uint32 chan_req = 0;                                    /* channel requests */
-uint32 chan_map[DMA_MAX + DMC_MAX] = { 0 };             /* chan->dev map */
-int32 (*iotab[DEV_MAX])(int32 inst, int32 fnc, int32 dat, int32 dev) = { NULL };
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+uint32_t dma_nch = DMA_MAX;                             /* number of chan */
+uint32_t dma_ad[DMA_MAX] = { 0 };                       /* DMA addresses */
+uint32_t dma_wc[DMA_MAX] = { 0 };                       /* DMA word count */
+uint32_t dma_eor[DMA_MAX] = { 0 };                      /* DMA end of range */
+uint32_t chan_req = 0;                                  /* channel requests */
+uint32_t chan_map[DMA_MAX + DMC_MAX] = { 0 };           /* chan->dev map */
+int32_t (*iotab[DEV_MAX])(int32_t inst, int32_t fnc, int32_t dat, int32_t dev) = { NULL };
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 
 bool devtab_init (void);
-int32 dmaio (int32 inst, int32 fnc, int32 dat, int32 dev);
-int32 undio (int32 inst, int32 fnc, int32 dat, int32 dev);
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+int32_t dmaio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
+int32_t undio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_noext (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_show_dma (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_set_nchan (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_nchan (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_set_interrupts (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_interrupts (FILE *st, UNIT *uptr, int32 val, const void *desc);
-int32 sim_ota_2024 (int32 inst, int32 fnc, int32 dat, int32 dev);
-int32 cpu_interrupt (int32 vec);
-int32 cpu_ext_interrupt (void);
+t_stat cpu_set_noext (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_show_dma (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_set_nchan (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_nchan (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_set_interrupts (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_interrupts (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+int32_t sim_ota_2024 (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
+int32_t cpu_interrupt (int32_t vec);
+int32_t cpu_ext_interrupt (void);
 
 /* CPU data structures
 
@@ -401,16 +403,16 @@ DEVICE cpu_dev = {
     &cpu_dib, 0
     };
 
-static t_stat Ea (int32 inst, int32 *addr);
-static t_stat Write (int32 addr, int32 val);
-static int32 Add16 (int32 val1, int32 val2);
-static int32 Add31 (int32 val1, int32 val2);
-static int32 Operate (int32 MB, int32 AR);
+static t_stat Ea (int32_t inst, int32_t *addr);
+static t_stat Write (int32_t addr, int32_t val);
+static int32_t Add16 (int32_t val1, int32_t val2);
+static int32_t Add31 (int32_t val1, int32_t val2);
+static int32_t Operate (int32_t MB, int32_t AR);
 
 t_stat sim_instr (void)
 {
-int32 AR, BR, MB, Y = 0, t1, t2, t3, skip, dev;
-uint32 ut;
+int32_t AR, BR, MB, Y = 0, t1, t2, t3, skip, dev;
+uint32_t ut;
 bool iack;                                              // [RLA] true if an interrupt was taken this cycle
 t_stat reason;
 
@@ -449,7 +451,7 @@ if (sim_interval <= 0) {                                /* check clock queue */
 /* Channel breaks (DMA and DMC) */
 
 if (chan_req) {                                         /* channel request? */
-    int32 i, t, ch, dev, st, end, ad, dmcad;
+    int32_t i, t, ch, dev, st, end, ad, dmcad;
     t_stat r;
     for (i = 0, ch = chan_req; ch != 0; i++, ch = ch >> 1) {
         if (ch & 1) {                                   /* req on chan i? */
@@ -1068,10 +1070,10 @@ return reason;
    masked at exit.
 */
 
-static t_stat Ea (int32 IR, int32 *addr)
+static t_stat Ea (int32_t IR, int32_t *addr)
 {
-int32 i;
-int32 Y = IR & (IA | DISP);                             /* ind + disp */
+int32_t i;
+int32_t Y = IR & (IA | DISP);                           /* ind + disp */
 
 if (IR & SC) Y = ((PC - 1) & PAGENO) | Y;               /* cur sec? + pageno */
 if (ext) {                                              /* extend mode? */
@@ -1100,7 +1102,7 @@ return SCPE_OK;
 
 /* Write memory */
 
-static t_stat Write (int32 addr, int32 val)
+static t_stat Write (int32_t addr, int32_t val)
 {
 // [RLA] Write() now checks for address breaks ...
 if (((addr == 0) || (addr >= 020)) && MEM_ADDR_OK (addr))
@@ -1116,9 +1118,9 @@ else
 
 /* Add */
 
-static int32 Add16 (int32 v1, int32 v2)
+static int32_t Add16 (int32_t v1, int32_t v2)
 {
-int32 r = v1 + v2;
+int32_t r = v1 + v2;
 
 if (((v1 ^ ~v2) & (v1 ^ r)) & SIGN)
     C = 1;
@@ -1126,9 +1128,9 @@ else C = 0;
 return (r & DMASK);
 }
 
-static int32 Add31 (int32 v1, int32 v2)
+static int32_t Add31 (int32_t v1, int32_t v2)
 {
-int32 r = v1 + v2;
+int32_t r = v1 + v2;
 
 if (((v1 ^ ~v2) & (v1 ^ r)) & DP_SIGN)
     C = 1;
@@ -1138,7 +1140,7 @@ return r;
 
 // [RLA] Standard (fixed vector) interrupt action ...
 
-int32 cpu_interrupt (int32 vec)
+int32_t cpu_interrupt (int32_t vec)
 {
 pme = ext;                                              /* save extend */
 if (cpu_unit.flags & UNIT_EXT)
@@ -1148,7 +1150,7 @@ return 0120000 | vec;                                   /* inst = JST* vector */
 }
 
 // [RLA] Extended (priority) interrupt action ...
-int32 cpu_ext_interrupt (void) {
+int32_t cpu_ext_interrupt (void) {
   //   Unlike the standard interrupts, which have a fixed vector shared by all
   // devices, the extended interrupts have a unique vector for every device.
   // Moreover, extended interrupts are prioritized so that the lowest numbered
@@ -1169,7 +1171,7 @@ int32 cpu_ext_interrupt (void) {
   // are edge triggered - there are many cases (modem output, task, RTC) where
   // the IMP code does nothing to clear the interrupt request flag.  So we're
   // going with edge triggered version for now...
-  int32 i;  uint16 m, irq;
+  int32_t i;  uint16_t m, irq;
   irq = dev_ext_int & dev_ext_enb;
   for (i = 1, m = SIGN;  m != 0;  ++i, m >>= 1) {
     if ((irq & m) != 0) {
@@ -1186,7 +1188,7 @@ int32 cpu_ext_interrupt (void) {
 
 /* Unimplemented I/O device */
 
-int32 undio (int32 op, int32 fnc, int32 val, int32 dev)
+int32_t undio (int32_t op, int32_t fnc, int32_t val, int32_t dev)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -1199,7 +1201,7 @@ return ((stop_dev << IOT_V_REASON) | val);
 
 /* [RLA] Special I/O devices */
 
-int32 sim_ota_2024 (int32 inst, int32 fnc, int32 dat, int32 dev)
+int32_t sim_ota_2024 (int32_t inst, int32_t fnc, int32_t dat, int32_t dev)
 {
   /* Generic I/O dispatch signature.
      This implementation does not use every parameter. */
@@ -1260,13 +1262,13 @@ int32 sim_ota_2024 (int32 inst, int32 fnc, int32 dat, int32 dev)
 
 /* DMA control */
 
-int32 dmaio (int32 inst, int32 fnc, int32 dat, int32 dev)
+int32_t dmaio (int32_t inst, int32_t fnc, int32_t dat, int32_t dev)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 ch = (fnc - 1) & 03;
+int32_t ch = (fnc - 1) & 03;
 
 switch (inst) {                                         /* case on opcode */
 
@@ -1360,12 +1362,12 @@ return dat;
                         (m8xm9)
 */
 
-static int32 Operate (int32 MB, int32 AR)
+static int32_t Operate (int32_t MB, int32_t AR)
 {
-int32 D, jamkn, eiki7, easbm, eastl, setaz;
-int32 clatr, cla1r, edahs, edals, etahs, etals, eda1r;
-int32 cbitl, cbitg, cbite;
-int32 aleg, bleg, ARx;
+int32_t D, jamkn, eiki7, easbm, eastl, setaz;
+int32_t clatr, cla1r, edahs, edals, etahs, etals, eda1r;
+int32_t cbitl, cbitg, cbite;
+int32_t aleg, bleg, ARx;
 
 /* Phase tlate */
 
@@ -1449,7 +1451,7 @@ return ARx;
 
 t_stat cpu_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 
 saved_AR = saved_BR = saved_XR = 0;
 C = 0;
@@ -1473,7 +1475,7 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -1489,7 +1491,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -1506,7 +1508,7 @@ return SCPE_OK;
 
 /* Option processors */
 
-t_stat cpu_set_noext (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_noext (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1520,7 +1522,7 @@ if (MEMSIZE > (NX_AMASK + 1))
 return SCPE_OK;
 }
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1528,8 +1530,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0) ||
     (((cpu_unit.flags & UNIT_EXT) == 0) && (val > (NX_AMASK + 1))))
@@ -1546,7 +1548,7 @@ return SCPE_OK;
 
 /* [RLA] Set/Show number of interrupts supported */
 
-t_stat cpu_set_interrupts (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_interrupts (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -1554,7 +1556,7 @@ t_stat cpu_set_interrupts (UNIT *uptr, int32 val, const char *cptr, void *desc)
   (void) val;
   (void) desc;
 
-  uint32 newint;  t_stat ret;
+  uint32_t newint;  t_stat ret;
   if (cptr == NULL) return SCPE_ARG;
   newint = get_uint (cptr, 10, 49, &ret);
   if (ret != SCPE_OK) return ret;
@@ -1563,7 +1565,7 @@ t_stat cpu_set_interrupts (UNIT *uptr, int32 val, const char *cptr, void *desc)
   return SCPE_OK;
 }
 
-t_stat cpu_show_interrupts (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_interrupts (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -1578,7 +1580,7 @@ t_stat cpu_show_interrupts (FILE *st, UNIT *uptr, int32 val, const void *desc)
   return SCPE_OK;
 }
 
-t_stat cpu_set_nchan (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_nchan (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1586,7 +1588,7 @@ t_stat cpu_set_nchan (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-uint32 i, newmax;
+uint32_t i, newmax;
 t_stat r;
 
 if (cptr == NULL)
@@ -1604,7 +1606,7 @@ return SCPE_OK;
 
 /* Show DMA channels */
 
-t_stat cpu_show_nchan (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_nchan (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1620,7 +1622,7 @@ return SCPE_OK;
 
 /* Show channel state */
 
-t_stat cpu_show_dma (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_dma (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1637,7 +1639,7 @@ return SCPE_OK;
 
 /* Set I/O device to IOBUS / DMA channel / DMC channel */
 
-t_stat io_set_iobus (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat io_set_iobus (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1658,7 +1660,7 @@ dibp->chan = 0;
 return SCPE_OK;
 }
 
-t_stat io_set_dma (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat io_set_dma (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1667,7 +1669,7 @@ t_stat io_set_dma (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newc;
+uint32_t newc;
 t_stat r;
 
 if ((cptr == NULL) || (uptr == NULL))
@@ -1687,7 +1689,7 @@ dibp->chan = (newc - DMA_MIN) + DMA_V_DMA1 + 1;         /* store */
 return SCPE_OK;
 }
 
-t_stat io_set_dmc (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat io_set_dmc (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1696,7 +1698,7 @@ t_stat io_set_dmc (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newc;
+uint32_t newc;
 t_stat r;
 
 if ((cptr == NULL) || (uptr == NULL))
@@ -1718,7 +1720,7 @@ return SCPE_OK;
 
 /* Show channel configuration */
 
-t_stat io_show_chan (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat io_show_chan (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1747,7 +1749,7 @@ return SCPE_OK;
 /* Set up I/O dispatch and channel maps */
 // [RLA] Check for DMC conflicts (on both DMC channels!) ...
 
-static bool set_chanmap (DEVICE *dptr, DIB *dibp, uint32 dno, uint32 chan)
+static bool set_chanmap (DEVICE *dptr, DIB *dibp, uint32_t dno, uint32_t chan)
 {
   if ((chan < DMC_V_DMC1) && (chan >= dma_nch)) {
     sim_printf ("%s configured for DMA channel %d\n", sim_dname (dptr), chan + 1);
@@ -1769,7 +1771,7 @@ bool devtab_init (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j, dno;
+uint32_t i, j, dno;
 
 for (i = 0; i < DEV_MAX; i++)
     iotab[i] = NULL;
@@ -1810,7 +1812,7 @@ return false;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1818,7 +1820,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -1827,7 +1829,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -1847,25 +1849,25 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 cr, k, di, op, lnt;
+int32_t cr, k, di, op, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 InstHistory *h;
-static uint8 has_opnd[16] = {
+static uint8_t has_opnd[16] = {
     0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1
     };
 
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }

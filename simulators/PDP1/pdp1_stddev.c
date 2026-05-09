@@ -54,6 +54,8 @@
    to work correctly!
 */
 
+#include <stdint.h>
+
 #include "pdp1_defs.h"
 #include "sim_tmxr.h"
 
@@ -76,27 +78,27 @@
 #define UNIT_ET         (1 << UNIT_V_ET)
 #define PTR_LEADER      20                              /* ASCII leader chars */
 
-int32 ptr_state = 0;
-int32 ptr_wait = 0;
-int32 ptr_stopioe = 0;
-int32 ptr_uc = 0;                                       /* upper/lower case */
-int32 ptp_uc = 0;
-int32 ptr_hold = 0;                                     /* holding buffer */
-int32 ptr_leader = PTR_LEADER;                          /* leader count */
-int32 ptr_last = 0;                                     /* prev character*/
-int32 ptr_sbs = 0;                                      /* SBS level */
-int32 ptp_stopioe = 0;
-int32 ptp_sbs = 0;                                      /* SBS level */
-int32 tti_hold = 0;                                     /* tti hold buf */
-int32 tti_sbs = 0;                                      /* SBS level */
-int32 tty_buf = 0;                                      /* tty buffer */
-int32 tty_uc = 0;                                       /* tty uc/lc */
-int32 tty_ribbon = FIODEC_BLACK;                        /* ribbon color */
-int32 tto_sbs = 0;
+int32_t ptr_state = 0;
+int32_t ptr_wait = 0;
+int32_t ptr_stopioe = 0;
+int32_t ptr_uc = 0;                                     /* upper/lower case */
+int32_t ptp_uc = 0;
+int32_t ptr_hold = 0;                                   /* holding buffer */
+int32_t ptr_leader = PTR_LEADER;                        /* leader count */
+int32_t ptr_last = 0;                                   /* prev character*/
+int32_t ptr_sbs = 0;                                    /* SBS level */
+int32_t ptp_stopioe = 0;
+int32_t ptp_sbs = 0;                                    /* SBS level */
+int32_t tti_hold = 0;                                   /* tti hold buf */
+int32_t tti_sbs = 0;                                    /* SBS level */
+int32_t tty_buf = 0;                                    /* tty buffer */
+int32_t tty_uc = 0;                                     /* tty uc/lc */
+int32_t tty_ribbon = FIODEC_BLACK;                      /* ribbon color */
+int32_t tto_sbs = 0;
 
-extern int32 ios, ioh, cpls, iosta;
-extern int32 PF, IO, PC, TA;
-extern int32 M[];
+extern int32_t ios, ioh, cpls, iosta;
+extern int32_t PF, IO, PC, TA;
+extern int32_t M[];
 
 int ptr_get_ascii (UNIT *uptr);
 t_stat ptr_svc (UNIT *uptr);
@@ -106,17 +108,17 @@ t_stat tto_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
 t_stat ptp_reset (DEVICE *dptr);
 t_stat tty_reset (DEVICE *dptr);
-t_stat ptr_boot (int32 unitno, DEVICE *dptr);
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr);
 t_stat ptr_attach (UNIT *uptr, const char *cptr);
 t_stat ptp_attach (UNIT *uptr, const char *cptr);
-t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *ptr_description (DEVICE *dptr);
 const char *ptp_description (DEVICE *dptr);
 
 /* Character translation tables */
 
-int32 fiodec_to_ascii[128] = {
+int32_t fiodec_to_ascii[128] = {
     ' ', '1', '2', '3', '4', '5', '6', '7',             /* lower case */
     '8', '9', 0, '\f', 0, 0, 0, 0,
     '0', '/', 's', 't', 'u', 'v', 'w', 'x',
@@ -135,7 +137,7 @@ int32 fiodec_to_ascii[128] = {
     'H', 'I', 0, '*', 0, '\b', 0, '\n'
     };
 
-int32 ascii_to_fiodec[128] = {
+int32_t ascii_to_fiodec[128] = {
     0, 0, 0, 0, 0, 0, 0, 0,
     BOTH+075, BOTH+036, BOTH+FIODEC_CR, 0, BOTH+FIODEC_STOP, BOTH+FIODEC_CR, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -322,7 +324,7 @@ DEVICE tto_dev = {
      the PTR service routine clears IOH on any error during a rpa/rpb i.
 */
 
-int32 ptr (int32 inst, int32 dev, int32 dat)
+int32_t ptr (int32_t inst, int32_t dev, int32_t dat)
 {
 if (dev == 0030) {                                      /* RRB */
     iosta = iosta & ~IOS_PTR;                           /* clear status */
@@ -352,7 +354,7 @@ return dat;
 
 t_stat ptr_svc (UNIT *uptr)
 {
-int32 temp;
+int32_t temp;
 
 if ((uptr->flags & UNIT_ATT) == 0) {                    /* attached? */
     if (ptr_wait)                                       /* if wait, clr ioh */
@@ -414,7 +416,7 @@ return SCPE_OK;
 int ptr_get_ascii (UNIT *uptr)
 {
 int c;
-int32 in;
+int32_t in;
 
 if (ptr_leader > 0) {                                   /* leader? */
     ptr_leader = ptr_leader - 1;                        /* count down */
@@ -498,9 +500,9 @@ return attach_unit (uptr, cptr);
 
 /* Bootstrap routine */
 
-static int32 ptr_getw (UNIT *uptr)
+static int32_t ptr_getw (UNIT *uptr)
 {
-int32 i, tmp, word;
+int32_t i, tmp, word;
 
 for (i = word = 0; i < 3;) {
     if ((tmp = getc (uptr->fileref)) == EOF)
@@ -514,15 +516,15 @@ for (i = word = 0; i < 3;) {
 return word;
 }
 
-t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
 (void) unitno;
 (void) dptr;
 
-int32 origin, val;
-int32 fld = TA & EPCMASK;
+int32_t origin, val;
+int32_t fld = TA & EPCMASK;
 
 for (;;) {
     if ((val = ptr_getw (&ptr_unit)) < 0)
@@ -543,7 +545,7 @@ for (;;) {
 return SCPE_OK;                                         /* done */
 }
 
-t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -578,7 +580,7 @@ return "Paper Tape Reader";
 
 /* Paper tape punch: IOT routine */
 
-int32 ptp (int32 inst, int32 dev, int32 dat)
+int32_t ptp (int32_t inst, int32_t dev, int32_t dat)
 {
 iosta = iosta & ~IOS_PTP;                               /* clear flag */
 ptp_unit.buf = (dev == 0006)? ((dat >> 12) | 0200): (dat & 0377);
@@ -595,7 +597,7 @@ return dat;
 
 t_stat ptp_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 if (cpls & CPLS_PTP) {                                  /* completion pulse? */
     ios = 1;                                            /* restart */
@@ -606,7 +608,7 @@ dev_req_int (ptp_sbs);                                  /* req interrupt */
 if ((uptr->flags & UNIT_ATT) == 0)                      /* not attached? */
     return IORETURN (ptp_stopioe, SCPE_UNATT);
 if ((uptr->flags & UNIT_ASCII) != 0) {                  /* ASCII mode? */
-    int32 c1 = uptr->buf & 077;
+    int32_t c1 = uptr->buf & 077;
     if (uptr->buf == 0)                                 /* ignore nulls */
         return SCPE_OK;
     if (c1 == FIODEC_UC) {                              /* UC? absorb */
@@ -662,7 +664,7 @@ sim_switches |= SWMASK ('A');       /* Default to Append to existing file */
 return attach_unit (uptr, cptr);
 }
 
-t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -695,7 +697,7 @@ return "Paper Tape Punch";
 
 /* Typewriter IOT routines */
 
-int32 tti (int32 inst, int32 dev, int32 dat)
+int32_t tti (int32_t inst, int32_t dev, int32_t dat)
 {
 /* Generic IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -708,7 +710,7 @@ if (inst & (IO_WAIT | IO_CPLS))                         /* wait or sync? */
 return tty_buf & 077;
 }
 
-int32 tto (int32 inst, int32 dev, int32 dat)
+int32_t tto (int32_t inst, int32_t dev, int32_t dat)
 {
 /* Generic IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -729,7 +731,7 @@ return dat;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 in, temp;
+int32_t in, temp;
 
 sim_activate (uptr, uptr->wait);                        /* continue poll */
 if (tti_hold & CW) {                                    /* char waiting? */
@@ -767,7 +769,7 @@ return SCPE_OK;
 
 static void tto_puts (const char *cptr)
 {
-int32 c;
+int32_t c;
 
 while ((c = *cptr++) != 0)
     sim_putchar (c);
@@ -777,7 +779,7 @@ return;
 t_stat tto_svc (UNIT *uptr)
 {
 t_stat r;
-int32 c;
+int32_t c;
 static const char *red_str = "[red]\r\n";
 static const char *black_str = "[black]\r\n";
 

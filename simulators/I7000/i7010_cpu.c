@@ -45,6 +45,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7010_defs.h"
 #include "sim_card.h"
 
@@ -73,30 +75,30 @@
 
 struct InstHistory
 {
-    uint32              ic;
-    uint8               inst[15];
-    uint32              astart;
-    uint32              bstart;
-    uint32              aend;
-    uint32              bend;
-    uint8               dlen;
-    uint8               bdata[50];
+    uint32_t            ic;
+    uint8_t             inst[15];
+    uint32_t            astart;
+    uint32_t            bstart;
+    uint32_t            aend;
+    uint32_t            bend;
+    uint8_t             dlen;
+    uint8_t             bdata[50];
 };
 
-t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr,
-                           int32 sw);
+                           int32_t sw);
 t_stat              cpu_dep(t_value val, t_addr addr, UNIT * uptr,
-                            int32 sw);
+                            int32_t sw);
 t_stat              cpu_reset(DEVICE * dptr);
-t_stat              cpu_set_size(UNIT * uptr, int32 val, const char *cptr,
+t_stat              cpu_set_size(UNIT * uptr, int32_t val, const char *cptr,
                                  void *desc);
-t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32 val,
+t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32_t val,
                                   const void *desc);
-t_stat              cpu_set_hist(UNIT * uptr, int32 val, const char *cptr,
+t_stat              cpu_set_hist(UNIT * uptr, int32_t val, const char *cptr,
                                  void *desc);
-t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                                  const char *cptr);
 const char          *cpu_description (DEVICE *dptr);
 int                 do_addint(int val);
@@ -107,54 +109,54 @@ t_stat              do_divide(void);
 /* Interval timer option */
 t_stat              rtc_srv(UNIT * uptr);
 t_stat              rtc_reset(DEVICE * dptr);
-int32               rtc_tps = 200;
+int32_t             rtc_tps = 200;
 
 
 /* General registers */
-uint8               M[MAXMEMSIZE] = { 0 };      /* memory */
-int32               IAR;                        /* program counter */
-int32               AAR;                        /* A Address Register */
-int32               BAR;                        /* B Address Register */
-int32               CAR;                        /* C Address Register */
-int32               DAR;                        /* D Address Register */
-uint8               SW;                         /* Switch register */
-uint32              XR;                         /* IO Address register */
-uint8               cind;                       /* Compare indicators */
-uint8               zind;                       /* Zero balence */
-uint8               oind;                       /* Overflow indicator */
-uint8               dind;                       /* Divide Over indicator */
-uint8               tind;                       /* Tape indicator */
-uint8               op_mod;                     /* Opcode modifier */
-uint8               euind;                      /* Exp underflow indicator */
-uint8               eoind;                      /* Exp overflow indicator */
-uint8               fault;                      /* Access fault */
-uint8               pri_enb = 1;                /* Priority mode flags */
-uint8               inquiry = 0;                /* Inquiry IRQ pending */
-uint8               urec_irq[NUM_CHAN];         /* Unit record IRQ pending */
-uint8               astmode = 1;                /* Astrisk mode */
-uint8               chan_io_status[NUM_CHAN];   /* Channel status */
-uint8               chan_seek_done[NUM_CHAN];   /* Channel seek finished */
-uint8               chan_irq_enb[NUM_CHAN];     /* IRQ type opcode */
-uint8               lpr_chan9[NUM_CHAN];        /* Line printer at channel 9 */
-uint8               lpr_chan12[NUM_CHAN];       /* Line printer at channel 12 */
-extern uint32       caddr[NUM_CHAN];            /* Channel addresses */
+uint8_t             M[MAXMEMSIZE] = { 0 };      /* memory */
+int32_t             IAR;                        /* program counter */
+int32_t             AAR;                        /* A Address Register */
+int32_t             BAR;                        /* B Address Register */
+int32_t             CAR;                        /* C Address Register */
+int32_t             DAR;                        /* D Address Register */
+uint8_t             SW;                         /* Switch register */
+uint32_t            XR;                         /* IO Address register */
+uint8_t             cind;                       /* Compare indicators */
+uint8_t             zind;                       /* Zero balence */
+uint8_t             oind;                       /* Overflow indicator */
+uint8_t             dind;                       /* Divide Over indicator */
+uint8_t             tind;                       /* Tape indicator */
+uint8_t             op_mod;                     /* Opcode modifier */
+uint8_t             euind;                      /* Exp underflow indicator */
+uint8_t             eoind;                      /* Exp overflow indicator */
+uint8_t             fault;                      /* Access fault */
+uint8_t             pri_enb = 1;                /* Priority mode flags */
+uint8_t             inquiry = 0;                /* Inquiry IRQ pending */
+uint8_t             urec_irq[NUM_CHAN];         /* Unit record IRQ pending */
+uint8_t             astmode = 1;                /* Astrisk mode */
+uint8_t             chan_io_status[NUM_CHAN];   /* Channel status */
+uint8_t             chan_seek_done[NUM_CHAN];   /* Channel seek finished */
+uint8_t             chan_irq_enb[NUM_CHAN];     /* IRQ type opcode */
+uint8_t             lpr_chan9[NUM_CHAN];        /* Line printer at channel 9 */
+uint8_t             lpr_chan12[NUM_CHAN];       /* Line printer at channel 12 */
+extern uint32_t     caddr[NUM_CHAN];            /* Channel addresses */
 int                 low_addr = -1;              /* Low protection address */
 int                 high_addr = -1;             /* High protection address */
 int                 reloc = 0;                  /* Dislocate address flag */
-uint8               prot_fault = 0;             /* Protection fault indicators. */
-uint8               prot_enb = 0;               /* Protection enables */
-uint8               relo_flags = 0;             /* Relocation flags */
-uint8               timer_irq = 0;              /* Interval timer interrupt */
-uint8               timer_enable = 0;           /* Interval timer enable */
+uint8_t             prot_fault = 0;             /* Protection fault indicators. */
+uint8_t             prot_enb = 0;               /* Protection enables */
+uint8_t             relo_flags = 0;             /* Relocation flags */
+uint8_t             timer_irq = 0;              /* Interval timer interrupt */
+uint8_t             timer_enable = 0;           /* Interval timer enable */
 int                 timer_interval = 0;         /* Interval timer interval */
 int                 chwait = 0;                 /* Wait for channel to finish */
 int                 io_flags = 0;               /* Io flags for 1401 */
 int                 cycle_time = 28;            /* Cycle time in 100ns */
-uint8               time_digs[] = {0, 2, 3, 5, 7, 8};
+uint8_t             time_digs[] = {0, 2, 3, 5, 7, 8};
 
 /* History information */
-int32               hst_p = 0;                  /* History pointer */
-int32               hst_lnt = 0;                /* History length */
+int32_t             hst_p = 0;                  /* History pointer */
+int32_t             hst_lnt = 0;                /* History length */
 struct InstHistory *hst = NULL;                 /* History stack */
 extern UNIT         chan_unit[];
 
@@ -245,10 +247,10 @@ DEVICE              cpu_dev = {
 
 
                       /*0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F */
-uint8   bcd_bin[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 3, 4, 5, 6, 7};
-uint8   bin_bcd[20] = { 10, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+uint8_t bcd_bin[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 3, 4, 5, 6, 7};
+uint8_t bin_bcd[20] = { 10, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                         10, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-uint32  dscale[4][16] = {
+uint32_t dscale[4][16] = {
     {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 0,30,0,0,0,0},
     {0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 0,0,0,0,0,0},
     {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 0,0,0,0,0,0},
@@ -260,11 +262,11 @@ uint32  dscale[4][16] = {
 #define NORELA          0x2
 #define NORELB          0x4
 
-uint8   digit_addone[16] = {
+uint8_t digit_addone[16] = {
     0,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x10,0x01,0x0b,0x0c,0x0d,0x0e,
     0x0f};
 
-uint8  cmp_order[0100] = {
+uint8_t cmp_order[0100] = {
      /* b   1    2    3    4    5    6    7 */
         0,  55,  56,  57,  58,  59,  60,  61,
      /* 8   9    0    #    @    :    >    tm */
@@ -294,7 +296,7 @@ uint8  cmp_order[0100] = {
 #define O_DBL   0200            /* When chained A same as B */
 #define O_ABCD  (O_A|O_B|O_C|O_D)
 
-uint8   op_args[64] = {
+uint8_t op_args[64] = {
         /* 00    01    02   03    04       05      06       07 */
         /*            CC2          SSF2                        */
            0,    0,   O_M,   0,    O_M,       0,      0,       0,  /* 00 */
@@ -315,7 +317,7 @@ uint8   op_args[64] = {
 };
 
 
-uint8   op_1401[64] = {
+uint8_t op_1401[64] = {
         /* 00    01    02   03    04       05      06       07 */
          /* b     1      2      3    4    5    6    7 */
         /*     RCD     PRT      PUN                          */
@@ -343,8 +345,8 @@ uint8   op_1401[64] = {
         O_C|O_B,0, O_AB|O_DBL,O_A,O_AB|O_DBL,      0,     0,    0,   /* 70 */
 };
 
-static uint8 FetchP(uint32 MA) {
-      uint32 MAR = MA & AMASK;
+static uint8_t FetchP(uint32_t MA) {
+      uint32_t MAR = MA & AMASK;
 
       if (reloc && (MA & BBIT) == 0 && MAR > 100) {
           if (low_addr > 0) {
@@ -352,7 +354,7 @@ static uint8 FetchP(uint32 MA) {
               if (MAR >= 100000)
                   MAR -= 100000;
           }
-          if (prot_enb && (high_addr > 0) && (MAR > (uint32)high_addr)) {
+          if (prot_enb && (high_addr > 0) && (MAR > (uint32_t)high_addr)) {
                 fault = STOP_PROT;
                 return 0;
           }
@@ -370,8 +372,8 @@ static uint8 FetchP(uint32 MA) {
 }
 
 
-static uint8 ReadP(uint32 MA) {
-      uint32 MAR = MA & AMASK;
+static uint8_t ReadP(uint32_t MA) {
+      uint32_t MAR = MA & AMASK;
 
       if (fault)
         return 0;
@@ -382,7 +384,7 @@ static uint8 ReadP(uint32 MA) {
               if (MAR >= 100000)
                   MAR -= 100000;
           }
-          if (prot_enb && (high_addr > 0) && (MAR > (uint32)high_addr)) {
+          if (prot_enb && (high_addr > 0) && (MAR > (uint32_t)high_addr)) {
                 fault = STOP_PROT;
                 return 0;
           }
@@ -391,8 +393,8 @@ static uint8 ReadP(uint32 MA) {
                 fault = STOP_PROT;
                 return 0;
            }
-           if (((low_addr >= 0) && (MAR < (uint32)low_addr)) ||
-                ((high_addr > 0) && (MAR > (uint32)high_addr))) {
+           if (((low_addr >= 0) && (MAR < (uint32_t)low_addr)) ||
+                ((high_addr > 0) && (MAR > (uint32_t)high_addr))) {
                 fault = STOP_PROT;
                 return 0;
            }
@@ -404,8 +406,8 @@ static uint8 ReadP(uint32 MA) {
       return M[MAR];
 }
 
-static void WriteP(uint32 MA, uint8 v) {
-      uint32 MAR = MA & AMASK;
+static void WriteP(uint32_t MA, uint8_t v) {
+      uint32_t MAR = MA & AMASK;
 
       if (fault)
         return;
@@ -416,7 +418,7 @@ static void WriteP(uint32 MA, uint8 v) {
               if (MAR >= 100000)
                   MAR -= 100000;
           }
-          if (prot_enb && (high_addr > 0) && (MAR > (uint32)high_addr)) {
+          if (prot_enb && (high_addr > 0) && (MAR > (uint32_t)high_addr)) {
                 fault = STOP_PROT;
                 return;
           }
@@ -425,8 +427,8 @@ static void WriteP(uint32 MA, uint8 v) {
                 fault = STOP_PROT;
                 return;
            }
-           if (((low_addr >= 0) && (MAR < (uint32)low_addr)) ||
-                 ((high_addr > 0) && (MAR > (uint32)high_addr))) {
+           if (((low_addr >= 0) && (MAR < (uint32_t)low_addr)) ||
+                 ((high_addr > 0) && (MAR > (uint32_t)high_addr))) {
                 fault = STOP_PROT;
                 return;
            }
@@ -438,8 +440,8 @@ static void WriteP(uint32 MA, uint8 v) {
       M[MAR] = v;
 }
 
-static void ReplaceMask(uint32 MA, uint8 v, uint8 mask) {
-      uint32 MAR = MA & AMASK;
+static void ReplaceMask(uint32_t MA, uint8_t v, uint8_t mask) {
+      uint32_t MAR = MA & AMASK;
 
       if (fault)
         return;
@@ -450,7 +452,7 @@ static void ReplaceMask(uint32 MA, uint8 v, uint8 mask) {
               if (MAR >= 100000)
                   MAR -= 100000;
           }
-          if (prot_enb && (high_addr > 0) && (MAR > (uint32)high_addr)) {
+          if (prot_enb && (high_addr > 0) && (MAR > (uint32_t)high_addr)) {
                 fault = STOP_PROT;
                 return;
           }
@@ -459,8 +461,8 @@ static void ReplaceMask(uint32 MA, uint8 v, uint8 mask) {
                 fault = STOP_PROT;
                 return;
            }
-           if (((low_addr >= 0) && (MAR < (uint32)low_addr)) ||
-                 ((high_addr > 0) && (MAR > (uint32)high_addr))) {
+           if (((low_addr >= 0) && (MAR < (uint32_t)low_addr)) ||
+                 ((high_addr > 0) && (MAR > (uint32_t)high_addr))) {
                 fault = STOP_PROT;
                 return;
            }
@@ -474,8 +476,8 @@ static void ReplaceMask(uint32 MA, uint8 v, uint8 mask) {
 }
 
 
-static void SetBit(uint32 MA, uint8 v) {
-      uint32 MAR = MA & AMASK;
+static void SetBit(uint32_t MA, uint8_t v) {
+      uint32_t MAR = MA & AMASK;
 
       if (fault)
         return;
@@ -486,7 +488,7 @@ static void SetBit(uint32 MA, uint8 v) {
               if (MAR >= 100000)
                   MAR -= 100000;
           }
-          if (prot_enb && (high_addr > 0) && (MAR > (uint32)high_addr)) {
+          if (prot_enb && (high_addr > 0) && (MAR > (uint32_t)high_addr)) {
                 fault = STOP_PROT;
                 return;
           }
@@ -495,8 +497,8 @@ static void SetBit(uint32 MA, uint8 v) {
                 fault = STOP_PROT;
                 return;
            }
-           if (((low_addr >= 0) && (MAR < (uint32)low_addr)) ||
-                 ((high_addr > 0) && (MAR > (uint32)high_addr))) {
+           if (((low_addr >= 0) && (MAR < (uint32_t)low_addr)) ||
+                 ((high_addr > 0) && (MAR > (uint32_t)high_addr))) {
                 fault = STOP_PROT;
                 return;
            }
@@ -508,8 +510,8 @@ static void SetBit(uint32 MA, uint8 v) {
       M[MAR] |= v;
 }
 
-static void ClrBit(uint32 MA, uint8 v) {
-      uint32 MAR = MA & AMASK;
+static void ClrBit(uint32_t MA, uint8_t v) {
+      uint32_t MAR = MA & AMASK;
 
       if (fault)
         return;
@@ -520,7 +522,7 @@ static void ClrBit(uint32 MA, uint8 v) {
               if (MAR >= 100000)
                   MAR -= 100000;
           }
-          if (prot_enb && (high_addr > 0) && (MAR > (uint32)high_addr)) {
+          if (prot_enb && (high_addr > 0) && (MAR > (uint32_t)high_addr)) {
                 fault = STOP_PROT;
                 return;
           }
@@ -529,8 +531,8 @@ static void ClrBit(uint32 MA, uint8 v) {
                 fault = STOP_PROT;
                 return;
            }
-           if (((low_addr >= 0) && (MAR < (uint32)low_addr)) ||
-                ((high_addr > 0) && (MAR > (uint32)high_addr))) {
+           if (((low_addr >= 0) && (MAR < (uint32_t)low_addr)) ||
+                ((high_addr > 0) && (MAR > (uint32_t)high_addr))) {
                 fault = STOP_PROT;
                 return;
            }
@@ -560,16 +562,16 @@ t_stat
 sim_instr(void)
 {
     t_stat              reason;
-    uint16              t;
+    uint16_t            t;
     int                 temp;
-    int32               STAR = 0;
-    uint8               op, op_info;
+    int32_t             STAR = 0;
+    uint8_t             op, op_info;
     int                 state;
-    uint8               ix = 0;
-    uint8               br;
-    uint8               ar = 0;
+    uint8_t             ix = 0;
+    uint8_t             br;
+    uint8_t             ar = 0;
     int                 sign, qsign;
-    uint8               ch;
+    uint8_t             ch;
     int                 cy;
     int                 i;
     int                 jump;           /* Do transfer to AAR after op */
@@ -615,7 +617,7 @@ sim_instr(void)
         }
 
         if (chwait == 0) {
-            uint8 bbit = 0;
+            uint8_t bbit = 0;
             if (hst_lnt) {      /* History enabled? */
                 hst_p = (hst_p+1);      /* Next entry */
                 if (hst_p >= hst_lnt)
@@ -2833,7 +2835,7 @@ fprintf(stderr, "No device %d %d\n\r", ch, temp);
                     zind = 1;
                     /* Do multiple loop until B word mark */
                     while(1) {
-                         uint8   bx;
+                         uint8_t bx;
                          /* Interloop, multiply one digit */
                          ch = bcd_bin[br & 0xf];
 
@@ -3515,9 +3517,9 @@ check_prot:
 
 /* Add constant, two digits only, used by FP code */
 int do_addint(int val) {
-    uint8               br;
+    uint8_t             br;
     int                 sign;
-    uint8               ch;
+    uint8_t             ch;
     int                 cy;
 
     br = ReadP(BAR);
@@ -3568,12 +3570,12 @@ int do_addint(int val) {
 }
 
 t_stat do_addsub(int mode) {
-    uint8               br;
-    uint8               ar;
+    uint8_t             br;
+    uint8_t             ar;
     int                 sign;
-    uint8               ch;
+    uint8_t             ch;
     int                 cy;
-    uint32              STAR;
+    uint32_t            STAR;
 
     DAR = BAR;
     ar = ReadP(AAR);
@@ -3664,10 +3666,10 @@ t_stat do_addsub(int mode) {
 t_stat
 do_mult(void)
 {
-    uint8               br;
-    uint8               ar;
+    uint8_t             br;
+    uint8_t             ar;
     int                 sign;
-    uint8               ch;
+    uint8_t             ch;
     int                 cy;
 
     CAR = AAR;
@@ -3748,12 +3750,12 @@ do_mult(void)
 t_stat
 do_divide(void)
 {
-    uint16              t;
+    uint16_t            t;
     int                 temp;
-    uint8               br;
-    uint8               ar;
+    uint8_t             br;
+    uint8_t             ar;
     int                 sign, qsign;
-    uint8               ch;
+    uint8_t             ch;
     int                 cy;
 
     qsign = 9;  /* Set compliment and carry in */
@@ -3866,7 +3868,7 @@ cpu_reset(DEVICE * dptr)
 
 /* Memory examine */
 t_stat
-cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
+cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -3884,7 +3886,7 @@ cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
 /* Memory deposit */
 
 t_stat
-cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
+cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -3898,7 +3900,7 @@ cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
 }
 
 t_stat
-cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
+cpu_set_size(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -3906,9 +3908,9 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
     (void)desc;
     (void)uptr;
 
-    uint8            mc = 0;
-    int32            i;
-    int32            v;
+    uint8_t          mc = 0;
+    int32_t          i;
+    int32_t          v;
 
     v = val >> UNIT_V_MSIZE;
     v++;
@@ -3931,7 +3933,7 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
 
 /* Set history */
 t_stat
-cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
+cpu_set_hist(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -3939,7 +3941,7 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
     (void)uptr;
     (void)val;
 
-    int32               i, lnt;
+    int32_t             i, lnt;
     t_stat              r;
 
     if (cptr == NULL) {
@@ -3948,7 +3950,7 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
         hst_p = 0;
         return SCPE_OK;
     }
-    lnt = (int32) get_uint(cptr, 10, HIST_MAX, &r);
+    lnt = (int32_t) get_uint(cptr, 10, HIST_MAX, &r);
     if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
         return SCPE_ARG;
     hst_p = 0;
@@ -3970,14 +3972,14 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
 /* Show history */
 
 t_stat
-cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
+cpu_show_hist(FILE * st, UNIT * uptr, int32_t val, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)val;
 
-    int32               k, i, di, lnt, pc;
+    int32_t             k, i, di, lnt, pc;
     char               *cptr = (char *) desc;
     t_stat              r;
     t_value             sim_eval[50];
@@ -3986,7 +3988,7 @@ cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
     if (hst_lnt == 0)
         return SCPE_NOFNC;      /* enabled? */
     if (cptr) {
-        lnt = (int32) get_uint(cptr, 10, hst_lnt, &r);
+        lnt = (int32_t) get_uint(cptr, 10, hst_lnt, &r);
         if ((r != SCPE_OK) || (lnt == 0))
             return SCPE_ARG;
     } else
@@ -4029,7 +4031,7 @@ cpu_description (DEVICE *dptr)
 }
 
 t_stat
-cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

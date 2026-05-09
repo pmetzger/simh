@@ -103,6 +103,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
 /* Floating point status register */
@@ -161,7 +163,7 @@
 
 /* Reg change word */
 
-#define FPCHG(v,r)      ((int32)((((uint32)(v)) << FPCHG_V_VAL) | (r)))
+#define FPCHG(v,r)      ((int32_t)((((uint32_t)(v)) << FPCHG_V_VAL) | (r)))
 #define FPCHG_REG       07                              /* register number */
 #define FPCHG_V_VAL     3                               /* offset to value */
 #define FPCHG_GETREG(x) ((x) & FPCHG_REG)
@@ -228,15 +230,15 @@
 #define GET_SIGN_W(ir)  GET_BIT((ir), 15)
 
 extern jmp_buf save_env;
-extern uint32 cpu_type;
-extern int32 FEC, FEA, FPS;
-extern int32 CPUERR, trap_req;
-extern int32 N, Z, V, C;
-extern int32 R[8];
-extern int32 STKLIM;
-extern int32 cm, isenable, dsenable, MMR0, MMR1;
+extern uint32_t cpu_type;
+extern int32_t FEC, FEA, FPS;
+extern int32_t CPUERR, trap_req;
+extern int32_t N, Z, V, C;
+extern int32_t R[8];
+extern int32_t STKLIM;
+extern int32_t cm, isenable, dsenable, MMR0, MMR1;
 extern fpac_t FR[6];
-extern int32 last_pa;
+extern int32_t last_pa;
 
 fpac_t zero_fac = { 0, 0 };
 fpac_t one_fac = { 1, 0 };
@@ -244,7 +246,7 @@ fpac_t fround_fac = { (1u << (FP_V_FROUND + 32)), 0 };
 fpac_t fround_guard_fac = { 0, (1u << (FP_V_FROUND + FP_GUARD)) };
 fpac_t dround_guard_fac = { (1u << (FP_V_DROUND + FP_GUARD)), 0 };
 fpac_t fmask_fac = { 0xFFFFFFFF, (1u << (FP_V_HB + FP_GUARD + 1)) - 1 };
-static const uint32 and_mask[33] = { 0,
+static const uint32_t and_mask[33] = { 0,
     0x1, 0x3, 0x7, 0xF,
     0x1F, 0x3F, 0x7F, 0xFF,
     0x1FF, 0x3FF, 0x7FF, 0xFFF,
@@ -254,41 +256,41 @@ static const uint32 and_mask[33] = { 0,
     0x1FFFFFF, 0x3FFFFFF, 0x7FFFFFF, 0xFFFFFFF,
     0x1FFFFFFF, 0x3FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF
     };
-int32 backup_PC;
-int32 fp_change;
+int32_t backup_PC;
+int32_t fp_change;
 
-int32 fpnotrap (int32 code);
-int32 GeteaFW (int32 spec);
-int32 GeteaFP (int32 spec, int32 len);
-uint32 ReadI (int32 addr, int32 spec, int32 len);
-bool ReadFP (fpac_t *fac, int32 addr, int32 spec, int32 len);
-void WriteI (int32 data, int32 addr, int32 spec, int32 len);
-void WriteFP (fpac_t *data, int32 addr, int32 spec, int32 len);
-int32 setfcc (int32 old_status, int32 result_high, int32 newV);
-int32 addfp11 (fpac_t *src1, fpac_t *src2);
-int32 mulfp11 (fpac_t *src1, fpac_t *src2);
-int32 divfp11 (fpac_t *src1, fpac_t *src2);
-int32 modfp11 (fpac_t *src1, fpac_t *src2, fpac_t *frac);
+int32_t fpnotrap (int32_t code);
+int32_t GeteaFW (int32_t spec);
+int32_t GeteaFP (int32_t spec, int32_t len);
+uint32_t ReadI (int32_t addr, int32_t spec, int32_t len);
+bool ReadFP (fpac_t *fac, int32_t addr, int32_t spec, int32_t len);
+void WriteI (int32_t data, int32_t addr, int32_t spec, int32_t len);
+void WriteFP (fpac_t *data, int32_t addr, int32_t spec, int32_t len);
+int32_t setfcc (int32_t old_status, int32_t result_high, int32_t newV);
+int32_t addfp11 (fpac_t *src1, fpac_t *src2);
+int32_t mulfp11 (fpac_t *src1, fpac_t *src2);
+int32_t divfp11 (fpac_t *src1, fpac_t *src2);
+int32_t modfp11 (fpac_t *src1, fpac_t *src2, fpac_t *frac);
 void frac_mulfp11 (fpac_t *src1, fpac_t *src2);
-int32 roundfp11 (fpac_t *src);
-int32 round_and_pack (fpac_t *fac, int32 exp, fpac_t *frac, int r);
+int32_t roundfp11 (fpac_t *src);
+int32_t round_and_pack (fpac_t *fac, int32_t exp, fpac_t *frac, int r);
 
-extern int32 relocW (int32 addr);
-extern int32 ReadW (int32 addr);
-extern int32 ReadMW (int32 addr);
-extern void WriteW (int32 data, int32 addr);
-extern void PWriteW (int32 data, int32 addr);
-extern void set_stack_trap (int32 adr);
+extern int32_t relocW (int32_t addr);
+extern int32_t ReadW (int32_t addr);
+extern int32_t ReadMW (int32_t addr);
+extern void WriteW (int32_t data, int32_t addr);
+extern void PWriteW (int32_t data, int32_t addr);
+extern void set_stack_trap (int32_t adr);
 
 /* Set up for instruction decode and execution */
 
-void fp11 (int32 IR)
+void fp11 (int32_t IR)
 {
-int32 dst, ea, ac, dstspec;
-int32 i, qdouble, lenf, leni;
-int32 newV, exp, sign;
+int32_t dst, ea, ac, dstspec;
+int32_t i, qdouble, lenf, leni;
+int32_t newV, exp, sign;
 fpac_t fac, fsrc, modfrac;
-static const uint32 i_limit[2][2] = {
+static const uint32_t i_limit[2][2] = {
     { 0x80000000, 0x80010000 },
     { 0x80000000, 0x80000001 }
     };
@@ -590,8 +592,8 @@ switch ((IR >> 8) & 017) {                              /* decode IR<11:8> */
 /* Now process any general register modification */
 
 if (fp_change != 0) {
-    int32 reg = FPCHG_GETREG (fp_change);               /* get register */
-    int32 val = FPCHG_GETVAL (fp_change);               /* get value */
+    int32_t reg = FPCHG_GETREG (fp_change);             /* get register */
+    int32_t val = FPCHG_GETVAL (fp_change);             /* get value */
     if (val & 020)                                      /* negative? */
         val = val | (-16);                              /* ensure proper sext */
     R[reg] = (R[reg] + val) & 0177777;                  /* commit change */
@@ -601,9 +603,9 @@ return;
 
 /* Effective address calculation for word integers */
 
-int32 GeteaFW (int32 spec)
+int32_t GeteaFW (int32_t spec)
 {
-int32 adr, reg, ds;
+int32_t adr, reg, ds;
 
 reg = spec & 07;                                        /* register number */
 ds = (reg == 7)? isenable: dsenable;                    /* dspace if not PC */
@@ -676,9 +678,9 @@ switch (spec >> 3) {                                    /* decode spec<5:3> */
    instruction immediately; no general register updates can occur.
 */
 
-int32 GeteaFP (int32 spec, int32 len)
+int32_t GeteaFP (int32_t spec, int32_t len)
 {
-int32 adr, reg, ds;
+int32_t adr, reg, ds;
 
 reg = spec & 07;                                        /* reg number */
 ds = (reg == 7)? isenable: dsenable;                    /* dspace if not PC */
@@ -753,7 +755,7 @@ return 0;
         data    =       data read from memory or I/O space
 */
 
-uint32 ReadI (int32 VA, int32 spec, int32 len)
+uint32_t ReadI (int32_t VA, int32_t spec, int32_t len)
 {
 if ((len == WORD) || (spec == 027))
     return (ReadW (VA) << 16);
@@ -773,9 +775,9 @@ return ((ReadW (VA) << 16) |
         false if instruction must be NOP'd
 */
 
-bool ReadFP (fpac_t *fptr, int32 VA, int32 spec, int32 len)
+bool ReadFP (fpac_t *fptr, int32_t VA, int32_t spec, int32_t len)
 {
-int32 exta;
+int32_t exta;
 
 if (spec <= 07) {
     F_LOAD_P (len == QUAD, FR[spec], fptr);
@@ -812,9 +814,9 @@ return true;
    Outputs: none
 */
 
-void WriteI (int32 data, int32 VA, int32 spec, int32 len)
+void WriteI (int32_t data, int32_t VA, int32_t spec, int32_t len)
 {
-int32 pa, pa2;
+int32_t pa, pa2;
 
 if ((len == WORD) || (spec == 027)) {
     WriteW ((data >> 16) & 0177777, VA);
@@ -850,9 +852,9 @@ return;
    Outputs: none
 */
 
-void WriteFP (fpac_t *fptr, int32 VA, int32 spec, int32 len)
+void WriteFP (fpac_t *fptr, int32_t VA, int32_t spec, int32_t len)
 {
-int32 exta, pa, pa2, pa3, pa4;
+int32_t exta, pa, pa2, pa3, pa4;
 
 if (spec <= 07) {
     F_STORE_P (len == QUAD, fptr, FR[spec]);
@@ -906,9 +908,9 @@ return;
 
 /* FIS instructions */
 
-t_stat fis11 (int32 IR)
+t_stat fis11 (int32_t IR)
 {
-    int32 reg, exta, pa, pa2;
+    int32_t reg, exta, pa, pa2;
 fpac_t fac, fsrc;
 
 reg = IR & 07;                                          /* isolate reg */
@@ -990,9 +992,9 @@ return SCPE_OK;
         ovflo   =       overflow variable
 */
 
-int32 addfp11 (fpac_t *facp, fpac_t *fsrcp)
+int32_t addfp11 (fpac_t *facp, fpac_t *fsrcp)
 {
-int32 facexp, fsrcexp, ediff;
+int32_t facexp, fsrcexp, ediff;
 fpac_t facfrac, fsrcfrac;
 
 if (F_LT_AP (facp, fsrcp)) {                            /* if !fac! < !fsrc! */
@@ -1065,9 +1067,9 @@ return round_and_pack (facp, facexp, &facfrac, 1);
         ovflo   =       overflow indicator
 */
 
-int32 mulfp11 (fpac_t *facp, fpac_t *fsrcp)
+int32_t mulfp11 (fpac_t *facp, fpac_t *fsrcp)
 {
-int32 facexp, fsrcexp;
+int32_t facexp, fsrcexp;
 fpac_t facfrac, fsrcfrac;
 
 facexp = GET_EXP (facp->h);                             /* get exponents */
@@ -1106,9 +1108,9 @@ return round_and_pack (facp, facexp, &facfrac, 1);
    See notes on multiply for initial operation
 */
 
-int32 modfp11 (fpac_t *facp, fpac_t *fsrcp, fpac_t *fracp)
+int32_t modfp11 (fpac_t *facp, fpac_t *fsrcp, fpac_t *fracp)
 {
-int32 facexp, fsrcexp;
+int32_t facexp, fsrcexp;
 fpac_t facfrac, fsrcfrac, fmask;
 
 facexp = GET_EXP (facp->h);                             /* get exponents */
@@ -1211,7 +1213,7 @@ return round_and_pack (facp, facexp, &facfrac, 0);
 void frac_mulfp11 (fpac_t *f1p, fpac_t *f2p)
 {
 fpac_t result, mpy, mpc;
-int32 i;
+int32_t i;
 
 result = zero_fac;                                      /* clear result */
 mpy = *f1p;                                             /* get operands */
@@ -1258,9 +1260,9 @@ return;
    Source operand must be checked for zero by caller!
 */
 
-int32 divfp11 (fpac_t *facp, fpac_t *fsrcp)
+int32_t divfp11 (fpac_t *facp, fpac_t *fsrcp)
 {
-int32 facexp, fsrcexp, i, count, qd;
+int32_t facexp, fsrcexp, i, count, qd;
 fpac_t facfrac, fsrcfrac, quo;
 
 fsrcexp = GET_EXP (fsrcp->h);                           /* get divisor exp */
@@ -1317,7 +1319,7 @@ return round_and_pack (facp, facexp, &quo, 1);
         newst   =       new status
 */
 
-int32 setfcc (int32 oldst, int32 result, int32 newV)
+int32_t setfcc (int32_t oldst, int32_t result, int32_t newV)
 {
 oldst = (oldst & ~FPS_CC) | newV;
 if (GET_SIGN (result))
@@ -1335,7 +1337,7 @@ return oldst;
         ovflow  =       overflow
 */
 
-int32 roundfp11 (fpac_t *fptr)
+int32_t roundfp11 (fpac_t *fptr)
 {
 fpac_t outf;
 
@@ -1364,7 +1366,7 @@ return 0;                                               /* no overflow */
         ovflo   =       overflow indicator
 */
 
-int32 round_and_pack (fpac_t *facp, int32 exp, fpac_t *fracp, int r)
+int32_t round_and_pack (fpac_t *facp, int32_t exp, fpac_t *fracp, int r)
 {
 fpac_t frac;
 
@@ -1403,9 +1405,9 @@ return 0;
         int     =       false if interrupt enabled, true if disabled
 */
 
-int32 fpnotrap (int32 code)
+int32_t fpnotrap (int32_t code)
 {
-static const int32 test_code[] = { 0, 0, 0, FPS_IC, FPS_IV, FPS_IU, FPS_IUV };
+static const int32_t test_code[] = { 0, 0, 0, FPS_IC, FPS_IV, FPS_IU, FPS_IUV };
 
 if ((code >= FEC_ICVT) &&
     (code <= FEC_UNDFV) &&

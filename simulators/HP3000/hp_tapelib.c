@@ -330,6 +330,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"                        /* this must reflect the machine used */
 #include "hp_tapelib.h"
 
@@ -448,9 +450,9 @@ typedef enum {
 typedef struct {
     CNTLR_TYPE  controller;                     /* the controller model */
     DRIVE_TYPE  drive;                          /* a supported tape drive model */
-    uint32      density;                        /* a supported tape drive density code */
-    uint32      bpi;                            /* the recording density in bits per inch */
-    uint32      gap_size;                       /* the erase gap size in tenths of an inch */
+    uint32_t    density;                        /* a supported tape drive density code */
+    uint32_t    bpi;                            /* the recording density in bits per inch */
+    uint32_t    gap_size;                       /* the erase gap size in tenths of an inch */
     } DRIVE_PROPS;
 
 static const DRIVE_PROPS drive_props [] = {
@@ -608,7 +610,7 @@ typedef enum {
     Write_Status
     } STATUS_CONDITION;
 
-static const uint32 status_bits [] [CNTLR_COUNT] = {    /* indexed by STATUS_CONDITION and CNTLR_TYPE */
+static const uint32_t status_bits [] [CNTLR_COUNT] = {  /* indexed by STATUS_CONDITION and CNTLR_TYPE */
 
 /*    HP_13181   HP_13183   HP_30215   */
 /*    --------   --------   --------   */
@@ -823,7 +825,7 @@ static void           add_crcc_lrcc    (CVPTR cvptr, CNTLR_OPCODE opcode);
 /* Tape library local utility routines */
 
 static void   activate_unit  (CVPTR cvptr, UNIT *uptr);
-static t_stat validate_drive (CVPTR cvptr, UNIT *uptr, DRIVE_TYPE new_drive, uint32 new_bpi);
+static t_stat validate_drive (CVPTR cvptr, UNIT *uptr, DRIVE_TYPE new_drive, uint32_t new_bpi);
 
 
 
@@ -924,7 +926,7 @@ return outbound;
 
 t_stat tl_onoffline (CVPTR cvptr, UNIT *uptr, bool online)
 {
-const int32 unit = (int32) (uptr - cvptr->device->units);   /* the unit number */
+const int32_t unit = (int32_t) (uptr - cvptr->device->units); /* the unit number */
 t_stat status = SCPE_OK;
 
 if (uptr->flags & UNIT_ATT) {                           /* if the unit is attached */
@@ -1001,7 +1003,7 @@ return status;
 HP_WORD tl_status (CVPTR cvptr)
 {
 UNIT *const uptr = cvptr->device->units + cvptr->unit_selected; /* a pointer to the selected unit */
-uint32 status;
+uint32_t status;
 
 status = cvptr->status | CST_UNITSEL;                   /* merge the controller status and the selected unit number */
 
@@ -1044,7 +1046,7 @@ return LOWER_WORD (status);                             /* return the 16-bit com
 
 t_stat tl_reset (CVPTR cvptr)
 {
-uint32     unit;
+uint32_t   unit;
 UNIT       *uptr;
 DRIVE_TYPE drive;
 
@@ -1130,8 +1132,8 @@ return SCPE_OK;
 
 void tl_clear (CVPTR cvptr)
 {
-uint32   unit;
-int32    remaining_time;
+uint32_t unit;
+int32_t  remaining_time;
 UNIT     *uptr;
 t_addr   reset_position, relative_position;
 t_mtrlnt marker;
@@ -1255,7 +1257,7 @@ else                                                    /* otherwise */
    unit is invalid, an error string is returned.
 */
 
-const char *tl_unit_name (int32 unit)
+const char *tl_unit_name (int32_t unit)
 {
 if (unit <= TL_CNTLR_UNIT)                              /* if the unit number is valid */
     return unit_names [unit];                           /*   then return the unit designator */
@@ -1300,7 +1302,7 @@ else                                                    /* otherwise */
 
 t_stat tl_attach (CVPTR cvptr, UNIT *uptr, const char *cptr)
 {
-const int32 unit = (int32) (uptr - cvptr->device->units);   /* the unit number */
+const int32_t unit = (int32_t) (uptr - cvptr->device->units); /* the unit number */
 t_stat result;
 
 result = sim_tape_attach (uptr, cptr);                  /* attach the tape image file to the unit */
@@ -1364,7 +1366,7 @@ return sim_tape_detach (uptr);                          /* detach the tape image
    tested in the "start_command" routine.
 */
 
-t_stat tl_set_timing (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat tl_set_timing (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1390,7 +1392,7 @@ return SCPE_OK;
    verified before permitting the change.
 */
 
-t_stat tl_set_model (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat tl_set_model (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1412,7 +1414,7 @@ return validate_drive (cvptr, uptr, new_drive, 0);      /* verify the model chan
    density setting is verified before permitting the change.
 */
 
-t_stat tl_set_density (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat tl_set_density (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1420,13 +1422,13 @@ t_stat tl_set_density (UNIT *uptr, int32 value, const char *cptr, void *desc)
 
 const CVPTR cvptr = (CVPTR) desc;                       /* the controller state structure pointer */
 const DRIVE_TYPE model = GET_MODEL (uptr->flags);       /* the current drive model ID */
-uint32 new_bpi;
+uint32_t new_bpi;
 t_stat status;
 
 if (cptr == NULL || *cptr == '\0')                      /* if no density value is present */
     return SCPE_MISVAL;                                 /*   then report a missing value error */
 
-new_bpi = (uint32) get_uint (cptr, 10, UINT_MAX, &status);  /* parse the supplied value */
+new_bpi = (uint32_t) get_uint (cptr, 10, UINT_MAX, &status); /* parse the supplied value */
 
 if (status != SCPE_OK)                                      /* if a parsing failure occurred */
     return status;                                          /*   then report the problem */
@@ -1461,10 +1463,10 @@ else                                                        /* otherwise a numer
    supplied.
 */
 
-t_stat tl_set_reelsize (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat tl_set_reelsize (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
-const uint32 tape_bpi = drive_props [PROP_INDEX (uptr)].bpi;    /* the tape unit density */
-int32  reel;
+const uint32_t tape_bpi = drive_props [PROP_INDEX (uptr)].bpi;  /* the tape unit density */
+int32_t reel;
 t_stat status;
 
 if (value == 0) {                                           /* if the capacity is being specified directly */
@@ -1480,7 +1482,7 @@ else if (cptr == NULL)                                  /* otherwise if no reel 
     return SCPE_ARG;                                    /*   then return an invalid argument error */
 
 else {                                                  /* otherwise a size is specified */
-    reel = (int32) get_uint (cptr, 10, 2400, &status);  /*   so parse the tape length in feet */
+    reel = (int32_t) get_uint (cptr, 10, 2400, &status); /*   so parse the tape length in feet */
 
     if (status != SCPE_OK)                              /* if the parse failed */
         return status;                                  /*   then return the failure status */
@@ -1535,7 +1537,7 @@ else {                                                  /* otherwise a size is s
        pointer instead.
 */
 
-t_stat tl_show_timing (FILE *st, UNIT *uptr, int32 value, const void *desc)
+t_stat tl_show_timing (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1560,7 +1562,7 @@ return SCPE_OK;
    to the unit to be queried.
 */
 
-t_stat tl_show_density (FILE *st, UNIT *uptr, int32 value, const void *desc)
+t_stat tl_show_density (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1599,7 +1601,7 @@ return SCPE_OK;
        respectively, to provide multiplication by 2 ** <reel ID>.
 */
 
-t_stat tl_show_reelsize (FILE *st, UNIT *uptr, int32 value, const void *desc)
+t_stat tl_show_reelsize (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 t_stat status = SCPE_OK;
 
@@ -1748,7 +1750,7 @@ else {                                                  /* otherwise the command
     cvptr->gaplen = 0;                                  /*     and clear the gap length */
 
     if (opcode >= Select_Unit_0 && opcode <= Select_Unit_3) {       /* if the opcode is a Select Unit command */
-        cvptr->unit_selected = (uint32) (opcode - Select_Unit_0);   /*   then select the indicated unit */
+        cvptr->unit_selected = (uint32_t) (opcode - Select_Unit_0); /*   then select the indicated unit */
 
         dpprintf (cvptr->device, TL_DEB_INCO, "%s completed\n",
                   opcode_names [opcode]);
@@ -2075,7 +2077,7 @@ static CNTLR_IFN_IBUS continue_command (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET 
 const CNTLR_OPCODE opcode = (CNTLR_OPCODE) uptr->OPCODE;    /* the current command opcode */
 const CNTLR_PHASE  phase  = (CNTLR_PHASE)  uptr->PHASE;     /* the current command phase */
 const bool         service_entry = (phase > Wait_Phase);    /* true if entered via unit service */
-int32              unit;
+int32_t            unit;
 TL_BUFFER          data_byte;
 t_mtrlnt           error_flag;
 BYTE_SELECTOR      selector;
@@ -2083,7 +2085,7 @@ DRIVE_PROPS const  *pptr;
 CNTLR_IFN_IBUS     outbound = NO_ACTION;
 bool               complete = false;
 
-unit = (int32) (uptr - cvptr->device->units);           /* get the unit number */
+unit = (int32_t) (uptr - cvptr->device->units);         /* get the unit number */
 
 dpprintf (cvptr->device, TL_DEB_STATE, "%s %s %s phase entered from %s\n",
           unit_names [unit], opcode_names [opcode], phase_names [phase],
@@ -2105,7 +2107,7 @@ switch (phase) {                                        /* dispatch the phase */
             uptr->OPCODE = Invalid_Opcode;              /*   so clear the controller command */
             uptr->PHASE = Idle_Phase;                   /*     and idle the unit */
 
-            unit = (int32) cvptr->unit_selected;        /* get the selected unit number */
+            unit = (int32_t) cvptr->unit_selected;      /* get the selected unit number */
             uptr = cvptr->device->units + unit;         /*   and unit pointer */
 
             uptr->PHASE = Start_Phase;                  /* set up the start phase */
@@ -2254,7 +2256,7 @@ switch (phase) {                                        /* dispatch the phase */
                     uptr->PHASE = Traverse_Phase;       /*   and proceed to the rewinding phase */
 
                     uptr->wait =                        /* base the traversal time on the current tape position */
-                       (int32) ((uptr->pos * cvptr->dlyptr->rewind_rate) / pptr->bpi);
+                       (int32_t) ((uptr->pos * cvptr->dlyptr->rewind_rate) / pptr->bpi);
                     }
                 break;
 
@@ -2700,7 +2702,7 @@ return (CNTLR_IFN_IBUS) outbound;                       /* return the function s
 
 static CNTLR_IFN_IBUS poll_drives (CVPTR cvptr)
 {
-int32 unit;
+int32_t unit;
 
 dpprintf (cvptr->device, TL_DEB_INCO, "Controller polled drives for attention\n");
 
@@ -2811,8 +2813,8 @@ return NO_ACTION;                                       /* no drives are request
 static CNTLR_IFN_IBUS call_tapelib (CVPTR cvptr, UNIT *uptr, TAPELIB_CALL lib_call, t_mtrlnt parameter)
 {
 bool           do_gap, do_data;
-int32          unit;
-uint32         gap_inches, gap_tenths;
+int32_t        unit;
+uint32_t       gap_inches, gap_tenths;
 CNTLR_IFN_IBUS result = (CNTLR_IFN_IBUS) NO_FUNCTIONS;  /* the expected case */
 
 switch (lib_call) {                                     /* dispatch to the selected routine */
@@ -2844,7 +2846,7 @@ switch (lib_call) {                                     /* dispatch to the selec
         break;
 
     case lib_write_gap:                                 /* write erase gap */
-        cvptr->call_status = sim_tape_wrgap (uptr, (uint32) parameter);
+        cvptr->call_status = sim_tape_wrgap (uptr, (uint32_t) parameter);
         break;
 
     case lib_write_tmk:                                 /* write tape mark */
@@ -2962,7 +2964,7 @@ switch (cvptr->call_status) {                           /* dispatch on the call 
 
 
 if (DPPRINTING (cvptr->device, TL_DEB_INCO)) {          /* if tracing is enabled */
-    unit = (int32) (uptr - cvptr->device->units);       /*   then get the unit number */
+    unit = (int32_t) (uptr - cvptr->device->units);     /*   then get the unit number */
 
     do_data =                                           /* true if the data record length is valid and present */
        lib_props [lib_call].data_is_valid && cvptr->length > 0;
@@ -3114,7 +3116,7 @@ return;
 
 static void add_crcc_lrcc (CVPTR cvptr, CNTLR_OPCODE opcode)
 {
-uint32  index;
+uint32_t index;
 HP_WORD byte, crc, lrc;
 
 crc = 0;                                                /* initialize the CRC  */
@@ -3201,10 +3203,10 @@ return;
    default for selectable-density drives, is used.
 */
 
-static t_stat validate_drive (CVPTR cvptr, UNIT *uptr, DRIVE_TYPE new_drive, uint32 new_bpi)
+static t_stat validate_drive (CVPTR cvptr, UNIT *uptr, DRIVE_TYPE new_drive, uint32_t new_bpi)
 {
 const CNTLR_TYPE ctype = cvptr->type;                   /* the controller type */
-uint32 entry;
+uint32_t entry;
 
 for (entry = 0; entry < PROPS_COUNT; entry++)           /* check each property table entry for a match */
     if (drive_props [entry].controller == ctype         /* if this is our controller */

@@ -135,6 +135,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 #include "hp2100_disclib.h"
@@ -167,8 +169,8 @@ typedef struct {
     FLIP_FLOP    edt;                           /* EDT flip-flop */
     FLIP_FLOP    cmfol;                         /* command follows flip-flop */
     FLIP_FLOP    cmrdy;                         /* command ready flip-flop */
-    uint16       fifo [FIFO_SIZE];              /* FIFO buffer */
-    uint32       fifo_count;                    /* FIFO occupancy counter */
+    uint16_t     fifo [FIFO_SIZE];              /* FIFO buffer */
+    uint32_t     fifo_count;                    /* FIFO occupancy counter */
     REG          *fifo_reg;                     /* FIFO register pointer */
     } CARD_STATE;
 
@@ -179,7 +181,7 @@ static UNIT ds_unit [DS_UNITS];                         /* unit array */
 
 static CARD_STATE ds;                                   /* card state */
 
-static uint16 buffer [DL_BUFSIZE];                      /* command/status/sector buffer */
+static uint16_t buffer [DL_BUFSIZE];                    /* command/status/sector buffer */
 
 static CNTLR_VARS mac_cntlr =                           /* MAC controller */
     { CNTLR_INIT (MAC, buffer, &ds_cntlr) };
@@ -199,8 +201,8 @@ static t_stat ds_service_timer      (UNIT   *uptr);
 static t_stat ds_reset              (DEVICE *dptr);
 static t_stat ds_attach             (UNIT   *uptr,  const char *cptr);
 static t_stat ds_detach             (UNIT   *uptr);
-static t_stat ds_boot               (int32  unitno, DEVICE *dptr);
-static t_stat ds_load_unload        (UNIT *uptr, int32 value, const char *cptr, void *desc);
+static t_stat ds_boot               (int32_t unitno, DEVICE *dptr);
+static t_stat ds_load_unload        (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
 
 /* MAC disc local utility routines */
@@ -208,8 +210,8 @@ static t_stat ds_load_unload        (UNIT *uptr, int32 value, const char *cptr, 
 static void   start_command     (void);
 static void   poll_interface    (void);
 static void   poll_drives       (void);
-static void   fifo_load         (uint16 data);
-static uint16 fifo_unload       (void);
+static void   fifo_load         (uint16_t data);
+static uint16_t fifo_unload       (void);
 static void   fifo_clear        (void);
 static t_stat activate_unit     (UNIT *uptr);
 
@@ -533,7 +535,7 @@ while (working_set) {
             tprintf (ds_dev, DEB_CPU, "[OTx%s] %s = %06o\n",
                      hold_or_clear, output_state [ds.cmfol], inbound_value);
 
-            fifo_load ((uint16) inbound_value);             /* load the word into the FIFO */
+            fifo_load ((uint16_t) inbound_value);           /* load the word into the FIFO */
 
             if (ds.cmfol == SET) {                          /* are we expecting a command? */
                 ds.cmfol = CLEAR;                           /* clear the command follows flip-flop */
@@ -749,7 +751,7 @@ t_stat result;
 bool seek_completion;
 FLIP_FLOP entry_srq = ds.srq;                           /* get the SRQ state on entry */
 CNTLR_PHASE entry_phase = (CNTLR_PHASE) uptr->PHASE;    /* get the operation phase on entry */
-uint32 entry_status = uptr->STAT;                       /* get the drive status on entry */
+uint32_t entry_status = uptr->STAT;                     /* get the drive status on entry */
 
 result = dl_service_drive (&mac_cntlr, uptr);           /* service the drive */
 
@@ -1040,7 +1042,7 @@ return result;                                          /* return the result of 
 
 static t_stat ds_reset (DEVICE *dptr)
 {
-uint32 unit;
+uint32_t unit;
 
 if (sim_switches & SWMASK ('P')) {                      /* is this a power-on reset? */
     ds.fifo_reg = find_reg ("FIFO", NULL, dptr);        /* find the FIFO register entry */
@@ -1092,7 +1094,7 @@ static t_stat ds_attach (UNIT *uptr, const char *cptr)
 {
 t_stat      result;
 t_addr      offset;
-const uint8 zero = 0;
+const uint8_t zero = 0;
 
 result = dl_attach (&mac_cntlr, uptr, cptr);            /* attach the drive */
 
@@ -1101,7 +1103,7 @@ if (result == SCPE_OK) {                                /* if the attach was suc
 
     if (sim_switches & SWMASK ('N')) {                  /* if this is a new disc image */
         offset = (t_addr)                               /*   then determine the offset of */
-          (uptr->capac * sizeof (int16) - sizeof zero); /*     the last byte in a full-sized file */
+          (uptr->capac * sizeof (int16_t) - sizeof zero); /*     the last byte in a full-sized file */
 
         if (sim_fseek (uptr->fileref, offset, SEEK_SET) != 0    /* seek to the last byte */
           || fwrite (&zero, sizeof zero, 1, uptr->fileref) == 0 /*   and write a zero to fill */
@@ -1373,11 +1375,11 @@ static const LOADER_ARRAY ds_loaders = {
        field, resulting in a Recalibrate command.
 */
 
-static t_stat ds_boot (int32 unitno, DEVICE *dptr)
+static t_stat ds_boot (int32_t unitno, DEVICE *dptr)
 {
 static const HP_WORD ds_preserved   = 0000073u;             /* S-register bits 5-3 and 1-0 are preserved */
 static const HP_WORD ds_manual_boot = 0010000u;             /* S-register bit 12 set for a manual boot */
-uint32 start;
+uint32_t start;
 
 if (dptr == NULL)                                           /* if we are being called for a BOOT/LOAD CPU */
     start = cpu_copy_loader (ds_loaders, unitno,            /*   then copy the boot loader to memory */
@@ -1413,7 +1415,7 @@ else                                                    /* otherwise */
    status.
 */
 
-static t_stat ds_load_unload (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat ds_load_unload (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1475,7 +1477,7 @@ return dl_load_unload (&mac_cntlr, uptr, load);         /* load or unload the he
 
 static void start_command (void)
 {
-int32 unit, time;
+int32_t unit, time;
 UNIT *uptr;
 CNTLR_OPCODE drive_command;
 
@@ -1598,9 +1600,9 @@ return;
        fifo_reg variable during device reset.
 */
 
-static void fifo_load (uint16 data)
+static void fifo_load (uint16_t data)
 {
-uint32 index;
+uint32_t index;
 
 if (FIFO_FULL) {                                            /* is the FIFO already full? */
     tprintf (ds_dev, DEB_BUF, "Attempted load to full FIFO, data %06o\n", data);
@@ -1634,9 +1636,9 @@ return;
        fifo_count.
 */
 
-static uint16 fifo_unload (void)
+static uint16_t fifo_unload (void)
 {
-uint16 data;
+uint16_t data;
 
 if (FIFO_EMPTY) {                                           /* is the FIFO already empty? */
     tprintf (ds_dev, DEB_BUF, "Attempted unload from empty FIFO\n");

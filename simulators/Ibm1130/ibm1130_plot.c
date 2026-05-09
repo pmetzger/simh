@@ -20,6 +20,8 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "ibm1130_defs.h"
 
 #ifndef ENABLE_PLOT_SUPPORT
@@ -31,7 +33,7 @@
         NULL, NULL, NULL, NULL,
         DEV_DIS};
 
-    void xio_1627_plotter   (int32 addr, int32 func, int32 modify)
+    void xio_1627_plotter   (int32_t addr, int32_t func, int32_t modify)
     {
         /* Device dispatch signature.
            This implementation does not use every parameter. */
@@ -142,25 +144,25 @@ static t_stat plot_reset  (DEVICE *dptr);           /* reset of 1130 */
 static t_stat plot_attach (UNIT *uptr, const char *cptr);   /* attach, loads plotter */
 static t_stat plot_detach (UNIT *uptr);             /* detach and save image */
 static t_stat plot_examine (UNIT *uptr);            /* update file with current canvas */
-static t_stat plot_set_length (UNIT *uptr, int32 val, const char * ptr, void *desc);  /* set paper length */
-static t_stat plot_set_pos (UNIT *uptr, int32 val, const char * ptr, void *desc);       /* reset current X/Y position */
-static t_stat plot_show_vals(FILE *fp, UNIT *uptr, int32 val, const void *descrip); /* print x, y and length */
-static t_stat plot_show_nl(FILE *fp, UNIT *uptr, int32 val, const void *descrip);   /* overcome wacky simh behavior */
+static t_stat plot_set_length (UNIT *uptr, int32_t val, const char * ptr, void *desc); /* set paper length */
+static t_stat plot_set_pos (UNIT *uptr, int32_t val, const char * ptr, void *desc);     /* reset current X/Y position */
+static t_stat plot_show_vals(FILE *fp, UNIT *uptr, int32_t val, const void *descrip); /* print x, y and length */
+static t_stat plot_show_nl(FILE *fp, UNIT *uptr, int32_t val, const void *descrip); /* overcome wacky simh behavior */
 static void   update_pen(void);                      /* will ensure pen action is correct when changes made */
-static t_stat plot_validate_change (UNIT *uptr, int32 val, const char * ptr, void *desc); /* when set command issued */
+static t_stat plot_validate_change (UNIT *uptr, int32_t val, const char * ptr, void *desc); /* when set command issued */
 static void   process_cmd(void);                    /* does actual drawing for plotter */
 
-static int16 plot_dsw  = 0;                         /* device status word */
-static int16 plot_cmd  = 0;                         /* the command to process */
-static int32 plot_wait = 1000;                      /* plotter movement wait */
-static int32 plot_xpos = 0;                         /* current X position */
-static int32 plot_xmax = 799;                       /* end of paper */
-static int32 plot_ypos = 0;                         /* current Y position */
-static int32 plot_ymax = 1099;                      /* right edge of carriage */
+static int16_t plot_dsw  = 0;                       /* device status word */
+static int16_t plot_cmd  = 0;                       /* the command to process */
+static int32_t plot_wait = 1000;                    /* plotter movement wait */
+static int32_t plot_xpos = 0;                       /* current X position */
+static int32_t plot_xmax = 799;                     /* end of paper */
+static int32_t plot_ypos = 0;                       /* current Y position */
+static int32_t plot_ymax = 1099;                    /* right edge of carriage */
 
 #define PEN_DOWN 0x80000000
 #define PEN_UP   0x00000000
-static int32 plot_pen = PEN_UP;                     /* current pen position. This duplicates the device flag PLOT_PEN. Makes the show dev plot command nicer. */
+static int32_t plot_pen = PEN_UP;                   /* current pen position. This duplicates the device flag PLOT_PEN. Makes the show dev plot command nicer. */
 
 static int black_pen;                               /* holds color black */
 static int blue_pen;                                /* holds color blue */
@@ -270,10 +272,10 @@ DEVICE plot_dev = {
 
 /* xio_1627_plotter - XIO command interpreter for the 1627 plotter model 1 */
 
-void xio_1627_plotter (int32 iocc_addr, int32 iocc_func, int32 iocc_mod)
+void xio_1627_plotter (int32_t iocc_addr, int32_t iocc_func, int32_t iocc_mod)
 {
     char msg[80];
-    int16 v;
+    int16_t v;
 
     if (! IS_ONLINE(plot_unit) ) {
         SETBIT(plot_dsw, PLOT1627_DSW_NOT_READY);                   /* set not ready */
@@ -291,7 +293,7 @@ void xio_1627_plotter (int32 iocc_addr, int32 iocc_func, int32 iocc_mod)
                  if (IS_DEBUG) printf("Wrote to non-ready Plotter\n");
                  break;
             }
-            plot_cmd = (uint16) ( M[iocc_addr & mem_mask] >> 10 );  /* pick up command */
+            plot_cmd = (uint16_t) ( M[iocc_addr & mem_mask] >> 10 ); /* pick up command */
             process_cmd();                                          /* interpret command */
             sim_activate(plot_unit, plot_wait);                     /* schedule interrupt */
             SETBIT(plot_dsw, PLOT1627_DSW_BUSY);                    /* mark it busy */
@@ -315,7 +317,7 @@ void xio_1627_plotter (int32 iocc_addr, int32 iocc_func, int32 iocc_mod)
             //            XIO_CONTROL 2 xpos    - sets pen xpos
             //            XIO_CONTROL 3 ypos    - sets pen ypos
 
-            v = (int16) iocc_addr;                                  /* get signed 16 bit value passed in addr arg */
+            v = (int16_t) iocc_addr;                                /* get signed 16 bit value passed in addr arg */
             switch (iocc_mod) {
                 case 0:                                             /* set pen color */
                     if (BETWEEN(v,0,7)) {
@@ -549,7 +551,7 @@ static void update_pen (void)
 static t_stat plot_detach (UNIT *uptr)
 {
     char * buf, * fname;
-    int32 size, result, saveit;
+    int32_t size, result, saveit;
     FILE * fp;
     t_stat rval = SCPE_OK;          /* return value */
 
@@ -614,7 +616,7 @@ static t_stat plot_detach (UNIT *uptr)
 
 static void process_cmd (void)
 {
-    int32 oldx, oldy;
+    int32_t oldx, oldy;
 
     /* first see if we set any changes to pen or position, do an update */
     if (need_update) {
@@ -719,10 +721,10 @@ static void process_cmd (void)
 
 /* plot_set_length - validate and store the length of the paper */
 
-static t_stat plot_set_length (UNIT *uptr, int32 set, const char *ptr, void *desc)
+static t_stat plot_set_length (UNIT *uptr, int32_t set, const char *ptr, void *desc)
 {
     const char *cptr;
-    int32 val;
+    int32_t val;
 
 #define LONGEST_ROLL 1440000                    /* longest is 120', 14400", 1,440,000 .01"s */
 
@@ -731,34 +733,34 @@ static t_stat plot_set_length (UNIT *uptr, int32 set, const char *ptr, void *des
         return SCPE_ARG;
     }
 
-    val = strtotv (ptr, &cptr, (uint32) 10);   /* sim routine to get value */
+    val = strtotv (ptr, &cptr, (uint32_t) 10); /* sim routine to get value */
     if ((val < 1) | (val >= LONGEST_ROLL)) {   /* check valid range */
         if (IS_DEBUG) printf("setting paper more than 120' or less than 1 inch\n");
         return SCPE_ARG;
     }
 
     /* origin zero drawing, reduce by 1 but show command will fudge by adding it back */
-    *((int32 *)((REG *) desc)->loc) = val - 1;
+    *((int32_t *)((REG *) desc)->loc) = val - 1;
 
     return SCPE_OK;
 }
 
 /* plot_set_pos - validate and store the new position of the carriage */
 
-static t_stat plot_set_pos (UNIT *uptr, int32 set, const char *ptr, void *desc)
+static t_stat plot_set_pos (UNIT *uptr, int32_t set, const char *ptr, void *desc)
 {
     const char *cptr;
-    int32 val;
-    int32 max;
+    int32_t val;
+    int32_t max;
 
     max = (set == 1) ? plot_ymax : plot_xmax;
-    val = strtotv (ptr, &cptr, (uint32) 10);
+    val = strtotv (ptr, &cptr, (uint32_t) 10);
     if ((val < 0) | (val > max)) {
         if (IS_DEBUG) printf("error moving carriage off paper edge\n");
             return SCPE_ARG;
     }
 
-    *((int32 *)((REG *) desc)->loc) = val;
+    *((int32_t *)((REG *) desc)->loc) = val;
 
     return SCPE_OK;
 }
@@ -768,7 +770,7 @@ static t_stat plot_set_pos (UNIT *uptr, int32 set, const char *ptr, void *desc)
  * once for device and once for unit
  */
 
-static t_stat plot_show_vals (FILE *fp, UNIT *uptr, int32 val, const void *descrip)
+static t_stat plot_show_vals (FILE *fp, UNIT *uptr, int32_t val, const void *descrip)
 {
     fprintf(fp, "length=%d, Xpos=%d, Ypos=%d",plot_xmax+1, plot_xpos,plot_ypos);
     return SCPE_OK;
@@ -777,9 +779,9 @@ static t_stat plot_show_vals (FILE *fp, UNIT *uptr, int32 val, const void *descr
 /* routine to add a terminating NL character when 'show plot length'
  * or equivalent for xpos or ypos is issued, as simh will not append for us */
 
-static t_stat plot_show_nl(FILE *fp, UNIT *uptr, int32 val, const void *descrip)
+static t_stat plot_show_nl(FILE *fp, UNIT *uptr, int32_t val, const void *descrip)
 {
-    int32 disp;
+    int32_t disp;
     char *label;
 
     disp  = (val == 2) ? plot_xmax + 1 : ((val == 1) ? plot_ypos : plot_xpos);
@@ -791,7 +793,7 @@ static t_stat plot_show_nl(FILE *fp, UNIT *uptr, int32 val, const void *descrip)
 
 /* plot_validate_change - force the update_pen routine to be called after user changes pen setting */
 
-static t_stat plot_validate_change (UNIT *uptr, int32 set, const char *ptr, void *desc)
+static t_stat plot_validate_change (UNIT *uptr, int32_t set, const char *ptr, void *desc)
 {
     need_update = true;
     return SCPE_OK;

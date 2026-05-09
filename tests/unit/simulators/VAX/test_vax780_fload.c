@@ -8,16 +8,16 @@
 
 #include "vax_defs.h"
 
-extern bool rtfile_read(uint32 block, uint32 count, uint16 *buffer);
-extern uint32 rtfile_find(uint32 block, uint32 sector);
+extern bool rtfile_read(uint32_t block, uint32_t count, uint16_t *buffer);
+extern uint32_t rtfile_find(uint32_t block, uint32_t sector);
 
 UNIT fl_unit;
 UNIT cpu_unit;
-uint32 *M;
-uint32 mchk_va;
-uint32 mchk_ref;
+uint32_t *M;
+uint32_t mchk_va;
+uint32_t mchk_ref;
 
-void WriteIO(uint32 pa, int32 val, int32 lnt)
+void WriteIO(uint32_t pa, int32_t val, int32_t lnt)
 {
     (void)pa;
     (void)val;
@@ -25,7 +25,7 @@ void WriteIO(uint32 pa, int32 val, int32 lnt)
     fail_msg("rtfile_read should not write I/O space");
 }
 
-void WriteReg(uint32 pa, int32 val, int32 lnt)
+void WriteReg(uint32_t pa, int32_t val, int32_t lnt)
 {
     (void)pa;
     (void)val;
@@ -33,20 +33,20 @@ void WriteReg(uint32 pa, int32 val, int32 lnt)
     fail_msg("rtfile_read should not write register space");
 }
 
-static void load_sector(uint8 *disk, uint32 block, uint32 sector, uint8 seed)
+static void load_sector(uint8_t *disk, uint32_t block, uint32_t sector, uint8_t seed)
 {
-    uint32 pos;
-    uint32 i;
+    uint32_t pos;
+    uint32_t i;
 
     pos = rtfile_find(block, sector);
     for (i = 0; i < 128; i++)
-        disk[pos + i] = (uint8)(seed + i);
+        disk[pos + i] = (uint8_t)(seed + i);
 }
 
 static void test_rtfile_read_decodes_little_endian_words(void **state)
 {
-    uint8 disk[8192];
-    uint16 buffer[256];
+    uint8_t disk[8192];
+    uint16_t buffer[256];
 
     (void)state;
 
@@ -73,8 +73,8 @@ static void test_rtfile_read_decodes_little_endian_words(void **state)
 
 static void test_rtfile_read_rejects_blocks_past_capacity(void **state)
 {
-    uint8 disk[4096];
-    uint16 buffer[256];
+    uint8_t disk[4096];
+    uint16_t buffer[256];
 
     (void)state;
 

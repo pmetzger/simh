@@ -26,6 +26,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "b5500_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -84,14 +86,14 @@ DEBTAB              cdr_debug[] = {
 
 
 #if NUM_DEVS_CDR > 0
-t_stat              cdr_boot(int32, DEVICE *);
+t_stat              cdr_boot(int32_t, DEVICE *);
 t_stat              cdr_ini(DEVICE *);
 t_stat              cdr_srv(UNIT *);
 t_stat              cdr_attach(UNIT *, const char *);
 t_stat              cdr_detach(UNIT *);
-t_stat              cdr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              cdr_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *cdr_description(DEVICE *dptr);
-uint16              cdr_buffer[NUM_DEVS_CDR][80];
+uint16_t            cdr_buffer[NUM_DEVS_CDR][80];
 #endif
 
 #if NUM_DEVS_CDP > 0
@@ -99,9 +101,9 @@ t_stat              cdp_ini(DEVICE *);
 t_stat              cdp_srv(UNIT *);
 t_stat              cdp_attach(UNIT *, const char *);
 t_stat              cdp_detach(UNIT *);
-t_stat              cdp_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              cdp_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *cdp_description(DEVICE *dptr);
-uint16              cdp_buffer[NUM_DEVS_CDP][80];
+uint16_t            cdp_buffer[NUM_DEVS_CDP][80];
 #endif
 
 #if NUM_DEVS_LPR  > 0
@@ -109,19 +111,19 @@ t_stat              lpr_ini(DEVICE *);
 t_stat              lpr_srv(UNIT *);
 t_stat              lpr_attach(UNIT *, const char *);
 t_stat              lpr_detach(UNIT *);
-t_stat              lpr_setlpp(UNIT *, int32, const char *, void *);
-t_stat              lpr_getlpp(FILE *, UNIT *, int32, const void *);
-t_stat              lpr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              lpr_setlpp(UNIT *, int32_t, const char *, void *);
+t_stat              lpr_getlpp(FILE *, UNIT *, int32_t, const void *);
+t_stat              lpr_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *lpr_description(DEVICE *dptr);
-uint8               lpr_buffer[NUM_DEVS_LPR][145];   /* Output line buffer */
+uint8_t             lpr_buffer[NUM_DEVS_LPR][145];   /* Output line buffer */
 #endif
 
 #if NUM_DEVS_CON  > 0
 struct _con_data
 {
-    uint8               ibuff[145];     /* Input line buffer */
-    uint8               inptr;
-    uint8               outptr;
+    uint8_t             ibuff[145];     /* Input line buffer */
+    uint8_t             inptr;
+    uint8_t             outptr;
 }
 con_data[NUM_DEVS_CON];
 
@@ -129,7 +131,7 @@ t_stat              con_ini(DEVICE *);
 t_stat              con_srv(UNIT *);
 t_stat              con_attach(UNIT *, const char *);
 t_stat              con_detach(UNIT *);
-t_stat              con_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              con_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *con_description(DEVICE *dptr);
 #endif
 
@@ -151,7 +153,7 @@ MTAB                cdr_mod[] = {
 };
 
 REG                 cdr_reg[] = {
-    {CRDATA(BUFF, cdr_buffer, 16, 16, sizeof(cdr_buffer)/sizeof(uint16)), REG_HRO},
+    {CRDATA(BUFF, cdr_buffer, 16, 16, sizeof(cdr_buffer)/sizeof(uint16_t)), REG_HRO},
     {0}
 };
 
@@ -178,7 +180,7 @@ MTAB                cdp_mod[] = {
 };
 
 REG                 cdp_reg[] = {
-    {CRDATA(BUFF, cdp_buffer, 16, 16, sizeof(cdp_buffer)/sizeof(uint16)), REG_HRO},
+    {CRDATA(BUFF, cdp_buffer, 16, 16, sizeof(cdp_buffer)/sizeof(uint16_t)), REG_HRO},
     {0}
 };
 
@@ -265,7 +267,7 @@ cdr_ini(DEVICE *dptr) {
  * Device entry points for card reader.
  * And Card punch.
  */
-t_stat card_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
+t_stat card_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc)
 {
     UNIT        *uptr;
     int          u;
@@ -339,7 +341,7 @@ t_stat
 cdr_srv(UNIT *uptr) {
     int                 chan = URCSTA_CHMASK & uptr->CMD;
     int                 u = (uptr - cdr_unit);
-    uint16              *image = &cdr_buffer[u][0];
+    uint16_t            *image = &cdr_buffer[u][0];
 
     if (uptr->CMD & URCSTA_EOF) {
         sim_debug(DEBUG_DETAIL, &cdr_dev, "cdr %d %d unready\n", u, chan);
@@ -384,7 +386,7 @@ cdr_srv(UNIT *uptr) {
     /* Copy next column over */
     if (uptr->CMD & URCSTA_CARD &&
         uptr->POS < ((uptr->CMD & URCSTA_BIN) ? 160 : 80)) {
-        uint8                ch = 0;
+        uint8_t              ch = 0;
         int                  u = (uptr - cdr_unit);
 
         if (uptr->CMD & URCSTA_BIN) {
@@ -470,17 +472,17 @@ cdr_srv(UNIT *uptr) {
 
 /* Boot from given device */
 t_stat
-cdr_boot(int32 unit_num, DEVICE * dptr)
+cdr_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
-    uint8               dev;
-    t_uint64            desc;
+    uint8_t             dev;
+    uint64_t            desc;
 
     if ((uptr->flags & UNIT_ATT) == 0)
         return SCPE_UNATT;      /* attached? */
     dev = (uptr == &cdr_unit[0]) ? CARD1_DEV : CARD2_DEV;
     uptr->CMD &= ~URCSTA_ACTIVE;
-    desc = ((t_uint64)dev) << DEV_V | DEV_IORD| DEV_BIN | 020LL;
+    desc = ((uint64_t)dev) << DEV_V | DEV_IORD| DEV_BIN | 020LL;
     /* Read in one record */
     return chan_boot(desc);
 }
@@ -507,7 +509,7 @@ cdr_detach(UNIT * uptr)
 }
 
 t_stat
-cdr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cdr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic help signature.
       This implementation does not use every parameter. */
@@ -560,7 +562,7 @@ t_stat
 cdp_srv(UNIT *uptr) {
     int                 chan = URCSTA_CHMASK & uptr->CMD;
     int                 u = (uptr - cdp_unit);
-    uint16              *image = &cdp_buffer[u][0];
+    uint16_t            *image = &cdp_buffer[u][0];
 
     if (uptr->CMD & URCSTA_BUSY) {
         /* Done waiting, punch card */
@@ -588,8 +590,8 @@ cdp_srv(UNIT *uptr) {
 
     /* Copy next column over */
     if (uptr->CMD & URCSTA_ACTIVE && uptr->POS < 80) {
-        uint8               ch = 0;
-        uint16              hol;
+        uint8_t             ch = 0;
+        uint16_t            hol;
 
         if(chan_read_char(chan, &ch, 0)) {
              uptr->CMD |= URCSTA_BUSY|URCSTA_FULL;
@@ -644,7 +646,7 @@ t_stat
 cdp_detach(UNIT * uptr)
 {
     int                 u = uptr-cdr_unit;
-    uint16              *image = &cdp_buffer[u][0];
+    uint16_t            *image = &cdp_buffer[u][0];
 
     if (uptr->CMD & URCSTA_FULL)
         sim_punch_card(uptr, image);
@@ -653,7 +655,7 @@ cdp_detach(UNIT * uptr)
 }
 
 t_stat
-cdp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cdp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic help signature.
       This implementation does not use every parameter. */
@@ -704,7 +706,7 @@ lpr_ini(DEVICE *dptr) {
 
 #if NUM_DEVS_LPR > 0
 t_stat
-lpr_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
+lpr_setlpp(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -730,7 +732,7 @@ lpr_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-lpr_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
+lpr_getlpp(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -873,7 +875,7 @@ print_line(UNIT * uptr, int unit)
 
 
 
-t_stat lpr_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
+t_stat lpr_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc)
 {
     UNIT                *uptr;
     int                 u;
@@ -971,7 +973,7 @@ lpr_detach(UNIT * uptr)
 }
 
 t_stat
-lpr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+lpr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic help signature.
       This implementation does not use every parameter. */
@@ -1037,7 +1039,7 @@ con_ini(DEVICE *dptr) {
 }
 
 t_stat
-con_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
+con_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc)
 {
     /* Shared device command signature.
        This implementation does not use every parameter. */
@@ -1077,7 +1079,7 @@ con_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
 t_stat
 con_srv(UNIT *uptr) {
     t_stat              r;
-    uint8               ch;
+    uint8_t             ch;
     int                 chan = uptr->CMD & URCSTA_CHMASK;
 
 
@@ -1094,7 +1096,7 @@ con_srv(UNIT *uptr) {
        } else {
              ch &= 077;
              sim_debug(DEBUG_EXP, &con_dev, "%c", con_to_ascii[ch]);
-             sim_putchar((int32)con_to_ascii[ch]);
+             sim_putchar((int32_t)con_to_ascii[ch]);
        }
     }
 
@@ -1141,7 +1143,7 @@ con_srv(UNIT *uptr) {
                         sim_putchar('\007');
                         break;
                     }
-                    sim_putchar((int32)con_to_ascii[ch]);
+                    sim_putchar((int32_t)con_to_ascii[ch]);
                     con_data[0].ibuff[con_data[0].inptr++] = ch;
                 }
                 break;
@@ -1163,7 +1165,7 @@ con_srv(UNIT *uptr) {
 }
 
 t_stat
-con_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+con_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic help signature.
       This implementation does not use every parameter. */

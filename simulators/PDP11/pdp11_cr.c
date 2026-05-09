@@ -204,6 +204,7 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #if defined (VM_PDP10)                                  /* PDP10 version */
 #include "pdp10_defs.h"
@@ -244,7 +245,7 @@
 
 /* **** No VM_xxx macros should be referenced after this line **** */
 
-/* create a int32 constant from four characters */
+/* create a int32_t constant from four characters */
 #define I4C(a,b,c,d)    (((a) << 24) | ((b) << 16) | ((c) << 8) | (d))
 #define I4C_CBN         I4C ('C','B','N',' ')
 #define I4C_H80         I4C ('H','8','0',' ')
@@ -404,7 +405,7 @@
 
 /* Card Reader state */
 static const char *cardFormat = "unknown";
-static bool     (*readRtn)(UNIT *, int16 *, char *, char *);
+static bool     (*readRtn)(UNIT *, int16_t *, char *, char *);
 static char     ascii_code[4096];                       /* 2^12 possible values */
 static int      currCol;                                /* current column when reading */
 static int      colStart;                               /* starting column */
@@ -430,50 +431,50 @@ static  struct trans {
 };
 #define NTRANS (sizeof transcodes /sizeof transcodes[0])
 
-static int32    blowerState = BLOW_OFF;                 /* reader vacuum/blower motor */
-static int32    spinUp = 3000000;                       /* blower spin-up time: 3 seconds (usec) */
-static int32    spinDown = 2000000;                     /* blower spin-down time: 2 seconds (usec) */
+static int32_t  blowerState = BLOW_OFF;                 /* reader vacuum/blower motor */
+static int32_t  spinUp = 3000000;                       /* blower spin-up time: 3 seconds (usec) */
+static int32_t  spinDown = 2000000;                     /* blower spin-down time: 2 seconds (usec) */
 static int      EOFcard = 0;                            /* played special card yet? */
 static bool     eofPending = false;                     /* Manual EOF switch pressed */
-static int32    cpm = DFLT_CPM;                         /* reader rate: cards per minute */
+static int32_t  cpm = DFLT_CPM;                         /* reader rate: cards per minute */
 static int      schedule_svc=0;                         /* Re-schedule service if true */
 /* card image in various formats */
-static int16    hcard[82];                              /* Hollerith format */
+static int16_t  hcard[82];                              /* Hollerith format */
 static char     ccard[82];                              /* DEC compressed format */
 static char     acard[82];                              /* ASCII format */
 /* CR/CM registers */
-static int32    crs = CSR_ERR | CRCSR_OFFLINE | CRCSR_SUPPLY; /* control/status */
-static int32    crb1 = 0;                               /* 12-bit Hollerith characters */
-static int32    crb2 = 0;                               /* 8-bit compressed characters */
-static int32    crm = 0;                                /* CMS maintenance register */
+static int32_t  crs = CSR_ERR | CRCSR_OFFLINE | CRCSR_SUPPLY; /* control/status */
+static int32_t  crb1 = 0;                               /* 12-bit Hollerith characters */
+static int32_t  crb2 = 0;                               /* 8-bit compressed characters */
+static int32_t  crm = 0;                                /* CMS maintenance register */
 /* CD registers */
-static int32    cdst = CSR_ERR | CDCSR_OFFLINE | CDCSR_HOPPER; /* Control/status - off-line until attached */
-static int32    cdcc = 0;                               /* column count */
-static int32    cdba = 0;                               /* current address, low 16 bits */
-static int32    cddb = 0;                               /* data, 2nd status */
-static int32    cddbs = 0;                              /* second status bits (or with cddb) */
+static int32_t  cdst = CSR_ERR | CDCSR_OFFLINE | CDCSR_HOPPER; /* Control/status - off-line until attached */
+static int32_t  cdcc = 0;                               /* column count */
+static int32_t  cdba = 0;                               /* current address, low 16 bits */
+static int32_t  cddb = 0;                               /* data, 2nd status */
+static int32_t  cddbs = 0;                              /* second status bits (or with cddb) */
 
 /* forward references */
-static void setupCardFile (UNIT *, int32);
-t_stat cr_rd (int32 *, int32, int32);
-t_stat cr_wr (int32, int32, int32);
-int32  cr_intac(void);
+static void setupCardFile (UNIT *, int32_t);
+t_stat cr_rd (int32_t *, int32_t, int32_t);
+t_stat cr_wr (int32_t, int32_t, int32_t);
+int32_t cr_intac(void);
 t_stat cr_svc (UNIT *);
 t_stat cr_reset (DEVICE *);
 t_stat cr_attach (UNIT *, const char *);
 t_stat cr_detach (UNIT *);
-t_stat cr_set_type (UNIT *, int32, const char *, void *);
-t_stat cr_set_aieco (UNIT *, int32, const char *, void *);
-t_stat cr_show_format (FILE *, UNIT *, int32, const void *);
-t_stat cr_set_rate (UNIT *, int32, const char *, void *);
-t_stat cr_show_rate (FILE *, UNIT *, int32, const void *);
-t_stat cr_set_reset (UNIT *, int32, const char *, void *);
-t_stat cr_set_stop (UNIT *, int32, const char *, void *);
-t_stat cr_set_eof (UNIT *, int32, const char *, void *);
-t_stat cr_show_eof (FILE *, UNIT *, int32, const void *);
-t_stat cr_set_trans (UNIT *, int32, const char*, void *);
-t_stat cr_show_trans (FILE *, UNIT *, int32, const void *);
-static t_stat cr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat cr_set_type (UNIT *, int32_t, const char *, void *);
+t_stat cr_set_aieco (UNIT *, int32_t, const char *, void *);
+t_stat cr_show_format (FILE *, UNIT *, int32_t, const void *);
+t_stat cr_set_rate (UNIT *, int32_t, const char *, void *);
+t_stat cr_show_rate (FILE *, UNIT *, int32_t, const void *);
+t_stat cr_set_reset (UNIT *, int32_t, const char *, void *);
+t_stat cr_set_stop (UNIT *, int32_t, const char *, void *);
+t_stat cr_set_eof (UNIT *, int32_t, const char *, void *);
+t_stat cr_show_eof (FILE *, UNIT *, int32_t, const void *);
+t_stat cr_set_trans (UNIT *, int32_t, const char*, void *);
+t_stat cr_show_trans (FILE *, UNIT *, int32_t, const void *);
+static t_stat cr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *cr_description (DEVICE *dptr);
 void cr_set_int (void);
 void cr_clr_int (void);
@@ -625,10 +626,10 @@ check".  Retry 3 times.  After that, give up with error.
 /* Common handling for end of file and errors on input */
 
 static bool fileEOF ( UNIT  *uptr,
-                        int16 *hcard,
+                        int16_t *hcard,
                         char  *ccard,
                         char  *acard,
-                        int32  cddbsBits )
+                        int32_t cddbsBits )
 {
     int col;
 
@@ -675,7 +676,7 @@ static bool fileEOF ( UNIT  *uptr,
 }
 
 static bool readCardImage (   UNIT    *uptr,
-                                int16   *hcard,
+                                int16_t *hcard,
                                 char    *ccard,
                                 char    *acard    )
 {
@@ -708,7 +709,7 @@ static bool readCardImage (   UNIT    *uptr,
         ASSURE (colStart >= 0);
         ASSURE (colEnd <= 81);
         for (col = colStart; col < colEnd; ) {
-            int16    i;
+            int16_t  i;
             int    c1, c2, c3;
             /* get 3 bytes */
             c1 = fgetc (fp);
@@ -742,7 +743,7 @@ static bool readCardImage (   UNIT    *uptr,
 }
 
 static bool readColumnBinary (    UNIT    *uptr,
-                                    int16   *hcard,
+                                    int16_t *hcard,
                                     char    *ccard,
                                     char    *acard    )
 {
@@ -751,7 +752,7 @@ static bool readColumnBinary (    UNIT    *uptr,
 
     for (col = colStart; col <= colEnd; col++) {
         int c1, c2;
-        uint16 i;
+        uint16_t i;
         c1 = fgetc (fp);
         c2 = fgetc (fp);
         uptr->pos = ftell (fp);
@@ -776,7 +777,7 @@ representation? (In DEC026/DEC029 they all do...)
 */
 
 static bool readCardASCII (   UNIT    *uptr,
-                                int16   *hcard,
+                                int16_t *hcard,
                                 char    *ccard,
                                 char    *acard    )
 {
@@ -829,7 +830,7 @@ static bool readCardASCII (   UNIT    *uptr,
             } while (((col & 07) != 1) && (col <= colEnd));
             break;
         default:
-            hcard[col] = (uint16)codeTbl[c & 0177];
+            hcard[col] = (uint16_t)codeTbl[c & 0177];
             /* check for unrepresentable ASCII characters */
             if (hcard[col] == CR_ER) {
                 cdst |= CDCSR_DATAERR;
@@ -876,7 +877,7 @@ new deck is attached but could be set manually as well.
 
 static void initTranslation (void)
 {
-    int32    i;
+    int32_t  i;
 
     memset (ascii_code, '~', sizeof (ascii_code));
     for (i = 0; i < 0177; i++)
@@ -892,9 +893,9 @@ appropriately.  Rewind ASCII files to the beginning
 */
 
 static void setupCardFile ( UNIT    *uptr,
-                            int32   switches    )
+                            int32_t switches    )
 {
-    int32    i;
+    int32_t  i;
 
     if (switches & SWMASK ('A'))
         i = 0;
@@ -964,9 +965,9 @@ read_header:
    cr_detach    process detach
 */
 
-t_stat cr_rd (  int32   *data,
-                int32   PA,
-                int32   access    )
+t_stat cr_rd (  int32_t *data,
+                int32_t PA,
+                int32_t access    )
 {
     /* Generic I/O page read signature.
        This implementation does not use every parameter. */
@@ -1029,9 +1030,9 @@ t_stat cr_rd (  int32   *data,
     return (SCPE_OK);
 }
 
-t_stat cr_wr (  int32   data,
-                int32   PA,
-                int32   access    )
+t_stat cr_wr (  int32_t data,
+                int32_t PA,
+                int32_t access    )
 {
     int curr_crs = crs;     /* Save current crs to recover status */
 
@@ -1193,7 +1194,7 @@ t_stat cr_wr (  int32   data,
  * not seem to call this entry point.
  */
 
-int32 cr_intac(void) {
+int32_t cr_intac(void) {
     if CR11_CTL(&cr_unit) {
         if (schedule_svc) {
             sim_activate_after (&cr_unit, cr_unit.wait);
@@ -1210,9 +1211,9 @@ when in CD mode, also execute one column of DMA input.
 */
 t_stat cr_svc ( UNIT    *uptr    )
 {
-    uint32    pa;
-    uint8    c;
-    uint16   w;
+    uint32_t  pa;
+    uint8_t  c;
+    uint16_t w;
     int      n;
 
     /* Blower stopping: set it to OFF and do nothing */
@@ -1394,7 +1395,7 @@ incremented properly.  If this causes problems, I'll fix it.
                  * This was probably an ECO to the CD11.  TOPS-10/20 depend on it, so it's definitely in the CD20.
                  */
                 if (uptr->flags & UNIT_AIECO) {
-                    uint16 z;
+                    uint16_t z;
                     w |= ((ccard[currCol] & 07) << 12);     /* Encode zones 1..7 - same as 'packed' format */
                     z = w & 0774;
                     if ((z & -z) != z)                      /* More than one punch in 1..7 */
@@ -1578,7 +1579,7 @@ else {
 
 #if defined (CR11_OK) || defined (CD11_OK) || defined (CD20_OK)
 t_stat cr_set_type (    UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const char    *cptr,
                         void    *desc    )
 {
@@ -1617,7 +1618,7 @@ t_stat cr_set_type (    UNIT    *uptr,
 
 #if defined (AIECO_OK)
 t_stat cr_set_aieco (    UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const char    *cptr,
                         void    *desc    )
 {
@@ -1638,7 +1639,7 @@ t_stat cr_set_aieco (    UNIT    *uptr,
 
 t_stat cr_show_format ( FILE    *st,
                         UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const void    *desc    )
 {
     /* Generic show modifier signature.
@@ -1652,7 +1653,7 @@ t_stat cr_show_format ( FILE    *st,
 }
 
 t_stat cr_set_rate (    UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const char    *cptr,
                         void    *desc    )
 {
@@ -1662,14 +1663,14 @@ t_stat cr_set_rate (    UNIT    *uptr,
     (void) desc;
 
     t_stat    status = SCPE_OK;
-    int32    i;
+    int32_t  i;
 
     if (!cptr)
         return (SCPE_MISVAL);
     if (strcmp (cptr, "DEFAULT") == 0)
         i = CR11_CTL(uptr) ? 285 : (CD20_CTL(uptr)? 1200 :1000);
     else
-        i = (int32) get_uint (cptr, 10, 0xFFFFFFFF, &status);
+        i = (int32_t) get_uint (cptr, 10, 0xFFFFFFFF, &status);
     if (status == SCPE_OK) {
         if (i < 200 || i > 1200)
             status = SCPE_ARG;
@@ -1684,7 +1685,7 @@ t_stat cr_set_rate (    UNIT    *uptr,
 
 t_stat cr_show_rate (   FILE    *st,
                         UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const void    *desc    )
 {
     /* Generic show modifier signature.
@@ -1703,7 +1704,7 @@ t_stat cr_show_rate (   FILE    *st,
 /* RESET is somewhat of a misnomer; START is the function */
 
 t_stat cr_set_reset (   UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const char    *cptr,
                         void    *desc    )
 {
@@ -1766,7 +1767,7 @@ t_stat cr_set_reset (   UNIT    *uptr,
 /* simulate pressing the card reader STOP button */
 
 t_stat cr_set_stop (    UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const char    *cptr,
                         void    *desc    )
 {
@@ -1794,7 +1795,7 @@ t_stat cr_set_stop (    UNIT    *uptr,
 /* simulate pressing the card reader EOF button */
 
 t_stat cr_set_eof (    UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const char    *cptr,
                         void    *desc    )
 {
@@ -1814,7 +1815,7 @@ t_stat cr_set_eof (    UNIT    *uptr,
 
 t_stat cr_show_eof ( FILE    *st,
                      UNIT    *uptr,
-                     int32   val,
+                     int32_t val,
                      const void    *desc    )
 {
     /* Generic show modifier signature.
@@ -1828,7 +1829,7 @@ t_stat cr_show_eof ( FILE    *st,
 }
 
 t_stat cr_set_trans (   UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const char    *cptr,
                         void    *desc    )
 {
@@ -1856,7 +1857,7 @@ t_stat cr_set_trans (   UNIT    *uptr,
 
 t_stat cr_show_trans (  FILE    *st,
                         UNIT    *uptr,
-                        int32   val,
+                        int32_t val,
                         const void    *desc    )
 {
     /* Generic show modifier signature.
@@ -1880,9 +1881,9 @@ t_stat cr_show_trans (  FILE    *st,
  * This ugliness is more maintainable than a preprocessor mess.
  */
 
-static void cr_supported ( char *string, int32 *bits, size_t string_aize )
+static void cr_supported ( char *string, int32_t *bits, size_t string_aize )
 {
-int32 crtypes = 0;
+int32_t crtypes = 0;
 #define MAXDESCRIP sizeof ("CR11/CD11/CD20/") /* sizeof includes \0 */
 char devtype[MAXDESCRIP] = "";
 
@@ -1911,7 +1912,7 @@ if (bits)
     *bits = crtypes;
 }
 
-static t_stat cr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat cr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -1920,7 +1921,7 @@ static t_stat cr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const cha
 (void) cptr;
 
 char devtype[MAXDESCRIP];
-int32 crtypes;
+int32_t crtypes;
 
 cr_supported (devtype, &crtypes, sizeof (devtype));
 fprintf (st, "%s Card Reader (CR)\n\n", devtype);

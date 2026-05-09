@@ -20,20 +20,22 @@
    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
-t_stat rom_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat rom_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
-t_stat rom_rd (int32 *data, int32 PA, int32 access);
+t_stat rom_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat rom_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat rom_rd (int32_t *data, int32_t PA, int32_t access);
 t_stat rom_reset (DEVICE *dptr);
-t_stat rom_boot (int32 u, DEVICE *dptr);
-t_stat rom_set_addr (UNIT *, int32, const char *, void *);
-t_stat rom_show_addr (FILE *, UNIT *, int32, const void *);
+t_stat rom_boot (int32_t u, DEVICE *dptr);
+t_stat rom_set_addr (UNIT *, int32_t, const char *, void *);
+t_stat rom_show_addr (FILE *, UNIT *, int32_t, const void *);
 static t_stat rom_make_dib (UNIT *uptr);
 t_stat rom_attach (UNIT *uptr, const char *cptr);
 t_stat rom_detach (UNIT *uptr);
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat rom_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat rom_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *rom_description (DEVICE *dptr);
 
 /* ROM data structures
@@ -69,14 +71,14 @@ DEVICE rom_dev = {
     NULL, &rom_description                     /* description routine */
     };
 
-t_stat rom_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat rom_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-int32 data;
+int32_t data;
 t_stat r;
 
 r = rom_rd (&data, addr, 0);
@@ -86,19 +88,19 @@ if (r != SCPE_OK)
 return SCPE_OK;
 }
 
-t_stat rom_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat rom_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory deposit signature.
    This implementation does not use every parameter. */
 (void) sw;
 
-uint16 *image = (uint16 *)uptr->filebuf;
+uint16_t *image = (uint16_t *)uptr->filebuf;
 
 image[(addr - uptr->unit_base) >> 1] = val;
 return SCPE_OK;
 }
 
-t_stat rom_rd (int32 *data, int32 PA, int32 access)
+t_stat rom_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Bus read callback signature.
    This implementation does not use every parameter. */
@@ -107,7 +109,7 @@ t_stat rom_rd (int32 *data, int32 PA, int32 access)
 int i;
 for (i = 0; i < ROM_UNITS; i++) {
     if (PA >= rom_unit[i].unit_base && PA < rom_unit[i].unit_end) {
-        uint16 *image = (uint16 *)rom_unit[i].filebuf;
+        uint16_t *image = (uint16_t *)rom_unit[i].filebuf;
         *data = image[(PA - rom_unit[i].unit_base) >> 1];
         return SCPE_OK;
     }
@@ -127,7 +129,7 @@ rom_dib[ROM_UNITS - 1].next = NULL;
 return SCPE_OK;
 }
 
-t_stat rom_boot (int32 u, DEVICE *dptr)
+t_stat rom_boot (int32_t u, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -137,21 +139,21 @@ cpu_set_boot (rom_unit[u].unit_base);
 return SCPE_OK;
 }
 
-t_stat rom_set_addr (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rom_set_addr (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) val;
 (void) desc;
 
-int32 addr;
+int32_t addr;
 t_stat r;
 
 if (uptr->flags & UNIT_ATT)
     return SCPE_ALATT;
 if (cptr == NULL)
     return SCPE_ARG;
-addr = (int32) get_uint (cptr, 8, IOPAGEBASE+IOPAGEMASK, &r);
+addr = (int32_t) get_uint (cptr, 8, IOPAGEBASE+IOPAGEMASK, &r);
 if (r != SCPE_OK)
     return r;
 if (addr < IOPAGEBASE)
@@ -161,7 +163,7 @@ uptr->unit_base = uptr->unit_end = addr;
 return SCPE_OK;
 }
 
-t_stat rom_show_addr (FILE *f, UNIT *uptr, int32 val, const void *desc)
+t_stat rom_show_addr (FILE *f, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -225,7 +227,7 @@ dib->lnt = uptr->capac = 0;
 return detach_unit (uptr);
 }
 
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -242,7 +244,7 @@ fprintf (st, "for starting from the ROM.\n");
 return SCPE_OK;
 }
 
-t_stat rom_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rom_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic attach help signature.
    This implementation does not use every parameter. */

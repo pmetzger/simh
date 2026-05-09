@@ -94,6 +94,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -177,25 +179,25 @@ static CARD_STATE dqd;                          /* data per-card state */
 static CARD_STATE dqc;                          /* command per-card state */
 
 
-static int32 dqc_busy = 0;                      /* cch xfer */
-static int32 dqc_cnt = 0;                       /* check count */
-static int32 dqc_stime = 100;                   /* seek time */
-static int32 dqc_ctime = 100;                   /* command time */
-static int32 dqc_xtime = 3;                     /* xfer time */
-static int32 dqc_dtime = 2;                     /* dch time */
+static int32_t dqc_busy = 0;                    /* cch xfer */
+static int32_t dqc_cnt = 0;                     /* check count */
+static int32_t dqc_stime = 100;                 /* seek time */
+static int32_t dqc_ctime = 100;                 /* command time */
+static int32_t dqc_xtime = 3;                   /* xfer time */
+static int32_t dqc_dtime = 2;                   /* dch time */
 
-static int32 dqd_obuf = 0, dqd_ibuf = 0;        /* dch buffers */
-static int32 dqc_obuf = 0;                      /* cch buffers */
-static int32 dqd_xfer = 0;                      /* xfer in prog */
-static int32 dqd_wval = 0;                      /* write data valid */
-static int32 dq_ptr = 0;                        /* buffer ptr */
-static uint8 dqc_rarc = 0;                      /* RAR cylinder */
-static uint8 dqc_rarh = 0;                      /* RAR head */
-static uint8 dqc_rars = 0;                      /* RAR sector */
-static uint8 dqc_ucyl[DQ_NUMDRV] = { 0 };       /* unit cylinder */
-static uint8 dqc_uhed[DQ_NUMDRV] = { 0 };       /* unit head */
-static uint16 dqc_sta[DQ_NUMDRV] = { 0 };       /* unit status */
-static uint16 dqxb[DQ_NUMWD];                   /* sector buffer */
+static int32_t dqd_obuf = 0, dqd_ibuf = 0;      /* dch buffers */
+static int32_t dqc_obuf = 0;                    /* cch buffers */
+static int32_t dqd_xfer = 0;                    /* xfer in prog */
+static int32_t dqd_wval = 0;                    /* write data valid */
+static int32_t dq_ptr = 0;                      /* buffer ptr */
+static uint8_t dqc_rarc = 0;                    /* RAR cylinder */
+static uint8_t dqc_rarh = 0;                    /* RAR head */
+static uint8_t dqc_rars = 0;                    /* RAR sector */
+static uint8_t dqc_ucyl[DQ_NUMDRV] = { 0 };     /* unit cylinder */
+static uint8_t dqc_uhed[DQ_NUMDRV] = { 0 };     /* unit head */
+static uint16_t dqc_sta[DQ_NUMDRV] = { 0 };     /* unit status */
+static uint16_t dqxb[DQ_NUMWD];                 /* sector buffer */
 
 /* Interface local SCP support routines */
 
@@ -207,10 +209,10 @@ static t_stat dqd_svc (UNIT *uptr);
 static t_stat dqc_reset (DEVICE *dptr);
 static t_stat dqc_attach (UNIT *uptr, const char *cptr);
 static t_stat dqc_detach (UNIT* uptr);
-static t_stat dqc_load_unload (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat dqc_boot (int32 unitno, DEVICE *dptr);
-static void dq_god (int32 fnc, int32 drv, int32 time);
-static void dq_goc (int32 fnc, int32 drv, int32 time);
+static t_stat dqc_load_unload (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat dqc_boot (int32_t unitno, DEVICE *dptr);
+static void dq_god (int32_t fnc, int32_t drv, int32_t time);
+static void dq_goc (int32_t fnc, int32_t drv, int32_t time);
 
 
 /* Device information blocks */
@@ -563,7 +565,7 @@ static SIGNALS_VALUE dqc_interface (const DIB *dibptr, INBOUND_SET inbound_signa
    This implementation does not use every parameter. */
 (void) dibptr;
 
-int32          fnc, drv;
+int32_t        fnc, drv;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
@@ -704,7 +706,7 @@ return outbound;                                        /* return the outbound s
 
 /* Start data channel operation */
 
-void dq_god (int32 fnc, int32 drv, int32 time)
+void dq_god (int32_t fnc, int32_t drv, int32_t time)
 {
 dqd_unit [0].DRV = drv;                                 /* save unit */
 dqd_unit [0].FNC = fnc;                                 /* save function */
@@ -714,9 +716,9 @@ return;
 
 /* Start controller operation */
 
-void dq_goc (int32 fnc, int32 drv, int32 time)
+void dq_goc (int32_t fnc, int32_t drv, int32_t time)
 {
-int32 t;
+int32_t t;
 
 t = sim_activate_time (&dqc_unit[drv]);
 
@@ -756,7 +758,7 @@ return;
 
 t_stat dqd_svc (UNIT *uptr)
 {
-int32 drv, st;
+int32_t drv, st;
 
 drv = uptr->DRV;                                        /* get drive no */
 
@@ -877,7 +879,7 @@ return SCPE_OK;
 
 t_stat dqc_svc (UNIT *uptr)
 {
-int32 da, drv, err;
+int32_t da, drv, err;
 
 err = 0;                                                /* assume no err */
 drv = uptr - dqc_unit;                                  /* get drive no */
@@ -954,10 +956,10 @@ switch (uptr->FNC) {                                    /* case function */
             dqc_rars = (dqc_rars + 1) % DQ_NUMSC;       /* incr sector */
             if (dqc_rars == 0)                          /* wrap? incr head */
                 dqc_uhed[drv] = dqc_rarh = dqc_rarh + 1;
-            err = fseek (uptr->fileref, da * sizeof (int16), SEEK_SET);
+            err = fseek (uptr->fileref, da * sizeof (int16_t), SEEK_SET);
             if (err)
                 break;
-            fxread (dqxb, sizeof (int16), DQ_NUMWD, uptr->fileref);
+            fxread (dqxb, sizeof (int16_t), DQ_NUMWD, uptr->fileref);
             err = ferror (uptr->fileref);
             if (err)
                 break;
@@ -997,17 +999,17 @@ switch (uptr->FNC) {                                    /* case function */
                 break;
                 }
             }
-        dqxb[dq_ptr++] = dqd_wval ? (uint16) dqd_obuf : 0;  /* store word/fill */
+        dqxb[dq_ptr++] = dqd_wval ? (uint16_t) dqd_obuf : 0; /* store word/fill */
         dqd_wval = 0;                                       /* clr data valid */
         if (dq_ptr >= DQ_NUMWD) {                           /* buffer full? */
             da = GETDA (dqc_rarc, dqc_rarh, dqc_rars);      /* calc disk addr */
             dqc_rars = (dqc_rars + 1) % DQ_NUMSC;           /* incr sector */
             if (dqc_rars == 0)                              /* wrap? incr head */
                 dqc_uhed[drv] = dqc_rarh = dqc_rarh + 1;
-            err = fseek (uptr->fileref, da * sizeof (int16), SEEK_SET);
+            err = fseek (uptr->fileref, da * sizeof (int16_t), SEEK_SET);
             if (err)
                 break;
-            fxwrite (dqxb, sizeof (int16), DQ_NUMWD, uptr->fileref);
+            fxwrite (dqxb, sizeof (int16_t), DQ_NUMWD, uptr->fileref);
             err = ferror (uptr->fileref);
             if (err)
                 break;
@@ -1046,7 +1048,7 @@ return SCPE_OK;
 
 t_stat dqc_reset (DEVICE *dptr)
 {
-int32 drv;
+int32_t drv;
 
 hp_enbdis_pair (dptr,                                   /* make pair cons */
     (dptr == &dqd_dev)? &dqc_dev: &dqd_dev);
@@ -1095,7 +1097,7 @@ t_stat dqc_attach (UNIT *uptr, const char *cptr)
 {
 t_stat      result;
 t_addr      offset;
-const uint8 zero = 0;
+const uint8_t zero = 0;
 
 result = attach_unit (uptr, cptr);                      /* attach the drive */
 
@@ -1104,7 +1106,7 @@ if (result == SCPE_OK) {                                /* if the attach was suc
 
     if (sim_switches & SWMASK ('N')) {                  /* if this is a new disc image */
         offset = (t_addr)                               /*   then determine the offset of */
-          (uptr->capac * sizeof (int16) - sizeof zero); /*     the last byte in a full-sized file */
+          (uptr->capac * sizeof (int16_t) - sizeof zero); /*     the last byte in a full-sized file */
 
         if (sim_fseek (uptr->fileref, offset, SEEK_SET) != 0    /* seek to the last byte */
           || fwrite (&zero, sizeof zero, 1, uptr->fileref) == 0 /*   and write a zero to fill */
@@ -1126,7 +1128,7 @@ return detach_unit (uptr);                              /* detach unit */
 
 /* Load and unload heads */
 
-t_stat dqc_load_unload (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat dqc_load_unload (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1348,11 +1350,11 @@ static const LOADER_ARRAY dq_loaders = {
        to the current select codes of the PTR and DQ devices.
 */
 
-t_stat dqc_boot (int32 unitno, DEVICE *dptr)
+t_stat dqc_boot (int32_t unitno, DEVICE *dptr)
 {
 static const HP_WORD dq_preserved = 0000070u;               /* S-register bits 5-3 are preserved */
 static const HP_WORD dq_standard  = 0020000u;               /* S-register bit 13 set for a standard boot */
-uint32 start;
+uint32_t start;
 
 if (dptr == NULL)                                           /* if we are being called for a BOOT/LOAD CPU */
     start = cpu_copy_loader (dq_loaders, unitno,            /*   then copy the boot loader to memory */

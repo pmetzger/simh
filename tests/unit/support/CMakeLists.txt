@@ -14,6 +14,7 @@ target_include_directories(simh_unit_support PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${SIMH_COMPAT_ROOT}
     ${SIMH_CORE_ROOT}
+    ${SIMH_INCLUDE_ROOT}
     ${SIMH_RUNTIME_ROOT}
 )
 

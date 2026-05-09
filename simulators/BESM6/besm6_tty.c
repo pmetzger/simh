@@ -27,9 +27,12 @@
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
 
+#include <stdint.h>
+
 #include "besm6_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
+#include "sim_types.h"
 
 #define TTY_MAX         24              /* Serial TTY lines */
 #define LINES_MAX       TTY_MAX + 2     /* Including parallel "Consul" typewriters */
@@ -83,19 +86,19 @@ int tty_rate = 300;
 /* Interrupt generator mode: 1 - model time, 0 - wallclock time */
 int tty_turbo = 1;
 
-uint32 vt_sending, vt_receiving;
-uint32 tt_sending, tt_receiving;
+uint32_t vt_sending, vt_receiving;
+uint32_t tt_sending, tt_receiving;
 
 // Attachments survive the reset
-uint32 tt_mask = 0, vt_mask = 0;
+uint32_t tt_mask = 0, vt_mask = 0;
 
-uint32 TTY_OUT = 0, TTY_IN = 0, vt_idle = 0;
-uint32 CONSUL_IN[2];
+uint32_t TTY_OUT = 0, TTY_IN = 0, vt_idle = 0;
+uint32_t CONSUL_IN[2];
 
-uint32 CONS_CAN_PRINT[2] = { 01000, 00400 };
-uint32 CONS_HAS_INPUT[2] = { 04000, 02000 };
+uint32_t CONS_CAN_PRINT[2] = { 01000, 00400 };
+uint32_t CONS_HAS_INPUT[2] = { 04000, 02000 };
 
-uint32 CONS_READY[2] = { 0200, 040 };
+uint32_t CONS_READY[2] = { 0200, 040 };
 /* Command line buffers for TELNET mode. */
 char vt_cbuf [CBUFSIZE] [LINES_MAX+1];
 char *vt_cptr [LINES_MAX+1];
@@ -298,7 +301,7 @@ static t_stat vt_clk (UNIT * this)
     }
 }
 
-static t_stat tty_setmode (UNIT *u, int32 val, const char *cptr, void *desc)
+static t_stat tty_setmode (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -307,7 +310,7 @@ static t_stat tty_setmode (UNIT *u, int32 val, const char *cptr, void *desc)
 
     int num = u - tty_unit;
     TMLN *t = &tty_line [num];
-    uint32 mask = 1 << (TTY_MAX - num);
+    uint32_t mask = 1 << (TTY_MAX - num);
 
     switch (val & TTY_STATE_MASK) {
     case TTY_OFFLINE_STATE:
@@ -416,7 +419,7 @@ static t_stat tty_detach (UNIT *u)
     return tmxr_detach (&tty_desc, &tty_unit[0]);
 }
 
-static t_stat tty_showrate (FILE *f, UNIT *up, int32 v, const void *dp) {
+static t_stat tty_showrate (FILE *f, UNIT *up, int32_t v, const void *dp) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) up;
@@ -427,7 +430,7 @@ static t_stat tty_showrate (FILE *f, UNIT *up, int32 v, const void *dp) {
     return SCPE_OK;
 }
 
-static t_stat tty_showturbo (FILE *f, UNIT *up, int32 v, const void *dp) {
+static t_stat tty_showturbo (FILE *f, UNIT *up, int32_t v, const void *dp) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) up;
@@ -438,7 +441,7 @@ static t_stat tty_showturbo (FILE *f, UNIT *up, int32 v, const void *dp) {
     return SCPE_OK;
 }
 
-static t_stat tty_setrate (UNIT *up, int32 v, const char *cp, void *dp) {
+static t_stat tty_setrate (UNIT *up, int32_t v, const char *cp, void *dp) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) up;
@@ -459,7 +462,7 @@ static t_stat tty_setrate (UNIT *up, int32 v, const char *cp, void *dp) {
     return SCPE_OK;
 }
 
-static t_stat tty_setturbo (UNIT *up, int32 v, const char *cp, void *dp) {
+static t_stat tty_setturbo (UNIT *up, int32_t v, const char *cp, void *dp) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) up;
@@ -546,7 +549,7 @@ DEVICE tty_dev = {
     NULL, DEV_MUX|DEV_DEBUG
 };
 
-void tty_send (uint32 mask)
+void tty_send (uint32_t mask)
 {
     /* besm6_debug ("*** TTY: transmit %08o", mask); */
 
@@ -597,7 +600,7 @@ const char * koi7_rus_to_unicode [32] = {
 };
 
 /* Videoton-340 employed single byte control codes rather than ESC sequences. */
-static void vt_send(int num, uint32 sym)
+static void vt_send(int num, uint32_t sym)
 {
     if ((tty_unit[num].flags & TTY_CHARSET_MASK) == TTY_RAW_CHARSET) {
         vt_putc(num, sym);
@@ -673,7 +676,7 @@ static void vt_send(int num, uint32 sym)
  */
 void vt_print(void)
 {
-    uint32 workset = (TTY_OUT & vt_mask) | vt_sending;
+    uint32_t workset = (TTY_OUT & vt_mask) | vt_sending;
     int num;
 
     if (workset == 0) {
@@ -719,7 +722,7 @@ void vt_print(void)
  */
 void tt_print(void)
 {
-    uint32 workset = (TTY_OUT & tt_mask) | tt_sending;
+    uint32_t workset = (TTY_OUT & tt_mask) | tt_sending;
     int num;
 
     if (workset == 0) {
@@ -807,7 +810,7 @@ static int unicode_to_koi7 (unsigned val)
 /*
  * Set command
  */
-static t_stat cmd_set (int32 num, const char *cptr)
+static t_stat cmd_set (int32_t num, const char *cptr)
 {
     char gbuf [CBUFSIZE];
     int len;
@@ -858,7 +861,7 @@ static t_stat cmd_set (int32 num, const char *cptr)
 /*
  * Show command
  */
-static t_stat cmd_show (int32 num, const char *cptr)
+static t_stat cmd_show (int32_t num, const char *cptr)
 {
     TMLN *t = &tty_line [num];
     char gbuf [CBUFSIZE];
@@ -903,7 +906,7 @@ static t_stat cmd_show (int32 num, const char *cptr)
 /*
  * Exit command
  */
-static t_stat cmd_exit (int32 num, const char *cptr)
+static t_stat cmd_exit (int32_t num, const char *cptr)
 {
     /* Generic command signature.
        This implementation does not use every parameter. */
@@ -913,7 +916,7 @@ static t_stat cmd_exit (int32 num, const char *cptr)
     return SCPE_EXIT;
 }
 
-static t_stat cmd_help (int32 num, const char *cptr);
+static t_stat cmd_help (int32_t num, const char *cptr);
 
 static CTAB cmd_table[] = {
     { "SET", &cmd_set, 0,
@@ -964,7 +967,7 @@ static CTAB *lookup_cmd (char *command)
 /*
  * Help command
  */
-static t_stat cmd_help (int32 num, const char *cptr)
+static t_stat cmd_help (int32_t num, const char *cptr)
 {
     TMLN *t = &tty_line [num];
     char gbuf [CBUFSIZE];
@@ -1098,7 +1101,7 @@ static void vt_cmd_loop (int num, int c)
 static int vt_getc (int num)
 {
     TMLN *t = &tty_line [num];
-    extern int32 sim_int_char;
+    extern int32_t sim_int_char;
     int c;
 #ifdef REMOTE_TIMEOUT
     time_t now;
@@ -1250,7 +1253,7 @@ static int vt_kbd_input_koi7 (int num)
     }
 }
 
-int odd_parity(unsigned char c)
+int odd_parity(uchar_t c)
 {
     c = (c & 0x55) + ((c >> 1) & 0x55);
     c = (c & 0x33) + ((c >> 2) & 0x33);
@@ -1279,13 +1282,13 @@ static int vt_fix(int num, int c) {
  */
 void vt_receive(void)
 {
-    uint32 workset = vt_mask;
+    uint32_t workset = vt_mask;
     int num;
 
     TTY_IN = 0;
     for (num = besm6_highest_bit (workset) - TTY_MAX;
          workset; num = besm6_highest_bit (workset) - TTY_MAX) {
-        uint32 mask = 1 << (TTY_MAX - num);
+        uint32_t mask = 1 << (TTY_MAX - num);
         switch (tty_instate[num]) {
         case 0:
             if (tty_typed[num] <= -2) {
@@ -1368,9 +1371,9 @@ int tty_query (void)
 
 static char cons_is_printing[2];
 
-void consul_print (int dev_num, uint32 cmd)
+void consul_print (int dev_num, uint32_t cmd)
 {
-    extern unsigned short gost_to_unicode(unsigned char);
+    extern unsigned short gost_to_unicode(uchar_t);
     int uni;
     char buf[5];
     int line_num = dev_num + TTY_MAX + 1;
@@ -1430,7 +1433,7 @@ void consul_receive (void)
     }
 }
 
-uint32 consul_read (int num)
+uint32_t consul_read (int num)
 {
     if (tty_dev.dctrl)
         besm6_debug("<<< CONSUL%o: %03o", num+TTY_MAX+1, CONSUL_IN[num]);

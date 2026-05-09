@@ -37,12 +37,14 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sel32_defs.h"
 #include "sim_tape.h"
 
 #if NUM_DEVS_MT > 0
 
-extern  uint32  SPAD[];                 /* cpu SPAD memory */
+extern  uint32_t SPAD[];                /* cpu SPAD memory */
 
 #define BUFFSIZE        (64 * 1024)
 #define UNIT_MT         UNIT_ATTABLE | UNIT_DISABLE | UNIT_ROABLE
@@ -152,26 +154,26 @@ extern  uint32  SPAD[];                 /* cpu SPAD memory */
 #define CLR_BUF(u)     u->hwmark =  0xFFFFFFFF
 
 /* forward definitions */
-t_stat      mt_preio(UNIT *uptr, uint16 chan);
-t_stat      mt_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd) ;
-t_stat      mt_iocl(CHANP *chp, int32 tic_ok);
+t_stat      mt_preio(UNIT *uptr, uint16_t chan);
+t_stat      mt_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd) ;
+t_stat      mt_iocl(CHANP *chp, int32_t tic_ok);
 t_stat      mt_srv(UNIT *uptr);
-t_stat      mt_boot(int32 unitnum, DEVICE *dptr);
+t_stat      mt_boot(int32_t unitnum, DEVICE *dptr);
 void        mt_ini(UNIT *uptr, bool);
 t_stat      mt_rschnlio(UNIT *uptr);
 t_stat      mt_haltio(UNIT *uptr);
 t_stat      mt_reset(DEVICE *dptr);
 t_stat      mt_attach(UNIT *uptr, const char *);
 t_stat      mt_detach(UNIT *uptr);
-t_stat      mt_help(FILE *, DEVICE *dptr, UNIT *uptr, int32, const char *);
+t_stat      mt_help(FILE *, DEVICE *dptr, UNIT *uptr, int32_t, const char *);
 const char  *mt_description(DEVICE *);
-extern      uint16  loading;            /* set when doing IPL */
+extern      uint16_t loading;           /* set when doing IPL */
 extern      int     irq_pend;           /* pending interrupt flag */
-extern      uint32  cont_chan(uint16 chsa);
+extern      uint32_t cont_chan(uint16_t chsa);
 
 /* One buffer per channel */
-uint8       mt_buffer[NUM_DEVS_MT][BUFFSIZE];
-uint8       mt_busy[NUM_DEVS_MT];
+uint8_t     mt_buffer[NUM_DEVS_MT][BUFFSIZE];
+uint8_t     mt_busy[NUM_DEVS_MT];
 
 /* Gould Buffered Tape Processor (BTP) - Model 8051 */
 /* Integrated channel controller */
@@ -269,7 +271,7 @@ uint8       mt_busy[NUM_DEVS_MT];
 /*  Word 40 - Write Error Count - Drive 7 */
 /*  Word 41 - Read Error Count - Drive 7 */
 
-int32               valid_dens = MT_800_VALID|MT_1600_VALID|MT_6250_VALID;
+int32_t             valid_dens = MT_800_VALID|MT_1600_VALID|MT_6250_VALID;
 MTAB                mt_mod[] = {
     {MTUF_WLK, 0, "write enabled", "WRITEENABLED", NULL, NULL, NULL,
        "Write ring in place"},
@@ -302,24 +304,24 @@ UNIT                mta_unit[] = {
 CHANP           mta_chp[NUM_UNITS_MT] = {0};
 
 DIB             mta_dib = {
-    mt_preio,       /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    mt_startcmd,    /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    mt_preio,       /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    mt_startcmd,    /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     mt_haltio,      /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     mt_rschnlio,    /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
-    NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
+    NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32_t tic_ok)) */  /* Process IOCL */
     mt_ini,         /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     mta_unit,       /* UNIT* units */                           /* Pointer to units structure */
     mta_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_UNITS_MT,   /* uint8 numunits */                        /* number of units defined */
-    0x07,           /* uint8 mask */                            /* 8 devices - device mask */
-    0x1000,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_UNITS_MT,   /* uint8_t numunits */                        /* number of units defined */
+    0x07,           /* uint8_t mask */                            /* 8 devices - device mask */
+    0x1000,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE          mta_dev = {
@@ -349,24 +351,24 @@ UNIT            mtb_unit[] = {
 
 /* device information block */
 DIB             mtb_dib = {
-    mt_preio,       /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    mt_startcmd,    /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    mt_preio,       /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    mt_startcmd,    /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     mt_haltio,      /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     mt_rschnlio,    /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
-    NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
+    NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32_t tic_ok)) */  /* Process IOCL */
     mt_ini,         /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     mtb_unit,       /* UNIT* units */                           /* Pointer to units structure */
     mtb_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_UNITS_MT,   /* uint8 numunits */                        /* number of units defined */
-    0x07,           /* uint8 mask */                            /* 8 devices - device mask */
-    0x1800,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_UNITS_MT,   /* uint8_t numunits */                        /* number of units defined */
+    0x07,           /* uint8_t mask */                            /* 8 devices - device mask */
+    0x1800,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE          mtb_dev = {
@@ -380,7 +382,7 @@ DEVICE          mtb_dev = {
 
 /* table with filenames of attached units */
 struct attfileinfo {
-    uint16 chsa;
+    uint16_t chsa;
     char *att_file;
     struct attfileinfo *next;
 };
@@ -390,15 +392,15 @@ struct attfileinfo *att_files = (struct attfileinfo *) NULL;
 /* load in the IOCD and process the commands */
 /* return = 0 OK */
 /* return = 1 error, chan_status will have reason */
-t_stat  mt_iocl(CHANP *chp, int32 tic_ok)
+t_stat  mt_iocl(CHANP *chp, int32_t tic_ok)
 {
-    uint32      word1 = 0;
-    uint32      word2 = 0;
-    int32       docmd = 0;
+    uint32_t    word1 = 0;
+    uint32_t    word2 = 0;
+    int32_t     docmd = 0;
     UNIT        *uptr = chp->unitptr;           /* get the unit ptr */
-    uint16      chan = get_chan(chp->chan_dev); /* our channel */
-    uint16      chsa = chp->chan_dev;
-    uint16      devstat = 0;
+    uint16_t    chan = get_chan(chp->chan_dev); /* our channel */
+    uint16_t    chsa = chp->chan_dev;
+    uint16_t    devstat = 0;
     DEVICE      *dptr = get_dev(uptr);
     DIB         *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
     CHANP       *pchp = pdibp->chan_prg;        /* get channel chp */
@@ -621,7 +623,7 @@ loop:
         /* see if command completed */
         /* we have good status */
         if (chp->chan_status & (STATUS_DEND|STATUS_CEND)) {
-            uint16  chsa = GET_UADDR(uptr->u3); /* get channel & sub address */
+            uint16_t chsa = GET_UADDR(uptr->u3); /* get channel & sub address */
             chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* show I/O complete */
             sim_debug(DEBUG_XIO, dptr,
                 "mt_iocl @%06x FIFO #%1x cmd complete chan %04x status %04x count %04x\n",
@@ -637,14 +639,14 @@ loop:
 }
 
 /* start a tape operation */
-t_stat mt_preio(UNIT *uptr, uint16 chan) {
+t_stat mt_preio(UNIT *uptr, uint16_t chan) {
     /* Generic channel pre-I/O signature.
        This implementation does not use every parameter. */
     (void) chan;
 
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
     DIB         *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
     CHANP       *pchp = pdibp->chan_prg;        /* get channel chp */
 
@@ -674,9 +676,9 @@ t_stat mt_preio(UNIT *uptr, uint16 chan) {
 }
 
 /* start an I/O operation */
-t_stat mt_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
+t_stat mt_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
 {
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
@@ -770,7 +772,7 @@ t_stat mt_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
 }
 
 /* Map simH errors into machine errors */
-static t_stat mt_error(UNIT *uptr, uint16 chsa, t_stat r, DEVICE *dptr)
+static t_stat mt_error(UNIT *uptr, uint16_t chsa, t_stat r, DEVICE *dptr)
 {
     sim_debug(DEBUG_CMD, dptr, "mt_error status %08x\n", r);
     mt_busy[GET_DEV_BUF(dptr->flags)] &= ~1;    /* not busy anymore */
@@ -826,7 +828,7 @@ static t_stat mt_error(UNIT *uptr, uint16 chsa, t_stat r, DEVICE *dptr)
 /* Handle processing of tape requests. */
 t_stat mt_srv(UNIT *uptr)
 {
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
     int         cmd = uptr->CMD & MT_CMDMSK;
@@ -836,9 +838,9 @@ t_stat mt_srv(UNIT *uptr)
     t_stat      r = SCPE_ARG;               /* Force error if not set */
     int         i;
     char        *bufp;
-    uint32      mema, m, skip;
-    uint16      len;
-    uint8       ch;
+    uint32_t    mema, m, skip;
+    uint16_t    len;
+    uint8_t     ch;
     struct attfileinfo *afi;
 
     sim_debug(DEBUG_CMD, dptr,
@@ -912,7 +914,7 @@ t_stat mt_srv(UNIT *uptr)
         chan_write_byte(chsa, &ch);         /* write byte 3 */
         /* write zero extra status */
         for (ch=4; ch < 0xc; ch++) {
-            uint8   zc = 0;
+            uint8_t zc = 0;
             chan_write_byte(chsa, &zc);     /* write zero byte */
             sim_debug(DEBUG_CMD, dptr,
                 "sense unit %02x byte %1x %02x\n", unit, ch, zc);
@@ -1057,7 +1059,7 @@ reread:
             sim_debug(DEBUG_CMD, dptr,
                 "Read unit %02x EOR cnt %04x hwm %04x\n", unit, uptr->POS-1, uptr->hwmark);
             /* If not read whole record, skip till end */
-            if ((uint32)uptr->POS < uptr->hwmark) {
+            if ((uint32_t)uptr->POS < uptr->hwmark) {
                 /* Send dummy character to force SLI */
                 chan_write_byte(chsa, &ch); /* write the byte */
                 sim_debug(DEBUG_CMD, dptr, "Read unit %02x send dump SLI\n", unit);
@@ -1081,7 +1083,7 @@ reread:
             sim_debug(DEBUG_DATA, dptr,
                 "Read data @2 unit %02x cnt %04x ch %02x hwm %04x\n",
                 unit, uptr->POS, ch, uptr->hwmark);
-            if ((uint32)uptr->POS >= uptr->hwmark) { /* In IRG */
+            if ((uint32_t)uptr->POS >= uptr->hwmark) { /* In IRG */
                 /* Handle end of data record */
                 sim_debug(DEBUG_CMD, dptr,
                     "Read end of data unit %02x cnt %04x ch %02x hwm %04x\n",
@@ -1520,7 +1522,7 @@ void mt_ini(UNIT *uptr, bool f)
 /* handle rschnlio cmds for tape */
 t_stat  mt_rschnlio(UNIT *uptr) {
     DEVICE *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & MT_CMDMSK;
 
     sim_debug(DEBUG_EXP, dptr, "mt_rschnl chsa %04x cmd = %02x\n", chsa, cmd);
@@ -1530,7 +1532,7 @@ t_stat  mt_rschnlio(UNIT *uptr) {
 
 /* Handle haltio transfers for mag tape */
 t_stat  mt_haltio(UNIT *uptr) {
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & MT_CMDMSK;
     CHANP   *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
     DEVICE  *dptr = get_dev(uptr);
@@ -1574,7 +1576,7 @@ t_stat mt_reset(DEVICE *dptr)
 /* attach the specified file to the tape device */
 t_stat mt_attach(UNIT *uptr, const char *file)
 {
-    uint16      chsa = GET_UADDR(uptr->CMD);    /* get address of mt device */
+    uint16_t    chsa = GET_UADDR(uptr->CMD);    /* get address of mt device */
     CHANP       *chp = find_chanp_ptr(chsa);    /* get channel prog pointer */
     DEVICE      *dptr = get_dev(uptr);      /* get device pointer */
     t_stat      r;
@@ -1657,7 +1659,7 @@ t_stat mt_detach(UNIT *uptr)
 }
 
 /* boot from the specified tape unit */
-t_stat mt_boot(int32 unit_num, DEVICE *dptr)
+t_stat mt_boot(int32_t unit_num, DEVICE *dptr)
 {
     UNIT    *uptr = &dptr->units[unit_num]; /* find tape unit pointer */
 
@@ -1682,7 +1684,7 @@ t_stat mt_boot(int32 unit_num, DEVICE *dptr)
     return chan_boot(GET_UADDR(uptr->CMD), dptr);   /* boot the ch/sa */
 }
 
-t_stat mt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat mt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    char buffer[256];
    fprintf (st, "%s\n\n", mt_description(dptr));

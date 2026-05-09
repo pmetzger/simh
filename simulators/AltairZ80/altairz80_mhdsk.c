@@ -45,6 +45,8 @@
 -------------------------------------------------------------------------------
 */
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 
 /**  Typedefs & Defines  **************************************/
@@ -65,13 +67,13 @@
 #define READ_MSG                (1 << 0)
 #define WRITE_MSG               (1 << 1)
 #define VERBOSE_MSG             (1 << 2)
-extern uint32 PCX;
+extern uint32_t PCX;
 
 /* boot related */
 #define BOOTROM_SIZE_MHDSK      256
 #define MHDSK_BOOT_ADDRESS      0xfc00
-static t_stat mhdsk_boot(int32 unitno, DEVICE *dptr);
-extern t_stat install_bootrom(const int32 bootrom[], const int32 size, const int32 addr, const int32 makeROM);
+static t_stat mhdsk_boot(int32_t unitno, DEVICE *dptr);
+extern t_stat install_bootrom(const int32_t bootrom[], const int32_t size, const int32_t addr, const int32_t makeROM);
 
 // Disk controller commands are in upper nibble of command high byte.
 
@@ -131,40 +133,40 @@ static const char* commandMessage[CMD_MAX] = {
 
 
 /**  Module Globals - Private  ********************************/
-static uint32 selectedDisk = 0;         // current active disk
-static uint32 selectedSector = 0;       // current sector
-static uint32 selectedTrack = 0;        // current track
-static uint32 selectedHead = 0;         // current head
-static uint32 selectedBuffer = 0;       // current buffer # in use
-static uint32 bufferIdx = 0;            // current index into selected buffer
-static uint32 maxBufferIdx = 256;       // maximum buffer index allowed
-static uint32 cmdLowByte = 0;           // low byte of command
+static uint32_t selectedDisk = 0;       // current active disk
+static uint32_t selectedSector = 0;     // current sector
+static uint32_t selectedTrack = 0;      // current track
+static uint32_t selectedHead = 0;       // current head
+static uint32_t selectedBuffer = 0;     // current buffer # in use
+static uint32_t bufferIdx = 0;          // current index into selected buffer
+static uint32_t maxBufferIdx = 256;     // maximum buffer index allowed
+static uint32_t cmdLowByte = 0;         // low byte of command
 
 //  Controller status bytes
 
-static uint8 cstat = 0;         // command status from controller
+static uint8_t cstat = 0;       // command status from controller
 
 // The hard disk controller supports four 256 byte disk buffers */
 
-static uint8 diskBuf1[HDSK_SECTOR_SIZE];
-static uint8 diskBuf2[HDSK_SECTOR_SIZE];
-static uint8 diskBuf3[HDSK_SECTOR_SIZE];
-static uint8 diskBuf4[HDSK_SECTOR_SIZE];
-static uint8 *diskBuf[] = { diskBuf1, diskBuf2, diskBuf3, diskBuf4 };
+static uint8_t diskBuf1[HDSK_SECTOR_SIZE];
+static uint8_t diskBuf2[HDSK_SECTOR_SIZE];
+static uint8_t diskBuf3[HDSK_SECTOR_SIZE];
+static uint8_t diskBuf4[HDSK_SECTOR_SIZE];
+static uint8_t *diskBuf[] = { diskBuf1, diskBuf2, diskBuf3, diskBuf4 };
 
 /**  Forward and external Prototypes  **************************************/
 
-static int32 hdReturnReady(const int32 port, const int32 io, const int32 data);
-static int32 hdCstat(const int32 port, const int32 io, const int32 data);
-static int32 hdAcmd(const int32 port, const int32 io, const int32 data);
-static int32 hdCdata(const int32 port, const int32 io, const int32 data);
-static int32 hdAdata(const int32 port, const int32 io, const int32 data);
-static void doRead(const int32 port, const int32 data, const uint32 command);
-static void doWrite(const int32 port, const int32 data, const uint32 command);
+static int32_t hdReturnReady(const int32_t port, const int32_t io, const int32_t data);
+static int32_t hdCstat(const int32_t port, const int32_t io, const int32_t data);
+static int32_t hdAcmd(const int32_t port, const int32_t io, const int32_t data);
+static int32_t hdCdata(const int32_t port, const int32_t io, const int32_t data);
+static int32_t hdAdata(const int32_t port, const int32_t io, const int32_t data);
+static void doRead(const int32_t port, const int32_t data, const uint32_t command);
+static void doWrite(const int32_t port, const int32_t data, const uint32_t command);
 static t_stat dsk_reset(DEVICE *dptr);
-static const char* cmdTranslate(const int32 cmd);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+static const char* cmdTranslate(const int32_t cmd);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 static const char* mhdsk_description(DEVICE *dptr);
 
 /* 88DSK Standard I/O Data Structures */
@@ -214,7 +216,7 @@ DEVICE mhdsk_dev = {
     mhdsk_dt, NULL, NULL, NULL, NULL, NULL, &mhdsk_description
 };
 
-static int32 bootrom_mhdsk[BOOTROM_SIZE_MHDSK] = {
+static int32_t bootrom_mhdsk[BOOTROM_SIZE_MHDSK] = {
     0xf3, 0x31, 0x00, 0xf8, 0x21, 0x1b, 0x41, 0x2b,  /* fc00-fc07 */
     0x7c, 0xb5, 0xc2, 0x07, 0xfc, 0xe5, 0xd3, 0xa0,  /* fc08-fc0f */
     0xd3, 0xa2, 0xd3, 0xa4, 0xd3, 0xa6, 0xd3, 0xa1,  /* fc10-fc17 */
@@ -249,7 +251,7 @@ static int32 bootrom_mhdsk[BOOTROM_SIZE_MHDSK] = {
     0xc9, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* fcf8-fcff */
 };
 
-static t_stat mhdsk_boot(int32 unitno, DEVICE *dptr) {
+static t_stat mhdsk_boot(int32_t unitno, DEVICE *dptr) {
     /* Generic boot signature.
        This implementation does not use every parameter. */
     (void) unitno;
@@ -258,11 +260,11 @@ static t_stat mhdsk_boot(int32 unitno, DEVICE *dptr) {
     const bool installSuccessful = (install_bootrom(bootrom_mhdsk, BOOTROM_SIZE_MHDSK,
                                                       MHDSK_BOOT_ADDRESS, false) == SCPE_OK);
     ASSURE(installSuccessful);
-    *((int32 *) sim_PC -> loc) = MHDSK_BOOT_ADDRESS;
+    *((int32_t *) sim_PC -> loc) = MHDSK_BOOT_ADDRESS;
     return SCPE_OK;
 }
 
-static const char* cmdTranslate(const int32 cmd) {
+static const char* cmdTranslate(const int32_t cmd) {
     static char result[128];
     if ((0 <= cmd) && (cmd < CMD_MAX))
         return commandMessage[cmd];
@@ -315,7 +317,7 @@ static t_stat dsk_reset(DEVICE *dptr) {
         port 2-B. Returns the "available to write" status byte.
 
 ---------------------------------------------------------------------------------------*/
-static int32 hdReturnReady(const int32 port, const int32 io, const int32 data)
+static int32_t hdReturnReady(const int32_t port, const int32_t io, const int32_t data)
 {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
@@ -340,7 +342,7 @@ static int32 hdReturnReady(const int32 port, const int32 io, const int32 data)
                 the CRDY bit, but this isn't actually done
                 in the emulation since we're always ready.
 -------------------------------------------------------------*/
-static int32 hdCstat(const int32 port, const int32 io, const int32 data)
+static int32_t hdCstat(const int32_t port, const int32_t io, const int32_t data)
 {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
@@ -364,11 +366,11 @@ static int32 hdCstat(const int32 port, const int32 io, const int32 data)
                 have already been written and stored in
                 cmdLowByte;
 -------------------------------------------------------------*/
-static int32 hdAcmd(const int32 port, const int32 io, const int32 data)
+static int32_t hdAcmd(const int32_t port, const int32_t io, const int32_t data)
 {
-    uint32 command;             // command field from command msb
-    uint32 unit;                // unit number from command msb
-    uint32 buffer;              // buffer number from command msb
+    uint32_t command;           // command field from command msb
+    uint32_t unit;              // unit number from command msb
+    uint32_t buffer;            // buffer number from command msb
 
 // if not an OUT command, exit
 
@@ -473,7 +475,7 @@ static int32 hdAcmd(const int32 port, const int32 io, const int32 data)
 
     Comments:   Returns data from the read buffer
 -------------------------------------------------------------*/
-static int32 hdCdata(const int32 port, const int32 io, const int32 data)
+static int32_t hdCdata(const int32_t port, const int32_t io, const int32_t data)
 {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
@@ -481,7 +483,7 @@ static int32 hdCdata(const int32 port, const int32 io, const int32 data)
 
     if (io == IO_IN) {
         if (bufferIdx < maxBufferIdx) {
-            const int32 result = diskBuf[selectedBuffer][bufferIdx];
+            const int32_t result = diskBuf[selectedBuffer][bufferIdx];
             sim_debug(VERBOSE_MSG, &mhdsk_dev, "MHDSK: " ADDRESS_FORMAT
                       " IN(%02X = CDATA) = %02x. Buffer = %i. Index = %i.\n",
                       PCX, port, result, selectedBuffer, bufferIdx);
@@ -502,7 +504,7 @@ static int32 hdCdata(const int32 port, const int32 io, const int32 data)
     Comments:   Accepts data into the current buffer
                 and is also the low byte of a command.
 -------------------------------------------------------------*/
-static int32 hdAdata(const int32 port, const int32 io, const int32 data)
+static int32_t hdAdata(const int32_t port, const int32_t io, const int32_t data)
 {
     if (io == IO_OUT) {
         cmdLowByte = data & 0xff;
@@ -526,10 +528,10 @@ static int32 hdAdata(const int32 port, const int32 io, const int32 data)
     Returns:    nothing (updates cstat directly)
     Comments:
 -------------------------------------------------------------*/
-static void doRead(const int32 port, const int32 data, const uint32 command)
+static void doRead(const int32_t port, const int32_t data, const uint32_t command)
 {
     UNIT *uptr;
-    uint32 fileOffset;
+    uint32_t fileOffset;
 
     uptr = mhdsk_dev.units + selectedDisk;
     fileOffset = HDSK_CYLINDER_SIZE * selectedTrack +
@@ -557,10 +559,10 @@ static void doRead(const int32 port, const int32 data, const uint32 command)
     Returns:    nothing (updates cstat directly)
     Comments:
 -------------------------------------------------------------*/
-static void doWrite(const int32 port, const int32 data, const uint32 command)
+static void doWrite(const int32_t port, const int32_t data, const uint32_t command)
 {
     UNIT *uptr;
-    uint32 fileOffset;
+    uint32_t fileOffset;
 
     uptr = mhdsk_dev.units + selectedDisk;
     if (((uptr->flags) & UNIT_DSK_WLK) == 0) {          /* write enabled */

@@ -31,6 +31,8 @@
    08-Nov-2012  MB      First version
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_tmxr.h"
 
@@ -47,13 +49,13 @@
 #define CLK_DELAY       5000                            /* 100 Hz */
 #define TMXR_MULT       1                               /* 100 Hz */
 
-int32 tti_csr = 0;                                      /* control/status */
-uint32 tti_buftime;                                     /* time input character arrived */
-int32 tto_csr = 0;                                      /* control/status */
-int32 clk_csr = 0;                                      /* control/status */
-int32 clk_tps = 100;                                    /* ticks/second */
-int32 tmxr_poll = CLK_DELAY * TMXR_MULT;                /* term mux poll */
-int32 tmr_poll = CLK_DELAY;                             /* pgm timer poll */
+int32_t tti_csr = 0;                                    /* control/status */
+uint32_t tti_buftime;                                   /* time input character arrived */
+int32_t tto_csr = 0;                                    /* control/status */
+int32_t clk_csr = 0;                                    /* control/status */
+int32_t clk_tps = 100;                                  /* ticks/second */
+int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
+int32_t tmr_poll = CLK_DELAY;                           /* pgm timer poll */
 
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
@@ -64,10 +66,10 @@ t_stat clk_reset (DEVICE *dptr);
 const char *tti_description (DEVICE *dptr);
 const char *tto_description (DEVICE *dptr);
 const char *clk_description (DEVICE *dptr);
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 
-extern int32 sysd_hlt_enb (void);
+extern int32_t sysd_hlt_enb (void);
 
 /* TTI data structures
 
@@ -193,19 +195,19 @@ DEVICE clk_dev = {
    txdb_wr      output buffer
 */
 
-int32 iccs_rd (void)
+int32_t iccs_rd (void)
 {
 return (clk_csr & CLKCSR_IMP);
 }
 
-int32 rxcs_rd (void)
+int32_t rxcs_rd (void)
 {
 return (tti_csr & TTICSR_IMP);
 }
 
-int32 rxdb_rd (void)
+int32_t rxdb_rd (void)
 {
-int32 t = tti_unit.buf;                                 /* char + error */
+int32_t t = tti_unit.buf;                               /* char + error */
 
 if (tti_csr & CSR_DONE) {                               /* Input pending ? */
     tti_csr = tti_csr & ~CSR_DONE;                      /* clr done */
@@ -216,12 +218,12 @@ if (tti_csr & CSR_DONE) {                               /* Input pending ? */
 return t;
 }
 
-int32 txcs_rd (void)
+int32_t txcs_rd (void)
 {
 return (tto_csr & TTOCSR_IMP);
 }
 
-void iccs_wr (int32 data)
+void iccs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CLR_INT (CLK);
@@ -231,7 +233,7 @@ clk_csr = (clk_csr & ~CLKCSR_RW) | (data & CLKCSR_RW);
 return;
 }
 
-void rxcs_wr (int32 data)
+void rxcs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CLR_INT (TTI);
@@ -241,7 +243,7 @@ tti_csr = (tti_csr & ~TTICSR_RW) | (data & TTICSR_RW);
 return;
 }
 
-void txcs_wr (int32 data)
+void txcs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CLR_INT (TTO);
@@ -251,7 +253,7 @@ tto_csr = (tto_csr & ~TTOCSR_RW) | (data & TTOCSR_RW);
 return;
 }
 
-void txdb_wr (int32 data)
+void txdb_wr (int32_t data)
 {
 tto_unit.buf = data & 0377;
 tto_csr = tto_csr & ~CSR_DONE;
@@ -268,7 +270,7 @@ return;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 sim_clock_coschedule (uptr, tmxr_poll);                 /* continue poll */
 
@@ -305,7 +307,7 @@ sim_activate_abs (&tti_unit, tmr_poll);
 return SCPE_OK;
 }
 
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -343,7 +345,7 @@ return "console terminal input";
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 t_stat r;
 
 c = sim_tt_outcvt (tto_unit.buf, TT_GET_MODE (uptr->flags));
@@ -373,7 +375,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -407,7 +409,7 @@ return "console terminal output";
 
 t_stat clk_svc (UNIT *uptr)
 {
-int32 t;
+int32_t t;
 
 if (clk_csr & CSR_IE)
     SET_INT (CLK);
@@ -427,7 +429,7 @@ t_stat clk_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 t;
+int32_t t;
 
 clk_csr = 0;
 CLR_INT (CLK);

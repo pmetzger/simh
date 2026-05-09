@@ -80,6 +80,8 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_cpu.h"
 #include "3b2_csr.h"
 #include "3b2_defs.h"
@@ -108,7 +110,7 @@
  * Timer 1: 100KHz time base
  * Timer 2: 500KHz time base
  */
-static uint32 TIME_BASE[3] = {
+static uint32_t TIME_BASE[3] = {
     100, 10, 1
 };
 #else
@@ -118,7 +120,7 @@ static uint32 TIME_BASE[3] = {
  * Timer 1: 100Khz time base
  * Timer 2: 500Khz time base
  */
-static uint32 TIME_BASE[3] = {
+static uint32_t TIME_BASE[3] = {
     10, 10, 2
 };
 #endif
@@ -181,7 +183,7 @@ t_stat timer_reset(DEVICE *dptr) {
        This implementation does not use every parameter. */
     (void) dptr;
 
-    int32 i;
+    int32_t i;
 
     memset(&TIMERS, 0, sizeof(struct timer_ctr) * 3);
 
@@ -196,7 +198,7 @@ t_stat timer_reset(DEVICE *dptr) {
 /*
  * Inhibit or allow a timer externally.
  */
-void timer_gate(uint8 ctrnum, bool inhibit)
+void timer_gate(uint8_t ctrnum, bool inhibit)
 {
     struct timer_ctr *ctr = &TIMERS[ctrnum];
 
@@ -212,7 +214,7 @@ void timer_gate(uint8 ctrnum, bool inhibit)
     }
 }
 
-static void timer_activate(uint8 ctrnum)
+static void timer_activate(uint8_t ctrnum)
 {
     struct timer_ctr *ctr = &TIMERS[ctrnum];
 
@@ -233,8 +235,8 @@ static void timer_activate(uint8 ctrnum)
  */
 t_stat tmr_svc(UNIT *uptr)
 {
-    int32 ctr_num = uptr->u3;
-    uint32 usec_delay;
+    int32_t ctr_num = uptr->u3;
+    uint32_t usec_delay;
     struct timer_ctr *ctr = &TIMERS[ctr_num];
 
     if (ctr == NULL) {
@@ -293,15 +295,15 @@ t_stat tmr_svc(UNIT *uptr)
     return SCPE_OK;
 }
 
-uint32 timer_read(uint32 pa, size_t size)
+uint32_t timer_read(uint32_t pa, size_t size)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) size;
 
-    uint32 reg;
-    uint16 ctr_val;
-    uint8 ctrnum, retval;
+    uint32_t reg;
+    uint16_t ctr_val;
+    uint8_t ctrnum, retval;
     struct timer_ctr *ctr;
 
     reg = pa - TIMERBASE;
@@ -369,7 +371,7 @@ uint32 timer_read(uint32 pa, size_t size)
     return retval;
 }
 
-static void handle_timer_write(uint8 ctrnum, uint32 val)
+static void handle_timer_write(uint8_t ctrnum, uint32_t val)
 {
     struct timer_ctr *ctr;
 
@@ -392,7 +394,7 @@ static void handle_timer_write(uint8 ctrnum, uint32 val)
     case CLK_LMB:
         if (ctr->w_lmb) {
             ctr->w_lmb = false;
-            ctr->divider = (uint16) ((ctr->divider & 0x00ff) | ((val & 0xff) << 8));
+            ctr->divider = (uint16_t) ((ctr->divider & 0x00ff) | ((val & 0xff) << 8));
             ctr->val = ctr->divider;
             sim_debug(EXECUTE_MSG, &timer_dev, "TIMER_WRITE: CTR=%d (L/M) MSB=%02x\n", ctrnum, val & 0xff);
             timer_activate(ctrnum);
@@ -409,16 +411,16 @@ static void handle_timer_write(uint8 ctrnum, uint32 val)
     }
 }
 
-void timer_write(uint32 pa, uint32 val, size_t size)
+void timer_write(uint32_t pa, uint32_t val, size_t size)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) size;
 
-    uint8 reg, ctrnum;
+    uint8_t reg, ctrnum;
     struct timer_ctr *ctr;
 
-    reg = (uint8) (pa - TIMERBASE);
+    reg = (uint8_t) (pa - TIMERBASE);
 
     sim_debug(EXECUTE_MSG, &timer_dev,
               "timer_write: reg=%x val=%x\n", reg, val);
@@ -439,7 +441,7 @@ void timer_write(uint32 pa, uint32 val, size_t size)
             if (val & 2) {
                 ctr = &TIMERS[0];
                 if ((val & 0x20) == 0) {
-                    ctr->ctrl_latch = (uint16) TIMERS[2].ctrl;
+                    ctr->ctrl_latch = (uint16_t) TIMERS[2].ctrl;
                     ctr->r_ctrl_latch = true;
                 }
                 if ((val & 0x20) == 0) {
@@ -450,7 +452,7 @@ void timer_write(uint32 pa, uint32 val, size_t size)
             if (val & 4) {
                 ctr = &TIMERS[1];
                 if ((val & 0x10) == 0) {
-                    ctr->ctrl_latch = (uint16) TIMERS[2].ctrl;
+                    ctr->ctrl_latch = (uint16_t) TIMERS[2].ctrl;
                     ctr->r_ctrl_latch = true;
                 }
                 if ((val & 0x20) == 0) {
@@ -461,7 +463,7 @@ void timer_write(uint32 pa, uint32 val, size_t size)
             if (val & 8) {
                 ctr = &TIMERS[2];
                 if ((val & 0x10) == 0) {
-                    ctr->ctrl_latch = (uint16) TIMERS[2].ctrl;
+                    ctr->ctrl_latch = (uint16_t) TIMERS[2].ctrl;
                     ctr->r_ctrl_latch = true;
                 }
                 if ((val & 0x20) == 0) {
@@ -471,7 +473,7 @@ void timer_write(uint32 pa, uint32 val, size_t size)
             }
         } else {
             ctr = &TIMERS[ctrnum];
-            ctr->ctrl = (uint8) val;
+            ctr->ctrl = (uint8_t) val;
             ctr->enabled = false;
             ctr->w_lmb = false;
             ctr->r_lmb = false;
@@ -503,7 +505,7 @@ const char *tmr_description(DEVICE *dptr)
 #endif
 }
 
-t_stat tmr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tmr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

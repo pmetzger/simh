@@ -30,13 +30,15 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sel32_defs.h"
 #include "sim_tmxr.h"
 
 #if NUM_DEVS_CON > 0
 
-extern  uint32      CPUSTATUS;
-extern  uint32      attention_trap;
+extern  uint32_t    CPUSTATUS;
+extern  uint32_t    attention_trap;
 
 #define UNIT_CON    UNIT_DISABLE
 #define CON_WAIT    1000
@@ -88,18 +90,18 @@ extern  uint32      attention_trap;
 
 struct _con_data
 {
-    uint8       incnt;                  /* char count */
-    uint8       ibuff[145];             /* Input line buffer */
+    uint8_t     incnt;                  /* char count */
+    uint8_t     ibuff[145];             /* Input line buffer */
 }
 con_data[NUM_UNITS_CON];
 
-uint32  atbuf=0;                        /* attention buffer */
-uint32  outbusy = 0;                    /* output waiting on timeout */
-uint32  inbusy = 0;                     /* input waiting on timeout */
+uint32_t atbuf=0;                       /* attention buffer */
+uint32_t outbusy = 0;                   /* output waiting on timeout */
+uint32_t inbusy = 0;                    /* input waiting on timeout */
 
 /* forward definitions */
-t_stat  con_preio(UNIT *uptr, uint16 chan);
-t_stat  con_startcmd(UNIT*, uint16, uint8);
+t_stat  con_preio(UNIT *uptr, uint16_t chan);
+t_stat  con_startcmd(UNIT*, uint16_t, uint8_t);
 void    con_ini(UNIT*, bool);
 t_stat  con_srvi(UNIT*);
 t_stat  con_srvo(UNIT*);
@@ -122,24 +124,24 @@ UNIT            con_unit[] = {
 };
 
 DIB             con_dib = {
-    con_preio,      /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    con_startcmd,   /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    con_preio,      /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    con_startcmd,   /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     con_haltio,     /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     con_rschnlio,   /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
-    NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
+    NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32_t tic_ok)) */  /* Process IOCL */
     con_ini,        /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     con_unit,       /* UNIT* units */                           /* Pointer to units structure */
     con_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_UNITS_CON,  /* uint8 numunits */                        /* number of units defined */
-    0x03,           /* uint8 mask */                            /* 2 devices - device mask */
-    0x7e00,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_UNITS_CON,  /* uint8_t numunits */                        /* number of units defined */
+    0x03,           /* uint8_t mask */                            /* 2 devices - device mask */
+    0x7e00,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE  con_dev = {
@@ -173,7 +175,7 @@ void con_ini(UNIT *uptr, bool f) {
 }
 
 /* start a console operation */
-t_stat con_preio(UNIT *uptr, uint16 chan) {
+t_stat con_preio(UNIT *uptr, uint16_t chan) {
     /* Generic channel pre-I/O signature.
        This implementation does not use every parameter. */
     (void) chan;
@@ -191,12 +193,12 @@ t_stat con_preio(UNIT *uptr, uint16 chan) {
 }
 
 /* start an I/O operation */
-t_stat con_startcmd(UNIT *uptr, uint16 chan, uint8 cmd) {
+t_stat con_startcmd(UNIT *uptr, uint16_t chan, uint8_t cmd) {
     DEVICE  *dptr = uptr->dptr;
     int     unit = (uptr - con_unit);       /* unit 0 is read, unit 1 is write */
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     CHANP   *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
-    uint8   ch;
+    uint8_t ch;
 
     if ((uptr->CMD & CON_MSK) != 0) {       /* is unit busy */
         sim_debug(DEBUG_CMD, dptr,
@@ -334,15 +336,15 @@ t_stat con_startcmd(UNIT *uptr, uint16 chan, uint8 cmd) {
 /* Handle output transfers for console */
 t_stat con_srvo(UNIT *uptr) {
     DEVICE      *dptr = uptr->dptr;
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
     int         unit = (uptr - con_unit);   /* unit 0 is read, unit 1 is write */
     int         cmd = uptr->CMD & CON_MSK;
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
     int         len = chp->ccw_count;       /* INCH command count */
-    uint32      mema = chp->ccw_addr;       /* get inch or buffer addr */
-    uint32      tstart;
-    uint8       ch;
-    static uint32 dexp;
+    uint32_t    mema = chp->ccw_addr;       /* get inch or buffer addr */
+    uint32_t    tstart;
+    uint8_t     ch;
+    static uint32_t dexp;
     static int    cnt = 0;
 
     sim_debug(DEBUG_CMD, dptr,
@@ -420,14 +422,14 @@ t_stat con_srvo(UNIT *uptr) {
 /* Handle input transfers for console */
 t_stat con_srvi(UNIT *uptr) {
     DEVICE      *dptr = uptr->dptr;
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
     int         unit = (uptr - con_unit);   /* unit 0 is read, unit 1 is write */
     int         cmd = uptr->CMD & CON_MSK;
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
     int         len = chp->ccw_count;       /* INCH command count */
-    uint32      mema = chp->ccw_addr;       /* get inch or buffer addr */
-    uint32      tstart;
-    uint8       ch;
+    uint32_t    mema = chp->ccw_addr;       /* get inch or buffer addr */
+    uint32_t    tstart;
+    uint8_t     ch;
     t_stat      r;
 
     switch (cmd) {
@@ -509,7 +511,7 @@ t_stat con_srvi(UNIT *uptr) {
                     unit, uptr->CMD, ch, uptr->u4, con_data[unit].incnt);
 
                 /* see if at end of buffer */
-                if (uptr->u4 >= (int32)sizeof(con_data[unit].ibuff))
+                if (uptr->u4 >= (int32_t)sizeof(con_data[unit].ibuff))
                     uptr->u4 = 0;           /* reset pointer */
 
                 /* user want more data? */
@@ -597,7 +599,7 @@ t_stat con_srvi(UNIT *uptr) {
         if (uptr->CMD & CON_ATAT) {         /* looking for @@A */
             /* we have at least one @, look for another */
             if (ch == '@' || ch == 'A' || ch == 'a') {
-                uint8 cc = ch;
+                uint8_t cc = ch;
                 if (cc == 'a')
                     cc = 'A';               /* make uppercase */
                 sim_putchar(ch);            /* ECHO the char */
@@ -659,7 +661,7 @@ t_stat  con_reset(DEVICE *dptr) {
 
 /* Handle rschnlio cmds for console */
 t_stat  con_rschnlio(UNIT *uptr) {
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & CON_MSK;
     con_ini(uptr, 0);                       /* reset the unit */
     sim_debug(DEBUG_EXP, &con_dev, "con_rschnl chsa %04x cmd = %02x\n", chsa, cmd);
@@ -668,7 +670,7 @@ t_stat  con_rschnlio(UNIT *uptr) {
 
 /* Handle haltio transfers for console */
 t_stat  con_haltio(UNIT *uptr) {
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & CON_MSK;
     int     unit = (uptr - con_unit);       /* unit # 0 is read, 1 is write */
     CHANP   *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */

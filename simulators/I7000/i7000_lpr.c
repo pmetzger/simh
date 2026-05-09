@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7000_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -61,19 +63,19 @@
 
 struct _lpr_data
 {
-    uint8               lbuff[145];     /* Output line buffer */
+    uint8_t             lbuff[145];     /* Output line buffer */
 }
 lpr_data[NUM_DEVS_LPR];
 
-uint32              lpr_cmd(UNIT *, uint16, uint16);
+uint32_t            lpr_cmd(UNIT *, uint16_t, uint16_t);
 void                lpr_ini(UNIT *, bool);
 t_stat              lpr_srv(UNIT *);
 t_stat              lpr_reset(DEVICE *);
 t_stat              lpr_attach(UNIT *, const char *);
 t_stat              lpr_detach(UNIT *);
-t_stat              lpr_setlpp(UNIT *, int32, const char *, void *);
-t_stat              lpr_getlpp(FILE *, UNIT *, int32, const void *);
-t_stat              lpr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              lpr_setlpp(UNIT *, int32_t, const char *, void *);
+t_stat              lpr_getlpp(FILE *, UNIT *, int32_t, const void *);
+t_stat              lpr_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *lpr_description(DEVICE *dptr);
 
 UNIT                lpr_unit[] = {
@@ -120,7 +122,7 @@ DEVICE              lpr_dev = {
  */
 
 t_stat
-lpr_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
+lpr_setlpp(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -146,7 +148,7 @@ lpr_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-lpr_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
+lpr_getlpp(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -242,7 +244,7 @@ print_line(UNIT * uptr, int chan, int unit)
             sim_putchar(out[j++]);
     }
     uptr->u4++;
-    if (uptr->u4 >= (int32)uptr->u6) {
+    if (uptr->u4 >= (int32_t)uptr->u6) {
         sim_fwrite("\f", 1, 1, uptr->fileref);
         uptr->pos += 1;
         uptr->u4 = 1;
@@ -269,12 +271,12 @@ print_line(UNIT * uptr, int chan, int unit)
                     sim_putchar('\n');
                 }
                 uptr->u4++;
-                if (uptr->u4 >= (int32)uptr->u6) {
+                if (uptr->u4 >= (int32_t)uptr->u6) {
                     i = 0;
                 }
             }
         }
-        if (uptr->u4 >= (int32)uptr->u6) {
+        if (uptr->u4 >= (int32_t)uptr->u6) {
             sim_fwrite("\f", 1, 1, uptr->fileref);
             uptr->u4 = 1;
         }
@@ -292,7 +294,7 @@ print_line(UNIT * uptr, int chan, int unit)
 }
 
 
-uint32 lpr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t lpr_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - lpr_unit);
@@ -391,7 +393,7 @@ uint32 lpr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
                     sim_fwrite("\r\n", 1, 2, uptr->fileref);
                     uptr->pos += 2;
                     uptr->u4++;
-                    if (uptr->u4 >= (int32)uptr->u6) {
+                    if (uptr->u4 >= (int32_t)uptr->u6) {
                         i = 0;
                     }
                 }
@@ -400,7 +402,7 @@ uint32 lpr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
                     sim_putchar('\n');
                 }
              }
-             if (uptr->u4 >= (int32)uptr->u6) {
+             if (uptr->u4 >= (int32_t)uptr->u6) {
                  sim_fwrite("\f", 1, 1, uptr->fileref);
                  uptr->u4 = 1;
              }
@@ -529,7 +531,7 @@ lpr_detach(UNIT * uptr)
 }
 
 t_stat
-lpr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+lpr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic callback signature.
       This implementation does not use every parameter. */

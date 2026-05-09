@@ -1,5 +1,6 @@
 #include "test_scp_fixture.h"
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -7,10 +8,10 @@
 
 /* Initialize a multi-unit device for SCP lookup and naming tests. */
 void simh_test_init_multiunit_device(DEVICE *device, UNIT *units,
-                                     uint32 numunits, const char *dev_name,
-                                     const char *logical_name, uint32 dev_flags)
+                                     uint32_t numunits, const char *dev_name,
+                                     const char *logical_name, uint32_t dev_flags)
 {
-    uint32 i;
+    uint32_t i;
 
     memset(device, 0, sizeof(*device));
     memset(units, 0, numunits * sizeof(*units));
@@ -39,9 +40,9 @@ int simh_test_install_devices(const char *sim_name, DEVICE *const *devices)
 }
 
 /* Release any cached unit names allocated during SCP naming tests. */
-void simh_test_free_unit_names(UNIT *units, uint32 numunits)
+void simh_test_free_unit_names(UNIT *units, uint32_t numunits)
 {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; i < numunits; ++i) {
         free(units[i].uname);

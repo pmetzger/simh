@@ -38,6 +38,7 @@
 
 #include "id_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 /* Device definitions */
 
@@ -52,21 +53,21 @@
 #define CMD_V_FDPX      4                               /* full/half duplex */
 #define CMD_V_RD        2                               /* read/write */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
-extern int32 lfc_poll;
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
+extern int32_t lfc_poll;
 
-uint32 tt_sta = STA_BSY;                                /* status */
-uint32 tt_fdpx = 1;                                     /* tt mode */
-uint32 tt_rd = 1, tt_chp = 0;                           /* tt state */
-uint32 tt_arm = 0;                                      /* int arm */
+uint32_t tt_sta = STA_BSY;                              /* status */
+uint32_t tt_fdpx = 1;                                   /* tt mode */
+uint32_t tt_rd = 1, tt_chp = 0;                         /* tt state */
+uint32_t tt_arm = 0;                                    /* int arm */
 
-uint32 tt (uint32 dev, uint32 op, uint32 dat);
+uint32_t tt (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tt_reset (DEVICE *dptr);
-t_stat tt_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tt_set_break (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tt_set_enbdis (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat tt_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tt_set_break (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tt_set_enbdis (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* TT data structures
 
@@ -127,13 +128,13 @@ DEVICE tt_dev = {
 
 /* Terminal: IO routine */
 
-uint32 tt (uint32 dev, uint32 op, uint32 dat)
+uint32_t tt (uint32_t dev, uint32_t op, uint32_t dat)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-uint32 old_rd, t;
+uint32_t old_rd, t;
 
 switch (op) {                                           /* case IO op */
 
@@ -187,7 +188,7 @@ return 0;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 out, temp;
+int32_t out, temp;
 
 sim_activate (uptr, lfc_cosched (lfc_poll));            /* continue poll */
 tt_sta = tt_sta & ~STA_BRK;                             /* clear break */
@@ -220,7 +221,7 @@ return SCPE_OK;
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 ch;
+int32_t ch;
 t_stat r;
 
 ch = sim_tt_outcvt (uptr->buf, TT_GET_MODE (uptr->flags) | TTUF_KSR);
@@ -258,7 +259,7 @@ return SCPE_OK;
 
 /* Make mode flags uniform */
 
-t_stat tt_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tt_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -275,7 +276,7 @@ return SCPE_OK;
 
 /* Set input break */
 
-t_stat tt_set_break (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tt_set_break (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -299,7 +300,7 @@ return SCPE_OK;
 
 /* Set enabled/disabled */
 
-t_stat tt_set_enbdis (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tt_set_enbdis (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

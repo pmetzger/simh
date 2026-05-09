@@ -48,36 +48,38 @@
         tlb_set_cm              TLB set current mode
 */
 
+#include <stdint.h>
+
 #include "alpha_defs.h"
 #include "alpha_ev5_defs.h"
 
 #define ITLB_SORT       qsort (itlb, ITLB_SIZE, sizeof (TLBENT), &tlb_comp);
 #define DTLB_SORT       qsort (dtlb, DTLB_SIZE, sizeof (TLBENT), &tlb_comp);
-#define TLB_ESIZE       (sizeof (TLBENT)/sizeof (uint32))
+#define TLB_ESIZE       (sizeof (TLBENT)/sizeof (uint32_t))
 #define MM_RW(x)        (((x) & PTE_FOW)? EXC_W: EXC_R)
 
-uint32 itlb_cm = 0;                                     /* current modes */
-uint32 itlb_spage = 0;                                  /* superpage enables */
-uint32 itlb_asn = 0;
-uint32 itlb_nlu = 0;
+uint32_t itlb_cm = 0;                                   /* current modes */
+uint32_t itlb_spage = 0;                                /* superpage enables */
+uint32_t itlb_asn = 0;
+uint32_t itlb_nlu = 0;
 TLBENT i_mini_tlb;
 TLBENT itlb[ITLB_SIZE];
-uint32 dtlb_cm = 0;
-uint32 dtlb_spage = 0;
-uint32 dtlb_asn = 0;
-uint32 dtlb_nlu = 0;
+uint32_t dtlb_cm = 0;
+uint32_t dtlb_spage = 0;
+uint32_t dtlb_asn = 0;
+uint32_t dtlb_nlu = 0;
 TLBENT d_mini_tlb;
 TLBENT dtlb[DTLB_SIZE];
 
-uint32 cm_eacc = ACC_E (MODE_K);                        /* precomputed */
-uint32 cm_racc = ACC_R (MODE_K);                        /* access checks */
-uint32 cm_wacc = ACC_W (MODE_K);
-uint32 cm_macc = ACC_M (MODE_K);
+uint32_t cm_eacc = ACC_E (MODE_K);                      /* precomputed */
+uint32_t cm_racc = ACC_R (MODE_K);                      /* access checks */
+uint32_t cm_wacc = ACC_W (MODE_K);
+uint32_t cm_macc = ACC_M (MODE_K);
 
-extern t_uint64 p1;
+extern uint64_t p1;
 extern jmp_buf save_env;
 
-uint32 mm_exc (uint32 macc);
+uint32_t mm_exc (uint32_t macc);
 void tlb_inval (TLBENT *tlbp);
 t_stat itlb_reset (void);
 t_stat dtlb_reset (void);
@@ -125,10 +127,10 @@ DEVICE tlb_dev = {
         pa      =       translation buffer index
 */
 
-t_uint64 trans_i (t_uint64 va)
+uint64_t trans_i (uint64_t va)
 {
-uint32 va_sext = VA_GETSEXT (va);
-uint32 vpn = VA_GETVPN (va);
+uint32_t va_sext = VA_GETSEXT (va);
+uint32_t vpn = VA_GETVPN (va);
 TLBENT *tlbp;
 
 if ((va_sext != 0) && (va_sext != VA_M_SEXT))           /* invalid virt addr? */
@@ -148,10 +150,10 @@ if (cm_eacc & ~tlbp->pte)                               /* check access */
 return PHYS_ADDR (tlbp->pfn, va);                       /* return phys addr */
 }
 
-t_uint64 trans_d (t_uint64 va, uint32 acc)
+uint64_t trans_d (uint64_t va, uint32_t acc)
 {
-uint32 va_sext = VA_GETSEXT (va);
-uint32 vpn = VA_GETVPN (va);
+uint32_t va_sext = VA_GETSEXT (va);
+uint32_t vpn = VA_GETVPN (va);
 TLBENT *tlbp;
 
 if ((va_sext != 0) && (va_sext != VA_M_SEXT))           /* invalid virt addr? */
@@ -178,9 +180,9 @@ return PHYS_ADDR (tlbp->pfn, va);                       /* return phys addr */
    - If FOx set, then FOx
    - Otherwise, TNV */
 
-uint32 mm_exc (uint32 not_set)
+uint32_t mm_exc (uint32_t not_set)
 {
-uint32 tacc;
+uint32_t tacc;
 
 tacc = not_set & ~(PTE_FOR | PTE_FOW | PTE_FOE | PTE_V);
 if (tacc) return EXC_ACV;
@@ -191,10 +193,10 @@ return EXC_TNV;
 
 /* TLB invalidate single */
 
-void tlb_is (t_uint64 va, uint32 flags)
+void tlb_is (uint64_t va, uint32_t flags)
 {
-uint32 va_sext = VA_GETSEXT (va);
-uint32 vpn = VA_GETVPN (va);
+uint32_t va_sext = VA_GETSEXT (va);
+uint32_t vpn = VA_GETVPN (va);
 TLBENT *itlbp, *dtlbp;
 
 if ((va_sext != 0) && (va_sext != VA_M_SEXT)) return;
@@ -213,9 +215,9 @@ return;
 
 /* TLB invalidate all */
 
-void tlb_ia (uint32 flags)
+void tlb_ia (uint32_t flags)
 {
-uint32 i;
+uint32_t i;
 
 if (flags & TLB_CA) {
     if (flags & TLB_CI) itlb_reset ();
@@ -241,9 +243,9 @@ return;
 
 /* TLB lookup */
 
-TLBENT *itlb_lookup (uint32 vpn)
+TLBENT *itlb_lookup (uint32_t vpn)
 {
-int32 p, hi, lo;
+int32_t p, hi, lo;
 
 if (vpn == i_mini_tlb.tag) return &i_mini_tlb;
 lo = 0;                                                 /* initial bounds */
@@ -252,7 +254,7 @@ do {
     p = (lo + hi) >> 1;                                 /* probe */
     if ((itlb_asn == itlb[p].asn) &&
         (((vpn ^ itlb[p].tag) &
-         ~((uint32) itlb[p].gh_mask)) == 0)) {          /* match to TLB? */
+         ~((uint32_t) itlb[p].gh_mask)) == 0)) {        /* match to TLB? */
         i_mini_tlb.tag = vpn;
         i_mini_tlb.pte = itlb[p].pte;
         i_mini_tlb.pfn = itlb[p].pfn;
@@ -269,9 +271,9 @@ while (lo <= hi);
 return NULL;
 }
 
-TLBENT *dtlb_lookup (uint32 vpn)
+TLBENT *dtlb_lookup (uint32_t vpn)
 {
-int32 p, hi, lo;
+int32_t p, hi, lo;
 
 if (vpn == d_mini_tlb.tag) return &d_mini_tlb;
 lo = 0;                                                 /* initial bounds */
@@ -280,7 +282,7 @@ do {
     p = (lo + hi) >> 1;                                 /* probe */
     if ((dtlb_asn == dtlb[p].asn) &&
         (((vpn ^ dtlb[p].tag) &
-         ~((uint32) dtlb[p].gh_mask)) == 0)) {          /* match to TLB? */
+         ~((uint32_t) dtlb[p].gh_mask)) == 0)) {        /* match to TLB? */
         d_mini_tlb.tag = vpn;
         d_mini_tlb.pte = dtlb[p].pte;
         d_mini_tlb.pfn = dtlb[p].pfn;
@@ -299,9 +301,9 @@ return NULL;
 
 /* Load TLB entry at NLU pointer, advance NLU pointer */
 
-TLBENT *itlb_load (uint32 vpn, t_uint64 l3pte)
+TLBENT *itlb_load (uint32_t vpn, uint64_t l3pte)
 {
-uint32 i, gh;
+uint32_t i, gh;
 
 for (i = 0; i < ITLB_SIZE; i++) {
     if (itlb[i].idx == itlb_nlu) {
@@ -309,8 +311,8 @@ for (i = 0; i < ITLB_SIZE; i++) {
         itlb_nlu = itlb_nlu + 1;
         if (itlb_nlu >= ITLB_SIZE) itlb_nlu = 0;
         tlbp->tag = vpn;
-        tlbp->pte = (uint32) (l3pte & PTE_MASK) ^ (PTE_FOR|PTE_FOR|PTE_FOE);
-        tlbp->pfn = ((uint32) (l3pte >> PTE_V_PFN)) & PFN_MASK;
+        tlbp->pte = (uint32_t) (l3pte & PTE_MASK) ^ (PTE_FOR|PTE_FOR|PTE_FOE);
+        tlbp->pfn = ((uint32_t) (l3pte >> PTE_V_PFN)) & PFN_MASK;
         tlbp->asn = itlb_asn;
         gh = PTE_GETGH (tlbp->pte);
         tlbp->gh_mask = (1u << (3 * gh)) - 1;
@@ -324,9 +326,9 @@ ABORT (-SCPE_IERR);
 return NULL;
 }
 
-TLBENT *dtlb_load (uint32 vpn, t_uint64 l3pte)
+TLBENT *dtlb_load (uint32_t vpn, uint64_t l3pte)
 {
-uint32 i, gh;
+uint32_t i, gh;
 
 for (i = 0; i < DTLB_SIZE; i++) {
     if (dtlb[i].idx == dtlb_nlu) {
@@ -334,8 +336,8 @@ for (i = 0; i < DTLB_SIZE; i++) {
         dtlb_nlu = dtlb_nlu + 1;
         if (dtlb_nlu >= ITLB_SIZE) dtlb_nlu = 0;
         tlbp->tag = vpn;
-        tlbp->pte = (uint32) (l3pte & PTE_MASK) ^ (PTE_FOR|PTE_FOR|PTE_FOE);
-        tlbp->pfn = ((uint32) (l3pte >> PTE_V_PFN)) & PFN_MASK;
+        tlbp->pte = (uint32_t) (l3pte & PTE_MASK) ^ (PTE_FOR|PTE_FOR|PTE_FOE);
+        tlbp->pfn = ((uint32_t) (l3pte >> PTE_V_PFN)) & PFN_MASK;
         tlbp->asn = dtlb_asn;
         gh = PTE_GETGH (tlbp->pte);
         tlbp->gh_mask = (1u << (3 * gh)) - 1;
@@ -351,16 +353,16 @@ return NULL;
 
 /* Read TLB entry at NLU pointer, advance NLU pointer */
 
-t_uint64 itlb_read (void)
+uint64_t itlb_read (void)
 {
-uint8 i;
+uint8_t i;
 
 for (i = 0; i < ITLB_SIZE; i++) {
     if (itlb[i].idx == itlb_nlu) {
         TLBENT *tlbp = itlb + i;
         itlb_nlu = itlb_nlu + 1;
         if (itlb_nlu >= ITLB_SIZE) itlb_nlu = 0;
-        return (((t_uint64) tlbp->pfn) << PTE_V_PFN) |
+        return (((uint64_t) tlbp->pfn) << PTE_V_PFN) |
             ((tlbp->pte ^ (PTE_FOR|PTE_FOR|PTE_FOE)) & PTE_MASK);
         }
     }
@@ -369,16 +371,16 @@ ABORT (-SCPE_IERR);
 return 0;
 }
 
-t_uint64 dtlb_read (void)
+uint64_t dtlb_read (void)
 {
-uint8 i;
+uint8_t i;
 
 for (i = 0; i < DTLB_SIZE; i++) {
     if (dtlb[i].idx == dtlb_nlu) {
         TLBENT *tlbp = dtlb + i;
         dtlb_nlu = dtlb_nlu + 1;
         if (dtlb_nlu >= DTLB_SIZE) dtlb_nlu = 0;
-        return (((t_uint64) tlbp->pfn) << PTE_V_PFN) |
+        return (((uint64_t) tlbp->pfn) << PTE_V_PFN) |
             ((tlbp->pte ^ (PTE_FOR|PTE_FOR|PTE_FOE)) & PTE_MASK);
         }
     }
@@ -389,9 +391,9 @@ return 0;
 
 /* Set ASN - rewrite TLB globals with correct ASN */
 
-void itlb_set_asn (uint32 asn)
+void itlb_set_asn (uint32_t asn)
 {
-int32 i;
+int32_t i;
 
 itlb_asn = asn;
 for (i = 0; i < ITLB_SIZE; i++) {
@@ -402,9 +404,9 @@ ITLB_SORT;
 return;
 }
 
-void dtlb_set_asn (uint32 asn)
+void dtlb_set_asn (uint32_t asn)
 {
-int32 i;
+int32_t i;
 
 dtlb_asn = asn;
 for (i = 0; i < DTLB_SIZE; i++) {
@@ -417,13 +419,13 @@ return;
 
 /* Set superpage */
 
-void itlb_set_spage (uint32 spage)
+void itlb_set_spage (uint32_t spage)
 {
 itlb_spage = spage;
 return;
 }
 
-void dtlb_set_spage (uint32 spage)
+void dtlb_set_spage (uint32_t spage)
 {
 dtlb_spage = spage;
 return;
@@ -431,14 +433,14 @@ return;
 
 /* Set current mode */
 
-void itlb_set_cm (uint32 mode)
+void itlb_set_cm (uint32_t mode)
 {
 itlb_cm = mode;
 cm_eacc = ACC_E (mode);
 return;
 }
 
-void dtlb_set_cm (uint32 mode)
+void dtlb_set_cm (uint32_t mode)
 {
 dtlb_cm = mode;
 cm_racc = ACC_R (mode);
@@ -446,7 +448,7 @@ cm_wacc = ACC_W (mode);
 return;
 }
 
-uint32 tlb_set_cm (int32 cm)
+uint32_t tlb_set_cm (int32_t cm)
 {
 if (cm >= 0) {
     itlb_set_cm (cm);
@@ -488,7 +490,7 @@ return 0;
 
 t_stat itlb_reset (void)
 {
-int32 i;
+int32_t i;
 
 itlb_nlu = 0;
 for (i = 0; i < ITLB_SIZE; i++) {
@@ -506,7 +508,7 @@ return SCPE_OK;
 
 t_stat dtlb_reset (void)
 {
-int32 i;
+int32_t i;
 
 dtlb_nlu = 0;
 for (i = 0; i < DTLB_SIZE; i++) {
@@ -536,10 +538,10 @@ return SCPE_OK;
 
 /* Show TLB entry or entries */
 
-t_stat cpu_show_tlb (FILE *of, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_tlb (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 t_addr lo, hi;
-uint32 lnt;
+uint32_t lnt;
 TLBENT *tlbp;
 DEVICE *dptr;
 const char *cptr = (const char *) desc;
@@ -558,7 +560,7 @@ else {
 tlbp = (val)? dtlb + lo: itlb + lo;
 
 do {
-    fprintf (of, "TLB %02d\tTAG=%02X/%08X, ", (uint32) lo, tlbp->asn, tlbp->tag);
+    fprintf (of, "TLB %02d\tTAG=%02X/%08X, ", (uint32_t) lo, tlbp->asn, tlbp->tag);
     fprintf (of, "MASK=%X, INDX=%d, ", tlbp->gh_mask, tlbp->idx);
     fprintf (of, "PTE=%04X, PFN=%08X\n", tlbp->pte, tlbp->pfn);
     tlbp++;

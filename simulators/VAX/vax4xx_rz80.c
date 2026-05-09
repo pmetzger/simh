@@ -27,6 +27,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_scsi.h"
 #include "vax_rzdev.h"
@@ -121,22 +123,22 @@
 #define GET_DTYPE(x)    (((x) >> UNIT_V_DTYPE) & UNIT_M_DTYPE)
 
 typedef struct {
-    uint32 cnum;                                        /* ctrl number */
-    uint8 odata;                                        /* output data */
-    uint8 cdata;                                        /* current data */
-    uint32 mode;                                        /* mode reg */
-    uint32 icmd;                                        /* initiator cmd reg */
-    uint32 tcmd;                                        /* target cmd reg */
-    uint32 status;                                      /* status reg */
-    uint32 cstat;
-    uint32 selen;                                       /* select enable reg */
-    uint32 dcount;                                      /* DMA count reg */
-    uint32 daddr;                                       /* DMA addr reg */
+    uint32_t cnum;                                      /* ctrl number */
+    uint8_t odata;                                      /* output data */
+    uint8_t cdata;                                      /* current data */
+    uint32_t mode;                                      /* mode reg */
+    uint32_t icmd;                                      /* initiator cmd reg */
+    uint32_t tcmd;                                      /* target cmd reg */
+    uint32_t status;                                    /* status reg */
+    uint32_t cstat;
+    uint32_t selen;                                     /* select enable reg */
+    uint32_t dcount;                                    /* DMA count reg */
+    uint32_t daddr;                                     /* DMA addr reg */
     bool daddr_low;                                     /* DMA addr flag */
-    uint32 ddir;                                        /* DMA dir */
-    uint8 *buf;                                         /* unit buffer */
-    int32 buf_ptr;                                      /* current buffer pointer */
-    int32 buf_len;                                      /* current buffer length */
+    uint32_t ddir;                                      /* DMA dir */
+    uint8_t *buf;                                       /* unit buffer */
+    int32_t buf_ptr;                                    /* current buffer pointer */
+    int32_t buf_len;                                    /* current buffer length */
     SCSI_BUS bus;                                       /* SCSI bus state */
     } CTLR;
 
@@ -144,15 +146,15 @@ t_stat rz_svc (UNIT *uptr);
 t_stat rz_isvc (UNIT *uptr);
 t_stat rz_reset (DEVICE *dptr);
 t_stat rz_attach (UNIT *uptr, const char *cptr);
-t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat rz_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rz_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 void rz_update_status (CTLR *rz);
-void rz_setint (CTLR *rz, uint32 flags);
+void rz_setint (CTLR *rz, uint32_t flags);
 void rz_clrint (CTLR *rz);
 void rz_sw_reset (CTLR *rz);
 void rz_ack (CTLR *rz);
-int32 rz_parity (int32 val, int32 odd);
+int32_t rz_parity (int32_t val, int32_t odd);
 const char *rz_description (DEVICE *dptr);
 
 /* RZ data structures
@@ -346,14 +348,14 @@ static CTLR *rz_ctxmap[RZ_NUMCT] = {
    rz_reset    process reset
 */
 
-int32 rz_rd (int32 pa)
+int32_t rz_rd (int32_t pa)
 {
-int32 ctlr = (pa >> 8) & 1;
+int32_t ctlr = (pa >> 8) & 1;
 CTLR *rz = rz_ctxmap[ctlr];
 DEVICE *dptr = rz_devmap[ctlr];
-int32 rg = (pa >> 2) & 0x1F;
-int32 data = 0;
-int32 len;
+int32_t rg = (pa >> 2) & 0x1F;
+int32_t data = 0;
+int32_t len;
 
 if (dptr->flags & DEV_DIS)                              /* disabled? */
     return 0;
@@ -466,14 +468,14 @@ sim_debug (DBG_REG, dptr, "reg %d read, value = %X, PC = %08X\n", rg, data, faul
 return data;
 }
 
-void rz_wr (int32 pa, int32 data, int32 access)
+void rz_wr (int32_t pa, int32_t data, int32_t access)
 {
-int32 ctlr = (pa >> 8) & 1;
+int32_t ctlr = (pa >> 8) & 1;
 CTLR *rz = rz_ctxmap[ctlr];
 DEVICE *dptr = rz_devmap[ctlr];
 UNIT *uptr = dptr->units + RZ_CTLR;
-int32 rg = (pa >> 2) & 0x1F;
-int32 i;
+int32_t rg = (pa >> 2) & 0x1F;
+int32_t i;
 
 if (dptr->flags & DEV_DIS)                              /* disabled? */
     return;
@@ -615,7 +617,7 @@ sim_debug (DBG_REG, dptr, "reg %d write, value = %X, PC = %08X\n", rg, data, fau
 SET_IRQL;
 }
 
-int32 rz_parity (int32 val, int32 odd)
+int32_t rz_parity (int32_t val, int32_t odd)
 {
 for ( ; val != 0; val = val >> 1) {
     if (val & 1)
@@ -626,8 +628,8 @@ return odd;
 
 void rz_ack (CTLR *rz)
 {
-uint32 len;
-uint32 old_phase;
+uint32_t len;
+uint32_t old_phase;
 
 old_phase = rz->bus.phase;
 switch (rz->bus.phase) {
@@ -681,8 +683,8 @@ t_stat rz_svc (UNIT *uptr)
 {
 CTLR *rz = rz_ctxmap[uptr->cnum];
 DEVICE *dptr = rz_devmap[uptr->cnum];
-int32 dma_len;
-uint32 old_phase;
+int32_t dma_len;
+uint32_t old_phase;
 
 old_phase = rz->bus.phase;
 if (rz->dcount == 0)
@@ -737,7 +739,7 @@ uptr->iflgs = 0;
 return SCPE_OK;
 }
 
-void rz_setint (CTLR *rz, uint32 flags)
+void rz_setint (CTLR *rz, uint32_t flags)
 {
 DEVICE *dptr = rz_devmap[rz->cnum];
 UNIT *uptr = dptr->units + RZ_CTLR;
@@ -763,7 +765,7 @@ void rz_sw_reset (CTLR *rz)
 {
 DEVICE *dptr;
 UNIT *uptr;
-uint32 i;
+uint32_t i;
 
 dptr = rz_devmap[rz->cnum];
 for (i = 0; i < (RZ_NUMDR + 1); i++) {
@@ -789,8 +791,8 @@ scsi_reset (&rz->bus);
 
 t_stat rz_reset (DEVICE *dptr)
 {
-int32 ctlr, i;
-uint32 dtyp;
+int32_t ctlr, i;
+uint32_t dtyp;
 CTLR *rz;
 UNIT *uptr;
 t_stat r;
@@ -803,7 +805,7 @@ if (ctlr < 0)                                           /* not found??? */
     return SCPE_IERR;
 rz = rz_ctxmap[ctlr];
 if (rz->buf == NULL)
-    rz->buf = (uint8 *)calloc (DMA_SIZE, sizeof(uint8));
+    rz->buf = (uint8_t *)calloc (DMA_SIZE, sizeof(uint8_t));
 if (rz->buf == NULL)
     return SCPE_MEM;
 r = scsi_init (&rz->bus, DMA_SIZE);                     /* init SCSI bus */
@@ -828,15 +830,15 @@ return SCPE_OK;
 
 /* Set unit type (and capacity if user defined) */
 
-t_stat rz_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
 (void) desc;
 
 CTLR *rz = rz_ctxmap[uptr->cnum];
-uint32 cap;
-uint32 max = sim_toffset_64? RZU_EMAXC: RZU_MAXC;
+uint32_t cap;
+uint32_t max = sim_toffset_64? RZU_EMAXC: RZU_MAXC;
 t_stat r;
 
 if ((val < 0) || ((val != RZU_DTYPE) && cptr))
@@ -844,7 +846,7 @@ if ((val < 0) || ((val != RZU_DTYPE) && cptr))
 if (uptr->flags & UNIT_ATT)
     return SCPE_ALATT;
 if (cptr) {
-    cap = (uint32) get_uint (cptr, 10, 0xFFFFFFFF, &r);
+    cap = (uint32_t) get_uint (cptr, 10, 0xFFFFFFFF, &r);
     if ((sim_switches & SWMASK ('L')) == 0)
         cap = cap * 1954;
     if ((r != SCPE_OK) || (cap < RZU_MINC) || (cap > max))
@@ -860,7 +862,7 @@ return SCPE_OK;
 
 /* Show unit type */
 
-t_stat rz_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -871,7 +873,7 @@ fprintf (st, "%s", rzdev_tab[GET_DTYPE (uptr->flags)].name);
 return SCPE_OK;
 }
 
-t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "NCR 5380 SCSI Controller (%s)\n\n", dptr->name);
 fprintf (st, "The %s controller simulates the NCR 5380 SCSI controller connected\n", dptr->name);

@@ -27,6 +27,8 @@
    users.
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
@@ -62,12 +64,12 @@
 
 static t_stat gtyi_svc(UNIT *uptr);
 static t_stat gtyo_svc(UNIT *uptr);
-static t_stat gtyi_devio(uint32 dev, uint64 *data);
-static t_stat gtyo_devio(uint32 dev, uint64 *data);
+static t_stat gtyi_devio(uint32_t dev, uint64 *data);
+static t_stat gtyo_devio(uint32_t dev, uint64 *data);
 static t_stat ge_reset(DEVICE *dptr);
 static t_stat ge_attach(UNIT *uptr, const char *ptr);
 static t_stat ge_detach(UNIT *uptr);
-static t_stat ge_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+static t_stat ge_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 static const char *ge_description(DEVICE *dptr);
 
 static void gtyo_done(void);
@@ -187,7 +189,7 @@ static t_stat ge_detach(UNIT *uptr)
 
 static void gtyi_poll(UNIT *uptr)
 {
-  int32 ch;
+  int32_t ch;
   int i;
 
   tmxr_poll_rx(&ge_desc);
@@ -227,7 +229,7 @@ static void gtyi_poll(UNIT *uptr)
 
 static t_stat gtyi_svc(UNIT *uptr)
 {
-  int32 n;
+  int32_t n;
 
   n = tmxr_poll_conn(&ge_desc);
   if (n >= 0) {
@@ -267,7 +269,7 @@ static t_stat gtyo_svc(UNIT *uptr)
   return SCPE_OK;
 }
 
-static t_stat ge_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat ge_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char helpString[] =
  /* The '*'s in the next line represent the standard text width of a help line */
@@ -360,7 +362,7 @@ static void gtyo_lp(char data) {
   gtyo_done();
 }
 
-t_stat gtyi_devio(uint32 dev, uint64 *data)
+t_stat gtyi_devio(uint32_t dev, uint64 *data)
 {
   UNIT *uptr = gtyi_unit;
 
@@ -388,7 +390,7 @@ t_stat gtyi_devio(uint32 dev, uint64 *data)
   return SCPE_OK;
 }
 
-t_stat gtyo_devio(uint32 dev, uint64 *data)
+t_stat gtyo_devio(uint32_t dev, uint64 *data)
 {
   UNIT *uptr = gtyo_unit;
   int ch;

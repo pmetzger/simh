@@ -66,6 +66,8 @@
 #ifndef SIM_CARD_H_
 #define SIM_CARD_H_     0
 
+#include <stdint.h>
+
 #define SIM_CARD_API    2               /* API Version */
 
 #define DEBUG_CARD      0x80000000      /* Show details */
@@ -99,9 +101,9 @@ typedef int t_cdstat;
 
      /* Read next card into image row 12,11,10,1-9 */
      /* Return SCPE_EOF if end file detected. */
-t_cdstat sim_read_card(UNIT * uptr, uint16 image[80]);
+t_cdstat sim_read_card(UNIT * uptr, uint16_t image[80]);
      /* Punch card from image row 12,11,10,1-9 */
-t_cdstat sim_punch_card(UNIT * uptr, uint16 image[80]);
+t_cdstat sim_punch_card(UNIT * uptr, uint16_t image[80]);
      /* Check if next card to be read is EOF */
 int      sim_card_eof(UNIT * uptr);
      /* Return number of cards yet to read */
@@ -114,22 +116,22 @@ t_stat   sim_card_attach(UNIT * uptr, const char *file);
 t_stat   sim_card_detach(UNIT *uptr);
 
 /* Conversion routines to save code */
-uint16   sim_bcd_to_hol(uint8 bcd);
-uint16   sim_ebcdic_to_hol(uint8 ebcdic);
-uint8    sim_hol_to_bcd(uint16 hol);
-uint16   sim_hol_to_ebcdic(uint16 hol);
+uint16_t sim_bcd_to_hol(uint8_t bcd);
+uint16_t sim_ebcdic_to_hol(uint8_t ebcdic);
+uint8_t  sim_hol_to_bcd(uint16_t hol);
+uint16_t sim_hol_to_ebcdic(uint16_t hol);
 
 /* Format control routines. */
-t_stat   sim_card_set_fmt (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat   sim_card_show_fmt (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat   sim_card_set_fmt (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat   sim_card_show_fmt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* Help information */
-t_stat   sim_card_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat   sim_card_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 
 /* Translation tables */
 extern const char      sim_six_to_ascii[64];        /* Map BCD to ASCII */
 extern const char      sim_ascii_to_six[128];       /* Map 7 bit ASCII to BCD */
-extern const uint8     sim_parity_table[64];        /* 64 entry odd parity table */
+extern const uint8_t   sim_parity_table[64];        /* 64 entry odd parity table */
 
 /* Unit test routine */
 extern t_stat sim_card_test (DEVICE *dptr, const char *cptr);

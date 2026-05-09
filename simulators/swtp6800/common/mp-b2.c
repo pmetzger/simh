@@ -31,7 +31,9 @@
 
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "swtp_defs.h"
 
 #define UNIT_V_RAM_0000   (UNIT_V_UF)   /* MP-8M board 0 enable */
@@ -50,46 +52,46 @@
 /* function prototypes */
 
 // CPU Boards
-extern int32 CPU_BD_get_mbyte(int32 addr);
-extern int32 CPU_BD_get_mword(int32 addr);
-extern void CPU_BD_put_mbyte(int32 addr, int32 val);
-extern void CPU_BD_put_mword(int32 addr, int32 val);
+extern int32_t CPU_BD_get_mbyte(int32_t addr);
+extern int32_t CPU_BD_get_mword(int32_t addr);
+extern void CPU_BD_put_mbyte(int32_t addr, int32_t val);
+extern void CPU_BD_put_mword(int32_t addr, int32_t val);
 
 /* empty I/O device routine */
-int32 nulldev(int32 io, int32 data);
+int32_t nulldev(int32_t io, int32_t data);
 
 /* SS-50 MB routines */
-int32 MB_get_mbyte(int32 addr);
-int32 MB_get_mword(int32 addr);
-void MB_put_mbyte(int32 addr, int32 val);
-void MB_put_mword(int32 addr, int32 val);
+int32_t MB_get_mbyte(int32_t addr);
+int32_t MB_get_mword(int32_t addr);
+void MB_put_mbyte(int32_t addr, int32_t val);
+void MB_put_mword(int32_t addr, int32_t val);
 
 /* MP-8M bus routines */
-extern int32 mp_8m_get_mbyte(int32 addr);
-extern void mp_8m_put_mbyte(int32 addr, int32 val);
+extern int32_t mp_8m_get_mbyte(int32_t addr);
+extern void mp_8m_put_mbyte(int32_t addr, int32_t val);
 
 /* SS-50 I/O address space functions */
 
 /* MP-S serial I/O routines */
-extern int32 sio0s(int32 io, int32 data);
-extern int32 sio0d(int32 io, int32 data);
-extern int32 sio1s(int32 io, int32 data);
-extern int32 sio1d(int32 io, int32 data);
+extern int32_t sio0s(int32_t io, int32_t data);
+extern int32_t sio0d(int32_t io, int32_t data);
+extern int32_t sio1s(int32_t io, int32_t data);
+extern int32_t sio1d(int32_t io, int32_t data);
 
 /* DC-4 FDC I/O routines */
-extern int32 fdcdrv(int32 io, int32 data);
-extern int32 fdccmd(int32 io, int32 data);
-extern int32 fdctrk(int32 io, int32 data);
-extern int32 fdcsec(int32 io, int32 data);
-extern int32 fdcdata(int32 io, int32 data);
+extern int32_t fdcdrv(int32_t io, int32_t data);
+extern int32_t fdccmd(int32_t io, int32_t data);
+extern int32_t fdctrk(int32_t io, int32_t data);
+extern int32_t fdcsec(int32_t io, int32_t data);
+extern int32_t fdcdata(int32_t io, int32_t data);
 
 /* LFD-400 FDC I/O routines */
 
-extern int32 fd400_fdcstatus(int32 io, int32 data);
-extern int32 fd400_cstatus(int32 io, int32 data);
-extern int32 fd400_data(int32 io, int32 data);
-extern int32 fd400_cursect(int32 io, int32 data);
-extern int32 fd400_startrw(int32 io, int32 data);
+extern int32_t fd400_fdcstatus(int32_t io, int32_t data);
+extern int32_t fd400_cstatus(int32_t io, int32_t data);
+extern int32_t fd400_data(int32_t io, int32_t data);
+extern int32_t fd400_cursect(int32_t io, int32_t data);
+extern int32_t fd400_startrw(int32_t io, int32_t data);
 
 extern DEVICE fd400_dsk_dev;
 
@@ -99,7 +101,7 @@ address is here, 'nulldev' means no device is available
 */
 
 struct idev {
-        int32 (*routine)(int32, int32);
+        int32_t (*routine)(int32_t, int32_t);
 };
 
 struct idev dev_table[32] = {
@@ -123,7 +125,7 @@ struct idev dev_table2[8] = {
 
 /* dummy i/o device */
 
-int32 nulldev(int32 io, int32 data)
+int32_t nulldev(int32_t io, int32_t data)
 {
     /* Shared I/O handler signature.
        This implementation does not use every parameter. */
@@ -201,9 +203,9 @@ DEVICE MB_dev = {
 
 /*  get a byte from memory */
 
-int32 MB_get_mbyte(int32 addr)
+int32_t MB_get_mbyte(int32_t addr)
 {
-    int32 val;
+    int32_t val;
 
     switch(addr & 0xE000) {
         case 0x0000:                    //0000-1FFFh
@@ -258,9 +260,9 @@ int32 MB_get_mbyte(int32 addr)
 
 /*  get a word from memory */
 
-int32 MB_get_mword(int32 addr)
+int32_t MB_get_mword(int32_t addr)
 {
-    int32 val;
+    int32_t val;
 
     val = (MB_get_mbyte(addr) << 8);
     val |= MB_get_mbyte(addr+1);
@@ -270,7 +272,7 @@ int32 MB_get_mword(int32 addr)
 
 /*  put a byte to memory */
 
-void MB_put_mbyte(int32 addr, int32 val)
+void MB_put_mbyte(int32_t addr, int32_t val)
 {
     switch(addr & 0xE000) {
         case 0x0000:                    //0000-1FFFh
@@ -310,7 +312,7 @@ void MB_put_mbyte(int32 addr, int32 val)
 
 /*  put a word to memory */
 
-void MB_put_mword(int32 addr, int32 val)
+void MB_put_mword(int32_t addr, int32_t val)
 {
     MB_put_mbyte(addr, val >> 8);
     MB_put_mbyte(addr+1, val);

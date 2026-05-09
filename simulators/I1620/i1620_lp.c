@@ -38,6 +38,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i1620_defs.h"
 
 #define LPT_BSIZE       197                             /* buffer size */
@@ -51,25 +53,25 @@
 #define K_LCNT          0x03                            /* line count */
 #define K_CHAN          0x0F                            /* channel */
 
-extern uint8 M[MAXMEMSIZE];
-extern uint8 ind[NUM_IND];
+extern uint8_t M[MAXMEMSIZE];
+extern uint8_t ind[NUM_IND];
 extern UNIT cpu_unit;
-extern uint32 io_stop;
+extern uint32_t io_stop;
 
-uint32 cct[CCT_LNT] = { 03 };                           /* car ctrl tape */
-int32 cct_lnt = 66, cct_ptr = 0;                        /* cct len, ptr */
-int32 lpt_bptr = 0;                                     /* lpt buf ptr */
+uint32_t cct[CCT_LNT] = { 03 };                         /* car ctrl tape */
+int32_t cct_lnt = 66, cct_ptr = 0;                      /* cct len, ptr */
+int32_t lpt_bptr = 0;                                   /* lpt buf ptr */
 char lpt_buf[LPT_BSIZE + 1];                            /* lpt buf */
-int32 lpt_savctrl = 0;                                  /* saved spc ctrl */
+int32_t lpt_savctrl = 0;                                /* saved spc ctrl */
 
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *cptr);
 void lpt_buf_init (void);
-t_stat lpt_num(uint32 pa, uint32 f1, bool dump);
-t_stat lpt_print (uint32 flag);
-t_stat lpt_spcop (int32 ctrl);
-t_stat lpt_space (int32 lines, int32 lflag);
+t_stat lpt_num(uint32_t pa, uint32_t f1, bool dump);
+t_stat lpt_print (uint32_t flag);
+t_stat lpt_spcop (int32_t ctrl);
+t_stat lpt_space (int32_t lines, int32_t lflag);
 
 #define CHP(ch,val)     ((val) & (1 << (ch)))
 
@@ -116,7 +118,7 @@ DEVICE lpt_dev = {
 
 /* Numeric (flag plus digit) to lineprinter (ASCII) */
 
-const int8 num_to_lpt[32] = {
+const int8_t num_to_lpt[32] = {
  '0', '1', '2', '3', '4', '5', '6', '7',                /* All invalid char treated as errors */
  '8', '9', '|', -1,  '@',  -1,  -1, 'G',                /* @, G only print on DN; else NB is blank */
  '-', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -125,7 +127,7 @@ const int8 num_to_lpt[32] = {
 
 /* Alphameric (digit pair) to lineprinter (ASCII) */
 
-const int8 alp_to_lpt[256] = {                          /* tfm: invalid codes 02, 12, 15, 32, 35, 61 removed */
+const int8_t alp_to_lpt[256] = {                        /* tfm: invalid codes 02, 12, 15, 32, 35, 61 removed */
  ' ',  -1,  -1, '.', ')',  -1,  -1,  -1,                /* 00 */
   -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
  '+',  -1,  -1, '$', '*',  -1,  -1,  -1,                /* 10 */
@@ -162,7 +164,7 @@ const int8 alp_to_lpt[256] = {                          /* tfm: invalid codes 02
 
 /* K validation and translation table - entryies 80:FF always 0 */
 
-static const int8 lpt_ktbl[128] = {
+static const int8_t lpt_ktbl[128] = {
   0, 0, 0, 11, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     /* 00 */
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* 10 */
   0, K_LIN|1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 20 */
@@ -185,11 +187,11 @@ static const int8 lpt_ktbl[128] = {
      flags, and halt the system if IO stop is set.
 */
 
-t_stat lpt (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat lpt (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
-int8 lpc;
-uint8 z, d;
-int32 ctrl;
+int8_t lpc;
+uint8_t z, d;
+int32_t ctrl;
 t_stat r, sta;
 
 sta = SCPE_OK;
@@ -247,10 +249,10 @@ return SCPE_OK;
 
 /* Print numeric */
 
-t_stat lpt_num (uint32 pa, uint32 f1, bool dump)
+t_stat lpt_num (uint32_t pa, uint32_t f1, bool dump)
 {
-uint8 d;
-int8 lpc;
+uint8_t d;
+int8_t lpc;
 t_stat r, sta;
 
 sta = SCPE_OK;
@@ -279,9 +281,9 @@ return sta;
 
 /* Print and possibly space - any spacing operation is non-immediate */
 
-t_stat lpt_print (uint32 flag)
+t_stat lpt_print (uint32_t flag)
 {
-int32 i, cc;
+int32_t i, cc;
 
 if ((lpt_unit.flags & UNIT_ATT) == 0) {                 /* not attached? */
     ind[IN_PRCHK] = 1;                                  /* pri check */
@@ -315,9 +317,9 @@ return SCPE_OK;                                         /* done */
 
 /* Space operation - direct (K) or deferred (WA, WN, DN) */
 
-t_stat lpt_spcop (int32 ctrl)
+t_stat lpt_spcop (int32_t ctrl)
 {
-int32 chan, i;
+int32_t chan, i;
 
 lpt_savctrl = K_LIN|1;                                  /* reset saved control */
 if ((ctrl & K_LIN) != 0)                                /* space lines? */
@@ -339,9 +341,9 @@ return STOP_CCT;                                        /* runaway channel */
         sflag   =       skip (true) or space (false)
 */
 
-t_stat lpt_space (int32 count, int32 sflag)
+t_stat lpt_space (int32_t count, int32_t sflag)
 {
-int32 i, cc;
+int32_t i, cc;
 
 cct_ptr = (cct_ptr + count) % cct_lnt;                  /* adv cct, mod lnt */
 if (sflag && CHP (0, cct[cct_ptr]) &&                   /* skip, top of form, */
@@ -384,7 +386,7 @@ return SCPE_OK;
 
 void lpt_buf_init (void)
 {
-int32 i;
+int32_t i;
 
 lpt_bptr = 0;
 for (i = 0; i < LPT_WIDTH + 1; i++)

@@ -30,6 +30,8 @@
 #define ALTAIRZ80_DEFS_H_    0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                                       /* simulator definitions                        */
 
 #define MAXBANKSIZE             65536                       /* maximum memory size, a power of 2            */
@@ -94,26 +96,26 @@ typedef enum {
 #define ADDRESS_FORMAT          "[0x%08x]"
 
 typedef struct {
-    uint32 mem_base;    /* Memory Base Address */
-    uint32 mem_size;    /* Memory Address space requirement */
-    uint32 io_base;     /* I/O Base Address */
-    uint32 io_size;     /* I/O Address Space requirement */
+    uint32_t mem_base;  /* Memory Base Address */
+    uint32_t mem_size;  /* Memory Address space requirement */
+    uint32_t io_base;   /* I/O Base Address */
+    uint32_t io_size;   /* I/O Address Space requirement */
 } PNP_INFO;
 
 extern ChipType chiptype;
-extern int32 find_unit_index(UNIT *uptr);
+extern int32_t find_unit_index(UNIT *uptr);
 extern void hdsk_prepareRead(void);
 extern void hdsk_prepareWrite(void);
-extern void hdsk_setSelectedDisk(const int32 disk);
-extern void hdsk_setSelectedSector(const int32 sector);
-extern void hdsk_setSelectedTrack(const int32 track);
-extern void hdsk_setSelectedDMA(const int32 dma);
-extern int32 hdsk_getStatus(void);
+extern void hdsk_setSelectedDisk(const int32_t disk);
+extern void hdsk_setSelectedSector(const int32_t sector);
+extern void hdsk_setSelectedTrack(const int32_t track);
+extern void hdsk_setSelectedDMA(const int32_t dma);
+extern int32_t hdsk_getStatus(void);
 extern bool hdsk_checkParameters(void);
-extern int32 hdsk_read(void);
-extern int32 hdsk_write(void);
-extern int32 hdsk_flush(void);
-extern t_stat parse_sym_m68k(char *c, t_addr a, UNIT *u, t_value *val, int32 sw);
-extern void raise_scp300f_interrupt(uint8 isr_index);
+extern int32_t hdsk_read(void);
+extern int32_t hdsk_write(void);
+extern int32_t hdsk_flush(void);
+extern t_stat parse_sym_m68k(char *c, t_addr a, UNIT *u, t_value *val, int32_t sw);
+extern void raise_scp300f_interrupt(uint8_t isr_index);
 
 #endif

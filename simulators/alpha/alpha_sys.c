@@ -29,18 +29,19 @@
 #include "alpha_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint32 pal_type;
+extern uint32_t pal_type;
 
-t_stat fprint_sym_m (FILE *of, t_addr addr, uint32 inst);
+t_stat fprint_sym_m (FILE *of, t_addr addr, uint32_t inst);
 t_stat parse_sym_m (const char *cptr, t_addr addr, t_value *inst);
-int32 parse_reg (const char *cptr);
+int32_t parse_reg (const char *cptr);
 
-extern t_stat fprint_pal_hwre (FILE *of, uint32 inst);
+extern t_stat fprint_pal_hwre (FILE *of, uint32_t inst);
 extern t_stat parse_pal_hwre (const char *cptr, t_value *inst);
-extern bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt);
+extern bool rom_wr (uint64_t pa, uint64_t val, uint32_t lnt);
 
 /* SCP data structures and interface routines
 
@@ -52,7 +53,7 @@ extern bool rom_wr (t_uint64 pa, t_uint64 val, uint32 lnt);
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 const char *sim_stop_messages[SCPE_BASE] = {
     "Unknown error",
@@ -81,8 +82,8 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
 (void)fnam;
 
 t_stat r;
-int32 i;
-t_uint64 origin;
+int32_t i;
+uint64_t origin;
 
 if (flag) return SCPE_ARG;                              /* dump? */
 origin = 0;                                             /* memory */
@@ -149,7 +150,7 @@ return SCPE_OK;
 #define C_JP            CL_JP | FL_RA | FL_RB | FL_RBI | FL_JDP
 #define C_HW            CL_HW
 
-uint32 masks[8] = {
+uint32_t masks[8] = {
  0xFFFFFFFF, 0xFC000000,
  0xFC000000, 0xFC000FE0,
  0xFC00FFE0, 0xFC00FFFF,
@@ -322,7 +323,7 @@ const char *opcode[] = {
  NULL
  };
 
-const uint32 opval[] = {
+const uint32_t opval[] = {
  0x00000000, C_PCM, 0x00000001, C_PCM, 0x00000002, C_PCM, 0x00000003, C_PVM,
  0x00000004, C_PVM, 0x00000005, C_PVM, 0x00000006, C_PVM, 0x00000007, C_PVM,
  0x00000008, C_PVM, 0x00000009, C_PCM, 0x0000000A, C_PCM, 0x0000000B, C_PVM,
@@ -502,9 +503,9 @@ const uint32 opval[] = {
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-uint32 c, sc, rdx;
+uint32_t c, sc, rdx;
 t_stat r;
 DEVICE *dptr;
 
@@ -518,39 +519,39 @@ else if (sw & SWMASK ('H')) rdx = 16;
 else rdx = dptr->dradix;
 
 if (sw & SWMASK ('A')) {                                /* ASCII? */
-    sc = (uint32) (addr & 0x7) * 8;                     /* shift count */
-    c = (uint32) (val[0] >> sc) & 0x7F;
+    sc = (uint32_t) (addr & 0x7) * 8;                   /* shift count */
+    c = (uint32_t) (val[0] >> sc) & 0x7F;
     fprintf (of, (c < 0x20)? "<%02X>": "%c", c);
     return 0;
     }
 if (sw & SWMASK ('B')) {                                /* byte? */
-    sc = (uint32) (addr & 0x7) * 8;                     /* shift count */
-    c = (uint32) (val[0] >> sc) & M8;
+    sc = (uint32_t) (addr & 0x7) * 8;                   /* shift count */
+    c = (uint32_t) (val[0] >> sc) & M8;
     fprintf (of, "%02X", c);
     return 0;
     }
 if (sw & SWMASK ('W')) {                                /* word? */
-    sc = (uint32) (addr & 0x6) * 8;                     /* shift count */
-    c = (uint32) (val[0] >> sc) & M16;
+    sc = (uint32_t) (addr & 0x6) * 8;                   /* shift count */
+    c = (uint32_t) (val[0] >> sc) & M16;
     fprintf (of, "%04X", c);
     return -1;
     }
 if (sw & SWMASK ('L')) {                                /* long? */
-    if (addr & 4) c = (uint32) (val[0] >> 32) & M32;
-    else c = (uint32) val[0] & M32;
+    if (addr & 4) c = (uint32_t) (val[0] >> 32) & M32;
+    else c = (uint32_t) val[0] & M32;
     fprintf (of, "%08X", c);
     return -3;
     }
 if (sw & SWMASK ('C')) {                                /* char format? */
     for (sc = 0; sc < 64; sc = sc + 8) {                /* print string */
-        c = (uint32) (val[0] >> sc) & 0x7F;
+        c = (uint32_t) (val[0] >> sc) & 0x7F;
         fprintf (of, (c < 0x20)? "<%02X>": "%c", c);
         }
     return -7;                                          /* return # chars */
     }
 if (sw & SWMASK ('M')) {                                /* inst format? */
-    if (addr & 4) c = (uint32) (val[0] >> 32) & M32;
-    else c = (uint32) val[0] & M32;
+    if (addr & 4) c = (uint32_t) (val[0] >> 32) & M32;
+    else c = (uint32_t) val[0] & M32;
     r = fprint_sym_m (of, addr, c);                     /* decode inst */
     if (r <= 0) return r;
     }
@@ -570,9 +571,9 @@ return -7;
                         if < 0, number of extra bytes retired (-3)
 */
 
-t_stat fprint_sym_m (FILE *of, t_addr addr, uint32 inst)
+t_stat fprint_sym_m (FILE *of, t_addr addr, uint32_t inst)
 {
-uint32 i, j, k, fl, ra, rb, rc, md, bd, jd, lit8, any;
+uint32_t i, j, k, fl, ra, rb, rc, md, bd, jd, lit8, any;
 t_stat r;
 
 if ((r = fprint_pal_hwre (of, inst)) < 0) return r;     /* PAL instruction? */
@@ -633,10 +634,10 @@ return SCPE_ARG;
                         <= 0  -number of extra words
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 t_value num;
-uint32 i, sc, rdx;
+uint32_t i, sc, rdx;
 t_stat r;
 DEVICE *dptr;
 
@@ -651,32 +652,32 @@ else rdx = dptr->dradix;
 
 if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    sc = (uint32) (addr & 0x7) * 8;                     /* shift count */
-    val[0] = (val[0] & ~(((t_uint64) M8) << sc)) |
-        (((t_uint64) cptr[0]) << sc);
+    sc = (uint32_t) (addr & 0x7) * 8;                   /* shift count */
+    val[0] = (val[0] & ~(((uint64_t) M8) << sc)) |
+        (((uint64_t) cptr[0]) << sc);
     return 0;
     }
 if (sw & SWMASK ('B')) {                                /* byte? */
     num = get_uint (cptr, rdx, M8, &r);                 /* get byte */
     if (r != SCPE_OK) return SCPE_ARG;
-    sc = (uint32) (addr & 0x7) * 8;                     /* shift count */
-    val[0] = (val[0] & ~(((t_uint64) M8) << sc)) |
+    sc = (uint32_t) (addr & 0x7) * 8;                   /* shift count */
+    val[0] = (val[0] & ~(((uint64_t) M8) << sc)) |
         (num << sc);
     return 0;
     }
 if (sw & SWMASK ('W')) {                                /* word? */
     num = get_uint (cptr, rdx, M16, &r);                /* get word */
     if (r != SCPE_OK) return SCPE_ARG;
-    sc = (uint32) (addr & 0x6) * 8;                     /* shift count */
-    val[0] = (val[0] & ~(((t_uint64) M16) << sc)) |
+    sc = (uint32_t) (addr & 0x6) * 8;                   /* shift count */
+    val[0] = (val[0] & ~(((uint64_t) M16) << sc)) |
         (num << sc);
     return -1;
     }
 if (sw & SWMASK ('L')) {                                /* longword? */
     num = get_uint (cptr, rdx, M32, &r);                /* get longword */
     if (r != SCPE_OK) return SCPE_ARG;
-    sc = (uint32) (addr & 0x4) * 8;                     /* shift count */
-    val[0] = (val[0] & ~(((t_uint64) M32) << sc)) |
+    sc = (uint32_t) (addr & 0x4) * 8;                   /* shift count */
+    val[0] = (val[0] & ~(((uint64_t) M32) << sc)) |
         (num << sc);
     return -3;
     }
@@ -685,8 +686,8 @@ if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII chars? */
     for (i = 0; i < 8; i++) {
         if (cptr[i] == 0) break;
         sc = i * 8;
-        val[0] = (val[0] & ~(((t_uint64) M8) << sc)) |
-            (((t_uint64) cptr[i]) << sc);
+        val[0] = (val[0] & ~(((uint64_t) M8) << sc)) |
+            (((uint64_t) cptr[i]) << sc);
         }
     return -7;
     }
@@ -694,8 +695,8 @@ if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII chars? */
 if ((addr & 3) == 0) {                                  /* aligned only */
     r = parse_sym_m (cptr, addr, &num);                 /* try to parse inst */
     if (r <= 0) {                                       /* ok? */
-        sc = (uint32) (addr & 0x4) * 8;                 /* shift count */
-        val[0] = (val[0] & ~(((t_uint64) M32) << sc)) |
+        sc = (uint32_t) (addr & 0x4) * 8;               /* shift count */
+        val[0] = (val[0] & ~(((uint64_t) M32) << sc)) |
             (num << sc);
             return -3;
         }
@@ -719,9 +720,9 @@ return -7;
 
 t_stat parse_sym_m (const char *cptr, t_addr addr, t_value *inst)
 {
-t_uint64 bra, df, db;
-uint32 i, k, lit8, fl;
-int32 reg;
+uint64_t bra, df, db;
+uint32_t i, k, lit8, fl;
+int32_t reg;
 t_stat r;
 const char *tptr;
 char gbuf[CBUFSIZE];
@@ -751,16 +752,16 @@ if (fl & FL_BDP) {                                      /* need branch disp? */
     df = ((bra - (addr + 4)) >> 2) & I_M_BDSP;
     db = ((addr + 4 - bra) >> 2) & I_M_BDSP;
     if (bra == ((addr + 4 + (SEXT_BDSP (df) << 2)) & M64))
-        *inst = *inst | (uint32) df;
+        *inst = *inst | (uint32_t) df;
     else if (bra == ((addr + 4 + (SEXT_BDSP (db) << 2)) & M64))
-        *inst = *inst | (uint32) db;
+        *inst = *inst | (uint32_t) db;
     else return SCPE_ARG;
     }
 else if (fl & FL_MDP) {                                 /* need mem disp? */
     cptr = get_glyph (cptr, gbuf, 0);
     df = strtotv (gbuf, &tptr, 16);
     if ((gbuf == tptr) || (df > I_M_MDSP)) return SCPE_ARG;
-    *inst = *inst | (uint32) df;
+    *inst = *inst | (uint32_t) df;
     if (*tptr == '(') {
         tptr = get_glyph (tptr + 1, gbuf, ')');
         if ((reg = parse_reg (gbuf)) < 0) return SCPE_ARG;
@@ -780,7 +781,7 @@ else if (fl & FL_RBI) {                                 /* indexed? */
 else if (fl & FL_RB) {
     cptr = get_glyph (cptr, gbuf, ',');                 /* get reg/lit */
     if ((gbuf[0] == '#') && (fl & FL_LIT)) {            /* literal? */
-        lit8 = (uint32) get_uint (gbuf + 1, 16, I_M_LIT8, &r);
+        lit8 = (uint32_t) get_uint (gbuf + 1, 16, I_M_LIT8, &r);
         if (r != SCPE_OK) return r;
         *inst = *inst | I_ILIT | (lit8 << I_V_LIT8);
         }
@@ -807,14 +808,14 @@ return -3;
 
 /* Parse a register */
 
-int32 parse_reg (const char *cptr)
+int32_t parse_reg (const char *cptr)
 {
 t_stat r;
-int32 reg;
+int32_t reg;
 
 if ((*cptr == 'R') || (*cptr == 'r') ||
     (*cptr == 'F') || (*cptr == 'f')) cptr++;
-reg = (int32) get_uint (cptr, 10, 31, &r);
+reg = (int32_t) get_uint (cptr, 10, 31, &r);
 if (r != SCPE_OK) return -1;
 return reg;
 }

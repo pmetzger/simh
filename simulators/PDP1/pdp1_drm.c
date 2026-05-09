@@ -37,6 +37,7 @@
 
 #include "pdp1_defs.h"
 #include <math.h>
+#include <stdint.h>
 
 /* Serial drum constants */
 
@@ -72,33 +73,33 @@
 #define GET_POS(x)      ((int) fmod (sim_gtime() / ((double) (x)), \
                         ((double) DRM_NUMWDT)))
 
-extern int32 M[];
-extern int32 iosta;
-extern int32 stop_inst;
+extern int32_t M[];
+extern int32_t iosta;
+extern int32_t stop_inst;
 extern UNIT cpu_unit;
 
 /* Serial drum variables */
 
-uint32 drm_da = 0;                                      /* track address */
-uint32 drm_ma = 0;                                      /* memory address */
-uint32 drm_err = 0;                                     /* error flag */
-uint32 drm_wlk = 0;                                     /* write lock */
-int32 drm_time = 4;                                     /* inter-word time */
-int32 drm_sbs = 0;                                      /* SBS level */
-int32 drm_stopioe = 1;                                  /* stop on error */
+uint32_t drm_da = 0;                                    /* track address */
+uint32_t drm_ma = 0;                                    /* memory address */
+uint32_t drm_err = 0;                                   /* error flag */
+uint32_t drm_wlk = 0;                                   /* write lock */
+int32_t drm_time = 4;                                   /* inter-word time */
+int32_t drm_sbs = 0;                                    /* SBS level */
+int32_t drm_stopioe = 1;                                /* stop on error */
 
 /* Parallel drum variables */
 
-uint32 drp_rde = 0;                                     /* read enable */
-uint32 drp_wre = 0;                                     /* write enable */
-uint32 drp_rdf = 0;                                     /* read field */
-uint32 drp_wrf = 0;                                     /* write field */
-uint32 drp_ta = 0;                                      /* track address */
-uint32 drp_wc = 0;                                      /* word count */
-uint32 drp_ma = 0;                                      /* memory address */
-uint32 drp_err = 0;                                     /* error */
-int32 drp_time = 2;                                     /* inter-word time */
-int32 drp_stopioe = 1;                                  /* stop on error */
+uint32_t drp_rde = 0;                                   /* read enable */
+uint32_t drp_wre = 0;                                   /* write enable */
+uint32_t drp_rdf = 0;                                   /* read field */
+uint32_t drp_wrf = 0;                                   /* write field */
+uint32_t drp_ta = 0;                                    /* track address */
+uint32_t drp_wc = 0;                                    /* word count */
+uint32_t drp_ma = 0;                                    /* memory address */
+uint32_t drp_err = 0;                                   /* error */
+int32_t drp_time = 2;                                   /* inter-word time */
+int32_t drp_stopioe = 1;                                /* stop on error */
 
 /* Forward declarations */
 
@@ -183,10 +184,10 @@ DEVICE drp_dev = {
 
 /* IOT routines */
 
-int32 drm (int32 IR, int32 dev, int32 dat)
+int32_t drm (int32_t IR, int32_t dev, int32_t dat)
 {
-int32 t;
-int32 pulse = (IR >> 6) & 037;
+int32_t t;
+int32_t pulse = (IR >> 6) & 037;
 
 if ((drm_dev.flags & DEV_DIS) == 0) {                   /* serial enabled? */
     if ((pulse != 001) && (pulse != 011))               /* invalid pulse? */
@@ -276,8 +277,8 @@ return (stop_inst << IOT_V_REASON) | dat;               /* stop if requested */
 
 t_stat drm_svc (UNIT *uptr)
 {
-uint32 i, da;
-uint32 *fbuf = (uint32 *) uptr->filebuf;
+uint32_t i, da;
+uint32_t *fbuf = (uint32_t *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
     drm_err = 1;                                        /* set error */
@@ -330,8 +331,8 @@ return SCPE_OK;
 
 t_stat drp_svc (UNIT *uptr)
 {
-uint32 i, lim;
-uint32 *fbuf = (uint32 *)uptr->filebuf;
+uint32_t i, lim;
+uint32_t *fbuf = (uint32_t *)uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
     drp_err = 1;                                        /* set error */

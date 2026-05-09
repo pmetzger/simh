@@ -45,6 +45,7 @@
 #include "pdp10_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev;
 extern DEVICE pag_dev;
@@ -81,7 +82,7 @@ char sim_name[] = "PDP-10";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -174,7 +175,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 static d10 getrimw (FILE *fileref)
 {
-int32 i, tmp;
+int32_t i, tmp;
 d10 word;
 
 word = 0;
@@ -193,14 +194,14 @@ static t_stat load_rim (FILE *fileref)
 {
 d10 count, cksm, data;
 a10 pa;
-int32 op, i, ldrc;
+int32_t op, i, ldrc;
 bool its_rim;
 extern d10 rot (d10 val, a10 ea);
 
 data = getrimw (fileref);                               /* get first word */
 if ((data < 0) || ((data & AMASK) != 0))                /* error? SA != 0? */
     return SCPE_FMT;
-ldrc = 01000000 - ((int32) (LRZ (data)));               /* get loader count */
+ldrc = 01000000 - ((int32_t) (LRZ (data)));             /* get loader count */
 if (ldrc == 016)                                        /* 16? RIM10B */
     its_rim = false;
 else if (ldrc == 017)                                   /* 17? ITS RIM */
@@ -266,7 +267,7 @@ static t_stat load_sav (FILE *fileref)
 {
 d10 count, data;
 a10 pa;
-int32 wc, op;
+int32_t wc, op;
 
 for ( ;; ) {                                            /* loop */
     wc = fxread (&count, sizeof (d10), 1, fileref);     /* read IOWD */
@@ -321,8 +322,8 @@ return SCPE_OK;
 static t_stat load_exe (FILE *fileref)
 {
 d10 data, dirbuf[DIRSIZ], pagbuf[PAG_SIZE], entbuf[2];
-int32 ndir, entvec, i, j, k, cont, bsz, bty, rpt, wc;
-int32 fpage, mpage;
+int32_t ndir, entvec, i, j, k, cont, bsz, bty, rpt, wc;
+int32_t fpage, mpage;
 a10 ma;
 
 ndir = entvec = 0;                                      /* no dir, entvec */
@@ -331,10 +332,10 @@ do {
     wc = fxread (&data, sizeof (d10), 1, fileref);      /* read blk hdr */
     if (wc == 0)                                        /* error? */
         return SCPE_FMT;
-    bsz = (int32) ((data & RMASK) - 1);                 /* get count */
+    bsz = (int32_t) ((data & RMASK) - 1);               /* get count */
     if (bsz < 0)                                        /* zero? */
         return SCPE_FMT;
-    bty = (int32) LRZ (data);                           /* get type */
+    bty = (int32_t) LRZ (data);                         /* get type */
     switch (bty) {                                      /* case type */
 
     case EXE_DIR:                                       /* directory */
@@ -370,9 +371,9 @@ do {
     } while (cont);                                     /* end do */
 
 for (i = 0; i < ndir; i = i + 2) {                      /* loop thru dir */
-    fpage = (int32) (dirbuf[i] & RMASK);                /* file page */
-    mpage = (int32) (dirbuf[i + 1] & RMASK);            /* memory page */
-    rpt = ((int32) ((dirbuf[i + 1] >> 27) + 1)) & 0777; /* repeat count */
+    fpage = (int32_t) (dirbuf[i] & RMASK);              /* file page */
+    mpage = (int32_t) (dirbuf[i + 1] & RMASK);          /* memory page */
+    rpt = ((int32_t) ((dirbuf[i + 1] >> 27) + 1)) & 0777; /* repeat count */
     for (j = 0; j < rpt; j++, mpage++) {                /* loop thru rpts */
         if (fpage) {                                    /* file pages? */
             (void)fseek (fileref, (fpage << PAG_V_PN) * sizeof (d10), SEEK_SET);
@@ -390,7 +391,7 @@ for (i = 0; i < ndir; i = i + 2) {                      /* loop thru dir */
         }                                               /* end rpt */
     }                                                   /* end directory */
 if (entvec && entbuf[1])
-    saved_PC = (int32) (entbuf[1] & RMASK);             /* start addr */
+    saved_PC = (int32_t) (entbuf[1] & RMASK);           /* start addr */
 return SCPE_OK;
 }
 
@@ -404,7 +405,7 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
 (void)flag;
 
 d10 data;
-int32 wc, fmt;
+int32_t wc, fmt;
 
 fmt = 0;                                                /* no fmt */
 if (sim_switches & SWMASK ('R'))                        /* -r? */
@@ -760,33 +761,33 @@ static const char *devnam[NUMDEV] = {
 #define SIXTOASC(x) ((x) + 040)
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-int32 i, j, c, ac, xr, y, dev;
+int32_t i, j, c, ac, xr, y, dev;
 d10 inst;
 
 inst = val[0];
 if (sw & SWMASK ('A')) {                                /* ASCII? */
     if (inst > 0377)
         return SCPE_ARG;
-    fprintf (of, FMTASC ((int32) (inst & 0177)));
+    fprintf (of, FMTASC ((int32_t) (inst & 0177)));
     return SCPE_OK;
     }
 if (sw & SWMASK ('C')) {                                /* character? */
     for (i = 30; i >= 0; i = i - 6) {
-        c = (int32) ((inst >> i) & 077);
+        c = (int32_t) ((inst >> i) & 077);
         fprintf (of, "%c", SIXTOASC (c));
         }
     return SCPE_OK;
     }
 if (sw & SWMASK ('P')) {                                /* packed? */
     for (i = 29; i >= 0; i = i - 7) {
-        c = (int32) ((inst >> i) & 0177);
+        c = (int32_t) ((inst >> i) & 0177);
         fprintf (of, FMTASC (c));
         }
     return SCPE_OK;
@@ -801,7 +802,7 @@ xr = GET_XR (inst);
 y = GET_ADDR (inst);
 dev = GET_DEV (inst);
 for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
-    j = (int32) ((opc_val[i] >> I_V_FL) & I_M_FL);      /* get class */
+    j = (int32_t) ((opc_val[i] >> I_V_FL) & I_M_FL);    /* get class */
     if (((opc_val[i] & DMASK) == (inst & masks[j])) &&  /* match? */
             (((opc_val[i] & I_ITS) == 0) || Q_ITS)) {
         fprintf (of, "%s ", opcode[i]);                 /* opcode */
@@ -845,7 +846,7 @@ return SCPE_ARG;
 
 static t_value get_opnd (const char *cptr, t_stat *status)
 {
-int32 sign = 0;
+int32_t sign = 0;
 t_value val, xr = 0, ind = 0;
 const char *tptr;
 
@@ -891,14 +892,14 @@ return (ind | (xr << 18) | val);
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-int32 i, j;
+int32_t i, j;
 t_value ac, dev;
 t_stat r;
 char gbuf[CBUFSIZE], cbuf[2*CBUFSIZE];
@@ -939,7 +940,7 @@ for (i = 0; (opcode[i] != NULL) && (strcmp (opcode[i], gbuf) != 0) ; i++) ;
 if (opcode[i] == NULL)
     return SCPE_ARG;
 val[0] = opc_val[i] & DMASK;                            /* get value */
-j = (int32) ((opc_val[i] >> I_V_FL) & I_M_FL);          /* get class */
+j = (int32_t) ((opc_val[i] >> I_V_FL) & I_M_FL);        /* get class */
 switch (j) {                                            /* case on class */
 
     case I_V_AC:                                        /* AC + operand */

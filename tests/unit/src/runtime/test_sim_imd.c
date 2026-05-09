@@ -102,8 +102,8 @@ static void test_disk_open_reads_minimal_single_sector_image(void **state)
     uint8_t image_bytes[10 + 5 + 1 + 1 + 128];
     uint8_t sector_data[128];
     uint8_t read_buffer[128];
-    uint32 flags;
-    uint32 readlen;
+    uint32_t flags;
+    uint32_t readlen;
     FILE *image;
     DISK_INFO *disk;
 
@@ -157,8 +157,8 @@ test_disk_open_reads_compressed_sector_and_write_protects(void **state)
     uint8_t expected_buffer[128];
     uint8_t read_buffer[128];
     struct sim_imd_fixture *fixture = *state;
-    uint32 flags;
-    uint32 readlen;
+    uint32_t flags;
+    uint32_t readlen;
     FILE *image;
     DISK_INFO *disk;
 
@@ -212,8 +212,8 @@ static void test_sect_write_persists_deleted_address_mark(void **state)
     uint8_t write_buffer[128];
     uint8_t read_buffer[128];
     struct sim_imd_fixture *fixture = *state;
-    uint32 flags;
-    uint32 readlen;
+    uint32_t flags;
+    uint32_t readlen;
     FILE *image;
     DISK_INFO *disk;
 

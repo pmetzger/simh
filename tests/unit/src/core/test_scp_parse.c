@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "test_cmocka.h"
@@ -93,8 +94,8 @@ static void test_get_glyph_cmd_treats_spaced_bang_as_normal_token(void **state)
 /* Verify switch parsing handles both bitmask and numeric switch forms. */
 static void test_get_switches_parses_bitmask_and_number(void **state)
 {
-    int32 sw;
-    int32 number;
+    int32_t sw;
+    int32_t number;
 
     (void)state;
 
@@ -108,8 +109,8 @@ static void test_get_switches_parses_bitmask_and_number(void **state)
 /* Verify switch parsing rejects mixed or otherwise invalid syntax. */
 static void test_get_switches_rejects_invalid_switches(void **state)
 {
-    int32 sw;
-    int32 number;
+    int32_t sw;
+    int32_t number;
 
     (void)state;
 

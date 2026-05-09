@@ -21,6 +21,8 @@
 */
 
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
@@ -821,7 +823,7 @@ static t_stat tym_input_srv(UNIT *uptr)
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 ch;
+    int32_t ch;
     int i;
 
     if (room (IBP, IHP, ISIZ) > 1) {

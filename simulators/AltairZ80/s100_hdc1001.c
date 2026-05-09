@@ -39,6 +39,8 @@
  *************************************************************************/
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 
@@ -116,41 +118,41 @@ static char* hdc1001_reg_wr_str[] = {
 
 typedef struct {
     UNIT *uptr;
-    uint8  readonly;    /* Drive is read-only? */
-    uint16 sectsize;    /* sector size */
-    uint16 nsectors;    /* number of sectors/track */
-    uint16 nheads;      /* number of heads */
-    uint16 ncyls;       /* number of cylinders */
-    uint16 cur_cyl;     /* Current cylinder */
-    uint8  cur_head;    /* Current Head */
-    uint8  cur_sect;    /* current starting sector of transfer */
-    uint16 cur_sectsize;/* Current sector size in SDH register */
-    uint16 xfr_nsects;  /* Number of sectors to transfer */
-    uint8 ready;        /* Is drive ready? */
+    uint8_t readonly;   /* Drive is read-only? */
+    uint16_t sectsize;  /* sector size */
+    uint16_t nsectors;  /* number of sectors/track */
+    uint16_t nheads;    /* number of heads */
+    uint16_t ncyls;     /* number of cylinders */
+    uint16_t cur_cyl;   /* Current cylinder */
+    uint8_t cur_head;   /* Current Head */
+    uint8_t cur_sect;   /* current starting sector of transfer */
+    uint16_t cur_sectsize;/* Current sector size in SDH register */
+    uint16_t xfr_nsects; /* Number of sectors to transfer */
+    uint8_t ready;      /* Is drive ready? */
 } HDC1001_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8   sel_drive;  /* Currently selected drive */
-    uint8   taskfile[8]; /* ATA Task File Registers */
-    uint8   status_reg; /* HDC-1001 Status Register */
-    uint8   error_reg;  /* HDC-1001 Status Register */
-    uint8   retries;    /* Number of retries to attempt */
-    uint8   ndrives;    /* Number of drives attached to the controller */
-    uint8   sectbuf[HDC1001_MAX_SECLEN];
-    uint16  secbuf_index;
+    uint8_t sel_drive;  /* Currently selected drive */
+    uint8_t taskfile[8]; /* ATA Task File Registers */
+    uint8_t status_reg; /* HDC-1001 Status Register */
+    uint8_t error_reg;  /* HDC-1001 Status Register */
+    uint8_t retries;    /* Number of retries to attempt */
+    uint8_t ndrives;    /* Number of drives attached to the controller */
+    uint8_t sectbuf[HDC1001_MAX_SECLEN];
+    uint16_t secbuf_index;
     HDC1001_DRIVE_INFO drive[HDC1001_MAX_DRIVES];
 } HDC1001_INFO;
 
 static HDC1001_INFO hdc1001_info_data = { { 0x0, 0, 0xE0, 8 } };
 static HDC1001_INFO *hdc1001_info = &hdc1001_info_data;
 
-extern uint32 PCX;
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern int32 find_unit_index(UNIT *uptr);
+extern uint32_t PCX;
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern int32_t find_unit_index(UNIT *uptr);
 
 #define UNIT_V_HDC1001_VERBOSE    (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
 #define UNIT_HDC1001_VERBOSE      (1 << UNIT_V_HDC1001_VERBOSE)
@@ -159,12 +161,12 @@ extern int32 find_unit_index(UNIT *uptr);
 static t_stat hdc1001_reset(DEVICE *hdc1001_dev);
 static t_stat hdc1001_attach(UNIT *uptr, const char *cptr);
 static t_stat hdc1001_detach(UNIT *uptr);
-static t_stat hdc1001_unit_set_geometry(UNIT* uptr, int32 value, const char* cptr, void* desc);
-static t_stat hdc1001_unit_show_geometry(FILE* st, UNIT* uptr, int32 val, const void* desc);
-static int32 hdc1001dev(const int32 port, const int32 io, const int32 data);
+static t_stat hdc1001_unit_set_geometry(UNIT* uptr, int32_t value, const char* cptr, void* desc);
+static t_stat hdc1001_unit_show_geometry(FILE* st, UNIT* uptr, int32_t val, const void* desc);
+static int32_t hdc1001dev(const int32_t port, const int32_t io, const int32_t data);
 
-static uint8 HDC1001_Read(const uint32 Addr);
-static uint8 HDC1001_Write(const uint32 Addr, uint8 cData);
+static uint8_t HDC1001_Read(const uint32_t Addr);
+static uint8_t HDC1001_Write(const uint32_t Addr, uint8_t cData);
 static t_stat HDC1001_doCommand(void);
 static const char* hdc1001_description(DEVICE *dptr);
 
@@ -313,7 +315,7 @@ static t_stat hdc1001_detach(UNIT *uptr)
 {
     HDC1001_DRIVE_INFO *pDrive;
     t_stat r;
-    int32 i;
+    int32_t i;
 
     i = find_unit_index(uptr);
 
@@ -335,7 +337,7 @@ static t_stat hdc1001_detach(UNIT *uptr)
 }
 
 /* Set geometry of the disk drive */
-static t_stat hdc1001_unit_set_geometry(UNIT* uptr, int32 value, const char* cptr, void* desc)
+static t_stat hdc1001_unit_set_geometry(UNIT* uptr, int32_t value, const char* cptr, void* desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -343,9 +345,9 @@ static t_stat hdc1001_unit_set_geometry(UNIT* uptr, int32 value, const char* cpt
     (void) desc;
 
     HDC1001_DRIVE_INFO* pDrive;
-    int32 i;
-    int32 result;
-    uint16 newCyls, newHeads, newSPT, newSecLen;
+    int32_t i;
+    int32_t result;
+    uint16_t newCyls, newHeads, newSPT, newSecLen;
 
     i = find_unit_index(uptr);
 
@@ -393,7 +395,7 @@ static t_stat hdc1001_unit_set_geometry(UNIT* uptr, int32 value, const char* cpt
 }
 
 /* Show geometry of the disk drive */
-static t_stat hdc1001_unit_show_geometry(FILE* st, UNIT* uptr, int32 val, const void* desc)
+static t_stat hdc1001_unit_show_geometry(FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -401,7 +403,7 @@ static t_stat hdc1001_unit_show_geometry(FILE* st, UNIT* uptr, int32 val, const 
     (void) desc;
 
     HDC1001_DRIVE_INFO* pDrive;
-    int32 i;
+    int32_t i;
 
     i = find_unit_index(uptr);
 
@@ -419,10 +421,10 @@ static t_stat hdc1001_unit_show_geometry(FILE* st, UNIT* uptr, int32 val, const 
 
 
 /* HDC-1001 I/O Dispatch */
-static int32 hdc1001dev(const int32 port, const int32 io, const int32 data)
+static int32_t hdc1001dev(const int32_t port, const int32_t io, const int32_t data)
 {
     if(io) {
-        HDC1001_Write(port, (uint8)data);
+        HDC1001_Write(port, (uint8_t)data);
         return 0;
     } else {
         return(HDC1001_Read(port));
@@ -431,10 +433,10 @@ static int32 hdc1001dev(const int32 port, const int32 io, const int32 data)
 
 
 /* I/O Write to HDC-1001 Task File */
-static uint8 HDC1001_Write(const uint32 Addr, uint8 cData)
+static uint8_t HDC1001_Write(const uint32_t Addr, uint8_t cData)
 {
     HDC1001_DRIVE_INFO *pDrive;
-    uint8 cmd;
+    uint8_t cmd;
 
     pDrive = &hdc1001_info->drive[hdc1001_info->sel_drive];
 
@@ -488,7 +490,7 @@ static uint8 HDC1001_Write(const uint32 Addr, uint8 cData)
             break;
         case TF_CMD:
         {
-            uint8 rwopts;
+            uint8_t rwopts;
 
             hdc1001_info->secbuf_index = 0;
             hdc1001_info->taskfile[TF_CMD] = cData;
@@ -527,10 +529,10 @@ static uint8 HDC1001_Write(const uint32 Addr, uint8 cData)
 
 
 /* I/O Read from HDC-1001 Task File */
-static uint8 HDC1001_Read(const uint32 Addr)
+static uint8_t HDC1001_Read(const uint32_t Addr)
 {
     HDC1001_DRIVE_INFO* pDrive;
-    uint8 cData = 0xFF;
+    uint8_t cData = 0xFF;
 
     pDrive = &hdc1001_info->drive[hdc1001_info->sel_drive];
 
@@ -607,7 +609,7 @@ static int HDC1001_Validate_CHSN(HDC1001_DRIVE_INFO* pDrive)
 static t_stat HDC1001_doCommand(void)
 {
     HDC1001_DRIVE_INFO* pDrive;
-    uint8 cmd;
+    uint8_t cmd;
     t_stat r = SCPE_OK;
 
     cmd = hdc1001_info->taskfile[TF_CMD] & 0x70;
@@ -651,9 +653,9 @@ static t_stat HDC1001_doCommand(void)
                 /* Fall through */
             case HDC1001_CMD_READ_SECT:
             {
-                uint32 xfr_len;
-                uint32 file_offset;
-                uint8 rwopts;   /* Options specified in the command: DMA, Multi-sector, long. */
+                uint32_t xfr_len;
+                uint32_t file_offset;
+                uint8_t rwopts; /* Options specified in the command: DMA, Multi-sector, long. */
 
                 /* Abort the read/write operation if C/H/S/N is not valid. */
                 if (HDC1001_Validate_CHSN(pDrive) != SCPE_OK) break;
@@ -706,9 +708,9 @@ static t_stat HDC1001_doCommand(void)
                 }
             case HDC1001_CMD_FORMAT_TRK:
             {
-                uint32 data_len;
-                uint32 file_offset;
-                uint8 *fmtBuffer;
+                uint32_t data_len;
+                uint32_t file_offset;
+                uint8_t *fmtBuffer;
 
                 /* If drive is read-only, signal a write fault. */
                 if (pDrive->readonly) {
@@ -736,7 +738,7 @@ static t_stat HDC1001_doCommand(void)
                 file_offset += (pDrive->cur_head * pDrive->nsectors);   /* Add full heads */
                 file_offset *= pDrive->sectsize;    /* Convert #sectors to byte offset */
 
-                fmtBuffer = calloc(data_len, sizeof(uint8));
+                fmtBuffer = calloc(data_len, sizeof(uint8_t));
 
                 if (fmtBuffer == NULL) {
                     return SCPE_IERR;

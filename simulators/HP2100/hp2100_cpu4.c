@@ -53,6 +53,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -260,14 +262,14 @@ OP fpop;
 OPS op;
 OPSIZE op1_prec, op2_prec, rslt_prec, cvt_prec;
 HP_WORD rtn_addr, stk_ptr;
-uint16 opcode;
-uint32 entry;
+uint16_t opcode;
+uint32_t entry;
 t_stat reason = SCPE_OK;
 
 if (cpu_configuration & CPU_1000_F)                     /* F-Series? */
-    opcode = (uint16) (IR & 0377);                      /* yes, use full opcode */
+    opcode = (uint16_t) (IR & 0377);                    /* yes, use full opcode */
 else
-    opcode = (uint16) (IR & 0160);                      /* no, use 6 SP FP opcodes */
+    opcode = (uint16_t) (IR & 0160);                    /* no, use 6 SP FP opcodes */
 
 entry = opcode & 0177;                                  /* map to <6:0> */
 
@@ -341,7 +343,7 @@ switch (entry) {                                        /* decode IR<6:0> */
                 break;                                  /* done */
                 }
 
-            fp_prec ((uint16) (op[0].word & 0377),      /* determine operand precisions */
+            fp_prec ((uint16_t) (op[0].word & 0377),    /* determine operand precisions */
                      &op1_prec, &op2_prec, &rslt_prec);
 
             if (TO_COUNT(op1_prec) != op[1].word) {     /* first operand precisions agree? */
@@ -361,11 +363,11 @@ switch (entry) {                                        /* decode IR<6:0> */
                 op[2] = ReadOp (op[4].word, op2_prec);  /* no, so get operand 2 */
 
             O = O |                                     /* execute instruction */
-                fp_exec ((uint16) (op[0].word & 0377),  /* and accumulate overflow */
+                fp_exec ((uint16_t) (op[0].word & 0377), /* and accumulate overflow */
                                   &fpop, op[1], op[2]);
 
             if (op[5].word) {                           /* precision conversion? */
-                fp_prec ((uint16) (op[5].word & 0377),  /* determine conversion precision */
+                fp_prec ((uint16_t) (op[5].word & 0377), /* determine conversion precision */
                          NULL, NULL, &cvt_prec);
 
                 fpop = fp_accum (NULL, cvt_prec);       /* convert result */
@@ -519,19 +521,19 @@ return reason;
      argument = argument * multiplier - multiple
 */
 
-static uint32 reduce (OP *argument, int32 *multiple, OP multiplier)
+static uint32_t reduce (OP *argument, int32_t *multiple, OP multiplier)
 {
 OP product, count;
-uint32 overflow;
+uint32_t overflow;
 
 fp_cvt (argument, fp_f, fp_x);                          /* convert to extended precision */
 fp_exec (0041, &product, *argument, multiplier);        /* product = argument * multiplier */
 overflow = fp_exec (0111, &count, NOP, NOP);            /* count = FIX (acc) */
 
-if ((int16) count.word >= 0)                            /* nearest even integer */
+if ((int16_t) count.word >= 0)                          /* nearest even integer */
     count.word = count.word + 1;
 count.word = count.word & ~1;
-*multiple = (int16) count.word;
+*multiple = (int16_t) count.word;
 
 if (overflow == 0) {                                    /* in range? */
     fp_exec (0121, ACCUM, count, NOP);                  /* acc = FLT (count) */
@@ -555,9 +557,9 @@ t_stat cpu_sis (HP_WORD IR)
 {
 OPS op;
 OP arg, coeff, pwr, product, count, result;
-int16 f, p;
-int32 multiple, power, exponent, rsltexp;
-uint32 entry, i;
+int16_t f, p;
+int32_t multiple, power, exponent, rsltexp;
+uint32_t entry, i;
 bool flag, sign;
 t_stat reason = SCPE_OK;
 
@@ -654,7 +656,7 @@ switch (entry) {                                        /* decode IR<3:0> */
             break;
             }
 
-        else if ((int16) op[0].fpk[0] < 0) {            /* sqrt of neg? */
+        else if ((int16_t) op[0].fpk[0] < 0) {          /* sqrt of neg? */
             op[0].fpk[0] = '0' << 8 | '3';              /* return '03' */
             op[0].fpk[1] = 'U' << 8 | 'N';              /* return 'UN' */
             O = 1;                                      /* set overflow */
@@ -705,7 +707,7 @@ switch (entry) {                                        /* decode IR<3:0> */
     case 007:                                           /* ALOGT 105327 (OP_R) */
         O = 0;                                          /* clear overflow */
 
-        if ((int16) op[0].fpk[0] <= 0) {                /* log of neg or zero? */
+        if ((int16_t) op[0].fpk[0] <= 0) {              /* log of neg or zero? */
             op[0].fpk[0] = '0' << 8 | '2';              /* return '02' */
             op[0].fpk[1] = 'U' << 8 | 'N';              /* return 'UN' */
             O = 1;                                      /* set overflow */
@@ -748,7 +750,7 @@ switch (entry) {                                        /* decode IR<3:0> */
             break;                                      /* result zero */
 
         flag = (op[0].fpk[1] & 1) != 0;                 /* get exponent sign */
-        sign = ((int16) op[0].fpk[0] < 0);              /* get argument sign */
+        sign = ((int16_t) op[0].fpk[0] < 0);            /* get argument sign */
 
         if (flag == 0) {                                /* exp pos? (abs >= 0.5)? */
             if (sign)                                   /* argument negative? */
@@ -826,7 +828,7 @@ switch (entry) {                                        /* decode IR<3:0> */
 
 
     case 006:                                           /* EXP 105326 (OP_R) */
-        sign = ((int16) op[0].fpk[0] < 0);              /* get argument sign */
+        sign = ((int16_t) op[0].fpk[0] < 0);            /* get argument sign */
 
         O = reduce (&op[0], &multiple, two_over_ln2);   /* reduce range */
         multiple = multiple / 2;                        /* get true multiple */
@@ -886,7 +888,7 @@ switch (entry) {                                        /* decode IR<3:0> */
 
     case 010:                                           /* TANH 105330 (OP_R) */
         O = 0;
-        sign = ((int16) op[0].fpk[0] < 0);              /* get argument sign */
+        sign = ((int16_t) op[0].fpk[0] < 0);            /* get argument sign */
 
         if (op[0].fpk[1] & 1) {                         /* abs (arg) < 0.5? */
             fp_exec (0040, ACCUM, op[0], op[0]);        /* acc = arg ^ 2 */
@@ -922,7 +924,7 @@ switch (entry) {                                        /* decode IR<3:0> */
         O = 0;                                          /* clear overflow */
         AR = op[0].word;                                /* get flag word */
 
-        if ((int16) AR >= 0) {                          /* flags present? */
+        if ((int16_t) AR >= 0) {                        /* flags present? */
             AR = 1;                                     /* no, so set default */
             arg = op[2];                                /* arg = X */
             }
@@ -972,7 +974,7 @@ switch (entry) {                                        /* decode IR<3:0> */
 
     case 012:                                           /* /CMRT 105332 (OP_AAT) */
         O = 0;
-        f = (int16) AR;                                 /* save flags */
+        f = (int16_t) AR;                               /* save flags */
 
         coeff = ReadOp (op[1].word, fp_t);              /* get coefficient (C) */
 
@@ -985,7 +987,7 @@ switch (entry) {                                        /* decode IR<3:0> */
             fp_exec (0042, &product, op[2], coeff);     /* product = arg * C */
             O = fp_exec (0112, &count, NOP, NOP);       /* count = FIX (acc) */
 
-            if ((int16) count.word >= 0)                /* nearest even integer */
+            if ((int16_t) count.word >= 0)              /* nearest even integer */
                 count.word = count.word + 1;
             BR = count.word = count.word & ~1;          /* save LSBs of N */
 
@@ -1031,7 +1033,7 @@ switch (entry) {                                        /* decode IR<3:0> */
 
         fp_exec (0116, &op[6], NOP, NOP);               /* op6 = fix (acc) (2wd) */
 
-        if ((int32) op[6].dword >= 0)                   /* nearest even integer */
+        if ((int32_t) op[6].dword >= 0)                 /* nearest even integer */
             op[6].dword = op[6].dword + 1;
         op[6].dword = op[6].dword & ~1;
         BR = LOWER_WORD (op[6].dword);                  /* save LSBs of N */
@@ -1083,7 +1085,7 @@ switch (entry) {                                        /* decode IR<3:0> */
         if (op[2].fpk[0]) {                             /* non-zero base? */
             fp_exec (0120, &pwr, op[0], NOP);           /* float power */
 
-            sign = ((int16) pwr.fpk[0] < 0);            /* save sign of power */
+            sign = ((int16_t) pwr.fpk[0] < 0);          /* save sign of power */
             i = (pwr.fpk[0] << 2) & D16_MASK;           /* clear it */
 
             fp_unpack (NULL, &exponent, pwr, fp_f);     /* unpack exponent */
@@ -1095,11 +1097,11 @@ switch (entry) {                                        /* decode IR<3:0> */
             fp_accum (&op[2], (OPSIZE) (fp_f + p));     /* acc = arg */
 
             while (exponent-- > 0) {
-                O = O | fp_exec ((uint16) (0054 | p),   /* square acc */
+                O = O | fp_exec ((uint16_t) (0054 | p), /* square acc */
                                  ACCUM, NOP, NOP);
 
                 if (i & D16_SIGN)
-                    O = O | fp_exec ((uint16) (0050 | p),   /* acc = acc * arg */
+                    O = O | fp_exec ((uint16_t) (0050 | p), /* acc = acc * arg */
                                      ACCUM, NOP, op[2]);
                 i = i << 1;
                 }

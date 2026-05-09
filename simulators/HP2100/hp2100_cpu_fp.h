@@ -52,6 +52,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 
 #if defined (HAVE_INT64)                                /* int64 support is available */
@@ -67,13 +68,13 @@ static const OP ZERO = { { 0, 0, 0, 0, 0 } };           /* zero operand */
 
 /* Floating-Point Processor routines */
 
-extern void   fp_prec  (uint16 opcode, OPSIZE *operand_l, OPSIZE *operand_r, OPSIZE *result);
-extern uint32 fp_exec  (uint16 opcode, OP *result, OP operand_l, OP operand_r);
+extern void   fp_prec  (uint16_t opcode, OPSIZE *operand_l, OPSIZE *operand_r, OPSIZE *result);
+extern uint32_t fp_exec  (uint16_t opcode, OP *result, OP operand_l, OP operand_r);
 extern OP     fp_accum (const OP *operand, OPSIZE precision);
-extern uint16 fp_ucom  (OP *mantissa, OPSIZE precision);
-extern uint32 fp_pcom  (OP *packed, OPSIZE precision);
-extern uint32 fp_trun  (OP *result, OP source, OPSIZE precision);
-extern uint32 fp_cvt   (OP *result, OPSIZE source_precision, OPSIZE dest_precision);
+extern uint16_t fp_ucom  (OP *mantissa, OPSIZE precision);
+extern uint32_t fp_pcom  (OP *packed, OPSIZE precision);
+extern uint32_t fp_trun  (OP *result, OP source, OPSIZE precision);
+extern uint32_t fp_cvt   (OP *result, OPSIZE source_precision, OPSIZE dest_precision);
 
 
 #else                                                   /* int64 support is not available */
@@ -81,11 +82,11 @@ extern uint32 fp_cvt   (OP *result, OPSIZE source_precision, OPSIZE dest_precisi
 
 /* Firmware floating-point routines */
 
-extern uint32 f_as  (uint32 op, bool sub);              /* FAD/FSB */
-extern uint32 f_mul (uint32 op);                        /* FMP */
-extern uint32 f_div (uint32 op);                        /* FDV */
-extern uint32 f_fix (void);                             /* FIX */
-extern uint32 f_flt (void);                             /* FLT */
+extern uint32_t f_as  (uint32_t op, bool sub);          /* FAD/FSB */
+extern uint32_t f_mul (uint32_t op);                    /* FMP */
+extern uint32_t f_div (uint32_t op);                    /* FDV */
+extern uint32_t f_fix (void);                           /* FIX */
+extern uint32_t f_flt (void);                           /* FLT */
 
 
 #endif                                                  /* int64 conditional */
@@ -94,6 +95,6 @@ extern uint32 f_flt (void);                             /* FLT */
 
 /* Fast FORTRAN Processor helpers */
 
-extern uint32 fp_pack   (OP *result, OP mantissa, int32 exponent, OPSIZE precision);
-extern uint32 fp_nrpack (OP *result, OP mantissa, int32 exponent, OPSIZE precision);
-extern uint32 fp_unpack (OP *mantissa, int32 *exponent, OP packed, OPSIZE precision);
+extern uint32_t fp_pack   (OP *result, OP mantissa, int32_t exponent, OPSIZE precision);
+extern uint32_t fp_nrpack (OP *result, OP mantissa, int32_t exponent, OPSIZE precision);
+extern uint32_t fp_unpack (OP *mantissa, int32_t *exponent, OP packed, OPSIZE precision);

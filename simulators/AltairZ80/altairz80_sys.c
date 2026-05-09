@@ -30,8 +30,11 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "m68k/m68k.h"
+#include "sim_types.h"
 
 #define SIM_EMAX 6
 
@@ -107,17 +110,17 @@ extern DEVICE wdi2_dev;
 extern DEVICE scp300f_dev;
 extern DEVICE djhdc_dev;
 
-extern long disasm (unsigned char *data, char *output, int segsize, long offset);
+extern long disasm (uchar_t *data, char *output, int segsize, long offset);
 
 void prepareMemoryAccessMessage(const t_addr loc);
-void prepareInstructionMessage(const t_addr loc, const uint32 op);
-t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw);
-t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw);
+void prepareInstructionMessage(const t_addr loc, const uint32_t op);
+t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
+t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw);
 
-t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* SCP data structures
     sim_name            simulator name string
@@ -129,7 +132,7 @@ t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
 
 char        sim_name[]      = "Altair 8800 (Z80)";
 REG         *sim_PC         = &cpu_reg[CPU_INDEX_8080];
-int32       sim_emax        = SIM_EMAX;
+int32_t     sim_emax        = SIM_EMAX;
 DEVICE      *sim_devices[]  = {
     /* AltairZ80 Devices */
     &cpu_dev, &sio_dev, &simh_device, &ptr_dev, &ptp_dev, &dsk_dev,
@@ -429,17 +432,17 @@ void prepareMemoryAccessMessage(const t_addr loc) {
     sprintf(memoryAccessMessage, "Memory access breakpoint [%05xh]", loc);
 }
 
-void prepareInstructionMessage(const t_addr loc, const uint32 op) {
+void prepareInstructionMessage(const t_addr loc, const uint32_t op) {
     sprintf(instructionMessage, "Instruction \"%s\" breakpoint [%05xh]", chiptype == CHIP_TYPE_8080 ?  Mnemonics8080[op & 0xff] :
             (chiptype == CHIP_TYPE_Z80 ? MnemonicsZ80[op & 0xff] : "???"), loc);
 }
 
 /* Ensure that hex number starts with a digit when printed */
-static void printHex2(char* string, const uint32 value) {
+static void printHex2(char* string, const uint32_t value) {
     sprintf(string, (value <= 0x9f ? "%02X" : "%03X"), value);
 }
 
-static void printHex4(char* string, const uint32 value) {
+static void printHex4(char* string, const uint32_t value) {
     sprintf(string, (value <= 0x9fff ? "%04X" : "%05X"), value);
 }
 
@@ -459,11 +462,11 @@ static void printHex4(char* string, const uint32 value) {
 
 */
 
-static int32 DAsm(char *S, const uint32 *val, const int32 useZ80Mnemonics, const int32 addr) {
+static int32_t DAsm(char *S, const uint32_t *val, const int32_t useZ80Mnemonics, const int32_t addr) {
     char R[128], H[10], C = '\0', *P;
     const char *T, *T1;
-    uint8 J = 0, Offset = 0;
-    uint16 B = 0;
+    uint8_t J = 0, Offset = 0;
+    uint16_t B = 0;
 
     if (useZ80Mnemonics)
         switch(val[B]) {
@@ -558,16 +561,16 @@ static int32 DAsm(char *S, const uint32 *val, const int32 useZ80Mnemonics, const
         status  =   error code
 */
 
-t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw) {
+t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw) {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
     (void)uptr;
 
     char disasm_result[128];
-    int32 ch = val[0] & 0x7f;
+    int32_t ch = val[0] & 0x7f;
     long r = 1;
-    unsigned char vals[SIM_EMAX];
-    int32 i;
+    uchar_t vals[SIM_EMAX];
+    int32_t i;
     if (sw & (SWMASK('A') | SWMASK('C'))) {
         fprintf(of, ((0x20 <= ch) && (ch < 0x7f)) ? "'%c'" : "%02x", ch);
         return SCPE_OK;
@@ -603,8 +606,8 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw) {
 
 /*  checkbase determines the base of the number (ch, *numString)
     and returns false if the number is bad */
-static int32 checkbase(char ch, const char *numString) {
-    int32 decimal = (ch <= '9');
+static int32_t checkbase(char ch, const char *numString) {
+    int32_t decimal = (ch <= '9');
     if (toupper(ch) == 'H')
         return false;
     while (isxdigit(ch = *numString++))
@@ -613,9 +616,9 @@ static int32 checkbase(char ch, const char *numString) {
     return toupper(ch) == 'H' ? 16 : (decimal ? 10 : false);
 }
 
-static int32 numok(char ch, const char **numString, const int32 minvalue,
-        const int32 maxvalue, const int32 requireSign, int32 *result) {
-    int32 sign = 1, value = 0, base;
+static int32_t numok(char ch, const char **numString, const int32_t minvalue,
+        const int32_t maxvalue, const int32_t requireSign, int32_t *result) {
+    int32_t sign = 1, value = 0, base;
     if (requireSign) {
         if (ch == '+')
             ch = *(*numString)++;
@@ -637,8 +640,8 @@ static int32 numok(char ch, const char **numString, const int32 minvalue,
     return (minvalue <= value) && (value <= maxvalue);
 }
 
-static int32 match(const char *pattern, const char *input, char *xyFirst, char *xy, int32 *number, int32 *star,
-        int32 *at, int32 *hat, int32 *dollar) {
+static int32_t match(const char *pattern, const char *input, char *xyFirst, char *xy, int32_t *number, int32_t *star,
+        int32_t *at, int32_t *hat, int32_t *dollar) {
     char pat = *pattern++;
     char inp = *input++;
     while ((pat) && (inp)) {
@@ -725,13 +728,13 @@ static int32 match(const char *pattern, const char *input, char *xyFirst, char *
     return (pat == 0) && (inp == 0);
 }
 
-static int32 checkXY(const char xy) {
+static int32_t checkXY(const char xy) {
     return xy == 'X' ? 0xdd : 0xfd; /* else is 'Y' */
 }
 
-static int32 parse_X80(const char *cptr, const int32 addr, uint32 *val, const char *const Mnemonics[]) {
+static int32_t parse_X80(const char *cptr, const int32_t addr, uint32_t *val, const char *const Mnemonics[]) {
     char xyFirst = 0, xy;
-    int32 op, number, star, at, hat, dollar;
+    int32_t op, number, star, at, hat, dollar;
     for (op = 0; op < 256; op++) {
         number = star = at = dollar = -129;
         if (match(Mnemonics[op], cptr, &xyFirst, &xy, &number, &star, &at, &hat, &dollar)) {
@@ -745,14 +748,14 @@ static int32 parse_X80(const char *cptr, const int32 addr, uint32 *val, const ch
                 return -1;              /* one additional byte returned     */
             } else if (at > -129)
                 if ((-128 <= at) && (at <= 127)) {
-                    val[1] = (int8)(at);
+                    val[1] = (int8_t)(at);
                     return -1;          /* one additional byte returned     */
                 } else
                     return SCPE_ARG;
             else if (dollar >= 0) {
                 dollar -= addr + 2;     /* relative translation             */
                 if ((-128 <= dollar) && (dollar <= 127)) {
-                    val[1] = (int8)(dollar);
+                    val[1] = (int8_t)(dollar);
                     return -1;          /* one additional byte returned     */
                 } else
                     return SCPE_ARG;
@@ -820,7 +823,7 @@ static int32 parse_X80(const char *cptr, const int32 addr, uint32 *val, const ch
                 return SCPE_ARG;
             val[1] = 0xcb;
             if (at > -129)
-                val[2] = (int8) (at);
+                val[2] = (int8_t) (at);
             else {
                 sim_printf("Offset expected.\n");
                 return SCPE_ARG;
@@ -844,7 +847,7 @@ static int32 parse_X80(const char *cptr, const int32 addr, uint32 *val, const ch
     Outputs:
         status  =   error status
 */
-t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw) {
+t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw) {
     static bool symbolicInputNotImplementedMessage8086 = false;
     if ((sw & (SWMASK('M'))) && (chiptype == CHIP_TYPE_8086)) {
         if (!symbolicInputNotImplementedMessage8086) {
@@ -858,7 +861,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
     if ((sw & (SWMASK('A') | SWMASK('C'))) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
         if (cptr[0] == 0)
             return SCPE_ARG;    /* must have one char       */
-        val[0] = (uint32) cptr[0];
+        val[0] = (uint32_t) cptr[0];
         return SCPE_OK;
     }
     return (chiptype == CHIP_TYPE_M68K ? parse_sym_m68k((char *)cptr, addr, uptr, val, sw) :
@@ -866,7 +869,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
 }
 
 /* Set Memory Base Address routine */
-t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -875,7 +878,7 @@ t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     DEVICE *dptr;
     PNP_INFO *pnp;
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL)
@@ -911,7 +914,7 @@ t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 /* Show Base Address routine */
-t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -935,7 +938,7 @@ t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 /* Set Memory Base Address routine */
-t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -944,7 +947,7 @@ t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     DEVICE *dptr;
     PNP_INFO *pnp;
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL)
@@ -981,7 +984,7 @@ t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 /* Show I/O Base Address routine */
-t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1011,7 +1014,7 @@ t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc)
    Outputs:
         result  =       index of device
 */
-int32 find_unit_index(UNIT* uptr)
+int32_t find_unit_index(UNIT* uptr)
 {
     DEVICE *dptr = find_dev_from_unit(uptr);
 

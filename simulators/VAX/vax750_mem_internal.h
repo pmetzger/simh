@@ -5,6 +5,8 @@
 #ifndef VAX750_MEM_INTERNAL_H_
 #define VAX750_MEM_INTERNAL_H_ 0
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #define MCSR2_OF 0x02
@@ -26,15 +28,15 @@
  * Build the MCSR2 memory-present and chip-size bits for the configured
  * VAX-750 memory size.
  */
-static inline uint32 vax750_mcsr2_reset_value(uint32 memsize)
+static inline uint32_t vax750_mcsr2_reset_value(uint32_t memsize)
 {
-    uint32 large_slot_size = MEM_SIZE_16K;
-    uint32 large_slots;
-    uint32 small_slot_size;
-    uint32 small_slots;
-    uint32 boards;
-    uint32 board_mask;
-    uint32 large_slot_bits;
+    uint32_t large_slot_size = MEM_SIZE_16K;
+    uint32_t large_slots;
+    uint32_t small_slot_size;
+    uint32_t small_slots;
+    uint32_t boards;
+    uint32_t board_mask;
+    uint32_t large_slot_bits;
 
     if (memsize > MAXMEMSIZE_Y)
         large_slot_size = MEM_SIZE_256K;

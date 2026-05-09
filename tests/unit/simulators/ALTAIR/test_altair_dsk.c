@@ -8,6 +8,7 @@
 
 #include "altair_dsk_internal.h"
 #include "sim_tempfile.h"
+#include "sim_types.h"
 
 #define TEST_DSK_SECTSIZE 137
 #define TEST_DSK_SECT 32
@@ -15,23 +16,23 @@
 
 extern DEVICE dsk_dev;
 extern UNIT dsk_unit[];
-extern int32 cur_disk;
-extern int32 cur_track[];
-extern int32 cur_sect[];
-extern int32 cur_byte[];
-extern int32 cur_flags[];
+extern int32_t cur_disk;
+extern int32_t cur_track[];
+extern int32_t cur_sect[];
+extern int32_t cur_byte[];
+extern int32_t cur_flags[];
 extern char dskbuf[];
-extern int32 dirty;
+extern int32_t dirty;
 extern UNIT *dptr;
 
-int32 PCX;
+int32_t PCX;
 
 struct altair_dsk_test_state {
     FILE *file;
     char path[512];
 };
 
-static long sector_offset(int32 track, int32 sector)
+static long sector_offset(int32_t track, int32_t sector)
 {
     return (track * TEST_DSK_TRACSIZE) + (sector * TEST_DSK_SECTSIZE);
 }
@@ -140,7 +141,7 @@ static int setup_disk(void **state)
     return 0;
 }
 
-static void attach_temp_image(void **state, int32 unit)
+static void attach_temp_image(void **state, int32_t unit)
 {
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
@@ -153,9 +154,9 @@ static void attach_temp_image(void **state, int32 unit)
     dsk_unit[unit].flags |= UNIT_ATT;
 }
 
-static void fill_image_sector(FILE *file, int32 track, int32 sector, int value)
+static void fill_image_sector(FILE *file, int32_t track, int32_t sector, int value)
 {
-    unsigned char data[TEST_DSK_SECTSIZE];
+    uchar_t data[TEST_DSK_SECTSIZE];
 
     memset(data, value, sizeof(data));
     assert_int_equal(fseek(file, sector_offset(track, sector), SEEK_SET), 0);
@@ -163,8 +164,8 @@ static void fill_image_sector(FILE *file, int32 track, int32 sector, int value)
     assert_int_equal(fflush(file), 0);
 }
 
-static void read_image_sector(FILE *file, int32 track, int32 sector,
-                              unsigned char *data)
+static void read_image_sector(FILE *file, int32_t track, int32_t sector,
+                              uchar_t *data)
 {
     assert_int_equal(fseek(file, sector_offset(track, sector), SEEK_SET), 0);
     assert_int_equal(fread(data, 1, TEST_DSK_SECTSIZE, file),
@@ -378,12 +379,12 @@ test_data_read_loads_selected_sector_then_streams_buffer(void **state)
 {
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
-    unsigned char sector[TEST_DSK_SECTSIZE];
+    uchar_t sector[TEST_DSK_SECTSIZE];
 
     attach_temp_image(state, 0);
     file = test_state->file;
     for (int i = 0; i < TEST_DSK_SECTSIZE; ++i)
-        sector[i] = (unsigned char)(0x40 + i);
+        sector[i] = (uchar_t)(0x40 + i);
 
     assert_int_equal(fseek(file, sector_offset(2, 5), SEEK_SET), 0);
     assert_int_equal(fwrite(sector, 1, sizeof(sector), file), sizeof(sector));
@@ -413,12 +414,12 @@ static void test_data_read_uses_installed_io_hooks(void **state)
     };
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
-    unsigned char sector[TEST_DSK_SECTSIZE];
+    uchar_t sector[TEST_DSK_SECTSIZE];
 
     attach_temp_image(state, 0);
     file = test_state->file;
     for (int i = 0; i < TEST_DSK_SECTSIZE; ++i)
-        sector[i] = (unsigned char)(0x20 + i);
+        sector[i] = (uchar_t)(0x20 + i);
 
     assert_int_equal(fseek(file, sector_offset(3, 6), SEEK_SET), 0);
     assert_int_equal(fwrite(sector, 1, sizeof(sector), file), sizeof(sector));
@@ -452,7 +453,7 @@ static void test_data_read_reset_restores_default_io_hooks(void **state)
     };
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
-    unsigned char sector[TEST_DSK_SECTSIZE];
+    uchar_t sector[TEST_DSK_SECTSIZE];
 
     attach_temp_image(state, 0);
     file = test_state->file;
@@ -564,7 +565,7 @@ static void test_data_write_flushes_first_137_bytes_on_completion(void **state)
 {
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
-    unsigned char sector[TEST_DSK_SECTSIZE];
+    uchar_t sector[TEST_DSK_SECTSIZE];
 
     attach_temp_image(state, 0);
     file = test_state->file;
@@ -590,7 +591,7 @@ static void test_data_write_flushes_first_137_bytes_on_completion(void **state)
     assert_int_equal(fseek(file, sector_offset(1, 3), SEEK_SET), 0);
     assert_int_equal(fread(sector, 1, sizeof(sector), file), sizeof(sector));
     for (int i = 0; i < TEST_DSK_SECTSIZE; ++i)
-        assert_int_equal(sector[i], (unsigned char)i);
+        assert_int_equal(sector[i], (uchar_t)i);
 }
 
 /*
@@ -702,7 +703,7 @@ static void test_step_in_flushes_dirty_sector_before_moving_track(void **state)
 {
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
-    unsigned char sector[TEST_DSK_SECTSIZE];
+    uchar_t sector[TEST_DSK_SECTSIZE];
 
     attach_temp_image(state, 0);
     file = test_state->file;
@@ -743,7 +744,7 @@ static void test_step_out_flushes_dirty_sector_before_moving_track(void **state)
 {
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
-    unsigned char sector[TEST_DSK_SECTSIZE];
+    uchar_t sector[TEST_DSK_SECTSIZE];
 
     attach_temp_image(state, 0);
     file = test_state->file;
@@ -920,7 +921,7 @@ static void test_selecting_another_drive_flushes_dirty_sector(void **state)
 {
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
-    unsigned char sector[TEST_DSK_SECTSIZE];
+    uchar_t sector[TEST_DSK_SECTSIZE];
 
     attach_temp_image(state, 0);
     file = test_state->file;
@@ -954,7 +955,7 @@ static void test_writebuf_zero_fills_unwritten_sector_tail(void **state)
 {
     struct altair_dsk_test_state *test_state = *state;
     FILE *file;
-    unsigned char sector[TEST_DSK_SECTSIZE];
+    uchar_t sector[TEST_DSK_SECTSIZE];
 
     attach_temp_image(state, 0);
     file = test_state->file;

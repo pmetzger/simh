@@ -123,6 +123,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "alpha_defs.h"
 
 #define UNIT_V_CONH     (UNIT_V_UF + 0)                 /* halt to console */
@@ -135,11 +137,11 @@
 #define HIST_MAX        (1 << 18)
 
 typedef struct {
-    t_uint64            pc;
-    uint32              ir;
-    uint32              filler;
-    t_uint64            ra;
-    t_uint64            rb;
+    uint64_t            pc;
+    uint32_t            ir;
+    uint32_t            filler;
+    uint64_t            ra;
+    uint64_t            rb;
     } InstHistory;
 
 #define H_A             0x01
@@ -155,85 +157,85 @@ typedef struct {
 #define H_PAL           (H_A|H_EA|H_EA_L16)
 #define H_JMP           (H_A|H_B|H_EA|H_EA_L16)
 
-t_uint64 *M = 0;                                        /* memory */
-t_uint64 R[32];                                         /* integer reg */
-t_uint64 FR[32];                                        /* floating reg */
-t_uint64 PC;                                            /* PC, <1:0> MBZ */
-uint32 pc_align = 0;                                    /* PC<1:0> */
-t_uint64 trap_mask = 0;                                 /* trap reg mask */
-uint32 trap_summ = 0;                                   /* trap summary */
-uint32 fpcr = 0;                                        /* fp ctrl reg */
-uint32 pcc_l = 0;                                       /* rpcc high */
-uint32 pcc_h = 0;                                       /* rpcc low */
-uint32 pcc_enb = 0;
-uint32 arch_mask = AMASK_BWX | AMASK_PRC;               /* arch mask */
-uint32 impl_ver = IMPLV_EV5;                            /* impl version */
-uint32 lock_flag = 0;                                   /* load lock flag */
-uint32 vax_flag = 0;                                    /* vax intr flag */
-uint32 intr_summ = 0;                                   /* interrupt summary */
-uint32 pal_mode = 1;                                    /* PAL mode */
-uint32 pal_type = PAL_UNDF;                             /* PAL type */
-uint32 dmapen = 0;                                      /* data mapping enable */
-uint32 fpen = 0;                                        /* flt point enabled */
-uint32 ir = 0;                                          /* instruction register */
-t_uint64 p1 = 0;                                        /* exception parameter */
-uint32 int_req[IPL_HLVL] = { 0 };                       /* interrupt requests */
+uint64_t *M = 0;                                        /* memory */
+uint64_t R[32];                                         /* integer reg */
+uint64_t FR[32];                                        /* floating reg */
+uint64_t PC;                                            /* PC, <1:0> MBZ */
+uint32_t pc_align = 0;                                  /* PC<1:0> */
+uint64_t trap_mask = 0;                                 /* trap reg mask */
+uint32_t trap_summ = 0;                                 /* trap summary */
+uint32_t fpcr = 0;                                      /* fp ctrl reg */
+uint32_t pcc_l = 0;                                     /* rpcc high */
+uint32_t pcc_h = 0;                                     /* rpcc low */
+uint32_t pcc_enb = 0;
+uint32_t arch_mask = AMASK_BWX | AMASK_PRC;             /* arch mask */
+uint32_t impl_ver = IMPLV_EV5;                          /* impl version */
+uint32_t lock_flag = 0;                                 /* load lock flag */
+uint32_t vax_flag = 0;                                  /* vax intr flag */
+uint32_t intr_summ = 0;                                 /* interrupt summary */
+uint32_t pal_mode = 1;                                  /* PAL mode */
+uint32_t pal_type = PAL_UNDF;                           /* PAL type */
+uint32_t dmapen = 0;                                    /* data mapping enable */
+uint32_t fpen = 0;                                      /* flt point enabled */
+uint32_t ir = 0;                                        /* instruction register */
+uint64_t p1 = 0;                                        /* exception parameter */
+uint32_t int_req[IPL_HLVL] = { 0 };                     /* interrupt requests */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-t_uint64 pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
-uint32 cpu_astop = 0;
-uint32 hst_p = 0;                                       /* history pointer */
-uint32 hst_lnt = 0;                                     /* history length */
+uint64_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
+uint32_t cpu_astop = 0;
+uint32_t hst_p = 0;                                     /* history pointer */
+uint32_t hst_lnt = 0;                                   /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 jmp_buf save_env;
 
-const t_uint64 byte_mask[8] = {
+const uint64_t byte_mask[8] = {
     0x00000000000000FF, 0x000000000000FF00,
     0x0000000000FF0000, 0x00000000FF000000,
     0x000000FF00000000, 0x0000FF0000000000,
     0x00FF000000000000, 0xFF00000000000000
     };
 
-const t_uint64 word_mask[4] = {
+const uint64_t word_mask[4] = {
     0x000000000000FFFF, 0x00000000FFFF0000,
     0x0000FFFF00000000, 0xFFFF000000000000
     };
 
-t_uint64 uemul64 (t_uint64 a, t_uint64 b, t_uint64 *hi);
-t_uint64 byte_zap (t_uint64 op, uint32 mask);
+uint64_t uemul64 (uint64_t a, uint64_t b, uint64_t *hi);
+uint64_t byte_zap (uint64_t op, uint32_t mask);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_boot (int32 unitno, DEVICE *dptr);
-t_stat cpu_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_fprint_one_inst (FILE *st, uint32 ir, t_uint64 pc, t_uint64 ra, t_uint64 rb);
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr);
+t_stat cpu_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_fprint_one_inst (FILE *st, uint32_t ir, uint64_t pc, uint64_t ra, uint64_t rb);
 
-extern t_uint64 op_ldf (t_uint64 op);
-extern t_uint64 op_ldg (t_uint64 op);
-extern t_uint64 op_lds (t_uint64 op);
-extern t_uint64 op_stf (t_uint64 op);
-extern t_uint64 op_stg (t_uint64 op);
-extern t_uint64 op_sts (t_uint64 op);
-extern t_uint64 vax_sqrt (uint32 ir, uint32 dp);
-extern t_uint64 ieee_sqrt (uint32 ir, uint32 dp);
-extern void vax_fop (uint32 ir);
-extern void ieee_fop (uint32 ir);
-extern t_stat pal_19 (uint32 ir);
-extern t_stat pal_1b (uint32 ir);
-extern t_stat pal_1d (uint32 ir);
-extern t_stat pal_1e (uint32 ir);
-extern t_stat pal_1f (uint32 ir);
-extern t_uint64 trans_c (t_uint64 va);
-extern t_stat cpu_show_tlb (FILE *of, UNIT *uptr, int32 val, const void *desc);
-extern uint32 pal_eval_intr (uint32 flag);
-extern t_stat pal_proc_excp (uint32 type);
-extern t_stat pal_proc_trap (uint32 type);
-extern t_stat pal_proc_intr (uint32 type);
-extern t_stat pal_proc_inst (uint32 fnc);
-extern uint32 tlb_set_cm (int32 cm);
+extern uint64_t op_ldf (uint64_t op);
+extern uint64_t op_ldg (uint64_t op);
+extern uint64_t op_lds (uint64_t op);
+extern uint64_t op_stf (uint64_t op);
+extern uint64_t op_stg (uint64_t op);
+extern uint64_t op_sts (uint64_t op);
+extern uint64_t vax_sqrt (uint32_t ir, uint32_t dp);
+extern uint64_t ieee_sqrt (uint32_t ir, uint32_t dp);
+extern void vax_fop (uint32_t ir);
+extern void ieee_fop (uint32_t ir);
+extern t_stat pal_19 (uint32_t ir);
+extern t_stat pal_1b (uint32_t ir);
+extern t_stat pal_1d (uint32_t ir);
+extern t_stat pal_1e (uint32_t ir);
+extern t_stat pal_1f (uint32_t ir);
+extern uint64_t trans_c (uint64_t va);
+extern t_stat cpu_show_tlb (FILE *of, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t pal_eval_intr (uint32_t flag);
+extern t_stat pal_proc_excp (uint32_t type);
+extern t_stat pal_proc_trap (uint32_t type);
+extern t_stat pal_proc_intr (uint32_t type);
+extern t_stat pal_proc_inst (uint32_t fnc);
+extern uint32_t tlb_set_cm (int32_t cm);
 
 /* CPU data structures
 
@@ -371,7 +373,7 @@ if (abortval != 0) {                                    /* exception? */
     if (abortval < 0) {                                 /* SCP stop? */
         pcc_l = pcc_l & M32;
         pcq_r->qptr = pcq_p;                            /* update pc q ptr */
-        pc_align = ((uint32) PC) & 3;                   /* separate PC<1:0> */
+        pc_align = ((uint32_t) PC) & 3;                 /* separate PC<1:0> */
         PC = PC & 0xFFFFFFFFFFFFFFFC;
         return -abortval;
         }
@@ -387,10 +389,10 @@ intr_summ = pal_eval_intr (1);                          /* eval interrupts */
 
 while (reason == 0) {
 
-    int32 i;
-    uint32 op, ra, rb, rc, fnc, sc, s32, t32, sgn;
-    t_int64 s1, s2, sr;
-    t_uint64 ea, dsp, rbv, res, s64, t64;
+    int32_t i;
+    uint32_t op, ra, rb, rc, fnc, sc, s32, t32, sgn;
+    int64_t s1, s2, sr;
+    uint64_t ea, dsp, rbv, res, s64, t64;
 
     if (cpu_astop) {                                    /* debug stop? */
         cpu_astop = 0;                                  /* clear */
@@ -792,7 +794,7 @@ while (reason == 0) {
         case 0x0F:                                      /* CMPBGE */
             for (i = 0, res = 0; i < 8; i++) {
                 if ((R[ra] & byte_mask[i]) >= (rbv & byte_mask[i]))
-                    res = res | ((t_uint64) 1u << i);
+                    res = res | ((uint64_t) 1u << i);
                 }
             break;
 
@@ -986,132 +988,132 @@ while (reason == 0) {
         switch (fnc) {                                  /* case on function */
 
         case 0x02:                                      /* MSKBL */
-            sc = ((uint32) rbv) & 7;
+            sc = ((uint32_t) rbv) & 7;
             res = byte_zap (R[ra], 0x1 << sc);
             break;
 
         case 0x06:                                      /* EXTBL */
-            sc = (((uint32) rbv) << 3) & 0x3F;
+            sc = (((uint32_t) rbv) << 3) & 0x3F;
             res = (R[ra] >> sc) & M8;
             break;
 
         case 0x0B:                                      /* INSBL */
-            sc = (((uint32) rbv) << 3) & 0x3F;
+            sc = (((uint32_t) rbv) << 3) & 0x3F;
             res = (R[ra] & M8) << sc;
             break;
 
         case 0x12:                                      /* MSKWL */
-            sc = ((uint32) rbv) & 7;
+            sc = ((uint32_t) rbv) & 7;
             res = byte_zap (R[ra], 0x3 << sc);
             break;
 
         case 0x16:                                      /* EXTWL */
-            sc = (((uint32) rbv) << 3) & 0x3F;
+            sc = (((uint32_t) rbv) << 3) & 0x3F;
             res = (R[ra] >> sc) & M16;
             break;
 
         case 0x1B:                                      /* INSWL */
-            sc = (((uint32) rbv) << 3) & 0x3F;
+            sc = (((uint32_t) rbv) << 3) & 0x3F;
             res = (R[ra] & M16) << sc;
             break;
 
         case 0x22:                                      /* MSKLL */
-            sc = ((uint32) rbv) & 7;
+            sc = ((uint32_t) rbv) & 7;
             res = byte_zap (R[ra], 0xF << sc);
             break;
 
         case 0x26:                                      /* EXTLL */
-            sc = (((uint32) rbv) << 3) & 0x3F;
+            sc = (((uint32_t) rbv) << 3) & 0x3F;
             res = (R[ra] >> sc) & M32;
             break;
 
         case 0x2B:                                      /* INSLL */
-            sc = (((uint32) rbv) << 3) & 0x3F;
+            sc = (((uint32_t) rbv) << 3) & 0x3F;
             res = (R[ra] & M32) << sc;
             break;
 
         case 0x30:                                      /* ZAP */
-            res = byte_zap (R[ra], (uint32) rbv);
+            res = byte_zap (R[ra], (uint32_t) rbv);
             break;
 
         case 0x31:                                      /* ZAPNOT */
-            res = byte_zap (R[ra], ~((uint32) rbv));
+            res = byte_zap (R[ra], ~((uint32_t) rbv));
             break;
 
         case 0x32:                                      /* MSKQL */
-            sc = ((uint32) rbv) & 7;
+            sc = ((uint32_t) rbv) & 7;
             res = byte_zap (R[ra], 0xFF << sc);
             break;
 
         case 0x34:                                      /* SRL */
-            sc = ((uint32) rbv) & 0x3F;
+            sc = ((uint32_t) rbv) & 0x3F;
             res = R[ra] >> sc;
             break;
 
         case 0x36:                                      /* EXTQL */
-            sc = (((uint32) rbv) << 3) & 0x3F;
+            sc = (((uint32_t) rbv) << 3) & 0x3F;
             res = R[ra] >> sc;
             break;
 
         case 0x39:                                      /* SLL */
-            sc = ((uint32) rbv) & 0x3F;
+            sc = ((uint32_t) rbv) & 0x3F;
             res = R[ra] << sc;
             break;
 
         case 0x3B:                                      /* INSQL */
-            sc = (((uint32) rbv) << 3) & 0x3F;
+            sc = (((uint32_t) rbv) << 3) & 0x3F;
             res = R[ra] << sc;
             break;
 
         case 0x3C:                                      /* SRA */
-            sc = ((uint32) rbv) & 0x3F;
+            sc = ((uint32_t) rbv) & 0x3F;
             res = (R[ra] >> sc);
             if (sc && (R[ra] & Q_SIGN)) res = res |
-                (((t_uint64) M64) << (64 - sc));
+                (((uint64_t) M64) << (64 - sc));
             break;
 
         case 0x52:                                      /* MSKWH */
-            sc = 8 - (((uint32) rbv) & 7);
+            sc = 8 - (((uint32_t) rbv) & 7);
             res = byte_zap (R[ra], 0x3 >> sc);
             break;
 
         case 0x57:                                      /* INSWH */
-            sc = (64 - (((uint32) rbv) << 3)) & 0x3F;
+            sc = (64 - (((uint32_t) rbv) << 3)) & 0x3F;
             res = (R[ra] & M16) >> sc;
             break;
 
         case 0x5A:                                      /* EXTWH */
-            sc = (64 - (((uint32) rbv) << 3)) & 0x3F;
+            sc = (64 - (((uint32_t) rbv) << 3)) & 0x3F;
             res = (R[ra] << sc) & M16;
             break;
 
         case 0x62:                                      /* MSKLH */
-            sc = 8 - (((uint32) rbv) & 7);
+            sc = 8 - (((uint32_t) rbv) & 7);
             res = byte_zap (R[ra], 0xF >> sc);
             break;
 
         case 0x67:                                      /* INSLH */
-            sc = (64 - (((uint32) rbv) << 3)) & 0x3F;
+            sc = (64 - (((uint32_t) rbv) << 3)) & 0x3F;
             res = (R[ra] & M32) >> sc;
             break;
 
         case 0x6A:                                      /* EXTLH */
-            sc = (64 - (((uint32) rbv) << 3)) & 0x3F;
+            sc = (64 - (((uint32_t) rbv) << 3)) & 0x3F;
             res = (R[ra] << sc) & M32;
             break;
 
         case 0x72:                                      /* MSKQH */
-            sc = 8 - (((uint32) rbv) & 7);
+            sc = 8 - (((uint32_t) rbv) & 7);
             res = byte_zap (R[ra], 0xFF >> sc);
             break;
 
         case 0x77:                                      /* INSQH */
-            sc = (64 - (((uint32) rbv) << 3)) & 0x3F;
+            sc = (64 - (((uint32_t) rbv) << 3)) & 0x3F;
             res = R[ra] >> sc;
             break;
 
         case 0x7A:                                      /* EXTQH */
-            sc = (64 - (((uint32) rbv) << 3)) & 0x3F;
+            sc = (64 - (((uint32_t) rbv) << 3)) & 0x3F;
             res = R[ra] << sc;
             break;
 
@@ -1185,7 +1187,7 @@ while (reason == 0) {
 
         case 0x04:                                      /* ITOFS */
             if (ir & (I_FRND|I_FTRP)) ABORT (EXC_RSVI);
-            t32 = ((uint32) R[ra]) & M32;
+            t32 = ((uint32_t) R[ra]) & M32;
             res = op_lds (t32);
             break;
 
@@ -1200,7 +1202,7 @@ while (reason == 0) {
 
         case 0x14:                                      /* ITOFF */
             if (ir & (I_FRND|I_FTRP)) ABORT (EXC_RSVI);
-            t32 = ((uint32) R[ra]) & M32;
+            t32 = ((uint32_t) R[ra]) & M32;
             res = op_ldf (SWAP_VAXF (t32));
             break;
 
@@ -1264,12 +1266,12 @@ while (reason == 0) {
             break;
 
         case 0x24:                                      /* MT_FPCR */
-            fpcr = ((uint32) (FR[ra] >> 32)) & ~FPCR_RAZ;
+            fpcr = ((uint32_t) (FR[ra] >> 32)) & ~FPCR_RAZ;
             res = FR[rc];
             break;
 
         case 0x25:                                      /* MF_FPCR */
-            res = ((t_uint64) fpcr) << 32;
+            res = ((uint64_t) fpcr) << 32;
             break;
 
         case 0x2A:                                      /* FCMOVEQ */
@@ -1336,7 +1338,7 @@ while (reason == 0) {
 
         case 0xC000:                                    /* RPCC */
             pcc_l = pcc_l & M32;
-            if (ra != 31) R[ra] = (((t_uint64) pcc_h) << 32) | ((t_uint64) pcc_l);
+            if (ra != 31) R[ra] = (((uint64_t) pcc_h) << 32) | ((uint64_t) pcc_l);
             break;
 
         case 0xE000:                                    /* RC */
@@ -1384,9 +1386,9 @@ while (reason == 0) {
         case 0x31:                                      /* PERR */
             if (!(arch_mask & AMASK_MVI)) ABORT (EXC_RSVI);
             for (i = 0, res = 0; i < 64; i = i + 8) {
-                s32 = (uint32) (R[ra] >> i) & M8;
-                t32 = (uint32) (rbv >> i) & M8;
-                res = res + ((t_uint64) (s32 >= t32)? (s32 - t32): (t32 - s32));
+                s32 = (uint32_t) (R[ra] >> i) & M8;
+                t32 = (uint32_t) (rbv >> i) & M8;
+                res = res + ((uint64_t) (s32 >= t32)? (s32 - t32): (t32 - s32));
                 }
             break;
 
@@ -1566,7 +1568,7 @@ while (reason == 0) {
     }                                                   /* end while */
 pcc_l = pcc_l & M32;
 pcq_r->qptr = pcq_p;                                    /* update pc q ptr */
-pc_align = ((uint32) PC) & 3;                           /* separate PC<1:0> */
+pc_align = ((uint32_t) PC) & 3;                         /* separate PC<1:0> */
 PC = PC & 0xFFFFFFFFFFFFFFFC;
 return reason;
 }
@@ -1575,9 +1577,9 @@ return reason;
 
 /* Byte zap function */
 
-t_uint64 byte_zap (t_uint64 op, uint32 m)
+uint64_t byte_zap (uint64_t op, uint32_t m)
 {
-int32 i;
+int32_t i;
 
 m = m & 0xFF;                                           /* 8 bit mask */
 for (i = 0; m != 0; m = m >> 1, i++) {
@@ -1588,9 +1590,9 @@ return op;
 
 /* 64b * 64b unsigned multiply */
 
-t_uint64 uemul64 (t_uint64 a, t_uint64 b, t_uint64 *hi)
+uint64_t uemul64 (uint64_t a, uint64_t b, uint64_t *hi)
 {
-t_uint64 ahi, alo, bhi, blo, rhi, rmid1, rmid2, rlo;
+uint64_t ahi, alo, bhi, blo, rhi, rmid1, rmid2, rlo;
 
 ahi = (a >> 32) & M32;
 alo = a & M32;
@@ -1613,10 +1615,10 @@ return rlo;
 
 /* 64b / 64b unsigned fraction divide */
 
-t_uint64 ufdiv64 (t_uint64 dvd, t_uint64 dvr, uint32 prec, uint32 *sticky)
+uint64_t ufdiv64 (uint64_t dvd, uint64_t dvr, uint32_t prec, uint32_t *sticky)
 {
-t_uint64 quo;
-uint32 i;
+uint64_t quo;
+uint32_t i;
 
 quo = 0;                                                /* clear quotient */
 for (i = 0; (i < prec) && dvd; i++) {                   /* divide loop */
@@ -1634,14 +1636,14 @@ return quo;                                             /* return quotient */
 
 /* Set arithmetic trap */
 
-void arith_trap (uint32 mask, uint32 ir)
+void arith_trap (uint32_t mask, uint32_t ir)
 {
-uint32 rc = I_GETRC (ir);
+uint32_t rc = I_GETRC (ir);
 
 trap_summ = trap_summ | mask;
 if (ir & I_FTRP_S) trap_summ = trap_summ | TRAP_SWC;
 if ((mask & TRAP_IOV) == 0) rc = rc + 32;
-trap_mask = trap_mask | ((t_uint64) 1u << rc);
+trap_mask = trap_mask | ((uint64_t) 1u << rc);
 return;
 }
 
@@ -1658,7 +1660,7 @@ vax_flag = 0;
 lock_flag = 0;
 trap_summ = 0;
 trap_mask = 0;
-if (M == NULL) M = (t_uint64 *) calloc (((uint32) MEMSIZE) >> 3, sizeof (t_uint64));
+if (M == NULL) M = (uint64_t *) calloc (((uint32_t) MEMSIZE) >> 3, sizeof (uint64_t));
 if (M == NULL) return SCPE_MEM;
 pcq_r = find_reg ("PCQ", NULL, dptr);
 if (pcq_r) pcq_r->qptr = 0;
@@ -1669,7 +1671,7 @@ return SCPE_OK;
 
 /* Bootstrap */
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic CPU boot signature.
    This implementation does not use every parameter. */
@@ -1681,7 +1683,7 @@ return SCPE_ARG;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory examine signature.
    This implementation does not use every parameter. */
@@ -1701,7 +1703,7 @@ return SCPE_NXM;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory deposit signature.
    This implementation does not use every parameter. */
@@ -1720,7 +1722,7 @@ return SCPE_NXM;
 
 /* Memory allocation */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1728,16 +1730,16 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-t_uint64 mc = 0;
-uint32 i, clim;
-t_uint64 *nM = NULL;
+uint64_t mc = 0;
+uint32_t i, clim;
+uint64_t *nM = NULL;
 
 for (i = val; i < MEMSIZE; i = i + 8) mc = mc | M[i >> 3];
 if ((mc != 0) && !get_yn ("Really truncate memory [N]?", false))
     return SCPE_OK;
-nM = (t_uint64 *) calloc (val >> 3, sizeof (t_uint64));
+nM = (uint64_t *) calloc (val >> 3, sizeof (uint64_t));
 if (nM == NULL) return SCPE_MEM;
-clim = (uint32) ((((uint32) val) < MEMSIZE)? val: MEMSIZE);
+clim = (uint32_t) ((((uint32_t) val) < MEMSIZE)? val: MEMSIZE);
 for (i = 0; i < clim; i = i + 8) nM[i >> 3] = M[i >>3];
 free (M);
 M = nM;
@@ -1747,7 +1749,7 @@ return SCPE_OK;
 
 /* Show virtual address */
 
-t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1755,7 +1757,7 @@ t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc)
 
 t_stat r;
 const char *cptr = (const char *) desc;
-t_uint64 va, pa;
+uint64_t va, pa;
 
 if (cptr) {
     DEVICE *dptr = find_dev_from_unit (uptr);
@@ -1781,7 +1783,7 @@ return SCPE_OK;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1789,7 +1791,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-uint32 i, lnt;
+uint32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -1797,7 +1799,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (uint32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (uint32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN))) return SCPE_ARG;
 hst_p = 0;
 if (hst_lnt) {
@@ -1815,9 +1817,9 @@ return SCPE_OK;
 
 /* Print instruction trace */
 
-t_stat cpu_fprint_one_inst (FILE *st, uint32 ir, t_uint64 pc, t_uint64 ra, t_uint64 rb)
+t_stat cpu_fprint_one_inst (FILE *st, uint32_t ir, uint64_t pc, uint64_t ra, uint64_t rb)
 {
-uint32 op;
+uint32_t op;
 t_value sim_val;
 
 static const int h_fmt[64] = {
@@ -1839,7 +1841,7 @@ if (h_fmt[op] & H_A) fprint_val (st, ra, 16, 64, PV_RZRO);
 else fputs ("                ", st);
 fputc (' ', st);
 if (h_fmt[op] & H_B) {                                  /* Rb? */
-    t_uint64 rbv;
+    uint64_t rbv;
     if ((h_fmt[op] & H_B_LIT) && (ir & I_ILIT))
         rbv = I_GETLIT8 (ir);                           /* literal? rbv = lit */
     else rbv = rb;                                      /* no, rbv = R[rb] */
@@ -1848,7 +1850,7 @@ if (h_fmt[op] & H_B) {                                  /* Rb? */
 else fputs ("                ", st);
 fputc (' ', st);
 if (h_fmt[op] & H_EA) {                                 /* ea? */
-    t_uint64 ea;
+    uint64_t ea;
     if (h_fmt[op] & H_EA_L16) ea = ir & M16;
     else if (h_fmt[op] & H_EA_B)
         ea = (pc + (SEXT_BDSP (I_GETBDSP (ir)) << 2)) & M64;
@@ -1857,7 +1859,7 @@ if (h_fmt[op] & H_EA) {                                 /* ea? */
     }
 else fputs ("                ", st);
 fputc (' ', st);
-if (pc & 4) sim_val = ((t_uint64) ir) << 32;
+if (pc & 4) sim_val = ((uint64_t) ir) << 32;
 else sim_val = ir;
 if ((fprint_sym (st, pc & ~03, &sim_val, &cpu_unit, SWMASK ('M'))) > 0)
     fprintf (st, "(undefined) %08X", ir);
@@ -1867,21 +1869,21 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 k, di, lnt;
+int32_t k, di, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 InstHistory *h;
 
 if (hst_lnt == 0) return SCPE_NOFNC;                    /* enabled? */
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0)) return SCPE_ARG;
     }
 else lnt = hst_lnt;

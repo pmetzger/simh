@@ -90,36 +90,38 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "i1401_defs.h"
 #include "i1401_bool_internal.h"
+#include "sim_types.h"
 
 #define UNIT_V_PCH      (UNIT_V_UF + 0)                 /* output conv */
 #define UNIT_PCH        (1 << UNIT_V_PCH)
 #define UNIT_V_CONS     (UNIT_V_UF + 1)                 /* input from console */
 #define UNIT_CONS       (1 << UNIT_V_CONS)
 
-extern uint8 M[];
-extern int32 ind[64], ssa, iochk;
+extern uint8_t M[];
+extern int32_t ind[64], ssa, iochk;
 
-int32 s1sel, s2sel, s4sel, s8sel;
+int32_t s1sel, s2sel, s4sel, s8sel;
 char cdr_buf[(2 * CBUFSIZE) + 1];                       /* > CDR_WIDTH */
 char cdp_buf[(2 * CDP_WIDTH) + 1];                      /* + null */
-int32 cdp_buf_full = 0;                                 /* punch buf full? */
+int32_t cdp_buf_full = 0;                               /* punch buf full? */
 
 t_stat cdr_svc (UNIT *uptr);
-t_stat cdr_boot (int32 unitno, DEVICE *dptr);
+t_stat cdr_boot (int32_t unitno, DEVICE *dptr);
 t_stat cdr_attach (UNIT *uptr, const char *cptr);
 t_stat cdr_detach (UNIT *uptr);
 t_stat cdp_attach (UNIT *uptr, const char *cptr);
 t_stat cdp_detach (UNIT *uptr);
-t_stat cdp_npr (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat cdp_npr (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat cd_reset (DEVICE *dptr);
-t_stat cdr_read_file (char *buf, int32 sz);
-t_stat cdr_read_cons (char *buf, int32 sz);
-t_stat cdr_chg_cons (UNIT *uptr, int32 val, const char *cptr, void *desc);
-int32 bcd2asc (int32 c, UNIT *uptr);
-char colbin_to_bcd (uint32 cb);
+t_stat cdr_read_file (char *buf, int32_t sz);
+t_stat cdr_read_cons (char *buf, int32_t sz);
+t_stat cdr_chg_cons (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+int32_t bcd2asc (int32_t c, UNIT *uptr);
+char colbin_to_bcd (uint32_t cb);
 
 extern void inq_puts (const char *cptr);
 
@@ -230,9 +232,9 @@ DEVICE stack_dev = {
    C modifier is recognized (column binary is implemented)
 */
 
-t_stat read_card (int32 ilnt, int32 mod)
+t_stat read_card (int32_t ilnt, int32_t mod)
 {
-int32 i, cbn, c1, c2, cbufsz;
+int32_t i, cbn, c1, c2, cbufsz;
 t_stat r;
 
 if (sim_is_active (&cdr_unit)) {                        /* busy? */
@@ -318,9 +320,9 @@ return SCPE_OK;
    - Copy card from memory buffer to punch buffer
 */
 
-t_stat punch_card (int32 ilnt, int32 mod)
+t_stat punch_card (int32_t ilnt, int32_t mod)
 {
-int32 i, cbn, c1, c2;
+int32_t i, cbn, c1, c2;
 bool use_h;
 t_stat r;
 
@@ -362,7 +364,7 @@ return SCPE_OK;
 
 /* Punch buffered card (also handles non-process runout button) */
 
-t_stat cdp_npr (UNIT *notused, int32 val, const char *cptr, void *desc)
+t_stat cdp_npr (UNIT *notused, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -403,7 +405,7 @@ return SCPE_OK;
    or $, ., square for overlap control (ignored).
 */
 
-t_stat select_stack (int32 mod)
+t_stat select_stack (int32_t mod)
 {
 if (mod == BCD_ONE)
     s1sel = 1;
@@ -418,7 +420,7 @@ return SCPE_OK;
 
 /* Read card from file */
 
-t_stat cdr_read_file (char *buf, int32 sz)
+t_stat cdr_read_file (char *buf, int32_t sz)
 {
 if (fgets (buf, sz, cdr_unit.fileref)) {};              /* rd bin/char card */
 if (feof (cdr_unit.fileref))                            /* eof? */
@@ -443,9 +445,9 @@ return SCPE_OK;
 
 /* Read card from console */
 
-t_stat cdr_read_cons (char *buf, int32 sz)
+t_stat cdr_read_cons (char *buf, int32_t sz)
 {
-int32 i, t;
+int32_t i, t;
 
 inq_puts ("[Enter card]\r\n");
 for (i = 0; i < sz; ) {
@@ -492,7 +494,7 @@ return SCPE_OK;
 
    Caller will do actual bit field update on successful return */
 
-t_stat cdr_chg_cons (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cdr_chg_cons (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -538,25 +540,25 @@ return r;
 /* Bootstrap routine */
 
 #define BOOT_START 0
-#define BOOT_LEN (sizeof (boot_rom) / sizeof (unsigned char))
+#define BOOT_LEN (sizeof (boot_rom) / sizeof (uchar_t))
 
-static const unsigned char boot_rom[] = {
+static const uchar_t boot_rom[] = {
     OP_R + WM, OP_NOP + WM                              /* R, NOP */
     };
 
-t_stat cdr_boot (int32 unitno, DEVICE *dptr)
+t_stat cdr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
 (void) unitno;
 (void) dptr;
 
-int32 i;
-extern int32 saved_IS;
+int32_t i;
+extern int32_t saved_IS;
 
 for (i = 0; i < CDR_WIDTH; i++)                         /* clear buffer */
     M[CDR_BUF + i] = 0;
-for (i = 0; i < (int32) BOOT_LEN; i++)
+for (i = 0; i < (int32_t) BOOT_LEN; i++)
     M[BOOT_START + i] = boot_rom[i];
 saved_IS = BOOT_START;
 return SCPE_OK;
@@ -598,9 +600,9 @@ static const char row_val[12] = {
     003, 002, 001, 020, 040, 060
     };
 
-char colbin_to_bcd (uint32 cb)
+char colbin_to_bcd (uint32_t cb)
 {
-uint32 i;
+uint32_t i;
 char bcd;
 
 for (i = 0, bcd = 0; i < 12; i++) {                     /* 'sum' rows */

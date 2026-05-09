@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_video.h"
 
@@ -64,65 +66,65 @@
 */
 VID_DISPLAY *daz_vptr = NULL;
 
-static uint8 daz_0e = 0x00;
-static uint8 daz_0f = 0x80;
-static uint32 daz_addr = 0x0000;
-static uint8 daz_frame = 0x3f;
-static uint8 daz_res = 32;
-static uint16 daz_pages = 1;
-static uint16 daz_window_width = 640;
-static uint16 daz_window_height = 640;
-static uint16 daz_screen_width = 32;
-static uint16 daz_screen_height = 32;
-static uint16 daz_screen_pixels = 32 * 32;
-static uint8 daz_color = 0;
-static uint32 daz_surface[DAZ_PIXELS];
-static uint32 daz_cpalette[16];
-static uint32 daz_gpalette[16];
+static uint8_t daz_0e = 0x00;
+static uint8_t daz_0f = 0x80;
+static uint32_t daz_addr = 0x0000;
+static uint8_t daz_frame = 0x3f;
+static uint8_t daz_res = 32;
+static uint16_t daz_pages = 1;
+static uint16_t daz_window_width = 640;
+static uint16_t daz_window_height = 640;
+static uint16_t daz_screen_width = 32;
+static uint16_t daz_screen_height = 32;
+static uint16_t daz_screen_pixels = 32 * 32;
+static uint8_t daz_color = 0;
+static uint32_t daz_surface[DAZ_PIXELS];
+static uint32_t daz_cpalette[16];
+static uint32_t daz_gpalette[16];
 
-static uint8 js1_buttons[JS1_NUM_STICKS] = {0x0f, 0x0f};
-static uint8 js1_joyx[JS1_NUM_STICKS];
-static uint8 js1_joyy[JS1_NUM_STICKS];
+static uint8_t js1_buttons[JS1_NUM_STICKS] = {0x0f, 0x0f};
+static uint8_t js1_joyx[JS1_NUM_STICKS];
+static uint8_t js1_joyy[JS1_NUM_STICKS];
 
 #define DAZ_SHOW_VIDEO(b) (b & DAZ_ON) ? "ON" : "OFF"
 #define DAZ_SHOW_RES(b) (b & DAZ_RESX4) ? "X4" : "NORMAL"
 #define DAZ_SHOW_MEMSIZE(b) (b & DAZ_2K) ? "2K" : "512"
 #define DAZ_SHOW_COLOR(b) (b & DAZ_COLOR) ? "COLOR" : "B/W"
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern t_stat exdep_cmd(int32 flag, const char *cptr);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern t_stat exdep_cmd(int32_t flag, const char *cptr);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
 
 static const char *daz_description(DEVICE *dptr);
 static t_stat daz_svc(UNIT *uptr);
 static t_stat daz_reset(DEVICE *dptr);
-static t_stat daz_boot(int32 unitno, DEVICE *dptr);
-static void daz_set_0f(uint8 val);
-static t_stat daz_set_video(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat daz_show_video(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat daz_set_resolution(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat daz_show_resolution(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat daz_set_memsize(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat daz_show_memsize(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat daz_set_color(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat daz_show_color(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static int32 daz_io(const int32 port, const int32 io, const int32 data);
+static t_stat daz_boot(int32_t unitno, DEVICE *dptr);
+static void daz_set_0f(uint8_t val);
+static t_stat daz_set_video(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat daz_show_video(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat daz_set_resolution(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat daz_show_resolution(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat daz_set_memsize(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat daz_show_memsize(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat daz_set_color(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat daz_show_color(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static int32_t daz_io(const int32_t port, const int32_t io, const int32_t data);
 static t_stat daz_open_video(void);
 static t_stat daz_close_video(void);
 static void daz_resize_video(void);
 static void daz_refresh(void);
 static void daz_render_normal(void);
 static void daz_render_x4(void);
-static int32 daz_quad_surfacex(int q);
-static int32 daz_quad_surfacey(int q);
+static int32_t daz_quad_surfacex(int q);
+static int32_t daz_quad_surfacey(int q);
 
 static const char *js1_description(DEVICE *dptr);
 static t_stat js1_svc(UNIT *uptr);
 static t_stat js1_reset(DEVICE *dptr);
-static int32 js1_io(const int32 port, const int32 io, const int32 data);
+static int32_t js1_io(const int32_t port, const int32_t io, const int32_t data);
 static void js1_joy_motion (int device, int axis, int value);
 static void js1_joy_button (int device, int button, int state);
 
@@ -275,7 +277,7 @@ static t_stat daz_reset(DEVICE *dptr)
     return r;
 }
 
-static t_stat daz_boot(int32 unitno, DEVICE *dptr)
+static t_stat daz_boot(int32_t unitno, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -320,14 +322,14 @@ static t_stat daz_boot(int32 unitno, DEVICE *dptr)
         exdep_cmd(EX_D, "-m 11E JP 11EH");
     }
 
-    *((int32 *) sim_PC->loc) = 0x0100;
+    *((int32_t *) sim_PC->loc) = 0x0100;
 
     return SCPE_OK;
 }
 
-static int32 daz_io(const int32 port, const int32 io, const int32 data)
+static int32_t daz_io(const int32_t port, const int32_t io, const int32_t data)
 {
-    int32 p = port - daz_ctx.pnp.io_base;
+    int32_t p = port - daz_ctx.pnp.io_base;
 
     if (io == 0) {    /* IN */
         switch (p) {
@@ -469,8 +471,8 @@ static void daz_refresh(void) {
 static void daz_render_normal(void)
 {
     int q, x, y;
-    int32 maddr = daz_addr;
-    int32 saddr = 0;
+    int32_t maddr = daz_addr;
+    int32_t saddr = 0;
 
     for (q = 0; q < daz_pages; q++) {
         for (y = daz_quad_surfacey(q); y < daz_quad_surfacey(q) + 32; y++) {
@@ -495,10 +497,10 @@ static void daz_render_normal(void)
 static void daz_render_x4(void)
 {
     int b, q, x, y;
-    int32 maddr = daz_addr;
-    int32 saddr = 0;
-    int32 soffset[] = {0, 1, daz_res, daz_res + 1, 2, 3, daz_res + 2, daz_res + 3};
-    uint32 color;
+    int32_t maddr = daz_addr;
+    int32_t saddr = 0;
+    int32_t soffset[] = {0, 1, daz_res, daz_res + 1, 2, 3, daz_res + 2, daz_res + 3};
+    uint32_t color;
 
     if (daz_0f & DAZ_COLOR) {
         color = daz_cpalette[daz_color];
@@ -523,7 +525,7 @@ static void daz_render_x4(void)
     }
 }
 
-static int32 daz_quad_surfacex(int q)
+static int32_t daz_quad_surfacex(int q)
 {
     if (q == 1 || q == 3) {
         return daz_res / ((daz_0f & DAZ_RESX4) ? 2 : 2);
@@ -532,7 +534,7 @@ static int32 daz_quad_surfacex(int q)
     return 0;
 }
 
-static int32 daz_quad_surfacey(int q)
+static int32_t daz_quad_surfacey(int q)
 {
     if (q == 2 || q == 3) {
         return daz_res / ((daz_0f & DAZ_RESX4) ? 2 : 2);
@@ -541,8 +543,8 @@ static int32 daz_quad_surfacey(int q)
     return 0;
 }
 
-static void daz_set_0f(uint8 val) {
-    uint8 old = daz_0f;
+static void daz_set_0f(uint8_t val) {
+    uint8_t old = daz_0f;
 
     /* Update daz_0f register */
     daz_0f = val;
@@ -575,7 +577,7 @@ static void daz_set_0f(uint8 val) {
     }
 }
 
-static t_stat daz_set_video(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat daz_set_video(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -602,7 +604,7 @@ static t_stat daz_set_video(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat daz_show_video(FILE *st, UNIT *uptr, int32 val, const void *desc) {
+static t_stat daz_show_video(FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -616,7 +618,7 @@ static t_stat daz_show_video(FILE *st, UNIT *uptr, int32 val, const void *desc) 
     return SCPE_OK;
 }
 
-static t_stat daz_set_resolution(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat daz_set_resolution(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -624,7 +626,7 @@ static t_stat daz_set_resolution(UNIT *uptr, int32 val, const char *cptr, void *
     (void) val;
     (void) desc;
 
-    uint8 old = daz_0f;
+    uint8_t old = daz_0f;
 
     if (!cptr) return SCPE_IERR;
     if (!strlen(cptr)) return SCPE_ARG;
@@ -643,7 +645,7 @@ static t_stat daz_set_resolution(UNIT *uptr, int32 val, const char *cptr, void *
     return SCPE_OK;
 }
 
-static t_stat daz_show_resolution(FILE *st, UNIT *uptr, int32 val, const void *desc) {
+static t_stat daz_show_resolution(FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -657,7 +659,7 @@ static t_stat daz_show_resolution(FILE *st, UNIT *uptr, int32 val, const void *d
     return SCPE_OK;
 }
 
-static t_stat daz_set_memsize(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat daz_set_memsize(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -665,7 +667,7 @@ static t_stat daz_set_memsize(UNIT *uptr, int32 val, const char *cptr, void *des
     (void) val;
     (void) desc;
 
-    uint8 old = daz_0f;
+    uint8_t old = daz_0f;
 
     if (!cptr) return SCPE_IERR;
     if (!strlen(cptr)) return SCPE_ARG;
@@ -684,7 +686,7 @@ static t_stat daz_set_memsize(UNIT *uptr, int32 val, const char *cptr, void *des
     return SCPE_OK;
 }
 
-static t_stat daz_show_memsize(FILE *st, UNIT *uptr, int32 val, const void *desc) {
+static t_stat daz_show_memsize(FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -698,7 +700,7 @@ static t_stat daz_show_memsize(FILE *st, UNIT *uptr, int32 val, const void *desc
     return SCPE_OK;
 }
 
-static t_stat daz_set_color(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat daz_set_color(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -706,7 +708,7 @@ static t_stat daz_set_color(UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    uint8 old = daz_0f;
+    uint8_t old = daz_0f;
 
     if (!cptr) return SCPE_IERR;
     if (!strlen(cptr)) return SCPE_ARG;
@@ -725,7 +727,7 @@ static t_stat daz_set_color(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat daz_show_color(FILE *st, UNIT *uptr, int32 val, const void *desc) {
+static t_stat daz_show_color(FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -777,13 +779,13 @@ static t_stat js1_reset(DEVICE *dptr)
     return r;
 }
 
-static int32 js1_io(const int32 port, const int32 io, const int32 data)
+static int32_t js1_io(const int32_t port, const int32_t io, const int32_t data)
 {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) data;
 
-    int32 p = port - js1_ctx.pnp.io_base;
+    int32_t p = port - js1_ctx.pnp.io_base;
 
     if (io == 0) {    /* IN */
         switch (p) {
@@ -820,13 +822,13 @@ static int32 js1_io(const int32 port, const int32 io, const int32 data)
 
 static void js1_joy_motion (int device, int axis, int value)
 {
-    uint8 v;
+    uint8_t v;
 
     if (device < JS1_NUM_STICKS && axis < 2) {
         if (value < -32000) value = -32000;
         if (value > 32000) value = 32000;
 
-        v = (uint8) (value >> 8);
+        v = (uint8_t) (value >> 8);
 
         if (axis == 0) {
             js1_joyx[device] = v;

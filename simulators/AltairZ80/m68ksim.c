@@ -78,8 +78,11 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "m68k/m68k.h"
+#include "sim_types.h"
 
 /* Read/write macros */
 #define READ_BYTE(BASE, ADDR) (BASE)[ADDR]
@@ -122,15 +125,15 @@
 #define IRQ_NMI_DEVICE  7
 #define IRQ_MC6850      5
 
-extern uint32 PCX;
-extern uint32 SIMHSleep;
+extern uint32_t PCX;
+extern uint32_t SIMHSleep;
 
 /* Prototypes */
 static void MC6850_reset(void);
 static void m68k_input_device_update(void);
 static int nmi_device_ack(void);
-static void int_controller_set(uint32 value);
-static void int_controller_clear(uint32 value);
+static void int_controller_set(uint32_t value);
+static void int_controller_clear(uint32_t value);
 
 /* Data */
 static int m68k_MC6850_control = 0;                 /* MC6850 control register      */
@@ -138,29 +141,29 @@ static int m68k_MC6850_status = 2;                  /* MC6850 status register   
 static t_stat keyboardCharacter;                    /* one character buffer         */
 static bool characterAvailable = false;             /* buffer initially empty       */
 
-static uint32 m68k_int_controller_pending = 0;      /* list of pending interrupts   */
-static uint32 m68k_int_controller_highest_int = 0;  /* Highest pending interrupt    */
+static uint32_t m68k_int_controller_pending = 0;    /* list of pending interrupts   */
+static uint32_t m68k_int_controller_highest_int = 0; /* Highest pending interrupt    */
 
-static uint8 m68k_ram[M68K_MAX_RAM + 1];            /* RAM                          */
+static uint8_t m68k_ram[M68K_MAX_RAM + 1];          /* RAM                          */
 
 /* Interface to SIMH I/O devices */
-extern void out(const uint32 Port, const uint32 Value);
-extern uint32 in(const uint32 Port);
+extern void out(const uint32_t Port, const uint32_t Value);
+extern uint32_t in(const uint32_t Port);
 
-static uint32 m68k_fc;                              /* Current function code from CPU */
+static uint32_t m68k_fc;                            /* Current function code from CPU */
 
-extern uint32 m68k_registers[M68K_REG_CPU_TYPE + 1];
+extern uint32_t m68k_registers[M68K_REG_CPU_TYPE + 1];
 extern UNIT cpu_unit;
-extern uint32 mmiobase;                             /* M68K MMIO base address            */
-extern uint32 mmiosize;                             /* M68K MMIO window size             */
-extern uint32 m68kvariant;                          /* M68K variant (68000, 68010, etc.) */
+extern uint32_t mmiobase;                           /* M68K MMIO base address            */
+extern uint32_t mmiosize;                           /* M68K MMIO window size             */
+extern uint32_t m68kvariant;                        /* M68K variant (68000, 68010, etc.) */
 
 #define M68K_BOOT_LENGTH        (32 * 1024)                 /* size of bootstrap    */
 #define M68K_BOOT_PC            0x000400                    /* initial PC for boot  */
 #define M68K_BOOT_SP            0xfe0000                    /* initial SP for boot  */
 
-t_stat m68k_hdsk_boot(const int32 unitno, DEVICE *dptr,
-                      const uint32 verboseMessage, const int32 hdskNumber) {
+t_stat m68k_hdsk_boot(const int32_t unitno, DEVICE *dptr,
+                      const uint32_t verboseMessage, const int32_t hdskNumber) {
     UNIT *uptr;
     size_t i;
 
@@ -195,13 +198,13 @@ t_stat m68k_hdsk_boot(const int32 unitno, DEVICE *dptr,
 }
 
 void m68k_CPUToView(void) {
-    uint32 reg;
+    uint32_t reg;
     for (reg = M68K_REG_D0; reg <= M68K_REG_CPU_TYPE; reg++)
         m68k_registers[reg] = m68k_get_reg(NULL, (m68k_register_t)reg);
 }
 
 void m68k_viewToCPU(void) {
-    uint32 reg;
+    uint32_t reg;
     for (reg = M68K_REG_D0; reg <= M68K_REG_CPU_TYPE; reg++)
         m68k_set_reg((m68k_register_t)reg, m68k_registers[reg]);
 }
@@ -233,7 +236,7 @@ t_stat sim_instr_m68k(void) {
 }
 
 void m68k_clear_memory(void ) {
-    uint32 i;
+    uint32_t i;
     for (i = 0; i <= M68K_MAX_RAM; i++)
         m68k_ram[i] = 0;
 }
@@ -271,7 +274,7 @@ static void MC6850_reset(void) {
 }
 
 #define INITIAL_IDLE    100
-static uint32 idleCount = INITIAL_IDLE;
+static uint32_t idleCount = INITIAL_IDLE;
 
 static void m68k_input_device_update(void) {
     if (characterAvailable) {
@@ -293,7 +296,7 @@ static void m68k_input_device_update(void) {
 }
 
 /* wait until character becomes available */
-static uint32 MC6850_data_read(void) {
+static uint32_t MC6850_data_read(void) {
     t_stat ch;
     int_controller_clear(IRQ_MC6850);
     m68k_MC6850_status &= ~0x81;        // clear data ready and interrupt flag
@@ -322,7 +325,7 @@ static int MC6850_device_ack(void) {
     return M68K_INT_ACK_AUTOVECTOR;
 }
 
-static void MC6850_data_write(uint32 value) {
+static void MC6850_data_write(uint32_t value) {
     sim_putchar(value);
     if ((m68k_MC6850_control & 0x60) == 0x20) { // transmit interrupt enabled?
         int_controller_clear(IRQ_MC6850);
@@ -330,12 +333,12 @@ static void MC6850_data_write(uint32 value) {
     }
 }
 
-static void MC6850_control_write(uint32 val) {
+static void MC6850_control_write(uint32_t val) {
     m68k_MC6850_control = val;
 }
 
 /* Read data from RAM */
-unsigned int m68k_cpu_read_byte_raw(unsigned int address) {
+uint_t m68k_cpu_read_byte_raw(uint_t address) {
     if (address > M68K_MAX_RAM) {
         if (cpu_unit.flags & UNIT_CPU_VERBOSE)
             sim_printf("M68K: 0x%08x Attempt to read byte from non existing memory 0x%08x.\n",
@@ -345,7 +348,7 @@ unsigned int m68k_cpu_read_byte_raw(unsigned int address) {
     return READ_BYTE(m68k_ram, address);
 }
 
-unsigned int m68k_cpu_read_byte(unsigned int address) {
+uint_t m68k_cpu_read_byte(uint_t address) {
     switch(address) {
         case MC6850_DATA:
             return MC6850_data_read();
@@ -367,7 +370,7 @@ unsigned int m68k_cpu_read_byte(unsigned int address) {
    return READ_BYTE(m68k_ram, address);
 }
 
-unsigned int m68k_cpu_read_word(unsigned int address) {
+uint_t m68k_cpu_read_word(uint_t address) {
     switch(address) {
         case DISK_STATUS:
             return hdsk_getStatus();
@@ -383,12 +386,12 @@ unsigned int m68k_cpu_read_word(unsigned int address) {
     return READ_WORD(m68k_ram, address);
 }
 
-unsigned int m68k_cpu_read_long(unsigned int address) {
+uint_t m68k_cpu_read_long(uint_t address) {
     switch(address) {
         case DISK_STATUS:
             return hdsk_getStatus();
         case M68K_GET_TIME:
-            return (unsigned int)(sim_get_time(NULL));
+            return (uint_t)(sim_get_time(NULL));
         default:
             break;
     }
@@ -403,7 +406,7 @@ unsigned int m68k_cpu_read_long(unsigned int address) {
 
 
 /* Write data to RAM or a device */
-void m68k_cpu_write_byte_raw(unsigned int address, unsigned int value) {
+void m68k_cpu_write_byte_raw(uint_t address, uint_t value) {
     if (address > M68K_MAX_RAM) {
         if (cpu_unit.flags & UNIT_CPU_VERBOSE)
             sim_printf("M68K: 0x%08x Attempt to write byte 0x%02x to non existing memory 0x%08x.\n",
@@ -413,7 +416,7 @@ void m68k_cpu_write_byte_raw(unsigned int address, unsigned int value) {
     WRITE_BYTE(m68k_ram, address, value);
 }
 
-void m68k_cpu_write_byte(unsigned int address, unsigned int value) {
+void m68k_cpu_write_byte(uint_t address, uint_t value) {
     switch(address) {
         case MC6850_DATA:
             MC6850_data_write(value & 0xff);
@@ -437,7 +440,7 @@ void m68k_cpu_write_byte(unsigned int address, unsigned int value) {
     WRITE_BYTE(m68k_ram, address, value);
 }
 
-void m68k_cpu_write_word(unsigned int address, unsigned int value) {
+void m68k_cpu_write_word(uint_t address, uint_t value) {
     if (address > M68K_MAX_RAM-1) {
         if (cpu_unit.flags & UNIT_CPU_VERBOSE)
             sim_printf("M68K: 0x%08x Attempt to write word 0x%04x to non existing memory 0x%08x.\n",
@@ -447,7 +450,7 @@ void m68k_cpu_write_word(unsigned int address, unsigned int value) {
     WRITE_WORD(m68k_ram, address, value);
 }
 
-void m68k_cpu_write_long(unsigned int address, unsigned int value) {
+void m68k_cpu_write_long(uint_t address, uint_t value) {
     switch(address) {
         case DISK_SET_DRIVE:
             hdsk_setSelectedDisk(value);
@@ -503,7 +506,7 @@ void m68k_cpu_pulse_reset(void) {
 }
 
 /* Called when the CPU changes the function code pins */
-void m68k_cpu_set_fc(unsigned int fc) {
+void m68k_cpu_set_fc(uint_t fc) {
     m68k_fc = fc;
 }
 
@@ -525,8 +528,8 @@ static int nmi_device_ack(void) {
 }
 
 /* Implementation for the interrupt controller */
-static void int_controller_set(uint32 value) {
-    const uint32 old_pending = m68k_int_controller_pending;
+static void int_controller_set(uint32_t value) {
+    const uint32_t old_pending = m68k_int_controller_pending;
     m68k_int_controller_pending |= (1<<value);
     if (old_pending != m68k_int_controller_pending && value > m68k_int_controller_highest_int) {
         m68k_int_controller_highest_int = value;
@@ -534,7 +537,7 @@ static void int_controller_set(uint32 value) {
     }
 }
 
-static void int_controller_clear(uint32 value) {
+static void int_controller_clear(uint32_t value) {
     m68k_int_controller_pending &= ~(1<<value);
     for (m68k_int_controller_highest_int = 7; m68k_int_controller_highest_int > 0;m68k_int_controller_highest_int--)
         if (m68k_int_controller_pending & (1<<m68k_int_controller_highest_int))
@@ -542,10 +545,10 @@ static void int_controller_clear(uint32 value) {
     m68k_set_irq(m68k_int_controller_highest_int);
 }
 
-unsigned int m68k_read_disassembler_16(unsigned int address) {
+uint_t m68k_read_disassembler_16(uint_t address) {
     return m68k_cpu_read_word(address);
 }
 
-unsigned int m68k_read_disassembler_32(unsigned int address) {
+uint_t m68k_read_disassembler_32(uint_t address) {
     return m68k_cpu_read_long(address);
 }

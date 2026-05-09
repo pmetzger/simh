@@ -159,6 +159,7 @@
 #include "sim_timer.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 #ifdef CPANEL
 #include "cpanel.h"
 #endif
@@ -193,94 +194,94 @@
 
 struct InstHistory
 {
-    t_int64             ac;
-    t_int64             mq;
-    t_int64             op;
-    t_int64             sr;
-    uint32              ic;
-    uint16              ea;
-    uint16              xr1;
-    uint16              xr2;
-    uint16              xr4;
+    int64_t             ac;
+    int64_t             mq;
+    int64_t             op;
+    int64_t             sr;
+    uint32_t            ic;
+    uint16_t            ea;
+    uint16_t            xr1;
+    uint16_t            xr2;
+    uint16_t            xr4;
 };
 
 t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr,
-                           int32 sw);
+                           int32_t sw);
 t_stat              cpu_dep(t_value val, t_addr addr, UNIT * uptr,
-                            int32 sw);
+                            int32_t sw);
 t_stat              cpu_reset(DEVICE * dptr);
-t_stat              cpu_set_size(UNIT * uptr, int32 val, const char *cptr,
+t_stat              cpu_set_size(UNIT * uptr, int32_t val, const char *cptr,
                                  void *desc);
-t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32 val,
+t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32_t val,
                                   const void *desc);
-t_stat              cpu_set_hist(UNIT * uptr, int32 val, const char *cptr,
+t_stat              cpu_set_hist(UNIT * uptr, int32_t val, const char *cptr,
                                  void *desc);
-uint32              cpu_cmd(UNIT * uptr, uint16 cmd, uint16 dev);
-t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+uint32_t            cpu_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev);
+t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *cpu_description (DEVICE *dptr);
 
 /* Interval timer option */
 t_stat              rtc_srv(UNIT * uptr);
 t_stat              rtc_reset(DEVICE * dptr);
-int32               rtc_tps = 60;
+int32_t             rtc_tps = 60;
 
-t_uint64            M[MAXMEMSIZE] = { 0 };      /* memory */
-t_uint64            AC, MQ;                     /* registers */
-uint16              XR[8];                      /* Index registers */
-uint16              IC;                         /* program counter */
-uint16              IR;                         /* Instruction register */
-uint16              MA;                         /* Memory Address resister */
-t_uint64            ID;                         /* Indicator registers */
-t_uint64            SR;                         /* Internal temp register */
-t_uint64            KEYS;                       /* Console Keys */
-uint8               SL;                         /* Sense lights */
-uint16              SW = 0;                     /* Sense switch */
-uint8               MTM;                        /* Multi Index mode */
-uint8               TM;                         /* Trap mode */
-uint8               STM;                        /* Special trap mode */
-uint8               CTM;                        /* Copy trap mode */
-uint8               FTM;                        /* Floating trap mode */
-uint8               nmode;                      /* Storage null mode */
-uint8               smode;                      /* Signifigance mode */
-uint8               itrap;                      /* Can take io traps */
-uint8               dcheck;                     /* Divide check */
-uint8               acoflag;                    /* AC Overflow */
-uint8               mqoflag;                    /* MQ Overflow */
-uint8               ihold = 0;                  /* Hold interrupts */
-uint8               interval_irq = 0;           /* Interval timer IRQ */
-uint16              iotraps;                    /* IO trap flags */
-t_uint64            ioflags = 0;                /* Trap enable flags */
-uint8               iocheck;
-uint8               prot_pend;                  /* Protection mode pending */
-uint8               relo_mode;                  /* Relocation mode */
-uint8               relo_pend;                  /* Relocation mode pending */
-uint8               hltinst;                    /* Executed halt instruction */
-uint8               iowait;                     /* Waiting on io */
-uint16              relocaddr = 0;              /* Relocation. */
-uint16              baseaddr = 0;               /* Base Address. */
-uint16              limitaddr = 077777;         /* High limit */
-uint16              memmask = 077777;           /* Mask for memory access */
-uint8               bcore;                      /* Access to B core memory */
+uint64_t            M[MAXMEMSIZE] = { 0 };      /* memory */
+uint64_t            AC, MQ;                     /* registers */
+uint16_t            XR[8];                      /* Index registers */
+uint16_t            IC;                         /* program counter */
+uint16_t            IR;                         /* Instruction register */
+uint16_t            MA;                         /* Memory Address resister */
+uint64_t            ID;                         /* Indicator registers */
+uint64_t            SR;                         /* Internal temp register */
+uint64_t            KEYS;                       /* Console Keys */
+uint8_t             SL;                         /* Sense lights */
+uint16_t            SW = 0;                     /* Sense switch */
+uint8_t             MTM;                        /* Multi Index mode */
+uint8_t             TM;                         /* Trap mode */
+uint8_t             STM;                        /* Special trap mode */
+uint8_t             CTM;                        /* Copy trap mode */
+uint8_t             FTM;                        /* Floating trap mode */
+uint8_t             nmode;                      /* Storage null mode */
+uint8_t             smode;                      /* Signifigance mode */
+uint8_t             itrap;                      /* Can take io traps */
+uint8_t             dcheck;                     /* Divide check */
+uint8_t             acoflag;                    /* AC Overflow */
+uint8_t             mqoflag;                    /* MQ Overflow */
+uint8_t             ihold = 0;                  /* Hold interrupts */
+uint8_t             interval_irq = 0;           /* Interval timer IRQ */
+uint16_t            iotraps;                    /* IO trap flags */
+uint64_t            ioflags = 0;                /* Trap enable flags */
+uint8_t             iocheck;
+uint8_t             prot_pend;                  /* Protection mode pending */
+uint8_t             relo_mode;                  /* Relocation mode */
+uint8_t             relo_pend;                  /* Relocation mode pending */
+uint8_t             hltinst;                    /* Executed halt instruction */
+uint8_t             iowait;                     /* Waiting on io */
+uint16_t            relocaddr = 0;              /* Relocation. */
+uint16_t            baseaddr = 0;               /* Base Address. */
+uint16_t            limitaddr = 077777;         /* High limit */
+uint16_t            memmask = 077777;           /* Mask for memory access */
+uint8_t             bcore;                      /* Access to B core memory */
                                                 /* 00 - Execute A Core, Eff A */
                                                 /* 01 - Execute A core, Eff B */
                                                 /* 10 - Execute B core, Eff A */
                                                 /* 11 - Execute B core, Eff B */
                                                 /* 1xx - Protection mode */
                                                 /* 1xxx - Relocation mode */
-uint8               dualcore;                   /* Set to true if dual core in
+uint8_t             dualcore;                   /* Set to true if dual core in
                                                          use */
 
-uint16              dev_pulse[NUM_CHAN];        /* SPRA device pulses */
+uint16_t            dev_pulse[NUM_CHAN];        /* SPRA device pulses */
 int                 cycle_time = 12;            /* Cycle time in 100ns */
-uint8               exe_KEYS = 0;               /* Execute one instruction
+uint8_t             exe_KEYS = 0;               /* Execute one instruction
                                                    from KEYS, used by CPANEL */
 
 /* History information */
-int32               hst_p = 0;                  /* History pointer */
-int32               hst_lnt = 0;                /* History length */
+int32_t             hst_p = 0;                  /* History pointer */
+int32_t             hst_lnt = 0;                /* History length */
 struct InstHistory *hst = NULL;                 /* History stack */
-extern uint32       drum_addr;
+extern uint32_t     drum_addr;
 
 #define DP_FLOAT        1
 #define CHANNEL         2
@@ -426,7 +427,7 @@ DEVICE              cpu_dev = {
 */
 
 /* Positive opcodes */
-uint16  pos_opcode_flags[01000] = {
+uint16_t pos_opcode_flags[01000] = {
         /* 0    1       2       3       4       5       6       7 */
         /*HTR*/
 /* 0000 */ T_T, N,      N,      N,      N,      N,      N,      N,
@@ -535,7 +536,7 @@ uint16  pos_opcode_flags[01000] = {
 };
 
 /* Negative opcodes */
-uint16  neg_opcode_flags[01000] = {
+uint16_t neg_opcode_flags[01000] = {
 /* 4000 */ N,   N,      N,      N,      N,      N,      N,      N,
 /* 4010 */ N,   N,      N,      N,      N,      N,      N,      N,
         /*      ESNT    TRCB            TRCD            TRCF    TRCH */
@@ -650,11 +651,11 @@ uint16  neg_opcode_flags[01000] = {
 #define update_xr(t, v) \
          if ((t)) { \
              if (MTM) { \
-                 if ((t)&04) XR[4] = (uint16)(v); \
-                 if ((t)&02) XR[2] = (uint16)(v); \
-                 if ((t)&01) XR[1] = (uint16)(v); \
+                 if ((t)&04) XR[4] = (uint16_t)(v); \
+                 if ((t)&02) XR[2] = (uint16_t)(v); \
+                 if ((t)&01) XR[1] = (uint16_t)(v); \
              } else { \
-                 XR[(t)] = (uint16)(v); \
+                 XR[(t)] = (uint16_t)(v); \
              } \
          }
 
@@ -670,7 +671,7 @@ uint16  neg_opcode_flags[01000] = {
            if (((MA & 077400) < baseaddr) || ((MA & 077400) >limitaddr)) { \
                /* Trap to A core */ \
                /* bcore to D3,4, IC=ADDR MA is going to DECR */ \
-               M[032] = (((t_uint64)bcore & 3) << 31) | (((t_uint64)MA) << 18) | IC;\
+               M[032] = (((uint64_t)bcore & 3) << 31) | (((uint64_t)MA) << 18) | IC;\
                 /* store 32, IC = 33 */ \
                 IC = 033; \
                bcore = 0; \
@@ -696,7 +697,7 @@ uint16  neg_opcode_flags[01000] = {
            if (((MA & 077400) < baseaddr) || ((MA & 077400) >limitaddr)) { \
                /* Trap to A core */ \
                /* bcore to D3,4, IC=ADDR MA is going to DECR */ \
-               M[032] = (((t_uint64)bcore & 3) << 31) | (((t_uint64)MA) << 18) | IC;\
+               M[032] = (((uint64_t)bcore & 3) << 31) | (((uint64_t)MA) << 18) | IC;\
                 /* store 32, IC = 33 */ \
                 IC = 033; \
                bcore = 0; \
@@ -714,18 +715,18 @@ t_stat
 sim_instr(void)
 {
     t_stat              reason;
-    t_uint64            temp = 0LL;
+    uint64_t            temp = 0LL;
 #ifdef I7090
-    t_uint64            ibr;
+    uint64_t            ibr;
 #endif
-    uint16              opcode;
-    uint8               tag;
-    uint16              decr;
-    uint16              xr;
-    uint16              opinfo;
+    uint16_t            opcode;
+    uint8_t             tag;
+    uint16_t            decr;
+    uint16_t            xr;
+    uint16_t            opinfo;
     int                 fptemp = 0, fptemp2;
-    uint8               f;
-    uint16              tbase;
+    uint8_t             f;
+    uint16_t            tbase;
     int                 xeccnt = 15;
     int                 shiftcnt;
     int                 stopnext = 0;
@@ -811,7 +812,7 @@ sim_instr(void)
 /* Check if we need to take any traps */
 #ifdef I7090    /* I704 did not have interrupts */
         if (CPU_MODEL != CPU_704 && itrap && ihold == 0 && iowait == 0 && ioflags != 0 && instr_count == 0) {
-            t_uint64            mask = 00000001000001LL;
+            uint64_t            mask = 00000001000001LL;
 
             MA = 012;
             f = 0;
@@ -839,11 +840,11 @@ sim_instr(void)
 //                        iotraps &= ~(1 << (shiftcnt + 18));
                         /* HTR/HPR behave like wait if protected */
                         if (hltinst)
-                            temp = (((t_uint64) bcore & 3) << 31) |
-                                  (((t_uint64) f) << 18) | (fptemp & memmask);
+                            temp = (((uint64_t) bcore & 3) << 31) |
+                                  (((uint64_t) f) << 18) | (fptemp & memmask);
                         else
-                            temp = (((t_uint64) bcore & 3) << 31) |
-                                  (((t_uint64) f) << 18) | (IC & memmask);
+                            temp = (((uint64_t) bcore & 3) << 31) |
+                                  (((uint64_t) f) << 18) | (IC & memmask);
                         hltinst = 0;
                         sim_interval = sim_interval - 1;        /* count down */
                         WriteP(MA, temp);
@@ -886,10 +887,10 @@ sim_instr(void)
             if (interval_irq && (ioflags & 0400000)) {
                 /* HTR/HPR behave like wait if protected */
                 if (hltinst)
-                    temp = (((t_uint64) bcore & 3) << 31) |
+                    temp = (((uint64_t) bcore & 3) << 31) |
                           (fptemp & memmask) | (relo_mode << 21);
                 else
-                    temp = (((t_uint64) bcore & 3) << 31) |
+                    temp = (((uint64_t) bcore & 3) << 31) |
                           (IC & memmask) | (relo_mode << 21);
                 hltinst = 0;
                 sim_interval = sim_interval - 1;        /* count down */
@@ -928,7 +929,7 @@ sim_instr(void)
         }
 
         if (hltinst) {
-             t_uint64            mask = 00000001000001LL;
+             uint64_t            mask = 00000001000001LL;
              /* Hold out until all channels have idled out */
              sim_interval = sim_interval - 1;        /* count down */
              chan_proc();
@@ -1003,14 +1004,14 @@ sim_instr(void)
 
 
       next_xec:
-        opcode = (uint16)(SR >> 24);
+        opcode = (uint16_t)(SR >> 24);
         IR = opcode;
         if (hst_lnt) {  /* history enabled? */
             hst[hst_p].op = SR;
         }
-        MA = (uint16)(SR & AMASK);
-        tag = (uint8)(SR >> 15) & 07;
-        decr = (uint16)((SR >> 18) & AMASK);
+        MA = (uint16_t)(SR & AMASK);
+        tag = (uint8_t)(SR >> 15) & 07;
+        decr = (uint16_t)((SR >> 18) & AMASK);
                                         /* Set flags to D to start with */
         xr = get_xr(tag);
         iowait = 0;                     /* Kill iowait */
@@ -1110,7 +1111,7 @@ prottrap:
                     memmask <<= 1;
                     memmask |= 1;
                 }
-                temp = ((t_uint64) (bcore & 3) << 31) | IC;
+                temp = ((uint64_t) (bcore & 3) << 31) | IC;
                 tbase = 0;
                 prot_pend = nmode = bcore = STM = CTM = 0;
                 WriteP(MA, temp);
@@ -1126,7 +1127,7 @@ prottrap:
                     memmask <<= 1;
                     memmask |= 1;
                 }
-                temp = ((t_uint64) (bcore & 3) << 31) | IC;
+                temp = ((uint64_t) (bcore & 3) << 31) | IC;
                 tbase = 0;
                 prot_pend = nmode = bcore = STM = CTM = 0;
                 WriteP(MA, temp);
@@ -1141,7 +1142,7 @@ prottrap:
                     memmask <<= 1;
                     memmask |= 1;
                 }
-                temp = ((t_uint64) (bcore & 3) << 31) | IC;
+                temp = ((uint64_t) (bcore & 3) << 31) | IC;
                 tbase = 0;
                 prot_pend = nmode = bcore = STM = CTM = 0;
                 WriteP(MA, temp);
@@ -1156,9 +1157,9 @@ prottrap:
             if ((CPU_MODEL != CPU_704) && ((decr & 060) == 060) &&
                 (opinfo & (T_B | T_T | S_B))) {
                 ReadMem(1, SR);
-                tag = (uint8)((SR >> 15) & 07);
+                tag = (uint8_t)((SR >> 15) & 07);
                 xr = get_xr(tag);
-                MA = (uint16)(memmask & (SR - xr));
+                MA = (uint16_t)(memmask & (SR - xr));
             }
             MA &= memmask;
             if (opinfo & (T_B | T_F | S_F)) {
@@ -1214,7 +1215,7 @@ prottrap:
                         memmask <<= 1;
                         memmask |= 1;
                     }
-                    temp = ((t_uint64) (bcore & 3) << 31) | IC;
+                    temp = ((uint64_t) (bcore & 3) << 31) | IC;
                     tbase = 0;
                     prot_pend = nmode = bcore = STM = CTM = 0;
                     WriteP(MA, temp);
@@ -1494,7 +1495,7 @@ prottrap:
                      fptemp = IC;
                 break;
             case OP_XEC:
-                opcode = (uint16)(SR >> 24);
+                opcode = (uint16_t)(SR >> 24);
                 if (opcode != OP_XEC) {
                     xeccnt = 15;
                     goto next_xec;
@@ -1688,7 +1689,7 @@ prottrap:
                 MQ = SR;
                 break;
             case OP_AXC:
-                SR = (t_uint64)(-(t_int64)SR);
+                SR = (uint64_t)(-(int64_t)SR);
                 break;
             case OP_AXT:
                 break;
@@ -1696,7 +1697,7 @@ prottrap:
                 SR &= memmask;
                 break;
             case OP_LAC:
-                SR = (t_uint64)(-(t_int64)SR);
+                SR = (uint64_t)(-(int64_t)SR);
                 SR &= memmask;
                 break;
             case OP_LDQ:
@@ -1708,7 +1709,7 @@ prottrap:
                 break;
             case OP_LDC:
                 SR >>= 18;
-                SR = (t_uint64)(-(t_int64)SR);
+                SR = (uint64_t)(-(int64_t)SR);
                 SR &= memmask;
                 break;
             case OP_CLA:
@@ -1797,7 +1798,7 @@ prottrap:
                 SR = memmask & (AC >> 18);
                 break;
             case OP_PDC:
-                SR = (t_uint64)(memmask & (-(t_int64)(AC >> 18)));
+                SR = (uint64_t)(memmask & (-(int64_t)(AC >> 18)));
                 break;
             case OP_PXD:
                 SR = AC = xr & memmask;
@@ -1812,7 +1813,7 @@ prottrap:
                 SR = memmask & AC;
                 break;
             case OP_PAC:
-                SR = (t_uint64)(memmask & (-(t_int64)AC));
+                SR = (uint64_t)(memmask & (-(int64_t)AC));
                 break;
             case OP_PXA:
                 AC = memmask & xr;
@@ -2140,12 +2141,12 @@ prottrap:
                 /* Put pieces back together */
                 AC &= FPMMASK;
                 MQ &= FPMMASK;
-                AC |= ((t_uint64) (fptemp & 01777)) << 27;
+                AC |= ((uint64_t) (fptemp & 01777)) << 27;
                 if (AC != 0) {
                     if (fptemp < 27 && (temp & FPOVERR) == 0)
                         temp |= FPMQERR;
                     fptemp -= 27;
-                    MQ |= ((t_uint64) (fptemp & 0377)) << 27;
+                    MQ |= ((uint64_t) (fptemp & 0377)) << 27;
                 }
                 if (f & 2) {
                     AC |= AMSIGN;
@@ -2265,13 +2266,13 @@ prottrap:
                         temp |= FPACERR;
                     else if (fptemp > 0377)
                         temp |= FPOVERR | FPACERR;
-                    AC |= ((t_uint64) (fptemp & 01777)) << 27;
+                    AC |= ((uint64_t) (fptemp & 01777)) << 27;
                     fptemp -= 27;
                     if (fptemp < 0)
                         temp |= FPMQERR;
                     else if (fptemp > 0377)
                         temp |= FPOVERR | FPMQERR;
-                    MQ |= ((t_uint64) (fptemp & 0377)) << 27;   /* UF Check */
+                    MQ |= ((uint64_t) (fptemp & 0377)) << 27;   /* UF Check */
                 }
                 if (f & 1) {
                     MQ |= MSIGN;
@@ -2313,11 +2314,11 @@ prottrap:
                         }
                         if (fptemp2 < 0)
                             temp |= FPSPERR | FPMQERR;
-                        AC = ((t_uint64) (fptemp2 & 01777)) << 27;
+                        AC = ((uint64_t) (fptemp2 & 01777)) << 27;
                         if (FTM && CPU_MODEL != CPU_704 && fptemp2 < 27)
                             temp |= FPSPERR | FPACERR;
                         fptemp2 -= 27;
-                        MQ = ((t_uint64) (fptemp2 & 0377)) << 27;
+                        MQ = ((uint64_t) (fptemp2 & 0377)) << 27;
                         /* Fix signs */
                         if (f & 1)
                             MQ |= MSIGN;
@@ -2407,11 +2408,11 @@ prottrap:
                         temp |= FPSPERR | FPOVERR | FPMQERR;
                     else if (fptemp < 0)
                         temp |= FPSPERR | FPMQERR;
-                    MQ |= ((t_uint64) (fptemp & 0377)) << 27;
+                    MQ |= ((uint64_t) (fptemp & 0377)) << 27;
                     if (FTM && CPU_MODEL != CPU_704 && fptemp2 < 27)
                         temp |= FPSPERR | FPACERR;
                     fptemp2 -= 27;
-                    AC |= ((t_uint64) (fptemp2 & 01777)) << 27; /* UF check */
+                    AC |= ((uint64_t) (fptemp2 & 01777)) << 27; /* UF check */
                 }
                 /* Fix signs on results */
                 if (f & 1)
@@ -2472,7 +2473,7 @@ prottrap:
                             ID = AC;
                         goto dpfnorm;
                     } else {
-                        t_uint64        t;
+                        uint64_t        t;
                         AC &= ~FPMMASK;
                         AC |= SR & FPMMASK;
                         SR &= ~FPMMASK;
@@ -2483,7 +2484,7 @@ prottrap:
                     }
                     /* AC=c, MQ=d SR=b, ID=a */
                 } else {        /* ID Bigger then AC, AC Smaller */
-                    t_uint64    t;
+                    uint64_t    t;
                     shiftcnt = -shiftcnt;       /* Change sign */
                     fptemp = (int)(SR >> 27) & 0377;
                     if (shiftcnt > 077) {
@@ -2608,12 +2609,12 @@ prottrap:
                 /* Put pieces back together */
                 AC &= FPMMASK;
                 MQ &= FPMMASK;
-                AC |= ((t_uint64) (fptemp & 01777)) << 27;
+                AC |= ((uint64_t) (fptemp & 01777)) << 27;
                 if (AC != 0) {
                     if (fptemp < 27 && (temp & FPOVERR) == 0)
                         temp |= FPMQERR;
                     fptemp -= 27;
-                    MQ |= ((t_uint64) (fptemp & 0377)) << 27;
+                    MQ |= ((uint64_t) (fptemp & 0377)) << 27;
                 }
                 if (f & 2)
                     AC |= AMSIGN;
@@ -2772,11 +2773,11 @@ prottrap:
                         temp |= FPMQERR;
                     else if (fptemp > 0377)
                         temp |= FPOVERR | FPACERR;
-                    AC |= ((t_uint64) (fptemp & 01777)) << 27;
+                    AC |= ((uint64_t) (fptemp & 01777)) << 27;
                     fptemp -= 27;
                     if (fptemp > 0377)
                         temp |= FPOVERR | FPMQERR;
-                    MQ |= ((t_uint64) (fptemp & 0377)) << 27;   /* UF Check */
+                    MQ |= ((uint64_t) (fptemp & 0377)) << 27;   /* UF Check */
                 }
 
                 /* Restore signs */
@@ -2894,7 +2895,7 @@ prottrap:
                 if (f & 16)
                     fptemp++;
                 /* Adjust ID register to correct exponent */
-                ID |= ((t_uint64) (fptemp & 0377)) << 27;
+                ID |= ((uint64_t) (fptemp & 0377)) << 27;
                 if (f & 1)
                     ID |= MSIGN;
                 /* Check before final divide */
@@ -2995,11 +2996,11 @@ prottrap:
                     temp |= FPACERR | FPMQERR;
                 else if (fptemp < 27)
                     temp |= FPMQERR;
-                AC |= ((t_uint64) (fptemp & 01777)) << 27;
+                AC |= ((uint64_t) (fptemp & 01777)) << 27;
                 fptemp -= 27;
                 if (fptemp > 0377)
                     temp |= FPOVERR | FPMQERR;
-                MQ |= ((t_uint64) (fptemp & 0377)) << 27;
+                MQ |= ((uint64_t) (fptemp & 0377)) << 27;
                 /* Fix signs on results */
                 if (f & 1) {    /* Sign does not change */
                     MQ |= MSIGN;
@@ -3064,16 +3065,16 @@ prottrap:
                 } else
                     f = 0;
                 while (shiftcnt != 0) {
-                    MA += (uint16)(AC & 077);
+                    MA += (uint16_t)(AC & 077);
                     ReadMem(0, SR);
-                    MA = (uint16)(AMASK & SR);
+                    MA = (uint16_t)(AMASK & SR);
                     AC >>= 6;
                     AC |= SR & (077LL << 30);
                     shiftcnt--;
                 }
                 /* Save XR if tag set */
                 if (tag & 1)
-                    XR[1] = (uint16)(MA & AMASK);
+                    XR[1] = (uint16_t)(MA & AMASK);
                 /* restore sign */
                 if (f)
                     AC |= AMSIGN;
@@ -3085,9 +3086,9 @@ prottrap:
             case OP_CAQ:
                 shiftcnt = (int)(SR >> 18L) & 0377;
                 while (shiftcnt != 0) {
-                    MA += (uint16)(MQ >> 30) & 077;
+                    MA += (uint16_t)(MQ >> 30) & 077;
                     ReadMem(0, SR);
-                    MA = (uint16)(AMASK & SR);
+                    MA = (uint16_t)(AMASK & SR);
                     MQ <<= 6;
                     MQ |= (MQ >> 36) & 077;
                     MQ &= WMASK;
@@ -3096,7 +3097,7 @@ prottrap:
                     shiftcnt--;
                 }
                 if (tag & 1)
-                    XR[1] = (uint16)(MA & AMASK);
+                    XR[1] = (uint16_t)(MA & AMASK);
                 break;
 
             case OP_CRQ + 3:
@@ -3105,16 +3106,16 @@ prottrap:
             case OP_CRQ:
                 shiftcnt = (int)(SR >> 18L) & 0377;
                 while (shiftcnt != 0) {
-                    MA += (uint16)(MQ >> 30) & 077;
+                    MA += (uint16_t)(MQ >> 30) & 077;
                     ReadMem(0, SR);
-                    MA = (uint16)(AMASK & SR);
+                    MA = (uint16_t)(AMASK & SR);
                     MQ <<= 6;
                     MQ &= (WMASK ^ 077);
                     MQ |= (SR >> 30) & 077;
                     shiftcnt--;
                 }
                 if (tag & 1)
-                    XR[1] = (uint16)(MA & AMASK);
+                    XR[1] = (uint16_t)(MA & AMASK);
                 break;
 #endif
 
@@ -3265,7 +3266,7 @@ prottrap:
             case OP_LDA:
                 if (chan_select(0)) {
                     extern DEVICE drm_dev;
-                    drum_addr = (uint32)(SR);
+                    drum_addr = (uint32_t)(SR);
                     sim_debug(DEBUG_DETAIL, &drm_dev,
                                  "set address %06o\n", drum_addr);
                     chan_clear(0, DEV_FULL);    /* In case we read something
@@ -3290,7 +3291,7 @@ prottrap:
                 /* Instruct is NOP first time */
                 /* Incomplete last word leaves result in MQ */
                 if (chan_select(0)) {
-                    extern uint8 bcnt[NUM_CHAN];
+                    extern uint8_t bcnt[NUM_CHAN];
                     chan_set(0, STA_ACTIVE);
                     switch (chan_flags[0] & (DEV_WRITE | DEV_FULL)) {
                     case DEV_WRITE | DEV_FULL:
@@ -3406,7 +3407,7 @@ prottrap:
                     ihold = 1;  /* Hold interupts for one cycle */
                     break;
                 case SCPE_OK:
-                    {   uint16 temp16;
+                    {   uint16_t temp16;
                         temp16 = (MA >> 9) & 017;
                         if (temp16 == 0) {
                             if (opcode==IO_RDS)
@@ -3902,7 +3903,7 @@ prottrap:
                     AC = 0;
                 } else {
                     /* Put exponent in place. */
-                    AC = ((t_uint64) (fptemp)) << 18;
+                    AC = ((uint64_t) (fptemp)) << 18;
                     /* Check underflow */
                     if (AC & AMSIGN) {
                         temp |= FPSPERR | FPMQERR;
@@ -4001,7 +4002,7 @@ prottrap:
                     }
 
                     /* Put exponent in place. */
-                    AC |= ((t_uint64) (fptemp)) << 18;
+                    AC |= ((uint64_t) (fptemp)) << 18;
                     /* Check underflow */
                     if (AC & AMSIGN) {
                         temp |= FPSPERR | FPMQERR;
@@ -4058,15 +4059,15 @@ prottrap:
                 break;
             case OP_LRI:
                 /* In B core trap, else load relocation */
-                relocaddr = (uint16)(SR & 077400);
+                relocaddr = (uint16_t)(SR & 077400);
                 relo_pend = (SR & MSIGN) ? 0: 1;
                 ihold = 1;
                 sim_debug(DEBUG_PROT, &cpu_dev, "LRI %07o %012llo\n", IC, SR);
                 break;
             case OP_LPI:
                 /* In B core trap, else load protection */
-                baseaddr = (uint16)(SR & 077400);
-                limitaddr = (uint16)((SR >> 18) & 077400);
+                baseaddr = (uint16_t)(SR & 077400);
+                limitaddr = (uint16_t)((SR >> 18) & 077400);
                 ihold = 1;
                 prot_pend = (SR & MSIGN)?0:1;
                 sim_debug(DEBUG_PROT, &cpu_dev, "LPI %07o %012llo\n", IC, SR);
@@ -4078,8 +4079,8 @@ prottrap:
                 break;
             case OP_SPI:
                 /* In B core trap, else store protection */
-                SR = ((t_uint64)limitaddr) << 18 |
-                     ((t_uint64)baseaddr);
+                SR = ((uint64_t)limitaddr) << 18 |
+                     ((uint64_t)baseaddr);
                 sim_debug(DEBUG_PROT, &cpu_dev, "SPI %07o %012llo\n", IC, SR);
                 break;
 
@@ -4167,7 +4168,7 @@ prottrap:
 }
 
 /* Nothing special to do, just return true if cmd is write and we got here */
-uint32 cpu_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cpu_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -4234,7 +4235,7 @@ rtc_srv(UNIT * uptr)
 /* Memory examine */
 
 t_stat
-cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
+cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -4252,7 +4253,7 @@ cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
 /* Memory deposit */
 
 t_stat
-cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
+cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -4266,7 +4267,7 @@ cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
 }
 
 t_stat
-cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
+cpu_set_size(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -4274,9 +4275,9 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
     (void)desc;
     (void)uptr;
 
-    t_uint64            mc = 0;
-    uint32              i;
-    int32               v;
+    uint64_t            mc = 0;
+    uint32_t            i;
+    int32_t             v;
 
     v = val >> UNIT_V_MSIZE;
     v *= 8192;
@@ -4301,7 +4302,7 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
 
 /* Set history */
 t_stat
-cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
+cpu_set_hist(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -4309,7 +4310,7 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
     (void)uptr;
     (void)val;
 
-    int32               i, lnt;
+    int32_t             i, lnt;
     t_stat              r;
 
     if (cptr == NULL) {
@@ -4318,7 +4319,7 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
         hst_p = 0;
         return SCPE_OK;
     }
-    lnt = (int32) get_uint(cptr, 10, HIST_MAX, &r);
+    lnt = (int32_t) get_uint(cptr, 10, HIST_MAX, &r);
     if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
         return SCPE_ARG;
     hst_p = 0;
@@ -4340,14 +4341,14 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
 /* Show history */
 
 t_stat
-cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
+cpu_show_hist(FILE * st, UNIT * uptr, int32_t val, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)val;
 
-    int32               k, di, lnt;
+    int32_t             k, di, lnt;
     char               *cptr = (char *) desc;
     t_stat              r;
     t_value             sim_eval;
@@ -4356,7 +4357,7 @@ cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
     if (hst_lnt == 0)
         return SCPE_NOFNC;      /* enabled? */
     if (cptr) {
-        lnt = (int32) get_uint(cptr, 10, hst_lnt, &r);
+        lnt = (int32_t) get_uint(cptr, 10, hst_lnt, &r);
         if ((r != SCPE_OK) || (lnt == 0))
             return SCPE_ARG;
     } else
@@ -4444,7 +4445,7 @@ cpu_description (DEVICE *dptr)
 }
 
 t_stat
-cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

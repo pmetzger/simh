@@ -24,8 +24,9 @@
 #include "i7070_defs.h"
 #include "sim_card.h"
 #include <ctype.h>
+#include <stdint.h>
 
-t_stat  parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw);
+t_stat  parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw);
 
 /* SCP data structures and interface routines
 
@@ -41,7 +42,7 @@ char                sim_name[] = "IBM 7070";
 
 REG                *sim_PC = &cpu_reg[0];
 
-int32               sim_emax = 1;
+int32_t             sim_emax = 1;
 
 DEVICE             *sim_devices[] = {
     &cpu_dev,
@@ -233,9 +234,9 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              opbase;
+    uint16_t            opbase;
     const char         *name;
-    uint8               type;
+    uint8_t             type;
 }
 t_opcode;
 
@@ -501,11 +502,11 @@ const char *chname[11] = {
 static void
 print_opcode(FILE * of, t_value val, t_opcode * tab)
 {
-    uint32      MA;
-    uint8       f1;
-    uint8       f2;
-    uint8       IX;
-    uint16      op;
+    uint32_t    MA;
+    uint8_t     f1;
+    uint8_t     f2;
+    uint8_t     IX;
+    uint16_t    op;
     int         type;
     int         t;
 
@@ -794,14 +795,14 @@ print_opcode(FILE * of, t_value val, t_opcode * tab)
 */
 
 t_stat
-fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32 sw)
+fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void)addr;
     (void)uptr;
 
-    t_uint64            inst = *val;
+    uint64_t            inst = *val;
 
 /* Print value in decimal first */
     fputc(' ', of);
@@ -856,7 +857,7 @@ find_opcode(char *op, t_opcode * tab)
 */
 
 t_stat
-parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
+parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -898,19 +899,19 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
         if (op == 0)
             return STOP_UUO;
 
-        d = (((t_uint64)op->opbase) << 32) & DMASK;
+        d = (((uint64_t)op->opbase) << 32) & DMASK;
         d |= (op->opbase & 0x100)? MSIGN:PSIGN;
         if (op->type == TYPE_X) {
             *val = d;
             return SCPE_OK;
         }
         if (op2 != 0 && op2->opbase != 0 && op->type == TYPE_E) {
-            d |= ((t_uint64)op2->opbase) << 24;
+            d |= ((uint64_t)op2->opbase) << 24;
             *val = d;
             return SCPE_OK;
         }
         if (op2 != 0 && op2->opbase != 0 && op->type == TYPE_F) {
-            d |= ((t_uint64)op2->opbase) << 28;
+            d |= ((uint64_t)op2->opbase) << 28;
             *val = d;
             return SCPE_OK;
         }
@@ -1029,19 +1030,19 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
             cptr++;
         if (*cptr != '\0')
             return STOP_UUO;
-        d |= ((t_uint64)idx) << 24;
+        d |= ((uint64_t)idx) << 24;
         d |= a;
         switch(op->type) {
         case TYPE_P1:
         case TYPE_P2:
         case TYPE_P3:
                 if (op2 == NULL)
-                    d |= ((t_uint64)opr) << 16;
+                    d |= ((uint64_t)opr) << 16;
                 else
-                    d |= ((t_uint64)(opr + op2->opbase)) << 16;
+                    d |= ((uint64_t)(opr + op2->opbase)) << 16;
                 break;
         case TYPE_A:
-                d |= ((t_uint64)opr) << 16;
+                d |= ((uint64_t)opr) << 16;
                 break;
         case TYPE_E:
         case TYPE_F:
@@ -1050,38 +1051,38 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
         case TYPE_S:
         case TYPE_D:
         case TYPE_V:
-                d += ((t_uint64)opr &0xF0) << 28;
-                d |= ((t_uint64)opr &0x0F) << 28;
+                d += ((uint64_t)opr &0xF0) << 28;
+                d |= ((uint64_t)opr &0x0F) << 28;
                 break;
         case TYPE_Z:
-                d |= ((t_uint64)op2->opbase) << 16;
+                d |= ((uint64_t)op2->opbase) << 16;
                 break;
         case TYPE_TB:
                 opr <<= 4;
                 opr |= 1;
                 /* Fall through */
         case TYPE_I:
-                d |= ((t_uint64)opr) << 16;
+                d |= ((uint64_t)opr) << 16;
                 break;
         case TYPE_T:
                 if (op2->opbase & 0xf0)
-                    d |= ((t_uint64)op2->opbase &0xF0) << 12;
+                    d |= ((uint64_t)op2->opbase &0xF0) << 12;
                 else
                     d |= op2->opbase;
-                d |= ((t_uint64)opr & 0xF) << 16;
-                d += ((t_uint64)opr &0xF0) << 28;
+                d |= ((uint64_t)opr & 0xF) << 16;
+                d += ((uint64_t)opr &0xF0) << 28;
                 break;
         case TYPE_U:
         case TYPE_C:
-                d |= ((t_uint64)opr) << 20;
-                d |= ((t_uint64)op2->opbase) << 16;
+                d |= ((uint64_t)opr) << 20;
+                d |= ((uint64_t)op2->opbase) << 16;
                 /* Fall through */
         case TYPE_IQ:
-                d |= ((t_uint64)opr) << 20;
+                d |= ((uint64_t)opr) << 20;
                 break;
         }
     } else if (sw & SWMASK('C')) {
-        extern uint8    bcd_mem[64];
+        extern uint8_t  bcd_mem[64];
         i = 0;
         while (*cptr != '\0' && i < 5) {
             d <<= 8;

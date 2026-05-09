@@ -76,6 +76,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_cpu_fp.h"
@@ -114,18 +116,18 @@ typedef enum {                                  /* shift operand sizes */
 
 /* CPU base set local utility routines */
 
-static uint32 add_32               (uint32 augend,  uint32 addend);
-static uint32 sub_32               (uint32 minuend, uint32 subtrahend);
+static uint32_t add_32               (uint32_t augend,  uint32_t addend);
+static uint32_t sub_32               (uint32_t minuend, uint32_t subtrahend);
 static void   shift_16_32          (HP_WORD opcode, SHIFT_TYPE shift, OPERAND_SIZE op_size);
 static void   shift_48_64          (HP_WORD opcode, SHIFT_TYPE shift, OPERAND_SIZE op_size);
 static void   check_stack_bounds   (HP_WORD new_value);
-static uint32 tcs_io               (IO_COMMAND command);
-static uint32 srw_io               (IO_COMMAND command, HP_WORD ready_flag);
-static void   decrement_stack      (uint32 decrement);
+static uint32_t tcs_io               (IO_COMMAND command);
+static uint32_t srw_io               (IO_COMMAND command, HP_WORD ready_flag);
+static void   decrement_stack      (uint32_t decrement);
 
-static t_stat move_words           (ACCESS_CLASS source_class, uint32 source_base,
-                                    ACCESS_CLASS dest_class,   uint32 dest_base,
-                                    uint32 decrement);
+static t_stat move_words           (ACCESS_CLASS source_class, uint32_t source_base,
+                                    ACCESS_CLASS dest_class,   uint32_t dest_base,
+                                    uint32_t decrement);
 
 /* CPU base set local instruction execution routines */
 
@@ -173,7 +175,7 @@ static t_stat io_control         (void);
 
 bool cpu_interrupt_pending (t_stat *status)
 {
-uint32 device_number = 0;
+uint32_t device_number = 0;
 
 sim_interval = sim_interval - 1;                        /* count the cycle */
 
@@ -278,7 +280,7 @@ return status;                                          /* return the execution 
 
 HP_WORD cpu_add_16 (HP_WORD augend, HP_WORD addend)
 {
-uint32 sum;
+uint32_t sum;
 
 sum = augend + addend;                                  /* sum the values */
 
@@ -310,7 +312,7 @@ return (HP_WORD) LOWER_WORD (sum);                      /* return the lower 16 b
 
 HP_WORD cpu_sub_16 (HP_WORD minuend, HP_WORD subtrahend)
 {
-uint32 difference;
+uint32_t difference;
 
 difference = minuend - subtrahend;                      /* subtract the values */
 
@@ -335,12 +337,12 @@ return (HP_WORD) LOWER_WORD (difference);               /* return the lower 16 b
 
 HP_WORD cpu_mpy_16 (HP_WORD multiplicand, HP_WORD multiplier)
 {
-int32  product;
-uint32 check;
+int32_t product;
+uint32_t check;
 
 product = SEXT16 (multiplicand) * SEXT16 (multiplier);  /* sign-extend the operands and multiply */
 
-check = (uint32) product & S16_OVFL_MASK;               /* check the top 17 bits and set overflow */
+check = (uint32_t) product & S16_OVFL_MASK;             /* check the top 17 bits and set overflow */
 SET_OVERFLOW (check != 0 && check != S16_OVFL_MASK);    /*   if they are not all zeros or all ones */
 
 return (HP_WORD) LOWER_WORD (product);                  /* return the lower 16 bits of the product */
@@ -418,7 +420,7 @@ return (HP_WORD) LOWER_WORD (product);                  /* return the lower 16 b
 
 t_stat cpu_stack_op (void)
 {
-static const uint8 preadjustment [64] = {       /* stack preadjustment, indexed by operation */
+static const uint8_t preadjustment [64] = {     /* stack preadjustment, indexed by operation */
     0, 2, 2, 0, 0, 0, 0, 0,                     /*   NOP  DELB DDEL ZROX INCX DECX ZERO DZRO */
     4, 4, 4, 2, 3, 2, 4, 2,                     /*   DCMP DADD DSUB MPYL DIVL DNEG DXCH CMP  */
     2, 2, 2, 2, 1, 1, 2, 2,                     /*   ADD  SUB  MPY  DIV  NEG  TEST STBX DTST */
@@ -430,8 +432,8 @@ static const uint8 preadjustment [64] = {       /* stack preadjustment, indexed 
     };
 
 HP_WORD entry_status, exchanger;
-uint32  operation, sum, difference, uproduct, udividend, uquotient, uremainder, check;
-int32   product, dividend, divisor, quotient, remainder;
+uint32_t operation, sum, difference, uproduct, udividend, uquotient, uremainder, check;
+int32_t product, dividend, divisor, quotient, remainder;
 FP_OPND operand_u, operand_v, operand_w;
 t_stat  status = SCPE_OK;
 
@@ -542,7 +544,7 @@ switch (operation) {                                    /* dispatch the stack op
         RB = UPPER_WORD (product);                      /* split the MSW */
         RA = LOWER_WORD (product);                      /*   and the LSW of the product */
 
-        check = (uint32) product & S16_OVFL_MASK;           /* check the top 17 bits and set carry */
+        check = (uint32_t) product & S16_OVFL_MASK;         /* check the top 17 bits and set carry */
         SET_CARRY (check != 0 && check != S16_OVFL_MASK);   /*   if they are not all zeros or all ones */
 
         STA &= ~STATUS_O;                               /* clear O as this operation cannot overflow */
@@ -568,7 +570,7 @@ switch (operation) {                                    /* dispatch the stack op
             quotient  = dividend / divisor;             /* form the 32-bit signed quotient */
             remainder = dividend % divisor;             /*   and 32-bit signed remainder */
 
-            check = (uint32) quotient & S16_OVFL_MASK;              /* check the top 17 bits and set overflow */
+            check = (uint32_t) quotient & S16_OVFL_MASK;            /* check the top 17 bits and set overflow */
             SET_OVERFLOW (check != 0 && check != S16_OVFL_MASK);    /*   if they are not all zeros or all ones */
 
             RA = remainder & R_MASK;                    /* store the remainder on the TOS */
@@ -1076,7 +1078,7 @@ return status;                                          /* return the execution 
 
 t_stat cpu_shift_branch_bit_op (void)
 {
-static const uint8 preadjustment [32] = {       /* stack preadjustment, indexed by operation */
+static const uint8_t preadjustment [32] = {     /* stack preadjustment, indexed by operation */
     1, 1, 1, 1, 1, 1, 1, 1,                     /*   ASL  ASR  LSL  LSR  CSL  CSR  SCAN IABZ    */
     3, 3, 0, 0, 0, 0, 3, 4,                     /*   TASL TASR IXBZ DXBZ BCY  BNCY TNSL QAS(LR) */
     2, 2, 2, 2, 2, 2, 2, 1,                     /*   DASL DASR DLSL DLSR DCSL DCSR CPRB DABZ    */
@@ -1084,7 +1086,7 @@ static const uint8 preadjustment [32] = {       /* stack preadjustment, indexed 
     };
 
 HP_WORD opcode;
-uint32  operation, bit_position, bit_mask, count;
+uint32_t operation, bit_position, bit_mask, count;
 t_stat  status = SCPE_OK;
 
 operation = SBBOP (CIR);                                /* get the opcode from the instruction */
@@ -1357,13 +1359,13 @@ return status;                                          /* return the execution 
 
 t_stat cpu_move_spec_fw_imm_field_reg_op (void)
 {
-static const uint8 preadjustment [16] = {       /* stack preadjustment, indexed by operation */
+static const uint8_t preadjustment [16] = {     /* stack preadjustment, indexed by operation */
     0, 4, 0, 0, 1, 1, 1, 1,                     /*   ---- ---- LDI  LDXI CMPI ADDI SUBI MPYI */
     1, 0, 0, 0, 1, 1, 2, 4                      /*   DIVI PSHR LDNI LDXN CMPN EXF  DPF  SETR */
     };
 
-int32   divisor;
-uint32  operation;
+int32_t divisor;
+uint32_t operation;
 HP_WORD new_sbank, new_sm, new_q, start_bit, bit_count, bit_shift, bit_mask;
 t_stat  status = SCPE_OK;
 
@@ -1423,7 +1425,7 @@ switch (operation) {                                    /* dispatch the operatio
 
 
     case 010:                                           /* DIVI (CCA; STUN, ARITH) */
-        divisor = (int32) CIR & IMMED_MASK;             /* get the immediate (positive) divisor */
+        divisor = (int32_t) CIR & IMMED_MASK;           /* get the immediate (positive) divisor */
 
         if (divisor == 0)                               /* if dividing by zero */
             MICRO_ABORT (trap_Integer_Zero_Divide);     /*   then trap or set the overflow flag */
@@ -1699,13 +1701,13 @@ return status;                                          /* return the execution 
 
 t_stat cpu_io_cntl_prog_imm_mem_op (void)
 {
-static const uint8 preadjustment [16] = {       /* stack preadjustment, indexed by operation */
+static const uint8_t preadjustment [16] = {     /* stack preadjustment, indexed by operation */
     0, 0, 0, 0, 1, 0, 0, 0,                     /*   ---- SCAL PCAL EXIT SXIT ADXI SBXI LLBL */
     0, 0, 1, 1, 0, 1, 1, 1                      /*   LDPP LDPN ADDS SUBS ---- ORI  XORI ANDI */
     };
 
 ACCESS_CLASS class;
-uint32       operation;
+uint32_t     operation;
 HP_WORD      field, operand, offset, new_p, new_q, new_sm, stt_length, label;
 t_stat       status = SCPE_OK;
 
@@ -1948,11 +1950,11 @@ return status;                                          /* return the execution 
    bit is set.
 */
 
-static uint32 add_32 (uint32 augend, uint32 addend)
+static uint32_t add_32 (uint32_t augend, uint32_t addend)
 {
-t_uint64 sum;
+uint64_t sum;
 
-sum = (t_uint64) augend + (t_uint64) addend;            /* sum the values */
+sum = (uint64_t) augend + (uint64_t) addend;            /* sum the values */
 
 SET_CARRY (sum > D32_UMAX);                             /* set C if there is a carry out of the MSB */
 
@@ -1960,7 +1962,7 @@ SET_OVERFLOW (D32_SIGN                                  /* set O if the signs */
                 & (~augend ^ addend)                    /*   of the operands are the same */
                 & (augend ^ sum));                      /*     but the sign of the result differs */
 
-return (uint32) sum & D32_MASK;                         /* return the lower 32 bits of the sum */
+return (uint32_t) sum & D32_MASK;                       /* return the lower 32 bits of the sum */
 }
 
 
@@ -1980,11 +1982,11 @@ return (uint32) sum & D32_MASK;                         /* return the lower 32 b
        there is a borrow and 1 is there is not.
 */
 
-static uint32 sub_32 (uint32 minuend, uint32 subtrahend)
+static uint32_t sub_32 (uint32_t minuend, uint32_t subtrahend)
 {
-t_uint64 difference;
+uint64_t difference;
 
-difference = (t_uint64) minuend - (t_uint64) subtrahend;    /* subtract the values */
+difference = (uint64_t) minuend - (uint64_t) subtrahend;    /* subtract the values */
 
 SET_CARRY (subtrahend <= minuend);                          /* set C if no borrow from the MSB was done */
 
@@ -1992,7 +1994,7 @@ SET_OVERFLOW (D32_SIGN                                      /* set O if the sign
                 & (minuend ^ subtrahend)                    /*   of the operands differ */
                 & (minuend ^ difference));                  /*     as do the signs of the minuend and result */
 
-return (uint32) difference & D32_MASK;                      /* return the lower 32 bits of the difference */
+return (uint32_t) difference & D32_MASK;                    /* return the lower 32 bits of the difference */
 }
 
 
@@ -2053,9 +2055,9 @@ return (uint32) difference & D32_MASK;                      /* return the lower 
 static void shift_16_32 (HP_WORD opcode, SHIFT_TYPE shift, OPERAND_SIZE op_size)
 {
 typedef struct {
-    uint32 sign;                                /* the sign bit of the operand */
-    uint32 data;                                /* the data mask of the operand */
-    uint32 width;                               /* the width of the operand in bits */
+    uint32_t sign;                              /* the sign bit of the operand */
+    uint32_t data;                              /* the data mask of the operand */
+    uint32_t width;                             /* the width of the operand in bits */
     } PROPERTY;
 
 static const PROPERTY prop [2] = {
@@ -2063,7 +2065,7 @@ static const PROPERTY prop [2] = {
     { D32_SIGN, D32_MASK & ~D32_SIGN, D32_WIDTH }       /* 32-bit operand properties */
     };
 
-uint32 count, operand, fill, result;
+uint32_t count, operand, fill, result;
 
 count = SHIFT_COUNT (opcode);                           /* get the shift count from the instruction */
 
@@ -2180,10 +2182,10 @@ return;
 static void shift_48_64 (HP_WORD opcode, SHIFT_TYPE shift, OPERAND_SIZE op_size)
 {
 typedef struct {
-    t_uint64 sign;                              /* the sign bit of the operand */
-    t_uint64 data;                              /* the data mask of the operand */
-    uint32   width;                             /* the width of the operand in bits */
-    uint32   padding;                           /* unused padding to suppress an alignment warning */
+    uint64_t sign;                              /* the sign bit of the operand */
+    uint64_t data;                              /* the data mask of the operand */
+    uint32_t width;                             /* the width of the operand in bits */
+    uint32_t padding;                           /* unused padding to suppress an alignment warning */
     } PROPERTY;
 
 static const PROPERTY prop [4] = {
@@ -2193,13 +2195,13 @@ static const PROPERTY prop [4] = {
     { D64_SIGN, D64_MASK & ~D64_SIGN, D64_WIDTH }       /* 64-bit operand properties */
     };
 
-uint32   count;
-t_uint64 operand, fill, result;
+uint32_t count;
+uint64_t operand, fill, result;
 
-operand = (t_uint64) RC << D32_WIDTH | TO_DWORD (RB, RA);   /* merge the first three words of the operand */
+operand = (uint64_t) RC << D32_WIDTH | TO_DWORD (RB, RA);   /* merge the first three words of the operand */
 
 if (op_size == size_64)                                 /* if the operand size is 64 bits */
-    operand = (t_uint64) RD << D48_WIDTH | operand;     /*   then merge the fourth word of the operand */
+    operand = (uint64_t) RD << D48_WIDTH | operand;     /*   then merge the fourth word of the operand */
 
 if (shift == arithmetic) {                              /* if this is an arithmetic shift */
     count = SHIFT_COUNT (opcode);                       /*   then the instruction contains the shift count */
@@ -2302,10 +2304,10 @@ return;
 
 static void check_stack_bounds (HP_WORD new_value)
 {
-if ((uint32) Z - new_value > D16_SMAX)                  /* if the new value is not within 32K below Z */
+if ((uint32_t) Z - new_value > D16_SMAX)                /* if the new value is not within 32K below Z */
     MICRO_ABORT (trap_Stack_Overflow);                  /*   then trap for an overflow */
 
-else if ((uint32) new_value - DB > D16_SMAX && NPRV)    /* otherwise if the new value is not within 32K above DB */
+else if ((uint32_t) new_value - DB > D16_SMAX && NPRV)  /* otherwise if the new value is not within 32K above DB */
     MICRO_ABORT (trap_Stack_Underflow);                 /*   then trap for an underflow unless the mode is privileged */
 
 else                                                    /* otherwise the new value */
@@ -2337,9 +2339,9 @@ else                                                    /* otherwise the new val
        SM and SR.
 */
 
-static uint32 tcs_io (IO_COMMAND command)
+static uint32_t tcs_io (IO_COMMAND command)
 {
-uint32  address;
+uint32_t address;
 HP_WORD device, result;
 
 if (NPRV)                                               /* if the mode is not privileged */
@@ -2398,9 +2400,9 @@ else {                                                  /* otherwise */
        operation need not be tested for validity.
 */
 
-static uint32 srw_io (IO_COMMAND command, HP_WORD ready_flag)
+static uint32_t srw_io (IO_COMMAND command, HP_WORD ready_flag)
 {
-uint32  test;
+uint32_t test;
 HP_WORD device, result;
 
 test = tcs_io (ioTIO);                                  /* send a Test I/O order to the device */
@@ -2448,7 +2450,7 @@ else {                                                  /* otherwise the device 
    instruction is resumed after the interrupt handler completes.
 */
 
-static void decrement_stack (uint32 decrement)
+static void decrement_stack (uint32_t decrement)
 {
 while (decrement > 0) {                                 /* decrement the stack pointer */
     cpu_pop ();                                         /*   by the count specified */
@@ -2504,12 +2506,12 @@ return;
        flush the correct TOS values to memory.
 */
 
-static t_stat move_words (ACCESS_CLASS source_class, uint32 source_base,
-                          ACCESS_CLASS dest_class,   uint32 dest_base,
-                          uint32 decrement)
+static t_stat move_words (ACCESS_CLASS source_class, uint32_t source_base,
+                          ACCESS_CLASS dest_class,   uint32_t dest_base,
+                          uint32_t decrement)
 {
 HP_WORD operand, *RX;
-uint32  increment, source_bank, dest_bank;
+uint32_t increment, source_bank, dest_bank;
 t_stat  status;
 
 if (RA & D16_SIGN && (CIR & MTFDS_MASK) != MTFDS)       /* if the count is signed and negative */
@@ -2638,15 +2640,15 @@ return SCPE_OK;                                         /*   and return the succ
 
 static t_stat move_spec (void)
 {
-static const uint8 preadjustment [32] = {       /* stack preadjustment, indexed by operation */
+static const uint8_t preadjustment [32] = {     /* stack preadjustment, indexed by operation */
     3, 3, 3, 3, 3, 3, 3, 3,                     /*   MOVE MOVE MOVE MOVE MVB  MVB  MVB  MVB  */
     4, 4, 2, 4, 4, 4, 2, 4,                     /*   MVBL MABS SCW  MTDS MVLB MDS  SCU  MFDS */
     2, 2, 2, 2, 3, 3, 3, 3,                     /*   MVBW MVBW MVBW MVBW CMPB CMPB CMPB CMPB */
     4, 4, 0, 0, 2, 2, 0, 0                      /*   RSW/LLSH  PLDA/PSTA xSEA/xDEA IXIT/etc. */
     };
 
-int32        byte_count;
-uint32       operation, address;
+int32_t      byte_count;
+uint32_t     operation, address;
 HP_WORD      operand, bank, offset, base;
 HP_WORD      byte, test_byte, terminal_byte, increment, byte_class, loop_condition;
 HP_WORD      source_bank, source, source_end, target_bank, target, target_end;
@@ -2949,14 +2951,14 @@ switch (operation) {                                    /* dispatch the move or 
         target = cpu_byte_ea (data_checked, RB, 0);     /*   byte addresses and check the starting bounds */
 
         if (source > target) {                          /* if the source is closer to SM than the target */
-            byte_count = (int32) (SM - source + 1) * 2; /*   then set the byte count from the source */
+            byte_count = (int32_t) (SM - source + 1) * 2; /*   then set the byte count from the source */
 
             if (RA & 1)                                 /* if starting with the lower byte */
                 byte_count = byte_count - 1;            /*   then decrease the count by 1 */
             }
 
         else {                                          /* otherwise the target is closer to SM */
-            byte_count = (int32) (SM - target + 1) * 2; /*   so set the byte count from the target */
+            byte_count = (int32_t) (SM - target + 1) * 2; /*   so set the byte count from the target */
 
             if (RB & 1)                                 /* if starting with the lower byte */
                 byte_count = byte_count - 1;            /*   then decrease the count by 1 */
@@ -3463,10 +3465,10 @@ return status;                                          /* return the execution 
 
 static t_stat firmware_extension (void)
 {
-int32    dividend, divisor, quotient, remainder;
-uint32   operation, suboperation;
-t_int64  product;
-t_uint64 check;
+int32_t  dividend, divisor, quotient, remainder;
+uint32_t operation, suboperation;
+int64_t  product;
+uint64_t check;
 t_stat   status = SCPE_OK;
 
 operation = FIRMEXTOP (CIR);                            /* get the operation from the instruction */
@@ -3490,7 +3492,7 @@ switch (operation) {                                    /* dispatch the operatio
                 product =                               /* form a 64-bit product from a 32 x 32 multiplication */
                    INT32 (TO_DWORD (RD, RC)) * INT32 (TO_DWORD (RB, RA));
 
-                check = (t_uint64) product & S32_OVFL_MASK;             /* check the top 33 bits and set overflow */
+                check = (uint64_t) product & S32_OVFL_MASK;             /* check the top 33 bits and set overflow */
                 SET_OVERFLOW (check != 0 && check != S32_OVFL_MASK);    /*   if they are not all zeros or all ones */
 
                 cpu_pop ();                             /* pop two words */
@@ -3510,7 +3512,7 @@ switch (operation) {                                    /* dispatch the operatio
                 if (divisor == 0)                           /* if dividing by zero */
                     MICRO_ABORT (trap_Integer_Zero_Divide); /*   then trap or set the overflow flag */
 
-                if (dividend == (int32) D32_SMIN && divisor == -1) {    /* if the division will overflow */
+                if (dividend == (int32_t) D32_SMIN && divisor == -1) {  /* if the division will overflow */
                     quotient  = dividend;                               /*   then set the quotient */
                     remainder = 0;                                      /*     and remainder explicitly */
                     SET_OVERFLOW (true);                                /*       and trap or set overflow */
@@ -3608,12 +3610,12 @@ return status;                                          /* return the execution 
 
 static t_stat io_control (void)
 {
-static const uint8 preadjustment [16] = {       /* stack preadjustment, indexed by operation */
+static const uint8_t preadjustment [16] = {     /* stack preadjustment, indexed by operation */
     1, 0, 0, 2, 1, 0, 1, 1,                     /*   LST  PAUS SED  **** **** **** XEQ  SIO  */
     0, 1, 0, 1, 1, 2, 0, 0                      /*   RIO  WIO  TIO  CIO  CMD  SST  SIN  HALT */
     };
 
-uint32  operation, address, offset, module;
+uint32_t operation, address, offset, module;
 HP_WORD operand, command, ics_q, delta_qi, disp_counter;
 t_stat  status = SCPE_OK;
 

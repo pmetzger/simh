@@ -31,6 +31,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sigma_defs.h"
 
 /* Decimal string structure */
@@ -60,8 +62,8 @@
 /* Decimal strings run low order (word 0/R15) to high order (word 3/R12) */
 
 typedef struct {
-    uint32              sign;
-    uint32              val[DSTRLNT];
+    uint32_t            sign;
+    uint32_t            val[DSTRLNT];
     } dstr_t;
 
 /* Copy decimal accumulator to decimal string, no validation or sign separation */
@@ -71,40 +73,40 @@ typedef struct {
 
 static dstr_t Dstr_zero = { 0, { 0, 0, 0, 0 } };
 
-extern uint32 *R;
-extern uint32 CC;
-extern uint32 PSW1;
-extern uint32 bvamqrx;
-extern uint32 cpu_model;
+extern uint32_t *R;
+extern uint32_t CC;
+extern uint32_t PSW1;
+extern uint32_t bvamqrx;
+extern uint32_t cpu_model;
 
-uint32 ReadDstr (uint32 lnt, uint32 addr, dstr_t *dec);
-uint32 WriteDstr (uint32 lnt, uint32 addr, dstr_t *dec);
+uint32_t ReadDstr (uint32_t lnt, uint32_t addr, dstr_t *dec);
+uint32_t WriteDstr (uint32_t lnt, uint32_t addr, dstr_t *dec);
 void WriteDecA (dstr_t *dec, bool cln);
-void SetCC2Dstr (uint32 lnt, dstr_t *dst);
-uint32 TestDstrValid (dstr_t *src);
-uint32 DstrInvd (void);
-uint32 AddDstr (dstr_t *src1, dstr_t *src2, dstr_t *dst, uint32 cin);
+void SetCC2Dstr (uint32_t lnt, dstr_t *dst);
+uint32_t TestDstrValid (dstr_t *src);
+uint32_t DstrInvd (void);
+uint32_t AddDstr (dstr_t *src1, dstr_t *src2, dstr_t *dst, uint32_t cin);
 void SubDstr (dstr_t *src1, dstr_t *src2, dstr_t *dst);
-int32 CmpDstr (dstr_t *src1, dstr_t *src2);
-uint32 LntDstr (dstr_t *dsrc);
-uint32 NibbleLshift (dstr_t *dsrc, uint32 sc, uint32 cin);
-uint32 NibbleRshift (dstr_t *dsrc, uint32 sc, uint32 cin);
-bool GenLshift (dstr_t *dsrc, uint32 sc);
-void GenRshift (dstr_t *dsrc, uint32 sc);
-uint32 ed_getsrc (uint32 sa, uint32 *c, uint32 *d);
-void ed_advsrc (uint32 rn, uint32 c);
-bool cis_test_int (dstr_t *src1, uint32 *kint);
-void cis_dm_int (dstr_t *src, dstr_t *dst, uint32 kint);
-void cis_dd_int (dstr_t *src, dstr_t *dst, uint32 t, uint32 *kint);
+int32_t CmpDstr (dstr_t *src1, dstr_t *src2);
+uint32_t LntDstr (dstr_t *dsrc);
+uint32_t NibbleLshift (dstr_t *dsrc, uint32_t sc, uint32_t cin);
+uint32_t NibbleRshift (dstr_t *dsrc, uint32_t sc, uint32_t cin);
+bool GenLshift (dstr_t *dsrc, uint32_t sc);
+void GenRshift (dstr_t *dsrc, uint32_t sc);
+uint32_t ed_getsrc (uint32_t sa, uint32_t *c, uint32_t *d);
+void ed_advsrc (uint32_t rn, uint32_t c);
+bool cis_test_int (dstr_t *src1, uint32_t *kint);
+void cis_dm_int (dstr_t *src, dstr_t *dst, uint32_t kint);
+void cis_dd_int (dstr_t *src, dstr_t *dst, uint32_t t, uint32_t *kint);
 
 /* Decimal instructions */
 
-uint32 cis_dec (uint32 op, uint32 lnt, uint32 bva)
+uint32_t cis_dec (uint32_t op, uint32_t lnt, uint32_t bva)
 {
 dstr_t src1, src2, src2x, dst;
-uint32 i, t, kint, ldivr, ldivd, ad, c, d, end;
-int32 sc, scmp;
-uint32 tr;
+uint32_t i, t, kint, ldivr, ldivd, ad, c, d, end;
+int32_t sc, scmp;
+uint32_t tr;
 
 if (lnt == 0)                                           /* adjust length */
     lnt = 16;
@@ -348,7 +350,7 @@ switch (op) {                                           /* case on opcode */
             if ((tr = ReadB (ad, &c, VR)) != 0)         /* read char */
                 return tr;
             if (i == 1) {                               /* sign + digit? */
-                uint32 s;
+                uint32_t s;
                 s = (c >> 4) & 0xF;                     /* get sign */
                 if (s < 0xA)
                     return DstrInvd ();
@@ -387,17 +389,17 @@ return 0;
 
 /* Test for interrupted multiply or divide */
 
-bool cis_test_int (dstr_t *src, uint32 *kint)
+bool cis_test_int (dstr_t *src, uint32_t *kint)
 {
-int32 i;
-uint32 wd, sc, d;
+int32_t i;
+uint32_t wd, sc, d;
 
 for (i = 15; i >= 1; i--) {                             /* test 15 nibbles */
     wd = (DSTRLNT/2) + (i / 8);
     sc = (i % 8) * 4;
     d = (src->val[wd] >> sc) & 0xF;
     if (d >= 0xA) {
-        *kint = (uint32) i;
+        *kint = (uint32_t) i;
         return true;
         }
     }
@@ -423,10 +425,10 @@ return false;
    multiplier as a valid decimal string in src, and the partial product
    as a value with no sign in dst */
 
-void cis_dm_int (dstr_t *src, dstr_t *dst, uint32 kint)
+void cis_dm_int (dstr_t *src, dstr_t *dst, uint32_t kint)
 {
-uint32 ppneg, wd, sc, d, curd;
-int32 k;
+uint32_t ppneg, wd, sc, d, curd;
+int32_t k;
 
 *dst = *src;                                            /* copy input */
 wd = (DSTRLNT/2) + (kint / 8);
@@ -442,9 +444,9 @@ src->val[0] = src->val[0] & ~0xF;                       /* clear sign pos */
 
 /* Mask out multiplier */
 
-for (k = DSTRLNT - 1; k >= (int32) wd; k--)             /* words hi to lo */
+for (k = DSTRLNT - 1; k >= (int32_t) wd; k--)           /* words hi to lo */
     dst->val[k] &= ~(0xFFFFFFFFu <<
-        ((k > (int32) wd)? 0: sc));
+        ((k > (int32_t) wd)? 0: sc));
 
 /* Recreate missing high order digits for negative partial product */
 
@@ -480,10 +482,10 @@ return;
    the dividend as a valid decimal string, the quotient as a decimal string
    without sign, and kint is the partial value of the last quotient digit. */
 
-void cis_dd_int (dstr_t *src, dstr_t *dst, uint32 nib, uint32 *kint)
+void cis_dd_int (dstr_t *src, dstr_t *dst, uint32_t nib, uint32_t *kint)
 {
-uint32 wd, sc, d, curd;
-int32 k;
+uint32_t wd, sc, d, curd;
+int32_t k;
 
 wd = (DSTRLNT/2) + (nib / 8);
 sc = (nib % 8) * 4;
@@ -496,9 +498,9 @@ dst->val[0] = (dst->val[0] & ~0xF) | curd;              /* repl with digit */
 
 /* Mask out quotient */
 
-for (k = DSTRLNT - 1; k >= (int32) wd; k--)             /* words hi to lo */
+for (k = DSTRLNT - 1; k >= (int32_t) wd; k--)           /* words hi to lo */
     src->val[k] &= ~(0xFFFFFFFFu <<
-        ((k > (int32) wd)? 0: sc));
+        ((k > (int32_t) wd)? 0: sc));
 src->sign = ((d == 0xB) || (d == 0xD))? 1: 0;           /* set divd sign */
 src->val[0] = src->val[0] & ~0xF;                       /* clr sign digit */
 return;
@@ -515,10 +517,10 @@ return;
 
    Per the Sigma spec, bad digits or signs cause a fault or abort */
 
-uint32 ReadDstr (uint32 lnt, uint32 adr, dstr_t *src)
+uint32_t ReadDstr (uint32_t lnt, uint32_t adr, dstr_t *src)
 {
-uint32 i, c, bva;
-uint32 tr;
+uint32_t i, c, bva;
+uint32_t tr;
 
 *src = Dstr_zero;                                       /* clear result */
 for (i = 0; i < lnt; i++) {                             /* loop thru string */
@@ -532,9 +534,9 @@ return TestDstrValid (src);
 
 /* Separate sign, validate sign and digits of decimal string */
 
-uint32 TestDstrValid (dstr_t *src)
+uint32_t TestDstrValid (dstr_t *src)
 {
-uint32 i, j, s, t;
+uint32_t i, j, s, t;
 
 s = src->val[0] & 0xF;                                  /* get sign */
 if (s < 0xA)                                            /* valid? */
@@ -556,7 +558,7 @@ return 0;
 
 /* Invalid digit or sign: set CC1, trap or abort instruction */
 
-uint32 DstrInvd (void)
+uint32_t DstrInvd (void)
 {
 CC |= CC1;                                              /* set CC1 */
 if (PSW1 & PSW1_DM)                                     /* if enabled, trap */
@@ -575,10 +577,10 @@ return WSIGN;                                           /* otherwise, abort */
    Bad digits and invalid sign are impossible
 */
 
-uint32 WriteDstr (uint32 lnt, uint32 adr, dstr_t *dst)
+uint32_t WriteDstr (uint32_t lnt, uint32_t adr, dstr_t *dst)
 {
-uint32 i, bva, c;
-uint32 tr;
+uint32_t i, bva, c;
+uint32_t tr;
 
 dst->val[0] = dst->val[0] | (PKPLUS + dst->sign);       /* set sign */
 if ((tr = ReadB (adr, &c, VW)) != 0)                    /* prove writeable */
@@ -604,7 +606,7 @@ return 0;
 
 void WriteDecA (dstr_t *dst, bool cln)
 {
-uint32 i, nz;
+uint32_t i, nz;
 
 CC &= ~(CC3|CC4);                                       /* assume zero */
 for (i = 0, nz = 0; i < DSTRLNT; i++) {                 /* save 32 digits */
@@ -627,10 +629,10 @@ return;
    Output:
         sets CC2 if information won't fit */
 
-void SetCC2Dstr (uint32 lnt, dstr_t *dst)
+void SetCC2Dstr (uint32_t lnt, dstr_t *dst)
 {
-uint32 i, limit, mask;
-static uint32 masktab[8] = {
+uint32_t i, limit, mask;
+static uint32_t masktab[8] = {
     0xFFFFFFF0, 0xFFFFFF00, 0xFFFFF000, 0xFFFF0000,
     0xFFF00000, 0xFF000000, 0xF0000000, 0x00000000
     };
@@ -691,10 +693,10 @@ return;
    (actually, shift it right 3 and subtract 3*adjustment).
 */
 
-uint32 AddDstr (dstr_t *s1, dstr_t *s2, dstr_t *ds, uint32 cy)
+uint32_t AddDstr (dstr_t *s1, dstr_t *s2, dstr_t *ds, uint32_t cy)
 {
-uint32 i;
-uint32 sm1, sm2, tm1, tm2, tm3, tm4;
+uint32_t i;
+uint32_t sm1, sm2, tm1, tm2, tm3, tm4;
 
 for (i = 0; i < DSTRLNT; i++) {                         /* loop low to high */
     tm1 = s1->val[i] ^ (s2->val[i] + cy);               /* xor operands */
@@ -722,7 +724,7 @@ return cy;
 
 void SubDstr (dstr_t *s1, dstr_t *s2, dstr_t *ds)
 {
-uint32 i;
+uint32_t i;
 dstr_t complm;
 
 for (i = 0; i < DSTRLNT; i++)                           /* 9's comp s2 */
@@ -740,9 +742,9 @@ return;
         1 if >, 0 if =, -1 if <
 */
 
-int32 CmpDstr (dstr_t *s1, dstr_t *s2)
+int32_t CmpDstr (dstr_t *s1, dstr_t *s2)
 {
-int32 i;
+int32_t i;
 
 for (i = DSTRLNT - 1; i >=0; i--) {
     if (s1->val[i] > s2->val[i])
@@ -761,9 +763,9 @@ return 0;
         number of non-zero digits
 */
 
-uint32 LntDstr (dstr_t *dst)
+uint32_t LntDstr (dstr_t *dst)
 {
-int32 nz, i;
+int32_t nz, i;
 
 for (nz = DSTRLNT - 1; nz >= 0; nz--) {
     if (dst->val[nz]) {
@@ -784,9 +786,9 @@ return 0;
         sc      =       shift count in nibbles
 */
 
-void GenRshift (dstr_t *dsrc, uint32 cnt)
+void GenRshift (dstr_t *dsrc, uint32_t cnt)
 {
-uint32 i, sc, sc1;
+uint32_t i, sc, sc1;
 
 sc = cnt / 8;
 sc1 = cnt % 8;
@@ -809,15 +811,15 @@ return;
         cnt      =      shift count in nibbles
 */
 
-bool GenLshift (dstr_t *dsrc, uint32 cnt)
+bool GenLshift (dstr_t *dsrc, uint32_t cnt)
 {
-uint32 i, c, sc, sc1;
+uint32_t i, c, sc, sc1;
 
 c = 0;
 sc = cnt / 8;
 sc1 = cnt % 8;
 if (sc) {
-    for (i = DSTRLNT - 1; (int32) i >= 0; i--) {
+    for (i = DSTRLNT - 1; (int32_t) i >= 0; i--) {
         if (i >= sc)
             dsrc->val[i] = dsrc->val[i - sc];
         else {
@@ -839,13 +841,13 @@ return (c? true: false);
         cin     =       carry in
 */
 
-uint32 NibbleRshift (dstr_t *dsrc, uint32 sc, uint32 cin)
+uint32_t NibbleRshift (dstr_t *dsrc, uint32_t sc, uint32_t cin)
 {
-int32 i;
-uint32 s, nc;
+int32_t i;
+uint32_t s, nc;
 
 if ((s = sc * 4)) {
-    for (i = DSTRLNT - 1; (int32) i >= 0; i--) {
+    for (i = DSTRLNT - 1; (int32_t) i >= 0; i--) {
         nc = (dsrc->val[i] << (32 - s)) & WMASK;
         dsrc->val[i] = ((dsrc->val[i] >> s) |
             cin) & WMASK;
@@ -864,9 +866,9 @@ return 0;
         cin     =       carry in
 */
 
-uint32 NibbleLshift (dstr_t *dsrc, uint32 sc, uint32 cin)
+uint32_t NibbleLshift (dstr_t *dsrc, uint32_t sc, uint32_t cin)
 {
-uint32 i, s, nc;
+uint32_t i, s, nc;
 
 if ((s = sc * 4)) {
     for (i = 0; i < DSTRLNT; i++) {
@@ -881,10 +883,10 @@ return 0;
 }
 /* Edit instruction */
 
-uint32 cis_ebs (uint32 rn, uint32 disp)
+uint32_t cis_ebs (uint32_t rn, uint32_t disp)
 {
-uint32 sa, da, c, d, dst, fill, pat;
-uint32 tr;
+uint32_t sa, da, c, d, dst, fill, pat;
+uint32_t tr;
 
 disp = SEXT_LIT_W (disp) & WMASK;                       /* sext operand */
 fill = S_GETMCNT (R[rn]);                               /* fill char */
@@ -962,9 +964,9 @@ return 0;
 
 /* Routine to get and validate the next source digit */
 
-uint32 ed_getsrc (uint32 sa, uint32 *c, uint32 *d)
+uint32_t ed_getsrc (uint32_t sa, uint32_t *c, uint32_t *d)
 {
-uint32 tr;
+uint32_t tr;
 
 if ((tr = ReadB (sa, c, VR)) != 0)                      /* read source byte */
     return tr;
@@ -978,7 +980,7 @@ return 0;
 
 /* Routine to advance source string */
 
-void ed_advsrc (uint32 rn, uint32 c)
+void ed_advsrc (uint32_t rn, uint32_t c)
 {
 c = c & 0xF;                                            /* get low digit */
 if (((CC & CC2) == 0) && (c > 0x9)) {                   /* sel left, with sign? */

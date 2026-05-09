@@ -30,6 +30,8 @@
 
 #include <stdlib.h>
 
+#include "sim_types.h"
+
 #define SIM_FRONTPANEL_VERSION   12
 
 /**
@@ -226,14 +228,14 @@ sim_panel_set_display_callback_interval (PANEL *panel,
 
 int
 sim_panel_set_sampling_parameters_ex (PANEL *panel,
-                                      unsigned int sample_frequency,
-                                      unsigned int sample_dither_pct,
-                                      unsigned int sample_depth);
+                                      uint_t sample_frequency,
+                                      uint_t sample_dither_pct,
+                                      uint_t sample_depth);
 
 int
 sim_panel_set_sampling_parameters (PANEL *panel,
-                                   unsigned int sample_frequency,
-                                   unsigned int sample_depth);
+                                   uint_t sample_frequency,
+                                   uint_t sample_depth);
 /**
 
     When a front panel application needs to change the running

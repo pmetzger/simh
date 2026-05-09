@@ -26,6 +26,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "pdp8_defs.h"
 #include "display/display.h"
@@ -40,9 +41,9 @@
 #define CYCLE_US (MEMORY_CYCLE*(DPY_DELAY*2+1))
 
 t_stat dpy_svc(UNIT *uptr);
-int32  dpy_iot (int32 IR, int32 AC);
+int32_t dpy_iot (int32_t IR, int32_t AC);
 t_stat dpy_reset(DEVICE *dptr);
-t_stat dpy_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat dpy_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *dpy_description (DEVICE *dptr);
 
 DIB dpy_dib = { DEV_DPY, 2, { &dpy_iot, &dpy_iot } };
@@ -52,7 +53,7 @@ UNIT dpy_unit = {
 };
 
 static bool dpy_quit = false;
-static uint16 dpy_x, dpy_y;
+static uint16_t dpy_x, dpy_y;
 
 static void dpy_quit_callback (void)
 {
@@ -85,7 +86,7 @@ dpy_svc(UNIT *uptr)
 
 /* Type 34: IOT routine */
 
-int32 dpy_iot (int32 IR, int32 AC)
+int32_t dpy_iot (int32_t IR, int32_t AC)
 {
   switch (IR & 071) {
   case 051:                                         /* DCX */

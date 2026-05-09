@@ -30,6 +30,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_cpu.h"
 #include "3b2_mmu.h"
 #include "3b2_sys.h"
@@ -88,10 +90,10 @@ DEVICE mmu_dev = {
 /*
  * Find an SD in the cache.
  */
-static inline t_stat get_sdce(uint32 va, uint32 *sd0, uint32 *sd1)
+static inline t_stat get_sdce(uint32_t va, uint32_t *sd0, uint32_t *sd1)
 {
-    uint32 tag, sdch, sdcl;
-    uint8 ci;
+    uint32_t tag, sdch, sdcl;
+    uint8_t ci;
 
     ci    = (SID(va) * NUM_SDCE) + SD_IDX(va);
     tag   = SD_TAG(va);
@@ -112,10 +114,10 @@ static inline t_stat get_sdce(uint32 va, uint32 *sd0, uint32 *sd1)
  * Find a PD in the cache. Sets both the PD and the cached access
  * permissions.
  */
-static inline t_stat get_pdce(uint32 va, uint32 *pd, uint8 *pd_acc)
+static inline t_stat get_pdce(uint32_t va, uint32_t *pd, uint8_t *pd_acc)
 {
-    uint32 tag, pdcll, pdclh, pdcrl, pdcrh;
-    uint8 ci;
+    uint32_t tag, pdcll, pdclh, pdcrl, pdcrh;
+    uint8_t ci;
 
     ci    = (SID(va) * NUM_PDCE) + PD_IDX(va);
     tag   = PD_TAG(va);
@@ -142,9 +144,9 @@ static inline t_stat get_pdce(uint32 va, uint32 *pd, uint8 *pd_acc)
     return SCPE_NXM;
 }
 
-static inline void put_sdce(uint32 va, uint32 sd0, uint32 sd1)
+static inline void put_sdce(uint32_t va, uint32_t sd0, uint32_t sd1)
 {
-    uint8 ci;
+    uint8_t ci;
 
     ci    = (SID(va) * NUM_SDCE) + SD_IDX(va);
 
@@ -153,9 +155,9 @@ static inline void put_sdce(uint32 va, uint32 sd0, uint32 sd1)
 }
 
 
-static inline void put_pdce(uint32 va, uint32 sd0, uint32 pd)
+static inline void put_pdce(uint32_t va, uint32_t sd0, uint32_t pd)
 {
-    uint8  ci;
+    uint8_t ci;
 
     ci    = (SID(va) * NUM_PDCE) + PD_IDX(va);
 
@@ -200,9 +202,9 @@ static inline void put_pdce(uint32 va, uint32 sd0, uint32 pd)
     }
 }
 
-static inline void flush_sdce(uint32 va)
+static inline void flush_sdce(uint32_t va)
 {
-    uint8 ci;
+    uint8_t ci;
 
     ci  = (SID(va) * NUM_SDCE) + SD_IDX(va);
 
@@ -211,10 +213,10 @@ static inline void flush_sdce(uint32 va)
     }
 }
 
-static inline void flush_pdce(uint32 va)
+static inline void flush_pdce(uint32_t va)
 {
-    uint32 tag, pdcll, pdclh, pdcrl, pdcrh;
-    uint8 ci;
+    uint32_t tag, pdcll, pdclh, pdcrl, pdcrh;
+    uint8_t ci;
 
     ci  = (SID(va) * NUM_PDCE) + PD_IDX(va);
     tag = PD_TAG(va);
@@ -234,7 +236,7 @@ static inline void flush_pdce(uint32 va)
     }
 }
 
-static inline void flush_cache_sec(uint8 sec)
+static inline void flush_cache_sec(uint8_t sec)
 {
     int i;
 
@@ -249,14 +251,14 @@ static inline void flush_cache_sec(uint8 sec)
 
 static inline void flush_caches(void)
 {
-    uint8 i;
+    uint8_t i;
 
     for (i = 0; i < NUM_SEC; i++) {
         flush_cache_sec(i);
     }
 }
 
-static inline t_stat mmu_check_perm(uint8 flags, uint8 r_acc)
+static inline t_stat mmu_check_perm(uint8_t flags, uint8_t r_acc)
 {
     switch(MMU_PERM(flags)) {
     case 0:  /* No Access */
@@ -284,10 +286,10 @@ static inline t_stat mmu_check_perm(uint8 flags, uint8 r_acc)
 /*
  * Update the M (modified) or R (referenced) bit the SD and cache
  */
-static inline void mmu_update_sd(uint32 va, uint32 mask)
+static inline void mmu_update_sd(uint32_t va, uint32_t mask)
 {
-    uint32 sd0;
-    uint8  ci;
+    uint32_t sd0;
+    uint8_t ci;
 
     ci  = (SID(va) * NUM_SDCE) + SD_IDX(va);
 
@@ -305,10 +307,10 @@ static inline void mmu_update_sd(uint32 va, uint32 mask)
 /*
  * Update the M (modified) or R (referenced) bit the PD and cache
  */
-static inline void mmu_update_pd(uint32 va, uint32 pd_addr, uint32 mask)
+static inline void mmu_update_pd(uint32_t va, uint32_t pd_addr, uint32_t mask)
 {
-    uint32 pd, tag, pdcll, pdclh, pdcrl, pdcrh;
-    uint8  ci;
+    uint32_t pd, tag, pdcll, pdclh, pdcrl, pdcrh;
+    uint8_t ci;
 
     tag = PD_TAG(va);
     ci  = (SID(va) * NUM_PDCE) + PD_IDX(va);
@@ -347,14 +349,14 @@ t_stat mmu_init(DEVICE *dptr)
     return SCPE_OK;
 }
 
-uint32 mmu_read(uint32 pa, size_t size)
+uint32_t mmu_read(uint32_t pa, size_t size)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) size;
 
-    uint32 offset;
-    uint32 data = 0;
+    uint32_t offset;
+    uint32_t data = 0;
 
     offset = (pa >> 2) & 0x1f;
 
@@ -430,13 +432,13 @@ uint32 mmu_read(uint32 pa, size_t size)
     return data;
 }
 
-void mmu_write(uint32 pa, uint32 val, size_t size)
+void mmu_write(uint32_t pa, uint32_t val, size_t size)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) size;
 
-    uint32 offset;
+    uint32_t offset;
 
     offset = (pa >> 2) & 0x1f;
 
@@ -485,7 +487,7 @@ void mmu_write(uint32 pa, uint32 val, size_t size)
         sim_debug(WRITE_MSG, &mmu_dev,
                   "MMU_SRAMA[%d] = %08x\n",
                   offset, val);
-        flush_cache_sec((uint8) offset);
+        flush_cache_sec((uint8_t) offset);
         break;
     case MMU_SRAMB:
         offset = offset & 3;
@@ -527,8 +529,8 @@ void mmu_write(uint32 pa, uint32 val, size_t size)
  * typses of fault checking.
  *
  */
-static t_stat mmu_get_sd(uint32 va, uint8 r_acc, bool fc,
-                         uint32 *sd0, uint32 *sd1)
+static t_stat mmu_get_sd(uint32_t va, uint8_t r_acc, bool fc,
+                         uint32_t *sd0, uint32_t *sd1)
 {
     /* We immediately do some bounds checking (fc flag is not checked
      * because this is a fatal error) */
@@ -587,11 +589,11 @@ static t_stat mmu_get_sd(uint32 va, uint8 r_acc, bool fc,
 /*
  * Load a page descriptor from memory
  */
-static t_stat mmu_get_pd(uint32 va, uint8 r_acc, bool fc,
-                         uint32 sd0, uint32 sd1,
-                         uint32 *pd, uint8 *pd_acc)
+static t_stat mmu_get_pd(uint32_t va, uint8_t r_acc, bool fc,
+                         uint32_t sd0, uint32_t sd1,
+                         uint32_t *pd, uint8_t *pd_acc)
 {
-    uint32 pd_addr;
+    uint32_t pd_addr;
 
     /* Where do we find the page descriptor? */
     pd_addr = SD_SEG_ADDR(sd1) + (PSL(va) * 4);
@@ -623,9 +625,9 @@ static t_stat mmu_get_pd(uint32 va, uint8 r_acc, bool fc,
 /*
  * Decode an address from a contiguous segment.
  */
-static t_stat mmu_decode_contig(uint32 va, uint8 r_acc,
-                                uint32 sd0, uint32 sd1,
-                                bool fc, uint32 *pa)
+static t_stat mmu_decode_contig(uint32_t va, uint8_t r_acc,
+                                uint32_t sd0, uint32_t sd1,
+                                bool fc, uint32_t *pa)
 {
     if (fc) {
         /* Update R and M bits if configured */
@@ -655,9 +657,9 @@ static t_stat mmu_decode_contig(uint32 va, uint8 r_acc,
     return SCPE_OK;
 }
 
-static t_stat mmu_decode_paged(uint32 va, uint8 r_acc, bool fc,
-                               uint32 sd1, uint32 pd,
-                               uint8 pd_acc, uint32 *pa)
+static t_stat mmu_decode_paged(uint32_t va, uint8_t r_acc, bool fc,
+                               uint32_t sd1, uint32_t pd,
+                               uint8_t pd_acc, uint32_t *pa)
 {
     /* If the PD is not marked present, fail */
     if (!PD_PRESENT(pd)) {
@@ -710,10 +712,10 @@ static t_stat mmu_decode_paged(uint32 va, uint8 r_acc, bool fc,
  *   - Modifying segment and page descriptor bits
  */
 
-t_stat mmu_decode_va(uint32 va, uint8 r_acc, bool fc, uint32 *pa)
+t_stat mmu_decode_va(uint32_t va, uint8_t r_acc, bool fc, uint32_t *pa)
 {
-    uint32 sd0, sd1, pd;
-    uint8 pd_acc;
+    uint32_t sd0, sd1, pd;
+    uint8_t pd_acc;
     t_stat sd_cached, pd_cached;
 
     if (!mmu_state.enabled) {
@@ -799,9 +801,9 @@ t_stat mmu_decode_va(uint32 va, uint8 r_acc, bool fc, uint32 *pa)
     }
 }
 
-uint32 mmu_xlate_addr(uint32 va, uint8 r_acc)
+uint32_t mmu_xlate_addr(uint32_t va, uint8_t r_acc)
 {
-    uint32 pa;
+    uint32_t pa;
     t_stat succ;
 
     succ = mmu_decode_va(va, r_acc, true, &pa);

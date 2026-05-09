@@ -27,15 +27,17 @@
    17-Feb-03    RMS     Fixed for UNIX bootstrap, upper platter bootstrap
 */
 
+#include <stdint.h>
+
 #include "id_defs.h"
 
 #define DBOOT_BEG       0x1000
 #define DBOOT_START     0x100E
-#define DBOOT_LEN       (sizeof (dboot_rom) / sizeof (uint8))
+#define DBOOT_LEN       (sizeof (dboot_rom) / sizeof (uint8_t))
 
 /* Transcribed from 32b Bootstrap Loader, 03-074N81R03A13 */
 
-static uint8 dboot_rom[] = {
+static uint8_t dboot_rom[] = {
  0xca, 0xf0, 0x00, 0x30,
  0xc5, 0xf0, 0x00, 0x3a,
  0x02, 0x8e,
@@ -268,11 +270,11 @@ static uint8 dboot_rom[] = {
 
 struct dboot_id {
     const char  *name;
-    uint32      sw;
-    uint32      cap;
-    uint32      dtype;
-    uint32      offset;
-    uint32      adder;
+    uint32_t    sw;
+    uint32_t    cap;
+    uint32_t    dtype;
+    uint32_t    offset;
+    uint32_t    adder;
     };
 
 static struct dboot_id dboot_tab[] = {
@@ -284,11 +286,11 @@ static struct dboot_id dboot_tab[] = {
     { NULL }
     };
 
-t_stat id_dboot (int32 u, DEVICE *dptr)
+t_stat id_dboot (int32_t u, DEVICE *dptr)
 {
 extern DIB ttp_dib, sch_dib;
-extern uint32 PC;
-uint32 i, typ, ctlno, off, add, cap, sch_dev;
+extern uint32_t PC;
+uint32_t i, typ, ctlno, off, add, cap, sch_dev;
 UNIT *uptr;
 
 DIB *ddib = (DIB *) dptr->ctxt;                         /* get disk DIB */

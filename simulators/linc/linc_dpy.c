@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "linc_defs.h"
 #include "display/display.h"
 
@@ -17,7 +19,7 @@ DEVICE dpy_dev = {
   NULL, NULL, NULL, NULL, NULL, NULL
 };
 
-void dpy_dis(uint16 h, uint16 x, uint16 y)
+void dpy_dis(uint16_t h, uint16_t x, uint16_t y)
 {
   sim_debug(DBG, &dpy_dev, "DIS %u;%03o, A=%03o\n", h, x, y);
   /* Y coordinate +0 and -0 both refer to the same vertical position. */

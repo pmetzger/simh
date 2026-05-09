@@ -13,14 +13,14 @@
 
 #include "pdp8_td.c"
 
-uint16 M[MAXMEMSIZE];
+uint16_t M[MAXMEMSIZE];
 
-void cpu_set_bootpc(int32 pc)
+void cpu_set_bootpc(int32_t pc)
 {
     (void)pc;
 }
 
-t_stat set_dev(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_dev(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -29,7 +29,7 @@ t_stat set_dev(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_dev(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_dev(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -128,7 +128,7 @@ static void test_td_detach_releases_buffer_and_restores_defaults(void **state)
     sim_switches = SWMASK('N');
     assert_int_equal(attach_unit(unit, fixture->file_path), SCPE_OK);
 
-    unit->filebuf = calloc(DT_CAPAC, sizeof(uint16));
+    unit->filebuf = calloc(DT_CAPAC, sizeof(uint16_t));
     assert_non_null(unit->filebuf);
     unit->flags = (unit->flags | UNIT_BUF | UNIT_11FMT) & ~UNIT_8FMT;
     unit->capac = D18_CAPAC;

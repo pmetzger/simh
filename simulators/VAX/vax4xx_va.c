@@ -27,6 +27,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "vax_defs.h"
 #include "sim_video.h"
@@ -126,63 +127,63 @@
 #define FCC_CMPC        0xB                             /* CPMC - PLA address */
 #define FCC_MAXREG      0xB
 
-extern int32 int_req[IPL_HLVL];
-extern int32 tmxr_poll;                                 /* calibrated delay */
-extern uint32 fault_PC;
-extern uint32 trpirq;
+extern int32_t int_req[IPL_HLVL];
+extern int32_t tmxr_poll;                               /* calibrated delay */
+extern uint32_t fault_PC;
+extern uint32_t trpirq;
 
-uint16 va_ram[RAM_SIZE];
+uint16_t va_ram[RAM_SIZE];
 
-uint32 va_fcc_csr = 0;
-uint32 va_fcc_int = 0;
-uint32 va_fcc_fcsr = 0;
-uint32 va_fcc_data = 0;
-uint32 va_fcc_sc = 0;
-int32 va_fcc_fifo_sz = 0;                               /* data size */
-int32 va_fcc_fifo_th = 0;                               /* threshold */
-uint32 va_fcc_fifo_wp = 0;                              /* write pointer */
-uint32 va_fcc_fifo_rp = 0;                              /* read pointer */
+uint32_t va_fcc_csr = 0;
+uint32_t va_fcc_int = 0;
+uint32_t va_fcc_fcsr = 0;
+uint32_t va_fcc_data = 0;
+uint32_t va_fcc_sc = 0;
+int32_t va_fcc_fifo_sz = 0;                             /* data size */
+int32_t va_fcc_fifo_th = 0;                             /* threshold */
+uint32_t va_fcc_fifo_wp = 0;                            /* write pointer */
+uint32_t va_fcc_fifo_rp = 0;                            /* read pointer */
 
-uint32 va_ccmd = 0;                                     /* cursor command reg */
-uint32 va_xpos = 0;                                     /* cursor x position */
-uint32 va_ypos = 0;                                     /* cursor y position */
-uint32 va_xmin1 = 0;                                    /* region 1 left edge */
-uint32 va_xmax1 = 0;                                    /* region 1 right edge */
-uint32 va_ymin1 = 0;                                    /* region 1 top edge */
-uint32 va_ymax1 = 0;                                    /* region 1 bottom edge */
-uint32 va_xmin2 = 0;                                    /* region 2 left edge */
-uint32 va_xmax2 = 0;                                    /* region 2 right edge */
-uint32 va_ymin2 = 0;                                    /* region 2 top edge */
-uint32 va_ymax2 = 0;                                    /* region 2 bottom edge */
-uint16 va_cur[32];                                      /* cursor image data */
-uint32 va_cur_p = 0;                                    /* cursor image pointer */
+uint32_t va_ccmd = 0;                                   /* cursor command reg */
+uint32_t va_xpos = 0;                                   /* cursor x position */
+uint32_t va_ypos = 0;                                   /* cursor y position */
+uint32_t va_xmin1 = 0;                                  /* region 1 left edge */
+uint32_t va_xmax1 = 0;                                  /* region 1 right edge */
+uint32_t va_ymin1 = 0;                                  /* region 1 top edge */
+uint32_t va_ymax1 = 0;                                  /* region 1 bottom edge */
+uint32_t va_xmin2 = 0;                                  /* region 2 left edge */
+uint32_t va_xmax2 = 0;                                  /* region 2 right edge */
+uint32_t va_ymin2 = 0;                                  /* region 2 top edge */
+uint32_t va_ymax2 = 0;                                  /* region 2 bottom edge */
+uint16_t va_cur[32];                                    /* cursor image data */
+uint32_t va_cur_p = 0;                                  /* cursor image pointer */
 
-uint32 va_cur_x = 0;                                    /* Last cursor X-position */
-uint32 va_cur_y = 0;                                    /* Last cursor Y-position */
-uint32 va_cur_f = 0;                                    /* Last cursor function */
+uint32_t va_cur_x = 0;                                  /* Last cursor X-position */
+uint32_t va_cur_y = 0;                                  /* Last cursor Y-position */
+uint32_t va_cur_f = 0;                                  /* Last cursor function */
 bool va_cur_v = false;                                  /* Last cursor visible */
 
 bool va_active = false;
 bool va_updated[2048];
 bool va_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
-uint32 *va_buf = NULL;                                  /* Video memory */
-uint32 *va_lines = NULL;                                /* Video Display Lines */
+uint32_t *va_buf = NULL;                                /* Video memory */
+uint32_t *va_lines = NULL;                              /* Video Display Lines */
 #if defined(BT458)
-uint32 va_palette[VA_BPP + CUR_COL];                    /* Colour palette (screen, cursor)*/
-uint32 va_cmap2[VA_BPP + CUR_COL];                      /* Colour palette (screen, cursor)*/
+uint32_t va_palette[VA_BPP + CUR_COL];                  /* Colour palette (screen, cursor)*/
+uint32_t va_cmap2[VA_BPP + CUR_COL];                    /* Colour palette (screen, cursor)*/
 #else
-uint32 va_palette[VA_BPP + VA_BPP + CUR_COL];           /* Colour palette (fg, bg, cursor)*/
+uint32_t va_palette[VA_BPP + VA_BPP + CUR_COL];         /* Colour palette (fg, bg, cursor)*/
 #endif
 
-uint32 va_dla = 0;                                      /* display list addr */
-int32 va_yoff = 0;
-int32 va_dpln = 0;
-uint32 va_white = 0;
-uint32 va_black = 0;
+uint32_t va_dla = 0;                                    /* display list addr */
+int32_t va_yoff = 0;
+int32_t va_dpln = 0;
+uint32_t va_white = 0;
+uint32_t va_black = 0;
 
-uint32 va_bt458_addr = 0;
-uint32 va_cmap_p = 0;
-uint32 va_cmap[3];
+uint32_t va_bt458_addr = 0;
+uint32_t va_cmap_p = 0;
+uint32_t va_cmap[3];
 
 const char *va_fcc_rgd[] = {                            /* FIFO compression chip registers */
     "Colour Board CSR",
@@ -278,18 +279,18 @@ t_stat va_dmasvc (UNIT *uptr);
 t_stat va_reset (DEVICE *dptr);
 t_stat va_attach (UNIT *uptr, const char *cptr);
 t_stat va_detach (UNIT *uptr);
-t_stat va_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat va_set_capture (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat va_show_capture (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat va_set_yoff (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat va_show_yoff (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat va_set_dpln (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat va_show_dpln (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat va_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat va_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat va_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat va_set_yoff (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat va_show_yoff (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat va_set_dpln (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat va_show_dpln (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *va_description (DEVICE *dptr);
 void va_dlist (void);
 
-extern int32 eval_int (void);
+extern int32_t eval_int (void);
 
 /* GPX data structures
 
@@ -355,7 +356,7 @@ va_fcc_fifo_rp = 0;
 va_fcc_fifo_sz = 0;                                     /* empty */
 }
 
-static void va_fcc_fifo_wr (uint32 val)
+static void va_fcc_fifo_wr (uint32_t val)
 {
 sim_debug (DBG_FCC, &va_dev, "fcc_fifo_wr: %d, %X (%d) at %08X\n", va_fcc_fifo_wp, val, (va_fcc_fifo_sz + 1), fault_PC);
 if (va_fcc_fifo_sz == RAM_SIZE) {                       /* writing full fifo? */
@@ -368,9 +369,9 @@ if (va_fcc_fifo_wp == RAM_SIZE)                         /* pointer wrap? */
 va_fcc_fifo_sz++;
 }
 
-static uint32 va_fcc_fifo_rd (void)
+static uint32_t va_fcc_fifo_rd (void)
 {
-uint32 val;
+uint32_t val;
 
 if (va_fcc_fifo_sz == 0) {                              /* reading empty fifo */
     sim_debug (DBG_FCC, &va_dev, "fcc fifo underflow\n");
@@ -386,13 +387,13 @@ if (va_fcc_fifo_sz == 0)
 return val;
 }
 
-static void va_ccr_wr (int32 pa, int32 val, int32 lnt)
+static void va_ccr_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa >> 1) & 0x1F;
+int32_t rg = (pa >> 1) & 0x1F;
 
 if (rg <= 0xF)
     sim_debug (DBG_REG, &va_dev, "ccr_wr: %s, %X at %08X\n", va_ccr_rgd[rg], val, fault_PC);
@@ -464,10 +465,10 @@ switch (rg) {
 }
 
 #if defined(BT458)
-static int32 va_dac_rd (int32 pa)
+static int32_t va_dac_rd (int32_t pa)
 {
-uint32 rg = (pa >> 1) & 0x3F;
-uint32 data = 0;
+uint32_t rg = (pa >> 1) & 0x3F;
+uint32_t data = 0;
 
 switch (rg) {
     case 0:                                             /* address */
@@ -511,14 +512,14 @@ switch (rg) {
 return data;
 }
 
-static void va_dac_wr (int32 pa, int32 val, int32 lnt)
+static void va_dac_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-uint32 rg = (pa >> 1) & 0x3F;
-int32 i;
+uint32_t rg = (pa >> 1) & 0x3F;
+int32_t i;
 
 switch (rg) {
     case 0:                                             /* address */
@@ -563,10 +564,10 @@ switch (rg) {
         }
 }
 #else
-static int32 va_dac_rd (int32 pa)
+static int32_t va_dac_rd (int32_t pa)
 {
-uint32 rg = (pa >> 1) & 0x3F;
-uint32 data = 0;
+uint32_t rg = (pa >> 1) & 0x3F;
+uint32_t data = 0;
 
 if (rg <= 0x33)
     sim_debug (DBG_REG, &va_dev, "dac_rd: %s, %X at %08X\n", va_dac_rgd[rg], data, fault_PC);
@@ -576,14 +577,14 @@ else
 return data;
 }
 
-static void va_dac_wr (int32 pa, int32 val, int32 lnt)
+static void va_dac_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-uint32 rg = (pa >> 1) & 0x3F;
-int32 red, grn, blu, i;
+uint32_t rg = (pa >> 1) & 0x3F;
+int32_t red, grn, blu, i;
 
 if (rg <= 0x33)
     sim_debug (DBG_REG, &va_dev, "dac_wr: %s, %X at %08X\n", va_dac_rgd[rg], val, fault_PC);
@@ -605,10 +606,10 @@ if (rg < 0x28) {                                        /* active colour map? */
 }
 #endif
 
-static int32 va_fcc_rd (int32 pa)
+static int32_t va_fcc_rd (int32_t pa)
 {
-uint32 rg = (pa >> 1) & 0xF;
-uint32 data = 0;
+uint32_t rg = (pa >> 1) & 0xF;
+uint32_t data = 0;
 
 switch (rg) {
     case FCC_CCSR:                                      /* colour board CSR */
@@ -674,13 +675,13 @@ else
 return data;
 }
 
-static void va_fcc_wr (int32 pa, int32 val, int32 lnt)
+static void va_fcc_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-uint32 rg = (pa >> 1) & 0xF;
+uint32_t rg = (pa >> 1) & 0xF;
 
 if (rg <= FCC_MAXREG)
     sim_debug (DBG_REG, &va_dev, "fcc_wr: %s, %X at %08X\n", va_fcc_rgd[rg], val, fault_PC);
@@ -750,10 +751,10 @@ switch (rg) {
         }
 }
 
-int32 va_rd (int32 pa)
+int32_t va_rd (int32_t pa)
 {
-int32 rg = (pa >> 1) & 0x7FFF;
-int32 data;
+int32_t rg = (pa >> 1) & 0x7FFF;
+int32_t data;
 
 if (rg >= VA_FFW_OF) {
     rg = rg & 0x3FFF;
@@ -791,17 +792,17 @@ if (rg >= VA_ADP_OF) {                                  /* address processor */
 return 0;
 }
 
-void va_wr (int32 pa, int32 val, int32 lnt)
+void va_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 nval;
-int32 rg = (pa >> 1) & 0x7FFF;
-int32 sc;
+int32_t nval;
+int32_t rg = (pa >> 1) & 0x7FFF;
+int32_t sc;
 
 if (rg >= VA_FFW_OF) {
     rg = rg & 0x3FFF;
     rg = rg | ((va_fcc_csr & 0x3) << 14);               /* add A15,A16 */
     if (lnt < L_WORD) {
-        int32 t = va_ram[rg];
+        int32_t t = va_ram[rg];
         sc = (pa & 1) << 3;
         nval = ((val & BMASK) << sc) | (t & ~(BMASK << sc));
         }
@@ -836,8 +837,8 @@ if (rg >= VA_ADP_OF) {                                  /* address processor */
 void va_dlist (void)
 {
 bool nodec = false;
-uint32 inst, saved_inst;
-int32 val;
+uint32_t inst, saved_inst;
+int32_t val;
 
 saved_inst = (va_dla >> 16) & 0xFFFF;                   /* get saved instruction */
 va_dla = va_dla & 0x0000FFFF;                           /* get saved address */
@@ -933,7 +934,7 @@ for (;;) {
 sim_debug (DBG_ROP, &va_dev, "Display list complete\n");
 }
 
-void va_setint (int32 src)
+void va_setint (int32_t src)
 {
 switch (src) {
     case INT_FCC:                                       /* DMA IRQ */
@@ -945,9 +946,9 @@ switch (src) {
         }
 }
 
-static inline void va_invalidate (uint32 y1, uint32 y2)
+static inline void va_invalidate (uint32_t y1, uint32_t y2)
 {
-uint32 ln;
+uint32_t ln;
 
 for (ln = y1; ln < y2; ln++)
     va_updated[ln] = true;                              /* flag as updated */
@@ -958,11 +959,11 @@ t_stat va_svc (UNIT *uptr)
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
 bool updated = false;                                   /* flag for refresh */
-uint32 lines;
-uint32 ln, col, off;
-uint16 *plna, *plnb;
-uint16 bita, bitb;
-uint32 c;
+uint32_t lines;
+uint32_t ln, col, off;
+uint16_t *plna, *plnb;
+uint16_t bita, bitb;
+uint32_t c;
 
 va_adp_svc (uptr);
 
@@ -1049,9 +1050,9 @@ if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or error? */
 return SCPE_OK;
 }
 
-static bool va_fcc_rdn (uint32 *data, uint32 bits)
+static bool va_fcc_rdn (uint32_t *data, uint32_t bits)
 {
-int32 mask = (1u << bits) - 1;
+int32_t mask = (1u << bits) - 1;
 if (va_fcc_sc == 0) {                                   /* need to read FIFO? */
     if (va_fcc_fifo_sz == 0)                            /* empty? */
         return false;                                   /* no more data to read */
@@ -1062,9 +1063,9 @@ va_fcc_sc = (va_fcc_sc + bits) & 0xF;
 return true;
 }
 
-static bool va_fcc_wrn (uint32 data, uint32 bits)
+static bool va_fcc_wrn (uint32_t data, uint32_t bits)
 {
-int32 mask = (1u << bits) - 1;
+int32_t mask = (1u << bits) - 1;
 mask = mask << va_fcc_sc;
 va_fcc_data = va_fcc_data & ~mask;                      /* clear bits */
 va_fcc_data = va_fcc_data | ((data << va_fcc_sc) & mask); /* insert bits */
@@ -1080,7 +1081,7 @@ return true;
 
 static void va_fcc_decomp (UNIT *uptr)
 {
-uint32 pix, last_pix, len1, len2, i, sc, temp;
+uint32_t pix, last_pix, len1, len2, i, sc, temp;
 
 last_pix = 0xFF;
 for (;uptr->CMD != 0;) {
@@ -1115,7 +1116,7 @@ for (;uptr->CMD != 0;) {
 
 static void va_fcc_comp (UNIT *uptr)
 {
-uint32 pix, last_pix, len1, len2, temp;
+uint32_t pix, last_pix, len1, len2, temp;
 
 va_fcc_sc = 0;
 va_fcc_data = 0;
@@ -1164,11 +1165,11 @@ for (;;) {
     }
 }
 
-int32 debug_flag = 0;
+int32_t debug_flag = 0;
 
 t_stat va_dmasvc (UNIT *uptr)
 {
-uint16 data;
+uint16_t data;
 
 if (GET_MODE (va_fcc_csr) == MODE_HALT)
     return SCPE_OK;
@@ -1272,7 +1273,7 @@ return SCPE_OK;
 
 t_stat va_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 CLR_INT (VC2);                                          /* clear int req */
@@ -1307,12 +1308,12 @@ if (!vid_active)  {
     r = vid_open (dptr, NULL, VA_XSIZE, VA_YSIZE, va_input_captured ? SIM_VID_INPUTCAPTURED : 0);/* display size & capture mode */
     if (r != SCPE_OK)
         return r;
-    va_buf = (uint32 *) calloc (VA_BUFSIZE, sizeof (uint32));
+    va_buf = (uint32_t *) calloc (VA_BUFSIZE, sizeof (uint32_t));
     if (va_buf == NULL) {
         vid_close ();
         return SCPE_MEM;
         }
-    va_lines = (uint32 *) calloc (VA_XSIZE * VA_YSIZE, sizeof (uint32));
+    va_lines = (uint32_t *) calloc (VA_XSIZE * VA_YSIZE, sizeof (uint32_t));
     if (va_lines == NULL) {
         free (va_buf);
         va_buf = NULL;
@@ -1355,7 +1356,7 @@ if ((va_dev.flags & DEV_DIS) == 0) {
 return SCPE_OK;
 }
 
-t_stat va_set_yoff (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat va_set_yoff (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1363,18 +1364,18 @@ t_stat va_set_yoff (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i;
+int32_t i;
 t_stat r;
 
 if (cptr == NULL)
     return SCPE_ARG;
-va_yoff = (int32) get_uint (cptr, 10, 2048, &r);
+va_yoff = (int32_t) get_uint (cptr, 10, 2048, &r);
 for (i = 0; i < VA_YSIZE; i++)
     va_updated[i + va_yoff] = true;
 return r;
 }
 
-t_stat va_show_yoff (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat va_show_yoff (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1386,7 +1387,7 @@ fprintf (st, "%d", va_yoff);
 return SCPE_OK;
 }
 
-t_stat va_set_dpln (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat va_set_dpln (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1394,12 +1395,12 @@ t_stat va_set_dpln (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i;
+int32_t i;
 t_stat r;
 
 if (cptr == NULL)
     return SCPE_ARG;
-va_dpln = (int32) get_uint (cptr, 10, VA_PLANES, &r);
+va_dpln = (int32_t) get_uint (cptr, 10, VA_PLANES, &r);
 if (va_dpln > 0) {
     va_dpln = va_dpln - 1;
     va_dpln = (1u << va_dpln);
@@ -1409,7 +1410,7 @@ for (i = 0; i < VA_YSIZE; i++)
 return r;
 }
 
-t_stat va_show_dpln (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat va_show_dpln (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1421,7 +1422,7 @@ fprintf (st, "%d", va_dpln);
 return SCPE_OK;
 }
 
-t_stat va_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat va_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1432,7 +1433,7 @@ t_stat va_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc)
 return cpu_set_model (NULL, 0, (val ? "VAXSTATIONGPX" : "MICROVAX"), NULL);
 }
 
-t_stat va_set_capture (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat va_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1446,7 +1447,7 @@ va_input_captured = (val != 0);
 return SCPE_OK;
 }
 
-t_stat va_show_capture (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat va_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 if (va_input_captured) {
     fprintf (st, "Captured Input Mode, ");
@@ -1457,7 +1458,7 @@ else
 return SCPE_OK;
 }
 
-t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */

@@ -193,6 +193,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -262,8 +264,8 @@ static const BITSET_FORMAT ptp_status_format =          /* names, offset, direct
 /* Interface local state declarations */
 
 typedef struct {
-    uint8        output_data;                   /* output data register */
-    uint8        input_data;                    /* input data register */
+    uint8_t      output_data;                   /* output data register */
+    uint8_t      input_data;                    /* input data register */
     FLIP_FLOP    command;                       /* command flip-flop */
     FLIP_FLOP    control;                       /* control flip-flop */
     FLIP_FLOP    flag;                          /* flag flip-flop */
@@ -275,14 +277,14 @@ static CARD_STATE pt [CARD_COUNT];              /* per-card state */
 
 /* PTR local state declarations */
 
-static int32 ptr_trlcnt = 0;                    /* trailer counter */
-static int32 ptr_trllim = 40;                   /* trailer to add */
-static int32 fast_read_time = PTR_FAST_TIME;    /* fast read time */
+static int32_t ptr_trlcnt = 0;                  /* trailer counter */
+static int32_t ptr_trllim = 40;                 /* trailer to add */
+static int32_t fast_read_time = PTR_FAST_TIME;  /* fast read time */
 
 
 /* PTP local state declarations */
 
-static int32 fast_punch_time = PTP_FAST_TIME;   /* fast punch time */
+static int32_t fast_punch_time = PTP_FAST_TIME; /* fast punch time */
 
 
 /* I/O interface routine declaration */
@@ -292,14 +294,14 @@ static INTERFACE pt_interface;
 
 /* Interface local utility routines */
 
-static t_stat set_mode (UNIT *uptr, int32 value, const char *cptr, void *desc);
+static t_stat set_mode (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
 
 /* PTR local SCP support routine declarations */
 
 static t_stat ptr_attach (UNIT *uptr, const char *cptr);
 static t_stat ptr_reset  (DEVICE *dptr);
-static t_stat ptr_boot   (int32 unitno, DEVICE *dptr);
+static t_stat ptr_boot   (int32_t unitno, DEVICE *dptr);
 
 /* PTP local SCP support routine declarations */
 
@@ -553,7 +555,7 @@ INBOUND_SIGNAL   signal;
 INBOUND_SET      working_set = inbound_signals;
 SIGNALS_VALUE    outbound    = { ioNONE, 0 };
 bool             irq_enabled = false;
-int32            delay;
+int32_t          delay;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -697,7 +699,7 @@ return outbound;                                        /* return the outbound s
    set.  The character and descriptor pointers are not used.
 */
 
-static t_stat set_mode (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat set_mode (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -974,9 +976,9 @@ static const LOADER_ARRAY ptr_loaders = {
      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 */
 
-static t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+static t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
-uint32 start;
+uint32_t start;
 
 if (dptr == NULL)                                               /* if we are being called for a BOOT/LOAD CPU */
     start = cpu_copy_loader (ptr_loaders, unitno,               /*   then copy the boot loader to memory */

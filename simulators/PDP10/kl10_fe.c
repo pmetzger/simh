@@ -30,6 +30,7 @@
 #include "sim_tmxr.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #if KL
 #define UNIT_DUMMY      (1 << UNIT_V_UF)
@@ -182,9 +183,9 @@
 #define ITS_DTEHNG     0412         /* Hangup/dialup */
 #endif
 
-extern int32 tmxr_poll;
-t_stat dte_devio(uint32 dev, uint64 *data);
-t_addr dte_devirq(uint32 dev, t_addr addr);
+extern int32_t tmxr_poll;
+t_stat dte_devio(uint32_t dev, uint64 *data);
+t_addr dte_devirq(uint32_t dev, t_addr addr);
 void   dte_second(UNIT *uptr);
 void   dte_primary(UNIT *uptr);
 #if KL_ITS
@@ -194,17 +195,17 @@ void   dte_transfer(UNIT *uptr);
 void   dte_function(UNIT *uptr);
 void   dte_input(void);
 int    dte_start(UNIT *uptr);
-int    dte_queue(int func, int dev, int dcnt, uint16 *data);
+int    dte_queue(int func, int dev, int dcnt, uint16_t *data);
 t_stat dtei_svc (UNIT *uptr);
 t_stat dte_svc (UNIT *uptr);
 t_stat dteo_svc (UNIT *uptr);
 t_stat dtertc_srv(UNIT * uptr);
-t_stat dte_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dte_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat dte_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dte_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat dte_reset (DEVICE *dptr);
-t_stat dte_stop_os (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dte_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat dte_stop_os (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dte_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *dte_description (DEVICE *dptr);
 extern uint64  SW;                                   /* Switch register */
 
@@ -222,40 +223,40 @@ const char *pri_name[] = { "(0)", "EM2EI", "EM2TI", "EMSTR", "EMLNC", "EMRDS", "
 #define STATUS            u3
 #define CNT               u4
 
-extern uint32  eb_ptr;
-static int32   rtc_tps = 60;
-uint16         rtc_tick;
-uint16         rtc_wait = 0;
+extern uint32_t eb_ptr;
+static int32_t rtc_tps = 60;
+uint16_t       rtc_tick;
+uint16_t       rtc_wait = 0;
 
 struct _dte_queue {
     int         dptr;      /* Pointer to working item */
-    uint16      cnt;       /* Number of bytes in packet */
-    uint16      func;      /* Function code */
-    uint16      dev;       /* Dev code */
-    uint16      spare;     /* Dev code */
-    uint16      dcnt;      /* Data count */
-    uint16      data[258]; /* Data packet */
-    uint16      sdev;      /* Secondary device code */
-    uint16      sz;        /* Byte size */
+    uint16_t    cnt;       /* Number of bytes in packet */
+    uint16_t    func;      /* Function code */
+    uint16_t    dev;       /* Dev code */
+    uint16_t    spare;     /* Dev code */
+    uint16_t    dcnt;      /* Data count */
+    uint16_t    data[258]; /* Data packet */
+    uint16_t    sdev;      /* Secondary device code */
+    uint16_t    sz;        /* Byte size */
 } dte_in[16], dte_out[16];
 
-int32 dte_in_ptr;
-int32 dte_in_cmd;
-int32 dte_out_ptr;
-int32 dte_out_res;
-int32 dte_base;            /* Base */
-int32 dte_off;             /* Our offset */
-int32 dte_dt10_off;        /* Offset to 10 deposit region */
-int32 dte_et10_off;        /* Offset to 10 examine region */
-int32 dte_et11_off;        /* Offset to 11 examine region */
-int32 dte_proc_num;        /* Our processor number */
+int32_t dte_in_ptr;
+int32_t dte_in_cmd;
+int32_t dte_out_ptr;
+int32_t dte_out_res;
+int32_t dte_base;          /* Base */
+int32_t dte_off;           /* Our offset */
+int32_t dte_dt10_off;      /* Offset to 10 deposit region */
+int32_t dte_et10_off;      /* Offset to 10 examine region */
+int32_t dte_et11_off;      /* Offset to 11 examine region */
+int32_t dte_proc_num;      /* Our processor number */
 
 struct _buffer {
     int      in_ptr;     /* Insert pointer */
     int      out_ptr;    /* Remove pointer */
     char     buff[256];  /* Buffer */
 } cty_in, cty_out;
-int32 cty_done;
+int32_t cty_done;
 
 #define full(q)       ((((q)->in_ptr + 1) & 0xff) == (q)->out_ptr)
 #define empty(q)      ((q)->in_ptr == (q)->out_ptr)
@@ -348,9 +349,9 @@ t_stat          lp20_svc (UNIT *uptr);
 t_stat          lp20_reset (DEVICE *dptr);
 t_stat          lp20_attach (UNIT *uptr, const char *cptr);
 t_stat          lp20_detach (UNIT *uptr);
-t_stat          lp20_setlpp(UNIT *, int32, const char *, void *);
-t_stat          lp20_getlpp(FILE *, UNIT *, int32, const void *);
-t_stat          lp20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat          lp20_setlpp(UNIT *, int32_t, const char *, void *);
+t_stat          lp20_getlpp(FILE *, UNIT *, int32_t, const void *);
+t_stat          lp20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                          const char *cptr);
 const char     *lp20_description (DEVICE *dptr);
 
@@ -363,9 +364,9 @@ char            lp20_buffer[134 * 3];
 #define LP20_RAM_PI   00400      /* Paper Instruction */
 #define LP20_RAM_CHR  00377      /* Character translation */
 
-uint16          lp20_vfu[256];
-uint16          lp20_ram[256];
-uint16          lp20_dvfu[] = {   /* Default VFU */
+uint16_t        lp20_vfu[256];
+uint16_t        lp20_ram[256];
+uint16_t        lp20_dvfu[] = {   /* Default VFU */
     /* 66 line page with 6 line margin */
     00377,    /* Line   0     8  7  6  5  4  3  2  1 */
     00220,    /* Line   1     8        5             */
@@ -451,8 +452,8 @@ UNIT lp20_unit = {
 
 REG lp20_reg[] = {
    {BRDATA(BUFFER, lp20_buffer, 16, 8, sizeof(lp20_buffer)), REG_HRO},
-   {BRDATA(VFU, lp20_vfu, 16, 16, (sizeof(lp20_vfu)/sizeof(uint16))), REG_HRO},
-   {BRDATA(RAM, lp20_ram, 16, 16, (sizeof(lp20_ram)/sizeof(uint16))), REG_HRO},
+   {BRDATA(VFU, lp20_vfu, 16, 16, (sizeof(lp20_vfu)/sizeof(uint16_t))), REG_HRO},
+   {BRDATA(RAM, lp20_ram, 16, 16, (sizeof(lp20_ram)/sizeof(uint16_t))), REG_HRO},
    {SAVEDATA(QUEUE, lp20_queue) },
     { NULL }
 };
@@ -484,23 +485,23 @@ DEVICE lp20_dev = {
 struct _buffer tty_out[NUM_LINES_TTY], tty_in[NUM_LINES_TTY];
 TMLN     tty_ldsc[NUM_LINES_TTY] = { 0 };            /* Line descriptors */
 TMXR     tty_desc = { NUM_LINES_TTY, 0, 0, tty_ldsc };
-int32    tty_connect[NUM_LINES_TTY];
-int32    tty_done[NUM_LINES_TTY];
+int32_t  tty_connect[NUM_LINES_TTY];
+int32_t  tty_done[NUM_LINES_TTY];
 int      tty_enable = 0;
-extern int32 tmxr_poll;
+extern int32_t tmxr_poll;
 
 t_stat ttyi_svc (UNIT *uptr);
 t_stat ttyo_svc (UNIT *uptr);
 t_stat tty_reset (DEVICE *dptr);
-t_stat tty_set_modem (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_show_modem (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat tty_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat tty_set_modem (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_show_modem (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat tty_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat tty_attach (UNIT *uptr, const char *cptr);
 t_stat tty_detach (UNIT *uptr);
-t_stat tty_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat tty_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
         const char *cptr);
 const char *tty_description (DEVICE *dptr);
 
@@ -520,8 +521,8 @@ REG tty_reg[] = {
     { DRDATA (TIME, tty_unit[0].wait, 24), REG_NZ + PV_LEFT },
     { SAVEDATA (OUT, tty_out) },
     { SAVEDATA (IN, tty_in) },
-    { BRDATA (CONN, tty_connect, 8, 32, sizeof(tty_connect)/sizeof(int32)), REG_HRO },
-    { BRDATA (DONE, tty_done, 8, 32, sizeof(tty_done)/sizeof(int32)), REG_HRO },
+    { BRDATA (CONN, tty_connect, 8, 32, sizeof(tty_connect)/sizeof(int32_t)), REG_HRO },
+    { BRDATA (DONE, tty_done, 8, 32, sizeof(tty_done)/sizeof(int32_t)), REG_HRO },
     { ORDATA (EN, tty_enable, 1), REG_HRO },
     { 0 }
     };
@@ -561,15 +562,15 @@ DEVICE tty_dev = {
 #endif
 
 
-t_stat dte_devio(uint32 dev, uint64 *data) {
-     uint32     res;
+t_stat dte_devio(uint32_t dev, uint64 *data) {
+     uint32_t   res;
      switch(dev & 3) {
      case CONI:
         *data = (uint64)(dte_unit[0].STATUS) & RMASK;
-        sim_debug(DEBUG_CONI, &dte_dev, "CTY %03o CONI %06o\n", dev, (uint32)*data);
+        sim_debug(DEBUG_CONI, &dte_dev, "CTY %03o CONI %06o\n", dev, (uint32_t)*data);
         break;
      case CONO:
-         res = (uint32)(*data & RMASK);
+         res = (uint32_t)(*data & RMASK);
          clr_interrupt(dev);
          if (res & DTE_PIENB) {
              dte_unit[0].STATUS &= ~(DTE_PIA|DTE_PIE);
@@ -595,15 +596,15 @@ t_stat dte_devio(uint32 dev, uint64 *data) {
          if (dte_unit[0].STATUS & (DTE_10DB|DTE_11DN|DTE_10DN|DTE_11ER|DTE_10ER))
              set_interrupt(dev, dte_unit[0].STATUS);
          sim_debug(DEBUG_CONO, &dte_dev, "CTY %03o CONO %06o %06o\n", dev,
-                      (uint32)*data, PC);
+                      (uint32_t)*data, PC);
          break;
      case DATAI:
          sim_debug(DEBUG_DATAIO, &dte_dev, "CTY %03o DATAI %06o\n", dev,
-                      (uint32)*data);
+                      (uint32_t)*data);
          break;
     case DATAO:
          sim_debug(DEBUG_DATAIO, &dte_dev, "CTY %03o DATAO %06o\n", dev,
-                      (uint32)*data);
+                      (uint32_t)*data);
          if (*data == 01365) {
              dte_unit[0].STATUS |= DTE_SEC|DTE_10ER;
              dte_unit[0].STATUS &= ~(DTE_10DB|DTE_IND|DTE_11DB);
@@ -619,7 +620,7 @@ t_stat dte_devio(uint32 dev, uint64 *data) {
 
 /* Handle KL style interrupt vectors */
 t_addr
-dte_devirq(uint32 dev, t_addr addr) {
+dte_devirq(uint32_t dev, t_addr addr) {
     /* Generic device interrupt signature.
        This implementation does not use every parameter. */
     (void) dev;
@@ -648,8 +649,8 @@ t_stat dte_svc (UNIT *uptr)
 /* Handle secondary protocol */
 void dte_second(UNIT *uptr) {
     uint64   word;
-    int32    ch;
-    uint32   base = 0;
+    int32_t  ch;
+    uint32_t base = 0;
 
 #if KI_22BIT
 #if KL_ITS
@@ -672,7 +673,7 @@ void dte_second(UNIT *uptr) {
     switch(word & SEC_CMDMSK) {
     default:
     case SEC_MONO:  /* Ouput character in monitor mode */
-         ch = (int32)(word & 0177);
+         ch = (int32_t)(word & 0177);
          if (full(&cty_out)) {
             sim_activate(uptr, 200);
             return;
@@ -755,7 +756,7 @@ enter_pri:
               dte_unit[3].STATUS &= ~SEC_CLK;
               break;
          case SEC_CLKWT:
-              rtc_wait = (uint16)(M[SEC_DTT11 + base] & 0177777);
+              rtc_wait = (uint16_t)(M[SEC_DTT11 + base] & 0177777);
               /* Fall Through */
 
          case SEC_CLKON:
@@ -783,7 +784,7 @@ enter_pri:
 void dte_its(UNIT *uptr) {
      uint64     word;
      char       ch;
-     uint16     data;
+     uint16_t   data;
      int        cnt;
      int        ln;
 
@@ -861,7 +862,7 @@ void dte_primary(UNIT *uptr) {
     int      s;
     int      cnt;
     struct   _dte_queue *in;
-    uint16   data1, *dp;
+    uint16_t data1, *dp;
 
     if ((uptr->STATUS & DTE_11DB) == 0)
         return;
@@ -876,7 +877,7 @@ void dte_primary(UNIT *uptr) {
     clr_interrupt(DTE_DEVNUM);
     /* Check status word to see if valid */
     if (Mem_examine_word(0, dte_et11_off + PRI_CMTW_STS, &word)) {
-         uint32   base;
+         uint32_t base;
 error:
          base = 0;
 #if KI_22BIT
@@ -913,7 +914,7 @@ error:
         if (Mem_examine_word(0, dte_et11_off + PRI_CMTW_CNT, &iword))
             goto error;
         sim_debug(DEBUG_EXP, &dte_dev, "DTE: count: %012llo\n", iword);
-        in->dcnt = (uint16)(iword & 0177777);
+        in->dcnt = (uint16_t)(iword & 0177777);
         /* Read in data */
         dp = &in->data[0];
         for (cnt = in->dcnt; cnt > 0; cnt --) {
@@ -991,8 +992,8 @@ error:
 void
 dte_function(UNIT *uptr)
 {
-    uint16    data1[32];
-    int32     ch;
+    uint16_t  data1[32];
+    int32_t   ch;
     struct _dte_queue *cmd;
     int       func;
     int       dev;
@@ -1068,7 +1069,7 @@ dte_function(UNIT *uptr)
                    if (!sim_is_active(&lp20_unit))
                        sim_activate(&lp20_unit, 1000);
                    while (cmd->dptr < cmd->dcnt) {
-                       ch = (int32)(cmd->data[cmd->dptr >> 1]);
+                       ch = (int32_t)(cmd->data[cmd->dptr >> 1]);
                        if ((cmd->dptr & 1) == 0)
                            ch >>= 8;
                        ch &= 0177;
@@ -1100,7 +1101,7 @@ dte_function(UNIT *uptr)
                    if (cmd->sz > 8)
                       cmd->dcnt += cmd->dcnt;
                    while (cmd->dptr < cmd->dcnt) {
-                       ch = (int32)(cmd->data[cmd->dptr >> 1]);
+                       ch = (int32_t)(cmd->data[cmd->dptr >> 1]);
                        if ((cmd->dptr & 1) == 0)
                            ch >>= 8;
                        ch &= 0177;
@@ -1128,7 +1129,7 @@ cty:
                        cmd->dcnt += cmd->dcnt;
 
                    while (cmd->dptr < cmd->dcnt) {
-                        ch = (int32)(cmd->data[cmd->dptr >> 1]);
+                        ch = (int32_t)(cmd->data[cmd->dptr >> 1]);
                             sim_debug(DEBUG_DATA, &dte_dev,"CTY data %o\n", ch);
                         if ((cmd->dptr & 1) == 0)
                             ch >>= 8;
@@ -1155,7 +1156,7 @@ cty:
                    struct _buffer *otty;
                    int    ln;
                    while (cmd->dptr < cmd->dcnt) {
-                       ch = (int32)(cmd->data[cmd->dptr >> 1]);
+                       ch = (int32_t)(cmd->data[cmd->dptr >> 1]);
                        if ((cmd->dptr & 1) == 0)
                            ch >>= 8;
                        ch &= 0177;
@@ -1189,7 +1190,7 @@ cty:
                    sim_activate(&dte_unit[1], 100);
                    while (cmd->dptr < cmd->dcnt) {
                         int ln;
-                        ch = (int32)(cmd->data[cmd->dptr >> 1]);
+                        ch = (int32_t)(cmd->data[cmd->dptr >> 1]);
                         ln = (ch >> 8);
                         ch &= 0177;
                         if (ch != 0 && ln == PRI_CTYDV) {
@@ -1289,7 +1290,7 @@ cty:
                if (dev == PRI_EMLPT) {
                    int ln = lp20_unit.LPCNT;
                    while (cmd->dptr < cmd->dcnt) {
-                        uint16 d = cmd->data[cmd->dptr++];
+                        uint16_t d = cmd->data[cmd->dptr++];
                         if (d == (0357 << 8))
                             lp20_vfu[ln++] = 010000; /* Signal end of page */
                         else
@@ -1430,10 +1431,10 @@ cty:
  * Send to 10 when requested.
  */
 void dte_transfer(UNIT *uptr) {
-    uint16   cnt;
-    uint16   scnt;
+    uint16_t cnt;
+    uint16_t scnt;
     struct   _dte_queue *out;
-    uint16   *dp;
+    uint16_t *dp;
 
     /* Check if Queue empty */
     if (dte_out_res == dte_out_ptr)
@@ -1485,7 +1486,7 @@ void dte_transfer(UNIT *uptr) {
            goto error;
        cnt -= 2;
        if (out->func & PRI_IND_FLG) {
-           uint16 dwrd = out->dcnt;
+           uint16_t dwrd = out->dcnt;
            sim_debug(DEBUG_DATA, &dte_dev, "DTE: Indirect %o %o\n", cnt,
                               out->dcnt);
            dwrd |= (out->sdev << 8);
@@ -1517,8 +1518,8 @@ error:
 void
 dte_input(void)
 {
-    uint16  data1;
-    uint16  dataq[32];
+    uint16_t data1;
+    uint16_t dataq[32];
     int     n;
     int     ln;
     int     save_ptr;
@@ -1688,9 +1689,9 @@ dte_input(void)
  * Queue up a packet to send to 10.
  */
 int
-dte_queue(int func, int dev, int dcnt, uint16 *data)
+dte_queue(int func, int dev, int dcnt, uint16_t *data)
 {
-    uint16   *dp;
+    uint16_t *dp;
     struct   _dte_queue *out;
 
     /* Check if room in queue for this packet. */
@@ -1767,8 +1768,8 @@ error:
 /* Check for input from CTY and put on queue. */
 t_stat dtei_svc (UNIT *uptr)
 {
-    int32    ch;
-    uint32   base = 0;
+    int32_t  ch;
+    uint32_t base = 0;
     UNIT     *optr = &dte_unit[0];
 
 #if KI_22BIT
@@ -1848,7 +1849,7 @@ dtertc_srv(UNIT * uptr)
             rtc_wait--;
         } else {
             UNIT     *optr = &dte_unit[0];
-            uint32   base = 0;
+            uint32_t base = 0;
 #if KI_22BIT
             base = eb_ptr;
 #endif
@@ -1918,7 +1919,7 @@ t_stat dte_reset (DEVICE *dptr)
 
 
 t_stat
-dte_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+dte_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1935,7 +1936,7 @@ dte_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-dte_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+dte_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
    /* Generic show modifier signature.
       This implementation does not use every parameter. */
@@ -1957,7 +1958,7 @@ dte_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 /* Stop operating system */
 
-t_stat dte_stop_os (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dte_stop_os (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1970,7 +1971,7 @@ t_stat dte_stop_os (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1982,7 +1983,7 @@ t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat dte_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dte_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -2043,7 +2044,7 @@ lp20_printline(UNIT *uptr, int nl) {
     if (nl > 0 && lp20_vfu[uptr->LINE] == 010000) {
         lp20_buffer[uptr->COL++] = '\f';
         uptr->LINE = 1;
-    } else if (nl < 0 && uptr->LINE >= (int32)uptr->capac) {
+    } else if (nl < 0 && uptr->LINE >= (int32_t)uptr->capac) {
         uptr->LINE = 1;
     }
 
@@ -2077,8 +2078,8 @@ lp20_output(UNIT *uptr, char c) {
 t_stat lp20_svc (UNIT *uptr)
 {
     char    ch;
-    uint16  ram_ch;
-    uint16  data1[5];
+    uint16_t ram_ch;
+    uint16_t data1[5];
 
     if ((uptr->flags & UNIT_ATT) == 0)
         return SCPE_OK;
@@ -2234,7 +2235,7 @@ t_stat lp20_detach (UNIT *uptr)
  */
 
 t_stat
-lp20_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
+lp20_setlpp(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -2257,7 +2258,7 @@ lp20_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-lp20_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
+lp20_getlpp(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -2270,7 +2271,7 @@ lp20_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
     return SCPE_OK;
 }
 
-t_stat lp20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat lp20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
         const char *cptr)
 {
 /* Generic device help signature.
@@ -2306,7 +2307,7 @@ const char *lp20_description (DEVICE *dptr)
 /* Unit service */
 t_stat ttyi_svc (UNIT *uptr)
 {
-    int32    ln;
+    int32_t  ln;
     TMLN     *lp;
     int      flg;
 
@@ -2334,7 +2335,7 @@ t_stat ttyi_svc (UNIT *uptr)
         flg = 1;
         while (flg && !full(iptr)) {
         /* Spool up as much as we have room for */
-            int32 ch = tmxr_getc_ln(lp);
+            int32_t ch = tmxr_getc_ln(lp);
             if ((ch & TMXR_VALID) != 0) {
                 ch = sim_tt_inpcvt (ch,
                                     TT_GET_MODE(tty_unit[0].flags) | TTUF_KSR);
@@ -2354,7 +2355,7 @@ t_stat ttyi_svc (UNIT *uptr)
 t_stat ttyo_svc (UNIT *uptr)
 {
     t_stat   r;
-    int32    ln;
+    int32_t  ln;
     TMLN     *lp;
     int      f;
 
@@ -2375,7 +2376,7 @@ t_stat ttyo_svc (UNIT *uptr)
            continue;
        f = 1;
        while (f && not_empty(optr)) {
-           int32 ch = optr->buff[optr->out_ptr];
+           int32_t ch = optr->buff[optr->out_ptr];
            ch = sim_tt_outcvt(ch, TT_GET_MODE (tty_unit[0].flags) | TTUF_KSR);
            sim_debug(DEBUG_DATA, &tty_dev, "TTY: %d output %o\n", ln, ch);
            r = tmxr_putc_ln (lp, ch);
@@ -2418,7 +2419,7 @@ t_stat tty_reset (DEVICE *dptr)
 
 /* SET LINES processor */
 
-t_stat tty_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -2426,12 +2427,12 @@ t_stat tty_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 newln, i, t;
+    int32_t newln, i, t;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    newln = (int32) get_uint (cptr, 10, NUM_LINES_TTY, &r);
+    newln = (int32_t) get_uint (cptr, 10, NUM_LINES_TTY, &r);
     if ((r != SCPE_OK) || (newln == tty_desc.lines))
         return r;
     if ((newln == 0) || (newln >= NUM_LINES_TTY) || (newln % 16) != 0)
@@ -2458,7 +2459,7 @@ t_stat tty_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SET LOG processor */
 
-t_stat tty_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -2467,14 +2468,14 @@ t_stat tty_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     t_stat r;
     char gbuf[CBUFSIZE];
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
     cptr = get_glyph (cptr, gbuf, '=');
     if ((cptr == NULL) || (*cptr == 0) || (gbuf[0] == 0))
         return SCPE_ARG;
-    ln = (int32) get_uint (gbuf, 10, tty_desc.lines, &r);
+    ln = (int32_t) get_uint (gbuf, 10, tty_desc.lines, &r);
     if ((r != SCPE_OK) || (ln >= tty_desc.lines))
         return SCPE_ARG;
     return tmxr_set_log (NULL, ln, cptr, desc);
@@ -2482,7 +2483,7 @@ t_stat tty_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SET NOLOG processor */
 
-t_stat tty_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -2490,11 +2491,11 @@ t_stat tty_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
 
     t_stat r;
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    ln = (int32) get_uint (cptr, 10, tty_desc.lines, &r);
+    ln = (int32_t) get_uint (cptr, 10, tty_desc.lines, &r);
     if ((r != SCPE_OK) || (ln >= tty_desc.lines))
         return SCPE_ARG;
     return tmxr_set_nolog (NULL, ln, NULL, desc);
@@ -2502,14 +2503,14 @@ t_stat tty_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SHOW LOG processor */
 
-t_stat tty_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat tty_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) val;
 
-    int32 i;
+    int32_t i;
 
     for (i = 0; i < tty_desc.lines; i++) {
         fprintf (st, "line %d: ", i);
@@ -2537,7 +2538,7 @@ return SCPE_OK;
 
 t_stat tty_detach (UNIT *uptr)
 {
-  int32  i;
+  int32_t i;
   t_stat reason;
 sim_cancel (uptr);
 reason = tmxr_detach (&tty_desc, uptr);
@@ -2546,7 +2547,7 @@ for (i = 0; i < tty_desc.lines; i++)
 return reason;
 }
 
-t_stat tty_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tty_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "FE Terminal Interfaces\n\n");
 fprintf (st, "The FE terminal could support up to 256 lines, in groups of 16\n");

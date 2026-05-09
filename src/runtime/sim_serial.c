@@ -51,8 +51,8 @@
    is returned.  If the configuration is successful, SCPE_OK is returned.
 
 
-   sim_control_serial (SERHANDLE port, int32 bits_to_set, int32 bits_to_clear, int32 *incoming_bits)
-   -------------------------------------------------------------------------------------------------
+   sim_control_serial (SERHANDLE port, int32_t bits_to_set, int32_t bits_to_clear, int32_t *incoming_bits)
+   ------------------------------------------------------------------------------------------------------
 
    The DTR and RTS line of the serial port is set or cleared as indicated in
    the respective bits_to_set or bits_to_clear parameters.  If the
@@ -64,8 +64,8 @@
    If an error occurs, SCPE_IOERR is returned.
 
 
-   int32 sim_read_serial (SERHANDLE port, char *buffer, int32 count, char *brk)
-   ----------------------------------------------------------------------------
+   int32_t sim_read_serial (SERHANDLE port, char *buffer, int32_t count, char *brk)
+   --------------------------------------------------------------------------------
 
    A non-blocking read is issued for the serial port indicated by "port" to get
    at most "count" bytes into the string "buffer".  If a serial line break was
@@ -75,8 +75,8 @@
    occurs, then the value -1 is returned.
 
 
-   int32 sim_write_serial (SERHANDLE port, char *buffer, int32 count)
-   ------------------------------------------------------------------
+   int32_t sim_write_serial (SERHANDLE port, char *buffer, int32_t count)
+   ----------------------------------------------------------------------
 
    A write is issued to the serial port indicated by "port" to put "count"
    characters from "buffer".  If the write is successful, the actual number of
@@ -96,8 +96,8 @@
    enumerates the available host serial ports
 
 
-   t_stat sim_show_serial (FILE* st, DEVICE *dptr, UNIT* uptr, int32 val, const void* desc)
-   ---------------------------------
+   t_stat sim_show_serial (FILE* st, DEVICE *dptr, UNIT* uptr, int32_t val, const char* desc)
+   -----------------------------------------------------------------------------------------
 
    displays the available host serial ports
 
@@ -110,6 +110,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define SER_DEV_NAME_MAX     256                        /* maximum device name size */
 #define SER_DEV_DESC_MAX     256                        /* maximum device description size */
@@ -122,10 +123,10 @@ typedef struct serial_list {
     } SERIAL_LIST;
 
 typedef struct serial_config {                          /* serial port configuration */
-    uint32 baudrate;                                    /* baud rate */
-    uint32 charsize;                                    /* character size in bits */
+    uint32_t baudrate;                                  /* baud rate */
+    uint32_t charsize;                                  /* character size in bits */
     char   parity;                                      /* parity (N/O/E/M/S) */
-    uint32 stopbits;                                    /* 0/1/2 stop bits (0 implies 1.5) */
+    uint32_t stopbits;                                  /* 0/1/2 stop bits (0 implies 1.5) */
     } SERCONFIG;
 
 static int       sim_serial_os_devices (int max, SERIAL_LIST* list);
@@ -311,7 +312,7 @@ for (i=0; i<count && !found; i++) {
   return (found ? temp : NULL);
 }
 
-t_stat sim_show_serial (FILE* st, DEVICE *dptr, UNIT* uptr, int32 val, const char* desc)
+t_stat sim_show_serial (FILE* st, DEVICE *dptr, UNIT* uptr, int32_t val, const char* desc)
 {
 SERIAL_LIST  list[SER_MAX_DEVICE];
 int number = sim_serial_devices(SER_MAX_DEVICE, list);
@@ -453,19 +454,19 @@ if ((sconfig == NULL) || (*sconfig == '\0'))
     sconfig = "9600-8N1";                               /* default settings */
 pptr = sconfig;
 
-config.baudrate = (uint32)strtotv (pptr, &sptr, 10);    /* parse baud rate */
+config.baudrate = (uint32_t)strtotv (pptr, &sptr, 10);  /* parse baud rate */
 arg_error = (pptr == sptr);                             /* check for bad argument */
 
 if (*sptr)                                              /* separator present? */
     sptr++;                                             /* skip it */
 
-config.charsize = (uint32)strtotv (sptr, &tptr, 10);    /* parse character size */
+config.charsize = (uint32_t)strtotv (sptr, &tptr, 10);  /* parse character size */
 arg_error = arg_error || (sptr == tptr);                /* check for bad argument */
 
 if (*tptr)                                              /* parity character present? */
     config.parity = (char)toupper (*tptr++);            /* save parity character */
 
-config.stopbits = (uint32)strtotv (tptr, &sptr, 10);    /* parse number of stop bits */
+config.stopbits = (uint32_t)strtotv (tptr, &sptr, 10);  /* parse number of stop bits */
 arg_error = arg_error || (tptr == sptr);                /* check for bad argument */
 
 if (arg_error)                                          /* bad conversions? */
@@ -710,11 +711,11 @@ static const struct {
         { { 'E', EVENPARITY }, { 'M', MARKPARITY  }, { 'N', NOPARITY },
           { 'O', ODDPARITY  }, { 'S', SPACEPARITY } };
 
-static const int32 parity_count = sizeof (parity_map) / sizeof (parity_map [0]);
+static const int32_t parity_count = sizeof (parity_map) / sizeof (parity_map [0]);
 
 DCB dcb;
 DWORD error;
-int32 i;
+int32_t i;
 
 if (!GetCommState (port->hPort, &dcb)) {                /* get the current comm parameters */
     sim_error_serial ("GetCommState",                   /* function failed; report unexpected error */
@@ -773,7 +774,7 @@ return SCPE_OK;                                         /* return success status
    If an error occurs, SCPE_IOERR is returned.
 */
 
-t_stat sim_control_serial (SERHANDLE port, int32 bits_to_set, int32 bits_to_clear, int32 *incoming_bits)
+t_stat sim_control_serial (SERHANDLE port, int32_t bits_to_set, int32_t bits_to_clear, int32_t *incoming_bits)
 {
 if ((bits_to_set & ~(TMXR_MDM_OUTGOING)) ||         /* Assure only settable bits */
     (bits_to_clear & ~(TMXR_MDM_OUTGOING)) ||
@@ -834,7 +835,7 @@ return SCPE_OK;
        character is set.
 */
 
-int32 sim_read_serial (SERHANDLE port, char *buffer, int32 count, char *brk)
+int32_t sim_read_serial (SERHANDLE port, char *buffer, int32_t count, char *brk)
 {
 DWORD read;
 DWORD commerrors;
@@ -875,7 +876,7 @@ return read;                                            /* return the number of 
    on writing, -1 is returned.
 */
 
-int32 sim_write_serial (SERHANDLE port, char *buffer, int32 count)
+int32_t sim_write_serial (SERHANDLE port, char *buffer, int32_t count)
 {
 if ((!WriteFile (port->hPort, (LPVOID) buffer,   /* write the buffer to the serial port */
                  (DWORD) count, NULL, &port->oWriteSync)) &&
@@ -1129,10 +1130,10 @@ return serport;                                         /* return port fd for su
 static t_stat sim_config_os_serial (SERHANDLE port, SERCONFIG config)
 {
 struct termios tio;
-int32 i;
+int32_t i;
 
 static const struct {
-    uint32  rate;
+    uint32_t rate;
     speed_t rate_code;
     } baud_map [] =
         { { 50,     B50     }, { 75,     B75     }, { 110,    B110    }, {  134,   B134   },
@@ -1141,7 +1142,7 @@ static const struct {
           { 9600,   B9600   }, { 19200,  B19200  }, { 38400,  B38400  }, {  57600, B57600 },
           { 115200, B115200 } };
 
-static const int32 baud_count = sizeof (baud_map) / sizeof (baud_map [0]);
+static const int32_t baud_count = sizeof (baud_map) / sizeof (baud_map [0]);
 
 static const tcflag_t charsize_map [4] = { CS5, CS6, CS7, CS8 };
 
@@ -1212,7 +1213,7 @@ return SCPE_OK;                                         /* configuration set suc
    If an error occurs, SCPE_IOERR is returned.
 */
 
-t_stat sim_control_serial (SERHANDLE port, int32 bits_to_set, int32 bits_to_clear, int32 *incoming_bits)
+t_stat sim_control_serial (SERHANDLE port, int32_t bits_to_set, int32_t bits_to_clear, int32_t *incoming_bits)
 {
 int bits;
 
@@ -1273,11 +1274,11 @@ return SCPE_OK;
        sequences in the buffer.
 */
 
-int32 sim_read_serial (SERHANDLE port, char *buffer, int32 count, char *brk)
+int32_t sim_read_serial (SERHANDLE port, char *buffer, int32_t count, char *brk)
 {
 int read_count;
 char *bptr, *cptr;
-int32 remaining;
+int32_t remaining;
 
 read_count = read (port->port, (void *) buffer, (size_t) count);/* read from the serial port */
 
@@ -1314,7 +1315,7 @@ else {                                                      /* read succeeded */
         }
     }
 
-return (int32) read_count;                                  /* return the number of characters read */
+return (int32_t) read_count;                                /* return the number of characters read */
 }
 
 
@@ -1325,7 +1326,7 @@ return (int32) read_count;                                  /* return the number
    on writing, -1 is returned.
 */
 
-int32 sim_write_serial (SERHANDLE port, char *buffer, int32 count)
+int32_t sim_write_serial (SERHANDLE port, char *buffer, int32_t count)
 {
 int written;
 
@@ -1342,7 +1343,7 @@ if (written == -1) {
         sim_error_serial ("write", errno);                  /* report it */
     }
 
-return (int32) written;                                     /* return number of characters written */
+return (int32_t) written;                                   /* return number of characters written */
 }
 
 
@@ -1387,7 +1388,7 @@ return SCPE_IERR;
 
 /* Control a serial port */
 
-t_stat sim_control_serial (SERHANDLE port, int32 bits_to_set, int32 bits_to_clear, int32 *incoming_bits)
+t_stat sim_control_serial (SERHANDLE port, int32_t bits_to_set, int32_t bits_to_clear, int32_t *incoming_bits)
 {
 return SCPE_NOFNC;
 }
@@ -1395,7 +1396,7 @@ return SCPE_NOFNC;
 
 /* Read from a serial port */
 
-int32 sim_read_serial (SERHANDLE port, char *buffer, int32 count, char *brk)
+int32_t sim_read_serial (SERHANDLE port, char *buffer, int32_t count, char *brk)
 {
 return -1;
 }
@@ -1403,7 +1404,7 @@ return -1;
 
 /* Write to a serial port */
 
-int32 sim_write_serial (SERHANDLE port, char *buffer, int32 count)
+int32_t sim_write_serial (SERHANDLE port, char *buffer, int32_t count)
 {
 return -1;
 }

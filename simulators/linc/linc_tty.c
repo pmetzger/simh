@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "linc_defs.h"
 
 
@@ -8,7 +10,7 @@
 /* After finding the edge, wait until the middle of the first data bit. */
 #define FIRST_TIME     (BIT_TIME + (BIT_TIME - START_TIME) / 2)
 
-#define R (*(uint16 *)cpu_reg[5].loc)
+#define R (*(uint16_t *)cpu_reg[5].loc)
 
 /* Debug */
 #define DBG             0001
@@ -51,7 +53,7 @@ DEVICE tty_dev = {
 
 static void tty_output(UNIT *uptr)
 {
-  uint8 ch = uptr->DATA;
+  uint8_t ch = uptr->DATA;
   sim_debug(DBG, &tty_dev, "Character %03o '%c'\n", ch, ch & 0177);
   fputc(ch & 0177, uptr->fileref);
   fflush(uptr->fileref);

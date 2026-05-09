@@ -31,16 +31,18 @@
 #ifndef _3B2_SYS_H_
 #define _3B2_SYS_H_
 
+#include <stdint.h>
+
 #include "3b2_defs.h"
 
 void full_reset(void);
 t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag);
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
-                  int32 sw);
-t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw);
+                  int32_t sw);
+t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
 
 extern char sim_name[];
 extern REG *sim_PC;
-extern int32 sim_emax;
+extern int32_t sim_emax;
 
 #endif /* _3B2_SYS_H_ */

@@ -56,6 +56,7 @@
 
 #include "pdp8_defs.h"
 #include <math.h>
+#include <stdint.h>
 
 #define UNIT_V_AUTO     (UNIT_V_UF + 0)                 /* autosize */
 #define UNIT_V_PLAT     (UNIT_V_UF + 1)                 /* #platters - 1 */
@@ -106,28 +107,28 @@
                             int_req = int_req | INT_RF; \
                         else int_req = int_req & ~INT_RF
 
-extern uint16 M[];
-extern int32 int_req, stop_inst;
+extern uint16_t M[];
+extern int32_t int_req, stop_inst;
 extern UNIT cpu_unit;
 
-int32 rf_sta = 0;                                       /* status register */
-int32 rf_da = 0;                                        /* disk address */
-int32 rf_done = 0;                                      /* done flag */
-int32 rf_wlk = 0;                                       /* write lock */
-int32 rf_time = 10;                                     /* inter-word time */
-int32 rf_burst = 1;                                     /* burst mode flag */
-int32 rf_stopioe = 1;                                   /* stop on error */
+int32_t rf_sta = 0;                                     /* status register */
+int32_t rf_da = 0;                                      /* disk address */
+int32_t rf_done = 0;                                    /* done flag */
+int32_t rf_wlk = 0;                                     /* write lock */
+int32_t rf_time = 10;                                   /* inter-word time */
+int32_t rf_burst = 1;                                   /* burst mode flag */
+int32_t rf_stopioe = 1;                                 /* stop on error */
 
-int32 rf60 (int32 IR, int32 AC);
-int32 rf61 (int32 IR, int32 AC);
-int32 rf62 (int32 IR, int32 AC);
-int32 rf64 (int32 IR, int32 AC);
+int32_t rf60 (int32_t IR, int32_t AC);
+int32_t rf61 (int32_t IR, int32_t AC);
+int32_t rf62 (int32_t IR, int32_t AC);
+int32_t rf64 (int32_t IR, int32_t AC);
 t_stat rf_svc (UNIT *uptr);
 t_stat pcell_svc (UNIT *uptr);
 t_stat rf_reset (DEVICE *dptr);
-t_stat rf_boot (int32 unitno, DEVICE *dptr);
+t_stat rf_boot (int32_t unitno, DEVICE *dptr);
 t_stat rf_attach (UNIT *uptr, const char *cptr);
-t_stat rf_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat rf_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 const char *rf_description (DEVICE *dptr);
 
 /* RF08 data structures
@@ -187,10 +188,10 @@ DEVICE rf_dev = {
 
 /* IOT routines */
 
-int32 rf60 (int32 IR, int32 AC)
+int32_t rf60 (int32_t IR, int32_t AC)
 {
-int32 t;
-int32 pulse = IR & 07;
+int32_t t;
+int32_t pulse = IR & 07;
 
 UPDATE_PCELL;                                           /* update photocell */
 if (pulse & 1) {                                        /* DCMA */
@@ -211,9 +212,9 @@ if (pulse & 6) {                                        /* DMAR, DMAW */
 return AC;
 }
 
-int32 rf61 (int32 IR, int32 AC)
+int32_t rf61 (int32_t IR, int32_t AC)
 {
-int32 pulse = IR & 07;
+int32_t pulse = IR & 07;
 
 UPDATE_PCELL;                                           /* update photocell */
 switch (pulse) {                                        /* decode IR<9:11> */
@@ -243,9 +244,9 @@ switch (pulse) {                                        /* decode IR<9:11> */
 return AC;
 }
 
-int32 rf62 (int32 IR, int32 AC)
+int32_t rf62 (int32_t IR, int32_t AC)
 {
-int32 pulse = IR & 07;
+int32_t pulse = IR & 07;
 
 UPDATE_PCELL;                                           /* update photocell */
 if (pulse & 1) {                                        /* DFSE */
@@ -263,9 +264,9 @@ if (pulse & 4)                                          /* DMAC */
 return AC;
 }
 
-int32 rf64 (int32 IR, int32 AC)
+int32_t rf64 (int32_t IR, int32_t AC)
 {
-int32 pulse = IR & 07;
+int32_t pulse = IR & 07;
 
 UPDATE_PCELL;                                           /* update photocell */
 switch (pulse) {                                        /* decode IR<9:11> */
@@ -292,7 +293,7 @@ switch (pulse) {                                        /* decode IR<9:11> */
         break;
         }                                               /* end switch */
 
-if ((uint32) rf_da >= rf_unit.capac)
+if ((uint32_t) rf_da >= rf_unit.capac)
     rf_sta = rf_sta | RFS_NXD;
 else rf_sta = rf_sta & ~RFS_NXD;
 RF_INT_UPDATE;
@@ -307,9 +308,9 @@ return AC;
 
 t_stat rf_svc (UNIT *uptr)
 {
-int32 pa, t, mex;
-int16 *fbuf = (int16 *) uptr->filebuf;
-uint16 wc = 0;
+int32_t pa, t, mex;
+int16_t *fbuf = (int16_t *) uptr->filebuf;
+uint16_t wc = 0;
 
 UPDATE_PCELL;                                           /* update photocell */
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
@@ -321,7 +322,7 @@ if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
 
 mex = GET_MEX (rf_sta);
 do {
-    if ((uint32) rf_da >= rf_unit.capac) {              /* disk overflow? */
+    if ((uint32_t) rf_da >= rf_unit.capac) {            /* disk overflow? */
         rf_sta = rf_sta | RFS_NXD;
         break;
         }
@@ -338,7 +339,7 @@ do {
             rf_sta = rf_sta | RFS_WLS;
         else {                                          /* not locked */
             fbuf[rf_da] = M[pa];                        /* write word */
-            if (((uint32) rf_da) >= uptr->hwmark)
+            if (((uint32_t) rf_da) >= uptr->hwmark)
                 uptr->hwmark = rf_da + 1;
             }
         }
@@ -389,11 +390,11 @@ return SCPE_OK;
 /* Bootstrap routine */
 
 #define OS8_START       07750
-#define OS8_LEN         (sizeof (os8_rom) / sizeof (int16))
+#define OS8_LEN         (sizeof (os8_rom) / sizeof (int16_t))
 #define DM4_START       00200
-#define DM4_LEN         (sizeof (dm4_rom) / sizeof (int16))
+#define DM4_LEN         (sizeof (dm4_rom) / sizeof (int16_t))
 
-static const uint16 os8_rom[] = {
+static const uint16_t os8_rom[] = {
     07600,                      /* 7750, CLA CLL        ; also word count */
     06603,                      /* 7751, DMAR           ; also address */
     06622,                      /* 7752, DFSC           ; done? */
@@ -401,7 +402,7 @@ static const uint16 os8_rom[] = {
     05752                       /* 7754, JMP @.-2       ; enter boot */
     };
 
-static const uint16 dm4_rom[] = {
+static const uint16_t dm4_rom[] = {
     00200, 07600,               /* 0200, CLA CLL */
     00201, 06603,               /* 0201, DMAR           ; read */
     00202, 06622,               /* 0202, DFSC           ; done? */
@@ -411,7 +412,7 @@ static const uint16 dm4_rom[] = {
     07751, 07576                /* 7751, 7576           ; address */
     };
 
-t_stat rf_boot (int32 unitno, DEVICE *dptr)
+t_stat rf_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -439,8 +440,8 @@ return SCPE_OK;
 
 t_stat rf_attach (UNIT *uptr, const char *cptr)
 {
-uint32 sz, p;
-uint32 ds_bytes = RF_DKSIZE * sizeof (int16);
+uint32_t sz, p;
+uint32_t ds_bytes = RF_DKSIZE * sizeof (int16_t);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;
@@ -455,7 +456,7 @@ return attach_unit (uptr, cptr);
 
 /* Change disk size */
 
-t_stat rf_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rf_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

@@ -29,24 +29,26 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "cdc1700_defs.h"
 
 extern char INTprefix[];
 
 extern bool inProtectedMode(void);
-extern uint16 dev1INTR(DEVICE *);
-extern uint16 cpuINTR(DEVICE *);
+extern uint16_t dev1INTR(DEVICE *);
+extern uint16_t cpuINTR(DEVICE *);
 
 extern void RaiseExternalInterrupt(DEVICE *);
 
 extern enum IOstatus fw_doIO(DEVICE *, bool);
 
-extern uint16 Areg, Mreg, Preg, OrigPreg, Qreg, Pending, IOAreg, IOQreg, M[];
-extern uint8 Protected, INTflag;
-extern t_uint64 Instructions;
+extern uint16_t Areg, Mreg, Preg, OrigPreg, Qreg, Pending, IOAreg, IOQreg, M[];
+extern uint8_t Protected, INTflag;
+extern uint64_t Instructions;
 
 extern bool FirstRejSeen;
-extern uint32 CountRejects;
+extern uint32_t CountRejects;
 
 extern DEVICE cpu_dev, dca_dev, dcb_dev, dcc_dev, tti_dev, tto_dev,
   ptr_dev, ptp_dev;
@@ -86,7 +88,7 @@ devINTR *IOintr[16];
  *      Stop on Reject status
  *      Protected status
  */
-t_stat show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -123,7 +125,7 @@ t_stat show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
 /*
  * Device stop on reject handling.
  */
-t_stat set_stoponrej(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_stoponrej(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -143,7 +145,7 @@ t_stat set_stoponrej(UNIT *uptr, int32 val, const char *cptr, void *desc)
   return SCPE_OK;
 }
 
-t_stat clr_stoponrej(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat clr_stoponrej(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -166,7 +168,7 @@ t_stat clr_stoponrej(UNIT *uptr, int32 val, const char *cptr, void *desc)
 /*
  * Protected device.
  */
-t_stat set_protected(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_protected(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -186,7 +188,7 @@ t_stat set_protected(UNIT *uptr, int32 val, const char *cptr, void *desc)
   return SCPE_OK;
 }
 
-t_stat clear_protected(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat clear_protected(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -213,7 +215,7 @@ t_stat clear_protected(UNIT *uptr, int32 val, const char *cptr, void *desc)
 /*
  * Interrupt status for a non-existent device
  */
-static uint16 noneINTR(DEVICE *dptr)
+static uint16_t noneINTR(DEVICE *dptr)
 {
   /* Generic device interrupt signature.
      This implementation does not use every parameter. */
@@ -225,7 +227,7 @@ static uint16 noneINTR(DEVICE *dptr)
 /*
  * Generic device interrupt status
  */
-static uint16 deviceINTR(DEVICE *dptr)
+static uint16_t deviceINTR(DEVICE *dptr)
 {
   IO_DEVICE *iod = (IO_DEVICE *)dptr->ctxt;
 
@@ -567,7 +569,7 @@ void buildIOtable(void)
 /*
  * Load bootstrap code into memory
  */
-void loadBootstrap(uint16 *code, int len, uint16 base, uint16 start)
+void loadBootstrap(uint16_t *code, int len, uint16_t base, uint16_t start)
 {
   while (len--) {
     M[base++] = *code++;

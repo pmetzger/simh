@@ -187,6 +187,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -199,7 +201,7 @@
 
 /* Device property constant declarations */
 
-#define LOOPBACK_DELAY      (int32) uS (1)      /* diagnostic loopback flag assertion delay */
+#define LOOPBACK_DELAY      (int32_t) uS (1)    /* diagnostic loopback flag assertion delay */
 
 
 /* Unit flags */

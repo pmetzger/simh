@@ -32,22 +32,24 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "system_defs.h"                /* system header in system dir */
 
 #define ipc_cont_NAME    "Intel IPB/IPC Controller"
 
 /* function prototypes */
 
-t_stat ipc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat ipc_cont_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat ipc_cont_clr(void);
-t_stat ipc_cont_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
-uint8 ipc_cont(bool io, uint8 data, uint8 devnum);      /* ipc_cont*/
+t_stat ipc_cont_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+uint8_t ipc_cont(bool io, uint8_t data, uint8_t devnum); /* ipc_cont*/
 t_stat ipc_cont_reset (DEVICE *dptr);
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
+extern uint8_t reg_dev(uint8_t (*routine)(bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
 
 /* globals */
 
@@ -58,7 +60,7 @@ static const char* ipc_cont_desc(DEVICE *dptr) {
 
     return ipc_cont_NAME;
 }
-uint8   ipc_cont_baseport = -1;         //base port
+uint8_t ipc_cont_baseport = -1;         //base port
 
 UNIT ipc_cont_unit =
     { UDATA (0, 0, 0) };                /* ipc_cont*/
@@ -113,7 +115,7 @@ DEVICE ipc_cont_dev = {
 
 // ipc_cont configuration
 
-t_stat ipc_cont_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat ipc_cont_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     /* Shared configuration signature.
        This implementation does not use every parameter. */
@@ -136,7 +138,7 @@ t_stat ipc_cont_clr(void)
 
 // show configuration parameters
 
-t_stat ipc_cont_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat ipc_cont_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -169,7 +171,7 @@ t_stat ipc_cont_reset(DEVICE *dptr)
 
 /* IPC control port functions */
 
-uint8 ipc_cont(bool io, uint8 data, uint8 devnum)
+uint8_t ipc_cont(bool io, uint8_t data, uint8_t devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */

@@ -33,14 +33,16 @@
         M6810.
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "swtp_defs.h"
 
 /* function prototypes */
 
 t_stat m6810_reset (DEVICE *dptr);
-int32 m6810_get_mbyte(int32 offset);
-void m6810_put_mbyte(int32 offset, int32 val);
+int32_t m6810_get_mbyte(int32_t offset);
+void m6810_put_mbyte(int32_t offset, int32_t val);
 
 /* SIMH RAM Standard I/O Data Structures */
 
@@ -96,7 +98,7 @@ t_stat m6810_reset (DEVICE *dptr)
     (void) dptr;
 
     if (m6810_unit.filebuf == NULL) {
-        m6810_unit.filebuf = calloc(128, sizeof(uint8));
+        m6810_unit.filebuf = calloc(128, sizeof(uint8_t));
         if (m6810_unit.filebuf == NULL) {
             printf("m6810_reset: Calloc error\n");
             return SCPE_MEM;
@@ -112,12 +114,12 @@ t_stat m6810_reset (DEVICE *dptr)
 
 /*  get a byte from memory - from offset from start of RAM*/
 
-int32 m6810_get_mbyte(int32 offset)
+int32_t m6810_get_mbyte(int32_t offset)
 {
-    int32 val;
+    int32_t val;
 
     if (((t_addr)offset) < m6810_unit.capac) {
-        val = *((uint8 *)(m6810_unit.filebuf) + offset) & 0xFF;
+        val = *((uint8_t *)(m6810_unit.filebuf) + offset) & 0xFF;
         return val;
     } else {
         return 0xFF;
@@ -126,10 +128,10 @@ int32 m6810_get_mbyte(int32 offset)
 
 /*  put a byte to memory */
 
-void m6810_put_mbyte(int32 offset, int32 val)
+void m6810_put_mbyte(int32_t offset, int32_t val)
 {
     if ((t_addr)offset < m6810_unit.capac) {
-        *((uint8 *)(m6810_unit.filebuf) + offset) = val & 0xFF;
+        *((uint8_t *)(m6810_unit.filebuf) + offset) = val & 0xFF;
         return;
     }
     return;

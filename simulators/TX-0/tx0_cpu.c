@@ -153,6 +153,8 @@ In addtion, many of the operate-class micro-orders changed.
 See TX-0 memo M-5001-19 for a simple formula for cry, used in the code below.
 */
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "tx0_defs.h"
 
 #define OPR_CLA         0100000 /* 0.8 */
@@ -241,67 +243,67 @@ See TX-0 memo M-5001-19 for a simple formula for cry, used in the code below.
                                          printf args;             \
                                     }
 typedef struct {
-    uint32              pc;
-    uint32              ir;
-    uint32              ovac;
-    uint32              pfio;
-    uint32              ea;
-    uint32              opnd;
+    uint32_t            pc;
+    uint32_t            ir;
+    uint32_t            ovac;
+    uint32_t            pfio;
+    uint32_t            ea;
+    uint32_t            opnd;
 } InstHistory;
 
-int32 M[MAXMEMSIZE] = { 0 };                            /* memory */
-int32 AC = 0;                                           /* AC */
-int32 IR = 0;                                           /* IR */
-int32 PC = 0;                                           /* PC */
-int32 MAR = 0;                                          /* MAR */
-int32 XR = 0;                                           /* XR (index register) */
-int32 MBR = 0;                                          /* MBR */
-int32 LR = 0;                                           /* LR (Live Register) */
-int32 OV = 0;                                           /* overflow */
-int32 TBR = 0;                                          /* sense switches */
-int32 PF = 0;                                           /* program flags */
-int32 TAC = 0;                                          /* Toggle Switch Accumulator */
-int32 iosta = 0;                                        /* status reg */
-int32 ios = 0;                                          /* I/O Stop */
-int32 ch = 0;                                           /* Chime Alarm */
-int32 LPEN = 0;                                         /* Light Pen / Light Gun flops */
-int32 mode_tst = 1;                                     /* Test Mode Flip-flop */
-int32 mode_rdin = 1;                                    /* Read-In Mode Flip-flop */
+int32_t M[MAXMEMSIZE] = { 0 };                          /* memory */
+int32_t AC = 0;                                         /* AC */
+int32_t IR = 0;                                         /* IR */
+int32_t PC = 0;                                         /* PC */
+int32_t MAR = 0;                                        /* MAR */
+int32_t XR = 0;                                         /* XR (index register) */
+int32_t MBR = 0;                                        /* MBR */
+int32_t LR = 0;                                         /* LR (Live Register) */
+int32_t OV = 0;                                         /* overflow */
+int32_t TBR = 0;                                        /* sense switches */
+int32_t PF = 0;                                         /* program flags */
+int32_t TAC = 0;                                        /* Toggle Switch Accumulator */
+int32_t iosta = 0;                                      /* status reg */
+int32_t ios = 0;                                        /* I/O Stop */
+int32_t ch = 0;                                         /* Chime Alarm */
+int32_t LPEN = 0;                                       /* Light Pen / Light Gun flops */
+int32_t mode_tst = 1;                                   /* Test Mode Flip-flop */
+int32_t mode_rdin = 1;                                  /* Read-In Mode Flip-flop */
 
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+uint16_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* inst history */
 
-int32 fpc_MA;                                           /* shadow ma for FPC access */
-int32 fpc_OP;                                           /* shadow op for FPC access */
+int32_t fpc_MA;                                         /* shadow ma for FPC access */
+int32_t fpc_OP;                                         /* shadow op for FPC access */
 
-int32 addr_mask = YMASK;
+int32_t addr_mask = YMASK;
 
-static t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-static t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+static t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+static t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 static t_stat cpu_reset (DEVICE *dptr);
-static t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-int32 cpu_get_mode (void);
-static t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat cpu_set_ext (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat cpu_set_noext (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+int32_t cpu_get_mode (void);
+static t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat cpu_set_ext (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat cpu_set_noext (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat Read (void);
 t_stat Write (void);
 
-extern int32 petr (int32 inst, int32 dev, int32 dat);
-extern int32 ptp (int32 inst, int32 dev, int32 dat);
-extern int32 tti (int32 inst, int32 dev, int32 dat);
-extern int32 tto (int32 inst, int32 dev, int32 dat);
-extern int32 lpt (int32 inst, int32 dev, int32 dat);
-extern int32 dt  (int32 inst, int32 dev, int32 dat);
-extern int32 drm (int32 inst, int32 dev, int32 dat);
+extern int32_t petr (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t ptp (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t tti (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t tto (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t lpt (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t dt  (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t drm (int32_t inst, int32_t dev, int32_t dat);
 #ifdef USE_DISPLAY
-extern int32 dpy (int32 ac);
+extern int32_t dpy (int32_t ac);
 #endif
 
 extern UNIT petr_unit;
@@ -387,9 +389,9 @@ DEVICE cpu_dev = {
     cpu_dt, NULL
     };
 
-static int32 compute_index (int32 y, int32 XR)
+static int32_t compute_index (int32_t y, int32_t XR)
 {
-    int32 sum;
+    int32_t sum;
 
     y  &= YMASK;    /* force 13-bit (0 sign) */
     XR &= 037777;   /* force 14-bit */
@@ -408,13 +410,13 @@ static int32 compute_index (int32 y, int32 XR)
 /* CPU Instruction usage counters */
 typedef struct {
 /* Store group */
-    int32 sto, stx, sxa, ado, slr, slx, stz;
+    int32_t sto, stx, sxa, ado, slr, slx, stz;
 /* Add group */
-    int32 add, adx, ldx, aux, llr, llx, lda, lax;
+    int32_t add, adx, ldx, aux, llr, llx, lda, lax;
 /* TRN Group */
-    int32 trn, tze, tsx, tix, tra, trx, tlv;
+    int32_t trn, tze, tsx, tix, tra, trx, tlv;
 /* OPR Group */
-    int32 cla, amb, cyr, shr, mbl, xmb, com, pad, cry, anb, orb, lmb, mbx;
+    int32_t cla, amb, cyr, shr, mbl, xmb, com, pad, cry, anb, orb, lmb, mbx;
 } INST_CTRS;
 
 INST_CTRS inst_ctr;
@@ -440,12 +442,12 @@ static void tx0_dump_regs(const char *desc)
 
 }
 
-t_stat sim_opr_orig(int32 op);
+t_stat sim_opr_orig(int32_t op);
 
 t_stat sim_instr (void)
 {
-    int32 IR, op, inst_class, y;
-    int32 tempLR;   /* LR temporary storage in case both LMB and MBL are set (swap LR<->MBR) */
+    int32_t IR, op, inst_class, y;
+    int32_t tempLR; /* LR temporary storage in case both LMB and MBL are set (swap LR<->MBR) */
     t_stat reason;
 
     /* Clear Instruction counters */
@@ -581,7 +583,7 @@ t_stat sim_instr (void)
                     break;
                 case 2:     /* sxa */
                     {
-                        int32 temp = M[MAR];
+                        int32_t temp = M[MAR];
                         temp &= 0760000;
                         temp |= (XR & YMASK);
                         MBR = temp;
@@ -591,7 +593,7 @@ t_stat sim_instr (void)
                     break;
                 case 3:     /* ado */
                     {
-                        int32 temp = M[MAR];
+                        int32_t temp = M[MAR];
                         temp += 1;              /* add 1 */
                         if (temp > DMASK) {     /* Overflow, */
                             temp += 1;          /* propagate carry from bit 0 to bit 17. */
@@ -653,7 +655,7 @@ t_stat sim_instr (void)
                     break;
                 case 3:     /* aux  (Augment Index) */
                     {
-                        uint32 newY = (y & 0017777) | ((y & SIGN) >> 4);
+                        uint32_t newY = (y & 0017777) | ((y & SIGN) >> 4);
                         TRACE_PRINT(ADD_MSG, ("[%06o] AUX: y=%05o, XR=%05o = ", PC-1, newY, XR));
                         XR = XR + newY;
                         TRACE_PRINT(ADD_MSG, ("%05o\n", XR));
@@ -733,7 +735,7 @@ t_stat sim_instr (void)
                     break;
                 case 5:     /* trx */
                     {
-                        int32 newPC;
+                        int32_t newPC;
                         newPC = compute_index(y, XR);
                         TRACE_PRINT(TRN_MSG, ("[%06o] TRA: Transfer taken: PC=%06o\n", PC-1, newPC));
                         PC = newPC;
@@ -776,7 +778,7 @@ t_stat sim_instr (void)
 /* IOS - In / Out Stop */
             /* Check TTI for character.  If so, put in LR and set LR bit 0. */
             if (iosta & IOS_TTI) {
-                int32 rbuf;
+                int32_t rbuf;
                 rbuf = tti(0,0,0);
                 TRACE_PRINT(IOS_MSG, ("TTI: character received=%03o\n", rbuf &077));
                 LR &= 0266666; /* Clear bits 0,2,5,8,...,17 */
@@ -811,10 +813,10 @@ t_stat sim_instr (void)
                 case IOS_SEL:
                     { /* These are used for Magtape control.
                          Magtape is compatible with IBM 709.  Maybe the SIMH 7090 magtape can be leveraged. */
-                        int32 CLRA = (op & 0100000);
-                        int32 BINDEC = (op & 020);
-                        int32 device = op & 03;
-                        int32 tape_ord = (op >> 2) & 03;
+                        int32_t CLRA = (op & 0100000);
+                        int32_t BINDEC = (op & 020);
+                        int32_t device = op & 03;
+                        int32_t tape_ord = (op >> 2) & 03;
                         const char *tape_cmd[] = {"Backspace Tape", "Read/Select Tape", "Rewind Tape", "Write/Select Tape" };
 
                         TRACE_PRINT(ERROR_MSG, ("[%06o] TODO: SEL (magtape)\n", PC-1));
@@ -846,7 +848,7 @@ t_stat sim_instr (void)
                     break;
                 case IOS_PRT:
                     {
-                        uint32 tmpAC = 0;
+                        uint32_t tmpAC = 0;
                         tmpAC |= ((AC & 0000001) >> 0) << 0; /* bit 17 */
                         tmpAC |= ((AC & 0000010) >> 3) << 1; /* bit 14 */
                         tmpAC |= ((AC & 0000100) >> 6) << 2; /* bit 11 */
@@ -859,7 +861,7 @@ t_stat sim_instr (void)
                 case IOS_P6H:
                 case IOS_P7H:
                     {
-                        uint32 tmpAC = 0;
+                        uint32_t tmpAC = 0;
                         tmpAC |= ((AC & 0000001) >> 0) << 0; /* bit 17 */
                         tmpAC |= ((AC & 0000010) >> 3) << 1; /* bit 14 */
                         tmpAC |= ((AC & 0000100) >> 6) << 2; /* bit 11 */
@@ -902,7 +904,7 @@ t_stat sim_instr (void)
             }
 
             if ((op & OPR_XMB_MASK) == OPR_XMB) { /* 1.2 XR[5:17] -> MBR[5:17], XR[4] -> MBR[0:4] */
-                int32 bit14 = (XR >> 13) & 1;
+                int32_t bit14 = (XR >> 13) & 1;
                 MBR  = XR & YMASK;      /* XR[5:17] -> MBR[5:17] */
                 MBR |= (bit14 << 17);   /* XR[4] -> MBR[0] */
                 MBR |= (bit14 << 16);   /* XR[4] -> MBR[1] */
@@ -948,7 +950,7 @@ t_stat sim_instr (void)
             }
 
             if ((op & OPR_SHF_MASK) == OPR_CYR) { /* 1.6 */
-                int32 bit17;
+                int32_t bit17;
                 bit17 = (AC & 1) << 17;
                 AC  >>= 1;
                 AC |= bit17;
@@ -957,7 +959,7 @@ t_stat sim_instr (void)
             }
 
             if ((op & OPR_SHF_MASK) == OPR_SHR) { /* 1.6 Shift AC Right, preserve bit 0. */
-                int32 bit0;
+                int32_t bit0;
                 bit0 = AC & 0400000;
                 AC = AC >> 1;
                 AC |= bit0;
@@ -979,7 +981,7 @@ t_stat sim_instr (void)
             }
 
             if ((op & OPR_MBX_MASK) == OPR_MBX) { /* 1.8    MBR[5:17] -> XR[5:17], MBR[0] -> XR[4] */
-                int32 tempXR;
+                int32_t tempXR;
                 tempXR  = MBR & YMASK;
                 tempXR |= (((MBR >> 17) & 1) << 13);
 
@@ -1050,7 +1052,7 @@ static t_stat cpu_reset (DEVICE *dptr)
 
 /* Memory examine */
 
-static t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+static t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic memory examine signature.
        This implementation does not use every parameter. */
@@ -1065,7 +1067,7 @@ static t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
 
 /* Memory deposit */
 
-static t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+static t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic memory deposit signature.
        This implementation does not use every parameter. */
@@ -1081,7 +1083,7 @@ static t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 
 /* Change memory size */
 
-static t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1089,10 +1091,10 @@ static t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) cptr;
     (void) desc;
 
-    int32 mc = 0;
-    uint32 i;
+    int32_t mc = 0;
+    uint32_t i;
 
-    if ((val <= 0) || (val > (int32)MAXMEMSIZE) || ((val & 07777) != 0))
+    if ((val <= 0) || (val > (int32_t)MAXMEMSIZE) || ((val & 07777) != 0))
         return SCPE_ARG;
     for (i = val; i < MEMSIZE; i++) mc = mc | M[i];
     if ((mc != 0) && (!get_yn ("Really truncate memory [N]?", false)))
@@ -1104,7 +1106,7 @@ static t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* Change CPU Mode (Normal, Test, Readin) */
 
-t_stat cpu_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1129,7 +1131,7 @@ t_stat cpu_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* Set TX-0 with Extended Instruction Set */
 
-static t_stat cpu_set_ext (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat cpu_set_ext (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1142,7 +1144,7 @@ static t_stat cpu_set_ext (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat cpu_set_noext (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat cpu_set_noext (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1155,7 +1157,7 @@ static t_stat cpu_set_noext (UNIT *uptr, int32 val, const char *cptr, void *desc
     return SCPE_OK;
 }
 
-int32 cpu_get_mode (void)
+int32_t cpu_get_mode (void)
 {
     return (cpu_unit.flags & UNIT_EXT_INST);
 }
@@ -1164,7 +1166,7 @@ int32 cpu_get_mode (void)
 
 /* Set history */
 
-static t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1172,7 +1174,7 @@ static t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -1180,7 +1182,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN))) return SCPE_ARG;
 hst_p = 0;
 if (hst_lnt) {
@@ -1198,21 +1200,21 @@ return SCPE_OK;
 
 /* Show history */
 
-static t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 ov, pf, op, k, di, lnt;
+int32_t ov, pf, op, k, di, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 InstHistory *h;
 
 if (hst_lnt == 0) return SCPE_NOFNC;                    /* enabled? */
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0)) return SCPE_ARG;
     }
 else lnt = hst_lnt;
@@ -1265,7 +1267,7 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag) {
        This implementation does not use every parameter. */
     (void) fnam;
 
-    uint32 word;
+    uint32_t word;
     t_addr j, lo, hi, sz, sz_words;
     const char *result;
 
@@ -1352,7 +1354,7 @@ Original Operate-class instruction micro orders for the 1956 TX-0 Instruction Se
 #define OOPR_TBR        0000003
 #define OOPR_LMB        0000002
 
-t_stat sim_opr_orig(int32 op)
+t_stat sim_opr_orig(int32_t op)
 {
     t_stat reason = SCPE_OK;
 
@@ -1368,7 +1370,7 @@ t_stat sim_opr_orig(int32 op)
 /* IOS - In / Out Stop */
     /* Check TTI for character.  If so, put in LR and set LR bit 0. */
     if (iosta & IOS_TTI) {
-        int32 rbuf;
+        int32_t rbuf;
         rbuf = tti(0,0,0);
         TRACE_PRINT(IOS_MSG, ("TTI: character received='%c'\n", rbuf &077));
         sim_printf("TTI: character received='%c'\n", rbuf &077);
@@ -1392,7 +1394,7 @@ t_stat sim_opr_orig(int32 op)
         case OOPR_P7H:
         case OOPR_P6H:
             {
-                uint32 tmpAC = 0;
+                uint32_t tmpAC = 0;
                 tmpAC |= ((AC & 0000001) >> 0) << 0; /* bit 17 */
                 tmpAC |= ((AC & 0000010) >> 3) << 1; /* bit 14 */
                 tmpAC |= ((AC & 0000100) >> 6) << 2; /* bit 11 */
@@ -1411,7 +1413,7 @@ t_stat sim_opr_orig(int32 op)
             break;
         case OOPR_PNT:
             {
-                uint32 tmpAC = 0;
+                uint32_t tmpAC = 0;
                 tmpAC |= ((AC & 0000001) >> 0) << 0; /* bit 17 */
                 tmpAC |= ((AC & 0000010) >> 3) << 1; /* bit 14 */
                 tmpAC |= ((AC & 0000100) >> 6) << 2; /* bit 11 */
@@ -1479,7 +1481,7 @@ t_stat sim_opr_orig(int32 op)
         break;
     case OOPR_SHR: /* Shift AC Right, preserve bit 0. */
         {
-            int32 bit0;
+            int32_t bit0;
             bit0 = AC & 0400000;
             AC = AC >> 1;
             AC |= bit0;
@@ -1488,7 +1490,7 @@ t_stat sim_opr_orig(int32 op)
         }
     case OOPR_CYR:  /* cyr  1.4 Cycle the AC right one digital position (AC17 -> AC0) */
         {
-            int32 bit17;
+            int32_t bit17;
             bit17 = (AC & 1) << 17;
             AC  >>= 1;
             AC |= bit17;

@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev, console_dev, dsk_dev, cr_dev,  cp_dev, ptr_dev, ptp_dev, t2741_dev;
 extern DEVICE tti_dev, tto_dev,     prt_dev, log_dev, sca_dev;
@@ -35,7 +36,7 @@ extern DEVICE gdu_dev, console_dev, plot_dev;
 
 extern UNIT  cpu_unit;
 extern REG   cpu_reg[];
-extern int32 saved_PC;
+extern int32_t saved_PC;
 extern bool is_1800;
 
 /* SCP data structures and interface routines
@@ -52,7 +53,7 @@ char sim_name[]    = "IBM 1130";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,           /* the cpu */
@@ -300,9 +301,9 @@ static int ebcdic_to_ascii (int ch)
     return '?';
 }
 
-t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
-    int32 ch, OP, F, TAG, INDIR, DSPLC, IR, eaddr;
+    int32_t ch, OP, F, TAG, INDIR, DSPLC, IR, eaddr;
     const char *mnem;
     char tst[12];
 
@@ -328,7 +329,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
     }
 
     if (sw & SWMASK ('H')) {                /* HOLLERITH! now THIS is useful! */
-        ch = hollerith_to_ascii((int16) val[0]);
+        ch = hollerith_to_ascii((int16_t) val[0]);
         fprintf (of, (ch < ' ')? "<%03o>": "%c", ch);
         return SCPE_OK;
     }
@@ -424,7 +425,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
             <= 0  -number of extra words
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

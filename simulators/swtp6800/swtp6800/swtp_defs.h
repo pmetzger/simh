@@ -25,6 +25,8 @@ Copyright (c) 2005-2012, William Beech
 */
 
 #include <ctype.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                   // simulator defs
 
 /* Rename of global PC and SP variables to avoid namespace conflicts on some platforms */
@@ -40,7 +42,7 @@ Copyright (c) 2005-2012, William Beech
 #define MEMSIZE         (m6800_unit.capac)  // actual memory size
 #define ADDRMASK        (MAXMEMSIZE - 1)    // address mask
 #define BYTEMASK        0xff
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* debug definitions */
 

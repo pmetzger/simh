@@ -185,6 +185,9 @@
 /* Definitions */
 
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "sim_types.h"
 #include "vax_defs.h"
 
 #define UNIT_V_CONH     (UNIT_V_UF + 0)                 /* halt to console */
@@ -236,60 +239,60 @@
                         rh = arh
 
 
-uint32 *M = NULL;                                       /* memory */
-uint32 R[16];                                           /* registers */
-uint32 STK[5];                                          /* stack pointers */
-uint32 PSL;                                             /* PSL */
-uint32 SCBB = 0;                                        /* SCB base */
-uint32 PCBB = 0;                                        /* PCB base */
-uint32 P0BR = 0;                                        /* P0 mem mgt */
-uint32 P0LR = 0;
-uint32 P1BR = 0;                                        /* P1 mem mgt */
-uint32 P1LR = 0;
-uint32 SBR = 0;                                         /* S0 mem mgt */
-uint32 SLR = 0;
-uint32 SISR;                                            /* swre int req */
-uint32 ASTLVL;                                          /* AST level */
-int32 mapen;                                            /* map enable */
-int32 pme;                                              /* perf mon enable */
-uint32 trpirq;                                          /* trap/intr req */
-int32 in_ie = 0;                                        /* in exc, int */
-int32 recq[6];                                          /* recovery queue */
-int32 recqptr;                                          /* recq pointer */
-int32 hlt_pin = 0;                                      /* HLT pin intr */
-int32 mem_err = 0;
-int32 crd_err = 0;
-uint32 p1 = 0, p2 = 0;                                  /* fault parameters */
-uint32 fault_PC;                                        /* fault PC */
-int32 mxpr_cc_vc = 0;                                   /* MxPR V,C bits */
-int32 pcq_p = 0;                                        /* PC queue ptr */
-int32 badabo = 0;
-int32 cpu_instruction_set = CPU_INSTRUCTION_SET;        /* Instruction Groups  */
-int32 cpu_astop = 0;
-uint32 mchk_va, mchk_ref;                               /* mem ref param */
-int32 ibufl, ibufh;                                     /* prefetch buf */
-int32 ibcnt, ppc;                                       /* prefetch ctl */
-uint32 cpu_idle_mask =                                  /* idle mask */
+uint32_t *M = NULL;                                     /* memory */
+uint32_t R[16];                                         /* registers */
+uint32_t STK[5];                                        /* stack pointers */
+uint32_t PSL;                                           /* PSL */
+uint32_t SCBB = 0;                                      /* SCB base */
+uint32_t PCBB = 0;                                      /* PCB base */
+uint32_t P0BR = 0;                                      /* P0 mem mgt */
+uint32_t P0LR = 0;
+uint32_t P1BR = 0;                                      /* P1 mem mgt */
+uint32_t P1LR = 0;
+uint32_t SBR = 0;                                       /* S0 mem mgt */
+uint32_t SLR = 0;
+uint32_t SISR;                                          /* swre int req */
+uint32_t ASTLVL;                                        /* AST level */
+int32_t mapen;                                          /* map enable */
+int32_t pme;                                            /* perf mon enable */
+uint32_t trpirq;                                        /* trap/intr req */
+int32_t in_ie = 0;                                      /* in exc, int */
+int32_t recq[6];                                        /* recovery queue */
+int32_t recqptr;                                        /* recq pointer */
+int32_t hlt_pin = 0;                                    /* HLT pin intr */
+int32_t mem_err = 0;
+int32_t crd_err = 0;
+uint32_t p1 = 0, p2 = 0;                                /* fault parameters */
+uint32_t fault_PC;                                      /* fault PC */
+int32_t mxpr_cc_vc = 0;                                 /* MxPR V,C bits */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
+int32_t badabo = 0;
+int32_t cpu_instruction_set = CPU_INSTRUCTION_SET;      /* Instruction Groups  */
+int32_t cpu_astop = 0;
+uint32_t mchk_va, mchk_ref;                             /* mem ref param */
+int32_t ibufl, ibufh;                                   /* prefetch buf */
+int32_t ibcnt, ppc;                                     /* prefetch ctl */
+uint32_t cpu_idle_mask =                                /* idle mask */
 #if defined (VAX_411) || defined (VAX_412)
                        VAX_IDLE_INFOSERVER;
-uint32 cpu_idle_type = 2;                               /* default INFOSERVER */
+uint32_t cpu_idle_type = 2;                             /* default INFOSERVER */
 #else
                        VAX_IDLE_VMS;
-uint32 cpu_idle_type = 1;                               /* default VMS */
+uint32_t cpu_idle_type = 1;                             /* default VMS */
 #endif
-int32 extra_bytes;                                      /* bytes referenced by current string instruction */
+int32_t extra_bytes;                                    /* bytes referenced by current string instruction */
 jmp_buf save_env;
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-uint32 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
+uint32_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
 InstHistory *hst = NULL;                                /* instruction history */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
-int32 hst_switches;                                     /* history option switches */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
+int32_t hst_switches;                                   /* history option switches */
 FILE *hst_log;                                          /* history log file */
-int32 hst_log_p;                                        /* history last log written pointer */
-int32 step_out_nest_level = 0;                          /* step to call return - nest level */
+int32_t hst_log_p;                                      /* history last log written pointer */
+int32_t step_out_nest_level = 0;                        /* step to call return - nest level */
 
-const uint32 byte_mask[33] = { 0x00000000,
+const uint32_t byte_mask[33] = { 0x00000000,
  0x00000001, 0x00000003, 0x00000007, 0x0000000F,
  0x0000001F, 0x0000003F, 0x0000007F, 0x000000FF,
  0x000001FF, 0x000003FF, 0x000007FF, 0x00000FFF,
@@ -299,7 +302,7 @@ const uint32 byte_mask[33] = { 0x00000000,
  0x01FFFFFF, 0x03FFFFFF, 0x07FFFFFF, 0x0FFFFFFF,
  0x1FFFFFFF, 0x3FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF
  };
-const uint32 byte_sign[33] = { 0x00000000,
+const uint32_t byte_sign[33] = { 0x00000000,
  0x00000001, 0x00000002, 0x00000004, 0x00000008,
  0x00000010, 0x00000020, 0x00000040, 0x00000080,
  0x00000100, 0x00000200, 0x00000400, 0x00000800,
@@ -309,33 +312,33 @@ const uint32 byte_sign[33] = { 0x00000000,
  0x01000000, 0x02000000, 0x04000000, 0x08000000,
  0x10000000, 0x20000000, 0x40000000, 0x80000000
  };
-const uint32 align[4] = {
+const uint32_t align[4] = {
  0xFFFFFFFF, 0x00FFFFFF, 0x0000FFFF, 0x000000FF
  };
 
 /* External and forward references */
 
-extern int32 sys_model;
+extern int32_t sys_model;
 
 t_stat cpu_reset (DEVICE *dptr);
 bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
-t_stat cpu_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_show_virt (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_set_idle (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_idle (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_set_instruction_set (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_instruction_set (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat cpu_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_show_virt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_set_idle (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_idle (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_set_instruction_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_instruction_set (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 const char *cpu_description (DEVICE *dptr);
-int32 cpu_get_vsw (int32 sw);
-static inline int32 get_istr (int32 lnt, int32 acc);
-int32 ReadOcta (uint32 va, uint32 *opnd, int32 j, int32 acc);
-bool cpu_show_opnd (FILE *st, InstHistory *h, int32 line);
-t_stat cpu_show_hist_records (FILE *st, bool do_header, int32 start, int32 count);
-int32 cpu_emulate_exception (uint32 *opnd, int32 cc, int32 opc, int32 acc);
+int32_t cpu_get_vsw (int32_t sw);
+static inline int32_t get_istr (int32_t lnt, int32_t acc);
+int32_t ReadOcta (uint32_t va, uint32_t *opnd, int32_t j, int32_t acc);
+bool cpu_show_opnd (FILE *st, InstHistory *h, int32_t line);
+t_stat cpu_show_hist_records (FILE *st, bool do_header, int32_t start, int32_t count);
+int32_t cpu_emulate_exception (uint32_t *opnd, int32_t cc, int32_t opc, int32_t acc);
 void cpu_idle (void);
 
 /* CPU data structures
@@ -467,7 +470,7 @@ DEVICE cpu_dev = {
     &cpu_description
     };
 
-t_stat cpu_show_model (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_model (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -482,7 +485,7 @@ return cpu_print_model (st);
 const char *cpu_description (DEVICE *dptr)
 {
 static char buf[80];
-uint32 min_mem = 4096, max_mem = 0;
+uint32_t min_mem = 4096, max_mem = 0;
 MTAB *mptr;
 
 for (mptr = dptr->modifiers; mptr && (mptr->mask != 0); mptr++) {
@@ -499,15 +502,15 @@ return buf;
 
 t_stat sim_instr (void)
 {
-volatile int32 opc = 0, cc;                             /* used by setjmp */
-volatile int32 acc;                                     /* set by setjmp */
+volatile int32_t opc = 0, cc;                           /* used by setjmp */
+volatile int32_t acc;                                   /* set by setjmp */
 int abortval;
 t_stat ret;
-int32 r = 0, rh = 0, temp = 0;
-int32 spec = 0, disp = 0, rn = 0, numspec = 0;
-int32 vfldrp1 = 0, brdisp = 0, flg = 0, mstat = 0;
-uint32 va = 0, iad = 0, index = 0;
-uint32 opnd[OPND_SIZE];                                 /* operand queue */
+int32_t r = 0, rh = 0, temp = 0;
+int32_t spec = 0, disp = 0, rn = 0, numspec = 0;
+int32_t vfldrp1 = 0, brdisp = 0, flg = 0, mstat = 0;
+uint32_t va = 0, iad = 0, index = 0;
+uint32_t opnd[OPND_SIZE];                               /* operand queue */
 
 if ((ret = build_dib_tab ()) != SCPE_OK)                /* build, chk dib_tab */
     return ret;
@@ -536,10 +539,10 @@ if (abortval > 0) {                                     /* sim stop? */
     return abortval;                                    /* return to SCP */
     }
 else if (abortval < 0) {                                /* mm or rsrv or int */
-    int32 i, delta;
+    int32_t i, delta;
     if ((PSL & PSL_FPD) == 0) {                         /* FPD? no recovery */
         for (i = 0; i < recqptr; i++) {                 /* unwind inst */
-            int32 rrn, rlnt;
+            int32_t rrn, rlnt;
             rrn = RQ_GETRN (recq[i]);                   /* recover reg # */
             rlnt = DR_LNT (RQ_GETLNT (recq[i]));        /* recovery lnt */
             if (recq[i] & RQ_DIR)
@@ -615,7 +618,7 @@ else if (abortval < 0) {                                /* mm or rsrv or int */
 /* Main instruction loop */
 
 for ( ;; ) {
-    int32 i, j;
+    int32_t i, j;
 
 /* Optionally record instruction history results from prior instruction */
 
@@ -690,7 +693,7 @@ for ( ;; ) {
             in_ie = 0;
             }
         else if ((temp = GET_IRQL (trpirq))) {          /* interrupt? */
-            int32 vec;
+            int32_t vec;
             if (temp == IPL_HLTPIN) {                   /* console halt? */
                 hlt_pin = 0;                            /* clear intr */
                 trpirq = 0;                             /* clear everything */
@@ -730,7 +733,7 @@ for ( ;; ) {
         }                                               /* end PSL event */
 
     if (sim_brk_summ &&
-        sim_brk_test ((uint32) PC, SWMASK ('E'))) {     /* breakpoint? */
+        sim_brk_test ((uint32_t) PC, SWMASK ('E'))) {   /* breakpoint? */
         ABORT (STOP_IBKPT);                             /* stop simulation */
         }
 
@@ -1569,7 +1572,7 @@ for ( ;; ) {
 /* Optionally record instruction history */
 
     if (hst_lnt) {
-        int32 lim;
+        int32_t lim;
         t_value wd;
         InstHistory *h = &hst[hst_p];
 
@@ -1579,11 +1582,11 @@ for ( ;; ) {
         for (i = 0; i < j; i++)
             h->opnd[i] = opnd[i];
         lim = PC - fault_PC;
-        if ((uint32) lim > INST_SIZE)
+        if ((uint32_t) lim > INST_SIZE)
             lim = INST_SIZE;
         for (i = 0; i < lim; i++) {
             if ((cpu_ex (&wd, fault_PC + i, &cpu_unit, SWMASK ('V'))) == SCPE_OK)
-                h->inst[i] = (uint8) wd;
+                h->inst[i] = (uint8_t) wd;
             else {
                 h->inst[0] = h->inst[1] = 0xFF;
                 break;
@@ -2020,8 +2023,8 @@ for ( ;; ) {
             temp = CC_V;
             SET_TRAP (TRAP_DIVZRO);
             }
-        else if ((((uint32)op0) == LMASK) &&
-                 (((uint32)op1) == LSIGN)) {            /* overflow? */
+        else if ((((uint32_t)op0) == LMASK) &&
+                 (((uint32_t)op1) == LSIGN)) {          /* overflow? */
             r = op1;
             temp = CC_V;
             INTOV;
@@ -2116,7 +2119,7 @@ for ( ;; ) {
     case ROTL:
         j = op0 % 32;                                   /* reduce sc, mod 32 */
         if (j)
-            r = ((((uint32) op1) << j) | (((uint32) op1) >> (32 - j))) & LMASK;
+            r = ((((uint32_t) op1) << j) | (((uint32_t) op1) >> (32 - j))) & LMASK;
         else r = op1;
         WRITE_L (r);                                    /* store result */
         CC_IIZP_L (r);                                  /* set cc's */
@@ -2136,7 +2139,7 @@ for ( ;; ) {
             if (op0 > 31)                               /* sc > 31? */
                 r = temp = 0;
             else {
-                r = (((uint32) op1) << op0) & LMASK;    /* shift */
+                r = (((uint32_t) op1) << op0) & LMASK;  /* shift */
                 temp = vax_arith_rsh_l (r, op0);        /* shift back */
                 }
             WRITE_L (r);                                /* store result */
@@ -2167,7 +2170,7 @@ for ( ;; ) {
     case EMUL:
         r = op_emul (op0, op1, &rh);                    /* calc 64b result */
         r = r + op2;                                    /* add 32b value */
-        rh = rh + (((uint32) r) < ((uint32) op2)) -     /* into 64b result */
+        rh = rh + (((uint32_t) r) < ((uint32_t) op2)) - /* into 64b result */
             ((op2 & LSIGN)? 1: 0);
         WRITE_Q (r, rh);                                /* write result */
         CC_IIZZ_Q (r, rh);                              /* set cc's */
@@ -2463,7 +2466,7 @@ for ( ;; ) {
     case CASEL:
         r = (op0 - op1) & LMASK;                        /* sel - base */
         CC_CMP_L (r, op2);                              /* r:limit, set cc's */
-        if (((uint32) r) > ((uint32) op2))              /* r > limit (unsgnd)? */
+        if (((uint32_t) r) > ((uint32_t) op2))          /* r > limit (unsgnd)? */
             JUMP (PC + ((op2 + 1) * 2));
         else {
             temp = Read (PC + (r * 2), L_WORD, RA);
@@ -3209,10 +3212,10 @@ for ( ;; ) {
    so any translation errors are real.
 */
 
-static inline int32 get_istr (int32 lnt, int32 acc)
+static inline int32_t get_istr (int32_t lnt, int32_t acc)
 {
-int32 bo = PC & 3;
-int32 sc, val, t;
+int32_t bo = PC & 3;
+int32_t sc, val, t;
 
 while ((bo + lnt) > ibcnt) {                            /* until enuf bytes */
     if ((ppc < 0) || (VA_GETOFF (ppc) == 0)) {          /* PPC inv, xpg? */
@@ -3236,7 +3239,7 @@ else if (lnt == L_WORD) {                               /* word? */
     }
 else if (bo) {                                          /* unaligned lw? */
     sc = bo << 3;
-    val =  (((ibufl >> sc) & align[bo]) | (((uint32) ibufh) << (32 - sc)));
+    val =  (((ibufl >> sc) & align[bo]) | (((uint32_t) ibufh) << (32 - sc)));
     }
 else val = ibufl;                                       /* aligned lw */
 if ((bo + lnt) >= 4) {                                  /* retire ibufl? */
@@ -3248,7 +3251,7 @@ return val;
 
 /* Read octaword specifier */
 
-int32 ReadOcta (uint32 va, uint32 *opnd, int32 j, int32 acc)
+int32_t ReadOcta (uint32_t va, uint32_t *opnd, int32_t j, int32_t acc)
 {
 opnd[j++] = Read (va, L_LONG, acc);
 opnd[j++] = Read (va + 4, L_LONG, acc);
@@ -3270,9 +3273,9 @@ return j;
    In both cases, the exception occurs in the current mode.
 */
 
-int32 cpu_emulate_exception (uint32 *opnd, int32 cc, int32 opc, int32 acc)
+int32_t cpu_emulate_exception (uint32_t *opnd, int32_t cc, int32_t opc, int32_t acc)
 {
-int32 vec;
+int32_t vec;
 
 if (PSL & PSL_FPD) {                                    /* FPD set? */
     Read (SP - 1, L_BYTE, WA);                          /* wchk stack */
@@ -3354,7 +3357,7 @@ if (M == NULL) {                        /* first time init? */
     if (pcq_r == NULL)
         return SCPE_IERR;
     pcq_r->qptr = 0;
-    M = (uint32 *) calloc (((uint32) MEMSIZE) >> 2, sizeof (uint32));
+    M = (uint32_t *) calloc (((uint32_t) MEMSIZE) >> 2, sizeof (uint32_t));
     if (M == NULL)
         return SCPE_MEM;
     auto_config(NULL, 0);               /* do an initial auto configure */
@@ -3380,7 +3383,7 @@ bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 static t_addr returns[MAX_SUB_RETURN_SKIP+1] = {0};
 static bool caveats_displayed = false;
 int i;
-int32 saved_sim_switches = sim_switches;
+int32_t saved_sim_switches = sim_switches;
 
 if (!caveats_displayed) {
     caveats_displayed = true;
@@ -3410,25 +3413,25 @@ switch (sim_eval[0])
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 st;
-uint32 addr = (uint32) exta;
+int32_t st;
+uint32_t addr = (uint32_t) exta;
 
 if (vptr == NULL)
     return SCPE_ARG;
 if (sw & SWMASK ('V')) {
-    int32 acc = cpu_get_vsw (sw);
+    int32_t acc = cpu_get_vsw (sw);
     addr = Test (addr, acc, &st);
     }
 else addr = addr & PAMASK;
 if (ADDR_IS_MEM (addr) || ADDR_IS_CDG (addr) ||
     ADDR_IS_ROM (addr) || ADDR_IS_NVR (addr)) {
-    *vptr = (uint32) ReadB (addr);
+    *vptr = (uint32_t) ReadB (addr);
     return SCPE_OK;
     }
 return SCPE_NXM;
@@ -3436,23 +3439,23 @@ return SCPE_NXM;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
-int32 st;
-uint32 addr = (uint32) exta;
+int32_t st;
+uint32_t addr = (uint32_t) exta;
 
 if (sw & SWMASK ('V')) {
-    int32 acc = cpu_get_vsw (sw);
+    int32_t acc = cpu_get_vsw (sw);
     addr = Test (addr, acc, &st);
     }
 else addr = addr & PAMASK;
 if (ADDR_IS_MEM (addr) || ADDR_IS_CDG (addr) ||
     ADDR_IS_NVR (addr)) {
-    WriteB (addr, (int32) val);
+    WriteB (addr, (int32_t) val);
     return SCPE_OK;
     }
 if (ADDR_IS_ROM (addr)) {
-    rom_wr_B (addr, (int32) val);
+    rom_wr_B (addr, (int32_t) val);
     return SCPE_OK;
     }
 return SCPE_NXM;
@@ -3460,7 +3463,7 @@ return SCPE_NXM;
 
 /* Memory allocation */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -3468,9 +3471,9 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i, clim, uval = (uint32)val;
-uint32 *nM = NULL;
+int32_t mc = 0;
+uint32_t i, clim, uval = (uint32_t)val;
+uint32_t *nM = NULL;
 
 if ((val <= 0) || (val > MAXMEMSIZE_X))
     return SCPE_ARG;
@@ -3478,10 +3481,10 @@ for (i = val; i < MEMSIZE; i = i + 4)
     mc = mc | M[i >> 2];
 if ((mc != 0) && !get_yn ("Really truncate memory [N]?", false))
     return SCPE_OK;
-nM = (uint32 *) calloc (uval >> 2, sizeof (uint32));
+nM = (uint32_t *) calloc (uval >> 2, sizeof (uint32_t));
 if (nM == NULL)
     return SCPE_MEM;
-clim = (uint32)((uval < MEMSIZE)? uval: MEMSIZE);
+clim = (uint32_t)((uval < MEMSIZE)? uval: MEMSIZE);
 for (i = 0; i < clim; i = i + 4)
     nM[i >> 2] = M[i >> 2];
 free (M);
@@ -3493,7 +3496,7 @@ return SCPE_OK;
 
 /* Virtual address translation */
 
-t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -3502,8 +3505,8 @@ t_stat cpu_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc)
 
 t_stat r;
 const char *cptr = (const char *) desc;
-uint32 va, pa;
-int32 st;
+uint32_t va, pa;
+int32_t st;
 static const char *mm_str[] = {
     "Access control violation",
     "Length violation",
@@ -3515,9 +3518,9 @@ static const char *mm_str[] = {
     };
 
 if (cptr) {
-    va = (uint32) get_uint (cptr, 16, 0xFFFFFFFF, &r);
+    va = (uint32_t) get_uint (cptr, 16, 0xFFFFFFFF, &r);
     if (r == SCPE_OK) {
-        int32 acc = cpu_get_vsw (sim_switches);
+        int32_t acc = cpu_get_vsw (sim_switches);
         pa = Test (va, acc, &st);
         if (st == PR_OK)
             fprintf (of, "Virtual %-X = physical %-X\n", va, pa);
@@ -3531,9 +3534,9 @@ return SCPE_OK;
 
 /* Get access mode for examine, deposit, show virtual */
 
-int32 cpu_get_vsw (int32 sw)
+int32_t cpu_get_vsw (int32_t sw)
 {
-int32 md;
+int32_t md;
 
 set_map_reg ();                                         /* update dyn reg */
 if (sw & SWMASK ('K'))
@@ -3550,7 +3553,7 @@ return ACC_MASK (md);
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -3558,7 +3561,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 char gbuf[CBUFSIZE];
 t_stat r;
 
@@ -3574,7 +3577,7 @@ if (cptr == NULL) {
     return SCPE_OK;
     }
 cptr = get_glyph (cptr, gbuf, ':');
-lnt = (int32) get_uint (gbuf, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (gbuf, 10, HIST_MAX, &r);
 if (r != SCPE_OK)
     return sim_messagef (SCPE_ARG, "Invalid Numeric Value: %s\n", gbuf);
 if (lnt && (lnt < HIST_MIN))
@@ -3612,21 +3615,21 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 di, lnt;
+int32_t di, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }
@@ -3637,9 +3640,9 @@ if (di < 0)
 return cpu_show_hist_records (st, true, di, lnt);
 }
 
-t_stat cpu_show_hist_records (FILE *st, bool do_header, int32 start, int32 count)
+t_stat cpu_show_hist_records (FILE *st, bool do_header, int32_t start, int32_t count)
 {
-int32 i, k, numspec;
+int32_t i, k, numspec;
 InstHistory *h;
 
 if (hst_lnt == 0)                                       /* enabled? */
@@ -3682,10 +3685,10 @@ fflush (st);
 return SCPE_OK;
 }
 
-bool cpu_show_opnd (FILE *st, InstHistory *h, int32 line)
+bool cpu_show_opnd (FILE *st, InstHistory *h, int32_t line)
 {
 
-int32 numspec, i, j, disp;
+int32_t numspec, i, j, disp;
 bool more;
 
 numspec = drom[h->opc][0] & DR_NSPMASK;                 /* #specifiers */
@@ -3767,7 +3770,7 @@ return more;
 
 struct os_idle {
     const char        *name;
-    uint32      mask;
+    uint32_t    mask;
     };
 
 static struct os_idle os_tab[] = {
@@ -3795,9 +3798,9 @@ static struct os_idle os_tab[] = {
 
 /* Set and show idle */
 
-t_stat cpu_set_idle (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_idle (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-uint32 i;
+uint32_t i;
 char gbuf[CBUFSIZE];
 
 if (cptr != NULL) {
@@ -3814,7 +3817,7 @@ if (cptr != NULL) {
 return sim_set_idle (uptr, val, cptr, desc);
 }
 
-t_stat cpu_show_idle (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_idle (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 if (sim_idle_enab && (cpu_idle_type != 0))
     fprintf (st, "idle=%s, ", os_tab[cpu_idle_type - 1].name);
@@ -3823,7 +3826,7 @@ return SCPE_OK;
 }
 
 static struct {
-    int32 mask;
+    int32_t mask;
     const char *match;
     const char *desc;
     } inst_groups[] = {
@@ -3838,7 +3841,7 @@ static struct {
         {0,          NULL,          NULL}
     };
 
-t_stat cpu_set_instruction_set (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_instruction_set (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -3882,7 +3885,7 @@ const char **b = (const char **)pb;
 return strcmp (*a, *b);
 }
 
-static t_stat cpu_show_instruction_group (FILE *st, int32 groupmask)
+static t_stat cpu_show_instruction_group (FILE *st, int32_t groupmask)
 {
 int opc;
 int group;
@@ -3906,7 +3909,7 @@ fprintf (st, "\n");
 return SCPE_OK;
 }
 
-t_stat cpu_show_instruction_set (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_instruction_set (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -3972,11 +3975,11 @@ else {
 return SCPE_OK;
 }
 
-t_stat cpu_load_bootcode (const char *filename, const unsigned char *builtin_code, size_t size, bool rom, t_addr offset)
+t_stat cpu_load_bootcode (const char *filename, const uchar_t *builtin_code, size_t size, bool rom, t_addr offset)
 {
 char args[CBUFSIZE];
 t_stat r;
-int32 saved_sim_switches = sim_switches;
+int32_t saved_sim_switches = sim_switches;
 
 sim_messagef (SCPE_OK, "Loading boot code from %s%s\n", builtin_code ? "internal " : "", filename);
 if (builtin_code)
@@ -3991,7 +3994,7 @@ sim_switches = saved_sim_switches;
 return r;
 }
 
-t_stat cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "The ");cpu_print_model (st);fprintf (st, " CPU help\n\n");
 fprintf (st, "CPU options include the size of main memory.\n\n");

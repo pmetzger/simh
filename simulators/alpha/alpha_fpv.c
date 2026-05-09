@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "alpha_defs.h"
 
 #define IPMAX           0x7FFFFFFFFFFFFFFF              /* plus MAX (int) */
@@ -41,65 +43,65 @@
 #define UF_DRND         0x0000000000000080              /* D round */
 #define UF_GRND         0x0000000000000400              /* G round */
 
-extern t_uint64 FR[32];
+extern uint64_t FR[32];
 extern jmp_buf save_env;
 
-bool vax_unpack (t_uint64 op, UFP *a, uint32 ir);
-bool vax_unpack_d (t_uint64 op, UFP *a, uint32 ir);
+bool vax_unpack (uint64_t op, UFP *a, uint32_t ir);
+bool vax_unpack_d (uint64_t op, UFP *a, uint32_t ir);
 void vax_norm (UFP *a);
-t_uint64 vax_rpack (UFP *a, uint32 ir, uint32 dp);
-t_uint64 vax_rpack_d (UFP *a, uint32 ir);
-int32 vax_fcmp (t_uint64 a, t_uint64 b, uint32 ir);
-t_uint64 vax_cvtif (t_uint64 val, uint32 ir, uint32 dp);
-t_uint64 vax_cvtfi (t_uint64 op, uint32 ir);
-t_uint64 vax_fadd (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp, bool sub);
-t_uint64 vax_fmul (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp);
-t_uint64 vax_fdiv (t_uint64 a, t_uint64 b, uint32 ir, uint32 dp);
+uint64_t vax_rpack (UFP *a, uint32_t ir, uint32_t dp);
+uint64_t vax_rpack_d (UFP *a, uint32_t ir);
+int32_t vax_fcmp (uint64_t a, uint64_t b, uint32_t ir);
+uint64_t vax_cvtif (uint64_t val, uint32_t ir, uint32_t dp);
+uint64_t vax_cvtfi (uint64_t op, uint32_t ir);
+uint64_t vax_fadd (uint64_t a, uint64_t b, uint32_t ir, uint32_t dp, bool sub);
+uint64_t vax_fmul (uint64_t a, uint64_t b, uint32_t ir, uint32_t dp);
+uint64_t vax_fdiv (uint64_t a, uint64_t b, uint32_t ir, uint32_t dp);
 
-extern t_uint64 uemul64 (t_uint64 a, t_uint64 b, t_uint64 *hi);
-extern t_uint64 ufdiv64 (t_uint64 dvd, t_uint64 dvr, uint32 prec, uint32 *sticky);
-extern t_uint64 fsqrt64 (t_uint64 frac, int32 exp);
+extern uint64_t uemul64 (uint64_t a, uint64_t b, uint64_t *hi);
+extern uint64_t ufdiv64 (uint64_t dvd, uint64_t dvr, uint32_t prec, uint32_t *sticky);
+extern uint64_t fsqrt64 (uint64_t frac, int32_t exp);
 
 /* VAX floating point loads and stores */
 
-t_uint64 op_ldf (t_uint64 op)
+uint64_t op_ldf (uint64_t op)
 {
-uint32 exp = F_GETEXP (op);
+uint32_t exp = F_GETEXP (op);
 
 if (exp != 0) exp = exp + G_BIAS - F_BIAS;              /* zero? */
-return (((t_uint64) (op & F_SIGN))? FPR_SIGN: 0) |      /* finite non-zero */
-    (((t_uint64) exp) << FPR_V_EXP) |
-    (((t_uint64) SWAP_VAXF (op & ~(F_SIGN|F_EXP))) << F_V_FRAC);
+return (((uint64_t) (op & F_SIGN))? FPR_SIGN: 0) |      /* finite non-zero */
+    (((uint64_t) exp) << FPR_V_EXP) |
+    (((uint64_t) SWAP_VAXF (op & ~(F_SIGN|F_EXP))) << F_V_FRAC);
 }
 
-t_uint64 op_ldg (t_uint64 op)
+uint64_t op_ldg (uint64_t op)
 {
 return SWAP_VAXG (op);                                  /* swizzle bits */
 }
 
-t_uint64 op_stf (t_uint64 op)
+uint64_t op_stf (uint64_t op)
 {
-uint32 sign = FPR_GETSIGN (op)? F_SIGN: 0;
-uint32 frac = (uint32) (op >> F_V_FRAC);
-uint32 exp = FPR_GETEXP (op);
+uint32_t sign = FPR_GETSIGN (op)? F_SIGN: 0;
+uint32_t frac = (uint32_t) (op >> F_V_FRAC);
+uint32_t exp = FPR_GETEXP (op);
 
 if (exp != 0) exp = exp + F_BIAS - G_BIAS;              /* zero? */
 exp = (exp & F_M_EXP) << F_V_EXP;
-return (t_uint64) (sign | exp | (SWAP_VAXF (frac) & ~(F_SIGN|F_EXP)));
+return (uint64_t) (sign | exp | (SWAP_VAXF (frac) & ~(F_SIGN|F_EXP)));
 }
 
-t_uint64 op_stg (t_uint64 op)
+uint64_t op_stg (uint64_t op)
 {
 return SWAP_VAXG (op);                                  /* swizzle bits */
 }
 
 /* VAX floating point operate */
 
-void vax_fop (uint32 ir)
+void vax_fop (uint32_t ir)
 {
 UFP b;
-t_uint64 res;
-uint32 fnc, ra, rb, rc;
+uint64_t res;
+uint32_t fnc, ra, rb, rc;
 
 fnc = I_GETFFNC (ir);                                   /* get function */
 ra = I_GETRA (ir);                                      /* get registers */
@@ -192,7 +194,7 @@ return;
 
 /* VAX floating compare */
 
-int32 vax_fcmp (t_uint64 s1, t_uint64 s2, uint32 ir)
+int32_t vax_fcmp (uint64_t s1, uint64_t s2, uint32_t ir)
 {
 UFP a, b;
 
@@ -205,7 +207,7 @@ return (((s1 < s2) ^ a.sign)? -1: +1);                  /* like signs */
 
 /* VAX integer to floating convert */
 
-t_uint64 vax_cvtif (t_uint64 val, uint32 ir, uint32 dp)
+uint64_t vax_cvtif (uint64_t val, uint32_t ir, uint32_t dp)
 {
 UFP a;
 
@@ -225,11 +227,11 @@ return vax_rpack (&a, ir, dp);                          /* round and pack */
    carry unless the fraction has been shifted right at least FP_GUARD
    places; in which case a carry out is impossible */
 
-t_uint64 vax_cvtfi (t_uint64 op, uint32 ir)
+uint64_t vax_cvtfi (uint64_t op, uint32_t ir)
 {
 UFP a;
-uint32 rndm = I_GETFRND (ir);
-int32 ubexp;
+uint32_t rndm = I_GETFRND (ir);
+int32_t ubexp;
 
 if (vax_unpack (op, &a, ir)) return 0;                  /* unpack, rsv? */
 ubexp = a.exp - G_BIAS;                                 /* unbiased exp */
@@ -253,11 +255,11 @@ return (a.sign? NEG_Q (a.frac): a.frac);
 
 /* VAX floating add */
 
-t_uint64 vax_fadd (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp, bool sub)
+uint64_t vax_fadd (uint64_t s1, uint64_t s2, uint32_t ir, uint32_t dp, bool sub)
 {
 UFP a, b, t;
-uint32 sticky;
-int32 ediff;
+uint32_t sticky;
+int32_t ediff;
 
 if (vax_unpack (s1, &a, ir)) return 0;                  /* unpack, rsv? */
 if (vax_unpack (s2, &b, ir)) return 0;                  /* unpack, rsv? */
@@ -295,7 +297,7 @@ return vax_rpack (&a, ir, dp);                          /* round and pack */
 
 /* VAX floating multiply */
 
-t_uint64 vax_fmul (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp)
+uint64_t vax_fmul (uint64_t s1, uint64_t s2, uint32_t ir, uint32_t dp)
 {
 UFP a, b;
 
@@ -314,7 +316,7 @@ return vax_rpack (&a, ir, dp);                          /* round and pack */
    divide step can fail, develop 2 more bits than the precision of
    the fraction. */
 
-t_uint64 vax_fdiv (t_uint64 s1, t_uint64 s2, uint32 ir, uint32 dp)
+uint64_t vax_fdiv (uint64_t s1, uint64_t s2, uint32_t ir, uint32_t dp)
 {
 UFP a, b;
 
@@ -336,9 +338,9 @@ return vax_rpack (&a, ir, dp);                          /* round and pack */
 
 /* VAX floating square root */
 
-t_uint64 vax_sqrt (uint32 ir, uint32 dp)
+uint64_t vax_sqrt (uint32_t ir, uint32_t dp)
 {
-t_uint64 op;
+uint64_t op;
 UFP b;
 
 op = FR[I_GETRB (ir)];                                  /* get F[rb] */
@@ -355,7 +357,7 @@ return vax_rpack (&b, ir, dp);                          /* round and pack */
 
 /* Support routines */
 
-bool vax_unpack (t_uint64 op, UFP *r, uint32 ir)
+bool vax_unpack (uint64_t op, UFP *r, uint32_t ir)
 {
 r->sign = FPR_GETSIGN (op);                             /* get sign */
 r->exp = FPR_GETEXP (op);                               /* get exponent */
@@ -369,7 +371,7 @@ r->frac = (r->frac | FPR_HB) << FPR_GUARD;              /* ins hidden bit, guard
 return false;
 }
 
-bool vax_unpack_d (t_uint64 op, UFP *r, uint32 ir)
+bool vax_unpack_d (uint64_t op, UFP *r, uint32_t ir)
 {
 r->sign = FDR_GETSIGN (op);                             /* get sign */
 r->exp = FDR_GETEXP (op);                               /* get exponent */
@@ -388,12 +390,12 @@ return false;
 
 void vax_norm (UFP *r)
 {
-int32 i;
-static t_uint64 normmask[5] = {
+int32_t i;
+static uint64_t normmask[5] = {
     0xc000000000000000, 0xf000000000000000, 0xff00000000000000,
     0xffff000000000000, 0xffffffff00000000
     };
-static int32 normtab[6] = { 1, 2, 4, 8, 16, 32 };
+static int32_t normtab[6] = { 1, 2, 4, 8, 16, 32 };
 
 r->frac = r->frac & M64;
 if (r->frac == 0) {                                     /* if fraction = 0 */
@@ -412,12 +414,12 @@ return;
 
 /* VAX round and pack */
 
-t_uint64 vax_rpack (UFP *r, uint32 ir, uint32 dp)
+uint64_t vax_rpack (UFP *r, uint32_t ir, uint32_t dp)
 {
-uint32 rndm = I_GETFRND (ir);
-static const t_uint64 roundbit[2] = { UF_FRND, UF_GRND };
-static const int32 expmax[2] = { G_BIAS - F_BIAS + F_M_EXP, G_M_EXP };
-static const int32 expmin[2] = { G_BIAS - F_BIAS, 0 };
+uint32_t rndm = I_GETFRND (ir);
+static const uint64_t roundbit[2] = { UF_FRND, UF_GRND };
+static const int32_t expmax[2] = { G_BIAS - F_BIAS + F_M_EXP, G_M_EXP };
+static const int32_t expmin[2] = { G_BIAS - F_BIAS, 0 };
 
 if (r->frac == 0) return 0;                             /* result 0? */
 if (rndm) {                                             /* round? */
@@ -435,12 +437,12 @@ if (r->exp <= expmin[dp]) {                             /* underflow? */
     if (ir & I_FTRP_V) arith_trap (TRAP_UNF, ir);       /* enabled? set trap */
     return 0;                                           /* underflow to 0 */
     }
-return (((t_uint64) r->sign) << FPR_V_SIGN) |
-    (((t_uint64) r->exp) << FPR_V_EXP) |
+return (((uint64_t) r->sign) << FPR_V_SIGN) |
+    (((uint64_t) r->exp) << FPR_V_EXP) |
     ((r->frac >> FPR_GUARD) & FPR_FRAC);
 }
 
-t_uint64 vax_rpack_d (UFP *r, uint32 ir)
+uint64_t vax_rpack_d (UFP *r, uint32_t ir)
 {
 if (r->frac == 0) return 0;                             /* result 0? */
 r->exp = r->exp + D_BIAS - G_BIAS;                      /* rebias */
@@ -452,7 +454,7 @@ if (r->exp <= 0) {                                      /* underflow? */
     if (ir & I_FTRP_V) arith_trap (TRAP_UNF, ir);       /* enabled? set trap */
     return 0;                                           /* underflow to 0 */
     }
-return (((t_uint64) r->sign) << FDR_V_SIGN) |
-    (((t_uint64) r->exp) << FDR_V_EXP) |
+return (((uint64_t) r->sign) << FDR_V_SIGN) |
+    (((uint64_t) r->exp) << FDR_V_EXP) |
     ((r->frac >> FDR_GUARD) & FDR_FRAC);
 }

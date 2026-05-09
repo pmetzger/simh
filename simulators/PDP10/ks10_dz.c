@@ -26,6 +26,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -86,7 +88,7 @@
 struct _buffer {
     int      in_ptr;     /* Insert pointer */
     int      out_ptr;    /* Remove pointer */
-    uint16   buff[64];   /* Buffer */
+    uint16_t buff[64];   /* Buffer */
     int      len;        /* Length */
 };
 
@@ -99,30 +101,30 @@ struct _buffer {
 #define LINE_EN   01
 #define DTR_FLAG  02
 
-uint16         dz_csr[NUM_DEVS_DZ];
-uint16         dz_xmit[DZ11_LINES];
-uint8          dz_flags[DZ11_LINES];
-uint8          dz_ring[NUM_DEVS_DZ];
+uint16_t       dz_csr[NUM_DEVS_DZ];
+uint16_t       dz_xmit[DZ11_LINES];
+uint8_t        dz_flags[DZ11_LINES];
+uint8_t        dz_ring[NUM_DEVS_DZ];
 struct _buffer dz_recv[NUM_DEVS_DZ];
 TMLN           dz_ldsc[DZ11_LINES] = { 0 };     /* Line descriptors */
 TMXR           dz_desc = { DZ11_LINES, 0, 0, dz_ldsc };
-extern int32 tmxr_poll;
+extern int32_t tmxr_poll;
 
-int    dz_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
-int    dz_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
+int    dz_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access);
+int    dz_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access);
 t_stat dz_svc (UNIT *uptr);
 t_stat dz_reset (DEVICE *dptr);
 void   dz_checkirq(struct pdp_dib   *dibp);
-uint16 dz_vect(struct pdp_dib *dibp);
-t_stat dz_set_modem (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_show_modem (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat dz_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc);
+uint16_t dz_vect(struct pdp_dib *dibp);
+t_stat dz_set_modem (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_show_modem (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat dz_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat dz_attach (UNIT *uptr, const char *cptr);
 t_stat dz_detach (UNIT *uptr);
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
         const char *cptr);
 const char *dz_description (DEVICE *dptr);
 DIB dz_dib = { 0760000, 077, 0340, 5, 3, &dz_read, &dz_write, 0, 0, 0 };
@@ -180,11 +182,11 @@ DEVICE dz_dev = {
 
 
 int
-dz_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
+dz_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
     int               base;
-    uint16            temp;
+    uint16_t          temp;
     int               ln;
     TMLN             *lp;
     int               i;
@@ -285,7 +287,7 @@ dz_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
             lp = &dz_ldsc[ln];
 
             if ((dz_flags[ln] & LINE_EN) != 0 && lp->conn) {
-                int32  ch = data & 0377;
+                int32_t ch = data & 0377;
                 t_stat r;
                 ch = sim_tt_outcvt(ch, TT_GET_MODE (dz_unit.flags) | TTUF_KSR);
                 /* Try and send character */
@@ -304,11 +306,11 @@ dz_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
 }
 
 int
-dz_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
+dz_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
     int               base;
-    uint16            temp;
+    uint16_t          temp;
     int               ln;
     TMLN             *lp;
     int               i;
@@ -361,7 +363,7 @@ dz_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
             break;
 
      case 6:
-            temp = (uint16)dz_ring[base];
+            temp = (uint16_t)dz_ring[base];
             ln = base << 3;
             for (i = 0; i < 8; i++) {
                 lp = &dz_ldsc[ln + i];
@@ -380,9 +382,9 @@ dz_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
 /* Unit service */
 t_stat dz_svc (UNIT *uptr)
 {
-    int32             ln;
+    int32_t           ln;
     int               base;
-    uint16            temp;
+    uint16_t          temp;
     DEVICE           *dptr = find_dev_from_unit (uptr);
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
     TMLN             *lp;
@@ -409,13 +411,13 @@ t_stat dz_svc (UNIT *uptr)
         }
         /* If silo full, skip to next */
         while (!full(&dz_recv[base])) {
-            int32 ch = tmxr_getc_ln(lp);
+            int32_t ch = tmxr_getc_ln(lp);
             if ((ch & TMXR_VALID) != 0) {
                if (ch & SCPE_BREAK) {                    /* break? */
                     temp = FRM_ERR;
                 } else {
                     ch = sim_tt_inpcvt (ch, TT_GET_MODE(dz_unit.flags) | TTUF_KSR);
-                    temp = VALID | ((ln & 07) << RXLINE_V) | (uint16)(ch & RBUF);
+                    temp = VALID | ((ln & 07) << RXLINE_V) | (uint16_t)(ch & RBUF);
                 }
                 dz_recv[base].buff[dz_recv[base].in_ptr] = temp;
                 inci(&dz_recv[base]);
@@ -507,7 +509,7 @@ dz_reset (DEVICE *dptr)
 /* SET LINES processor */
 
 t_stat
-dz_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+dz_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -515,12 +517,12 @@ dz_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 newln, i, t;
+    int32_t newln, i, t;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    newln = (int32) get_uint (cptr, 10, DZ11_LINES, &r);
+    newln = (int32_t) get_uint (cptr, 10, DZ11_LINES, &r);
     if ((r != SCPE_OK) || (newln == dz_desc.lines))
         return r;
     if ((newln == 0) || (newln > DZ11_LINES) || (newln % 8) != 0)
@@ -547,7 +549,7 @@ dz_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
 /* SET LOG processor */
 
 t_stat
-dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
+dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -556,14 +558,14 @@ dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     t_stat r;
     char gbuf[CBUFSIZE];
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
     cptr = get_glyph (cptr, gbuf, '=');
     if ((cptr == NULL) || (*cptr == 0) || (gbuf[0] == 0))
         return SCPE_ARG;
-    ln = (int32) get_uint (gbuf, 10, dz_desc.lines, &r);
+    ln = (int32_t) get_uint (gbuf, 10, dz_desc.lines, &r);
     if ((r != SCPE_OK) || (ln > dz_desc.lines))
         return SCPE_ARG;
     return tmxr_set_log (NULL, ln, cptr, desc);
@@ -572,7 +574,7 @@ dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 /* SET NOLOG processor */
 
 t_stat
-dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
+dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -580,11 +582,11 @@ dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
 
     t_stat r;
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    ln = (int32) get_uint (cptr, 10, dz_desc.lines, &r);
+    ln = (int32_t) get_uint (cptr, 10, dz_desc.lines, &r);
     if ((r != SCPE_OK) || (ln > dz_desc.lines))
         return SCPE_ARG;
     return tmxr_set_nolog (NULL, ln, NULL, desc);
@@ -592,14 +594,14 @@ dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SHOW LOG processor */
 
-t_stat dz_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) val;
 
-    int32 i;
+    int32_t i;
 
     for (i = 0; i < dz_desc.lines; i++) {
         fprintf (st, "line %d: ", i);
@@ -629,7 +631,7 @@ dz_attach (UNIT *uptr, const char *cptr)
 t_stat
 dz_detach (UNIT *uptr)
 {
-    int32  i;
+    int32_t i;
     t_stat reason;
     reason = tmxr_detach (&dz_desc, uptr);
     for (i = 0; i < dz_desc.lines; i++)
@@ -638,7 +640,7 @@ dz_detach (UNIT *uptr)
     return reason;
 }
 
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "DZ11 Terminal Interfaces\n\n");
 fprintf (st, "Each DZ11 supports 8 serial lines. Up to 32 can be configured\n");

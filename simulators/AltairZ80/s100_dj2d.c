@@ -42,6 +42,8 @@
 /* #define DBG_MSG */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "sim_tmxr.h"
@@ -52,14 +54,14 @@
 #define DBG_PRINT(args)
 #endif
 
-extern uint32 PCX;
-extern t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t PCX;
+extern t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 extern DEVICE *find_dev (const char *cptr);
-extern uint32 getClockFrequency(void);
-extern void setClockFrequency(const uint32 Value);
+extern uint32_t getClockFrequency(void);
+extern void setClockFrequency(const uint32_t Value);
 
 #define DJ2D_MAX_ADAPTERS      1
 #define DJ2D_MAX_DRIVES        4
@@ -76,11 +78,11 @@ extern void setClockFrequency(const uint32 Value);
 
 enum { FMT_SD, FMT_256, FMT_512, FMT_1024, FMT_UNKNOWN };
 
-static uint32 dj2d_image_size[] = {256256, 509184, 587008, 625920, 0};
-static uint32 dj2d_2s_image_size[] = {512512, 1021696, 1178368, 1256704, 0};
-static uint16 dj2d_sector_len[] = {128, 256, 512, 1024, 0};
-static uint16 dj2d_spt[] = {26, 26, 15, 8, 0};
-static uint16 dj2d_track_len[] = {5000, 9800, 10300, 9700, 0};
+static uint32_t dj2d_image_size[] = {256256, 509184, 587008, 625920, 0};
+static uint32_t dj2d_2s_image_size[] = {512512, 1021696, 1178368, 1256704, 0};
+static uint16_t dj2d_sector_len[] = {128, 256, 512, 1024, 0};
+static uint16_t dj2d_spt[] = {26, 26, 15, 8, 0};
+static uint16_t dj2d_track_len[] = {5000, 9800, 10300, 9700, 0};
 
 #define DJ2D_MEM_READ         false
 #define DJ2D_MEM_WRITE        true
@@ -92,11 +94,11 @@ static uint16 dj2d_track_len[] = {5000, 9800, 10300, 9700, 0};
 #define DJ2D_MEM_SIZE    1024                /* Must be on a page boundary */
 #define DJ2D_MEM_MASK    (DJ2D_MEM_SIZE-1)
 
-static uint8 dj2d_mem[DJ2D_MEM_SIZE];
+static uint8_t dj2d_mem[DJ2D_MEM_SIZE];
 
 /* DJ2D PROM is 1016 bytes following by 8 memory-mapped I/O bytes */
 
-static uint8 dj2d_proma_e000[DJ2D_PROM_SIZE] = {
+static uint8_t dj2d_proma_e000[DJ2D_PROM_SIZE] = {
     0xc3, 0x61, 0xe0, 0xc3, 0xff, 0xe0, 0xc3, 0xf0,
     0xe0, 0xc3, 0x6f, 0xe1, 0xc3, 0xa0, 0xe1, 0xc3,
     0x93, 0xe1, 0xc3, 0x56, 0xe1, 0xc3, 0xa9, 0xe1,
@@ -227,7 +229,7 @@ static uint8 dj2d_proma_e000[DJ2D_PROM_SIZE] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
     };
 
-static uint8 dj2d_proma_f800[DJ2D_PROM_SIZE] = {
+static uint8_t dj2d_proma_f800[DJ2D_PROM_SIZE] = {
     0xc3, 0x61, 0xf8, 0xc3, 0xff, 0xf8, 0xc3, 0xf0,
     0xf8, 0xc3, 0x6f, 0xf9, 0xc3, 0xa0, 0xf9, 0xc3,
     0x93, 0xf9, 0xc3, 0x56, 0xf9, 0xc3, 0xa9, 0xf9,
@@ -358,7 +360,7 @@ static uint8 dj2d_proma_f800[DJ2D_PROM_SIZE] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
     };
 
-static uint8 dj2d_promb_e000[DJ2D_PROM_SIZE] = {
+static uint8_t dj2d_promb_e000[DJ2D_PROM_SIZE] = {
     0xc3, 0x69, 0xe0, 0xc3, 0xe9, 0xe0, 0xc3, 0xda,
     0xe0, 0xc3, 0x5a, 0xe1, 0xc3, 0x8b, 0xe1, 0xc3,
     0x81, 0xe1, 0xc3, 0x43, 0xe1, 0xc3, 0xdd, 0xe1,
@@ -489,7 +491,7 @@ static uint8 dj2d_promb_e000[DJ2D_PROM_SIZE] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
     };
 
-static uint8 dj2d_promb_f800[DJ2D_PROM_SIZE] = {
+static uint8_t dj2d_promb_f800[DJ2D_PROM_SIZE] = {
     0xc3, 0x69, 0xf8, 0xc3, 0xe9, 0xf8, 0xc3, 0xda,
     0xf8, 0xc3, 0x5a, 0xf9, 0xc3, 0x8b, 0xf9, 0xc3,
     0x81, 0xf9, 0xc3, 0x43, 0xf9, 0xc3, 0xdd, 0xf9,
@@ -621,45 +623,45 @@ static uint8 dj2d_promb_f800[DJ2D_PROM_SIZE] = {
     };
 
 /* PROM selection (default E000) */
-uint8 *dj2d_prom = dj2d_promb_e000;
+uint8_t *dj2d_prom = dj2d_promb_e000;
 
 /*
 ** Western Digital WD1791 Registers and Interface Controls
 */
 typedef struct {
-    uint8   track;          /* Track Register */
-    uint8   sector;         /* Sector Register */
-    uint8   command;        /* Command Register */
-    uint8   status;         /* Status Register */
-    uint8   data;           /* Data Register */
-    uint8   intrq;          /* Interrupt Request */
-    uint8   drq;            /* Data Request */
-    uint8   index;          /* Index */
-    int8    stepDir;        /* Last Step Direction */
-    uint32  dataCount;      /* Number of data bytes transferred from controller for current sector/address */
-    uint32  trkCount;       /* Number of data bytes transferred from controller for current track */
-    uint8   readActive;     /* Read Active */
-    uint8   readTrkActive;  /* Read Track Active */
-    uint8   writeActive;    /* Write Active */
-    uint8   writeTrkActive; /* Write Track Active */
-    uint8   idAddrMrk;      /* ID Addr Mark Flag */
-    uint8   dataAddrMrk;    /* Data Addr Mark Flag */
-    uint8   addrActive;     /* Address Active */
+    uint8_t track;          /* Track Register */
+    uint8_t sector;         /* Sector Register */
+    uint8_t command;        /* Command Register */
+    uint8_t status;         /* Status Register */
+    uint8_t data;           /* Data Register */
+    uint8_t intrq;          /* Interrupt Request */
+    uint8_t drq;            /* Data Request */
+    uint8_t index;          /* Index */
+    int8_t  stepDir;        /* Last Step Direction */
+    uint32_t dataCount;     /* Number of data bytes transferred from controller for current sector/address */
+    uint32_t trkCount;      /* Number of data bytes transferred from controller for current track */
+    uint8_t readActive;     /* Read Active */
+    uint8_t readTrkActive;  /* Read Track Active */
+    uint8_t writeActive;    /* Write Active */
+    uint8_t writeTrkActive; /* Write Track Active */
+    uint8_t idAddrMrk;      /* ID Addr Mark Flag */
+    uint8_t dataAddrMrk;    /* Data Addr Mark Flag */
+    uint8_t addrActive;     /* Address Active */
 } WD1791_REG;
 
 /*
 ** Disk Jockey 2D Registers
 */
 typedef struct {
-    uint8   uart_rxd;       /* UART rx data register */
-    uint8   uart_txd;       /* UART tx data register */
-    uint8   uart_txp;       /* UART tx data pending */
-    uint8   uart_status;    /* UART status register */
-    uint16  uart_baud;      /* UART baud rate */
-    uint8   status;         /* Disk Jockey status register */
-    uint8   control;        /* Disk Jockey control register */
-    uint8   function;       /* Disk Jockey function register */
-    uint8   led;            /* Disk Jockey LED status */
+    uint8_t uart_rxd;       /* UART rx data register */
+    uint8_t uart_txd;       /* UART tx data register */
+    uint8_t uart_txp;       /* UART tx data pending */
+    uint8_t uart_status;    /* UART status register */
+    uint16_t uart_baud;     /* UART baud rate */
+    uint8_t status;         /* Disk Jockey status register */
+    uint8_t control;        /* Disk Jockey control register */
+    uint8_t function;       /* Disk Jockey function register */
+    uint8_t led;            /* Disk Jockey LED status */
 } DJ2D_REG;
 
 #define WD1791_STAT_NOTREADY   0x80
@@ -691,31 +693,31 @@ static TMXR dj2d_tmxr = {           /* multiplexer descriptor */
 };
 
 typedef struct {
-    uint32     io_base;        /* NOT USED */
-    uint32     io_size;        /* NOT USED */
-    uint32     mem_base;       /* Memory Base Address */
-    uint32     mem_size;       /* Memory Address space requirement */
-    uint32     prom_base;      /* PROM Base Address */
-    uint32     prom_size;      /* PROM Address space requirement */
-    int32      conn;           /* Connected Status */
+    uint32_t   io_base;        /* NOT USED */
+    uint32_t   io_size;        /* NOT USED */
+    uint32_t   mem_base;       /* Memory Base Address */
+    uint32_t   mem_size;       /* Memory Address space requirement */
+    uint32_t   prom_base;      /* PROM Base Address */
+    uint32_t   prom_size;      /* PROM Address space requirement */
+    int32_t    conn;           /* Connected Status */
     TMLN      *tmln;           /* TMLN pointer     */
     TMXR      *tmxr;           /* TMXR pointer     */
-    uint8      modelB;         /* Model B? */
-    uint8      promEnabled;    /* PROM is enabled */
-    uint32     ticks;          /* Timer ticks */
-    uint32     sioticks;       /* SIO Timer ticks */
-    uint16     headTimeout;    /* Head unload timer tick value */
-    uint16     indexTimeout;   /* Index timer tick value */
-    uint16     busyTimeout;    /* Busy timer tick value */
-    uint8      writeProtect;   /* Write Protect is enabled */
-    uint8      currentDrive;   /* currently selected drive */
-    uint8      secsPerTrack;   /* sectors per track */
-    uint16     bytesPerTrack;  /* bytes per track */
-    uint8      sides2[DJ2D_MAX_DRIVES];         /* double sided flag */
-    uint8      headLoaded[DJ2D_MAX_DRIVES];     /* Head Loaded */
-    uint8      format[DJ2D_MAX_DRIVES];         /* Attached disk format */
-    uint16     sectorLen[DJ2D_MAX_DRIVES];      /* Attached disk sector length */
-    uint8      side[DJ2D_MAX_DRIVES];           /* side 0 or 1 */
+    uint8_t    modelB;         /* Model B? */
+    uint8_t    promEnabled;    /* PROM is enabled */
+    uint32_t   ticks;          /* Timer ticks */
+    uint32_t   sioticks;       /* SIO Timer ticks */
+    uint16_t   headTimeout;    /* Head unload timer tick value */
+    uint16_t   indexTimeout;   /* Index timer tick value */
+    uint16_t   busyTimeout;    /* Busy timer tick value */
+    uint8_t    writeProtect;   /* Write Protect is enabled */
+    uint8_t    currentDrive;   /* currently selected drive */
+    uint8_t    secsPerTrack;   /* sectors per track */
+    uint16_t   bytesPerTrack;  /* bytes per track */
+    uint8_t    sides2[DJ2D_MAX_DRIVES];         /* double sided flag */
+    uint8_t    headLoaded[DJ2D_MAX_DRIVES];     /* Head Loaded */
+    uint8_t    format[DJ2D_MAX_DRIVES];         /* Attached disk format */
+    uint16_t   sectorLen[DJ2D_MAX_DRIVES];      /* Attached disk sector length */
+    uint8_t    side[DJ2D_MAX_DRIVES];           /* side 0 or 1 */
     WD1791_REG WD1791;         /* WD1791 Registers and Data */
     DJ2D_REG   DJ2D;           /* DJ2D Registers and Data */
     UNIT      *uptr[DJ2D_UNITS];
@@ -733,7 +735,7 @@ static DJ2D_INFO dj2d_info_data = {
 
 static DJ2D_INFO *dj2d_info = &dj2d_info_data;
 
-static uint8 sdata[1024];       /* Sector data buffer */
+static uint8_t sdata[1024];     /* Sector data buffer */
 
 /* DJ2D Registers */
 #define DJ2D_REG_BASE           (DJ2D_PROM_BASE + 0x03f8)
@@ -848,35 +850,35 @@ static t_stat dj2d_svc(UNIT *uptr);
 static t_stat dj2d_sio_svc(UNIT *uptr);
 static t_stat dj2d_attach(UNIT *uptr, const char *cptr);
 static t_stat dj2d_detach(UNIT *uptr);
-static t_stat dj2d_boot(int32 unitno, DEVICE *dptr);
-static t_stat dj2d_set_prombase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat dj2d_show_prombase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat dj2d_set_model(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat dj2d_show_model(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat dj2d_set_prom(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat dj2d_show_prom(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat dj2d_set_sides(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat dj2d_show_sides(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat dj2d_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat dj2d_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc);
+static t_stat dj2d_boot(int32_t unitno, DEVICE *dptr);
+static t_stat dj2d_set_prombase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat dj2d_show_prombase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat dj2d_set_model(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat dj2d_show_model(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat dj2d_set_prom(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat dj2d_show_prom(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat dj2d_set_sides(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat dj2d_show_sides(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat dj2d_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat dj2d_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc);
 static t_stat dj2d_config_line(void);
-static uint16 sector_len(uint8 drive, uint8 track);
-static uint32 secs_per_track(uint8 track);
-static uint32 bytes_per_track(uint8 track);
-static t_offset calculate_dj2d_sec_offset(uint8 track, uint8 sector);
-static void DJ2D_HeadLoad(UNIT *uptr, WD1791_REG *pWD1791, uint8 load);
+static uint16_t sector_len(uint8_t drive, uint8_t track);
+static uint32_t secs_per_track(uint8_t track);
+static uint32_t bytes_per_track(uint8_t track);
+static t_offset calculate_dj2d_sec_offset(uint8_t track, uint8_t sector);
+static void DJ2D_HeadLoad(UNIT *uptr, WD1791_REG *pWD1791, uint8_t load);
 static void DJ2D_LED(DJ2D_REG *pDJ2D, int status);
-static uint8 DJ2D_Read(uint32 Addr);
-static uint8 DJ2D_Write(uint32 Addr, int32 data);
-static const char * DJ2D_CommandString(uint8 command);
-static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 data);
-static uint32 DJ2D_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer);
-static uint32 DJ2D_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer);
+static uint8_t DJ2D_Read(uint32_t Addr);
+static uint8_t DJ2D_Write(uint32_t Addr, int32_t data);
+static const char * DJ2D_CommandString(uint8_t command);
+static uint8_t DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32_t data);
+static uint32_t DJ2D_ReadSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer);
+static uint32_t DJ2D_WriteSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer);
 static const char* dj2d_description(DEVICE *dptr);
-static void showdata(int32 isRead);
+static void showdata(int32_t isRead);
 
-static int32 dj2dprom(int32 Addr, int32 rw, int32 data);
-static int32 dj2dmem(int32 Addr, int32 rw, int32 data);
+static int32_t dj2dprom(int32_t Addr, int32_t rw, int32_t data);
+static int32_t dj2dmem(int32_t Addr, int32_t rw, int32_t data);
 
 static UNIT dj2d_unit[DJ2D_UNITS] = {
     { UDATA (dj2d_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, 0), 10000 },
@@ -1016,7 +1018,7 @@ DEVICE dj2d_dev = {
 /* Reset routine */
 static t_stat dj2d_reset(DEVICE *dptr)
 {
-    uint8 i;
+    uint8_t i;
     DJ2D_INFO *pInfo = (DJ2D_INFO *)dptr->ctxt;
 
     for (i = 0; i < DJ2D_UNITS; i++) {
@@ -1098,7 +1100,7 @@ static t_stat dj2d_reset(DEVICE *dptr)
 
 static t_stat dj2d_sio_svc(UNIT *uptr)
 {
-    int32 c;
+    int32_t c;
     t_stat r;
 
     dj2d_info->sioticks++;
@@ -1203,7 +1205,7 @@ static t_stat dj2d_svc(UNIT *uptr)
 ** Verify that prombase is within valid range
 ** before calling set_membase
 */
-static t_stat dj2d_set_prombase(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat dj2d_set_prombase(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1211,7 +1213,7 @@ static t_stat dj2d_set_prombase(UNIT *uptr, int32 val, const char *cptr, void *d
     (void) val;
     (void) desc;
 
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL)
@@ -1262,7 +1264,7 @@ static t_stat dj2d_set_prombase(UNIT *uptr, int32 val, const char *cptr, void *d
 }
 
 /* Show Base Address routine */
-t_stat dj2d_show_prombase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dj2d_show_prombase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1289,7 +1291,7 @@ t_stat dj2d_show_prombase(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-static t_stat dj2d_set_model(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat dj2d_set_model(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1316,7 +1318,7 @@ static t_stat dj2d_set_model(UNIT *uptr, int32 val, const char *cptr, void *desc
     return SCPE_OK;
 }
 
-static t_stat dj2d_show_model(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat dj2d_show_model(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1329,7 +1331,7 @@ static t_stat dj2d_show_model(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-static t_stat dj2d_set_sides(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat dj2d_set_sides(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1362,7 +1364,7 @@ static t_stat dj2d_set_sides(UNIT *uptr, int32 val, const char *cptr, void *desc
     return SCPE_ARG;
 }
 
-static t_stat dj2d_show_sides(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat dj2d_show_sides(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1462,7 +1464,7 @@ static t_stat dj2d_attach(UNIT *uptr, const char *cptr)
 static t_stat dj2d_detach(UNIT *uptr)
 {
     t_stat r;
-    int8 i;
+    int8_t i;
 
     for (i = 0; i < DJ2D_UNITS; i++) {
         if (dj2d_dev.units[i].fileref == uptr->fileref) {
@@ -1490,14 +1492,14 @@ static t_stat dj2d_detach(UNIT *uptr)
     return SCPE_OK;
 }
 
-static t_stat dj2d_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat dj2d_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) value;
     (void) desc;
 
-    int32 baud;
+    int32_t baud;
     t_stat r = SCPE_ARG;
 
     /* Force serial interface unit */
@@ -1527,7 +1529,7 @@ static t_stat dj2d_set_baud(UNIT *uptr, int32 value, const char *cptr, void *des
     return r;
 }
 
-static t_stat dj2d_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat dj2d_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1558,7 +1560,7 @@ static t_stat dj2d_config_line(void)
     return r;
 }
 
-static t_stat dj2d_set_prom(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat dj2d_set_prom(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1585,7 +1587,7 @@ static t_stat dj2d_set_prom(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat dj2d_show_prom(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat dj2d_show_prom(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1602,7 +1604,7 @@ static t_stat dj2d_show_prom(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-static t_stat dj2d_boot(int32 unitno, DEVICE *dptr)
+static t_stat dj2d_boot(int32_t unitno, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -1612,13 +1614,13 @@ static t_stat dj2d_boot(int32 unitno, DEVICE *dptr)
 
     sim_debug(STATUS_MSG, &dj2d_dev, DJ2D_SNAME ": Booting Controller at 0x%04x\n", pInfo->prom_base);
 
-    *((int32 *) sim_PC->loc) = pInfo->prom_base;
+    *((int32_t *) sim_PC->loc) = pInfo->prom_base;
 
     return SCPE_OK;
 }
 
-static void showdata(int32 isRead) {
-    int32 i;
+static void showdata(int32_t isRead) {
+    int32_t i;
     sim_debug(isRead ? RD_DATA_DETAIL_MSG : WR_DATA_DETAIL_MSG, &dj2d_dev, DJ2D_SNAME ": %s track/sector %02d/%03d:\n\t", isRead ? "Read" : "Write", dj2d_info->WD1791.track, dj2d_info->WD1791.sector);
     for (i = 0; i < sector_len(dj2d_info->currentDrive, dj2d_info->WD1791.track); i++) {
         sim_debug(isRead ? RD_DATA_DETAIL_MSG : WR_DATA_DETAIL_MSG, &dj2d_dev, "%02X ", sdata[i]);
@@ -1633,7 +1635,7 @@ static void showdata(int32 isRead) {
     }
 }
 
-static uint16 sector_len(uint8 drive, uint8 track)
+static uint16_t sector_len(uint8_t drive, uint8_t track)
 {
     if (track == 0) {  /* Track 0 is always SD */
         return(dj2d_sector_len[FMT_SD]);
@@ -1642,20 +1644,20 @@ static uint16 sector_len(uint8 drive, uint8 track)
     return(dj2d_info->sectorLen[drive]);
 }
 
-static uint32 secs_per_track(uint8 track)
+static uint32_t secs_per_track(uint8_t track)
 {
     if (track == 0) {
-        dj2d_info->secsPerTrack = (uint8)dj2d_spt[FMT_SD];
+        dj2d_info->secsPerTrack = (uint8_t)dj2d_spt[FMT_SD];
     } else {
-        dj2d_info->secsPerTrack = (uint8)dj2d_spt[dj2d_info->format[dj2d_info->currentDrive]];
+        dj2d_info->secsPerTrack = (uint8_t)dj2d_spt[dj2d_info->format[dj2d_info->currentDrive]];
     }
 
     return dj2d_info->secsPerTrack;
 }
 
-static uint32 bytes_per_track(uint8 track)
+static uint32_t bytes_per_track(uint8_t track)
 {
-    int8 format;
+    int8_t format;
 
     format = dj2d_info->format[dj2d_info->currentDrive];
 
@@ -1668,11 +1670,11 @@ static uint32 bytes_per_track(uint8 track)
     return dj2d_info->bytesPerTrack;
 }
 
-static t_offset calculate_dj2d_sec_offset(uint8 track, uint8 sector)
+static t_offset calculate_dj2d_sec_offset(uint8_t track, uint8_t sector)
 {
     t_offset offset;
-    uint8 ds;
-    uint8 format;
+    uint8_t ds;
+    uint8_t format;
 
     ds = dj2d_info->side[dj2d_info->currentDrive];
     format = dj2d_info->format[dj2d_info->currentDrive];
@@ -1706,7 +1708,7 @@ static t_offset calculate_dj2d_sec_offset(uint8 track, uint8 sector)
     return (offset);
 }
 
-static void DJ2D_HeadLoad(UNIT *uptr, WD1791_REG *pWD1791, uint8 load)
+static void DJ2D_HeadLoad(UNIT *uptr, WD1791_REG *pWD1791, uint8_t load)
 {
     /*
     ** If no disk has been attached, uptr will be NULL - return
@@ -1741,10 +1743,10 @@ static void DJ2D_LED(DJ2D_REG *pDJ2D, int status)
         pDJ2D->led = status;
 }
 
-static uint8 DJ2D_Read(uint32 Addr)
+static uint8_t DJ2D_Read(uint32_t Addr)
 {
-    uint8 cData;
-    uint8 driveNum;
+    uint8_t cData;
+    uint8_t driveNum;
     WD1791_REG *pWD1791;
     DJ2D_REG *pDJ2D;
     UNIT *uptr;
@@ -1861,11 +1863,11 @@ static uint8 DJ2D_Read(uint32 Addr)
     return (cData);
 }
 
-static uint8 DJ2D_Write(uint32 Addr, int32 Data)
+static uint8_t DJ2D_Write(uint32_t Addr, int32_t Data)
 {
-    uint8 cData;
-    uint8 driveNum;
-    int32 rtn;
+    uint8_t cData;
+    uint8_t driveNum;
+    int32_t rtn;
     UNIT *uptr;
     WD1791_REG *pWD1791;
     DJ2D_REG *pDJ2D;
@@ -2089,18 +2091,18 @@ static uint8 DJ2D_Write(uint32 Addr, int32 Data)
     return(cData);
 }
 
-static uint32 DJ2D_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer)
+static uint32_t DJ2D_ReadSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer)
 {
-    uint32 sec_offset;
-    uint32 rtn = 0;
-    uint32 len;
+    uint32_t sec_offset;
+    uint32_t rtn = 0;
+    uint32_t len;
 
     if (uptr->fileref == NULL) {
         sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": READSEC uptr.fileref is NULL!\n");
         return 0;
     }
 
-    sec_offset = (uint32)calculate_dj2d_sec_offset(track, sector);
+    sec_offset = (uint32_t)calculate_dj2d_sec_offset(track, sector);
 
     len = sector_len(dj2d_info->currentDrive, track);
 
@@ -2116,11 +2118,11 @@ static uint32 DJ2D_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buff
     return rtn;
 }
 
-static uint32 DJ2D_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer)
+static uint32_t DJ2D_WriteSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer)
 {
     t_offset sec_offset;
-    uint32 len;
-    uint32 rtn = 0;
+    uint32_t len;
+    uint32_t rtn = 0;
 
     if (uptr->fileref == NULL) {
         sim_debug(ERROR_MSG, &dj2d_dev, DJ2D_SNAME ": READSEC uptr.fileref is NULL!\n");
@@ -2143,7 +2145,7 @@ static uint32 DJ2D_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buf
     return rtn;
 }
 
-static const char * DJ2D_CommandString(uint8 command)
+static const char * DJ2D_CommandString(uint8_t command)
 {
     switch (command & 0xf0) {
         case WD1791_CMD_RESTORE:
@@ -2198,12 +2200,12 @@ static const char * DJ2D_CommandString(uint8 command)
     return "UNRECOGNIZED COMMAND";
 }
 
-static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
+static uint8_t DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32_t Data)
 {
-    uint8 cData;
-    uint8 newTrack;
-    uint8 statusUpdate;
-    int32 rtn;
+    uint8_t cData;
+    uint8_t newTrack;
+    uint8_t statusUpdate;
+    int32_t rtn;
 
     cData = 0;
     statusUpdate = true;
@@ -2540,7 +2542,7 @@ static uint8 DJ2D_Command(UNIT *uptr, WD1791_REG *pWD1791, int32 Data)
 ** The DJ2D has 1016 bytes of PROM followed by 8 memory-mapped
 ** I/O registers.
 */
-static int32 dj2dprom(int32 Addr, int32 rw, int32 Data)
+static int32_t dj2dprom(int32_t Addr, int32_t rw, int32_t Data)
 {
     /*
     ** Check for memory-mapped I/O
@@ -2569,7 +2571,7 @@ static int32 dj2dprom(int32 Addr, int32 rw, int32 Data)
 /*
 ** The DJ2D has 1K of RAM following the PROM
 */
-static int32 dj2dmem(int32 Addr, int32 rw, int32 Data)
+static int32_t dj2dmem(int32_t Addr, int32_t rw, int32_t Data)
 {
     if (rw == DJ2D_MEM_WRITE) {
         dj2d_mem[Addr & DJ2D_MEM_MASK] = Data;

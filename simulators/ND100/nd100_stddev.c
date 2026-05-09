@@ -23,6 +23,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "sim_tmxr.h"
 
@@ -153,7 +155,7 @@ tti_svc(UNIT *uptr)
 t_stat
 tto_svc(UNIT *uptr)
 {
-        int32   c;
+        int32_t c;
         t_stat  r;
 
         c = tto_unit.buf & 0177;

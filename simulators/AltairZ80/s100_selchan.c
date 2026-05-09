@@ -38,6 +38,8 @@
 /*#define DBG_MSG */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 
 #ifdef DBG_MSG
@@ -54,30 +56,30 @@
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint32  selchan;    /* Selector Channel Register */
-    uint32  dma_addr;   /* DMA Transfer Address */
-    uint32  dma_mode;   /* DMA Mode register */
-    uint8   reg_cnt;    /* Counter for selchan register */
+    uint32_t selchan;   /* Selector Channel Register */
+    uint32_t dma_addr;  /* DMA Transfer Address */
+    uint32_t dma_mode;  /* DMA Mode register */
+    uint8_t reg_cnt;    /* Counter for selchan register */
 } SELCHAN_INFO;
 
 static SELCHAN_INFO selchan_info_data = { { 0x0, 0, 0xF0, 1 } };
 static SELCHAN_INFO *selchan_info = &selchan_info_data;
-int32 selchan_dma(uint8 *buf, uint32 len);
+int32_t selchan_dma(uint8_t *buf, uint32_t len);
 
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint32 PCX;
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern uint32_t PCX;
 
 /* These are needed for DMA. */
-extern void PutByteDMA(const uint32 Addr, const uint32 Value);
-extern uint8 GetByteDMA(const uint32 Addr);
+extern void PutByteDMA(const uint32_t Addr, const uint32_t Value);
+extern uint8_t GetByteDMA(const uint32_t Addr);
 
 static t_stat selchan_reset(DEVICE *selchan_dev);
 static const char* selchan_description(DEVICE *dptr);
 
-static int32 selchandev(const int32 port, const int32 io, const int32 data);
+static int32_t selchandev(const int32_t port, const int32_t io, const int32_t data);
 
 
 static UNIT selchan_unit[] = {
@@ -143,7 +145,7 @@ static t_stat selchan_reset(DEVICE *dptr)
 #define SELCHAN_MODE_WAIT   0x10    /* Insert one wait state. */
 #define SELCHAN_MODE_DMA_MASK   0x0F    /* Mask for DMA Priority field */
 
-static int32 selchandev(const int32 port, const int32 io, const int32 data)
+static int32_t selchandev(const int32_t port, const int32_t io, const int32_t data)
 {
 #ifndef DBG_MSG
     /* Shared I/O handler signature.
@@ -174,9 +176,9 @@ static int32 selchandev(const int32 port, const int32 io, const int32 data)
     }
 }
 
-int32 selchan_dma(uint8 *buf, uint32 len)
+int32_t selchan_dma(uint8_t *buf, uint32_t len)
 {
-    uint32 i;
+    uint32_t i;
 
     if(selchan_info->reg_cnt != 4) {
         sim_printf("SELCHAN: " ADDRESS_FORMAT " Programming error: selector channel disabled.\n",

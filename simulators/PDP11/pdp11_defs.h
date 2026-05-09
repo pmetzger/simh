@@ -89,6 +89,7 @@
 
 #include "sim_defs.h"                                   /* simulator defns */
 #include <setjmp.h>
+#include <stdint.h>
 
 #if defined(USE_INT64) || defined(USE_ADDR64)
 #error "PDP-11 does not support 64b values!"
@@ -394,8 +395,8 @@
 /* Floating point accumulators */
 
 typedef struct {
-    uint32              l;                              /* low 32b */
-    uint32              h;                              /* high 32b */
+    uint32_t            l;                              /* low 32b */
+    uint32_t            h;                              /* high 32b */
     } fpac_t;
 
 /* Device CSRs */
@@ -515,18 +516,18 @@ typedef struct {
 #define VEC_DEVMAX      4                               /* max device vec */
 
 struct pdp_dib {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
-    t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
-    t_stat              (*wr)(int32 dat, int32 ad, int32 md);
-    int32               vnum;                           /* vectors: number */
-    int32               vloc;                           /* locator */
-    int32               vec;                            /* value */
-    int32               (*ack[VEC_DEVMAX])(void);       /* ack routines */
-    uint32              ulnt;                           /* IO length per-device */
+    uint32_t            ba;                             /* base addr */
+    uint32_t            lnt;                            /* length */
+    t_stat              (*rd)(int32_t *dat, int32_t ad, int32_t md);
+    t_stat              (*wr)(int32_t dat, int32_t ad, int32_t md);
+    int32_t             vnum;                           /* vectors: number */
+    int32_t             vloc;                           /* locator */
+    int32_t             vec;                            /* value */
+    int32_t             (*ack[VEC_DEVMAX])(void);       /* ack routines */
+    uint32_t            ulnt;                           /* IO length per-device */
                                                         /* Only need to be populated */
                                                         /* when numunits != num devices */
-    int32               numc;                           /* Number of controllers */
+    int32_t             numc;                           /* Number of controllers */
                                                         /* this field handles devices */
                                                         /* where multiple instances are */
                                                         /* simulated through a single */
@@ -555,7 +556,7 @@ typedef struct pdp_dib DIB;
 #define IOBA_UCB        (IOPAGEBASE + 007760)           /* UC15 DR11 #2 */
 #define IOLN_UCB        006
 #define IOBA_UBM        (IOPAGEBASE + 010200)           /* Unibus map */
-#define IOLN_UBM        (UBM_LNT_LW * sizeof (int32))
+#define IOLN_UBM        (UBM_LNT_LW * sizeof (int32_t))
 #define IOBA_MMR3       (IOPAGEBASE + 012516)           /* MMR3 */
 #define IOLN_MMR3       002
 #define IOBA_TTI        (IOPAGEBASE + 017560)           /* DL11 rcv */
@@ -828,7 +829,7 @@ typedef struct pdp_dib DIB;
 /* Massbus definitions */
 
 #define MBA_NUM         3                               /* number of MBA's */
-#define MBA_AUTO        (uint32)0xFFFFFFFF              /* Unassigned MBA */
+#define MBA_AUTO        (uint32_t)0xFFFFFFFF            /* Unassigned MBA */
 #define MBA_RMASK       037                             /* max 32 reg */
 #define MBE_NXD         1                               /* nx drive */
 #define MBE_NXR         2                               /* nx reg */
@@ -865,56 +866,56 @@ typedef struct pdp_dib DIB;
 
 /* Function prototypes */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
+int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
+int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
 
-int32 mba_rdbufW (uint32 mbus, int32 bc, uint16 *buf);
-int32 mba_wrbufW (uint32 mbus, int32 bc, const uint16 *buf);
-int32 mba_chbufW (uint32 mbus, int32 bc, uint16 *buf);
-int32 mba_get_bc (uint32 mbus);
-int32 mba_get_csr (uint32 mbus);
-void mba_upd_ata (uint32 mbus, uint32 val);
-void mba_set_exc (uint32 mbus);
-void mba_set_don (uint32 mbus);
+int32_t mba_rdbufW (uint32_t mbus, int32_t bc, uint16_t *buf);
+int32_t mba_wrbufW (uint32_t mbus, int32_t bc, const uint16_t *buf);
+int32_t mba_chbufW (uint32_t mbus, int32_t bc, uint16_t *buf);
+int32_t mba_get_bc (uint32_t mbus);
+int32_t mba_get_csr (uint32_t mbus);
+void mba_upd_ata (uint32_t mbus, uint32_t val);
+void mba_set_exc (uint32_t mbus);
+void mba_set_don (uint32_t mbus);
 void mba_set_enbdis (DEVICE *dptr);
-t_stat mba_show_num (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat mba_show_num (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 void init_mbus_tab (void);
 t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp);
 
 t_stat build_dib_tab (void);
-void fp11 (int32 IR);
-t_stat cis11 (int32 IR);
-t_stat fis11 (int32 IR);
-t_stat iopageR (int32 *data, uint32 addr, int32 access);
-t_stat iopageW (int32 data, uint32 addr, int32 access);
+void fp11 (int32_t IR);
+t_stat cis11 (int32_t IR);
+t_stat fis11 (int32_t IR);
+t_stat iopageR (int32_t *data, uint32_t addr, int32_t access);
+t_stat iopageW (int32_t data, uint32_t addr, int32_t access);
 t_stat cpu_build_dib (void);
-t_stat MMR012_rd (int32 *data, int32 pa, int32 access);
-t_stat MMR012_wr (int32 data, int32 pa, int32 access);
-t_stat MMR3_rd (int32 *data, int32 pa, int32 access);
-t_stat MMR3_wr (int32 data, int32 pa, int32 access);
-t_stat APR_rd (int32 *data, int32 pa, int32 access);
-t_stat APR_wr (int32 data, int32 pa, int32 access);
-t_stat PSW_rd (int32 *data, int32 pa, int32 access);
-t_stat PSW_wr (int32 data, int32 pa, int32 access);
-int32 calc_ints (int32 nipl, int32 trq);
-int32 get_vector (int32 nipl);
-t_stat ubm_rd (int32 *data, int32 addr, int32 access);
-t_stat ubm_wr (int32 data, int32 addr, int32 access);
-uint32 Map_Addr (uint32 ba);
+t_stat MMR012_rd (int32_t *data, int32_t pa, int32_t access);
+t_stat MMR012_wr (int32_t data, int32_t pa, int32_t access);
+t_stat MMR3_rd (int32_t *data, int32_t pa, int32_t access);
+t_stat MMR3_wr (int32_t data, int32_t pa, int32_t access);
+t_stat APR_rd (int32_t *data, int32_t pa, int32_t access);
+t_stat APR_wr (int32_t data, int32_t pa, int32_t access);
+t_stat PSW_rd (int32_t *data, int32_t pa, int32_t access);
+t_stat PSW_wr (int32_t data, int32_t pa, int32_t access);
+int32_t calc_ints (int32_t nipl, int32_t trq);
+int32_t get_vector (int32_t nipl);
+t_stat ubm_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat ubm_wr (int32_t data, int32_t addr, int32_t access);
+uint32_t Map_Addr (uint32_t ba);
 
-void cpu_set_boot (int32 pc);
+void cpu_set_boot (int32_t pc);
 
 #include "pdp11_io_lib.h"
 
-extern int32 cpu_bme;                                   /* bus map enable */
-extern uint32 cpu_model;                                /* CPU model */
-extern uint32 cpu_type;                                 /* model as bit mask */
-extern uint32 cpu_opt;                                  /* CPU options */
-extern int32 autcon_enb;                                /* autoconfig enable */
-extern int32 int_req[IPL_HLVL];                         /* interrupt requests */
-extern uint16 *M;                                       /* Memory */
+extern int32_t cpu_bme;                                 /* bus map enable */
+extern uint32_t cpu_model;                              /* CPU model */
+extern uint32_t cpu_type;                               /* model as bit mask */
+extern uint32_t cpu_opt;                                /* CPU options */
+extern int32_t autcon_enb;                              /* autoconfig enable */
+extern int32_t int_req[IPL_HLVL];                       /* interrupt requests */
+extern uint16_t *M;                                     /* Memory */
 
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
@@ -923,20 +924,20 @@ extern UNIT cpu_unit;
 #define INIMODEL        MOD_1105
 #define INIOPTNS        SOP_1105
 #define INIMEMSIZE      00040000                       /* 16KB */
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < uc15_memsize)
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < uc15_memsize)
 
 #define RdMemW(pa)      uc15_RdMemW (pa)
 #define RdMemB(pa)      uc15_RdMemB (pa)
 #define WrMemW(pa,d)    uc15_WrMemW (pa, d)
 #define WrMemB(pa, d)   uc15_WrMemB (pa, d)
 
-extern uint32 uc15_memsize;
-int32 uc15_RdMemW (int32 pa);
-int32 uc15_RdMemB (int32 pa);
-void uc15_WrMemW (int32 pa, int32 d);
-void uc15_WrMemB (int32 pa, int32 d);
-int32 Map_Read18 (uint32 ba, int32 bc, uint32 *buf);
-int32 Map_Write18 (uint32 ba, int32 bc, uint32 *buf);
+extern uint32_t uc15_memsize;
+int32_t uc15_RdMemW (int32_t pa);
+int32_t uc15_RdMemB (int32_t pa);
+void uc15_WrMemW (int32_t pa, int32_t d);
+void uc15_WrMemB (int32_t pa, int32_t d);
+int32_t Map_Read18 (uint32_t ba, int32_t bc, uint32_t *buf);
+int32_t Map_Write18 (uint32_t ba, int32_t bc, uint32_t *buf);
 
 #else                                                   /* PDP-11 */
 

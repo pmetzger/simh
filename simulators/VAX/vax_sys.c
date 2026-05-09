@@ -48,6 +48,7 @@
 
 #include "vax_sys_internal.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #if defined (FULL_VAX)
 #define ODC(x)          (x)
@@ -57,22 +58,22 @@
 
 extern REG cpu_reg[];
 
-static int32 fprint_sym_qoimm (FILE *of, t_value *val, int32 vp, int32 lnt);
-static t_stat parse_char (const char *cptr, t_value *val, int32 lnt);
-static int32 parse_brdisp (const char *cptr, uint32 addr, t_value *val,
-    int32 vp, int32 lnt, t_stat *r);
-static int32 parse_spec (const char *cptr, uint32 addr, t_value *val,
-    int32 vp, uint32 disp, t_stat *r);
-static const char *parse_rnum (const char *cptr, int32 *rn);
-static int32 parse_sym_qoimm (uint32 *lit, t_value *val, int32 vp,
-    int lnt, int32 minus);
-static uint32 get_symbol_le_value (const t_value *val, int32 *vp, int32 size);
-static void put_symbol_le_value (t_value *val, int32 *vp, uint32 value,
-    int32 size);
-static t_int64 symbol_addr_delta (uint32 target, uint32 base);
+static int32_t fprint_sym_qoimm (FILE *of, t_value *val, int32_t vp, int32_t lnt);
+static t_stat parse_char (const char *cptr, t_value *val, int32_t lnt);
+static int32_t parse_brdisp (const char *cptr, uint32_t addr, t_value *val,
+    int32_t vp, int32_t lnt, t_stat *r);
+static int32_t parse_spec (const char *cptr, uint32_t addr, t_value *val,
+    int32_t vp, uint32_t disp, t_stat *r);
+static const char *parse_rnum (const char *cptr, int32_t *rn);
+static int32_t parse_sym_qoimm (uint32_t *lit, t_value *val, int32_t vp,
+    int lnt, int32_t minus);
+static uint32_t get_symbol_le_value (const t_value *val, int32_t *vp, int32_t size);
+static void put_symbol_le_value (t_value *val, int32_t *vp, uint32_t value,
+    int32_t size);
+static int64_t symbol_addr_delta (uint32_t target, uint32_t base);
 
-extern t_stat fprint_sym_cm (FILE *of, t_addr addr, t_value *bytes, int32 sw);
-extern t_stat parse_sym_cm (const char *cptr, t_addr addr, t_value *bytes, int32 sw);
+extern t_stat fprint_sym_cm (FILE *of, t_addr addr, t_value *bytes, int32_t sw);
+extern t_stat parse_sym_cm (const char *cptr, t_addr addr, t_value *bytes, int32_t sw);
 
 /* SCP data structures and interface routines
 
@@ -86,7 +87,7 @@ extern t_stat parse_sym_cm (const char *cptr, t_addr addr, t_value *bytes, int32
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 60;
+int32_t sim_emax = 60;
 
 const char *sim_stop_messages[SCPE_BASE] = {
     "Unknown error",
@@ -118,7 +119,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
  */
 
 
-const uint16 drom[NUM_INST][MAX_SPEC + 1] = {
+const uint16_t drom[NUM_INST][MAX_SPEC + 1] = {
 {0             +IG_BASE,  0,      0,      0,      0,      0,      0},    /* HALT */     /* 000-00F */
 {0             +IG_BASE,  0,      0,      0,      0,      0,      0},    /* NOP */
 {0             +IG_BASE,  0,      0,      0,      0,      0,      0},    /* REI */
@@ -719,7 +720,7 @@ const char *altcod[] = {
 NULL
 };
 
-const int32 altop[] = {
+const int32_t altop[] = {
  0xD4, 0x7C, 0x7C, 0x17C, 0xDE, 0x7E, 0x7E, 0x17E,
  0xDF, 0x7F, 0x7F, 0x17F, 0x12, 0x13, 0x1E, 0x1F
  };
@@ -730,22 +731,22 @@ const char* regname[] = {
  };
 
 /* Read a little-endian VAX value from the symbolic byte buffer. */
-static uint32
-get_symbol_le_value (const t_value *val, int32 *vp, int32 size)
+static uint32_t
+get_symbol_le_value (const t_value *val, int32_t *vp, int32_t size)
 {
-    uint32 value = 0;
+    uint32_t value = 0;
 
-    for (int32 i = 0; i < size; i++)
-        value |= ((uint32)val[(*vp)++] & 0xffu) << (i * 8);
+    for (int32_t i = 0; i < size; i++)
+        value |= ((uint32_t)val[(*vp)++] & 0xffu) << (i * 8);
 
     return value;
 }
 
 /* Write a little-endian VAX value into the symbolic byte buffer. */
 static void
-put_symbol_le_value (t_value *val, int32 *vp, uint32 value, int32 size)
+put_symbol_le_value (t_value *val, int32_t *vp, uint32_t value, int32_t size)
 {
-    for (int32 i = 0; i < size; i++)
+    for (int32_t i = 0; i < size; i++)
         val[(*vp)++] = (value >> (i * 8)) & 0xffu;
 }
 
@@ -753,14 +754,14 @@ put_symbol_le_value (t_value *val, int32 *vp, uint32 value, int32 size)
  * Return a signed 32-bit address delta after wrapping the subtraction in the
  * VAX address space.
  */
-static t_int64
-symbol_addr_delta (uint32 target, uint32 base)
+static int64_t
+symbol_addr_delta (uint32_t target, uint32_t base)
 {
-    uint32 delta = target - base;
+    uint32_t delta = target - base;
 
     if ((delta & LSIGN) == 0)
-        return (t_int64)delta;
-    return -((t_int64)(0u - delta));
+        return (int64_t)delta;
+    return -((int64_t)(0u - delta));
 }
 
 /* Symbolic decode
@@ -777,11 +778,11 @@ symbol_addr_delta (uint32 target, uint32 base)
 */
 
 t_stat fprint_sym (FILE *of, t_addr exta, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-uint32 addr = (uint32) exta;
-int32 c, vp, lnt, rdx;
-uint32 num;
+uint32_t addr = (uint32_t) exta;
+int32_t c, vp, lnt, rdx;
+uint32_t num;
 t_stat r;
 DEVICE *dptr;
 
@@ -811,7 +812,7 @@ else if ((sim_switch_number >= 2) && (sim_switch_number <= 36)) rdx = sim_switch
 else rdx = dptr->dradix;
 if ((sw & SWMASK ('A')) || (sw & SWMASK ('C'))) {       /* char format? */
     for (vp = lnt - 1; vp >= 0; vp--) {
-        c = (int32) val[vp] & 0x7F;
+        c = (int32_t) val[vp] & 0x7F;
         fprintf (of, (c < 0x20)? "<%02X>": "%c", c);
         }
     return -(lnt - 1);                                  /* return # chars */
@@ -847,18 +848,18 @@ return -(vp - 1);
                         if < 0, number of extra bytes retired
 */
 
-t_stat fprint_sym_m (FILE *of, uint32 addr, t_value *val)
+t_stat fprint_sym_m (FILE *of, uint32_t addr, t_value *val)
 {
-int32 i, vp, numspec;
-int32 rn, disp;
-uint32 inst;
-uint32 spec, index;
-uint32 num;
+int32_t i, vp, numspec;
+int32_t rn, disp;
+uint32_t inst;
+uint32_t spec, index;
+uint32_t num;
 
 vp = 0;                                                 /* init ptr */
-inst = (uint32) val[vp++] & 0xffu;                      /* get opcode */
+inst = (uint32_t) val[vp++] & 0xffu;                    /* get opcode */
 if (inst == 0xFD)                                       /* 2 byte op? */
-    inst = 0x100u | ((uint32) val[vp++] & 0xffu);
+    inst = 0x100u | ((uint32_t) val[vp++] & 0xffu);
 if (opcode[inst] == NULL)                               /* defined? */
     return SCPE_ARG;
 numspec = DR_GETNSP (drom[inst][0]);                    /* get # spec */
@@ -877,13 +878,13 @@ for (i = 0; i < numspec; i++) {                         /* loop thru spec */
         fprintf (of, "%-X", SXTW (num) + addr + vp);
         }
     else {
-        spec = (uint32) val[vp++] & 0xffu;              /* get specifier */
+        spec = (uint32_t) val[vp++] & 0xffu;            /* get specifier */
         if ((spec & 0xF0) == IDX) {                     /* index? */
             index = spec;                               /* copy, get next */
-            spec = (uint32) val[vp++] & 0xffu;
+            spec = (uint32_t) val[vp++] & 0xffu;
             }
         else index = 0;
-        rn = (int32)(spec & 0xF);                       /* get reg # */
+        rn = (int32_t)(spec & 0xF);                     /* get reg # */
         switch (spec & 0xF0) {                          /* case on mode */
 
         case SH0: case SH1: case SH2: case SH3:         /* s^# */
@@ -980,10 +981,10 @@ return -(vp - 1);
         vp      =       updated index into val
 */
 
-static int32 fprint_sym_qoimm (FILE *of, t_value *val, int32 vp, int32 lnt)
+static int32_t fprint_sym_qoimm (FILE *of, t_value *val, int32_t vp, int32_t lnt)
 {
-int32 i, startp;
-uint32 num[4];
+int32_t i, startp;
+uint32_t num[4];
 
 for (i = 0; i < lnt; i++) {
     num[lnt - 1 - i] = get_symbol_le_value (val, &vp, 4);
@@ -1012,14 +1013,14 @@ return vp;
                         <= 0  -number of extra words
 */
 
-t_stat parse_sym (const char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr exta, UNIT *uptr, t_value *val, int32_t sw)
 {
-uint32 addr = (uint32) exta;
-int32 rdx, lnt, vp;
-uint32 num;
+uint32_t addr = (uint32_t) exta;
+int32_t rdx, lnt, vp;
+uint32_t num;
 t_stat r;
 DEVICE *dptr;
-static const uint32 maxv[5] = { 0, 0xFF, 0xFFFF, 0, 0xFFFFFFFF };
+static const uint32_t maxv[5] = { 0, 0xFF, 0xFFFF, 0, 0xFFFFFFFF };
 
 if (uptr == NULL)                                       /* anon = CPU */
     uptr = &cpu_unit;
@@ -1061,7 +1062,7 @@ if (uptr == &cpu_unit) {                                /* cpu only */
         return r;
     }
 
-num = (uint32) get_uint (cptr, rdx, maxv[lnt], &r);     /* get number */
+num = (uint32_t) get_uint (cptr, rdx, maxv[lnt], &r);   /* get number */
 if (r != SCPE_OK)
     return r;
 vp = 0;
@@ -1080,9 +1081,9 @@ return -(lnt - 1);
                         <= 0  -number of extra words
 */
 
-static t_stat parse_char (const char *cptr, t_value *val, int32 lnt)
+static t_stat parse_char (const char *cptr, t_value *val, int32_t lnt)
 {
-int32 vp;
+int32_t vp;
 
 if (*cptr == 0)
     return SCPE_ARG;
@@ -1104,9 +1105,9 @@ return -(vp - 1);                                       /* return # chars */
                         <= 0  -number of extra words
 */
 
-t_stat parse_sym_m (const char *cptr, uint32 addr, t_value *val)
+t_stat parse_sym_m (const char *cptr, uint32_t addr, t_value *val)
 {
-int32 i, numspec, disp, opc, vp;
+int32_t i, numspec, disp, opc, vp;
 t_stat r;
 char gbuf[CBUFSIZE];
 
@@ -1161,18 +1162,18 @@ return -(vp - 1);
         vp      =       updated output pointer
 */
 
-static int32 parse_brdisp (const char *cptr, uint32 addr, t_value *val,
-    int32 vp, int32 lnt, t_stat *r)
+static int32_t parse_brdisp (const char *cptr, uint32_t addr, t_value *val,
+    int32_t vp, int32_t lnt, t_stat *r)
 {
-uint32 dest;
-t_int64 delta;
+uint32_t dest;
+int64_t delta;
 
-dest = (uint32) get_uint (cptr, 16, 0xFFFFFFFF, r);     /* get value */
+dest = (uint32_t) get_uint (cptr, 16, 0xFFFFFFFF, r);   /* get value */
 delta = symbol_addr_delta (dest, addr + vp + lnt + 1);  /* compute offset */
 if ((delta > (lnt? 32767: 127)) || (delta < (lnt? -32768: -128)))
     *r = SCPE_ARG;
 else {
-    put_symbol_le_value (val, &vp, (uint32)delta, lnt + 1);
+    put_symbol_le_value (val, &vp, (uint32_t)delta, lnt + 1);
     *r = SCPE_OK;
     }
 return vp;
@@ -1209,7 +1210,7 @@ return vp;
                             fl = fl | v; \
                             }
 #define SPUTNUM(v,d)    do { \
-                            uint32 sputnum_value = (v); \
+                            uint32_t sputnum_value = (v); \
                             if (fl & SP_MINUS) \
                                 sputnum_value = 0u - sputnum_value; \
                             put_symbol_le_value (val, &vp, sputnum_value, d); \
@@ -1220,15 +1221,15 @@ return vp;
                             }
 #define SEL_LIM(p,m,u)  ((fl & SP_PLUS)? (p): ((fl & SP_MINUS)? (m): (u)))
 
-static int32 parse_spec (const char *cptr, uint32 addr, t_value *val,
-    int32 vp, uint32 disp, t_stat *r)
+static int32_t parse_spec (const char *cptr, uint32_t addr, t_value *val,
+    int32_t vp, uint32_t disp, t_stat *r)
 {
-int32 i, litsize, rn, index;
-int32 dispsize;
-uint32 digit, mode;
-uint32 lit[4] = { 0 };
-uint32 fl = 0;
-t_int64 delta;
+int32_t i, litsize, rn, index;
+int32_t dispsize;
+uint32_t digit, mode;
+uint32_t lit[4] = { 0 };
+uint32_t fl = 0;
+int64_t delta;
 char c;
 const char *tptr;
 const char *force[] = { "S^", "I^", "B^", "W^", "L^", NULL };
@@ -1261,7 +1262,7 @@ for (litsize = 0;; cptr++) {                            /* look for mprec int */
     c = *cptr;
     if ((c < '0') || (c > 'F') || ((c > '9') && (c < 'A')))
         break;
-    digit = (uint32)((c <= '9')? c - '0': c - 'A' + 10);
+    digit = (uint32_t)((c <= '9')? c - '0': c - 'A' + 10);
     fl = fl | SP_NUM;
     for (i = 3; i >= 0; i--) {
         lit[i] = lit[i] << 4;
@@ -1437,7 +1438,7 @@ switch (fl) {                                           /* case on state */
                 }
             }
         val[vp++] = mode | nPC | ((fl & SP_IND)? 0x10: 0);
-        put_symbol_le_value (val, &vp, (uint32)delta, dispsize);
+        put_symbol_le_value (val, &vp, (uint32_t)delta, dispsize);
         break;
 
     case SP_FB|SP_NUM:                                  /* B^n */
@@ -1446,7 +1447,7 @@ switch (fl) {                                           /* case on state */
         if ((litsize > 0) || (delta > 127) || (delta < -128))
             PARSE_LOSE;
         val[vp++] = nPC | BDP | ((fl & SP_IND)? 0x10: 0);
-        put_symbol_le_value (val, &vp, (uint32)delta, 1);
+        put_symbol_le_value (val, &vp, (uint32_t)delta, 1);
         break;
 
     case SP_FW|SP_NUM:                                  /* W^n */
@@ -1455,7 +1456,7 @@ switch (fl) {                                           /* case on state */
         if ((litsize > 0) || (delta > 32767) || (delta < -32768))
             PARSE_LOSE;
         val[vp++] = nPC | WDP | ((fl & SP_IND)? 0x10: 0);
-        put_symbol_le_value (val, &vp, (uint32)delta, 2);
+        put_symbol_le_value (val, &vp, (uint32_t)delta, 2);
         break;
 
     case SP_FL|SP_NUM:                                  /* L^n */
@@ -1464,7 +1465,7 @@ switch (fl) {                                           /* case on state */
         if (litsize > 0)
             PARSE_LOSE;
         val[vp++] = nPC | LDP | ((fl & SP_IND)? 0x10: 0);
-        put_symbol_le_value (val, &vp, (uint32)delta, 4);
+        put_symbol_le_value (val, &vp, (uint32_t)delta, 4);
         break;
 
     default:
@@ -1476,9 +1477,9 @@ if (*cptr != 0)                                         /* must be done */
 return vp;
 }
 
-static const char *parse_rnum (const char *cptr, int32 *rn)
+static const char *parse_rnum (const char *cptr, int32_t *rn)
 {
-int32 i, lnt;
+int32_t i, lnt;
 t_value regnum;
 const char *tptr;
 
@@ -1495,15 +1496,15 @@ if (*cptr++ != 'R')                                     /* look for R */
 regnum = strtotv (cptr, &tptr, 10);                     /* look for reg # */
 if ((cptr == tptr) || (regnum > 15))
     return NULL;
-*rn = (int32) regnum;
+*rn = (int32_t) regnum;
 return tptr;
 }
 
-static int32 parse_sym_qoimm (uint32 *lit, t_value *val, int32 vp, int lnt,
-    int32 minus)
+static int32_t parse_sym_qoimm (uint32_t *lit, t_value *val, int32_t vp, int lnt,
+    int32_t minus)
 {
-int32 i;
-uint32 prev = 0;
+int32_t i;
+uint32_t prev = 0;
 
 for (i = 0; i < lnt; i++) {
     if (minus)

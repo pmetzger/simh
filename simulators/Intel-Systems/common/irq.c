@@ -31,6 +31,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "system_defs.h"
 
 #define irq_NAME   "Intel Interrupt Simulator"
@@ -39,17 +41,17 @@
 
 t_stat irq_svc(UNIT *uptr);
 t_stat irq_reset(DEVICE *dptr);
-void set_irq(int32 irq_num);
-void clr_irq(int32 irq_num);
+void set_irq(int32_t irq_num);
+void clr_irq(int32_t irq_num);
 
 /* external function prototypes */
 
 //extern t_stat SBC_reset(DEVICE *dptr);  /* reset the iSBC80/10 emulator */
-extern void set_cpuint(int32 irq_num);
+extern void set_cpuint(int32_t irq_num);
 
 /* local globals */
 
-int32   mbirq = 0;                      /* set no multibus interrupts */
+int32_t mbirq = 0;                      /* set no multibus interrupts */
 static const char* irq_desc(DEVICE *dptr) {
     /* Generic description signature.
        This implementation does not use every parameter. */
@@ -60,9 +62,9 @@ static const char* irq_desc(DEVICE *dptr) {
 
 /* external globals */
 
-extern uint8 xack;                      /* XACK signal */
-extern int32 irq_req;                   /* i8080 INT signal */
-extern uint16 PCX;
+extern uint8_t xack;                    /* XACK signal */
+extern int32_t irq_req;                 /* i8080 INT signal */
+extern uint16_t PCX;
 extern DEVICE isbc064_dev;
 extern DEVICE isbc464_dev;
 
@@ -154,12 +156,12 @@ t_stat irq_svc(UNIT *uptr)
     return SCPE_OK;
 }
 
-void set_irq(int32 irq_num)
+void set_irq(int32_t irq_num)
 {
     mbirq |= irq_num;
 }
 
-void clr_irq(int32 irq_num)
+void clr_irq(int32_t irq_num)
 {
     mbirq &= ~irq_num;
 }

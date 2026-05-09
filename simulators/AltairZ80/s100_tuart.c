@@ -26,6 +26,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
@@ -87,48 +89,48 @@ typedef struct {
     bool conn;           /* Connected Status  */
     TMLN *tmln;          /* TMLN pointer      */
     TMXR *tmxr;          /* TMXR pointer      */
-    int32 baud;          /* Baud rate         */
-    uint8 hbd;           /* High baud mult    */
-    uint8 sbits;         /* Stop bits         */
-    uint8 rxb;           /* Receive Buffer    */
-    uint8 txb;           /* Transmit Buffer   */
+    int32_t baud;        /* Baud rate         */
+    uint8_t hbd;         /* High baud mult    */
+    uint8_t sbits;       /* Stop bits         */
+    uint8_t rxb;         /* Receive Buffer    */
+    uint8_t txb;         /* Transmit Buffer   */
     bool txp;            /* Transmit Pending  */
-    uint8 stb;           /* Status Buffer     */
+    uint8_t stb;         /* Status Buffer     */
     bool inta;           /* Interrupt Ack Ena */
-    uint8 intmask;       /* Int Enable Mask   */
-    uint8 intadr;        /* Interrupt Address */
-    uint8 intvector;     /* Interrupt Vector  */
+    uint8_t intmask;     /* Int Enable Mask   */
+    uint8_t intadr;      /* Interrupt Address */
+    uint8_t intvector;   /* Interrupt Vector  */
 } TUART_CTX;
 
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
 
 static const char* tuart_description(DEVICE *dptr);
 static t_stat tuart_svc(UNIT *uptr);
-static t_stat tuart_reset(DEVICE *dptr, int32 (*routine)(const int32, const int32, const int32));
+static t_stat tuart_reset(DEVICE *dptr, int32_t (*routine)(const int32_t, const int32_t, const int32_t));
 static t_stat tuart0_reset(DEVICE *dptr);
 static t_stat tuart1_reset(DEVICE *dptr);
 static t_stat tuart2_reset(DEVICE *dptr);
 static t_stat tuart_attach(UNIT *uptr, const char *cptr);
 static t_stat tuart_detach(UNIT *uptr);
-static t_stat tuart_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat tuart_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc);
+static t_stat tuart_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat tuart_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc);
 static t_stat tuart_config_line(UNIT *uptr);
-static int32 tuart0_io(int32 addr, int32 io, int32 data);
-static int32 tuart1_io(int32 addr, int32 io, int32 data);
-static int32 tuart2_io(int32 addr, int32 io, int32 data);
-static int32 tuart_io(DEVICE *dptr, int32 addr, int32 io, int32 data);
-static int32 tuart_stat(DEVICE *dptr, int32 io, int32 data);
-static int32 tuart_data(DEVICE *dptr, int32 io, int32 data);
-static int32 tuart_command(DEVICE *dptr, int32 io, int32 data);
-static int32 tuart_intadrmsk(DEVICE *dptr, int32 io, int32 data);
+static int32_t tuart0_io(int32_t addr, int32_t io, int32_t data);
+static int32_t tuart1_io(int32_t addr, int32_t io, int32_t data);
+static int32_t tuart2_io(int32_t addr, int32_t io, int32_t data);
+static int32_t tuart_io(DEVICE *dptr, int32_t addr, int32_t io, int32_t data);
+static int32_t tuart_stat(DEVICE *dptr, int32_t io, int32_t data);
+static int32_t tuart_data(DEVICE *dptr, int32_t io, int32_t data);
+static int32_t tuart_command(DEVICE *dptr, int32_t io, int32_t data);
+static int32_t tuart_intadrmsk(DEVICE *dptr, int32_t io, int32_t data);
 static void tuart_int(UNIT *uptr);
 
-extern uint32 vectorInterrupt;          /* Vector Interrupt bits */
-extern uint8 dataBus[MAX_INT_VECTORS];  /* Data bus value        */
+extern uint32_t vectorInterrupt;        /* Vector Interrupt bits */
+extern uint8_t dataBus[MAX_INT_VECTORS]; /* Data bus value        */
 
 /* Debug Flags */
 static DEBTAB tuart_dt[] = {
@@ -351,7 +353,7 @@ static t_stat tuart2_reset(DEVICE *dptr)
     return(tuart_reset(dptr, &tuart2_io));
 }
 
-static t_stat tuart_reset(DEVICE *dptr, int32 (*routine)(const int32, const int32, const int32))
+static t_stat tuart_reset(DEVICE *dptr, int32_t (*routine)(const int32_t, const int32_t, const int32_t))
 {
     TUART_CTX *xptr;
 
@@ -390,7 +392,7 @@ static t_stat tuart_reset(DEVICE *dptr, int32 (*routine)(const int32, const int3
 static t_stat tuart_svc(UNIT *uptr)
 {
     TUART_CTX *xptr;
-    int32 c;
+    int32_t c;
     t_stat r;
     bool dr = true;
 
@@ -508,7 +510,7 @@ static t_stat tuart_detach(UNIT *uptr)
     return SCPE_UNATT;
 }
 
-static t_stat tuart_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat tuart_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -516,7 +518,7 @@ static t_stat tuart_set_baud(UNIT *uptr, int32 value, const char *cptr, void *de
     (void) desc;
 
     TUART_CTX *xptr;
-    int32 baud;
+    int32_t baud;
     t_stat r = SCPE_ARG;
 
     xptr = (TUART_CTX *) uptr->dptr->ctxt;
@@ -554,7 +556,7 @@ static t_stat tuart_set_baud(UNIT *uptr, int32 value, const char *cptr, void *de
     return r;
 }
 
-static t_stat tuart_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat tuart_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -591,24 +593,24 @@ static t_stat tuart_config_line(UNIT *uptr)
     return r;
 }
 
-static int32 tuart0_io(int32 addr, int32 io, int32 data)
+static int32_t tuart0_io(int32_t addr, int32_t io, int32_t data)
 {
     return(tuart_io(&tuart0_dev, addr, io, data));
 }
 
-static int32 tuart1_io(int32 addr, int32 io, int32 data)
+static int32_t tuart1_io(int32_t addr, int32_t io, int32_t data)
 {
     return(tuart_io(&tuart1_dev, addr, io, data));
 }
 
-static int32 tuart2_io(int32 addr, int32 io, int32 data)
+static int32_t tuart2_io(int32_t addr, int32_t io, int32_t data)
 {
     return(tuart_io(&tuart2_dev, addr, io, data));
 }
 
-static int32 tuart_io(DEVICE *dptr, int32 addr, int32 io, int32 data)
+static int32_t tuart_io(DEVICE *dptr, int32_t addr, int32_t io, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     if ((addr & 0x03) == 0x03) {
         r = tuart_intadrmsk(dptr, io, data);
@@ -625,10 +627,10 @@ static int32 tuart_io(DEVICE *dptr, int32 addr, int32 io, int32 data)
     return(r);
 }
 
-static int32 tuart_stat(DEVICE *dptr, int32 io, int32 data)
+static int32_t tuart_stat(DEVICE *dptr, int32_t io, int32_t data)
 {
     TUART_CTX *xptr;
-    int32 r = 0xff;
+    int32_t r = 0xff;
 
     xptr = (TUART_CTX *) dptr->ctxt;
 
@@ -674,10 +676,10 @@ static int32 tuart_stat(DEVICE *dptr, int32 io, int32 data)
     return r;
 }
 
-static int32 tuart_data(DEVICE *dptr, int32 io, int32 data)
+static int32_t tuart_data(DEVICE *dptr, int32_t io, int32_t data)
 {
     TUART_CTX *xptr;
-    int32 r = 0xff;
+    int32_t r = 0xff;
 
     xptr = (TUART_CTX *) dptr->ctxt;
 
@@ -693,10 +695,10 @@ static int32 tuart_data(DEVICE *dptr, int32 io, int32 data)
     return r;
 }
 
-static int32 tuart_command(DEVICE *dptr, int32 io, int32 data)
+static int32_t tuart_command(DEVICE *dptr, int32_t io, int32_t data)
 {
     TUART_CTX *xptr;
-    int32 r = 0xff;
+    int32_t r = 0xff;
 
     xptr = (TUART_CTX *) dptr->ctxt;
 
@@ -715,7 +717,7 @@ static int32 tuart_command(DEVICE *dptr, int32 io, int32 data)
     return r;
 }
 
-static int32 tuart_intadrmsk(DEVICE *dptr, int32 io, int32 data)
+static int32_t tuart_intadrmsk(DEVICE *dptr, int32_t io, int32_t data)
 {
     TUART_CTX *xptr;
 

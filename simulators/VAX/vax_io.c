@@ -52,6 +52,9 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "sim_types.h"
 #include "uint_bits.h"
 #include "vax_qbus_internal.h"
 
@@ -114,35 +117,35 @@
 #define QBMSIZE         (1u << QBMAWIDTH)               /* Qmem length */
 #define QBMAMASK        (QBMSIZE - 1)                   /* Qmem addr mask */
 
-int32 int_req[IPL_HLVL] = { 0 };                        /* intr, IPL 14-17 */
-int32 int_vec_set[IPL_HLVL][32] = { 0 };                /* bits to set in vector */
-int32 cq_scr = 0;                                       /* SCR */
-int32 cq_dser = 0;                                      /* DSER */
-int32 cq_mear = 0;                                      /* MEAR */
-int32 cq_sear = 0;                                      /* SEAR */
-int32 cq_mbr = 0;                                       /* MBR */
-int32 cq_ipc = 0;                                       /* IPC */
-int32 autcon_enb = 1;                                   /* autoconfig enable */
+int32_t int_req[IPL_HLVL] = { 0 };                      /* intr, IPL 14-17 */
+int32_t int_vec_set[IPL_HLVL][32] = { 0 };              /* bits to set in vector */
+int32_t cq_scr = 0;                                     /* SCR */
+int32_t cq_dser = 0;                                    /* DSER */
+int32_t cq_mear = 0;                                    /* MEAR */
+int32_t cq_sear = 0;                                    /* SEAR */
+int32_t cq_mbr = 0;                                     /* MBR */
+int32_t cq_ipc = 0;                                     /* IPC */
+int32_t autcon_enb = 1;                                 /* autoconfig enable */
 
-extern int32 ssc_bto;
-extern int32 vc_mem_rd (int32 pa);
-extern void vc_mem_wr (int32 pa, int32 val, int32 mode);
+extern int32_t ssc_bto;
+extern int32_t vc_mem_rd (int32_t pa);
+extern void vc_mem_wr (int32_t pa, int32_t val, int32_t mode);
 
-t_stat dbl_rd (int32 *data, int32 addr, int32 access);
-t_stat dbl_wr (int32 data, int32 addr, int32 access);
-t_stat cqm_rd(int32 *dat, int32 ad, int32 md);
-t_stat cqm_wr(int32 dat, int32 ad, int32 md);
-int32 eval_int (void);
-void cq_merr (int32 pa);
-void cq_serr (int32 pa);
+t_stat dbl_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat dbl_wr (int32_t data, int32_t addr, int32_t access);
+t_stat cqm_rd(int32_t *dat, int32_t ad, int32_t md);
+t_stat cqm_wr(int32_t dat, int32_t ad, int32_t md);
+int32_t eval_int (void);
+void cq_merr (int32_t pa);
+void cq_serr (int32_t pa);
 t_stat qba_reset (DEVICE *dptr);
-t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
-t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
-bool qba_map_addr (uint32 qa, uint32 *ma);
-bool qba_map_addr_c (uint32 qa, uint32 *ma);
-t_stat qba_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc);
-t_stat qba_show_map (FILE *of, UNIT *uptr, int32 val, const void *desc);
-t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+bool qba_map_addr (uint32_t qa, uint32_t *ma);
+bool qba_map_addr_c (uint32_t qa, uint32_t *ma);
+t_stat qba_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc);
+t_stat qba_show_map (FILE *of, UNIT *uptr, int32_t val, const void *desc);
+t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *qba_description (DEVICE *dptr);
 
 /* Qbus adapter data structures
@@ -198,17 +201,17 @@ DEVICE qba_dev = {
 
 /* IO page dispatches */
 
-t_stat (*iodispR[IOPAGESIZE >> 1])(int32 *dat, int32 ad, int32 md);
-t_stat (*iodispW[IOPAGESIZE >> 1])(int32 dat, int32 ad, int32 md);
+t_stat (*iodispR[IOPAGESIZE >> 1])(int32_t *dat, int32_t ad, int32_t md);
+t_stat (*iodispW[IOPAGESIZE >> 1])(int32_t dat, int32_t ad, int32_t md);
 DIB *iodibp[IOPAGESIZE >> 1];
 
 /* Interrupt request to interrupt action map */
 
-int32 (*int_ack[IPL_HLVL][32])(void);                   /* int ack routines */
+int32_t (*int_ack[IPL_HLVL][32])(void);                 /* int ack routines */
 
 /* Interrupt request to vector map */
 
-int32 int_vec[IPL_HLVL][32];                            /* int req to vector */
+int32_t int_vec[IPL_HLVL][32];                          /* int req to vector */
 
 /* The KA65x handles errors in I/O space as follows
 
@@ -217,9 +220,9 @@ int32 int_vec[IPL_HLVL][32];                            /* int req to vector */
 */
 
 #ifndef VAX_QBUS_TEST_RECORD_READS
-static int32 ReadQb (uint32 pa)
+static int32_t ReadQb (uint32_t pa)
 {
-int32 idx, val;
+int32_t idx, val;
 
 if (ADDR_IS_CQM (pa)) {                                /* Qbus memory? */
     cqm_rd (&val, pa, READ);
@@ -235,16 +238,16 @@ MACH_CHECK (MCHK_READ);
 return 0;
 }
 #else
-static int32 ReadQb (uint32 pa)
+static int32_t ReadQb (uint32_t pa)
 {
 return vax_qbus_test_record_read (pa);
 }
 #endif
 
 #ifndef VAX_QBUS_TEST_RECORD_WRITES
-static void WriteQb (uint32 pa, int32 val, int32 mode)
+static void WriteQb (uint32_t pa, int32_t val, int32_t mode)
 {
-int32 idx;
+int32_t idx;
 
 if (ADDR_IS_CQM (pa)) {                                /* Qbus memory? */
     cqm_wr (val, pa, mode);
@@ -260,7 +263,7 @@ mem_err = 1;
 return;
 }
 #else
-static void WriteQb (uint32 pa, int32 val, int32 mode)
+static void WriteQb (uint32_t pa, int32_t val, int32_t mode)
 {
 vax_qbus_test_record_write (pa, val, mode);
 return;
@@ -276,19 +279,19 @@ return;
         longword of data
 */
 
-int32 ReadIO (uint32 pa, int32 lnt)
+int32_t ReadIO (uint32_t pa, int32_t lnt)
 {
-uint32 iod;
+uint32_t iod;
 
-iod = (uint32) ReadQb (pa);                             /* wd from Qbus */
+iod = (uint32_t) ReadQb (pa);                           /* wd from Qbus */
 if (lnt < L_LONG)                                       /* bw? position */
     iod = u32_make_addr_u16_le (iod, pa);
 else {                                                  /* lw, get 2nd wd */
-    uint32 high = (uint32) ReadQb (pa + 2);
+    uint32_t high = (uint32_t) ReadQb (pa + 2);
     iod = u32_from_u16_pair (iod, high);
     }
 SET_IRQL;
-return (int32) iod;
+return (int32_t) iod;
 }
 
 /* ReadIOU - read I/O space - unaligned access
@@ -321,19 +324,19 @@ bo = 2, byte or word - read one word
 bo = 3, byte - read one word
 */
 
-int32 ReadIOU (uint32 pa, int32 lnt)
+int32_t ReadIOU (uint32_t pa, int32_t lnt)
 {
-uint32 iod;
+uint32_t iod;
 
-iod = (uint32) ReadQb (pa);                             /* wd from Qbus */
+iod = (uint32_t) ReadQb (pa);                           /* wd from Qbus */
 if ((lnt + (pa & 1)) <= 2)                              /* byte or (word & even) */
     iod = u32_make_addr_u16_le (iod, pa);                /* one op */
 else {                                                  /* two ops, get 2nd wd */
-    uint32 high = (uint32) ReadQb (pa + 2);
+    uint32_t high = (uint32_t) ReadQb (pa + 2);
     iod = u32_from_u16_pair (iod, high);
     }
 SET_IRQL;
-return (int32) iod;
+return (int32_t) iod;
 }
 
 /* WriteIO - write I/O space - aligned access
@@ -346,17 +349,17 @@ return (int32) iod;
         none
 */
 
-void WriteIO (uint32 pa, int32 val, int32 lnt)
+void WriteIO (uint32_t pa, int32_t val, int32_t lnt)
 {
-uint32 data = (uint32) val;
+uint32_t data = (uint32_t) val;
 
 if (lnt == L_BYTE)
     WriteQb (pa, val, WRITEB);
 else if (lnt == L_WORD)
     WriteQb (pa, val, WRITE);
 else {
-    WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
-    WriteQb (pa + 2, (int32) u32_get_u16 (data, 2), WRITE);
+    WriteQb (pa, (int32_t) u32_get_u16 (data, 0), WRITE);
+    WriteQb (pa + 2, (int32_t) u32_get_u16 (data, 2), WRITE);
     }
 SET_IRQL;
 return;
@@ -380,31 +383,31 @@ bo = 0, lnt = tribyte - write word, byte
 bo = 1, lnt = tribyte - write byte, word
 */
 
-void WriteIOU (uint32 pa, int32 val, int32 lnt)
+void WriteIOU (uint32_t pa, int32_t val, int32_t lnt)
 {
-uint32 data = (uint32) val;
+uint32_t data = (uint32_t) val;
 
 switch (lnt) {
 case L_BYTE:                                            /* byte */
-    WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
+    WriteQb (pa, (int32_t) u32_get_u8 (data, 0), WRITEB);
     break;
 
 case L_WORD:                                            /* word */
     if (pa & 1) {                                       /* odd addr? */
-        WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
-        WriteQb (pa + 1, (int32) u32_get_u8 (data, 1), WRITEB);
+        WriteQb (pa, (int32_t) u32_get_u8 (data, 0), WRITEB);
+        WriteQb (pa + 1, (int32_t) u32_get_u8 (data, 1), WRITEB);
         }
-    else WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
+    else WriteQb (pa, (int32_t) u32_get_u16 (data, 0), WRITE);
     break;
 
 case 3:                                                 /* tribyte */
     if (pa & 1) {                                       /* odd addr? */
-        WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
-        WriteQb (pa + 1, (int32) u32_get_u16 (data, 1), WRITE);
+        WriteQb (pa, (int32_t) u32_get_u8 (data, 0), WRITEB);
+        WriteQb (pa + 1, (int32_t) u32_get_u16 (data, 1), WRITE);
         }
     else {                                              /* even */
-        WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
-        WriteQb (pa + 2, (int32) u32_get_u8 (data, 2), WRITEB);
+        WriteQb (pa, (int32_t) u32_get_u16 (data, 0), WRITE);
+        WriteQb (pa + 2, (int32_t) u32_get_u8 (data, 2), WRITEB);
         }
     break;
     }
@@ -414,12 +417,12 @@ return;
 
 /* Find highest priority outstanding interrupt */
 
-int32 eval_int (void)
+int32_t eval_int (void)
 {
-int32 ipl = PSL_GETIPL (PSL);
-int32 i, t;
+int32_t ipl = PSL_GETIPL (PSL);
+int32_t i, t;
 
-static const int32 sw_int_mask[IPL_SMAX] = {
+static const int32_t sw_int_mask[IPL_SMAX] = {
     0xFFFE, 0xFFFC, 0xFFF8, 0xFFF0,                     /* 0 - 3 */
     0xFFE0, 0xFFC0, 0xFF80, 0xFF00,                     /* 4 - 7 */
     0xFE00, 0xFC00, 0xF800, 0xF000,                     /* 8 - B */
@@ -451,10 +454,10 @@ return 0;
 
 /* Return vector for highest priority hardware interrupt at IPL lvl */
 
-int32 get_vector (int32 lvl)
+int32_t get_vector (int32_t lvl)
 {
-int32 i;
-int32 l = lvl - IPL_HMIN;
+int32_t i;
+int32_t l = lvl - IPL_HMIN;
 
 if (lvl == IPL_MEMERR) {                                /* mem error? */
     mem_err = 0;
@@ -469,7 +472,7 @@ if (lvl > IPL_HMAX) {                                   /* error req lvl? */
     }
 for (i = 0; int_req[l] && (i < 32); i++) {
     if ((int_req[l] >> i) & 1) {
-        int32 vec;
+        int32_t vec;
 
         int_req[l] = int_req[l] & ~(1u << i);
         if (int_ack[l][i])
@@ -494,9 +497,9 @@ return 0;
    IPC          inter-processor communication register
 */
 
-int32 cqbic_rd (int32 pa)
+int32_t cqbic_rd (int32_t pa)
 {
-int32 rg = (pa - CQBICBASE) >> 2;
+int32_t rg = (pa - CQBICBASE) >> 2;
 
 switch (rg) {
 
@@ -519,15 +522,15 @@ switch (rg) {
 return 0;
 }
 
-void cqbic_wr (int32 pa, int32 val, int32 lnt)
+void cqbic_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-uint32 data = (uint32) val;
-uint32 nval;
-uint32 w1c;
-int32 rg = (pa - CQBICBASE) >> 2;
+uint32_t data = (uint32_t) val;
+uint32_t nval;
+uint32_t w1c;
+int32_t rg = (pa - CQBICBASE) >> 2;
 
 if (lnt < L_LONG) {
-    uint32 t = (uint32) cqbic_rd (pa);
+    uint32_t t = (uint32_t) cqbic_rd (pa);
     nval = u32_put_addr_u8_count_le (t, data, pa, (uint_t) lnt);
     w1c = u32_make_addr_u8_count_le (data, pa, (uint_t) lnt);
     }
@@ -539,11 +542,11 @@ switch (rg) {
 
     case 0:                                             /* SCR */
         cq_scr = ((cq_scr & ~CQSCR_RW) |
-                  ((int32) nval & CQSCR_RW)) & CQSCR_MASK;
+                  ((int32_t) nval & CQSCR_RW)) & CQSCR_MASK;
         break;
 
     case 1:                                             /* DSER */
-        cq_dser = (cq_dser & ~(int32) w1c) & CQDSER_MASK;
+        cq_dser = (cq_dser & ~(int32_t) w1c) & CQDSER_MASK;
         if (w1c & CQDSER_SME)
             cq_ipc = cq_ipc & ~CQIPC_QME;
         break;
@@ -554,7 +557,7 @@ switch (rg) {
         break;
 
     case 4:                                             /* MBR */
-        cq_mbr = (int32) nval & CQMBR_MASK;
+        cq_mbr = (int32_t) nval & CQMBR_MASK;
         break;
         }
 return;
@@ -563,7 +566,7 @@ return;
 /* IPC can be read as local register or as Qbus I/O
    Because of the W1C */
 
-int32 cqipc_rd (int32 pa)
+int32_t cqipc_rd (int32_t pa)
 {
 /* Generic register read signature.
    This implementation does not use every parameter. */
@@ -572,12 +575,12 @@ int32 cqipc_rd (int32 pa)
 return cq_ipc & CQIPC_MASK;                             /* IPC */
 }
 
-void cqipc_wr (int32 pa, int32 val, int32 lnt)
+void cqipc_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-uint32 data = (uint32) val;
-uint32 nval = u32_make_addr_u8_count_le (data, pa, (uint_t) lnt);
+uint32_t data = (uint32_t) val;
+uint32_t nval = u32_make_addr_u8_count_le (data, pa, (uint_t) lnt);
 
-cq_ipc = cq_ipc & ~((int32) nval & CQIPC_W1C);          /* W1C */
+cq_ipc = cq_ipc & ~((int32_t) nval & CQIPC_W1C);        /* W1C */
 if ((pa & 3) == 0)                                      /* low byte only */
     cq_ipc = ((cq_ipc & ~CQIPC_RW) | (val & CQIPC_RW)) & CQIPC_MASK;
 return;
@@ -585,7 +588,7 @@ return;
 
 /* I/O page routines */
 
-t_stat dbl_rd (int32 *data, int32 addr, int32 access)
+t_stat dbl_rd (int32_t *data, int32_t addr, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -596,7 +599,7 @@ t_stat dbl_rd (int32 *data, int32 addr, int32 access)
 return SCPE_OK;
 }
 
-t_stat dbl_wr (int32 data, int32 addr, int32 access)
+t_stat dbl_wr (int32_t data, int32_t addr, int32_t access)
 {
 cqipc_wr (addr, data, (access == WRITEB)? L_BYTE: L_WORD);
 return SCPE_OK;
@@ -608,9 +611,9 @@ return SCPE_OK;
    Write error: set DSER<0>, latch slave address, memory error interrupt
 */
 
-int32 cqmap_rd (int32 pa)
+int32_t cqmap_rd (int32_t pa)
 {
-int32 ma = (pa & CQMAPAMASK) + cq_mbr;                  /* mem addr */
+int32_t ma = (pa & CQMAPAMASK) + cq_mbr;                /* mem addr */
 
 if (ADDR_IS_MEM (ma))
     return M[ma >> 2];
@@ -619,10 +622,10 @@ MACH_CHECK (MCHK_READ);                                 /* mcheck */
 return 0;
 }
 
-void cqmap_wr (int32 pa, int32 val, int32 lnt)
+void cqmap_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 ma = (pa & CQMAPAMASK) + cq_mbr;                  /* mem addr */
-uint32 data = (uint32) val;
+int32_t ma = (pa & CQMAPAMASK) + cq_mbr;                /* mem addr */
+uint32_t data = (uint32_t) val;
 
 if (ADDR_IS_MEM (ma)) {
     if (lnt < L_LONG)
@@ -649,14 +652,14 @@ return;
    as that could create a recursive loop.
 */
 
-t_stat cqm_rd (int32 *dat, int32 pa, int32 md)
+t_stat cqm_rd (int32_t *dat, int32_t pa, int32_t md)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) md;
 
-int32 qa = pa & CQMAMASK;                               /* Qbus addr */
-uint32 ma;
+int32_t qa = pa & CQMAMASK;                             /* Qbus addr */
+uint32_t ma;
 
 if (qba_map_addr (qa, &ma)) {                           /* in map? */
     if (ADDR_IS_MEM (ma)) {                             /* real memory? */
@@ -674,18 +677,18 @@ MACH_CHECK (MCHK_READ);                                 /* err? mcheck */
 return SCPE_OK;
 }
 
-t_stat cqm_wr (int32 dat, int32 pa, int32 md)
+t_stat cqm_wr (int32_t dat, int32_t pa, int32_t md)
 {
-int32 qa = pa & CQMAMASK;                               /* Qbus addr */
-uint32 ma;
+int32_t qa = pa & CQMAMASK;                             /* Qbus addr */
+uint32_t ma;
 
 if (qba_map_addr (qa, &ma)) {                           /* in map? */
     if (ADDR_IS_MEM (ma)) {                             /* real memory? */
         if (md == WRITE) {                              /* word access? */
-            M[ma >> 2] = u32_put_addr_u16_le (M[ma >> 2], (uint32) dat, ma);
+            M[ma >> 2] = u32_put_addr_u16_le (M[ma >> 2], (uint32_t) dat, ma);
             }
         else {                                          /* byte access */
-            M[ma >> 2] = u32_put_addr_u8_le (M[ma >> 2], (uint32) dat, ma);
+            M[ma >> 2] = u32_put_addr_u8_le (M[ma >> 2], (uint32_t) dat, ma);
             }
         }                                               /* end if mem */
     else
@@ -701,13 +704,13 @@ return SCPE_OK;
 
 /* Map an address via the translation map */
 
-bool qba_map_addr (uint32 qa, uint32 *ma)
+bool qba_map_addr (uint32_t qa, uint32_t *ma)
 {
-int32 qblk = (qa >> VA_V_VPN);                          /* Qbus blk */
-int32 qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;       /* map entry */
+int32_t qblk = (qa >> VA_V_VPN);                        /* Qbus blk */
+int32_t qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;     /* map entry */
 
 if (ADDR_IS_MEM (qmma)) {                               /* legit? */
-    int32 qmap = M[qmma >> 2];                          /* get map */
+    int32_t qmap = M[qmma >> 2];                        /* get map */
     if (qmap & CQMAP_VLD) {                             /* valid? */
         *ma = ((qmap & CQMAP_PAG) << VA_V_VPN) + VA_GETOFF (qa);
         if (ADDR_IS_MEM (*ma))                          /* legit addr */
@@ -724,13 +727,13 @@ return false;
 
 /* Map an address via the translation map - console version (no status changes) */
 
-bool qba_map_addr_c (uint32 qa, uint32 *ma)
+bool qba_map_addr_c (uint32_t qa, uint32_t *ma)
 {
-int32 qblk = (qa >> VA_V_VPN);                          /* Qbus blk */
-int32 qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;       /* map entry */
+int32_t qblk = (qa >> VA_V_VPN);                        /* Qbus blk */
+int32_t qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;     /* map entry */
 
 if (ADDR_IS_MEM (qmma)) {                               /* legit? */
-    int32 qmap = M[qmma >> 2];                          /* get map */
+    int32_t qmap = M[qmma >> 2];                        /* get map */
     if (qmap & CQMAP_VLD) {                             /* valid? */
         *ma = ((qmap & CQMAP_PAG) << VA_V_VPN) + VA_GETOFF (qa);
         return true;                                    /* legit addr */
@@ -741,7 +744,7 @@ return false;
 
 /* Set master error */
 
-void cq_merr (int32 pa)
+void cq_merr (int32_t pa)
 {
 if (cq_dser & CQDSER_ERR)
     cq_dser = cq_dser | CQDSER_LST;
@@ -752,7 +755,7 @@ return;
 
 /* Set slave error */
 
-void cq_serr (int32 pa)
+void cq_serr (int32_t pa)
 {
 if (cq_dser & CQDSER_ERR)
     cq_dser = cq_dser | CQDSER_LST;
@@ -763,7 +766,7 @@ return;
 
 /* Reset I/O bus */
 
-void ioreset_wr (int32 data)
+void ioreset_wr (int32_t data)
 {
 /* Shared reset helper signature.
    This implementation does not use every parameter. */
@@ -790,7 +793,7 @@ t_stat qba_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 if (sim_switches & SWMASK ('P'))
     qba_powerup ();
@@ -809,10 +812,10 @@ return SCPE_OK;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf)
 {
-int32 i;
-uint32 ma, dat;
+int32_t i;
+uint32_t ma, dat;
 
 ba = ba & QBMAMASK;
 if ((ba | bc) & 03) {                                   /* check alignment */
@@ -821,7 +824,7 @@ if ((ba | bc) & 03) {                                   /* check alignment */
             if (!qba_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        *buf = (uint8)ReadB (ma);
+        *buf = (uint8_t)ReadB (ma);
         ma = ma + 1;
         }
     }
@@ -842,10 +845,10 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf)
 {
-int32 i;
-uint32 ma,dat;
+int32_t i;
+uint32_t ma,dat;
 
 ba = ba & QBMAMASK & ~01;
 bc = bc & ~01;
@@ -855,7 +858,7 @@ if ((ba | bc) & 03) {                                   /* check alignment */
             if (!qba_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        *buf = (uint16)ReadW (ma);
+        *buf = (uint16_t)ReadW (ma);
         ma = ma + 2;
         }
     }
@@ -874,10 +877,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
+int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf)
 {
-int32 i;
-uint32 ma, dat;
+int32_t i;
+uint32_t ma, dat;
 
 ba = ba & QBMAMASK;
 if ((ba | bc) & 03) {                                   /* check alignment */
@@ -896,10 +899,10 @@ else {
             if (!qba_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                        /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);         /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);        /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);          /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -907,10 +910,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
+int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf)
 {
-int32 i;
-uint32 ma, dat;
+int32_t i;
+uint32_t ma, dat;
 
 ba = ba & QBMAMASK & ~01;
 bc = bc & ~01;
@@ -930,8 +933,8 @@ else {
             if (!qba_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                        /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);          /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -941,19 +944,19 @@ return 0;
 
 /* Memory examine via map (word only) */
 
-t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 qa = (uint32) exta, pa;
+uint32_t qa = (uint32_t) exta, pa;
 
 if ((vptr == NULL) || (qa >= CQMSIZE))
     return SCPE_ARG;
 if (qba_map_addr_c (qa, &pa) && ADDR_IS_MEM (pa)) {
-    *vptr = (uint32) ReadW (pa);
+    *vptr = (uint32_t) ReadW (pa);
     return SCPE_OK;
     }
 return SCPE_NXM;
@@ -961,19 +964,19 @@ return SCPE_NXM;
 
 /* Memory deposit via map (word only) */
 
-t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 qa = (uint32) exta, pa;
+uint32_t qa = (uint32_t) exta, pa;
 
 if (qa >= CQMSIZE)
     return SCPE_ARG;
 if (qba_map_addr_c (qa, &pa) && ADDR_IS_MEM (pa)) {
-    WriteW (pa, (int32) val);
+    WriteW (pa, (int32_t) val);
     return SCPE_OK;
     }
 return SCPE_NXM;
@@ -983,7 +986,7 @@ return SCPE_NXM;
 
 t_stat build_dib_tab (void)
 {
-int32 i;
+int32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;
@@ -1001,7 +1004,7 @@ return SCPE_OK;
 
 /* Show QBA virtual address */
 
-t_stat qba_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc)
+t_stat qba_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1010,10 +1013,10 @@ t_stat qba_show_virt (FILE *of, UNIT *uptr, int32 val, const void *desc)
 
 t_stat r;
 const char *cptr = (const char *) desc;
-uint32 qa, pa;
+uint32_t qa, pa;
 
 if (cptr) {
-    qa = (uint32) get_uint (cptr, 16, CQMSIZE - 1, &r);
+    qa = (uint32_t) get_uint (cptr, 16, CQMSIZE - 1, &r);
     if (r == SCPE_OK) {
         if (qba_map_addr_c (qa, &pa))
             fprintf (of, "Qbus %-X = physical %-X\n", qa, pa);
@@ -1027,19 +1030,19 @@ return SCPE_OK;
 
 /* Show QBA map register(s) */
 
-t_stat qba_show_map (FILE *of, UNIT *uptr, int32 val, const void *desc)
+t_stat qba_show_map (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-uint32 *qb_map = &M[cq_mbr >> 2];
+uint32_t *qb_map = &M[cq_mbr >> 2];
 
 return show_bus_map (of, (const char *)desc, qb_map, (CQMAPSIZE >> 2), "Qbus", CQMAP_VLD);
 }
 
-t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

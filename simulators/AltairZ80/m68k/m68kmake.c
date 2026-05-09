@@ -69,6 +69,8 @@ static const char g_version[] = "4.60";
 #include <ctype.h>
 #include <stdarg.h>
 
+#include "sim_types.h"
+
 
 
 /* ======================================================================== */
@@ -178,16 +180,16 @@ enum
 typedef struct
 {
 	char name[MAX_NAME_LENGTH];           /* opcode handler name */
-	unsigned char size;                   /* Size of operation */
+	uchar_t size;                         /* Size of operation */
 	char spec_proc[MAX_SPEC_PROC_LENGTH]; /* Special processing mode */
 	char spec_ea[MAX_SPEC_EA_LENGTH];     /* Specified effective addressing mode */
-	unsigned char bits;                   /* Number of significant bits (used for sorting the table) */
+	uchar_t bits;                         /* Number of significant bits (used for sorting the table) */
 	unsigned short op_mask;               /* Mask to apply for matching an opcode to a handler */
 	unsigned short op_match;              /* Value to match after masking */
 	char ea_allowed[EA_ALLOWED_LENGTH];   /* Effective addressing modes allowed */
 	char cpu_mode[NUM_CPUS];              /* User or supervisor mode */
 	char cpus[NUM_CPUS+1];                /* Allowed CPUs */
-	unsigned char cycles[NUM_CPUS];       /* cycles for 000, 010, 020, 030, 040 */
+	uchar_t cycles[NUM_CPUS];             /* cycles for 000, 010, 020, 030, 040 */
 } opcode_struct;
 
 
@@ -196,8 +198,8 @@ typedef struct
 {
 	char* fname_add;
 	char* ea_add;
-	unsigned int mask_add;
-	unsigned int match_add;
+	uint_t mask_add;
+	uint_t match_add;
 } ea_info_struct;
 
 
@@ -1096,7 +1098,7 @@ void populate_table(void)
 		/* Size */
 		ptr += skip_spaces(ptr);
 		ptr += check_atoi(ptr, &temp);
-		op->size = (unsigned char)temp;
+		op->size = (uchar_t)temp;
 
 		/* Special processing */
 		ptr += skip_spaces(ptr);
@@ -1136,7 +1138,7 @@ void populate_table(void)
 			{
 				op->cpus[i] = '0' + i;
 				ptr += check_atoi(ptr, &temp);
-				op->cycles[i] = (unsigned char)temp;
+				op->cycles[i] = (uchar_t)temp;
 			}
 		}
 

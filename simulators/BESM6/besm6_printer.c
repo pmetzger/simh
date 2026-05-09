@@ -26,7 +26,10 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
+#include <stdint.h>
+
 #include "besm6_defs.h"
+#include "sim_types.h"
 
 t_stat printer_event (UNIT *u);
 void offset_gost_write (int num, FILE *fout);
@@ -49,7 +52,7 @@ struct acpu_t {
     int curchar, feed, rampup;
     int strikes;
     int length;
-    unsigned char line[128][MAX_STRIKES];
+    uchar_t line[128][MAX_STRIKES];
 } acpu[2];
 
 #define PRN1_NOT_READY  (1<<19)
@@ -132,7 +135,7 @@ t_stat printer_detach (UNIT *u)
 /*
  * Управление двигателями, прогон
  */
-void printer_control (int num, uint32 cmd)
+void printer_control (int num, uint32_t cmd)
 {
     UNIT *u = &printer_unit[num];
     struct acpu_t * dev = acpu + num;
@@ -172,7 +175,7 @@ void printer_control (int num, uint32 cmd)
 /*
  * Управление молоточками
  */
-void printer_hammer (int num, int pos, uint32 mask)
+void printer_hammer (int num, int pos, uint32_t mask)
 {
     struct acpu_t * dev = acpu + num;
     while (mask) {
@@ -282,7 +285,7 @@ utf8_putc (unsigned short ch, FILE *fout)
 }
 
 unsigned short
-gost_to_unicode (unsigned char ch)
+gost_to_unicode (uchar_t ch)
 {
     return gost_latin ? gost_to_unicode_lat [ch] :
         gost_to_unicode_cyr [ch];
@@ -293,7 +296,7 @@ gost_to_unicode (unsigned char ch)
  * Convert to local encoding (UTF-8, KOI8-R, CP-1251, CP-866).
  */
 void
-gost_putc (unsigned char ch, FILE *fout)
+gost_putc (uchar_t ch, FILE *fout)
 {
     unsigned short u;
 

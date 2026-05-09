@@ -32,6 +32,8 @@
    additional information.
 */
 
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
@@ -101,24 +103,24 @@ typedef struct {
     PNP_INFO pnp;        /* Must be first    */
     TMLN *tmln;          /* TMLN pointer     */
     TMXR *tmxr;          /* TMXR pointer     */
-    int32 baud;          /* Baud rate        */
-    int32 txp;           /* Transmit Pending */
-    int32 dtr;           /* DTR Status       */
-    int32 ireg0;         /* In Register 0    */
-    int32 ireg1;         /* In Register 1    */
-    int32 oreg0;         /* Out Register 0   */
-    int32 oreg1;         /* Out Register 1   */
-    int32 oreg2;         /* Out Register 2   */
-    int32 oreg3;         /* Out Register 3   */
-    int32 intmsk;        /* Interrupt Mask   */
-    uint32 timer;        /* 50ms Timer       */
-    uint32 flags;        /* Original Flags   */
+    int32_t baud;        /* Baud rate        */
+    int32_t txp;         /* Transmit Pending */
+    int32_t dtr;         /* DTR Status       */
+    int32_t ireg0;       /* In Register 0    */
+    int32_t ireg1;       /* In Register 1    */
+    int32_t oreg0;       /* Out Register 0   */
+    int32_t oreg1;       /* Out Register 1   */
+    int32_t oreg2;       /* Out Register 2   */
+    int32_t oreg3;       /* Out Register 3   */
+    int32_t intmsk;      /* Interrupt Mask   */
+    uint32_t timer;      /* 50ms Timer       */
+    uint32_t flags;      /* Original Flags   */
 } HAYES_CTX;
 
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
 
 static const char* hayes_description(DEVICE *dptr);
@@ -127,12 +129,12 @@ static t_stat hayes_reset(DEVICE *dptr);
 static t_stat hayes_attach(UNIT *uptr, const char *cptr);
 static t_stat hayes_detach(UNIT *uptr);
 static t_stat hayes_config_line(UNIT *uptr);
-static t_stat hayes_set_dtr(UNIT *uptr, int32 flag);
-static int32 hayes_io(int32 addr, int32 io, int32 data);
-static int32 hayes_reg0(int32 io, int32 data);
-static int32 hayes_reg1(int32 io, int32 data);
-static int32 hayes_reg2(int32 io, int32 data);
-static int32 hayes_reg3(int32 io, int32 data);
+static t_stat hayes_set_dtr(UNIT *uptr, int32_t flag);
+static int32_t hayes_io(int32_t addr, int32_t io, int32_t data);
+static int32_t hayes_reg0(int32_t io, int32_t data);
+static int32_t hayes_reg1(int32_t io, int32_t data);
+static int32_t hayes_reg2(int32_t io, int32_t data);
+static int32_t hayes_reg3(int32_t io, int32_t data);
 
 /* Debug Flags */
 static DEBTAB hayes_dt[] = {
@@ -275,9 +277,9 @@ static t_stat hayes_reset(DEVICE *dptr)
 
 static t_stat hayes_svc(UNIT *uptr)
 {
-    int32 c,s,ireg1;
+    int32_t c,s,ireg1;
     t_stat r;
-    uint32 ms;
+    uint32_t ms;
 
     /* Check for new incoming connection */
     if (uptr->flags & UNIT_ATT) {
@@ -521,7 +523,7 @@ static t_stat hayes_config_line(UNIT *uptr)
     return r;
 }
 
-static t_stat hayes_set_dtr(UNIT *uptr, int32 flag)
+static t_stat hayes_set_dtr(UNIT *uptr, int32_t flag)
 {
     t_stat r = SCPE_IERR;
 
@@ -538,9 +540,9 @@ static t_stat hayes_set_dtr(UNIT *uptr, int32 flag)
     return r;
 }
 
-static int32 hayes_io(int32 addr, int32 io, int32 data)
+static int32_t hayes_io(int32_t addr, int32_t io, int32_t data)
 {
-    int32 r = 0;
+    int32_t r = 0;
 
     addr &= 0xff;
     data &= 0xff;
@@ -578,9 +580,9 @@ static int32 hayes_io(int32 addr, int32 io, int32 data)
 ** Input: Data
 ** Output: Data
 */
-static int32 hayes_reg0(int32 io, int32 data)
+static int32_t hayes_reg0(int32_t io, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     if (io == IO_RD) {
         r = hayes_ctx.ireg0;
@@ -602,9 +604,9 @@ static int32 hayes_reg0(int32 io, int32 data)
 ** Input: RI,CD,X,OE,FE,PE,TRE,RRF
 ** Output: X,X,X,PI,SBS,LS2,LS1,EPE
 */
-static int32 hayes_reg1(int32 io, int32 data)
+static int32_t hayes_reg1(int32_t io, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     if (io == IO_RD) {
         r = hayes_ctx.ireg1;
@@ -626,9 +628,9 @@ static int32 hayes_reg1(int32 io, int32 data)
 ** Input: N/A
 ** Output: OH,X,TIE,ST,BK,MS,TXE,BRS
 */
-static int32 hayes_reg2(int32 io, int32 data)
+static int32_t hayes_reg2(int32_t io, int32_t data)
 {
-    int32 oreg2;
+    int32_t oreg2;
 
     if (io == IO_WR) {
         oreg2 = hayes_ctx.oreg2;   /* Save previous value */
@@ -669,7 +671,7 @@ static int32 hayes_reg2(int32 io, int32 data)
 ** Input: N/A
 ** Output: N/A
 */
-static int32 hayes_reg3(int32 io, int32 data)
+static int32_t hayes_reg3(int32_t io, int32_t data)
 {
     /* Shared register handler signature.
        This implementation does not use every parameter. */

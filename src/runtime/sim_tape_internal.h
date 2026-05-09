@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "sim_defs.h"
@@ -79,11 +80,11 @@ typedef struct SIM_TAPE_TEST_FILE {
 } SIM_TAPE_TEST_FILE;
 
 /* Fill a DOS11 fallback filename field using the six-digit file count. */
-void sim_tape_dos11_fallback_name(char name[9], uint32 file_count);
+void sim_tape_dos11_fallback_name(char name[9], uint32_t file_count);
 
 /* Format a zero-padded decimal value into a fixed-width ANSI label field. */
 bool sim_tape_format_ansi_decimal(char *field, size_t field_size,
-                                    t_uint64 value);
+                                    uint64_t value);
 
 /* Classify text-vs-binary tape input and its line-ending shape. */
 int sim_tape_classify_file_contents(FILE *f, size_t *max_record_size,

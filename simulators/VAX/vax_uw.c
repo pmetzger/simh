@@ -33,6 +33,8 @@
     - 4.3BSD driver vs.c.
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_tmxr.h"
 
@@ -43,15 +45,15 @@
 #define DBG_FIB  0x0004
 
 t_stat uw_svc (UNIT *uptr);
-t_stat uw_wr (int32 data, int32 PA, int32 access);
-t_stat uw_rd (int32 *data, int32 PA, int32 access);
-int32 uw_inta (void);
+t_stat uw_wr (int32_t data, int32_t PA, int32_t access);
+t_stat uw_rd (int32_t *data, int32_t PA, int32_t access);
+int32_t uw_inta (void);
 t_stat uw_reset (DEVICE *dptr);
 t_stat uw_attach (UNIT *uptr, const char *cptr);
 t_stat uw_detach (UNIT *uptr);
 const char *uw_description (DEVICE *dptr);
 
-uint16 uw_csr[IOLN_UW];
+uint16_t uw_csr[IOLN_UW];
 
 #undef CSR_GO
 #undef CSR_IE
@@ -107,11 +109,11 @@ uint16 uw_csr[IOLN_UW];
 
 #define POLL_SLOW   100000 //Poll for connection every 100 ms.
 #define POLL_FAST     1000 //Poll for data every 1 ms.
-int32 uw_poll = POLL_SLOW;
+int32_t uw_poll = POLL_SLOW;
 
 //Max message size is 7.
-uint8 uw_message[7];
-uint8 uw_length;
+uint8_t uw_message[7];
+uint8_t uw_length;
 
 DEBTAB uw_debug[] = {
     { "REG",  DBG_REG,  "Register access" },
@@ -153,7 +155,7 @@ DEVICE uw_dev = {
     };
 
 
-static void uw_send(uint8 *data, int n) {
+static void uw_send(uint8_t *data, int n) {
 if (!uw_ldsc[0].conn)
     return;
 if (!(CSR & CSR_XMIT))
@@ -169,18 +171,18 @@ while(n > 0) {
 tmxr_poll_tx (&uw_desc);
 }
 
-static void uw_send_data(uint8 type, uint16 data)
+static void uw_send_data(uint8_t type, uint16_t data)
 {
-uint8 message[3];
+uint8_t message[3];
 message[0] = type;
 message[1] = data >> 8;
 message[2] = data & 0xFF;
 uw_send(message, sizeof message);
 }
 
-static void uw_send_csr(uint8 type, uint8 reg, uint16 data)
+static void uw_send_csr(uint8_t type, uint8_t reg, uint16_t data)
 {
-uint8 message[4];
+uint8_t message[4];
 message[0] = type;
 message[1] = reg;
 message[2] = data >> 8;
@@ -202,14 +204,14 @@ sim_debug (DBG_INT, &uw_dev, "Clear interupt\n");
 CLR_INT(UW);
 }
 
-t_stat uw_wr (int32 data, int32 pa, int32 access)
+t_stat uw_wr (int32_t data, int32_t pa, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-uint8 message;
-uint16 xmit_off = 0;
+uint8_t message;
+uint16_t xmit_off = 0;
 pa = (pa & 0x0F) >> 1;
 switch(pa) {
 case 0:
@@ -244,7 +246,7 @@ if(xmit_off) {
 return SCPE_OK;
 }
 
-t_stat uw_rd (int32 *data, int32 pa, int32 access)
+t_stat uw_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -256,7 +258,7 @@ sim_debug (DBG_REG, &uw_dev, "Read CSR%d: %04X\n", pa, *data);
 return SCPE_OK;
 }
 
-int32 uw_inta (void)
+int32_t uw_inta (void)
 {
 sim_debug (DBG_INT, &uw_dev, "Interrupt ack: %03o\n", IVR);
 return IVR;
@@ -264,9 +266,9 @@ return IVR;
 
 static void uw_receive(void)
 {
-uint32 addr;
-uint16 data16;
-uint8 data8;
+uint32_t addr;
+uint16_t data16;
+uint8_t data8;
 switch(uw_message[0]) {
 case FIBRE_XMIT_ON:
     sim_debug (DBG_FIB, &uw_dev, "Receive xmit on.\n");
@@ -359,12 +361,12 @@ t_stat uw_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 ch;
+int32_t ch;
 int i;
 
 i = tmxr_poll_conn (&uw_desc);
 if (i >= 0) {
-    uint8 message = FIBRE_XMIT_ON;
+    uint8_t message = FIBRE_XMIT_ON;
     sim_debug(DBG_FIB, &uw_dev, "Connect %d\n", i);
     uw_ldsc[i].rcve = 1;
     uw_ldsc[i].xmte = 1;

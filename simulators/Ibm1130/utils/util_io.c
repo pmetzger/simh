@@ -45,19 +45,21 @@
    using an intermediate buffer.
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
+#include "sim_types.h"
 #include "util_io.h"
 
-#define int32       int
 #define FLIP_SIZE   1024            /* make the flip buffer smaller for these utilities */
 
 static int sim_end = 1;         /* 1 = little-endian */
-static unsigned char sim_flip[FLIP_SIZE];
+static uchar_t sim_flip[FLIP_SIZE];
 static int end_tested = 0;
 
 void util_io_init (void)
 {
-    union {int32 i; char c[sizeof (int32)]; } end_test;
+    union {int32_t i; char c[sizeof (int32_t)]; } end_test;
 
     end_test.i = 1;                     /* test endian-ness */
     sim_end    = end_test.c[0];
@@ -67,8 +69,8 @@ void util_io_init (void)
 size_t fxread (void *bptr, size_t size, size_t count, FILE *fptr)
 {
     size_t c, j, nelem, nbuf, lcnt, total;
-    int32 i, k;
-    unsigned char *sptr, *dptr;
+    int32_t i, k;
+    uchar_t *sptr, *dptr;
 
     if (! end_tested)
         util_io_init();
@@ -111,8 +113,8 @@ size_t fxread (void *bptr, size_t size, size_t count, FILE *fptr)
 size_t fxwrite (void *bptr, size_t size, size_t count, FILE *fptr)
 {
     size_t c, j, nelem, nbuf, lcnt, total;
-    int32 i, k;
-    unsigned char *sptr, *dptr;
+    int32_t i, k;
+    uchar_t *sptr, *dptr;
 
     if (! end_tested)
         util_io_init();

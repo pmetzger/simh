@@ -31,6 +31,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 /* Memory adapter register 0 */
@@ -63,15 +65,15 @@
 #define MEM_SIZE_16K    (1u << 17)                       /* Board size (16k chips) */
 #define MEM_SIZE_64K    (1u << 19)                       /* Board size (64k chips) */
 
-#define MEM_BOARD_MASK(x,y)  ((1u << (uint32)(x/y)) - 1)
+#define MEM_BOARD_MASK(x,y)  ((1u << (uint32_t)(x/y)) - 1)
 
-uint32 mcsr0 = 0;
-uint32 mcsr1 = 0;
-uint32 mcsr2 = 0;
+uint32_t mcsr0 = 0;
+uint32_t mcsr1 = 0;
+uint32_t mcsr2 = 0;
 
 t_stat mctl_reset (DEVICE *dptr);
-t_stat mctl_rdreg (int32 *val, int32 pa, int32 mode);
-t_stat mctl_wrreg (int32 val, int32 pa, int32 mode);
+t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
+t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
 const char *mctl_description (DEVICE *dptr);
 
 /* MCTLx data structures
@@ -116,13 +118,13 @@ DEVICE mctl_dev = {
 
 /* Memory controller register read */
 
-t_stat mctl_rdreg (int32 *val, int32 pa, int32 lnt)
+t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 /* Nexus register read signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 ofs;
+int32_t ofs;
 ofs = NEXUS_GETOFS (pa);                                /* get offset */
 
 switch (ofs) {                                          /* case on offset */
@@ -150,13 +152,13 @@ return SCPE_OK;
 
 /* Memory controller register write */
 
-t_stat mctl_wrreg (int32 val, int32 pa, int32 lnt)
+t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 /* Nexus register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 ofs;
+int32_t ofs;
 
 ofs = NEXUS_GETOFS (pa);                                /* get offset */
 
@@ -183,7 +185,7 @@ return SCPE_OK;
 
 /* Used by CPU and loader */
 
-void rom_wr_B (int32 pa, int32 val)
+void rom_wr_B (int32_t pa, int32_t val)
 {
 /* Shared ROM write hook.
    This model does not use every parameter. */
@@ -216,7 +218,7 @@ const char *mctl_description (DEVICE *dptr)
 return "memory controller";
 }
 
-t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -224,16 +226,16 @@ t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
 (void) val;
 (void) desc;
 
-uint32 memsize = (uint32)(MEMSIZE>>20);
-uint32 baseaddr = 0;
-uint32 slot = 6;
+uint32_t memsize = (uint32_t)(MEMSIZE>>20);
+uint32_t baseaddr = 0;
+uint32_t slot = 6;
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         {  1, "MS730-CA M8750"},
         {  0, NULL}};
-int32 bd;
+int32_t bd;
 
 while (memsize) {
     bd = 0;

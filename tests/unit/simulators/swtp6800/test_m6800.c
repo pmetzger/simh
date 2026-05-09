@@ -12,31 +12,31 @@
  * sim_instr() accesses memory through the SWTP6800 board callbacks. These
  * fakes provide a flat byte-addressed memory image for CPU-only tests.
  */
-static uint8 test_memory[MAXMEMSIZE];
+static uint8_t test_memory[MAXMEMSIZE];
 REG *sim_PC = &m6800_reg[0];
 DEVICE *sim_devices[] = {&m6800_dev, NULL};
 char sim_name[] = "SWTP6800";
 const char *sim_stop_messages[SCPE_BASE];
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
-int32 CPU_BD_get_mbyte(int32 addr)
+int32_t CPU_BD_get_mbyte(int32_t addr)
 {
     return test_memory[addr & ADDRMASK];
 }
 
-int32 CPU_BD_get_mword(int32 addr)
+int32_t CPU_BD_get_mword(int32_t addr)
 {
     return ((CPU_BD_get_mbyte(addr) << 8) |
             CPU_BD_get_mbyte((addr + 1) & ADDRMASK)) &
            ADDRMASK;
 }
 
-void CPU_BD_put_mbyte(int32 addr, int32 val)
+void CPU_BD_put_mbyte(int32_t addr, int32_t val)
 {
     test_memory[addr & ADDRMASK] = val & BYTEMASK;
 }
 
-void CPU_BD_put_mword(int32 addr, int32 val)
+void CPU_BD_put_mword(int32_t addr, int32_t val)
 {
     CPU_BD_put_mbyte(addr, val >> 8);
     CPU_BD_put_mbyte((addr + 1) & ADDRMASK, val);

@@ -223,6 +223,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
 #include "hp_disclib.h"
@@ -369,10 +371,10 @@ static CNTLR_VARS mac_cntlr =                   /* MAC controller */
 static CNTLR_INTRF ds_interface;
 static t_stat      ds_service     (UNIT   *uptr);
 static t_stat      ds_reset       (DEVICE *dptr);
-static t_stat      ds_boot        (int32  unit_number, DEVICE *dptr);
+static t_stat      ds_boot        (int32_t unit_number, DEVICE *dptr);
 static t_stat      ds_attach      (UNIT   *uptr, const char *cptr);
 static t_stat      ds_detach      (UNIT   *uptr);
-static t_stat      ds_load_unload (UNIT   *uptr, int32 value, const char *cptr, void *desc);
+static t_stat      ds_load_unload (UNIT   *uptr, int32_t value, const char *cptr, void *desc);
 
 
 /* Interface local utility routines */
@@ -864,7 +866,7 @@ static t_stat ds_service (UNIT *uptr)
 dprintf (ds_dev, DL_DEB_SERV, (uptr == &ds_cntlr
                                  ? "Controller unit service entered\n"
                                  : "Unit %d service entered\n"),
-         (int32) (uptr - &ds_unit [0]));
+         (int32_t) (uptr - &ds_unit [0]));
 
 call_controller (uptr);                                 /* call the controller */
 
@@ -921,7 +923,7 @@ return SCPE_OK;
    The cold load procedure always uses unit 0.
 */
 
-static t_stat ds_boot (int32 unit_number, DEVICE *dptr)
+static t_stat ds_boot (int32_t unit_number, DEVICE *dptr)
 {
 /* Generic simulator boot signature.
    This implementation does not use every parameter. */
@@ -1029,7 +1031,7 @@ else                                                    /* otherwise */
    becomes idle.
 */
 
-static t_stat ds_load_unload (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat ds_load_unload (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

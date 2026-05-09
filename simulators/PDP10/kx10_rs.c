@@ -22,6 +22,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_RS
@@ -157,10 +159,10 @@
 
 
 struct drvtyp {
-    int32       sect;                                   /* sectors */
-    int32       surf;                                   /* surfaces */
-    int32       size;                                   /* #blocks */
-    int32       devtype;                                /* device type */
+    int32_t     sect;                                   /* sectors */
+    int32_t     surf;                                   /* surfaces */
+    int32_t     size;                                   /* #blocks */
+    int32_t     devtype;                                /* device type */
     };
 
 struct drvtyp rs_drv_tab[] = {
@@ -171,17 +173,17 @@ struct drvtyp rs_drv_tab[] = {
 
 
 uint64        rs_buf[NUM_DEVS_RS][RS_NUMWD];
-int           rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data);
-int           rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data);
+int           rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data);
+int           rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t *data);
 void          rs_rst(DEVICE *dptr);
 t_stat        rs_svc(UNIT *);
-t_stat        rs_boot(int32, DEVICE *);
+t_stat        rs_boot(int32_t, DEVICE *);
 void          rs_ini(UNIT *, bool);
 t_stat        rs_reset(DEVICE *);
 t_stat        rs_attach(UNIT *, const char *);
 t_stat        rs_detach(UNIT *);
-t_stat        rs_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat        rs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat        rs_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat        rs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                     const char *cptr);
 const char    *rs_description (DEVICE *dptr);
 
@@ -274,7 +276,7 @@ rs_rst(DEVICE *dptr)
 }
 
 int
-rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
+rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data) {
     int            i;
     int            unit = rhc->drive;
     UNIT          *uptr = &dptr->units[unit];
@@ -379,10 +381,10 @@ rs_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
 }
 
 int
-rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data) {
+rs_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t *data) {
     int            unit = rhc->drive;
     UNIT          *uptr = &dptr->units[unit];
-    uint32        temp = 0;
+    uint32_t      temp = 0;
     int           i;
 
     if ((uptr->flags & UNIT_DIS) != 0)
@@ -592,7 +594,7 @@ wr_end:
 
 
 t_stat
-rs_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+rs_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -628,14 +630,14 @@ rs_reset(DEVICE * rstr)
 
 /* Boot from given device */
 t_stat
-rs_boot(int32 unit_num, DEVICE * rptr)
+rs_boot(int32_t unit_num, DEVICE * rptr)
 {
     UNIT         *uptr = &rptr->units[unit_num];
     int           ctlr = GET_CNTRL_RH(uptr->flags);
     struct rh_if *rhc;
     DEVICE       *dptr;
-    uint32        addr;
-    uint32        ptr = 0;
+    uint32_t      addr;
+    uint32_t      ptr = 0;
     uint64        word;
     int           wc;
 
@@ -712,7 +714,7 @@ t_stat rs_detach (UNIT *uptr)
     return detach_unit (uptr);
 }
 
-t_stat rs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

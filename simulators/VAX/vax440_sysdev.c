@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
 #include "sim_ether.h"
@@ -53,7 +55,7 @@
 #endif /* DONT_USE_INTERNAL_ROM */
 
 
-t_stat vax460_boot (int32 flag, const char *ptr);
+t_stat vax460_boot (int32_t flag, const char *ptr);
 
 /* Special boot command, overrides regular boot */
 
@@ -130,39 +132,39 @@ CTAB vax460_cmd[] = {
 #define DMAMAP_PAG      0x0000FFFF                      /* mem page */
 #endif
 
-extern int32 tmr_int;
+extern int32_t tmr_int;
 extern DEVICE lk_dev, vs_dev;
-extern uint32 *rom;
+extern uint32_t *rom;
 
-uint32 *isdn = NULL;                                    /* ISDN/audio registers */
-uint32 *invfl = NULL;                                   /* invalidate filter */
-uint32 *cache2ds = NULL;                                /* cache 2 data store */
-uint32 *cache2ts = NULL;                                /* cache 2 tag store */
-int32 conisp, conpc, conpsl;                            /* console reg */
-int32 ka_hltcod = 0;                                    /* KA460 halt code */
-int32 ka_mapbase = 0;                                   /* KA460 map base */
-int32 ka_cfgtst = 0x90;                                 /* KA460 config/test */
-int32 ka_led = 0;                                       /* KA460 diag display */
-int32 ka_parctl = 0xF0;                                 /* KA460 parity control */
-int32 mem_cnfg = 0;
-int32 CADR = 0;                                         /* cache disable reg */
-int32 SCCR = 0;                                         /* secondary cache control */
-int32 sys_model = 0;                                    /* MicroVAX or VAXstation */
-int32 int_req[IPL_HLVL] = { 0 };                        /* interrupt requests */
-int32 int_mask = 0;                                     /* interrupt mask */
-uint32 tmr_tir = 0;                                     /* curr interval */
+uint32_t *isdn = NULL;                                  /* ISDN/audio registers */
+uint32_t *invfl = NULL;                                 /* invalidate filter */
+uint32_t *cache2ds = NULL;                              /* cache 2 data store */
+uint32_t *cache2ts = NULL;                              /* cache 2 tag store */
+int32_t conisp, conpc, conpsl;                          /* console reg */
+int32_t ka_hltcod = 0;                                  /* KA460 halt code */
+int32_t ka_mapbase = 0;                                 /* KA460 map base */
+int32_t ka_cfgtst = 0x90;                               /* KA460 config/test */
+int32_t ka_led = 0;                                     /* KA460 diag display */
+int32_t ka_parctl = 0xF0;                               /* KA460 parity control */
+int32_t mem_cnfg = 0;
+int32_t CADR = 0;                                       /* cache disable reg */
+int32_t SCCR = 0;                                       /* secondary cache control */
+int32_t sys_model = 0;                                  /* MicroVAX or VAXstation */
+int32_t int_req[IPL_HLVL] = { 0 };                      /* interrupt requests */
+int32_t int_mask = 0;                                   /* interrupt mask */
+uint32_t tmr_tir = 0;                                   /* curr interval */
 
 t_stat sysd_reset (DEVICE *dptr);
 const char *sysd_description (DEVICE *dptr);
-int32 ka_rd (int32 pa);
-void ka_wr (int32 pa, int32 val, int32 lnt);
-int32 con_halt (int32 code, int32 cc);
+int32_t ka_rd (int32_t pa);
+void ka_wr (int32_t pa, int32_t val, int32_t lnt);
+int32_t con_halt (int32_t code, int32_t cc);
 
-extern int32 nar_rd (int32 pa);
-extern int32 dz_rd (int32 pa);
-extern int32 xs_rd (int32 pa);
-extern void dz_wr (int32 pa, int32 val, int32 lnt);
-extern void xs_wr (int32 pa, int32 val, int32 lnt);
+extern int32_t nar_rd (int32_t pa);
+extern int32_t dz_rd (int32_t pa);
+extern int32_t xs_rd (int32_t pa);
+extern void dz_wr (int32_t pa, int32_t val, int32_t lnt);
+extern void xs_wr (int32_t pa, int32_t val, int32_t lnt);
 
 UNIT sysd_unit = { UDATA (NULL, 0, 0) };
 
@@ -193,12 +195,12 @@ DEVICE sysd_dev = {
 
 /* Find highest priority outstanding interrupt */
 
-int32 eval_int (void)
+int32_t eval_int (void)
 {
-int32 ipl = PSL_GETIPL (PSL);
-int32 i, t;
+int32_t ipl = PSL_GETIPL (PSL);
+int32_t i, t;
 
-static const int32 sw_int_mask[IPL_SMAX] = {
+static const int32_t sw_int_mask[IPL_SMAX] = {
     0xFFFE, 0xFFFC, 0xFFF8, 0xFFF0,                     /* 0 - 3 */
     0xFFE0, 0xFFC0, 0xFF80, 0xFF00,                     /* 4 - 7 */
     0xFE00, 0xFC00, 0xF800, 0xF000,                     /* 8 - B */
@@ -226,10 +228,10 @@ return 0;
 
 /* Return vector for highest priority hardware interrupt at IPL lvl */
 
-int32 get_vector (int32 lvl)
+int32_t get_vector (int32_t lvl)
 {
-int32 i;
-int32 int_unmask = int_req[0] & int_mask;
+int32_t i;
+int32_t int_unmask = int_req[0] & int_mask;
 
 if (lvl == IPL_CLK) {                                   /* clock? */
     tmr_int = 0;                                        /* clear req */
@@ -249,11 +251,11 @@ return 0;
 
 /* Map an address via the translation map */
 
-static bool dma_map_addr (uint32 da, uint32 *ma)
+static bool dma_map_addr (uint32_t da, uint32_t *ma)
 {
-int32 dblk = (da >> VA_V_VPN);                          /* DMA blk */
+int32_t dblk = (da >> VA_V_VPN);                        /* DMA blk */
 if (dblk <= DMANMAPR) {
-    int32 dmap = ReadL (ka_mapbase + (dblk << 2));
+    int32_t dmap = ReadL (ka_mapbase + (dblk << 2));
     if (dmap & DMAMAP_VLD) {                            /* valid? */
         *ma = ((dmap & DMAMAP_PAG) << VA_V_VPN) + VA_GETOFF (da);
         if (ADDR_IS_MEM (*ma))                          /* legit addr */
@@ -271,10 +273,10 @@ return false;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf)
 {
-int32 i;
-uint32 ma, dat;
+int32_t i;
+uint32_t ma, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
@@ -303,10 +305,10 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf)
 {
-int32 i;
-uint32 ma,dat;
+int32_t i;
+uint32_t ma,dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -335,10 +337,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_WriteB (uint32_t ba, int32_t bc, uint8_t *buf)
 {
-int32 i;
-uint32 ma, dat;
+int32_t i;
+uint32_t ma, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = ma = 0; i < bc; i++, buf++) {              /* by bytes */
@@ -356,10 +358,10 @@ else {
             if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                        /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);         /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);        /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);          /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -367,10 +369,10 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_WriteW (uint32_t ba, int32_t bc, uint16_t *buf)
 {
-int32 i;
-uint32 ma, dat;
+int32_t i;
+uint32_t ma, dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -390,8 +392,8 @@ else {
             if (!dma_map_addr (ba + i, &ma))            /* inv or NXM? */
                 return (bc - i);
             }
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                        /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);          /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -399,32 +401,32 @@ else {
 return 0;
 }
 
-static int32 isdn_rd (int32 pa)
+static int32_t isdn_rd (int32_t pa)
 {
-int32 rg = (pa - 0x200D0000) >> 2;
+int32_t rg = (pa - 0x200D0000) >> 2;
 return isdn[rg];
 }
 
-static void isdn_wr (int32 pa, int32 val, int32 lnt)
+static void isdn_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 rg = (pa - 0x200D0000) >> 2;
+int32_t rg = (pa - 0x200D0000) >> 2;
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
+    int32_t sc = (pa & 3) << 3;                         /* merge */
+    int32_t mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
     isdn[rg] = ((val & mask) << sc) | (isdn[rg] & ~(mask << sc));
     }
 else isdn[rg] = val;
 }
 
-static int32 cfg_rd (int32 pa)
+static int32_t cfg_rd (int32_t pa)
 {
 /* Register read signature.
    This implementation does not use every parameter. */
 (void) pa;
 
-int32 val = ka_cfgtst;
+int32_t val = ka_cfgtst;
 t_addr mem = MEMSIZE;
-uint32 sc;
+uint32_t sc;
 
 #if defined (VAX_46) || defined (VAX_47)
 mem -= (1u << 23);                                      /* 8MB on system board */
@@ -450,7 +452,7 @@ for (sc = 1; mem > 0; sc++) {
 return val;
 }
 
-static void ioreset_wr (int32 pa, int32 val, int32 lnt)
+static void ioreset_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -463,9 +465,9 @@ reset_all (6);
 
 /* Read KA460 specific IPR's */
 
-int32 ReadIPR (int32 rg)
+int32_t ReadIPR (int32_t rg)
 {
-int32 val;
+int32_t val;
 
 switch (rg) {
 
@@ -530,7 +532,7 @@ return val;
 
 /* Write KA460 specific IPR's */
 
-void WriteIPR (int32 rg, int32 val)
+void WriteIPR (int32_t rg, int32_t val)
 {
 switch (rg) {
 
@@ -585,75 +587,75 @@ switch (rg) {
 return;
 }
 
-static int32 invfl_rd (int32 pa)
+static int32_t invfl_rd (int32_t pa)
 {
-int32 rg = (pa - 0x20200000) >> 2;
+int32_t rg = (pa - 0x20200000) >> 2;
 return invfl[rg];
 }
 
-static void invfl_wr (int32 pa, int32 val, int32 lnt)
+static void invfl_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 rg = (pa - 0x20200000) >> 2;
+int32_t rg = (pa - 0x20200000) >> 2;
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
+    int32_t sc = (pa & 3) << 3;                         /* merge */
+    int32_t mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
     invfl[rg] = ((val & mask) << sc) | (invfl[rg] & ~(mask << sc));
     }
 else invfl[rg] = val;
 }
 
-static int32 cache2ds_rd (int32 pa)
+static int32_t cache2ds_rd (int32_t pa)
 {
-int32 rg = (pa - 0x08000000) >> 2;
+int32_t rg = (pa - 0x08000000) >> 2;
 return cache2ds[rg];
 }
 
-static void cache2ds_wr (int32 pa, int32 val, int32 lnt)
+static void cache2ds_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 rg = (pa - 0x08000000) >> 2;
+int32_t rg = (pa - 0x08000000) >> 2;
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
+    int32_t sc = (pa & 3) << 3;                         /* merge */
+    int32_t mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
     cache2ds[rg] = ((val & mask) << sc) | (cache2ds[rg] & ~(mask << sc));
     }
 else cache2ds[rg] = val;
 }
 
-static int32 cache2ts_rd (int32 pa)
+static int32_t cache2ts_rd (int32_t pa)
 {
-int32 rg = (pa - 0x22000000) >> 2;
+int32_t rg = (pa - 0x22000000) >> 2;
 return cache2ts[rg];
 }
 
-static void cache2ts_wr (int32 pa, int32 val, int32 lnt)
+static void cache2ts_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 rg = (pa - 0x22000000) >> 2;
+int32_t rg = (pa - 0x22000000) >> 2;
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
+    int32_t sc = (pa & 3) << 3;                         /* merge */
+    int32_t mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
     cache2ts[rg] = ((val & mask) << sc) | (cache2ts[rg] & ~(mask << sc));
     }
 else cache2ts[rg] = val;
 }
 
-static int32 dma_map_rd (int32 pa)
+static int32_t dma_map_rd (int32_t pa)
 {
-int32 rg = (pa - DMABASE);
-int32 val = ReadL (ka_mapbase + rg);
+int32_t rg = (pa - DMABASE);
+int32_t val = ReadL (ka_mapbase + rg);
 return val;
 }
 
-static void dma_map_wr (int32 pa, int32 val, int32 lnt)
+static void dma_map_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - DMABASE);
+int32_t rg = (pa - DMABASE);
 WriteL (ka_mapbase + rg, val);
 }
 
-static int32 sccr_rd (int32 pa)
+static int32_t sccr_rd (int32_t pa)
 {
 /* Register read signature.
    This implementation does not use every parameter. */
@@ -662,19 +664,19 @@ static int32 sccr_rd (int32 pa)
 return SCCR & SCCR_RD;
 }
 
-static void sccr_wr (int32 pa, int32 val, int32 lnt)
+static void sccr_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 if (lnt < L_LONG) {                                     /* byte or word? */
-    int32 sc = (pa & 3) << 3;                           /* merge */
-    int32 mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
+    int32_t sc = (pa & 3) << 3;                         /* merge */
+    int32_t mask = (lnt == L_WORD)? 0xFFFF: 0xFF;
     SCCR = (((val & mask) << sc) | (SCCR & ~(mask << sc))) & SCCR_WR;
     }
 else SCCR = val & SCCR_WR;
 }
 
-static int32 memrg_rd (int32 pa)
+static int32_t memrg_rd (int32_t pa)
 {
-int32 rg = (pa - 0x20101800) >> 2;
+int32_t rg = (pa - 0x20101800) >> 2;
 
 switch (rg) {
 
@@ -694,13 +696,13 @@ switch (rg) {
 return 0;
 }
 
-static void memrg_wr (int32 pa, int32 val, int32 lnt)
+static void memrg_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - 0x20101800) >> 2;
+int32_t rg = (pa - 0x20101800) >> 2;
 
 switch (rg) {
 
@@ -720,7 +722,7 @@ switch (rg) {
 return;
 }
 
-static int32 null_rd (int32 pa)
+static int32_t null_rd (int32_t pa)
 {
 /* Register read signature.
    This implementation does not use every parameter. */
@@ -729,7 +731,7 @@ static int32 null_rd (int32 pa)
 return 0;
 }
 
-static void null_wr (int32 pa, int32 val, int32 lnt)
+static void null_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -746,10 +748,10 @@ static void null_wr (int32 pa, int32 val, int32 lnt)
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
-    int32       (*read)(int32 pa);                      /* read routine */
-    void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
+    uint32_t    low;                                    /* low addr */
+    uint32_t    high;                                   /* high addr */
+    int32_t     (*read)(int32_t pa);                    /* read routine */
+    void        (*write)(int32_t pa, int32_t val, int32_t lnt); /* write routine */
     };
 
 struct reglink regtable[] = {
@@ -783,7 +785,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32_t ReadReg (uint32_t pa, int32_t lnt)
 {
 /* Register read signature.
    This implementation does not use every parameter. */
@@ -807,7 +809,7 @@ return 0xFFFFFFFF;
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32_t ReadRegU (uint32_t pa, int32_t lnt)
 {
 /* Unaligned register read signature.
    This implementation does not use every parameter. */
@@ -826,7 +828,7 @@ return ReadReg (pa & ~03, L_LONG);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32_t val, int32_t lnt)
 {
 struct reglink *p;
 
@@ -849,10 +851,10 @@ return;
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32_t val, int32_t lnt)
 {
-int32 sc = (pa & 03) << 3;
-int32 dat = ReadReg (pa & ~03, L_LONG);
+int32_t sc = (pa & 03) << 3;
+int32_t dat = ReadReg (pa & ~03, L_LONG);
 
 dat = (dat & ~(insert[lnt] << sc)) | ((val & insert[lnt]) << sc);
 WriteReg (pa & ~03, dat, L_LONG);
@@ -861,9 +863,9 @@ return;
 
 /* KA460 registers */
 
-int32 ka_rd (int32 pa)
+int32_t ka_rd (int32_t pa)
 {
-int32 rg = (pa - KABASE) >> 2;
+int32_t rg = (pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -889,13 +891,13 @@ switch (rg) {
 return 0;
 }
 
-void ka_wr (int32 pa, int32 val, int32 lnt)
+void ka_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - KABASE) >> 2;
+int32_t rg = (pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -940,14 +942,14 @@ return;
 
 /* Machine check */
 
-int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
+int32_t machine_check (int32_t p1, int32_t opc, int32_t cc, int32_t delta)
 {
 /* VAX machine-check handler signature.
    This implementation does not use every parameter. */
 (void) opc;
 (void) delta;
 
-int32 p2, acc;
+int32_t p2, acc;
 
 if (in_ie) {
     in_ie = 0;
@@ -973,9 +975,9 @@ return cc;
 
 /* Console entry */
 
-int32 con_halt (int32 code, int32 cc)
+int32_t con_halt (int32_t code, int32_t cc)
 {
-int32 temp;
+int32_t temp;
 
 conisp = IS;                                            /* save ISP */
 conpc = PC;                                             /* save PC */
@@ -1000,7 +1002,7 @@ return 0;                                               /* new cc = 0 */
 
 */
 
-t_stat vax460_boot (int32 flag, const char *ptr)
+t_stat vax460_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -1013,7 +1015,7 @@ return run_cmd (flag, "CPU");
 
 /* Bootstrap */
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1052,19 +1054,19 @@ ka_parctl = 0xF0;
 tmr_tir = 0;
 
 if (isdn == NULL)                                       /* dummy mem for ISDN */
-    isdn = (uint32 *) calloc (0x4000 >> 2, sizeof (uint32));
+    isdn = (uint32_t *) calloc (0x4000 >> 2, sizeof (uint32_t));
 if (isdn == NULL)
     return SCPE_MEM;
 if (invfl == NULL)                                      /* dummy mem for invalidate filter */
-    invfl = (uint32 *) calloc (0x8000, sizeof (uint32));
+    invfl = (uint32_t *) calloc (0x8000, sizeof (uint32_t));
 if (invfl == NULL)
     return SCPE_MEM;
 if (cache2ds == NULL)                                   /* dummy mem for cache data store */
-    cache2ds = (uint32 *) calloc (0x10002, sizeof (uint32));
+    cache2ds = (uint32_t *) calloc (0x10002, sizeof (uint32_t));
 if (cache2ds == NULL)
     return SCPE_MEM;
 if (cache2ts == NULL)                                   /* dummy mem for cache tag store */
-    cache2ts = (uint32 *) calloc (0x10000, sizeof (uint32));
+    cache2ts = (uint32_t *) calloc (0x10000, sizeof (uint32_t));
 if (cache2ts == NULL)
     return SCPE_MEM;
 
@@ -1082,7 +1084,7 @@ const char *sysd_description (DEVICE *dptr)
 return "system devices";
 }
 
-t_stat auto_config (const char *name, int32 nctrl)
+t_stat auto_config (const char *name, int32_t nctrl)
 {
 /* Generic autoconfiguration signature.
    This implementation does not use every parameter. */
@@ -1097,7 +1099,7 @@ t_stat build_dib_tab (void)
 return SCPE_OK;
 }
 
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1158,7 +1160,7 @@ if (strcmp (sim_name, model) != 0)
 return SCPE_OK;
 }
 
-t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */

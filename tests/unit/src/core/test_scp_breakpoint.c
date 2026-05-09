@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -10,7 +11,7 @@
 #include "test_simh_personality.h"
 #include "test_support.h"
 
-t_stat ssh_break(FILE *st, const char *cptr, int32 flg);
+t_stat ssh_break(FILE *st, const char *cptr, int32_t flg);
 
 static BRKTYPTAB breakpoint_types[] = {
     BRKTYPE('A', "Alpha breakpoint"),

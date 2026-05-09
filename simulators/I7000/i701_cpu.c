@@ -79,6 +79,8 @@
         i701_sys.c      add sim_devices table entry
 */
 
+#include <stdint.h>
+
 #include "i7090_defs.h"
 
 #define HIST_XCT        1       /* instruction */
@@ -91,53 +93,53 @@
 
 struct InstHistory
 {
-    t_int64             ac;
-    t_int64             mq;
-    t_int64             op;
-    t_int64             sr;
-    uint32              ic;
-    uint16              ea;
+    int64_t             ac;
+    int64_t             mq;
+    int64_t             op;
+    int64_t             sr;
+    uint32_t            ic;
+    uint16_t            ea;
 };
 
 t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr,
-                           int32 sw);
+                           int32_t sw);
 t_stat              cpu_dep(t_value val, t_addr addr, UNIT * uptr,
-                            int32 sw);
+                            int32_t sw);
 t_stat              cpu_reset(DEVICE * dptr);
-t_stat              cpu_set_size(UNIT * uptr, int32 val, const char *cptr,
+t_stat              cpu_set_size(UNIT * uptr, int32_t val, const char *cptr,
                                  void *desc);
-t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32 val,
+t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32_t val,
                                   const void *desc);
-t_stat              cpu_set_hist(UNIT * uptr, int32 val, const char *cptr,
+t_stat              cpu_set_hist(UNIT * uptr, int32_t val, const char *cptr,
                                  void *desc);
-t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *cpu_description (DEVICE *dptr);
 
 
-t_uint64            M[MAXMEMSIZE] = { 0 };      /* memory */
-t_uint64            AC, MQ;                     /* registers */
-uint16              IC;                         /* program counter */
-uint8               SL;                         /* Sense lights */
-uint8               SW = 0;                     /* Sense switch */
-uint8               dcheck;                     /* Divide check */
-uint8               acoflag;                    /* AC Overflow */
-uint8               ihold = 0;                  /* Hold interrupts */
-uint16              iotraps;                    /* IO trap flags */
-t_uint64            ioflags;                    /* Trap enable flags */
-uint8               iocheck;
-uint8               iowait;                     /* Waiting on io */
-uint8               dualcore;                   /* Set to true if dual core in
+uint64_t            M[MAXMEMSIZE] = { 0 };      /* memory */
+uint64_t            AC, MQ;                     /* registers */
+uint16_t            IC;                         /* program counter */
+uint8_t             SL;                         /* Sense lights */
+uint8_t             SW = 0;                     /* Sense switch */
+uint8_t             dcheck;                     /* Divide check */
+uint8_t             acoflag;                    /* AC Overflow */
+uint8_t             ihold = 0;                  /* Hold interrupts */
+uint16_t            iotraps;                    /* IO trap flags */
+uint64_t            ioflags;                    /* Trap enable flags */
+uint8_t             iocheck;
+uint8_t             iowait;                     /* Waiting on io */
+uint8_t             dualcore;                   /* Set to true if dual core in
                                                          use */
-uint16              dev_pulse[NUM_CHAN];        /* SPRA device pulses */
+uint16_t            dev_pulse[NUM_CHAN];        /* SPRA device pulses */
 int                 cycle_time = 120;           /* Cycle time of 12us */
 
 /* History information */
-int32               hst_p = 0;                  /* History pointer */
-int32               hst_lnt = 0;                /* History length */
+int32_t             hst_p = 0;                  /* History pointer */
+int32_t             hst_lnt = 0;                /* History length */
 struct InstHistory *hst = NULL;                 /* History stack */
-extern uint32       drum_addr;
-uint32              hsdrm_addr;
+extern uint32_t     drum_addr;
+uint32_t            hsdrm_addr;
 extern UNIT         chan_unit[];
 
 #undef  AMASK           /* Change definition of AMASK here */
@@ -191,12 +193,12 @@ t_stat
 sim_instr(void)
 {
     t_stat          reason;
-    t_uint64        temp = 0;
-    t_uint64        ibr;
-    t_uint64        SR;
-    uint16          opcode;
-    uint16          MA;
-    uint8           f;
+    uint64_t        temp = 0;
+    uint64_t        ibr;
+    uint64_t        SR;
+    uint16_t        opcode;
+    uint16_t        MA;
+    uint8_t         f;
     int             shiftcnt;
     int             stopnext = 0;
     int             instr_count = 0;   /* Number of instructions to execute */
@@ -257,8 +259,8 @@ sim_instr(void)
             IC = (IC + 1) & AMASK;
         }
         ihold = 0;
-        opcode = ((uint16)(temp >> 12L)) & 077;
-        MA = (uint16)(temp & AMASK);
+        opcode = ((uint16_t)(temp >> 12L)) & 077;
+        MA = (uint16_t)(temp & AMASK);
         ibr = SR = ReadP(MA>>1);
         if ((opcode & 040) == 0) {
            if (MA & 1)
@@ -421,7 +423,7 @@ store:
                     SR &= ~(AMASK << 18);
                     SR |= AC & (AMASK << 18);
                 } else {
-                    t_uint64   t = AC & PMASK;
+                    uint64_t   t = AC & PMASK;
                     if (AC & AMSIGN)
                         t |= MSIGN;
                     SR &= t;
@@ -651,7 +653,7 @@ store:
 /* 704 Input output Instructions */
             case 29:            /* SET DR */
                 if (chan_test(0, DEV_SEL)) {
-                    drum_addr = (uint32)MA;
+                    drum_addr = (uint32_t)MA;
                     chan_clear(0, DEV_FULL);    /* Incase something got
                                                   read while waiting */
                 } else
@@ -673,7 +675,7 @@ store:
                 /* Instruct is NOP first time */
                 /* Incomplete last word leaves result in MQ */
                 if (chan_select(0)) {
-                    extern uint8 bcnt[NUM_CHAN];
+                    extern uint8_t bcnt[NUM_CHAN];
                     chan_set(0, STA_ACTIVE);
                     switch (chan_flags[0] & (DEV_WRITE | DEV_FULL)) {
                     case DEV_WRITE | DEV_FULL:
@@ -785,7 +787,7 @@ cpu_reset(DEVICE * dptr)
 /* Memory examine */
 
 t_stat
-cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
+cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic memory examine signature.
        This implementation does not use every parameter. */
@@ -812,7 +814,7 @@ cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
 /* Memory deposit */
 
 t_stat
-cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
+cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic memory deposit signature.
        This implementation does not use every parameter. */
@@ -840,7 +842,7 @@ cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
 
 /* Set history */
 t_stat
-cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
+cpu_set_hist(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -848,7 +850,7 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
     (void)val;
     (void)desc;
 
-    int32               i, lnt;
+    int32_t             i, lnt;
     t_stat              r;
 
     if (cptr == NULL) {
@@ -857,7 +859,7 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
         hst_p = 0;
         return SCPE_OK;
     }
-    lnt = (int32) get_uint(cptr, 10, HIST_MAX, &r);
+    lnt = (int32_t) get_uint(cptr, 10, HIST_MAX, &r);
     if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
         return SCPE_ARG;
     hst_p = 0;
@@ -879,14 +881,14 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
 /* Show history */
 
 t_stat
-cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
+cpu_show_hist(FILE * st, UNIT * uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)val;
 
-    int32               k, di, lnt;
+    int32_t             k, di, lnt;
     char               *cptr = (char *) desc;
     t_stat              r;
     t_value             sim_eval;
@@ -895,7 +897,7 @@ cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
     if (hst_lnt == 0)
         return SCPE_NOFNC;      /* enabled? */
     if (cptr) {
-        lnt = (int32) get_uint(cptr, 10, hst_lnt, &r);
+        lnt = (int32_t) get_uint(cptr, 10, hst_lnt, &r);
         if ((r != SCPE_OK) || (lnt == 0))
             return SCPE_ARG;
     } else
@@ -973,7 +975,7 @@ cpu_description (DEVICE *dptr)
 }
 
 t_stat
-cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

@@ -38,19 +38,21 @@
    07-Sep-01    RMS     Moved function prototypes
 */
 
+#include <stdint.h>
+
 #include "pdp10_defs.h"
 #include "sim_tmxr.h"
 #define UNIT_DUMMY      (1 << UNIT_V_UF)
 
-extern int32 tmxr_poll;
+extern int32_t tmxr_poll;
 t_stat fei_svc (UNIT *uptr);
 t_stat feo_svc (UNIT *uptr);
 static t_stat kaf_svc (UNIT *uptr);
 t_stat fe_reset (DEVICE *dptr);
-t_stat fe_stop_os (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat fe_stop_os (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 a10 fe_xct = 0;
-uint32 fe_bootrh = 0;
-int32 fe_bootunit = -1;
+uint32_t fe_bootrh = 0;
+int32_t fe_bootunit = -1;
 extern DIB *dib_tab[];
 
 /* FE data structures
@@ -163,7 +165,7 @@ XPP KLIOWD,35       ;KLINIK OUTPUT WORD [FE_KLINOUT]
 void fe_intr (void)
 {
 if (M[FE_CTYOUT] & FE_CVALID) {                         /* char to print? */
-    feo_unit.buf = (int32) M[FE_CTYOUT] & 0177;         /* pick it up */
+    feo_unit.buf = (int32_t) M[FE_CTYOUT] & 0177;       /* pick it up */
     feo_unit.pos = feo_unit.pos + 1;
     sim_activate (&feo_unit, feo_unit.wait);            /* sched completion */
     }
@@ -189,7 +191,7 @@ return SCPE_OK;
 
 t_stat fei_svc (UNIT *uptr)
 {
-int32 temp;
+int32_t temp;
 
 sim_clock_coschedule (uptr, tmxr_poll);                 /* continue poll */
 
@@ -225,9 +227,9 @@ static t_stat kaf_svc (UNIT *uptr)
 (void) uptr;
 
 if (M[FE_KEEPA] & INT64_C(0020000000000)) {              /* KSRLD - "Forced" (actually, requested) reload */
-    uint32 oldsw = sim_switches;
+    uint32_t oldsw = sim_switches;
     DEVICE *bdev = NULL;
-    int32 i;
+    int32_t i;
 
     sim_switches &= ~SWMASK ('P');
     reset_all (4);                                      /* RESET IO starting with UBA */
@@ -261,7 +263,7 @@ if (M[FE_KEEPA] & INT64_C(0020000000000)) {              /* KSRLD - "Forced" (ac
         }
 
     fe_xct = 2;
-    if ((bdev != NULL) && (fe_bootunit >= 0) && (fe_bootunit < (int32) bdev->numunits)) {
+    if ((bdev != NULL) && (fe_bootunit >= 0) && (fe_bootunit < (int32_t) bdev->numunits)) {
         UNIT *bunit = bdev->units + fe_bootunit;
 
         if (!(bunit->flags & UNIT_DIS) && (bunit->flags & UNIT_ATTABLE) && (bunit->flags & UNIT_ATT)) {
@@ -272,8 +274,8 @@ if (M[FE_KEEPA] & INT64_C(0020000000000)) {              /* KSRLD - "Forced" (ac
     }
 else if (M[FE_KEEPA] & INT64_C(0010000000000)) {        /* KPACT */
     d10 kav = M[FE_KEEPA] & INT64_C(0000000177400);     /* KPALIV */
-    if (kaf_unit.u3 != (int32)kav) {
-        kaf_unit.u3 = (int32)kav;
+    if (kaf_unit.u3 != (int32_t)kav) {
+        kaf_unit.u3 = (int32_t)kav;
         kaf_unit.u4 = 0;
         }
     else if (++kaf_unit.u4 >= 15) {
@@ -318,7 +320,7 @@ return SCPE_OK;
 
 /* Stop operating system */
 
-t_stat fe_stop_os (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat fe_stop_os (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

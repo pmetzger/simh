@@ -93,6 +93,7 @@ function(build_simcore _targ)
         target_include_directories("${lib}" PUBLIC
             "${SIMH_COMPAT_ROOT}"
             "${SIMH_CORE_ROOT}"
+            "${SIMH_INCLUDE_ROOT}"
             "${SIMH_RUNTIME_ROOT}"
             "${SIMH_COMPONENTS_ROOT}"
             "${ZIMH_GENERATED_INCLUDE_DIR}")
@@ -443,6 +444,7 @@ if (WITH_ROMS)
     add_executable(BuildROMs ${SIMH_RUNTIME_ROOT}/sim_BuildROMs.c)
     target_include_directories(BuildROMs PUBLIC
         "${SIMH_CORE_ROOT}"
+        "${SIMH_INCLUDE_ROOT}"
         "${SIMH_RUNTIME_ROOT}")
     target_link_libraries(BuildROMs os_features)
     add_custom_command(

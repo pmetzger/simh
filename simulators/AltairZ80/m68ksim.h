@@ -29,18 +29,21 @@
 #ifndef M68KSIM__HEADER
 #define M68KSIM__HEADER
 
-#include "altairz80_defs.h"
+#include <stdint.h>
 
-unsigned int m68k_cpu_read_byte(unsigned int address);
-unsigned int m68k_cpu_read_byte_raw(unsigned int address);
-unsigned int m68k_cpu_read_word(unsigned int address);
-unsigned int m68k_cpu_read_long(unsigned int address);
-void m68k_cpu_write_byte(unsigned int address, unsigned int value);
-void m68k_cpu_write_byte_raw(unsigned int address, unsigned int value);
-void m68k_cpu_write_word(unsigned int address, unsigned int value);
-void m68k_cpu_write_long(unsigned int address, unsigned int value);
+#include "altairz80_defs.h"
+#include "sim_types.h"
+
+uint_t m68k_cpu_read_byte(uint_t address);
+uint_t m68k_cpu_read_byte_raw(uint_t address);
+uint_t m68k_cpu_read_word(uint_t address);
+uint_t m68k_cpu_read_long(uint_t address);
+void m68k_cpu_write_byte(uint_t address, uint_t value);
+void m68k_cpu_write_byte_raw(uint_t address, uint_t value);
+void m68k_cpu_write_word(uint_t address, uint_t value);
+void m68k_cpu_write_long(uint_t address, uint_t value);
 void m68k_cpu_pulse_reset(void);
-void m68k_cpu_set_fc(unsigned int fc);
+void m68k_cpu_set_fc(uint_t fc);
 int  m68k_cpu_irq_ack(int level);
 
 t_stat sim_instr_m68k(void);
@@ -48,8 +51,8 @@ void m68k_cpu_reset(void);
 void m68k_clear_memory(void);
 void m68k_CPUToView(void);
 void m68k_viewToCPU(void);
-t_stat m68k_hdsk_boot(const int32 unitno, DEVICE *dptr,
-                      const uint32 verboseMessage, const int32 hdskNumber);
+t_stat m68k_hdsk_boot(const int32_t unitno, DEVICE *dptr,
+                      const uint32_t verboseMessage, const int32_t hdskNumber);
 
 #define M68K_MAX_RAM        0xffffff        // highest address of 16MB of RAM
 #define M68K_MAX_RAM_LOG2   24              // 24 bit addresses

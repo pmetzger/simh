@@ -34,6 +34,7 @@
 
 #include "id_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #define MSK_SBF         0x0100
 #define SEXT15(x)       (((x) & 0x4000)? ((x) | ~0x3FFF): ((x) & 0x3FFF))
@@ -49,7 +50,7 @@ extern DEVICE dp_dev, idc_dev;
 extern DEVICE fd_dev, mt_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint32 *M;
+extern uint32_t *M;
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val);
 t_stat parse_sym_m (const char *cptr, t_addr addr, t_value *val);
@@ -70,7 +71,7 @@ char sim_name[] = "Interdata 32b";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 6;
+int32_t sim_emax = 6;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -145,21 +146,21 @@ return lp_load (fileref, cptr, fnam);
 #define R_R             2                               /* R1 int reg */
 #define R_F             3                               /* R1 flt reg */
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
  0xFF00, 0xFF00, 0xFFF0, 0xFF00,
  0xFF00, 0xFFF0, 0xFF00, 0xFF00,
  0xFF00, 0xFE00, 0xFEF0, 0xFF00,
  0xFF00
  };
 
-static const uint32 r1_type[] = {
+static const uint32_t r1_type[] = {
  R_M, R_R, R_X, R_M,
  R_R, R_X, R_F, R_F,
  R_R, R_M, R_X, R_R,
  R_R
  };
 
-static const uint32 r2_type[] = {
+static const uint32_t r2_type[] = {
  R_X, R_R, R_R, R_X,
  R_X, R_X, R_F, R_X,
  R_M, R_X, R_X, R_X,
@@ -232,7 +233,7 @@ static const char *opcode[] = {
 NULL
 };
 
-static const uint32 opc_val[] = {
+static const uint32_t opc_val[] = {
 0x0330+I_R,  0x0230+I_R,  0x0330+I_R,  0x0230+I_R,
 0x0220+I_R,  0x0320+I_R,  0x0280+I_R,  0x0380+I_R,
 0x0210+I_R,  0x0310+I_R,  0x0240+I_R,  0x0340+I_R,
@@ -300,10 +301,10 @@ static const uint32 opc_val[] = {
 
 /* Print an RX specifier */
 
-static t_stat fprint_addr (FILE *of, t_addr addr, uint32 rx, uint32 ea1,
-    uint32 ea2)
+static t_stat fprint_addr (FILE *of, t_addr addr, uint32_t rx, uint32_t ea1,
+    uint32_t ea2)
 {
-uint32 rx2;
+uint32_t rx2;
 
 if ((ea1 & 0xC000) == 0) {                              /* RX1 */
     fprintf (of, "%-X", ea1);
@@ -341,9 +342,9 @@ return -5;
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 bflag, c1, c2, rdx;
+int32_t bflag, c1, c2, rdx;
 t_stat r;
 DEVICE *dptr;
 
@@ -415,7 +416,7 @@ return -3;
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val)
 {
-uint32 i, j, inst, r1, r2, ea1, ea2;
+uint32_t i, j, inst, r1, r2, ea1, ea2;
 
 inst = val[0];
 ea1 = val[1];
@@ -490,9 +491,9 @@ return SCPE_ARG;                                        /* no match */
         rnum    =       output register number, -1 if error
 */
 
-static int32 get_reg (char *cptr, char **optr, int32 rtype)
+static int32_t get_reg (char *cptr, char **optr, int32_t rtype)
 {
-int32 reg;
+int32_t reg;
 
 if ((*cptr == 'R') || (*cptr == 'r')) {                 /* R? */
     cptr++;                                             /* skip */
@@ -529,10 +530,10 @@ return reg;
         sta     =       status
 */
 
-static t_stat get_imm (char *cptr, uint32 *imm, uint32 *inst, uint32 max)
+static t_stat get_imm (char *cptr, uint32_t *imm, uint32_t *inst, uint32_t max)
 {
 char *tptr;
-int32 idx;
+int32_t idx;
 
 errno = 0;
 *imm = strtoul (cptr, &tptr, 16);                       /* get immed */
@@ -563,7 +564,7 @@ return SCPE_OK;
 
 static t_stat get_addr (char *cptr, char **tptr, t_addr *ea, t_addr addr)
 {
-int32 sign = 1;
+int32_t sign = 1;
 
 if (*cptr == '.') {                                     /* relative? */
     cptr++;
@@ -578,7 +579,7 @@ if (*cptr == '.') {                                     /* relative? */
     }
 else *ea = 0;
 errno = 0;
-*ea = *ea + (sign * ((int32) strtoul (cptr, tptr, 16)));
+*ea = *ea + (sign * ((int32_t) strtoul (cptr, tptr, 16)));
 if (errno || (cptr == *tptr))
     return SCPE_ARG;
 return SCPE_OK;
@@ -586,9 +587,9 @@ return SCPE_OK;
 
 /* Symbolic input */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 bflag, by, rdx, num;
+int32_t bflag, by, rdx, num;
 t_stat r;
 DEVICE *dptr;
 
@@ -638,7 +639,7 @@ if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII chars? */
     return -1;
     }
 if (sw & SWMASK ('W')) {                                /* halfword? */
-    val[0] = (int32) get_uint (cptr, rdx, DMASK16, &r); /* get number */
+    val[0] = (int32_t) get_uint (cptr, rdx, DMASK16, &r); /* get number */
     if (r != SCPE_OK)
         return r;
     return -1;
@@ -647,7 +648,7 @@ if (sw & SWMASK ('W')) {                                /* halfword? */
 r = parse_sym_m (cptr, addr, val);                      /* try to parse inst */
 if (r <= 0)
     return r;
-num = (int32) get_uint (cptr, rdx, DMASK32, &r);        /* get number */
+num = (int32_t) get_uint (cptr, rdx, DMASK32, &r);      /* get number */
 if (r != SCPE_OK)
     return r;
 val[0] = (num >> 16) & DMASK16;
@@ -669,8 +670,8 @@ return -3;
 
 t_stat parse_sym_m (const char *cptr, t_addr addr, t_value *val)
 {
-uint32 i, j, df, db, t, inst;
-int32 st, r1, r2, rx2;
+uint32_t i, j, df, db, t, inst;
+int32_t st, r1, r2, rx2;
 t_stat r;
 char *tptr, gbuf[CBUFSIZE];
 

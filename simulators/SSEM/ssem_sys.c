@@ -31,11 +31,13 @@
 */
 
 #include <ctype.h>
+#include <stdint.h>
+
 #include "ssem_defs.h"
 
-extern uint32 S[];
-extern uint32 C[];
-extern int32  A[];
+extern uint32_t S[];
+extern uint32_t C[];
+extern int32_t A[];
 
 extern DEVICE cpu_dev;
 extern REG cpu_reg[];
@@ -57,7 +59,7 @@ char sim_name[] = "SSEM";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -74,9 +76,9 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 static t_stat ssem_dump (FILE *fi)
 {
-if (sim_fwrite(A, sizeof(int32), 1, fi) != 1 ||
-    sim_fwrite(C, sizeof(uint32), 1, fi) != 1 ||
-    sim_fwrite(S, sizeof(uint32), MEMSIZE, fi) != MEMSIZE) {
+if (sim_fwrite(A, sizeof(int32_t), 1, fi) != 1 ||
+    sim_fwrite(C, sizeof(uint32_t), 1, fi) != 1 ||
+    sim_fwrite(S, sizeof(uint32_t), MEMSIZE, fi) != MEMSIZE) {
     return SCPE_IOERR;
     }
 return SCPE_OK;
@@ -87,9 +89,9 @@ return SCPE_OK;
 static t_stat ssem_load_dmp (FILE *fi)
 {
 C[1] = 0;
-if (sim_fread(A, sizeof(int32), 1, fi) != 1 ||
-    sim_fread(C, sizeof(uint32), 1, fi) != 1 ||
-    sim_fread(S, sizeof(uint32), MEMSIZE, fi) != MEMSIZE) {
+if (sim_fread(A, sizeof(int32_t), 1, fi) != 1 ||
+    sim_fread(C, sizeof(uint32_t), 1, fi) != 1 ||
+    sim_fread(S, sizeof(uint32_t), MEMSIZE, fi) != MEMSIZE) {
     return SCPE_IOERR;
     }
 return SCPE_OK;
@@ -123,7 +125,7 @@ return ssem_load_dmp(fi);
 
 /* Utility routine - prints number in decimal */
 
-static t_stat ssem_fprint_decimal (FILE *of, uint32 inst)
+static t_stat ssem_fprint_decimal (FILE *of, uint32_t inst)
 {
 if (inst & SMASK)
     fprintf (of, "%d [%u]", inst, inst);
@@ -134,10 +136,10 @@ return SCPE_OK;
 
 /* Utility routine - prints number in backward binary */
 
-static t_stat ssem_fprint_binary_number (FILE *of, uint32 inst, uint8 nbits)
+static t_stat ssem_fprint_binary_number (FILE *of, uint32_t inst, uint8_t nbits)
 {
 int i;
-uint32 n;
+uint32_t n;
 
 n = inst;
 for (i = 0; i < nbits; i++) {
@@ -149,9 +151,9 @@ return SCPE_OK;
 
 /* Utility routine - prints instruction in backward binary */
 
-static t_stat ssem_fprint_binary (FILE *of, uint32 inst, int flag)
+static t_stat ssem_fprint_binary (FILE *of, uint32_t inst, int flag)
 {
-uint32 op, ea;
+uint32_t op, ea;
 
 if (!flag) return ssem_fprint_binary_number(of, inst, 32);
 
@@ -175,9 +177,9 @@ return SCPE_OK;
     http://www.computer50.org/mark1/prog98/ssemref.html
 */
 
-static t_stat ssem_fprint_competition_mnemonic (FILE *of, uint32 inst)
+static t_stat ssem_fprint_competition_mnemonic (FILE *of, uint32_t inst)
 {
-uint32 op, ea;
+uint32_t op, ea;
 
 op = I_GETOP (inst);
 switch (op) {
@@ -234,14 +236,14 @@ return SCPE_OK;
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
 (void) addr;
 (void) uptr;
 
-uint32 inst;
+uint32_t inst;
 
 if (sw & SWMASK ('H')) return SCPE_ARG;    /* hexadecimal? */
 
@@ -299,7 +301,7 @@ return SCPE_OK;
 
 static t_stat parse_sym_m (const char *cptr, t_value *val)
 {
-uint32 n,a;
+uint32_t n,a;
 char gbuf[CBUFSIZE];
 
 cptr = get_glyph(cptr, gbuf, 0);
@@ -403,7 +405,7 @@ return SCPE_OK;
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */

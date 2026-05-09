@@ -4,6 +4,8 @@
 #ifndef BESM6_ARITH_INTERNAL_H_
 #define BESM6_ARITH_INTERNAL_H_
 
+#include <stdint.h>
+
 #include "besm6_defs.h"
 
 /*
@@ -11,9 +13,9 @@
  * logical right shift. The low_zero_bits least-significant bits remain clear;
  * the remaining bits up through the 42-bit ALU mantissa are set.
  */
-static inline t_uint64 besm6_alu_sign_extension_mask(unsigned low_zero_bits)
+static inline uint64_t besm6_alu_sign_extension_mask(unsigned low_zero_bits)
 {
-    return BITS42 & ~(((t_uint64)1 << low_zero_bits) - 1);
+    return BITS42 & ~(((uint64_t)1 << low_zero_bits) - 1);
 }
 
 #endif

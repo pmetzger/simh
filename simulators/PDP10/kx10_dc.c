@@ -26,6 +26,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -80,29 +82,29 @@
 uint64   dc_l_status;                             /* Line status */
 int      dc_l_count = 0;                          /* Scan counter */
 int      dc_modem = DC10_MLINES;                  /* Modem base address */
-uint8    dcix_buf[DC10_MLINES] = { 0 };           /* Input buffers */
-uint8    dcox_buf[DC10_MLINES] = { 0 };           /* Output buffers */
+uint8_t  dcix_buf[DC10_MLINES] = { 0 };           /* Input buffers */
+uint8_t  dcox_buf[DC10_MLINES] = { 0 };           /* Output buffers */
 TMLN     dc_ldsc[DC10_MLINES] = { 0 };            /* Line descriptors */
 TMXR     dc_desc = { DC10_LINES, 0, 0, dc_ldsc };
-uint32   tx_enable, rx_rdy;                       /* Flags */
-uint32   dc_enable;                               /* Enable line */
-uint32   dc_ring;                                 /* Connection pending */
-uint32   rx_conn;                                 /* Connection flags */
-extern int32 tmxr_poll;
+uint32_t tx_enable, rx_rdy;                       /* Flags */
+uint32_t dc_enable;                               /* Enable line */
+uint32_t dc_ring;                                 /* Connection pending */
+uint32_t rx_conn;                                 /* Connection flags */
+extern int32_t tmxr_poll;
 
-t_stat dc_devio(uint32 dev, uint64 *data);
+t_stat dc_devio(uint32_t dev, uint64 *data);
 t_stat dc_svc (UNIT *uptr);
 t_stat dc_doscan (UNIT *uptr);
 t_stat dc_reset (DEVICE *dptr);
-t_stat dc_set_modem (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dc_show_modem (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat dc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dc_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dc_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dc_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat dc_set_modem (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dc_show_modem (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat dc_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dc_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dc_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dc_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat dc_attach (UNIT *uptr, const char *cptr);
 t_stat dc_detach (UNIT *uptr);
-t_stat dc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat dc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
         const char *cptr);
 const char *dc_description (DEVICE *dptr);
 
@@ -163,7 +165,7 @@ DEVICE dc_dev = {
 
 
 /* IOT routine */
-t_stat dc_devio(uint32 dev, uint64 *data) {
+t_stat dc_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &dc_unit;
     TMLN *lp;
     int   ln;
@@ -175,7 +177,7 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
              dc_doscan(uptr);
          *data = uptr->STATUS & (PI_CHN|RCV_PI|XMT_PI);
          sim_debug(DEBUG_CONI, &dc_dev, "DC %03o CONI %06o PC=%o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          break;
 
     case CONO:
@@ -204,7 +206,7 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
          }
 
          sim_debug(DEBUG_CONO, &dc_dev, "DC %03o CONO %06o PC=%06o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          dc_doscan(uptr);
          break;
 
@@ -220,9 +222,9 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
                 dc_l_status &= ~(1LL << ln);
              ln -= dc_modem;
              sim_debug(DEBUG_DETAIL, &dc_dev, "DC line modem %d %03o\n",
-                   ln, (uint32)(*data & 0777));
+                   ln, (uint32_t)(*data & 0777));
              if ((*data & OFF_HOOK) == 0) {
-                uint32 mask = ~(1 << ln);
+                uint32_t mask = ~(1 << ln);
                 rx_rdy &= mask;
                 tx_enable &= mask;
                 dc_enable &= mask;
@@ -248,7 +250,7 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
                 tx_enable &= ~(1 << ln);
                 dc_l_status &= ~(1LL << ln);
              } else if (lp->conn) {
-                int32 ch = *data & DATA;
+                int32_t ch = *data & DATA;
                 ch = sim_tt_outcvt(ch, TT_GET_MODE (dc_unit.flags) | TTUF_KSR);
                 tmxr_putc_ln (lp, ch);
                 if (lp->xmte)
@@ -280,7 +282,7 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
              /* Nothing happens if no recieve data, which is transmit ready */
              lp = &dc_ldsc[ln];
              if (tmxr_rqln (lp) > 0) {
-                int32 ch = tmxr_getc_ln (lp);
+                int32_t ch = tmxr_getc_ln (lp);
                 if (ch & SCPE_BREAK)                      /* break? */
                     ch = 0;
                 else
@@ -308,7 +310,7 @@ t_stat dc_devio(uint32 dev, uint64 *data) {
 
 t_stat dc_svc (UNIT *uptr)
 {
-int32 ln;
+int32_t ln;
 
     if ((uptr->flags & UNIT_ATT) == 0)                  /* attached? */
         return SCPE_OK;
@@ -350,7 +352,7 @@ int32 ln;
 
 /* Scan to see if something to do */
 t_stat dc_doscan (UNIT *uptr) {
-   int32 lmask;
+   int32_t lmask;
 
    uptr->STATUS &= ~(RCV_PI|XMT_PI);
    clr_interrupt(DC_DEVNUM);
@@ -402,7 +404,7 @@ t_stat dc_reset (DEVICE *dptr)
 
 /* SET BUFFER processor */
 
-t_stat dc_set_modem (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dc_set_modem (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -411,11 +413,11 @@ t_stat dc_set_modem (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) desc;
 
     t_stat r;
-    int32 modem;
+    int32_t modem;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    modem = (int32) get_uint (cptr, 10, 32, &r);
+    modem = (int32_t) get_uint (cptr, 10, 32, &r);
     if (r != SCPE_OK)
         return SCPE_ARG;
     if (modem < 0 || modem >= (DC10_MLINES * 2))
@@ -431,7 +433,7 @@ t_stat dc_set_modem (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SHOW BUFFER processor */
 
-t_stat dc_show_modem (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dc_show_modem (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -445,7 +447,7 @@ t_stat dc_show_modem (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 /* SET LINES processor */
 
-t_stat dc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dc_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -453,12 +455,12 @@ t_stat dc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 newln, i, t;
+    int32_t newln, i, t;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    newln = (int32) get_uint (cptr, 10, DC10_MLINES, &r);
+    newln = (int32_t) get_uint (cptr, 10, DC10_MLINES, &r);
     if ((r != SCPE_OK) || (newln == dc_desc.lines))
         return r;
     if (newln > dc_modem)
@@ -486,7 +488,7 @@ t_stat dc_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SET LOG processor */
 
-t_stat dc_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dc_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -495,14 +497,14 @@ t_stat dc_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     t_stat r;
     char gbuf[CBUFSIZE];
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
     cptr = get_glyph (cptr, gbuf, '=');
     if ((cptr == NULL) || (*cptr == 0) || (gbuf[0] == 0))
         return SCPE_ARG;
-    ln = (int32) get_uint (gbuf, 10, dc_desc.lines, &r);
+    ln = (int32_t) get_uint (gbuf, 10, dc_desc.lines, &r);
     if ((r != SCPE_OK) || (ln > dc_desc.lines))
         return SCPE_ARG;
     return tmxr_set_log (NULL, ln, cptr, desc);
@@ -510,7 +512,7 @@ t_stat dc_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SET NOLOG processor */
 
-t_stat dc_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dc_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -518,11 +520,11 @@ t_stat dc_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
 
     t_stat r;
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    ln = (int32) get_uint (cptr, 10, dc_desc.lines, &r);
+    ln = (int32_t) get_uint (cptr, 10, dc_desc.lines, &r);
     if ((r != SCPE_OK) || (ln > dc_desc.lines))
         return SCPE_ARG;
     return tmxr_set_nolog (NULL, ln, NULL, desc);
@@ -530,14 +532,14 @@ t_stat dc_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SHOW LOG processor */
 
-t_stat dc_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dc_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) val;
 
-    int32 i;
+    int32_t i;
 
     for (i = 0; i < dc_desc.lines; i++) {
         fprintf (st, "line %d: ", i);
@@ -565,7 +567,7 @@ return SCPE_OK;
 
 t_stat dc_detach (UNIT *uptr)
 {
-  int32  i;
+  int32_t i;
   t_stat reason;
 reason = tmxr_detach (&dc_desc, uptr);
 for (i = 0; i < dc_desc.lines; i++)
@@ -574,7 +576,7 @@ sim_cancel (uptr);
 return reason;
 }
 
-t_stat dc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "DC10E Terminal Interfaces\n\n");
 fprintf (st, "The DC10 supported up to 8 blocks of 8 lines. Modem control was on a seperate\n");

@@ -74,6 +74,7 @@
             return 0FFH, and writes are ignored.
 */
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "swtp_defs.h"
@@ -118,28 +119,28 @@
 #define HIST_ILNT       3                               /* max inst length */
 
 typedef struct {
-    uint16              pc;
-    uint16              sp;
-    uint8               cc;
-    uint8               a;
-    uint8               b;
-    uint16              ix;
+    uint16_t            pc;
+    uint16_t            sp;
+    uint8_t             cc;
+    uint8_t             a;
+    uint8_t             b;
+    uint16_t            ix;
     t_value             inst[HIST_ILNT];
     } InstHistory;
 
 /* local global variables */
-int32 A = 0;                            /* Accumulator A */
-int32 B = 0;                            /* Accumulator B */
-int32 IX = 0;                           /* Index register */
-int32 SP = 0;                           /* Stack pointer */
-int32 CC = CC_ALWAYS_ON | IF;           /* Condition Code Register */
-int32 saved_PC = 0xffff;                /* Program counter */
-int32 PC;                               /* global for the helper routines */
-int32 NMI = 0, IRQ = 0;                 //interrupt flags
-int32 hst_p = 0;                        /* history pointer */
-int32 hst_lnt = 0;                      /* history length */
+int32_t A = 0;                          /* Accumulator A */
+int32_t B = 0;                          /* Accumulator B */
+int32_t IX = 0;                         /* Index register */
+int32_t SP = 0;                         /* Stack pointer */
+int32_t CC = CC_ALWAYS_ON | IF;         /* Condition Code Register */
+int32_t saved_PC = 0xffff;              /* Program counter */
+int32_t PC;                             /* global for the helper routines */
+int32_t NMI = 0, IRQ = 0;               //interrupt flags
+int32_t hst_p = 0;                      /* history pointer */
+int32_t hst_lnt = 0;                    /* history length */
 InstHistory *hst = NULL;                /* instruction history */
-int32 reason;                           //reason for halting processor
+int32_t reason;                         //reason for halting processor
 static const char* m6800_desc(DEVICE *dptr) {
     /* Generic description signature.
        This implementation does not use every parameter. */
@@ -150,36 +151,36 @@ static const char* m6800_desc(DEVICE *dptr) {
 
 /* function prototypes */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat m6800_reset (DEVICE *dptr);
-t_stat m6800_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat m6800_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat m6800_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat m6800_dep(t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 
 void dump_regs(void);
-int32 fetch_byte(void);
-int32 fetch_word(void);
-uint8 pop_byte(void);
-uint16 pop_word(void);
-void push_byte(uint8 val);
-void push_word(uint16 val);
-void go_rel(int32 cond);
-int32 get_vec_val(int32 vec);
-int32 get_imm_val(void);
-int32 get_dir_val(void);
-int32 get_indir_val(void);
-int32 get_ext_val(void);
-int32 get_flag(int32 flag);
-void condevalVa(int32 op1, int32 op2);
-void condevalVs(int32 op1, int32 op2);
-void condevalHa(int32 op1, int32 op2);
+int32_t fetch_byte(void);
+int32_t fetch_word(void);
+uint8_t pop_byte(void);
+uint16_t pop_word(void);
+void push_byte(uint8_t val);
+void push_word(uint16_t val);
+void go_rel(int32_t cond);
+int32_t get_vec_val(int32_t vec);
+int32_t get_imm_val(void);
+int32_t get_dir_val(void);
+int32_t get_indir_val(void);
+int32_t get_ext_val(void);
+int32_t get_flag(int32_t flag);
+void condevalVa(int32_t op1, int32_t op2);
+void condevalVs(int32_t op1, int32_t op2);
+void condevalHa(int32_t op1, int32_t op2);
 
 /* external routines */
 
-extern void CPU_BD_put_mbyte(int32 addr, int32 val);
-extern void CPU_BD_put_mword(int32 addr, int32 val);
-extern int32 CPU_BD_get_mbyte(int32 addr);
-extern int32 CPU_BD_get_mword(int32 addr);
+extern void CPU_BD_put_mbyte(int32_t addr, int32_t val);
+extern void CPU_BD_put_mword(int32_t addr, int32_t val);
+extern int32_t CPU_BD_get_mbyte(int32_t addr);
+extern int32_t CPU_BD_get_mword(int32_t addr);
 
 static const char *opcode[] = {
 "???  ", "NOP  ", "???  ", "???  ",     //0x00
@@ -248,7 +249,7 @@ static const char *opcode[] = {
 "???  ", "???  ", "LDX  ", "STX  ",
 };
 
-int32 oplen[256] = {
+int32_t oplen[256] = {
 0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,        //0x00
 1,1,0,0,0,0,1,1,0,1,0,1,0,0,0,0,
 2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
@@ -336,7 +337,7 @@ DEVICE m6800_dev = {
 
 t_stat sim_instr (void)
 {
-    int32 IR, EA, hi, lo, op1, i;
+    int32_t IR, EA, hi, lo, op1, i;
     InstHistory *hst_ent = NULL;
 
     PC = saved_PC & ADDRMASK;           /* load local PC */
@@ -1813,9 +1814,9 @@ void dump_regs(void)
 }
 
 /* fetch an instruction or byte */
-int32 fetch_byte(void)
+int32_t fetch_byte(void)
 {
-    uint8 val;
+    uint8_t val;
 
     val = CPU_BD_get_mbyte(PC) & BYTEMASK;   /* fetch byte */
     //rsv fix on opernd order but moved the "& BYTEMASK" here
@@ -1824,9 +1825,9 @@ int32 fetch_byte(void)
 }
 
 /* fetch a word */
-int32 fetch_word(void)
+int32_t fetch_word(void)
 {
-    uint16 val;
+    uint16_t val;
 
     val = CPU_BD_get_mbyte(PC) << 8;     /* fetch high byte */
     val |= CPU_BD_get_mbyte(PC + 1) & BYTEMASK; /* fetch low byte */
@@ -1835,7 +1836,7 @@ int32 fetch_word(void)
 }
 
 /* push a byte to the stack */
-void push_byte(uint8 val)
+void push_byte(uint8_t val)
 {
     CPU_BD_put_mbyte(SP, val & BYTEMASK);
     //rsv fix on opernd order but moved the "& BYTEMASK" here
@@ -1843,16 +1844,16 @@ void push_byte(uint8 val)
 }
 
 /* push a word to the stack */
-void push_word(uint16 val)
+void push_word(uint16_t val)
 {
     push_byte(val & BYTEMASK);
     push_byte(val >> 8);
 }
 
 /* pop a byte from the stack */
-uint8 pop_byte(void)
+uint8_t pop_byte(void)
 {
-    uint8 res;
+    uint8_t res;
 
     SP = (SP + 1) & ADDRMASK;
     res = CPU_BD_get_mbyte(SP);
@@ -1860,9 +1861,9 @@ uint8 pop_byte(void)
 }
 
 /* pop a word from the stack */
-uint16 pop_word(void)
+uint16_t pop_word(void)
 {
-    uint16 res;
+    uint16_t res;
 
     res = pop_byte() << 8;
     res |= pop_byte();
@@ -1872,9 +1873,9 @@ uint16 pop_word(void)
 /*      this routine does the jump to relative offset if the condition is
         met.  Otherwise, execution continues at the current PC. */
 
-void go_rel(int32 cond)
+void go_rel(int32_t cond)
 {
-    int32 temp;
+    int32_t temp;
 
     temp = fetch_byte();
     if (temp & 0x80)
@@ -1886,42 +1887,42 @@ void go_rel(int32 cond)
 }
 
 /* get the word vector at vec */
-int32 get_vec_val(int32 vec)
+int32_t get_vec_val(int32_t vec)
 {
     return (CPU_BD_get_mword(vec) & ADDRMASK);
 }
 
 /* returns the value at the immediate address pointed to by PC */
 
-int32 get_imm_val(void)
+int32_t get_imm_val(void)
 {
     return fetch_byte();
 }
 
 /* returns the value at the direct address pointed to by PC */
 
-int32 get_dir_val(void)
+int32_t get_dir_val(void)
 {
     return CPU_BD_get_mbyte(fetch_byte());
 }
 
 /* returns the value at the indirect address pointed to by PC */
 
-int32 get_indir_val(void)
+int32_t get_indir_val(void)
 {
     return CPU_BD_get_mbyte((fetch_byte() + IX) & ADDRMASK);
 }
 
 /* returns the value at the extended address pointed to by PC */
 
-int32 get_ext_val(void)
+int32_t get_ext_val(void)
 {
     return CPU_BD_get_mbyte(fetch_word());
 }
 
 /* return 1 for flag set or 0 for flag clear */
 
-int32 get_flag(int32 flg)
+int32_t get_flag(int32_t flg)
 {
     if (CC & flg)
         return 1;
@@ -1931,7 +1932,7 @@ int32 get_flag(int32 flg)
 
 /* test and set V for addition */
 
-void condevalVa(int32 op1, int32 op2)
+void condevalVa(int32_t op1, int32_t op2)
 {
     if (((op1 & 0x80) == (op2 & 0x80)) &&
         (((op1 + op2) & 0x80) != (op1 & 0x80)))
@@ -1942,7 +1943,7 @@ void condevalVa(int32 op1, int32 op2)
 
 /* test and set V for subtraction */
 
-void condevalVs(int32 op1, int32 op2)
+void condevalVs(int32_t op1, int32_t op2)
 {
     if (((op1 & 0x80) != (op2 & 0x80)) &&
         (((op1 - op2) & 0x80) == (op2 & 0x80)))
@@ -1953,7 +1954,7 @@ void condevalVs(int32 op1, int32 op2)
 }
 
 /* test and set H for addition */
-void condevalHa(int32 op1, int32 op2)
+void condevalHa(int32_t op1, int32_t op2)
 {
     if (((op1 & 0x0f) + (op2 & 0x0f)) & 0x10)
         SET_FLAG(HF);
@@ -1989,14 +1990,14 @@ t_stat m6800_reset(DEVICE *dptr)
 
 #define HLEN    16
 
-int32 sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
+int32_t sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
 {
     /* Generic loader signature.
        This implementation does not use every parameter. */
     (void) fnam;
 
-    int32 i, addr = 0, addr0 = 0, cnt = 0, cnt0 = 0, start = 0x10000;
-    int32 addr1 = 0, end = 0, byte, chk, rtype, flag0 = 1;
+    int32_t i, addr = 0, addr0 = 0, cnt = 0, cnt0 = 0, start = 0x10000;
+    int32_t addr1 = 0, end = 0, byte, chk, rtype, flag0 = 1;
     char buf[128], data[128], *p;
 
     cnt = sscanf(cptr, " %04X %04X", &start, &end);
@@ -2112,7 +2113,7 @@ int32 sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
         status  =   error code
         for M6800
 */
-t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
@@ -2171,7 +2172,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
         status  =   error status
 */
 
-t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
     /* Generic symbolic input signature.
        This implementation does not use every parameter. */
@@ -2186,7 +2187,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -2203,7 +2204,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
         hst_p = 0;
         return SCPE_OK;
         }
-    lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+    lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
     if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
         return SCPE_ARG;
     hst_p = 0;
@@ -2223,7 +2224,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -2238,7 +2239,7 @@ t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
     if (hst_lnt == 0)                       /* enabled? */
         return SCPE_NOFNC;
     if (cptr) {
-        lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+        lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
         if ((r != SCPE_OK) || (lnt == 0))
             return SCPE_ARG;
         }
@@ -2261,7 +2262,7 @@ t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 /* Memory examine */
 
-t_stat m6800_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat m6800_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic memory examine signature.
        This implementation does not use every parameter. */
@@ -2277,7 +2278,7 @@ t_stat m6800_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
 
 /* Memory deposit */
 
-t_stat m6800_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat m6800_dep(t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic memory deposit signature.
        This implementation does not use every parameter. */

@@ -29,6 +29,8 @@
 #ifndef STUB_DEFS_H_
 #define STUB_DEFS_H_  0
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 #define STOP_HALT       1
@@ -38,7 +40,7 @@
 extern t_stat build_dev_tab (void);
 
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 extern DEVICE cpu_dev;
 
 #endif /* STUB_DEFS_H_ */

@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,8 +76,8 @@ const char *simh_test_binary_root(void)
 /* Initialize a minimal one-unit device for host-side common-code tests. */
 void simh_test_init_device_unit(DEVICE *device, UNIT *unit,
                                 const char *dev_name, const char *unit_name,
-                                uint32 dev_flags, uint32 unit_flags,
-                                uint32 dwidth, uint32 aincr)
+                                uint32_t dev_flags, uint32_t unit_flags,
+                                uint32_t dwidth, uint32_t aincr)
 {
     memset(device, 0, sizeof(*device));
     memset(unit, 0, sizeof(*unit));

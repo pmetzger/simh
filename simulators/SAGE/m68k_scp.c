@@ -30,13 +30,14 @@
 #include "m68k_cpu.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 static bool symtrace = true;
-static t_stat hdump_cmd(int32 arg, const char* buf);
-static t_stat symset_cmd(int32 arg, const char* buf);
-static t_stat symclr_cmd(int32 arg, const char* buf);
-static t_stat symlist_cmd(int32 arg, const char* buf);
-static t_stat symtrace_cmd(int32 arg, const char* buf);
+static t_stat hdump_cmd(int32_t arg, const char* buf);
+static t_stat symset_cmd(int32_t arg, const char* buf);
+static t_stat symclr_cmd(int32_t arg, const char* buf);
+static t_stat symlist_cmd(int32_t arg, const char* buf);
+static t_stat symtrace_cmd(int32_t arg, const char* buf);
 
 static CTAB m68k_sim_cmds[] = {
         {"STEP", &run_cmd, RU_STEP,
@@ -175,7 +176,7 @@ static bool sym_delete(const char* name)
     return false;
 }
 
-static t_stat symset_cmd(int32 arg, const char* buf)
+static t_stat symset_cmd(int32_t arg, const char* buf)
 {
     /* Generic command signature.
        This implementation does not use every parameter. */
@@ -195,7 +196,7 @@ static t_stat symset_cmd(int32 arg, const char* buf)
     return SCPE_OK;
 }
 
-static t_stat symclr_cmd(int32 arg, const char* buf)
+static t_stat symclr_cmd(int32_t arg, const char* buf)
 {
     /* Generic command signature.
        This implementation does not use every parameter. */
@@ -216,7 +217,7 @@ static t_stat symclr_cmd(int32 arg, const char* buf)
     }
 }
 
-static t_stat symlist_cmd(int32 arg, const char* buf)
+static t_stat symlist_cmd(int32_t arg, const char* buf)
 {
     /* Generic command signature.
        This implementation does not use every parameter. */
@@ -250,7 +251,7 @@ static t_stat symlist_cmd(int32 arg, const char* buf)
     return SCPE_OK;
 }
 
-static t_stat symtrace_cmd(int32 arg, const char* buf)
+static t_stat symtrace_cmd(int32_t arg, const char* buf)
 {
     if (!*buf)
         symtrace = arg ? true : false;
@@ -259,7 +260,7 @@ static t_stat symtrace_cmd(int32 arg, const char* buf)
     return SCPE_OK;
 }
 
-static void putascii(uint32* buf)
+static void putascii(uint32_t* buf)
 {
     int i;
     putchar('|');
@@ -270,7 +271,7 @@ static void putascii(uint32* buf)
     putchar('|');
 }
 
-static t_stat hdump_cmd(int32 arg, const char* buf)
+static t_stat hdump_cmd(int32_t arg, const char* buf)
 {
     /* Generic command signature.
        This implementation does not use every parameter. */
@@ -280,7 +281,7 @@ static t_stat hdump_cmd(int32 arg, const char* buf)
     t_addr low, high, base, top;
     char gbuf[2*CBUFSIZE];
     char *token;
-    uint32 byte[16];
+    uint32_t byte[16];
     bool ascii = false;
     bool first = true;
 
@@ -289,7 +290,7 @@ static t_stat hdump_cmd(int32 arg, const char* buf)
         buf += 2;
         while (*buf && isspace(*buf)) buf++;
     }
-    memset(byte,0,sizeof(uint32)*16);
+    memset(byte,0,sizeof(uint32_t)*16);
 
     gbuf[sizeof(gbuf)-1] = '\0';
     strncpy(gbuf, buf, sizeof(gbuf)-1);

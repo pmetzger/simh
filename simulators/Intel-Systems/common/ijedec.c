@@ -90,6 +90,7 @@
     uptr->u6 - unit number
 */
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "multibus_defs.h"
@@ -112,12 +113,12 @@
 
 /* function prototypes */
 
-t_stat JEDEC_set_size (UNIT *uptr, int32 val, char *cptr, void *desc);
-t_stat JEDEC_set_mode (UNIT *uptr, int32 val, char *cptr, void *desc);
+t_stat JEDEC_set_size (UNIT *uptr, int32_t val, char *cptr, void *desc);
+t_stat JEDEC_set_mode (UNIT *uptr, int32_t val, char *cptr, void *desc);
 t_stat JEDEC_attach (UNIT *uptr, char *cptr);
 t_stat JEDEC_reset (DEVICE *dptr);
-int32 JEDEC_get_mbyte(int32 addr);
-void JEDEC_put_mbyte(int32 addr, int32 val);
+int32_t JEDEC_get_mbyte(int32_t addr);
+void JEDEC_put_mbyte(int32_t addr, int32_t val);
 
 /* SIMH JEDEC Standard I/O Data Structures */
 
@@ -177,7 +178,7 @@ DEVICE JEDEC_dev = {
 
 /* global variables */
 
-uint8 *JEDEC_buf[JEDEC_NUM] = {             /* JEDEC buffer pointers */
+uint8_t *JEDEC_buf[JEDEC_NUM] = {           /* JEDEC buffer pointers */
     NULL,
     NULL,
     NULL,
@@ -206,7 +207,7 @@ t_stat JEDEC_attach (UNIT *uptr, char *cptr)
 
 /* JEDEC set mode = 8- or 16-bit data bus */
 
-t_stat JEDEC_set_mode (UNIT *uptr, int32 val, char *cptr, void *desc)
+t_stat JEDEC_set_mode (UNIT *uptr, int32_t val, char *cptr, void *desc)
 {
     UNIT *uptr1;
 
@@ -225,9 +226,9 @@ t_stat JEDEC_set_mode (UNIT *uptr, int32 val, char *cptr, void *desc)
 
 /* JEDEC set type = none, 8krom, 16krom, 32krom, 8kram or 32kram */
 
-t_stat JEDEC_set_size (UNIT *uptr, int32 val, char *cptr, void *desc)
+t_stat JEDEC_set_size (UNIT *uptr, int32_t val, char *cptr, void *desc)
 {
-    uint32 i, basadr;
+    uint32_t i, basadr;
     UNIT *uptr1;
 
     if (JEDEC_dev.dctrl & DEBUG_flow)
@@ -356,7 +357,7 @@ t_stat JEDEC_set_size (UNIT *uptr, int32 val, char *cptr, void *desc)
 
 t_stat JEDEC_reset (DEVICE *dptr)
 {
-    int32 i, j, c;
+    int32_t i, j, c;
     FILE *fp;
     t_stat r;
     UNIT *uptr;
@@ -430,9 +431,9 @@ t_stat JEDEC_reset (DEVICE *dptr)
 
 /*  get a byte from memory */
 
-int32 JEDEC_get_mbyte(int32 addr)
+int32_t JEDEC_get_mbyte(int32_t addr)
 {
-    int32 i, val, org, len;
+    int32_t i, val, org, len;
     UNIT *uptr;
 
     if (JEDEC_dev.dctrl & DEBUG_read)
@@ -457,9 +458,9 @@ int32 JEDEC_get_mbyte(int32 addr)
 
 /*  put a byte into memory */
 
-void JEDEC_put_mbyte(int32 addr, int32 val)
+void JEDEC_put_mbyte(int32_t addr, int32_t val)
 {
-    int32 i, org, len, type;
+    int32_t i, org, len, type;
     UNIT *uptr;
 
     if (JEDEC_dev.dctrl & DEBUG_write)

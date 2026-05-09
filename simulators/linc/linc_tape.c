@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "linc_defs.h"
 
 #define POS     u3
@@ -5,13 +7,13 @@
 #define ACC     u5
 #define OFFSET  u6
 
-#define P (*(uint16 *)cpu_reg[0].loc)
-#define C (*(uint16 *)cpu_reg[1].loc)
-#define A (*(uint16 *)cpu_reg[2].loc)
-#define S (*(uint16 *)cpu_reg[6].loc)
-#define B (*(uint16 *)cpu_reg[7].loc)
-#define LSW (*(uint16 *)cpu_reg[8].loc)
-#define RSW (*(uint16 *)cpu_reg[9].loc)
+#define P (*(uint16_t *)cpu_reg[0].loc)
+#define C (*(uint16_t *)cpu_reg[1].loc)
+#define A (*(uint16_t *)cpu_reg[2].loc)
+#define S (*(uint16_t *)cpu_reg[6].loc)
+#define B (*(uint16_t *)cpu_reg[7].loc)
+#define LSW (*(uint16_t *)cpu_reg[8].loc)
+#define RSW (*(uint16_t *)cpu_reg[9].loc)
 #define paused (*(int *)cpu_reg[11].loc)
 #define IBZ (*(int *)cpu_reg[12].loc)
 
@@ -44,13 +46,13 @@
 #define DBG_WRITE      0010
 #define DBG_POS        0020
 
-static uint16 BLOCK_GROUP;
-static int16 CURRENT_BLOCK;
-static int16 WANTED_BLOCK;
+static uint16_t BLOCK_GROUP;
+static int16_t CURRENT_BLOCK;
+static int16_t WANTED_BLOCK;
 
 static t_stat tape_svc(UNIT *uptr);
 static t_stat tape_reset(DEVICE *dptr);
-static t_stat tape_boot(int32 u, DEVICE *dptr);
+static t_stat tape_boot(int32_t u, DEVICE *dptr);
 static t_stat tape_attach(UNIT *uptr, const char *cptr);
 static t_stat tape_detach(UNIT *uptr);
 
@@ -86,7 +88,7 @@ DEVICE tape_dev = {
 
 void tape_op(void)
 {
-  uint16 u = (C & 050) >> 3;
+  uint16_t u = (C & 050) >> 3;
   UNIT *uptr = &tape_unit[u];
 
   if ((uptr->flags & UNIT_ATT) == 0)
@@ -138,10 +140,10 @@ static t_stat tape_seek(FILE *fileref, t_addr block, t_addr offset)
   return SCPE_OK;
 }
 
-static t_stat read_word(FILE *fileref, t_addr block, t_addr offset, uint16 *word)
+static t_stat read_word(FILE *fileref, t_addr block, t_addr offset, uint16_t *word)
 {
   t_stat stat;
-  uint8 data[2];
+  uint8_t data[2];
 
   stat = tape_seek(fileref, block, offset);
   if (stat != SCPE_OK)
@@ -156,10 +158,10 @@ static t_stat read_word(FILE *fileref, t_addr block, t_addr offset, uint16 *word
   return SCPE_OK;
 }
 
-static t_stat write_word(FILE *fileref, t_addr block, t_addr offset, uint16 word)
+static t_stat write_word(FILE *fileref, t_addr block, t_addr offset, uint16_t word)
 {
   t_stat stat;
-  uint8 data[2];
+  uint8_t data[2];
 
   stat = tape_seek(fileref, block, offset);
   if (stat != SCPE_OK)
@@ -265,7 +267,7 @@ static void tape_done(UNIT *uptr)
   }
 }
 
-static t_stat tape_word(UNIT *uptr, uint16 block, uint16 offset)
+static t_stat tape_word(UNIT *uptr, uint16_t block, uint16_t offset)
 {
   t_stat stat;
 
@@ -349,7 +351,7 @@ static t_stat tape_svc(UNIT *uptr)
   if (uptr->SPEED > 0) {
     if (offset == 5) {
       /* Forward block number. */
-      CURRENT_BLOCK = (uint16)(block + uptr->OFFSET);
+      CURRENT_BLOCK = (uint16_t)(block + uptr->OFFSET);
       sim_debug(DBG_SEEK, &tape_dev,
                 "Found block number %03o; looking for %03o\n",
                 CURRENT_BLOCK, WANTED_BLOCK);
@@ -362,7 +364,7 @@ static t_stat tape_svc(UNIT *uptr)
     /* Word 6 is a guard. */
     } else if (offset >= 7 && offset < 263) {
       if (CURRENT_BLOCK == WANTED_BLOCK) {
-        t_stat stat = tape_word(uptr, (uint16)block, (uint16)(offset - 7));
+        t_stat stat = tape_word(uptr, (uint16_t)block, (uint16_t)(offset - 7));
         if (stat != SCPE_OK)
           return stat;
       }
@@ -375,7 +377,7 @@ static t_stat tape_svc(UNIT *uptr)
   /* Word 266 is a guard. */
   else if (offset == 267 && uptr->SPEED < 0) {
     /* Reverse block number. */
-    CURRENT_BLOCK = (uint16)(block + uptr->OFFSET);
+    CURRENT_BLOCK = (uint16_t)(block + uptr->OFFSET);
     sim_debug(DBG_SEEK, &tape_dev,
               "Found reverse block number %03o; looking for %03o\n",
               CURRENT_BLOCK, WANTED_BLOCK);
@@ -400,15 +402,15 @@ static t_stat tape_reset(DEVICE *dptr)
   return SCPE_OK;
 }
 
-static t_stat tape_boot(int32 unit_num, DEVICE *dptr)
+static t_stat tape_boot(int32_t unit_num, DEVICE *dptr)
 {
   /* Generic boot signature.
      This implementation does not use every parameter. */
   (void)dptr;
 
-  uint16 block = 0300;
-  uint16 blocks = 8;
-  uint16 quarter = 0;
+  uint16_t block = 0300;
+  uint16_t blocks = 8;
+  uint16_t quarter = 0;
   t_stat stat;
 
   if (unit_num >= 2 && unit_num <= 3)
@@ -429,11 +431,11 @@ static t_stat tape_boot(int32 unit_num, DEVICE *dptr)
   return SCPE_OK;
 }
 
-t_stat tape_metadata(FILE *fileref, uint16 *block_size, int16 *forward_offset, int16 *reverse_offset)
+t_stat tape_metadata(FILE *fileref, uint16_t *block_size, int16_t *forward_offset, int16_t *reverse_offset)
 {
   t_offset size = sim_fsize(fileref);
   t_stat stat;
-  uint16 word;
+  uint16_t word;
 
   if (size == MAX_BLOCKS * DATA_WORDS * 2) {
     /* Plain image. */
@@ -442,18 +444,18 @@ t_stat tape_metadata(FILE *fileref, uint16 *block_size, int16 *forward_offset, i
     *reverse_offset = 0;
   } else if ((size % (2 * DATA_WORDS)) == 6) {
     /* Extended image with additional meta data. */
-    uint16 metadata = (uint16)(size / (2 * DATA_WORDS));
+    uint16_t metadata = (uint16_t)(size / (2 * DATA_WORDS));
     stat = read_word(fileref, metadata, 0, block_size);
     if (stat != SCPE_OK)
       return stat;
     stat = read_word(fileref, metadata, 1, &word);
     if (stat != SCPE_OK)
       return stat;
-    *forward_offset = (int16)word;
+    *forward_offset = (int16_t)word;
     stat = read_word(fileref, metadata, 2, &word);
     if (stat != SCPE_OK)
       return stat;
-    *reverse_offset = (int16)word;
+    *reverse_offset = (int16_t)word;
   } else
     return SCPE_FMT;
   return SCPE_OK;
@@ -462,8 +464,8 @@ t_stat tape_metadata(FILE *fileref, uint16 *block_size, int16 *forward_offset, i
 static t_stat tape_attach(UNIT *uptr, const char *cptr)
 {
   t_stat stat;
-  uint16 block_size;
-  int16 forward_offset, reverse_offset;
+  uint16_t block_size;
+  int16_t forward_offset, reverse_offset;
 
   if (uptr - tape_unit >= 2 && uptr - tape_unit <= 3)
     return SCPE_ARG;

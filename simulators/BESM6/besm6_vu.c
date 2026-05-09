@@ -23,7 +23,10 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
+#include <stdint.h>
+
 #include "besm6_defs.h"
+#include "sim_types.h"
 
 t_stat vu_event (UNIT *u);    /* punched card reader */
 UNIT vu_unit [] = {
@@ -61,12 +64,12 @@ UNIT vu_unit [] = {
 /* 6 "open quote" characters and an end-of-card indicator, can be entered as `````` */
 #define DISP_END "\032\032\032\032\032\032\377"
 
-unsigned int vu_col_dly = DFLT_DELAY;
-unsigned int vu_end_dly = DFLT_DELAY/20; /* that seems to work */
-unsigned int vu_card_dly = 10*DFLT_DELAY;
-unsigned int vu_updkstart[2], vu_updkend[2];
+uint_t vu_col_dly = DFLT_DELAY;
+uint_t vu_end_dly = DFLT_DELAY/20;       /* that seems to work */
+uint_t vu_card_dly = 10*DFLT_DELAY;
+uint_t vu_updkstart[2], vu_updkend[2];
 
-unsigned int VU[2];
+uint_t VU[2];
 
 REG vu_reg[] = {
     { REGDATA ( Готов, READY2, 2,  8, 16, 1, NULL, NULL, 0, 0, 0) },
@@ -75,7 +78,7 @@ REG vu_reg[] = {
     { 0 }
 };
 
-static t_stat vu_set_coldly (UNIT *u, int32 val, const char *cptr, void *desc)
+static t_stat vu_set_coldly (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -91,7 +94,7 @@ static t_stat vu_set_coldly (UNIT *u, int32 val, const char *cptr, void *desc)
     return SCPE_ARG;
 }
 
-static t_stat vu_set_enddly (UNIT *u, int32 val, const char *cptr, void *desc)
+static t_stat vu_set_enddly (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -107,7 +110,7 @@ static t_stat vu_set_enddly (UNIT *u, int32 val, const char *cptr, void *desc)
     return SCPE_ARG;
 }
 
-static t_stat vu_set_carddly (UNIT *u, int32 val, const char *cptr, void *desc)
+static t_stat vu_set_carddly (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -123,7 +126,7 @@ static t_stat vu_set_carddly (UNIT *u, int32 val, const char *cptr, void *desc)
     return SCPE_ARG;
 }
 
-static t_stat vu_show_coldly (FILE *st, UNIT *u, int32 v, const void *dp)
+static t_stat vu_show_coldly (FILE *st, UNIT *u, int32_t v, const void *dp)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -135,7 +138,7 @@ static t_stat vu_show_coldly (FILE *st, UNIT *u, int32 v, const void *dp)
     return SCPE_OK;
 }
 
-static t_stat vu_show_enddly (FILE *st, UNIT *u, int32 v, const void *dp)
+static t_stat vu_show_enddly (FILE *st, UNIT *u, int32_t v, const void *dp)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -147,7 +150,7 @@ static t_stat vu_show_enddly (FILE *st, UNIT *u, int32 v, const void *dp)
     return SCPE_OK;
 }
 
-static t_stat vu_show_carddly (FILE *st, UNIT *u, int32 v, const void *dp)
+static t_stat vu_show_carddly (FILE *st, UNIT *u, int32_t v, const void *dp)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -159,7 +162,7 @@ static t_stat vu_show_carddly (FILE *st, UNIT *u, int32 v, const void *dp)
     return SCPE_OK;
 }
 
-static t_stat vu_set_updk (UNIT *u, int32 val, const char *cptr, void *desc)
+static t_stat vu_set_updk (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -184,7 +187,7 @@ static t_stat vu_set_updk (UNIT *u, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat vu_show_updk (FILE *st, UNIT *u, int32 v, const void *dp)
+static t_stat vu_show_updk (FILE *st, UNIT *u, int32_t v, const void *dp)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -246,9 +249,9 @@ int vu_isfifo[2];
 // Each card can hold up to 120 bytes; potentially valid GOST chars, expressible in UPDK, are 0-0177.
 // True spaces are 017; bytes past the end of line (empty columns) are 0377.
 
-unsigned char vu_gost[2][120];
+uchar_t vu_gost[2][120];
 unsigned short vu_image[2][80];
-unsigned int vu_cardcnt[2];
+uint_t vu_cardcnt[2];
 
 /*
  * Reset routine
@@ -301,7 +304,7 @@ t_stat vu_detach (UNIT *u)
 /*
  * Controlling the card reader.
  */
-void vu_control (int num, uint32 cmd)
+void vu_control (int num, uint32_t cmd)
 {
     UNIT *u = &vu_unit[num];
     if (vu_dev.dctrl)
@@ -348,8 +351,8 @@ void vu_control (int num, uint32 cmd)
     }
 }
 
-extern unsigned char unicode_to_gost(unsigned short);
-extern unsigned short gost_to_unicode(unsigned char);
+extern uchar_t unicode_to_gost(unsigned short);
+extern unsigned short gost_to_unicode(uchar_t);
 
 void uni2utf8(unsigned short ch, char buf[5]) {
     int i = 0;
@@ -384,7 +387,7 @@ static int punch(const char * s) {
  * for better distinctiveness wrt other column codes.
  * The UPDK codes are taken from Maznyj, "Programming in the Dubna system".
  */
-static unsigned short gost_to_updk (unsigned char ch) {
+static unsigned short gost_to_updk (uchar_t ch) {
     unsigned short ret;
     // Assuming that bits in the card are 9876543210-+
     // Bits from the upper and lower halves are XORed
@@ -407,8 +410,8 @@ static unsigned short gost_to_updk (unsigned char ch) {
  * The UPP code is the GOST 10859 code with odd parity.
  * UPP stood for "unit for preparation of punchards".
  */
-static unsigned char gost_to_upp (unsigned char ch) {
-    unsigned char ret = ch;
+static uchar_t gost_to_upp (uchar_t ch) {
+    uchar_t ret = ch;
     ch = (ch & 0x55) + ((ch >> 1) & 0x55);
     ch = (ch & 0x33) + ((ch >> 2) & 0x33);
     ch = (ch & 0x0F) + ((ch >> 4) & 0x0F);
@@ -434,7 +437,7 @@ static void reverse_card(int num, int raw) {
     memset(vu_image[num], 0, 160);
     content[0] = 0;
     for (i = 0; i < 120; ++i) {
-        unsigned char ch = vu_gost[num][i];
+        uchar_t ch = vu_gost[num][i];
         int mask = 1 << (i / 10);
         int pos = 8 * (i % 10);
         if (!raw) {
@@ -453,7 +456,7 @@ static void reverse_card(int num, int raw) {
 extern int utf8_getc(FILE*);
 
 static int
-is_prettycard (unsigned char *s)
+is_prettycard (uchar_t *s)
 {
         int i;
         for (i=0; i<80; ++i)

@@ -72,16 +72,16 @@ can be declared as an arrayed register.
 
 ## CPU and I/O Device Structures
 
-Simulated memory is kept in array `uint16 M[MAXMEMSIZE]`. 12b words
+Simulated memory is kept in array `uint16_t M[MAXMEMSIZE]`. 12b words
 are right justified in each array entry; the high order 4b must be
 zero.
 
 The interrupt structure is implemented in three parallel variables:
 
-- `int32 int_req`: interrupt requests. The two high order bits are the
+- `int32_t int_req`: interrupt requests. The two high order bits are the
   interrupt enable flag and the interrupts-not-deferred flag
-- `int32 dev_done`: device done flags
-- `int32 int_enable`: device interrupt enable flags
+- `int32_t dev_done`: device done flags
+- `int32_t int_enable`: device interrupt enable flags
 
 A device without interrupt control keeps its interrupt request, which
 is also the device done flag, in `int_req`. A device with interrupt
@@ -183,8 +183,8 @@ accordingly:
 The device information block is declared in the device module, as follows:
 
 ```
-int32 iotrtn1(int32 instruction, int32 AC);
-int32 iotrtn2(int32 instruction, int32 AC);
+int32_t iotrtn1(int32_t instruction, int32_t AC);
+int32_t iotrtn2(int32_t instruction, int32_t AC);
 /* ... */
 DIB dev_dib = { DEV_NEW, num_iot_routines, { &iotrtn1, &iotrn2, … } };
 ```
@@ -204,7 +204,7 @@ words are right justified in each array entry; the high order 14b must
 be zero.
 
 The interrupt structure is implemented in an array
-`int32 int_hwre[5]`, corresponding to API (automatic priority interrupt)
+`int32_t int_hwre[5]`, corresponding to API (automatic priority interrupt)
 levels 0 through 3 and normal program interrupts, if a device doesn’t
 support API. Priority is from level 0 to level “4” (PI); within a level,
 priority is right to left. The API control variables are updated
@@ -301,9 +301,9 @@ should also be defined.
 The device information block is declared in the device module, as follows:
 
 ```
-int32 iotrtn1(int32 instruction, int32 AC);
-int32 iotrtn2(int32 instruction, int32 AC);
-int32 iorsrtn(void);
+int32_t iotrtn1(int32_t instruction, int32_t AC);
+int32_t iotrtn2(int32_t instruction, int32_t AC);
+int32_t iorsrtn(void);
 /* ... */
 DIB dev_dib = { DEV_NEW, num_iot_routines, iorsrtn, { &iotrtn1, &iotrn2, … } };
 ```
@@ -319,13 +319,13 @@ dispatch address should be `NULL`. If the device does not respond to
 
 ## Memory
 
-For the PDP-11, simulated memory is kept in array `uint16 *M`,
+For the PDP-11, simulated memory is kept in array `uint16_t *M`,
 dynamically allocated.
 
 For the MicroVAX 3900 and VAX-780, simulated memory is kept in array
-`uint32 *M`, dynamically allocated.
+`uint32_t *M`, dynamically allocated.
 
-For the PDP-10, simulated memory is kept in array `t_uint64 *M`,
+For the PDP-10, simulated memory is kept in array `uint64_t *M`,
 dynamically allocated.
 
 Because the three systems use different memory widths and different
@@ -376,13 +376,13 @@ following information:
 The calling sequence for an I/O read is:
 
 ```
-t_stat read_routine(int32 *data, int32 pa, int32 access)
+t_stat read_routine(int32_t *data, int32_t pa, int32_t access)
 ```
 
 The calling sequence for an I/O write is:
 
 ```
-t_stat write_routine(int32 data, int32 pa, int32 access)
+t_stat write_routine(int32_t data, int32_t pa, int32_t access)
 ```
 
 For both, the `access` parameter can have one of the following values:
@@ -411,7 +411,7 @@ acknowledge routines. A calling sequence for an interrupt acknowledge
 routine is:
 
 ```
-int32 iack_rtn(void)
+int32_t iack_rtn(void)
 ```
 
 It returns the interrupt vector for the device, or 0 if there is no
@@ -433,13 +433,13 @@ following information:
 The calling sequence for a Massbus register read is:
 
 ```
-t_stat mb_read_routine(int32 *data, int32 offset, int32 drive)
+t_stat mb_read_routine(int32_t *data, int32_t offset, int32_t drive)
 ```
 
 The calling sequence for a Massbus register write is:
 
 ```
-t_stat mb_write_routine(int32 data, int32 offset, int32 drive)
+t_stat mb_write_routine(int32_t data, int32_t offset, int32_t drive)
 ```
 
 For both, offset is the internal register offset of the Massbus
@@ -494,10 +494,10 @@ always true; and for the MicroVAX models, it is always false.
 Unibus/Qbus DMA devices access memory through four interface routines:
 
 ```
-int32 Map_ReadB(t_addr ba, int32 bc, uint8 *buf);
-int32 Map_ReadW(t_addr ba, int32 bc, uint16 *buf);
-int32 Map_WriteB(t_addr ba, int32 bc, uint8 *buf);
-int32 Map_WriteW(t_addr ba, int32 bc, uint16 *buf);
+int32_t Map_ReadB(t_addr ba, int32_t bc, uint8_t *buf);
+int32_t Map_ReadW(t_addr ba, int32_t bc, uint16_t *buf);
+int32_t Map_WriteB(t_addr ba, int32_t bc, uint8_t *buf);
+int32_t Map_WriteW(t_addr ba, int32_t bc, uint16_t *buf);
 ```
 
 The arguments to these routines are:
@@ -522,9 +522,9 @@ Massbus devices access memory through three interface routines, for
 read, write, and write check respectively:
 
 ```
-int32 mba_rdbufW(uint32 mbus, int32 bc, uint16 *buf);
-int32 mba_wrbufW(uint32 mbus, int32 bc, uint16 *buf);
-int32 mba_chbufW(uint32 mbus, int32 bc, uint16 *buf);
+int32_t mba_rdbufW(uint32_t mbus, int32_t bc, uint16_t *buf);
+int32_t mba_wrbufW(uint32_t mbus, int32_t bc, uint16_t *buf);
+int32_t mba_chbufW(uint32_t mbus, int32_t bc, uint16_t *buf);
 ```
 
 The arguments to these routines are:
@@ -582,10 +582,10 @@ The device information block is declared in the device module, as
 follows:
 
 ```
-t_stat new_rd(int32 *data, int32 addr, int32 access);
-t_stat new_wr(int32 data, int32 addr, int32 access);
-int32 new_iack1(void);
-int32 new_iack2(void);
+t_stat new_rd(int32_t *data, int32_t addr, int32_t access);
+t_stat new_wr(int32_t data, int32_t addr, int32_t access);
+int32_t new_iack1(void);
+int32_t new_iack2(void);
 
 #define IOLN_NEW       010                   /* length = 8 bytes */
 
@@ -634,12 +634,12 @@ addresses AND vectors). The fields for each entry are:
 |                  |                                                           |
 |------------------|-----------------------------------------------------------|
 | `char *dnam[32]` | list of controller names for this device type, maximum 32 |
-| `int32 numc` | number of controllers per device name (used by terminal multiplexers) |
-| `int32 numv`      | number of vectors per controller                 |
-| `int32 amod`      | address modulus                                  |
-| `uint32 vmod`     | vector modulus                                   |
-| `uint32 fix[32]`  | fixed CSR addresses, maximum 32; 0 = end of list |
-| `uint32 fixv[32]` | fixed vectors, maximum 32; 0 = end of list       |
+| `int32_t numc` | number of controllers per device name (used by terminal multiplexers) |
+| `int32_t numv`      | number of vectors per controller                 |
+| `int32_t amod`      | address modulus                                  |
+| `uint32_t vmod`     | vector modulus                                   |
+| `uint32_t fix[32]`  | fixed CSR addresses, maximum 32; 0 = end of list |
+| `uint32_t fixv[32]` | fixed vectors, maximum 32; 0 = end of list       |
 
 An `amod` value of 0 indicates that the addresses for this device
 entry are only fixed. A `vmod` value of 0 indicates that all the
@@ -652,14 +652,14 @@ they are set by software.
 
 ## CPU and I/O Device Structures
 
-Simulated memory is kept in array `uint16 M[MAXMEMSIZE]`.
+Simulated memory is kept in array `uint16_t M[MAXMEMSIZE]`.
 
 The interrupt structure is implemented in three parallel variables:
 
-- `int32 int_req`: interrupt requests. The two high order bits are the
+- `int32_t int_req`: interrupt requests. The two high order bits are the
   interrupt enable flag and the interrupts-not-deferred flag
-- `int32 dev_done`: device done flags
-- `int32 dev_disable`: device interrupt disable flags
+- `int32_t dev_done`: device done flags
+- `int32_t dev_disable`: device interrupt disable flags
 
 Pictorially,
 
@@ -693,8 +693,8 @@ has one entry for each possible I/O device. Each entry is a structure
 of the form:
 
 ```
-int32    mask;               /* interrupt/done mask bit */
-int32    pi;                 /* PI out mask bit */
+int32_t    mask;               /* interrupt/done mask bit */
+int32_t    pi;                 /* PI out mask bit */
 t_stat   (*iot_routine)();   /* addr of I/O routine */
 ```
 
@@ -727,7 +727,7 @@ translate 15b virtual addresses to physical addresses. The mapping
 function is called by:
 
 ```
-int32 MapAddr(int32 map, int32 addr)
+int32_t MapAddr(int32_t map, int32_t addr)
 ```
 
 with the following arguments:
@@ -773,7 +773,7 @@ The device’s PI mask bit must also be defined:
 The device information block is declared in the device module, as follows:
 
 ```
-int32 iot(int32 pulse, int32 code, int32 AC);
+int32_t iot(int32_t pulse, int32_t code, int32_t AC);
 /* ... */
 DIB new_dib = { DEV_NEW, INT_new, PI_new, &iot };
 ```

@@ -73,6 +73,8 @@
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
@@ -218,22 +220,22 @@ BITFIELD dz_tdr_bits[] = {
   ENDBITS
 };
 
-extern int32 IREQ (HLVL);
-extern int32 tmxr_poll;                                 /* calibrated delay */
+extern int32_t IREQ (HLVL);
+extern int32_t tmxr_poll;                               /* calibrated delay */
 
-uint16 dz_csr[MAX_DZ_MUXES] = { 0 };                    /* csr */
-uint16 dz_rbuf[MAX_DZ_MUXES] = { 0 };                   /* rcv buffer */
-uint16 dz_lpr[MAX_DZ_MUXES] = { 0 };                    /* line param */
-uint16 dz_tcr[MAX_DZ_MUXES] = { 0 };                    /* xmit control */
-uint16 dz_msr[MAX_DZ_MUXES] = { 0 };                    /* modem status */
-uint16 dz_tdr[MAX_DZ_MUXES] = { 0 };                    /* xmit data */
-uint16 dz_silo[MAX_DZ_MUXES][DZ_SILO_ALM] = { {0} };    /* silo */
-uint16 dz_scnt[MAX_DZ_MUXES] = { 0 };                   /* silo used */
-uint8 dz_sae[MAX_DZ_MUXES] = { 0 };                     /* silo alarm enabled */
-uint32 dz_rxi = 0;                                      /* rcv interrupts */
-uint32 dz_txi = 0;                                      /* xmt interrupts */
-int32 dz_mctl = 0;                                      /* modem ctrl enabled */
-int32 dz_auto = 0;                                      /* autodiscon enabled */
+uint16_t dz_csr[MAX_DZ_MUXES] = { 0 };                  /* csr */
+uint16_t dz_rbuf[MAX_DZ_MUXES] = { 0 };                 /* rcv buffer */
+uint16_t dz_lpr[MAX_DZ_MUXES] = { 0 };                  /* line param */
+uint16_t dz_tcr[MAX_DZ_MUXES] = { 0 };                  /* xmit control */
+uint16_t dz_msr[MAX_DZ_MUXES] = { 0 };                  /* modem status */
+uint16_t dz_tdr[MAX_DZ_MUXES] = { 0 };                  /* xmit data */
+uint16_t dz_silo[MAX_DZ_MUXES][DZ_SILO_ALM] = { {0} };  /* silo */
+uint16_t dz_scnt[MAX_DZ_MUXES] = { 0 };                 /* silo used */
+uint8_t dz_sae[MAX_DZ_MUXES] = { 0 };                   /* silo alarm enabled */
+uint32_t dz_rxi = 0;                                    /* rcv interrupts */
+uint32_t dz_txi = 0;                                    /* xmt interrupts */
+int32_t dz_mctl = 0;                                    /* modem ctrl enabled */
+int32_t dz_auto = 0;                                    /* autodiscon enabled */
 TMLN *dz_ldsc = NULL;                                   /* line descriptors */
 TMXR dz_desc = { 0, 0, 0, NULL };                       /* mux descriptor */
 
@@ -263,30 +265,30 @@ DEBTAB dz_debug[] = {
   {0}
 };
 
-t_stat dz_rd (int32 *data, int32 PA, int32 access);
-t_stat dz_wr (int32 data, int32 PA, int32 access);
-int32 dz_rxinta (void);
-int32 dz_txinta (void);
+t_stat dz_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat dz_wr (int32_t data, int32_t PA, int32_t access);
+int32_t dz_rxinta (void);
+int32_t dz_txinta (void);
 t_stat dz_svc (UNIT *uptr);
 t_stat dz_xmt_svc (UNIT *uptr);
 t_stat dz_reset (DEVICE *dptr);
 t_stat dz_attach (UNIT *uptr, const char *cptr);
 t_stat dz_detach (UNIT *uptr);
-t_stat dz_clear (int32 dz, bool flag);
-uint16 dz_getc (int32 dz);
+t_stat dz_clear (int32_t dz, bool flag);
+uint16_t dz_getc (int32_t dz);
 void dz_update_rcvi (void);
 void dz_update_xmti (void);
-void dz_clr_rxint (int32 dz);
-void dz_set_rxint (int32 dz);
-void dz_clr_txint (int32 dz);
-void dz_set_txint (int32 dz);
-t_stat dz_show_vec (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat dz_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+void dz_clr_rxint (int32_t dz);
+void dz_set_rxint (int32_t dz);
+void dz_clr_txint (int32_t dz);
+void dz_set_txint (int32_t dz);
+t_stat dz_show_vec (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat dz_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *dz_description (DEVICE *dptr);
 
 /* DZ data structures
@@ -378,11 +380,11 @@ static const char *dz_wr_regs[] =
 
 /* IO dispatch routines, I/O addresses 177601x0 - 177601x7 */
 
-t_stat dz_rd (int32 *data, int32 PA, int32 access)
+t_stat dz_rd (int32_t *data, int32_t PA, int32_t access)
 {
 int i;
 static BITFIELD* bitdefs[] = {dz_csr_bits, dz_rbuf_bits, dz_tcr_bits, dz_msr_bits};
-int32 dz = ((PA - dz_dib.ba) >> 3);                     /* get mux num */
+int32_t dz = ((PA - dz_dib.ba) >> 3);                   /* get mux num */
 
 if (dz > DZ_MAXMUX)
     return SCPE_IERR;
@@ -420,7 +422,7 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
     case 03:                                            /* MSR */
         for (i=0; i<DZ_LINES; ++i) {                    /* Gather line status bits for each line */
             int line;
-            int32 modem_bits;
+            int32_t modem_bits;
             TMLN *lp;
 
             line = (dz * DZ_LINES) + i;
@@ -437,25 +439,25 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
         }
 
 sim_debug(DBG_REG, &dz_dev, "dz_rd(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, dz_rd_regs[(PA >> 1) & 03], access, *data);
-sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), true);
+sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32_t)(*data), (uint32_t)(*data), true);
 
 return SCPE_OK;
 }
 
-t_stat dz_wr (int32 ldata, int32 PA, int32 access)
+t_stat dz_wr (int32_t ldata, int32_t PA, int32_t access)
 {
-int32 dz = ((PA - dz_dib.ba) >> 3);                     /* get mux num */
+int32_t dz = ((PA - dz_dib.ba) >> 3);                   /* get mux num */
 static BITFIELD* bitdefs[] = {dz_csr_bits, dz_lpr_bits, dz_tcr_bits, dz_tdr_bits};
-int32 i, c, line;
+int32_t i, c, line;
 char lineconfig[16];
 TMLN *lp;
-uint16 data = (uint16)ldata;
+uint16_t data = (uint16_t)ldata;
 
 if (dz > DZ_MAXMUX)
     return SCPE_IERR;
 
 sim_debug(DBG_REG, &dz_dev, "dz_wr(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, dz_wr_regs[(PA >> 1) & 03], access, data);
-sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), true);
+sim_debug_bits(DBG_REG, &dz_dev, bitdefs[(PA >> 1) & 03], (uint32_t)((PA & 1) ? data<<8 : data), (uint32_t)((PA & 1) ? data<<8 : data), true);
 
 switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
 
@@ -506,7 +508,7 @@ switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
                     (dz_tcr[dz] & ~0377) | data;
         if (dz_mctl &&
             ((access != WRITEB) || (PA & 1))) {         /* modem ctl (DTR)? */
-            int32 changed = data ^ dz_tcr[dz];
+            int32_t changed = data ^ dz_tcr[dz];
 
             for (i = 0; i < DZ_LINES; i++) {
                 if (0 == (changed & (1 << (TCR_V_DTR + i))))
@@ -563,7 +565,7 @@ return SCPE_OK;
 
 t_stat dz_svc (UNIT *uptr)
 {
-int32 dz, t, newln, muxln;
+int32_t dz, t, newln, muxln;
 
 sim_debug(DBG_TRC, find_dev_from_unit(uptr), "dz_svc()\n");
 for (dz = t = 0; dz < dz_desc.lines/DZ_LINES; dz++)     /* check enabled */
@@ -601,10 +603,10 @@ return SCPE_OK;
 
 /* Get first available character for mux, if any */
 
-uint16 dz_getc (int32 dz)
+uint16_t dz_getc (int32_t dz)
 {
-uint16 ret;
-uint32 i;
+uint16_t ret;
+uint32_t i;
 
 if (!dz_scnt[dz])
     return 0;
@@ -620,7 +622,7 @@ return ret;
 
 void dz_update_rcvi (void)
 {
-int32 i, dz, c;
+int32_t i, dz, c;
 TMLN *lp;
 
 for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {       /* loop thru muxes */
@@ -634,7 +636,7 @@ for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {       /* loop thru muxes */
                 c = RBUF_FRME;
             if (c) {                                    /* save in silo */
                 c = (c & (RBUF_CHAR | RBUF_FRME)) | RBUF_VALID | (i << RBUF_V_RLINE);
-                dz_silo[dz][dz_scnt[dz]] = (uint16)c;
+                dz_silo[dz][dz_scnt[dz]] = (uint16_t)c;
                 ++dz_scnt[dz];
                 }
             if (dz_mctl && !lp->conn)                   /* if disconn */
@@ -664,7 +666,7 @@ return;
 
 void dz_update_xmti (void)
 {
-int32 dz, linemask, i, j, line;
+int32_t dz, linemask, i, j, line;
 
 for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {       /* loop thru muxes */
     if (0 == (dz_csr[dz] & CSR_TRDY)) {                 /* if not ready then check */
@@ -691,7 +693,7 @@ return;
 
 /* Interrupt routines */
 
-void dz_clr_rxint (int32 dz)
+void dz_clr_rxint (int32_t dz)
 {
 if (dz_rxi & (1 << dz))
     sim_debug(DBG_INT, &dz_dev, "dz_clr_rxint(dz=%d, rxi=0x%X)\n", dz, dz_rxi);
@@ -702,7 +704,7 @@ else SET_INT (DZRX);                                    /* no, set intr */
 return;
 }
 
-void dz_set_rxint (int32 dz)
+void dz_set_rxint (int32_t dz)
 {
 dz_rxi = dz_rxi | (1 << dz);                            /* set mux rcv int */
 SET_INT (DZRX);                                         /* set master intr */
@@ -710,9 +712,9 @@ sim_debug(DBG_INT, &dz_dev, "dz_set_rxint(dz=%d)\n", dz);
 return;
 }
 
-int32 dz_rxinta (void)
+int32_t dz_rxinta (void)
 {
-int32 dz;
+int32_t dz;
 
 for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {       /* find 1st mux */
     if (dz_rxi & (1 << dz)) {
@@ -724,7 +726,7 @@ for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {       /* find 1st mux */
 return 0;
 }
 
-void dz_clr_txint (int32 dz)
+void dz_clr_txint (int32_t dz)
 {
 dz_txi = dz_txi & ~(1 << dz);                           /* clr mux xmt int */
 if (dz_txi == 0)                                        /* all clr? */
@@ -734,7 +736,7 @@ else
 return;
 }
 
-void dz_set_txint (int32 dz)
+void dz_set_txint (int32_t dz)
 {
 dz_txi = dz_txi | (1 << dz);                            /* set mux xmt int */
 SET_INT (DZTX);                                         /* set master intr */
@@ -743,9 +745,9 @@ sim_debug_bits(DBG_INT, &dz_dev, dz_csr_bits, dz_csr[dz], dz_csr[dz], true);
 return;
 }
 
-int32 dz_txinta (void)
+int32_t dz_txinta (void)
 {
-int32 dz;
+int32_t dz;
 
 for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {       /* find 1st mux */
     if (dz_txi & (1 << dz)) {
@@ -759,9 +761,9 @@ return 0;
 
 /* Device reset */
 
-t_stat dz_clear (int32 dz, bool flag)
+t_stat dz_clear (int32_t dz, bool flag)
 {
-int32 i, line;
+int32_t i, line;
 
 sim_debug(DBG_TRC, &dz_dev, "dz_clear(dz=%d,flag=%d)\n", dz, flag);
 
@@ -787,7 +789,7 @@ return SCPE_OK;
 
 t_stat dz_reset (DEVICE *dptr)
 {
-int32 i, ndev;
+int32_t i, ndev;
 
 sim_debug(DBG_TRC, dptr, "dz_reset()\n");
 
@@ -798,7 +800,7 @@ if (dz_ldsc == NULL) {
     sim_set_uname (&dz_unit[1], "DZ-XMT");
     }
 if ((dz_desc.lines % DZ_LINES) != 0) {      /* Transition from Qbus to Unibus device */
-    int32 newln = DZ_LINES * (1 + (dz_desc.lines / DZ_LINES));
+    int32_t newln = DZ_LINES * (1 + (dz_desc.lines / DZ_LINES));
 
     dz_desc.ldsc = dz_ldsc = (TMLN *)realloc(dz_ldsc, newln*sizeof(*dz_ldsc));
     memset (dz_ldsc + dz_desc.lines, 0, sizeof(*dz_ldsc)*(newln-dz_desc.lines));
@@ -820,7 +822,7 @@ return auto_config (dptr->name, ndev);                  /* auto config */
 
 t_stat dz_attach (UNIT *uptr, const char *cptr)
 {
-int32 dz, muxln, ln;
+int32_t dz, muxln, ln;
 t_stat r;
 
 if ((sim_switches & SWMASK ('M')) || dz_mctl)           /* modem control? */
@@ -865,7 +867,7 @@ return SCPE_OK;
 
 t_stat dz_detach (UNIT *uptr)
 {
-int32 dz, muxln;
+int32_t dz, muxln;
 t_stat r = tmxr_detach (&dz_desc, uptr);
 
 dz_mctl = dz_auto = 0;                                  /* modem ctl off */
@@ -881,7 +883,7 @@ for (dz = 0; dz < dz_desc.lines/DZ_LINES; dz++) {
 return r;
 }
 
-t_stat dz_show_vec (FILE *st, UNIT *uptr, int32 arg, const void *desc)
+t_stat dz_show_vec (FILE *st, UNIT *uptr, int32_t arg, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -895,7 +897,7 @@ return show_vec (st, uptr, ((mp->lines * 2) / DZ_LINES), desc);
 
 /* SET LINES processor */
 
-t_stat dz_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dz_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -903,12 +905,12 @@ t_stat dz_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)
     return SCPE_ARG;
-newln = (int32) get_uint (cptr, 10, (MAX_DZ_MUXES * DZ_LINES), &r);
+newln = (int32_t) get_uint (cptr, 10, (MAX_DZ_MUXES * DZ_LINES), &r);
 if ((r != SCPE_OK) || (newln == dz_desc.lines))
     return r;
 if ((newln == 0) || (newln % DZ_LINES))
@@ -938,7 +940,7 @@ return dz_reset (&dz_dev);                              /* setup lines and auto 
 
 /* SET LOG processor */
 
-t_stat dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -947,14 +949,14 @@ t_stat dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 t_stat r;
 char gbuf[CBUFSIZE];
-int32 ln;
+int32_t ln;
 
 if (cptr == NULL)
     return SCPE_ARG;
 cptr = get_glyph (cptr, gbuf, '=');
 if ((cptr == NULL) || (*cptr == 0) || (gbuf[0] == 0))
     return SCPE_ARG;
-ln = (int32) get_uint (gbuf, 10, dz_desc.lines, &r);
+ln = (int32_t) get_uint (gbuf, 10, dz_desc.lines, &r);
 if ((r != SCPE_OK) || (ln >= dz_desc.lines))
     return SCPE_ARG;
 return tmxr_set_log (NULL, ln, cptr, desc);
@@ -962,7 +964,7 @@ return tmxr_set_log (NULL, ln, cptr, desc);
 
 /* SET NOLOG processor */
 
-t_stat dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -970,11 +972,11 @@ t_stat dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 
 t_stat r;
-int32 ln;
+int32_t ln;
 
 if (cptr == NULL)
     return SCPE_ARG;
-ln = (int32) get_uint (cptr, 10, dz_desc.lines, &r);
+ln = (int32_t) get_uint (cptr, 10, dz_desc.lines, &r);
 if ((r != SCPE_OK) || (ln >= dz_desc.lines))
     return SCPE_ARG;
 return tmxr_set_nolog (NULL, ln, NULL, desc);
@@ -982,14 +984,14 @@ return tmxr_set_nolog (NULL, ln, NULL, desc);
 
 /* SHOW LOG processor */
 
-t_stat dz_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 i;
+int32_t i;
 
 for (i = 0; i < dz_desc.lines; i++) {
     fprintf (st, "line %d: ", i);
@@ -999,7 +1001,7 @@ for (i = 0; i < dz_desc.lines; i++) {
 return SCPE_OK;
 }
 
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char *devtype = (UNIBUS) ? "DZ11" : "DZV11";
 
@@ -1040,7 +1042,7 @@ dz_help_attach (st, dptr, uptr, flag, cptr);
 return SCPE_OK;
 }
 
-t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char *devtype = (UNIBUS) ? "DZ11" : "DZV11";
 

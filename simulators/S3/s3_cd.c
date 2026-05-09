@@ -38,31 +38,33 @@
 */
 
 #include "s3_defs.h"
+#include "sim_types.h"
 #include <ctype.h>
+#include <stdint.h>
 
-extern uint8 M[];
-extern unsigned char ebcdic_to_ascii[];
-extern unsigned char ascii_to_ebcdic[];
-int32 s1sel, s2sel;
-uint8 rbuf[CBUFSIZE];                                   /* > CDR_WIDTH */
+extern uint8_t M[];
+extern uchar_t ebcdic_to_ascii[];
+extern uchar_t ascii_to_ebcdic[];
+int32_t s1sel, s2sel;
+uint8_t rbuf[CBUFSIZE];                                 /* > CDR_WIDTH */
 t_stat cdr_svc (UNIT *uptr);
-t_stat cdr_boot (int32 unitno, DEVICE *dptr);
+t_stat cdr_boot (int32_t unitno, DEVICE *dptr);
 t_stat cdr_attach (UNIT *uptr, const char *cptr);
 t_stat cd_reset (DEVICE *dptr);
-t_stat read_card (int32 ilnt, int32 mod);
-t_stat punch_card (int32 ilnt, int32 mod);
+t_stat read_card (int32_t ilnt, int32_t mod);
+t_stat punch_card (int32_t ilnt, int32_t mod);
 
-int32 DAR;                                              /* Data address register */
-int32 LCR;                                              /* Length Count Register */
-int32 lastcard = 0;                                     /* Last card switch */
-int32 carderr = 0;                                      /* Error switch */
-int32 pcherror = 0;                                     /* Punch error */
-int32 notready = 0;                                     /* Not ready error */
-int32 cdr_ebcdic = 0;                                   /* EBCDIC mode on reader */
-int32 cdp_ebcdic = 0;                                   /* EBCDIC mode on punch */
+int32_t DAR;                                            /* Data address register */
+int32_t LCR;                                            /* Length Count Register */
+int32_t lastcard = 0;                                   /* Last card switch */
+int32_t carderr = 0;                                    /* Error switch */
+int32_t pcherror = 0;                                   /* Punch error */
+int32_t notready = 0;                                   /* Not ready error */
+int32_t cdr_ebcdic = 0;                                 /* EBCDIC mode on reader */
+int32_t cdp_ebcdic = 0;                                 /* EBCDIC mode on punch */
 
-extern int32 GetMem(int32 addr);
-extern int32 PutMem(int32 addr, int32 data);
+extern int32_t GetMem(int32_t addr);
+extern int32_t PutMem(int32_t addr, int32_t data);
 
 /* Card reader data structures
 
@@ -149,13 +151,13 @@ DEVICE stack_dev = {
 
 /* 1442: master routine */
 
-int32 crd (int32 op, int32 m, int32 n, int32 data)
+int32_t crd (int32_t op, int32_t m, int32_t n, int32_t data)
 {
     /* Generic I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) m;
 
-    int32 iodata;
+    int32_t iodata;
     switch (op) {
         case 0:                                         /* SIO 1442 */
             /* if (n == 1)
@@ -277,9 +279,9 @@ int32 crd (int32 op, int32 m, int32 n, int32 data)
         mod 1 = EBCDIC read
 */
 
-t_stat read_card (int32 ilnt, int32 mod)
+t_stat read_card (int32_t ilnt, int32_t mod)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 if (sim_is_active (&cdr_unit)) {                        /* busy? */
@@ -345,7 +347,7 @@ return SCPE_OK;
 
 t_stat cdr_svc (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 
 if (s2sel) uptr = &stack_unit[0];                       /* stacker 1? */
 else uptr = &stack_unit[0];                             /* then default */
@@ -368,9 +370,9 @@ return SCPE_OK;
    mod: not used
 */
 
-t_stat punch_card (int32 ilnt, int32 mod)
+t_stat punch_card (int32_t ilnt, int32_t mod)
 {
-int32 i, colcount;
+int32_t i, colcount;
 static char pbuf[CDP_WIDTH + 1];                        /* + null */
 UNIT *uptr;
 
@@ -415,7 +417,7 @@ return SCPE_OK;
    Modifiers are 1, 2, for the respective stack
 */
 
-t_stat select_stack (int32 ilnt, int32 mod)
+t_stat select_stack (int32_t ilnt, int32_t mod)
 {
 if (mod == 1) s1sel = 1;
 else if (mod == 2) s2sel = 1;
@@ -446,7 +448,7 @@ return attach_unit (uptr, cptr);
 
 /* Bootstrap routine */
 
-t_stat cdr_boot (int32 unitno, DEVICE *dptr)
+t_stat cdr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */

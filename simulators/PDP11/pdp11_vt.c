@@ -38,6 +38,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #if defined (VM_VAX)                                    /* VAX version */
 #include "vax_defs.h"
@@ -86,24 +87,24 @@
 #define UNIT_V_NOSPACEWAR  (UNIT_V_UF + 0)
 #define UNIT_NOSPACEWAR    (1 << UNIT_V_NOSPACEWAR)
 
-extern int32 int_vec[IPL_HLVL][32];
+extern int32_t int_vec[IPL_HLVL][32];
 
-t_stat vt_rd(int32 *data, int32 PA, int32 access);
-t_stat vt_wr(int32 data, int32 PA, int32 access);
+t_stat vt_rd(int32_t *data, int32_t PA, int32_t access);
+t_stat vt_wr(int32_t data, int32_t PA, int32_t access);
 t_stat vt_svc(UNIT *uptr);
 t_stat vt_reset(DEVICE *dptr);
-t_stat vt_boot(int32 unit, DEVICE *dptr);
-t_stat vt_set_crt(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat vt_show_crt(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat vt_set_scale(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat vt_show_scale(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat vt_set_hspace(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat vt_show_hspace(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat vt_set_vspace(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat vt_show_vspace(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat vt_set_kb(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat vt_show_kb(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat vt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat vt_boot(int32_t unit, DEVICE *dptr);
+t_stat vt_set_crt(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat vt_show_crt(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat vt_set_scale(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat vt_show_scale(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat vt_set_hspace(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat vt_show_hspace(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat vt_set_vspace(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat vt_show_vspace(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat vt_set_kb(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat vt_show_kb(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat vt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *vt_description (DEVICE *dptr);
 
 /* VT11/VS60 data structures
@@ -229,7 +230,7 @@ const char *vt_regnam[] = {
 */
 
 t_stat
-vt_rd(int32 *data, int32 PA, int32 access)
+vt_rd(int32_t *data, int32_t PA, int32_t access)
 {
     t_stat stat = SCPE_OK;
 
@@ -257,9 +258,9 @@ vt_rd(int32 *data, int32 PA, int32 access)
 }
 
 t_stat
-vt_wr(int32 data, int32 PA, int32 access)
+vt_wr(int32_t data, int32_t PA, int32_t access)
 {
-    uint16 d = data & 0177777;          /* mask just in case */
+    uint16_t d = data & 0177777;        /* mask just in case */
 
     sim_debug (DEB_RWR, &vt_dev, "vt_wr(%s-PA=0%o,data=0x%X(0%o),access=%d)\n", vt_regnam[(PA & 036)>>1], (int)PA, (int)data, (int)data, (int)access);
 
@@ -361,7 +362,7 @@ vt_reset(DEVICE *dptr)
 
 t_addr vt_rom_base = 017766000;
 
-uint16 vt_boot_rom[] = {
+uint16_t vt_boot_rom[] = {
                                       //                                 ;       .ASECT
                                       //
                                       //                                 ;BOOTVT.S09  5/2/72
@@ -705,20 +706,20 @@ uint16 vt_boot_rom[] = {
     };
 
 t_stat
-vt_rom_rd(int32 *data, int32 PA, int32 access)
+vt_rom_rd(int32_t *data, int32_t PA, int32_t access)
 {
-*data = (int32)vt_boot_rom[(((PA - vt_rom_base) & 0xFFFF) >> 1)];
+*data = (int32_t)vt_boot_rom[(((PA - vt_rom_base) & 0xFFFF) >> 1)];
 return SCPE_OK;
 }
 
 DIB vt_rom_dib;
 
 t_stat
-vt_boot(int32 unit, DEVICE *dptr)
+vt_boot(int32_t unit, DEVICE *dptr)
 {
     t_stat r;
     char stability[32];
-    extern int32 saved_PC;
+    extern int32_t saved_PC;
 
     if (sim_switch_number == 40) {      /* GT40 Boot? */
         set_cmd (0, "CPU 11/05");
@@ -769,7 +770,7 @@ vt_boot(int32 unit, DEVICE *dptr)
 /* SET/SHOW VT options: */
 
 t_stat
-vt_set_crt(UNIT *uptr, int32 val, const char *cptr, void *desc)
+vt_set_crt(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     char gbuf[CBUFSIZE];
 
@@ -794,14 +795,14 @@ vt_set_crt(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-vt_show_crt(FILE *st, UNIT *uptr, int32 val, const void *desc)
+vt_show_crt(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     fprintf(st, "crt=VR%d", (int)vt11_display);
     return SCPE_OK;
 }
 
 t_stat
-vt_set_scale(UNIT *uptr, int32 val, const char *cptr, void *desc)
+vt_set_scale(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     t_stat r;
     t_value v;
@@ -819,14 +820,14 @@ vt_set_scale(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-vt_show_scale(FILE *st, UNIT *uptr, int32 val, const void *desc)
+vt_show_scale(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     fprintf(st, "scale=%d", (int)vt11_scale);
     return SCPE_OK;
 }
 
 t_stat
-vt_set_hspace(UNIT *uptr, int32 val, const char *cptr, void *desc)
+vt_set_hspace(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     char gbuf[CBUFSIZE];
     if (vt11_init)
@@ -844,14 +845,14 @@ vt_set_hspace(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-vt_show_hspace(FILE *st, UNIT *uptr, int32 val, const void *desc)
+vt_show_hspace(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     fprintf(st, "hspace=%s", vt11_csp_w==12 ? "narrow" : "normal");
     return SCPE_OK;
 }
 
 t_stat
-vt_set_vspace(UNIT *uptr, int32 val, const char *cptr, void *desc)
+vt_set_vspace(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     char gbuf[CBUFSIZE];
     if (vt11_init)
@@ -869,7 +870,7 @@ vt_set_vspace(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-vt_show_vspace(FILE *st, UNIT *uptr, int32 val, const void *desc)
+vt_show_vspace(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     fprintf(st, "vspace=%s", vt11_csp_h==26 ? "tall" : "normal");
     return SCPE_OK;
@@ -907,7 +908,7 @@ vt_name_intr(void)
 
 /* fetch memory */
 int
-vt_fetch(uint32 addr, vt11word *wp)
+vt_fetch(uint32_t addr, vt11word *wp)
 {
     /* On PDP-11 Unibus 22-bit systems, the VT11/VS60 behaves as
        an 18-bit Unibus peripheral and must go through the I/O map. */
@@ -922,7 +923,7 @@ vt_fetch(uint32 addr, vt11word *wp)
      * we need to sign extend the the address so it resides in
      * the I/O page.
      */
-    if (addr >= (uint32)(IOPAGEBASE & DMASK)) {
+    if (addr >= (uint32_t)(IOPAGEBASE & DMASK)) {
         sim_debug (DEB_VT11, &vt_dev, "vt_fetch(addr=0%o) Adjusting ROM address to 0%o\n", (int)addr, (int)(addr | IOPAGEBASE));
         addr |= IOPAGEBASE;
         }
@@ -946,12 +947,12 @@ return (VS60) ? "VS60 Display processor"
 
 #ifdef VM_PDP11
 /* PDP-11 simulation provides this */
-extern int32 SR;                        /* switch register */
+extern int32_t SR;                      /* switch register */
 #else
-int32 SR;                               /* switch register */
+int32_t SR;                             /* switch register */
 #endif
 
-t_stat vt_set_kb(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat vt_set_kb(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 char gbuf[CBUFSIZE];
 
@@ -967,7 +968,7 @@ else
 return SCPE_OK;
 }
 
-t_stat vt_show_kb(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat vt_show_kb(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 fprintf(st, "keyboard=%s",
         (uptr->flags & UNIT_NOSPACEWAR) ? "nospacewar" : "spacewar");
@@ -990,7 +991,7 @@ if ((vt_unit.flags & UNIT_NOSPACEWAR) == 0) {
     }
 }
 
-t_stat vt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat vt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char helpString[] =
  /* The '*'s in the next line represent the standard text width of a help line */

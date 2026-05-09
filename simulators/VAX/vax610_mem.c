@@ -26,6 +26,8 @@
    15-Feb-2012  MB      First Version
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #define MAX_MCTL_COUNT  16
@@ -35,11 +37,11 @@
 #define MCSR_ECR        0x4000                          /* extended CSR read enable */
 #define MCSR_RW         (MCSR_ECR|MCSR_WWP|MCSR_PEN)
 
-int32 mctl_csr[MAX_MCTL_COUNT];
-int32 mctl_count = 0;
+int32_t mctl_csr[MAX_MCTL_COUNT];
+int32_t mctl_count = 0;
 
-t_stat mctl_rd (int32 *data, int32 PA, int32 access);
-t_stat mctl_wr (int32 data, int32 PA, int32 access);
+t_stat mctl_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat mctl_wr (int32_t data, int32_t PA, int32_t access);
 t_stat mctl_reset (DEVICE *dptr);
 const char *mctl_description (DEVICE *dptr);
 
@@ -83,26 +85,26 @@ DEVICE mctl_dev = {
 
 /* I/O dispatch routines */
 
-t_stat mctl_rd (int32 *data, int32 PA, int32 access)
+t_stat mctl_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Bus read dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-int32 rg = (PA >> 1) & 0xF;
+int32_t rg = (PA >> 1) & 0xF;
 if (rg >= mctl_count)
     return SCPE_NXM;
 *data = mctl_csr[rg];
 return SCPE_OK;
 }
 
-t_stat mctl_wr (int32 data, int32 PA, int32 access)
+t_stat mctl_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Bus write dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-int32 rg = (PA >> 1) & 0xF;
+int32_t rg = (PA >> 1) & 0xF;
 if (rg >= mctl_count)
     return SCPE_NXM;
 mctl_csr[rg] = data & MCSR_RW;
@@ -115,11 +117,11 @@ t_stat mctl_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 rg;
+int32_t rg;
 for (rg = 0; rg < MAX_MCTL_COUNT; rg++) {
     mctl_csr[rg] = 0;
     }
-mctl_count = (int32)(MEMSIZE >> 18);                    /* memory controllers enabled */
+mctl_count = (int32_t)(MEMSIZE >> 18);                  /* memory controllers enabled */
 return SCPE_OK;
 }
 
@@ -134,7 +136,7 @@ return "memory controller";
 
 /* Used by CPU */
 
-void rom_wr_B (int32 pa, int32 val)
+void rom_wr_B (int32_t pa, int32_t val)
 {
 /* Shared ROM write hook.
    This model does not use every parameter. */
@@ -144,7 +146,7 @@ void rom_wr_B (int32 pa, int32 val)
 return;
 }
 
-t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -152,11 +154,11 @@ t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
 (void) val;
 (void) desc;
 
-uint32 memsize = (uint32)(MEMSIZE>>10);
-uint32 baseaddr = 0;
-uint32 csraddr = mctl_dib.ba;
+uint32_t memsize = (uint32_t)(MEMSIZE>>10);
+uint32_t baseaddr = 0;
+uint32_t csraddr = mctl_dib.ba;
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         {  4096, "MSV11-QC"},
@@ -165,7 +167,7 @@ struct {
         {   512, "MSV11-PL"},
         {   256, "MSV11-PK"},
         {     0, NULL}};
-int32 i;
+int32_t i;
 
 while (memsize) {
     for (i=0; boards[i].capacity > memsize; ++i)

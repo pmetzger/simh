@@ -2,9 +2,11 @@
 // SPDX-FileCopyrightText: 2011 Mark Pizzolato
 // SPDX-License-Identifier: X11
 
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
+
+#include "sim_types.h"
 /*
 
    This program builds C include files which can be used to contain the contents
@@ -16,7 +18,7 @@
       =======================================================================================
 */
 struct ROM_File_Descriptor {
-    const char *BinaryName;             const char *IncludeFileName; size_t expected_size; unsigned int checksum;  const char *ArrayName;            const char *Comments;} ROMs[] = {
+    const char *BinaryName;             const char *IncludeFileName; size_t expected_size; uint_t checksum;  const char *ArrayName;            const char *Comments;} ROMs[] = {
    {"simulators/VAX/ka655x.bin", "VAX/vax_ka655x_bin.h", 131072,
     0xFF7673B6, "vax_ka655x_bin"},
    {"simulators/VAX/ka620.bin", "VAX/vax_ka620_bin.h", 65536,
@@ -109,8 +111,8 @@ struct ROM_File_Descriptor {
 
 int sim_read_ROM_include(const char *include_filename,
                          size_t *psize,
-                         unsigned char **pROMData,
-                         unsigned int *pchecksum,
+                         uchar_t **pROMData,
+                         uint_t *pchecksum,
                          char **prom_array_name,
                          int *defines_found)
 {
@@ -133,7 +135,7 @@ if (NULL == (iFile = fopen (include_filename, "r")))
 memset (line, 0, sizeof (line));
 
 while (fgets (line, sizeof(line)-1, iFile)) {
-    unsigned int byte;
+    uint_t byte;
     char *c;
 
     switch (line[0]) {
@@ -154,9 +156,10 @@ while (fgets (line, sizeof(line)-1, iFile)) {
         case '*':
         case '\n':
             break;
-        case 'u': /* unsigned char {array_name}[] */
+        case 'u': /* ROM data array */
             *prom_array_name = (char *)calloc(512, sizeof(char));
-            if (1 == sscanf (line, "unsigned char %s[]", *prom_array_name)) {
+            if ((1 == sscanf (line, "unsigned char %s[]", *prom_array_name)) ||
+                (1 == sscanf (line, "uchar_t %s[]", *prom_array_name))) {
                 c = strchr (*prom_array_name, '[');
                 if (c)
                     *c = '\0';
@@ -167,9 +170,9 @@ while (fgets (line, sizeof(line)-1, iFile)) {
             while (1 == sscanf (c, "0x%2Xd,", &byte)) {
                 if (bytes_written >= allocated_size) {
                     allocated_size += 2048;
-                    *pROMData = (unsigned char *)realloc(*pROMData, allocated_size);
+                    *pROMData = (uchar_t *)realloc(*pROMData, allocated_size);
                     }
-                *(*pROMData + bytes_written++) = (unsigned char)byte;
+                *(*pROMData + bytes_written++) = (uchar_t)byte;
                 c += 5;
                 }
             break;
@@ -190,8 +193,8 @@ int sim_make_ROMs_entry(const char *rom_filename)
 {
 FILE *rFile;
 struct stat statb;
-unsigned char *ROMData = NULL;
-unsigned int checksum = 0;
+uchar_t *ROMData = NULL;
+uint_t checksum = 0;
 char *c;
 int i;
 char cleaned_rom_filename[512];
@@ -207,7 +210,7 @@ if (stat (rom_filename, &statb)) {
     fclose (rFile);
     return -1;
     }
-ROMData = (unsigned char *)malloc (statb.st_size);
+ROMData = (uchar_t *)malloc (statb.st_size);
 if ((size_t)(statb.st_size) != fread (ROMData, sizeof(*ROMData), statb.st_size, rFile)) {
     printf ("Error reading '%s': %s\n", rom_filename, strerror(errno));
     fclose (rFile);
@@ -246,7 +249,7 @@ return 1;
 
 int sim_make_ROM_include(const char *rom_filename,
                          size_t expected_size,
-                         unsigned int expected_checksum,
+                         uint_t expected_checksum,
                          const char *include_filename,
                          const char *rom_array_name,
                          const char *Comments)
@@ -260,11 +263,11 @@ int c;
 int rom;
 struct stat statb;
 const char *load_filename;
-unsigned char *ROMData = NULL;
-unsigned char *include_ROMData = NULL;
+uchar_t *ROMData = NULL;
+uchar_t *include_ROMData = NULL;
 char *include_array_name = NULL;
-unsigned int checksum = 0;
-unsigned int include_checksum;
+uint_t checksum = 0;
+uint_t include_checksum;
 int defines_found;
 
 if (NULL == (rFile = fopen (rom_filename, "rb"))) {
@@ -301,7 +304,7 @@ if ((size_t)statb.st_size != (size_t)expected_size) {
     fclose (rFile);
     return -1;
     }
-ROMData = (unsigned char *)malloc (statb.st_size);
+ROMData = (uchar_t *)malloc (statb.st_size);
 if ((size_t)(statb.st_size) != fread (ROMData, sizeof(*ROMData), statb.st_size, rFile)) {
     printf ("Error reading '%s': %s\n", rom_filename, strerror(errno));
     fclose (rFile);

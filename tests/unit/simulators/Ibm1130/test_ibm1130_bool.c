@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "test_cmocka.h"
 
@@ -26,9 +27,9 @@ static void test_switch_predicate_ignores_unrelated_switches(void **state)
 
 static void test_timer_state_predicate_requires_running_mask(void **state)
 {
-    const uint32 running = 1;
-    const uint32 inhibited = 2;
-    const uint32 timed_out = 4;
+    const uint32_t running = 1;
+    const uint32_t inhibited = 2;
+    const uint32_t timed_out = 4;
 
     (void)state;
 

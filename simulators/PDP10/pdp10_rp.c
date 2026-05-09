@@ -73,6 +73,7 @@
 #include "sim_disk.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define RP_NUMDR        8                               /* #drives */
 #define RP_NUMWD        128                             /* 36b words/sector */
@@ -310,12 +311,12 @@
 #define RP07_SIZE       (RP07_SECT * RP07_SURF * RP07_CYL * RP_NUMWD)
 
 struct drvtyp {
-    int32       sect;                                   /* sectors */
-    int32       surf;                                   /* surfaces */
-    int32       cyl;                                    /* cylinders */
-    int32       size;                                   /* #blocks */
-    int32       devtype;                                /* device type */
-    int32       ctrl;                                   /* ctrl type */
+    int32_t     sect;                                   /* sectors */
+    int32_t     surf;                                   /* surfaces */
+    int32_t     cyl;                                    /* cylinders */
+    int32_t     size;                                   /* #blocks */
+    int32_t     devtype;                                /* device type */
+    int32_t     ctrl;                                   /* ctrl type */
     const char  *name;                                  /* device type name */
     };
 
@@ -335,51 +336,51 @@ DEBTAB rp_debug[] = {
     {"DISK",    DBG_DSK, "display sim_disk activities" },
     {0}
 };
-extern int32 ubmap[UBANUM][UMAP_MEMSIZE];               /* Unibus maps */
-extern int32 ubcs[UBANUM];
-extern uint32 fe_bootrh;
-extern int32 fe_bootunit;
+extern int32_t ubmap[UBANUM][UMAP_MEMSIZE];             /* Unibus maps */
+extern int32_t ubcs[UBANUM];
+extern uint32_t fe_bootrh;
+extern int32_t fe_bootunit;
 
-int32 rpcs1 = 0;                                        /* control/status 1 */
-int32 rpwc = 0;                                         /* word count */
-int32 rpba = 0;                                         /* bus address */
-int32 rpcs2 = 0;                                        /* control/status 2 */
-int32 rpdb = 0;                                         /* data buffer */
-uint16 rpda[RP_NUMDR] = { 0 };                          /* track/sector */
-uint16 rpds[RP_NUMDR] = { 0 };                          /* drive status */
-uint16 rper1[RP_NUMDR] = { 0 };                         /* error status 1 */
-uint16 rmhr[RP_NUMDR] = { 0 };                          /* holding reg */
-uint16 rpmr[RP_NUMDR] = { 0 };                          /* maint reg */
-uint16 rmmr2[RP_NUMDR] = { 0 };                         /* maint reg 2 */
-uint16 rpof[RP_NUMDR] = { 0 };                          /* offset */
-uint16 rpdc[RP_NUMDR] = { 0 };                          /* cylinder */
-uint16 rper2[RP_NUMDR] = { 0 };                         /* error status 2 */
-uint16 rper3[RP_NUMDR] = { 0 };                         /* error status 3 */
-uint16 rpec1[RP_NUMDR] = { 0 };                         /* ECC correction 1 */
-uint16 rpec2[RP_NUMDR] = { 0 };                         /* ECC correction 2 */
-int32 rpiff = 0;                                        /* INTR flip/flop */
-int32 rp_stopioe = 1;                                   /* stop on error */
-int32 rp_swait = 10;                                    /* seek time */
-int32 rp_rwait = 10;                                    /* rotate time */
-static int32 reg_in_drive[32] = {
+int32_t rpcs1 = 0;                                      /* control/status 1 */
+int32_t rpwc = 0;                                       /* word count */
+int32_t rpba = 0;                                       /* bus address */
+int32_t rpcs2 = 0;                                      /* control/status 2 */
+int32_t rpdb = 0;                                       /* data buffer */
+uint16_t rpda[RP_NUMDR] = { 0 };                        /* track/sector */
+uint16_t rpds[RP_NUMDR] = { 0 };                        /* drive status */
+uint16_t rper1[RP_NUMDR] = { 0 };                       /* error status 1 */
+uint16_t rmhr[RP_NUMDR] = { 0 };                        /* holding reg */
+uint16_t rpmr[RP_NUMDR] = { 0 };                        /* maint reg */
+uint16_t rmmr2[RP_NUMDR] = { 0 };                       /* maint reg 2 */
+uint16_t rpof[RP_NUMDR] = { 0 };                        /* offset */
+uint16_t rpdc[RP_NUMDR] = { 0 };                        /* cylinder */
+uint16_t rper2[RP_NUMDR] = { 0 };                       /* error status 2 */
+uint16_t rper3[RP_NUMDR] = { 0 };                       /* error status 3 */
+uint16_t rpec1[RP_NUMDR] = { 0 };                       /* ECC correction 1 */
+uint16_t rpec2[RP_NUMDR] = { 0 };                       /* ECC correction 2 */
+int32_t rpiff = 0;                                      /* INTR flip/flop */
+int32_t rp_stopioe = 1;                                 /* stop on error */
+int32_t rp_swait = 10;                                  /* seek time */
+int32_t rp_rwait = 10;                                  /* rotate time */
+static int32_t reg_in_drive[32] = {
     0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
 
-t_stat rp_rd (int32 *data, int32 PA, int32 access);
-t_stat rp_wr (int32 data, int32 PA, int32 access);
-int32 rp_inta (void);
+t_stat rp_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat rp_wr (int32_t data, int32_t PA, int32_t access);
+int32_t rp_inta (void);
 t_stat rp_svc (UNIT *uptr);
 t_stat rp_reset (DEVICE *dptr);
-t_stat rp_boot (int32 unitno, DEVICE *dptr);
+t_stat rp_boot (int32_t unitno, DEVICE *dptr);
 t_stat rp_attach (UNIT *uptr, const char *cptr);
 t_stat rp_detach (UNIT *uptr);
-void set_rper (int16 flag, int32 drv);
-void update_rpcs (int32 flags, int32 drv);
-void rp_go (int32 drv, int32 fnc);
-t_stat rp_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rp_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+void set_rper (int16_t flag, int32_t drv);
+void update_rpcs (int32_t flags, int32_t drv);
+void rp_go (int32_t drv, int32_t fnc);
+t_stat rp_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rp_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *rp_description (DEVICE *dptr);
 
 /* RP data structures
@@ -490,13 +491,13 @@ DEVICE rp_dev = {
 
 /* I/O dispatch routines, I/O addresses 17776700 - 17776776 */
 
-t_stat rp_rd (int32 *data, int32 PA, int32 access)
+t_stat rp_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-int32 drv, dtype, i, j;
+int32_t drv, dtype, i, j;
 
 drv = GET_UNIT (rpcs2);                                 /* get current unit */
 dtype = GET_DTYPE (rp_unit[drv].flags);                 /* get drive type */
@@ -608,9 +609,9 @@ switch (j) {                                            /* decode PA<5:1> */
 return SCPE_OK;
 }
 
-t_stat rp_wr (int32 data, int32 PA, int32 access)
+t_stat rp_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 cs1f, drv, i, j;
+int32_t cs1f, drv, i, j;
 UNIT *uptr;
 
 cs1f = 0;                                               /* no int on cs1 upd */
@@ -627,7 +628,7 @@ if (reg_in_drive[j] && sim_is_active (uptr) && (uptr->flags & UNIT_UTS)) { /* un
     update_rpcs (0, drv);
     return SCPE_OK;
     }
-rmhr[drv] = (uint16)data;
+rmhr[drv] = (uint16_t)data;
 
 switch (j) {                                            /* decode PA<5:1> */
 
@@ -679,7 +680,7 @@ switch (j) {                                            /* decode PA<5:1> */
     case 003:                                           /* RPDA */
         if ((access == WRITEB) && (PA & 1))
             data = data << 8;
-        rpda[drv] = (uint16)(data & ~DA_MBZ);
+        rpda[drv] = (uint16_t)(data & ~DA_MBZ);
         break;
 
     case 004:                                           /* RPCS2 */
@@ -700,7 +701,7 @@ switch (j) {                                            /* decode PA<5:1> */
     case 006:                                           /* RPER1 */
         if ((access == WRITEB) && (PA & 1))
             data = data << 8;
-        rper1[drv] = (uint16)data;
+        rper1[drv] = (uint16_t)data;
         break;
 
     case 007:                                           /* RPAS */
@@ -721,17 +722,17 @@ switch (j) {                                            /* decode PA<5:1> */
     case 012:                                           /* RPMR */
         if ((access == WRITEB) && (PA & 1))
             data = data << 8;
-        rpmr[drv] = (uint16)data;
+        rpmr[drv] = (uint16_t)data;
         break;
 
     case 015:                                           /* RPOF */
-        rpof[drv] = (uint16)(data & ~OF_MBZ);
+        rpof[drv] = (uint16_t)(data & ~OF_MBZ);
         break;
 
     case 016:                                           /* RPDC */
         if ((access == WRITEB) && (PA & 1))
             data = data << 8;
-        rpdc[drv] = (uint16)(data & ~DC_MBZ);
+        rpdc[drv] = (uint16_t)(data & ~DC_MBZ);
         break;
 
     case 005:                                           /* RPDS */
@@ -756,9 +757,9 @@ return SCPE_OK;
 
 /* Initiate operation - unit not busy, function set */
 
-void rp_go (int32 drv, int32 fnc)
+void rp_go (int32_t drv, int32_t fnc)
 {
-int32 dc, dtype, t;
+int32_t dc, dtype, t;
 UNIT *uptr;
 
 uptr = rp_dev.units + drv;                              /* get unit */
@@ -873,15 +874,15 @@ return;
 
 t_stat rp_svc (UNIT *uptr)
 {
-int32 i, dtype, drv;
-int32 ba, da, vpn;
+int32_t i, dtype, drv;
+int32_t ba, da, vpn;
 a10 pa10, mpa10;
-int32 wc10, twc10, awc10, fc10;
+int32_t wc10, twc10, awc10, fc10;
 static d10 dbuf[RP_MAXFR];
 t_stat r;
 
 dtype = GET_DTYPE (uptr->flags);                        /* get drive type */
-drv = (int32) (uptr - rp_dev.units);                    /* get drv number */
+drv = (int32_t) (uptr - rp_dev.units);                  /* get drv number */
 if ((uptr->flags & UNIT_UTS) == 0) {                    /* Transition to up-to-speed */
     uptr->flags |= UNIT_UTS;
     rpds[drv] = DS_ATA | DS_MOL | DS_DPR | DS_RDY |
@@ -970,13 +971,13 @@ switch (uptr->FUNC) {                                   /* case on function */
                 for (i = 0; i < fc10; i++)
                     dbuf[twc10 + i] = 0;
                 }
-            r = sim_disk_wrsect (uptr, da/RP_NUMWD, (uint8 *)dbuf,
+            r = sim_disk_wrsect (uptr, da/RP_NUMWD, (uint8_t *)dbuf,
                                  NULL, (twc10 + fc10 + RP_NUMWD - 1)/RP_NUMWD);
             }                                           /* end if */
         else {                                          /* read, wchk, readh */
             t_seccnt sectsread;
 
-            r = sim_disk_rdsect (uptr, da/RP_NUMWD, (uint8 *)dbuf,
+            r = sim_disk_rdsect (uptr, da/RP_NUMWD, (uint8_t *)dbuf,
                                  &sectsread, (wc10 + RP_NUMWD - 1)/RP_NUMWD);
             awc10 = sectsread * RP_NUMWD;
             for ( ; awc10 < wc10; awc10++)
@@ -1015,10 +1016,10 @@ switch (uptr->FUNC) {                                   /* case on function */
         if (da >= drv_tab[dtype].size)
             rpds[drv] = rpds[drv] | DS_LST;
         da = da / RP_NUMWD;
-        rpda[drv] = (uint16)(da % drv_tab[dtype].sect);
+        rpda[drv] = (uint16_t)(da % drv_tab[dtype].sect);
         da = da / drv_tab[dtype].sect;
-        rpda[drv] = (uint16)(rpda[drv] | ((da % drv_tab[dtype].surf) << DA_V_SF));
-        rpdc[drv] = (uint16)(da / drv_tab[dtype].surf);
+        rpda[drv] = (uint16_t)(rpda[drv] | ((da % drv_tab[dtype].surf) << DA_V_SF));
+        rpdc[drv] = (uint16_t)(da / drv_tab[dtype].surf);
 
         if (r != SCPE_OK) {                             /* error? */
             set_rper (ER1_PAR, drv);                    /* set drive error */
@@ -1038,7 +1039,7 @@ return SCPE_OK;
 
 /* Set drive error */
 
-void set_rper (int16 flag, int32 drv)
+void set_rper (int16_t flag, int32_t drv)
 {
 rper1[drv] = rper1[drv] | flag;
 rpds[drv] = rpds[drv] | DS_ATA;
@@ -1054,9 +1055,9 @@ return;
    Update interrupt request
 */
 
-void update_rpcs (int32 flag, int32 drv)
+void update_rpcs (int32_t flag, int32_t drv)
 {
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 if ((flag & ~rpcs1) & CS1_DONE)                         /* DONE 0 to 1? */
@@ -1094,7 +1095,7 @@ return;
 
 /* Interrupt acknowledge */
 
-int32 rp_inta (void)
+int32_t rp_inta (void)
 {
 rpcs1 = rpcs1 & ~CS1_IE;                                /* clear int enable */
 rpiff = 0;                                              /* clear CSTB INTR */
@@ -1109,7 +1110,7 @@ t_stat rp_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 rpcs1 = CS1_DVA | CS1_DONE;
@@ -1174,11 +1175,11 @@ return SCPE_OK;
 
 t_stat rp_detach (UNIT *uptr)
 {
-int32 drv;
+int32_t drv;
 
 if (!(uptr->flags & UNIT_ATT))                          /* attached? */
     return SCPE_OK;
-drv = (int32) (uptr - rp_dev.units);                    /* get drv number */
+drv = (int32_t) (uptr - rp_dev.units);                  /* get drv number */
 rpds[drv] = (rpds[drv] & ~(DS_MOL | DS_RDY | DS_WRL | DS_VV | DS_OF)) |
     DS_ATA;
 if (sim_is_active (uptr)) {                             /* unit active? */
@@ -1196,7 +1197,7 @@ return sim_disk_detach (uptr);
 
 /* Set type command validation routine */
 
-t_stat rp_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rp_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1213,7 +1214,7 @@ return SCPE_OK;
 
 /* Show unit type */
 
-t_stat rp_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rp_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1364,7 +1365,7 @@ static const d10 boot_rom_its[] = {
     INT64_C(0254000377032),                 /*      jrst pg         ; Read ptrs */
     };
 
-t_stat rp_boot (int32 unitno, DEVICE *dptr)
+t_stat rp_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic device boot signature.
    This implementation does not use every parameter. */
@@ -1392,7 +1393,7 @@ saved_PC = BOOT_START;
 return SCPE_OK;
 }
 
-t_stat rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   fprintf (st, "RP04/05/06/07, RM02/03/05/80 Disk Pack Drives (RP)\n\n");
   fprintf (st, "The RP controller implements the Massbus family of large disk dri\

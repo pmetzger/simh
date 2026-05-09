@@ -30,6 +30,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "pdp11_defs.h"
 #include "sim_disk.h"
@@ -47,7 +48,7 @@
 
 /* Constants */
 
-#define RPCONTR         uint16
+#define RPCONTR         uint16_t
 #define RPWRDSZ         16
 #define MAP_RDW(a,c,b)  (Map_ReadW ((a), (c) << 1, (b)) >> 1)
 #define MAP_WRW(a,c,b)  (Map_WriteW((a), (c) << 1, (b)) >> 1)
@@ -100,12 +101,12 @@
 /* RP(R)02/RP03(RP02P) particulars (all disks rotated at 2400rpm) */
 static struct drv_typ {
     const char*         name;                           /* device type name */
-    int32               cyl;                            /* cylinders */
-    int32               size;                           /* #blocks */
-    int32               spare;                          /* spare (out of cyl) */
-    int32               seek_1;                         /* one track move, 0.1ms */
-    int32               seek_ave;                       /* average seek, 0.1ms */
-    int32               seek_max;                       /* maximal seek, 0.1ms */
+    int32_t             cyl;                            /* cylinders */
+    int32_t             size;                           /* #blocks */
+    int32_t             spare;                          /* spare (out of cyl) */
+    int32_t             seek_1;                         /* one track move, 0.1ms */
+    int32_t             seek_ave;                       /* average seek, 0.1ms */
+    int32_t             seek_max;                       /* maximal seek, 0.1ms */
 } drv_tab[] = {
     { RP_RP02, RP_NUMCY,   RP_NUMBL,   RP_SPARE,  200, 500, 800 },
     { RP_RP03, RP_NUMCY*2, RP_NUMBL*2, RP_SPARE*2, 75, 290, 550 }
@@ -317,16 +318,16 @@ static BITFIELD rp_wloa_bits[] = {
 /* Data buffer and device registers */
 
 static RPCONTR* rpxb = NULL;                            /* xfer buffer */
-static int32 rpds = 0;                                  /* drive status */
-static int32 rper = 0;                                  /* error status */
-static int32 rpcs = 0;                                  /* control/status */
-static int32 rpwc = 0;                                  /* word count */
-static int32 rpba = 0;                                  /* memory address */
-static int32 rpca = 0;                                  /* cylinder address */
-static int32 rpda = 0;                                  /* disk address */
-static int32 suca = 0;                                  /* current cylinder address */
-static int32 wloa = 0;                                  /* write lockout address */
-static int32 not_impl = 0;                              /* dummy register value */
+static int32_t rpds = 0;                                /* drive status */
+static int32_t rper = 0;                                /* error status */
+static int32_t rpcs = 0;                                /* control/status */
+static int32_t rpwc = 0;                                /* word count */
+static int32_t rpba = 0;                                /* memory address */
+static int32_t rpca = 0;                                /* cylinder address */
+static int32_t rpda = 0;                                /* disk address */
+static int32_t suca = 0;                                /* current cylinder address */
+static int32_t wloa = 0;                                /* write lockout address */
+static int32_t not_impl = 0;                            /* dummy register value */
 
 /* Debug detail levels */
 
@@ -349,7 +350,7 @@ static DEBTAB rr_deb[] = {
 
 static struct {
     const char* name;
-    int32*      valp;
+    int32_t*      valp;
     BITFIELD*   bits;
 } rr_regs[] = {
     { "RPDS", &rpds,     rp_ds_bits   },
@@ -368,23 +369,23 @@ static struct {
 
 /* Forward decls */
 
-static t_stat rr_rd (int32 *data, int32 PA, int32 access);
-static t_stat rr_wr (int32 data, int32 PA, int32 access);
-static int32  rr_inta (void);
+static t_stat rr_rd (int32_t *data, int32_t PA, int32_t access);
+static t_stat rr_wr (int32_t data, int32_t PA, int32_t access);
+static int32_t rr_inta (void);
 static t_stat rr_svc (UNIT *uptr);
 static t_stat rr_reset (DEVICE *dptr);
-static void   rr_go (int16 func);
-static void   rr_set_done (int32 error);
+static void   rr_go (int16_t func);
+static void   rr_set_done (int32_t error);
 static void   rr_clr_done (void);
-static t_stat rr_boot (int32 unitno, DEVICE *dptr);
-static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+static t_stat rr_boot (int32_t unitno, DEVICE *dptr);
+static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 static t_stat rr_attach (UNIT *uptr, const char *cptr);
 static t_stat rr_detach (UNIT *uptr);
-static t_stat rr_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat rr_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat rr_set_wloa (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat rr_set_ctrl (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat rr_show_ctrl (FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat rr_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat rr_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat rr_set_wloa (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat rr_set_ctrl (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat rr_show_ctrl (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 static const char *rr_description (DEVICE *dptr);
 
 /* RP11 data structures
@@ -568,14 +569,14 @@ RP03 disk drives on the same controller.
 
 */
 
-static t_stat rr_rd (int32 *data, int32 PA, int32 access)
+static t_stat rr_rd (int32_t *data, int32_t PA, int32_t access)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) access;
 
     /* offset by base then decode <4:1> */
-    int32 rn = (((PA - rr_dib.ba) & (RP_IOLN - 1)) >> 1) - RP_IOFF;
+    int32_t rn = (((PA - rr_dib.ba) & (RP_IOLN - 1)) >> 1) - RP_IOFF;
     BITFIELD* bits = 0;
     UNIT* uptr;
 
@@ -656,14 +657,14 @@ static t_stat rr_rd (int32 *data, int32 PA, int32 access)
 
 #define RR_DATOB(r, d)  (PA & 1 ? ((d) << 8) | ((r) & 0377) : ((r) & ~0377) | (d))
 
-static t_stat rr_wr (int32 data, int32 PA, int32 access)
+static t_stat rr_wr (int32_t data, int32_t PA, int32_t access)
 {
     /* offset by base then decode <4:1> */
-    int32 rn = (((PA - rr_dib.ba) & (RP_IOLN - 1)) >> 1) - RP_IOFF;
-    int32 n, oval = rn < 0 ? 0 : *rr_regs[rn].valp;
-    int16 func;
+    int32_t rn = (((PA - rr_dib.ba) & (RP_IOLN - 1)) >> 1) - RP_IOFF;
+    int32_t n, oval = rn < 0 ? 0 : *rr_regs[rn].valp;
+    int16_t func;
 
-    assert(rn < (int32)(sizeof(rr_regs)/sizeof(rr_regs[0])));
+    assert(rn < (int32_t)(sizeof(rr_regs)/sizeof(rr_regs[0])));
     if (access == WRITEB  &&  2 <= rn  &&  rn <= 6)
         data = RR_DATOB(oval, data);
     switch (rn) {
@@ -756,9 +757,9 @@ static t_stat rr_seek_init (UNIT *uptr)
 
 /* Initiate new function */
 
-static void rr_go (int16 func)
+static void rr_go (int16_t func)
 {
-    int32 i, n, type, cyl, head;
+    int32_t i, n, type, cyl, head;
     bool rd, wr;
     UNIT* uptr;
 
@@ -850,7 +851,7 @@ static void rr_go (int16 func)
             rper |= RPER_NXT;
     }
     if (rd | wr) {
-        int32 sect = GET_SECT(rpda);                    /* get sect */
+        int32_t sect = GET_SECT(rpda);                  /* get sect */
         if (sect >= RP_NUMSC)                           /* sect out of range? */
             rper |= RPER_NXS;
     }
@@ -922,7 +923,7 @@ static void rr_go (int16 func)
 
 static void rr_seek_done (UNIT *uptr, bool cancel)
 {
-    int32 n = (int32)(uptr - rr_dev.units);             /* get unit number */
+    int32_t n = (int32_t)(uptr - rr_dev.units);         /* get unit number */
 
     if (n == GET_DRIVE(rpcs))
         suca = cancel ? 0 : uptr->CYL;                  /* update cyl shown */
@@ -953,18 +954,18 @@ static void rr_seek_done (UNIT *uptr, bool cancel)
 
 static t_stat rr_svc (UNIT *uptr)
 {
-    int32 n, cyl, head, sect, da, wc, new_cyl;
-    int32 func = uptr->FUNC;
+    int32_t n, cyl, head, sect, da, wc, new_cyl;
+    int32_t func = uptr->FUNC;
     t_seccnt todo, done;
     t_stat ioerr;
-    uint32 ma;
+    uint32_t ma;
     bool wr;
 
     assert(func);
     uptr->FUNC = 0;                                     /* idle */
 
     rr_seek_done(uptr, 0);                              /* complete seek, if any */
-    assert(func > 0  &&  func < (int32)(sizeof(rp_funcs)/sizeof(rp_funcs[0])));
+    assert(func > 0  &&  func < (int32_t)(sizeof(rp_funcs)/sizeof(rp_funcs[0])));
     assert(!uptr->SEEKING  &&  !(uptr->STATUS & RPDS_SEEK));
     if (func == RPCS_HOME  ||  func == RPCS_SEEK)
         return SCPE_OK;                                 /* all done with seeks! */
@@ -982,7 +983,7 @@ static t_stat rr_svc (UNIT *uptr)
 
     wr = func == RPCS_WRITE  ||  func == RPCS_WR_NOSEEK;
 
-    n = (int32)(uptr - rr_dev.units);                   /* get drive no */
+    n = (int32_t)(uptr - rr_dev.units);                 /* get drive no */
 
     cyl  = uptr->CYL;
     if (wr                                              /* write and ... */
@@ -1085,9 +1086,9 @@ static t_stat rr_svc (UNIT *uptr)
         } else {                                        /* normal read: */
             DEVICE* dptr = find_dev_from_unit(uptr);
             todo = (wc + (RP_NUMWD - 1)) / RP_NUMWD;    /* sectors to read */
-            ioerr = sim_disk_rdsect(uptr, da, (uint8*) rpxb, &done, todo);
+            ioerr = sim_disk_rdsect(uptr, da, (uint8_t*) rpxb, &done, todo);
             n = RP_SIZE(done);                          /* words read */
-            sim_disk_data_trace(uptr, (uint8*) rpxb, da, n * sizeof(*rpxb), "rr_read",
+            sim_disk_data_trace(uptr, (uint8_t*) rpxb, da, n * sizeof(*rpxb), "rr_read",
                                 RRDEB_DAT & (dptr->dctrl | uptr->dctrl), RRDEB_OPS);
             assert(done <= todo);
             if (done >= todo)                           /* NB: done == todo */
@@ -1101,7 +1102,7 @@ static t_stat rr_svc (UNIT *uptr)
             }
         }
         if (func == RPCS_WCHK) {
-            uint32 a = ma;
+            uint32_t a = ma;
             for (n = 0;  n < wc;  ++n) {                /* loop thru buf */
                 RPCONTR data;
                 if (MAP_RDW(a, 1, &data)) {             /* mem wd */
@@ -1132,14 +1133,14 @@ static t_stat rr_svc (UNIT *uptr)
             wc -= n;                                    /* adj wd cnt */
         if (wc  &&  !(rpcs & RPCS_HDR)) {               /* regular write? */
             DEVICE* dptr = find_dev_from_unit(uptr);
-            int32 m = (wc + (RP_NUMWD - 1)) & ~(RP_NUMWD - 1); /* clr to... */
+            int32_t m = (wc + (RP_NUMWD - 1)) & ~(RP_NUMWD - 1); /* clr to... */
             assert(m <= RP_MAXFR);
             memset(rpxb + wc, 0, (m - wc) * sizeof(*rpxb)); /* ...end of sect */
-            sim_disk_data_trace(uptr, (uint8*) rpxb, da, m * sizeof(*rpxb), "rr_write",
+            sim_disk_data_trace(uptr, (uint8_t*) rpxb, da, m * sizeof(*rpxb), "rr_write",
                                 RRDEB_DAT & (dptr->dctrl | uptr->dctrl), RRDEB_OPS);
             todo = m / RP_NUMWD;                        /* sectors to write */
             assert(!(m % RP_NUMWD));
-            ioerr = sim_disk_wrsect(uptr, da, (uint8*) rpxb, &done, todo);
+            ioerr = sim_disk_wrsect(uptr, da, (uint8_t*) rpxb, &done, todo);
             assert(done <= todo);
             if (done < todo) {                          /* short write? */
                 wc = RP_SIZE(done);                     /* words written */
@@ -1190,7 +1191,7 @@ static t_stat rr_svc (UNIT *uptr)
     if ((func == RPCS_RD_NOSEEK  ||  func == RPCS_WR_NOSEEK) /* no SEEK I/O... */
         &&  (uptr->CYL != cyl                           /* ...and: arm moved or... */
              ||  (rper & RPER_EOP))) {                  /* ...boundary exceeded? */
-        n = (int32)(uptr - rr_dev.units);               /* get unit number */
+        n = (int32_t)(uptr - rr_dev.units);             /* get unit number */
         assert((1 << n) & RPDS_ATTN);
         rpds |= 1 << n;                                 /* set attention */
         if (rpcs & RPCS_AIE) {                          /* att ints enabled? */
@@ -1238,7 +1239,7 @@ static void rr_clr_done (void)
     return;
 }
 
-static void rr_set_done (int32 err)
+static void rr_set_done (int32_t err)
 {
     assert(~(rpcs & CSR_DONE));
     rper |= err;
@@ -1250,7 +1251,7 @@ static void rr_set_done (int32 err)
     return;
 }
 
-static int32 rr_inta (void)
+static int32_t rr_inta (void)
 {
     sim_debug(RRDEB_INT, &rr_dev, "rr_inta()\n");
     assert(((rpcs & RPCS_AIE)  &&  (rpds & RPDS_ATTN))  ||
@@ -1263,7 +1264,7 @@ static int32 rr_inta (void)
 
 static t_stat rr_reset (DEVICE *dptr)
 {
-    int32 i;
+    int32_t i;
 
     /* compile-time sanity check first */
     const_assert(sizeof(rr_regs)/sizeof(rr_regs[0]) == RP_IOLN/2 - RP_IOFF);
@@ -1304,7 +1305,7 @@ static t_stat rr_reset (DEVICE *dptr)
 static t_stat rr_attach (UNIT *uptr, const char *cptr)
 {
     static const char* rr_types[] = { RP_RP03, RP_RP02, NULL };
-    int32 type = GET_DTYPE(uptr->flags);
+    int32_t type = GET_DTYPE(uptr->flags);
     t_stat err = sim_disk_attach_ex2(uptr, cptr,
                                      RP_SIZE(sizeof(*rpxb)), sizeof(*rpxb),
                                      true, 0, drv_tab[type].name,
@@ -1318,7 +1319,7 @@ static t_stat rr_attach (UNIT *uptr, const char *cptr)
 
 static t_stat rr_detach (UNIT *uptr)
 {
-    int16 func;
+    int16_t func;
     sim_cancel(uptr);
     func = uptr->FUNC;
     rr_seek_done(uptr, 1/*cancel*/);
@@ -1342,7 +1343,7 @@ static t_stat rr_detach (UNIT *uptr)
 
 /* Set / show drive type */
 
-static t_stat rr_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat rr_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1362,7 +1363,7 @@ static t_stat rr_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat rr_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat rr_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1375,7 +1376,7 @@ static t_stat rr_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 /* Set WLOA */
 
-static t_stat rr_set_wloa (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat rr_set_wloa (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1422,7 +1423,7 @@ static t_stat rr_set_wloa (UNIT *uptr, int32 val, const char *cptr, void *desc)
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR + 12 */
 #define BOOT_LEN        (sizeof(rr_boot_rom)/sizeof(rr_boot_rom[0]))
 
-static const uint16 rr_boot_rom[] = {
+static const uint16_t rr_boot_rom[] = {
 /* EXPECTED M9312 REGISTER USE FOR BOOT PROMS (IN THE BOOTED SOFTWARE):                                *
  * R0     = UNIT NUMBER                                                                                *
  * R1     = CONTROLLER CSR                                                                             *
@@ -1458,7 +1459,7 @@ static const uint16 rr_boot_rom[] = {
 /* 002070                                       .END                                                   */
 };
 
-static t_stat rr_boot (int32 unitno, DEVICE *dptr)
+static t_stat rr_boot (int32_t unitno, DEVICE *dptr)
 {
     size_t i;
     assert(dptr == &rr_dev);
@@ -1472,7 +1473,7 @@ static t_stat rr_boot (int32 unitno, DEVICE *dptr)
 
 /* Misc */
 
-static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */
@@ -1500,8 +1501,8 @@ static t_stat rr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const cha
     "      Total   Spare                   Nominal  Usable    time, ms\n", st);
     n = dptr->flags & DEV_RP11CE ? sizeof(drv_tab)/sizeof(drv_tab[0]) : 1;
     for (i = 0;  i < n;  ++i) {
-        uint32 spare = GET_DA(drv_tab[i].spare, RP_NUMSF, RP_NUMSC);
-        uint32 total = drv_tab[i].size;
+        uint32_t spare = GET_DA(drv_tab[i].spare, RP_NUMSF, RP_NUMSC);
+        uint32_t total = drv_tab[i].size;
         fprintf(st, "%.6s: %5u   %5u  %5u  %5u"
                 "    %5.1fMB  %5.1fMB   %5u.%1u\n", drv_tab[i].name,
                 drv_tab[i].cyl, drv_tab[i].spare, RP_NUMSF, RP_NUMSC,
@@ -1556,7 +1557,7 @@ static const char *rr_description (DEVICE *dptr)
 
 /* Set / show controller type */
 
-static t_stat rr_set_ctrl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat rr_set_ctrl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1585,7 +1586,7 @@ static t_stat rr_set_ctrl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat rr_show_ctrl (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat rr_show_ctrl (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */

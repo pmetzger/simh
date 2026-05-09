@@ -175,33 +175,35 @@ Fehskens and Bob Supnik.
 
 # Data Types
 
-SIMH is written in C. The host system must support (at least) 32-bit
-data types (64-bit data types for the PDP-10 and other large-word
-target systems). To cope with the vagaries of C data types, SIMH
-defines some unambiguous data types for its interfaces:
+SIMH is written in C. The host system must support at least 32-bit
+data types, and 64-bit data types for the PDP-10 and other large-word
+target systems. SIMH defines a small set of simulator interface types:
 
-| SIMH data type        | Interpretation in typical 32-bit C           |
+| SIMH data type        | Interpretation                               |
 |-----------------------|----------------------------------------------|
-| `int8`, `uint8`       | `signed char`, `unsigned char`               |
-| `int16`, `uint16`     | `signed short`, `unsigned short`             |
-| `int32`, `uint32`     | `signed int`, `unsigned int`                 |
-| `t_int64`, `t_uint64` | `long long`, `_int64` (system specific)      |
-| `t_addr`              | simulated address, `uint32` or `t_uint64`    |
-| `t_value`             | simulated value, `uint32` or `t_uint64`      |
-| `t_svalue`            | simulated signed value, `int32` or `t_int64` |
-| `t_mtrlnt`            | mag tape record length, `uint32`             |
+| `t_addr`              | simulated address, `uint32_t` or `uint64_t`  |
+| `t_value`             | simulated value, `uint32_t` or `uint64_t`    |
+| `t_svalue`            | simulated signed value, `int32_t` or `int64_t` |
+| `t_mtrlnt`            | mag tape record length, `uint32_t`           |
 | `t_stat`              | status code, `int`                           |
 
-The code also depends on a number of standard C data types; many of
-the legacy integer types in the previous table will eventually be
-migrated to types from `<stdint.h>`.
-
-| Standard C data type | Interpretation                              |
-|----------------------|---------------------------------------------|
-| `bool`               | true/false value from `<stdbool.h>`         |
-
-Any source file that uses `bool`, `true`, or `false` must include
+The code also uses the standard fixed-width integer types from
+`<stdint.h>`, such as `int32_t` and `uint32_t`, and the standard
+boolean type and constants from `<stdbool.h>`. Any source file that
+uses the fixed-width integer types must include `<stdint.h>` directly;
+any source file that uses `bool`, `true`, or `false` must include
 `<stdbool.h>` directly.
+
+The project also defines compact convenience names for common host C
+types:
+
+| Project type | Interpretation                         |
+|--------------|----------------------------------------|
+| `uint_t`     | `unsigned int` from `"sim_types.h"`    |
+| `uchar_t`    | `unsigned char` from `"sim_types.h"`   |
+
+Any source file that uses `uint_t` or `uchar_t` must include
+`"sim_types.h"` directly.
 
 Machine words, registers, addresses, and similar simulated hardware
 values should be represented with unsigned types. C does not define
@@ -209,10 +211,6 @@ signed integer overflow, and shifting signed values can produce
 surprising or non-portable results. Legacy uses of signed integers for
 machine words are being phased out of existing simulators; new
 simulators should use unsigned types consistently for these values.
-
-\[The inconsistency in naming `t_int64` and `t_uint64` is due to Microsoft
-VC++, which uses `int64` as a structure name member in the master
-Windows definitions file.\]
 
 In addition, SIMH defines structures for each of its major data elements:
 
@@ -255,7 +253,7 @@ few:
 |--------------------------|---------------------------------------------------------|
 | `char sim_name[]`        | simulator name string                                   |
 | `REG *sim_PC`            | pointer to simulated program counter                    |
-| `int32 sim_emax`         | maximum number of words in an instruction or data item  |
+| `int32_t sim_emax`         | maximum number of words in an instruction or data item  |
 | `DEVICE *sim_devices[]`  | table of pointers to simulated devices, `NULL` terminated |
 | `const char *sim_stop_messages[SCPE_BASE]` | table of pointers to error messages |
 | `t_stat sim_load(…)`   | binary loader subroutine                                |
@@ -411,21 +409,21 @@ The criterion for memory layout is very simple: use the SIMH data type
 that is as large as (or if necessary, larger than), the word length of
 the real machine. Note that the criterion is word length, not
 addressability: the PDP-11 has byte addressable memory, but it is a
-16-bit machine, and its memory is defined as `uint16 M[]`. It may seem
-tempting to define memory as a union of `int8` and `int16` data types, but
+16-bit machine, and its memory is defined as `uint16_t M[]`. It may seem
+tempting to define memory as a union of `int8_t` and `int16_t` data types, but
 this would make the resulting VM endian-dependent. Instead, the VM
 should be based on the underlying word size of the real machine, and
 byte manipulation should be done explicitly. Examples:
 
 | Simulator        | Memory Size | Memory Declaration |
 |------------------|-------------|--------------------|
-| IBM 1620         | 5-bit       | `uint8`            |
-| IBM 1401         | 7-bit       | `uint8`            |
-| PDP-8            | 12-bit      | `uint16`           |
-| PDP-11, Nova     | 16-bit      | `uint16`           |
-| PDP-1            | 18-bit      | `uint32`           |
-| VAX              | 32-bit      | `uint32`           |
-| PDP-10, IBM 7094 | 36-bit      | `t_uint64`         |
+| IBM 1620         | 5-bit       | `uint8_t`            |
+| IBM 1401         | 7-bit       | `uint8_t`            |
+| PDP-8            | 12-bit      | `uint16_t`           |
+| PDP-11, Nova     | 16-bit      | `uint16_t`           |
+| PDP-1            | 18-bit      | `uint32_t`           |
+| VAX              | 32-bit      | `uint32_t`           |
+| PDP-10, IBM 7094 | 36-bit      | `uint64_t`         |
 
 ### Interrupt Organization
 
@@ -697,19 +695,19 @@ queue and calls a device subroutine. A device may also cancel an
 outstanding timed operation and query the state of the queue. The
 timing subroutines are:
 
-- `t_stat sim_activate(UNIT *uptr, int32 wait)`. This routine places
+- `t_stat sim_activate(UNIT *uptr, int32_t wait)`. This routine places
   the specified unit on the active queue with the specified waiting
   period. A waiting period of 0 is legal; negative waits cause an
   error. If the unit is already active, the active queue is not
   changed, and no error occurs.
 
-- `t_stat sim_activate_abs(UNIT *uptr, int32 wait)`. This routine
+- `t_stat sim_activate_abs(UNIT *uptr, int32_t wait)`. This routine
   places the specified unit on the active queue with the specified
   waiting period. A waiting period of 0 is legal; negative waits cause
   an error. If the unit is already active, the specified waiting
   period overrides the currently pending waiting period.
 
-- `t_stat sim_activate_after(UNIT *uptr, uint32 usec_delay)`. This
+- `t_stat sim_activate_after(UNIT *uptr, uint32_t usec_delay)`. This
   routine places the specified unit on the active queue with the
   specified delay based on the simulator’s calibrated clock. The
   specified delay must be greater than 0 usecs. If the unit is already
@@ -721,7 +719,7 @@ timing subroutines are:
   specified delay must be greater than 0 usecs. If the unit is already
   active, the active queue is not changed, and no error occurs.
 
-- `t_stat sim_activate_after_abs(UNIT *uptr, uint32 usec_delay)`. This
+- `t_stat sim_activate_after_abs(UNIT *uptr, uint32_t usec_delay)`. This
   routine places the specified unit on the active queue with the
   specified delay based on the simulator’s calibrated clock. The
   specified delay must be greater than 0 usecs. If the unit is already
@@ -743,7 +741,7 @@ timing subroutines are:
   is in the active queue. If it is, the routine returns `true`; if it
   is not, the routine returns `false`.
 
-- `int32 sim_activate_time(UNIT *uptr)`. This routine returns the time the device has remaining in the queue + 1. If it is not pending, the routine returns 0.
+- `int32_t sim_activate_time(UNIT *uptr)`. This routine returns the time the device has remaining in the queue + 1. If it is not pending, the routine returns 0.
 
 - `double sim_activate_time_usecs(UNIT *uptr)`. This routine returns
   the wall clock time in usecs the device has remaining in the
@@ -752,17 +750,17 @@ timing subroutines are:
 - `double sim_gtime(void)`. This routine returns the time elapsed since
   the last RUN or BOOT command.
 
-- `uint32 sim_grtime(void)`. This routine returns the low-order 32b of
+- `uint32_t sim_grtime(void)`. This routine returns the low-order 32b of
   the time elapsed since the last RUN or BOOT command.
 
-- `int32 sim_qcount(void)`. This routine returns the number of entries
+- `int32_t sim_qcount(void)`. This routine returns the number of entries
   on the clock queue.
 
 - `t_stat sim_process_event(void)`. This routine removes all timed out
   units from the active queue and calls the appropriate device
   subroutine to service the time-out.
 
-- `int32 sim_interval`. This variable represents the time until the
+- `int32_t sim_interval`. This variable represents the time until the
   first unit on the event queue that is scheduled to
   happen. `sim_inst` counts down this value (usually by 1 for each
   instruction executed). If there are no timed events outstanding, SCP
@@ -775,25 +773,25 @@ approximate. Devices, such as real-time clocks, which track wall time
 will be inaccurate. SCP provides routines to synchronize multiple
 simulated clocks (to a maximum of 8) to wall time.
 
-- `int32 sim_rtcn_init_unit_ticks(UNIT *uptr, int32 clock_interval,
-  int32 clk, int32 ticksper)`. This routine initializes the clock
+- `int32_t sim_rtcn_init_unit_ticks(UNIT *uptr, int32_t clock_interval,
+  int32_t clk, int32_t ticksper)`. This routine initializes the clock
   calibration mechanism for simulated clock `clk` and `uptr`
   identifies which unit’s service routine performs clock tick
   activities. The argument `clock_interval` is returned as the
   result. The ticksper argument specifies the clock ticks per second.
 
-- `int32 sim_rtcn_init_unit(UNIT *uptr, int32 clock_interval, int32
-  clk, int32 ticksper)`. This routine initializes the clock
+- `int32_t sim_rtcn_init_unit(UNIT *uptr, int32_t clock_interval, int32_t
+  clk, int32_t ticksper)`. This routine initializes the clock
   calibration mechanism for simulated clock `clk` and `uptr`
   identifies which unit’s service routine performs clock tick
   activities. The argument `clock_interval` is returned as the result.
 
-- `int32 sim_rtcn_calb(int32 tickspersecond, int32 clk)`. This routine
+- `int32_t sim_rtcn_calb(int32_t tickspersecond, int32_t clk)`. This routine
   calibrates simulated clock `clk`. The argument is the number of
   clock ticks expected per second. The return value is the calibrated
   interval for the next tick.
 
-- `int32 sim_rtcn_calb_tick(int32 clk)`. This routine calibrates
+- `int32_t sim_rtcn_calb_tick(int32_t clk)`. This routine calibrates
   simulated clock `clk`. The return value is the calibrated interval
   for the next tick.
 
@@ -804,7 +802,7 @@ resolution or minimum sleep times. In order to provide accurate time
 services, a simulator should notify the timing services that the
 simulated system has digested a previously generated clock tick.
 
-- `t_stat sim_rtcn_tick_ack(int32 delay, int32 clk)`. This routine
+- `t_stat sim_rtcn_tick_ack(int32_t delay, int32_t clk)`. This routine
   informs the timing subsystem that the most recent clock tick for the
   simulated clock has been digested by the simulated system and the
   timing subsystem can potentially schedule a catchup ticks if
@@ -903,7 +901,7 @@ Idling is a way of pausing simulation when no real work is happening,
 without losing clock calibration. The VM must detect when it is idle;
 it can then inform the host of this situation by calling `sim_idle`:
 
-- `bool sim_idle(int32 clk, int tick_decrement)` – attempt to idle
+- `bool sim_idle(int32_t clk, int tick_decrement)` – attempt to idle
   the VM until the next scheduled I/O event, using simulated clock
   `clk` as the time base, and decrement `sim_interval` by an
   appropriate number of cycles. If a calibrated timer is not
@@ -922,21 +920,21 @@ interrupts are generated. As such, these devices should schedule their
 polling activities to be aligned with the clock ticks which are
 happening anyway or some multiple of the clock tick value.
 
-- `t_stat sim_clock_coschedule(UNIT *uptr, int32 interval)` – This
+- `t_stat sim_clock_coschedule(UNIT *uptr, int32_t interval)` – This
   routine places the specified unit on the active queue behind the
   default timer at the specified interval rounded up to a whole number
   of timer ticks. An interval value 0 is legal; negative intervals
   cause an error. If the unit is already active, the active queue is
   not changed, and no error occurs.
 
-- `t_stat sim_clock_coschedule_abs(UNIT *uptr, int32 interval)` – This
+- `t_stat sim_clock_coschedule_abs(UNIT *uptr, int32_t interval)` – This
   routine places the specified unit on the active queue behind the
   default timer at the specified interval rounded up to a whole number
   of timer ticks. An interval value 0 is legal; negative intervals
   cause an error. If the unit is already active, the specified waiting
   period overrides the currently pending waiting period.
 
-- `t_stat sim_clock_coschedule_tmr(UNIT *uptr, int32 tmr, int32 ticks)` –
+- `t_stat sim_clock_coschedule_tmr(UNIT *uptr, int32_t tmr, int32_t ticks)` –
   This routine places the specified unit on the active queue
   behind the specified timer with the specified number of clock ticks
   between invocations. A tick count of 0 is legal; negative ticks
@@ -944,7 +942,7 @@ happening anyway or some multiple of the clock tick value.
   not changed, and no error occurs. Events scheduled for 0 or 1 tick
   will fire on the next clock tick.
 
-- `t_stat sim_clock_coschedule_tmr_abs(UNIT *uptr, int32 tmr, int32 ticks)` –
+- `t_stat sim_clock_coschedule_tmr_abs(UNIT *uptr, int32_t tmr, int32_t ticks)` –
   This routine places the specified unit on the active queue behind
   the specified timer with the specified number of clock ticks between
   invocations. A tick count of 0 is legal; negative ticks cause an
@@ -955,13 +953,13 @@ happening anyway or some multiple of the clock tick value.
 Because idling and throttling are mutually exclusive, the VM must
 inform SCP when idling is turned on or off:
 
-- `t_stat sim_set_idle(UNIT *uptr, int32 val, const char *cptr, void *desc)` –
+- `t_stat sim_set_idle(UNIT *uptr, int32_t val, const char *cptr, void *desc)` –
   informs SCP that idling is enabled.
 
-- `t_stat sim_clr_idle(UNIT *uptr, int32 val, const char *cptr, void *desc)` –
+- `t_stat sim_clr_idle(UNIT *uptr, int32_t val, const char *cptr, void *desc)` –
   informs SCP that idling is disabled.
 
-- `t_stat sim_show_idle(FILE *st, UNIT *uptr, int32 val, const void *desc)` –
+- `t_stat sim_show_idle(FILE *st, UNIT *uptr, int32_t val, const void *desc)` –
   displays whether idling is enabled or disabled, as seen by SCP.
 
 ### Data I/O
@@ -1025,10 +1023,10 @@ from the allocated buffer. The device code must maintain the number
 structure. For both the non-buffered and buffered cases, the device
 must perform all address calculations and positioning operations.
 
-SIMH provides capabilities to access files \>2GB (the `int32` position
+SIMH provides capabilities to access files \>2GB (the `int32_t` position
 limit). If a VM is compiled with flags `USE_INT64` and `USE_ADDR64`
-defined, then `t_addr` is defined as `t_uint64` rather than
-`uint32`. Routine `sim_fseek` allows simulated devices to perform random
+defined, then `t_addr` is defined as `uint64_t` rather than
+`uint32_t`. Routine `sim_fseek` allows simulated devices to perform random
 access in large files:
 
 - `int sim_fseek(FILE *handle, t_addr position, int where)` -
@@ -1050,12 +1048,12 @@ SCP provides three routines for console I/O.
   the connection is lost, the routine returns `SCPE_LOST`. If there is
   no input, it returns `SCPE_OK`.
 
-- `t_stat sim_putchar(int32 char)`. This routine types the specified
+- `t_stat sim_putchar(int32_t char)`. This routine types the specified
   ASCII character to the console. If the console is attached to a
   Telnet connection, and the connection is lost, the routine returns
   `SCPE_LOST`.
 
-- `t_stat sim_putchar_s(int32 char)`. This routine outputs the
+- `t_stat sim_putchar_s(int32_t char)`. This routine outputs the
   specified ASCII character to the console. If the console is attached
   to a Telnet connection, and the connection is lost, the routine
   returns `SCPE_LOST`; if the connection is backlogged, the routine
@@ -1122,12 +1120,12 @@ struct DEVICE {
     struct UNIT   *units;             /* units */
     struct REG    *registers;         /* registers */
     struct MTAB   *modifiers;         /* modifiers */
-    int32         numunits;           /* #units */
-    uint32        aradix;             /* address radix */
-    uint32        awidth;             /* address width */
-    uint32        aincr;              /* addr increment */
-    uint32        dradix;             /* data radix */
-    uint32        dwidth;             /* data width */
+    int32_t         numunits;           /* #units */
+    uint32_t        aradix;             /* address radix */
+    uint32_t        awidth;             /* address width */
+    uint32_t        aincr;              /* addr increment */
+    uint32_t        dradix;             /* data radix */
+    uint32_t        dwidth;             /* data width */
     t_stat        (*examine)();       /* examine routine */
     t_stat        (*deposit)();       /* deposit routine */
     t_stat        (*reset)();         /* reset routine */
@@ -1135,8 +1133,8 @@ struct DEVICE {
     t_stat        (*attach)();        /* attach routine */
     t_stat        (*detach)();        /* detach routine */
     void          *ctxt;              /* context */
-    uint32        flags;              /* flags */
-    uint32        dctrl;              /* debug control flags */
+    uint32_t        flags;              /* flags */
+    uint32_t        dctrl;              /* debug control flags */
     struct DEBTAB *debflags;          /* debug flag names */
     t_stat        (*msize)();         /* memory size change */
     char          *lname;             /* logical name */
@@ -1270,13 +1268,13 @@ must supply special examine and deposit routines. The calling
 sequences are:
 
 - `t_stat examine_routine(t_val *eval_array, t_addr addr, UNIT
-  *uptr, int32 switches)` – Copy `sim_emax` consecutive addresses for
+  *uptr, int32_t switches)` – Copy `sim_emax` consecutive addresses for
   unit `uptr`, starting at `addr`, into `eval_array`. The `switch`
   variable has bit\<n\> set if the n’th letter was specified as a
   switch to the examine command.
 
 - `t_stat deposit_routine(t_val value, t_addr addr, UNIT *uptr,
-  int32 switches)` – Store the specified `value` in the specified
+  int32_t switches)` – Store the specified `value` in the specified
   `addr` for unit `uptr`. The `switch` variable is the same as for the
   examine routine.
 
@@ -1302,7 +1300,7 @@ performed.
 If a device responds to a `BOOT` command, the boot routine implements
 the bootstrapping function. Its calling sequence is:
 
-- `t_stat boot_routine(int32 unit_num, DEVICE *dptr)` – Bootstrap unit
+- `t_stat boot_routine(int32_t unit_num, DEVICE *dptr)` – Bootstrap unit
   `unit_num` on the device `dptr`.
 
 A typical bootstrap routine copies a bootstrap loader into main memory
@@ -1369,7 +1367,7 @@ significant resource burden if less memory was actually needed. These
 devices must provide a routine, the memory size change routine, for
 RESTORE to use if memory size must be changed:
 
-- `t_stat change_mem_size(UNIT *uptr, int32 val, const char *cptr,
+- `t_stat change_mem_size(UNIT *uptr, int32_t val, const char *cptr,
   void *desc)` – Change the capacity (memory size) of unit `uptr` to
   `val`. The `cptr` and `desc` arguments are included for
   compatibility with the `SET` command’s validation routine calling
@@ -1394,7 +1392,7 @@ DEBTAB structure specifies a single debug flag:
 ```c
 struct DEBTAB {
     const char name; /* flag name */
-    uint32 mask; /* control bit */
+    uint32_t mask; /* control bit */
     const char *desc; /* description */
 };
 ```
@@ -1421,7 +1419,7 @@ collide.
 Simulator code can produce debug output by calling sim_debug which is
 declared (in header file `scp.h`):
 
-`void sim_debug(uint32 dbits, DEVICE *dptr, const char *fmt, ...)`
+`void sim_debug(uint32_t dbits, DEVICE *dptr, const char *fmt, ...)`
 
 The dbits is a flag which matches a mask in a sim_debtab structure,
 and the the dptr is the `DEVICE` which has the corresponding dctl
@@ -1467,12 +1465,12 @@ The fields in a register can be displayed (along with transition
 indicators) by calling `sim_debug_bits_hdr` or `sim_debug_bits`.
 
 ```c
-void sim_debug_bits_hdr(uint32 dbits, DEVICE *dptr,
+void sim_debug_bits_hdr(uint32_t dbits, DEVICE *dptr,
                         const char *header, BITFIELD *bitdefs,
-                        uint32 before, uint32 after, int terminate);
+                        uint32_t before, uint32_t after, int terminate);
 
-void sim_debug_bits(uint32 dbits, DEVICE *dptr, BITFIELD *bitdefs,
-                    uint32 before, uint32 after, int terminate);
+void sim_debug_bits(uint32_t dbits, DEVICE *dptr, BITFIELD *bitdefs,
+                    uint32_t before, uint32_t after, int terminate);
 ```
 
 ### Device Specific Help support
@@ -1489,7 +1487,7 @@ device specific help routine or a attach_help routine.
 A device declaration may provide a routine which will display help
 about that device when a user enters a “HELP dev” command.
 
-- `t_stat help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const
+- `t_stat help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const
   char *cptr)` – Write help information about the device and/or unit
   usage. The flag and `cptr` arguments are included for compatibility
   with the HELP command’s validation routine calling sequence.
@@ -1499,7 +1497,7 @@ about that device when a user enters a “HELP dev” command.
 A device declaration may provide a routine which will display help
 about the attach command for this device.
 
-- `t_stat attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+- `t_stat attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
   const char *cptr)` – Write help information about the device and/or
   unit attach usage. The flag and `cptr` arguments are included for
   compatibility with the `HELP` command’s validation routine calling
@@ -1516,20 +1514,20 @@ struct UNIT {
     char *filename; /* open file name */
     FILE *fileref; /* file reference */
     void *filebuf; /* memory buffer */
-    uint32 hwmark; /* high water mark */
-    int32 time; /* time out */
-    uint32 flags; /* flags */
-    uint32 dynflags; /* dynamic flags */
+    uint32_t hwmark; /* high water mark */
+    int32_t time; /* time out */
+    uint32_t flags; /* flags */
+    uint32_t dynflags; /* dynamic flags */
     t_addr capac; /* capacity */
     t_addr pos; /* file position */
     void (*io_flush)(); /* i/o flush routine */
-    uint32 iostarttime; /* i/o start time */
-    int32 buf; /* buffer */
-    int32 wait; /* wait */
-    int32 u3; /* device specific */
-    int32 u4; /* device specific */
-    int32 u5; /* device specific */
-    int32 u6; /* device specific */
+    uint32_t iostarttime; /* i/o start time */
+    int32_t buf; /* buffer */
+    int32_t wait; /* wait */
+    int32_t u3; /* device specific */
+    int32_t u4; /* device specific */
+    int32_t u5; /* device specific */
+    int32_t u6; /* device specific */
     void *up7; /* device specific */
     void *up8; /* device specific */
 };
@@ -1652,14 +1650,14 @@ REG`):
 struct REG {
     const char *name;        /* name */
     void *loc;               /* location */
-    uint32 radix;            /* radix */
-    uint32 width;            /* width */
-    uint32 offset;           /* starting bit */
-    uint32 depth;            /* save depth */
+    uint32_t radix;            /* radix */
+    uint32_t width;            /* width */
+    uint32_t offset;           /* starting bit */
+    uint32_t depth;            /* save depth */
     const char *desc;        /* description */
     struct bitfield *fields; /* bit fields */
-    uint32 flags;            /* flags */
-    uint32 qptr;             /* current queue pointer */
+    uint32_t flags;            /* flags */
+    uint32_t qptr;             /* current queue pointer */
     size_t str_size;         /* structure size */
 };
 ```
@@ -1699,9 +1697,9 @@ exceptions to this rule:
 - An arrayed register keeps its data in a C-array whose SIMH data type
   is as large as (or if necessary, larger than), the width of a
   register element. For example, an array of 6b registers would keep
-  its data in a `uint8` (or `int8`) array; an array of 16b registers
-  would keep its data in a `uint16` (or `int16`) array; an array of
-  24b registers would keep its data in a `uint32` (or `int32`) array.
+  its data in a `uint8_t` (or `int8_t`) array; an array of 16b registers
+  would keep its data in a `uint16_t` (or `int16_t`) array; an array of
+  24b registers would keep its data in a `uint32_t` (or `int32_t`) array.
 - A register flagged with `REG_FIT` obeys the sizing rules of an
   arrayed register, rather than a normal scalar register. This is
   useful for aliasing registers into memory or into structures.
@@ -1749,7 +1747,7 @@ macro is invoked by:
 - `URDATA(name, location, radix, width, offset, depth, flags)`
 
 The location should be an offset in the `UNIT` structure for
-unit 0. The width should be 32 for an `int32` or `uint32` field, and
+unit 0. The width should be 32 for an `int32_t` or `uint32_t` field, and
 `T_ADDR_W` for a `t_addr` field. The flags can be any of the normal
 register flags; `REG_UNIT` will be OR’d in automatically. For example,
 the following declares an arrayed register of all the `UNIT` position
@@ -1769,7 +1767,7 @@ trample over memory. The macro is invoked by:
 
 The location should be the address in the structure for the first
 element (0) of the structure array. The width should be 32 for an
-`int32` or `uint32` field, and `T_ADDR_W` for a `t_addr` field. The
+`int32_t` or `uint32_t` field, and `T_ADDR_W` for a `t_addr` field. The
 flags can be any of the normal register flags; `REG_STRUCT` will be OR’d
 in automatically. For example, the following declares an arrayed
 register of all the `UNIT` position fields in a device with 4 units:
@@ -1881,8 +1879,8 @@ the end. Each bitfield is defined with a `BITFIELD` structure
 ```c
 struct BITFIELD {
     const char *name; /* field name */
-    uint32 offset; /* starting bit */
-    uint32 width; /* width */
+    uint32_t offset; /* starting bit */
+    uint32_t width; /* width */
     const char **valuenames; /* map of values to strings */
     BITF_FMT format; /* value display style */
 };
@@ -1958,8 +1956,8 @@ structure (`typedef MTAB`), which has the following fields:
 
 ```c
 struct MTAB {
-    uint32 mask; /* mask */
-    uint32 match; /* match */
+    uint32_t mask; /* mask */
+    uint32_t match; /* match */
     const char *pstring; /* print string */
     const char *mstring; /* match string */
     t_stat (*valid)(); /* validation routine */
@@ -2019,7 +2017,7 @@ For `SET`, an extended `MTAB` entry is interpreted as follows:
 4.  If a validation routine exists, call it and return its status. The
     validation routine is responsible for storing the result.
 5.  If `desc` is `NULL`, exit.
-6.  Otherwise, store the `match` value in the int32 pointed to by `desc`.
+6.  Otherwise, store the `match` value in the int32_t pointed to by `desc`.
 
 For `SHOW`, an extended `MTAB` entry is interpreted as follows:
 
@@ -2057,11 +2055,11 @@ processing. It can make other state changes required by the
 modification or initiate additional dialogs needed by the
 modifier. Its calling sequence is:
 
-- `t_stat validation_routine(UNIT *uptr, int32 value, const char
+- `t_stat validation_routine(UNIT *uptr, int32_t value, const char
   *cptr, void *desc)` – test that `uptr`.`flags` can be set to
   `value`. `cptr` points to the value portion of the parameter string
   (any characters after the = sign); if `cptr` is `NULL`, no value was
-  given. `desc` points to the `REG` or int32 used to store the
+  given. `desc` points to the `REG` or int32_t used to store the
   parameter.
 
 ### Display Routine
@@ -2069,7 +2067,7 @@ modifier. Its calling sequence is:
 The display routine is called during `SHOW` processing to display
 device- or unit-specific state. Its calling sequence is:
 
-- `t_stat display_routine(FILE *st, UNIT *uptr, int32 value, const
+- `t_stat display_routine(FILE *st, UNIT *uptr, int32_t value, const
   void *desc)` – output device- or unit-specific state for `uptr` to
   stream `st`. If the modifier is regular `MTAB` entry, or an extended
   entry without `MTAB_SHP` set, `desc` points to the structure in the
@@ -2124,7 +2122,7 @@ have an equal sign in the mstring field.
 
 `char sim_name[]` is a character array containing the VM name.
 
-`int32 sim_emax` contains the maximum number of words needed to hold
+`int32_t sim_emax` contains the maximum number of words needed to hold
 the largest instruction or data item in the VM. Examine and deposit
 will process up to `sim_emax` words.
 
@@ -2183,12 +2181,12 @@ provide two routines, `fprint_sym` for output and `parse_sym` for
 input. Their calling sequences are:
 
 - `t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT
-  *uptr, int32 switch)` – Based on the `switch` variable, symbolically
+  *uptr, int32_t switch)` – Based on the `switch` variable, symbolically
   output to stream `ofile` the data in array `val` at the specified
   `addr` in unit `uptr`.
 
 - `t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value
-  *val, int32 switch)` – Based on the `switch` variable, parse
+  *val, int32_t switch)` – Based on the `switch` variable, parse
   character string `cptr` for a symbolic value `val` at the specified
   `addr` in unit `uptr`.
 
@@ -2346,14 +2344,14 @@ numerical output routine. The calling sequence for the
 
 SCP defines a pointer:
 
-`char *(sim_vm_read)(char *, int32 *, FILE *)`
+`char *(sim_vm_read)(char *, int32_t *, FILE *)`
 
 This is initialized to `NULL`. If it is filled in by the VM, SCP will
 use the specified routine to obtain command input in place of its
 standard routine, read_line. The calling sequence for the
 `sim_vm_read` routine is:
 
-- `char sim_vm_input(char *buf, int32 *max, FILE *stream)` – read the
+- `char sim_vm_input(char *buf, int32_t *max, FILE *stream)` – read the
   next command line from `stream` and store it in `buf`, up to a
   maximum of `max` characters
 
@@ -2428,7 +2426,7 @@ defined with a `sim_ctab` structure (`typedef CTAB`):
 struct sim_ctab {
     const char   *name;         /* name */
     t_stat       (*action)();   /* action routine */
-    int32        arg;           /* argument */
+    int32_t        arg;           /* argument */
     const char   *help;         /* help string */
 };
 ```
@@ -2436,7 +2434,7 @@ struct sim_ctab {
 If the first word of a command line matches `ctab.name`, then the
 action routine is called with the following arguments:
 
-- `t_stat action_routine(int32 arg, const char *buf)` – process input
+- `t_stat action_routine(int32_t arg, const char *buf)` – process input
   string `buf` based on optional argument `arg`
 
 The string passed to the action routine starts at the first non-blank
@@ -2503,12 +2501,12 @@ SIMH provides routines to convert ASCII input characters to the format
 expected VM, and to convert VM-supplied ASCII characters to C-standard
 format. The routines are:
 
-- `int32 sim_tt_inpcvt(int32 c, uint32 mode)` – convert input
+- `int32_t sim_tt_inpcvt(int32_t c, uint32_t mode)` – convert input
   character `c` according to the `mode` specification and return the
   converted result (-1 if the character is not valid in the specified
   mode).
 
-- `int32 sim_tt_outcvt(int32 c, uint32 mode)` – convert output
+- `int32_t sim_tt_outcvt(int32_t c, uint32_t mode)` – convert output
   character `c` according to the `mode` specification and return the
   converted result (-1 if the character is not valid in the specified
   mode).
@@ -2533,14 +2531,14 @@ character is considered printable. It initially contains the following
 characters: `BEL`, `BS`, `HT`, `LF`, and `CR`. The set may be
 manipulated with these routines:
 
-- `t_stat sim_set_pchar(int32 flag, const char *cptr)` – set
+- `t_stat sim_set_pchar(int32_t flag, const char *cptr)` – set
   `sim_tt_pchar` to the value pointed to by `cptr`; return
   `SCPE_2FARG` if `cptr` is null or points to a null string, or
   `SCPE_ARG` if the value cannot be converted or does not contain at
   least `CR` and `LF`. The string argument must be in the default
   radix of the current simulator.
 
-- `t_stat sim_show_pchar(FILE *st, DEVICE *dptr, UNIT *uptr, int32
+- `t_stat sim_show_pchar(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t
   flag, const char *cptr)` – output the `sim_tt_pchar` value to the
   stream `st`. The `sim_tt_pchar` value will be displayed in the default
   radix of the current simulator and character mnemonics for each set
@@ -2578,25 +2576,25 @@ struct tmln {
     char *ipad; /* IP address */
     SOCKET master; /* line specific master socket */
     char *port; /* line specific listening port */
-    int32 sessions; /* count of tcp connections received */
-    uint32 cnms; /* connect time ms */
-    int32 tsta; /* Telnet state */
-    int32 rcve; /* rcv enable */
-    int32 xmte; /* xmt enable */
-    int32 dstb; /* disable Tlnt bin */
-    int32 notelnet; /* raw binary data (no telnet interpret) */
-    int32 rxbpr; /* rcv buf remove */
-    int32 rxbpi; /* rcv buf insert */
-    int32 rxcnt; /* rcv count */
-    int32 txbpr; /* xmt buf remove */
-    int32 txbpi; /* xmt buf insert */
-    int32 txcnt; /* xmt count */
-    int32 txdrp; /* xmt drop count */
-    int32 txbsz; /* xmt buffer size */
-    int32 txbfd; /* xmt buffered flag */
+    int32_t sessions; /* count of tcp connections received */
+    uint32_t cnms; /* connect time ms */
+    int32_t tsta; /* Telnet state */
+    int32_t rcve; /* rcv enable */
+    int32_t xmte; /* xmt enable */
+    int32_t dstb; /* disable Tlnt bin */
+    int32_t notelnet; /* raw binary data (no telnet interpret) */
+    int32_t rxbpr; /* rcv buf remove */
+    int32_t rxbpi; /* rcv buf insert */
+    int32_t rxcnt; /* rcv count */
+    int32_t txbpr; /* xmt buf remove */
+    int32_t txbpi; /* xmt buf insert */
+    int32_t txcnt; /* xmt count */
+    int32_t txdrp; /* xmt drop count */
+    int32_t txbsz; /* xmt buffer size */
+    int32_t txbfd; /* xmt buffered flag */
     bool modem_control; /* line modem control support */
     bool port_speed_control; /* line programmatically sets port speed */
-    int32 modembits; /* modem bits which are set */
+    int32_t modembits; /* modem bits which are set */
     FILE *txlog; /* xmt log file */
     FILEREF *txlogref; /* xmt log file reference */
     char *txlogname; /* xmt log file name */
@@ -2646,17 +2644,17 @@ The overall set of extra terminals is defined by the `tmxr` structure
 
 ```c
 struct tmxr {
-    int32 lines; /* \# lines */
+    int32_t lines; /* \# lines */
     char *port; /* listening port */
     SOCKET master; /* master socket */
     TMLN *ldsc; /* pointer to line descriptors */
-    int32 *lnorder; /* line connection order */
+    int32_t *lnorder; /* line connection order */
     DEVICE *dptr; /* multiplexer device */
     UNIT *uptr; /* polling unit (connection) */
     char logfiletmpl[FILENAMEMAX]; /* template logfile name */
     int23 buffered; /* Buffered line behavior and buffer size*/
-    int32 sessions; /* count of tcp connections received */
-    uint32 last_poll_time; /* time of last connection poll */
+    int32_t sessions; /* count of tcp connections received */
+    uint32_t last_poll_time; /* time of last connection poll */
     bool notelnet; /* default telnet capability for incoming connections */
     bool modem_control; /* multiplexer supports modem control behaviors */
     bool port_speed_control; /* multiplexer programmatically sets port speed */
@@ -2691,7 +2689,7 @@ derived from the unit passed to the `tmxr_attach` call.
 Library `sim_tmxr.c` provides the following routines to support Telnet
 and Serial port-based terminals:
 
-- `int32 tmxr_poll_conn(TMXR *mp)` – poll for a new connection to the
+- `int32_t tmxr_poll_conn(TMXR *mp)` – poll for a new connection to the
   terminals described by `mp`. If there is a new connection, the
   routine resets all the line descriptor state (including receive
   enable) and returns the line number (index to line descriptor) for
@@ -2702,7 +2700,7 @@ and Serial port-based terminals:
   `lp`. The connection is closed and all line descriptor state is
   reset.
 
-- `int32 tmxr_getc_ln(TMLN *lp)` – return the next available character
+- `int32_t tmxr_getc_ln(TMLN *lp)` – return the next available character
   from the line described by `lp`. If a character is available, the
   return value is: `(1 << TMXR_V_VALID) | character`. If a `BREAK`
   occurred on the line, `SCPE_BREAK` will be ORed into the return
@@ -2711,11 +2709,11 @@ and Serial port-based terminals:
 - `void tmxr_poll_rx(TMXR *mp)` – poll for input available on the
   terminals described by `mp`.
 
-- `int32 tmxr_rqln(TMLN *lp)` – return the number of characters in the
+- `int32_t tmxr_rqln(TMLN *lp)` – return the number of characters in the
   receive queue of the line described by `lp` which are ready to be
   read now.
 
-- `t_stat tmxr_putc_ln(TMLN *lp, int32 chr)` – output character `chr`
+- `t_stat tmxr_putc_ln(TMLN *lp, int32_t chr)` – output character `chr`
   to the line described by `lp`. Possible errors are `SCPE_LOST`
   (connection lost) and `SCPE_STALL` (connection backlogged). If
   executed directly in instruction simulation code (as opposed to
@@ -2725,10 +2723,10 @@ and Serial port-based terminals:
 - `void tmxr_poll_tx(TMXR *mp)` – poll for output complete on the
   terminals described by `mp`.
 
-- `int32 tmxr_tqln(TMLN *lp)` – return the number of characters in the
+- `int32_t tmxr_tqln(TMLN *lp)` – return the number of characters in the
   transmit queue of the line described by `lp`.
 
-- `int32 tmxr_txdone_ln(TMLN *lp)` – return the transmit complete
+- `int32_t tmxr_txdone_ln(TMLN *lp)` – return the transmit complete
   indicator for the the line described by `lp`. `0` – not done, `1` –
   just now done, `-1` – previously done. When the `1` return value is
   returned would be a good time to pass an interrupt or other status
@@ -2752,11 +2750,11 @@ and Serial port-based terminals:
   terminals described by `mp`. This routine is a subset of
   `tmxr_detach`.
 
-- `t_stat tmxr_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)` –
+- `t_stat tmxr_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)` –
   stub examine routine, needed because the extra terminals are marked
   as attached; always returns an error.
 
-- `t_stat tmxr_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw)` –
+- `t_stat tmxr_dep(t_value val, t_addr addr, UNIT *uptr, int32_t sw)` –
   stub deposit routine, needed because the extra terminals are marked
   as detached; always returns an error.
 
@@ -2769,36 +2767,36 @@ and Serial port-based terminals:
 - `void tmxr_linemsgf(TMLN *lp, const const *fmt, ...)` – output
   formatted `msg` to line `lp`.
 
-- `void tmxr_fconns(FILE *st, TMLN *lp, int32 ln)` – output connection
+- `void tmxr_fconns(FILE *st, TMLN *lp, int32_t ln)` – output connection
   status to stream `st` for the line described by `lp`. If `ln >= 0`,
   preface the output with the specified line number.
 
-- `void tmxr_fstats(FILE *st, TMLN *lp, int32 ln)` – output connection
+- `void tmxr_fstats(FILE *st, TMLN *lp, int32_t ln)` – output connection
   statistics to stream *st* for the line described by `lp`. If `ln >= 0`,
   preface the output with the specified line number.
 
-- `t_stat tmxr_set_log(UNIT *uptr, int32 val, char *cptr, void *mp)` –
+- `t_stat tmxr_set_log(UNIT *uptr, int32_t val, char *cptr, void *mp)` –
   enable logging of a line of the multipleser described by `mp` to the
   filename pointed to by `cptr`. If `uptr` is `NULL`, then `val` indicates
   the line number; otherwise, the unit number within the associated
   device implies the line number. This function may be used as an `MTAB`
   validation routine.
 
-- `t_stat tmxr_set_nolog(UNIT *uptr, int32 val, const char *cptr,
+- `t_stat tmxr_set_nolog(UNIT *uptr, int32_t val, const char *cptr,
   const void *mp)` – disable logging of a line of the multiplexer
   described by `mp` to the filename pointed to by `cptr`. If `uptr` is
   `NULL`, then `val` indicates the line number; otherwise, the unit
   number within the associated device implies the line number. This
   function may be used as an `MTAB` validation routine.
 
-- `t_stat tmxr_show_log(FILE *st, UNIT *uptr, int32 val, const void
+- `t_stat tmxr_show_log(FILE *st, UNIT *uptr, int32_t val, const void
   *mp)` – outputs the logging status of a line of the multiplexer
   described by `mp` to stream `st`. If `uptr` is `NULL`, then `val`
   indicates the line number; otherwise, the unit number within the
   associated device implies the line number. This function may be used
   as an `MTAB` display routine.
 
-- `t_stat tmxr_dscln(UNIT *uptr, int32 val, const char *cptr, const void *mp)` –
+- `t_stat tmxr_dscln(UNIT *uptr, int32_t val, const char *cptr, const void *mp)` –
   parse the string pointed to by `cptr` for a decimal line number. If
   the line number is valid, disconnect the specified line in the
   terminal multiplexer described by `mp`. The calling sequence allows
@@ -2808,7 +2806,7 @@ and Serial port-based terminals:
   enabled when the routine is called, otherwise a serial port will
   have DTR dropped for 500ms and raised again.
 
-- `t_stat tmxr_set_lnorder(UNIT *uptr, int32 val, const char *cptr,
+- `t_stat tmxr_set_lnorder(UNIT *uptr, int32_t val, const char *cptr,
   const void *desc)` – set the line connection order array associated
   with the `TMXR` structure pointed to by `desc`. The string pointed
   to by `cptr` is parsed for a semicolon-delimited list of
@@ -2820,26 +2818,26 @@ and Serial port-based terminals:
 | `line1/length` | ascending sequence from `line1` to `line1+length-1` |
 | ALL | ascending sequence of all lines defined by the multiplexer |
 
-The line order array must provide an int32 element for each line. The
+The line order array must provide an int32_t element for each line. The
 calling sequence allows `tmxr_set_lnorder` to be used as an `MTAB`
 processing routine.
 
-- `t_stat tmxr_show_lnorder(FILE *st, UNIT *uptr, int32 val, void
+- `t_stat tmxr_show_lnorder(FILE *st, UNIT *uptr, int32_t val, void
   *desc) – output the line connection order associated multiplexer
   (TMXR *)` `desc` to stream `st`. The order is rendered as a
   semicolon-delimited list of ranges. The calling sequence allows
   `tmxr_show_lnorder` to be used as an `MTAB` processing routine.
 
-- `t_stat tmxr_show_summ(FILE *st, UNIT *uptr, int32 val, const void
+- `t_stat tmxr_show_summ(FILE *st, UNIT *uptr, int32_t val, const void
   *desc)` – outputs the summary status of the multiplexer `(TMXR *)
   desc` to stream `st`.
 
-- `t_stat tmxr_show_cstat(FILE *st, UNIT *uptr, int32 val, const void
+- `t_stat tmxr_show_cstat(FILE *st, UNIT *uptr, int32_t val, const void
   *desc)` – outputs either the connections (`val = 1`) or the statistics
   (`val = 0`) of the multiplexer `(TMXR *) desc` to stream `st`. Also
   checks for multiplexer not attached, or all lines disconnected.
 
-- `t_stat tmxr_show_lines(FILE *st, UNIT *uptr, int32 val, const void
+- `t_stat tmxr_show_lines(FILE *st, UNIT *uptr, int32_t val, const void
   *desc)` – outputs the number of lines in the terminal multiplexer
   `(TMXR *)` I to stream I.
 
@@ -2879,8 +2877,8 @@ processing routine.
   `tmxr_set_port_speed_control` had been called previously. I will
   fail if any line attachments are active.
 
-- `t_stat tmxr_set_get_modem_bits(TMLN *lp, int32 bits_to_set, int32
-  bits_to_clear, int32 *incoming_bits)` – For a line connected to a
+- `t_stat tmxr_set_get_modem_bits(TMLN *lp, int32_t bits_to_set, int32_t
+  bits_to_clear, int32_t *incoming_bits)` – For a line connected to a
   serial port on a `TMXR` device with `modem_control_passthru` enabled,
   then the bits_to_set and/or bits_to_clear (`DTR` and `RTS`) are
   changed and if incoming_bits is not `NULL`, then the current modem
@@ -2940,62 +2938,62 @@ emulated magnetic tapes. These are declared in header file
 - `t_stat sim_tape_detach(UNIT *uptr)` – Detach tape unit `uptr` from
   its current file.
 
-- `t_stat sim_tape_set_fmt(UNIT *uptr, int32 val, const char *cptr,
+- `t_stat sim_tape_set_fmt(UNIT *uptr, int32_t val, const char *cptr,
   void *desc)` – Set the tape format for unit `uptr` to the format
   specified by string `cptr`.
 
-- `t_stat sim_tape_show_fmt(FILE *st, UNIT *uptr, int32 val, const
+- `t_stat sim_tape_show_fmt(FILE *st, UNIT *uptr, int32_t val, const
   void *desc)` – Write the tape format for unit `uptr` to the file
   specified by descriptor `st`.
 
-- `t_stat sim_tape_set_capac(UNIT *uptr, int32 val, const char *cptr,
+- `t_stat sim_tape_set_capac(UNIT *uptr, int32_t val, const char *cptr,
   void *desc)` – Set the tape capacity for unit `uptr` to the
   capacity, in MB, specified by string `cptr`.
 
-- `t_stat sim_tape_show_capac(FILE *st, UNIT *uptr, int32 val, const
+- `t_stat sim_tape_show_capac(FILE *st, UNIT *uptr, int32_t val, const
   void *desc)` – Write the capacity for unit `uptr` to the file
   specified by descriptor `st`.
 
-- `t_stat sim_tape_set_dens(UNIT *uptr, int32 val, const char *cptr,
+- `t_stat sim_tape_set_dens(UNIT *uptr, int32_t val, const char *cptr,
   void *desc)` – Set the tape density for unit `uptr` to the density,
   in bits per inch, specified by string `cptr`. Only specific
-  densities are supported; `desc` must point at an `int32` value
+  densities are supported; `desc` must point at an `int32_t` value
   consisting of one or more `MT_*_VALID` constants logically ORed
   together that specifies the densities allowed. Alternately, `desc`
   may be set to `NULL` and `val` may specify one of the `MT_DENS_*`
   constants to set the density directly; in this case, `cptr` is
   ignored.
 
-- `t_stat sim_tape_show_dens(FILE *st, UNIT *uptr, int32 val, const
+- `t_stat sim_tape_show_dens(FILE *st, UNIT *uptr, int32_t val, const
   void *desc)` – Write the density for unit `uptr` to the file
   specified by descriptor `st`.
 
-- `t_stat sim_tape_rdrecf(UNIT *uptr, uint8 *buf, t_mtrlnt *tbc,
+- `t_stat sim_tape_rdrecf(UNIT *uptr, uint8_t *buf, t_mtrlnt *tbc,
   t_mtrlnt max)` – Forward read the next record on unit `uptr` into
   buffer `buf` of size `max`. Return the actual record size in `tbc`.
 
-- `t_stat sim_tape_rdrecf_a(UNIT *uptr, uint8 *buf, t_mtrlnt *tbc,
+- `t_stat sim_tape_rdrecf_a(UNIT *uptr, uint8_t *buf, t_mtrlnt *tbc,
   t_mtrlnt max, TAPE_PCALLBACK callback)` – Forward read the next
   record on unit `uptr` into buffer `buf` of size `max`. Return the
   actual record size in `tbc` and call callback routine on completion.
 
-- `t_stat sim_tape_rdrecr(UNIT *uptr, uint8 *buf, t_mtrlnt *tbc,
+- `t_stat sim_tape_rdrecr(UNIT *uptr, uint8_t *buf, t_mtrlnt *tbc,
   t_mtrlnt max)` – Reverse read the next record on unit `uptr` into
   buffer `buf` of size `max`. Return the actual record size in
   `tbc`. Note that the record is returned in forward order, that is,
   byte 0 of the record is stored in buf[0], and so on.
 
-- `t_stat sim_tape_rdrecr_a(UNIT *uptr, uint8 *buf, t_mtrlnt *tbc,
+- `t_stat sim_tape_rdrecr_a(UNIT *uptr, uint8_t *buf, t_mtrlnt *tbc,
   t_mtrlnt max, TAPE_PCALLBACK callback)` – Reverse read the next
   record on unit `uptr` into buffer `buf` of size `max`. Return the
   actual record size in `tbc` and call callback routine on
   completion. Note that the record is returned in forward order, that
   is, byte `0` of the record is stored in `buf[0]`, and so on.
 
-- `t_stat sim_tape_wrrecf(UNIT *uptr, uint8 buf, t_mtrlnt tbc)` –
+- `t_stat sim_tape_wrrecf(UNIT *uptr, uint8_t buf, t_mtrlnt tbc)` –
   Write buffer `uptr` of size `tbc` as the next record on unit `uptr`.
 
-- `t_stat sim_tape_wrrecf_a(UNIT *uptr, uint8 buf, t_mtrlnt tbc,
+- `t_stat sim_tape_wrrecf_a(UNIT *uptr, uint8_t buf, t_mtrlnt tbc,
   TAPE_PCALLBACK callback)` – Write buffer `uptr` of size `tbc` as the
   next record on unit `uptr` and call callback routine on completion.
 
@@ -3023,39 +3021,39 @@ emulated magnetic tapes. These are declared in header file
   callback)` – Space unit `uptr` forward one record. The size of the
   record is returned in `tbc` and call callback routine on completion.
 
-- `t_stat sim_tape_sprecsf(UNIT *uptr, uint32 count, uint32 *skipped)`
+- `t_stat sim_tape_sprecsf(UNIT *uptr, uint32_t count, uint32_t *skipped)`
   – Space unit `uptr` forward `count` records. The number of records
   actually skipped is returned in `skipped`.
 
-- `t_stat sim_tape_sprecsf_a(UNIT *uptr, uint32 count, uint32
+- `t_stat sim_tape_sprecsf_a(UNIT *uptr, uint32_t count, uint32_t
   *skipped, TAPE_PCALLBACK callback)` – Space unit `uptr` forward
   `count` records. The number of records actually skipped is returned
   in `skipped` and call callback routine on completion.
 
-- `t_stat sim_tape_spfilef(UNIT *uptr, uint32 count, uint32 *skipped)`
+- `t_stat sim_tape_spfilef(UNIT *uptr, uint32_t count, uint32_t *skipped)`
   – Space unit `uptr` forward `count` files. The number of files
   actually skipped is returned in `skipped`.
 
-- `t_stat sim_tape_spfilef_a(UNIT *uptr, uint32 count, uint32
+- `t_stat sim_tape_spfilef_a(UNIT *uptr, uint32_t count, uint32_t
   *skipped, TAPE_PCALLBACK callback)` – Space unit `uptr` forward
   `count` files. The number of files actually skipped is returned in
   `skipped` and call callback routine on completion.
 
-- `t_stat sim_tape_spfilebyrecf(UNIT *uptr, uint32 count, uint32
-  *skipped, uint32 *recsskipped, bool check_leot)` – Space unit
+- `t_stat sim_tape_spfilebyrecf(UNIT *uptr, uint32_t count, uint32_t
+  *skipped, uint32_t *recsskipped, bool check_leot)` – Space unit
   `uptr` forward `count` files. The number of files actually skipped
   is returned in `skipped`. The number of records skipped is returned
   in `recsskipped`.
 
-- `t_stat sim_tape_spfilebyrecf_a(UNIT *uptr, uint32 count, uint32
-  *skipped, uint32 *recsskipped, bool check_leot, TAPE_PCALLBACK
+- `t_stat sim_tape_spfilebyrecf_a(UNIT *uptr, uint32_t count, uint32_t
+  *skipped, uint32_t *recsskipped, bool check_leot, TAPE_PCALLBACK
   callback)` – Space unit `uptr` forward `count` files. The number of
   files actually skipped is returned in `skipped`. The number of
   records skipped is returned in `recsskipped` and call callback
   routine on completion.
 
-- `t_stat sim_tape_position(UNIT *uptr, uint32 flags, uint32 recs,
-  uint32 *recsskipped, uint32 files, uint32 *filesskipped, uint32
+- `t_stat sim_tape_position(UNIT *uptr, uint32_t flags, uint32_t recs,
+  uint32_t *recsskipped, uint32_t files, uint32_t *filesskipped, uint32_t
   *objectsskipped)` – Space unit `uptr` forward `recs` records and
   `files` files. The number of recordss actually skipped is returned
   in `recsskipped`. The number of files actually skipped is returned
@@ -3063,8 +3061,8 @@ emulated magnetic tapes. These are declared in header file
   `recsskipped`. The number of objects skipped is returned in
   `objectssskipped`.
 
-- `t_stat sim_tape_position_a(UNIT *uptr, uint32 flags, uint32 recs,
-  uint32 *recsskipped, uint32 files, uint32 *filesskipped, uint32
+- `t_stat sim_tape_position_a(UNIT *uptr, uint32_t flags, uint32_t recs,
+  uint32_t *recsskipped, uint32_t files, uint32_t *filesskipped, uint32_t
   *objectsskipped, TAPE_PCALLBACK callback)` – Space unit `uptr`
   forward `recs` records and `files` files. The number of recordss
   actually skipped is returned in `recsskipped`. The number of files
@@ -3104,11 +3102,11 @@ emulated magnetic tapes. These are declared in header file
   effectively erases the rest of the tape) and call callback routine
   on completion.
 
-- `t_stat sim_tape_wrgap(UNIT *uptr, uint32 gaplen)` – Write an erase
+- `t_stat sim_tape_wrgap(UNIT *uptr, uint32_t gaplen)` – Write an erase
   gap on unit `uptr` of `gaplen` tenths of an inch in length at a tape
   density specified by a preceding `sim_tape_set_dens` call.
 
-- `t_stat sim_tape_wrgap_a(UNIT *uptr, uint32 gaplen, TAPE_PCALLBACK
+- `t_stat sim_tape_wrgap_a(UNIT *uptr, uint32_t gaplen, TAPE_PCALLBACK
   callback)` – Write an erase gap on unit `uptr` of `gaplen` tenths of
   an inch in length at a tape density specified by a preceding
   `sim_tape_set_dens` call and call callback routine on completion.
@@ -3225,15 +3223,15 @@ Library `sim_disk.c` provides the following routines to support
 emulated disk drives. These are declared in include file `sim_disk.h`.
 
 - `t_stat sim_disk_attach(UNIT *uptr, const char *cptr, size_t
-  sector_size, size_t xfer_element_size, bool dontchangecapac, uint32
-  debugbit, const char *drivetype, uint32 pdp11_tracksize, int
+  sector_size, size_t xfer_element_size, bool dontchangecapac, uint32_t
+  debugbit, const char *drivetype, uint32_t pdp11_tracksize, int
   completion_delay)` – Attach disk unit `uptr` to file `cptr`. Disk
   simulators should call this routine, rather than the standard
   attach_unit routine,
 
 - `t_stat sim_disk_attach_ex(UNIT *uptr, const char *cptr, size_t
   sector_size, size_t xfer_element_size, bool dontchangecapac,
-  uint32 debugbit, const char *drivetype, uint32 pdp11_tracksize, int
+  uint32_t debugbit, const char *drivetype, uint32_t pdp11_tracksize, int
   completion_delay, const char **drivetypes)` – Attach disk unit
   `uptr` to file `cptr`. Disk simulators should call this routine,
   rather than the standard attach_unit routine, The `drivetypes` is a
@@ -3241,7 +3239,7 @@ emulated disk drives. These are declared in include file `sim_disk.h`.
 
 - `t_stat sim_disk_attach_ex2(UNIT *uptr, const char *cptr, size_t
   sector_size, size_t xfer_element_size, bool dontchangecapac,
-  uint32 debugbit, const char *drivetype, uint32 pdp11_tracksize, int
+  uint32_t debugbit, const char *drivetype, uint32_t pdp11_tracksize, int
   completion_delay, const char **drivetypes, size_t reserved_sectors)`
   – Attach disk unit `uptr` to file `cptr`. Disk simulators should
   call this routine, rather than the standard attach_unit routine, The
@@ -3251,40 +3249,40 @@ emulated disk drives. These are declared in include file `sim_disk.h`.
 - `t_stat sim_disk_detach(UNIT *uptr)` – Detach disk unit `uptr` from
   its current file.
 
-- `t_stat sim_disk_set_fmt(UNIT *uptr, int32 val, const char *cptr,
+- `t_stat sim_disk_set_fmt(UNIT *uptr, int32_t val, const char *cptr,
   void *desc)` – Set the disk format for unit `uptr` to the format
   specified by string `cptr`.
 
-- `t_stat sim_disk_show_fmt(FILE *st, UNIT *uptr, int32 val, const
+- `t_stat sim_disk_show_fmt(FILE *st, UNIT *uptr, int32_t val, const
   void *desc)` – Write the disk format for unit `uptr` to the file
   specified by descriptor `st`.
 
-- `t_stat sim_disk_set_capac(UNIT *uptr, int32 val, const char *cptr,
+- `t_stat sim_disk_set_capac(UNIT *uptr, int32_t val, const char *cptr,
   void *desc)` – Set the disk capacity for unit `uptr` to the
   capacity, in MB, specified by string `cptr`.
 
-- `t_stat sim_disk_show_capac(FILE *st, UNIT *uptr, int32 val, const
+- `t_stat sim_disk_show_capac(FILE *st, UNIT *uptr, int32_t val, const
   void *desc)` – Write the capacity for unit `uptr` to the file
   specified by descriptor `st`.
 
-- `t_stat sim_disk_rdsect(UNIT *uptr, t_lba lba, uint8 *buf, t_seccnt
+- `t_stat sim_disk_rdsect(UNIT *uptr, t_lba lba, uint8_t *buf, t_seccnt
   *sectsread, , t_seccnt *sectstoread)` – Read up to `sectstoread`
   sectors from sector number `lba` on unit `uptr` into buffer
   `buf`. Return the number of sectors read in `sectsread`.
 
-- `t_stat sim_disk_rdsect_a(UNIT *uptr, t_lba lba, uint8 *buf,
+- `t_stat sim_disk_rdsect_a(UNIT *uptr, t_lba lba, uint8_t *buf,
   t_seccnt *sectsread, , t_seccnt *sectstoread, DISK_PCALLBACK
   callback)` – Read up to sectstoread sectors from sector number lba
   on unit `uptr` into buffer `buf` *asynchronously*. Return the number
   of sectors read in `sectsread`, and call `callback` routine on
   completion.
 
-- `t_stat sim_disk_wrsect(UNIT *uptr, t_lba lba, uint8 *buf, t_seccnt
+- `t_stat sim_disk_wrsect(UNIT *uptr, t_lba lba, uint8_t *buf, t_seccnt
   *sectswritten, , t_seccnt *sectstowrite)` – Write `sectstowrite`
   sectors from buffer `buf` to disk sector number `lba` on unit
   `uptr`. Return the number of sectors written in `sectswritten`.
 
-- `t_stat sim_disk_wrsect_a(UNIT *uptr, t_lba lba, uint8 *buf,
+- `t_stat sim_disk_wrsect_a(UNIT *uptr, t_lba lba, uint8_t *buf,
   t_seccnt *sectswritten, , t_seccnt *sectstowrite, DISK_PCALLBACK
   callback)` – Write `sectstowrite` sectors from buffer `buf` to disk
   sector number `lba` on unit `uptr` *asynchronously*. Return the number
@@ -3485,9 +3483,9 @@ read (often required for memory protection):
 #define RD    2    /* data read */
 #define WR    3    /* data write */
 
-t_stat Read (uint32 addr, uint32 *dat, uint32 acctyp)
+t_stat Read (uint32_t addr, uint32_t *dat, uint32_t acctyp)
 {
-    static uint32 bkpt_type[4] = {
+    static uint32_t bkpt_type[4] = {
         SWMASK('E'), SWMASK('N'),
         SWMASK('R'), SWMASK('W')
     };

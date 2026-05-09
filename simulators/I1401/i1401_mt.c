@@ -105,23 +105,25 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i1401_defs.h"
 #include "sim_tape.h"
 
 #define MT_NUMDR        7                               /* #drives */
 #define MT_MAXFR        (MAXMEMSIZE * 2)                /* max transfer */
 
-uint8 dbuf[MT_MAXFR];                                   /* tape buffer */
+uint8_t dbuf[MT_MAXFR];                                 /* tape buffer */
 
-extern uint8 M[];                                       /* memory */
-extern int32 ind[64];
-extern int32 BS, iochk;
+extern uint8_t M[];                                     /* memory */
+extern int32_t ind[64];
+extern int32_t BS, iochk;
 extern UNIT cpu_unit;
 
 t_stat mt_reset (DEVICE *dptr);
-t_stat mt_boot (int32 unitno, DEVICE *dptr);
+t_stat mt_boot (int32_t unitno, DEVICE *dptr);
 t_stat mt_map_status (t_stat st);
-UNIT *mt_sel_unit (int32 unit);
+UNIT *mt_sel_unit (int32_t unit);
 
 /* MT data structures
 
@@ -189,7 +191,7 @@ DEVICE mt_dev = {
         status  =       status
 */
 
-t_stat mt_func (int32 unit, int32 flag, int32 mod)
+t_stat mt_func (int32_t unit, int32_t flag, int32_t mod)
 {
 t_mtrlnt tbc;
 UNIT *uptr;
@@ -277,9 +279,9 @@ return mt_map_status (st);
    read sets a GM and clears the WM.
 */
 
-t_stat mt_io (int32 unit, int32 flag, int32 mod)
+t_stat mt_io (int32_t unit, int32_t flag, int32_t mod)
 {
-int32 t, wm_seen;
+int32_t t, wm_seen;
 t_mtrlnt i, tbc;
 t_stat st;
 bool passed_eot;
@@ -402,7 +404,7 @@ return mt_map_status (st);
 
 /* Select unit - return unit pointer if valid */
 
-UNIT *mt_sel_unit (int32 unit)
+UNIT *mt_sel_unit (int32_t unit)
 {
 if ((unit <= 0) || (unit >= MT_NUMDR))
     return NULL;
@@ -459,7 +461,7 @@ t_stat mt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 for (i = 0; i < MT_NUMDR; i++) {                        /* per drive resets */
@@ -478,13 +480,13 @@ return SCPE_OK;
    and continues until an inter-record gap is sensed."  GM+WM in memory is ignored.
 */
 
-t_stat mt_boot (int32 unitno, DEVICE *dptr)
+t_stat mt_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
 (void) dptr;
 
-extern int32 saved_IS;
+extern int32_t saved_IS;
 
 if ((sim_switches & SWMASK ('N')) == 0)                 /* unless -n */
     sim_tape_rewind (&mt_unit[unitno]);                 /* force rewind */

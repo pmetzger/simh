@@ -1,7 +1,9 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
+#include "sim_types.h"
 #include "test_cmocka.h"
 
 #include "vax_defs.h"
@@ -13,53 +15,53 @@
 
 #define TEST_SSC_TNIR0_PA (SSCBASE + (0x42u << 2))
 
-int32 rom_rd(int32 pa);
-void rom_wr_B(int32 pa, int32 val);
-int32 nvr_rd(int32 pa);
-void nvr_wr(int32 pa, int32 val, int32 lnt);
-void WriteRegU(uint32 pa, int32 val, int32 lnt);
-void cmctl_wr(int32 pa, int32 val, int32 lnt);
-void cdg_wr(int32 pa, int32 val, int32 lnt);
-void ssc_wr(int32 pa, int32 val, int32 lnt);
+int32_t rom_rd(int32_t pa);
+void rom_wr_B(int32_t pa, int32_t val);
+int32_t nvr_rd(int32_t pa);
+void nvr_wr(int32_t pa, int32_t val, int32_t lnt);
+void WriteRegU(uint32_t pa, int32_t val, int32_t lnt);
+void cmctl_wr(int32_t pa, int32_t val, int32_t lnt);
+void cdg_wr(int32_t pa, int32_t val, int32_t lnt);
+void ssc_wr(int32_t pa, int32_t val, int32_t lnt);
 
-extern uint32 *rom;
-extern uint32 *nvr;
-extern int32 cmctl_reg[];
-extern int32 cdg_dat[];
-extern uint32 tmr_tnir[];
+extern uint32_t *rom;
+extern uint32_t *nvr;
+extern int32_t cmctl_reg[];
+extern int32_t cdg_dat[];
+extern uint32_t tmr_tnir[];
 
-static uint32 test_rom[ROMSIZE >> 2];
-static uint32 test_nvr[NVRSIZE >> 2];
+static uint32_t test_rom[ROMSIZE >> 2];
+static uint32_t test_nvr[NVRSIZE >> 2];
 
-uint32 *M;
-uint32 R[16];
-uint32 STK[5];
-uint32 PSL;
-uint32 SISR;
-uint32 fault_PC;
-uint32 p1;
-uint32 p2;
-uint32 pcq[PCQ_SIZE];
-uint32 mchk_va;
-uint32 mchk_ref;
-int32 pcq_p;
-int32 in_ie;
-int32 ibcnt;
-int32 ppc;
-int32 mapen;
-int32 int_req[IPL_HLVL];
+uint32_t *M;
+uint32_t R[16];
+uint32_t STK[5];
+uint32_t PSL;
+uint32_t SISR;
+uint32_t fault_PC;
+uint32_t p1;
+uint32_t p2;
+uint32_t pcq[PCQ_SIZE];
+uint32_t mchk_va;
+uint32_t mchk_ref;
+int32_t pcq_p;
+int32_t in_ie;
+int32_t ibcnt;
+int32_t ppc;
+int32_t mapen;
+int32_t int_req[IPL_HLVL];
 TLBENT stlb[VA_TBSIZE];
 TLBENT ptlb[VA_TBSIZE];
 DEVICE cpu_dev;
 UNIT cpu_unit;
 UNIT clk_unit;
-int32 tmr_poll;
+int32_t tmr_poll;
 DEVICE vc_dev;
 DEVICE lk_dev;
 DEVICE vs_dev;
 jmp_buf save_env;
 
-TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat)
+TLBENT fill(uint32_t va, int32_t lnt, int32_t acc, int32_t *stat)
 {
     /* Stubbed MMU fill for uncalled memory access paths. */
     (void)va;
@@ -70,7 +72,7 @@ TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat)
     return (TLBENT){0, 0};
 }
 
-void WriteIO(uint32 pa, int32 val, int32 lnt)
+void WriteIO(uint32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed I/O write for uncalled memory access paths. */
     (void)pa;
@@ -78,7 +80,7 @@ void WriteIO(uint32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-void WriteIOU(uint32 pa, int32 val, int32 lnt)
+void WriteIOU(uint32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed unaligned I/O write for uncalled memory access paths. */
     (void)pa;
@@ -86,7 +88,7 @@ void WriteIOU(uint32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)st;
@@ -97,7 +99,7 @@ t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat show_vec(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_vec(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)st;
@@ -109,7 +111,7 @@ t_stat show_vec(FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 t_stat cpu_load_bootcode(const char *filename,
-                         const unsigned char *builtin_code, size_t size,
+                         const uchar_t *builtin_code, size_t size,
                          bool load_rom, t_addr offset)
 {
     /* Stubbed boot-code loader for uncalled boot paths. */
@@ -122,7 +124,7 @@ t_stat cpu_load_bootcode(const char *filename,
     return SCPE_OK;
 }
 
-int32 intexc(int32 vec, int32 cc, int32 ipl, int ei)
+int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei)
 {
     /* Stubbed interrupt helper for uncalled legacy paths. */
     (void)vec;
@@ -133,7 +135,7 @@ int32 intexc(int32 vec, int32 cc, int32 ipl, int ei)
     return 0;
 }
 
-int32 cqmap_rd(int32 pa)
+int32_t cqmap_rd(int32_t pa)
 {
     /* Stubbed Qbus map read for uncalled register dispatch entries. */
     (void)pa;
@@ -141,7 +143,7 @@ int32 cqmap_rd(int32 pa)
     return 0;
 }
 
-void cqmap_wr(int32 pa, int32 val, int32 lnt)
+void cqmap_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed Qbus map write for uncalled register dispatch entries. */
     (void)pa;
@@ -149,7 +151,7 @@ void cqmap_wr(int32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 cqipc_rd(int32 pa)
+int32_t cqipc_rd(int32_t pa)
 {
     /* Stubbed Qbus IPC read for uncalled register dispatch entries. */
     (void)pa;
@@ -157,7 +159,7 @@ int32 cqipc_rd(int32 pa)
     return 0;
 }
 
-void cqipc_wr(int32 pa, int32 val, int32 lnt)
+void cqipc_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed Qbus IPC write for uncalled register dispatch entries. */
     (void)pa;
@@ -165,7 +167,7 @@ void cqipc_wr(int32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 cqbic_rd(int32 pa)
+int32_t cqbic_rd(int32_t pa)
 {
     /* Stubbed CQBIC read for uncalled register dispatch entries. */
     (void)pa;
@@ -173,7 +175,7 @@ int32 cqbic_rd(int32 pa)
     return 0;
 }
 
-void cqbic_wr(int32 pa, int32 val, int32 lnt)
+void cqbic_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed CQBIC write for uncalled register dispatch entries. */
     (void)pa;
@@ -181,62 +183,62 @@ void cqbic_wr(int32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 iccs_rd(void)
+int32_t iccs_rd(void)
 {
     return 0;
 }
 
-int32 todr_rd(void)
+int32_t todr_rd(void)
 {
     return 0;
 }
 
-int32 rxcs_rd(void)
+int32_t rxcs_rd(void)
 {
     return 0;
 }
 
-int32 rxdb_rd(void)
+int32_t rxdb_rd(void)
 {
     return 0;
 }
 
-int32 txcs_rd(void)
+int32_t txcs_rd(void)
 {
     return 0;
 }
 
-void iccs_wr(int32 dat)
+void iccs_wr(int32_t dat)
 {
     /* Stubbed interval clock write for uncalled legacy paths. */
     (void)dat;
 }
 
-void todr_wr(int32 dat)
+void todr_wr(int32_t dat)
 {
     /* Stubbed TODR write for uncalled legacy paths. */
     (void)dat;
 }
 
-void rxcs_wr(int32 dat)
+void rxcs_wr(int32_t dat)
 {
     /* Stubbed console receiver status write for uncalled legacy paths. */
     (void)dat;
 }
 
-void txcs_wr(int32 dat)
+void txcs_wr(int32_t dat)
 {
     /* Stubbed console transmitter status write for uncalled legacy paths. */
     (void)dat;
 }
 
-void txdb_wr(int32 dat)
+void txdb_wr(int32_t dat)
 {
     /* Stubbed console transmitter data write for uncalled legacy paths. */
     (void)dat;
 }
 
-void ioreset_wr(int32 dat)
+void ioreset_wr(int32_t dat)
 {
     /* Stubbed I/O reset write for uncalled legacy paths. */
     (void)dat;
@@ -252,7 +254,7 @@ static void reset_sysdev_behavior_state(void)
     memset(test_nvr, 0, sizeof(test_nvr));
     memset(cmctl_reg, 0, CMCTLSIZE);
     memset(cdg_dat, 0, CDASIZE);
-    memset(tmr_tnir, 0, sizeof(uint32) * 2);
+    memset(tmr_tnir, 0, sizeof(uint32_t) * 2);
     rom = test_rom;
     nvr = test_nvr;
 }
@@ -261,9 +263,9 @@ static void reset_sysdev_behavior_state(void)
 static void test_rom_write_byte_preserves_legacy_behavior(void **state)
 {
     static const struct {
-        uint32 pa;
-        int32 val;
-        uint32 expected;
+        uint32_t pa;
+        int32_t val;
+        uint32_t expected;
     } cases[] = {
         {ROMBASE, 0xa5, 0x123456a5u},
         {ROMBASE + 1, 0xa5, 0x1234a578u},
@@ -278,7 +280,7 @@ static void test_rom_write_byte_preserves_legacy_behavior(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_sysdev_behavior_state();
         test_rom[0] = 0x12345678u;
-        rom_wr_B((int32)cases[i].pa, cases[i].val);
+        rom_wr_B((int32_t)cases[i].pa, cases[i].val);
         assert_int_equal(test_rom[0], cases[i].expected);
     }
 }
@@ -287,10 +289,10 @@ static void test_rom_write_byte_preserves_legacy_behavior(void **state)
 static void test_nvr_write_preserves_legacy_behavior(void **state)
 {
     static const struct {
-        uint32 pa;
-        int32 val;
-        int32 lnt;
-        uint32 expected;
+        uint32_t pa;
+        int32_t val;
+        int32_t lnt;
+        uint32_t expected;
     } cases[] = {
         {NVRBASE, 0xa5, L_BYTE, 0x123456a5u},
         {NVRBASE + 1, 0xa5, L_BYTE, 0x1234a578u},
@@ -298,7 +300,7 @@ static void test_nvr_write_preserves_legacy_behavior(void **state)
         {NVRBASE + 3, 0xa5, L_BYTE, 0xa5345678u},
         {NVRBASE, 0x1d617, L_WORD, 0x1234d617u},
         {NVRBASE + 2, 0xffff, L_WORD, 0xffff5678u},
-        {NVRBASE, (int32)0x87654321u, L_LONG, 0x87654321u},
+        {NVRBASE, (int32_t)0x87654321u, L_LONG, 0x87654321u},
     };
 
     /* Cmocka test callback signature.
@@ -308,9 +310,9 @@ static void test_nvr_write_preserves_legacy_behavior(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_sysdev_behavior_state();
         test_nvr[0] = 0x12345678u;
-        nvr_wr((int32)cases[i].pa, cases[i].val, cases[i].lnt);
+        nvr_wr((int32_t)cases[i].pa, cases[i].val, cases[i].lnt);
         assert_int_equal(test_nvr[0], cases[i].expected);
-        assert_int_equal((uint32)nvr_rd((int32)NVRBASE), cases[i].expected);
+        assert_int_equal((uint32_t)nvr_rd((int32_t)NVRBASE), cases[i].expected);
     }
 }
 
@@ -318,10 +320,10 @@ static void test_nvr_write_preserves_legacy_behavior(void **state)
 static void test_writeregu_preserves_legacy_nvr_behavior(void **state)
 {
     static const struct {
-        uint32 pa;
-        int32 val;
-        int32 lnt;
-        uint32 expected;
+        uint32_t pa;
+        int32_t val;
+        int32_t lnt;
+        uint32_t expected;
     } cases[] = {
         {NVRBASE + 3, 0x1a5, L_BYTE, 0xa5345678u},
         {NVRBASE + 2, 0x1d617, L_WORD, 0xd6175678u},
@@ -351,7 +353,7 @@ static void test_cmctl_partial_write_preserves_legacy_behavior(void **state)
 
     cmctl_wr(CMCTLBASE + 3, 0x80, L_BYTE);
 
-    assert_int_equal((uint32)cmctl_reg[0], 0x80000000u);
+    assert_int_equal((uint32_t)cmctl_reg[0], 0x80000000u);
 }
 
 /*
@@ -368,17 +370,17 @@ static void test_cmctl_partial_write_masks_source_value(void **state)
 
     cmctl_wr(CMCTLBASE + 2, 0x1ff0, L_BYTE);
 
-    assert_int_equal((uint32)cmctl_reg[0], 0x00f00000u);
+    assert_int_equal((uint32_t)cmctl_reg[0], 0x00f00000u);
 }
 
 /* Verify CDG partial writes preserve legacy byte-lane behavior. */
 static void test_cdg_partial_write_preserves_legacy_behavior(void **state)
 {
     static const struct {
-        uint32 pa;
-        int32 val;
-        int32 lnt;
-        uint32 expected;
+        uint32_t pa;
+        int32_t val;
+        int32_t lnt;
+        uint32_t expected;
     } cases[] = {
         {CDGBASE, 0xa5, L_BYTE, 0x123456a5u},
         {CDGBASE + 1, 0xa5, L_BYTE, 0x1234a578u},
@@ -395,8 +397,8 @@ static void test_cdg_partial_write_preserves_legacy_behavior(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_sysdev_behavior_state();
         cdg_dat[0] = 0x12345678;
-        cdg_wr((int32)cases[i].pa, cases[i].val, cases[i].lnt);
-        assert_int_equal((uint32)cdg_dat[0], cases[i].expected);
+        cdg_wr((int32_t)cases[i].pa, cases[i].val, cases[i].lnt);
+        assert_int_equal((uint32_t)cdg_dat[0], cases[i].expected);
     }
 }
 
@@ -404,10 +406,10 @@ static void test_cdg_partial_write_preserves_legacy_behavior(void **state)
 static void test_ssc_partial_write_preserves_legacy_behavior(void **state)
 {
     static const struct {
-        uint32 pa;
-        int32 val;
-        int32 lnt;
-        uint32 expected;
+        uint32_t pa;
+        int32_t val;
+        int32_t lnt;
+        uint32_t expected;
     } cases[] = {
         {TEST_SSC_TNIR0_PA, 0xa5, L_BYTE, 0x123456a5u},
         {TEST_SSC_TNIR0_PA + 1, 0xa5, L_BYTE, 0x1234a578u},
@@ -424,7 +426,7 @@ static void test_ssc_partial_write_preserves_legacy_behavior(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_sysdev_behavior_state();
         tmr_tnir[0] = 0x12345678u;
-        ssc_wr((int32)cases[i].pa, cases[i].val, cases[i].lnt);
+        ssc_wr((int32_t)cases[i].pa, cases[i].val, cases[i].lnt);
         assert_int_equal(tmr_tnir[0], cases[i].expected);
     }
 }

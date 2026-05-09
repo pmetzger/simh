@@ -28,6 +28,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "sim_timer.h"
 #include "sage_defs.h"
@@ -149,7 +151,7 @@ set_stat:
 
 static t_stat siopoll_svc(UNIT* uptr)
 {
-    int32 c;
+    int32_t c;
     DEVICE* dptr = find_dev_from_unit(uptr);
     I8251* chip = (I8251*)dptr->ctxt;
     SERMUX* mux = chip->mux;
@@ -305,7 +307,7 @@ DEVICE sagecons_dev = {
 static t_stat cons_reset(DEVICE* dptr)
 {
     t_stat rc;
-    int32 wait;
+    int32_t wait;
     I8251* chip = (I8251*)dptr->ctxt;
     SERMUX* mux = chip->mux;
 
@@ -328,7 +330,7 @@ static t_stat cons_reset(DEVICE* dptr)
 /* this service is started when a unit is attached, or characters are available on keyboard */
 static t_stat conspoll_svc(UNIT* uptr)
 {
-    int32 c, kbdc;
+    int32_t c, kbdc;
     DEVICE* dptr = find_dev_from_unit(uptr);
     I8251* chip = (I8251*)dptr->ctxt;
     SERMUX* mux = chip->mux;

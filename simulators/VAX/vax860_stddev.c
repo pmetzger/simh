@@ -34,6 +34,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_tmxr.h"
 
@@ -201,46 +203,46 @@ static BITFIELD tmr_iccs_bits [] = {
 #define RLDS_ERR        (RLDS_WDE+RLDS_HCE+RLDS_STO+RLDS_SPE+RLDS_WGE+ \
                          RLDS_VCK+RLDS_DSE)             /* errors bits */
 
-int32 tti_csr = 0;                                      /* control/status */
-uint32 tti_buftime;                                     /* time input character arrived */
-int32 tti_buf = 0;                                      /* buffer */
-int32 tti_int = 0;                                      /* interrupt */
-int32 tto_csr = 0;                                      /* control/status */
-int32 tto_int = 0;                                      /* interrupt */
+int32_t tti_csr = 0;                                    /* control/status */
+uint32_t tti_buftime;                                   /* time input character arrived */
+int32_t tti_buf = 0;                                    /* buffer */
+int32_t tti_int = 0;                                    /* interrupt */
+int32_t tto_csr = 0;                                    /* control/status */
+int32_t tto_int = 0;                                    /* interrupt */
 
-int32 tmr_iccs = 0;                                     /* interval timer csr */
-uint32 tmr_icr = 0;                                     /* curr interval */
-uint32 tmr_nicr = 0;                                    /* next interval */
-uint32 tmr_inc = 0;                                     /* timer increment */
-int32 tmr_int = 0;                                      /* interrupt */
-int32 clk_tps = 100;                                    /* ticks/second */
-int32 tmxr_poll = CLK_DELAY * TMXR_MULT;                /* term mux poll */
-int32 tmr_poll = CLK_DELAY;                             /* pgm timer poll */
+int32_t tmr_iccs = 0;                                   /* interval timer csr */
+uint32_t tmr_icr = 0;                                   /* curr interval */
+uint32_t tmr_nicr = 0;                                  /* next interval */
+uint32_t tmr_inc = 0;                                   /* timer increment */
+int32_t tmr_int = 0;                                    /* interrupt */
+int32_t clk_tps = 100;                                  /* ticks/second */
+int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
+int32_t tmr_poll = CLK_DELAY;                           /* pgm timer poll */
 struct todr_battery_info {
-    uint32 toy_gmtbase;                                 /* GMT base of set value */
-    uint32 toy_gmtbasemsec;                             /* The milliseconds of the set value */
-    uint32 toy_endian_plus2;                            /* 2 -> Big Endian, 3 -> Little Endian, invalid otherwise */
+    uint32_t toy_gmtbase;                               /* GMT base of set value */
+    uint32_t toy_gmtbasemsec;                           /* The milliseconds of the set value */
+    uint32_t toy_endian_plus2;                          /* 2 -> Big Endian, 3 -> Little Endian, invalid otherwise */
     };
 typedef struct todr_battery_info TOY;
 
-int32 lc_fnc = 0;                                       /* function */
-int32 lc_cwait = 50;                                    /* command time */
-int32 lc_xwait = 20;                                    /* tr set time */
-uint8 lc_buf[LC_NUMBY] = { 0 };                         /* response buffer */
-int32 lc_bptr = 0;                                      /* buffer pointer */
-int32 lc_dlen = 0;                                      /* buffer data len */
+int32_t lc_fnc = 0;                                     /* function */
+int32_t lc_cwait = 50;                                  /* command time */
+int32_t lc_xwait = 20;                                  /* tr set time */
+uint8_t lc_buf[LC_NUMBY] = { 0 };                       /* response buffer */
+int32_t lc_bptr = 0;                                    /* buffer pointer */
+int32_t lc_dlen = 0;                                    /* buffer data len */
 
-int32 csi_int = 0;                                      /* interrupt */
-int32 cso_csr = 0;                                      /* control/status */
-int32 cso_buf = 0;                                      /* buffer */
+int32_t csi_int = 0;                                    /* interrupt */
+int32_t cso_csr = 0;                                    /* control/status */
+int32_t cso_buf = 0;                                    /* buffer */
 
-int32 rlcs_swait = 10;                                  /* command time */
-int32 rlcs_state = RL_IDLE;                             /* protocol state */
-int32 rlcs_sts_reg = RL_CSR;                            /* status register */
-int32 rlcs_csr = 0;                                     /* control/status */
-int32 rlcs_mp = 0;
-int32 rlcs_bcnt = 0;                                    /* byte count */
-uint16 *rlcs_buf = NULL;
+int32_t rlcs_swait = 10;                                /* command time */
+int32_t rlcs_state = RL_IDLE;                           /* protocol state */
+int32_t rlcs_sts_reg = RL_CSR;                          /* status register */
+int32_t rlcs_csr = 0;                                   /* control/status */
+int32_t rlcs_mp = 0;
+int32_t rlcs_bcnt = 0;                                  /* byte count */
+uint16_t *rlcs_buf = NULL;
 
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
@@ -256,20 +258,20 @@ const char *tto_description (DEVICE *dptr);
 const char *clk_description (DEVICE *dptr);
 const char *tmr_description (DEVICE *dptr);
 const char *rlcs_description (DEVICE *dptr);
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 t_stat clk_attach (UNIT *uptr, const char *cptr);
 t_stat clk_detach (UNIT *uptr);
 t_stat tmr_reset (DEVICE *dptr);
 t_stat rlcs_reset (DEVICE *dptr);
 t_stat rlcs_attach (UNIT *uptr, const char *cptr);
-int32 icr_rd (void);
-void tmr_sched (uint32 incr);
+int32_t icr_rd (void);
+void tmr_sched (uint32_t incr);
 t_stat todr_resync (void);
-t_stat lc_wr_txdb (int32 data);
+t_stat lc_wr_txdb (int32_t data);
 
-extern int32 con_halt (int32 code, int32 cc);
+extern int32_t con_halt (int32_t code, int32_t cc);
 
 /* TTI data structures
 
@@ -462,12 +464,12 @@ DEVICE rlcs_dev = {
    txdb_wr      output buffer
 */
 
-int32 rxcs_rd (void)
+int32_t rxcs_rd (void)
 {
 return (tti_csr & RXCS_RD);
 }
 
-void rxcs_wr (int32 data)
+void rxcs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     tti_int = 0;
@@ -478,9 +480,9 @@ else {
 tti_csr = (tti_csr & ~RXCS_WR) | (data & RXCS_WR);
 }
 
-int32 rxdb_rd (void)
+int32_t rxdb_rd (void)
 {
-int32 t = tti_buf;
+int32_t t = tti_buf;
 
 if (tti_csr & CSR_DONE) {                               /* Input pending ? */
     t = t | ((ID_M_LC | ID_M_EMM | ID_M_CT) << RXDB_V_LC);/* char + DTR for hard-wired lines */
@@ -492,7 +494,7 @@ return t;
 
 static void tto_update_int (void)
 {
-int32 id = 0;
+int32_t id = 0;
 
 tto_csr = tto_csr & ~TXCS_IDC;
 if ((tto_csr & (ID_M_LC << TXCS_V_TEN)) &&
@@ -514,12 +516,12 @@ if (tto_csr & CSR_IE)
     tto_int = 1;
 }
 
-int32 txcs_rd (void)
+int32_t txcs_rd (void)
 {
 return (tto_csr & TXCS_RD);
 }
 
-void txcs_wr (int32 data)
+void txcs_wr (int32_t data)
 {
 tto_csr = (tto_csr & ~TXCS_WR) | (data & TXCS_WR);          /* Write new bits. */
 if (data & TXCS_WMN) {                                      /* Updating enable mask? */
@@ -534,9 +536,9 @@ else {
     }
 }
 
-void txdb_wr (int32 data)
+void txdb_wr (int32_t data)
 {
-int32 dest = (tto_csr >> TXCS_V_IDC) & TXCS_M_IDC;
+int32_t dest = (tto_csr >> TXCS_V_IDC) & TXCS_M_IDC;
 if ((dest >= ID_CT) && (dest <= ID_LC)) {               /* valid line? */
     tto_csr = tto_csr & ~CSR_DONE;                      /* clear flag */
     tto_int = 0;                                        /* clear int */
@@ -547,14 +549,14 @@ if ((dest >= ID_CT) && (dest <= ID_LC)) {               /* valid line? */
     }
 }
 
-int32 stxcs_rd (void)
+int32_t stxcs_rd (void)
 {
 return cso_csr;
 }
 
-void stxcs_wr (int32 data)
+void stxcs_wr (int32_t data)
 {
-int32 fnc = data & STXCS_FNC;
+int32_t fnc = data & STXCS_FNC;
 cso_csr = (cso_csr & ~STXCS_WR) | (data & STXCS_WR);
 cso_csr = cso_csr & ~STXCS_STS;
 
@@ -594,12 +596,12 @@ switch (fnc) {
     }
 }
 
-int32 stxdb_rd (void)
+int32_t stxdb_rd (void)
 {
 return cso_buf & STXDB_DAT;
 }
 
-void stxdb_wr (int32 data)
+void stxdb_wr (int32_t data)
 {
 cso_buf = data & STXDB_DAT;
 
@@ -613,8 +615,8 @@ if (rlcs_state == RL_WRITE) {
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 c;
-int32 line = uptr - tti_dev.units;
+int32_t c;
+int32_t line = uptr - tti_dev.units;
 
 switch (line) {
 
@@ -667,7 +669,7 @@ sim_activate (&tti_unit[ID_CT], tmr_poll);
 return SCPE_OK;
 }
 
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -696,8 +698,8 @@ return "console terminal input";
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 c;
-int32 line = uptr - tto_dev.units;
+int32_t c;
+int32_t line = uptr - tto_dev.units;
 t_stat r;
 
 switch (line) {
@@ -743,7 +745,7 @@ sim_cancel (&tto_unit[ID_LC]);
 return SCPE_OK;
 }
 
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -779,13 +781,13 @@ return "console terminal output";
    is interpolated relative to the elapsed instruction count.
 */
 
-int32 iccs_rd (void)
+int32_t iccs_rd (void)
 {
 sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_rd()", tmr_iccs_bits, tmr_iccs, tmr_iccs, true);
 return tmr_iccs & TMR_CSR_RD;
 }
 
-void iccs_wr (int32 val)
+void iccs_wr (int32_t val)
 {
 sim_debug_bits_hdr (TMR_DB_REG, &tmr_dev, "iccs_wr()", tmr_iccs_bits, tmr_iccs, val, true);
 if ((val & TMR_CSR_RUN) == 0) {                         /* clearing run? */
@@ -836,28 +838,28 @@ if ((tmr_iccs & (TMR_CSR_DON | TMR_CSR_IE)) !=          /* update int */
     }
 }
 
-int32 icr_rd (void)
+int32_t icr_rd (void)
 {
-int32 result;
+int32_t result;
 
 if (tmr_iccs & TMR_CSR_RUN) {                           /* running? */
-    uint32 usecs_remaining = (uint32)sim_activate_time_usecs (&tmr_unit);
+    uint32_t usecs_remaining = (uint32_t)sim_activate_time_usecs (&tmr_unit);
 
-    result = (int32)(~usecs_remaining + 1);
+    result = (int32_t)(~usecs_remaining + 1);
     }
 else
-    result = (int32)tmr_icr;
+    result = (int32_t)tmr_icr;
 sim_debug (TMR_DB_REG, &tmr_dev, "icr_rd() = 0x%08X%s\n", result, (tmr_iccs & TMR_CSR_RUN) ? " - interpolated" : "");
 return result;
 }
 
-int32 nicr_rd (void)
+int32_t nicr_rd (void)
 {
 sim_debug (TMR_DB_REG, &tmr_dev, "nicr_rd() = 0x%08X\n", tmr_nicr);
 return tmr_nicr;
 }
 
-void nicr_wr (int32 val)
+void nicr_wr (int32_t val)
 {
 sim_debug (TMR_DB_REG, &tmr_dev, "nicr_wr(0x%08X)\n", val);
 tmr_nicr = val;
@@ -891,9 +893,9 @@ return SCPE_OK;
 
 /* Timer scheduling */
 
-void tmr_sched (uint32 nicr)
+void tmr_sched (uint32_t nicr)
 {
-uint32 usecs = (nicr) ? (~nicr + 1) : 0xFFFFFFFF;
+uint32_t usecs = (nicr) ? (~nicr + 1) : 0xFFFFFFFF;
 
 sim_debug (TMR_DB_SCHED, &tmr_dev, "tmr_sched(nicr=0x%08X-usecs=0x%08X) - tps=%d\n", nicr, usecs, clk_tps);
 if (usecs == 10000)
@@ -923,7 +925,7 @@ return SCPE_OK;
 
 t_stat clk_svc (UNIT *uptr)
 {
-int32 t;
+int32_t t;
 t = sim_rtcn_calb (clk_tps, TMR_CLK);                   /* calibrate clock */
 sim_activate_after (uptr, 1000000/clk_tps);             /* reactivate unit */
 tmr_poll = t;                                           /* set tmr poll */
@@ -931,7 +933,7 @@ tmxr_poll = t * TMXR_MULT;                              /* set mux poll */
 return SCPE_OK;
 }
 
-t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -983,10 +985,10 @@ const char *clk_description (DEVICE *dptr)
 return "time of year clock";
 }
 
-static uint32 sim_byteswap32 (uint32 data)
+static uint32_t sim_byteswap32 (uint32_t data)
 {
-uint8 *bdata = (uint8 *)&data;
-uint8 tmp;
+uint8_t *bdata = (uint8_t *)&data;
+uint8_t tmp;
 
 tmp = bdata[0];
 bdata[0] = bdata[3];
@@ -1010,9 +1012,9 @@ if (r != SCPE_OK)
     uptr->flags = uptr->flags & ~(UNIT_ATTABLE | UNIT_BUFABLE);
 else {
     TOY *toy = (TOY *)uptr->filebuf;
-    const uint32 sim_endian_plus2 = sim_end ? 3 : 2;
+    const uint32_t sim_endian_plus2 = sim_end ? 3 : 2;
 
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     if ((toy->toy_endian_plus2 < 2) || (toy->toy_endian_plus2 > 3))
         memset (uptr->filebuf, 0, (size_t)uptr->capac);
     else {
@@ -1065,10 +1067,10 @@ return "interval timer";
 
 /* TODR routines */
 
-static const char *todr_fmt_vms_todr (int32 val)
+static const char *todr_fmt_vms_todr (int32_t val)
 {
 static char buf[32];
-uint32 uval = (uint32)val;
+uint32_t uval = (uint32_t)val;
 
 if (val < 0x10000000)
     sprintf (buf, "Not VMS Time: 0x%08X", uval);
@@ -1090,7 +1092,7 @@ else {
 return buf;
 }
 
-int32 todr_rd (void)
+int32_t todr_rd (void)
 {
 TOY *toy = (TOY *)clk_unit.filebuf;
 struct timespec base, now, val;
@@ -1099,11 +1101,11 @@ sim_rtcn_get_time(&now, TMR_CLK);                       /* get curr time */
 base.tv_sec = (time_t)toy->toy_gmtbase;
 base.tv_nsec = toy->toy_gmtbasemsec * 1000000;
 sim_timespec_diff (&val, &now, &base);                  /* val = now - base */
-sim_debug (TMR_DB_TODR, &clk_dev, "todr_rd() - TODR=0x%X - %s\n", (int32)(val.tv_sec*100 + val.tv_nsec/10000000), todr_fmt_vms_todr ((int32)(val.tv_sec*100 + val.tv_nsec/10000000)));
-return (int32)(val.tv_sec*100 + (val.tv_nsec + 5000000)/10000000);  /* 100hz Clock rounded Ticks */
+sim_debug (TMR_DB_TODR, &clk_dev, "todr_rd() - TODR=0x%X - %s\n", (int32_t)(val.tv_sec*100 + val.tv_nsec/10000000), todr_fmt_vms_todr ((int32_t)(val.tv_sec*100 + val.tv_nsec/10000000)));
+return (int32_t)(val.tv_sec*100 + (val.tv_nsec + 5000000)/10000000); /* 100hz Clock rounded Ticks */
 }
 
-void todr_wr (int32 data)
+void todr_wr (int32_t data)
 {
 TOY *toy = (TOY *)clk_unit.filebuf;
 struct timespec now, val, base;
@@ -1113,10 +1115,10 @@ time_t tbase;
    future read operations in "battery backed-up" state */
 
 sim_rtcn_get_time(&now, TMR_CLK);                       /* get curr time */
-val.tv_sec = (time_t)((uint32)data) / 100;
-val.tv_nsec = (((uint32)data) % 100) * 10000000;
+val.tv_sec = (time_t)((uint32_t)data) / 100;
+val.tv_nsec = (((uint32_t)data) % 100) * 10000000;
 sim_timespec_diff (&base, &now, &val);                  /* base = now - data */
-toy->toy_gmtbase = (uint32)base.tv_sec;
+toy->toy_gmtbase = (uint32_t)base.tv_sec;
 tbase = (time_t)base.tv_sec;
 toy->toy_gmtbasemsec = (base.tv_nsec + 500000)/1000000;
 if (clk_unit.flags & UNIT_ATT) {                        /* OS Agnostic mode? */
@@ -1136,7 +1138,7 @@ if (clk_unit.flags & UNIT_ATT) {                        /* Attached means behave
         todr_wr (0);                                    /* Start ticking from 0 */
     }
 else {                                                  /* Not-Attached means */
-    uint32 base;                                        /* behave like simh VMS default */
+    uint32_t base;                                      /* behave like simh VMS default */
     time_t curr;
     struct tm *ctm;
     struct timespec now;
@@ -1153,17 +1155,17 @@ else {                                                  /* Not-Attached means */
             ctm->tm_min) * 60) +
             ctm->tm_sec;
     todr_wr ((base * 100) + 0x10000000 +                /* use VMS form */
-             (int32)((now.tv_nsec + 5000000)/ 10000000));
+             (int32_t)((now.tv_nsec + 5000000)/ 10000000));
     }
 return SCPE_OK;
 }
 
 /* Logical console write */
 
-t_stat lc_wr_txdb (int32 data)
+t_stat lc_wr_txdb (int32_t data)
 {
-int32 i;
-int32 mask = 0;
+int32_t i;
+int32_t mask = 0;
 
 lc_fnc = LC_GETFNC (data);                              /* get function */
 if (lc_bptr > 0)                                        /* cmd in prog? */
@@ -1201,13 +1203,13 @@ else switch (lc_fnc) {                                  /* idle, case */
     case LC_FNCAC:                                      /* array configuration */
         lc_buf[3] = LC_FNCAC;
         if (MEMSIZE < MAXMEMSIZE) {                     /* 4MB Boards */
-            lc_buf[2] = (uint8)(MEMSIZE >> 22);         /* slots in use */
+            lc_buf[2] = (uint8_t)(MEMSIZE >> 22);       /* slots in use */
             for (i = 0; i < lc_buf[2]; i++) {
                 mask |= (2 << (i * 2));                 /* build array mask */
                 }
             }
         else {
-            lc_buf[2] = (uint8)(MEMSIZE >> 24);         /* 16MB Boards */
+            lc_buf[2] = (uint8_t)(MEMSIZE >> 24);       /* 16MB Boards */
             for (i = 0; i < lc_buf[2]; i++) {
                 mask |= (1 << (i * 2));                 /* build array mask */
                 }
@@ -1243,8 +1245,8 @@ return SCPE_OK;
 
 t_stat rlcs_svc (UNIT *uptr)
 {
-int32 bcnt;
-uint32 da;
+int32_t bcnt;
+uint32_t da;
 
 switch (rlcs_state) {
 
@@ -1263,7 +1265,7 @@ switch (rlcs_state) {
                 da = STXCS_GETDA(cso_csr) * 512;        /* get byte offset */
                 if (sim_fseek (uptr->fileref, da, SEEK_SET))
                     return SCPE_IOERR;
-                bcnt = sim_fread (rlcs_buf, sizeof (int16), RL_NUMBY, uptr->fileref);
+                bcnt = sim_fread (rlcs_buf, sizeof (int16_t), RL_NUMBY, uptr->fileref);
                 for ( ; bcnt < RL_NUMBY; bcnt++)                            /* fill buffer */
                     rlcs_buf[bcnt] = 0;
                 }
@@ -1300,7 +1302,7 @@ switch (rlcs_state) {
             da = STXCS_GETDA(cso_csr) * 512;            /* get byte offset */
             if (sim_fseek (uptr->fileref, da, SEEK_SET))
                 return SCPE_IOERR;
-            bcnt = sim_fwrite (rlcs_buf, sizeof (int16), RL_NUMBY, uptr->fileref);
+            bcnt = sim_fwrite (rlcs_buf, sizeof (int16_t), RL_NUMBY, uptr->fileref);
             if (bcnt != RL_NUMBY)
                 return SCPE_IOERR;
             rlcs_state = RL_IDLE;                       /* now idle */
@@ -1379,7 +1381,7 @@ rlcs_csr = 0;
 rlcs_sts_reg = RL_CSR;
 rlcs_bcnt = 0;
 if (rlcs_buf == NULL)
-    rlcs_buf = (uint16 *) calloc (RL_NUMBY, sizeof (uint16));
+    rlcs_buf = (uint16_t *) calloc (RL_NUMBY, sizeof (uint16_t));
 if (rlcs_buf == NULL)
     return SCPE_MEM;
 sim_cancel (&rlcs_unit);                                /* deactivate unit */
@@ -1397,7 +1399,7 @@ return "Console RL02 disk";
 
 t_stat rlcs_attach (UNIT *uptr, const char *cptr)
 {
-uint32 p;
+uint32_t p;
 t_stat r;
 
 uptr->capac = RL02_SIZE;

@@ -37,6 +37,7 @@
 
 #include "id_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #define TTI             0
 #define TTO             1
@@ -56,24 +57,24 @@
 #define CMD_WRT         (0x02 << 8)                     /* write/read */
 #define CMD_TYP         0x01                            /* command type */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
-extern int32 pas_par (int32 cmd, int32 c);
-extern int32 lfc_poll;
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
+extern int32_t pas_par (int32_t cmd, int32_t c);
+extern int32_t lfc_poll;
 
-uint32 ttp_sta = 0;                                     /* status */
-uint32 ttp_cmd = 0;                                     /* command */
-uint32 ttp_kchp = 0;                                    /* rcvr chr pend */
-uint32 ttp_karm = 0;                                    /* rcvr int armed */
-uint32 ttp_tarm = 0;                                    /* xmt int armed */
-uint8 ttp_tplte[] = { 0, 1, TPL_END };
+uint32_t ttp_sta = 0;                                   /* status */
+uint32_t ttp_cmd = 0;                                   /* command */
+uint32_t ttp_kchp = 0;                                  /* rcvr chr pend */
+uint32_t ttp_karm = 0;                                  /* rcvr int armed */
+uint32_t ttp_tarm = 0;                                  /* xmt int armed */
+uint8_t ttp_tplte[] = { 0, 1, TPL_END };
 
-uint32 ttp (uint32 dev, uint32 op, uint32 dat);
+uint32_t ttp (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat ttpi_svc (UNIT *uptr);
 t_stat ttpo_svc (UNIT *uptr);
 t_stat ttp_reset (DEVICE *dptr);
-t_stat ttp_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ttp_set_break (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ttp_set_enbdis (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat ttp_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ttp_set_break (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ttp_set_enbdis (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* TTP data structures */
 
@@ -129,10 +130,10 @@ DEVICE ttp_dev = {
 
 /* Terminal: I/O routine */
 
-uint32 ttp (uint32 dev, uint32 op, uint32 dat)
+uint32_t ttp (uint32_t dev, uint32_t op, uint32_t dat)
 {
-int32 xmt = dev & 1;
-int32 t;
+int32_t xmt = dev & 1;
+int32_t t;
 
 switch (op) {                                           /* case IO op */
 
@@ -180,7 +181,7 @@ return 0;
 
 t_stat ttpi_svc (UNIT *uptr)
 {
-int32 c, out;
+int32_t c, out;
 
 sim_activate (uptr, lfc_cosched (lfc_poll));            /* continue poll */
 ttp_sta = ttp_sta & ~STA_FR;                            /* clear break */
@@ -215,7 +216,7 @@ return SCPE_OK;
 
 t_stat ttpo_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 t_stat r;
 
 if (TT_GET_MODE (uptr->flags) == TTUF_MODE_8B)          /* 8b? */
@@ -255,7 +256,7 @@ return SCPE_OK;
 
 /* Make mode flags uniform */
 
-t_stat ttp_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttp_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -272,7 +273,7 @@ return SCPE_OK;
 
 /* Set input break */
 
-t_stat ttp_set_break (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttp_set_break (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -293,7 +294,7 @@ return SCPE_OK;
 
 /* Set enabled/disabled */
 
-t_stat ttp_set_enbdis (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttp_set_enbdis (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

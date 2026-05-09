@@ -27,7 +27,7 @@
 #ifndef UC15_DEFS_H_
 #define UC15_DEFS_H_        0
 
-#define UC15_STATE_SIZE     1024                /* size (int32's) */
+#define UC15_STATE_SIZE     1024                /* size (int32_t words) */
 
 /* The shared state region is divided into four quadrants
 

@@ -64,7 +64,9 @@
 
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "system_defs.h"
 
 /* This is the I/O configuration table. There are 8 possible
@@ -75,12 +77,12 @@
    If a device is plugged to a port it's routine
    address is here, 'nulldev' means no device is available.
  */
-int32 ttyout_d(int32 io, int32 data);
-int32 ttyin_d(int32 io, int32 data);
-int32 prt_d(int32 io, int32 data);
-int32 kbd_d(int32 io, int32 data);
-int32 iostat_s(int32 io, int32 data);
-int32 nulldev(int32 io, int32 data);
+int32_t ttyout_d(int32_t io, int32_t data);
+int32_t ttyin_d(int32_t io, int32_t data);
+int32_t prt_d(int32_t io, int32_t data);
+int32_t kbd_d(int32_t io, int32_t data);
+int32_t iostat_s(int32_t io, int32_t data);
+int32_t nulldev(int32_t io, int32_t data);
 
 struct idev dev_table[32] = {
 {&nulldev}, {&nulldev}, {&ttyin_d}, {&nulldev},     /* 000 input 0 - 3 */
@@ -154,7 +156,7 @@ t_stat tty_svc (UNIT *uptr)
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 temp;
+    int32_t temp;
 
     sim_activate (&tty_unit, tty_unit.wait);        /* continue poll */
     if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)
@@ -222,19 +224,19 @@ t_stat ptr_reset (DEVICE *dptr)
 
 /*  I/O instruction handlers for the SCELBI bitbanger serial interface
  */
-int32 ttyin_bitcntr = 0;
-int32 ttyin_charin = 0;
+int32_t ttyin_bitcntr = 0;
+int32_t ttyin_charin = 0;
 
 /* TTY input routine, assumes 1 start bit, 8 databits and 2 stop bits.
    the assumed number of INP instructions for each character are 9
  */
-int32 ttyin_d(int32 io, int32 data)
+int32_t ttyin_d(int32_t io, int32_t data)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
     (void) data;
 
-    int32 newbit;
+    int32_t newbit;
 
     /* if (ttyin_bitcntr != 0) {
         sim_printf("io: %d, bitcntr: %d, charin: 0%o\n",
@@ -273,15 +275,15 @@ int32 ttyin_d(int32 io, int32 data)
     return (newbit);
 }
 
-int32 ttyout_bitcntr = 0;
-int32 ttyout_charout = 0;
+int32_t ttyout_bitcntr = 0;
+int32_t ttyout_charout = 0;
 
 /* TTY output routine, assumes 1 start bit, 8 databits and 2 stop bits.
    the assumed number of OUT instructions for each character are 10
  */
-int32 ttyout_d(int32 io, int32 data)
+int32_t ttyout_d(int32_t io, int32_t data)
 {
-    int32 newbit;
+    int32_t newbit;
 
     /* sim_printf("io: %d, data: 0%o, bit0: %d, bitcntr: %d, charout: 0%o\n",
         io, data, (data & 1), ttyout_bitcntr, ttyout_charout);
@@ -326,7 +328,7 @@ int32 ttyout_d(int32 io, int32 data)
 
 /* Get status byte from Flagport
  */
-int32 iostat_s(int32 io, int32 data)
+int32_t iostat_s(int32_t io, int32_t data)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -340,7 +342,7 @@ int32 iostat_s(int32 io, int32 data)
 
 /* Get character from keyboard
  */
-int32 kbd_d(int32 io, int32 data)
+int32_t kbd_d(int32_t io, int32_t data)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -355,7 +357,7 @@ int32 kbd_d(int32 io, int32 data)
 
 /* Put character to printer
  */
-int32 prt_d(int32 io, int32 data)
+int32_t prt_d(int32_t io, int32_t data)
 {
     if (io != 0) {
         sim_putchar(data & 0x7f); /* bit 7 always set in SCELBAL */
@@ -365,7 +367,7 @@ int32 prt_d(int32 io, int32 data)
 
 /* I/O instruction handler for unused ports
  */
-int32 nulldev(int32 flag, int32 data)
+int32_t nulldev(int32_t flag, int32_t data)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */

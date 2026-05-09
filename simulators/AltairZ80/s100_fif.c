@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 
 #define UNIT_V_DSK_VERBOSE  (UNIT_V_UF + 1) /* verbose mode, i.e. show error messages   */
@@ -41,27 +43,27 @@
 #define MAX_DSK_SIZE        (DSK_TRACSIZE * MAX_TRACKS)
 
 static t_stat fif_reset(DEVICE *dptr);
-static t_stat fif_set_verbose(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static int32 fif_io(const int32 port, const int32 io, const int32 data);
+static t_stat fif_set_verbose(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static int32_t fif_io(const int32_t port, const int32_t io, const int32_t data);
 static const char* fif_description(DEVICE *dptr);
 
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
-extern void  PutBYTEWrapper(const uint32 Addr, const uint32 Value);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
+extern void  PutBYTEWrapper(const uint32_t Addr, const uint32_t Value);
 
-extern uint32 PCX;
+extern uint32_t PCX;
 
 /* global data on status */
 
 /* currently selected drive (values are 0 .. NUM_OF_DSK)
    current_disk < NUM_OF_DSK implies that the corresponding disk is attached to a file */
-static int32 current_disk                   = NUM_OF_DSK;
-static int32 warnLevelDSK                   = 3;
-static int32 warnAttached   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0};
-static int32 warnDSK11                      = 0;
+static int32_t current_disk                   = NUM_OF_DSK;
+static int32_t warnLevelDSK                   = 3;
+static int32_t warnAttached   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0};
+static int32_t warnDSK11                      = 0;
 
 /* 88DSK Standard I/O Data Structures */
 
@@ -127,13 +129,13 @@ DEVICE fif_dev = {
 };
 
 static void resetDSKWarningFlags(void) {
-    int32 i;
+    int32_t i;
     for (i = 0; i < NUM_OF_DSK; i++)
         warnAttached[i] = 0;
     warnDSK11 = 0;
 }
 
-static t_stat fif_set_verbose(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat fif_set_verbose(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -146,8 +148,8 @@ static t_stat fif_set_verbose(UNIT *uptr, int32 value, const char *cptr, void *d
 }
 
 /* returns true iff there exists a disk with VERBOSE */
-static int32 hasVerbose(void) {
-    int32 i;
+static int32_t hasVerbose(void) {
+    int32_t i;
     for (i = 0; i < NUM_OF_DSK; i++) {
         if (((fif_dev.units + i) -> flags) & UNIT_DSK_VERBOSE) {
             return true;
@@ -181,7 +183,7 @@ static t_stat fif_reset(DEVICE *dptr)
 
 typedef struct desc_t
 {
-    uint8
+    uint8_t
         cmd_unit,   /* (cmd << 4) | unit : 1 = A: */
         result,     /* result: 0 == busy, 1 = normal completion, */
         nn,         /* number of secs ? */
@@ -199,23 +201,23 @@ enum {NONE, WRITE_SEC, READ_SEC, FMT_TRACK};
 #define SPT         26
 #define UMASK       0xf
 
-static uint8 blanksec[SEC_SZ];
+static uint8_t blanksec[SEC_SZ];
 /*                      0 1 2 3 4 5 6 7 8 9 a b c d e f */
-static const uint8 utrans[] = {0,1,2,0,3,0,0,0,4,0,0,0,0,0,0,0};
+static const uint8_t utrans[] = {0,1,2,0,3,0,0,0,4,0,0,0,0,0,0,0};
 
 /**************************************************
 
     Translate an IMSAI FIF disk request into an access into the harddrive file
 
 */
-static int DoDiskOperation(desc_t *dsc, uint8 val)
+static int DoDiskOperation(desc_t *dsc, uint8_t val)
 {
-    int32   current_disk_flags;
+    int32_t current_disk_flags;
     int     kt,
             addr;
     FILE    *cpx;
     UNIT    *uptr;
-    int32   rtn;
+    int32_t rtn;
 
 #if 0
     sim_printf("%02x %02x %02x %02x %02x %02x %02x %02x \n",
@@ -321,9 +323,9 @@ static int DoDiskOperation(desc_t *dsc, uint8 val)
     Copy the disk descriptor from target RAM
 
 */
-static void getdesc(uint16 addr) {
-    uint32 x;
-    uint8 *p1 = (uint8*)&mydesc;
+static void getdesc(uint16_t addr) {
+    uint32_t x;
+    uint8_t *p1 = (uint8_t*)&mydesc;
 
     for (x = 0; x < sizeof(mydesc); x++) {
         *p1++ = GetBYTEWrapper(addr++);
@@ -335,14 +337,14 @@ static void getdesc(uint16 addr) {
     handle the IMSAI FIF floppy controller
 
 */
-static int32 fif_io(const int32 port, const int32 io, const int32 data) {
+static int32_t fif_io(const int32_t port, const int32_t io, const int32_t data) {
     /* Shared I/O handler signature.
        This implementation does not use every parameter. */
     (void) port;
 
-    static int32    fdstate = 0;    /* chan 0xfd state */
-    static int32    desc;
-    static uint16   fdAdr[16];      /* disk descriptor address in 8080/z80 RAM */
+    static int32_t  fdstate = 0;    /* chan 0xfd state */
+    static int32_t  desc;
+    static uint16_t fdAdr[16];      /* disk descriptor address in 8080/z80 RAM */
 
     /* cmd | desc# */
     /*    cmd == 0x00 do operation */
@@ -362,7 +364,7 @@ static int32 fif_io(const int32 port, const int32 io, const int32 data) {
             else { /* do what descriptor says */
                 getdesc(fdAdr[desc]);
                 PutBYTEWrapper(fdAdr[desc] + 1,
-                    (uint8)DoDiskOperation(&mydesc, (uint8)data));
+                    (uint8_t)DoDiskOperation(&mydesc, (uint8_t)data));
             }
             break;
 

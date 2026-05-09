@@ -38,12 +38,15 @@
  *
  */
 
-#include "sim_video.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "ws.h"
+
 #include "display.h"
+#include "sim_types.h"
+#include "sim_video.h"
+#include "ws.h"
 
 #ifndef PIX_SIZE
 #define PIX_SIZE 1
@@ -73,10 +76,10 @@ int (*vid_display_kb_event_process)(SIM_KEY_EVENT *kev) = NULL;
 static int xpixels, ypixels;
 static int pix_size = PIX_SIZE;
 static const char *window_name;
-static uint32 *colors = NULL;
-static uint32 ncolors = 0, size_colors = 0;
-static uint32 *surface = NULL;
-static uint32 ws_palette[2];                            /* Monochrome palette */
+static uint32_t *colors = NULL;
+static uint32_t ncolors = 0, size_colors = 0;
+static uint32_t *surface = NULL;
+static uint32_t ws_palette[2];                          /* Monochrome palette */
 typedef struct cursor {
     Uint8 *data;
     Uint8 *mask;
@@ -166,7 +169,7 @@ key_to_ascii (SIM_KEY_EVENT *kev)
 #define SPCLKEY(K, LC, UC)  \
     case K:                                                 \
         if (kev->state != SIM_KEYPRESS_UP)                  \
-            display_last_char = (unsigned char)(k_shift ? UC : LC);\
+            display_last_char = (uchar_t)(k_shift ? UC : LC);\
         break;
 #define SPECIAL_CHAR_KEYS   \
     SPCLKEY(SIM_KEY_BACKQUOTE,      '`',  '~')              \
@@ -192,7 +195,7 @@ key_to_ascii (SIM_KEY_EVENT *kev)
         case SIM_KEY_0: case SIM_KEY_1: case SIM_KEY_2: case SIM_KEY_3: case SIM_KEY_4:
         case SIM_KEY_5: case SIM_KEY_6: case SIM_KEY_7: case SIM_KEY_8: case SIM_KEY_9:
             if (kev->state != SIM_KEYPRESS_UP)
-                display_last_char = (unsigned char)('0' + (kev->key - SIM_KEY_0));
+                display_last_char = (uchar_t)('0' + (kev->key - SIM_KEY_0));
             break;
         case SIM_KEY_A: case SIM_KEY_B: case SIM_KEY_C: case SIM_KEY_D: case SIM_KEY_E:
         case SIM_KEY_F: case SIM_KEY_G: case SIM_KEY_H: case SIM_KEY_I: case SIM_KEY_J:
@@ -201,7 +204,7 @@ key_to_ascii (SIM_KEY_EVENT *kev)
         case SIM_KEY_U: case SIM_KEY_V: case SIM_KEY_W: case SIM_KEY_X: case SIM_KEY_Y:
         case SIM_KEY_Z:
             if (kev->state != SIM_KEYPRESS_UP)
-                display_last_char = (unsigned char)((kev->key - SIM_KEY_A) +
+                display_last_char = (uchar_t)((kev->key - SIM_KEY_A) +
                                         (k_ctrl ? 1 : (k_shift ? 'A' : 'a')));
             break;
         }
@@ -217,7 +220,7 @@ ws_poll(int *valp, int maxus)
         sim_os_ms_sleep (maxus/1000);
 
     if (SCPE_OK == vid_poll_mouse (&mev)) {
-        unsigned char old_lp_sw = display_lp_sw;
+        uchar_t old_lp_sw = display_lp_sw;
 
         if ((display_lp_sw = mev.b1_state)) {
             ws_lp_x = mev.x_pos;
@@ -395,7 +398,7 @@ ws_init(const char *name, int xp, int yp, int colors, void *dptr)
     xpixels = xp;
     ypixels = yp;
     window_name = name;
-    surface = (uint32 *)realloc (surface, xpixels*ypixels*sizeof(*surface));
+    surface = (uint32_t *)realloc (surface, xpixels*ypixels*sizeof(*surface));
     ret = (0 == vid_open ((DEVICE *)dptr, name, xp*pix_size, yp*pix_size, 0));
     if (ret)
         vid_set_cursor (1, arrow_cursor->width, arrow_cursor->height, arrow_cursor->data, arrow_cursor->mask, arrow_cursor->hot_x, arrow_cursor->hot_y);
@@ -417,7 +420,7 @@ vid_close();
 void *
 ws_color_rgb(int r, int g, int b)
 {
-    uint32 color, i;
+    uint32_t color, i;
 
     color = vid_map_rgb ((r >> 8) & 0xFF, (g >> 8) & 0xFF, (b >> 8) & 0xFF);
     for (i=0; i<ncolors; i++) {
@@ -425,7 +428,7 @@ ws_color_rgb(int r, int g, int b)
             return &colors[i];
         }
     if (ncolors == size_colors) {
-        colors = (uint32 *)realloc (colors, (ncolors + 1000) * sizeof (*colors));
+        colors = (uint32_t *)realloc (colors, (ncolors + 1000) * sizeof (*colors));
         size_colors += 1000;
         if (size_colors == 1000) {
             colors[0] = ws_palette[0];
@@ -453,7 +456,7 @@ ws_color_white(void)
 void
 ws_display_point(int x, int y, void *color)
 {
-    uint32 *brush = (uint32 *)color;
+    uint32_t *brush = (uint32_t *)color;
 
     if (x > xpixels || y > ypixels)
         return;
@@ -461,7 +464,7 @@ ws_display_point(int x, int y, void *color)
     y = ypixels - 1 - y;                /* invert y, top left origin */
 
     if (brush == NULL)
-        brush = (uint32 *)ws_color_black ();
+        brush = (uint32_t *)ws_color_black ();
     if (pix_size > 1) {
         int i, j;
 
@@ -489,7 +492,7 @@ os_elapsed(void)
 {
 static int tnew;
 unsigned long ret;
-static uint32 t[2];
+static uint32_t t[2];
 
 t[tnew] = sim_os_msec();
 if (t[!tnew] == 0)

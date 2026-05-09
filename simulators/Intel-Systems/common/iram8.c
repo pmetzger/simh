@@ -35,6 +35,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "system_defs.h"
 
 #define BASE_ADDR       u3
@@ -42,14 +44,14 @@
 
 /* function prototypes */
 
-t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy);
+t_stat RAM_cfg(uint16_t base, uint16_t size, uint8_t dummy);
 t_stat RAM_clr(void);
 t_stat RAM_reset (DEVICE *dptr);
-t_stat RAM_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat RAM_set_base(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat RAM_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
-uint8 RAM_get_mbyte(uint16 addr);
-void RAM_put_mbyte(uint16 addr, uint8 val);
+t_stat RAM_set_size(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat RAM_set_base(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat RAM_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+uint8_t RAM_get_mbyte(uint16_t addr);
+void RAM_put_mbyte(uint16_t addr, uint8_t val);
 
 /* external function prototypes */
 
@@ -72,13 +74,13 @@ UNIT RAM_unit = { UDATA (NULL, UNIT_BINK, 0) };
 /*
  * Return whether an address maps to currently allocated RAM storage.
  */
-static bool RAM_addr_is_configured(uint16 addr)
+static bool RAM_addr_is_configured(uint16_t addr)
 {
     if ((RAM_unit.filebuf == NULL) || (RAM_unit.capac == 0))
         return false;
     if (addr < RAM_unit.u3)
         return false;
-    return ((uint32)addr - (uint32)RAM_unit.u3) < (uint32)RAM_unit.capac;
+    return ((uint32_t)addr - (uint32_t)RAM_unit.u3) < (uint32_t)RAM_unit.capac;
 }
 
 MTAB RAM_mod[] = {
@@ -133,15 +135,15 @@ DEVICE RAM_dev = {
 
 // RAM configuration
 
-t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy)
+t_stat RAM_cfg(uint16_t base, uint16_t size, uint8_t dummy)
 {
-    uint8 *storage;
+    uint8_t *storage;
 
     /* Shared configuration signature.
        This implementation does not use every parameter. */
     (void) dummy;
 
-    storage = (uint8 *)calloc(size, sizeof(uint8));
+    storage = (uint8_t *)calloc(size, sizeof(uint8_t));
     if (storage == NULL) {
         sim_printf ("    RAM: Calloc error\n");
         return SCPE_MEM;
@@ -177,7 +179,7 @@ t_stat RAM_reset (DEVICE *dptr)
 
 // set size parameter
 
-t_stat RAM_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat RAM_set_size(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -185,7 +187,7 @@ t_stat RAM_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    uint32 size, result, i;
+    uint32_t size, result, i;
 
     if (cptr == NULL)
         return SCPE_ARG;
@@ -206,7 +208,7 @@ t_stat RAM_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 // set base address parameter
 
-t_stat RAM_set_base(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat RAM_set_base(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -214,7 +216,7 @@ t_stat RAM_set_base(UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    uint32 size, result, i;
+    uint32_t size, result, i;
 
     if (cptr == NULL)
         return SCPE_ARG;
@@ -235,7 +237,7 @@ t_stat RAM_set_base(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 // show configuration parameters
 
-t_stat RAM_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat RAM_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -252,25 +254,25 @@ t_stat RAM_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 /*  get a byte from memory */
 
-uint8 RAM_get_mbyte(uint16 addr)
+uint8_t RAM_get_mbyte(uint16_t addr)
 {
-    uint8 val;
+    uint8_t val;
 
     if (!RAM_addr_is_configured(addr))
         return 0xFF;                    /* absent memory reads high */
 
-    val = *((uint8 *)RAM_unit.filebuf + (addr - RAM_unit.u3));
+    val = *((uint8_t *)RAM_unit.filebuf + (addr - RAM_unit.u3));
     return (val & BYTEMASK);
 }
 
 /*  put a byte into memory */
 
-void RAM_put_mbyte(uint16 addr, uint8 val)
+void RAM_put_mbyte(uint16_t addr, uint8_t val)
 {
     if (!RAM_addr_is_configured(addr))
         return;
 
-    *((uint8 *)RAM_unit.filebuf + (addr - RAM_unit.u3)) = val & BYTEMASK;
+    *((uint8_t *)RAM_unit.filebuf + (addr - RAM_unit.u3)) = val & BYTEMASK;
     return;
 }
 

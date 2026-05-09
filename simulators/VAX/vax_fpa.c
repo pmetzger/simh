@@ -59,6 +59,7 @@
 #include "vax_defs.h"
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #if defined (USE_INT64)
 
@@ -67,16 +68,16 @@
 #define FD_FRACL        (FD_FRACW | 0xFFFF0000)         /* f/d fraction */
 #define G_FRACW         (0xFFFF & ~(G_EXP | FPSIGN))
 #define G_FRACL         (G_FRACW | 0xFFFF0000)          /* g fraction */
-#define UNSCRAM(h,l)    (((((t_uint64) (h)) << 48) & 0xFFFF000000000000) | \
-                        ((((t_uint64) (h)) << 16) & 0x0000FFFF00000000) | \
-                        ((((t_uint64) (l)) << 16) & 0x00000000FFFF0000) | \
-                        ((((t_uint64) (l)) >> 16) & 0x000000000000FFFF))
-#define CONCAT(h,l)     ((((t_uint64) (h)) << 32) | ((uint32) (l)))
+#define UNSCRAM(h,l)    (((((uint64_t) (h)) << 48) & 0xFFFF000000000000) | \
+                        ((((uint64_t) (h)) << 16) & 0x0000FFFF00000000) | \
+                        ((((uint64_t) (l)) << 16) & 0x00000000FFFF0000) | \
+                        ((((uint64_t) (l)) >> 16) & 0x000000000000FFFF))
+#define CONCAT(h,l)     ((((uint64_t) (h)) << 32) | ((uint32_t) (l)))
 
 typedef struct {
-    int32               sign;
-    int32               exp;
-    t_uint64            frac;
+    int32_t             sign;
+    int32_t             exp;
+    uint64_t            frac;
     } UFP;
 
 #define UF_NM           0x8000000000000000              /* normalized */
@@ -88,34 +89,34 @@ typedef struct {
 #define UF_V_FDLO       (UF_V_FDHI - 32)
 #define UF_V_GHI        43
 #define UF_V_GLO        (UF_V_GHI - 32)
-#define UF_GETFDHI(x)   (int32) ((((x) >> (16 + UF_V_FDHI)) & FD_FRACW) | \
+#define UF_GETFDHI(x)   (int32_t) ((((x) >> (16 + UF_V_FDHI)) & FD_FRACW) | \
                         (((x) >> (UF_V_FDHI - 16)) & ~0xFFFF))
-#define UF_GETFDLO(x)   (int32) ((((x) >> (16 + UF_V_FDLO)) & 0xFFFF) | \
+#define UF_GETFDLO(x)   (int32_t) ((((x) >> (16 + UF_V_FDLO)) & 0xFFFF) | \
                         (((x) << (16 - UF_V_FDLO)) & ~0xFFFF))
-#define UF_GETGHI(x)    (int32) ((((x) >> (16 + UF_V_GHI)) & G_FRACW) | \
+#define UF_GETGHI(x)    (int32_t) ((((x) >> (16 + UF_V_GHI)) & G_FRACW) | \
                         (((x) >> (UF_V_GHI - 16)) & ~0xFFFF))
-#define UF_GETGLO(x)    (int32) ((((x) >> (16 + UF_V_GLO)) & 0xFFFF) | \
+#define UF_GETGLO(x)    (int32_t) ((((x) >> (16 + UF_V_GLO)) & 0xFFFF) | \
                         (((x) << (16 - UF_V_GLO)) & ~0xFFFF))
 
-void unpackf (int32 hi, UFP *a);
-void unpackd (int32 hi, int32 lo, UFP *a);
-void unpackg (int32 hi, int32 lo, UFP *a);
+void unpackf (int32_t hi, UFP *a);
+void unpackd (int32_t hi, int32_t lo, UFP *a);
+void unpackg (int32_t hi, int32_t lo, UFP *a);
 void norm (UFP *a);
-int32 rpackfd (UFP *a, int32 *rh);
-int32 rpackg (UFP *a, int32 *rh);
-void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo);
-void vax_fmul (UFP *a, UFP *b, bool qd, int32 bias, uint32 mhi, uint32 mlo);
-void vax_fdiv (UFP *a, UFP *b, int32 prec, int32 bias);
-void vax_fmod (UFP *a, int32 bias, int32 *intgr, int32 *flg);
+int32_t rpackfd (UFP *a, int32_t *rh);
+int32_t rpackg (UFP *a, int32_t *rh);
+void vax_fadd (UFP *a, UFP *b, uint32_t mhi, uint32_t mlo);
+void vax_fmul (UFP *a, UFP *b, bool qd, int32_t bias, uint32_t mhi, uint32_t mlo);
+void vax_fdiv (UFP *a, UFP *b, int32_t prec, int32_t bias);
+void vax_fmod (UFP *a, int32_t bias, int32_t *intgr, int32_t *flg);
 
 /* Shift a VAX quadword right arithmetically using defined operations. */
-static inline t_uint64 vax_arith_rsh_q (t_uint64 val, uint32 sc)
+static inline uint64_t vax_arith_rsh_q (uint64_t val, uint32_t sc)
 {
 if (sc == 0)
     return val;
 if (sc >= 64)
-    return (val & (((t_uint64) LSIGN) << 32))? M64: 0;
-if (val & (((t_uint64) LSIGN) << 32))
+    return (val & (((uint64_t) LSIGN) << 32))? M64: 0;
+if (val & (((uint64_t) LSIGN) << 32))
     return (val >> sc) | (M64 << (64 - sc));
 return val >> sc;
 }
@@ -127,10 +128,10 @@ return val >> sc;
         opnd[3:4]       =       destination (dst.wq)
 */
 
-int32 op_ashq (uint32 *opnd, int32 *rh, int32 *flg)
+int32_t op_ashq (uint32_t *opnd, int32_t *rh, int32_t *flg)
 {
-t_uint64 src, r;
-uint32 sc = opnd[0];
+uint64_t src, r;
+uint32_t sc = opnd[0];
 
 src = CONCAT (opnd[2], opnd[1]);                        /* build src */
 if (sc & BSIGN) {                                       /* right shift? */
@@ -148,20 +149,20 @@ else {
         *flg = (src != vax_arith_rsh_q (r, sc));        /* ovflo test */
         }
     }
-*rh = (int32) ((r >> 32) & LMASK);                      /* hi result */
-return ((int32) (r & LMASK));                           /* lo result */
+*rh = (int32_t) ((r >> 32) & LMASK);                    /* hi result */
+return ((int32_t) (r & LMASK));                         /* lo result */
 }
 
 /* Extended multiply subroutine */
 
-int32 op_emul (int32 mpy, int32 mpc, int32 *rh)
+int32_t op_emul (int32_t mpy, int32_t mpc, int32_t *rh)
 {
-t_int64 lmpy = mpy;
-t_int64 lmpc = mpc;
+int64_t lmpy = mpy;
+int64_t lmpc = mpc;
 
 lmpy = lmpy * lmpc;
-*rh = (int32) ((lmpy >> 32) & LMASK);
-return ((int32) (lmpy & LMASK));
+*rh = (int32_t) ((lmpy >> 32) & LMASK);
+return ((int32_t) (lmpy & LMASK));
 }
 
 /* Extended divide
@@ -170,10 +171,10 @@ return ((int32) (lmpy & LMASK));
         opnd[1:2]       =       dividend
 */
 
-int32 op_ediv (uint32 *opnd, int32 *rh, int32 *flg)
+int32_t op_ediv (uint32_t *opnd, int32_t *rh, int32_t *flg)
 {
-t_uint64 ldvd, ldvr;
-uint32 quo, rem;
+uint64_t ldvd, ldvr;
+uint32_t quo, rem;
 
 *flg = CC_V;                                            /* assume error */
 *rh = 0;
@@ -184,8 +185,8 @@ if (opnd[2] & LSIGN)                                    /* |dividend| */
     ldvd = (~ldvd + 1) & M64;
 if (((ldvd >> 32) & LMASK) >= ldvr)                     /* divide work? */
     return opnd[1];
-quo = (uint32) (ldvd / ldvr);                           /* do divide */
-rem = (uint32) (ldvd % ldvr);
+quo = (uint32_t) (ldvd / ldvr);                         /* do divide */
+rem = (uint32_t) (ldvd % ldvr);
 if ((opnd[0] ^ opnd[2]) & LSIGN) {                      /* result -? */
     quo = NEG (quo);                                    /* negate */
     if (quo && ((quo & LSIGN) == 0))                    /* right sign? */
@@ -202,9 +203,9 @@ return (quo & LMASK);                                   /* return quo */
 
 /* Compare floating */
 
-int32 op_cmpfd (int32 h1, int32 l1, int32 h2, int32 l2)
+int32_t op_cmpfd (int32_t h1, int32_t l1, int32_t h2, int32_t l2)
 {
-t_uint64 n1, n2;
+uint64_t n1, n2;
 
 if ((h1 & FD_EXP) == 0) {
     if (h1 & FPSIGN)
@@ -225,9 +226,9 @@ if (n1 == n2)
 return (((n1 < n2) ^ ((h1 & FPSIGN) != 0))? CC_N: 0);
 }
 
-int32 op_cmpg (int32 h1, int32 l1, int32 h2, int32 l2)
+int32_t op_cmpg (int32_t h1, int32_t l1, int32_t h2, int32_t l2)
 {
-t_uint64 n1, n2;
+uint64_t n1, n2;
 
 if ((h1 & G_EXP) == 0) {
     if (h1 & FPSIGN)
@@ -250,10 +251,10 @@ return (((n1 < n2) ^ ((h1 & FPSIGN) != 0))? CC_N: 0);
 
 /* Integer to floating convert */
 
-int32 op_cvtifdg (int32 val, int32 *rh, int32 opc)
+int32_t op_cvtifdg (int32_t val, int32_t *rh, int32_t opc)
 {
 UFP a;
-uint32 mag;
+uint32_t mag;
 
 if (val == 0) {
     if (rh)
@@ -262,14 +263,14 @@ if (val == 0) {
     }
 if (val < 0) {
     a.sign = FPSIGN;
-    mag = NEG ((uint32) val);
+    mag = NEG ((uint32_t) val);
     }
 else {
     a.sign = 0;
-    mag = (uint32) val;
+    mag = (uint32_t) val;
     }
 a.exp = 32 + ((opc & 0x100)? G_BIAS: FD_BIAS);
-a.frac = ((t_uint64) mag) << (UF_V_NM - 31);
+a.frac = ((uint64_t) mag) << (UF_V_NM - 31);
 norm (&a);
 if (opc & 0x100)
     return rpackg (&a, rh);
@@ -278,12 +279,12 @@ return rpackfd (&a, rh);
 
 /* Floating to integer convert */
 
-int32 op_cvtfdgi (uint32 *opnd, int32 *flg, int32 opc)
+int32_t op_cvtfdgi (uint32_t *opnd, int32_t *flg, int32_t opc)
 {
 UFP a;
-int32 lnt = opc & 03;
-int32 ubexp;
-static t_uint64 maxv[4] = { 0x7F, 0x7FFF, 0x7FFFFFFF, 0x7FFFFFFF };
+int32_t lnt = opc & 03;
+int32_t ubexp;
+static uint64_t maxv[4] = { 0x7F, 0x7FFF, 0x7FFFFFFF, 0x7FFFFFFF };
 
 *flg = 0;
 if (opc & 0x100) {
@@ -312,7 +313,7 @@ else {
         return 0;
     a.frac = a.frac << (ubexp - UF_V_NM - 1);           /* no rnd bit */
     }
-return ((int32) ((a.sign? (a.frac ^ LMASK) + 1: a.frac) & LMASK));
+return ((int32_t) ((a.sign? (a.frac ^ LMASK) + 1: a.frac) & LMASK));
 }
 
 /* Extended modularize
@@ -324,19 +325,19 @@ return ((int32) ((a.sign? (a.frac ^ LMASK) + 1: a.frac) & LMASK));
    with EDIV.
 */
 
-int32 op_emodf (uint32 *opnd, int32 *intgr, int32 *flg)
+int32_t op_emodf (uint32_t *opnd, int32_t *intgr, int32_t *flg)
 {
 UFP a, b;
 
 unpackf (opnd[0], &a);                                  /* unpack operands */
 unpackf (opnd[2], &b);
-a.frac = a.frac | (((t_uint64) opnd[1]) << 32);         /* extend src1 */
+a.frac = a.frac | (((uint64_t) opnd[1]) << 32);         /* extend src1 */
 vax_fmul (&a, &b, 0, FD_BIAS, 0, LMASK);                /* multiply */
 vax_fmod (&a, FD_BIAS, intgr, flg);                     /* sep int & frac */
 return rpackfd (&a, NULL);                              /* return frac */
 }
 
-int32 op_emodd (uint32 *opnd, int32 *flo, int32 *intgr, int32 *flg)
+int32_t op_emodd (uint32_t *opnd, int32_t *flo, int32_t *intgr, int32_t *flg)
 {
 UFP a, b;
 
@@ -348,7 +349,7 @@ vax_fmod (&a, FD_BIAS, intgr, flg);                     /* sep int & frac */
 return rpackfd (&a, flo);                               /* return frac */
 }
 
-int32 op_emodg (uint32 *opnd, int32 *flo, int32 *intgr, int32 *flg)
+int32_t op_emodg (uint32_t *opnd, int32_t *flo, int32_t *intgr, int32_t *flg)
 {
 UFP a, b;
 
@@ -362,12 +363,12 @@ return rpackg (&a, flo);                                /* return frac */
 
 /* Unpacked floating point routines */
 
-void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo)
+void vax_fadd (UFP *a, UFP *b, uint32_t mhi, uint32_t mlo)
 {
-int32 ediff;
+int32_t ediff;
 UFP t;
-t_uint64 mask = (((t_uint64) mhi) << 32) | ((t_uint64) mlo);
-t_uint64 neg_frac;
+uint64_t mask = (((uint64_t) mhi) << 32) | ((uint64_t) mlo);
+uint64_t neg_frac;
 
 if (a->frac == 0) {                                     /* s1 = 0? */
     *a = *b;
@@ -414,10 +415,10 @@ return;
 
 /* Floating multiply - 64b * 64b with cross products */
 
-void vax_fmul (UFP *a, UFP *b, bool qd, int32 bias, uint32 mhi, uint32 mlo)
+void vax_fmul (UFP *a, UFP *b, bool qd, int32_t bias, uint32_t mhi, uint32_t mlo)
 {
-t_uint64 ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
-t_uint64 mask = (((t_uint64) mhi) << 32) | ((t_uint64) mlo);
+uint64_t ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
+uint64_t mask = (((uint64_t) mhi) << 32) | ((uint64_t) mlo);
 
 if ((a->exp == 0) || (b->exp == 0)) {                   /* zero argument? */
     a->frac = a->sign = a->exp = 0;                     /* result is zero */
@@ -457,19 +458,19 @@ return;
                                   integer overflow
 */
 
-void vax_fmod (UFP *a, int32 bias, int32 *intgr, int32 *flg)
+void vax_fmod (UFP *a, int32_t bias, int32_t *intgr, int32_t *flg)
 {
 if (a->exp <= bias)                                     /* 0 or <1? int = 0 */
     *intgr = *flg = 0;
 else if (a->exp <= (bias + 64)) {                       /* in range [1,64]? */
-    *intgr = (int32) (a->frac >> (64 - (a->exp - bias)));
+    *intgr = (int32_t) (a->frac >> (64 - (a->exp - bias)));
     if ((a->exp > (bias + 32)) ||                       /* test ovflo */
         ((a->exp == (bias + 32)) &&
-         (((uint32) *intgr) > (a->sign? 0x80000000: 0x7FFFFFFF))))
+         (((uint32_t) *intgr) > (a->sign? 0x80000000: 0x7FFFFFFF))))
         *flg = CC_V;
     else *flg = 0;
     if (a->sign)                                        /* -? comp int */
-        *intgr = NEG ((uint32) *intgr);
+        *intgr = NEG ((uint32_t) *intgr);
     if (a->exp == (bias + 64))                          /* special case 64 */
         a->frac = 0;
     else a->frac = a->frac << (a->exp - bias);
@@ -477,10 +478,10 @@ else if (a->exp <= (bias + 64)) {                       /* in range [1,64]? */
     }
 else {
     if (a->exp < (bias + 96))                           /* need left shift? */
-        *intgr = (int32) (a->frac << (a->exp - bias - 64));
+        *intgr = (int32_t) (a->frac << (a->exp - bias - 64));
     else *intgr = 0;                                    /* out of range */
     if (a->sign)
-        *intgr = NEG ((uint32) *intgr);
+        *intgr = NEG ((uint32_t) *intgr);
     a->frac = a->sign = a->exp = 0;                     /* result 0 */
     *flg = CC_V;                                        /* overflow */
     }
@@ -494,10 +495,10 @@ return;
    the precision of the fraction.
 */
 
-void vax_fdiv (UFP *a, UFP *b, int32 prec, int32 bias)
+void vax_fdiv (UFP *a, UFP *b, int32_t prec, int32_t bias)
 {
-int32 i;
-t_uint64 quo = 0;
+int32_t i;
+uint64_t quo = 0;
 
 if (a->exp == 0)                                        /* divr = 0? */
     FLT_DZRO_FAULT;
@@ -522,7 +523,7 @@ return;
 
 /* Support routines */
 
-void unpackf (int32 hi, UFP *r)
+void unpackf (int32_t hi, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = FD_GETEXP (hi);                                /* get exponent */
@@ -533,11 +534,11 @@ if (r->exp == 0) {                                      /* exp = 0? */
     return;
     }
 hi = (((hi & FD_FRACW) | FD_HB) << 16) | ((hi >> 16) & 0xFFFF);
-r->frac = ((t_uint64) hi) << (32 + UF_V_FDLO);
+r->frac = ((uint64_t) hi) << (32 + UF_V_FDLO);
 return;
 }
 
-void unpackd (int32 hi, int32 lo, UFP *r)
+void unpackd (int32_t hi, int32_t lo, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = FD_GETEXP (hi);                                /* get exponent */
@@ -552,7 +553,7 @@ r->frac = UNSCRAM (hi, lo) << UF_V_FDLO;                /* guard bits */
 return;
 }
 
-void unpackg (int32 hi, int32 lo, UFP *r)
+void unpackg (int32_t hi, int32_t lo, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = G_GETEXP (hi);                                 /* get exponent */
@@ -569,12 +570,12 @@ return;
 
 void norm (UFP *r)
 {
-int32 i;
-static t_uint64 normmask[5] = {
+int32_t i;
+static uint64_t normmask[5] = {
  0xc000000000000000, 0xf000000000000000, 0xff00000000000000,
  0xffff000000000000, 0xffffffff00000000
  };
-static int32 normtab[6] = { 1, 2, 4, 8, 16, 32};
+static int32_t normtab[6] = { 1, 2, 4, 8, 16, 32};
 
 if (r->frac == 0) {                                     /* if fraction = 0 */
     r->sign = r->exp = 0;                               /* result is 0 */
@@ -591,7 +592,7 @@ while ((r->frac & UF_NM) == 0) {                        /* normalized? */
 return;
 }
 
-int32 rpackfd (UFP *r, int32 *rh)
+int32_t rpackfd (UFP *r, int32_t *rh)
 {
 if (rh)                                                 /* assume 0 */
     *rh = 0;
@@ -602,7 +603,7 @@ if ((r->frac & UF_NM) == 0) {                           /* carry out? */
     r->frac = r->frac >> 1;                             /* renormalize */
     r->exp = r->exp + 1;
     }
-if (r->exp > (int32) FD_M_EXP)                          /* ovflo? fault */
+if (r->exp > (int32_t) FD_M_EXP)                        /* ovflo? fault */
     FLT_OVFL_FAULT;
 if (r->exp <= 0) {                                      /* underflow? */
     if (PSL & PSW_FU)                                   /* fault if fu */
@@ -614,7 +615,7 @@ if (rh)                                                 /* get low */
 return r->sign | (r->exp << FD_V_EXP) | UF_GETFDHI (r->frac);
 }
 
-int32 rpackg (UFP *r, int32 *rh)
+int32_t rpackg (UFP *r, int32_t *rh)
 {
 *rh = 0;                                                /* assume 0 */
 if (r->frac == 0)                                       /* result 0? */
@@ -624,7 +625,7 @@ if ((r->frac & UF_NM) == 0) {                           /* carry out? */
     r->frac = r->frac >> 1;                             /* renormalize */
     r->exp = r->exp + 1;
     }
-if (r->exp > (int32) G_M_EXP)                           /* ovflo? fault */
+if (r->exp > (int32_t) G_M_EXP)                         /* ovflo? fault */
     FLT_OVFL_FAULT;
 if (r->exp <= 0) {                                      /* underflow? */
     if (PSL & PSW_FU)                                   /* fault if fu */
@@ -640,13 +641,13 @@ return r->sign | (r->exp << G_V_EXP) | UF_GETGHI (r->frac);
 #define WORDSWAP(x)     ((((x) & WMASK) << 16) | (((x) >> 16) & WMASK))
 
 typedef struct {
-    uint32              lo;
-    uint32              hi;
+    uint32_t            lo;
+    uint32_t            hi;
     } UDP;
 
 typedef struct {
-    int32               sign;
-    int32               exp;
+    int32_t             sign;
+    int32_t             exp;
     UDP                 frac;
     } UFP;
 
@@ -659,25 +660,25 @@ typedef struct {
 #define UF_GRND_L       0x00000400
 #define UF_V_NM         63
 
-void unpackf (uint32 hi, UFP *a);
-void unpackd (uint32 hi, uint32 lo, UFP *a);
-void unpackg (uint32 hi, uint32 lo, UFP *a);
+void unpackf (uint32_t hi, UFP *a);
+void unpackd (uint32_t hi, uint32_t lo, UFP *a);
+void unpackg (uint32_t hi, uint32_t lo, UFP *a);
 void norm (UFP *a);
-int32 rpackfd (UFP *a, int32 *rh);
-int32 rpackg (UFP *a, int32 *rh);
-void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo);
-void vax_fmul (UFP *a, UFP *b, bool qd, int32 bias, uint32 mhi, uint32 mlo);
-void vax_fmod (UFP *a, int32 bias, int32 *intgr, int32 *flg);
-void vax_fdiv (UFP *a, UFP *b, int32 prec, int32 bias);
+int32_t rpackfd (UFP *a, int32_t *rh);
+int32_t rpackg (UFP *a, int32_t *rh);
+void vax_fadd (UFP *a, UFP *b, uint32_t mhi, uint32_t mlo);
+void vax_fmul (UFP *a, UFP *b, bool qd, int32_t bias, uint32_t mhi, uint32_t mlo);
+void vax_fmod (UFP *a, int32_t bias, int32_t *intgr, int32_t *flg);
+void vax_fdiv (UFP *a, UFP *b, int32_t prec, int32_t bias);
 void dp_add (UDP *a, UDP *b);
 void dp_inc (UDP *a);
 void dp_sub (UDP *a, UDP *b);
-void dp_imul (uint32 a, uint32 b, UDP *r);
-void dp_lsh (UDP *a, uint32 sc);
-void dp_rsh (UDP *a, uint32 sc);
-void dp_rsh_s (UDP *a, uint32 sc, uint32 neg);
+void dp_imul (uint32_t a, uint32_t b, UDP *r);
+void dp_lsh (UDP *a, uint32_t sc);
+void dp_rsh (UDP *a, uint32_t sc);
+void dp_rsh_s (UDP *a, uint32_t sc, uint32_t neg);
 void dp_neg (UDP *a);
-int32 dp_cmp (UDP *a, UDP *b);
+int32_t dp_cmp (UDP *a, UDP *b);
 
 /* Quadword arithmetic shift
 
@@ -686,10 +687,10 @@ int32 dp_cmp (UDP *a, UDP *b);
         opnd[3:4]       =       destination (dst.wq)
 */
 
-int32 op_ashq (uint32 *opnd, int32 *rh, int32 *flg)
+int32_t op_ashq (uint32_t *opnd, int32_t *rh, int32_t *flg)
 {
 UDP r, sr;
-uint32 sc = opnd[0];
+uint32_t sc = opnd[0];
 
 r.lo = opnd[1];                                         /* get source */
 r.hi = opnd[2];
@@ -700,8 +701,8 @@ else {
     dp_lsh (&r, sc);                                    /* left shift */
     sr = r;                                             /* copy result */
     dp_rsh_s (&sr, sc, sr.hi & LSIGN);                  /* signed right */
-    if ((sr.hi != ((uint32) opnd[2])) ||                /* reshift != orig? */
-        (sr.lo != ((uint32) opnd[1]))) *flg = 1;        /* overflow */
+    if ((sr.hi != ((uint32_t) opnd[2])) ||              /* reshift != orig? */
+        (sr.lo != ((uint32_t) opnd[1]))) *flg = 1;      /* overflow */
     }
 *rh = r.hi;                                             /* hi result */
 return r.lo;                                            /* lo result */
@@ -709,12 +710,12 @@ return r.lo;                                            /* lo result */
 
 /* Extended multiply subroutine */
 
-int32 op_emul (int32 mpy, int32 mpc, int32 *rh)
+int32_t op_emul (int32_t mpy, int32_t mpc, int32_t *rh)
 {
 UDP r;
-uint32 umpy = (uint32) mpy;
-uint32 umpc = (uint32) mpc;
-uint32 sign = umpy ^ umpc;                              /* sign of result */
+uint32_t umpy = (uint32_t) mpy;
+uint32_t umpc = (uint32_t) mpc;
+uint32_t sign = umpy ^ umpc;                            /* sign of result */
 
 if (umpy & LSIGN)                                       /* abs value */
     umpy = NEG (umpy);
@@ -733,10 +734,10 @@ return r.lo;
         opnd[1:2]       =       dividend
 */
 
-int32 op_ediv (uint32 *opnd, int32 *rh, int32 *flg)
+int32_t op_ediv (uint32_t *opnd, int32_t *rh, int32_t *flg)
 {
 UDP dvd;
-uint32 i, dvr, quo;
+uint32_t i, dvr, quo;
 
 dvr = opnd[0];                                          /* get divisor */
 dvd.lo = opnd[1];                                       /* get dividend */
@@ -773,10 +774,10 @@ return quo;                                             /* return quo */
 
 /* Compare floating */
 
-int32 op_cmpfd (int32 h1, int32 l1, int32 h2, int32 l2)
+int32_t op_cmpfd (int32_t h1, int32_t l1, int32_t h2, int32_t l2)
 {
 UFP a, b;
-int32 r;
+int32_t r;
 
 unpackd (h1, l1, &a);
 unpackd (h2, l2, &b);
@@ -792,10 +793,10 @@ if (r > 0)
 return CC_Z;
 }
 
-int32 op_cmpg (int32 h1, int32 l1, int32 h2, int32 l2)
+int32_t op_cmpg (int32_t h1, int32_t l1, int32_t h2, int32_t l2)
 {
 UFP a, b;
-int32 r;
+int32_t r;
 
 unpackg (h1, l1, &a);
 unpackg (h2, l2, &b);
@@ -813,10 +814,10 @@ return CC_Z;
 
 /* Integer to floating convert */
 
-int32 op_cvtifdg (int32 val, int32 *rh, int32 opc)
+int32_t op_cvtifdg (int32_t val, int32_t *rh, int32_t opc)
 {
 UFP a;
-uint32 mag;
+uint32_t mag;
 
 if (val == 0) {                                         /* zero? */
     if (rh) *rh = 0;                                    /* return true 0 */
@@ -824,11 +825,11 @@ if (val == 0) {                                         /* zero? */
     }
 if (val < 0) {                                          /* negative? */
     a.sign = FPSIGN;                                    /* sign = - */
-    mag = NEG ((uint32) val);
+    mag = NEG ((uint32_t) val);
     }
 else {
     a.sign = 0;                                         /* else sign = + */
-    mag = (uint32) val;
+    mag = (uint32_t) val;
     }
 a.exp = 32 + ((opc & 0x100)? G_BIAS: FD_BIAS);          /* initial exp */
 a.frac.hi = mag & LMASK;                                /* fraction */
@@ -841,12 +842,12 @@ return rpackfd (&a, rh);
 
 /* Floating to integer convert */
 
-int32 op_cvtfdgi (uint32 *opnd, int32 *flg, int32 opc)
+int32_t op_cvtfdgi (uint32_t *opnd, int32_t *flg, int32_t opc)
 {
 UFP a;
-int32 lnt = opc & 03;
-int32 ubexp;
-static uint32 maxv[4] = { 0x7F, 0x7FFF, 0x7FFFFFFF, 0x7FFFFFFF };
+int32_t lnt = opc & 03;
+int32_t ubexp;
+static uint32_t maxv[4] = { 0x7F, 0x7FFF, 0x7FFFFFFF, 0x7FFFFFFF };
 
 *flg = 0;
 if (opc & 0x100) {                                      /* G? */
@@ -888,7 +889,7 @@ return (a.sign? NEG (a.frac.lo): a.frac.lo);            /* return lo frac */
    with EDIV.
 */
 
-int32 op_emodf (uint32 *opnd, int32 *intgr, int32 *flg)
+int32_t op_emodf (uint32_t *opnd, int32_t *intgr, int32_t *flg)
 {
 UFP a, b;
 
@@ -900,7 +901,7 @@ vax_fmod (&a, FD_BIAS, intgr, flg);                     /* sep int & frac */
 return rpackfd (&a, NULL);                              /* return frac */
 }
 
-int32 op_emodd (uint32 *opnd, int32 *flo, int32 *intgr, int32 *flg)
+int32_t op_emodd (uint32_t *opnd, int32_t *flo, int32_t *intgr, int32_t *flg)
 {
 UFP a, b;
 
@@ -912,7 +913,7 @@ vax_fmod (&a, FD_BIAS, intgr, flg);                     /* sep int & frac */
 return rpackfd (&a, flo);                               /* return frac */
 }
 
-int32 op_emodg (uint32 *opnd, int32 *flo, int32 *intgr, int32 *flg)
+int32_t op_emodg (uint32_t *opnd, int32_t *flo, int32_t *intgr, int32_t *flg)
 {
 UFP a, b;
 
@@ -928,9 +929,9 @@ return rpackg (&a, flo);                                /* return frac */
 
 /* Floating add */
 
-void vax_fadd (UFP *a, UFP *b, uint32 mhi, uint32 mlo)
+void vax_fadd (UFP *a, UFP *b, uint32_t mhi, uint32_t mlo)
 {
-int32 ediff;
+int32_t ediff;
 UFP t;
 
 if ((a->frac.hi == 0) && (a->frac.lo == 0)) {           /* s1 = 0? */
@@ -974,7 +975,7 @@ return;
 
 /* Floating multiply - 64b * 64b with cross products */
 
-void vax_fmul (UFP *a, UFP *b, bool qd, int32 bias, uint32 mhi, uint32 mlo)
+void vax_fmul (UFP *a, UFP *b, bool qd, int32_t bias, uint32_t mhi, uint32_t mlo)
 {
 UDP rhi, rlo, rmid1, rmid2;
 
@@ -1019,7 +1020,7 @@ return;
                                   integer overflow
 */
 
-void vax_fmod (UFP *a, int32 bias, int32 *intgr, int32 *flg)
+void vax_fmod (UFP *a, int32_t bias, int32_t *intgr, int32_t *flg)
 {
 UDP ifr;
 
@@ -1035,7 +1036,7 @@ else if (a->exp <= (bias + 64)) {                       /* in range [1,64]? */
     else *flg = 0;
     *intgr = ifr.lo;
     if (a->sign)                                        /* -? comp int */
-        *intgr = NEG ((uint32) *intgr);
+        *intgr = NEG ((uint32_t) *intgr);
     dp_lsh (&a->frac, a->exp - bias);                   /* excise integer */
     a->exp = bias;
     }
@@ -1047,7 +1048,7 @@ else {
         }
     else *intgr = 0;                                    /* out of range */
     if (a->sign)
-        *intgr = NEG ((uint32) *intgr);
+        *intgr = NEG ((uint32_t) *intgr);
     a->frac.hi = a->frac.lo = a->sign = a->exp = 0;     /* result 0 */
     *flg = CC_V;                                        /* overflow */
     }
@@ -1061,9 +1062,9 @@ return;
    the precision of the fraction.
 */
 
-void vax_fdiv (UFP *a, UFP *b, int32 prec, int32 bias)
+void vax_fdiv (UFP *a, UFP *b, int32_t prec, int32_t bias)
 {
-int32 i;
+int32_t i;
 UDP quo = { 0, 0 };
 
 if (a->exp == 0)                                        /* divr = 0? */
@@ -1090,7 +1091,7 @@ return;
 
 /* Double precision integer routines */
 
-int32 dp_cmp (UDP *a, UDP *b)
+int32_t dp_cmp (UDP *a, UDP *b)
 {
 if (a->hi < b->hi)                                      /* compare hi */
     return -1;
@@ -1129,7 +1130,7 @@ a->hi = (a->hi - b->hi) & LMASK;                        /* sub hi */
 return;
 }
 
-void dp_lsh (UDP *r, uint32 sc)
+void dp_lsh (UDP *r, uint32_t sc)
 {
 if (sc > 63)                                            /* > 63? result 0 */
     r->hi = r->lo = 0;
@@ -1144,7 +1145,7 @@ else if (sc != 0) {
 return;
 }
 
-void dp_rsh (UDP *r, uint32 sc)
+void dp_rsh (UDP *r, uint32_t sc)
 {
 if (sc > 63)                                            /* > 63? result 0 */
     r->hi = r->lo = 0;
@@ -1159,7 +1160,7 @@ else if (sc != 0) {
 return;
 }
 
-void dp_rsh_s (UDP *r, uint32 sc, uint32 neg)
+void dp_rsh_s (UDP *r, uint32_t sc, uint32_t neg)
 {
 dp_rsh (r, sc);                                         /* do unsigned right */
 if (neg && sc) {                                        /* negative? */
@@ -1175,9 +1176,9 @@ if (neg && sc) {                                        /* negative? */
 return;
 }
 
-void dp_imul (uint32 a, uint32 b, UDP *r)
+void dp_imul (uint32_t a, uint32_t b, UDP *r)
 {
-uint32 ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
+uint32_t ah, bh, al, bl, rhi, rlo, rmid1, rmid2;
 
 if ((a == 0) || (b == 0)) {                             /* zero argument? */
     r->hi = r->lo = 0;                                  /* result is zero */
@@ -1212,7 +1213,7 @@ return;
 
 /* Support routines */
 
-void unpackf (uint32 hi, UFP *r)
+void unpackf (uint32_t hi, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = FD_GETEXP (hi);                                /* get exponent */
@@ -1228,7 +1229,7 @@ dp_lsh (&r->frac, FD_GUARD);
 return;
 }
 
-void unpackd (uint32 hi, uint32 lo, UFP *r)
+void unpackd (uint32_t hi, uint32_t lo, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = FD_GETEXP (hi);                                /* get exponent */
@@ -1244,7 +1245,7 @@ dp_lsh (&r->frac, FD_GUARD);
 return;
 }
 
-void unpackg (uint32 hi, uint32 lo, UFP *r)
+void unpackg (uint32_t hi, uint32_t lo, UFP *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = G_GETEXP (hi);                                 /* get exponent */
@@ -1262,11 +1263,11 @@ return;
 
 void norm (UFP *r)
 {
-int32 i;
-static uint32 normmask[5] = {
+int32_t i;
+static uint32_t normmask[5] = {
  0xc0000000, 0xf0000000, 0xff000000, 0xffff0000, 0xffffffff
  };
-static int32 normtab[6] = { 1, 2, 4, 8, 16, 32};
+static int32_t normtab[6] = { 1, 2, 4, 8, 16, 32};
 
 if ((r->frac.hi == 0) && (r->frac.lo == 0)) {           /* if fraction = 0 */
     r->sign = r->exp = 0;                               /* result is 0 */
@@ -1283,7 +1284,7 @@ while ((r->frac.hi & UF_NM_H) == 0) {                   /* normalized? */
 return;
 }
 
-int32 rpackfd (UFP *r, int32 *rh)
+int32_t rpackfd (UFP *r, int32_t *rh)
 {
 static UDP f_round = { UF_FRND_L, UF_FRND_H };
 static UDP d_round = { UF_DRND_L, UF_DRND_H };
@@ -1299,7 +1300,7 @@ if ((r->frac.hi & UF_NM_H) == 0) {                      /* carry out? */
     dp_rsh (&r->frac, 1);                               /* renormalize */
     r->exp = r->exp + 1;
     }
-if (r->exp > (int32) FD_M_EXP)                          /* ovflo? fault */
+if (r->exp > (int32_t) FD_M_EXP)                        /* ovflo? fault */
     FLT_OVFL_FAULT;
 if (r->exp <= 0) {                                      /* underflow? */
     if (PSL & PSW_FU)                                   /* fault if fu */
@@ -1313,7 +1314,7 @@ return r->sign | (r->exp << FD_V_EXP) |
     (WORDSWAP (r->frac.hi) & ~(FD_HB | FPSIGN | FD_EXP));
 }
 
-int32 rpackg (UFP *r, int32 *rh)
+int32_t rpackg (UFP *r, int32_t *rh)
 {
 static UDP g_round = { UF_GRND_L, UF_GRND_H };
 
@@ -1325,7 +1326,7 @@ if ((r->frac.hi & UF_NM_H) == 0) {                      /* carry out? */
     dp_rsh (&r->frac, 1);                               /* renormalize */
     r->exp = r->exp + 1;
     }
-if (r->exp > (int32) G_M_EXP)                           /* ovflo? fault */
+if (r->exp > (int32_t) G_M_EXP)                         /* ovflo? fault */
 FLT_OVFL_FAULT;
 if (r->exp <= 0) {                                      /* underflow? */
     if (PSL & PSW_FU)                                   /* fault if fu */
@@ -1348,7 +1349,7 @@ return r->sign | (r->exp << G_V_EXP) |
    If the high 32b is not zero, it is unchanged.
 */
 
-int32 op_movfd (int32 val)
+int32_t op_movfd (int32_t val)
 {
 if (val & FD_EXP)
     return val;
@@ -1357,7 +1358,7 @@ if (val & FPSIGN)
 return 0;
 }
 
-int32 op_mnegfd (int32 val)
+int32_t op_mnegfd (int32_t val)
 {
 if (val & FD_EXP)
     return (val ^ FPSIGN);
@@ -1366,7 +1367,7 @@ if (val & FPSIGN)
 return 0;
 }
 
-int32 op_movg (int32 val)
+int32_t op_movg (int32_t val)
 {
 if (val & G_EXP)
     return val;
@@ -1375,7 +1376,7 @@ if (val & FPSIGN)
 return 0;
 }
 
-int32 op_mnegg (int32 val)
+int32_t op_mnegg (int32_t val)
 {
 if (val & G_EXP)
     return (val ^ FPSIGN);
@@ -1386,7 +1387,7 @@ return 0;
 
 /* Floating to floating convert - F to D is essentially done with MOVFD */
 
-int32 op_cvtdf (uint32 *opnd)
+int32_t op_cvtdf (uint32_t *opnd)
 {
 UFP a;
 
@@ -1394,7 +1395,7 @@ unpackd (opnd[0], opnd[1], &a);
 return rpackfd (&a, NULL);
 }
 
-int32 op_cvtfg (uint32 *opnd, int32 *rh)
+int32_t op_cvtfg (uint32_t *opnd, int32_t *rh)
 {
 UFP a;
 
@@ -1403,7 +1404,7 @@ a.exp = a.exp - FD_BIAS + G_BIAS;
 return rpackg (&a, rh);
 }
 
-int32 op_cvtgf (uint32 *opnd)
+int32_t op_cvtgf (uint32_t *opnd)
 {
 UFP a;
 
@@ -1414,7 +1415,7 @@ return rpackfd (&a, NULL);
 
 /* Floating add and subtract */
 
-int32 op_addf (uint32 *opnd, bool sub)
+int32_t op_addf (uint32_t *opnd, bool sub)
 {
 UFP a, b;
 
@@ -1426,7 +1427,7 @@ vax_fadd (&a, &b, 0, 0);                                /* add fractions */
 return rpackfd (&a, NULL);
 }
 
-int32 op_addd (uint32 *opnd, int32 *rh, bool sub)
+int32_t op_addd (uint32_t *opnd, int32_t *rh, bool sub)
 {
 UFP a, b;
 
@@ -1438,7 +1439,7 @@ vax_fadd (&a, &b, 0, 0);                                /* add fractions */
 return rpackfd (&a, rh);
 }
 
-int32 op_addg (uint32 *opnd, int32 *rh, bool sub)
+int32_t op_addg (uint32_t *opnd, int32_t *rh, bool sub)
 {
 UFP a, b;
 
@@ -1452,7 +1453,7 @@ return rpackg (&a, rh);                                 /* round and pack */
 
 /* Floating multiply */
 
-int32 op_mulf (uint32 *opnd)
+int32_t op_mulf (uint32_t *opnd)
 {
 UFP a, b;
 
@@ -1462,7 +1463,7 @@ vax_fmul (&a, &b, 0, FD_BIAS, 0, 0);                    /* do multiply */
 return rpackfd (&a, NULL);                              /* round and pack */
 }
 
-int32 op_muld (uint32 *opnd, int32 *rh)
+int32_t op_muld (uint32_t *opnd, int32_t *rh)
 {
 UFP a, b;
 
@@ -1472,7 +1473,7 @@ vax_fmul (&a, &b, 1, FD_BIAS, 0, 0);                    /* do multiply */
 return rpackfd (&a, rh);                                /* round and pack */
 }
 
-int32 op_mulg (uint32 *opnd, int32 *rh)
+int32_t op_mulg (uint32_t *opnd, int32_t *rh)
 {
 UFP a, b;
 
@@ -1484,7 +1485,7 @@ return rpackg (&a, rh);                                 /* round and pack */
 
 /* Floating divide */
 
-int32 op_divf (uint32 *opnd)
+int32_t op_divf (uint32_t *opnd)
 {
 UFP a, b;
 
@@ -1494,7 +1495,7 @@ vax_fdiv (&a, &b, 26, FD_BIAS);                         /* do divide */
 return rpackfd (&b, NULL);                              /* round and pack */
 }
 
-int32 op_divd (uint32 *opnd, int32 *rh)
+int32_t op_divd (uint32_t *opnd, int32_t *rh)
 {
 UFP a, b;
 
@@ -1504,7 +1505,7 @@ vax_fdiv (&a, &b, 58, FD_BIAS);                         /* do divide */
 return rpackfd (&b, rh);                                /* round and pack */
 }
 
-int32 op_divg (uint32 *opnd, int32 *rh)
+int32_t op_divg (uint32_t *opnd, int32_t *rh)
 {
 UFP a, b;
 
@@ -1522,16 +1523,16 @@ return rpackg (&b, rh);                                 /* round and pack */
    fractions must not be treated as 0 during denorm.
 */
 
-void op_polyf (uint32 *opnd, int32 acc)
+void op_polyf (uint32_t *opnd, int32_t acc)
 {
 /* Shared instruction helper signature.
    This implementation does not use every parameter. */
 (void) acc;
 
 UFP r, a, c;
-int32 deg = opnd[1];
-int32 ptr = opnd[2];
-int32 i, wd, res;
+int32_t deg = opnd[1];
+int32_t ptr = opnd[2];
+int32_t i, wd, res;
 
 if (deg > 31)                                           /* degree > 31? fault */
     RSVD_OPND_FAULT(op_polyf);
@@ -1555,16 +1556,16 @@ R[3] = ptr;
 return;
 }
 
-void op_polyd (uint32 *opnd, int32 acc)
+void op_polyd (uint32_t *opnd, int32_t acc)
 {
 /* Shared instruction helper signature.
    This implementation does not use every parameter. */
 (void) acc;
 
 UFP r, a, c;
-int32 deg = opnd[2];
-int32 ptr = opnd[3];
-int32 i, wd, wd1, res, resh;
+int32_t deg = opnd[2];
+int32_t ptr = opnd[3];
+int32_t i, wd, wd1, res, resh;
 
 if (deg > 31)                                           /* degree > 31? fault */
     RSVD_OPND_FAULT(op_polyd);
@@ -1593,16 +1594,16 @@ R[5] = 0;
 return;
 }
 
-void op_polyg (uint32 *opnd, int32 acc)
+void op_polyg (uint32_t *opnd, int32_t acc)
 {
 /* Shared instruction helper signature.
    This implementation does not use every parameter. */
 (void) acc;
 
 UFP r, a, c;
-int32 deg = opnd[2];
-int32 ptr = opnd[3];
-int32 i, wd, wd1, res, resh;
+int32_t deg = opnd[2];
+int32_t ptr = opnd[3];
+int32_t i, wd, wd1, res, resh;
 
 if (deg > 31)                                           /* degree > 31? fault */
     RSVD_OPND_FAULT(op_polyg);

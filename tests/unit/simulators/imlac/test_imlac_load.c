@@ -10,7 +10,7 @@
 #include "sim_tempfile.h"
 
 REG cpu_reg[1];
-uint16 memmask = 017777;
+uint16_t memmask = 017777;
 
 DEVICE cpu_dev;
 DEVICE irq_dev;

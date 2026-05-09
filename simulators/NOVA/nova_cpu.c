@@ -232,6 +232,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "nova_defs.h"
 
 
@@ -277,61 +279,61 @@
 
 typedef struct
     {
-    int32    pc;
-    int16    ir;
-    int16    ac0 ;
-    int16    ac1 ;
-    int16    ac2 ;
-    int16    ac3 ;
-    int16    carry ;
-    int16    sp ;
-    int16    fp ;
-    int32    devDone ;
-    int32    devBusy ;
-    int32    devDisable ;
-    int32    devIntr ;
+    int32_t  pc;
+    int16_t  ir;
+    int16_t  ac0 ;
+    int16_t  ac1 ;
+    int16_t  ac2 ;
+    int16_t  ac3 ;
+    int16_t  carry ;
+    int16_t  sp ;
+    int16_t  fp ;
+    int32_t  devDone ;
+    int32_t  devBusy ;
+    int32_t  devDisable ;
+    int32_t  devIntr ;
     }   Hist_entry ;
 
 
-uint16 M[MAXMEMSIZE] = { 0 };                           /* memory */
-int32 AC[4] = { 0 };                                    /* accumulators */
-int32 C = 0;                                            /* carry flag */
-int32 saved_PC = 0;                                     /* program counter */
-int32 SP = 0;                                           /* stack pointer */
-int32 FP = 0;                                           /* frame pointer */
-int32 SR = 0;                                           /* switch register */
-int32 dev_done = 0;                                     /* device done flags */
-int32 dev_busy = 0;                                     /* device busy flags */
-int32 dev_disable = 0;                                  /* int disable flags */
-int32 int_req = 0;                                      /* interrupt requests */
-int32 pimask = 0;                                       /* priority int mask */
-int32 pwr_low = 0;                                      /* power fail flag */
-int32 ind_max = 65536;                                  /* iadr nest limit */
-int32 stop_dev = 0;                                     /* stop on ill dev */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+uint16_t M[MAXMEMSIZE] = { 0 };                         /* memory */
+int32_t AC[4] = { 0 };                                  /* accumulators */
+int32_t C = 0;                                          /* carry flag */
+int32_t saved_PC = 0;                                   /* program counter */
+int32_t SP = 0;                                         /* stack pointer */
+int32_t FP = 0;                                         /* frame pointer */
+int32_t SR = 0;                                         /* switch register */
+int32_t dev_done = 0;                                   /* device done flags */
+int32_t dev_busy = 0;                                   /* device busy flags */
+int32_t dev_disable = 0;                                /* int disable flags */
+int32_t int_req = 0;                                    /* interrupt requests */
+int32_t pimask = 0;                                     /* priority int mask */
+int32_t pwr_low = 0;                                    /* power fail flag */
+int32_t ind_max = 65536;                                /* iadr nest limit */
+int32_t stop_dev = 0;                                   /* stop on ill dev */
+uint16_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 struct ndev dev_table[64];                              /* dispatch table */
-int32 AMASK = 077777 ;                                  /* current memory address mask  */
+int32_t AMASK = 077777 ;                                /* current memory address mask  */
                                                         /* (default to 32KW)  */
-static  int32    hist_p   = 0 ;                         /* history pointer */
-static  int32    hist_cnt = 0 ;                         /* history count   */
+static  int32_t  hist_p   = 0 ;                         /* history pointer */
+static  int32_t  hist_cnt = 0 ;                         /* history count   */
 static  Hist_entry * hist = NULL ;                      /* instruction history */
 
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_boot (int32 unitno, DEVICE *dptr);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr);
 t_stat build_devtab (void);
 
-t_stat hist_set( UNIT * uptr, int32 val, const char * cptr, void * desc ) ;
-t_stat hist_show( FILE * st, UNIT * uptr, int32 val, const void * desc ) ;
-static int hist_save( int32 pc, int32 our_ir ) ;
-char * devBitNames( int32 flags, char * ptr, char * sepStr ) ;
+t_stat hist_set( UNIT * uptr, int32_t val, const char * cptr, void * desc ) ;
+t_stat hist_show( FILE * st, UNIT * uptr, int32_t val, const void * desc ) ;
+static int hist_save( int32_t pc, int32_t our_ir ) ;
+char * devBitNames( int32_t flags, char * ptr, char * sepStr ) ;
 
-void mask_out (int32 mask);
+void mask_out (int32_t mask);
 
 
 /* CPU data structures
@@ -413,7 +415,7 @@ DEVICE cpu_dev = {
 
 t_stat sim_instr (void)
 {
-int32 PC, IR, i;
+int32_t PC, IR, i;
 t_stat reason;
 
 /* Restore register state */
@@ -435,7 +437,7 @@ while (reason == 0) {                                   /* loop until halted */
         }
 
     if (int_req > INT_PENDING) {                        /* interrupt or exception? */
-        int32 MA, indf;
+        int32_t MA, indf;
 
         if (int_req & INT_TRAP) {                       /* trap instruction? */
             int_req = int_req & ~INT_TRAP ;             /* clear */
@@ -488,7 +490,7 @@ while (reason == 0) {                                   /* loop until halted */
 /* Operate instruction */
 
     if (IR & I_OPR) {                                   /* operate? */
-        int32 src, srcAC, dstAC;
+        int32_t src, srcAC, dstAC;
 
         srcAC = I_GETSRC (IR);                          /* get reg decodes */
         dstAC = I_GETDST (IR);
@@ -592,7 +594,7 @@ while (reason == 0) {                                   /* loop until halted */
 /* Memory reference instructions */
 
     else if (IR < 060000) {                             /* mem ref? */
-        int32 src, MA, indf;
+        int32_t src, MA, indf;
 
         MA = I_GETDISP (IR);                            /* get disp */
         switch (I_GETMODE (IR)) {                       /* decode mode */
@@ -687,7 +689,7 @@ while (reason == 0) {                                   /* loop until halted */
 /* IOT instruction */
 
     else {                                              /* IOT */
-        int32 dstAC, pulse, code, device, iodata;
+        int32_t dstAC, pulse, code, device, iodata;
 
         dstAC = I_GETDST (IR);                          /* decode fields */
         code = I_GETIOT (IR);
@@ -804,7 +806,7 @@ while (reason == 0) {                                   /* loop until halted */
             case ioDOB:                                 /* store byte */
                 if (cpu_unit.flags & UNIT_BYT)
                   {
-                    int32 MA, val;
+                    int32_t MA, val;
                    MA = AC[pulse] >> 1;
                     val = AC[dstAC] & 0377;
                     if (MEM_ADDR_OK (MA)) M[MA] = (AC[pulse] & 1)?
@@ -872,7 +874,7 @@ while (reason == 0) {                                   /* loop until halted */
                         }
                     else if ((pulse == iopS) &&              /* Nova 4 SAVN */
                         (cpu_unit.flags & UNIT_BYT)) {
-                        int32 frameSz = M[PC] ;
+                        int32_t frameSz = M[PC] ;
                         PC = INCA (PC) ;
                         SP = INCA (SP);
                         if (MEM_ADDR_OK (SP))
@@ -902,11 +904,11 @@ while (reason == 0) {                                   /* loop until halted */
             case ioDOC:
                 if ((dstAC == 2) && (cpu_unit.flags & UNIT_MDV))
                     {  /*  Nova, Nova3 or Nova 4  */
-                    uint32 mddata, uAC0, uAC1, uAC2;
+                    uint32_t mddata, uAC0, uAC1, uAC2;
 
-                    uAC0 = (uint32) AC[0];
-                    uAC1 = (uint32) AC[1];
-                    uAC2 = (uint32) AC[2];
+                    uAC0 = (uint32_t) AC[0];
+                    uAC1 = (uint32_t) AC[1];
+                    uAC2 = (uint32_t) AC[2];
                     if (pulse == iopP)
                         {                /* mul */
                         mddata = (uAC1 * uAC2) + uAC0;
@@ -930,7 +932,7 @@ while (reason == 0) {                                   /* loop until halted */
                     }
                 else if ((dstAC == 3) && (cpu_unit.flags & UNIT_BYT) /* assuming UNIT_BYT = Nova 4 */)
                     {
-                    int32 mddata;
+                    int32_t mddata;
                     if (pulse == iopC)
                         {                /* muls */
                         mddata = (SEXT (AC[1]) * SEXT (AC[2])) + SEXT (AC[0]);
@@ -1074,9 +1076,9 @@ return ( reason ) ;
 
 /* New priority mask out */
 
-void mask_out (int32 newmask)
+void mask_out (int32_t newmask)
 {
-int32 i;
+int32_t i;
 
 dev_disable = 0;
 for (i = DEV_LOW; i <= DEV_HIGH; i++)  {
@@ -1106,7 +1108,7 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -1122,7 +1124,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -1137,9 +1139,9 @@ return SCPE_OK;
 
 /* Alter memory size */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-int32 mc = 0;
+int32_t mc = 0;
 t_addr i;
 
 /* Generic callback signature.
@@ -1166,7 +1168,7 @@ t_stat build_devtab (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-int32 i, dn;
+int32_t i, dn;
 
 for (i = 0; i < 64; i++) {                              /* clr dev_table */
     dev_table[i].mask = 0;
@@ -1220,9 +1222,9 @@ return SCPE_OK;
  */
 
 #define BOOT_START  00000
-#define BOOT_LEN    (sizeof(boot_rom) / sizeof(int32))
+#define BOOT_LEN    (sizeof(boot_rom) / sizeof(int32_t))
 
-static const int32 boot_rom[] = {
+static const int32_t boot_rom[] = {
     0062677,                    /*      IORST           ;reset all I/O  */
     0060477,                    /*      READS 0         ;read SR into AC0 */
     0024026,                    /*      LDA 1,C77       ;get dev mask */
@@ -1260,7 +1262,7 @@ static const int32 boot_rom[] = {
     0000000                     /*      0               ;padding */
     };
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 size_t i;
 
@@ -1276,7 +1278,7 @@ return SCPE_OK;
 
 /* 1-to-1 map for I/O devices */
 
-int32 MapAddr (int32 map, int32 addr)
+int32_t MapAddr (int32_t map, int32_t addr)
 {
 /* Shared helper signature.
    This simulator does not use the map selector. */
@@ -1289,9 +1291,9 @@ return addr;
 
 global routines
 
-t_stat hist_set( UNIT * uptr, int32 val, char * cptr, void * desc, void ** HistCookie, sizeof(usrHistInfo) ) ;
-t_stat hist_show( FILE * st, UNIT * uptr, int32 val, void * desc, void * HistCookie ) ;
-int hist_save( int32 next_pc, int32 our_ir, void * usrHistInfo )
+t_stat hist_set( UNIT * uptr, int32_t val, char * cptr, void * desc, void ** HistCookie, sizeof(usrHistInfo) ) ;
+t_stat hist_show( FILE * st, UNIT * uptr, int32_t val, void * desc, void * HistCookie ) ;
+int hist_save( int32_t next_pc, int32_t our_ir, void * usrHistInfo )
 
 local user struct:
 
@@ -1299,7 +1301,7 @@ usrHistInfo
 
 local user routines:
 
-int uHist_save( int32 next_pc, int32 our_ir, void * usrHistInfo ) ;
+int uHist_save( int32_t next_pc, int32_t our_ir, void * usrHistInfo ) ;
 int uHist_fprintf( FILE * fp, int itemNum, void * usrHistInfo ) ;
 
 typedef struct
@@ -1319,7 +1321,7 @@ typedef struct
 
 /*  save history entry  (proposed local routine) */
 
-static int hist_save( int32 pc, int32 our_ir )
+static int hist_save( int32_t pc, int32_t our_ir )
 {
 Hist_entry *    hist_ptr ;
 
@@ -1356,9 +1358,9 @@ return ( -1 ) ;
 
 /*  setup history save area (proposed global routine)  */
 
-t_stat hist_set( UNIT * uptr, int32 val, const char * cptr, void * desc )
+t_stat hist_set( UNIT * uptr, int32_t val, const char * cptr, void * desc )
 {
-int32   i, lnt ;
+int32_t i, lnt ;
 t_stat  r ;
 
 /* Generic callback signature.
@@ -1377,7 +1379,7 @@ if ( cptr == NULL )
     hist_p = 0 ;
     return ( SCPE_OK ) ;
     }
-lnt = (int32) get_uint(cptr, 10, HIST_MAX, &r) ;
+lnt = (int32_t) get_uint(cptr, 10, HIST_MAX, &r) ;
 if ( (r != SCPE_OK) || (lnt && (lnt < HIST_MIN)) )
     {
     return ( SCPE_ARG ) ;
@@ -1450,9 +1452,9 @@ return ( 0 ) ;
 
 /* show execution history (proposed global routine) */
 
-t_stat hist_show( FILE * st, UNIT * uptr, int32 val, const void * desc )
+t_stat hist_show( FILE * st, UNIT * uptr, int32_t val, const void * desc )
 {
-int32           k, di, lnt ;
+int32_t         k, di, lnt ;
 const char *    cptr = (const char *) desc ;
 t_stat          r ;
 Hist_entry *    hptr ;
@@ -1468,7 +1470,7 @@ if (hist_cnt == 0)
     }
 if ( cptr )
     {                                                   /*  number of entries specified  */
-    lnt = (int32) get_uint( cptr, 10, hist_cnt, &r ) ;
+    lnt = (int32_t) get_uint( cptr, 10, hist_cnt, &r ) ;
     if ( (r != SCPE_OK) || (lnt == 0) )
         {
         return ( SCPE_ARG ) ;
@@ -1499,8 +1501,8 @@ return SCPE_OK;
 
 struct Dbits
     {
-    int32      dBit ;
-    int32      dInvertMask ;
+    int32_t    dBit ;
+    int32_t    dInvertMask ;
     const char *dName ;
     }  devBits [] =
 
@@ -1528,7 +1530,7 @@ struct Dbits
     } ;
 
 
-char * devBitNames( int32 flags, char * ptr, char * sepStr )
+char * devBitNames( int32_t flags, char * ptr, char * sepStr )
 {
 int    a ;
 

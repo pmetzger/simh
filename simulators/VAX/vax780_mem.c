@@ -29,6 +29,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 /* Memory controller register A */
@@ -83,16 +85,16 @@
 
 #define MCRROM_OF       0x400
 
-uint32 mcr_a[MCTL_NUM];
-uint32 mcr_b[MCTL_NUM];
-uint32 mcr_c[MCTL_NUM];
-uint32 mcr_d[MCTL_NUM];
-uint32 rom_lw[MCTL_NUM][ROMSIZE >> 2];
+uint32_t mcr_a[MCTL_NUM];
+uint32_t mcr_b[MCTL_NUM];
+uint32_t mcr_c[MCTL_NUM];
+uint32_t mcr_d[MCTL_NUM];
+uint32_t rom_lw[MCTL_NUM][ROMSIZE >> 2];
 
 t_stat mctl_reset (DEVICE *dptr);
 const char *mctl_description (DEVICE *dptr);
-t_stat mctl_rdreg (int32 *val, int32 pa, int32 mode);
-t_stat mctl_wrreg (int32 val, int32 pa, int32 mode);
+t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
+t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
 
 /* MCTLx data structures
 
@@ -161,9 +163,9 @@ DEVICE mctl_dev[] = {
 
 /* Memory controller register read */
 
-t_stat mctl_rdreg (int32 *val, int32 pa, int32 lnt)
+t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
-int32 mctl, ofs;
+int32_t mctl, ofs;
 bool extmem = MEMSIZE > MAXMEMSIZE;
 
 if ((pa & 3) || (lnt != L_LONG)) {                      /* unaligned or not lw? */
@@ -206,9 +208,9 @@ return SCPE_OK;
 
 /* Memory controller register write */
 
-t_stat mctl_wrreg (int32 val, int32 pa, int32 lnt)
+t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
-int32 mctl, ofs, mask;
+int32_t mctl, ofs, mask;
 bool extmem = MEMSIZE > MAXMEMSIZE;
 
 if ((pa & 3) || (lnt != L_LONG)) {                      /* unaligned or not lw? */
@@ -251,11 +253,11 @@ return SCPE_OK;
 
 /* Used by CPU and loader */
 
-void rom_wr_B (int32 pa, int32 val)
+void rom_wr_B (int32_t pa, int32_t val)
 {
-uint32 mctl = NEXUS_GETNEX (pa) - TR_MCTL0;             /* get mctl num */
-uint32 ofs = NEXUS_GETOFS (pa) - MCRROM_OF;             /* get offset */
-int32 sc = (pa & 3) << 3;
+uint32_t mctl = NEXUS_GETNEX (pa) - TR_MCTL0;           /* get mctl num */
+uint32_t ofs = NEXUS_GETOFS (pa) - MCRROM_OF;           /* get offset */
+int32_t sc = (pa & 3) << 3;
 
 rom_lw[mctl][ofs] = ((val & 0xFF) << sc) | (rom_lw[mctl][ofs] & ~(0xFF << sc));
 return;
@@ -269,11 +271,11 @@ t_stat mctl_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i, amb, akb;
+int32_t i, amb, akb;
 bool extmem = MEMSIZE > MAXMEMSIZE;
 
-amb = (int32) (MEMSIZE / MCTL_NUM) >> 20;               /* array size MB */
-akb = (int32) (MEMSIZE / MCTL_NUM) >> 10;               /* array size KB */
+amb = (int32_t) (MEMSIZE / MCTL_NUM) >> 20;             /* array size MB */
+akb = (int32_t) (MEMSIZE / MCTL_NUM) >> 10;             /* array size KB */
 for (i = 0; i < MCTL_NUM; i++) {
     if (extmem)                                         /* Need MS780E? */
         mcr_a[i] = ((amb - 1) << MCRA_V_SIZE) | ((amb <= 16) ? MCRA_E_TYPE_64K : MCRA_E_TYPE_256K);
@@ -294,7 +296,7 @@ sprintf (buf, "Memory controller %d", (int)(dptr-mctl_dev));
 return buf;
 }
 
-t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -303,7 +305,7 @@ t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
 (void) desc;
 
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         { 4096, "MS780-JD M8374 array"},
@@ -311,10 +313,10 @@ struct {
         {  256, "MS780-C M8210 array"},
         {   64, "MS780-C M8211 array"},
         {    0, NULL}};
-uint32 i, slot, bd = 0;
+uint32_t i, slot, bd = 0;
 
 for (i = 0; i < MCTL_NUM; i++) {
-    uint32 baseaddr = ((mcr_b[i] & MCRB_SA) << 1);
+    uint32_t baseaddr = ((mcr_b[i] & MCRB_SA) << 1);
 
     fprintf (st, "Memory Controller %d - MS780-%s\n", i, ((mcr_a[i]&MCRA_M_TYPE) >> 5) ? "E" : "C");
     switch (mcr_a[i]&MCRA_M_TYPE) {

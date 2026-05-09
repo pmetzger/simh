@@ -40,6 +40,8 @@
 /*#define DBG_MSG */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "i8272.h"
 
@@ -60,48 +62,48 @@
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint32 dma_addr;    /* DMA Transfer Address */
-    uint8 rom_disabled; /* true if ROM has been disabled */
+    uint32_t dma_addr;  /* DMA Transfer Address */
+    uint8_t rom_disabled; /* true if ROM has been disabled */
 } DISK1A_INFO;
 
 static DISK1A_INFO disk1a_info_data = { { 0x0, 512, 0xC0, 4 } };
 static DISK1A_INFO *disk1a_info = &disk1a_info_data;
 
-extern t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
-extern void raise_ss1_interrupt(uint8 intnum);
+extern void raise_ss1_interrupt(uint8_t intnum);
 
-extern uint32 PCX;      /* external view of PC  */
+extern uint32_t PCX;    /* external view of PC  */
 
 #define UNIT_V_DISK1A_ROM       (UNIT_V_UF + 2) /* boot ROM enabled                         */
 #define UNIT_DISK1A_ROM         (1 << UNIT_V_DISK1A_ROM)
 #define DISK1A_CAPACITY         (77*2*16*256)   /* Default Micropolis Disk Capacity         */
 
 static t_stat disk1a_reset(DEVICE *disk1a_dev);
-static t_stat disk1a_boot(int32 unitno, DEVICE *dptr);
+static t_stat disk1a_boot(int32_t unitno, DEVICE *dptr);
 static t_stat disk1a_attach(UNIT *uptr, const char *cptr);
 static t_stat disk1a_detach(UNIT *uptr);
 static const char* disk1a_description(DEVICE *dptr);
 
-static int32 disk1adev(const int32 port, const int32 io, const int32 data);
-static int32 disk1arom(const int32 port, const int32 io, const int32 data);
+static int32_t disk1adev(const int32_t port, const int32_t io, const int32_t data);
+static int32_t disk1arom(const int32_t port, const int32_t io, const int32_t data);
 
-static uint8 DISK1A_Read(const uint32 Addr);
-static uint8 DISK1A_Write(const uint32 Addr, uint8 cData);
+static uint8_t DISK1A_Read(const uint32_t Addr);
+static uint8_t DISK1A_Write(const uint32_t Addr, uint8_t cData);
 void raise_disk1a_interrupt(void);
 
-static int32 bootstrap      = 0;
+static int32_t bootstrap      = 0;
 
 /* The DISK1A does not really have RAM associated with it, but for ease of integration with the
  * SIMH/AltairZ80 Resource Mapping Scheme, rather than Map and Unmap the ROM, simply implement our
  * own RAM that can be swapped in when the DISK1A Boot ROM is disabled.
  */
-static uint8 disk1aram[512];
+static uint8_t disk1aram[512];
 
 static UNIT disk1a_unit[] = {
     { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, DISK1A_CAPACITY) },
@@ -172,7 +174,7 @@ DEVICE disk1a_dev = {
  * 2,6,10,14: Attempt to boot 8" drive 0, if not ready, attempt to boot 5.25" drive 2.
  * 3,7,11,15: Attempt to boot 5.25" drive 0, if not ready, attempt to boot DISK3.
  */
-static uint8 disk1a_rom[16][512] = {
+static uint8_t disk1a_rom[16][512] = {
 {   0x00, 0x00, 0x00, 0x00, 0x31, 0x00, 0x80, 0x3E, 0xFF, 0xD3, 0xC3, 0x01, 0x00, 0x40, 0xE3, 0xE3, /* 0 */
     0x0B, 0x78, 0xB1, 0xC2, 0x0E, 0x00, 0x21, 0x00, 0x02, 0x11, 0x00, 0x82, 0x7E, 0x12, 0x1B, 0x2B,
     0x7D, 0xB4, 0xC2, 0x1C, 0x00, 0x11, 0x5D, 0x00, 0x3E, 0x85, 0x12, 0x13, 0x3E, 0x81, 0x12, 0x13,
@@ -704,8 +706,8 @@ static uint8 disk1a_rom[16][512] = {
 
 
 /* returns true iff there exists a disk with VERBOSE */
-static int32 disk1a_hasProperty(uint32 property) {
-    int32 i;
+static int32_t disk1a_hasProperty(uint32_t property) {
+    int32_t i;
     for (i = 0; i < DISK1A_MAX_DRIVES; i++)
         if (disk1a_dev.units[i].flags & property)
             return true;
@@ -738,7 +740,7 @@ static t_stat disk1a_reset(DEVICE *dptr)
     return SCPE_OK;
 }
 
-static t_stat disk1a_boot(int32 unitno, DEVICE *dptr)
+static t_stat disk1a_boot(int32_t unitno, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -752,7 +754,7 @@ static t_stat disk1a_boot(int32 unitno, DEVICE *dptr)
     disk1a_info->rom_disabled = false;
 
     /* Set the PC to 0, and go. */
-    *((int32 *) sim_PC->loc) = 0;
+    *((int32_t *) sim_PC->loc) = 0;
     return SCPE_OK;
 }
 
@@ -775,7 +777,7 @@ static t_stat disk1a_detach(UNIT *uptr)
     return r;
 }
 
-static int32 disk1arom(const int32 Addr, const int32 write, const int32 data)
+static int32_t disk1arom(const int32_t Addr, const int32_t write, const int32_t data)
 {
 /*  DBG_PRINT(("DISK1A: ROM %s, Addr %04x\n", write ? "WR" : "RD", Addr)); */
     if(write) {
@@ -791,9 +793,9 @@ static int32 disk1arom(const int32 Addr, const int32 write, const int32 data)
     }
 }
 
-static int32 disk1adev(const int32 port, const int32 io, const int32 data)
+static int32_t disk1adev(const int32_t port, const int32_t io, const int32_t data)
 {
-    int32 result;
+    int32_t result;
     if(io) {
         sim_debug(VERBOSE_MSG, &disk1a_dev, "DISK1A: " ADDRESS_FORMAT
                   " OUT, Port 0x%02x Data 0x%02x\n", PCX, port, data);
@@ -810,10 +812,10 @@ static int32 disk1adev(const int32 port, const int32 io, const int32 data)
 #define DISK1A_MOTOR        3   /* R=Unused / W=Motor Control Register */
 #define BOOT_PROM_DISABLE   0x01
 #define FLOPPY_MOTORS       0xF0
-extern uint8 i8272_irq;
-static uint8 DISK1A_Read(const uint32 Addr)
+extern uint8_t i8272_irq;
+static uint8_t DISK1A_Read(const uint32_t Addr)
 {
-    uint8 cData;
+    uint8_t cData;
 
     cData = 0x00;
 
@@ -835,9 +837,9 @@ static uint8 DISK1A_Read(const uint32 Addr)
     return (cData);
 }
 
-static uint8 DISK1A_Write(const uint32 Addr, uint8 cData)
+static uint8_t DISK1A_Write(const uint32_t Addr, uint8_t cData)
 {
-    uint8 result = 0;
+    uint8_t result = 0;
 
     switch(Addr & 0x3) {
         case I8272_FDC_MSR:

@@ -8,28 +8,30 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "scp.h"
 
 /* Shared breakpoint status exported to simulators and SCP command code. */
-uint32 sim_brk_summ = 0;
-uint32 sim_brk_types = 0;
+uint32_t sim_brk_summ = 0;
+uint32_t sim_brk_types = 0;
 BRKTYPTAB *sim_brk_type_desc = NULL;
-uint32 sim_brk_dflt = 0;
-uint32 sim_brk_match_type;
+uint32_t sim_brk_dflt = 0;
+uint32_t sim_brk_match_type;
 t_addr sim_brk_match_addr;
 
 /* Private breakpoint table state local to this subsystem. */
 static char *sim_brk_act[MAX_DO_NEST_LVL];
 static char *sim_brk_act_buf[MAX_DO_NEST_LVL];
 static BRKTAB **sim_brk_tab = NULL;
-static int32 sim_brk_ent = 0;
-static int32 sim_brk_lnt = 0;
-static int32 sim_brk_ins = 0;
+static int32_t sim_brk_ent = 0;
+static int32_t sim_brk_lnt = 0;
+static int32_t sim_brk_ins = 0;
 
 /* Search one breakpoint address for an entry matching the given type. */
-static BRKTAB *sim_brk_fnd_ex(t_addr loc, uint32 btyp, bool any_typ,
-                              uint32 spc)
+static BRKTAB *sim_brk_fnd_ex(t_addr loc, uint32_t btyp, bool any_typ,
+                              uint32_t spc)
 {
     BRKTAB *bp = sim_brk_fnd(loc);
 
@@ -43,9 +45,9 @@ static BRKTAB *sim_brk_fnd_ex(t_addr loc, uint32 btyp, bool any_typ,
 }
 
 /* Allocate and insert one breakpoint entry at the current insertion point. */
-static BRKTAB *sim_brk_new(t_addr loc, uint32 btyp)
+static BRKTAB *sim_brk_new(t_addr loc, uint32_t btyp)
 {
-    int32 i, t;
+    int32_t i, t;
     BRKTAB *bp, **newp;
 
     if (sim_brk_ins < 0)
@@ -85,7 +87,7 @@ static BRKTAB *sim_brk_new(t_addr loc, uint32 btyp)
 /* Initialize the global breakpoint tables. */
 t_stat sim_brk_init(void)
 {
-    int32 i;
+    int32_t i;
 
     for (i = 0; i < sim_brk_lnt; i++) {
         BRKTAB *bp = sim_brk_tab[i];
@@ -114,7 +116,7 @@ t_stat sim_brk_init(void)
 /* Search for a breakpoint in the sorted breakpoint table. */
 BRKTAB *sim_brk_fnd(t_addr loc)
 {
-    int32 lo, hi, p;
+    int32_t lo, hi, p;
     BRKTAB *bp;
 
     if (sim_brk_ent == 0) {
@@ -143,7 +145,7 @@ BRKTAB *sim_brk_fnd(t_addr loc)
 }
 
 /* Set a breakpoint of the requested type. */
-t_stat sim_brk_set(t_addr loc, int32 sw, int32 ncnt, const char *act)
+t_stat sim_brk_set(t_addr loc, int32_t sw, int32_t ncnt, const char *act)
 {
     BRKTAB *bp;
 
@@ -162,7 +164,7 @@ t_stat sim_brk_set(t_addr loc, int32 sw, int32 ncnt, const char *act)
     if (!bp)
         bp = sim_brk_new(loc, sw);
     else {
-        while (bp && (bp->typ != (uint32)sw))
+        while (bp && (bp->typ != (uint32_t)sw))
             bp = bp->next;
         if (!bp)
             bp = sim_brk_new(loc, sw);
@@ -187,11 +189,11 @@ t_stat sim_brk_set(t_addr loc, int32 sw, int32 ncnt, const char *act)
 }
 
 /* Clear one breakpoint definition. */
-t_stat sim_brk_clr(t_addr loc, int32 sw)
+t_stat sim_brk_clr(t_addr loc, int32_t sw)
 {
     BRKTAB *bpl = NULL;
     BRKTAB *bp = sim_brk_fnd(loc);
-    int32 i;
+    int32_t i;
 
     if (!bp)
         return SCPE_OK;
@@ -229,9 +231,9 @@ t_stat sim_brk_clr(t_addr loc, int32 sw)
 }
 
 /* Clear all breakpoints matching the requested type mask. */
-t_stat sim_brk_clrall(int32 sw)
+t_stat sim_brk_clrall(int32_t sw)
 {
-    int32 i;
+    int32_t i;
 
     if (sw == 0)
         sw = SIM_BRK_ALLTYP;
@@ -245,11 +247,11 @@ t_stat sim_brk_clrall(int32 sw)
 }
 
 /* Show one breakpoint definition. */
-t_stat sim_brk_show(FILE *st, t_addr loc, int32 sw)
+t_stat sim_brk_show(FILE *st, t_addr loc, int32_t sw)
 {
     BRKTAB *bp = sim_brk_fnd_ex(loc, sw & (~SWMASK('C')), false, 0);
     DEVICE *dptr;
-    int32 i, any;
+    int32_t i, any;
 
     if ((sw == 0) || (sw == SWMASK('C')))
         sw = SIM_BRK_ALLTYP | ((sw == SWMASK('C')) ? SWMASK('C') : 0);
@@ -295,9 +297,9 @@ t_stat sim_brk_show(FILE *st, t_addr loc, int32 sw)
 }
 
 /* Show all currently defined breakpoints. */
-t_stat sim_brk_showall(FILE *st, int32 sw)
+t_stat sim_brk_showall(FILE *st, int32_t sw)
 {
-    int32 bit, mask, types;
+    int32_t bit, mask, types;
     BRKTAB **bpt;
 
     if ((sw == 0) || (sw == SWMASK('C')))
@@ -353,10 +355,10 @@ t_stat sim_brk_showall(FILE *st, int32 sw)
 }
 
 /* Test one address against the currently defined breakpoint set. */
-uint32 sim_brk_test(t_addr loc, uint32 btyp)
+uint32_t sim_brk_test(t_addr loc, uint32_t btyp)
 {
     BRKTAB *bp;
-    uint32 spc = (btyp >> SIM_BKPT_V_SPC) & (SIM_BKPT_N_SPC - 1);
+    uint32_t spc = (btyp >> SIM_BKPT_V_SPC) & (SIM_BKPT_N_SPC - 1);
 
     if (sim_brk_summ & BRK_TYP_DYN_ALL)
         btyp |= BRK_TYP_DYN_ALL;
@@ -381,11 +383,11 @@ uint32 sim_brk_test(t_addr loc, uint32 btyp)
 }
 
 /* Get the next pending breakpoint action command, if any. */
-const char *sim_brk_getact(char *buf, int32 size)
+const char *sim_brk_getact(char *buf, int32_t size)
 {
     char *ep;
     size_t lnt;
-    int32 do_depth = scp_do_depth();
+    int32_t do_depth = scp_do_depth();
 
     if (sim_brk_act[do_depth] == NULL)
         return NULL;
@@ -423,7 +425,7 @@ const char *sim_brk_getact(char *buf, int32 size)
 /* Clear any pending breakpoint actions for the current DO depth. */
 char *sim_brk_clract(void)
 {
-    int32 do_depth = scp_do_depth();
+    int32_t do_depth = scp_do_depth();
 
     if (sim_brk_act[do_depth])
         sim_debug(SIM_DBG_BRK_ACTION, &sim_scp_dev,
@@ -436,7 +438,7 @@ char *sim_brk_clract(void)
 /* Install or prepend the current breakpoint action string. */
 void sim_brk_setact(const char *action)
 {
-    int32 do_depth = scp_do_depth();
+    int32_t do_depth = scp_do_depth();
 
     if (action) {
         if (sim_brk_act[do_depth] && (*sim_brk_act[do_depth])) {
@@ -470,7 +472,7 @@ void sim_brk_setact(const char *action)
 /* Replace the current action buffer and return the previous allocation. */
 char *sim_brk_replace_act(char *new_action)
 {
-    int32 do_depth = scp_do_depth();
+    int32_t do_depth = scp_do_depth();
     char *old_action = sim_brk_act_buf[do_depth];
 
     sim_brk_act_buf[do_depth] = new_action;
@@ -478,9 +480,9 @@ char *sim_brk_replace_act(char *new_action)
 }
 
 /* Mark all breakpoint spaces as unfired after the PC changes. */
-void sim_brk_npc(uint32 cnt)
+void sim_brk_npc(uint32_t cnt)
 {
-    uint32 spc;
+    uint32_t spc;
     BRKTAB **bpt, *bp;
 
     if ((cnt == 0) || (cnt > SIM_BKPT_N_SPC))
@@ -494,7 +496,7 @@ void sim_brk_npc(uint32 cnt)
 }
 
 /* Clear fired timestamps for one breakpoint space and type mask. */
-void sim_brk_clrspc(uint32 spc, uint32 btyp)
+void sim_brk_clrspc(uint32_t spc, uint32_t btyp)
 {
     BRKTAB **bpt, *bp;
 

@@ -50,6 +50,8 @@
 #ifndef GRI_DEFS_H_
 #define GRI_DEFS_H_    0
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 #if defined(USE_INT64) || defined(USE_ADDR64)
@@ -68,7 +70,7 @@
 #define MAXMEMSIZE      32768                           /* max memory size */
 #define AMASK           077777                          /* logical addr mask */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Architectural constants */
 
@@ -129,22 +131,22 @@
 #define U_TTY           077                             /* console */
 
 struct gdev {
-    uint32      (*Src)(uint32);                         /* source */
-    t_stat      (*Dst)(uint32, uint32);                 /* dest */
-    t_stat      (*FO)(uint32);                          /* func out */
-    uint32      (*SF)(uint32);                          /* skip func */
+    uint32_t    (*Src)(uint32_t);                       /* source */
+    t_stat      (*Dst)(uint32_t, uint32_t);             /* dest */
+    t_stat      (*FO)(uint32_t);                        /* func out */
+    uint32_t    (*SF)(uint32_t);                        /* skip func */
 };
 
-extern uint32 tty_rd (uint32 src);
-extern t_stat tty_wr (uint32 dst, uint32 val);
-extern t_stat tty_fo (uint32 op);
-extern uint32 tty_sf (uint32 op);
-extern uint32 hsrp_rd (uint32 src);
-extern t_stat hsrp_wr (uint32 dst, uint32 val);
-extern t_stat hsrp_fo (uint32 op);
-extern uint32 hsrp_sf (uint32 op);
-extern t_stat rtc_fo (uint32 op);
-extern uint32 rtc_sf (uint32 op);
+extern uint32_t tty_rd (uint32_t src);
+extern t_stat tty_wr (uint32_t dst, uint32_t val);
+extern t_stat tty_fo (uint32_t op);
+extern uint32_t tty_sf (uint32_t op);
+extern uint32_t hsrp_rd (uint32_t src);
+extern t_stat hsrp_wr (uint32_t dst, uint32_t val);
+extern t_stat hsrp_fo (uint32_t op);
+extern uint32_t hsrp_sf (uint32_t op);
+extern t_stat rtc_fo (uint32_t op);
+extern uint32_t rtc_sf (uint32_t op);
 
 /* Trap (jump) */
 

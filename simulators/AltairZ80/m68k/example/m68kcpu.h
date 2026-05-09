@@ -38,6 +38,7 @@
 #include <limits.h>
 
 #include <setjmp.h>
+#include <stdint.h>
 
 /* ======================================================================== */
 /* ==================== ARCHITECTURE-DEPENDANT DEFINES ==================== */
@@ -55,9 +56,9 @@
 #undef sint16
 #undef sint32
 #undef sint64
-#undef uint8
-#undef uint16
-#undef uint32
+#undef uint8_t
+#undef uint16_t
+#undef uint32_t
 #undef uint64
 #undef sint
 #undef uint
@@ -65,13 +66,13 @@
 typedef signed   char  sint8;  		/* ASG: changed from char to signed char */
 typedef signed   short sint16;
 typedef signed   int   sint32; 		/* AWJ: changed from long to int */
-typedef unsigned char  uint8;
+typedef uchar_t        uint8;
 typedef unsigned short uint16;
-typedef unsigned int   uint32; 			/* AWJ: changed from long to int */
+typedef uint_t         uint32; 			/* AWJ: changed from long to int */
 
-/* signed and unsigned int must be at least 32 bits wide */
+/* signed and uint_t must be at least 32 bits wide */
 typedef signed   int sint;
-typedef unsigned int uint;
+typedef uint_t uint;
 
 
 #if M68K_USE_64_BIT
@@ -79,7 +80,7 @@ typedef signed   long long sint64;
 typedef unsigned long long uint64;
 #else
 typedef sint32 sint64;
-typedef uint32 uint64;
+typedef uint32_t uint64;
 #endif /* M68K_USE_64_BIT */
 
 /* U64 and S64 are used to wrap long integer constants. */
@@ -91,6 +92,7 @@ typedef uint32 uint64;
 #define S64(val) val
 #endif
 
+#include "sim_types.h"
 #include "softfloat/milieu.h"
 #include "softfloat/softfloat.h"
 
@@ -101,8 +103,8 @@ typedef uint32 uint64;
 #else
 	#undef  sint8
 	#define sint8  signed   int
-	#undef  uint8
-	#define uint8  unsigned int
+	#undef  uint8_t
+	#define uint8  uint_t
 	static inline sint MAKE_INT_8(uint value)
 	{
 		return (value & 0x80) ? value | ~0xff : value & 0xff;
@@ -116,8 +118,8 @@ typedef uint32 uint64;
 #else
 	#undef  sint16
 	#define sint16 signed   int
-	#undef  uint16
-	#define uint16 unsigned int
+	#undef  uint16_t
+	#define uint16 uint_t
 	static inline sint MAKE_INT_16(uint value)
 	{
 		return (value & 0x8000) ? value | ~0xffff : value & 0xffff;
@@ -131,8 +133,8 @@ typedef uint32 uint64;
 #else
 	#undef  sint32
 	#define sint32  signed   int
-	#undef  uint32
-	#define uint32  unsigned int
+	#undef  uint32_t
+	#define uint32  uint_t
 	static inline sint MAKE_INT_32(uint value)
 	{
 		return (value & 0x80000000) ? value | ~0xffffffff : value & 0xffffffff;
@@ -980,22 +982,22 @@ typedef struct
 	uint mmu_crp_aptr, mmu_crp_limit;
 	uint mmu_srp_aptr, mmu_srp_limit;
 	uint mmu_tc;
-	uint16 mmu_sr;
+	uint16_t mmu_sr;
 
-	const uint8* cyc_instruction;
-	const uint8* cyc_exception;
+	const uint8_t* cyc_instruction;
+	const uint8_t* cyc_exception;
 
 	/* Callbacks to host */
 	int  (*int_ack_callback)(int int_line);           /* Interrupt Acknowledge */
-	void (*bkpt_ack_callback)(unsigned int data);     /* Breakpoint Acknowledge */
+	void (*bkpt_ack_callback)(uint_t data);           /* Breakpoint Acknowledge */
 	void (*reset_instr_callback)(void);               /* Called when a RESET instruction is encountered */
- 	void (*cmpild_instr_callback)(unsigned int, int); /* Called when a CMPI.L #v, Dn instruction is encountered */
+	void (*cmpild_instr_callback)(uint_t, int);       /* Called when a CMPI.L #v, Dn instruction is encountered */
  	void (*rte_instr_callback)(void);                 /* Called when a RTE instruction is encountered */
 	int  (*tas_instr_callback)(void);                 /* Called when a TAS instruction is encountered, allows / disallows writeback */
 	int  (*illg_instr_callback)(int);                 /* Called when an illegal instruction is encountered, allows handling */
-	void (*pc_changed_callback)(unsigned int new_pc); /* Called when the PC changes by a large amount */
-	void (*set_fc_callback)(unsigned int new_fc);     /* Called when the CPU function code changes */
-	void (*instr_hook_callback)(unsigned int pc);     /* Called every instruction cycle prior to execution */
+	void (*pc_changed_callback)(uint_t new_pc);       /* Called when the PC changes by a large amount */
+	void (*set_fc_callback)(uint_t new_fc);           /* Called when the CPU function code changes */
+	void (*instr_hook_callback)(uint_t pc);           /* Called every instruction cycle prior to execution */
 
 } m68ki_cpu_core;
 
@@ -1003,12 +1005,12 @@ typedef struct
 extern m68ki_cpu_core m68ki_cpu;
 extern sint           m68ki_remaining_cycles;
 extern uint           m68ki_tracing;
-extern const uint8    m68ki_shift_8_table[];
-extern const uint16   m68ki_shift_16_table[];
+extern const uint8_t  m68ki_shift_8_table[];
+extern const uint16_t m68ki_shift_16_table[];
 extern const uint     m68ki_shift_32_table[];
-extern const uint8    m68ki_exception_cycle_table[][256];
+extern const uint8_t  m68ki_exception_cycle_table[][256];
 extern uint           m68ki_address_space;
-extern const uint8    m68ki_ea_idx_cycle_table[];
+extern const uint8_t  m68ki_ea_idx_cycle_table[];
 
 extern uint           m68ki_aerr_address;
 extern uint           m68ki_aerr_write_mode;
@@ -1021,7 +1023,7 @@ static inline uint m68ki_get_ea_ix(uint An);
 static inline void m68ki_check_interrupts(void);            /* ASG: check for interrupts */
 
 /* quick disassembly (used for logging) */
-char* m68ki_disassemble_quick(unsigned int pc, unsigned int cpu_type);
+char* m68ki_disassemble_quick(uint_t pc, uint_t cpu_type);
 
 
 /* ======================================================================== */
@@ -1329,7 +1331,7 @@ static inline uint m68ki_get_ea_ix(uint An)
 
 	/* Check if base displacement is present */
 	if(BIT_5(extension))                /* BD SIZE */
-		bd = BIT_4(extension) ? m68ki_read_imm_32() : (uint32)MAKE_INT_16(m68ki_read_imm_16());
+		bd = BIT_4(extension) ? m68ki_read_imm_32() : (uint32_t)MAKE_INT_16(m68ki_read_imm_16());
 
 	/* If no indirect action, we are done */
 	if(!(extension&7))                  /* No Memory Indirect */
@@ -1337,7 +1339,7 @@ static inline uint m68ki_get_ea_ix(uint An)
 
 	/* Check if outer displacement is present */
 	if(BIT_1(extension))                /* I/IS:  od */
-		od = BIT_0(extension) ? m68ki_read_imm_32() : (uint32)MAKE_INT_16(m68ki_read_imm_16());
+		od = BIT_0(extension) ? m68ki_read_imm_32() : (uint32_t)MAKE_INT_16(m68ki_read_imm_16());
 
 	/* Postindex */
 	if(BIT_2(extension))                /* I/IS:  0 = preindex, 1 = postindex */

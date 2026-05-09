@@ -32,6 +32,7 @@
 #include "sel32_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /****  COMMANDS TO PRINT BUFFER THEN DO FORMS CONTROL */
 /*
@@ -154,14 +155,14 @@ LPFCTBL  EQU       $
 
 struct _lpr_data
 {
-    uint8   lbuff[160];                     /* Output line buffer */
+    uint8_t lbuff[160];                     /* Output line buffer */
 };
 
 struct _lpr_data lpr_data[NUM_DEVS_LPR];
 
 /* forward definitions */
-t_stat      lpr_preio(UNIT *uptr, uint16 chan);
-t_stat      lpr_startcmd(UNIT *, uint16, uint8);
+t_stat      lpr_preio(UNIT *uptr, uint16_t chan);
+t_stat      lpr_startcmd(UNIT *, uint16_t, uint8_t);
 void        lpr_ini(UNIT *, bool);
 t_stat      lpr_haltio(UNIT *uptr);
 t_stat      lpr_rschnlio(UNIT *uptr);
@@ -169,9 +170,9 @@ t_stat      lpr_srv(UNIT *);
 t_stat      lpr_reset(DEVICE *);
 t_stat      lpr_attach(UNIT *, const char *);
 t_stat      lpr_detach(UNIT *);
-t_stat      lpr_setlpp(UNIT *, int32, const char *, void *);
-t_stat      lpr_getlpp(FILE *, UNIT *, int32, const void *);
-t_stat      lpr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat      lpr_setlpp(UNIT *, int32_t, const char *, void *);
+t_stat      lpr_getlpp(FILE *, UNIT *, int32_t, const void *);
+t_stat      lpr_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char  *lpr_description (DEVICE *dptr);
 
 /* channel program information */
@@ -194,24 +195,24 @@ UNIT        lpr_unit[] = {
 
 /* Device Information Block */
 DIB         lpr_dib = {
-    lpr_preio,      /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    lpr_startcmd,   /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    lpr_preio,      /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    lpr_startcmd,   /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     lpr_haltio,     /* t_stat (*halt_io)(UNIT *uptr) */         /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */         /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */         /* Test I/O */
     NULL,           /* t_stat (*rsctl_io)(UNIT *uptr) */        /* Reset Controller */
     lpr_rschnlio,   /* t_stat (*rschnl_io)(UNIT *uptr) */       /* Reset Channel */
-    NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
+    NULL,           /* t_stat (*iocl_io)(CHANP *chp, int32_t tic_ok)) */  /* Process IOCL */
     lpr_ini,        /* void  (*dev_ini)(UNIT *, bool) */      /* init function */
     lpr_unit,       /* UNIT* units */                           /* Pointer to units structure */
     lpr_chp,        /* CHANP* chan_prg */                       /* Pointer to chan_prg structure */
     NULL,           /* IOCLQ *ioclq_ptr */                      /* IOCL entries, 1 per UNIT */
-    NUM_DEVS_LPR,   /* uint8 numunits */                        /* number of units defined */
-    0x01,           /* uint8 mask */                            /* 2 devices - device mask */
-    0x7e00,         /* uint16 chan_addr */                      /* parent channel address */
-    0,              /* uint32 chan_fifo_in */                   /* fifo input index */
-    0,              /* uint32 chan_fifo_out */                  /* fifo output index */
-    {0}             /* uint32 chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
+    NUM_DEVS_LPR,   /* uint8_t numunits */                        /* number of units defined */
+    0x01,           /* uint8_t mask */                            /* 2 devices - device mask */
+    0x7e00,         /* uint16_t chan_addr */                      /* parent channel address */
+    0,              /* uint32_t chan_fifo_in */                   /* fifo input index */
+    0,              /* uint32_t chan_fifo_out */                  /* fifo output index */
+    {0}             /* uint32_t chan_fifo[FIFO_SIZE] */           /* interrupt status fifo for channel */
 };
 
 DEVICE      lpr_dev = {
@@ -239,7 +240,7 @@ void lpr_ini(UNIT *uptr, bool f) {
 /* handle rschnlio cmds for lpr */
 t_stat  lpr_rschnlio(UNIT *uptr) {
     DEVICE  *dptr = get_dev(uptr);          /* get device pointer */
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & LPR_CMDMSK;
 
     sim_debug(DEBUG_EXP, dptr,
@@ -249,14 +250,14 @@ t_stat  lpr_rschnlio(UNIT *uptr) {
 }
 
 /* start a line printer operation */
-t_stat lpr_preio(UNIT *uptr, uint16 chan) {
+t_stat lpr_preio(UNIT *uptr, uint16_t chan) {
     /* Generic channel pre-I/O signature.
        This implementation does not use every parameter. */
     (void) chan;
 
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
 
     sim_debug(DEBUG_CMD, dptr, "lpr_preio CMD %08x unit %02x chsa %04x\n",
         uptr->CMD, unit, chsa);
@@ -272,7 +273,7 @@ t_stat lpr_preio(UNIT *uptr, uint16 chan) {
 }
 
 /* start an I/O operation */
-t_stat  lpr_startcmd(UNIT *uptr, uint16 chan, uint8 cmd)
+t_stat  lpr_startcmd(UNIT *uptr, uint16_t chan, uint8_t cmd)
 {
     DEVICE  *dptr = get_dev(uptr);          /* get device pointer */
 
@@ -360,7 +361,7 @@ t_stat lpr_srv(UNIT *uptr) {
 
     /* using IOP lp status bit assignments */
     if (cmd == 0x04) {                      /* sense? */
-        uint8 ch;                           /* get current status */
+        uint8_t ch;                         /* get current status */
         ch = (uptr->SNS >> 24) & 0xff;      /* Get status */
         ch &= ~SNS_BOF;                     /* remove BOF flag */
         if (chan_write_byte(chsa, &ch)) {   /* write byte 0 status to memory */
@@ -531,7 +532,7 @@ t_stat lpr_srv(UNIT *uptr) {
         sim_debug(DEBUG_DETAIL, dptr, "LPR %d %s\n", uptr->CNT, (char*)&lpr_data[u].lbuff);
         uptr->CMD &= ~(LPR_FULL|LPR_CMDMSK);    /* clear old status */
         uptr->CBP = 0;                      /* start at beginning of buffer */
-        if ((uint32)uptr->CNT >= uptr->capac) {  /* see if at max lines/page */
+        if ((uint32_t)uptr->CNT >= uptr->capac) { /* see if at max lines/page */
             uptr->CNT = 0;                  /* yes, restart count */
             uptr->SNS |= SNS_BOF;           /* set BOF for SENSE */
             sim_debug(DEBUG_CMD, dptr, "lpr_srv Got BOF\n");
@@ -555,7 +556,7 @@ t_stat lpr_srv(UNIT *uptr) {
 
 /* Handle haltio transfers for printer */
 t_stat  lpr_haltio(UNIT *uptr) {
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & LPR_CMDMSK;
     CHANP   *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
 
@@ -589,7 +590,7 @@ t_stat  lpr_haltio(UNIT *uptr) {
 }
 
 /* Set the number of lines per page on printer */
-t_stat lpr_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat lpr_setlpp(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -617,7 +618,7 @@ t_stat lpr_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 /* display the number of lines per page */
-t_stat lpr_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
+t_stat lpr_getlpp(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -634,7 +635,7 @@ t_stat lpr_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
 t_stat lpr_attach(UNIT *uptr, const char *file)
 {
     t_stat      r;
-    uint16      chsa = GET_UADDR(uptr->CMD);    /* get address of lpr device */
+    uint16_t    chsa = GET_UADDR(uptr->CMD);    /* get address of lpr device */
     CHANP       *chp = find_chanp_ptr(chsa);    /* get channel prog pointer */
     DEVICE      *dptr = get_dev(uptr);      /* get device pointer */
     DIB         *dibp = 0;
@@ -665,7 +666,7 @@ t_stat lpr_attach(UNIT *uptr, const char *file)
 }
 
 /* help information for lpr */
-t_stat lpr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat lpr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

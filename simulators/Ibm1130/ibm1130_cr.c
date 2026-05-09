@@ -1,9 +1,11 @@
 #include "ibm1130_defs.h"
 #include "ibm1130_fmt.h"
 #include "sim_tempfile.h"
+#include "sim_types.h"
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 /* ibm1130_cr.c: IBM 1130 1442 Card Reader simulator
 
    Based on the SIMH package written by Robert M Supnik
@@ -43,7 +45,7 @@
 
  *  Update 2004-06-05: Removed "feedcycle" from cr_reset. Reset should not touch the card reader.
 
- *  Update 2004-04-12: Changed ascii field of CPCODE to unsigned char, caught a couple
+ *  Update 2004-04-12: Changed ascii field of CPCODE to uchar_t, caught a couple
                        other potential problems with signed characters used as subscript indexes.
 
  *  Update 2003-11-25: Physical card reader support working, may not be perfect.
@@ -367,25 +369,25 @@ extern UNIT cpu_unit;
 
 static t_stat cr_svc      (UNIT *uptr);
 static t_stat cr_reset    (DEVICE *dptr);
-static t_stat cr_set_code (UNIT *uptr, int32 match, const char *cptr, void *desc);
+static t_stat cr_set_code (UNIT *uptr, int32_t match, const char *cptr, void *desc);
 static t_stat cr_attach   (UNIT *uptr, const char *cptr);
-static int32  guess_cr_code (void);
+static int32_t guess_cr_code (void);
 static void   feedcycle   (bool load, bool punching);
 
 static t_stat cp_reset    (DEVICE *dptr);
-static t_stat cp_set_code (UNIT *uptr, int32 match, const char *cptr, void *desc);
+static t_stat cp_set_code (UNIT *uptr, int32_t match, const char *cptr, void *desc);
 static t_stat cp_attach   (UNIT *uptr, const char *cptr);
 static t_stat cp_detach   (UNIT *uptr);
 
-static int16 cr_dsw  = 0;                                   /* device status word */
-static int32 cr_wait = READ_DELAY;                          /* read per-column wait */
-static int32 cr_wait2501 = READ_2501_DELAY;                 /* read card wait for 2501 reader */
-static int32 cf_wait = PUNCH_DELAY;                         /* punch per-column wait */
-static int32 cp_wait = FEED_DELAY;                          /* feed op wait */
-static int32 cr_count= 0;                                   /* read and punch card count */
-static int32 cp_count= 0;
-static int32 cr_addr = 0;                                   /* 2501 reader transfer address */
-static int32 cr_cols = 0;                                   /* 2501 reader column count */
+static int16_t cr_dsw  = 0;                                 /* device status word */
+static int32_t cr_wait = READ_DELAY;                        /* read per-column wait */
+static int32_t cr_wait2501 = READ_2501_DELAY;               /* read card wait for 2501 reader */
+static int32_t cf_wait = PUNCH_DELAY;                       /* punch per-column wait */
+static int32_t cp_wait = FEED_DELAY;                        /* feed op wait */
+static int32_t cr_count= 0;                                 /* read and punch card count */
+static int32_t cp_count= 0;
+static int32_t cr_addr = 0;                                 /* 2501 reader transfer address */
+static int32_t cr_cols = 0;                                 /* 2501 reader column count */
 
 #define UNIT_V_OPERATION   (UNIT_V_UF + 0)                  /* operation in progress */
 #define UNIT_V_CODE        (UNIT_V_UF + 2)                  /* three bits */
@@ -506,8 +508,8 @@ DEVICE cp_dev = {
 #define CR_DSW_2501_NOT_READY           0x0001
 
 typedef struct {
-    uint16 hollerith;
-    unsigned char ascii;
+    uint16_t hollerith;
+    uchar_t ascii;
 } CPCODE;
 
 static CPCODE cardcode_029[] =
@@ -558,7 +560,7 @@ static CPCODE cardcode_029[] =
     {0x0120,        '\''},
     {0x00A0,        '='},
     {0x0060,        '"'},
-    {0x8820,        (unsigned char) '\xA2'},    /* cent, in MS-DOS encoding (this is in guess_cr_code as well) */
+    {0x8820,        (uchar_t) '\xA2'},          /* cent, in MS-DOS encoding (this is in guess_cr_code as well) */
     {0x8420,        '.'},
     {0x8220,        '<'},       /* ) in 026 Fortran */
     {0x8120,        '('},
@@ -569,7 +571,7 @@ static CPCODE cardcode_029[] =
     {0x4220,        '*'},
     {0x4120,        ')'},
     {0x40A0,        ';'},
-    {0x4060,        (unsigned char) '\xAC'},    /* not, in MS-DOS encoding  (this is in guess_cr_code as well) */
+    {0x4060,        (uchar_t) '\xAC'},          /* not, in MS-DOS encoding  (this is in guess_cr_code as well) */
     {0x2420,        ','},
     {0x2220,        '%'},       /* ( in 026 Fortran */
     {0x2120,        '_'},
@@ -720,7 +722,7 @@ static CPCODE cardcode_026C[] =     /* 026 commercial */
     {0x2220,        '('},           /* if ASCII has (, treat like % */
 };
 
-static int16 ascii_to_card[256];
+static int16_t ascii_to_card[256];
 
 static CPCODE *cardcode;
 static size_t ncardcode;
@@ -735,8 +737,8 @@ static int list_nargs = 0;
 static const char* (*tab_proc)(char* str, int width) = NULL;        /* tab reformatting routine */
 static int tab_width = 8;
 
-static uint16 punchstation[80];
-static uint16 readstation[80];
+static uint16_t punchstation[80];
+static uint16_t readstation[80];
 static enum {STATION_EMPTY, STATION_LOADED, STATION_READ, STATION_PUNCHED} punchstate = STATION_EMPTY, readstate = STATION_EMPTY;
 
 static bool nextdeck (void);
@@ -778,7 +780,7 @@ bool program_is_loaded = false;
 
 /* lookup_codetable - use code flag setting to get code table pointer and length */
 
-static bool lookup_codetable (int32 match, CPCODE **pcode, size_t *pncode)
+static bool lookup_codetable (int32_t match, CPCODE **pcode, size_t *pncode)
 {
     switch (match) {
         case CODE_029:
@@ -830,7 +832,7 @@ static t_stat set_active_cr_code (int match)
     return SCPE_OK;
 }
 
-static t_stat cr_set_code (UNIT *uptr, int32 match, const char *cptr, void *desc)
+static t_stat cr_set_code (UNIT *uptr, int32_t match, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -844,13 +846,13 @@ static t_stat cr_set_code (UNIT *uptr, int32 match, const char *cptr, void *desc
     return set_active_cr_code(match);
 }
 
-static int32 guess_cr_code (void)
+static int32_t guess_cr_code (void)
 {
     int i;
     long filepos;
-    int32 guess;
+    int32_t guess;
     union {
-        uint16 w[80];               /* one card image, viewed as 80 short words */
+        uint16_t w[80];             /* one card image, viewed as 80 short words */
         char   c[160];              /* same, viewed as 160 characters */
     } line;
 
@@ -904,7 +906,7 @@ static int32 guess_cr_code (void)
     return guess;
 }
 
-static t_stat cp_set_code (UNIT *uptr, int32 match, const char *cptr, void *desc)
+static t_stat cp_set_code (UNIT *uptr, int32_t match, const char *cptr, void *desc)
 {
     CPCODE *code;
     size_t ncode;
@@ -924,14 +926,14 @@ static t_stat cp_set_code (UNIT *uptr, int32 match, const char *cptr, void *desc
     return SCPE_OK;
 }
 
-t_stat load_cr_boot (int32 drvno, int switches)
+t_stat load_cr_boot (int32_t drvno, int switches)
 {
     int i;
     const char *name;
     char msg[80];
     bool expand;
-    uint16 word, *boot;
-    static uint16 dms_boot_data[] = {               /* DMSV2M12, already expanded to 16 bits */
+    uint16_t word, *boot;
+    static uint16_t dms_boot_data[] = {             /* DMSV2M12, already expanded to 16 bits */
         0xc80a, 0x18c2, 0xd008, 0xc019, 0x8007, 0xd017, 0xc033, 0x100a,
         0xd031, 0x7015, 0x000c, 0xe800, 0x0020, 0x08f8, 0x4828, 0x7035,
         0x70fa, 0x4814, 0xf026, 0x2000, 0x8800, 0x9000, 0x9800, 0xa000,
@@ -943,7 +945,7 @@ t_stat load_cr_boot (int32 drvno, int switches)
         0x080d, 0x08c4, 0x1003, 0x4810, 0x70d9, 0x3000, 0x08df, 0x3000,
         0x7010, 0x00d1, 0x0028, 0x000a, 0x70f3, 0x0000, 0x00d0, 0xa0c0
     };
-    static uint16 apl_boot_data[] = {               /* APLIPL, already expanded */
+    static uint16_t apl_boot_data[] = {             /* APLIPL, already expanded */
         0x7021, 0x3000, 0x7038, 0xa0c0, 0x0002, 0x4808, 0x0003, 0x0026,
         0x0001, 0x0001, 0x000c, 0x0000, 0x0000, 0x0800, 0x48f8, 0x0027,
         0x7002, 0x08f2, 0x3800, 0xe0fe, 0x18cc, 0x100e, 0x10c1, 0x4802,
@@ -954,7 +956,7 @@ t_stat load_cr_boot (int32 drvno, int switches)
         0x70e7, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
         0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
         0x9000, 0x4004, 0x40c0, 0x8001, 0x4004, 0x40c0, 0x0000, 0x0000  };
-    static uint16 aplp_boot_data[] = {              /* APLIPL Privileged, already expanded */
+    static uint16_t aplp_boot_data[] = {            /* APLIPL Privileged, already expanded */
         0x7021, 0x3000, 0x7038, 0xa0c0, 0x0002, 0x4808, 0x0003, 0x0026,
         0x0001, 0x0001, 0x000c, 0x0000, 0x0000, 0x0800, 0x48f8, 0x0027,
         0x7002, 0x08f2, 0x3800, 0xe0fe, 0x18cc, 0x100e, 0x10c1, 0x4802,
@@ -1009,7 +1011,7 @@ t_stat load_cr_boot (int32 drvno, int switches)
     return SCPE_OK;
 }
 
-t_stat cr_boot (int32 unitno, DEVICE *dptr)
+t_stat cr_boot (int32_t unitno, DEVICE *dptr)
 {
     t_stat rval;
     int i;
@@ -1055,7 +1057,7 @@ t_stat cr_boot (int32 unitno, DEVICE *dptr)
     return SCPE_OK;
 }
 
-static char card_to_ascii (uint16 hol)
+static char card_to_ascii (uint16_t hol)
 {
     size_t i;
 
@@ -1068,7 +1070,7 @@ static char card_to_ascii (uint16 hol)
 
 /* hollerith_to_ascii - provide a generic conversion for simulator debugging  */
 
-char hollerith_to_ascii (uint16 hol)
+char hollerith_to_ascii (uint16_t hol)
 {
     size_t i;
 
@@ -1191,7 +1193,7 @@ again:      /* jump here if we've loaded a new deck after emptying the previous 
                 result = buf;
 
             for (i = 0; i < nread; i++)                 /* convert ascii to punch code */
-                readstation[i] = ascii_to_card[(unsigned char) result[i]];
+                readstation[i] = ascii_to_card[(uchar_t) result[i]];
 
             nread = 80;                                 /* even if line was blank consider it present */
         }
@@ -1569,7 +1571,7 @@ static t_stat cr_attach (UNIT *uptr, const char *iptr)
 {
     t_stat rval;
     bool use_decklist;
-    int32 old_quiet;
+    int32_t old_quiet;
     char gbuf[4*CBUFSIZE], *cptr = gbuf;
     char *c, *arg, quote;
 
@@ -1836,7 +1838,7 @@ static t_stat cr_svc (UNIT *uptr)
     return SCPE_OK;
 }
 
-void xio_2501_card (int32 addr, int32 func, int32 modify)
+void xio_2501_card (int32_t addr, int32_t func, int32_t modify)
 {
     char msg[80];
     int ch;
@@ -1924,11 +1926,11 @@ void xio_2501_card (int32 addr, int32 func, int32 modify)
     }
 }
 
-void xio_1442_card (int32 addr, int32 func, int32 modify)
+void xio_1442_card (int32_t addr, int32_t func, int32_t modify)
 {
     char msg[80];
     int ch;
-    uint16 wd;
+    uint16_t wd;
     bool lastcard;
 
     switch (func) {
@@ -2017,7 +2019,7 @@ void xio_1442_card (int32 addr, int32 func, int32 modify)
                     cp_unit.COLUMN = 81;
                 }
                 else if (cp_unit.COLUMN < 80) {
-                    wd = (uint16) ReadW(addr);          /* store one word to punch buffer */
+                    wd = (uint16_t) ReadW(addr);        /* store one word to punch buffer */
                     punchstation[cp_unit.COLUMN] = wd & 0xFFF0;
                     if (wd & 0x0008)            /* mark this as last column to be punched */
                         SETBIT(cp_unit.flags, UNIT_LASTPUNCH);

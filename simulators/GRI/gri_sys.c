@@ -31,6 +31,7 @@
 #include "gri_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
@@ -38,9 +39,9 @@ extern DEVICE tti_dev, tto_dev;
 extern DEVICE hsr_dev, hsp_dev;
 extern DEVICE rtc_dev;
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 
-void fprint_addr (FILE *of, uint32 val, uint32 mod, uint32 dst);
+void fprint_addr (FILE *of, uint32_t val, uint32_t mod, uint32_t dst);
 
 /* SCP data structures and interface routines
 
@@ -56,7 +57,7 @@ char sim_name[] = "GRI-909";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 2;
+int32_t sim_emax = 2;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -91,8 +92,8 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
 (void) fnam;
 (void) flag;
 
-int32 c;
-uint32 org;
+int32_t c;
+uint32_t org;
 t_stat r;
 char gbuf[CBUFSIZE];
 
@@ -164,13 +165,13 @@ return SCPE_OK;
 #define F_MS    (F_V_MS << F_V_FL)
 
 struct fnc_op {
-    uint32      inst;                                   /* instr prot */
-    uint32      imask;                                  /* instr mask */
-    uint32      oper;                                   /* operator */
-    uint32      omask;                                  /* oper mask */
+    uint32_t    inst;                                   /* instr prot */
+    uint32_t    imask;                                  /* instr mask */
+    uint32_t    oper;                                   /* operator */
+    uint32_t    omask;                                  /* oper mask */
     };
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
     0176000, 0176077, 0000077, 0176077,
     0000300, 0176300, 0000300, 0177777,
     0000077, 0177777, 0000377, 0176377,
@@ -206,7 +207,7 @@ static const char *opcode[] = {
  NULL
  };
 
-static const uint32 opc_val[] = {
+static const uint32_t opc_val[] = {
  0004000+F_FOI, 0004013+F_FOI, 0004004+F_FOI, 0004000+F_FO,
  0000002+F_SFI, 0026002+F_SFI, 0010002+F_SFI, 0000002+F_SF,
  0000006+F_ZM, 0000106+F_ZM, 0000206+F_ZM, 0000306+F_ZM,
@@ -296,9 +297,9 @@ static const struct fnc_op fop[] = {
 
 /* Print opcode field for FO, SF */
 
-static void fprint_op (FILE *of, uint32 inst, uint32 op)
+static void fprint_op (FILE *of, uint32_t inst, uint32_t op)
 {
-int32 i, nfirst;
+int32_t i, nfirst;
 
 for (i = nfirst = 0; fname[i] != NULL; i++) {
     if (((inst & fop[i].imask) == fop[i].inst) &&
@@ -317,7 +318,7 @@ return;
 
 /* Print address field with potential indexing */
 
-void fprint_addr (FILE *of, uint32 val, uint32 mode, uint32 dst)
+void fprint_addr (FILE *of, uint32_t val, uint32_t mode, uint32_t dst)
 {
 if ((val & INDEX) &&
     ((dst == U_SC) || (mode != MEM_IMM)))
@@ -341,15 +342,15 @@ return;
 #define FMTASC(x) ((x) < 040)? "<%03o>": "%c", (x)
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
 (void) addr;
 (void) uptr;
 
-int32 i, j;
-uint32 inst, src, dst, op, bop;
+int32_t i, j;
+uint32_t inst, src, dst, op, bop;
 
 inst = val[0];
 if (sw & SWMASK ('A')) {                                /* ASCII? */
@@ -482,11 +483,11 @@ return SCPE_ARG;
 static const char *get_fnc (const char *cptr, t_value *val)
 {
 char gbuf[CBUFSIZE];
-int32 i;
+int32_t i;
 t_value d;
 t_stat r;
-uint32 inst = val[0];
-uint32 fncv = 0, fncm = 0;
+uint32_t inst = val[0];
+uint32_t fncv = 0, fncm = 0;
 
 while (*cptr) {
     cptr = get_glyph (cptr, gbuf, 0);                   /* get glyph */
@@ -535,7 +536,7 @@ return cptr;
 static const char *get_sd (const char *cptr, t_value *val, char term, bool src)
 {
 char gbuf[CBUFSIZE];
-int32 d;
+int32_t d;
 t_stat r;
 
 cptr = get_glyph (cptr, gbuf, term);                    /* get glyph */
@@ -557,7 +558,7 @@ static const char *get_op (const char *cptr, t_value *val, char term)
 {
 char gbuf[CBUFSIZE];
 const char *tptr;
-int32 i;
+int32_t i;
 
 tptr = get_glyph (cptr, gbuf, term);                    /* get glyph */
 for (i = 1; i < 4; i++) {                               /* symbol match? */
@@ -581,14 +582,14 @@ return cptr;                                            /* original ptr */
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */
 (void) addr;
 (void) uptr;
 
-int32 i, j, k;
+int32_t i, j, k;
 char gbuf[CBUFSIZE];
 
 while (isspace (*cptr)) cptr++;                         /* absorb spaces */

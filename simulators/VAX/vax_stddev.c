@@ -76,6 +76,8 @@
    30-Apr-02    RMS     Automatically set TODR to VMS-correct value during boot
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_tmxr.h"
 
@@ -92,21 +94,21 @@
 #define CLK_DELAY       5000                            /* 100 Hz */
 #define TMXR_MULT       1                               /* 100 Hz */
 
-int32 tti_csr = 0;                                      /* control/status */
-uint32 tti_buftime;                                     /* time input character arrived */
-int32 tto_csr = 0;                                      /* control/status */
-int32 clk_csr = 0;                                      /* control/status */
-int32 clk_tps = 100;                                    /* ticks/second */
-int32 todr_reg = 0;                                     /* TODR register */
-int32 todr_blow = 1;                                    /* TODR battery low */
+int32_t tti_csr = 0;                                    /* control/status */
+uint32_t tti_buftime;                                   /* time input character arrived */
+int32_t tto_csr = 0;                                    /* control/status */
+int32_t clk_csr = 0;                                    /* control/status */
+int32_t clk_tps = 100;                                  /* ticks/second */
+int32_t todr_reg = 0;                                   /* TODR register */
+int32_t todr_blow = 1;                                  /* TODR battery low */
 struct todr_battery_info {
-    uint32 toy_gmtbase;                                 /* GMT base of set value */
-    uint32 toy_gmtbasemsec;                             /* The milliseconds of the set value */
-    uint32 toy_endian_plus2;                            /* 2 -> Big Endian, 3 -> Little Endian, invalid otherwise */
+    uint32_t toy_gmtbase;                               /* GMT base of set value */
+    uint32_t toy_gmtbasemsec;                           /* The milliseconds of the set value */
+    uint32_t toy_endian_plus2;                          /* 2 -> Big Endian, 3 -> Little Endian, invalid otherwise */
     };
 typedef struct todr_battery_info TOY;
-int32 tmxr_poll = CLK_DELAY * TMXR_MULT;                /* term mux poll */
-int32 tmr_poll = CLK_DELAY;                             /* pgm timer poll */
+int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
+int32_t tmr_poll = CLK_DELAY;                           /* pgm timer poll */
 
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
@@ -120,12 +122,12 @@ t_stat todr_resync (void);
 const char *tti_description (DEVICE *dptr);
 const char *tto_description (DEVICE *dptr);
 const char *clk_description (DEVICE *dptr);
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 
-extern int32 sysd_hlt_enb (void);
-extern uint32 fault_PC;
+extern int32_t sysd_hlt_enb (void);
+extern uint32_t fault_PC;
 
 /* TTI data structures
 
@@ -267,19 +269,19 @@ DEVICE clk_dev = {
    txdb_wr      output buffer
 */
 
-int32 iccs_rd (void)
+int32_t iccs_rd (void)
 {
 return (clk_csr & CLKCSR_IMP);
 }
 
-int32 rxcs_rd (void)
+int32_t rxcs_rd (void)
 {
 return (tti_csr & TTICSR_IMP);
 }
 
-int32 rxdb_rd (void)
+int32_t rxdb_rd (void)
 {
-int32 t = tti_unit.buf;                                 /* char + error */
+int32_t t = tti_unit.buf;                               /* char + error */
 
 if (tti_csr & CSR_DONE) {                               /* Input pending ? */
     tti_csr = tti_csr & ~CSR_DONE;                      /* clr done */
@@ -290,12 +292,12 @@ if (tti_csr & CSR_DONE) {                               /* Input pending ? */
 return t;
 }
 
-int32 txcs_rd (void)
+int32_t txcs_rd (void)
 {
 return (tto_csr & TTOCSR_IMP);
 }
 
-void iccs_wr (int32 data)
+void iccs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CLR_INT (CLK);
@@ -305,7 +307,7 @@ clk_csr = (clk_csr & ~CLKCSR_RW) | (data & CLKCSR_RW);
 return;
 }
 
-void rxcs_wr (int32 data)
+void rxcs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CLR_INT (TTI);
@@ -315,7 +317,7 @@ tti_csr = (tti_csr & ~TTICSR_RW) | (data & TTICSR_RW);
 return;
 }
 
-void txcs_wr (int32 data)
+void txcs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CLR_INT (TTO);
@@ -325,7 +327,7 @@ tto_csr = (tto_csr & ~TTOCSR_RW) | (data & TTOCSR_RW);
 return;
 }
 
-void txdb_wr (int32 data)
+void txdb_wr (int32_t data)
 {
 tto_unit.buf = data & 0377;
 tto_csr = tto_csr & ~CSR_DONE;
@@ -342,7 +344,7 @@ return;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 sim_clock_coschedule_tmr (uptr, TMR_CLK, TMXR_MULT);    /* continue poll */
 
@@ -379,7 +381,7 @@ sim_activate (&tti_unit, tmr_poll);
 return SCPE_OK;
 }
 
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -417,7 +419,7 @@ return "console terminal input";
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 t_stat r;
 
 c = sim_tt_outcvt (tto_unit.buf, TT_GET_MODE (uptr->flags));
@@ -447,7 +449,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -486,7 +488,7 @@ t_stat clk_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 t;
+int32_t t;
 
 if (clk_csr & CSR_IE)
     SET_INT (CLK);
@@ -500,7 +502,7 @@ AIO_SET_INTERRUPT_LATENCY(tmr_poll*clk_tps);            /* set interrrupt latenc
 return SCPE_OK;
 }
 
-int32 todr_rd (void)
+int32_t todr_rd (void)
 {
 TOY *toy = (TOY *)clk_unit.filebuf;
 struct timespec base, now, val;
@@ -529,12 +531,12 @@ if (val.tv_sec >= TOY_MAX_SECS) {                       /* todr overflowed? */
     return todr_reg = 0;                                /* stop counting */
     }
 
-sim_debug (DBG_REG, &clk_dev, "todr_rd() - TODR=0x%X\n", (int32)(val.tv_sec*100 + val.tv_nsec/10000000));
-return (int32)(val.tv_sec*100 + (val.tv_nsec + 5000000)/10000000);  /* 100hz Clock rounded Ticks */
+sim_debug (DBG_REG, &clk_dev, "todr_rd() - TODR=0x%X\n", (int32_t)(val.tv_sec*100 + val.tv_nsec/10000000));
+return (int32_t)(val.tv_sec*100 + (val.tv_nsec + 5000000)/10000000); /* 100hz Clock rounded Ticks */
 }
 
 
-void todr_wr (int32 data)
+void todr_wr (int32_t data)
 {
 TOY *toy = (TOY *)clk_unit.filebuf;
 struct timespec now, val, base;
@@ -545,10 +547,10 @@ if (data) {
        future read operations in "battery backed-up" state */
 
     sim_rtcn_get_time(&now, TMR_CLK);                       /* get curr time */
-    val.tv_sec = ((uint32)data) / 100;
-    val.tv_nsec = (((uint32)data) % 100) * 10000000;
+    val.tv_sec = ((uint32_t)data) / 100;
+    val.tv_nsec = (((uint32_t)data) % 100) * 10000000;
     sim_timespec_diff (&base, &now, &val);                  /* base = now - data */
-    toy->toy_gmtbase = (uint32)base.tv_sec;
+    toy->toy_gmtbase = (uint32_t)base.tv_sec;
     toy->toy_gmtbasemsec = (base.tv_nsec + 500000)/1000000;
     }
 else {                                                      /* stop the clock */
@@ -575,7 +577,7 @@ if (clk_unit.flags & UNIT_ATT) {                        /* Attached means behave
         todr_wr (0);                                    /* Start ticking from 0 */
     }
 else {                                                  /* Not-Attached means */
-    uint32 base;                                        /* behave like simh VMS default */
+    uint32_t base;                                      /* behave like simh VMS default */
     time_t curr;
     struct tm *ctm;
     struct timespec now;
@@ -592,7 +594,7 @@ else {                                                  /* Not-Attached means */
             ctm->tm_min) * 60) +
             ctm->tm_sec;
     todr_wr ((base * 100) + 0x10000000 +                /* use VMS form */
-             (int32)((now.tv_nsec + 5000000)/ 10000000));
+             (int32_t)((now.tv_nsec + 5000000)/ 10000000));
     }
 return SCPE_OK;
 }
@@ -605,7 +607,7 @@ t_stat clk_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 t;
+int32_t t;
 
 clk_csr = 0;
 CLR_INT (CLK);
@@ -624,7 +626,7 @@ if (clk_unit.filebuf == NULL) {                         /* make sure the TODR is
 return SCPE_OK;
 }
 
-t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -676,10 +678,10 @@ const char *clk_description (DEVICE *dptr)
 return "time of year clock";
 }
 
-static uint32 sim_byteswap32 (uint32 data)
+static uint32_t sim_byteswap32 (uint32_t data)
 {
-uint8 *bdata = (uint8 *)&data;
-uint8 tmp;
+uint8_t *bdata = (uint8_t *)&data;
+uint8_t tmp;
 
 tmp = bdata[0];
 bdata[0] = bdata[3];
@@ -703,9 +705,9 @@ if (r != SCPE_OK)
     uptr->flags = uptr->flags & ~(UNIT_ATTABLE | UNIT_BUFABLE);
 else {
     TOY *toy = (TOY *)uptr->filebuf;
-    const uint32 sim_endian_plus2 = sim_end ? 3 : 2;
+    const uint32_t sim_endian_plus2 = sim_end ? 3 : 2;
 
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     if ((toy->toy_endian_plus2 < 2) || (toy->toy_endian_plus2 > 3))
         memset (uptr->filebuf, 0, (size_t)uptr->capac);
     else {

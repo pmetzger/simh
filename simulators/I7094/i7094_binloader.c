@@ -86,10 +86,12 @@
 ***********************************************************************/
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7094_defs.h"
 
-extern t_uint64 *M;
-extern uint32 PC;
+extern uint64_t *M;
+extern uint32_t PC;
 
 t_stat
 binloader (FILE *fd, const char *file, int loadpt)
@@ -130,7 +132,7 @@ binloader (FILE *fd, const char *file, int loadpt)
       {
         char otag;
         char item[16];
-        t_uint64 ldata;
+        uint64_t ldata;
 
         otag = *op++;
         if (otag == ' ')
@@ -152,15 +154,15 @@ binloader (FILE *fd, const char *file, int loadpt)
             break;
 
         case ABSORG_TAG:
-            curraddr = loadaddr = (int32) ldata & AMASK;
+            curraddr = loadaddr = (int32_t) ldata & AMASK;
             break;
 
         case RELORG_TAG:
-            curraddr = (int32) (ldata + loadaddr) & AMASK;
+            curraddr = (int32_t) (ldata + loadaddr) & AMASK;
             break;
 
         case BSS_TAG:
-            curraddr = (int32) (curraddr + ldata) & AMASK;
+            curraddr = (int32_t) (curraddr + ldata) & AMASK;
             break;
 
         case RELBOTH_TAG:
@@ -187,7 +189,7 @@ binloader (FILE *fd, const char *file, int loadpt)
             transfer = true;
             /* fall through */
         case ABSENTRY_TAG:
-            PC = (uint32) ldata & AMASK;
+            PC = (uint32_t) ldata & AMASK;
 #ifdef DEBUGLOADER
             fprintf (lfd, "   PC = %05o\n", PC);
 #endif
@@ -200,7 +202,7 @@ binloader (FILE *fd, const char *file, int loadpt)
             /* fall through */
         case RELENTRY_TAG:
             ldata = (ldata + loadaddr) & AMASK;
-            PC = (uint32) ldata & AMASK;
+            PC = (uint32_t) ldata & AMASK;
 #ifdef DEBUGLOADER
             fprintf (lfd, "   PC = %05o\n", PC);
 #endif

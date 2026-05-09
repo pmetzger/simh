@@ -32,9 +32,11 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "m68k_cpu.h"
 
-t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -44,7 +46,7 @@ t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
     DEVICE* dptr;
     PNP_INFO* pnp;
     t_stat rc;
-    uint16 newbase;
+    uint16_t newbase;
 
     if (!cptr) return SCPE_ARG;
     if (!uptr) return SCPE_IERR;
@@ -67,7 +69,7 @@ t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -85,7 +87,7 @@ t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat m68k_set_cpu(UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat m68k_set_cpu(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -101,7 +103,7 @@ t_stat m68k_set_cpu(UNIT *uptr, int32 value, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat m68k_show_cpu(FILE* st,UNIT *uptr, int32 value, const void *desc)
+t_stat m68k_show_cpu(FILE* st,UNIT *uptr, int32_t value, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -115,13 +117,13 @@ t_stat m68k_show_cpu(FILE* st,UNIT *uptr, int32 value, const void *desc)
 t_stat m68k_alloc_mem(void)
 {
     if (M == NULL)
-        M = (uint8*)calloc(MEMORYSIZE, 1);
+        M = (uint8_t*)calloc(MEMORYSIZE, 1);
     else
-        M = (uint8*)realloc(M, MEMORYSIZE);
+        M = (uint8_t*)realloc(M, MEMORYSIZE);
     return M == NULL ? SCPE_MEM : SCPE_OK;
 }
 
-t_stat m68k_set_size(UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat m68k_set_size(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -134,7 +136,7 @@ t_stat m68k_set_size(UNIT *uptr, int32 value, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat m68k_set_fpu(UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat m68k_set_fpu(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -144,18 +146,7 @@ t_stat m68k_set_fpu(UNIT *uptr, int32 value, const char *cptr, void *desc)
     uptr->flags |= value;
     return SCPE_OK;
 }
-t_stat m68k_set_nofpu(UNIT *uptr, int32 value, const char *cptr, void *desc)
-{
-    /* Generic set modifier signature.
-       This implementation does not use every parameter. */
-    (void) cptr;
-    (void) desc;
-
-    uptr->flags |= value;
-    return SCPE_OK;
-}
-
-t_stat m68kcpu_set_flag(UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat m68k_set_nofpu(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -166,7 +157,18 @@ t_stat m68kcpu_set_flag(UNIT *uptr, int32 value, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat m68kcpu_set_noflag(UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat m68kcpu_set_flag(UNIT *uptr, int32_t value, const char *cptr, void *desc)
+{
+    /* Generic set modifier signature.
+       This implementation does not use every parameter. */
+    (void) cptr;
+    (void) desc;
+
+    uptr->flags |= value;
+    return SCPE_OK;
+}
+
+t_stat m68kcpu_set_noflag(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -178,19 +180,19 @@ t_stat m68kcpu_set_noflag(UNIT *uptr, int32 value, const char *cptr, void *desc)
 }
 
 
-t_stat m68kcpu_ex(t_value* eval_array, t_addr addr, UNIT* uptr, int32 sw)
+t_stat m68kcpu_ex(t_value* eval_array, t_addr addr, UNIT* uptr, int32_t sw)
 {
     /* Generic examine signature.
        This implementation does not use every parameter. */
     (void) uptr;
 
-    uint32 val = 0;
+    uint32_t val = 0;
     t_stat rc = (sw & SWMASK('V')) ? ReadVW(addr,&val) : ReadPW(addr,&val);
     if (rc==SCPE_OK) *eval_array = val;
     return rc;
 }
 
-t_stat m68kcpu_dep(t_value value, t_addr addr, UNIT* uptr, int32 sw)
+t_stat m68kcpu_dep(t_value value, t_addr addr, UNIT* uptr, int32_t sw)
 {
     /* Generic deposit signature.
        This implementation does not use every parameter. */
@@ -292,16 +294,16 @@ t_stat sim_load(FILE* fptr, const char* cptr, const char* fnam, int flag)
     (void)fnam;
 
     int i,len,rc;
-    uint16 data;
-    uint8 s;
-    int32 addr = saved_PC;
+    uint16_t data;
+    uint8_t s;
+    int32_t addr = saved_PC;
 
     /* no dump */
     if (*cptr != 0 || flag != 0) return SCPE_ARG;
 
     /* check whether Motorola S-Record format was presented */
     fseek(fptr,0L,SEEK_SET);
-    if (fread(&s,sizeof(uint8),1,fptr) == 1) {
+    if (fread(&s,sizeof(uint8_t),1,fptr) == 1) {
         if (s == 'S') {
             /* asssume S record format */
             if (m68k_sread(fptr) == SCPE_OK) return SCPE_OK;
@@ -315,7 +317,7 @@ t_stat sim_load(FILE* fptr, const char* cptr, const char* fnam, int flag)
 
     fseek(fptr,0L,SEEK_SET);
     for (i=0; i<len; i+=2) {
-        if (fread(&data,sizeof(uint16),1,fptr) != 1) return SCPE_FMT;
+        if (fread(&data,sizeof(uint16_t),1,fptr) != 1) return SCPE_FMT;
         if ((rc=WritePW(addr,data)) != SCPE_OK) return rc;
         addr += 2;
     }
@@ -377,7 +379,7 @@ static t_stat _fsymea(FILE* of,t_addr addr,int ea, int oplen,t_value* rest)
         return -2;
     case 070:
         switch (eareg) {
-        case '0': fprintf(of,"($%x).w",(uint32)((uint16)offw)); return -2;
+        case '0': fprintf(of,"($%x).w",(uint32_t)((uint16_t)offw)); return -2;
         case '1':
             if (offw)
                 fprintf(of,"($%x%04x).l",offw,offw2);
@@ -771,7 +773,7 @@ static t_stat _fsym7(FILE* of,t_value inst,t_addr addr,t_value* rest)
     int reg9 = REG9_CHAR(inst);
     switch (inst & 000400) {
     case 000000:
-        fprintf(of,"moveq #$%x,d%c",(int32)((int8)(inst&0xff)),reg9); return -1;
+        fprintf(of,"moveq #$%x,d%c",(int32_t)((int8_t)(inst&0xff)),reg9); return -1;
     default:
         return SCPE_ARG;
     }
@@ -1024,13 +1026,13 @@ static t_stat _fsymf(FILE* of,t_value inst,t_addr addr,t_value* rest)
     fprintf(of,"trapf #$%x",inst&0xfff); return -1;
 }
 
-t_stat fprint_sym(FILE* of, t_addr addr, t_value* val, UNIT* uptr, int32 sw)
+t_stat fprint_sym(FILE* of, t_addr addr, t_value* val, UNIT* uptr, int32_t sw)
 {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
     (void)uptr;
 
-    int32 c1, c2, inst;
+    int32_t c1, c2, inst;
 
     c1 = (val[0] >> 8) & 0177;
     c2 = val[0] & 0177;

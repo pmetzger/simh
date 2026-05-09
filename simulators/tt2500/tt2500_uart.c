@@ -24,8 +24,11 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
-#include "tt2500_defs.h"
+#include <stdint.h>
+
 #include "sim_tmxr.h"
+#include "sim_types.h"
+#include "tt2500_defs.h"
 
 /* Debug */
 #define DBG_TX          0001
@@ -36,7 +39,7 @@
 #define UART_TYPE     (3 << TTUF_V_UF)  /* File or port. */
 #define UART_REVERSE  (4 << TTUF_V_UF)  /* Transmit bits in reverse order. */
 
-static uint16 RBUF, TBUF;
+static uint16_t RBUF, TBUF;
 
 /* Function declaration. */
 static t_stat uart_r_svc (UNIT *uptr);
@@ -44,8 +47,8 @@ static t_stat uart_t_svc (UNIT *uptr);
 static t_stat uart_reset (DEVICE *dptr);
 static t_stat uart_attach (UNIT *uptr, const char *cptr);
 static t_stat uart_detach (UNIT *uptr);
-static uint16 uart_read (uint16);
-static void uart_write (uint16, uint16);
+static uint16_t uart_read (uint16_t);
+static void uart_write (uint16_t, uint16_t);
 
 static TMLN uart_ldsc = { 0 };
 static TMXR uart_desc = { 1, 0, 0, &uart_ldsc };
@@ -105,13 +108,13 @@ DEVICE uart_dev = {
 static t_stat
 uart_r_svc(UNIT *uptr)
 {
-  int32 ch;
+  int32_t ch;
 
   if ((uptr->flags & UNIT_ATT) == 0)
     return SCPE_OK;
 
   if (uptr->fileref != NULL) {
-    unsigned char buf;
+    uchar_t buf;
     if (sim_fread (&buf, 1, 1, uptr->fileref) == 1) {
       sim_debug (DBG_RX, &uart_dev, "Received character %03o (%c)\n", buf, isprint(buf) ? buf : ' ');
       RBUF = buf;
@@ -128,7 +131,7 @@ uart_r_svc(UNIT *uptr)
     }
     sim_activate_after (uptr, 200);
   } else {
-    int32 ln = tmxr_poll_conn (&uart_desc);
+    int32_t ln = tmxr_poll_conn (&uart_desc);
     if (ln >= 0) {
       uart_ldsc.rcve = 1;
       sim_debug (DBG_RX, &uart_dev, "Connect\n");
@@ -148,7 +151,7 @@ uart_t_svc(UNIT *uptr)
      This implementation does not use every parameter. */
   (void) uptr;
 
-  int32 ch;
+  int32_t ch;
 
   tmxr_poll_tx (&uart_desc);
 
@@ -211,7 +214,7 @@ uart_detach (UNIT *uptr)
   return detach_unit (uptr);
 }
 
-static uint16 uart_read (uint16 reg)
+static uint16_t uart_read (uint16_t reg)
 {
   /* Generic TTDEV read signature.
      This implementation does not use every parameter. */
@@ -223,9 +226,9 @@ static uint16 uart_read (uint16 reg)
   return RBUF;
 }
 
-static uint16 reverse (uint16 data)
+static uint16_t reverse (uint16_t data)
 {
-  uint16 i, x = 0;
+  uint16_t i, x = 0;
   for (i = 1; i <= 0200; i <<= 1) {
     x <<= 1;
     if (data & i)
@@ -234,7 +237,7 @@ static uint16 reverse (uint16 data)
   return x;
 }
 
-static void uart_write (uint16 reg, uint16 data)
+static void uart_write (uint16_t reg, uint16_t data)
 {
   /* Generic TTDEV write signature.
      This implementation does not use every parameter. */

@@ -43,6 +43,8 @@
 #include "pdp11_defs.h"
 #endif
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
@@ -80,37 +82,37 @@
 #define DLOCSR_RD       (CSR_DONE|CSR_IE|DLOCSR_MNT|DLOCSR_XBR)
 #define DLOCSR_WR       (CSR_IE|DLOCSR_MNT|DLOCSR_XBR)
 
-extern int32 tmxr_poll;
+extern int32_t tmxr_poll;
 
-uint16 dli_csr[DLX_LINES] = { 0 };                      /* control/status */
-uint16 dli_buf[DLX_LINES] = { 0 };
-uint32 dli_buftime[DLX_LINES] = { 0 };
-uint32 dli_ireq[2] = { 0, 0};
-uint16 dlo_csr[DLX_LINES] = { 0 };                      /* control/status */
-uint8 dlo_buf[DLX_LINES] = { 0 };
-uint32 dlo_ireq = 0;
+uint16_t dli_csr[DLX_LINES] = { 0 };                    /* control/status */
+uint16_t dli_buf[DLX_LINES] = { 0 };
+uint32_t dli_buftime[DLX_LINES] = { 0 };
+uint32_t dli_ireq[2] = { 0, 0};
+uint16_t dlo_csr[DLX_LINES] = { 0 };                    /* control/status */
+uint8_t dlo_buf[DLX_LINES] = { 0 };
+uint32_t dlo_ireq = 0;
 TMLN dlx_ldsc[DLX_LINES] = { {0} };                     /* line descriptors */
 TMXR dlx_desc = { DLX_LINES, 0, 0, dlx_ldsc };          /* mux descriptor */
 
-t_stat dlx_rd (int32 *data, int32 PA, int32 access);
-t_stat dlx_wr (int32 data, int32 PA, int32 access);
+t_stat dlx_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat dlx_wr (int32_t data, int32_t PA, int32_t access);
 t_stat dlx_reset (DEVICE *dptr);
 t_stat dli_svc (UNIT *uptr);
 t_stat dlo_svc (UNIT *uptr);
 t_stat dlx_attach (UNIT *uptr, const char *cptr);
 t_stat dlx_detach (UNIT *uptr);
-t_stat dlx_set_lines (UNIT *uptr, int32 val, const char *cptr, void *desc);
-void dlx_enbdis (int32 dis);
-void dli_clr_int (int32 ln, uint32 wd);
-void dli_set_int (int32 ln, uint32 wd);
-int32 dli_iack (void);
-void dlo_clr_int (int32 ln);
-void dlo_set_int (int32 ln);
-int32 dlo_iack (void);
-void dlx_reset_ln (int32 ln);
-t_stat dl_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dl_show_mode (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat dlx_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat dlx_set_lines (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void dlx_enbdis (int32_t dis);
+void dli_clr_int (int32_t ln, uint32_t wd);
+void dli_set_int (int32_t ln, uint32_t wd);
+int32_t dli_iack (void);
+void dlo_clr_int (int32_t ln);
+void dlo_set_int (int32_t ln);
+int32_t dlo_iack (void);
+void dlx_reset_ln (int32_t ln);
+t_stat dl_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dl_show_mode (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat dlx_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *dlx_description (DEVICE *dptr);
 
 /* DLI data structures
@@ -254,9 +256,9 @@ static const char *dl_regs[] =
 
 /* Terminal input routines */
 
-t_stat dlx_rd (int32 *data, int32 PA, int32 access)
+t_stat dlx_rd (int32_t *data, int32_t PA, int32_t access)
 {
-int32 ln = ((PA - dli_dib.ba) >> 3);
+int32_t ln = ((PA - dli_dib.ba) >> 3);
 
 if (ln > DLX_MAXMUX)                                    /* validate line number */
     return SCPE_IERR;
@@ -296,9 +298,9 @@ sim_debug(DBG_REG, &dli_dev, "dlx_rd(PA=0x%08X [%s], access=%d, data=0x%X)\n", P
 return SCPE_OK;
 }
 
-t_stat dlx_wr (int32 data, int32 PA, int32 access)
+t_stat dlx_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 ln = ((PA - dli_dib.ba) >> 3);
+int32_t ln = ((PA - dli_dib.ba) >> 3);
 TMLN *lp = &dlx_ldsc[ln];
 
 if (ln > DLX_MAXMUX)                                    /* validate line number */
@@ -341,9 +343,9 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
                                                         /* clr CDT,RNG,CTS */
                     }                                   /* end DTR 1->0 */
                 }                                       /* end DTR chg */
-            dli_csr[ln] = (uint16) ((dli_csr[ln] & ~DLICSR_WR_M) | (data & DLICSR_WR_M));
+            dli_csr[ln] = (uint16_t) ((dli_csr[ln] & ~DLICSR_WR_M) | (data & DLICSR_WR_M));
             }                                           /* end modem */
-        dli_csr[ln] = (uint16) ((dli_csr[ln] & ~DLICSR_WR) | (data & DLICSR_WR));
+        dli_csr[ln] = (uint16_t) ((dli_csr[ln] & ~DLICSR_WR) | (data & DLICSR_WR));
         return SCPE_OK;
 
     case 01:                                            /* tti buf */
@@ -356,7 +358,7 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
             dlo_clr_int (ln);
         else if ((dlo_csr[ln] & (CSR_DONE + CSR_IE)) == CSR_DONE)
             dlo_set_int (ln);
-        dlo_csr[ln] = (uint16) ((dlo_csr[ln] & ~DLOCSR_WR) | (data & DLOCSR_WR));
+        dlo_csr[ln] = (uint16_t) ((dlo_csr[ln] & ~DLOCSR_WR) | (data & DLOCSR_WR));
         return SCPE_OK;
 
     case 03:                                            /* tto buf */
@@ -375,7 +377,7 @@ return SCPE_NXM;
 
 t_stat dli_svc (UNIT *uptr)
 {
-int32 ln, c, temp;
+int32_t ln, c, temp;
 
 sim_debug(DBG_TRC, &dli_dev, "dli_svc()\n");
 
@@ -407,7 +409,7 @@ for (ln = 0; ln < DLX_LINES; ln++) {                    /* loop thru lines */
             else dli_csr[ln] |= CSR_DONE;
             if (dli_csr[ln] & CSR_IE)
                 dli_set_int (ln, DLI_RCI);
-            dli_buf[ln] = (uint16)c;
+            dli_buf[ln] = (uint16_t)c;
             dli_buftime[ln] = sim_os_msec ();
             }
         }
@@ -429,8 +431,8 @@ return sim_clock_coschedule (uptr, tmxr_poll);          /* continue poll */
 
 t_stat dlo_svc (UNIT *uptr)
 {
-int32 c;
-int32 ln = uptr - dlo_unit;                             /* line # */
+int32_t c;
+int32_t ln = uptr - dlo_unit;                           /* line # */
 
 sim_debug(DBG_TRC, &dlo_dev, "dlo_svc()\n");
 
@@ -456,7 +458,7 @@ return SCPE_OK;
 
 /* Interrupt routines */
 
-void dli_clr_int (int32 ln, uint32 wd)
+void dli_clr_int (int32_t ln, uint32_t wd)
 {
 sim_debug(DBG_INT, &dli_dev, "dli_clr_int(dl=%d, wd=%d)\n", ln, wd);
 
@@ -467,7 +469,7 @@ else SET_INT (DLI);                                     /* no, set intr */
 return;
 }
 
-void dli_set_int (int32 ln, uint32 wd)
+void dli_set_int (int32_t ln, uint32_t wd)
 {
 sim_debug(DBG_INT, &dli_dev, "dli_set_int(dl=%d, wd=%d)\n", ln, wd);
 
@@ -476,9 +478,9 @@ SET_INT (DLI);                                          /* set master intr */
 return;
 }
 
-int32 dli_iack (void)
+int32_t dli_iack (void)
 {
-int32 ln;
+int32_t ln;
 
 for (ln = 0; ln < DLX_LINES; ln++) {                    /* find 1st line */
     if ((dli_ireq[DLI_RCI] | dli_ireq[DLI_DSI]) & (1 << ln)) {
@@ -491,7 +493,7 @@ for (ln = 0; ln < DLX_LINES; ln++) {                    /* find 1st line */
 return 0;
 }
 
-void dlo_clr_int (int32 ln)
+void dlo_clr_int (int32_t ln)
 {
 sim_debug(DBG_INT, &dlo_dev, "dlo_clr_int(dl=%d)\n", ln);
 
@@ -502,7 +504,7 @@ else SET_INT (DLO);                                     /* no, set intr */
 return;
 }
 
-void dlo_set_int (int32 ln)
+void dlo_set_int (int32_t ln)
 {
 sim_debug(DBG_INT, &dlo_dev, "dlo_set_int(dl=%d)\n", ln);
 
@@ -511,9 +513,9 @@ SET_INT (DLO);                                          /* set master intr */
 return;
 }
 
-int32 dlo_iack (void)
+int32_t dlo_iack (void)
 {
-int32 ln;
+int32_t ln;
 
 for (ln = 0; ln < DLX_LINES; ln++) {                    /* find 1st line */
     if (dlo_ireq & (1 << ln)) {
@@ -529,7 +531,7 @@ return 0;
 
 t_stat dlx_reset (DEVICE *dptr)
 {
-int32 ln;
+int32_t ln;
 
 sim_debug(DBG_TRC, dptr, "dlx_reset()\n");
 
@@ -544,7 +546,7 @@ return auto_config (dli_dev.name, dlx_desc.lines);      /* auto config */
 
 /* Reset individual line */
 
-void dlx_reset_ln (int32 ln)
+void dlx_reset_ln (int32_t ln)
 {
 sim_debug(DBG_TRC, &dli_dev, "dlx_reset_ln(ln=%d)\n", ln);
 
@@ -580,7 +582,7 @@ return SCPE_OK;
 
 t_stat dlx_detach (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 sim_debug(DBG_TRC, &dli_dev, "dlx_detach()\n");
@@ -606,7 +608,7 @@ return (t_value)((DIB *)td_dptr->ctxt)->numc;
 
 /* Enable/disable device */
 
-void dlx_enbdis (int32 dis)
+void dlx_enbdis (int32_t dis)
 {
 if (dis) {
     dli_dev.flags = dli_dev.flags | DEV_DIS;
@@ -616,7 +618,7 @@ else {
     if (dlx_tu58_count() < 16) {
         if ((dlx_desc.lines + dlx_tu58_count()) > 16) {
             char lines[16];
-            int32 saved_switches = sim_switches;
+            int32_t saved_switches = sim_switches;
 
             sprintf (lines, "%d", 16 - dlx_tu58_count());
             sim_switches |= SWMASK('Y');
@@ -636,7 +638,7 @@ return;
 
 /* Change number of lines */
 
-t_stat dlx_set_lines (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dlx_set_lines (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -644,7 +646,7 @@ t_stat dlx_set_lines (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)
@@ -681,7 +683,7 @@ return auto_config (dli_dev.name, newln);              /* auto config */
 
 /* SET character MODE processor */
 
-t_stat dl_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dl_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -695,7 +697,7 @@ return SCPE_OK;
 
 /* SHOW character MODE processor */
 
-t_stat dl_show_mode (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dl_show_mode (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -708,7 +710,7 @@ fprintf (st, "%s", modes[(uptr->flags & TT_MODE) >> TTUF_V_MODE]);
 return SCPE_OK;
 }
 
-t_stat dlx_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dlx_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

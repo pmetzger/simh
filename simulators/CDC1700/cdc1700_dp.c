@@ -29,6 +29,8 @@
  *               Simh devices: dp0, dp1
  */
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "cdc1700_defs.h"
 
 #define ADDRSTATUS      iod_readR[2]
@@ -38,28 +40,28 @@ extern char INTprefix[];
 extern void RaiseExternalInterrupt(DEVICE *);
 
 extern bool doDirectorFunc(DEVICE *, bool);
-extern bool fw_reject(IO_DEVICE *, bool, uint8);
-extern void fw_IOunderwayEOP(IO_DEVICE *, uint16);
-extern void fw_IOcompleteEOP(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
+extern bool fw_reject(IO_DEVICE *, bool, uint8_t);
+extern void fw_IOunderwayEOP(IO_DEVICE *, uint16_t);
+extern void fw_IOcompleteEOP(bool, DEVICE *, IO_DEVICE *, uint16_t, const char *);
 extern void fw_IOalarm(bool, DEVICE *, IO_DEVICE *, const char *);
-extern void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
+extern void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16_t, uint16_t, uint16_t, const char *);
 
-extern t_stat checkReset(DEVICE *, uint8);
+extern t_stat checkReset(DEVICE *, uint8_t);
 
-extern t_stat show_addr(FILE *, UNIT *, int32, const void *);
+extern t_stat show_addr(FILE *, UNIT *, int32_t, const void *);
 
-extern t_stat set_protected(UNIT *, int32, const char *, void *);
-extern t_stat clear_protected(UNIT *, int32, const char *, void *);
+extern t_stat set_protected(UNIT *, int32_t, const char *, void *);
+extern t_stat clear_protected(UNIT *, int32_t, const char *, void *);
 
-extern t_stat set_equipment(UNIT *, int32, const char *, void *);
+extern t_stat set_equipment(UNIT *, int32_t, const char *, void *);
 
-extern t_stat set_stoponrej(UNIT *, int32, const char *, void *);
-extern t_stat clr_stoponrej(UNIT *, int32, const char *, void *);
+extern t_stat set_stoponrej(UNIT *, int32_t, const char *, void *);
+extern t_stat clr_stoponrej(UNIT *, int32_t, const char *, void *);
 
-extern uint16 LoadFromMem(uint16);
-extern bool IOStoreToMem(uint16, uint16, bool);
+extern uint16_t LoadFromMem(uint16_t);
+extern bool IOStoreToMem(uint16_t, uint16_t, bool);
 
-extern uint16 M[], Areg, IOAreg;
+extern uint16_t M[], Areg, IOAreg;
 
 extern bool IOFWinitialized;
 
@@ -67,20 +69,20 @@ extern bool ExecutionStarted;
 
 extern UNIT cpu_unit;
 
-static t_stat show_drive(FILE *, UNIT *, int32, const void *);
+static t_stat show_drive(FILE *, UNIT *, int32_t, const void *);
 
-t_stat set_dp853(UNIT *, int32, const char *, void *);
-t_stat set_dp854(UNIT *, int32, const char *, void *);
+t_stat set_dp853(UNIT *, int32_t, const char *, void *);
+t_stat set_dp854(UNIT *, int32_t, const char *, void *);
 
-static t_stat show_addressing(FILE *, UNIT *, int32, const void *);
+static t_stat show_addressing(FILE *, UNIT *, int32_t, const void *);
 
-t_stat set_normal(UNIT *, int32, const char *, void *);
-t_stat set_reverse(UNIT *, int32, const char *, void *);
+t_stat set_normal(UNIT *, int32_t, const char *, void *);
+t_stat set_reverse(UNIT *, int32_t, const char *, void *);
 
 /* Constants */
 
 #define DP_NUMWD        (96)            /* words/sector */
-#define DP_NUMBY        (DP_NUMWD * sizeof(uint16))
+#define DP_NUMBY        (DP_NUMWD * sizeof(uint16_t))
 #define DP_NUMSC        (16)            /* sectors/track */
 #define DP_NUMTR        (10)            /* tracks/cylinder */
 #define DP_853CY        (100)           /* cylinders for 853 drive */
@@ -94,7 +96,7 @@ t_stat set_reverse(UNIT *, int32, const char *, void *);
 #define DP_NUMDR        2               /* # drives */
 
 struct dpio_unit {
-  uint16                state;          /* Current state of the drive */
+  uint16_t              state;          /* Current state of the drive */
 #define DP_IDLE         0x0000          /* Idle */
 #define DP_XFER         0x0001          /* Control info transfer */
 #define DP_SEEK         0x0002          /* Seeking */
@@ -103,13 +105,13 @@ struct dpio_unit {
 #define DP_COMPARE      0x0005          /* Compare data */
 #define DP_CHECKWORD    0x0006          /* Checkword check (NOOP) */
 #define DP_WRITEADDR    0x0007          /* Write address (NOOP) */
-  uint16                CWA;            /* Current memory address */
-  uint16                LWA;            /* LWA + 1 for transfer */
-  uint16                sectorRA;       /* Sector Record Address */
-  uint16                cylinder;       /* Current cylinder # */
-  uint16                head;           /* Current head # */
-  uint16                sector;         /* Current sector # */
-  uint16                buf[DP_NUMWD];  /* Sector buffer */
+  uint16_t              CWA;            /* Current memory address */
+  uint16_t              LWA;            /* LWA + 1 for transfer */
+  uint16_t              sectorRA;       /* Sector Record Address */
+  uint16_t              cylinder;       /* Current cylinder # */
+  uint16_t              head;           /* Current head # */
+  uint16_t              sector;         /* Current sector # */
+  uint16_t              buf[DP_NUMWD];  /* Sector buffer */
   bool                  oncyl;          /* Unit on-cylinder status */
 } DPunits[DP_NUMDR];
 
@@ -129,12 +131,12 @@ t_stat dp_attach(UNIT *, const char *);
 t_stat dp_detach(UNIT *);
 
 void DPstate(const char *, DEVICE *, IO_DEVICE *);
-bool DPreject(IO_DEVICE *, bool, uint8);
-enum IOstatus DPin(IO_DEVICE *, uint8);
-enum IOstatus DPout(IO_DEVICE *, uint8);
+bool DPreject(IO_DEVICE *, bool, uint8_t);
+enum IOstatus DPin(IO_DEVICE *, uint8_t);
+enum IOstatus DPout(IO_DEVICE *, uint8_t);
 bool DPintr(IO_DEVICE *);
 
-t_stat dp_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat dp_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 
 /*
         1738-B Disk Pack Controller
@@ -319,7 +321,7 @@ DEVICE dp_dev = {
 /*
  * Display disk pack drive type
  */
-static t_stat show_drive(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_drive(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -339,7 +341,7 @@ static t_stat show_drive(FILE *st, UNIT *uptr, int32 val, const void *desc)
  * Set drive type to 853. If execution has started, disallow device type
  * changes.
  */
-t_stat set_dp853(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_dp853(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -367,7 +369,7 @@ t_stat set_dp853(UNIT *uptr, int32 val, const char *cptr, void *desc)
  * Set drive type to 854. If execution has started, disallow device type
  * changes.
  */
-t_stat set_dp854(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_dp854(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -394,7 +396,7 @@ t_stat set_dp854(UNIT *uptr, int32 val, const char *cptr, void *desc)
 /*
  * Display the device addressing mode
  */
-static t_stat show_addressing(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_addressing(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -413,7 +415,7 @@ static t_stat show_addressing(FILE *st, UNIT *uptr, int32 val, const void *desc)
 /*
  * Set device to normal addressing.
  */
-t_stat set_normal(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_normal(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -431,7 +433,7 @@ t_stat set_normal(UNIT *uptr, int32 val, const char *cptr, void *desc)
 /*
  * Set device to reverse addressing.
  */
-t_stat set_reverse(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_reverse(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -488,9 +490,9 @@ bool DPintr(IO_DEVICE *iod)
 /*
  * Load and validate disk address in the A register
  */
-static bool LoadDiskAddress(UNIT *uptr, struct dpio_unit *iou, uint16 state)
+static bool LoadDiskAddress(UNIT *uptr, struct dpio_unit *iou, uint16_t state)
 {
-  uint16 numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
+  uint16_t numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
 
   iou->oncyl = false;
   DPdev.ADDRSTATUS = iou->sectorRA = IOAreg;
@@ -512,7 +514,7 @@ static bool LoadDiskAddress(UNIT *uptr, struct dpio_unit *iou, uint16 state)
 /*
  * Set up a disk I/O operation with the A register containing FWA - 1.
  */
-static void StartDPDiskIO(UNIT *uptr, struct dpio_unit *iou, uint16 state)
+static void StartDPDiskIO(UNIT *uptr, struct dpio_unit *iou, uint16_t state)
 {
   iou->LWA = LoadFromMem(IOAreg);
   iou->CWA = ++IOAreg;
@@ -566,8 +568,8 @@ static void DPDiskIOIncSector(struct dpio_unit *iou)
 static enum dpio_status DPDiskIORead(UNIT *uptr)
 {
   struct dpio_unit *iou = (struct dpio_unit *)uptr->up7;
-  uint16 numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
-  uint32 lba = DPLBA(iou);
+  uint16_t numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
+  uint32_t lba = DPLBA(iou);
   int i;
 
   if (iou->cylinder >= numcy)
@@ -578,7 +580,7 @@ static enum dpio_status DPDiskIORead(UNIT *uptr)
    * address error.
    */
   if (sim_fseeko(uptr->fileref, lba * DP_NUMBY, SEEK_SET) ||
-      (sim_fread(iou->buf, sizeof(uint16), DP_NUMWD, uptr->fileref) != DP_NUMWD))
+      (sim_fread(iou->buf, sizeof(uint16_t), DP_NUMWD, uptr->fileref) != DP_NUMWD))
     return DPIO_ADDRERR;
 
   for (i = 0; i < DP_NUMWD; i++) {
@@ -602,8 +604,8 @@ static enum dpio_status DPDiskIORead(UNIT *uptr)
 static enum dpio_status DPDiskIOWrite(UNIT *uptr)
 {
   struct dpio_unit *iou = (struct dpio_unit *)uptr->up7;
-  uint16 numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
-  uint32 lba = DPLBA(iou);
+  uint16_t numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
+  uint32_t lba = DPLBA(iou);
   bool fill = false;
   int i;
 
@@ -624,7 +626,7 @@ static enum dpio_status DPDiskIOWrite(UNIT *uptr)
    * address error.
    */
   if (sim_fseeko(uptr->fileref, lba * DP_NUMBY, SEEK_SET) ||
-      (sim_fwrite(iou->buf, sizeof(uint16), DP_NUMWD, uptr->fileref) != DP_NUMWD))
+      (sim_fwrite(iou->buf, sizeof(uint16_t), DP_NUMWD, uptr->fileref) != DP_NUMWD))
     return DPIO_ADDRERR;
 
   DPDiskIOIncSector(iou);
@@ -637,8 +639,8 @@ static enum dpio_status DPDiskIOWrite(UNIT *uptr)
 static enum dpio_status DPDiskIOCompare(UNIT *uptr)
 {
   struct dpio_unit *iou = (struct dpio_unit *)uptr->up7;
-  uint16 numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
-  uint32 lba = DPLBA(iou);
+  uint16_t numcy = ((uptr->flags & UNIT_854) != 0) ? DP_854CY : DP_853CY;
+  uint32_t lba = DPLBA(iou);
   int i;
 
   if (iou->cylinder >= numcy)
@@ -649,7 +651,7 @@ static enum dpio_status DPDiskIOCompare(UNIT *uptr)
    * address error.
    */
   if (sim_fseeko(uptr->fileref, lba * DP_NUMBY, SEEK_SET) ||
-      (sim_fread(iou->buf, sizeof(uint16), DP_NUMWD, uptr->fileref) != DP_NUMWD))
+      (sim_fread(iou->buf, sizeof(uint16_t), DP_NUMWD, uptr->fileref) != DP_NUMWD))
     return DPIO_ADDRERR;
 
   for (i = 0; i < DP_NUMWD; i++) {
@@ -670,7 +672,7 @@ static enum dpio_status DPDiskIOCompare(UNIT *uptr)
  * Perform read/write/compare sector operations from within the unit
  * service routine.
  */
-static void DPDiskIO(UNIT *uptr, uint16 iotype)
+static void DPDiskIO(UNIT *uptr, uint16_t iotype)
 {
   struct dpio_unit *iou = (struct dpio_unit *)uptr->up7;
   const char *error = "Unknown";
@@ -938,7 +940,7 @@ t_stat dp_detach(UNIT *uptr)
 
 /* Check if I/O should be rejected */
 
-bool DPreject(IO_DEVICE *iod, bool output, uint8 reg)
+bool DPreject(IO_DEVICE *iod, bool output, uint8_t reg)
 {
   if (output) {
     switch (reg) {
@@ -979,7 +981,7 @@ bool DPreject(IO_DEVICE *iod, bool output, uint8 reg)
 
 /* Perform I/O */
 
-enum IOstatus DPin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus DPin(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -992,7 +994,7 @@ enum IOstatus DPin(IO_DEVICE *iod, uint8 reg)
   return IO_REJECT;
 }
 
-enum IOstatus DPout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus DPout(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -1037,7 +1039,7 @@ enum IOstatus DPout(IO_DEVICE *iod, uint8 reg)
        * Handle select/release.
        */
       if ((IOAreg & (IO_1738_USEL | IO_1738_REL)) != 0) {
-        uint16 unit = (IOAreg & IO_1738_USC) >> 9;
+        uint16_t unit = (IOAreg & IO_1738_USC) >> 9;
 
         if ((dp_dev.flags & DEV_REVERSE) != 0)
           unit ^= 1;
@@ -1154,14 +1156,14 @@ t_stat DPautoload(void)
   UNIT *uptr = &dp_unit[(dp_dev.flags & DEV_REVERSE) == 0 ? 0 : 1];
 
   if ((uptr->flags & UNIT_ATT) != 0) {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; i < DP_NUMSC; i++) {
       t_offset offset = i * DP_NUMBY;
       void *buf = &M[i * DP_NUMWD];
 
       if (sim_fseeko(uptr->fileref, offset, SEEK_SET) ||
-          (sim_fread(buf, sizeof(uint16), DP_NUMWD, uptr->fileref) != DP_NUMWD))
+          (sim_fread(buf, sizeof(uint16_t), DP_NUMWD, uptr->fileref) != DP_NUMWD))
         return SCPE_IOERR;
     }
     return SCPE_OK;
@@ -1169,7 +1171,7 @@ t_stat DPautoload(void)
   return SCPE_UNATT;
 }
 
-t_stat dp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   const char helpString[] =
     /****************************************************************************/

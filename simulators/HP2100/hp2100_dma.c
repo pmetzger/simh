@@ -134,6 +134,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -194,7 +196,7 @@ static const BITSET_FORMAT dma_cw1_format =     /* names, offset, direction, alt
 
 /* DMA global state declarations */
 
-uint32 dma_request_set = 0;                     /* the channels that are requesting service */
+uint32_t dma_request_set = 0;                   /* the channels that are requesting service */
 
 
 /* DMA local state declarations */
@@ -204,12 +206,12 @@ typedef struct {
     FLIP_FLOP flag;                             /* flag flip-flop */
     FLIP_FLOP flag_buffer;                      /* flag buffer flip-flop */
     FLIP_FLOP select;                           /* register select flip-flop */
-    uint32    xfer_sc;                          /* transfer enable flip-flop */
+    uint32_t  xfer_sc;                          /* transfer enable flip-flop */
 
     HP_WORD   cw1;                              /* device select */
     HP_WORD   cw2;                              /* direction, address */
     HP_WORD   cw3;                              /* word count */
-    uint8     packer;                           /* byte-packer holding register */
+    uint8_t   packer;                           /* byte-packer holding register */
     bool      occupied;                         /* true if packing register is occupied */
     } DMA_STATE;
 
@@ -805,7 +807,7 @@ return;
    request will be serviced by initiating a DMA cycle.
 */
 
-void dma_assert_SRQ (uint32 select_code)
+void dma_assert_SRQ (uint32_t select_code)
 {
 if (select_code == dma [ch1].xfer_sc) {                 /* if DMA channel 1 controls this device */
     dma_request_set |= DMA_1_REQ;                       /*   then request service for channel 1 */
@@ -970,9 +972,9 @@ return SCPE_OK;
 
 static void dma_cycle (CHANNEL ch, ACCESS_CLASS class)
 {
-const uint32  selcode = dma [ch].cw1 & CN_SC;           /* the device select code */
-const uint32  packing = dma [ch].cw1 & CN_PACK;         /* the packing bytes flag */
-const uint32  input   = dma [ch].cw2 & CN_XFRIN;        /* the input flag */
+const uint32_t selcode = dma [ch].cw1 & CN_SC;          /* the device select code */
+const uint32_t packing = dma [ch].cw1 & CN_PACK;        /* the packing bytes flag */
+const uint32_t input   = dma [ch].cw2 & CN_XFRIN;       /* the input flag */
 const HP_WORD MA      = dma [ch].cw2 & CN_ADDRESS;      /* the memory address */
 HP_WORD       data;
 SKPF_DATA     result;

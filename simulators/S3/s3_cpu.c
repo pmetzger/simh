@@ -357,6 +357,8 @@ Fx | HPL APL  JC SIO  -   -   -   -   -   -   -   -   -   -   -   -
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "s3_defs.h"
 
 #define UNIT_V_M15      (UNIT_V_UF)                     /* Model 15 extensions */
@@ -366,46 +368,46 @@ Fx | HPL APL  JC SIO  -   -   -   -   -   -   -   -   -   -   -   -
 #define UNIT_V_MSIZE    (UNIT_V_UF+3)                   /* dummy mask */
 #define UNIT_MSIZE      (1 << UNIT_V_MSIZE)
 
-uint8 M[MAXMEMSIZE] = { 0 };                            /* memory */
-int32 AAR = 0;                                          /* Operand 1 addr reg */
-int32 BAR = 0;                                          /* Operand 2 addr reg */
-int32 XR1 = 0;                                          /* Index register 1 */
-int32 XR2 = 0;                                          /* Index register 2 */
-int32 PSR = 0;                                          /* Condition Register */
-int32 IAR[10] = { 0 };                                  /* IAR 0-7 = int level 8=P1 9=P2 */
-int32 ARR[10] = { 0 };                                  /* ARR 0-7 = int level 8=P1 9=P2 */
-int32 dev_disable = 0;                                  /* interrupt disable mask */
-int32 int_req = 0;                                      /* Interrupt request device bitmap */
-int32 level = 8;                                        /* Current Execution Level*/
-int32 stop_dev = 0;                                     /* stop on ill dev */
-int32 SR = 0;                                           /* Switch Register */
-int32 saved_PC;                                         /* Saved (old) PC) */
-int32 debug_reg = 0;                                    /* set for debug/trace */
-int32 debug_flag = 0;                                   /* 1 when trace.log open */
+uint8_t M[MAXMEMSIZE] = { 0 };                          /* memory */
+int32_t AAR = 0;                                        /* Operand 1 addr reg */
+int32_t BAR = 0;                                        /* Operand 2 addr reg */
+int32_t XR1 = 0;                                        /* Index register 1 */
+int32_t XR2 = 0;                                        /* Index register 2 */
+int32_t PSR = 0;                                        /* Condition Register */
+int32_t IAR[10] = { 0 };                                /* IAR 0-7 = int level 8=P1 9=P2 */
+int32_t ARR[10] = { 0 };                                /* ARR 0-7 = int level 8=P1 9=P2 */
+int32_t dev_disable = 0;                                /* interrupt disable mask */
+int32_t int_req = 0;                                    /* Interrupt request device bitmap */
+int32_t level = 8;                                      /* Current Execution Level*/
+int32_t stop_dev = 0;                                   /* stop on ill dev */
+int32_t SR = 0;                                         /* Switch Register */
+int32_t saved_PC;                                       /* Saved (old) PC) */
+int32_t debug_reg = 0;                                  /* set for debug/trace */
+int32_t debug_flag = 0;                                 /* 1 when trace.log open */
 FILE *trace;
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_boot (int32 unitno, DEVICE *dptr1);
-extern int32 pkb (int32 op, int32 m, int32 n, int32 data);
-extern int32 crd (int32 op, int32 m, int32 n, int32 data);
-extern int32 lpt (int32 op, int32 m, int32 n, int32 data);
-extern int32 dsk1 (int32 op, int32 m, int32 n, int32 data);
-extern int32 dsk2 (int32 op, int32 m, int32 n, int32 data);
-extern int32 cpu (int32 op, int32 m, int32 n, int32 data);
-int32 nulldev (int32 opcode, int32 m, int32 n, int32 data);
-int32 add_zoned (int32 addr1, int32 len1, int32 addr2, int32 len2);
-int32 subtract_zoned (int32 addr1, int32 len1, int32 addr2, int32 len2);
-static int32 compare(int32 byte1, int32 byte2, int32 cond);
-static int32 condition(int32 qbyte);
-static void store_decimal (int32 addr, int32 len, uint8 *dec, int sign);
-static void load_decimal (int32 addr, int32 len, uint8 *result, int *count, int *sign);
-static void add_decimal (uint8 *dec1, uint8 *dec2, uint8 *result, int *count);
-static void subtract_decimal (uint8 *dec1, uint8 *dec2, uint8 *result, int *count, int *sign);
-int32 GetMem(int32 addr);
-int32 PutMem(int32 addr, int32 data);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr1);
+extern int32_t pkb (int32_t op, int32_t m, int32_t n, int32_t data);
+extern int32_t crd (int32_t op, int32_t m, int32_t n, int32_t data);
+extern int32_t lpt (int32_t op, int32_t m, int32_t n, int32_t data);
+extern int32_t dsk1 (int32_t op, int32_t m, int32_t n, int32_t data);
+extern int32_t dsk2 (int32_t op, int32_t m, int32_t n, int32_t data);
+extern int32_t cpu (int32_t op, int32_t m, int32_t n, int32_t data);
+int32_t nulldev (int32_t opcode, int32_t m, int32_t n, int32_t data);
+int32_t add_zoned (int32_t addr1, int32_t len1, int32_t addr2, int32_t len2);
+int32_t subtract_zoned (int32_t addr1, int32_t len1, int32_t addr2, int32_t len2);
+static int32_t compare(int32_t byte1, int32_t byte2, int32_t cond);
+static int32_t condition(int32_t qbyte);
+static void store_decimal (int32_t addr, int32_t len, uint8_t *dec, int sign);
+static void load_decimal (int32_t addr, int32_t len, uint8_t *result, int *count, int *sign);
+static void add_decimal (uint8_t *dec1, uint8_t *dec2, uint8_t *result, int *count);
+static void subtract_decimal (uint8_t *dec1, uint8_t *dec2, uint8_t *result, int *count, int *sign);
+int32_t GetMem(int32_t addr);
+int32_t PutMem(int32_t addr, int32_t data);
 
 /* IOT dispatch table */
 
@@ -432,7 +434,7 @@ struct ndev dev_table[16] = {
 
 /* Priority assigned to interrupt levels */
 
-int32 priority[8] = {8, 7, 5, 4, 3, 6, 2, 1};
+int32_t priority[8] = {8, 7, 5, 4, 3, 6, 2, 1};
 
 /* CPU data structures
 
@@ -503,14 +505,14 @@ DEVICE cpu_dev = {
 
 t_stat sim_instr (void)
 {
-int32 PC, IR;
-int32 i, j, carry, zero, op1, op2;
-int32 opcode = 0, qbyte = 0, rbyte = 0;
-int32 opaddr, addr1, addr2, dlen1, dlen2, r;
-int32 int_savelevel = 8, intpri, intlev, intdev, intmask;
-int32 devno, devm, devn;
+int32_t PC, IR;
+int32_t i, j, carry, zero, op1, op2;
+int32_t opcode = 0, qbyte = 0, rbyte = 0;
+int32_t opaddr, addr1, addr2, dlen1, dlen2, r;
+int32_t int_savelevel = 8, intpri, intlev, intdev, intmask;
+int32_t devno, devm, devn;
 char display[3][9];
-int32 val [32];
+int32_t val [32];
 t_stat reason;
 
 /* Restore register state */
@@ -569,7 +571,7 @@ if (debug_reg & 0x01) {
     val[3] = GetMem(PC+3);
     val[4] = GetMem(PC+4);
     val[5] = GetMem(PC+5);
-    fprint_sym(trace, PC, (uint32 *) val, &cpu_unit, SWMASK('M'));
+    fprint_sym(trace, PC, (uint32_t *) val, &cpu_unit, SWMASK('M'));
     fprintf(trace, "\n");
 }
 
@@ -1301,14 +1303,14 @@ return reason;
 
 /* Fetch a byte from memory */
 
-int32 GetMem(int32 addr)
+int32_t GetMem(int32_t addr)
 {
     return M[addr] & 0xff;
 }
 
 /* Place a byte in memory */
 
-int32 PutMem(int32 addr, int32 data)
+int32_t PutMem(int32_t addr, int32_t data)
 {
     M[addr] = data & 0xff;
     return 0;
@@ -1316,9 +1318,9 @@ int32 PutMem(int32 addr, int32 data)
 
 /* Check the condition register against the qbyte and return 1 if true */
 
-static int32 condition(int32 qbyte)
+static int32_t condition(int32_t qbyte)
 {
-    int32 r = 0, t, q;
+    int32_t r = 0, t, q;
     t = (qbyte & 0xf0) >> 4;
     q = qbyte & 0x0f;
     if (qbyte & 0x80) {                                 /* True if any condition tested = 1*/
@@ -1346,9 +1348,9 @@ return (r);
    condition register initial state in parameter 3
 */
 
-static int32 compare(int32 byte1, int32 byte2, int32 cond)
+static int32_t compare(int32_t byte1, int32_t byte2, int32_t cond)
 {
-    int32 r;
+    int32_t r;
 
     r = cond & 0xF8;                                    /* mask off all but unaffected bits 2,3,4 */
     if (byte1 == byte2)
@@ -1379,12 +1381,12 @@ static int32 compare(int32 byte1, int32 byte2, int32 cond)
 /*      first operand is store protected.  Depending on the PSW      */
 /*      program mask, decimal overflow may cause a program check.    */
 /*-------------------------------------------------------------------*/
-int32 add_zoned (int32 addr1, int32 len1, int32 addr2, int32 len2)
+int32_t add_zoned (int32_t addr1, int32_t len1, int32_t addr2, int32_t len2)
 {
 int     cc;                             /* Condition code            */
-uint8   dec1[MAX_DECIMAL_DIGITS];       /* Work area for operand 1   */
-uint8   dec2[MAX_DECIMAL_DIGITS];       /* Work area for operand 2   */
-uint8   dec3[MAX_DECIMAL_DIGITS];       /* Work area for result      */
+uint8_t dec1[MAX_DECIMAL_DIGITS];       /* Work area for operand 1   */
+uint8_t dec2[MAX_DECIMAL_DIGITS];       /* Work area for operand 2   */
+uint8_t dec3[MAX_DECIMAL_DIGITS];       /* Work area for result      */
 int     count1, count2, count3;         /* Significant digit counters*/
 int     sign1, sign2, sign3;            /* Sign of operands & result */
 
@@ -1458,12 +1460,12 @@ int     sign1, sign2, sign3;            /* Sign of operands & result */
 /*      first operand is store protected.  Depending on the PSW      */
 /*      program mask, decimal overflow may cause a program check.    */
 /*-------------------------------------------------------------------*/
-int32 subtract_zoned (int32 addr1, int32 len1, int32 addr2, int32 len2)
+int32_t subtract_zoned (int32_t addr1, int32_t len1, int32_t addr2, int32_t len2)
 {
 int     cc;                             /* Condition code            */
-uint8   dec1[MAX_DECIMAL_DIGITS];       /* Work area for operand 1   */
-uint8   dec2[MAX_DECIMAL_DIGITS];       /* Work area for operand 2   */
-uint8   dec3[MAX_DECIMAL_DIGITS];       /* Work area for result      */
+uint8_t dec1[MAX_DECIMAL_DIGITS];       /* Work area for operand 1   */
+uint8_t dec2[MAX_DECIMAL_DIGITS];       /* Work area for operand 2   */
+uint8_t dec3[MAX_DECIMAL_DIGITS];       /* Work area for result      */
 int     count1, count2, count3;         /* Significant digit counters*/
 int     sign1, sign2, sign3;            /* Sign of operands & result */
 
@@ -1538,7 +1540,7 @@ int     sign1, sign2, sign3;            /* Sign of operands & result */
 /*              This field is set to zero if the result is all zero, */
 /*              or to MAX_DECIMAL_DIGITS+1 if overflow occurred.     */
 /*-------------------------------------------------------------------*/
-static void add_decimal (uint8 *dec1, uint8 *dec2, uint8 *result, int *count)
+static void add_decimal (uint8_t *dec1, uint8_t *dec2, uint8_t *result, int *count)
 {
 int     d;                              /* Decimal digit             */
 int     i;                              /* Array subscript           */
@@ -1597,15 +1599,15 @@ int     carry = 0;                      /* Carry indicator           */
 /*      sign    -1 if the result is negative (operand2 > operand1)   */
 /*              +1 if the result is positive (operand2 <= operand1)  */
 /*-------------------------------------------------------------------*/
-static void subtract_decimal (uint8 *dec1, uint8 *dec2, uint8 *result, int *count, int *sign)
+static void subtract_decimal (uint8_t *dec1, uint8_t *dec2, uint8_t *result, int *count, int *sign)
 {
 int     d;                              /* Decimal digit             */
 int     i;                              /* Array subscript           */
 int     n = 0;                          /* Significant digit counter */
 int     borrow = 0;                     /* Borrow indicator          */
 int     rc;                             /* Return code               */
-uint8   *higher;                        /* -> Higher value operand   */
-uint8   *lower;                         /* -> Lower value operand    */
+uint8_t *higher;                        /* -> Higher value operand   */
+uint8_t *lower;                         /* -> Lower value operand    */
 
     /* Compare digits to find which operand has higher numeric value */
     rc = memcmp (dec1, dec2, MAX_DECIMAL_DIGITS);
@@ -1681,7 +1683,7 @@ uint8   *lower;                         /* -> Lower value operand    */
 /*      exception, or if the operand causes a data exception         */
 /*      because of invalid decimal digits or sign.                   */
 /*-------------------------------------------------------------------*/
-static void load_decimal (int32 addr, int32 len, uint8 *result, int *count, int *sign)
+static void load_decimal (int32_t addr, int32_t len, uint8_t *result, int *count, int *sign)
 {
 int     h;                              /* Hexadecimal digit         */
 int     i, j;                           /* Array subscripts          */
@@ -1722,7 +1724,7 @@ int     n;                              /* Significant digit counter */
 /*      A program check may be generated if the logical address      */
 /*      causes an addressing, translation, or protection exception.  */
 /*-------------------------------------------------------------------*/
-static void store_decimal (int32 addr, int32 len, uint8 *dec, int sign)
+static void store_decimal (int32_t addr, int32_t len, uint8_t *dec, int sign)
 {
 int     i, j, a;                        /* Array subscripts          */
 
@@ -1746,7 +1748,7 @@ int     i, j, a;                        /* Array subscripts          */
 
 /* CPU Device Control */
 
-int32 cpu (int32 op, int32 m, int32 n, int32 data)
+int32_t cpu (int32_t op, int32_t m, int32_t n, int32_t data)
 {
     /* Generic I/O dispatch signature.
        This implementation does not use every parameter. */
@@ -1754,7 +1756,7 @@ int32 cpu (int32 op, int32 m, int32 n, int32 data)
     (void) n;
     (void) data;
 
-    int32 iodata = 0;
+    int32_t iodata = 0;
 
     switch (op) {
         case 0x00:                                      /* Start IO */
@@ -1779,7 +1781,7 @@ int32 cpu (int32 op, int32 m, int32 n, int32 data)
 
 /* Null device */
 
-int32 nulldev (int32 opcode, int32 m, int32 n, int32 data)
+int32_t nulldev (int32_t opcode, int32_t m, int32_t n, int32_t data)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -1808,7 +1810,7 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory examine signature.
    This implementation does not use every parameter. */
@@ -1822,7 +1824,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory deposit signature.
    This implementation does not use every parameter. */
@@ -1834,7 +1836,7 @@ M[addr] = val & 0xff;
 return SCPE_OK;
 }
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1842,8 +1844,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
@@ -1855,7 +1857,7 @@ for (i = MEMSIZE; i < MAXMEMSIZE; i++) M[i] = 0;
 return SCPE_OK;
 }
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */

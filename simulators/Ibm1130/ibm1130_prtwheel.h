@@ -9,9 +9,11 @@
  * Mail to sim@ibm1130.org
  */
 
+#include "sim_types.h"
+
 struct tag_codewheel {
-    unsigned char ascii;
-    unsigned char ebcdic;
+    uchar_t ascii;
+    uchar_t ebcdic;
 };
 
 static struct tag_codewheel codewheel1132[] =

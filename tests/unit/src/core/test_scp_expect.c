@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 #include "test_support.h"
 
 /* Feed one byte sequence through sim_exp_check() and require success. */
-static void assert_expect_bytes(EXPECT *exp, const uint8 *data, size_t size)
+static void assert_expect_bytes(EXPECT *exp, const uint8_t *data, size_t size)
 {
     size_t i;
 
@@ -22,7 +23,7 @@ static void assert_expect_bytes(EXPECT *exp, const uint8 *data, size_t size)
 /* Convenience wrapper for feeding ordinary C strings to EXPECT. */
 static void assert_expect_string(EXPECT *exp, const char *text)
 {
-    assert_expect_bytes(exp, (const uint8 *)text, strlen(text));
+    assert_expect_bytes(exp, (const uint8_t *)text, strlen(text));
 }
 
 /* Assert that one SCP substitution variable has the expected value. */
@@ -43,7 +44,7 @@ static const char *get_scp_var(const char *name, char *buf, size_t buf_size)
 }
 
 /* Poll one queued SEND byte and require the expected character. */
-static void assert_send_polls_byte(SEND *snd, uint8 value)
+static void assert_send_polls_byte(SEND *snd, uint8_t value)
 {
     t_stat stat;
 
@@ -109,7 +110,7 @@ static char *capture_show_expect_wrapper_text(const char *cptr, t_stat expected)
 static void test_sim_send_input_queues_and_polls_bytes(void **state)
 {
     struct scp_expect_fixture *fixture = *state;
-    static uint8 payload[] = {'A', 'B', 'C'};
+    static uint8_t payload[] = {'A', 'B', 'C'};
     t_stat stat;
 
     assert_int_equal(
@@ -126,7 +127,7 @@ static void test_sim_send_input_queues_and_polls_bytes(void **state)
 static void test_sim_send_clear_discards_pending_bytes(void **state)
 {
     struct scp_expect_fixture *fixture = *state;
-    static uint8 payload[] = {'X', 'Y'};
+    static uint8_t payload[] = {'X', 'Y'};
     t_stat stat;
 
     assert_int_equal(
@@ -279,7 +280,7 @@ static void test_sim_exp_check_clears_stale_regex_capture_groups(void **state)
 static void test_show_helpers_render_pending_state(void **state)
 {
     struct scp_expect_fixture *fixture = *state;
-    static uint8 payload[] = {'Z'};
+    static uint8_t payload[] = {'Z'};
     char *text;
 
     assert_int_equal(
@@ -336,16 +337,16 @@ static void test_send_cmd_rejects_invalid_argument_forms(void **state)
 static void test_send_cmd_time_switch_converts_usec_to_instructions(void **state)
 {
     SEND *snd;
-    uint32 expected_delay;
-    uint32 expected_after;
+    uint32_t expected_delay;
+    uint32_t expected_after;
 
     (void)state;
 
     snd = sim_cons_get_send();
     expected_delay =
-        (uint32)((sim_timer_inst_per_sec() * 2000) / 1000000.0);
+        (uint32_t)((sim_timer_inst_per_sec() * 2000) / 1000000.0);
     expected_after =
-        (uint32)((sim_timer_inst_per_sec() * 3000) / 1000000.0);
+        (uint32_t)((sim_timer_inst_per_sec() * 3000) / 1000000.0);
 
     assert_int_equal(send_cmd(1, "-t DELAY=2000 AFTER=3000 \"A\""), SCPE_OK);
     assert_int_equal(snd->delay, expected_delay);
@@ -567,11 +568,11 @@ static void test_expect_time_rules_schedule_microsecond_based_stop(
     void **state)
 {
     struct scp_expect_fixture *fixture = *state;
-    int32 expected_delay;
-    int32 scheduled_delay;
+    int32_t expected_delay;
+    int32_t scheduled_delay;
 
     expected_delay =
-        (int32)((sim_timer_inst_per_sec() * 5000) / 1000000.0);
+        (int32_t)((sim_timer_inst_per_sec() * 5000) / 1000000.0);
 
     assert_int_equal(sim_exp_set(&fixture->exp, "\"GO\"", 0, 5000,
                                  EXP_TYP_TIME, NULL),
@@ -767,7 +768,7 @@ static void test_send_state_compacts_pending_bytes_and_honors_timing(
     void **state)
 {
     struct scp_expect_fixture *fixture = *state;
-    static uint8 payload[] = {'A', 'B', 'C'};
+    static uint8_t payload[] = {'A', 'B', 'C'};
     t_stat stat;
 
     assert_int_equal(
@@ -797,7 +798,7 @@ static void test_sim_show_send_input_renders_timing_and_default_fallback(
     void **state)
 {
     SEND *snd;
-    static uint8 payload[] = {'A'};
+    static uint8_t payload[] = {'A'};
     char *text;
 
     (void)state;
@@ -845,10 +846,10 @@ static void test_sim_show_send_input_renders_microsecond_and_debug_detail(
     struct scp_expect_fixture *fixture = *state;
     SEND *snd;
     char *text;
-    uint32 threshold;
+    uint32_t threshold;
 
     snd = &fixture->lines[1].send;
-    threshold = (uint32)(sim_timer_inst_per_sec() / 1000000.0);
+    threshold = (uint32_t)(sim_timer_inst_per_sec() / 1000000.0);
     snd->delay = threshold + 5;
     snd->after = threshold + 7;
     snd->next_time = sim_gtime() + snd->after;
@@ -903,7 +904,7 @@ static void test_regex_matching_flattens_embedded_nul_buffer_segments(
                      SCPE_OK);
 
     {
-        static const uint8 wrapped_data[] = {'A', '\0', 'B'};
+        static const uint8_t wrapped_data[] = {'A', '\0', 'B'};
 
         assert_expect_bytes(&fixture->exp, wrapped_data, sizeof(wrapped_data));
     }

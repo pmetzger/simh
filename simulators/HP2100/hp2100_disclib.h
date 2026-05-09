@@ -38,6 +38,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 
 /* Program limits */
@@ -318,24 +319,24 @@ typedef struct {
     CNTLR_STATUS status;                                /* controller status */
     FLIP_FLOP    eoc;                                   /* end-of-cylinder flag */
     FLIP_FLOP    eod;                                   /* end-of-data flag */
-    uint32       spd_unit;                              /* S/P/D flags and unit number */
-    uint32       file_mask;                             /* file mask */
-    uint32       retry;                                 /* retry counter */
-    uint32       cylinder;                              /* cylinder address */
-    uint32       head;                                  /* head address */
-    uint32       sector;                                /* sector address */
-    uint32       verify_count;                          /* count of sectors to verify */
-    uint32       poll_unit;                             /* last unit polled for attention */
-    uint16      *buffer;                                /* data buffer pointer */
-    uint32       index;                                 /* data buffer current index */
-    uint32       length;                                /* data buffer valid length */
+    uint32_t     spd_unit;                              /* S/P/D flags and unit number */
+    uint32_t     file_mask;                             /* file mask */
+    uint32_t     retry;                                 /* retry counter */
+    uint32_t     cylinder;                              /* cylinder address */
+    uint32_t     head;                                  /* head address */
+    uint32_t     sector;                                /* sector address */
+    uint32_t     verify_count;                          /* count of sectors to verify */
+    uint32_t     poll_unit;                             /* last unit polled for attention */
+    uint16_t    *buffer;                                /* data buffer pointer */
+    uint32_t     index;                                 /* data buffer current index */
+    uint32_t     length;                                /* data buffer valid length */
     UNIT        *aux;                                   /* MAC auxiliary units (controller and timer) */
-    int32        eot_time;                              /* end-of-track read delay time */
-    int32        seek_time;                             /* per-cylinder seek delay time */
-    int32        sector_time;                           /* intersector delay time */
-    int32        cmd_time;                              /* command response time */
-    int32        data_time;                             /* data transfer response time */
-    int32        wait_time;                             /* command wait time */
+    int32_t      eot_time;                              /* end-of-track read delay time */
+    int32_t      seek_time;                             /* per-cylinder seek delay time */
+    int32_t      sector_time;                           /* intersector delay time */
+    int32_t      cmd_time;                              /* command response time */
+    int32_t      data_time;                             /* data transfer response time */
+    int32_t      wait_time;                             /* command wait time */
     } CNTLR_VARS;
 
 
@@ -362,10 +363,10 @@ typedef CNTLR_VARS *CVPTR;                              /* pointer to controller
 
 /* Disc library global controller routines */
 
-extern bool    dl_prepare_command    (CVPTR cvptr, UNIT *units, uint32 unit_limit);
-extern UNIT   *dl_start_command      (CVPTR cvptr, UNIT *units, uint32 unit_limit);
+extern bool    dl_prepare_command    (CVPTR cvptr, UNIT *units, uint32_t unit_limit);
+extern UNIT   *dl_start_command      (CVPTR cvptr, UNIT *units, uint32_t unit_limit);
 extern void    dl_end_command        (CVPTR cvptr, CNTLR_STATUS status);
-extern bool    dl_poll_drives        (CVPTR cvptr, UNIT *units, uint32 unit_limit);
+extern bool    dl_poll_drives        (CVPTR cvptr, UNIT *units, uint32_t unit_limit);
 extern t_stat  dl_service_drive      (CVPTR cvptr, UNIT *uptr);
 extern t_stat  dl_service_controller (CVPTR cvptr, UNIT *uptr);
 extern t_stat  dl_service_timer      (CVPTR cvptr, UNIT *uptr);
@@ -383,4 +384,4 @@ extern const char  *dl_phase_name  (CNTLR_PHASE phase);
 
 extern t_stat dl_attach    (CVPTR cvptr, UNIT  *uptr, const char *cptr);
 extern t_stat dl_detach    (CVPTR cvptr, UNIT  *uptr);
-extern t_stat dl_set_model (UNIT  *uptr, int32 value, const char *cptr, void *desc);
+extern t_stat dl_set_model (UNIT  *uptr, int32_t value, const char *cptr, void *desc);

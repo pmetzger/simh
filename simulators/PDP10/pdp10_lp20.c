@@ -56,6 +56,7 @@
 #include "pdp10_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Time (seconds) of idleness before data flushed to attached file. */
 #ifndef LP20_IDLE_TIME
@@ -172,29 +173,29 @@
 
 /* LPCSUM/LPPDAT (765516) */
 
-static int32 lpcsa = 0;                                 /* control/status A */
-static int32 lpcsb = CSB_DVOF;                          /* control/status B */
-static int32 lpba = 0;                                  /* bus address */
-static int32 lpbc = 0;                                  /* byte count */
-static int32 lppagc = 0;                                /* page count */
-static int32 lprdat = 0;                                /* RAM data */
-static int32 lpcbuf = 0;                                /* character buffer */
-static int32 lpcolc = 0;                                /* column count */
-static int32 lppdat = 0;                                /* printer data */
-static int32 lpcsum = 0;                                /* checksum */
-static int32 dvptr = 0;                                 /* davfu pointer */
-static int32 dvlnt = 0;                                 /* davfu length */
-static int32 lp20_irq = 0;                              /* int request */
-static int32 lp20_stopioe = 0;                          /* stop on error */
-static int32 dvld = 0;
-static int32 dvld_hold = 0;
-static int32 lpi = DEFAULT_LPI;                         /* Printer's LPI. */
-static int16 txram[TX_SIZE] = { 0 };                    /* translation RAM */
-static int16 davfu[DV_SIZE] = { 0 };                    /* DAVFU */
+static int32_t lpcsa = 0;                               /* control/status A */
+static int32_t lpcsb = CSB_DVOF;                        /* control/status B */
+static int32_t lpba = 0;                                /* bus address */
+static int32_t lpbc = 0;                                /* byte count */
+static int32_t lppagc = 0;                              /* page count */
+static int32_t lprdat = 0;                              /* RAM data */
+static int32_t lpcbuf = 0;                              /* character buffer */
+static int32_t lpcolc = 0;                              /* column count */
+static int32_t lppdat = 0;                              /* printer data */
+static int32_t lpcsum = 0;                              /* checksum */
+static int32_t dvptr = 0;                               /* davfu pointer */
+static int32_t dvlnt = 0;                               /* davfu length */
+static int32_t lp20_irq = 0;                            /* int request */
+static int32_t lp20_stopioe = 0;                        /* stop on error */
+static int32_t dvld = 0;
+static int32_t dvld_hold = 0;
+static int32_t lpi = DEFAULT_LPI;                       /* Printer's LPI. */
+static int16_t txram[TX_SIZE] = { 0 };                  /* translation RAM */
+static int16_t davfu[DV_SIZE] = { 0 };                  /* DAVFU */
 
-static t_stat lp20_rd (int32 *data, int32 pa, int32 access);
-static t_stat lp20_wr (int32 data, int32 pa, int32 access);
-static int32 lp20_inta (void);
+static t_stat lp20_rd (int32_t *data, int32_t pa, int32_t access);
+static t_stat lp20_wr (int32_t data, int32_t pa, int32_t access);
+static int32_t lp20_inta (void);
 static t_stat lp20_svc (UNIT *uptr);
 static t_stat idle_svc (UNIT *uptr);
 static void set_flush_timer (UNIT *uptr);
@@ -202,27 +203,27 @@ static t_stat lp20_reset (DEVICE *dptr);
 static t_stat lp20_init (DEVICE *dptr);
 static t_stat lp20_attach (UNIT *uptr, const char *ptr);
 static t_stat lp20_detach (UNIT *uptr);
-static t_stat lp20_set_lpi (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat lp20_show_lpi (FILE *st, UNIT *up, int32 v, const void *dp);
-static t_stat lp20_set_vfu_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat lp20_show_vfu_type (FILE *st, UNIT *up, int32 v, const void *dp);
-static t_stat lp20_show_vfu (FILE *st, UNIT *up, int32 v, const void *dp);
-static t_stat lp20_set_tof (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat lp20_clear_vfu (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static bool lp20_print (int32 c);
-static bool lp20_adv (int32 c, bool advdvu);
-static bool lp20_davfu (int32 c);
-static void update_lpcs (int32 flg);
-static void change_rdy (int32 setrdy, int32 clrrdy);
-static int16 evenbits (int16 value);
+static t_stat lp20_set_lpi (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat lp20_show_lpi (FILE *st, UNIT *up, int32_t v, const void *dp);
+static t_stat lp20_set_vfu_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat lp20_show_vfu_type (FILE *st, UNIT *up, int32_t v, const void *dp);
+static t_stat lp20_show_vfu (FILE *st, UNIT *up, int32_t v, const void *dp);
+static t_stat lp20_set_tof (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat lp20_clear_vfu (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static bool lp20_print (int32_t c);
+static bool lp20_adv (int32_t c, bool advdvu);
+static bool lp20_davfu (int32_t c);
+static void update_lpcs (int32_t flg);
+static void change_rdy (int32_t setrdy, int32_t clrrdy);
+static int16_t evenbits (int16_t value);
 static t_stat lp20_help (FILE *st, DEVICE *dptr,
-                            UNIT *uptr, int32 flag, const char *cptr);
+                            UNIT *uptr, int32_t flag, const char *cptr);
 static const char *lp20_description (DEVICE *dptr);
 
 /* DEC standard VFU tape for 'optical' VFU default.
  * Note that this must be <= DV_SIZE as we copy it into the DAVFU.
  */
-static const int16 defaultvfu[] = { /* Generated by vfu.pl per DEC HRM */
+static const int16_t defaultvfu[] = { /* Generated by vfu.pl per DEC HRM */
     /* 66 line page with 6 line margin */
     00377,    /* Line   0     8  7  6  5  4  3  2  1 */
     00220,    /* Line   1     8        5             */
@@ -412,7 +413,7 @@ DEVICE lp20_dev = {
    lp20_detach  process detach
 */
 
-static t_stat lp20_rd (int32 *data, int32 pa, int32 access)
+static t_stat lp20_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O page read signature.
    This implementation does not use every parameter. */
@@ -447,7 +448,7 @@ switch ((pa >> 1) & 07) {                               /* case on PA<3:1> */
 
     case 05:                                            /* LPRDAT */
         *data = lprdat & RDAT_MASK;
-        if (evenbits((int16)*data))
+        if (evenbits((int16_t)*data))
             *data |= TX_PARITY;
         if (((lprdat & TX_PARITY) == 0) && (lpcsa & CSA_PAR)) /* Data invalid & parity checked? */
             *data ^= TX_PARITY;                         /* Invalid: Provide bad parity */
@@ -465,7 +466,7 @@ switch ((pa >> 1) & 07) {                               /* case on PA<3:1> */
 return SCPE_OK;
 }
 
-static t_stat lp20_wr (int32 data, int32 pa, int32 access)
+static t_stat lp20_wr (int32_t data, int32_t pa, int32_t access)
 {
 update_lpcs (0);                                        /* update csr's */
 switch ((pa >> 1) & 07) {                               /* case on PA<3:1> */
@@ -528,7 +529,7 @@ switch ((pa >> 1) & 07) {                               /* case on PA<3:1> */
         if (access == WRITEB)
             data = (pa & 1)? (lprdat & 0377) | (data << 8): (lprdat & ~0377) | data;
         lprdat = data & RDAT_MASK;
-        txram[lpcbuf & TX_AMASK] = (int16)(lprdat | TX_PARITY);/* load RAM and mark valid */
+        txram[lpcbuf & TX_AMASK] = (int16_t)(lprdat | TX_PARITY);/* load RAM and mark valid */
         break;
 
     case 06:                                            /* LPCOLC/LPCBUF */
@@ -579,12 +580,12 @@ return SCPE_OK;
 
 static t_stat lp20_svc (UNIT *uptr)
 {
-int32 fnc, i, tbc, txst;
-uint16 wd10;
+int32_t fnc, i, tbc, txst;
+uint16_t wd10;
 bool cont;
 a10 ba;
 
-static const uint32 txcase[32] = {
+static const uint32_t txcase[32] = {
     TX_CHR, TX_RAM, TX_CHR, TX_DVU, TX_RAM, TX_RAM, TX_DVU, TX_DVU,
     TX_RAM, TX_RAM, TX_DVU, TX_DVU, TX_RAM, TX_RAM, TX_DVU, TX_DVU,
     TX_INT, TX_INT, TX_INT, TX_INT, TX_RAM, TX_INT, TX_DVU, TX_INT,
@@ -668,7 +669,7 @@ for (i = 0, cont = true; (i < tbc) && cont; ba++, i++) {
             }
         else if (dvld == 3) {                       /* odd state? */
             if (dvlnt < DV_SIZE) {
-                davfu[dvlnt++] = (int16)(dvld_hold | ((lpcbuf & DV_DMASK) << 6));
+                davfu[dvlnt++] = (int16_t)(dvld_hold | ((lpcbuf & DV_DMASK) << 6));
                 dvld = 2;
                 }
             else {
@@ -747,10 +748,10 @@ return SCPE_OK;
    Return true to continue printing, false to stop
 */
 
-static bool lp20_print (int32 c)
+static bool lp20_print (int32_t c)
 {
 bool r = true;
-int32 i, rpt = 1;
+int32_t i, rpt = 1;
 
 lppdat = c & 0177;                                      /* mask char to 7b */
 if (lppdat == 000)                                      /* NUL? no op */
@@ -782,9 +783,9 @@ lpcolc = lpcolc + rpt;
 return r;
 }
 
-static bool lp20_adv (int32 cnt, bool dvuadv)
+static bool lp20_adv (int32_t cnt, bool dvuadv)
 {
-int32 i;
+int32_t i;
 int stoppc = false;
 
 if (cnt == 0)
@@ -819,7 +820,7 @@ if (stoppc)                                            /* crossed one or more TO
 return true;
 }
 
-static bool lp20_davfu (int32 cnt)
+static bool lp20_davfu (int32_t cnt)
 {
 int i;
 
@@ -853,7 +854,7 @@ return false;
 
 /* Update LPCSA, optionally request interrupt */
 
-static void update_lpcs (int32 flg)
+static void update_lpcs (int32_t flg)
 {
 if (flg)                                                /* set int req */
     lp20_irq = 1;
@@ -876,9 +877,9 @@ return;
  * used for bits where a transition should cause an interrupt.
  * also updates corresponding bits in csb.
  */
-static void change_rdy (int32 setrdy, int32 clrrdy)
+static void change_rdy (int32_t setrdy, int32_t clrrdy)
 {
-int32 newcsa = (lpcsa | setrdy) & ~clrrdy;
+int32_t newcsa = (lpcsa | setrdy) & ~clrrdy;
 
 if ((newcsa ^ lpcsa) & (CSA_ONL | CSA_DVON) && !sim_is_active (lp20_unit)) {
     lp20_irq |= 1;
@@ -901,7 +902,7 @@ lpcsa = newcsa;
 
 /* Acknowledge interrupt (clear internal request) */
 
-static int32 lp20_inta (void)
+static int32_t lp20_inta (void)
 {
 lp20_irq = 0;                                           /* clear int req */
 return lp20_dib.vec;
@@ -999,7 +1000,7 @@ return reason;
 static void set_flush_timer (UNIT *uptr) {
 uptr = lp20_unit+1;
 uptr->u4 = uptr->u3;
-uptr->u5 = (int32)time(NULL);
+uptr->u5 = (int32_t)time(NULL);
 sim_cancel(uptr);
 sim_activate_after (uptr, uptr->wait);
 }
@@ -1015,7 +1016,7 @@ fflush (uptr->fileref);
 return SCPE_OK;
 }
 
-static t_stat lp20_set_vfu_type (UNIT *uptr, int32 val, const char *gptr, void *desc)
+static t_stat lp20_set_vfu_type (UNIT *uptr, int32_t val, const char *gptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1095,7 +1096,7 @@ memset (davfu, 0, sizeof davfu);
 dvptr = dvlnt = 0;
 
 while (!feof(vfile)) {
-    int32 line, hole;
+    int32_t line, hole;
     int c;
 
     /* Discard comments */
@@ -1151,7 +1152,7 @@ fclose(vfile);
 return SCPE_FMT;
 }
 
-static t_stat lp20_show_vfu_type (FILE *st, UNIT *up, int32 v, const void *dp)
+static t_stat lp20_show_vfu_type (FILE *st, UNIT *up, int32_t v, const void *dp)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1172,14 +1173,14 @@ else
 return SCPE_OK;
 }
 
-static t_stat lp20_set_lpi (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat lp20_set_lpi (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) val;
 (void) desc;
 
-int32 newlpi;
+int32_t newlpi;
 
 if (uptr->flags & UNIT_ATT)
     return SCPE_NOATT;
@@ -1200,7 +1201,7 @@ lpi = newlpi;
 return SCPE_OK;
 }
 
-static t_stat lp20_show_lpi (FILE *st, UNIT *up, int32 v, const void *dp)
+static t_stat lp20_show_lpi (FILE *st, UNIT *up, int32_t v, const void *dp)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1213,7 +1214,7 @@ fprintf (st, "%u LPI", lpi);
 return SCPE_OK;
 }
 
-static t_stat lp20_show_vfu (FILE *st, UNIT *up, int32 v, const void *dp)
+static t_stat lp20_show_vfu (FILE *st, UNIT *up, int32_t v, const void *dp)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1257,15 +1258,15 @@ if (!(sum & (1 << DV_BOF))) {
 
 return SCPE_OK;
 }
-static t_stat lp20_set_tof (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat lp20_set_tof (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) val;
 (void) desc;
 
-int32 s_lpcsa = lpcsa;
-int32 s_lppagc = lppagc;
+int32_t s_lpcsa = lpcsa;
+int32_t s_lppagc = lppagc;
 
 if (cptr && *cptr)
     return SCPE_ARG;
@@ -1283,9 +1284,9 @@ lpcsa = s_lpcsa;
 return SCPE_OK;
 }
 
-static int16 evenbits (int16 value)
+static int16_t evenbits (int16_t value)
 {
-int16 even = 1;
+int16_t even = 1;
 while (value) {
     even ^= 1;
     value &= value-1;
@@ -1293,7 +1294,7 @@ while (value) {
 return even;
 }
 
-static t_stat lp20_clear_vfu (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat lp20_clear_vfu (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1317,7 +1318,7 @@ return SCPE_OK;
 }
 
 static t_stat lp20_help (FILE *st, DEVICE *dptr,
-                            UNIT *uptr, int32 flag, const char *cptr)
+                            UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

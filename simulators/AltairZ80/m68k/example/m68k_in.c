@@ -99,6 +99,8 @@ M68KMAKE_PROTOTYPE_HEADER
 #ifndef M68KOPS__HEADER
 #define M68KOPS__HEADER
 
+#include "sim_types.h"
+
 /* ======================================================================== */
 /* ============================ OPCODE HANDLERS =========================== */
 /* ======================================================================== */
@@ -113,7 +115,7 @@ M68KMAKE_PROTOTYPE_FOOTER
 void m68ki_build_opcode_table(void);
 
 extern void (*m68ki_instruction_jump_table[0x10000])(void); /* opcode handler jump table */
-extern unsigned char m68ki_cycles[][0x10000];
+extern uchar_t m68ki_cycles[][0x10000];
 
 
 /* ======================================================================== */
@@ -131,21 +133,24 @@ M68KMAKE_TABLE_HEADER
 /* ========================= OPCODE TABLE BUILDER ========================= */
 /* ======================================================================== */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "m68kops.h"
+#include "sim_types.h"
 
 #define NUM_CPU_TYPES 5
 
 void  (*m68ki_instruction_jump_table[0x10000])(void); /* opcode handler jump table */
-unsigned char m68ki_cycles[NUM_CPU_TYPES][0x10000]; /* Cycles used by CPU type */
+uchar_t m68ki_cycles[NUM_CPU_TYPES][0x10000];       /* Cycles used by CPU type */
 
 /* This is used to generate the opcode handler jump table */
 typedef struct
 {
 	void (*opcode_handler)(void);        /* handler function */
-	unsigned int  mask;                  /* mask on opcode */
-	unsigned int  match;                 /* what to match after masking */
-	unsigned char cycles[NUM_CPU_TYPES]; /* cycles each cpu type takes */
+	uint_t        mask;                  /* mask on opcode */
+	uint_t        match;                 /* what to match after masking */
+	uchar_t cycles[NUM_CPU_TYPES];       /* cycles each cpu type takes */
 } opcode_handler_struct;
 
 
@@ -280,6 +285,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 M68KMAKE_OPCODE_HANDLER_HEADER
 
 #include <stdio.h>
+
 #include "m68kcpu.h"
 extern void m68040_fpu_op0(void);
 extern void m68040_fpu_op1(void);
@@ -4431,7 +4437,7 @@ M68KMAKE_OP(divs, 16, ., d)
 
 	if(src != 0)
 	{
-		if((uint32)*r_dst == 0x80000000 && src == -1)
+		if((uint32_t)*r_dst == 0x80000000 && src == -1)
 		{
 			FLAG_Z = 0;
 			FLAG_N = NFLAG_CLEAR;
@@ -4469,7 +4475,7 @@ M68KMAKE_OP(divs, 16, ., .)
 
 	if(src != 0)
 	{
-		if((uint32)*r_dst == 0x80000000 && src == -1)
+		if((uint32_t)*r_dst == 0x80000000 && src == -1)
 		{
 			FLAG_Z = 0;
 			FLAG_N = NFLAG_CLEAR;
@@ -7423,7 +7429,7 @@ M68KMAKE_OP(moveq, 32, ., .)
 
 M68KMAKE_OP(move16, 32, ., .)
 {
-	uint16 w2 = OPER_I_16();
+	uint16_t w2 = OPER_I_16();
 	int ax = REG_IR & 7;
 	int ay = (w2 >> 12) & 7;
 

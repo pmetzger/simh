@@ -45,23 +45,25 @@ Notes:
     - register STOP_IOE determines return value issued if output to unattached PTR or PTP is attempted
 */
 
+#include <stdint.h>
+
 #include "nova_defs.h"
 
-extern int32 int_req, dev_busy, dev_done, dev_disable ;
-extern int32 SR ;
+extern int32_t int_req, dev_busy, dev_done, dev_disable ;
+extern int32_t SR ;
 
-extern t_stat cpu_boot(int32 unitno, DEVICE * dptr ) ;
+extern t_stat cpu_boot(int32_t unitno, DEVICE * dptr ) ;
 
 
-int32 ptr_stopioe = 0, ptp_stopioe = 0;                 /* stop on error */
+int32_t ptr_stopioe = 0, ptp_stopioe = 0;               /* stop on error */
 
-int32 ptr (int32 pulse, int32 code, int32 AC);
-int32 ptp (int32 pulse, int32 code, int32 AC);
+int32_t ptr (int32_t pulse, int32_t code, int32_t AC);
+int32_t ptp (int32_t pulse, int32_t code, int32_t AC);
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
 t_stat ptp_reset (DEVICE *dptr);
-t_stat ptr_boot (int32 unitno, DEVICE *dptr);
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr);
 
 
 /* 7 or 8 bit data mask support for either device  */
@@ -155,13 +157,13 @@ DEVICE ptp_dev =
 
 /* Paper tape reader: IOT routine */
 
-int32 ptr (int32 pulse, int32 code, int32 AC)
+int32_t ptr (int32_t pulse, int32_t code, int32_t AC)
 {
 /* I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) AC;
 
-int32   iodata;
+int32_t iodata;
 
 iodata = (code == ioDIA)?
               ptr_unit.buf & 0377
@@ -195,7 +197,7 @@ t_stat ptr_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32   temp;
+int32_t temp;
 
 if ((ptr_unit.flags & UNIT_ATT) == 0)                   /* attached? */
     return IORETURN (ptr_stopioe, SCPE_UNATT);
@@ -238,7 +240,7 @@ return SCPE_OK;
 
 /* Boot routine */
 
-t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
 ptr_reset( dptr ) ;
 /*  set position to 0?  */
@@ -253,7 +255,7 @@ return ( SCPE_OK );
 
 /* Paper tape punch: IOT routine */
 
-int32 ptp (int32 pulse, int32 code, int32 AC)
+int32_t ptp (int32_t pulse, int32_t code, int32_t AC)
 {
 if (code == ioDOA)
     ptp_unit.buf = AC & 0377;

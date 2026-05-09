@@ -32,6 +32,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 /* control/status registers */
@@ -101,16 +103,16 @@ BITFIELD wtc_mode_bits[] = {
     ENDBITS
 };
 
-int32 wtc_csra = 0;
-int32 wtc_csrb = 0;
-int32 wtc_csrc = 0;
-int32 wtc_csrd = 0;
-int32 wtc_mode = WTC_MODE_VMS;
-uint8 wtc_ram[64];
+int32_t wtc_csra = 0;
+int32_t wtc_csrb = 0;
+int32_t wtc_csrc = 0;
+int32_t wtc_csrd = 0;
+int32_t wtc_mode = WTC_MODE_VMS;
+uint8_t wtc_ram[64];
 
-t_stat wtc_set (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat wtc_show (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat wtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat wtc_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat wtc_show (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat wtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *wtc_description (DEVICE *dptr);
 t_stat wtc_reset (DEVICE *dptr);
 void wtc_set_valid (void);
@@ -159,9 +161,9 @@ static const char *wtc_regs[] =
 
 
 
-int32 wtc_rd (int32 rg)
+int32_t wtc_rd (int32_t rg)
 {
-int32 val = 0;
+int32_t val = 0;
 time_t curr;
 struct timespec now;
 static int mdays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -226,7 +228,7 @@ if (rg < 14) {
             if (wtc_mode == WTC_MODE_VMS)
                 val = 82;                               /* always 1982 for VMS */
             else
-                val = (int32)(ctm->tm_year % 100);
+                val = (int32_t)(ctm->tm_year % 100);
             break;
 
         case 10:                                        /* CSR A */
@@ -247,7 +249,7 @@ if (rg < 14) {
             break;
             }
     sim_debug(DBG_REG, &wtc_dev, "wtc_rd(rg=%d [%s], data=0x%X) ", rg, wtc_regs[rg], val);
-    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32)val, (uint32)val, true);
+    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32_t)val, (uint32_t)val, true);
     }
 else
     sim_debug(DBG_REG, &wtc_dev, "wtc_rd(rg=%d [RAM], data=0x%X)\n", rg, val);
@@ -255,14 +257,14 @@ else
 return val;
 }
 
-int32 wtc_rd_pa (int32 pa)
+int32_t wtc_rd_pa (int32_t pa)
 {
 return wtc_rd ((pa & (sizeof (wtc_ram) - 1)) >> 1);
 }
 
-void wtc_wr (int32 rg, int32 val)
+void wtc_wr (int32_t rg, int32_t val)
 {
-int32 new_val = val;
+int32_t new_val = val;
 
 val = val & 0xFF;
 
@@ -290,13 +292,13 @@ switch(rg) {                                            /* register behaviors */
 
 if (rg < 14) {
     sim_debug(DBG_REG, &wtc_dev, "wtc_wr(rg=%d [%s], data=0x%X) ", rg, wtc_regs[rg], val);
-    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32)new_val, (uint32)new_val, true);
+    sim_debug_bits(DBG_REG, &wtc_dev, wtc_bitdefs[rg], (uint32_t)new_val, (uint32_t)new_val, true);
     }
 else
     sim_debug(DBG_REG, &wtc_dev, "wtc_wr(rg=%d [RAM], data=0x%X)\n", rg, val);
 }
 
-void wtc_wr_pa (int32 pa, int32 val, int32 lnt)
+void wtc_wr_pa (int32_t pa, int32_t val, int32_t lnt)
 {
 wtc_wr ((pa & (sizeof (wtc_ram) - 1)) >> 1, val);
 if (lnt == 4)
@@ -319,7 +321,7 @@ if (sim_switches & SWMASK ('P')) {                      /* powerup? */
 return SCPE_OK;
 }
 
-t_stat wtc_set (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat wtc_set (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -345,7 +347,7 @@ if (cptr != NULL) {
 return SCPE_OK;
 }
 
-t_stat wtc_show (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat wtc_show (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -369,7 +371,7 @@ void wtc_set_invalid (void)
 wtc_csrd &= ~WTC_CSRD_VRT;
 }
 
-t_stat wtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat wtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

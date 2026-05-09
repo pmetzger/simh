@@ -73,6 +73,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp18b_defs.h"
 #include "sim_tape.h"
 
@@ -129,24 +131,24 @@
 #define STA_DYN         (STA_REW | STA_BOT | STA_EOF | STA_EOT)
                                                         /* kept in USTAT */
 
-extern int32 *M;
-extern int32 int_hwre[API_HLVL+1];
-extern int32 api_vec[API_HLVL][32];
+extern int32_t *M;
+extern int32_t int_hwre[API_HLVL+1];
+extern int32_t api_vec[API_HLVL][32];
 extern UNIT cpu_unit;
 
-int32 mt_cu = 0;                                        /* command/unit */
-int32 mt_sta = 0;                                       /* status register */
-int32 mt_time = 10;                                     /* record latency */
-int32 mt_stopioe = 1;                                   /* stop on error */
-uint8 *mtxb = NULL;                                     /* transfer buffer */
+int32_t mt_cu = 0;                                      /* command/unit */
+int32_t mt_sta = 0;                                     /* status register */
+int32_t mt_time = 10;                                   /* record latency */
+int32_t mt_stopioe = 1;                                 /* stop on error */
+uint8_t *mtxb = NULL;                                   /* transfer buffer */
 
-int32 mt (int32 dev, int32 pulse, int32 dat);
-int32 mt_iors (void);
+int32_t mt (int32_t dev, int32_t pulse, int32_t dat);
+int32_t mt_iors (void);
 t_stat mt_svc (UNIT *uptr);
 t_stat mt_reset (DEVICE *dptr);
 t_stat mt_attach (UNIT *uptr, const char *cptr);
 t_stat mt_detach (UNIT *uptr);
-int32 mt_updcsta (UNIT *uptr, int32 val);
+int32_t mt_updcsta (UNIT *uptr, int32_t val);
 t_stat mt_map_err (UNIT *uptr, t_stat st);
 UNIT *mt_busy (void);
 
@@ -210,13 +212,13 @@ DEVICE mt_dev = {
 
 /* IOT routine */
 
-int32 mt (int32 dev, int32 pulse, int32 dat)
+int32_t mt (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 f, sb;
+int32_t f, sb;
 UNIT *uptr;
 
 uptr = mt_dev.units + GET_UNIT (mt_cu);                 /* get unit */
@@ -276,13 +278,13 @@ return dat;
 
 t_stat mt_svc (UNIT *uptr)
 {
-int32 c, c1, c2, c3, f, i, p, u;
-int32 wc, xma;
+int32_t c, c1, c2, c3, f, i, p, u;
+int32_t wc, xma;
 t_mtrlnt tbc, cbc;
 bool passed_eot;
 t_stat st, r = SCPE_OK;
 
-u = (int32) (uptr - mt_dev.units);                      /* get unit number */
+u = (int32_t) (uptr - mt_dev.units);                    /* get unit number */
 f = GET_CMD (mt_cu);                                    /* get command */
 wc = WC_SIZE - (M[MT_WC] & WC_MASK);                    /* word count is 12b */
 
@@ -411,7 +413,7 @@ return r;
 
 /* Update controller status */
 
-int32 mt_updcsta (UNIT *uptr, int32 news)
+int32_t mt_updcsta (UNIT *uptr, int32_t news)
 {
 mt_sta = (mt_sta & ~(STA_DYN | STA_CLR)) | (uptr->USTAT & STA_DYN) | news;
 if ((mt_sta & (STA_ERR | STA_DON)) && (mt_cu & CU_IE))
@@ -424,7 +426,7 @@ return mt_sta;
 
 UNIT *mt_busy (void)
 {
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 for (u = 0; u < MT_NUMDR; u++) {                        /* loop thru units */
@@ -492,7 +494,7 @@ t_stat mt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 mt_cu = mt_sta = 0;
@@ -506,7 +508,7 @@ for (u = 0; u < MT_NUMDR; u++) {                        /* loop thru units */
     }
 mt_updcsta (&mt_unit[0], 0);                            /* update status */
 if (mtxb == NULL)
-    mtxb = (uint8 *) calloc (MT_MAXFR, sizeof (uint8));
+    mtxb = (uint8_t *) calloc (MT_MAXFR, sizeof (uint8_t));
 if (mtxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -514,7 +516,7 @@ return SCPE_OK;
 
 /* IORS routine */
 
-int32 mt_iors (void)
+int32_t mt_iors (void)
 {
 return (mt_sta & (STA_ERR | STA_DON))? IOS_MTA: 0;
 }

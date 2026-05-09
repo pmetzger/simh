@@ -82,6 +82,8 @@
 
 
 
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -177,8 +179,8 @@ t_stat cpu_eau (void)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint32 rs, qs, v1, v2, operand, fill, mask, shift;
-int32 sop1, sop2;
+uint32_t rs, qs, v1, v2, operand, fill, mask, shift;
+int32_t sop1, sop2;
 
 if (!(cpu_configuration & CPU_EAU))                     /* if the EAU is not installed */
     return STOP (cpu_ss_unimpl);                        /*   then the instructions execute as NOPs */
@@ -448,7 +450,7 @@ t_stat cpu_fp (void)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint32 entry;
+uint32_t entry;
 
 entry = (IR >> 4) & 017;                                /* mask to entry point */
 
@@ -572,12 +574,12 @@ static const OP_PAT op_iop[16] = {
   OP_N,    OP_N,    OP_N,    OP_N                       /* SAVE    ---    ---    ---  */
   };
 
-t_stat cpu_iop (uint32 intrq)
+t_stat cpu_iop (uint32_t intrq)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint8 byte;
-uint32 entry, i;
+uint8_t byte;
+uint32_t entry, i;
 HP_WORD hp, tp, t, wc, MA;
 
 if (cpu_configuration & CPU_2100) {                     /* 2100 IOP? */

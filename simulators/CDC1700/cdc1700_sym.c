@@ -31,10 +31,11 @@
 #include "cdc1700_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern UNIT cpu_unit;
 
-extern uint16 doADDinternal(uint16, uint16);
+extern uint16_t doADDinternal(uint16_t, uint16_t);
 
 /*
  * Symbol tables
@@ -85,7 +86,7 @@ static const char *opcode[] = {
   NULL
 };
 
-static const int32 opc_val[] = {
+static const int32_t opc_val[] = {
   OPC_ADQ + I_ARITH, OPC_LDQ + I_DATA, OPC_RAO + I_ARITH, OPC_LDA + I_DATA,
   OPC_EOR + I_LOG, OPC_AND + I_LOG, OPC_SUB + I_ARITH, OPC_ADD + I_ARITH,
   OPC_SPA + I_DATA, OPC_STA + I_DATA, OPC_RTJ + I_JUMP, OPC_STQ + I_DATA,
@@ -118,11 +119,11 @@ static const char *regname[] = {
 /*
  * Usage value for each usage type (0 means invalid).
  */
-static uint16 instIndex[] = {
+static uint16_t instIndex[] = {
   0x0000, MOD_I1, 0x0000, MOD_I2, MOD_I1 | MOD_I2
 };
 
-static uint16 instInter[] = {
+static uint16_t instInter[] = {
   MOD_D_A, MOD_D_Q, MOD_D_M, 0x0000, 0x0000
 };
 
@@ -131,13 +132,13 @@ static uint16 instInter[] = {
   for (j = 0; (regname[j] != NULL) && (strcmp(regname[j], gbuf) != 0); j++); \
   if (regname[j] == NULL) return SCPE_ARG
 
-t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
   /* Generic symbolic input signature.
      This implementation does not use every parameter. */
   (void)uptr;
 
-  int32 i, j, l, rdx;
+  int32_t i, j, l, rdx;
   bool neg;
   t_value temp;
   t_stat r;

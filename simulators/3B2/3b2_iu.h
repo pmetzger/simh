@@ -32,6 +32,8 @@
 #define __3B2_IU_H__
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_defs.h"
 
 #define CMD_ERX         0x01              /* Enable receiver */
@@ -172,34 +174,34 @@
 #define IU_TIMER_MULTIPLIER  4
 
 typedef struct iu_port {
-    uint8 cmd;                /* Command */
-    uint8 mode[2];            /* Two mode buffers */
-    uint8 modep;              /* Point to mode[0] or mode[1] */
-    uint8 conf;               /* Configuration bits */
-    uint8 sr;                 /* Status Register */
-    uint8 thr;                /* Transmit Holding Register */
-    uint8 txr;                /* Transmit Shift Register */
-    uint8 rxr;                /* Receive Shift Register */
-    uint8 rxbuf[IU_BUF_SIZE]; /* Receive Holding Register (3 bytes) */
-    uint8 w_p;                /* Receive Buffer Write Pointer */
-    uint8 r_p;                /* Receive Buffer Read Pointer */
-    uint8 tx_state;           /* Transmitting state flags (HOLD, XMIT) */
+    uint8_t cmd;              /* Command */
+    uint8_t mode[2];          /* Two mode buffers */
+    uint8_t modep;            /* Point to mode[0] or mode[1] */
+    uint8_t conf;             /* Configuration bits */
+    uint8_t sr;               /* Status Register */
+    uint8_t thr;              /* Transmit Holding Register */
+    uint8_t txr;              /* Transmit Shift Register */
+    uint8_t rxr;              /* Receive Shift Register */
+    uint8_t rxbuf[IU_BUF_SIZE]; /* Receive Holding Register (3 bytes) */
+    uint8_t w_p;              /* Receive Buffer Write Pointer */
+    uint8_t r_p;              /* Receive Buffer Read Pointer */
+    uint8_t tx_state;         /* Transmitting state flags (HOLD, XMIT) */
     bool dma;                 /* DMA currently active */
     bool drq;                 /* DMA request enabled */
     bool rxr_full;            /* Receive Shift Register is full */
 } IU_PORT;
 
 typedef struct iu_state {
-    uint8 isr;            /* Interrupt Status Register */
-    uint8 imr;            /* Interrupt Mask Register */
-    uint8 acr;            /* Aux. Control Register */
-    uint8 opcr;           /* Output Port Configuration */
-    uint8 inprt;          /* Input Port Data */
-    uint8 ipcr;           /* Input Port Change Register */
+    uint8_t isr;          /* Interrupt Status Register */
+    uint8_t imr;          /* Interrupt Mask Register */
+    uint8_t acr;          /* Aux. Control Register */
+    uint8_t opcr;         /* Output Port Configuration */
+    uint8_t inprt;        /* Input Port Data */
+    uint8_t ipcr;         /* Input Port Change Register */
 } IU_STATE;
 
 typedef struct iu_timer_state {
-    uint16 c_set;
+    uint16_t c_set;
     bool c_en;
 } IU_TIMER_STATE;
 
@@ -209,21 +211,21 @@ t_stat contty_detach(UNIT *uptr);
 t_stat tti_reset(DEVICE *dptr);
 t_stat contty_reset(DEVICE *dptr);
 t_stat iu_timer_reset(DEVICE *dptr);
-t_stat iu_timer_set_mult(UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat iu_timer_set_mult(UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat iu_timer_show_mult(FILE *st, UNIT *uptr, int val, const void *desc);
 t_stat iu_svc_tti(UNIT *uptr);
 t_stat iu_svc_tto(UNIT *uptr);
 t_stat iu_svc_contty(UNIT *uptr);
 t_stat iu_svc_contty_xmt(UNIT *uptr);
 t_stat iu_svc_timer(UNIT *uptr);
-uint32 iu_read(uint32 pa, size_t size);
-void iu_write(uint32 pa, uint32 val, size_t size);
+uint32_t iu_read(uint32_t pa, size_t size);
+void iu_write(uint32_t pa, uint32_t val, size_t size);
 void iua_drq_handled(void);
 void iub_drq_handled(void);
 void iu_txrdy_a_irq(void);
 void iu_txrdy_b_irq(void);
-void iu_dma_console(uint8 channel, uint32 service_address);
-void iu_dma_contty(uint8 channel, uint32 service_address);
+void iu_dma_console(uint8_t channel, uint32_t service_address);
+void iu_dma_contty(uint8_t channel, uint32_t service_address);
 void increment_modep_a(void);
 void increment_modep_b(void);
 

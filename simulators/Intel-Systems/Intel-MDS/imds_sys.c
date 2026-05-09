@@ -35,6 +35,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "system_defs.h"
 
 extern DEVICE i8080_dev;
@@ -73,7 +75,7 @@ char sim_name[] = "Intel-MDS";
 
 REG *sim_PC = &i8080_reg[0];
 
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 
 DEVICE *sim_devices[] = {
     &i8080_dev,

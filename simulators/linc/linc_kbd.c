@@ -1,10 +1,12 @@
+#include <stdint.h>
+
 #include "linc_defs.h"
 #include "sim_video.h"
 
 /* Debug */
 #define DBG   0001
 
-#define A (*(uint16 *)cpu_reg[2].loc)
+#define A (*(uint16_t *)cpu_reg[2].loc)
 #define paused (*(int *)cpu_reg[11].loc)
 
 static t_stat kbd_reset(DEVICE *dptr);
@@ -40,7 +42,7 @@ CASE  0  1  2  3  4  5  6  7  8  9 DEL
 */
 
 static int kbd_pressed = 0;
-static uint16 kbd_code;
+static uint16_t kbd_code;
 
 int kbd_struck(void)
 {
@@ -49,7 +51,7 @@ int kbd_struck(void)
   return kbd_pressed;
 }
 
-uint16 kbd_key(uint16 wait)
+uint16_t kbd_key(uint16_t wait)
 {
   if (kbd_pressed) {
     sim_debug(DBG, &kbd_dev, "KEY %02o\n", kbd_code);
@@ -62,7 +64,7 @@ uint16 kbd_key(uint16 wait)
   return 0;
 }
 
-static void kbd_convert(uint32 key)
+static void kbd_convert(uint32_t key)
 {
   switch (key) {
   case SIM_KEY_0: /* 0 Q */

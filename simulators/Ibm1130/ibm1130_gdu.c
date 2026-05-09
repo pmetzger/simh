@@ -1,4 +1,6 @@
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "ibm1130_defs.h"
 
 /* ibm1130_gdu.c: IBM 1130 2250 Graphical Display Unit
@@ -67,16 +69,16 @@
 
 static t_stat gdu_reset (DEVICE *dptr);
 
-static int16 gdu_dsw  = 1;                                  /* device status word */
-static int16 gdu_ar   = 0;                                  /* address register */
-static int16 gdu_x    = 0;                                  /* X deflection */
-static int16 gdu_y    = 0;                                  /* Y deflection */
-static int16 gdu_fkey = 0;                                  /* function keyboard register */
-static int16 gdu_akey = 0;                                  /* alphanumeric keyboard register */
-static int16 gdu_revert = 0;                                /* revert address register */
-static int32 gdu_indicators = 0;                            /* programmed indicator lamps */
-static int32 gdu_threshold = DEFAULT_PEN_THRESHOLD;         /* mouse must be within 3/1024 of line to be a hit */
-static int32 gdu_rate = DEFAULT_GDU_RATE;                   /* refresh rate. 0 = default */
+static int16_t gdu_dsw  = 1;                                /* device status word */
+static int16_t gdu_ar   = 0;                                /* address register */
+static int16_t gdu_x    = 0;                                /* X deflection */
+static int16_t gdu_y    = 0;                                /* Y deflection */
+static int16_t gdu_fkey = 0;                                /* function keyboard register */
+static int16_t gdu_akey = 0;                                /* alphanumeric keyboard register */
+static int16_t gdu_revert = 0;                              /* revert address register */
+static int32_t gdu_indicators = 0;                          /* programmed indicator lamps */
+static int32_t gdu_threshold = DEFAULT_PEN_THRESHOLD;       /* mouse must be within 3/1024 of line to be a hit */
+static int32_t gdu_rate = DEFAULT_GDU_RATE;                 /* refresh rate. 0 = default */
 
 UNIT gdu_unit = { UDATA (NULL, 0, 0) };
 
@@ -112,7 +114,7 @@ static t_stat gdu_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-void xio_2250_display (int32 addr, int32 func, int32 modify)
+void xio_2250_display (int32_t addr, int32_t func, int32_t modify)
 {
     /* Device dispatch signature.
        This implementation does not use every parameter. */
@@ -133,13 +135,13 @@ bool gdu_active (void)
 
 /******* PLATFORM INDEPENDENT CODE ********************************************************/
 
-static int32 gdu_instaddr;                          // address of first word of instruction
+static int32_t gdu_instaddr;                        // address of first word of instruction
 static int xmouse, ymouse, lpen_dist, lpen_dist2;   // current mouse pointer, scaled closeness threshhold, same squared
 static double sfactor;                              // current scaling factor
 static bool last_abs = true;                        // last positioning instruction was absolute
 static bool mouse_present = false;                  // mouse is/is not in the window
 static void clear_interrupts (void);
-static void set_indicators (int32 new_inds);
+static void set_indicators (int32_t new_inds);
 static void start_regeneration (void);
 static void halt_regeneration (void);
 static void draw_characters (void);
@@ -160,7 +162,7 @@ static void   EraseGDUScreen (void);
 
 /* -------------------------------------------------------------------------------------- */
 
-void xio_2250_display (int32 addr, int32 func, int32 modify)
+void xio_2250_display (int32_t addr, int32_t func, int32_t modify)
 {
     if (cgi) return;                                /* ignore this device in CGI mode */
 
@@ -181,7 +183,7 @@ void xio_2250_display (int32 addr, int32 func, int32 modify)
             WriteW(addr+3, gdu_y & 0x7FF);
             WriteW(addr+4, gdu_fkey);
             WriteW(addr+5, gdu_akey);
-            gdu_ar = (int16) (addr+6);              /* this alters the channel address register? */
+            gdu_ar = (int16_t) (addr+6);            /* this alters the channel address register? */
 
             clear_interrupts();                     /* read status clears the interrupts */
             break;
@@ -194,7 +196,7 @@ void xio_2250_display (int32 addr, int32 func, int32 modify)
                 set_indicators((ReadW(addr) << 16) | ReadW(addr+1));
             }
             else {
-                gdu_ar   = (int16) addr;
+                gdu_ar   = (int16_t) addr;
                 gdu_fkey = 0;
                 gdu_akey = 0;
                 clear_interrupts();
@@ -234,7 +236,7 @@ static void clear_interrupts (void)
     calc_ints();
 }
 
-static void gdu_interrupt (int32 dswbit)
+static void gdu_interrupt (int32_t dswbit)
 {
     SETBIT(gdu_dsw, dswbit);
     SETBIT(ILSW[3], ILSW_3_2250_DISPLAY);
@@ -242,7 +244,7 @@ static void gdu_interrupt (int32 dswbit)
     halt_regeneration();
 }
 
-static void set_indicators (int32 new_inds)
+static void set_indicators (int32_t new_inds)
 {
     gdu_indicators = new_inds;
     if (gdu_unit.flags & UNIT_DISPLAYED)
@@ -286,19 +288,19 @@ static void notify_window_closed (void)
     gdu_reset(&gdu_dev);
 }
 
-static int32 read_gduword (void)
+static int32_t read_gduword (void)
 {
-    int32 w;
+    int32_t w;
 
     w = M[gdu_ar++ & mem_mask];
-    gdu_dsw = (int16) ((gdu_dsw & ~GDU_DSW_ADDR_DISP) | ((gdu_ar - gdu_instaddr) & GDU_DSW_ADDR_DISP));
+    gdu_dsw = (int16_t) ((gdu_dsw & ~GDU_DSW_ADDR_DISP) | ((gdu_ar - gdu_instaddr) & GDU_DSW_ADDR_DISP));
 
     return w;
 }
 
 #define DIST2(x0,y0,x1,y1) (((x1)-(x0))*((x1)-(x0))+((y1)-(y0))*((y1)-(y0)))
 
-static void draw (int32 newx, int32 newy, bool beam)
+static void draw (int32_t newx, int32_t newy, bool beam)
 {
     int xmin, xmax, ymin, ymax, xd, yd;
     double s;
@@ -405,13 +407,13 @@ static void draw (int32 newx, int32 newy, bool beam)
 #endif
     }
 
-    gdu_x = (int16) newx;
-    gdu_y = (int16) newy;
+    gdu_x = (int16_t) newx;
+    gdu_y = (int16_t) newy;
 }
 
 static void generate_image (void)
 {
-    int32 instr, new_addr, newx, newy;
+    int32_t instr, new_addr, newx, newy;
     bool run = true, accept;
 
     if (! (gdu_dsw & GDU_DSW_BUSY))
@@ -437,7 +439,7 @@ static void generate_image (void)
             case 0:                                 // short branch
             case 1:
                 gdu_revert = gdu_ar;                // save revert address & get new address
-                gdu_ar = (int16) (read_gduword() & 0x1FFF);
+                gdu_ar = (int16_t) (read_gduword() & 0x1FFF);
                 if (gdu_dsw & GDU_DSW_CHARACTER_MODE) {
                     draw_characters();              // in character mode this means we are at character data
                     gdu_ar = gdu_revert;
@@ -461,7 +463,7 @@ static void generate_image (void)
                         if (instr & 0x0080)         // indirect
                             new_addr = M[new_addr & mem_mask];
 
-                        gdu_ar = (int16) new_addr;
+                        gdu_ar = (int16_t) new_addr;
 
                         if (gdu_dsw & GDU_DSW_CHARACTER_MODE) {
                             draw_characters();
@@ -579,7 +581,7 @@ static struct charinfo {        // character mode scaling info:
 
 static void draw_characters (void)
 {
-    int32 w, x0, y0, x1, y1, yoff = 0, ninstr = 0;
+    int32_t w, x0, y0, x1, y1, yoff = 0, ninstr = 0;
     bool dospace, didstroke = false;
     struct charinfo *ci;
 
@@ -618,9 +620,9 @@ static void draw_characters (void)
 
                 case 7:                         // new line
                     gdu_x = 0;
-                    gdu_y -= (int16) ci->dy;
+                    gdu_y -= (int16_t) ci->dy;
                     if (gdu_y < 0 && last_abs)
-                        gdu_y = (int16) (1024 - ci->dy);    // this is a guess
+                        gdu_y = (int16_t) (1024 - ci->dy);  // this is a guess
                     break;
             }
         }
@@ -649,7 +651,7 @@ static void draw_characters (void)
             gdu_x += ci->dx;
             if (gdu_x > 1023 && last_abs) {     // line wrap
                 gdu_x = 0;
-                gdu_y -= (int16) ci->dy;
+                gdu_y -= (int16_t) ci->dy;
             }
         }
     } while ((w & 0x0080) == 0);                // repeat until we hit revert bit

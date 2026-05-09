@@ -56,6 +56,8 @@
    of the sector; the last 32 (64) bytes are zeroed on writes.
 */
 
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
 #define RX_NUMTR        77                              /* tracks/disk */
@@ -115,35 +117,35 @@
 #define READ_RXDBR      ((rx_csr & RXCS_MODE)? AC | (rx_dbr & 0377): rx_dbr)
 #define CALC_DA(t,s,b)  (((t) * RX_NUMSC) + ((s) - 1)) * b
 
-extern int32 int_req, int_enable, dev_done;
+extern int32_t int_req, int_enable, dev_done;
 
-int32 rx_28 = 0;                                        /* controller type */
-int32 rx_tr = 0;                                        /* xfer ready flag */
-int32 rx_err = 0;                                       /* error flag */
-int32 rx_csr = 0;                                       /* control/status */
-int32 rx_dbr = 0;                                       /* data buffer */
-int32 rx_esr = 0;                                       /* error status */
-int32 rx_ecode = 0;                                     /* error code */
-int32 rx_track = 0;                                     /* desired track */
-int32 rx_sector = 0;                                    /* desired sector */
-int32 rx_state = IDLE;                                  /* controller state */
-int32 rx_cwait = 100;                                   /* command time */
-int32 rx_swait = 10;                                    /* seek, per track */
-int32 rx_xwait = 1;                                     /* tr set time */
-int32 rx_stopioe = 0;                                   /* stop on error */
-uint8 rx_buf[RX2_NUMBY] = { 0 };                        /* sector buffer */
-int32 rx_bptr = 0;                                      /* buffer pointer */
+int32_t rx_28 = 0;                                      /* controller type */
+int32_t rx_tr = 0;                                      /* xfer ready flag */
+int32_t rx_err = 0;                                     /* error flag */
+int32_t rx_csr = 0;                                     /* control/status */
+int32_t rx_dbr = 0;                                     /* data buffer */
+int32_t rx_esr = 0;                                     /* error status */
+int32_t rx_ecode = 0;                                   /* error code */
+int32_t rx_track = 0;                                   /* desired track */
+int32_t rx_sector = 0;                                  /* desired sector */
+int32_t rx_state = IDLE;                                /* controller state */
+int32_t rx_cwait = 100;                                 /* command time */
+int32_t rx_swait = 10;                                  /* seek, per track */
+int32_t rx_xwait = 1;                                   /* tr set time */
+int32_t rx_stopioe = 0;                                 /* stop on error */
+uint8_t rx_buf[RX2_NUMBY] = { 0 };                      /* sector buffer */
+int32_t rx_bptr = 0;                                    /* buffer pointer */
 
-int32 rx (int32 IR, int32 AC);
+int32_t rx (int32_t IR, int32_t AC);
 t_stat rx_svc (UNIT *uptr);
 t_stat rx_reset (DEVICE *dptr);
-t_stat rx_boot (int32 unitno, DEVICE *dptr);
-t_stat rx_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat rx_boot (int32_t unitno, DEVICE *dptr);
+t_stat rx_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat rx_attach (UNIT *uptr, const char *cptr);
 void rx_cmd (void);
-void rx_done (int32 esr_flags, int32 new_ecode);
-t_stat rx_settype (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rx_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc);
+void rx_done (int32_t esr_flags, int32_t new_ecode);
+t_stat rx_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rx_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 const char *rx_description (DEVICE *dptr);
 
 /* RX8E data structures
@@ -222,9 +224,9 @@ DEVICE rx_dev = {
 
 /* IOT routine */
 
-int32 rx (int32 IR, int32 AC)
+int32_t rx (int32_t IR, int32_t AC)
 {
-int32 drv = ((rx_csr & RXCS_DRV)? 1: 0);                /* get drive number */
+int32_t drv = ((rx_csr & RXCS_DRV)? 1: 0);              /* get drive number */
 
 switch (IR & 07) {                                      /* decode IR<9:11> */
 
@@ -311,7 +313,7 @@ return AC;
 
 void rx_cmd (void)
 {
-int32 drv = ((rx_csr & RXCS_DRV)? 1: 0);                /* get drive number */
+int32_t drv = ((rx_csr & RXCS_DRV)? 1: 0);              /* get drive number */
 
 switch (RXCS_GETFNC (rx_csr)) {                         /* decode command */
 
@@ -368,9 +370,9 @@ return;
 
 t_stat rx_svc (UNIT *uptr)
 {
-int32 i, func, byptr, bps, wps;
-int8 *fbuf = (int8 *) uptr->filebuf;
-uint32 da;
+int32_t i, func, byptr, bps, wps;
+int8_t *fbuf = (int8_t *) uptr->filebuf;
+uint32_t da;
 #define PTR12(x) (((x) + (x) + (x)) >> 1)
 
 if (rx_28 && (uptr->flags & UNIT_DEN))                  /* RX28 and double density? */
@@ -497,7 +499,7 @@ switch (rx_state) {                                     /* case on state */
         break;
 
     case SDXFR:                                         /* erase disk */
-        for (i = 0; i < (int32) uptr->capac; i++)
+        for (i = 0; i < (int32_t) uptr->capac; i++)
             fbuf[i] = 0;
         uptr->hwmark = uptr->capac;
         if (rx_csr & RXCS_DEN)
@@ -544,9 +546,9 @@ return SCPE_OK;
    return to IDLE state.
 */
 
-void rx_done (int32 esr_flags, int32 new_ecode)
+void rx_done (int32_t esr_flags, int32_t new_ecode)
 {
-int32 drv = (rx_csr & RXCS_DRV)? 1: 0;
+int32_t drv = (rx_csr & RXCS_DRV)? 1: 0;
 
 rx_state = IDLE;                                        /* now idle */
 dev_done = dev_done | INT_RX;                           /* set done */
@@ -596,7 +598,7 @@ return SCPE_OK;
 
 t_stat rx_attach (UNIT *uptr, const char *cptr)
 {
-uint32 sz;
+uint32_t sz;
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     if (sz > RX_SIZE)
@@ -609,7 +611,7 @@ return attach_unit (uptr, cptr);
 
 /* Set size routine */
 
-t_stat rx_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rx_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -626,14 +628,14 @@ return SCPE_OK;
 
 /* Set controller type */
 
-t_stat rx_settype (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rx_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) desc;
 
-int32 i;
+int32_t i;
 
 if ((val < 0) || (val > 1) || (cptr != NULL))
     return SCPE_ARG;
@@ -655,7 +657,7 @@ return SCPE_OK;
 
 /* Show controller type */
 
-t_stat rx_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rx_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -673,12 +675,12 @@ return SCPE_OK;
 #define BOOT_START      022
 #define BOOT_ENTRY      022
 #define BOOT_INST       060
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16_t))
 #define BOOT2_START     020
 #define BOOT2_ENTRY     033
-#define BOOT2_LEN       (sizeof (boot2_rom) / sizeof (int16))
+#define BOOT2_LEN       (sizeof (boot2_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     06755,                      /* 22, SDN */
     05022,                      /* 23, JMP .-1 */
     07126,                      /* 24, CLL CML RTL      ; read command + */
@@ -713,7 +715,7 @@ static const uint16 boot_rom[] = {
     06030                       /* 61, KCC */
     };
 
-static const uint16 boot2_rom[] = {
+static const uint16_t boot2_rom[] = {
     01061,                      /* READ, TAD UNIT       ; next unit+den */
     01046,                      /* 21, TAD CON360       ; add in 360 */
     00060,                      /* 22, AND CON420       ; mask to 420 */
@@ -750,14 +752,14 @@ static const uint16 boot2_rom[] = {
     00020                       /* UNIT, 20             ; unit+density */
     };
 
-t_stat rx_boot (int32 unitno, DEVICE *dptr)
+t_stat rx_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
 (void) dptr;
 
 size_t i;
-extern uint16 M[];
+extern uint16_t M[];
 
 if (rx_dib.dev != DEV_RX)                               /* only std devno */
     return STOP_NOTSTD;

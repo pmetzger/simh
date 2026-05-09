@@ -49,6 +49,8 @@
    Tracks are numbered 0-76, sectors 1-26.
 */
 
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
 #define RX_NUMTR        77                              /* tracks/disk */
@@ -106,27 +108,27 @@
 #define TRACK u3                                        /* current track */
 #define CALC_DA(t,s) (((t) * RX_NUMSC) + ((s) - 1)) * RX_NUMBY
 
-int32 rx_csr = 0;                                       /* control/status */
-int32 rx_dbr = 0;                                       /* data buffer */
-int32 rx_esr = 0;                                       /* error status */
-int32 rx_ecode = 0;                                     /* error code */
-int32 rx_track = 0;                                     /* desired track */
-int32 rx_sector = 0;                                    /* desired sector */
-int32 rx_state = IDLE;                                  /* controller state */
-int32 rx_stopioe = 1;                                   /* stop on error */
-int32 rx_cwait = 100;                                   /* command time */
-int32 rx_swait = 10;                                    /* seek, per track */
-int32 rx_xwait = 1;                                     /* tr set time */
-uint8 rx_buf[RX_NUMBY] = { 0 };                         /* sector buffer */
-int32 rx_bptr = 0;                                      /* buffer pointer */
-int32 rx_enb = 1;                                       /* device enable */
+int32_t rx_csr = 0;                                     /* control/status */
+int32_t rx_dbr = 0;                                     /* data buffer */
+int32_t rx_esr = 0;                                     /* error status */
+int32_t rx_ecode = 0;                                   /* error code */
+int32_t rx_track = 0;                                   /* desired track */
+int32_t rx_sector = 0;                                  /* desired sector */
+int32_t rx_state = IDLE;                                /* controller state */
+int32_t rx_stopioe = 1;                                 /* stop on error */
+int32_t rx_cwait = 100;                                 /* command time */
+int32_t rx_swait = 10;                                  /* seek, per track */
+int32_t rx_xwait = 1;                                   /* tr set time */
+uint8_t rx_buf[RX_NUMBY] = { 0 };                       /* sector buffer */
+int32_t rx_bptr = 0;                                    /* buffer pointer */
+int32_t rx_enb = 1;                                     /* device enable */
 
-t_stat rx_rd (int32 *data, int32 PA, int32 access);
-t_stat rx_wr (int32 data, int32 PA, int32 access);
+t_stat rx_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat rx_wr (int32_t data, int32_t PA, int32_t access);
 t_stat rx_svc (UNIT *uptr);
 t_stat rx_reset (DEVICE *dptr);
-t_stat rx_boot (int32 unitno, DEVICE *dptr);
-void rx_done (int32 esr_flags, int32 new_ecode);
+t_stat rx_boot (int32_t unitno, DEVICE *dptr);
+void rx_done (int32_t esr_flags, int32_t new_ecode);
 
 /* RX11 data structures
 
@@ -209,7 +211,7 @@ DEVICE rx_dev = {
    17777172             floppy data register
 */
 
-t_stat rx_rd (int32 *data, int32 PA, int32 access)
+t_stat rx_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -234,9 +236,9 @@ switch ((PA >> 1) & 1) {                                /* decode PA<1> */
 return SCPE_OK;
 }
 
-t_stat rx_wr (int32 data, int32 PA, int32 access)
+t_stat rx_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 drv;
+int32_t drv;
 
 switch ((PA >> 1) & 1) {                                /* decode PA<1> */
 
@@ -332,9 +334,9 @@ return SCPE_OK;
 
 t_stat rx_svc (UNIT *uptr)
 {
-int32 i, func;
-uint32 da;
-int8 *fbuf = (int8 *) uptr->filebuf;
+int32_t i, func;
+uint32_t da;
+int8_t *fbuf = (int8_t *) uptr->filebuf;
 
 func = RXCS_GETFNC (rx_csr);                            /* get function */
 switch (rx_state) {                                     /* case on state */
@@ -353,7 +355,7 @@ switch (rx_state) {                                     /* case on state */
         break;
 
     case FILL:                                          /* fill buffer */
-        rx_buf[rx_bptr] = (uint8)rx_dbr;                /* write next */
+        rx_buf[rx_bptr] = (uint8_t)rx_dbr;              /* write next */
         rx_bptr = rx_bptr + 1;
         if (rx_bptr < RX_NUMBY)                         /* more? set xfer */
             rx_csr = rx_csr | RXCS_TR;
@@ -439,9 +441,9 @@ return SCPE_OK;
    request interrupt if needed, return to IDLE state.
 */
 
-void rx_done (int32 esr_flags, int32 new_ecode)
+void rx_done (int32_t esr_flags, int32_t new_ecode)
 {
-int32 drv = (rx_csr & RXCS_DRV)? 1: 0;
+int32_t drv = (rx_csr & RXCS_DRV)? 1: 0;
 
 rx_state = IDLE;                                        /* now idle */
 rx_csr = rx_csr | RXCS_DONE;                            /* set done */
@@ -486,9 +488,9 @@ return auto_config (0, 0);                              /* run autoconfig */
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 026)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     042130,                         /* "XD" */
     0012706, BOOT_START,            /* MOV #boot_start, SP */
     0012700, 0000000,               /* MOV #unit, R0        ; unit number */
@@ -524,7 +526,7 @@ static const uint16 boot_rom[] = {
     0005007                         /* CLR R7 */
     };
 
-t_stat rx_boot (int32 unitno, DEVICE *dptr)
+t_stat rx_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */

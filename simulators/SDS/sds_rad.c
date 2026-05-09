@@ -33,6 +33,7 @@
 
 #include "sds_defs.h"
 #include <math.h>
+#include <stdint.h>
 
 /* Constants */
 
@@ -51,16 +52,16 @@
 #define GET_SECTOR(x)   ((int) fmod (sim_gtime() / ((double) (x)), \
                         ((double) RAD_NUMSC)))
 
-extern uint32 xfr_req;
-extern uint32 alert;
-extern int32 stop_invins, stop_invdev, stop_inviop;
-int32 rad_err = 0;                                      /* error */
-int32 rad_nobi = 0;                                     /* !incr x track */
-int32 rad_da = 0;                                       /* disk address */
-int32 rad_sba = 0;                                      /* sec byte addr */
-int32 rad_wrp = 0;                                      /* write prot */
-int32 rad_time = 2;                                     /* time per 12b */
-int32 rad_stopioe = 1;                                  /* stop on error */
+extern uint32_t xfr_req;
+extern uint32_t alert;
+extern int32_t stop_invins, stop_invdev, stop_inviop;
+int32_t rad_err = 0;                                    /* error */
+int32_t rad_nobi = 0;                                   /* !incr x track */
+int32_t rad_da = 0;                                     /* disk address */
+int32_t rad_sba = 0;                                    /* sec byte addr */
+int32_t rad_wrp = 0;                                    /* write prot */
+int32_t rad_time = 2;                                   /* time per 12b */
+int32_t rad_stopioe = 1;                                /* stop on error */
 DSPT rad_tplt[] = {                                     /* template */
     { 1, 0 },
     { 1, DEV_OUT },
@@ -69,11 +70,11 @@ DSPT rad_tplt[] = {                                     /* template */
 
 t_stat rad_svc (UNIT *uptr);
 t_stat rad_reset (DEVICE *dptr);
-t_stat rad_boot (int32 unitno, DEVICE *dptr);
-t_stat rad_fill (int32 sba);
-void rad_end_op (int32 fl);
-int32 rad_adjda (int32 sba, int32 inc);
-t_stat rad (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat rad_boot (int32_t unitno, DEVICE *dptr);
+t_stat rad_fill (int32_t sba);
+void rad_end_op (int32_t fl);
+int32_t rad_adjda (int32_t sba, int32_t inc);
+t_stat rad (uint32_t fnc, uint32_t inst, uint32_t *dat);
 
 /* RAD data structures
 
@@ -128,11 +129,11 @@ DEVICE rad_dev = {
    write -      inst = device number, dat = ptr to result
 */
 
-t_stat rad (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat rad (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-int32 t, lun, new_ch;
-uint32 p;
-uint32 *fbuf = (uint32 *)rad_unit.filebuf;
+int32_t t, lun, new_ch;
+uint32_t p;
+uint32_t *fbuf = (uint32_t *)rad_unit.filebuf;
 
 switch (fnc) {                                          /* case function */
 
@@ -238,7 +239,7 @@ return SCPE_OK;
 
 /* PIN routine */
 
-t_stat pin_rads (uint32 num, uint32 *dat)
+t_stat pin_rads (uint32_t num, uint32_t *dat)
 {
 /* SDS PIN routine signature.
    This implementation does not use every parameter. */
@@ -250,7 +251,7 @@ return SCPE_OK;
 
 /* POT routine */
 
-t_stat pot_rada (uint32 num, uint32 *dat)
+t_stat pot_rada (uint32_t num, uint32_t *dat)
 {
 /* SDS POT routine signature.
    This implementation does not use every parameter. */
@@ -275,11 +276,11 @@ return SCPE_OK;
 
 /* Fill incomplete sector */
 
-t_stat rad_fill (int32 sba)
+t_stat rad_fill (int32_t sba)
 {
-uint32 p = rad_da * RAD_NUMWD;
-uint32 *fbuf = (uint32 *)rad_unit.filebuf;
-int32 wa = (sba + 1) >> 1;                              /* whole words */
+uint32_t p = rad_da * RAD_NUMWD;
+uint32_t *fbuf = (uint32_t *)rad_unit.filebuf;
+int32_t wa = (sba + 1) >> 1;                            /* whole words */
 
 if (sba && (p < rad_unit.capac)) {                      /* fill needed? */
     for ( ; wa < RAD_NUMWD; wa++)
@@ -293,7 +294,7 @@ return SCPE_OK;
 
 /* Adjust disk address */
 
-int32 rad_adjda (int32 sba, int32 inc)
+int32_t rad_adjda (int32_t sba, int32_t inc)
 {
 sba = sba + inc;
 if (rad_sba >= (RAD_NUMWD * 2)) {                       /* next sector? */
@@ -308,7 +309,7 @@ return sba;
 
 /* Terminate disk operation */
 
-void rad_end_op (int32 fl)
+void rad_end_op (int32_t fl)
 {
 if (fl)                                                 /* set flags */
     chan_set_flag (rad_dib.chan, fl);
@@ -340,13 +341,13 @@ return SCPE_OK;
 
 /* Boot routine - simulate FILL console command */
 
-t_stat rad_boot (int32 unitno, DEVICE *dptr)
+t_stat rad_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
 (void) dptr;
 
-extern uint32 P, M[];
+extern uint32_t P, M[];
 
 if (unitno)                                             /* only unit 0 */
     return SCPE_ARG;

@@ -2,9 +2,12 @@
 // SPDX-FileCopyrightText: 2026 The ZIMH Project
 // SPDX-License-Identifier: MIT
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "sim_time.h"
 #include "sim_time_internal.h"
+#include "sim_types.h"
 
 /* Tests can replace these thin wrappers to drive clock and sleep paths
    deterministically without depending on the real host clock. */
@@ -112,7 +115,7 @@ time_t sim_time(time_t *now)
 }
 
 /* Sleep for a whole-second interval, retrying after EINTR. */
-void sim_sleep(unsigned int sec)
+void sim_sleep(uint_t sec)
 {
     struct timespec req = {.tv_sec = (time_t)sec, .tv_nsec = 0};
 
@@ -120,7 +123,7 @@ void sim_sleep(unsigned int sec)
 }
 
 /* Sleep for a millisecond interval through sim_nanosleep(). */
-void sim_sleep_msec(unsigned int msec)
+void sim_sleep_msec(uint_t msec)
 {
     struct timespec req = {
         .tv_sec = (time_t)(msec / 1000),

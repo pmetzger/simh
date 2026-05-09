@@ -62,38 +62,39 @@
 #include "sim_tmxr.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define TTX_MAXL        16
 #define TTX_INIL        4
 
 #define TTX_GETLN(x)    (((x) >> 4) & TTX_MASK)
 
-extern int32 int_req, int_enable, dev_done, stop_inst;
-extern int32 tmxr_poll;
+extern int32_t int_req, int_enable, dev_done, stop_inst;
+extern int32_t tmxr_poll;
 
-uint32 ttix_done = 0;                                   /* input ready flags */
-uint32 ttox_done = 0;                                   /* output ready flags */
-uint32 ttx_enbl = 0;                                    /* intr enable flags */
-uint8 ttix_buf[TTX_MAXL] = { 0 };                       /* input buffers */
-uint8 ttox_buf[TTX_MAXL] = { 0 };                       /* output buffers */
+uint32_t ttix_done = 0;                                 /* input ready flags */
+uint32_t ttox_done = 0;                                 /* output ready flags */
+uint32_t ttx_enbl = 0;                                  /* intr enable flags */
+uint8_t ttix_buf[TTX_MAXL] = { 0 };                     /* input buffers */
+uint8_t ttox_buf[TTX_MAXL] = { 0 };                     /* output buffers */
 TMLN ttx_ldsc[TTX_MAXL] = { {0} };                      /* line descriptors */
 TMXR ttx_desc = { TTX_INIL, 0, 0, ttx_ldsc };           /* mux descriptor */
 #define ttx_lines       ttx_desc.lines
 
-int32 ttix (int32 IR, int32 AC);
-int32 ttox (int32 IR, int32 AC);
+int32_t ttix (int32_t IR, int32_t AC);
+int32_t ttox (int32_t IR, int32_t AC);
 t_stat ttix_svc (UNIT *uptr);
 t_stat ttox_svc (UNIT *uptr);
-int32 ttx_getln (int32 inst);
-void ttx_new_flags (uint32 newi, uint32 newo, uint32 newe);
+int32_t ttx_getln (int32_t inst);
+void ttx_new_flags (uint32_t newi, uint32_t newo, uint32_t newe);
 t_stat ttx_reset (DEVICE *dptr);
 t_stat ttx_attach (UNIT *uptr, const char *cptr);
 t_stat ttx_detach (UNIT *uptr);
 const char *ttix_description (DEVICE *dptr);
 const char *ttox_description (DEVICE *dptr);
-void ttx_reset_ln (int32 i);
-t_stat ttx_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ttx_show_devno (FILE *st, UNIT *uptr, int32 val, const void *desc);
+void ttx_reset_ln (int32_t i);
+t_stat ttx_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ttx_show_devno (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 #define TTIX_SET_DONE(ln)       ttx_new_flags (ttix_done | (1u << (ln)), ttox_done, ttx_enbl)
 #define TTIX_CLR_DONE(ln)       ttx_new_flags (ttix_done & ~(1u << (ln)), ttox_done, ttx_enbl)
@@ -247,10 +248,10 @@ DEVICE ttox_dev = {
 
 /* Terminal input: IOT routine */
 
-int32 ttix (int32 inst, int32 AC)
+int32_t ttix (int32_t inst, int32_t AC)
 {
-int32 pulse = inst & 07;                                /* IOT pulse */
-int32 ln = ttx_getln (inst);                            /* line # */
+int32_t pulse = inst & 07;                              /* IOT pulse */
+int32_t ln = ttx_getln (inst);                          /* line # */
 
 if (ln < 0)                                             /* bad line #? */
     return (SCPE_IERR << IOT_V_REASON) | AC;
@@ -294,7 +295,7 @@ return AC;
 
 t_stat ttix_svc (UNIT *uptr)
 {
-int32 ln, c, temp;
+int32_t ln, c, temp;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* attached? */
     return SCPE_OK;
@@ -321,10 +322,10 @@ return SCPE_OK;
 
 /* Terminal output: IOT routine */
 
-int32 ttox (int32 inst, int32 AC)
+int32_t ttox (int32_t inst, int32_t AC)
 {
-int32 pulse = inst & 07;                                /* pulse */
-int32 ln = ttx_getln (inst);                            /* line # */
+int32_t pulse = inst & 07;                              /* pulse */
+int32_t ln = ttx_getln (inst);                          /* line # */
 
 if (ln < 0)                                             /* bad line #? */
     return (SCPE_IERR << IOT_V_REASON) | AC;
@@ -366,7 +367,7 @@ return AC;
 
 t_stat ttox_svc (UNIT *uptr)
 {
-int32 c, ln = uptr - ttox_unit;                         /* line # */
+int32_t c, ln = uptr - ttox_unit;                       /* line # */
 
 if (ttx_ldsc[ln].conn) {                                /* connected? */
     if (ttx_ldsc[ln].xmte) {                            /* tx enabled? */
@@ -392,7 +393,7 @@ return SCPE_OK;
    int_enable must always be set
 */
 
-void ttx_new_flags (uint32 newidone, uint32 newodone, uint32 newenbl)
+void ttx_new_flags (uint32_t newidone, uint32_t newodone, uint32_t newenbl)
 {
 ttix_done = newidone;
 ttox_done = newodone;
@@ -410,10 +411,10 @@ return;
 
 /* Compute relative line number, based on table of device numbers */
 
-int32 ttx_getln (int32 inst)
+int32_t ttx_getln (int32_t inst)
 {
-int32 i;
-uint32 device = (inst >> 3) & 077;                      /* device = IR<3:8> */
+int32_t i;
+uint32_t device = (inst >> 3) & 077;                    /* device = IR<3:8> */
 
 for (i = 0; i < (ttx_lines * 2); i++) {                 /* loop thru disp tbl */
     if (device == ttx_dsp[i].dev)                       /* dev # match? */
@@ -426,7 +427,7 @@ return -1;
 
 t_stat ttx_reset (DEVICE *dptr)
 {
-int32 ln;
+int32_t ln;
 
 if (dptr->flags & DEV_DIS) {                            /* sync enables */
     ttix_dev.flags |= DEV_DIS;
@@ -447,9 +448,9 @@ return SCPE_OK;
 
 /* Reset line n */
 
-void ttx_reset_ln (int32 ln)
+void ttx_reset_ln (int32_t ln)
 {
-uint32 mask = (1u << ln);
+uint32_t mask = (1u << ln);
 
 ttix_buf[ln] = 0;                                       /* clr buf */
 ttox_buf[ln] = 0;                                       /* clr done, set enbl */
@@ -475,7 +476,7 @@ return SCPE_OK;
 
 t_stat ttx_detach (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 r = tmxr_detach (&ttx_desc, uptr);                      /* detach */
@@ -487,7 +488,7 @@ return r;
 
 /* Change number of lines */
 
-t_stat ttx_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttx_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -495,7 +496,7 @@ t_stat ttx_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)
@@ -531,14 +532,14 @@ return SCPE_OK;
 }
 
 /* Show device numbers */
-t_stat ttx_show_devno (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat ttx_show_devno (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) val;
 (void) desc;
 
-int32 i, dev_offset;
+int32_t i, dev_offset;
 DEVICE *dptr;
 
 if (uptr == NULL)

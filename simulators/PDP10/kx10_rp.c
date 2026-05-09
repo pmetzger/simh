@@ -22,6 +22,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "kx10_disk.h"
 
@@ -210,11 +212,11 @@
 #define RP07_SIZE       (RP07_SECT * RP07_SURF * RP07_CYL * RP_NUMWD)
 
 struct drvtyp {
-    int32       sect;                                   /* sectors */
-    int32       surf;                                   /* surfaces */
-    int32       cyl;                                    /* cylinders */
-    int32       size;                                   /* #blocks */
-    int32       devtype;                                /* device type */
+    int32_t     sect;                                   /* sectors */
+    int32_t     surf;                                   /* surfaces */
+    int32_t     cyl;                                    /* cylinders */
+    int32_t     size;                                   /* #blocks */
+    int32_t     devtype;                                /* device type */
     };
 
 struct drvtyp rp_drv_tab[] = {
@@ -225,19 +227,19 @@ struct drvtyp rp_drv_tab[] = {
     };
 
 
-t_stat        rp_devio(uint32 dev, uint64 *data);
-int           rp_devirq(uint32 dev, int addr);
-int           rp_write(DEVICE *dptr, struct rh_if *rh, int reg, uint32 data);
-int           rp_read(DEVICE *dptr, struct rh_if *rh, int reg, uint32 *data);
+t_stat        rp_devio(uint32_t dev, uint64 *data);
+int           rp_devirq(uint32_t dev, int addr);
+int           rp_write(DEVICE *dptr, struct rh_if *rh, int reg, uint32_t data);
+int           rp_read(DEVICE *dptr, struct rh_if *rh, int reg, uint32_t *data);
 void          rp_rst(DEVICE *dptr);
 t_stat        rp_svc(UNIT *);
-t_stat        rp_boot(int32, DEVICE *);
+t_stat        rp_boot(int32_t, DEVICE *);
 void          rp_ini(UNIT *, bool);
 t_stat        rp_reset(DEVICE *);
 t_stat        rp_attach(UNIT *, const char *);
 t_stat        rp_detach(UNIT *);
-t_stat        rp_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat        rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat        rp_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat        rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                     const char *cptr);
 const char    *rp_description (DEVICE *dptr);
 uint64        rp_buf[NUM_DEVS_RP][RP_NUMWD];
@@ -510,13 +512,13 @@ void
 rp_rst(DEVICE *dptr)
 {
     UNIT     *uptr = dptr->units;
-    uint16   *regs;
+    uint16_t *regs;
     int       ctlr = GET_CNTRL_RH(uptr->flags);
-    uint32    i;
+    uint32_t  i;
 
     rh_reset(dptr, &rp_rh[ctlr]);
     for (i = 0; i < dptr->numunits; i++) {
-        regs = (uint16 *)(uptr->up7);
+        regs = (uint16_t *)(uptr->up7);
         regs[RPDS] &= DS_VV;
         if (regs[RPMR] & 1) {
              uptr->CCYL = GET_CY;
@@ -532,12 +534,12 @@ rp_rst(DEVICE *dptr)
 }
 
 int
-rp_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
+rp_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data) {
     int            i;
     int            unit = rhc->drive;
     UNIT          *uptr = &dptr->units[unit];
     int            dtype = GET_DTYPE(uptr->flags);
-    uint16        *regs = (uint16 *)(uptr->up7);
+    uint16_t      *regs = (uint16_t *)(uptr->up7);
 
     if ((uptr->flags & UNIT_DIS) != 0 && reg != 04)
         return 1;
@@ -660,7 +662,7 @@ rp_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
         for (i = 0; i < 8; i++) {
             if (data & (1<<i)) {
                 UNIT      *u = &dptr->units[i];
-                uint16    *r = (uint16 *)(u->up7);
+                uint16_t  *r = (uint16_t *)(u->up7);
                 r[RPDS] &= ~DS_ATA;
                 rhc->attn &= ~(1<<i);
             }
@@ -697,11 +699,11 @@ rp_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 data) {
 }
 
 int
-rp_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data) {
+rp_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t *data) {
     int           unit = rhc->drive;
     UNIT          *uptr = &dptr->units[unit];
-    uint16        *regs = (uint16 *)(uptr->up7);
-    uint32        temp = 0;
+    uint16_t      *regs = (uint16_t *)(uptr->up7);
+    uint32_t      temp = 0;
     int           i;
 
     if ((uptr->flags & UNIT_DIS) != 0 && reg != 04)
@@ -737,7 +739,7 @@ rp_read(DEVICE *dptr, struct rh_if *rhc, int reg, uint32 *data) {
     case  004:  /* atten summary */
         for (i = 0; i < 8; i++) {
             UNIT      *u = &dptr->units[i];
-            uint16    *r = (uint16 *)(u->up7);
+            uint16_t  *r = (uint16_t *)(u->up7);
             if (r[RPDS] & DS_ATA) {
                 temp |= 1 << i;
             }
@@ -792,7 +794,7 @@ t_stat rp_svc (UNIT *uptr)
 {
     int           dtype = GET_DTYPE(uptr->flags);
     int           ctlr = GET_CNTRL_RH(uptr->flags);
-    uint16        *regs = (uint16 *)(uptr->up7);
+    uint16_t      *regs = (uint16_t *)(uptr->up7);
     int           cyl = GET_CY;
     int           unit;
     DEVICE       *dptr;
@@ -1048,7 +1050,7 @@ wr_end:
 
 
 t_stat
-rp_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+rp_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1070,15 +1072,15 @@ t_stat
 rp_reset(DEVICE * rptr)
 {
     UNIT     *uptr = rptr->units;
-    uint16   *regs;
+    uint16_t *regs;
     int       ctlr = GET_CNTRL_RH(uptr->flags);
-    uint32    i;
+    uint32_t  i;
 
     rh_reset(rptr, &rp_rh[ctlr]);
     for (i = 0; i < rptr->numunits; i++) {
-        if (uptr->up7 == 0 && (uptr->up7 = calloc(16, sizeof(uint16))) == 0)
+        if (uptr->up7 == 0 && (uptr->up7 = calloc(16, sizeof(uint16_t))) == 0)
             return SCPE_IERR;
-        regs = (uint16 *)(uptr->up7);
+        regs = (uint16_t *)(uptr->up7);
         regs[RPDS] &= DS_VV;
         if ((uptr->flags & UNIT_ATT) != 0)                  /* attached? */
            regs[RPDS] |= DS_DRY;
@@ -1096,14 +1098,14 @@ rp_reset(DEVICE * rptr)
 
 /* Boot from given device */
 t_stat
-rp_boot(int32 unit_num, DEVICE * rptr)
+rp_boot(int32_t unit_num, DEVICE * rptr)
 {
     UNIT         *uptr = &rptr->units[unit_num];
     int           ctlr = GET_CNTRL_RH(uptr->flags);
-    uint16        *regs = (uint16 *)(uptr->up7);
+    uint16_t      *regs = (uint16_t *)(uptr->up7);
     struct rh_if *rhc = &rp_rh[ctlr];
     DEVICE       *dptr = uptr->dptr;
-    uint32        addr;
+    uint32_t      addr;
     uint64        word;
 #if !KS
     int           wc;
@@ -1132,24 +1134,24 @@ rp_boot(int32 unit_num, DEVICE * rptr)
     }
 
     /* Word 103 and 102 contain pointer to SMFILE block */
-    regs[RPDA] = (int32)((rp_buf[0][0103] & 077) << DA_V_SC) |
-               (int32)(((rp_buf[0][0103] >> 8) & 077) << DA_V_SF);
-    regs[RPDC] =  (int32)((rp_buf[0][0103] >> 24) << DC_V_CY);
+    regs[RPDA] = (int32_t)((rp_buf[0][0103] & 077) << DA_V_SC) |
+               (int32_t)(((rp_buf[0][0103] >> 8) & 077) << DA_V_SF);
+    regs[RPDC] =  (int32_t)((rp_buf[0][0103] >> 24) << DC_V_CY);
     len = (int)(rp_buf[0][0102] & RMASK);
     da = GET_DA(dtype);
     disk_read(uptr, &rp_buf[0][0], da, RP_NUMWD);
     /* For diagnostics use locations 6 and 7 */
     if (sim_switches & SWMASK ('D')) {
        sim_messagef(SCPE_OK, "Diags boot\n");
-       regs[RPDA] = (int32)((rp_buf[0][06] & 077) << DA_V_SC) |
-                  (int32)(((rp_buf[0][06] >> 8) & 077) << DA_V_SF);
-       regs[RPDC] = (int32)((rp_buf[0][06] >> 24) << DC_V_CY);
+       regs[RPDA] = (int32_t)((rp_buf[0][06] & 077) << DA_V_SC) |
+                  (int32_t)(((rp_buf[0][06] >> 8) & 077) << DA_V_SF);
+       regs[RPDC] = (int32_t)((rp_buf[0][06] >> 24) << DC_V_CY);
        len = (int)(((rp_buf[0][07] & 077) * 4) & RMASK);
     } else {
     /* Normal is at 4 and 5*/
-       regs[RPDA] = (int32)((rp_buf[0][04] & 077) << DA_V_SC) |
-                  (int32)(((rp_buf[0][04] >> 8) & 077) << DA_V_SF);
-       regs[RPDC] =  (int32)((rp_buf[0][04] >> 24) << DC_V_CY);
+       regs[RPDA] = (int32_t)((rp_buf[0][04] & 077) << DA_V_SC) |
+                  (int32_t)(((rp_buf[0][04] >> 8) & 077) << DA_V_SF);
+       regs[RPDC] =  (int32_t)((rp_buf[0][04] >> 24) << DC_V_CY);
        len = (int)(((rp_buf[0][05] & 077) * 4) & RMASK);
     }
     if (len == 0)
@@ -1181,7 +1183,7 @@ rp_boot(int32 unit_num, DEVICE * rptr)
     rh_boot_unit = unit_num;
 #elif KL
     int           sect;
-    uint32        ptr = 0;
+    uint32_t      ptr = 0;
 
     /* KL does not support readin, so fake it by reading in sectors 4 to 7 */
     /* Possible in future find boot loader in FE file system */
@@ -1196,7 +1198,7 @@ rp_boot(int32 unit_num, DEVICE * rptr)
     }
     word = (MEMSIZE - 512) & RMASK;
 #else
-    uint32        ptr = 0;
+    uint32_t      ptr = 0;
 
     disk_read(uptr, &rp_buf[0][0], 0, RP_NUMWD);
     addr = rp_buf[0][ptr] & RMASK;
@@ -1231,7 +1233,7 @@ t_stat rp_attach (UNIT *uptr, const char *cptr)
     t_stat         r;
     DEVICE        *rptr;
     int            ctlr;
-    uint16        *regs = (uint16 *)(uptr->up7);
+    uint16_t      *regs = (uint16_t *)(uptr->up7);
 
     uptr->capac = rp_drv_tab[GET_DTYPE (uptr->flags)].size;
     r = disk_attach (uptr, cptr);
@@ -1261,7 +1263,7 @@ t_stat rp_attach (UNIT *uptr, const char *cptr)
 
 t_stat rp_detach (UNIT *uptr)
 {
-    uint16        *regs = (uint16 *)(uptr->up7);
+    uint16_t      *regs = (uint16_t *)(uptr->up7);
 
     if (!(uptr->flags & UNIT_ATT))                          /* attached? */
         return SCPE_OK;
@@ -1271,7 +1273,7 @@ t_stat rp_detach (UNIT *uptr)
     return disk_detach (uptr);
 }
 
-t_stat rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "RP04/05/06/07 Disk Pack Drives (RP)\n\n");
 fprintf (st, "The RP controller implements the Massbus family of large disk drives.  RP\n");

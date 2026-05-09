@@ -40,6 +40,8 @@
 #define ID_DEFS_H_     0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -71,7 +73,7 @@
 #define PAMASK32        (MAXMEMSIZE32 - 1)
 
 #define MEMSIZE         (cpu_unit.capac)                /* act memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Single precision floating point registers */
 
@@ -88,8 +90,8 @@
 /* Double precision floating point registers */
 
 typedef struct {
-    uint32              h;                              /* high 32b */
-    uint32              l;                              /* low 32b */
+    uint32_t            h;                              /* high 32b */
+    uint32_t            l;                              /* low 32b */
     } dpr_t;
 
 /* Architectural constants */
@@ -185,9 +187,9 @@ typedef struct {
 /* Block I/O state */
 
 struct BlockIO {
-    uint32              dfl;                            /* devno, flags */
-    uint32              cur;                            /* current addr */
-    uint32              end;                            /* end addr */
+    uint32_t            dfl;                            /* devno, flags */
+    uint32_t            cur;                            /* current addr */
+    uint32_t            end;                            /* end addr */
     };
 
 #define BL_RD           0x8000                          /* block read */
@@ -221,11 +223,11 @@ struct BlockIO {
 /* Device information block */
 
 typedef struct {
-    uint32              dno;                            /* device number */
-    int32               sch;                            /* sch */
-    uint32              irq;                            /* interrupt */
-    uint8               *tplte;                         /* template */
-    uint32              (*iot)(uint32 d, uint32 o, uint32 dat);
+    uint32_t            dno;                            /* device number */
+    int32_t             sch;                            /* sch */
+    uint32_t            irq;                            /* interrupt */
+    uint8_t             *tplte;                         /* template */
+    uint32_t            (*iot)(uint32_t d, uint32_t o, uint32_t dat);
     void                (*ini)(bool f);
     } DIB;
 
@@ -466,45 +468,45 @@ typedef struct {
 #define VFU_LNT         132
 /* Function prototypes */
 
-int32 int_chg (uint32 irq, int32 dat, int32 armdis);
-int32 io_2b (int32 val, int32 pos, int32 old);
-uint32 IOReadB (uint32 loc);
-void IOWriteB (uint32 loc, uint32 val);
-uint32 IOReadH (uint32 loc);
-void IOWriteH (uint32 loc, uint32 val);
-uint32 ReadF (uint32 loc, uint32 rel);
-void WriteF (uint32 loc, uint32 val, uint32 rel);
-uint32 IOReadBlk (uint32 loc, uint32 cnt, uint8 *buf);
-uint32 IOWriteBlk (uint32 loc, uint32 cnt, uint8 *buf);
-void sch_adr (uint32 ch, uint32 dev);
-bool sch_actv (uint32 sch, uint32 devno);
-void sch_stop (uint32 sch);
-uint32 sch_wrmem (uint32 sch, uint8 *buf, uint32 cnt);
-uint32 sch_rdmem (uint32 sch, uint8 *buf, uint32 cnt);
-bool sch_blk (uint32 dev);
+int32_t int_chg (uint32_t irq, int32_t dat, int32_t armdis);
+int32_t io_2b (int32_t val, int32_t pos, int32_t old);
+uint32_t IOReadB (uint32_t loc);
+void IOWriteB (uint32_t loc, uint32_t val);
+uint32_t IOReadH (uint32_t loc);
+void IOWriteH (uint32_t loc, uint32_t val);
+uint32_t ReadF (uint32_t loc, uint32_t rel);
+void WriteF (uint32_t loc, uint32_t val, uint32_t rel);
+uint32_t IOReadBlk (uint32_t loc, uint32_t cnt, uint8_t *buf);
+uint32_t IOWriteBlk (uint32_t loc, uint32_t cnt, uint8_t *buf);
+void sch_adr (uint32_t ch, uint32_t dev);
+bool sch_actv (uint32_t sch, uint32_t devno);
+void sch_stop (uint32_t sch);
+uint32_t sch_wrmem (uint32_t sch, uint8_t *buf, uint32_t cnt);
+uint32_t sch_rdmem (uint32_t sch, uint8_t *buf, uint32_t cnt);
+bool sch_blk (uint32_t dev);
 void int_eval (void);
-uint32 int_getdev (void);
+uint32_t int_getdev (void);
 bool devtab_init (void);
-t_stat set_sch (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat set_dev (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_sch (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat show_dev (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat id_dboot (int32 u, DEVICE *dptr);
+t_stat set_sch (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat set_dev (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_sch (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat show_dev (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat id_dboot (int32_t u, DEVICE *dptr);
 t_stat lp_load (FILE *fileref, const char *cptr, const char *fnam);
 t_stat pt_dump (FILE *of, const char *cptr, const char *fnam);
-uint32 f_l (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-uint32 f_c (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-uint32 f_as (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-uint32 f_m (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-uint32 f_d (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-uint32 f_fix (uint32 op, uint32 r1, uint32 r2);
-uint32 f_fix32 (uint32 op, uint32 r1, uint32 r2);
-uint32 f_flt (uint32 op, uint32 r1, uint32 r2);
-uint32 f_flt32 (uint32 op, uint32 r1, uint32 r2);
+uint32_t f_l (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+uint32_t f_c (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+uint32_t f_as (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+uint32_t f_m (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+uint32_t f_d (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+uint32_t f_fix (uint32_t op, uint32_t r1, uint32_t r2);
+uint32_t f_fix32 (uint32_t op, uint32_t r1, uint32_t r2);
+uint32_t f_flt (uint32_t op, uint32_t r1, uint32_t r2);
+uint32_t f_flt32 (uint32_t op, uint32_t r1, uint32_t r2);
 
-int32 lfc_cosched (int32 wait);
+int32_t lfc_cosched (int32_t wait);
 
-extern uint32 PC, dec_flgs;
-extern const uint16 decrom[256];
+extern uint32_t PC, dec_flgs;
+extern const uint16_t decrom[256];
 
 #endif

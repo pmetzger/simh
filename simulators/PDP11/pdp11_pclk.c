@@ -109,6 +109,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
 #define PCLKCSR_RDMASK  0100377                         /* readable */
@@ -168,20 +170,20 @@ BITFIELD pclk_notused_bits[] = {
 static BITFIELD* bitdefs[] = {pclk_csr_bits, pclk_buf_bits, pclk_ctr_bits, pclk_notused_bits};
 
 
-uint32 pclk_csr = 0;                                    /* control/status */
-uint32 pclk_csb = 0;                                    /* count set buffer */
-uint32 pclk_ctr = 0;                                    /* counter */
-static void pclk_set_ctr (uint32 val);
-static uint32 pclk_get_ctr (void);
-static uint32 rate[4] = { 100000, 10000, 60, 10 };      /* ticks per second */
-static uint32 xtim[4] = { 10, 100, 16667, 100000 };     /* nominal usec delay per inc/dec */
+uint32_t pclk_csr = 0;                                  /* control/status */
+uint32_t pclk_csb = 0;                                  /* count set buffer */
+uint32_t pclk_ctr = 0;                                  /* counter */
+static void pclk_set_ctr (uint32_t val);
+static uint32_t pclk_get_ctr (void);
+static uint32_t rate[4] = { 100000, 10000, 60, 10 };    /* ticks per second */
+static uint32_t xtim[4] = { 10, 100, 16667, 100000 };   /* nominal usec delay per inc/dec */
 
-t_stat pclk_rd (int32 *data, int32 PA, int32 access);
-t_stat pclk_wr (int32 data, int32 PA, int32 access);
+t_stat pclk_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat pclk_wr (int32_t data, int32_t PA, int32_t access);
 t_stat pclk_svc (UNIT *uptr);
 t_stat pclk_reset (DEVICE *dptr);
-t_stat pclk_set_line (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat pclk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat pclk_set_line (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat pclk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 const char *pclk_description (DEVICE *dptr);
 
 /* PCLK data structures
@@ -258,7 +260,7 @@ static const char *pclk_regs[] =
 
 /* Clock I/O address routines */
 
-t_stat pclk_rd (int32 *data, int32 PA, int32 access)
+t_stat pclk_rd (int32_t *data, int32_t PA, int32_t access)
 {
 switch ((PA >> 1) & 03) {
 
@@ -279,18 +281,18 @@ switch ((PA >> 1) & 03) {
         }
 
 sim_debug(DBG_REG, &pclk_dev, "pclk_rd(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, pclk_regs[(PA >> 1) & 03], access, *data);
-sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), true);
+sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32_t)(*data), (uint32_t)(*data), true);
 
 return SCPE_OK;
 }
 
-t_stat pclk_wr (int32 data, int32 PA, int32 access)
+t_stat pclk_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 old_csr = pclk_csr;
-int32 rv;
+int32_t old_csr = pclk_csr;
+int32_t rv;
 
 sim_debug(DBG_REG, &pclk_dev, "pclk_wr(PA=0x%08X [%s], access=%d, data=0x%X) ", PA, pclk_regs[(PA >> 1) & 03], access, data);
-sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), true);
+sim_debug_bits(DBG_REG, &pclk_dev, bitdefs[(PA >> 1) & 03], (uint32_t)((PA & 1) ? data<<8 : data), (uint32_t)((PA & 1) ? data<<8 : data), true);
 switch ((PA >> 1) & 03) {
 
     case 00:                                            /* CSR */
@@ -331,14 +333,14 @@ switch ((PA >> 1) & 03) {
 return SCPE_OK;
 }
 
-static void pclk_set_ctr (uint32 val)
+static void pclk_set_ctr (uint32_t val)
 {
 if ((pclk_csr & CSR_GO) == 0)                           /* stopped? */
     pclk_ctr = val;                                     /* save */
 else {
-    uint32 delay = DMASK & ((pclk_csr & CSR_UPDN) ? (DMASK + 1 - val) : val);
-    uint32 usec_delay;
-    int32 rv;
+    uint32_t delay = DMASK & ((pclk_csr & CSR_UPDN) ? (DMASK + 1 - val) : val);
+    uint32_t usec_delay;
+    int32_t rv;
 
     if (delay == 0)
         delay = DMASK + 1;
@@ -349,16 +351,16 @@ else {
     }
 }
 
-static uint32 pclk_get_ctr (void)
+static uint32_t pclk_get_ctr (void)
 {
-uint32 val;
-int32 rv;
+uint32_t val;
+int32_t rv;
 
 if (!sim_is_active (&pclk_unit))
     return pclk_ctr;
 
 rv = CSR_GETRATE (pclk_csr);                            /* get rate */
-val = (uint32)((sim_activate_time_usecs (&pclk_unit) / xtim[rv]));
+val = (uint32_t)((sim_activate_time_usecs (&pclk_unit) / xtim[rv]));
 val &= DMASK;
 if (pclk_csr & CSR_UPDN)
     val = DMASK + 1 - val;
@@ -413,7 +415,7 @@ return auto_config (0, 0);
 
 /* Set line frequency */
 
-t_stat pclk_set_line (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat pclk_set_line (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -432,7 +434,7 @@ else {
 return SCPE_OK;
 }
 
-t_stat pclk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat pclk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

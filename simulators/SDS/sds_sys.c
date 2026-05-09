@@ -30,6 +30,7 @@
 
 #include "sds_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 #define FMTASC(x) ((x) < 040)? "<%03o>": "%c", (x)
 
 extern DEVICE cpu_dev;
@@ -49,8 +50,8 @@ extern DEVICE mt_dev;
 extern DEVICE mux_dev, muxl_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint32 cpu_mode;
-extern uint32 M[MAXMEMSIZE];
+extern uint32_t cpu_mode;
+extern uint32_t M[MAXMEMSIZE];
 
 /* SCP data structures and interface routines
 
@@ -66,7 +67,7 @@ char sim_name[] = "SDS 940";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -112,7 +113,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 /* SDS 930 character conversion tables. Per 930 Ref Man Appendix A */
 
-const int8 sds930_to_ascii[64] = {
+const int8_t sds930_to_ascii[64] = {
     '0', '1', '2', '3', '4', '5', '6', '7',
     '8', '9', ' ', '=', '\'', ':', '>', '%',            /* 17 = check mark */
     '+', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
@@ -123,7 +124,7 @@ const int8 sds930_to_ascii[64] = {
     'Y', 'Z', '?', ',', '(', '~', '\\', '#'             /* 72 = rec mark */
      };                                                 /* 75 = squiggle, 77 = del */
 
-const int8 ascii_to_sds930[128] = {
+const int8_t ascii_to_sds930[128] = {
      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,             /* 00 - 37 */
     032, 072,  -1,  -1,  -1, 052,  -1,  -1,
      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
@@ -144,7 +145,7 @@ const int8 ascii_to_sds930[128] = {
 
 /* SDS 940 character conversion tables. Per 940 Ref Man Appendix A */
 
-const int8 sds940_to_ascii[64] = {
+const int8_t sds940_to_ascii[64] = {
     ' ', '!', '"', '#', '$', '%', '&', '\'',            /* 00 - 17 */
     '(', ')', '*', '+', ',', '-', '.', '/',
     '0', '1', '2', '3', '4', '5', '6', '7',             /* 20 - 37 */
@@ -155,7 +156,7 @@ const int8 sds940_to_ascii[64] = {
     'X', 'Y', 'Z', '[', '\\', ']', '^', '_'
      };
 
-const int8 ascii_to_sds940[128] = {
+const int8_t ascii_to_sds940[128] = {
       -1, 0141, 0142, 0143, 0144, 0145, 0146, 0147,     /* 00 - 37 */
       -1, 0151, 0152, 0153, 0154, 0155,   -1,   -1,
       -1, 0161, 0162, 0163, 0164, 0165, 0166, 0167,
@@ -174,7 +175,7 @@ const int8 ascii_to_sds940[128] = {
     070, 071, 072,  -1,  -1,  -1,  -1,  -1
     };
 
-const int8 odd_par[64] = {
+const int8_t odd_par[64] = {
     0100, 0001, 0002, 0103, 0004, 0105, 0106, 0007,
     0010, 0111, 0112, 0013, 0114, 0015, 0016, 0117,
     0020, 0121, 0122, 0023, 0124, 0025, 0026, 0127,
@@ -197,10 +198,10 @@ const int8 odd_par[64] = {
 
 static t_stat sim_load_cct (FILE *fileref)
 {
-int32 col, rpt, ptr, mask, cctbuf[CCT_LNT];
+int32_t col, rpt, ptr, mask, cctbuf[CCT_LNT];
 t_stat r;
-extern int32 lpt_ccl, lpt_ccp;
-extern uint8 lpt_cct[CCT_LNT];
+extern int32_t lpt_ccl, lpt_ccp;
+extern uint8_t lpt_cct[CCT_LNT];
 const char *cptr;
 char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
 
@@ -239,9 +240,9 @@ return SCPE_OK;
    a bootstrap paper tape.
 */
 
-static int32 get_word (FILE *fileref, int32 *ldr)
+static int32_t get_word (FILE *fileref, int32_t *ldr)
 {
-int32 i, c, wd;
+int32_t i, c, wd;
 
 for (i = wd = 0; i < 4; ) {
     if ((c = fgetc (fileref)) == EOF)
@@ -263,9 +264,9 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
    This implementation does not use every parameter. */
 (void)fnam;
 
-int32 i, wd, buf[8];
-int32 ldr = 1;
-extern uint32 P;
+int32_t i, wd, buf[8];
+int32_t ldr = 1;
+extern uint32_t P;
 
 if ((*cptr != 0) || (flag != 0))
     return SCPE_ARG;
@@ -320,7 +321,7 @@ return SCPE_NXM;
 #define I_CHT           (I_V_CHT << I_V_FL)
 #define I_SPP           (I_V_SPP << I_V_FL)
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
  037777777, 010000000, 017700000,                       /* NPN, PPO, IOI */
  017740000, 017700000, 017774000,                       /* MRF, REG, SHF */
  017740000, 017377677, 027737677,                       /* OPO, CHC, CHT */
@@ -400,7 +401,7 @@ static const char *opcode[] = {                         /* Note: syspops must pr
  NULL
  };
 
-static const int32 opc_val[] = {
+static const int32_t opc_val[] = {
  050000000+I_SPP, 050100000+I_SPP, 053300000+I_SPP, 053400000+I_SPP,     /* WSI,  SWI,  BKPT, STO, */
  053500000+I_SPP, 053600000+I_SPP, 053700000+I_SPP, 054000000+I_SPP,     /* WCD,  STI,  GCD,  SIC, */
  054100000+I_SPP, 054200000+I_SPP, 054300000+I_SPP, 054400000+I_SPP,     /* ISC,  DBI,  DBO,  DWI, */
@@ -484,9 +485,9 @@ static const char *chname[] = {
         inst    =       mask bits
 */
 
-static void fprint_reg (FILE *of, int32 inst)
+static void fprint_reg (FILE *of, int32_t inst)
 {
-int32 i, j, sp;
+int32_t i, j, sp;
 
 inst = inst & ~(I_M_OP << I_V_OP);                      /* clear opcode */
 for (i = sp = 0; opc_val[i] >= 0; i++) {                /* loop thru ops */
@@ -502,7 +503,7 @@ return;
 
 /* Convert from SDS internal character code to ASCII depending upon cpu mode. */
 
-int8 sds_to_ascii (int8 ch)
+int8_t sds_to_ascii (int8_t ch)
 {
   ch &= 077;
   if (cpu_mode == NML_MODE)
@@ -513,7 +514,7 @@ int8 sds_to_ascii (int8 ch)
 
 /* Convert from ASCII to SDS internal character code depending upon cpu mode. */
 
-int8 ascii_to_sds (int8 ch)
+int8_t ascii_to_sds (int8_t ch)
 {
   ch &= 0177;
   if (cpu_mode == NML_MODE)
@@ -535,15 +536,15 @@ int8 ascii_to_sds (int8 ch)
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-int32 i, j, ch;
-int32 inst, op, tag, va, shf, nonop;
+int32_t i, j, ch;
+int32_t inst, op, tag, va, shf, nonop;
 
 inst = val[0];                                          /* get inst */
 op = I_GETOP (inst);                                    /* get fields */
@@ -675,14 +676,14 @@ return cptr;                                            /* no change */
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-int32 i, j, k, ch;
+int32_t i, j, k, ch;
 t_value d, tag;
 t_stat r;
 char gbuf[CBUFSIZE], cbuf[2*CBUFSIZE];

@@ -71,6 +71,8 @@
 
 #endif
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_tape.h"
 
 #define TU_NUMFM        1                               /* #formatters */
@@ -221,21 +223,21 @@
 #define GET_FMT(x)      (((x) >> TC_V_FMT) & TC_M_FMT)
 #define GET_DRV(x)      (((x) >> TC_V_UNIT) & TC_M_UNIT)
 
-int32 tucs1 = 0;                                        /* control/status 1 */
-int32 tufc = 0;                                         /* frame count */
-int32 tufs = 0;                                         /* formatter status */
-int32 tuer = 0;                                         /* error status */
-int32 tucc = 0;                                         /* check character */
-int32 tumr = 0;                                         /* maint register */
-int32 tutc = 0;                                         /* tape control */
-int32 tu_time = 10;                                     /* record latency */
-int32 tu_stopioe = 1;                                   /* stop on error */
-static uint8 *xbuf = NULL;                              /* xfer buffer */
-static uint16 *wbuf = NULL;
-static int32 fmt_test[16] = {                           /* fmt valid */
+int32_t tucs1 = 0;                                      /* control/status 1 */
+int32_t tufc = 0;                                       /* frame count */
+int32_t tufs = 0;                                       /* formatter status */
+int32_t tuer = 0;                                       /* error status */
+int32_t tucc = 0;                                       /* check character */
+int32_t tumr = 0;                                       /* maint register */
+int32_t tutc = 0;                                       /* tape control */
+int32_t tu_time = 10;                                   /* record latency */
+int32_t tu_stopioe = 1;                                 /* stop on error */
+static uint8_t *xbuf = NULL;                            /* xfer buffer */
+static uint16_t *wbuf = NULL;
+static int32_t fmt_test[16] = {                         /* fmt valid */
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0
     };
-static int32 dt_map[3] = { DT_TU16, DT_TU45, DT_TU77 };
+static int32_t dt_map[3] = { DT_TU16, DT_TU45, DT_TU77 };
 static const char *tu_fname[CS1_N_FNC] = {
     "NOP", "UNLD", "2", "REW", "FCLR", "5", "6", "7",
     "RIP", "11", "ERASE", "WREOF", "SPCF", "SPCR", "16", "17",
@@ -243,23 +245,23 @@ static const char *tu_fname[CS1_N_FNC] = {
     "WRITE", "31", "32", "33", "READF", "35", "36", "READR"
     };
 
-t_stat tu_mbrd (int32 *data, int32 PA, int32 fmtr);
-t_stat tu_mbwr (int32 data, int32 PA, int32 fmtr);
+t_stat tu_mbrd (int32_t *data, int32_t PA, int32_t fmtr);
+t_stat tu_mbwr (int32_t data, int32_t PA, int32_t fmtr);
 t_stat tu_svc (UNIT *uptr);
 t_stat tu_reset (DEVICE *dptr);
 t_stat tu_attach (UNIT *uptr, const char *cptr);
 t_stat tu_detach (UNIT *uptr);
-t_stat tu_boot (int32 unitno, DEVICE *dptr);
-t_stat tu_set_fmtr (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tu_show_fmtr (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat tu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat tu_boot (int32_t unitno, DEVICE *dptr);
+t_stat tu_set_fmtr (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tu_show_fmtr (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat tu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *tu_description (DEVICE *dptr);
-t_stat tu_go (int32 drv);
-int32 tu_abort (void);
-void tu_set_er (int32 flg);
-void tu_clr_as (int32 mask);
-void tu_update_fs (int32 flg, int32 drv);
-t_stat tu_map_err (int32 drv, t_stat st, bool qdt);
+t_stat tu_go (int32_t drv);
+int32_t tu_abort (void);
+void tu_set_er (int32_t flg);
+void tu_clr_as (int32_t mask);
+void tu_update_fs (int32_t flg, int32_t drv);
+t_stat tu_map_err (int32_t drv, t_stat st, bool qdt);
 
 /* TU data structures
 
@@ -341,9 +343,9 @@ DEVICE tu_dev = {
 
 /* Massbus register read */
 
-t_stat tu_mbrd (int32 *data, int32 ofs, int32 fmtr)
+t_stat tu_mbrd (int32_t *data, int32_t ofs, int32_t fmtr)
 {
-int32 drv;
+int32_t drv;
 
 if (fmtr != 0) {                                        /* only one fmtr */
     *data = 0;
@@ -407,9 +409,9 @@ return SCPE_OK;
 
 /* Massbus register write */
 
-t_stat tu_mbwr (int32 data, int32 ofs, int32 fmtr)
+t_stat tu_mbwr (int32_t data, int32_t ofs, int32_t fmtr)
 {
-int32 drv;
+int32_t drv;
 
 if (fmtr != 0)                                          /* only one fmtr */
     return MBE_NXD;
@@ -472,9 +474,9 @@ return SCPE_OK;
 
 /* New magtape command */
 
-t_stat tu_go (int32 drv)
+t_stat tu_go (int32_t drv)
 {
-int32 fnc, den;
+int32_t fnc, den;
 UNIT *uptr;
 
 fnc = GET_FNC (tucs1);                                  /* get function */
@@ -617,7 +619,7 @@ return MBE_GOE;
 
 /* Abort transfer */
 
-int32 tu_abort (void)
+int32_t tu_abort (void)
 {
 return tu_reset (&tu_dev);
 }
@@ -631,12 +633,12 @@ return tu_reset (&tu_dev);
 
 t_stat tu_svc (UNIT *uptr)
 {
-int32 fnc, fmt, j, xbc;
-int32 fc, drv;
+int32_t fnc, fmt, j, xbc;
+int32_t fc, drv;
 t_mtrlnt i, tbc;
 t_stat st, r = SCPE_OK;
 
-drv = (int32) (uptr - tu_dev.units);                    /* get drive # */
+drv = (int32_t) (uptr - tu_dev.units);                  /* get drive # */
 if (uptr->USTAT & FS_REW) {                             /* rewind or unload? */
     sim_tape_rewind (uptr);                             /* rewind tape */
     uptr->USTAT = 0;                                    /* clear status */
@@ -711,17 +713,17 @@ switch (fnc) {                                          /* case on function */
             xbuf[i] = 0;
         if (fmt == TC_CDUMP) {                          /* core dump? */
             for (i = j = 0; i < tbc; i = i + 4) {
-                wbuf[j++] = ((uint16) xbuf[i] & 0xF) |
-                    (((uint16) (xbuf[i + 1] & 0xF)) << 4) |
-                    (((uint16) (xbuf[i + 2] & 0xF)) << 8) |
-                    (((uint16) (xbuf[i + 3] & 0xf)) << 12);
+                wbuf[j++] = ((uint16_t) xbuf[i] & 0xF) |
+                    (((uint16_t) (xbuf[i + 1] & 0xF)) << 4) |
+                    (((uint16_t) (xbuf[i + 2] & 0xF)) << 8) |
+                    (((uint16_t) (xbuf[i + 3] & 0xf)) << 12);
                 }
             xbc = (tbc + 1) >> 1;
             }
         else {                                          /* standard */
             for (i = j = 0; i < tbc; i = i + 2) {
-                wbuf[j++] = ((uint16) xbuf[i]) |
-                    (((uint16) xbuf[i + 1]) << 8);
+                wbuf[j++] = ((uint16_t) xbuf[i]) |
+                    (((uint16_t) xbuf[i + 1]) << 8);
                 }
             xbc = tbc;
             }
@@ -772,17 +774,17 @@ switch (fnc) {                                          /* case on function */
         for (i = 0; i < 4; i++) xbuf[i] = 0;            /* pad with 0's */
         if (fmt == TC_CDUMP) {                          /* core dump? */
             for (i = tbc + 3, j = 0; i > 3; i = i - 4) {
-                wbuf[j++] = ((uint16) xbuf[i] & 0xF) |
-                    (((uint16) (xbuf[i - 1] & 0xF)) << 4) |
-                    (((uint16) (xbuf[i - 2] & 0xF)) << 8) |
-                    (((uint16) (xbuf[i - 3] & 0xf)) << 12);
+                wbuf[j++] = ((uint16_t) xbuf[i] & 0xF) |
+                    (((uint16_t) (xbuf[i - 1] & 0xF)) << 4) |
+                    (((uint16_t) (xbuf[i - 2] & 0xF)) << 8) |
+                    (((uint16_t) (xbuf[i - 3] & 0xf)) << 12);
                 }
             xbc = (tbc + 1) >> 1;
             }
         else {                                          /* standard */
             for (i = tbc + 3, j = 0; i > 3; i = i - 2) {
-                wbuf[j++] = ((uint16) xbuf[i]) |
-                    (((uint16) xbuf[i - 1]) << 8);
+                wbuf[j++] = ((uint16_t) xbuf[i]) |
+                    (((uint16_t) xbuf[i - 1]) << 8);
                 }
             xbc = tbc;
             }
@@ -812,7 +814,7 @@ return SCPE_OK;
 
 /* Set formatter error */
 
-void tu_set_er (int32 flg)
+void tu_set_er (int32_t flg)
 {
 tuer = tuer | flg;
 tufs = tufs | FS_ATA;
@@ -822,7 +824,7 @@ return;
 
 /* Clear attention */
 
-void tu_clr_as (int32 mask)
+void tu_clr_as (int32_t mask)
 {
 if (mask & AS_U0)
     tufs = tufs & ~FS_ATA;
@@ -832,9 +834,9 @@ return;
 
 /* Formatter update status */
 
-void tu_update_fs (int32 flg, int32 drv)
+void tu_update_fs (int32_t flg, int32_t drv)
 {
-int32 act = sim_activate_time (&tu_unit[drv]);
+int32_t act = sim_activate_time (&tu_unit[drv]);
 
 tufs = (tufs & ~FS_DYN) | FS_FPR | flg;
 if (tu_unit[drv].flags & UNIT_ATT) {
@@ -863,7 +865,7 @@ return;
 
    Note that tape mark on a data transfer sets FCE and Massbus EXC */
 
-t_stat tu_map_err (int32 drv, t_stat st, bool qdt)
+t_stat tu_map_err (int32_t drv, t_stat st, bool qdt)
 {
 /* Generic helper signature.
    This implementation does not use every parameter. */
@@ -930,7 +932,7 @@ return SCPE_OK;
 
 t_stat tu_reset (DEVICE *dptr)
 {
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 mba_set_enbdis (dptr);
@@ -948,11 +950,11 @@ for (u = 0; u < TU_NUMDR; u++) {                        /* loop thru units */
     uptr->USTAT = 0;
     }
 if (xbuf == NULL)
-    xbuf = (uint8 *) calloc (MT_MAXFR + 4, sizeof (uint8));
+    xbuf = (uint8_t *) calloc (MT_MAXFR + 4, sizeof (uint8_t));
 if (xbuf == NULL)
     return SCPE_MEM;
 if (wbuf == NULL)
-    wbuf = (uint16 *) calloc ((MT_MAXFR + 4) >> 1, sizeof (uint16));
+    wbuf = (uint16_t *) calloc ((MT_MAXFR + 4) >> 1, sizeof (uint16_t));
 if (wbuf == NULL)
     return SCPE_MEM;
 return auto_config(0, 0);
@@ -962,7 +964,7 @@ return auto_config(0, 0);
 
 t_stat tu_attach (UNIT *uptr, const char *cptr)
 {
-int32 drv = uptr - tu_dev.units, flg;
+int32_t drv = uptr - tu_dev.units, flg;
 t_stat r;
 
 r = sim_tape_attach (uptr, cptr);
@@ -981,7 +983,7 @@ return r;
 
 t_stat tu_detach (UNIT* uptr)
 {
-int32 drv = uptr - tu_dev.units;
+int32_t drv = uptr - tu_dev.units;
 
 if (!(uptr->flags & UNIT_ATT))                          /* attached? */
     return SCPE_OK;
@@ -992,7 +994,7 @@ return sim_tape_detach (uptr);
 
 /* Set/show formatter type */
 
-t_stat tu_set_fmtr (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tu_set_fmtr (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 DEVICE *dptr = find_dev_from_unit (uptr);
 
@@ -1010,7 +1012,7 @@ else dptr->flags = dptr->flags & ~DEV_TM03;
 return SCPE_OK;
 }
 
-t_stat tu_show_fmtr (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat tu_show_fmtr (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 DEVICE *dptr = find_dev_from_unit (uptr);
 
@@ -1035,9 +1037,9 @@ return SCPE_OK;
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0046515,                        /* "MM" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit, r0 */
@@ -1065,7 +1067,7 @@ static const uint16 boot_rom[] = {
     0005007                         /* clr PC */
     };
 
-t_stat tu_boot (int32 unitno, DEVICE *dptr)
+t_stat tu_boot (int32_t unitno, DEVICE *dptr)
 {
 size_t i;
 
@@ -1083,7 +1085,7 @@ return SCPE_OK;
 
 #elif defined (VM_VAX)
 
-t_stat tu_boot (int32 unitno, DEVICE *dptr)
+t_stat tu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -1097,7 +1099,7 @@ return SCPE_NOFNC;
 #error "unsupported TU bootstrap target"
 #endif
 
-t_stat tu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */

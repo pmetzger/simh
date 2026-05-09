@@ -29,17 +29,19 @@
    15-Feb-2012  MB      First Version
 */
 
+#include <stdint.h>
+
 #include "uint_bits.h"
 #include "vax_qbus_internal.h"
 
-int32 int_req[IPL_HLVL] = { 0 };                        /* intr, IPL 14-17 */
-int32 int_vec_set[IPL_HLVL][32] = { 0 };                /* bits to set in vector */
-int32 autcon_enb = 1;                                   /* autoconfig enable */
+int32_t int_req[IPL_HLVL] = { 0 };                      /* intr, IPL 14-17 */
+int32_t int_vec_set[IPL_HLVL][32] = { 0 };              /* bits to set in vector */
+int32_t autcon_enb = 1;                                 /* autoconfig enable */
 
-extern int32 vc_mem_rd (int32 pa);
-extern void vc_mem_wr (int32 pa, int32 val, int32 lnt);
+extern int32_t vc_mem_rd (int32_t pa);
+extern void vc_mem_wr (int32_t pa, int32_t val, int32_t lnt);
 
-int32 eval_int (void);
+int32_t eval_int (void);
 t_stat qba_reset (DEVICE *dptr);
 const char *qba_description (DEVICE *dptr);
 
@@ -82,17 +84,17 @@ DEVICE qba_dev = {
 
 /* IO page dispatches */
 
-t_stat (*iodispR[IOPAGESIZE >> 1])(int32 *dat, int32 ad, int32 md);
-t_stat (*iodispW[IOPAGESIZE >> 1])(int32 dat, int32 ad, int32 md);
+t_stat (*iodispR[IOPAGESIZE >> 1])(int32_t *dat, int32_t ad, int32_t md);
+t_stat (*iodispW[IOPAGESIZE >> 1])(int32_t dat, int32_t ad, int32_t md);
 DIB *iodibp[IOPAGESIZE >> 1];
 
 /* Interrupt request to interrupt action map */
 
-int32 (*int_ack[IPL_HLVL][32])(void);                   /* int ack routines */
+int32_t (*int_ack[IPL_HLVL][32])(void);                 /* int ack routines */
 
 /* Interrupt request to vector map */
 
-int32 int_vec[IPL_HLVL][32];                            /* int req to vector */
+int32_t int_vec[IPL_HLVL][32];                          /* int req to vector */
 
 #define QB_VEC_MASK     0x1FC                           /* Interrupt Vector value mask */
 
@@ -103,9 +105,9 @@ int32 int_vec[IPL_HLVL][32];                            /* int req to vector */
 */
 
 #ifndef VAX_QBUS_TEST_RECORD_READS
-static int32 ReadQb (uint32 pa)
+static int32_t ReadQb (uint32_t pa)
 {
-int32 idx, val;
+int32_t idx, val;
 
 if (ADDR_IS_QVM (pa))
     return vc_mem_rd (pa);
@@ -119,16 +121,16 @@ MACH_CHECK (MCHK_READ);
 return 0;
 }
 #else
-static int32 ReadQb (uint32 pa)
+static int32_t ReadQb (uint32_t pa)
 {
 return vax_qbus_test_record_read (pa);
 }
 #endif
 
 #ifndef VAX_QBUS_TEST_RECORD_WRITES
-static void WriteQb (uint32 pa, int32 val, int32 mode)
+static void WriteQb (uint32_t pa, int32_t val, int32_t mode)
 {
-int32 idx;
+int32_t idx;
 
 if (ADDR_IS_QVM (pa)) {
     vc_mem_wr (pa, val, mode);
@@ -144,7 +146,7 @@ MACH_CHECK (MCHK_WRITE);                                /* FIXME: is this correc
 return;
 }
 #else
-static void WriteQb (uint32 pa, int32 val, int32 mode)
+static void WriteQb (uint32_t pa, int32_t val, int32_t mode)
 {
 vax_qbus_test_record_write (pa, val, mode);
 return;
@@ -160,19 +162,19 @@ return;
         longword of data
 */
 
-int32 ReadIO (uint32 pa, int32 lnt)
+int32_t ReadIO (uint32_t pa, int32_t lnt)
 {
-uint32 iod;
+uint32_t iod;
 
-iod = (uint32) ReadQb (pa);                             /* wd from Qbus */
+iod = (uint32_t) ReadQb (pa);                           /* wd from Qbus */
 if (lnt < L_LONG)                                       /* bw? position */
     iod = u32_make_addr_u16_le (iod, pa);
 else {                                                  /* lw, get 2nd wd */
-    uint32 high = (uint32) ReadQb (pa + 2);
+    uint32_t high = (uint32_t) ReadQb (pa + 2);
     iod = u32_from_u16_pair (iod, high);
     }
 SET_IRQL;
-return (int32) iod;
+return (int32_t) iod;
 }
 
 /* ReadIOU - read I/O space - unaligned access
@@ -205,19 +207,19 @@ bo = 2, byte or word - read one word
 bo = 3, byte - read one word
 */
 
-int32 ReadIOU (uint32 pa, int32 lnt)
+int32_t ReadIOU (uint32_t pa, int32_t lnt)
 {
-uint32 iod;
+uint32_t iod;
 
-iod = (uint32) ReadQb (pa);                             /* wd from Qbus */
+iod = (uint32_t) ReadQb (pa);                           /* wd from Qbus */
 if ((lnt + (pa & 1)) <= 2)                              /* byte or (word & even) */
     iod = u32_make_addr_u16_le (iod, pa);                /* one op */
 else {                                                  /* two ops, get 2nd wd */
-    uint32 high = (uint32) ReadQb (pa + 2);
+    uint32_t high = (uint32_t) ReadQb (pa + 2);
     iod = u32_from_u16_pair (iod, high);
     }
 SET_IRQL;
-return (int32) iod;
+return (int32_t) iod;
 }
 
 /* WriteIO - write I/O space - aligned access
@@ -230,17 +232,17 @@ return (int32) iod;
         none
 */
 
-void WriteIO (uint32 pa, int32 val, int32 lnt)
+void WriteIO (uint32_t pa, int32_t val, int32_t lnt)
 {
-uint32 data = (uint32) val;
+uint32_t data = (uint32_t) val;
 
 if (lnt == L_BYTE)
     WriteQb (pa, val, WRITEB);
 else if (lnt == L_WORD)
     WriteQb (pa, val, WRITE);
 else {
-    WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
-    WriteQb (pa + 2, (int32) u32_get_u16 (data, 2), WRITE);
+    WriteQb (pa, (int32_t) u32_get_u16 (data, 0), WRITE);
+    WriteQb (pa + 2, (int32_t) u32_get_u16 (data, 2), WRITE);
     }
 SET_IRQL;
 return;
@@ -264,31 +266,31 @@ bo = 0, lnt = tribyte - write word, byte
 bo = 1, lnt = tribyte - write byte, word
 */
 
-void WriteIOU (uint32 pa, int32 val, int32 lnt)
+void WriteIOU (uint32_t pa, int32_t val, int32_t lnt)
 {
-uint32 data = (uint32) val;
+uint32_t data = (uint32_t) val;
 
 switch (lnt) {
 case L_BYTE:                                            /* byte */
-    WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
+    WriteQb (pa, (int32_t) u32_get_u8 (data, 0), WRITEB);
     break;
 
 case L_WORD:                                            /* word */
     if (pa & 1) {                                       /* odd addr? */
-        WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
-        WriteQb (pa + 1, (int32) u32_get_u8 (data, 1), WRITEB);
+        WriteQb (pa, (int32_t) u32_get_u8 (data, 0), WRITEB);
+        WriteQb (pa + 1, (int32_t) u32_get_u8 (data, 1), WRITEB);
         }
-    else WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
+    else WriteQb (pa, (int32_t) u32_get_u16 (data, 0), WRITE);
     break;
 
 case 3:                                                 /* tribyte */
     if (pa & 1) {                                       /* odd addr? */
-        WriteQb (pa, (int32) u32_get_u8 (data, 0), WRITEB);
-        WriteQb (pa + 1, (int32) u32_get_u16 (data, 1), WRITE);
+        WriteQb (pa, (int32_t) u32_get_u8 (data, 0), WRITEB);
+        WriteQb (pa + 1, (int32_t) u32_get_u16 (data, 1), WRITE);
         }
     else {                                              /* even */
-        WriteQb (pa, (int32) u32_get_u16 (data, 0), WRITE);
-        WriteQb (pa + 2, (int32) u32_get_u8 (data, 2), WRITEB);
+        WriteQb (pa, (int32_t) u32_get_u16 (data, 0), WRITE);
+        WriteQb (pa + 2, (int32_t) u32_get_u8 (data, 2), WRITEB);
         }
     break;
     }
@@ -298,12 +300,12 @@ return;
 
 /* Find highest priority outstanding interrupt */
 
-int32 eval_int (void)
+int32_t eval_int (void)
 {
-int32 ipl = PSL_GETIPL (PSL);
-int32 i, t;
+int32_t ipl = PSL_GETIPL (PSL);
+int32_t i, t;
 
-static const int32 sw_int_mask[IPL_SMAX] = {
+static const int32_t sw_int_mask[IPL_SMAX] = {
     0xFFFE, 0xFFFC, 0xFFF8, 0xFFF0,                     /* 0 - 3 */
     0xFFE0, 0xFFC0, 0xFF80, 0xFF00,                     /* 4 - 7 */
     0xFE00, 0xFC00, 0xF800, 0xF000,                     /* 8 - B */
@@ -333,10 +335,10 @@ return 0;
 
 /* Return vector for highest priority hardware interrupt at IPL lvl */
 
-int32 get_vector (int32 lvl)
+int32_t get_vector (int32_t lvl)
 {
-int32 i;
-int32 l = lvl - IPL_HMIN;
+int32_t i;
+int32_t l = lvl - IPL_HMIN;
 
 if (lvl == IPL_MEMERR) {                                /* mem error? */
     mem_err = 0;
@@ -347,7 +349,7 @@ if (lvl > IPL_HMAX) {                                   /* error req lvl? */
     }
 for (i = 0; int_req[l] && (i < 32); i++) {
     if ((int_req[l] >> i) & 1) {
-        int32 vec;
+        int32_t vec;
 
         int_req[l] = int_req[l] & ~(1u << i);
         if (int_ack[l][i])
@@ -364,7 +366,7 @@ return 0;
 
 /* Reset I/O bus */
 
-void ioreset_wr (int32 data)
+void ioreset_wr (int32_t data)
 {
 /* Shared bus write signature.
    This implementation does not use every parameter. */
@@ -382,7 +384,7 @@ t_stat qba_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 for (i = 0; i < IPL_HLVL; i++)
     int_req[i] = 0;
@@ -406,11 +408,11 @@ return "Qbus adapter";
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf)
 {
-int32 i;
-uint32 ma = ba & 0x3FFFFF;
-uint32 dat;
+int32_t i;
+uint32_t ma = ba & 0x3FFFFF;
+uint32_t dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {              /* by bytes */
@@ -431,11 +433,11 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf)
 {
-int32 i;
-uint32 ma = ba & 0x3FFFFF;
-uint32 dat;
+int32_t i;
+uint32_t ma = ba & 0x3FFFFF;
+uint32_t dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -456,11 +458,11 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
+int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf)
 {
-int32 i;
-uint32 ma = ba & 0x3FFFFF;
-uint32 dat;
+int32_t i;
+uint32_t ma = ba & 0x3FFFFF;
+uint32_t dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -470,10 +472,10 @@ if ((ba | bc) & 03) {                                   /* check alignment */
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                        /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);         /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);        /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);          /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -481,11 +483,11 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
+int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf)
 {
-int32 i;
-uint32 ma = ba & 0x3FFFFF;
-uint32 dat;
+int32_t i;
+uint32_t ma = ba & 0x3FFFFF;
+uint32_t dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -497,8 +499,8 @@ if ((ba | bc) & 03) {                                   /* check alignment */
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                        /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);          /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -510,7 +512,7 @@ return 0;
 
 t_stat build_dib_tab (void)
 {
-int32 i;
+int32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;

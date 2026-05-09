@@ -32,6 +32,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp1_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -41,14 +43,14 @@
 #define DCSL_WAIT       1000                            /* output wait */
 #define DCS_NUMLIN      dcs_desc.lines
 
-int32 dcs_sbs = 0;                                      /* SBS level */
-uint32 dcs_send = 0;                                    /* line for send */
-uint32 dcs_scan = 0;                                    /* line for scanner */
-uint8 dcs_flg[DCS_LINES];                               /* line flags */
-uint8 dcs_buf[DCS_LINES];                               /* line bufffers */
+int32_t dcs_sbs = 0;                                    /* SBS level */
+uint32_t dcs_send = 0;                                  /* line for send */
+uint32_t dcs_scan = 0;                                  /* line for scanner */
+uint8_t dcs_flg[DCS_LINES];                             /* line flags */
+uint8_t dcs_buf[DCS_LINES];                             /* line bufffers */
 
-extern int32 iosta, stop_inst;
-extern int32 tmxr_poll;
+extern int32_t iosta, stop_inst;
+extern int32_t tmxr_poll;
 
 TMLN dcs_ldsc[DCS_LINES] = { {0} };                     /* line descriptors */
 TMXR dcs_desc = { DCS_LINES, 0, 0, dcs_ldsc };          /* mux descriptor */
@@ -58,8 +60,8 @@ t_stat dcso_svc (UNIT *uptr);
 t_stat dcs_reset (DEVICE *dptr);
 t_stat dcs_attach (UNIT *uptr, const char *cptr);
 t_stat dcs_detach (UNIT *uptr);
-t_stat dcs_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc);
-void dcs_reset_ln (int32 ln);
+t_stat dcs_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void dcs_reset_ln (int32_t ln);
 void dcs_scan_next (bool unlk);
 
 /* DCS data structures
@@ -179,13 +181,13 @@ DEVICE dcsl_dev = {
 
 /* DCS IOT routine */
 
-int32 dcs (int32 inst, int32 dev, int32 dat)
+int32_t dcs (int32_t inst, int32_t dev, int32_t dat)
 {
 /* Generic IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 pls = (inst >> 6) & 077;
+int32_t pls = (inst >> 6) & 077;
 
 if (dcs_dev.flags & DEV_DIS)                            /* disabled? */
     return (stop_inst << IOT_V_REASON) | dat;           /* illegal inst */
@@ -243,7 +245,7 @@ return dat;
 
 t_stat dcsi_svc (UNIT *uptr)
 {
-int32 ln, c, out;
+int32_t ln, c, out;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* attached? */
     return SCPE_OK;
@@ -280,8 +282,8 @@ return SCPE_OK;
 
 t_stat dcso_svc (UNIT *uptr)
 {
-int32 c;
-uint32 ln = uptr - dcsl_unit;                           /* line # */
+int32_t c;
+uint32_t ln = uptr - dcsl_unit;                         /* line # */
 
 if (dcs_dev.flags & DEV_DIS)
     return SCPE_OK;
@@ -307,7 +309,7 @@ return SCPE_OK;
 
 void dcs_scan_next (bool unlk)
 {
-int32 i;
+int32_t i;
 
 if (unlk)                                               /* unlock? */
     iosta &= ~IOS_DCS;
@@ -332,7 +334,7 @@ t_stat dcs_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 if (dcs_dev.flags & DEV_DIS)                            /* master disabled? */
     dcsl_dev.flags = dcsl_dev.flags | DEV_DIS;          /* disable lines */
@@ -365,7 +367,7 @@ return SCPE_OK;
 
 t_stat dcs_detach (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 r = tmxr_detach (&dcs_desc, uptr);                      /* detach */
@@ -377,7 +379,7 @@ return r;
 
 /* Change number of lines */
 
-t_stat dcs_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dcs_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -385,7 +387,7 @@ t_stat dcs_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)
@@ -421,7 +423,7 @@ return SCPE_OK;
 
 /* Reset an individual line */
 
-void dcs_reset_ln (int32 ln)
+void dcs_reset_ln (int32_t ln)
 {
 sim_cancel (&dcsl_unit[ln]);
 dcs_buf[ln] = 0;

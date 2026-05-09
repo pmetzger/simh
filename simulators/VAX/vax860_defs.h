@@ -162,21 +162,21 @@
 
 /* 780 microcode patch 37 - only test LR<23:0> for appropriate length */
 
-#define ML_LR_TEST(r)   if (((uint32)((r) & 0xFFFFFF)) > 0x200000) RSVD_OPND_FAULT(ML_LR_TEST)
+#define ML_LR_TEST(r)   if (((uint32_t)((r) & 0xFFFFFF)) > 0x200000) RSVD_OPND_FAULT(ML_LR_TEST)
 
 /* 780 microcode patch 38 - only test PxBR<31>=1, PxBR<30> = 0, and xBR<1:0> = 0 */
 
-#define ML_PXBR_TEST(r) if (((((uint32)(r)) & 0x80000000) == 0) || \
-                            ((((uint32)(r)) & 0x40000003) != 0)) RSVD_OPND_FAULT(ML_PXBR_TEST)
-#define ML_SBR_TEST(r)  if ((((uint32)(r)) & 0x00000003) != 0) RSVD_OPND_FAULT(ML_SBR_TEST)
+#define ML_PXBR_TEST(r) if (((((uint32_t)(r)) & 0x80000000) == 0) || \
+                            ((((uint32_t)(r)) & 0x40000003) != 0)) RSVD_OPND_FAULT(ML_PXBR_TEST)
+#define ML_SBR_TEST(r)  if ((((uint32_t)(r)) & 0x00000003) != 0) RSVD_OPND_FAULT(ML_SBR_TEST)
 
 /* 780 microcode patch 78 - test xCBB<1:0> = 0 */
 
-#define ML_PA_TEST(r)   if ((((uint32)(r)) & 0x00000003) != 0) RSVD_OPND_FAULT(ML_PA_TEST)
+#define ML_PA_TEST(r)   if ((((uint32_t)(r)) & 0x00000003) != 0) RSVD_OPND_FAULT(ML_PA_TEST)
 
 #define LP_AST_TEST(r)  if ((r) > AST_MAX) RSVD_OPND_FAULT(LP_AST_TEST)
-#define LP_MBZ84_TEST(r) if ((((uint32)(r)) & 0xF8C00000) != 0) RSVD_OPND_FAULT(LP_MBZ84_TEST)
-#define LP_MBZ92_TEST(r) if ((((uint32)(r)) & 0x7FC00000) != 0) RSVD_OPND_FAULT(LP_MBZ92_TEST)
+#define LP_MBZ84_TEST(r) if ((((uint32_t)(r)) & 0xF8C00000) != 0) RSVD_OPND_FAULT(LP_MBZ84_TEST)
+#define LP_MBZ92_TEST(r) if ((((uint32_t)(r)) & 0x7FC00000) != 0) RSVD_OPND_FAULT(LP_MBZ92_TEST)
 
 #define MT_AST_TEST(r)  r = (r) & 07; \
                         if ((r) > AST_MAX) RSVD_OPND_FAULT(MT_AST_TEST)
@@ -190,7 +190,7 @@
 #define MAXMEMSIZE_X    (1 << MAXMEMWIDTH_X)
 #define INITMEMSIZE     (1 << MAXMEMWIDTH)              /* initial memory size */
 #define MEMSIZE         (cpu_unit.capac)
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < MEMSIZE)
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < MEMSIZE)
 #define MEM_MODIFIERS   { UNIT_MSIZE, (1u << 23), NULL,  "8M", &cpu_set_size, NULL, NULL, "Set Memory to 8M bytes" },                   \
                         { UNIT_MSIZE, (1u << 24), NULL, "16M", &cpu_set_size, NULL, NULL, "Set Memory to 16M bytes" },                  \
                         { UNIT_MSIZE, (1u << 25), NULL, "32M", &cpu_set_size, NULL, NULL, "Set Memory to 32M bytes" },                  \
@@ -202,7 +202,7 @@
                         { UNIT_MSIZE, (1u << 28) + (1u << 22), NULL, "260M", &cpu_set_size, NULL, NULL, "Set Memory to 260M bytes" },   \
                         { UNIT_MSIZE, (1u << 29), NULL, "512M", &cpu_set_size, NULL, NULL, "Set Memory to 512M bytes" },                \
                         { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "MEMORY", NULL, NULL, &cpu_show_memory, NULL, "Display memory configuration" }
-extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc);
+extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
 
 #define CPU_MODEL_MODIFIERS                                                                     \
                         { MTAB_XTD|MTAB_VDV, 0, "MODEL", "MODEL={8600|8650}",                   \
@@ -218,9 +218,9 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc
 #define IOPAGEMASK      (IOPAGESIZE - 1)                /* IO addr mask */
 #define UBADDRBASE      0x20100000                      /* Unibus addr base */
 #define IOPAGEBASE      0x2013E000                      /* IO page base */
-#define ADDR_IS_IO(x)   ((((uint32) (x)) >= UBADDRBASE) && \
-                        (((uint32) (x)) < (UBADDRBASE + UBADDRSIZE)))
-#define ADDR_IS_IOP(x)  (((uint32) (x)) >= IOPAGEBASE)
+#define ADDR_IS_IO(x)   ((((uint32_t) (x)) >= UBADDRBASE) && \
+                        (((uint32_t) (x)) < (UBADDRBASE + UBADDRSIZE)))
+#define ADDR_IS_IOP(x)  (((uint32_t) (x)) >= IOPAGEBASE)
 
 /* Nexus register space */
 
@@ -232,8 +232,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc
 #define REGSIZE         (1u << REGAWIDTH)               /* REG length */
 #define REGBASE         0x20000000                      /* REG addr base */
 #define NEXUSBASE       REGBASE                         /* NEXUS addr base */
-#define ADDR_IS_REG(x)  ((((uint32) (x)) >= REGBASE) && \
-                        (((uint32) (x)) < (REGBASE + REGSIZE)))
+#define ADDR_IS_REG(x)  ((((uint32_t) (x)) >= REGBASE) && \
+                        (((uint32_t) (x)) < (REGBASE + REGSIZE)))
 #define NEXUS_GETNEX(x) (((x) >> REG_V_NEXUS) & REG_M_NEXUS)
 #define NEXUS_GETOFS(x) (((x) >> REG_V_OFS) & REG_M_OFS)
 
@@ -242,8 +242,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc
 #define SBIAWIDTH       19
 #define SBIABASE        0x20080000
 #define SBIASIZE        (1u << SBIAWIDTH)
-#define ADDR_IS_SBIA(x) ((((uint32) (x)) >= SBIABASE) && \
-                        (((uint32) (x)) < (SBIABASE + SBIASIZE)))
+#define ADDR_IS_SBIA(x) ((((uint32_t) (x)) >= SBIABASE) && \
+                        (((uint32_t) (x)) < (SBIABASE + SBIASIZE)))
 
 /* ROM address space in memory controllers */
 
@@ -251,10 +251,10 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc
 #define ROMSIZE         (1u << ROMAWIDTH)               /* ROM size */
 #define ROM0BASE        (REGBASE + (TR_MCTL0 << REG_V_NEXUS) + 0x1000)
 #define ROM1BASE        (REGBASE + (TR_MCTL1 << REG_V_NEXUS) + 0x1000)
-#define ADDR_IS_ROM0(x) ((((uint32) (x)) >= ROM0BASE) && \
-                        (((uint32) (x)) < (ROM0BASE + ROMSIZE)))
-#define ADDR_IS_ROM1(x) ((((uint32) (x)) >= ROM1BASE) && \
-                        (((uint32) (x)) < (ROM1BASE + ROMSIZE)))
+#define ADDR_IS_ROM0(x) ((((uint32_t) (x)) >= ROM0BASE) && \
+                        (((uint32_t) (x)) < (ROM0BASE + ROMSIZE)))
+#define ADDR_IS_ROM1(x) ((((uint32_t) (x)) >= ROM1BASE) && \
+                        (((uint32_t) (x)) < (ROM1BASE + ROMSIZE)))
 #define ADDR_IS_ROM(x)  (ADDR_IS_ROM0 (x) || ADDR_IS_ROM1 (x))
 
 /* Other address spaces */
@@ -321,18 +321,18 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc
 #define VEC_DEVMAX      4                               /* max device vec */
 
 typedef struct {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
-    t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
-    t_stat              (*wr)(int32 dat, int32 ad, int32 md);
-    int32               vnum;                           /* vectors: number */
-    int32               vloc;                           /* locator */
-    int32               vec;                            /* value */
-    int32               (*ack[VEC_DEVMAX])(void);       /* ack routine */
-    uint32              ulnt;                           /* IO length per-device */
+    uint32_t            ba;                             /* base addr */
+    uint32_t            lnt;                            /* length */
+    t_stat              (*rd)(int32_t *dat, int32_t ad, int32_t md);
+    t_stat              (*wr)(int32_t dat, int32_t ad, int32_t md);
+    int32_t             vnum;                           /* vectors: number */
+    int32_t             vloc;                           /* locator */
+    int32_t             vec;                            /* value */
+    int32_t             (*ack[VEC_DEVMAX])(void);       /* ack routine */
+    uint32_t            ulnt;                           /* IO length per-device */
                                                         /* Only need to be populated */
                                                         /* when numunits != num devices */
-    int32               numc;                           /* Number of controllers */
+    int32_t             numc;                           /* Number of controllers */
                                                         /* this field handles devices */
                                                         /* where multiple instances are */
                                                         /* simulated through a single */
@@ -451,7 +451,7 @@ typedef struct {
 /* Massbus definitions */
 
 #define MBA_RMASK       0x1F                            /* max 32 reg */
-#define MBA_AUTO        (uint32)0xFFFFFFFF              /* Unassigned MBA */
+#define MBA_AUTO        (uint32_t)0xFFFFFFFF            /* Unassigned MBA */
 #define MBE_NXD         1                               /* nx drive */
 #define MBE_NXR         2                               /* nx reg */
 #define MBE_GOE         3                               /* err on GO */
@@ -466,28 +466,28 @@ typedef struct {
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
+int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
+int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
 
-int32 mba_rdbufW (uint32 mbus, int32 bc, uint16 *buf);
-int32 mba_wrbufW (uint32 mbus, int32 bc, const uint16 *buf);
-int32 mba_chbufW (uint32 mbus, int32 bc, uint16 *buf);
-int32 mba_get_bc (uint32 mbus);
+int32_t mba_rdbufW (uint32_t mbus, int32_t bc, uint16_t *buf);
+int32_t mba_wrbufW (uint32_t mbus, int32_t bc, const uint16_t *buf);
+int32_t mba_chbufW (uint32_t mbus, int32_t bc, uint16_t *buf);
+int32_t mba_get_bc (uint32_t mbus);
 void init_mbus_tab (void);
 t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp);
-void mba_upd_ata (uint32 mbus, uint32 val);
-void mba_set_exc (uint32 mbus);
-void mba_set_don (uint32 mbus);
+void mba_upd_ata (uint32_t mbus, uint32_t val);
+void mba_set_exc (uint32_t mbus);
+void mba_set_don (uint32_t mbus);
 void mba_set_enbdis (DEVICE *dptr);
-t_stat mba_show_num (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat mba_show_num (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
-int32 sbia_rd (int32 pa, int32 lnt);
-void sbia_wr (int32 pa, int32 val, int32 lnt);
-t_stat sbi_rd (int32 pa, int32 *val, int32 lnt);
-t_stat sbi_wr (int32 pa, int32 val, int32 lnt);
-t_stat show_nexus (FILE *st, UNIT *uptr, int32 val, const void *desc);
+int32_t sbia_rd (int32_t pa, int32_t lnt);
+void sbia_wr (int32_t pa, int32_t val, int32_t lnt);
+t_stat sbi_rd (int32_t pa, int32_t *val, int32_t lnt);
+t_stat sbi_wr (int32_t pa, int32_t val, int32_t lnt);
+t_stat show_nexus (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 void init_nexus_tab (void);
 t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp);
 
@@ -502,6 +502,8 @@ void sbi_set_errcnf (void);
 #define WriteRegU(p,v,l)    WriteReg (p, v, l)
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_io_lib.h"
 
 /* Function prototypes for virtual and physical memory interface (inlined) */

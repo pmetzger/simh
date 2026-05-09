@@ -47,6 +47,7 @@
 
 #include "pdp1_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev;
 extern DEVICE clk_dev;
@@ -64,9 +65,9 @@ extern DEVICE dpy_dev;
 #endif
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern int32 M[];
-extern int32 PC;
-extern int32 ascii_to_fiodec[], fiodec_to_ascii[];
+extern int32_t M[];
+extern int32_t PC;
+extern int32_t ascii_to_fiodec[], fiodec_to_ascii[];
 
 /* SCP data structures and interface routines
 
@@ -82,7 +83,7 @@ char sim_name[] = "PDP-1";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -116,9 +117,9 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 /* Binary loader - supports both RIM format and Macro block format */
 
-static int32 pdp1_getw (FILE *inf)
+static int32_t pdp1_getw (FILE *inf)
 {
-int32 i, tmp, word;
+int32_t i, tmp, word;
 
 word = 0;
 for (i = 0; i < 3;) {
@@ -132,9 +133,9 @@ for (i = 0; i < 3;) {
 return word;
 }
 
-static t_stat rim_load (FILE *inf, int32 fld)
+static t_stat rim_load (FILE *inf, int32_t fld)
 {
-int32 origin, val;
+int32_t origin, val;
 
 for (;;) {
     if ((val = pdp1_getw (inf)) < 0)
@@ -155,9 +156,9 @@ for (;;) {
 return SCPE_OK;                                         /* done */
 }
 
-static t_stat blk_load (FILE *inf, int32 fld)
+static t_stat blk_load (FILE *inf, int32_t fld)
 {
-int32 val, start, count, csum;
+int32_t val, start, count, csum;
 
 for (;;) {
     if ((val = pdp1_getw (inf)) < 0)                    /* get word, EOF? */
@@ -201,7 +202,7 @@ return SCPE_OK;                                         /* done */
 t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
 {
 t_stat sta;
-int32 fld;
+int32_t fld;
 
 if (flag != 0)
     return SCPE_ARG;
@@ -243,7 +244,7 @@ return SCPE_OK;
 #define I_SHF           (I_V_SHF << I_V_FL)             /* shift */
 #define I_SPC           (I_V_SPC << I_V_FL)
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
  0777777, 0760077, 0760000, 0760000,
  0770000, 0760017, 0760077, 0777000,
  0760003
@@ -326,7 +327,7 @@ static const char *opcode[] = {
  NULL,
  };
 
-static const int32 opc_val[] = {
+static const int32_t opc_val[] = {
  0020000+I_MRF, 0040000+I_MRF, 0060000+I_MRF, 0100000+I_MRF,
  0200000+I_MRF, 0220000+I_MRF, 0240000+I_MRF, 0260000+I_MRF,
  0300000+I_MRF, 0320000+I_MRF, 0340000+I_MRF, 0400000+I_MRF,
@@ -414,9 +415,9 @@ static const int32 opc_val[] = {
         status  =       space needed?
 */
 
-static int32 fprint_opr (FILE *of, int32 inst, int32 Class, int32 sp)
+static int32_t fprint_opr (FILE *of, int32_t inst, int32_t Class, int32_t sp)
 {
-int32 i, j;
+int32_t i, j;
 
 for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
     j = (opc_val[i] >> I_V_FL) & I_M_FL;                /* get class */
@@ -446,9 +447,9 @@ return sp;
 #define ASCTOSIX(x) (ascii_to_fiodec[(x) & 0177] & 077)
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 cflag, i, j, sp, inst, disp, ma;
+int32_t cflag, i, j, sp, inst, disp, ma;
 
 inst = val[0];
 cflag = (uptr == NULL) || (uptr == &cpu_unit);
@@ -548,7 +549,7 @@ return SCPE_ARG;
         val     =       output value
 */
 
-static t_value get_sint (char *cptr, int32 *sign, t_stat *status)
+static t_value get_sint (char *cptr, int32_t *sign, t_stat *status)
 {
 *sign = 1;
 if (*cptr == '+') {
@@ -574,11 +575,11 @@ return get_uint (cptr, 8, DMASK, status);
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 cflag, d, i, j, k, sign;
+int32_t cflag, d, i, j, k, sign;
 t_stat r;
-static int32 sc_enc[10] = { 0, 01, 03, 07, 017, 037, 077, 0177, 0377, 0777 };
+static int32_t sc_enc[10] = { 0, 01, 03, 07, 017, 037, 077, 0177, 0377, 0777 };
 char gbuf[CBUFSIZE], cbuf[2*CBUFSIZE];
 
 cflag = (uptr == NULL) || (uptr == &cpu_unit);

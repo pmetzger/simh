@@ -29,6 +29,8 @@
 #ifndef LINC_DEFS_H_
 #define LINC_DEFS_H_  0
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 #define STOP_HALT       1
@@ -51,7 +53,7 @@
 #define MEMSIZE  2048
 
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 
 extern DEVICE cpu_dev;
 extern DEVICE crt_dev;
@@ -62,12 +64,12 @@ extern DEVICE tty_dev;
 
 extern t_stat build_dev_tab(void);
 extern t_stat cpu_do(void);
-extern void dpy_dis(uint16 h, uint16 x, uint16 y);
-extern void crt_point (uint16 x, uint16 y);
+extern void dpy_dis(uint16_t h, uint16_t x, uint16_t y);
+extern void crt_point (uint16_t x, uint16_t y);
 extern void crt_toggle_fullscreen(void);
-extern uint16 kbd_key(uint16 wait);
+extern uint16_t kbd_key(uint16_t wait);
 extern int kbd_struck(void);
 extern void tape_op(void);
-extern t_stat tape_metadata(FILE *, uint16 *, int16 *, int16 *);
+extern t_stat tape_metadata(FILE *, uint16_t *, int16_t *, int16_t *);
 
 #endif /* LINC_DEFS_H_ */

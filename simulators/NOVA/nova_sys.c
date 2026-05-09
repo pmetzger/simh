@@ -50,6 +50,7 @@
 #include "nova_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
@@ -68,17 +69,17 @@ extern DEVICE mta_dev;
 extern DEVICE qty_dev;
 extern DEVICE alm_dev;
 extern REG cpu_reg[];
-extern uint16 M[];
-extern int32 saved_PC;
-extern int32 AMASK;
+extern uint16_t M[];
+extern int32_t saved_PC;
+extern int32_t AMASK;
 
 #if defined (ECLIPSE)
 
 extern DEVICE map_dev;
 extern DEVICE fpu_dev;
 extern DEVICE pit_dev;
-extern int32 Usermap;
-extern int32 MapStat;
+extern int32_t Usermap;
+extern int32_t MapStat;
 
 #endif
 
@@ -100,7 +101,7 @@ char sim_name[] = "NOVA";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -183,8 +184,8 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
    This implementation does not use every parameter. */
 (void)fnam;
 
-int32 data, csum, count, state, i;
-int32 origin;
+int32_t data, csum, count, state, i;
+int32_t origin;
 int pos;
 int block_start;
 int done;
@@ -345,7 +346,7 @@ return ( ((state == 0) || (state == 8)) ? SCPE_OK : SCPE_FMT ) ;
 #define I_FST           (I_V_FST << I_V_FL)
 #define I_XP            (I_V_XP << I_V_FL)
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
  0177777, 0163777, 0177700, 0163700,
  0174000, 0160000, 0103770, 0163477,
  0103777, 0103777, 0177777, 0163777,
@@ -480,7 +481,7 @@ static const char *opcode[] = {
  NULL
  };
 
-static const int32 opc_val[] = {
+static const int32_t opc_val[] = {
  0000000+I_M, 0004000+I_M, 0010000+I_M, 0014000+I_M,
  0020000+I_RM, 0040000+I_RM,
 #if defined (ECLIPSE)
@@ -622,7 +623,7 @@ static const char *device[] = {
  NULL
  };
 
-static const int32 dev_val[] = {
+static const int32_t dev_val[] = {
 #if defined (ECLIPSE)
  002, 003,
 #endif
@@ -645,10 +646,10 @@ static const int32 dev_val[] = {
    Outputs:
         return  =       error code
 */
-static t_stat fprint_addr (FILE *of, t_addr addr, int32 ind, int32 mode,
-    int32 disp, bool ext, int32 cflag)
+static t_stat fprint_addr (FILE *of, t_addr addr, int32_t ind, int32_t mode,
+    int32_t disp, bool ext, int32_t cflag)
 {
-int32 dsign, dmax;
+int32_t dsign, dmax;
 
 if (ext)                                                /* get max disp */
     dmax = AMASK + 1;
@@ -704,15 +705,15 @@ return SCPE_OK;
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 cflag, i, j, c1, c2, inst, inst1, dv, src, dst, skp;
-int32 ind, mode, disp, dev;
-int32 byac, extind, extdisp, xop;
+int32_t cflag, i, j, c1, c2, inst, inst1, dv, src, dst, skp;
+int32_t ind, mode, disp, dev;
+int32_t byac, extind, extdisp, xop;
 
 cflag = (uptr == NULL) || (uptr == &cpu_unit);
-c1 =  ((int32) val[0] >> 8) & 0177;
-c2 = (int32) val[0] & 0177;
+c1 =  ((int32_t) val[0] >> 8) & 0177;
+c2 = (int32_t) val[0] & 0177;
 if (sw & SWMASK ('A')) {                                /* ASCII? */
     fprintf (of, (c2 < 040)? "<%03o>": "%c", c2);
     return SCPE_OK;
@@ -727,8 +728,8 @@ if (!(sw & SWMASK ('M')))                               /* mnemonic? */
 
 /* Instruction decode */
 
-inst = (int32) val[0];
-inst1 = (int32) val[1];
+inst = (int32_t) val[0];
+inst1 = (int32_t) val[1];
 for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
     j = (opc_val[i] >> I_V_FL) & I_M_FL;                /* get class */
     if ((opc_val[i] & 0177777) == (inst & masks[j])) {  /* match? */
@@ -864,12 +865,12 @@ return SCPE_ARG;
 #define A_SI    020                                     /* sign seen */
 #define A_MI    040                                     /* - seen */
 
-static const char *get_addr (const char *cptr, t_addr addr, bool ext, int32 cflag, int32 *val)
+static const char *get_addr (const char *cptr, t_addr addr, bool ext, int32_t cflag, int32_t *val)
 {
-int32 d, x, pflag;
+int32_t d, x, pflag;
 t_stat r;
 char gbuf[CBUFSIZE];
-int32 dmax, dsign;
+int32_t dmax, dsign;
 
 if (ext)                                                /* get max disp */
     dmax = AMASK + 1;
@@ -900,14 +901,14 @@ else if (*cptr == '-') {                                /* - sign? */
     }
 if (*cptr != 0) {                                       /* number? */
     cptr = get_glyph (cptr, gbuf, ',');                 /* get glyph */
-    d = (int32) get_uint (gbuf, 8, AMASK, &r);
+    d = (int32_t) get_uint (gbuf, 8, AMASK, &r);
     if (r != SCPE_OK)
         return NULL;
     pflag = pflag | A_NUM;
     }
 if (*cptr != 0) {                                       /* index? */
     cptr = get_glyph (cptr, gbuf, 0);                   /* get glyph */
-    x = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+    x = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
     if ((r != SCPE_OK) || (x < 2))
         return NULL;
     pflag = pflag | A_NX;
@@ -924,9 +925,9 @@ switch (pflag) {                                        /* case on flags */
     case A_NUM+A_FL: case A_NUM+A_SI+A_FL:              /* CPU, (+)num */
         if (d < dmax)
             val[2] = d;
-        else if (((d >= (((int32) addr - dsign) & AMASK)) &&
-                  (d < (((int32) addr + dsign) & AMASK))) ||
-                  (d >= ((int32) addr + (-dsign & AMASK)))) {
+        else if (((d >= (((int32_t) addr - dsign) & AMASK)) &&
+                  (d < (((int32_t) addr + dsign) & AMASK))) ||
+                  (d >= ((int32_t) addr + (-dsign & AMASK)))) {
             val[1] = 1;                                 /* PC rel */
             val[2] = (d - addr) & (dmax - 1);
             }
@@ -967,17 +968,17 @@ return cptr;
                         NULL if error
 */
 
-static const char *get_2reg (const char *cptr, char term, int32 *val)
+static const char *get_2reg (const char *cptr, char term, int32_t *val)
 {
 char gbuf[CBUFSIZE];
 t_stat r;
 
 cptr = get_glyph (cptr, gbuf, ',');                     /* get register */
-val[0] = (int32) get_uint (gbuf, 8, I_M_SRC, &r);
+val[0] = (int32_t) get_uint (gbuf, 8, I_M_SRC, &r);
 if (r != SCPE_OK)
     return NULL;
 cptr = get_glyph (cptr, gbuf, term);                    /* get register */
-val[1] = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+val[1] = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
 if (r != SCPE_OK)
     return NULL;
 return cptr;
@@ -995,9 +996,9 @@ return cptr;
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 cflag, d, i, j, amd[3];
+int32_t cflag, d, i, j, amd[3];
 t_stat r, rtn;
 char gbuf[CBUFSIZE];
 
@@ -1033,7 +1034,7 @@ switch (j) {                                            /* case on class */
 
     case I_V_R:                                         /* IOT reg */
         cptr = get_glyph (cptr, gbuf, 0);               /* get register */
-        d = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
@@ -1041,7 +1042,7 @@ switch (j) {                                            /* case on class */
 
     case I_V_RD:                                        /* IOT reg,dev */
         cptr = get_glyph (cptr, gbuf, ',');             /* get register */
-        d = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
@@ -1052,7 +1053,7 @@ switch (j) {                                            /* case on class */
         if (device[i] != NULL)
             val[0] = val[0] | dev_val[i];
         else {
-            d = (int32) get_uint (gbuf, 8, I_M_DEV, &r);
+            d = (int32_t) get_uint (gbuf, 8, I_M_DEV, &r);
             if (r != SCPE_OK)
                 return SCPE_ARG;
             val[0] = val[0] | (d << I_V_DEV);
@@ -1061,7 +1062,7 @@ switch (j) {                                            /* case on class */
 
     case I_V_RM:                                        /* reg, addr */
         cptr = get_glyph (cptr, gbuf, ',');             /* get register */
-        d = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
@@ -1103,12 +1104,12 @@ switch (j) {                                            /* case on class */
 
     case I_V_RSI:                                       /* reg, short imm */
         cptr = get_glyph (cptr, gbuf, ',');             /* get immediate */
-        d = (int32) get_uint (gbuf, 8, I_M_SRC + 1, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_SRC + 1, &r);
         if ((d == 0) || (r != SCPE_OK))
             return SCPE_ARG;
         val[0] = val[0] | ((d - 1) << I_V_SRC);         /* put in place */
         cptr = get_glyph (cptr, gbuf, 0);               /* get register */
-        d = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
@@ -1116,11 +1117,11 @@ switch (j) {                                            /* case on class */
 
     case I_V_RLI:                                       /* reg, long imm */
         cptr = get_glyph (cptr, gbuf, ',');             /* get immediate */
-        val[1] = (int32) get_uint (gbuf, 8, DMASK, &r);
+        val[1] = (int32_t) get_uint (gbuf, 8, DMASK, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         cptr = get_glyph (cptr, gbuf, 0);               /* get register */
-        d = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
@@ -1129,7 +1130,7 @@ switch (j) {                                            /* case on class */
 
     case I_V_LI:                                        /* long imm */
         cptr = get_glyph (cptr, gbuf, 0);               /* get immediate */
-        val[1] = (int32) get_uint (gbuf, 8, DMASK, &r);
+        val[1] = (int32_t) get_uint (gbuf, 8, DMASK, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         rtn = -1;
@@ -1137,7 +1138,7 @@ switch (j) {                                            /* case on class */
 
     case I_V_RLM:                                       /* reg, long mem */
         cptr = get_glyph (cptr, gbuf, ',');             /* get register */
-        d = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
@@ -1152,7 +1153,7 @@ switch (j) {                                            /* case on class */
 
     case I_V_FRM:                                       /* flt reg, long mem */
         cptr = get_glyph (cptr, gbuf, ',');             /* get register */
-        d = (int32) get_uint (gbuf, 8, I_M_DST, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_DST, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
@@ -1179,7 +1180,7 @@ switch (j) {                                            /* case on class */
             return SCPE_ARG;
         val[0] = val[0] | (amd[0] << I_V_SRC) | (amd[1] << I_V_DST);
         cptr = get_glyph (cptr, gbuf, 0);               /* get argument */
-        d = (int32) get_uint (gbuf, 8, I_M_XOP, &r);
+        d = (int32_t) get_uint (gbuf, 8, I_M_XOP, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_XOP);

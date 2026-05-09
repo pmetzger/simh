@@ -52,6 +52,8 @@
 #ifndef PDP1_DEFS_H_
 #define PDP1_DEFS_H_   0
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -79,7 +81,7 @@
 #define MAXMEMSIZE      (1u << ASIZE)                   /* max mem size */
 #define AMASK           (MAXMEMSIZE - 1)                /* address mask */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Architectural constants */
 
@@ -196,18 +198,18 @@
 
 /* Device routines */
 
-int32 clk (int32 inst, int32 dev, int32 dat);
-int32 dcs (int32 inst, int32 dev, int32 dat);
-int32 drm (int32 inst, int32 dev, int32 dat);
-int32 dt (int32 inst, int32 dev, int32 dat);
-int32 lpt (int32 inst, int32 dev, int32 dat);
-int32 ptr (int32 inst, int32 dev, int32 dat);
-int32 ptp (int32 inst, int32 dev, int32 dat);
-int32 tti (int32 inst, int32 dev, int32 dat);
-int32 tto (int32 inst, int32 dev, int32 dat);
-t_stat dev_req_int (int32 lvl);
-t_stat dev_set_sbs (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dev_show_sbs (FILE *st, UNIT *uptr, int32 val, const void *desc);
+int32_t clk (int32_t inst, int32_t dev, int32_t dat);
+int32_t dcs (int32_t inst, int32_t dev, int32_t dat);
+int32_t drm (int32_t inst, int32_t dev, int32_t dat);
+int32_t dt (int32_t inst, int32_t dev, int32_t dat);
+int32_t lpt (int32_t inst, int32_t dev, int32_t dat);
+int32_t ptr (int32_t inst, int32_t dev, int32_t dat);
+int32_t ptp (int32_t inst, int32_t dev, int32_t dat);
+int32_t tti (int32_t inst, int32_t dev, int32_t dat);
+int32_t tto (int32_t inst, int32_t dev, int32_t dat);
+t_stat dev_req_int (int32_t lvl);
+t_stat dev_set_sbs (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dev_show_sbs (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
-extern const int32 sc_map[512];
+extern const int32_t sc_map[512];
 #endif

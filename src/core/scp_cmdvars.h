@@ -6,6 +6,8 @@
 #define SCP_CMDVARS_H_ 0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #if !defined(_WIN32)
 #include <sys/utsname.h>
@@ -13,7 +15,7 @@
 
 /* Implement SET ENVIRONMENT, including prompt-driven and decoded-string
    forms. */
-t_stat sim_set_environment(int32 flag, const char *cptr);
+t_stat sim_set_environment(int32_t flag, const char *cptr);
 
 /* Expand one command line in place using SCP command-variable rules. */
 void sim_sub_args(char *in_str, size_t in_str_size, char *do_arg[]);

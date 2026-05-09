@@ -25,6 +25,8 @@
    in this Software without prior written authorization from the author(s).
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 char sim_name[64] = "MicroVAX 2000 (KA410)";
@@ -52,8 +54,8 @@ extern DEVICE vc_dev;
 extern DEVICE lk_dev;
 extern DEVICE vs_dev;
 
-extern void WriteB (uint32 pa, int32 val);
-extern void rom_wr_B (int32 pa, int32 val);
+extern void WriteB (uint32_t pa, int32_t val);
+extern void rom_wr_B (int32_t pa, int32_t val);
 extern UNIT cpu_unit;
 
 DEVICE *sim_devices[] = {
@@ -95,8 +97,8 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
 (void)fnam;
 
 t_stat r;
-int32 i;
-uint32 origin, limit;
+int32_t i;
+uint32_t origin, limit;
 
 if (flag)                                               /* dump? */
     return sim_messagef (SCPE_NOFNC, "Command Not Implemented\n");
@@ -110,9 +112,9 @@ else if (sim_switches & SWMASK ('N')) {                 /* NVR? */
     }
 else {
     origin = 0;                                         /* memory */
-    limit = (uint32) cpu_unit.capac;
+    limit = (uint32_t) cpu_unit.capac;
     if (sim_switches & SWMASK ('O')) {                  /* origin? */
-        origin = (int32) get_uint (cptr, 16, 0xFFFFFFFF, &r);
+        origin = (int32_t) get_uint (cptr, 16, 0xFFFFFFFF, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         }

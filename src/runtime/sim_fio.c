@@ -53,7 +53,10 @@
 #define IN_SIM_FIO_C 1              /* Include from sim_fio.c */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
+#include "sim_types.h"
 
 bool sim_end;                       /* true = little endian, false = big endian */
 bool sim_taddr_64;                  /* t_addr is > 32b and Large File Support available */
@@ -82,14 +85,14 @@ bool sim_toffset_64;                /* Large File (>2GB) file I/O Support availa
    Sim_fread swaps in place, sim_fwrite uses an intermediate buffer.
 */
 
-int32 sim_finit (void)
+int32_t sim_finit (void)
 {
-union {int32 i; char c[sizeof (int32)]; } end_test;
+union {int32_t i; char c[sizeof (int32_t)]; } end_test;
 
 end_test.i = 1;                                         /* test endian-ness */
 sim_end = (end_test.c[0] != 0);
-sim_toffset_64 = (sizeof(t_offset) > sizeof(int32));    /* Large File (>2GB) support */
-sim_taddr_64 = sim_toffset_64 && (sizeof(t_addr) > sizeof(int32));
+sim_toffset_64 = (sizeof(t_offset) > sizeof(int32_t));  /* Large File (>2GB) support */
+sim_taddr_64 = sim_toffset_64 && (sizeof(t_addr) > sizeof(int32_t));
 return sim_end;
 }
 
@@ -118,7 +121,7 @@ sim_byte_swap_data (bptr, size, count);
 void sim_byte_swap_data (void *bptr, size_t size, size_t count)
 {
     size_t j;
-    uint8 *sptr = (uint8 *) bptr;
+    uint8_t *sptr = (uint8_t *) bptr;
 
     if (sim_end || (count == 0) || (size == sizeof (char)))
         return;
@@ -132,7 +135,7 @@ void sim_byte_swap_data (void *bptr, size_t size, size_t count)
      *
      * Output from the compiler looks like:
      *
-     * 363 | int32 f, u, comp, cyl, sect, surf;
+     * 363 | int32_t f, u, comp, cyl, sect, surf;
      *     |             ^
      * PDP18B/pdp18b_rp.c:363:13: note: at offset [16, 48] into destination object ‘comp’ of size 4
      * PDP18B/pdp18b_rp.c:363:13: note: at offset [80, 17179869168] into destination object ‘comp’ of size 4
@@ -148,16 +151,16 @@ void sim_byte_swap_data (void *bptr, size_t size, size_t count)
     for (j = 0; j < count; j++) {                           /* loop on items */
 #if defined(USE_BSWAP_INTRINSIC)
         switch (size) {
-        case sizeof(uint16):
-            *((uint16 *) sptr) = sim_bswap16 (*((uint16 *) sptr));
+        case sizeof(uint16_t):
+            *((uint16_t *) sptr) = sim_bswap16 (*((uint16_t *) sptr));
             break;
 
-        case sizeof(uint32):
-            *((uint32 *) sptr) = sim_bswap32 (*((uint32 *) sptr));
+        case sizeof(uint32_t):
+            *((uint32_t *) sptr) = sim_bswap32 (*((uint32_t *) sptr));
             break;
 
-        case sizeof(t_uint64):
-            *((t_uint64 *) sptr) = sim_bswap64 (*((t_uint64 *) sptr));
+        case sizeof(uint64_t):
+            *((uint64_t *) sptr) = sim_bswap64 (*((uint64_t *) sptr));
             break;
 
         default:
@@ -166,13 +169,13 @@ void sim_byte_swap_data (void *bptr, size_t size, size_t count)
             {
                 /* Either there aren't any intrinsics that do byte swapping or
                  * it's not a well known size. */
-                uint8 *dptr;
+                uint8_t *dptr;
                 size_t k;
                 const size_t midpoint = (size + 1) / 2;
 
                 dptr = sptr + size - 1;
                 for (k = size - 1; k >= midpoint; k--) {
-                    uint8 by = *sptr;                       /* swap end-for-end */
+                    uint8_t by = *sptr;                     /* swap end-for-end */
                     *sptr++ = *dptr;
                     *dptr-- = by;
                 }
@@ -203,8 +206,8 @@ return c;
 void sim_buf_copy_swapped (void *dbuf, const void *sbuf, size_t size, size_t count)
 {
 size_t j, k;
-const unsigned char *sptr = (const unsigned char *)sbuf;
-unsigned char *dptr = (unsigned char *)dbuf;
+const uchar_t *sptr = (const uchar_t *)sbuf;
+uchar_t *dptr = (uchar_t *)dbuf;
 
 if (sim_end || (size == sizeof (char))) {
     memcpy (dptr, sptr, size * count);
@@ -224,15 +227,15 @@ for (j = 0; j < count; j++) {                           /* loop on items */
 size_t sim_fwrite (const void *bptr, size_t size, size_t count, FILE *fptr)
 {
 size_t c, nelem, nbuf, lcnt, total;
-int32 i;
-const unsigned char *sptr;
-unsigned char *sim_flip;
+int32_t i;
+const uchar_t *sptr;
+uchar_t *sim_flip;
 
 if ((size == 0) || (count == 0))                        /* check arguments */
     return 0;
 if (sim_end || (size == sizeof (char)))                 /* le or byte? */
     return fwrite (bptr, size, count, fptr);            /* done */
-sim_flip = (unsigned char *)malloc(FLIP_SIZE);
+sim_flip = (uchar_t *)malloc(FLIP_SIZE);
 if (!sim_flip)
     return 0;
 nelem = FLIP_SIZE / size;                               /* elements in buffer */
@@ -241,8 +244,8 @@ lcnt = count % nelem;                                   /* count in last buf */
 if (lcnt) nbuf = nbuf + 1;
 else lcnt = nelem;
 total = 0;
-sptr = (const unsigned char *) bptr;                    /* init input ptr */
-for (i = (int32)nbuf; i > 0; i--) {                     /* loop on buffers */
+sptr = (const uchar_t *) bptr;                          /* init input ptr */
+for (i = (int32_t)nbuf; i > 0; i--) {                   /* loop on buffers */
     c = (i == 1)? lcnt: nelem;
     sim_buf_copy_swapped (sim_flip, sptr, size, c);
     sptr = sptr + size * c;
@@ -290,14 +293,14 @@ fclose (fp);
 return sz;
 }
 
-uint32 sim_fsize_name (const char *fname)
+uint32_t sim_fsize_name (const char *fname)
 {
-return (uint32)(sim_fsize_name_ex (fname));
+return (uint32_t)(sim_fsize_name_ex (fname));
 }
 
-uint32 sim_fsize (FILE *fp)
+uint32_t sim_fsize (FILE *fp)
 {
-return (uint32)(sim_fsize_ex (fp));
+return (uint32_t)(sim_fsize_ex (fp));
 }
 
 bool sim_can_seek (FILE *fp)
@@ -312,13 +315,13 @@ return true;
 
 static char *_sim_expand_homedir (const char *file, char *dest, size_t dest_size)
 {
-uint8 *without_quotes = NULL;
-uint32 dsize = 0;
+uint8_t *without_quotes = NULL;
+uint32_t dsize = 0;
 
 errno = 0;
 if (((*file == '"') && (file[strlen (file) - 1] == '"')) ||
     ((*file == '\'') && (file[strlen (file) - 1] == '\''))) {
-    without_quotes = (uint8*)malloc (strlen (file) + 1);
+    without_quotes = (uint8_t*)malloc (strlen (file) + 1);
     if (without_quotes == NULL)
         return NULL;
     if (SCPE_OK != sim_decode_quoted_string (file, without_quotes, &dsize)) {
@@ -584,12 +587,12 @@ return sim_messagef (SCPE_ARG, "Error Copying '%s' to '%s': %s\n", source_file, 
 
 static void _time_t_to_filetime (time_t ttime, FILETIME *filetime)
 {
-t_uint64 time64;
+uint64_t time64;
 
 time64 = 134774;                /* Days between Jan 1, 1601 and Jan 1, 1970 */
 time64 *= 24;                   /* Hours */
 time64 *= 3600;                 /* Seconds */
-time64 += (t_uint64)ttime;      /* include time_t seconds */
+time64 += (uint64_t)ttime;      /* include time_t seconds */
 
 time64 *= 10000000;             /* Convert seconds to 100ns units */
 filetime->dwLowDateTime = (DWORD)time64;
@@ -660,7 +663,7 @@ if ((*shmem)->hMapping == INVALID_HANDLE_VALUE) {
 
     sim_shmem_close (*shmem);
     *shmem = NULL;
-    return sim_messagef (SCPE_OPENERR, "Can't CreateFileMapping of a %u byte shared memory segment '%s' - LastError=0x%X\n", (unsigned int)size, name, (unsigned int)LastError);
+    return sim_messagef (SCPE_OPENERR, "Can't CreateFileMapping of a %u byte shared memory segment '%s' - LastError=0x%X\n", (uint_t)size, name, (uint_t)LastError);
     }
 AlreadyExists = (GetLastError () == ERROR_ALREADY_EXISTS);
 (*shmem)->shm_base = MapViewOfFile ((*shmem)->hMapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
@@ -669,7 +672,7 @@ if ((*shmem)->shm_base == NULL) {
 
     sim_shmem_close (*shmem);
     *shmem = NULL;
-    return sim_messagef (SCPE_OPENERR, "Can't MapViewOfFile() of a %u byte shared memory segment '%s' - LastError=0x%X\n", (unsigned int)size, name, (unsigned int)LastError);
+    return sim_messagef (SCPE_OPENERR, "Can't MapViewOfFile() of a %u byte shared memory segment '%s' - LastError=0x%X\n", (uint_t)size, name, (uint_t)LastError);
     }
 if (AlreadyExists) {
     if (*((DWORD *)((*shmem)->shm_base)) == 0)
@@ -678,7 +681,7 @@ if (AlreadyExists) {
         DWORD SizeFound = *((DWORD *)((*shmem)->shm_base));
         sim_shmem_close (*shmem);
         *shmem = NULL;
-        return sim_messagef (SCPE_OPENERR, "Shared Memory segment '%s' is %u bytes instead of %d\n", name, (unsigned int)SizeFound, (int)size);
+        return sim_messagef (SCPE_OPENERR, "Shared Memory segment '%s' is %u bytes instead of %d\n", name, (uint_t)SizeFound, (int)size);
         }
     }
 else
@@ -700,12 +703,12 @@ free (shmem->shm_name);
 free (shmem);
 }
 
-int32 sim_shmem_atomic_add (int32 *p, int32 v)
+int32_t sim_shmem_atomic_add (int32_t *p, int32_t v)
 {
 return InterlockedExchangeAdd ((volatile long *) p,v) + (v);
 }
 
-bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
+bool sim_shmem_atomic_cas (int32_t *ptr, int32_t oldv, int32_t newv)
 {
 return (InterlockedCompareExchange ((LONG volatile *) ptr, newv, oldv) == oldv);
 }
@@ -917,7 +920,7 @@ free (shmem);
 #endif
 }
 
-int32 sim_shmem_atomic_add (int32 *p, int32 v)
+int32_t sim_shmem_atomic_add (int32_t *p, int32_t v)
 {
 #if defined (__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4)
 return __sync_add_and_fetch ((int *) p, v);
@@ -926,7 +929,7 @@ return *p + v;
 #endif
 }
 
-bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
+bool sim_shmem_atomic_cas (int32_t *ptr, int32_t oldv, int32_t newv)
 {
 #if defined (__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4)
 return __sync_bool_compare_and_swap (ptr, oldv, newv);
@@ -951,12 +954,12 @@ void sim_shmem_close (SHMEM *shmem)
 {
 }
 
-int32 sim_shmem_atomic_add (int32 *p, int32 v)
+int32_t sim_shmem_atomic_add (int32_t *p, int32_t v)
 {
 return -1;
 }
 
-bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv)
+bool sim_shmem_atomic_cas (int32_t *ptr, int32_t oldv, int32_t newv)
 {
 return false;
 }
@@ -1300,7 +1303,7 @@ if (NULL == _sim_expand_homedir (cptr, WildName, sizeof (WildName)))
 cptr = WildName;
 sim_trim_endspc (WildName);
 if ((hFind =  FindFirstFileA (cptr, &File)) != INVALID_HANDLE_VALUE) {
-    t_int64 FileSize;
+    int64_t FileSize;
     char DirName[PATH_MAX + 1], FileName[PATH_MAX + 1];
     char *c;
     const char *backslash = strchr (cptr, '\\');
@@ -1320,7 +1323,7 @@ if ((hFind =  FindFirstFileA (cptr, &File)) != INVALID_HANDLE_VALUE) {
     DirName[strlen (DirName)] = *pathsep;
     DirName[strlen (DirName) + 1] = '\0';
     do {
-        FileSize = (((t_int64)(File.nFileSizeHigh)) << 32) | File.nFileSizeLow;
+        FileSize = (((int64_t)(File.nFileSizeHigh)) << 32) | File.nFileSizeLow;
         strlcpy (FileName, DirName, sizeof (FileName));
         strlcat (FileName, File.cFileName, sizeof (FileName));
         stat (FileName, &filestat);
@@ -1509,13 +1512,13 @@ return ((c < 0) || (c >= 128)) ? 0 : isalnum (c);
 int sim_strncasecmp (const char* string1, const char* string2, size_t len)
 {
 size_t i;
-unsigned char s1, s2;
+uchar_t s1, s2;
 
 for (i=0; i<len; i++) {
-    s1 = (unsigned char)string1[i];
-    s2 = (unsigned char)string2[i];
-    s1 = (unsigned char)sim_toupper (s1);
-    s2 = (unsigned char)sim_toupper (s2);
+    s1 = (uchar_t)string1[i];
+    s2 = (uchar_t)string2[i];
+    s1 = (uchar_t)sim_toupper (s1);
+    s2 = (uchar_t)sim_toupper (s2);
     if (s1 < s2)
         return -1;
     if (s1 > s2)
@@ -1530,13 +1533,13 @@ return 0;
 int sim_strcasecmp (const char *string1, const char *string2)
 {
 size_t i = 0;
-unsigned char s1, s2;
+uchar_t s1, s2;
 
 while (1) {
-    s1 = (unsigned char)string1[i];
-    s2 = (unsigned char)string2[i];
-    s1 = (unsigned char)sim_toupper (s1);
-    s2 = (unsigned char)sim_toupper (s2);
+    s1 = (uchar_t)string1[i];
+    s2 = (uchar_t)string2[i];
+    s1 = (uchar_t)sim_toupper (s1);
+    s2 = (uchar_t)sim_toupper (s2);
     if (s1 == s2) {
         if (s1 == 0)
             return 0;
@@ -1553,7 +1556,7 @@ return 0;
 
 int sim_strwhitecasecmp (const char *string1, const char *string2, bool casecmp)
 {
-unsigned char s1 = 1, s2 = 1;   /* start with equal, but not space */
+uchar_t s1 = 1, s2 = 1;         /* start with equal, but not space */
 
 while ((s1 == s2) && (s1 != '\0')) {
     if (s1 == ' ') {            /* last character was space? */
@@ -1563,7 +1566,7 @@ while ((s1 == s2) && (s1 != '\0')) {
                 s1 = ' ';       /* all whitespace is a space */
             else {
                 if (casecmp)
-                    s1 = (unsigned char)sim_toupper (s1);
+                    s1 = (uchar_t)sim_toupper (s1);
                 }
             }
         }
@@ -1573,7 +1576,7 @@ while ((s1 == s2) && (s1 != '\0')) {
             s1 = ' ';           /* all whitespace is a space */
         else {
             if (casecmp)
-                s1 = (unsigned char)sim_toupper (s1);
+                s1 = (uchar_t)sim_toupper (s1);
             }
         }
     if (s2 == ' ') {            /* last character was space? */
@@ -1583,7 +1586,7 @@ while ((s1 == s2) && (s1 != '\0')) {
                 s2 = ' ';       /* all whitespace is a space */
             else {
                 if (casecmp)
-                    s2 = (unsigned char)sim_toupper (s2);
+                    s2 = (uchar_t)sim_toupper (s2);
                 }
             }
         }
@@ -1593,7 +1596,7 @@ while ((s1 == s2) && (s1 != '\0')) {
             s2 = ' ';           /* all whitespace is a space */
         else {
             if (casecmp)
-                s2 = (unsigned char)sim_toupper (s2);
+                s2 = (uchar_t)sim_toupper (s2);
             }
         }
     if (s1 == s2) {

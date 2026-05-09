@@ -29,13 +29,15 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "cdc1700_defs.h"
 
-extern uint16 M[], Preg, Areg, Qreg;
+extern uint16_t M[], Preg, Areg, Qreg;
 
 extern char INTprefix[];
 
-extern uint16 doADDinternal(uint16, uint16);
+extern uint16_t doADDinternal(uint16_t, uint16_t);
 
 /*
  * Information about monitor requests.
@@ -114,7 +116,7 @@ const char *action[] = {
   "???", "???", "???", "???", "???", "???", "???", "???"
 };
 
-uint32 seqno = 0;
+uint32_t seqno = 0;
 
 #define END(s)  &s[strlen(s)]
 
@@ -143,13 +145,13 @@ const char *charRep[128] = {
 /*
  * Check if a logical unit is a mass storage device.
  */
-static bool isMassStorage(uint16 lu)
+static bool isMassStorage(uint16_t lu)
 {
-  uint16 extbv4 = M[CREXTB];
-  uint16 log1a = M[extbv4 + LOG1A];
+  uint16_t extbv4 = M[CREXTB];
+  uint16_t log1a = M[extbv4 + LOG1A];
 
   if ((lu > 0) && (lu <= M[log1a])) {
-    uint16 physDev = M[log1a + lu];
+    uint16_t physDev = M[log1a + lu];
 
     /*
      * Check if equipment class is 2 (Mass storage)
@@ -164,13 +166,13 @@ static bool isMassStorage(uint16 lu)
  * Get the mass storage sector address associated with a read/write
  * request.
  */
-static uint32 getMSA(uint16 reqCode, uint16 param)
+static uint32_t getMSA(uint16_t reqCode, uint16_t param)
 {
   if (reqCode == RQ_SYSDIRREAD)
     return M[param + 6];
 
   if ((M[param] & D) == 0) {
-    uint16 sa = M[param + 5];
+    uint16_t sa = M[param + 5];
 
     if ((M[param] & X) == 0) {
       if ((sa & 0x8000) != 0) {
@@ -195,7 +197,7 @@ static uint32 getMSA(uint16 reqCode, uint16 param)
 /*
  * Convert Logical Unit parameter to absolute value
  */
-static uint16 luabs(uint16 param, uint16 lu, uint16 a)
+static uint16_t luabs(uint16_t param, uint16_t lu, uint16_t a)
 {
   switch (a) {
     case ' ':
@@ -223,9 +225,9 @@ static uint16 luabs(uint16 param, uint16 lu, uint16 a)
 /*
  * Convert Starting Address parameter to absolute value
  */
-static uint16 spabs(uint16 param)
+static uint16_t spabs(uint16_t param)
 {
-  uint16 sa = M[param + 5];
+  uint16_t sa = M[param + 5];
 
   /*
    * If the D bit is set, the starting address must be absolute.
@@ -247,9 +249,9 @@ static uint16 spabs(uint16 param)
 /*
  * Convert Number of words to absolute value
  */
-static uint16 npabs(uint16 param)
+static uint16_t npabs(uint16_t param)
 {
-  uint16 nw = M[param + 4];
+  uint16_t nw = M[param + 4];
 
   /*
    * If the D bit is set, the number of words must be absolute.
@@ -271,9 +273,9 @@ static uint16 npabs(uint16 param)
 /*
  * Convert completion address to absolute value
  */
-static char *cpabs(uint16 param, char *buf)
+static char *cpabs(uint16_t param, char *buf)
 {
-  uint16 ca = M[param + 1];
+  uint16_t ca = M[param + 1];
 
   /*
    * Only absolutize the completion address if one is specified.
@@ -307,9 +309,9 @@ static char *cpabs(uint16 param, char *buf)
 /*
  * Describe motion parameters
  */
-static void motion(uint16 param, char *d)
+static void motion(uint16_t param, char *d)
 {
-  uint16 commands = M[param + 4];
+  uint16_t commands = M[param + 4];
 
   if ((commands & 0xF) != 0)
     sprintf(END(d), "    Density   = %s\r\n", density[commands & 0xF]);
@@ -336,7 +338,7 @@ static void motion(uint16 param, char *d)
  */
 #define MAXTEXT         50
 
-static char *textRep(uint16 start, uint16 len)
+static char *textRep(uint16_t start, uint16_t len)
 {
   int i;
   static char text[64];
@@ -345,7 +347,7 @@ static char *textRep(uint16 start, uint16 len)
   text[0] = '\0';
 
   for (i = 0; (i < (2 * len)) && (text_space >= MAXTEXT); i++) {
-    uint16 ch = M[start];
+    uint16_t ch = M[start];
 
     if ((i & 1) == 0)
       ch >>= 8;
@@ -361,17 +363,17 @@ static char *textRep(uint16 start, uint16 len)
 /*
  * Dump MSOS5 request information.
  */
-void MSOS5request(uint16 param, uint16 depth)
+void MSOS5request(uint16_t param, uint16_t depth)
 {
-  uint16 reqCode = (M[param] & RQ) >> 9;
+  uint16_t reqCode = (M[param] & RQ) >> 9;
   char partOne = part1[(M[param] & D) >> 14];
   char relative = rel[(M[param] & X) >> 8];
-  uint16 completion = M[param + 1];
+  uint16_t completion = M[param + 1];
   const char *request;
   char parameters[128], details[512];
   char luadr;
-  uint16 lu, abslu, abss, abswd, i;
-  uint32 sector;
+  uint16_t lu, abslu, abss, abswd, i;
+  uint32_t sector;
   bool secondary = false;
 
   parameters[0] = '\0';

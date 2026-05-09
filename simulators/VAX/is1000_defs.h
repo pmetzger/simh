@@ -49,6 +49,7 @@
 #define _IS_1000_DEFS_H_ 1
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Microcode constructs */
 
@@ -91,7 +92,7 @@
 #define MAXMEMSIZE_X    (1 << MAXMEMWIDTH_X)
 #define INITMEMSIZE     (1 << 24)                       /* initial memory size */
 #define MEMSIZE         (cpu_unit.capac)
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < MEMSIZE)
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < MEMSIZE)
 #define MEM_MODIFIERS   { UNIT_MSIZE, (1u << 22), NULL, "4M", &cpu_set_size }
 
 /* Read only memory */
@@ -100,8 +101,8 @@
 #define ROMSIZE         (1u << ROMAWIDTH)               /* ROM length */
 #define ROMAMASK        (ROMSIZE - 1)                   /* ROM addr mask */
 #define ROMBASE         0x20040000                      /* ROM base */
-#define ADDR_IS_ROM(x)  ((((uint32) (x)) >= ROMBASE) && \
-                        (((uint32) (x)) < (ROMBASE + ROMSIZE)))
+#define ADDR_IS_ROM(x)  ((((uint32_t) (x)) >= ROMBASE) && \
+                        (((uint32_t) (x)) < (ROMBASE + ROMSIZE)))
 
 /* LANCE Ethernet controller */
 
@@ -124,8 +125,8 @@
 #define NVRSIZE         (1u << NVRAWIDTH)               /* NVR length */
 #define NVRAMASK        (NVRSIZE - 1)                   /* NVR addr mask */
 #define NVRBASE         0x23000000                      /* NVR base */
-#define ADDR_IS_NVR(x)  ((((uint32) (x)) >= NVRBASE) && \
-                        (((uint32) (x)) < (NVRBASE + NVRSIZE)))
+#define ADDR_IS_NVR(x)  ((((uint32_t) (x)) >= NVRBASE) && \
+                        (((uint32_t) (x)) < (NVRBASE + NVRSIZE)))
 
 /* IS1000 board registers */
 
@@ -195,8 +196,8 @@
 #define VEC_DEVMAX      4                               /* max device vec */
 
 typedef struct {
-    int32               rom_index;                      /* option ROM index */
-    uint8               *rom_array;                     /* option ROM code */
+    int32_t             rom_index;                      /* option ROM index */
+    uint8_t             *rom_array;                     /* option ROM code */
     t_addr              rom_size;                       /* option ROM size */
     } DIB;
 
@@ -242,7 +243,7 @@ typedef struct {
 
 /* System model */
 
-extern int32 sys_model;
+extern int32_t sys_model;
 
 /* Machine specific definitions - DZ */
 
@@ -267,19 +268,19 @@ extern int32 sys_model;
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf, bool map);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf, bool map);
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf, bool map);
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf, bool map);
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf, bool map);
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf, bool map);
+int32_t Map_WriteB (uint32_t ba, int32_t bc, uint8_t *buf, bool map);
+int32_t Map_WriteW (uint32_t ba, int32_t bc, uint16_t *buf, bool map);
 
 /* Function prototypes for system-specific unaligned support */
 
-int32 ReadIOU (uint32 pa, int32 lnt);
-int32 ReadRegU (uint32 pa, int32 lnt);
-void WriteIOU (uint32 pa, int32 val, int32 lnt);
-void WriteRegU (uint32 pa, int32 val, int32 lnt);
+int32_t ReadIOU (uint32_t pa, int32_t lnt);
+int32_t ReadRegU (uint32_t pa, int32_t lnt);
+void WriteIOU (uint32_t pa, int32_t val, int32_t lnt);
+void WriteRegU (uint32_t pa, int32_t val, int32_t lnt);
 
-t_stat auto_config (const char *name, int32 nctrl);
+t_stat auto_config (const char *name, int32_t nctrl);
 
 /* Function prototypes for virtual and physical memory interface (inlined) */
 

@@ -44,6 +44,7 @@
 #define I1401_DEFS_H_  0
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "sim_defs.h"
 
@@ -96,7 +97,7 @@
 #define LPT_WIDTH       132                             /* line print width */
 #define CCT_LNT         132                             /* car ctrl length */
 #define INQ_WIDTH       80                              /* inq term width */
-#define ADDR_ERR(x)     (((uint32) (x)) >= MEMSIZE)
+#define ADDR_ERR(x)     (((uint32_t) (x)) >= MEMSIZE)
 
 /* Binary address format
 
@@ -303,17 +304,17 @@
 
 extern bool conv_old;
 
-int32 bcd2ascii (int32 c, bool use_h);
-int32 ascii2bcd (int32 c);
-t_stat read_card (int32 ilnt, int32 mod);
-t_stat punch_card (int32 ilnt, int32 mod);
-t_stat select_stack (int32 mod);
-t_stat carriage_control (int32 mod);
-t_stat write_line (int32 ilnt, int32 mod);
-t_stat inq_io (int32 flag, int32 mod);
-t_stat mt_io (int32 unit, int32 flag, int32 mod);
-t_stat mt_func (int32 unit, int32 flag, int32 mod);
-t_stat dp_io (int32 fnc, int32 flg, int32 mod);
+int32_t bcd2ascii (int32_t c, bool use_h);
+int32_t ascii2bcd (int32_t c);
+t_stat read_card (int32_t ilnt, int32_t mod);
+t_stat punch_card (int32_t ilnt, int32_t mod);
+t_stat select_stack (int32_t mod);
+t_stat carriage_control (int32_t mod);
+t_stat write_line (int32_t ilnt, int32_t mod);
+t_stat inq_io (int32_t flag, int32_t mod);
+t_stat mt_io (int32_t unit, int32_t flag, int32_t mod);
+t_stat mt_func (int32_t unit, int32_t flag, int32_t mod);
+t_stat dp_io (int32_t fnc, int32_t flg, int32_t mod);
 
 /* Translation Tables */
 
@@ -324,14 +325,14 @@ extern const char bcd_to_ascii_a[64];
 extern const char bcd_to_ascii_h[64];
 extern const char bcd_to_pca[64];
 extern const char bcd_to_pch[64];
-extern const uint32 bcd_to_colbin[64];
-extern const int32 bcd_to_bin[16];
-extern const int32 bin_to_bcd[16];
-extern const int32 one_table[64];
-extern const int32 ten_table[64];
-extern const int32 hun_table[64];
-extern const int32 len_table[9];
-extern const int32 op_table[64];
+extern const uint32_t bcd_to_colbin[64];
+extern const int32_t bcd_to_bin[16];
+extern const int32_t bin_to_bcd[16];
+extern const int32_t one_table[64];
+extern const int32_t ten_table[64];
+extern const int32_t hun_table[64];
+extern const int32_t len_table[9];
+extern const int32_t op_table[64];
 
 
 #endif

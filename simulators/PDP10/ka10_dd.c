@@ -25,6 +25,8 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #ifndef NUM_DEVS_DD
 #define NUM_DEVS_DD 0
@@ -78,41 +80,41 @@
 #define FC_SINGLE_H   040  /* Single height. */
 
 /* There are 64 displays, fed from the video switch. */
-static uint32 vds_surface[VDS_OUTPUTS][DD_PIXELS];
-static uint32 vds_palette[VDS_OUTPUTS][2];
+static uint32_t vds_surface[VDS_OUTPUTS][DD_PIXELS];
+static uint32_t vds_palette[VDS_OUTPUTS][2];
 static VID_DISPLAY *vds_vptr[VDS_OUTPUTS];
 
 /* There are 32 channels on the Data Disc. */
-static uint8 dd_channel[DD_CHANNELS][DD_PIXELS];
-static uint8 dd_changed[DD_CHANNELS];
+static uint8_t dd_channel[DD_CHANNELS][DD_PIXELS];
+static uint8_t dd_changed[DD_CHANNELS];
 static int dd_windows = 1;
 
-static uint8 dd_function_code = 0;
-static uint16 dd_line_buffer[DD_COLUMNS + 1];
+static uint8_t dd_function_code = 0;
+static uint16_t dd_line_buffer[DD_COLUMNS + 1];
 static int dd_line_buffer_address = 0;
 static int dd_line_buffer_written = 0;
 #define WRITTEN 0400
 
-uint32 vds_channel;              /* Currently selected video outputs. */
-uint8  vds_changed[VDS_OUTPUTS];
-uint32 vds_selection[VDS_OUTPUTS];        /* Data Disc channels. */
-uint32 vds_sync_inhibit[VDS_OUTPUTS];
-uint32 vds_analog[VDS_OUTPUTS];           /* Analog channel. */
+uint32_t vds_channel;            /* Currently selected video outputs. */
+uint8_t vds_changed[VDS_OUTPUTS];
+uint32_t vds_selection[VDS_OUTPUTS];      /* Data Disc channels. */
+uint32_t vds_sync_inhibit[VDS_OUTPUTS];
+uint32_t vds_analog[VDS_OUTPUTS];         /* Analog channel. */
 
 #include "ka10_dd_font.h"
 
-static t_stat dd_set_windows (UNIT *uptr, int32 val, const char *cptr, void *desc) ;
-static t_stat dd_show_windows (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static void dd_chargen (uint16 c, int column);
-static void dd_graphics (uint8 data, int column);
-static t_stat dd_devio(uint32 dev, uint64 *data);
-static t_stat vds_devio(uint32 dev, uint64 *data);
+static t_stat dd_set_windows (UNIT *uptr, int32_t val, const char *cptr, void *desc) ;
+static t_stat dd_show_windows (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static void dd_chargen (uint16_t c, int column);
+static void dd_graphics (uint8_t data, int column);
+static t_stat dd_devio(uint32_t dev, uint64 *data);
+static t_stat vds_devio(uint32_t dev, uint64 *data);
 static t_stat dd_svc(UNIT *uptr);
 static t_stat vds_svc(UNIT *uptr);
 static t_stat dd_reset(DEVICE *dptr);
 static t_stat vds_reset(DEVICE *dptr);
-static t_stat dd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-static t_stat vds_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+static t_stat dd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat vds_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 static const char *dd_description (DEVICE *dptr);
 static const char *vds_description (DEVICE *dptr);
 
@@ -191,7 +193,7 @@ dd_execute (const char *msg)
 }
 
 static t_stat
-dd_devio(uint32 dev, uint64 *data) {
+dd_devio(uint32_t dev, uint64 *data) {
      UNIT *uptr = &dd_unit;
      switch(dev & 3) {
      case CONI:
@@ -202,7 +204,7 @@ dd_devio(uint32 dev, uint64 *data) {
         sim_debug (DEBUG_CONO, &dd_dev, "%06llo (%6o)\n", *data, PC);
         uptr->STATUS &= ~DD_HALT;
         clr_interrupt (DD_DEVNUM);
-        uptr->PIA = (uint32)(*data & 7);
+        uptr->PIA = (uint32_t)(*data & 7);
         if (*data & DD_RESET) {
             sim_debug(DEBUG_DETAIL, &dd_dev, "Reset.\n");
             uptr->PIA = 0;
@@ -249,7 +251,7 @@ dd_devio(uint32 dev, uint64 *data) {
 }
 
 static void
-dd_pixel (int x, int y, uint8 pixel)
+dd_pixel (int x, int y, uint8_t pixel)
 {
     if (x >= DD_WIDTH)
       return;
@@ -266,10 +268,10 @@ dd_pixel (int x, int y, uint8 pixel)
 }
 
 static void
-dd_chargen (uint16 c, int column)
+dd_chargen (uint16_t c, int column)
 {
     int i, j;
-    uint8 pixels;
+    uint8_t pixels;
     int line = dd_unit.LINE;
     int field = line & 1;
 
@@ -289,7 +291,7 @@ dd_chargen (uint16 c, int column)
 }
 
 static void
-dd_byte (uint8 data)
+dd_byte (uint8_t data)
 {
     int max = (dd_function_code & FC_GRAPHICS) ? 64 : DD_COLUMNS;
     if (dd_line_buffer_address <= max) {
@@ -379,7 +381,7 @@ dd_text (uint64 insn)
 }
 
 static void
-dd_graphics (uint8 data, int column)
+dd_graphics (uint8_t data, int column)
 {
     int i;
 
@@ -395,7 +397,7 @@ dd_graphics (uint8 data, int column)
 }
 
 static void
-dd_function (uint8 data)
+dd_function (uint8_t data)
 {
     dd_function_code = data;
     sim_debug(DEBUG_CMD, &dd_dev, "COMMAND: function code %03o\n", data);
@@ -433,7 +435,7 @@ dd_function (uint8 data)
 }
 
 static void
-dd_command (uint32 command, uint8 data)
+dd_command (uint32_t command, uint8_t data)
 {
     int i;
     switch (command) {
@@ -511,7 +513,7 @@ dd_decode (uint64 insn)
         dd_halt ("halt instruction");
         break;
     case 020:
-        dd_unit.MA = (int32)(insn >> 18);
+        dd_unit.MA = (int32_t)(insn >> 18);
         sim_debug(DEBUG_CMD, &dd_dev, "JUMP %06o\n", dd_unit.MA);
         break;
     case 006: case 016: case 026: case 036:
@@ -558,7 +560,7 @@ dd_svc (UNIT *uptr)
 static void
 dd_display (int n)
 {
-    uint32 selection = vds_selection[n];
+    uint32_t selection = vds_selection[n];
     int i, j;
 
     if (selection == 0) {
@@ -580,7 +582,7 @@ dd_display (int n)
 
 #if 0
     for (j = 0; j < DD_PIXELS; j++) {
-        uint8 pixel = 0;
+        uint8_t pixel = 0;
         for (i = 0; i < DD_CHANNELS; i++, selection <<= 1) {
             if (selection & 020000000000)
                 pixel |= dd_channel[i][j];
@@ -611,7 +613,7 @@ vds_svc (UNIT *uptr)
     return SCPE_OK;
 }
 
-uint32 dd_keyboard_line (void *p)
+uint32_t dd_keyboard_line (void *p)
 {
     int i;
     VID_DISPLAY *vptr = (VID_DISPLAY *)p;
@@ -640,7 +642,7 @@ dd_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-static t_stat dd_set_windows (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat dd_set_windows (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     t_value x;
     t_stat r;
@@ -653,7 +655,7 @@ static t_stat dd_set_windows (UNIT *uptr, int32 val, const char *cptr, void *des
     return SCPE_OK;
 }
 
-static t_stat dd_show_windows (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat dd_show_windows (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     if (uptr == NULL)
         return SCPE_IERR;
@@ -662,7 +664,7 @@ static t_stat dd_show_windows (FILE *st, UNIT *uptr, int32 val, const void *desc
 }
 
 static t_stat
-dd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+dd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     return SCPE_OK;
 }
@@ -711,7 +713,7 @@ vds_reset (DEVICE *dptr)
 }
 
 static t_stat
-vds_devio(uint32 dev, uint64 *data)
+vds_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 3) {
     case CONO:
@@ -721,7 +723,7 @@ vds_devio(uint32 dev, uint64 *data)
     case DATAO:
         sim_debug(DEBUG_DATAIO, &vds_dev, "%012llo (%6o)\n", *data, PC);
         vds_changed[vds_channel] = 1;
-        vds_selection[vds_channel] = (uint32)(*data >> 4);
+        vds_selection[vds_channel] = (uint32_t)(*data >> 4);
         vds_sync_inhibit[vds_channel] = (*data >> 3) & 1;
         vds_analog[vds_channel] = *data & 7;
         sim_debug(DEBUG_DETAIL, &vds_dev, "Output %d selection %011o\n",
@@ -738,7 +740,7 @@ vds_devio(uint32 dev, uint64 *data)
 }
 
 static t_stat
-vds_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+vds_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     return SCPE_OK;
 }

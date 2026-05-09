@@ -32,6 +32,8 @@
 #define _3B2_CPU_H_
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_defs.h"
 
 /* Execution Modes */
@@ -547,36 +549,36 @@ typedef enum {
  *
  */
 typedef struct {
-    uint16  opcode;
-    int8    op_count;    /* Number of operands */
+    uint16_t opcode;
+    int8_t  op_count;    /* Number of operands */
     op_mode mode;        /* Dispatch mode      */
-    int8    dtype;       /* Default data type  */
+    int8_t  dtype;       /* Default data type  */
     char    mnemonic[8];
-    int8    src_op1;
-    int8    src_op2;
-    int8    src_op3;
-    int8    dst_op;
+    int8_t  src_op1;
+    int8_t  src_op2;
+    int8_t  src_op3;
+    int8_t  dst_op;
 } mnemonic;
 
 /*
  * Structure that describes each operand in a decoded instruction
  */
 typedef struct {
-    uint8   mode;        /* Embedded data addressing mode */
-    uint8   reg;         /* Operand register (0-15) */
+    uint8_t mode;        /* Embedded data addressing mode */
+    uint8_t reg;         /* Operand register (0-15) */
 #if defined(REV3)
-    uint8   reg2;        /* Operand register 2 (16-31) */
+    uint8_t reg2;        /* Operand register 2 (16-31) */
 #endif
-    int8    dtype;       /* Default type for the operand */
-    int8    etype;       /* Expanded type (-1 if none) */
+    int8_t  dtype;       /* Default type for the operand */
+    int8_t  etype;       /* Expanded type (-1 if none) */
     union {
-        uint32 w;
-        uint16 h;
-        uint8  b;
+        uint32_t w;
+        uint16_t h;
+        uint8_t b;
     } embedded;          /* Data consumed as part of the instruction
                             stream, i.e. literals, displacement,
                             etc. */
-    uint32  data;        /* Data either read or written during
+    uint32_t data;       /* Data either read or written during
                             instruction execution */
 } operand;
 
@@ -586,43 +588,43 @@ typedef struct {
  */
 typedef struct {
     mnemonic *mn;
-    uint32 psw;
-    uint32 sp;
-    uint32 pc;
+    uint32_t psw;
+    uint32_t sp;
+    uint32_t pc;
     bool valid;
     operand operands[4];
 } instr;
 
 /* Function prototypes */
-t_stat sys_boot(int32 flag, const char *ptr);
+t_stat sys_boot(int32_t flag, const char *ptr);
 t_stat cpu_svc(UNIT *uptr);
-t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset(DEVICE *dptr);
-t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_show_virt(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_show_stack(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_show_cio(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_set_halt(UNIT *uptr, int32 val, char *cptr, void *desc);
-t_stat cpu_clear_halt(UNIT *uptr, int32 val, char *cptr, void *desc);
-t_stat cpu_boot(int32 unit_num, DEVICE *dptr);
-t_stat cpu_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat cpu_set_size(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_show_virt(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_show_stack(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_show_cio(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_set_halt(UNIT *uptr, int32_t val, char *cptr, void *desc);
+t_stat cpu_clear_halt(UNIT *uptr, int32_t val, char *cptr, void *desc);
+t_stat cpu_boot(int32_t unit_num, DEVICE *dptr);
+t_stat cpu_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *cpu_description(DEVICE *dptr);
 
 bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
 
-void cpu_register_name(uint8 reg, char *buf, size_t len);
+void cpu_register_name(uint8_t reg, char *buf, size_t len);
 void cpu_show_operand(FILE *st, operand *op);
 void fprint_sym_hist(FILE *st, instr *ip);
 t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val);
 
 instr *cpu_next_instruction(void);
 
-uint8 decode_instruction(instr *instr);
-void cpu_on_interrupt(uint16 vec);
-void cpu_abort(uint8 et, uint8 isc);
+uint8_t decode_instruction(instr *instr);
+void cpu_on_interrupt(uint16_t vec);
+void cpu_abort(uint8_t et, uint8_t isc);
 
 /* Helper macros */
 
@@ -651,35 +653,35 @@ void cpu_abort(uint8 et, uint8 isc);
     }
 
 #define OP_R_W(d,a,p) {                         \
-        (d) = (uint32) (a)[(p)++];              \
-        (d) |= (uint32) (a)[(p)++] << 8u;       \
-        (d) |= (uint32) (a)[(p)++] << 16u;      \
-        (d) |= (uint32) (a)[(p)++] << 24u;      \
+        (d) = (uint32_t) (a)[(p)++];            \
+        (d) |= (uint32_t) (a)[(p)++] << 8u;     \
+        (d) |= (uint32_t) (a)[(p)++] << 16u;    \
+        (d) |= (uint32_t) (a)[(p)++] << 24u;    \
     }
 
 #define OP_R_H(d,a,p) {                         \
-        (d) = (uint16) (a)[(p)++];              \
-        (d) |= (uint16) (a)[(p)++] << 8u;       \
+        (d) = (uint16_t) (a)[(p)++];            \
+        (d) |= (uint16_t) (a)[(p)++] << 8u;     \
     }
 
 #define OP_R_B(d,a,p) {                        \
-        (d) = (uint8) (a)[(p)++];              \
+        (d) = (uint8_t) (a)[(p)++];            \
     }
 
 #define CPU_SET_INT(flags) (sbd_int_req |= flags)
 #define CPU_CLR_INT(flags) (sbd_int_req &= ~(flags))
 
 extern bool rom_loaded;
-extern volatile int32 stop_reason;
-extern uint16 sbd_int_req;
+extern volatile int32_t stop_reason;
+extern uint16_t sbd_int_req;
 extern instr *cpu_instr;
 extern bool cpu_nmi;
-extern uint8 *ROM;
-extern uint8 *RAM;
-extern uint32 R[NUM_REGISTERS];
+extern uint8_t *ROM;
+extern uint8_t *RAM;
+extern uint32_t R[NUM_REGISTERS];
 extern REG cpu_reg[];
 extern UNIT cpu_unit;
-extern uint8 fault;
+extern uint8_t fault;
 extern bool cpu_km;
 
 #endif

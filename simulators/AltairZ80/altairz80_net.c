@@ -24,6 +24,8 @@
     in this Software without prior written authorization from Peter Schorn.
 */
 
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_sock.h"
 
@@ -33,7 +35,7 @@
 #define IN_MSG      (1 << 2)
 #define OUT_MSG     (1 << 3)
 
-extern uint32 PCX;
+extern uint32_t PCX;
 
 #define UNIT_V_SERVER   (UNIT_V_UF + 0) /* define machine as a server   */
 #define UNIT_SERVER     (1 << UNIT_V_SERVER)
@@ -44,30 +46,30 @@ static t_stat net_attach    (UNIT *uptr, const char *cptr);
 static t_stat net_detach    (UNIT *uptr);
 static t_stat net_reset     (DEVICE *dptr);
 static t_stat net_svc       (UNIT *uptr);
-static t_stat set_net       (UNIT *uptr, int32 value, const char *cptr, void *desc);
-int32 netStatus             (const int32 port, const int32 io, const int32 data);
-int32 netData               (const int32 port, const int32 io, const int32 data);
+static t_stat set_net       (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+int32_t netStatus             (const int32_t port, const int32_t io, const int32_t data);
+int32_t netData               (const int32_t port, const int32_t io, const int32_t data);
 static const char* net_description(DEVICE *dptr);
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
 #define MAX_CONNECTIONS 2   /* maximal number of server connections */
 #define BUFFER_LENGTH   512 /* length of input and output buffer    */
 
 static struct {
-    int32   Z80StatusPort;              /* Z80 status port associated with this ioSocket, read only             */
-    int32   Z80DataPort;                /* Z80 data port associated with this ioSocket, read only               */
+    int32_t Z80StatusPort;              /* Z80 status port associated with this ioSocket, read only             */
+    int32_t Z80DataPort;                /* Z80 data port associated with this ioSocket, read only               */
     SOCKET  masterSocket;               /* server master socket, only defined at [1]                            */
     SOCKET  ioSocket;                   /* accepted server socket or connected client socket, 0 iff free        */
     char    inputBuffer[BUFFER_LENGTH]; /* buffer for input characters read from ioSocket                       */
-    int32   inputPosRead;               /* position of next character to read from buffer                       */
-    int32   inputPosWrite;              /* position of next character to append to input buffer from ioSocket   */
-    int32   inputSize;                  /* number of characters in circular input buffer                        */
+    int32_t inputPosRead;               /* position of next character to read from buffer                       */
+    int32_t inputPosWrite;              /* position of next character to append to input buffer from ioSocket   */
+    int32_t inputSize;                  /* number of characters in circular input buffer                        */
     char    outputBuffer[BUFFER_LENGTH];/* buffer for output characters to be written to ioSocket               */
-    int32   outputPosRead;              /* position of next character to write to ioSocket                      */
-    int32   outputPosWrite;             /* position of next character to append to output buffer                */
-    int32   outputSize;                 /* number of characters in circular output buffer                       */
+    int32_t outputPosRead;              /* position of next character to write to ioSocket                      */
+    int32_t outputPosWrite;             /* position of next character to append to output buffer                */
+    int32_t outputSize;                 /* number of characters in circular output buffer                       */
 } serviceDescriptor[MAX_CONNECTIONS + 1] = {    /* serviceDescriptor[0] holds the information for a client      */
 /*  stat    dat ms  ios in      inPR    inPW    inS out     outPR   outPW   outS */
     {0x32,  0x33, 0,  0,  {0},    0,      0,      0,  {0},    0,      0,      0}, /* client Z80 port 50 and 51  */
@@ -123,14 +125,14 @@ DEVICE net_dev = {
     net_dt, NULL, NULL, NULL, NULL, NULL, &net_description
 };
 
-static t_stat set_net(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat set_net(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) cptr;
     (void) desc;
 
     char temp[CBUFSIZE];
-    if ((net_unit.flags & UNIT_ATT) && ((net_unit.flags & UNIT_SERVER) != (uint32)value)) {
+    if ((net_unit.flags & UNIT_ATT) && ((net_unit.flags & UNIT_SERVER) != (uint32_t)value)) {
         strncpy(temp, net_unit.filename, CBUFSIZE - 1); /* save name for later attach */
         net_detach(&net_unit);
         net_unit.flags ^= UNIT_SERVER; /* now switch from client to server and vice versa */
@@ -140,7 +142,7 @@ static t_stat set_net(UNIT *uptr, int32 value, const char *cptr, void *desc) {
     return SCPE_OK;
 }
 
-static void serviceDescriptor_reset(const uint32 i) {
+static void serviceDescriptor_reset(const uint32_t i) {
     serviceDescriptor[i].inputPosRead   = 0;
     serviceDescriptor[i].inputPosWrite  = 0;
     serviceDescriptor[i].inputSize      = 0;
@@ -150,7 +152,7 @@ static void serviceDescriptor_reset(const uint32 i) {
 }
 
 static t_stat net_reset(DEVICE *dptr) {
-    uint32 i;
+    uint32_t i;
     if (net_unit.flags & UNIT_ATT)
         sim_activate(&net_unit, net_unit.wait); /* start poll */
     for (i = 0; i <= MAX_CONNECTIONS; i++) {
@@ -168,7 +170,7 @@ static t_stat net_attach(UNIT *uptr, const char *cptr) {
        This implementation does not use every parameter. */
     (void) uptr;
 
-    uint32 i;
+    uint32_t i;
     char host[CBUFSIZE], port[CBUFSIZE];
 
     if (sim_parse_addr (cptr, host, sizeof(host), "localhost", port, sizeof(port), "3000", NULL))
@@ -200,7 +202,7 @@ static t_stat net_detach(UNIT *uptr) {
        This implementation does not use every parameter. */
     (void) uptr;
 
-    uint32 i;
+    uint32_t i;
     if (!(net_unit.flags & UNIT_ATT))
         return SCPE_OK;       /* if not attached simply return */
     if (net_unit.flags & UNIT_SERVER)
@@ -220,7 +222,7 @@ static t_stat net_svc(UNIT *uptr) {
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 i, j, k, r;
+    int32_t i, j, k, r;
     SOCKET s;
     static char svcBuffer[BUFFER_LENGTH];
     if (net_unit.flags & UNIT_ATT) { /* cannot remove due to following else */
@@ -282,12 +284,12 @@ static t_stat net_svc(UNIT *uptr) {
     return SCPE_OK;
 }
 
-int32 netStatus(const int32 port, const int32 io, const int32 data) {
+int32_t netStatus(const int32_t port, const int32_t io, const int32_t data) {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) data;
 
-    uint32 i;
+    uint32_t i;
     if ((net_unit.flags & UNIT_ATT) == 0)
         return 0;
     net_svc(&net_unit);
@@ -299,8 +301,8 @@ int32 netStatus(const int32 port, const int32 io, const int32 data) {
     return 0;
 }
 
-int32 netData(const int32 port, const int32 io, const int32 data) {
-    uint32 i;
+int32_t netData(const int32_t port, const int32_t io, const int32_t data) {
+    uint32_t i;
     char result;
     if ((net_unit.flags & UNIT_ATT) == 0)
         return 0;

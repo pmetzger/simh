@@ -36,18 +36,20 @@
         disable the onboard ROM.
 */
 
+#include <stdint.h>
+
 #include "system_defs.h"
 
 #define EPROM_NAME    "Intel EPROM Chip"
 
 /* function prototypes */
 
-t_stat EPROM_cfg (uint16 base, uint16 size, uint8 devnum);
+t_stat EPROM_cfg (uint16_t base, uint16_t size, uint8_t devnum);
 t_stat EPROM_clr(void);
-t_stat EPROM_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat EPROM_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat EPROM_attach (UNIT *uptr, const char *cptr);
 t_stat EPROM_reset (DEVICE *dptr);
-uint8 EPROM_get_mbyte (uint16 addr, uint8 devnum);
+uint8_t EPROM_get_mbyte (uint16_t addr, uint8_t devnum);
 
 /* external function prototypes */
 
@@ -123,7 +125,7 @@ DEVICE EPROM_dev = {
 
 // EPROM configuration
 
-t_stat EPROM_cfg(uint16 base, uint16 size, uint8 devnum)
+t_stat EPROM_cfg(uint16_t base, uint16_t size, uint8_t devnum)
 {
     /* Shared configuration signature.
        This implementation does not use every parameter. */
@@ -131,7 +133,7 @@ t_stat EPROM_cfg(uint16 base, uint16 size, uint8 devnum)
 
     EPROM_unit[ieprom_num].capac = size;        /* set EPROM size */
     EPROM_unit[ieprom_num].u3 = base;           /* set EPROM base */
-    EPROM_unit[ieprom_num].filebuf = (uint8 *)calloc(size, sizeof(uint8));
+    EPROM_unit[ieprom_num].filebuf = (uint8_t *)calloc(size, sizeof(uint8_t));
     if (EPROM_unit[ieprom_num].filebuf == NULL) {
         sim_printf ("    EPROM%d: Calloc error\n", ieprom_num);
         return SCPE_MEM;
@@ -169,7 +171,7 @@ t_stat EPROM_reset (DEVICE *dptr)
 
 // show configuration parameters
 
-t_stat EPROM_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat EPROM_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -206,11 +208,11 @@ t_stat EPROM_attach (UNIT *uptr, const char *cptr)
 
 /*  get a byte from memory */
 
-uint8 EPROM_get_mbyte(uint16 addr, uint8 devnum)
+uint8_t EPROM_get_mbyte(uint16_t addr, uint8_t devnum)
 {
-    uint8 val;
+    uint8_t val;
 
-    val = *((uint8 *)EPROM_unit[devnum].filebuf + (addr - EPROM_unit[devnum].u3));
+    val = *((uint8_t *)EPROM_unit[devnum].filebuf + (addr - EPROM_unit[devnum].u3));
     return (val & 0xFF);
 }
 

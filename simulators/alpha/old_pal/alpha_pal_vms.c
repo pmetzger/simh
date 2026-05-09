@@ -57,6 +57,8 @@
    so is declared in the base CPU.
 */
 
+#include <stdint.h>
+
 #include "alpha_defs.h"
 
 /* Alignment table */
@@ -82,33 +84,33 @@
 // kludge for debugging...
 #define io_get_vec(x)           0
 
-t_uint64 vms_ptbr = 0;                                  /* page table base */
-t_uint64 vms_vtbr = 0;                                  /* virt page table base */
-t_uint64 vms_virbnd = M64;                              /* virtual boundary */
-t_uint64 vms_sysptbr = 0;                               /* system page table base */
-t_uint64 vms_hwpcb = 0;                                 /* hardware PCB */
-t_uint64 vms_thread = 0;                                /* thread unique */
-t_uint64 vms_prbr = 0;                                  /* processor unique */
-t_uint64 vms_stkp[4];                                   /* stack pointers */
-t_uint64 vms_scbb = 0;                                  /* SCB base */
-t_uint64 vms_scc = 0;                                   /* system cycle ctr */
-t_uint64 vms_mces = 0;                                  /* machine check err summ */
-uint32 vms_ipl = 0;                                     /* hardware IPL */
-uint32 vms_cm = 0;                                      /* inst current mode */
-uint32 vms_sisr = 0;                                    /* software int req */
-uint32 vms_asten = 0;                                   /* AST enables */
-uint32 vms_astsr = 0;                                   /* AST requests */
-uint32 vms_last_pcc = 0;                                /* last pcc_l */
-uint32 vms_datfx = 0;                                   /* data alignment */
-uint32 vms_ps = 0;                                      /* static PS */
+uint64_t vms_ptbr = 0;                                  /* page table base */
+uint64_t vms_vtbr = 0;                                  /* virt page table base */
+uint64_t vms_virbnd = M64;                              /* virtual boundary */
+uint64_t vms_sysptbr = 0;                               /* system page table base */
+uint64_t vms_hwpcb = 0;                                 /* hardware PCB */
+uint64_t vms_thread = 0;                                /* thread unique */
+uint64_t vms_prbr = 0;                                  /* processor unique */
+uint64_t vms_stkp[4];                                   /* stack pointers */
+uint64_t vms_scbb = 0;                                  /* SCB base */
+uint64_t vms_scc = 0;                                   /* system cycle ctr */
+uint64_t vms_mces = 0;                                  /* machine check err summ */
+uint32_t vms_ipl = 0;                                   /* hardware IPL */
+uint32_t vms_cm = 0;                                    /* inst current mode */
+uint32_t vms_sisr = 0;                                  /* software int req */
+uint32_t vms_asten = 0;                                 /* AST enables */
+uint32_t vms_astsr = 0;                                 /* AST requests */
+uint32_t vms_last_pcc = 0;                              /* last pcc_l */
+uint32_t vms_datfx = 0;                                 /* data alignment */
+uint32_t vms_ps = 0;                                    /* static PS */
 
-const uint32 ast_map[4] = { 0x1, 0x3, 0x7, 0xF };
-const uint32 ast_pri[16] = {
+const uint32_t ast_map[4] = { 0x1, 0x3, 0x7, 0xF };
+const uint32_t ast_pri[16] = {
  0,      MODE_K, MODE_E, MODE_K, MODE_S, MODE_K, MODE_E, MODE_K,
  MODE_U, MODE_K, MODE_E, MODE_K, MODE_S, MODE_K, MODE_E, MODE_K
  };
-static const uint32 lnt_map[4] = { L_BYTE, L_WORD, L_LONG, L_QUAD };
-static const int8 alg_map[64] = {
+static const uint32_t lnt_map[4] = { L_BYTE, L_WORD, L_LONG, L_QUAD };
+static const int8_t alg_map[64] = {
  ALG_ERR, ALG_ERR, ALG_ERR, ALG_ERR,
  ALG_ERR, ALG_ERR, ALG_ERR, ALG_ERR,
  ALG_ERR, ALG_ERR, ALG_ERR, ALG_ERR,
@@ -127,56 +129,56 @@ static const int8 alg_map[64] = {
  ALG_ERR, ALG_ERR, ALG_ERR, ALG_ERR
  };
 
-extern t_uint64 R[32];
-extern t_uint64 PC, trap_mask;
-extern t_uint64 p1;
-extern uint32 vax_flag, lock_flag;
-extern uint32 fpen;
-extern uint32 ir, pcc_h, pcc_l, pcc_enb;
-extern uint32 cm_racc, cm_wacc, cm_macc;
-extern uint32 mmu_ispage, mmu_dspage;
+extern uint64_t R[32];
+extern uint64_t PC, trap_mask;
+extern uint64_t p1;
+extern uint32_t vax_flag, lock_flag;
+extern uint32_t fpen;
+extern uint32_t ir, pcc_h, pcc_l, pcc_enb;
+extern uint32_t cm_racc, cm_wacc, cm_macc;
+extern uint32_t mmu_ispage, mmu_dspage;
 extern jmp_buf save_env;
-extern uint32 int_req[IPL_HLVL];
+extern uint32_t int_req[IPL_HLVL];
 
-t_int64 vms_insqhil (void);
-t_int64 vms_insqtil (void);
-t_int64 vms_insqhiq (void);
-t_int64 vms_insqtiq (void);
-t_int64 vms_insquel (uint32 defer);
-t_int64 vms_insqueq (uint32 defer);
-t_int64 vms_remqhil (void);
-t_int64 vms_remqtil (void);
-t_int64 vms_remqhiq (void);
-t_int64 vms_remqtiq (void);
-t_int64 vms_remquel (uint32 defer);
-t_int64 vms_remqueq (uint32 defer);
-t_int64 vms_insqhilr (void);
-t_int64 vms_insqtilr (void);
-t_int64 vms_insqhiqr (void);
-t_int64 vms_insqtiqr (void);
-t_int64 vms_remqhilr (void);
-t_int64 vms_remqtilr (void);
-t_int64 vms_remqhiqr (void);
-t_int64 vms_remqtiqr (void);
-uint32 vms_probe (uint32 acc);
-uint32 vms_amovrr (void);
-uint32 vms_amovrm (void);
+int64_t vms_insqhil (void);
+int64_t vms_insqtil (void);
+int64_t vms_insqhiq (void);
+int64_t vms_insqtiq (void);
+int64_t vms_insquel (uint32_t defer);
+int64_t vms_insqueq (uint32_t defer);
+int64_t vms_remqhil (void);
+int64_t vms_remqtil (void);
+int64_t vms_remqhiq (void);
+int64_t vms_remqtiq (void);
+int64_t vms_remquel (uint32_t defer);
+int64_t vms_remqueq (uint32_t defer);
+int64_t vms_insqhilr (void);
+int64_t vms_insqtilr (void);
+int64_t vms_insqhiqr (void);
+int64_t vms_insqtiqr (void);
+int64_t vms_remqhilr (void);
+int64_t vms_remqtilr (void);
+int64_t vms_remqhiqr (void);
+int64_t vms_remqtiqr (void);
+uint32_t vms_probe (uint32_t acc);
+uint32_t vms_amovrr (void);
+uint32_t vms_amovrm (void);
 t_stat vms_rei (void);
 void vms_swpctx (void);
-t_stat vms_intexc (uint32 vec, uint32 newmode, uint32 newipl);
-t_stat vms_mm_intexc (uint32 vec, t_uint64 par2);
+t_stat vms_intexc (uint32_t vec, uint32_t newmode, uint32_t newipl);
+t_stat vms_mm_intexc (uint32_t vec, uint64_t par2);
 t_stat pal_proc_reset_vms (DEVICE *dptr);
-t_uint64 ReadUna (t_uint64 va, uint32 lnt, uint32 acc);
-void WriteUna (t_uint64 va, t_uint64 val, uint32 lnt, uint32 acc);
-uint32 tlb_check (t_uint64 va);
-uint32 Test (t_uint64 va, uint32 acc, t_uint64 *pa);
+uint64_t ReadUna (uint64_t va, uint32_t lnt, uint32_t acc);
+void WriteUna (uint64_t va, uint64_t val, uint32_t lnt, uint32_t acc);
+uint32_t tlb_check (uint64_t va);
+uint32_t Test (uint64_t va, uint32_t acc, uint64_t *pa);
 
-extern t_stat (*pal_eval_intr) (uint32 ipl);
-extern t_stat (*pal_proc_excp) (uint32 type);
-extern t_stat (*pal_proc_trap) (uint32 type);
-extern t_stat (*pal_proc_intr) (uint32 type);
-extern t_stat (*pal_proc_inst) (uint32 fnc);
-extern uint32 (*pal_find_pte) (uint32 vpn, t_uint64 *pte);
+extern t_stat (*pal_eval_intr) (uint32_t ipl);
+extern t_stat (*pal_proc_excp) (uint32_t type);
+extern t_stat (*pal_proc_trap) (uint32_t type);
+extern t_stat (*pal_proc_intr) (uint32_t type);
+extern t_stat (*pal_proc_inst) (uint32_t fnc);
+extern uint32_t (*pal_find_pte) (uint32_t vpn, uint64_t *pte);
 
 /* VMSPAL data structures
 
@@ -223,10 +225,10 @@ DEVICE vmspal_dev = {
 
 /* VMS interrupt evaluator - returns IPL of highest priority interrupt */
 
-uint32 pal_eval_intr_vms (uint32 lvl)
+uint32_t pal_eval_intr_vms (uint32_t lvl)
 {
-uint32 i;
-static const int32 sw_int_mask[32] = {
+uint32_t i;
+static const int32_t sw_int_mask[32] = {
     0xFFFE, 0xFFFC, 0xFFF8, 0xFFF0,                     /* 0 - 3 */
     0xFFE0, 0xFFC0, 0xFF80, 0xFF00,                     /* 4 - 7 */
     0xFE00, 0xFC00, 0xF800, 0xF000,                     /* 8 - B */
@@ -254,9 +256,9 @@ return (AST_TST (lvl)? IPL_AST: 0);                     /* no swre, check AST */
 
 /* VMS interrupt dispatch - reached from top of execute loop */
 
-t_stat pal_proc_intr_vms (uint32 lvl)
+t_stat pal_proc_intr_vms (uint32_t lvl)
 {
-uint32 vec;
+uint32_t vec;
 t_stat r;
 
 if (lvl > IPL_HMAX) return SCPE_IERR;                   /* above max? */
@@ -264,7 +266,7 @@ else if (lvl >= IPL_HMIN) vec = io_get_vec (lvl);       /* hwre? get vector */
 else if (lvl > IPL_SMAX) return SCPE_IERR;              /* above swre max? */
 else if (lvl > 0) {                                     /* swre int? */
     if ((lvl == IPL_AST) && (vms_asten & vms_astsr & ast_map[vms_cm])) {
-        uint32 astm = ast_pri[vms_astsr & 0xF];         /* get AST priority */
+        uint32_t astm = ast_pri[vms_astsr & 0xF];       /* get AST priority */
         vms_astsr = vms_astsr & ~(1u << astm);          /* clear hi pri */
         vec = SCB_KAST + (astm << 4);
         }
@@ -282,7 +284,7 @@ return r;
 
 /* VMS trap dispatch - reached synchronously from bottom of execute loop */
 
-t_stat pal_proc_trap_vms (uint32 tsum)
+t_stat pal_proc_trap_vms (uint32_t tsum)
 {
 t_stat r;
 
@@ -294,10 +296,10 @@ return r;
 
 /* VMS exception dispatch - reached from the ABORT handler */
 
-t_stat pal_proc_excp_vms (uint32 abval)
+t_stat pal_proc_excp_vms (uint32_t abval)
 {
-uint32 op, ra, lntc;
-int8 fl;
+uint32_t op, ra, lntc;
+int8_t fl;
 t_stat r;
 
 switch (abval) {
@@ -383,10 +385,10 @@ return SCPE_OK;
 
 /* PALcode instruction dispatcher - function code verified in CPU */
 
-t_stat pal_proc_inst_vms (uint32 fnc)
+t_stat pal_proc_inst_vms (uint32_t fnc)
 {
-t_uint64 val;
-uint32 arg32 = (uint32) R[16];
+uint64_t val;
+uint32_t arg32 = (uint32_t) R[16];
 
 if ((fnc < 0x40) && (vms_cm != MODE_K)) ABORT (EXC_RSVI);
 switch (fnc) {
@@ -568,7 +570,7 @@ switch (fnc) {
     case MT_DATFX:
         vms_datfx = arg32 & 1;
         val = ReadPQ (vms_hwpcb + PCBV_FLAGS);
-        val = (val & ~0x8000000000000000) | (((t_uint64) vms_datfx) << 63);
+        val = (val & ~0x8000000000000000) | (((uint64_t) vms_datfx) << 63);
         WritePQ (vms_hwpcb + PCBV_FLAGS, val);
         break;
 
@@ -812,11 +814,11 @@ return SCPE_OK;
         because the entries are quad or octa aligned.
 */
 
-t_int64 vms_insqhil (void)
+int64_t vms_insqhil (void)
 {
-t_uint64 h = R[16];
-t_uint64 d = R[17];
-t_uint64 ar, a;
+uint64_t h = R[16];
+uint64_t d = R[17];
+uint64_t ar, a;
 
 if ((h == d) || ((h | d) & 07) ||                       /* h, d quad align? */
     ((SEXT_L_Q (h) & M64) != h) ||
@@ -828,35 +830,35 @@ if (ar & 01) return -1;                                 /* busy, ret -1 */
 WriteQ (h, ar | 1);                                     /* get interlock */
 a = (SEXT_L_Q (ar + h)) & M64;                          /* abs addr of a */
 if (Test (a, cm_wacc, NULL)) WriteQ (h, ar);            /* wtst a, rls if err */
-WriteL (a + 4, (uint32) (d - a));                       /* (a+4) <- d-a, flt ok */
-WriteL (d, (uint32) (a - d));                           /* (d) <- a-d */
-WriteL (d + 4, (uint32) (h - d));                       /* (d+4) <- h-d */
-WriteL (h, (uint32) (d - h));                           /* (h) <- d-h, rls int */
+WriteL (a + 4, (uint32_t) (d - a));                     /* (a+4) <- d-a, flt ok */
+WriteL (d, (uint32_t) (a - d));                         /* (d) <- a-d */
+WriteL (d + 4, (uint32_t) (h - d));                     /* (d+4) <- h-d */
+WriteL (h, (uint32_t) (d - h));                         /* (h) <- d-h, rls int */
 return ((ar & M32) == 0)? 0: +1;                        /* ret 0 if q was empty */
 }
 
-t_int64 vms_insqhilr (void)
+int64_t vms_insqhilr (void)
 {
-t_uint64 h = R[16];
-t_uint64 d = R[17];
-t_uint64 ar, a;
+uint64_t h = R[16];
+uint64_t d = R[17];
+uint64_t ar, a;
 
 ar = ReadQ (h);                                         /* a <- (h) */
 if (ar & 01) return -1;                                 /* busy, ret -1 */
 WriteQ (h, ar | 1);                                     /* get interlock */
 a = (SEXT_L_Q (ar + h)) & M64;                          /* abs addr of a */
-WriteL (a + 4, (uint32) (d - a));                       /* (a+4) <- d-a, flt ok */
-WriteL (d, (uint32) (a - d));                           /* (d) <- a-d */
-WriteL (d + 4, (uint32) (h - d));                       /* (d+4) <- h-d */
-WriteL (h, (uint32) (d - h));                           /* (h) <- d-h, rls int */
+WriteL (a + 4, (uint32_t) (d - a));                     /* (a+4) <- d-a, flt ok */
+WriteL (d, (uint32_t) (a - d));                         /* (d) <- a-d */
+WriteL (d + 4, (uint32_t) (h - d));                     /* (d+4) <- h-d */
+WriteL (h, (uint32_t) (d - h));                         /* (h) <- d-h, rls int */
 return ((ar & M32) == 0)? 0: +1;                        /* ret 0 if q was empty */
 }
 
-t_int64 vms_insqhiq (void)
+int64_t vms_insqhiq (void)
 {
-t_uint64 h = R[16];
-t_uint64 d = R[17];
-t_uint64 ar, a;
+uint64_t h = R[16];
+uint64_t d = R[17];
+uint64_t ar, a;
 
 if ((h == d) || ((h | d) & 0xF)) ABORT (EXC_RSVO);      /* h, d octa align? */
 ReadAccQ (d, cm_wacc);                                  /* wchk (d) */
@@ -873,11 +875,11 @@ WriteQ (h, (d - h) & M64);                              /* (h) <- d-h, rls int *
 return (ar == 0)? 0: +1;                                /* ret 0 if q was empty */
 }
 
-t_int64 vms_insqhiqr (void)
+int64_t vms_insqhiqr (void)
 {
-t_uint64 h = R[16];
-t_uint64 d = R[17];
-t_uint64 ar, a;
+uint64_t h = R[16];
+uint64_t d = R[17];
+uint64_t ar, a;
 
 ar = ReadQ (h);                                         /* a <- (h) */
 if (ar & 01) return -1;                                 /* busy, ret -1 */
@@ -890,11 +892,11 @@ WriteQ (h, (d - h) & M64);                              /* (h) <- d-h, rls int *
 return (ar == 0)? 0: +1;                                /* ret 0 if q was empty */
 }
 
-t_int64 vms_insqtil (void)
+int64_t vms_insqtil (void)
 {
-t_uint64 h = R[16];
-t_uint64 d = R[17];
-t_uint64 ar, c;
+uint64_t h = R[16];
+uint64_t d = R[17];
+uint64_t ar, c;
 
 if ((h == d) || ((h | d) & 07) ||                       /* h, d quad align? */
     ((SEXT_L_Q (h) & M64) != h) ||
@@ -912,19 +914,19 @@ if (c & 07) {                                           /* c quad aligned? */
     ABORT (EXC_RSVO);                                   /* fault */
     }
 if (Test (c, cm_wacc, NULL)) WriteQ (h, ar);            /* wtst c, rls if err */
-WriteL (c, (uint32) (d - c));                           /* (c) <- d-c, flt ok */
-WriteL (d, (uint32) (h - d));                           /* (d) <- h-d */
-WriteL (d + 4, (uint32) (c - d));                       /* (d+4) <- c-d */
-WriteL (h + 4, (uint32) (d - h));                       /* (h+4) <- d-h */
-WriteL (h, (uint32) ar);                                /* release interlock */
+WriteL (c, (uint32_t) (d - c));                         /* (c) <- d-c, flt ok */
+WriteL (d, (uint32_t) (h - d));                         /* (d) <- h-d */
+WriteL (d + 4, (uint32_t) (c - d));                     /* (d+4) <- c-d */
+WriteL (h + 4, (uint32_t) (d - h));                     /* (h+4) <- d-h */
+WriteL (h, (uint32_t) ar);                              /* release interlock */
 return 0;                                               /* q was not empty */
 }
 
-t_int64 vms_insqtilr (void)
+int64_t vms_insqtilr (void)
 {
-t_uint64 h = R[16];
-t_uint64 d = R[17];
-t_uint64 ar, c;
+uint64_t h = R[16];
+uint64_t d = R[17];
+uint64_t ar, c;
 
 ar = ReadQ (h);                                         /* a <- (h) */
 if ((ar & M32) == 0) return vms_insqhilr ();            /* if empty, ins hd */
@@ -932,19 +934,19 @@ if (ar & 01) return -1;                                 /* busy, ret -1 */
 WriteQ (h, ar | 1);                                     /* acquire interlock */
 c = ar >> 32;                                           /* c <- (h+4) */
 c = (SEXT_L_Q (c + h)) & M64;                           /* abs addr of c */
-WriteL (c, (uint32) (d - c));                           /* (c) <- d-c */
-WriteL (d, (uint32) (h - d));                           /* (d) <- h-d */
-WriteL (d + 4, (uint32) (c - d));                       /* (d+4) <- c-d */
-WriteL (h + 4, (uint32) (d - h));                       /* (h+4) <- d-h */
-WriteL (h, (uint32) ar);                                /* release interlock */
+WriteL (c, (uint32_t) (d - c));                         /* (c) <- d-c */
+WriteL (d, (uint32_t) (h - d));                         /* (d) <- h-d */
+WriteL (d + 4, (uint32_t) (c - d));                     /* (d+4) <- c-d */
+WriteL (h + 4, (uint32_t) (d - h));                     /* (h+4) <- d-h */
+WriteL (h, (uint32_t) ar);                              /* release interlock */
 return 0;                                               /* q was not empty */
 }
 
-t_int64 vms_insqtiq (void)
+int64_t vms_insqtiq (void)
 {
-t_uint64 h = R[16];
-t_uint64 d = R[17];
-t_uint64 ar, c;
+uint64_t h = R[16];
+uint64_t d = R[17];
+uint64_t ar, c;
 
 if ((h == d) || ((h | d) & 0xF)) ABORT (EXC_RSVO);      /* h, d octa align? */
 ReadAccQ (d, cm_wacc);                                  /* wchk ent */
@@ -968,11 +970,11 @@ WriteQ (h, ar);                                         /* release interlock */
 return 0;                                               /* q was not empty */
 }
 
-t_int64 vms_insqtiqr (void)
+int64_t vms_insqtiqr (void)
 {
-t_uint64 h = R[16];
-t_uint64 d = R[17];
-t_uint64 ar, c;
+uint64_t h = R[16];
+uint64_t d = R[17];
+uint64_t ar, c;
 
 ar = ReadQ (h);                                         /* a <- (h) */
 if (ar == 0) return vms_insqhiqr ();                    /* if empty, ins hd */
@@ -1013,10 +1015,10 @@ return 0;                                               /* q was not empty */
         "touched" in any way must be QUAD(OCTA)WORD aligned.
 */
 
-t_int64 vms_remqhil (void)
+int64_t vms_remqhil (void)
 {
-t_uint64 h = R[16];
-t_uint64 ar, a, b;
+uint64_t h = R[16];
+uint64_t ar, a, b;
 
 if ((h & 07) || ((SEXT_L_Q (h) & M64) != h))            /* h quad aligned? */
     ABORT (EXC_RSVO);
@@ -1034,16 +1036,16 @@ if (b & 07) {                                           /* b quad aligned? */
     ABORT (EXC_RSVO);                                   /* fault */
     }
 if (Test (b, cm_wacc, NULL)) WriteQ (h, ar);            /* wtst b, rls if err */
-WriteL (b + 4, (uint32) (h - b));                       /* (b+4) <- h-b, flt ok */
-WriteL (h, (uint32) (b - h));                           /* (h) <- b-h, rls int */
+WriteL (b + 4, (uint32_t) (h - b));                     /* (b+4) <- h-b, flt ok */
+WriteL (h, (uint32_t) (b - h));                         /* (h) <- b-h, rls int */
 R[1] = a;                                               /* address of entry */
 return ((b & M32) == (h & M32))? +2: +1;                /* if b = h, q empty */
 }
 
-t_int64 vms_remqhilr (void)
+int64_t vms_remqhilr (void)
 {
-t_uint64 h = R[16];
-t_uint64 ar, a, b;
+uint64_t h = R[16];
+uint64_t ar, a, b;
 
 ar = ReadQ (h);                                         /* ar <- (h) */
 if (ar & 01) return -1;                                 /* busy, ret -1 */
@@ -1052,16 +1054,16 @@ WriteQ (h, ar | 1);                                     /* acquire interlock */
 a = (SEXT_L_Q (ar + h)) & M64;                          /* abs addr of a */
 b = ReadL (a);                                          /* b <- (a), flt ok */
 b = (SEXT_L_Q (b + a)) & M64;                           /* abs addr of b */
-WriteL (b + 4, (uint32) (h - b));                       /* (b+4) <- h-b, flt ok */
-WriteL (h, (uint32) (b - h));                           /* (h) <- b-h, rls int */
+WriteL (b + 4, (uint32_t) (h - b));                     /* (b+4) <- h-b, flt ok */
+WriteL (h, (uint32_t) (b - h));                         /* (h) <- b-h, rls int */
 R[1] = a;                                               /* address of entry */
 return ((b & M32) == (h & M32))? +2: +1;                /* if b = h, q empty */
 }
 
-t_int64 vms_remqhiq (void)
+int64_t vms_remqhiq (void)
 {
-t_uint64 h = R[16];
-t_uint64 ar, a, b;
+uint64_t h = R[16];
+uint64_t ar, a, b;
 
 if (h & 0xF) ABORT (EXC_RSVO);                          /* h octa aligned? */
 ar = ReadQ (h);                                         /* ar <- (h) */
@@ -1084,10 +1086,10 @@ R[1] = a;                                               /* address of entry */
 return (b == h)? +2: +1;                                /* if b = h, q empty */
 }
 
-t_int64 vms_remqhiqr (void)
+int64_t vms_remqhiqr (void)
 {
-t_uint64 h = R[16];
-t_uint64 ar, a, b;
+uint64_t h = R[16];
+uint64_t ar, a, b;
 
 ar = ReadQ (h);                                         /* ar <- (h) */
 if (ar & 01) return -1;                                 /* busy, ret -1 */
@@ -1102,10 +1104,10 @@ R[1] = a;                                               /* address of entry */
 return (b == h)? +2: +1;                                /* if b = h, q empty */
 }
 
-t_int64 vms_remqtil (void)
+int64_t vms_remqtil (void)
 {
-t_uint64 h = R[16];
-t_uint64 ar, b, c;
+uint64_t h = R[16];
+uint64_t ar, b, c;
 
 if ((h & 07) || ((SEXT_L_Q (h) & M64) != h))            /* h quad aligned? */
     ABORT (EXC_RSVO);
@@ -1132,17 +1134,17 @@ if (b & 07) {                                           /* b quad aligned? */
     ABORT (EXC_RSVO);                                   /* fault */
     }
 if (Test (b, cm_wacc, NULL)) WriteQ (h, ar);            /* wtst b, rls if err */
-WriteL (b, (uint32) (h - b));                           /* (b) <- h-b, flt ok */
-WriteL (h + 4, (uint32) (b - h));                       /* (h+4) <- b-h */
-WriteL (h, (uint32) ar);                                /* release interlock */
+WriteL (b, (uint32_t) (h - b));                         /* (b) <- h-b, flt ok */
+WriteL (h + 4, (uint32_t) (b - h));                     /* (h+4) <- b-h */
+WriteL (h, (uint32_t) ar);                              /* release interlock */
 R[1] = c;                                               /* store result */
 return +1;                                              /* q can't be empty */
 }
 
-t_int64 vms_remqtilr (void)
+int64_t vms_remqtilr (void)
 {
-t_uint64 h = R[16];
-t_uint64 ar, b, c;
+uint64_t h = R[16];
+uint64_t ar, b, c;
 
 ar = ReadQ (h);                                         /* a <- (h) */
 if (ar & 01) return -1;                                 /* busy, return - 1*/
@@ -1156,17 +1158,17 @@ if ((ar & M32) == (c & M32)) {                          /* single entry? */
 c = (SEXT_L_Q (c + h)) & M64;                           /* abs addr of c */
 b = ReadL (c + 4);                                      /* b <- (c+4) */
 b = (SEXT_L_Q (b) + c) & M64;                           /* abs addr of b */
-WriteL (b, (uint32) (h - b));                           /* (b) <- h-b */
-WriteL (h + 4, (uint32) (b - h));                       /* (h+4) <- b-h */
-WriteL (h, (uint32) ar);                                /* release interlock */
+WriteL (b, (uint32_t) (h - b));                         /* (b) <- h-b */
+WriteL (h + 4, (uint32_t) (b - h));                     /* (h+4) <- b-h */
+WriteL (h, (uint32_t) ar);                              /* release interlock */
 R[1] = c;                                               /* store result */
 return +1;                                              /* q can't be empty */
 }
 
-t_int64 vms_remqtiq (void)
+int64_t vms_remqtiq (void)
 {
-t_uint64 h = R[16];
-t_uint64 ar, b, c;
+uint64_t h = R[16];
+uint64_t ar, b, c;
 
 if (h & 0xF) ABORT (EXC_RSVO);                          /* h octa aligned? */
 ar = ReadQ (h);                                         /* a <- (h) */
@@ -1199,10 +1201,10 @@ R[1] = c;                                               /* store result */
 return +1;                                              /* q can't be empty */
 }
 
-t_int64 vms_remqtiqr (void)
+int64_t vms_remqtiqr (void)
 {
-t_uint64 h = R[16];
-t_uint64 ar, b, c;
+uint64_t h = R[16];
+uint64_t ar, b, c;
 
 ar = ReadQ (h);                                         /* a <- (h) */
 if (ar & 01) return -1;                                 /* busy, return - 1*/
@@ -1249,11 +1251,11 @@ return +1;                                              /* q can't be empty */
    Note that WriteUna masks data to its proper length.
 */
 
-t_int64 vms_insquel (uint32 defer)
+int64_t vms_insquel (uint32_t defer)
 {
-t_uint64 p = SEXT_L_Q (R[16]) & M64;
-t_uint64 e = SEXT_L_Q (R[17]) & M64;
-t_uint64 s;
+uint64_t p = SEXT_L_Q (R[16]) & M64;
+uint64_t e = SEXT_L_Q (R[17]) & M64;
+uint64_t s;
 
 if (defer) {                                            /* defer? */
     p = ReadUna (p, L_LONG, cm_racc);                   /* get address */
@@ -1270,11 +1272,11 @@ WriteUna (p, e, L_LONG, cm_wacc);                       /* (p) <- e */
 return (((s & M32) == (p & M32))? +1: 0);               /* return status */
 }
 
-t_int64 vms_insqueq (uint32 defer)
+int64_t vms_insqueq (uint32_t defer)
 {
-t_uint64 p = R[16];
-t_uint64 e = R[17];
-t_uint64 s;
+uint64_t p = R[16];
+uint64_t e = R[17];
+uint64_t s;
 
 if (defer) {                                            /* defer? */
     if (p & 07) ABORT (EXC_RSVO);
@@ -1313,10 +1315,10 @@ return ((s == p)? +1: 0);                               /* return status */
 
 */
 
-t_int64 vms_remquel (uint32 defer)
+int64_t vms_remquel (uint32_t defer)
 {
-t_uint64 e = SEXT_L_Q (R[16]) & M64;
-t_uint64 s, p;
+uint64_t e = SEXT_L_Q (R[16]) & M64;
+uint64_t s, p;
 
 if (defer) {                                            /* defer? */
     e = ReadUna (e, L_LONG, cm_racc);                   /* get address */
@@ -1333,10 +1335,10 @@ WriteUna ((s + 4) & M64, p, L_LONG, cm_wacc);           /* (s+4) <- p */
 return ((s == p)? 0: +1);
 }
 
-t_int64 vms_remqueq (uint32 defer)
+int64_t vms_remqueq (uint32_t defer)
 {
-t_uint64 e = R[16];
-t_uint64 s, p;
+uint64_t e = R[16];
+uint64_t s, p;
 
 if (defer) {                                            /* defer? */
     if (e & 07) ABORT (EXC_RSVO);
@@ -1355,9 +1357,9 @@ return ((s == p)? 0: +1);
 
 /* Probe */
 
-uint32 vms_probe (uint32 acc)
+uint32_t vms_probe (uint32_t acc)
 {
-uint32 pm = ((uint32) R[18]) & 3;
+uint32_t pm = ((uint32_t) R[18]) & 3;
 
 if (pm <= vms_cm) pm = vms_cm;                          /* least privileged */
 acc = (acc << pm) | PTE_V;                              /* access test - no FOR/W */
@@ -1368,10 +1370,10 @@ return 1;
 
 /* VMS TIE support instructions */
 
-uint32 vms_amovrr (void)
+uint32_t vms_amovrr (void)
 {
-uint32 lnt1 = ((uint32) R[18]) & 3;
-uint32 lnt2 = ((uint32) R[21]) & 3;
+uint32_t lnt1 = ((uint32_t) R[18]) & 3;
+uint32_t lnt2 = ((uint32_t) R[21]) & 3;
 
 if (vax_flag == 0) return 0;                            /* stop if !vax_flag */
 vax_flag = 0;                                           /* clear vax_flag */
@@ -1382,12 +1384,12 @@ WriteUna (R[20], R[21], lnt_map[lnt2], cm_wacc);        /* WriteUna masks data *
 return 1;
 }
 
-uint32 vms_amovrm (void)
+uint32_t vms_amovrm (void)
 {
-t_uint64 va, va1;
-uint32 lnt1 = ((uint32) R[18]) & 3;
-uint32 lnt2 = ((uint32) R[21]) & 0x3F;
-uint32 i, dat;
+uint64_t va, va1;
+uint32_t lnt1 = ((uint32_t) R[18]) & 3;
+uint32_t lnt2 = ((uint32_t) R[21]) & 0x3F;
+uint32_t i, dat;
 
 if (vax_flag == 0) return 0;                            /* stop if !vax_flag */
 vax_flag = 0;                                           /* clear vax_flag */
@@ -1415,8 +1417,8 @@ return 1;
 
 void vms_swpctx (void)
 {
-t_uint64 val;
-uint32 tmp;
+uint64_t val;
+uint32_t tmp;
 
 if (R[16] & 0x7F) ABORT (EXC_RSVO);                     /* must be 128B aligned */
 WritePQ (vms_hwpcb + 0, SP);                            /* save stack ptrs */
@@ -1441,8 +1443,8 @@ tmp = ReadPL (vms_hwpcb + 48);                          /* read AST */
 vms_astsr = (tmp >> 4) & AST_MASK;                      /* separate ASTSR, ASTEN */
 vms_asten = tmp & AST_MASK;
 val = ReadPQ (vms_hwpcb + PCBV_FLAGS);                  /* read flags */
-fpen = ((uint32) val) & 1;                              /* set FEN */
-vms_datfx = ((uint32) (val >> 63)) & 1;                 /* set DATFX */
+fpen = ((uint32_t) val) & 1;                            /* set FEN */
+vms_datfx = ((uint32_t) (val >> 63)) & 1;               /* set DATFX */
 tmp = ReadL (vms_hwpcb + 64);
 pcc_h = (tmp - pcc_l) & M32;
 vms_thread = ReadPQ (vms_hwpcb + 72);                   /* read UNIQUE */
@@ -1459,12 +1461,12 @@ return;
         reason  =       possible processor halt
 */
 
-t_stat vms_intexc (uint32 vec, uint32 newmode, uint32 newipl)
+t_stat vms_intexc (uint32_t vec, uint32_t newmode, uint32_t newipl)
 {
-t_uint64 pa = (vms_scbb + vec) & ~0xF;                  /* vector */
-t_uint64 sav_ps = GET_PSV;                              /* old PS */
-uint32 wacc = ACC_W (newmode);
-uint32 exc;
+uint64_t pa = (vms_scbb + vec) & ~0xF;                  /* vector */
+uint64_t sav_ps = GET_PSV;                              /* old PS */
+uint32_t wacc = ACC_W (newmode);
+uint32_t exc;
 
 vms_stkp[vms_cm] = SP;                                  /* save SP */
 SP = vms_stkp[newmode];                                 /* load new SP */
@@ -1497,7 +1499,7 @@ return SCPE_OK;
 
 /* Memory management fault */
 
-t_stat vms_mm_intexc (uint32 vec, t_uint64 par2)
+t_stat vms_mm_intexc (uint32_t vec, uint64_t par2)
 {
 t_stat r;
 
@@ -1512,8 +1514,8 @@ return r;
 
 t_stat vms_rei (void)
 {
-t_uint64 t1, t2, t3, t4, t5, t6, t7, t8;
-uint32 newmode;
+uint64_t t1, t2, t3, t4, t5, t6, t7, t8;
+uint32_t newmode;
 
 if (SP & PSV_M_SPA) ABORT (EXC_RSVO);                   /* check alignment */
 if (vms_cm == MODE_K) {                                 /* in kernel mode? */
@@ -1528,7 +1530,7 @@ t5 = ReadQ (SP + 32);
 t6 = ReadQ (SP + 40);
 t7 = ReadQ (SP + 48);
 t8 = ReadQ (SP + 56);
-newmode = (((uint32) t8) >> PSV_V_CM) && PSV_M_CM;      /* get new mode */
+newmode = (((uint32_t) t8) >> PSV_V_CM) && PSV_M_CM;    /* get new mode */
 if ((vms_cm != MODE_K) &&                               /* not kernel? check new PS */
     ((newmode < vms_cm) || (t8 & PSV_MBZ))) ABORT (EXC_RSVO);
 SP = (SP + VMS_L_STKF) | ((t8 >> PSV_V_SPA) & PSV_M_SPA);
@@ -1541,9 +1543,9 @@ R[5] = t4;
 R[6] = t5;
 R[7] = t6;
 PC = t7 & ~3;                                           /* restore PC */
-vms_ps = ((uint32) t8) & PSV_MASK;                      /* restore PS */
+vms_ps = ((uint32_t) t8) & PSV_MASK;                    /* restore PS */
 vms_cm = mmu_set_cm (newmode);                          /* switch modes */
-vms_ipl = (((uint32) t8) >> PSV_V_IPL) & PSV_M_IPL;     /* new IPL */
+vms_ipl = (((uint32_t) t8) >> PSV_V_IPL) & PSV_M_IPL;   /* new IPL */
 vax_flag = 0;                                           /* clear vax, lock flags */
 lock_flag = 0;
 return SCPE_OK;
@@ -1559,10 +1561,10 @@ return SCPE_OK;
         returned data, right justified
 */
 
-t_uint64 ReadUna (t_uint64 va, uint32 lnt, uint32 acc)
+uint64_t ReadUna (uint64_t va, uint32_t lnt, uint32_t acc)
 {
-t_uint64 pa, pa1, wl, wh;
-uint32 exc, bo, sc;
+uint64_t pa, pa1, wl, wh;
+uint32_t exc, bo, sc;
 
 if (exc = Test (va, acc, &pa))                          /* test, translate */
     ABORT1 (va, exc + EXC_R);
@@ -1577,12 +1579,12 @@ if ((VA_GETOFF (va) + lnt) > VA_PAGSIZE) {              /* cross page? */
         ABORT1 (va + 8, exc + EXC_R);
     }
 else pa1 = (pa + 8) & PA_MASK;                          /* not cross page */
-bo = ((uint32) pa) & 7;                                 /* byte in qw */
+bo = ((uint32_t) pa) & 7;                               /* byte in qw */
 sc = bo << 3;                                           /* shift count */
 wl = ReadPQ (pa);                                       /* get low qw */
 if (lnt == L_QUAD) {                                    /* qw unaligned? */
     wh = ReadPQ (pa1);                                  /* get high qw */
-    return ((((wl >> sc) & (((t_uint64) M64) >> sc)) |
+    return ((((wl >> sc) & (((uint64_t) M64) >> sc)) |
         (wh << (64 - sc))) & M64);                      /* extract data */
     }
 if (lnt == L_LONG) {                                    /* lw unaligned? */
@@ -1607,18 +1609,18 @@ return (((wl >> 56) & 0xFF) | ((wh & 0xFF) << 8));
         none
 */
 
-void WriteUna (t_uint64 va, t_uint64 val, uint32 lnt, uint32 acc)
+void WriteUna (uint64_t va, uint64_t val, uint32_t lnt, uint32_t acc)
 {
-t_uint64 pa, pa1, wl, wh, mask;
-uint32 exc, bo, sc;
+uint64_t pa, pa1, wl, wh, mask;
+uint32_t exc, bo, sc;
 
 if (exc = Test (va, acc, &pa))                          /* test, translate */
     ABORT1 (va, exc + EXC_W);
 if ((pa & (lnt - 1)) == 0) {                            /* aligned? */
     if (lnt == L_QUAD) WritePQ (pa, val);               /* quad? */
-    else if (lnt == L_LONG) WritePL (pa, (uint32) val); /* long? */
-    else if (lnt == L_WORD) WritePW (pa, (uint32) val); /* word? */
-    else WritePB (pa, (uint32) val);                    /* byte */
+    else if (lnt == L_LONG) WritePL (pa, (uint32_t) val); /* long? */
+    else if (lnt == L_WORD) WritePW (pa, (uint32_t) val); /* word? */
+    else WritePB (pa, (uint32_t) val);                  /* byte */
     return;
     }
 if ((VA_GETOFF (va) + lnt) > VA_PAGSIZE) {              /* cross page? */
@@ -1626,34 +1628,34 @@ if ((VA_GETOFF (va) + lnt) > VA_PAGSIZE) {              /* cross page? */
         ABORT1 (va + 8, exc + EXC_W);
     }
 else pa1 = (pa + 8) & PA_MASK;                          /* not cross page */
-bo = ((uint32) pa) & 7;                                 /* byte in qw */
+bo = ((uint32_t) pa) & 7;                               /* byte in qw */
 sc = bo << 3;                                           /* shift count */
 wl = ReadPQ (pa);                                       /* get low qw */
 if (lnt == L_QUAD) {                                    /* qw unaligned? */
     val = val & M64;                                    /* mask data */
-    mask = ((t_uint64) M64) << sc;                      /* low qw mask */
+    mask = ((uint64_t) M64) << sc;                      /* low qw mask */
     wl = (wl & ~mask) | ((val << sc) & mask);           /* insert low */
     wh = ReadPQ (pa1);                                  /* hi qw */
-    mask = ((t_uint64) M64) >> (64 - sc);               /* hi qw mask */
+    mask = ((uint64_t) M64) >> (64 - sc);               /* hi qw mask */
     wh = (wh & ~mask) | ((val >> (64 - sc)) & mask);
     WritePQ (pa, wl);                                   /* write low */
     WritePQ (pa, wh);                                   /* write high */
     }
 else if (lnt == L_LONG) {                               /* lw unaligned? */
     val = val & M32;
-    mask = ((t_uint64) M32) << sc;                      /* low qw mask */
+    mask = ((uint64_t) M32) << sc;                      /* low qw mask */
     wl = (wl & ~mask) | (val << sc);                    /* insert low */
     WritePQ (pa, wl);                                   /* write low */
     if (bo >= 4) {                                      /* 2nd qw? */
         wh = ReadPQ (pa1);                              /* read hi qw */
-        mask = ((t_uint64) M32) >> (sc - 32);           /* hi qw mask */
+        mask = ((uint64_t) M32) >> (sc - 32);           /* hi qw mask */
         wh = (wh & ~mask) | (val >> (sc - 32));         /* insert high */
         WritePQ (pa1, wh);                              /* write hi */
         }
     }
 else {
     val = val & M16;                                    /* mask data */
-    mask = ((t_uint64) M16) << sc;                      /* word, low qw mask */
+    mask = ((uint64_t) M16) << sc;                      /* word, low qw mask */
     wl = (wl & ~mask) | ((val & M16) << sc);            /* insert low */
     WritePQ (pa, wl);                                   /* write low */
     if (bo >= 7) {                                      /* 2nd qw? */
@@ -1672,12 +1674,12 @@ return;
    - In Unix, current mode is always kernel
    - Hence, superpages are always accessible */
 
-uint32 Test (t_uint64 va, uint32 acc, t_uint64 *pa)
+uint32_t Test (uint64_t va, uint32_t acc, uint64_t *pa)
 {
-uint32 va_sext = VA_GETSEXT (va);
-uint32 vpn = VA_GETVPN (va);
-t_uint64 pte;
-uint32 exc;
+uint32_t va_sext = VA_GETSEXT (va);
+uint32_t vpn = VA_GETVPN (va);
+uint64_t pte;
+uint32_t exc;
 TLBENT *tlbp;
 
 if (!dmapen) {                                          /* mapping off? */
@@ -1705,10 +1707,10 @@ return 0;                                               /* ok */
 
 /* TLB check - VMS PALcode only */
 
-uint32 tlb_check (t_uint64 va)
+uint32_t tlb_check (uint64_t va)
 {
-uint32 va_sext = VA_GETSEXT (va);
-uint32 vpn = VA_GETVPN (va);
+uint32_t va_sext = VA_GETSEXT (va);
+uint32_t vpn = VA_GETVPN (va);
 
 if ((va_sext != 0) && (va_sext != VA_M_SEXT)) return 0;
 if (itlb_lookup (vpn)) return 1;
@@ -1727,13 +1729,13 @@ return 0;
                         EXC_TNV for TNV on intermediate level
 */
 
-uint32 pal_find_pte_vms (uint32 vpn, t_uint64 *l3pte)
+uint32_t pal_find_pte_vms (uint32_t vpn, uint64_t *l3pte)
 {
-t_uint64 vptea, l1ptea, l2ptea, l3ptea, l1pte, l2pte;
-uint32 vpte_vpn;
+uint64_t vptea, l1ptea, l2ptea, l3ptea, l1pte, l2pte;
+uint32_t vpte_vpn;
 TLBENT *vpte_p;
 
-vptea = vms_vtbr | (((t_uint64) (vpn & VA_M_VPN)) << 3);/* try virtual lookup */
+vptea = vms_vtbr | (((uint64_t) (vpn & VA_M_VPN)) << 3);/* try virtual lookup */
 vpte_vpn = VA_GETVPN (vptea);                           /* get vpte vpn */
 vpte_p = dtlb_lookup (vpte_vpn);                        /* get vpte tlb ptr */
 if ((vpte_p->tag == vpte_vpn) &&                        /* TLB hit? */

@@ -47,22 +47,24 @@
     - TTI may not be disabled
 */
 
+#include <stdint.h>
+
 #include "nova_defs.h"
 #include "sim_tmxr.h"
 
 #define UNIT_V_DASHER   (TTUF_V_UF)                 /* Dasher mode */
 #define UNIT_DASHER     (1 << UNIT_V_DASHER)
 
-extern int32 int_req, dev_busy, dev_done, dev_disable;
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
 
-int32 tti (int32 pulse, int32 code, int32 AC);
-int32 tto (int32 pulse, int32 code, int32 AC);
+int32_t tti (int32_t pulse, int32_t code, int32_t AC);
+int32_t tto (int32_t pulse, int32_t code, int32_t AC);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tti_reset (DEVICE *dptr);
 t_stat tto_reset (DEVICE *dptr);
-t_stat ttx_setmod (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ttx_setpar (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat ttx_setmod (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ttx_setpar (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* TTI data structures
 
@@ -137,13 +139,13 @@ DEVICE tto_dev = {
 
 /* Terminal input: IOT routine */
 
-int32 tti (int32 pulse, int32 code, int32 AC)
+int32_t tti (int32_t pulse, int32_t code, int32_t AC)
 {
 /* I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) AC;
 
-int32 iodata;
+int32_t iodata;
 
 
 if (code == ioDIA)
@@ -172,7 +174,7 @@ return iodata;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 temp;
+int32_t temp;
 
 sim_activate (&tti_unit, tti_unit.wait);                /* continue poll */
 if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)
@@ -211,7 +213,7 @@ return SCPE_OK;
 
 /* Terminal output: IOT routine */
 
-int32 tto (int32 pulse, int32 code, int32 AC)
+int32_t tto (int32_t pulse, int32_t code, int32_t AC)
 {
 if (code == ioDOA)
     tto_unit.buf = AC & 0377;
@@ -240,7 +242,7 @@ return 0;
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32   c;
+int32_t c;
 t_stat  r;
 
 c = tto_unit.buf & 0177;
@@ -273,7 +275,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat ttx_setmod (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttx_setmod (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -286,7 +288,7 @@ tto_unit.flags = (tto_unit.flags & ~UNIT_DASHER) | val;
 return SCPE_OK;
 }
 
-t_stat ttx_setpar (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttx_setpar (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

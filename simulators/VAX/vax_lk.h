@@ -29,6 +29,8 @@
 #ifndef _VAX_LK_H_
 #define _VAX_LK_H_
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_video.h"
 
@@ -145,8 +147,8 @@
 
 /* interface functions */
 
-t_stat lk_wr (uint8 c);
-t_stat lk_rd (uint8 *c);
+t_stat lk_wr (uint8_t c);
+t_stat lk_rd (uint8_t *c);
 void lk_event (SIM_KEY_EVENT *ev);
 
 #endif

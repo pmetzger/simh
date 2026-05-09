@@ -45,6 +45,7 @@
 
 #include "pdp18b_defs.h"
 #include <math.h>
+#include <stdint.h>
 
 /* Constants */
 
@@ -65,24 +66,24 @@
 #define GET_POS(x)      ((int) fmod (sim_gtime() / ((double) (x)), \
                         ((double) DRM_NUMWDT)))
 
-extern int32 *M;
-extern int32 int_hwre[API_HLVL+1];
+extern int32_t *M;
+extern int32_t int_hwre[API_HLVL+1];
 extern UNIT cpu_unit;
 
-int32 drm_da = 0;                                       /* track address */
-int32 drm_ma = 0;                                       /* memory address */
-int32 drm_err = 0;                                      /* error flag */
-int32 drm_wlk = 0;                                      /* write lock */
-int32 drm_time = 10;                                    /* inter-word time */
-int32 drm_stopioe = 1;                                  /* stop on error */
+int32_t drm_da = 0;                                     /* track address */
+int32_t drm_ma = 0;                                     /* memory address */
+int32_t drm_err = 0;                                    /* error flag */
+int32_t drm_wlk = 0;                                    /* write lock */
+int32_t drm_time = 10;                                  /* inter-word time */
+int32_t drm_stopioe = 1;                                /* stop on error */
 
-int32 drm60 (int32 dev, int32 pulse, int32 AC);
-int32 drm61 (int32 dev, int32 pulse, int32 AC);
-int32 drm62 (int32 dev, int32 pulse, int32 AC);
-int32 drm_iors (void);
+int32_t drm60 (int32_t dev, int32_t pulse, int32_t AC);
+int32_t drm61 (int32_t dev, int32_t pulse, int32_t AC);
+int32_t drm62 (int32_t dev, int32_t pulse, int32_t AC);
+int32_t drm_iors (void);
 t_stat drm_svc (UNIT *uptr);
 t_stat drm_reset (DEVICE *dptr);
-t_stat drm_boot (int32 unitno, DEVICE *dptr);
+t_stat drm_boot (int32_t unitno, DEVICE *dptr);
 
 /* DRM data structures
 
@@ -126,7 +127,7 @@ DEVICE drm_dev = {
 
 /* IOT routines */
 
-int32 drm60 (int32 dev, int32 pulse, int32 AC)
+int32_t drm60 (int32_t dev, int32_t pulse, int32_t AC)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -139,13 +140,13 @@ if ((pulse & 027) == 06) {                              /* DRLR, DRLW */
 return AC;
 }
 
-int32 drm61 (int32 dev, int32 pulse, int32 AC)
+int32_t drm61 (int32_t dev, int32_t pulse, int32_t AC)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 t;
+int32_t t;
 
 if (pulse & 001) {                                      /* DRSF */
     if (TST_INT (DRM))
@@ -165,13 +166,13 @@ if (pulse & 004) {                                      /* DRSS */
 return AC;
 }
 
-int32 drm62 (int32 dev, int32 pulse, int32 AC)
+int32_t drm62 (int32_t dev, int32_t pulse, int32_t AC)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 t;
+int32_t t;
 
 if (pulse & 001) {                                      /* DRSN */
     if (drm_err == 0)
@@ -195,9 +196,9 @@ return AC;
 
 t_stat drm_svc (UNIT *uptr)
 {
-int32 i;
-uint32 da;
-int32 *fbuf = (int32 *) uptr->filebuf;
+int32_t i;
+uint32_t da;
+int32_t *fbuf = (int32_t *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
     drm_err = 1;                                        /* set error */
@@ -243,7 +244,7 @@ return SCPE_OK;
 
 /* IORS routine */
 
-int32 drm_iors (void)
+int32_t drm_iors (void)
 {
 return (TST_INT (DRM)? IOS_DRM: 0);
 }
@@ -253,7 +254,7 @@ return (TST_INT (DRM)? IOS_DRM: 0);
 #define BOOT_START 02000
 #define BOOT_LEN (sizeof (boot_rom) / sizeof (int))
 
-static const int32 boot_rom[] = {
+static const int32_t boot_rom[] = {
     0750000,                        /* CLA              ; dev, mem addr */
     0706006,                        /* DRLR             ; load ma */
     0706106,                        /* DRSS             ; load da, start */
@@ -262,7 +263,7 @@ static const int32 boot_rom[] = {
     0600000                         /* JMP 0            ; enter boot */
     };
 
-t_stat drm_boot (int32 unitno, DEVICE *dptr)
+t_stat drm_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -270,7 +271,7 @@ t_stat drm_boot (int32 unitno, DEVICE *dptr)
 (void) dptr;
 
 size_t i;
-extern int32 PC;
+extern int32_t PC;
 
 if (drm_dib.dev != DEV_DRM)                             /* non-std addr? */
     return STOP_NONSTD;

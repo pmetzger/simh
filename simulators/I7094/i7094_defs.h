@@ -37,6 +37,8 @@
 #define I7094_DEFS_H_  0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -83,14 +85,14 @@
 #define HIST_CH(x)      (((x) >> HIST_V_CH) & HIST_M_CH)
 
 typedef struct {
-    uint32              pc;
-    uint32              ea;
-    uint32              rpt;
-    t_uint64    ir;
-    t_uint64    ac;
-    t_uint64    mq;
-    t_uint64    si;
-    t_uint64    opnd;
+    uint32_t            pc;
+    uint32_t            ea;
+    uint32_t            rpt;
+    uint64_t    ir;
+    uint64_t    ac;
+    uint64_t    mq;
+    uint64_t    si;
+    uint64_t    opnd;
     } InstHistory;
 
 /* Architectural constants */
@@ -154,9 +156,9 @@ typedef struct {
 #define FP_N_FR         27                              /* fraction bits */
 #define FP_FMASK        ((1u << FP_N_FR) - 1)
 #define FP_N_DFR        54                              /* double fraction bits */
-#define FP_DFMASK       ((((t_uint64) 1) << FP_N_DFR) - 1)
-#define FP_FNORM        (((t_uint64) 1u) << (FP_N_DFR - 1))     /* normalized bit */
-#define FP_FCRY         (((t_uint64) 1u) << FP_N_DFR)   /* fraction carry */
+#define FP_DFMASK       ((((uint64_t) 1) << FP_N_DFR) - 1)
+#define FP_FNORM        (((uint64_t) 1u) << (FP_N_DFR - 1))     /* normalized bit */
+#define FP_FCRY         (((uint64_t) 1u) << FP_N_DFR)   /* fraction carry */
 #define FP_BIAS         0200                            /* exponent bias */
 #define FP_V_CH         (FP_N_FR)                       /* exponent */
 #define FP_M_CH         0377                            /* SR char mask */
@@ -185,14 +187,14 @@ typedef struct {
 #define INST_V_4B       0
 #define INST_M_4B       017
 
-#define GET_OPD(x)      ((uint32) (((x) >> INST_V_OPD) & INST_M_OPD))
-#define GET_DEC(x)      ((uint32) (((x) >> INST_V_DEC) & INST_M_DEC))
-#define GET_OPC(x)      (((uint32) (((x) >> INST_V_OPC) & INST_M_OPC)) | \
+#define GET_OPD(x)      ((uint32_t) (((x) >> INST_V_OPD) & INST_M_OPD))
+#define GET_DEC(x)      ((uint32_t) (((x) >> INST_V_DEC) & INST_M_DEC))
+#define GET_OPC(x)      (((uint32_t) (((x) >> INST_V_OPC) & INST_M_OPC)) | \
                      (((x) & SIGN)? 01000: 0))
 #define TST_IND(x)      (((x) & INST_IND) == INST_IND)
-#define GET_CCNT(x)     ((uint32) (((x) >> INST_V_CCNT) & INST_M_CCNT))
-#define GET_VCNT(x)     ((uint32) (((x) >> INST_V_VCNT) & INST_M_VCNT))
-#define GET_TAG(x)      ((uint32) (((x) >> INST_V_TAG) & INST_M_TAG))
+#define GET_CCNT(x)     ((uint32_t) (((x) >> INST_V_CCNT) & INST_M_CCNT))
+#define GET_VCNT(x)     ((uint32_t) (((x) >> INST_V_VCNT) & INST_M_VCNT))
+#define GET_TAG(x)      ((uint32_t) (((x) >> INST_V_TAG) & INST_M_TAG))
 
 /* Instruction decode flags */
 
@@ -229,8 +231,8 @@ typedef struct {
 /* Device information block */
 
 typedef struct {
-    t_stat              (*chsel)(uint32 ch, uint32 sel, uint32 u);
-    t_stat              (*write)(uint32 ch, t_uint64 val, uint32 flags);
+    t_stat              (*chsel)(uint32_t ch, uint32_t sel, uint32_t u);
+    t_stat              (*write)(uint32_t ch, uint64_t val, uint32_t flags);
     } DIB;
 
 /* BCD digits */
@@ -441,8 +443,8 @@ typedef struct {
 #define U_M_CH          077
 #define U_V_UNIT        0
 #define U_M_UNIT        0777
-#define GET_U_CH(x)     (((((uint32) (x)) >> U_V_CH) & U_M_CH) - 1)
-#define GET_U_UNIT(x)   ((((uint32) (x)) >> U_V_UNIT) & U_M_UNIT)
+#define GET_U_CH(x)     (((((uint32_t) (x)) >> U_V_CH) & U_M_CH) - 1)
+#define GET_U_UNIT(x)   ((((uint32_t) (x)) >> U_V_UNIT) & U_M_UNIT)
 
 #define U_MTBCD         0201                            /* BCD tape */
 #define U_MTBIN         0221                            /* binary tape */
@@ -471,53 +473,53 @@ typedef struct {
 #define ReadP(p)        M[p]
 #define WriteP(p,d)     M[p] = d
 
-void cpu_ent_hist (uint32 pc, uint32 ea, t_uint64 ir, t_uint64 opnd);
-void op_add (t_uint64 sr);
-void op_mpy (t_uint64 ac, t_uint64 sr, uint32 sc);
-bool op_div (t_uint64 sr, uint32 sc);
-uint32 op_fad (t_uint64 sr, bool norm);
-uint32 op_fmp (t_uint64 sr, bool norm);
-uint32 op_fdv (t_uint64 sr);
-uint32 op_dfad (t_uint64 shi, t_uint64 slo, bool norm);
-uint32 op_dfmp (t_uint64 shi, t_uint64 slo, bool norm);
-uint32 op_dfdv (t_uint64 shi, t_uint64 slo);
-void op_als (uint32 ea);
-void op_ars (uint32 ea);
-void op_lls (uint32 ea);
-void op_lrs (uint32 ea);
-void op_lgl (uint32 ea);
-void op_lgr (uint32 ea);
-t_stat op_pse (uint32 ea);
-t_stat op_mse (uint32 ea);
-t_stat ch_show_chan (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat ch6_end_nds (uint32 ch);
-uint32 ch6_set_flags (uint32 ch, uint32 unit, uint32 flags);
-t_stat ch6_err_disc (uint32 ch, uint32 unit, uint32 flags);
-t_stat ch6_req_rd (uint32 ch, uint32 unit, t_uint64 val, uint32 flags);
-void ch6_req_wr (uint32 ch, uint32 unit);
-bool ch6_qconn (uint32 ch, uint32 unit);
-t_stat ch_op_ds (uint32 ch, uint32 ds, uint32 unit);
-t_stat ch_op_nds (uint32 ch, uint32 nds, uint32 unit);
-t_stat ch_op_start (uint32 ch, uint32 clc, bool reset);
-t_stat ch_op_store (uint32 ch, t_uint64 *dat);
-t_stat ch_op_store_diag (uint32 ch, t_uint64 *dat);
-t_stat ch_op_reset (uint32 ch, bool ch7909);
-t_stat ch_proc (uint32 ch);
-uint32 chtr_eval (uint32 *decr);
-t_stat ch9_req_rd (uint32 ch, t_uint64 val);
-void ch9_set_atn (uint32 ch);
-void ch9_set_ioc (uint32 ch);
-void ch9_set_end (uint32 ch, uint32 ireq);
-bool ch9_qconn (uint32 ch);
+void cpu_ent_hist (uint32_t pc, uint32_t ea, uint64_t ir, uint64_t opnd);
+void op_add (uint64_t sr);
+void op_mpy (uint64_t ac, uint64_t sr, uint32_t sc);
+bool op_div (uint64_t sr, uint32_t sc);
+uint32_t op_fad (uint64_t sr, bool norm);
+uint32_t op_fmp (uint64_t sr, bool norm);
+uint32_t op_fdv (uint64_t sr);
+uint32_t op_dfad (uint64_t shi, uint64_t slo, bool norm);
+uint32_t op_dfmp (uint64_t shi, uint64_t slo, bool norm);
+uint32_t op_dfdv (uint64_t shi, uint64_t slo);
+void op_als (uint32_t ea);
+void op_ars (uint32_t ea);
+void op_lls (uint32_t ea);
+void op_lrs (uint32_t ea);
+void op_lgl (uint32_t ea);
+void op_lgr (uint32_t ea);
+t_stat op_pse (uint32_t ea);
+t_stat op_mse (uint32_t ea);
+t_stat ch_show_chan (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat ch6_end_nds (uint32_t ch);
+uint32_t ch6_set_flags (uint32_t ch, uint32_t unit, uint32_t flags);
+t_stat ch6_err_disc (uint32_t ch, uint32_t unit, uint32_t flags);
+t_stat ch6_req_rd (uint32_t ch, uint32_t unit, uint64_t val, uint32_t flags);
+void ch6_req_wr (uint32_t ch, uint32_t unit);
+bool ch6_qconn (uint32_t ch, uint32_t unit);
+t_stat ch_op_ds (uint32_t ch, uint32_t ds, uint32_t unit);
+t_stat ch_op_nds (uint32_t ch, uint32_t nds, uint32_t unit);
+t_stat ch_op_start (uint32_t ch, uint32_t clc, bool reset);
+t_stat ch_op_store (uint32_t ch, uint64_t *dat);
+t_stat ch_op_store_diag (uint32_t ch, uint64_t *dat);
+t_stat ch_op_reset (uint32_t ch, bool ch7909);
+t_stat ch_proc (uint32_t ch);
+uint32_t chtr_eval (uint32_t *decr);
+t_stat ch9_req_rd (uint32_t ch, uint64_t val);
+void ch9_set_atn (uint32_t ch);
+void ch9_set_ioc (uint32_t ch);
+void ch9_set_end (uint32_t ch, uint32_t ireq);
+bool ch9_qconn (uint32_t ch);
 void ch_set_map (void);
 bool ch_qidle (void);
-t_stat ch_bkpt (uint32 ch, uint32 clc);
-uint32 chrono_rd (uint8 *buf, uint32 bufsiz);
+t_stat ch_bkpt (uint32_t ch, uint32_t clc);
+uint32_t chrono_rd (uint8_t *buf, uint32_t bufsiz);
 t_stat binloader (FILE *fd, const char *file, int loadpt);
-t_uint64 drm_sdc (uint32 ch);
+uint64_t drm_sdc (uint32_t ch);
 
-extern const uint32 col_masks[12];
-extern const t_uint64 bit_masks[36];
+extern const uint32_t col_masks[12];
+extern const uint64_t bit_masks[36];
 extern const char nine_to_ascii_a[64];
 extern const char nine_to_ascii_h[64];
 extern const char ascii_to_nine[128];
@@ -526,9 +528,9 @@ extern const char bcd_to_ascii_a[64];
 extern const char bcd_to_ascii_h[64];
 extern const char bcd_to_pca[64];
 extern const char bcd_to_pch[64];
-extern const uint32 bcd_to_colbin[64];
+extern const uint32_t bcd_to_colbin[64];
 
-extern uint32 PC;
-extern uint32 ind_ioc;
+extern uint32_t PC;
+extern uint32_t ind_ioc;
 
 #endif

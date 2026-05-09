@@ -83,6 +83,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #ifndef NUM_DEVS_DT
 #define NUM_DEVS_DT 0
@@ -125,7 +127,7 @@
 #define D18_LPERB       (DT_HTLIN + (D18_BSIZE * DT_WSIZE) + DT_HTLIN)
 #define D18_FWDEZ       (DT_EZLIN + (D18_LPERB * D18_TSIZE))
 #define D18_CAPAC       (D18_TSIZE * D18_BSIZE)     /* tape capacity */
-#define D11_FILSIZ      (D18_CAPAC * sizeof (int16))
+#define D11_FILSIZ      (D18_CAPAC * sizeof (int16_t))
 
 /* 12b DECtape constants */
 
@@ -137,7 +139,7 @@
 #define D8_CAPAC        (D8_TSIZE * D8_BSIZE)       /* tape capacity */
 
 #define D8_NBSIZE       ((D8_BSIZE * D18_WSIZE) / D8_WSIZE)
-#define D8_FILSIZ       (D8_NBSIZE * D8_TSIZE * sizeof (int16))
+#define D8_FILSIZ       (D8_NBSIZE * D8_TSIZE * sizeof (int16_t))
 
 /* This controller */
 
@@ -157,7 +159,7 @@
 #define DT_LIN2WD(p,u)  ((DT_LIN2OF (p,u) - DT_HTLIN) / DT_WSIZE)
 #define DT_BLK2LN(p,u)  (((p) * DTU_LPERB (u)) + DT_EZLIN)
 #define DT_QREZ(u)      (((u)->pos) < DT_EZLIN)
-#define DT_QFEZ(u)      (((u)->pos) >= ((uint32) DTU_FWDEZ (u)))
+#define DT_QFEZ(u)      (((u)->pos) >= ((uint32_t) DTU_FWDEZ (u)))
 #define DT_QEZ(u)       (DT_QREZ (u) || DT_QFEZ (u))
 
 /* Status register A */
@@ -268,21 +270,21 @@
 
 #define WRITTEN       u6          /* Set when tape modified */
 
-int32 dtsa = 0;                                         /* status A */
+int32_t dtsa = 0;                                       /* status A */
 uint64 dtsb = 0;                                        /* status B */
 uint64 dtdb = 0;                                        /* data buffer */
 int dt_mpx_lvl;
 
-t_stat         dt_devio(uint32 dev, uint64 *data);
+t_stat         dt_devio(uint32_t dev, uint64 *data);
 t_stat         dt_svc (UNIT *uptr);
-t_stat         dt_boot(int32 unit_num, DEVICE * dptr);
+t_stat         dt_boot(int32_t unit_num, DEVICE * dptr);
 t_stat         dt_reset (DEVICE *dptr);
 t_stat         dt_attach (UNIT *uptr, const char *cptr);
 void           dt_flush (UNIT *uptr);
 t_stat         dt_detach (UNIT *uptr);
 #if MPX_DEV
-t_stat         dt_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc) ;
-t_stat         dt_show_mpx (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat         dt_set_mpx (UNIT *uptr, int32_t val, const char *cptr, void *desc) ;
+t_stat         dt_show_mpx (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 #endif
 
 
@@ -364,14 +366,14 @@ DEVICE dt_dev = {
     };
 
 /* IOT routines */
-t_stat dt_devio(uint32 dev, uint64 *data) {
+t_stat dt_devio(uint32_t dev, uint64 *data) {
      int      i;
 
      switch(dev & 07) {
      case CONI:
           *data = (uint64)dtsa;
           sim_debug(DEBUG_CONI, &dt_dev, "DTA %03o CONI %06o PC=%o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
           break;
 
      case CONO:
@@ -382,7 +384,7 @@ t_stat dt_devio(uint32 dev, uint64 *data) {
           dtsa |= (*data & 0777);
           dtsb = 0;
           sim_debug(DEBUG_CONO, &dt_dev, "DTA %03o CONO %06o PC=%o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
           /* Check bits in command register */
           if (*data & DTC_DESEL) {
               /* Stop all drives and clear drive unit */
@@ -528,7 +530,7 @@ t_stat dt_devio(uint32 dev, uint64 *data) {
               dtsb |= DTB_STOP;
 
           sim_debug(DEBUG_CONO, &dt_dev, "DTB %03o CONO %06o PC=%o DTSB=%012llo\n",
-               dev, (uint32)*data, PC, dtsb);
+               dev, (uint32_t)*data, PC, dtsb);
           break;
 
      case DATAI|4:
@@ -577,7 +579,7 @@ t_stat dt_svc (UNIT *uptr)
 {
    int        word;
    uint64     data = 0;
-   uint32     *fbuf = (uint32 *) uptr->filebuf;         /* file buffer */
+   uint32_t   *fbuf = (uint32_t *) uptr->filebuf;       /* file buffer */
    int        u = uptr-dt_unit;
    int        blk;
    int        off;
@@ -1067,10 +1069,10 @@ return SCPE_OK;
 
 /* Boot from given device */
 t_stat
-dt_boot(int32 unit_num, DEVICE * dptr)
+dt_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
-    uint32             *fbuf = (uint32 *) uptr->filebuf;    /* file buffer */
+    uint32_t           *fbuf = (uint32_t *) uptr->filebuf;  /* file buffer */
     uint64              word = 0;
     int                 off;
     int                 wc, addr;
@@ -1103,7 +1105,7 @@ dt_boot(int32 unit_num, DEVICE * dptr)
 
 #if MPX_DEV
 /* set MPX level number */
-t_stat dt_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dt_set_mpx (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1111,19 +1113,19 @@ t_stat dt_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 mpx;
+    int32_t mpx;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    mpx = (int32) get_uint (cptr, 8, 8, &r);
+    mpx = (int32_t) get_uint (cptr, 8, 8, &r);
     if (r != SCPE_OK)
         return r;
     dt_mpx_lvl = mpx;
     return SCPE_OK;
 }
 
-t_stat dt_show_mpx (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dt_show_mpx (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
    /* Generic show modifier signature.
       This implementation does not use every parameter. */
@@ -1169,10 +1171,10 @@ t_stat dt_reset (DEVICE *dptr)
 
 t_stat dt_attach (UNIT *uptr, const char *cptr)
 {
-    uint16 pdp8b[D8_NBSIZE];
-    uint16 pdp11b[D18_BSIZE];
-    uint32 ba, sz, k, *fbuf;
-    int32 u = uptr - dt_dev.units;
+    uint16_t pdp8b[D8_NBSIZE];
+    uint16_t pdp11b[D18_BSIZE];
+    uint32_t ba, sz, k, *fbuf;
+    int32_t u = uptr - dt_dev.units;
     t_stat r;
 
     r = attach_unit (uptr, cptr);                           /* attach */
@@ -1193,12 +1195,12 @@ t_stat dt_attach (UNIT *uptr, const char *cptr)
         }
     }
     uptr->capac = DTU_CAPAC (uptr);                         /* set capacity */
-    uptr->filebuf = calloc (uptr->capac, sizeof (uint32));
+    uptr->filebuf = calloc (uptr->capac, sizeof (uint32_t));
     if (uptr->filebuf == NULL) {                            /* can't alloc? */
         detach_unit (uptr);
         return SCPE_MEM;
     }
-    fbuf = (uint32 *) uptr->filebuf;                        /* file buffer */
+    fbuf = (uint32_t *) uptr->filebuf;                      /* file buffer */
     sim_printf ("%s%d: ", sim_dname (&dt_dev), u);
     if (uptr->flags & UNIT_8FMT)
         sim_printf ("12b format");
@@ -1209,23 +1211,23 @@ t_stat dt_attach (UNIT *uptr, const char *cptr)
     uptr->io_flush = dt_flush;
     if (uptr->flags & UNIT_8FMT) {                          /* 12b? */
         for (ba = 0; ba < uptr->capac; ) {                  /* loop thru file */
-            k = fxread (pdp8b, sizeof (uint16), D8_NBSIZE, uptr->fileref);
+            k = fxread (pdp8b, sizeof (uint16_t), D8_NBSIZE, uptr->fileref);
             if (k == 0)
                 break;
             for ( ; k < D8_NBSIZE; k++)
                 pdp8b[k] = 0;
             for (k = 0; k < D8_NBSIZE; k = k + 3) {         /* loop thru blk */
-                fbuf[ba] = ((uint32) (pdp8b[k] & 07777) << 6) |
-                    ((uint32) (pdp8b[k + 1] >> 6) & 077);
-                fbuf[ba + 1] = ((uint32) (pdp8b[k + 1] & 077) << 12) |
-                    ((uint32) pdp8b[k + 2] & 07777);
+                fbuf[ba] = ((uint32_t) (pdp8b[k] & 07777) << 6) |
+                    ((uint32_t) (pdp8b[k + 1] >> 6) & 077);
+                fbuf[ba + 1] = ((uint32_t) (pdp8b[k + 1] & 077) << 12) |
+                    ((uint32_t) pdp8b[k + 2] & 07777);
                 ba = ba + 2;                                /* end blk loop */
             }
         }                                                   /* end file loop */
         uptr->hwmark = ba;
     } else if (uptr->flags & UNIT_11FMT) {                  /* 16b? */
         for (ba = 0; ba < uptr->capac; ) {                  /* loop thru file */
-            k = fxread (pdp11b, sizeof (uint16), D18_BSIZE, uptr->fileref);
+            k = fxread (pdp11b, sizeof (uint16_t), D18_BSIZE, uptr->fileref);
             if (k == 0)
                 break;
             for ( ; k < D18_BSIZE; k++)
@@ -1234,7 +1236,7 @@ t_stat dt_attach (UNIT *uptr, const char *cptr)
                 fbuf[ba++] = pdp11b[k];
             }
     uptr->hwmark = ba;
-    } else uptr->hwmark = fxread (uptr->filebuf, sizeof (uint32),
+    } else uptr->hwmark = fxread (uptr->filebuf, sizeof (uint32_t),
         uptr->capac, uptr->fileref);
     uptr->flags = uptr->flags | UNIT_BUF;                   /* set buf flag */
     uptr->pos = DT_EZLIN;                                   /* beyond leader */
@@ -1253,13 +1255,13 @@ t_stat dt_attach (UNIT *uptr, const char *cptr)
 
 void dt_flush (UNIT* uptr)
 {
-    uint16 pdp8b[D8_NBSIZE];
-    uint16 pdp11b[D18_BSIZE];
-    uint32 ba, k, *fbuf;
+    uint16_t pdp8b[D8_NBSIZE];
+    uint16_t pdp11b[D18_BSIZE];
+    uint32_t ba, k, *fbuf;
 
     if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO) == 0)) {   /* any data? */
         rewind (uptr->fileref);                             /* start of file */
-        fbuf = (uint32 *) uptr->filebuf;                    /* file buffer */
+        fbuf = (uint32_t *) uptr->filebuf;                  /* file buffer */
         if (uptr->flags & UNIT_8FMT) {                      /* 12b? */
             for (ba = 0; ba < uptr->hwmark; ) {             /* loop thru file */
                 for (k = 0; k < D8_NBSIZE; k = k + 3) {     /* loop blk */
@@ -1269,7 +1271,7 @@ void dt_flush (UNIT* uptr)
                     pdp8b[k + 2] = fbuf[ba + 1] & 07777;
                     ba = ba + 2;
                 }                                           /* end loop blk */
-                fxwrite (pdp8b, sizeof (uint16), D8_NBSIZE, uptr->fileref);
+                fxwrite (pdp8b, sizeof (uint16_t), D8_NBSIZE, uptr->fileref);
                 if (ferror (uptr->fileref))
                     break;
             }                                               /* end loop file */
@@ -1277,12 +1279,12 @@ void dt_flush (UNIT* uptr)
             for (ba = 0; ba < uptr->hwmark; ) {             /* loop thru file */
                 for (k = 0; k < D18_BSIZE; k++)             /* loop blk */
                     pdp11b[k] = fbuf[ba++] & 0177777;
-                fxwrite (pdp11b, sizeof (uint16), D18_BSIZE, uptr->fileref);
+                fxwrite (pdp11b, sizeof (uint16_t), D18_BSIZE, uptr->fileref);
                 if (ferror (uptr->fileref))
                     break;
             }                                               /* end loop file */
         }                                                   /* end if 16b */
-        else fxwrite (uptr->filebuf, sizeof (uint32),       /* write file */
+        else fxwrite (uptr->filebuf, sizeof (uint32_t),     /* write file */
             uptr->hwmark, uptr->fileref);
         if (ferror (uptr->fileref))
             sim_perror ("I/O error");
@@ -1301,7 +1303,7 @@ void dt_flush (UNIT* uptr)
 
 t_stat dt_detach (UNIT* uptr)
 {
-    int32 u = uptr - dt_dev.units;
+    int32_t u = uptr - dt_dev.units;
 
     if (!(uptr->flags & UNIT_ATT))
         return SCPE_OK;

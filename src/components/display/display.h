@@ -33,6 +33,8 @@
  * from the authors.
  */
 
+#include "sim_types.h"
+
 /*
  * known display types
  */
@@ -220,20 +222,20 @@ extern unsigned long spacewar_switches;
 /*
  * The last character typed in the display window.
  */
-extern unsigned char display_last_char;
+extern uchar_t display_last_char;
 
 /*
  * light pen "tip switch" activated (for VS60 emulation etc.)
  * should only be set from "driver" (window system layer)
  */
-extern unsigned char display_lp_sw;
+extern uchar_t display_lp_sw;
 
 /*
  * deactivates light pen
  * (SIMH DR11-C simulation when initialized sets this and
  * then reports mouse coordinates as Talos digitizer data)
  */
-extern unsigned char display_tablet;
+extern uchar_t display_tablet;
 
 /*
  * users of this library are expected to provide these calls.

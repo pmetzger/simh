@@ -49,6 +49,7 @@
 
 #include "nova_defs.h"
 #include <math.h>
+#include <stdint.h>
 
 #define UNIT_V_AUTO     (UNIT_V_UF + 0)                 /* autosize */
 #define UNIT_V_PLAT     (UNIT_V_UF + 1)                 /* #platters - 1 */
@@ -86,7 +87,7 @@
    (indexed by track<2:0>'sector)
 */
 
-static const int32 sector_map[] = {
+static const int32_t sector_map[] = {
     0, 2, 4, 6, 1, 3, 5, 7, 1, 3, 5, 7, 2, 4, 6, 0,
     2, 4, 6, 0, 3, 5, 7, 1, 3, 5, 7, 1, 4, 6, 0, 2,
     4, 6, 0, 2, 5, 7, 1, 3, 5, 7, 1, 3, 6, 0, 2, 4,
@@ -97,24 +98,24 @@ static const int32 sector_map[] = {
 #define GET_SECTOR(x)   ((int) fmod (sim_gtime() / ((double) (x)), \
                         ((double) DSK_NUMSC)))
 
-extern uint16 M[];
+extern uint16_t M[];
 extern UNIT cpu_unit;
-extern int32 int_req, dev_busy, dev_done, dev_disable;
-extern int32 saved_PC, SR, AMASK;
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
+extern int32_t saved_PC, SR, AMASK;
 
-int32 dsk_stat = 0;                                     /* status register */
-int32 dsk_da = 0;                                       /* disk address */
-int32 dsk_ma = 0;                                       /* memory address */
-int32 dsk_wlk = 0;                                      /* wrt lock switches */
-int32 dsk_stopioe = 0;                                  /* stop on error */
-int32 dsk_time = 100;                                   /* time per sector */
+int32_t dsk_stat = 0;                                   /* status register */
+int32_t dsk_da = 0;                                     /* disk address */
+int32_t dsk_ma = 0;                                     /* memory address */
+int32_t dsk_wlk = 0;                                    /* wrt lock switches */
+int32_t dsk_stopioe = 0;                                /* stop on error */
+int32_t dsk_time = 100;                                 /* time per sector */
 
-int32 dsk (int32 pulse, int32 code, int32 AC);
+int32_t dsk (int32_t pulse, int32_t code, int32_t AC);
 t_stat dsk_svc (UNIT *uptr);
 t_stat dsk_reset (DEVICE *dptr);
-t_stat dsk_boot (int32 unitno, DEVICE *dptr);
+t_stat dsk_boot (int32_t unitno, DEVICE *dptr);
 t_stat dsk_attach (UNIT *uptr, const char *cptr);
-t_stat dsk_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat dsk_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* DSK data structures
 
@@ -168,9 +169,9 @@ DEVICE dsk_dev = {
 
 /* IOT routine */
 
-int32 dsk (int32 pulse, int32 code, int32 AC)
+int32_t dsk (int32_t pulse, int32_t code, int32_t AC)
 {
-int32 t, rval;
+int32_t t, rval;
 
 rval = 0;
 switch (code) {                                         /* decode IR<5:7> */
@@ -212,7 +213,7 @@ if ((pulse == iopP) && ((dsk_wlk >> GET_DISK (dsk_da)) & 1)) {  /* wrt lock? */
     }
 
 if (pulse & 1) {                                        /* read or write? */
-    if (((uint32) (dsk_da * DSK_NUMWD)) >= dsk_unit.capac) { /* inv sev? */
+    if (((uint32_t) (dsk_da * DSK_NUMWD)) >= dsk_unit.capac) { /* inv sev? */
         DEV_SET_DONE( INT_DSK ) ;
         DEV_UPDATE_INTR ;
         dsk_stat = DSKS_ERR + DSKS_NSD;                 /* set status */
@@ -234,8 +235,8 @@ return rval;
 
 t_stat dsk_svc (UNIT *uptr)
 {
-int32 i, da, pa;
-int16 *fbuf = (int16 *) uptr->filebuf;
+int32_t i, da, pa;
+int16_t *fbuf = (int16_t *) uptr->filebuf;
 
 DEV_CLR_BUSY( INT_DSK ) ;
 DEV_SET_DONE( INT_DSK ) ;
@@ -260,7 +261,7 @@ else if (uptr->FUNC == iopP) {                          /* write? */
         pa = MapAddr (0, (dsk_ma + i) & AMASK);         /* map address */
         fbuf[da + i] = M[pa];
         }
-    if (((uint32) (da + i)) >= uptr->hwmark)            /* past end? */
+    if (((uint32_t) (da + i)) >= uptr->hwmark)          /* past end? */
         uptr->hwmark = da + i + 1;                      /* upd hwmark */
     dsk_ma = (dsk_ma + DSK_NUMWD + 3) & AMASK;
     }
@@ -290,16 +291,16 @@ return SCPE_OK;
 /* Bootstrap routine */
 
 #define BOOT_START  0375
-#define BOOT_LEN    (sizeof (boot_rom) / sizeof (int32))
+#define BOOT_LEN    (sizeof (boot_rom) / sizeof (int32_t))
 
-static const int32 boot_rom[] = {
+static const int32_t boot_rom[] = {
       0062677                     /* IORST                ; reset the I/O system  */
     , 0060120                     /* NIOS DSK             ; start the disk        */
     , 0000377                     /* JMP 377              ; wait for the world    */
     } ;
 
 
-t_stat dsk_boot (int32 unitno, DEVICE *dptr)
+t_stat dsk_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -308,7 +309,7 @@ t_stat dsk_boot (int32 unitno, DEVICE *dptr)
 
 size_t i;
 
-for (i = 0; i < BOOT_LEN; i++) M[BOOT_START + i] = (uint16) boot_rom[i];
+for (i = 0; i < BOOT_LEN; i++) M[BOOT_START + i] = (uint16_t) boot_rom[i];
 saved_PC = BOOT_START;
 SR = 0100000 + DEV_DSK;
 return SCPE_OK;
@@ -319,8 +320,8 @@ return SCPE_OK;
 
 t_stat dsk_attach (UNIT *uptr, const char *cptr)
 {
-uint32 sz, p;
-uint32 ds_bytes = DSK_DKSIZE * sizeof (int16);
+uint32_t sz, p;
+uint32_t ds_bytes = DSK_DKSIZE * sizeof (int16_t);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;
@@ -335,7 +336,7 @@ return attach_unit (uptr, cptr);
 
 /* Change disk size */
 
-t_stat dsk_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dsk_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

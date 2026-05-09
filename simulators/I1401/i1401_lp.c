@@ -36,17 +36,19 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i1401_defs.h"
 
-extern uint8 M[];
-extern int32 iochk, ind[64];
+extern uint8_t M[];
+extern int32_t iochk, ind[64];
 
-int32 cct[CCT_LNT] = { 03 };
-int32 cctlnt = 66, cctptr = 0, lines = 0, lflag = 0;
+int32_t cct[CCT_LNT] = { 03 };
+int32_t cctlnt = 66, cctptr = 0, lines = 0, lflag = 0;
 
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *cptr);
-t_stat space (int32 lines, int32 lflag);
+t_stat space (int32_t lines, int32_t lflag);
 t_stat lpt_puts (const char *buf);
 
 extern void inq_puts (const char *buf);
@@ -115,9 +117,9 @@ DEVICE lpt_dev = {
         S       =       suppress automatic newline
 */
 
-t_stat write_line (int32 ilnt, int32 mod)
+t_stat write_line (int32_t ilnt, int32_t mod)
 {
-int32 i, t, wm, sup;
+int32_t i, t, wm, sup;
 const char *bcd2asc;
 t_stat r;
 static char lbuf[LPT_WIDTH + 1];                        /* + null */
@@ -159,9 +161,9 @@ return r;
         <3:0>   =       number of lines or channel number
 */
 
-t_stat carriage_control (int32 mod)
+t_stat carriage_control (int32_t mod)
 {
-int32 i, action;
+int32_t i, action;
 
 action = (mod & ZONE) >> V_ZONE;                        /* get mod type */
 mod = mod & DIGIT;                                      /* isolate value */
@@ -214,9 +216,9 @@ return SCPE_OK;
         sflag   =       skip (true) or space (false)
 */
 
-t_stat space (int32 count, int32 sflag)
+t_stat space (int32_t count, int32_t sflag)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 cctptr = (cctptr + count) % cctlnt;                     /* adv cct, mod lnt */

@@ -102,6 +102,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "i650_defs.h"
 
 #define UNIT_V_MSIZE    (UNIT_V_UF + 0)
@@ -118,26 +120,26 @@
 #define OPTION_TLE      (1 << (UNIT_V_CPUMODEL + 5))
 #define OPTION_1DSKARM  (1 << (UNIT_V_CPUMODEL + 6))
 
-t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw);
-t_stat              cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw);
+t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32_t sw);
+t_stat              cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32_t sw);
 t_stat              cpu_reset(DEVICE * dptr);
-t_stat              cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc);
-t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat              cpu_set_size(UNIT * uptr, int32_t val, const char *cptr, void *desc);
+t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 t_stat              cpu_svc (UNIT *uptr);
 const char          *cpu_description (DEVICE *dptr);
 
 // DRUM Memory
-t_int64             DRUM[MAXDRUMSIZE]                        = {0};
+int64_t             DRUM[MAXDRUMSIZE]                        = {0};
 int                 DRUM_NegativeZeroFlag[MAXDRUMSIZE]       = {0};
 char                DRUM_Symbolic_Buffer[MAXDRUMSIZE * 80]   = {0}; // does not exists on real hw. Used to keep symbolic info
 char                IAS_Symbolic_Buffer[60 * 80]             = {0}; // does not exists on real hw. Used to keep symbolic info
 
 // IO Synchronizer for card read-punch buffer
-t_int64             IOSync[10]                               = {0};
+int64_t             IOSync[10]                               = {0};
 int                 IOSync_NegativeZeroFlag[10]              = {0};
 
 // IAS Memory
-t_int64             IAS[60]                                  = {0};
+int64_t             IAS[60]                                  = {0};
 int                 IAS_NegativeZeroFlag[60]                 = {0};
 int                 IAS_TimingRing                           = 0;
 
@@ -148,25 +150,25 @@ int InterLockCount[8]                                        = {0};
 int DrumAddr;
 
 // increment umber of word counts elapsed from starting of simulator -> this is the global time measurement
-t_int64 GlobalWordTimeCount=1;
+int64_t GlobalWordTimeCount=1;
 
 
 // cpu registers
-uint16              IC;                          // Added register not part of cpu. Has addr of current intr in execution, just for displaying purposes. IBM 650 has no program counter
-uint16              PROP;                        // Added register not part of cpu. Has operation code of current intr in execution, just for scp scripting purposes. Contains the two higher digits of PR register
-t_int64             ACC[2];                      /* lower, upper accumulator. 10 digits (=one word) each*/
-t_int64             DIST;                        /* ditributor. 10 digits */
-t_int64             CSW = 0;                     /* Console Switches, 10 digits */
-t_int64             PR;                          /* Program Register: hold current instr in execution, 10 digits*/
-uint16              AR;                          /* Address Register: address references to drum */
-uint8               OV;                          /* Overflow flag */
-uint8               CSWProgStop     = 1;         /* Console programmed stop switch */
-uint8               CSWOverflowStop = 0;         /* Console stop on overflow switch */
-uint8 HalfCycle          = 0;                    // set to 0 for normal run, =1 to execute I-Half-cycle, =2 to execute D-half-cycle
+uint16_t            IC;                          // Added register not part of cpu. Has addr of current intr in execution, just for displaying purposes. IBM 650 has no program counter
+uint16_t            PROP;                        // Added register not part of cpu. Has operation code of current intr in execution, just for scp scripting purposes. Contains the two higher digits of PR register
+int64_t             ACC[2];                      /* lower, upper accumulator. 10 digits (=one word) each*/
+int64_t             DIST;                        /* ditributor. 10 digits */
+int64_t             CSW = 0;                     /* Console Switches, 10 digits */
+int64_t             PR;                          /* Program Register: hold current instr in execution, 10 digits*/
+uint16_t            AR;                          /* Address Register: address references to drum */
+uint8_t             OV;                          /* Overflow flag */
+uint8_t             CSWProgStop     = 1;         /* Console programmed stop switch */
+uint8_t             CSWOverflowStop = 0;         /* Console stop on overflow switch */
+uint8_t HalfCycle          = 0;                  // set to 0 for normal run, =1 to execute I-Half-cycle, =2 to execute D-half-cycle
 int ProgStopFlag         = 0;                    // set to 1 if programmed stop was the previous inst executed
 int AccNegativeZeroFlag  = 0;                    // set to 1 if acc has a negative zero
 int DistNegativeZeroFlag = 0;                    // set to 1 if distributor has a negative zero
-int16               IR[3];                       // Index registers. Are 4 digits as AR register, but signed
+int16_t             IR[3];                       // Index registers. Are 4 digits as AR register, but signed
 
 /* CPU data structures
 
@@ -264,7 +266,7 @@ static int IsDrumAddrOk(int AR, int ValidDA)
 }
 
 // return 0 if write addr invalid
-int WriteAddr(int AR, t_int64 d, int NegZero)
+int WriteAddr(int AR, int64_t d, int NegZero)
 {
     if (d) NegZero = 0; // sanity check on Minus Zero
     if ((STOR) && (AR >= 9000) && (AR <= 9059)) {   // IAS is available at addr 9000-9059
@@ -283,7 +285,7 @@ int WriteAddr(int AR, t_int64 d, int NegZero)
 }
 
 // return 0 if read addr invalid
-int ReadAddr(int AR, t_int64 * d, int * NegZero)
+int ReadAddr(int AR, int64_t * d, int * NegZero)
 {
     int neg;
 
@@ -326,7 +328,7 @@ int ReadAddr(int AR, t_int64 * d, int * NegZero)
 // Return digit going out of acc (with sign)
 static int ShiftAcc(int direction)
 {
-    t_int64 a0, a1;
+    int64_t a0, a1;
     int neg = 0;
     int n, m;
 
@@ -338,11 +340,11 @@ static int ShiftAcc(int direction)
     if (direction > 0) {                          // shift left
         n = Shift_Digits(&a1, 1);                 // n = Upper Acc high digit shifted out on the left
         m = Shift_Digits(&a0, 1);                 // m = intermediate digit that goes from one acc to the other
-        a1 = a1 + (t_int64) m;
+        a1 = a1 + (int64_t) m;
     } else if (direction < 0) {                   // shift right
         m = Shift_Digits(&a1, -1);                // m = intermediate digit that goes from one acc to the other
         n = Shift_Digits(&a0, -1);                // n = Lower Acc units digit shifted out on the right
-        a0 = a0 + (t_int64) m * (1000000000L);
+        a0 = a0 + (int64_t) m * (1000000000L);
     }
     if (neg) {a1=-a1; a0=-a0; n=-n;}
 
@@ -357,13 +359,13 @@ static int ShiftAcc(int direction)
 //                      mmmmmmm = mantissa
 //                      cc      = modified characteristic (== exponent)
 // get modified characteristic of float d
-static int GetExp(t_int64 d)
+static int GetExp(int64_t d)
 {
     return (AbsWord(d) % 100);
 }
 
 // set modified characteristic of float d
-static t_int64 SetExp(t_int64 d, int exp)
+static int64_t SetExp(int64_t d, int exp)
 {
     int neg = 0;
 
@@ -431,7 +433,7 @@ static int AddFloatToAcc(int bSubstractFlag, int bAbsFlag, int bNormalizeFlag)
 {
     int nSteps;
     int n, neg;
-    t_int64 d;
+    int64_t d;
 
     AccNegativeZeroFlag = 0;
     nSteps = 0;
@@ -512,7 +514,7 @@ int bAccNegComplement; // flag to signals acc has complemented a negative ass (=
                        // needed to compute execution cycles taken by the intruction
 
 // add to accumulator, set Overflow
-static void AddToAcc(t_int64 a1, t_int64 a0, int bSetOverflow)
+static void AddToAcc(int64_t a1, int64_t a0, int bSetOverflow)
 {
     AccNegativeZeroFlag = 0;
     bAccNegComplement = 0;
@@ -544,7 +546,7 @@ static void AddToAcc(t_int64 a1, t_int64 a0, int bSetOverflow)
 }
 
 
-static t_int64 SetDA(t_int64 d, int DA)
+static int64_t SetDA(int64_t d, int DA)
 {
     int neg = 0;
 
@@ -558,15 +560,15 @@ static t_int64 SetDA(t_int64 d, int DA)
     nn = Shift_Digits(&d, 4);          // discard current DA
     IA = Shift_Digits(&d, 4);
     // rebuild word with new DA
-    d = (t_int64) op * D8 +
-        (t_int64) DA * D4 +
-        (t_int64) IA;
+    d = (int64_t) op * D8 +
+        (int64_t) DA * D4 +
+        (int64_t) IA;
     if (neg) d=-d;
     return d;
 }
 
 // set last 4 digits in d with IA contents
-static t_int64 SetIA(t_int64 d, int IA)
+static int64_t SetIA(int64_t d, int IA)
 {
     int neg = 0;
 
@@ -579,7 +581,7 @@ static t_int64 SetIA(t_int64 d, int IA)
 }
 
 // set last 2 digits in d with IA contents
-static t_int64 SetIA2(t_int64 d, int n)
+static int64_t SetIA2(int64_t d, int n)
 {
     int neg = 0;
 
@@ -670,7 +672,7 @@ static int ApplyIndexRegisterModel4(int * DA, int * IA)
 // input: prior to call DecodeOpcode PR cpu register must be loaded with the word to decode
 // output: decoded instruction as opcode, DA, IA parts
 //         returns opname: points to opcode name or NULL if undef opcode
-const char * DecodeOpcode(t_int64 d, int * opcode, int * DA, int * IA)
+const char * DecodeOpcode(int64_t d, int * opcode, int * DA, int * IA)
 {
     const char * opname;
     int opt;
@@ -701,7 +703,7 @@ const char * DecodeOpcode(t_int64 d, int * opcode, int * DA, int * IA)
 static int TransferIAS(const char * dir, int bEOB)
 {
     int n, f0, t0, f1, t1, ec, ZeroNeg;
-    t_int64 d;
+    int64_t d;
     char s[6];
 
     n = f0 = t0 = f1 = t1 = ec = 0;
@@ -756,7 +758,7 @@ static t_stat ExecOpcode(int opcode, int DA,
                   int * CpuStepsUsed)
 {
     t_stat reason = 0;
-    t_int64 d;
+    int64_t d;
     int i, n, neg, SvOV;
     int bUsingIAS;
 
@@ -1118,14 +1120,14 @@ static t_stat ExecOpcode(int opcode, int DA,
             while (--n > 0) d = d / 10;
             d = d % 10;
             if (d == 8) {
-               sim_debug(DEBUG_DETAIL, &cpu_dev, "Digit is %d -> Branch Taken\n", (int32) d);
+               sim_debug(DEBUG_DETAIL, &cpu_dev, "Digit is %d -> Branch Taken\n", (int32_t) d);
                *bBranchToDA = 1; // IA (next instr addr) will be taken from DA. Branch taken
             } else if (d == 9) {
                // IA kept as already set. Branch not taken
-               sim_debug(DEBUG_DETAIL, &cpu_dev, "Digit is %d -> Branch Not Taken\n", (int32) d);
+               sim_debug(DEBUG_DETAIL, &cpu_dev, "Digit is %d -> Branch Not Taken\n", (int32_t) d);
             } else {
                // any other value for tested digit -> stop
-               sim_debug(DEBUG_EXP, &cpu_dev, "Digit is %d -> Branch ERROR\n", (int32) d);
+               sim_debug(DEBUG_EXP, &cpu_dev, "Digit is %d -> Branch ERROR\n", (int32_t) d);
                reason = STOP_ERRO;
                break;
             }
@@ -1852,7 +1854,7 @@ sim_instr(void)
                                            IC, opcode, (opname == NULL) ? "???":opname, DA, IA,
                                            (Symbolic_Buffer) ? "            symb: ": "",
                                            (Symbolic_Buffer) ? Symbolic_Buffer     : "");
-            PROP = (uint16) opcode;
+            PROP = (uint16_t) opcode;
             if (opname == NULL) {
                 reason = STOP_UUO;
                 goto end_of_cycle;
@@ -1867,7 +1869,7 @@ sim_instr(void)
                 }
                 if (nIndexsApplied > 0) {
                     CpuStepsUsed += nIndexsApplied;
-                    PR = (t_int64) opcode * D8 + (t_int64) DA * D4 + (t_int64) IA;
+                    PR = (int64_t) opcode * D8 + (int64_t) DA * D4 + (int64_t) IA;
                     sim_debug(DEBUG_CMD, &cpu_dev, "Exec %04d: %02d %-6s %04d %04d %s\n",
                                            IC, opcode, (opname == NULL) ? "???":opname, DA, IA,
                                            " (developed addr)");
@@ -2055,14 +2057,14 @@ cpu_reset(DEVICE * dptr)
 /* Memory examine */
 
 t_stat
-cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
+cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic examine signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) sw;
 
-    t_int64  d;
+    int64_t  d;
     int NegZero;
     t_value val;
 
@@ -2084,14 +2086,14 @@ cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
 /* Memory deposit */
 
 t_stat
-cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
+cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic deposit signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) sw;
 
-    t_int64 d;
+    int64_t d;
     int NegZero;
 
     if (val == NEGZERO_value) {
@@ -2109,7 +2111,7 @@ cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
 }
 
 t_stat
-cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
+cpu_set_size(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -2118,8 +2120,8 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
     (void) desc;
 
     int                 mc = 0;
-    uint32              i;
-    int32               v;
+    uint32_t            i;
+    int32_t             v;
 
     v = val >> UNIT_V_MSIZE;
     if (v == 0) {v = 1000;} else
@@ -2147,7 +2149,7 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr) {
+cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr) {
     /* Generic help signature.
        This implementation does not use every parameter. */
     (void) uptr;

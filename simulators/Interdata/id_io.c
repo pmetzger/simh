@@ -52,6 +52,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "id_defs.h"
 
 /* Selector channel */
@@ -63,28 +65,28 @@
 #define SCHC_SSTA       0x04                            /* sel ch status */
 #define SCHC_EXM        0x03                            /* ext mem */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
-extern uint32 (*dev_tab[DEVNO])(uint32 dev, uint32 op, uint32 datout);
-extern uint32 pawidth;
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t (*dev_tab[DEVNO])(uint32_t dev, uint32_t op, uint32_t datout);
+extern uint32_t pawidth;
 extern UNIT cpu_unit;
 
-uint32 sch_max = 2;                                     /* sch count */
-uint32 sch_sa[SCH_NUMCH] = { 0 };                       /* start addr */
-uint32 sch_ea[SCH_NUMCH] = { 0 };                       /* end addr */
-uint8 sch_sdv[SCH_NUMCH] = { 0 };                       /* device */
-uint8 sch_cmd[SCH_NUMCH] = { 0 };                       /* command */
-uint8 sch_rdp[SCH_NUMCH] = { 0 };                       /* read ptr */
-uint8 sch_wdc[SCH_NUMCH] = { 0 };                       /* write ctr */
-uint32 sch_tab[DEVNO] = { 0 };                          /* dev to sch map */
-uint32 int_tab[INTSZ * 32] = { 0 };                     /* int to dev map */
-uint8 sch_tplte[SCH_NUMCH + 1];                         /* dnum template */
+uint32_t sch_max = 2;                                   /* sch count */
+uint32_t sch_sa[SCH_NUMCH] = { 0 };                     /* start addr */
+uint32_t sch_ea[SCH_NUMCH] = { 0 };                     /* end addr */
+uint8_t sch_sdv[SCH_NUMCH] = { 0 };                     /* device */
+uint8_t sch_cmd[SCH_NUMCH] = { 0 };                     /* command */
+uint8_t sch_rdp[SCH_NUMCH] = { 0 };                     /* read ptr */
+uint8_t sch_wdc[SCH_NUMCH] = { 0 };                     /* write ctr */
+uint32_t sch_tab[DEVNO] = { 0 };                        /* dev to sch map */
+uint32_t int_tab[INTSZ * 32] = { 0 };                   /* int to dev map */
+uint8_t sch_tplte[SCH_NUMCH + 1];                       /* dnum template */
 
-uint32 sch (uint32 dev, uint32 op, uint32 dat);
+uint32_t sch (uint32_t dev, uint32_t op, uint32_t dat);
 void sch_ini (bool dtpl);
 t_stat sch_reset (DEVICE *dptr);
-t_stat sch_set_nchan (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat sch_show_nchan (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat sch_show_reg (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat sch_set_nchan (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat sch_show_nchan (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat sch_show_reg (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* Selector channel data structures
 
@@ -148,9 +150,9 @@ DEVICE sch_dev = {
 
 #define SCH_EXR(ch)     ((sch_cmd[ch] & SCHC_EXA) && (pawidth == PAWIDTH32))
 
-uint32 sch (uint32 dev, uint32 op, uint32 dat)
+uint32_t sch (uint32_t dev, uint32_t op, uint32_t dat)
 {
-uint32 t, bank, sdv, ch = dev - sch_dib.dno;
+uint32_t t, bank, sdv, ch = dev - sch_dib.dno;
 
 switch (op) {                                           /* case IO op */
 
@@ -233,9 +235,9 @@ return 0;
 
 /* CPU call to test if channel blocks access to device */
 
-bool sch_blk (uint32 dev)
+bool sch_blk (uint32_t dev)
 {
-uint32 ch = sch_tab[dev] - 1;
+uint32_t ch = sch_tab[dev] - 1;
 
 if ((ch < sch_max) && (sch_cmd[ch] & SCHC_GO))
     return true;
@@ -244,7 +246,7 @@ return false;
 
 /* Device call to 'remember' last dev on channel */
 
-void sch_adr (uint32 ch, uint32 dev)
+void sch_adr (uint32_t ch, uint32_t dev)
 {
 if (ch < sch_max)
     sch_sdv[ch] = dev;
@@ -253,7 +255,7 @@ return;
 
 /* Device call to see if selector channel is active for device */
 
-bool sch_actv (uint32 ch, uint32 dev)
+bool sch_actv (uint32_t ch, uint32_t dev)
 {
 if ((ch < sch_max) &&                                   /* chan valid, */
     (sch_cmd[ch] & SCHC_GO) &&                          /* on, and */
@@ -264,9 +266,9 @@ return false;                                           /* no */
 
 /* Device call to read a block of memory */
 
-uint32 sch_rdmem (uint32 ch, uint8 *buf, uint32 cnt)
+uint32_t sch_rdmem (uint32_t ch, uint8_t *buf, uint32_t cnt)
 {
-uint32 addr, end, xfr, inc;
+uint32_t addr, end, xfr, inc;
 
 if ((ch >= sch_max) || ((sch_cmd[ch] & SCHC_GO) == 0))
     return 0;
@@ -285,9 +287,9 @@ return inc;
 
 /* Device call to write a block of memory */
 
-uint32 sch_wrmem (uint32 ch, uint8 *buf, uint32 cnt)
+uint32_t sch_wrmem (uint32_t ch, uint8_t *buf, uint32_t cnt)
 {
-uint32 addr, end, xfr, inc;
+uint32_t addr, end, xfr, inc;
 
 if ((ch >= sch_max) || ((sch_cmd[ch] & SCHC_GO) == 0))
     return 0;
@@ -306,7 +308,7 @@ return inc;
 
 /* Device call to stop a selector channel */
 
-void sch_stop (uint32 ch)
+void sch_stop (uint32_t ch)
 {
 if (ch < sch_max) {
     SET_INT (v_SCH + ch);                               /* interrupt */
@@ -317,9 +319,9 @@ return;
 
 /* Reset */
 
-static void sch_reset_ch (uint32 rst_lim)
+static void sch_reset_ch (uint32_t rst_lim)
 {
-uint32 ch;
+uint32_t ch;
 
 for (ch = 0; ch < SCH_NUMCH; ch++) {
     if (ch >= rst_lim) {
@@ -346,7 +348,7 @@ return SCPE_OK;
 
 /* Set number of channels */
 
-t_stat sch_set_nchan (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat sch_set_nchan (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -356,7 +358,7 @@ t_stat sch_set_nchan (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, newmax;
+uint32_t i, newmax;
 t_stat r;
 
 if (cptr == NULL)
@@ -369,7 +371,7 @@ if (newmax == 0)                                        /* must be > 0 */
 if (newmax < sch_max) {                                 /* reducing? */
     for (i = 0; (dptr = sim_devices[i]); i++) {           /* loop thru dev */
         dibp = (DIB *) dptr->ctxt;                      /* get DIB */
-        if (dibp && (dibp->sch >= (int32) newmax)) {    /* dev using chan? */
+        if (dibp && (dibp->sch >= (int32_t) newmax)) {  /* dev using chan? */
             sim_printf ("Device %02X uses channel %d\n",
                     dibp->dno, dibp->sch);
             return SCPE_OK;
@@ -383,7 +385,7 @@ return SCPE_OK;
 
 /* Show number of channels */
 
-t_stat sch_show_nchan (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat sch_show_nchan (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -397,7 +399,7 @@ return SCPE_OK;
 
 /* Show channel registers */
 
-t_stat sch_show_reg (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat sch_show_reg (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -406,7 +408,7 @@ t_stat sch_show_reg (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 if (val < 0)
     return SCPE_IERR;
-if (val >= (int32) sch_max)
+if (val >= (int32_t) sch_max)
     fprintf (st, "Channel %d disabled\n", val);
 else {
     fprintf (st, "SA:   %05X\n", sch_sa[val]);
@@ -427,7 +429,7 @@ void sch_ini (bool dtpl)
    This implementation does not use every parameter. */
 (void) dtpl;
 
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < sch_max; i++)
     sch_tplte[i] = i;
@@ -440,7 +442,7 @@ return;
 void int_eval (void)
 {
 int i;
-extern uint32 qevent;
+extern uint32_t qevent;
 
 for (i = 0; i < INTSZ; i++) {
     if (int_req[i] & int_enb[i]) {
@@ -454,10 +456,10 @@ return;
 
 /* Return interrupting device */
 
-uint32 int_getdev (void)
+uint32_t int_getdev (void)
 {
-int32 i, j, t;
-uint32 r;
+int32_t i, j, t;
+uint32_t r;
 
 for (i = t = 0; i < INTSZ; i++) {                       /* loop thru array */
     if ((r = int_req[i] & int_enb[i])) {                /* find nz int wd */
@@ -475,9 +477,9 @@ return 0;
 
 /* Update device interrupt status */
 
-int32 int_chg (uint32 irq, int32 dat, int32 armdis)
+int32_t int_chg (uint32_t irq, int32_t dat, int32_t armdis)
 {
-int32 t = CMD_GETINT (dat);                             /* get int ctrl */
+int32_t t = CMD_GETINT (dat);                           /* get int ctrl */
 
 if (t == CMD_IENB) {                                    /* enable? */
     SET_ENB (irq);
@@ -497,9 +499,9 @@ return armdis;
 
 /* Process a 2b field and return unchanged, set, clear, complement */
 
-int32 io_2b (int32 val, int32 pos, int32 old)
+int32_t io_2b (int32_t val, int32_t pos, int32_t old)
 {
-int32 t = (val >> pos) & 3;
+int32_t t = (val >> pos) & 3;
 if (t == 0)
     return old;
 if (t == 1)
@@ -511,9 +513,9 @@ return old ^1;
 
 /* Block transfer routines */
 
-uint32 IOReadBlk (uint32 loc, uint32 cnt, uint8 *buf)
+uint32_t IOReadBlk (uint32_t loc, uint32_t cnt, uint8_t *buf)
 {
-uint32 i;
+uint32_t i;
 
 if (!MEM_ADDR_OK (loc) || (cnt == 0))
     return 0;
@@ -524,9 +526,9 @@ for (i = 0; i < cnt; i++)
 return cnt;
 }
 
-uint32 IOWriteBlk (uint32 loc, uint32 cnt, uint8 *buf)
+uint32_t IOWriteBlk (uint32_t loc, uint32_t cnt, uint8_t *buf)
 {
-uint32 i;
+uint32_t i;
 
 if (!MEM_ADDR_OK (loc) || (cnt == 0))
     return 0;
@@ -539,7 +541,7 @@ return cnt;
 
 /* Change selector channel for a device */
 
-t_stat set_sch (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_sch (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -548,7 +550,7 @@ t_stat set_sch (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newch;
+uint32_t newch;
 t_stat r;
 
 if (cptr == NULL)
@@ -570,7 +572,7 @@ return SCPE_OK;
 
 /* Show selector channel for a device */
 
-t_stat show_sch (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_sch (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -594,7 +596,7 @@ return SCPE_OK;
 
 /* Change device number for a device */
 
-t_stat set_dev (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_dev (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -603,7 +605,7 @@ t_stat set_dev (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newdev;
+uint32_t newdev;
 t_stat r;
 
 if (cptr == NULL)
@@ -627,7 +629,7 @@ return SCPE_OK;
 
 /* Show device number for a device */
 
-t_stat show_dev (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_dev (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -655,8 +657,8 @@ bool devtab_init (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j, dno, dmsk, doff, t, dmap[DEVNO / 32];
-uint8 *tplte, dflt_tplte[] = { 0, TPL_END };
+uint32_t i, j, dno, dmsk, doff, t, dmap[DEVNO / 32];
+uint8_t *tplte, dflt_tplte[] = { 0, TPL_END };
 
 /* Clear tables, device map */
 

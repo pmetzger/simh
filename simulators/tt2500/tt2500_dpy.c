@@ -25,7 +25,9 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
+
 #include "tt2500_defs.h"
 
 /* Debug */
@@ -44,15 +46,15 @@ static t_stat dpy_2khz_svc (UNIT *uptr);
 static t_stat dpy_reset (DEVICE *dptr);
 static void dpy_text_line (void);
 
-static uint8 black[4096], green[4096];
-uint8 FONT[4096];
-uint8 LINE[73];
-static uint16 YCOR;
-static uint16 XCOR;
-static uint16 SCROLL;
-uint16 DSR = 0;
-static uint16 ROW = 0;
-static uint16 COL = 0;
+static uint8_t black[4096], green[4096];
+uint8_t FONT[4096];
+uint8_t LINE[73];
+static uint16_t YCOR;
+static uint16_t XCOR;
+static uint16_t SCROLL;
+uint16_t DSR = 0;
+static uint16_t ROW = 0;
+static uint16_t COL = 0;
 bool dpy_quit = false;
 
 /* DSR
@@ -73,8 +75,8 @@ tv-active  tv-dark-const     5 101 (normal) "green chars on field ebony"
 */
 
 /* Function declaration. */
-static uint16 dpy_read (uint16);
-static void dpy_write (uint16, uint16);
+static uint16_t dpy_read (uint16_t);
+static void dpy_write (uint16_t, uint16_t);
 
 static UNIT dpy_unit = {
   UDATA (dpy_2khz_svc, UNIT_IDLE, 0)
@@ -156,9 +158,9 @@ static t_stat dpy_2khz_svc (UNIT *uptr)
   return SCPE_OK;
 }
 
-static uint16 dpy_read (uint16 reg)
+static uint16_t dpy_read (uint16_t reg)
 {
-  uint16 data = 0;
+  uint16_t data = 0;
   switch (reg) {
   case REG_YCOR:
     data = YCOR;
@@ -180,7 +182,7 @@ static uint16 dpy_read (uint16 reg)
   return data;
 }
 
-static void dpy_write (uint16 reg, uint16 data)
+static void dpy_write (uint16_t reg, uint16_t data)
 {
   switch (reg) {
   case REG_YCOR:
@@ -217,10 +219,10 @@ static t_stat dpy_reset (DEVICE *dptr)
   return SCPE_OK;
 }
 
-void dpy_magic (uint16 xr, uint16 *r2, uint16 *r3, uint16 r4, uint16 r5)
+void dpy_magic (uint16_t xr, uint16_t *r2, uint16_t *r3, uint16_t r4, uint16_t r5)
 {
-  uint16 x = *r2, y = *r3;
-  uint16 x0, y0, x1, y1, dx, dy;
+  uint16_t x = *r2, y = *r3;
+  uint16_t x0, y0, x1, y1, dx, dy;
 
   sim_debug (DBG_VEC, &dpy_dev, "MAGIC %06o\n", xr);
   sim_debug (DBG_VEC, &dpy_dev, "X,YCOR = %06o, %06o\n", XCOR, YCOR);
@@ -259,17 +261,17 @@ void dpy_magic (uint16 xr, uint16 *r2, uint16 *r3, uint16 r4, uint16 r5)
   *r3 = y;
 }
 
-void dpy_chartv (uint16 data)
+void dpy_chartv (uint16_t data)
 {
   sim_debug (DBG_TXT, &dpy_dev, "CHARTV %03o (%06o)\n", data & 0377, data);
   flag_off (INT_2KHZ);
   memmove (LINE, LINE + 1, 72);
-  LINE[72] = (uint8)data;
+  LINE[72] = (uint8_t)data;
 }
 
 static void dpy_text_line (void)
 {
-  uint8 *font;
+  uint8_t *font;
 
   if ((DSR & 016000) == 010000)
     font = green;

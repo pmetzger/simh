@@ -9,10 +9,10 @@
 
 ChipType chiptype;
 
-uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                        int32 (*routine)(const int32, const int32,
-                                         const int32),
-                        const char *name, uint8 unmap)
+uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                        int32_t (*routine)(const int32_t, const int32_t,
+                                         const int32_t),
+                        const char *name, uint8_t unmap)
 {
     (void)baseaddr;
     (void)size;
@@ -24,7 +24,7 @@ uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
     return SCPE_OK;
 }
 
-t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -34,7 +34,7 @@ t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -44,7 +44,7 @@ t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-uint8 GetBYTEWrapper(const uint32 Addr)
+uint8_t GetBYTEWrapper(const uint32_t Addr)
 {
     (void)Addr;
 
@@ -90,7 +90,7 @@ static void test_dazzler_control_ports_preserve_byte_registers(void **state)
 
 static void test_dazzler_frame_status_is_byte_value(void **state)
 {
-    int32 frame_status;
+    int32_t frame_status;
 
     (void)state;
 

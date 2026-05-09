@@ -23,6 +23,7 @@
 #include <libusb-1.0/libusb.h>
 
 #include "kx10_defs.h"
+#include "sim_types.h"
 
 static libusb_device_handle *lights_handle = NULL;
 static uint64 lights_main = 0;
@@ -30,7 +31,7 @@ static int lights_aux = 0;
 
 static void ka10_lights_latch (void)
 {
-    unsigned char buffer[8];
+    uchar_t buffer[8];
 
     if (lights_handle == NULL)
         return;
@@ -88,11 +89,11 @@ static libusb_device_handle *get_panda_handle(libusb_device **devs)
     int found = 0;
     int openable = 0;
 
-    unsigned char prod[256];
+    uchar_t prod[256];
     char devname[USB_CFG_DEVICE_NAME_LEN] = {USB_CFG_DEVICE_NAME};
 
-    unsigned char   rawVid[2] = {USB_CFG_VENDOR_ID};
-    unsigned char    rawPid[2] = {USB_CFG_DEVICE_ID};
+    uchar_t         rawVid[2] = {USB_CFG_VENDOR_ID};
+    uchar_t          rawPid[2] = {USB_CFG_DEVICE_ID};
 
     int vid = rawVid[0] + 256 * rawVid[1];
     int pid = rawPid[0] + 256 * rawPid[1];

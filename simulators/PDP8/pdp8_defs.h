@@ -49,6 +49,8 @@
 #ifndef PDP8_DEFS_H_
 #define PDP8_DEFS_H_   0
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 #if defined(USE_INT64) || defined(USE_ADDR64)
@@ -70,7 +72,7 @@
 #define MAXMEMSIZE      32768                           /* max memory size */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
 #define ADDRMASK        (MAXMEMSIZE - 1)                /* address mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* IOT subroutine return codes */
 
@@ -90,14 +92,14 @@
 #define DEV_MAX         64                              /* total devices */
 
 typedef struct {
-    uint32              dev;                            /* device number */
-    int32               (*dsp)(int32 IR, int32 dat);    /* dispatch */
+    uint32_t            dev;                            /* device number */
+    int32_t             (*dsp)(int32_t IR, int32_t dat); /* dispatch */
     } DIB_DSP;
 
 typedef struct {
-    uint32              dev;                            /* base dev number */
-    uint32              num;                            /* number of slots */
-    int32               (*dsp[DEV_MAXBLK])(int32 IR, int32 dat);
+    uint32_t            dev;                            /* base dev number */
+    uint32_t            num;                            /* number of slots */
+    int32_t             (*dsp[DEV_MAXBLK])(int32_t IR, int32_t dat);
     DIB_DSP             *dsp_tbl;                       /* optional table */
     } DIB;
 
@@ -251,9 +253,9 @@ typedef struct {
 
 /* Function prototypes */
 
-t_stat set_dev (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_dev (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat set_dev (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_dev (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
-void cpu_set_bootpc (int32 pc);
+void cpu_set_bootpc (int32_t pc);
 
 #endif

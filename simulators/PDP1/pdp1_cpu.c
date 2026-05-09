@@ -269,6 +269,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp1_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -295,81 +297,81 @@
                          (((x) >> RM48_V_BNK) & RM48_M_BNK))
 
 typedef struct {
-    uint32              pc;
-    uint32              ir;
-    uint32              ovac;
-    uint32              pfio;
-    uint32              ea;
-    uint32              opnd;
+    uint32_t            pc;
+    uint32_t            ir;
+    uint32_t            ovac;
+    uint32_t            pfio;
+    uint32_t            ea;
+    uint32_t            opnd;
     } InstHistory;
 
-int32 M[MAXMEMSIZE] = { 0 };                            /* memory */
-int32 AC = 0;                                           /* AC */
-int32 IO = 0;                                           /* IO */
-int32 PC = 0;                                           /* PC */
-int32 MA = 0;                                           /* MA */
-int32 MB = 0;                                           /* MB */
-int32 OV = 0;                                           /* overflow */
-int32 SS = 0;                                           /* sense switches */
-int32 PF = 0;                                           /* program flags */
-int32 TA = 0;                                           /* address switches */
-int32 TW = 0;                                           /* test word */
-int32 iosta = 0;                                        /* status reg */
-int32 sbs = 0;                                          /* sequence break */
-int32 sbs_init = 0;                                     /* seq break start */
-int32 ioh = 0;                                          /* I/O halt */
-int32 ios = 0;                                          /* I/O syncronizer */
-int32 cpls = 0;                                         /* pending compl */
-int32 sbs_req = 0;                                      /* sbs requests */
-int32 sbs_enb = 0;                                      /* sbs enabled */
-int32 sbs_act = 0;                                      /* sbs active */
-int32 extm = 0;                                         /* ext mem mode */
-int32 rm = 0;                                           /* restrict mode */
-int32 rmask = 0;                                        /* restrict mask */
-int32 rname[RN45_SIZE];                                 /* rename table */
-int32 rtb = 0;                                          /* restr trap buf */
-int32 extm_init = 0;                                    /* ext mem startup */
-int32 stop_inst = 0;                                    /* stop rsrv inst */
-int32 xct_max = 16;                                     /* XCT limit */
-int32 ind_max = 16;                                     /* ind limit */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+int32_t M[MAXMEMSIZE] = { 0 };                          /* memory */
+int32_t AC = 0;                                         /* AC */
+int32_t IO = 0;                                         /* IO */
+int32_t PC = 0;                                         /* PC */
+int32_t MA = 0;                                         /* MA */
+int32_t MB = 0;                                         /* MB */
+int32_t OV = 0;                                         /* overflow */
+int32_t SS = 0;                                         /* sense switches */
+int32_t PF = 0;                                         /* program flags */
+int32_t TA = 0;                                         /* address switches */
+int32_t TW = 0;                                         /* test word */
+int32_t iosta = 0;                                      /* status reg */
+int32_t sbs = 0;                                        /* sequence break */
+int32_t sbs_init = 0;                                   /* seq break start */
+int32_t ioh = 0;                                        /* I/O halt */
+int32_t ios = 0;                                        /* I/O syncronizer */
+int32_t cpls = 0;                                       /* pending compl */
+int32_t sbs_req = 0;                                    /* sbs requests */
+int32_t sbs_enb = 0;                                    /* sbs enabled */
+int32_t sbs_act = 0;                                    /* sbs active */
+int32_t extm = 0;                                       /* ext mem mode */
+int32_t rm = 0;                                         /* restrict mode */
+int32_t rmask = 0;                                      /* restrict mask */
+int32_t rname[RN45_SIZE];                               /* rename table */
+int32_t rtb = 0;                                        /* restr trap buf */
+int32_t extm_init = 0;                                  /* ext mem startup */
+int32_t stop_inst = 0;                                  /* stop rsrv inst */
+int32_t xct_max = 16;                                   /* XCT limit */
+int32_t ind_max = 16;                                   /* ind limit */
+uint16_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* inst history */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_1d (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat Ea (int32 IR);
-t_stat Ea_ch (int32 IR, int32 *byte_num);
-int32 inc_bp (int32 bp);
-t_stat set_rmv (int32 code);
-int32 sbs_eval (void);
-int32 sbs_ffo (int32 mask);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_1d (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat Ea (int32_t IR);
+t_stat Ea_ch (int32_t IR, int32_t *byte_num);
+int32_t inc_bp (int32_t bp);
+t_stat set_rmv (int32_t code);
+int32_t sbs_eval (void);
+int32_t sbs_ffo (int32_t mask);
 t_stat Read (void);
 t_stat Write (void);
 
-extern int32 ptr (int32 inst, int32 dev, int32 dat);
-extern int32 ptp (int32 inst, int32 dev, int32 dat);
-extern int32 tti (int32 inst, int32 dev, int32 dat);
-extern int32 tto (int32 inst, int32 dev, int32 dat);
-extern int32 lpt (int32 inst, int32 dev, int32 dat);
-extern int32 dt (int32 inst, int32 dev, int32 dat);
-extern int32 drm (int32 inst, int32 dev, int32 dat);
-extern int32 clk (int32 inst, int32 dev, int32 dat);
-extern int32 dcs (int32 inst, int32 dev, int32 dat);
+extern int32_t ptr (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t ptp (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t tti (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t tto (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t lpt (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t dt (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t drm (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t clk (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t dcs (int32_t inst, int32_t dev, int32_t dat);
 #ifdef USE_DISPLAY
-extern int32 dpy (int32 inst, int32 dev, int32 dat, int32 dat2);
-extern int32 spacewar (int32 inst, int32 dev, int32 dat);
+extern int32_t dpy (int32_t inst, int32_t dev, int32_t dat, int32_t dat2);
+extern int32_t spacewar (int32_t inst, int32_t dev, int32_t dat);
 #endif
 
-const int32 sc_map[512] = {
+const int32_t sc_map[512] = {
     0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,     /* 00000xxxx */
     1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,     /* 00001xxxx */
     1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,     /* 00010xxxx */
@@ -404,7 +406,7 @@ const int32 sc_map[512] = {
     5, 6, 6, 7, 6, 7, 7, 8, 6, 7, 7, 8, 7, 8, 8, 9      /* 11111xxxx */
     };
 
-const int32 ffo_map[256] = {
+const int32_t ffo_map[256] = {
     8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -423,7 +425,7 @@ const int32 ffo_map[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
 
-const int32 byt_shf[4] = { 0, 0, 6, 12 };
+const int32_t byt_shf[4] = { 0, 0, 6, 12 };
 
 /* CPU data structures
 
@@ -507,11 +509,11 @@ DEVICE cpu_dev = {
 
 t_stat sim_instr (void)
 {
-int32 IR, op, i, t, xct_count;
-int32 sign, signd, v, sbs_lvl, byno;
-int32 dev, pulse, io_data, sc, skip;
+int32_t IR, op, i, t, xct_count;
+int32_t sign, signd, v, sbs_lvl, byno;
+int32_t dev, pulse, io_data, sc, skip;
 t_stat reason;
-static int32 fs_test[8] = {
+static int32_t fs_test[8] = {
     0,       PF_SS_1, PF_SS_2, PF_SS_3,
     PF_SS_4, PF_SS_5, PF_SS_6, PF_SS_ALL
     };
@@ -558,7 +560,7 @@ while (reason == 0) {                                   /* loop until halted */
         ((sbs & SB_ON) && sbs_lvl):                     /* 16-chan SBS? */
         (sbs == (SB_ON | SB_RQ))) {                     /* 1-chan SBS? */
         if (cpu_unit.flags & UNIT_SBS) {                /* 16-chan intr */
-            int32 lvl = sbs_lvl - 1;                    /* get level */
+            int32_t lvl = sbs_lvl - 1;                  /* get level */
             MA = lvl << 2;                              /* status block */
             sbs_req &= ~SBS_MASK (lvl);                 /* clr lvl request */
             sbs_act |= SBS_MASK (lvl);                  /* set lvl active */
@@ -851,7 +853,7 @@ while (reason == 0) {                                   /* loop until halted */
             ((cpu_unit.flags & UNIT_SBS) ||             /* 16-chan SBS or */
              ((IR & 00074) == 0))) {                    /* jmp i 0001? */
             if (cpu_unit.flags & UNIT_SBS) {            /* 16-chan SBS dbk? */
-                int32 lvl = (IR >> 2) & SBS_LVL_MASK;   /* lvl = MA<14:15> */
+                int32_t lvl = (IR >> 2) & SBS_LVL_MASK; /* lvl = MA<14:15> */
                 sbs_act &= ~SBS_MASK (lvl);             /* clr level active */
                 sbs_lvl = sbs_eval ();                  /* eval SBS system */
                 }
@@ -1316,8 +1318,8 @@ while (reason == 0) {                                   /* loop until halted */
 
         case 066:                                       /* rename mem */
             if (cpu_unit.flags & UNIT_1D45) {           /* SN45? */
-                int32 from = (IR >> 9) & RM45_M_BNK;
-                int32 to = (IR >> 6) & RM45_M_BNK;
+                int32_t from = (IR >> 9) & RM45_M_BNK;
+                int32_t to = (IR >> 6) & RM45_M_BNK;
                 rname[from] = to;
                 }
             else reason = stop_inst;
@@ -1367,9 +1369,9 @@ return reason;
 
 /* Effective address routine for standard memory reference instructions */
 
-t_stat Ea (int32 IR)
+t_stat Ea (int32_t IR)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 MA = (PC & EPCMASK) | (IR & DAMASK);                    /* direct address */
@@ -1398,9 +1400,9 @@ return SCPE_OK;
 
 /* Effective address routine for character instructions */
 
-t_stat Ea_ch (int32 IR, int32 *bn)
+t_stat Ea_ch (int32_t IR, int32_t *bn)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 MA = (PC & EPCMASK) | (IR & DAMASK);                    /* direct address */
@@ -1436,7 +1438,7 @@ return SCPE_OK;
 
 /* Increment byte pointer, allowing for ring mode */
 
-int32 inc_bp (int32 bp)
+int32_t inc_bp (int32_t bp)
 {
 bp = bp + (1 << 16);                                    /* add to bit<1> */
 if (bp > DMASK) {                                       /* carry out? */
@@ -1452,7 +1454,7 @@ return bp;
 t_stat Read (void)
 {
 if (rm && !sbs_act) {                                   /* restrict check? */
-    int32 bnk = MA_GETBNK (MA);                         /* get bank */
+    int32_t bnk = MA_GETBNK (MA);                       /* get bank */
     if ((rmask << bnk) & SIGN)
         return set_rmv (0);
     }
@@ -1467,7 +1469,7 @@ t_stat Write (void)
 if (hst_p)                                              /* hist? old contents */
     hst[hst_p].opnd = M[MA];
 if (rm && !sbs_act) {                                   /* restrict check? */
-    int32 bnk = MA_GETBNK (MA);                         /* get bank */
+    int32_t bnk = MA_GETBNK (MA);                       /* get bank */
     if ((rmask << bnk) & SIGN)
         return set_rmv (0);
     }
@@ -1478,7 +1480,7 @@ return SCPE_OK;
 
 /* Restrict mode trap */
 
-t_stat set_rmv (int32 code)
+t_stat set_rmv (int32_t code)
 {
 rtb = code | (MB & RTB_MB_MASK);
 return ERR_RMV;
@@ -1486,9 +1488,9 @@ return ERR_RMV;
 
 /* Evaluate SBS system */
 
-int32 sbs_eval (void)
+int32_t sbs_eval (void)
 {
-int32 hi;
+int32_t hi;
 
 if (cpu_unit.flags & UNIT_SBS) {                        /* SBS enabled? */
     if (sbs_req == 0)                                   /* any requests? */
@@ -1502,7 +1504,7 @@ return 0;
 
 /* Find first one in a 16b field */
 
-int32 sbs_ffo (int32 mask)
+int32_t sbs_ffo (int32_t mask)
 {
 if (mask & 0177400)
     return ffo_map[(mask >> 8) & 0377];
@@ -1511,7 +1513,7 @@ else return (ffo_map[mask & 0377] + 8);
 
 /* Device request interrupt */
 
-t_stat dev_req_int (int32 lvl)
+t_stat dev_req_int (int32_t lvl)
 {
 if (cpu_unit.flags & UNIT_SBS) {                        /* SBS enabled? */
     if (lvl >= SBS_LVLS)                                /* invalid level? */
@@ -1525,15 +1527,15 @@ return SCPE_OK;
 
 /* Device set/show SBS level */
 
-t_stat dev_set_sbs (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dev_set_sbs (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 *lvl = (int32 *) desc;
-int32 newlvl;
+int32_t *lvl = (int32_t *) desc;
+int32_t newlvl;
 t_stat r;
 
 if ((cptr == NULL) || (*cptr == 0))
@@ -1545,14 +1547,14 @@ if (r != SCPE_OK)
 return SCPE_OK;
 }
 
-t_stat dev_show_sbs (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dev_show_sbs (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-const int32 *lvl = (const int32 *) desc;
+const int32_t *lvl = (const int32_t *) desc;
 
 if (lvl == NULL)
     return SCPE_IERR;
@@ -1564,7 +1566,7 @@ return SCPE_OK;
 
 t_stat cpu_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 
 sbs = sbs_init;
 extm = extm_init;
@@ -1593,7 +1595,7 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory examine signature.
    This implementation does not use every parameter. */
@@ -1609,7 +1611,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory deposit signature.
    This implementation does not use every parameter. */
@@ -1624,7 +1626,7 @@ return SCPE_OK;
 
 /* Change memory size */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1632,8 +1634,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (((size_t)val) > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
@@ -1649,7 +1651,7 @@ return SCPE_OK;
 
 /* Set PDP-1D */
 
-t_stat cpu_set_1d (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_1d (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1663,7 +1665,7 @@ return SCPE_OK;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1671,7 +1673,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -1680,7 +1682,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -1700,14 +1702,14 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 ov, pf, op, k, di, lnt;
+int32_t ov, pf, op, k, di, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 InstHistory *h;
@@ -1715,7 +1717,7 @@ InstHistory *h;
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }

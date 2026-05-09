@@ -50,6 +50,7 @@
 #include "sim_tmxr.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define PAS_LINES       32
 
@@ -93,32 +94,32 @@
 
 #define CMD_TYP         0x01                            /* command type */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
-extern int32 lfc_poll;
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
+extern int32_t lfc_poll;
 
-uint8 pas_sta[PAS_LINES];                               /* status */
-uint16 pas_cmd[PAS_LINES];                              /* command */
-uint8 pas_rbuf[PAS_LINES];                              /* rcv buf */
-uint8 pas_xbuf[PAS_LINES];                              /* xmt buf */
-uint8 pas_rarm[PAS_LINES];                              /* rcvr int armed */
-uint8 pas_xarm[PAS_LINES];                              /* xmt int armed */
-uint8 pas_rchp[PAS_LINES];                              /* rcvr chr pend */
-uint8 pas_tplte[PAS_LINES * 2 + 1];                     /* template */
+uint8_t pas_sta[PAS_LINES];                             /* status */
+uint16_t pas_cmd[PAS_LINES];                            /* command */
+uint8_t pas_rbuf[PAS_LINES];                            /* rcv buf */
+uint8_t pas_xbuf[PAS_LINES];                            /* xmt buf */
+uint8_t pas_rarm[PAS_LINES];                            /* rcvr int armed */
+uint8_t pas_xarm[PAS_LINES];                            /* xmt int armed */
+uint8_t pas_rchp[PAS_LINES];                            /* rcvr chr pend */
+uint8_t pas_tplte[PAS_LINES * 2 + 1];                   /* template */
 
 TMLN pas_ldsc[PAS_LINES] = { {0} };                     /* line descriptors */
 TMXR pas_desc = { 8, 0, 0, pas_ldsc };                  /* mux descriptor */
 #define PAS_ENAB        pas_desc.lines
 
-uint32 pas (uint32 dev, uint32 op, uint32 dat);
+uint32_t pas (uint32_t dev, uint32_t op, uint32_t dat);
 void pas_ini (bool dtpl);
 t_stat pasi_svc (UNIT *uptr);
 t_stat paso_svc (UNIT *uptr);
 t_stat pas_reset (DEVICE *dptr);
 t_stat pas_attach (UNIT *uptr, const char *cptr);
 t_stat pas_detach (UNIT *uptr);
-int32 pas_par (int32 cmd, int32 c);
-t_stat pas_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc);
-void pas_reset_ln (int32 i);
+int32_t pas_par (int32_t cmd, int32_t c);
+t_stat pas_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void pas_reset_ln (int32_t i);
 
 /* PAS data structures
 
@@ -245,11 +246,11 @@ DEVICE pasl_dev = {
 
 /* PAS: IO routine */
 
-uint32 pas (uint32 dev, uint32 op, uint32 dat)
+uint32_t pas (uint32_t dev, uint32_t op, uint32_t dat)
 {
-int32 ln = (dev - pas_dib.dno) >> 1;
-int32 xmt = (dev - pas_dib.dno) & 1;
-int32 t, old_cmd;
+int32_t ln = (dev - pas_dib.dno) >> 1;
+int32_t xmt = (dev - pas_dib.dno) & 1;
+int32_t t, old_cmd;
 
 switch (op) {                                           /* case IO op */
 
@@ -318,7 +319,7 @@ return 0;
 
 t_stat pasi_svc (UNIT *uptr)
 {
-int32 ln, c, out;
+int32_t ln, c, out;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* attached? */
     return SCPE_OK;
@@ -376,8 +377,8 @@ return SCPE_OK;
 
 t_stat paso_svc (UNIT *uptr)
 {
-int32 c;
-uint32 ln = uptr - pasl_unit;                           /* line # */
+int32_t c;
+uint32_t ln = uptr - pasl_unit;                         /* line # */
 
 if (pas_ldsc[ln].conn) {                                /* connected? */
     if (pas_ldsc[ln].xmte) {                            /* xmt enabled? */
@@ -402,10 +403,10 @@ if (pas_xarm[ln])                                       /* set intr */
 return SCPE_OK;
 }
 
-int32 pas_par (int32 cmd, int32 c)
+int32_t pas_par (int32_t cmd, int32_t c)
 {
-int32 pf = GET_PAR (cmd);
-static const uint8 odd_par[] = {
+int32_t pf = GET_PAR (cmd);
+static const uint8_t odd_par[] = {
     0x80, 0, 0, 0x80, 0, 0x80, 0x80, 0,                 /* 00 */
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80,
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80,                 /* 10 */
@@ -460,7 +461,7 @@ return c & 0xFF;
 
 t_stat pas_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 
 if (dptr->flags & DEV_DIS) {                            /* disabled? */
     pas_dev.flags = pas_dev.flags | DEV_DIS;            /* disable lines */
@@ -495,7 +496,7 @@ return SCPE_OK;
 
 t_stat pas_detach (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 r = tmxr_detach (&pas_desc, uptr);                      /* detach */
@@ -507,7 +508,7 @@ return r;
 
 /* Change number of lines */
 
-t_stat pas_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat pas_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -515,7 +516,7 @@ t_stat pas_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)
@@ -551,7 +552,7 @@ return SCPE_OK;
 
 /* Reset an individual line */
 
-void pas_reset_ln (int32 i)
+void pas_reset_ln (int32_t i)
 {
 CLR_INT (v_PAS + i + i);                                /* clear int */
 CLR_ENB (v_PAS + i + i);
@@ -576,7 +577,7 @@ void pas_ini (bool dtpl)
    This implementation does not use every parameter. */
 (void) dtpl;
 
-int32 i, j;
+int32_t i, j;
 
 for (i = j = 0; i < PAS_ENAB; i++) {
     pas_tplte[j] = j;

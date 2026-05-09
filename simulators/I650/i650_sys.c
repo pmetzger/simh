@@ -24,6 +24,7 @@
 #include "i650_defs.h"
 #include "sim_card.h"
 #include <ctype.h>
+#include <stdint.h>
 
 /* SCP data structures and interface routines
 
@@ -39,7 +40,7 @@ char                sim_name[] = "IBM 650";
 
 REG                *sim_PC = &cpu_reg[0];
 
-int32               sim_emax = 1;
+int32_t             sim_emax = 1;
 
 DEVICE             *sim_devices[] = {
     &cpu_dev,
@@ -71,7 +72,7 @@ const char         *sim_stop_messages[SCPE_BASE] = {
     0
 };
 
-static t_stat ibm650_deck_cmd(int32 arg, const char *buf);
+static t_stat ibm650_deck_cmd(int32_t arg, const char *buf);
 
 static CTAB aux_cmds [] = {
 /*    Name         Action Routine     Argument   Help String */
@@ -134,7 +135,7 @@ char    digits_ascii[31] = {
           '!', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',   /* 0-9 w/Negative Punch X(11) */
           0};
 
-uint16          ascii_to_hol[128] = {
+uint16_t        ascii_to_hol[128] = {
    /* Control                              */
     0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,0xf000,    /*0-37*/
    /*Control*/
@@ -178,12 +179,12 @@ uint16          ascii_to_hol[128] = {
     0x604, 0x602, 0x601, 0x406, 0x806, 0x006, 0x005,0xf000
 };
 
-uint16   sim_ascii_to_hol(char c)
+uint16_t sim_ascii_to_hol(char c)
 {
     return ascii_to_hol[c & 127];
 }
 
-char     sim_hol_to_ascii(uint16 hol)
+char     sim_hol_to_ascii(uint16_t hol)
 {
     int c;
     hol = hol & 0x0fff; // ignore extra high bits, if any
@@ -357,7 +358,7 @@ t_opcode  base_ops[100] = {
 
 /* Print out an instruction */
 static void
-print_opcode(FILE * of, t_int64 val)
+print_opcode(FILE * of, int64_t val)
 {
 
     int sgn;
@@ -395,14 +396,14 @@ print_opcode(FILE * of, t_int64 val)
 */
 
 t_stat
-fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32 sw)
+fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32_t sw)
 {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
     (void)addr;
     (void)uptr;
 
-    t_int64            d, inst;
+    int64_t            d, inst;
     int                NegZero;
     int ch;
 
@@ -476,7 +477,7 @@ static const char * parse_sgn(int *neg, const char *cptr)
     return cptr;
 }
 
-static const char * parse_n(t_int64 *d, const char *cptr, int n)
+static const char * parse_n(int64_t *d, const char *cptr, int n)
 {
     int i = 0;
 
@@ -521,14 +522,14 @@ int ascii_to_NN(int ch)
     return 0;
 }
 
-t_stat parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
+t_stat parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
 {
     /* Generic symbolic input signature.
        This implementation does not use every parameter. */
     (void)addr;
     (void)uptr;
 
-    t_int64             d;
+    int64_t             d;
     int                 op, da, ia;
     char                ch, opcode[100];
     int                 i;
@@ -546,7 +547,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int3
         op = find_opcode(opcode);
         if (op < 0) return STOP_UUO;
 
-        if (DecodeOpcode(op * (t_int64) D8, &op, &da, &ia) == NULL) {
+        if (DecodeOpcode(op * (int64_t) D8, &op, &da, &ia) == NULL) {
             // opcode exists, but not availble because associated hw (Storage Unit or Control Unit)
             // is not enabled
             return STOP_UUO;
@@ -563,7 +564,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int3
         cptr = parse_n(&d, cptr, 4);
         ia = (int) d;
         // construct inst
-        d = op * (t_int64) D8 + da * (t_int64) D4 + (t_int64) ia;
+        d = op * (int64_t) D8 + da * (int64_t) D4 + (int64_t) ia;
     } else if (sw & SWMASK('C')) {
         d = 0;
         if ((*cptr == 34) || (*cptr == 39)) cptr++; // skip double or single quotes if present
@@ -596,7 +597,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int3
 // set in buf string ascii chars form word d ( chars: c1c2c3c4c5 )
 // starts at char start (1..5), for CharLen chars (0..5)
 // to convert the full word use (buf, 1, 5, d)
-char * word_to_ascii(char * buf, int CharStart, int CharLen, t_int64 d)
+char * word_to_ascii(char * buf, int CharStart, int CharLen, int64_t d)
 {
     int i,c1,c2;
     char * buf0;
@@ -616,7 +617,7 @@ char * word_to_ascii(char * buf, int CharStart, int CharLen, t_int64 d)
 
 
 // return hi digit (digit 10) al leftmost position in number (no sign)
-int Get_HiDigit(t_int64 d)
+int Get_HiDigit(int64_t d)
 {
     return (int) ((AbsWord(d) * 10) / D10);
 }
@@ -624,7 +625,7 @@ int Get_HiDigit(t_int64 d)
 // shift d value for nDigits positions (max 7)
 // if nDigit > 0 shift left, if < 0 then shift right
 // return value of shifted digits (without sign)
-int Shift_Digits(t_int64 * d, int nDigits)
+int Shift_Digits(int64_t * d, int nDigits)
 {
     int i,n;
     int neg = 0;
@@ -725,15 +726,15 @@ int Shift_Digits(t_int64 * d, int nDigits)
 /*
  * Allocate space for a card deck of nCards cards.
  */
-static uint16 *deck_alloc(int nCards)
+static uint16_t *deck_alloc(int nCards)
 {
-    return malloc(nCards * 80 * sizeof(uint16));
+    return malloc(nCards * 80 * sizeof(uint16_t));
 }
 
 /*
  * Free a deck previously obtained from deck_alloc().
  */
-static void deck_free(uint16 *deck)
+static void deck_free(uint16_t *deck)
 {
     free(deck);
 }
@@ -744,14 +745,14 @@ static void deck_free(uint16 *deck)
 // MAX_CARDS_IN_DECK, but there is potential to make this flexible
 // and reduce the size to actually used size).
 // Uses cdr0 device/unit.
-static t_stat deck_load(const char *fn, uint16 ** DeckImagePtr, int * nCards)
+static t_stat deck_load(const char *fn, uint16_t ** DeckImagePtr, int * nCards)
 {
     UNIT *              uptr = &cdr_unit[0];
-    uint16 * DeckImage;
-    uint16 image[80];
+    uint16_t * DeckImage;
+    uint16_t image[80];
     t_stat              r, r2;
     int i;
-    uint16 c;
+    uint16_t c;
 
     // set flags for read only
     uptr->flags |= UNIT_RO;
@@ -803,10 +804,10 @@ static t_stat deck_load(const char *fn, uint16 ** DeckImagePtr, int * nCards)
 
 // write nCards starting at card from DeckImage array to file fn
 // uses cdr0 device/unit
-static t_stat deck_save(const char *fn, uint16 * DeckImage, int card, int nCards)
+static t_stat deck_save(const char *fn, uint16_t * DeckImage, int card, int nCards)
 {
     UNIT *              uptr = &cdr_unit[0];
-    uint16 image[80];
+    uint16_t image[80];
     t_stat              r;
     int i,nc;
 
@@ -840,11 +841,11 @@ static t_stat deck_save(const char *fn, uint16 * DeckImage, int card, int nCards
 
 // echo/print nCards from DeckImage array
 // uses cdp0 device/unit
-static void deck_print_echo(uint16 * DeckImage, int nCards, int bPrint, int bEcho)
+static void deck_print_echo(uint16_t * DeckImage, int nCards, int bPrint, int bEcho)
 {
     char line[81];
     int i,c,nc;
-    uint16 hol;
+    uint16_t hol;
 
     for (nc=0; nc<nCards; nc++) {
         // read card, check and, store in line
@@ -888,7 +889,7 @@ static t_stat deck_split_cmd(const char *cptr)
     int bSplit5CD = 0;
     int bSplitPAT = 0;
 
-    uint16 *DeckImage = NULL;
+    uint16_t *DeckImage = NULL;
     int nCards, nCards1, tail;
 
     while (sim_isspace (*cptr)) cptr++;                     // trim leading spc
@@ -908,7 +909,7 @@ static t_stat deck_split_cmd(const char *cptr)
         bSplitPAT = 1;
     } else {
         //
-        nCards1 = (int32) get_uint (gbuf, 10, 10000, &r);
+        nCards1 = (int32_t) get_uint (gbuf, 10, 10000, &r);
         if (r != SCPE_OK) return sim_messagef (SCPE_ARG, "Invalid count value\n");
         if (nCards1 == 0) return sim_messagef (SCPE_ARG, "Count cannot be zero\n");
     }
@@ -955,10 +956,10 @@ static t_stat deck_split_cmd(const char *cptr)
 
     if (bSplit5CD ) {
         // separate 5cd deck
-        uint16 *DeckImage1 = deck_alloc(nCards);
-        uint16 *DeckImage2 = deck_alloc(nCards);
+        uint16_t *DeckImage1 = deck_alloc(nCards);
+        uint16_t *DeckImage2 = deck_alloc(nCards);
         int i, nc, nc1, nc2, bFound;
-        uint16 hol;
+        uint16_t hol;
 
         nc1 = nc2 = 0;
         for (nc=0; nc<nCards; nc++) {
@@ -1018,10 +1019,10 @@ static t_stat deck_split_cmd(const char *cptr)
 
     if (bSplitPAT)  {
         // separate pat deck
-        uint16 *DeckImage1 = deck_alloc(nCards);
-        uint16 *DeckImage2 = deck_alloc(nCards);
+        uint16_t *DeckImage1 = deck_alloc(nCards);
+        uint16_t *DeckImage2 = deck_alloc(nCards);
         int i, nc, nc1, nc2, bFound;
-        uint16 hol;
+        uint16_t hol;
 
         nc1 = nc2 = 0;
         for (nc=0; nc<nCards; nc++) {
@@ -1098,7 +1099,7 @@ static t_stat deck_join_cmd(const char *cptr)
     char gbuf[4*CBUFSIZE];
     t_stat r;
 
-    uint16 *DeckImage = NULL;
+    uint16_t *DeckImage = NULL;
     int i,nDeck, nCards, nCards1;
 
     cptr0 = cptr;
@@ -1153,7 +1154,7 @@ static t_stat deck_print_cmd(const char *cptr)
     char fn[4*CBUFSIZE];
     t_stat r;
 
-    uint16 *DeckImage = NULL;
+    uint16_t *DeckImage = NULL;
     int nCards;
 
     while (sim_isspace (*cptr)) cptr++;                     // trim leading spc
@@ -1183,13 +1184,13 @@ static t_stat deck_echolast_cmd(const char *cptr)
     char gbuf[4*CBUFSIZE];
     t_stat r;
 
-    uint16 *DeckImage = NULL;
+    uint16_t *DeckImage = NULL;
     int i,nc,nCards, ic, nh, ncdr;
 
     while (sim_isspace (*cptr)) cptr++;                     // trim leading spc
 
     cptr = get_glyph (cptr, gbuf, 0);                       // get cards count param
-    nCards = (int32) get_uint (gbuf, 10, MAX_CARDS_IN_READ_STAKER_HOPPER, &r);
+    nCards = (int32_t) get_uint (gbuf, 10, MAX_CARDS_IN_READ_STAKER_HOPPER, &r);
     if (r != SCPE_OK) return sim_messagef (SCPE_ARG, "Invalid count value\n");
     if (nCards == 0) return sim_messagef (SCPE_ARG, "Count cannot be zero\n");
 
@@ -1233,7 +1234,7 @@ static t_stat deck_echolast_cmd(const char *cptr)
     return SCPE_OK;
 }
 
-static t_stat ibm650_deck_cmd(int32 arg, const char *buf)
+static t_stat ibm650_deck_cmd(int32_t arg, const char *buf)
 {
     /* Generic command signature.
        This implementation does not use every parameter. */

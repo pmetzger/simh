@@ -64,6 +64,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 #include "sim_tape.h"
 
@@ -132,33 +134,33 @@
 #define STA_DYN         (STA_REW | STA_BOT | STA_REM | STA_EOF | \
                          STA_EOT | STA_WLK)             /* kept in USTAT */
 
-extern uint16 M[];
-extern int32 int_req, stop_inst;
+extern uint16_t M[];
+extern int32_t int_req, stop_inst;
 extern UNIT cpu_unit;
 
-int32 mt_cu = 0;                                        /* command/unit */
-int32 mt_fn = 0;                                        /* function */
-int32 mt_ca = 0;                                        /* current address */
-int32 mt_wc = 0;                                        /* word count */
-int32 mt_sta = 0;                                       /* status register */
-int32 mt_db = 0;                                        /* data buffer */
-int32 mt_done = 0;                                      /* mag tape flag */
-int32 mt_time = 10;                                     /* record latency */
-int32 mt_stopioe = 1;                                   /* stop on error */
-uint8 *mtxb = NULL;                                     /* transfer buffer */
+int32_t mt_cu = 0;                                      /* command/unit */
+int32_t mt_fn = 0;                                      /* function */
+int32_t mt_ca = 0;                                      /* current address */
+int32_t mt_wc = 0;                                      /* word count */
+int32_t mt_sta = 0;                                     /* status register */
+int32_t mt_db = 0;                                      /* data buffer */
+int32_t mt_done = 0;                                    /* mag tape flag */
+int32_t mt_time = 10;                                   /* record latency */
+int32_t mt_stopioe = 1;                                 /* stop on error */
+uint8_t *mtxb = NULL;                                   /* transfer buffer */
 
-int32 mt70 (int32 IR, int32 AC);
-int32 mt71 (int32 IR, int32 AC);
-int32 mt72 (int32 IR, int32 AC);
+int32_t mt70 (int32_t IR, int32_t AC);
+int32_t mt71 (int32_t IR, int32_t AC);
+int32_t mt72 (int32_t IR, int32_t AC);
 t_stat mt_svc (UNIT *uptr);
 t_stat mt_reset (DEVICE *dptr);
 t_stat mt_attach (UNIT *uptr, const char *cptr);
 t_stat mt_detach (UNIT *uptr);
 const char *mt_description (DEVICE *dptr);
-int32 mt_updcsta (UNIT *uptr);
-int32 mt_ixma (int32 xma);
+int32_t mt_updcsta (UNIT *uptr);
+int32_t mt_ixma (int32_t xma);
 t_stat mt_map_err (UNIT *uptr, t_stat st);
-t_stat mt_vlock (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat mt_vlock (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 UNIT *mt_busy (void);
 void mt_set_done (void);
 
@@ -228,9 +230,9 @@ DEVICE mt_dev = {
 
 /* IOT routines */
 
-int32 mt70 (int32 IR, int32 AC)
+int32_t mt70 (int32_t IR, int32_t AC)
 {
-int32 f;
+int32_t f;
 UNIT *uptr;
 
 uptr = mt_dev.units + GET_UNIT (mt_cu);                 /* get unit */
@@ -304,7 +306,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
 return (stop_inst << IOT_V_REASON) + AC;                /* ill inst */
 }
 
-int32 mt71 (int32 IR, int32 AC)
+int32_t mt71 (int32_t IR, int32_t AC)
 {
 UNIT *uptr;
 
@@ -338,7 +340,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
 return (stop_inst << IOT_V_REASON) + AC;                /* ill inst */
 }
 
-int32 mt72 (int32 IR, int32 AC)
+int32_t mt72 (int32_t IR, int32_t AC)
 {
 UNIT *uptr;
 
@@ -379,13 +381,13 @@ return (stop_inst << IOT_V_REASON) + AC;                /* ill inst */
 
 t_stat mt_svc (UNIT *uptr)
 {
-int32 f, i, p, u, wc, xma;
+int32_t f, i, p, u, wc, xma;
 t_mtrlnt tbc, cbc;
 bool passed_eot;
-uint16 c, c1, c2;
+uint16_t c, c1, c2;
 t_stat st, r = SCPE_OK;
 
-u = (int32) (uptr - mt_dev.units);                      /* get unit number */
+u = (int32_t) (uptr - mt_dev.units);                    /* get unit number */
 f = GET_FNC (mt_fn);                                    /* get command */
 xma = GET_EMA (mt_cu) + mt_ca;                          /* get mem addr */
 wc = WC_SIZE - mt_wc;                                   /* get wc */
@@ -503,7 +505,7 @@ return r;
 
 /* Update controller status */
 
-int32 mt_updcsta (UNIT *uptr)
+int32_t mt_updcsta (UNIT *uptr)
 {
 mt_sta = (mt_sta & ~(STA_DYN | STA_CLR)) | (uptr->USTAT & STA_DYN);
 if (((mt_sta & STA_ERR) && (mt_cu & CU_IEE)) ||
@@ -517,7 +519,7 @@ return mt_sta;
 
 UNIT *mt_busy (void)
 {
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 for (u = 0; u < MT_NUMDR; u++) {                        /* loop thru units */
@@ -530,9 +532,9 @@ return NULL;
 
 /* Increment extended memory address */
 
-int32 mt_ixma (int32 xma)                               /* incr extended ma */
+int32_t mt_ixma (int32_t xma)                           /* incr extended ma */
 {
-int32 v;
+int32_t v;
 
 v = ((xma + 1) & 07777) | (xma & 070000);               /* wrapped incr */
 if (mt_fn & FN_INC) {                                   /* increment mode? */
@@ -606,7 +608,7 @@ t_stat mt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 mt_cu = mt_fn = mt_wc = mt_ca = mt_db = mt_sta = mt_done = 0;
@@ -621,7 +623,7 @@ for (u = 0; u < MT_NUMDR; u++) {                        /* loop thru units */
     else uptr->USTAT = STA_REM;
     }
 if (mtxb == NULL)
-    mtxb = (uint8 *) calloc (MT_MAXFR, sizeof (uint8));
+    mtxb = (uint8_t *) calloc (MT_MAXFR, sizeof (uint8_t));
 if (mtxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -632,7 +634,7 @@ return SCPE_OK;
 t_stat mt_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
-int32 u = uptr - mt_dev.units;                          /* get unit number */
+int32_t u = uptr - mt_dev.units;                        /* get unit number */
 
 r = sim_tape_attach (uptr, cptr);
 if (r != SCPE_OK)
@@ -647,7 +649,7 @@ return r;
 
 t_stat mt_detach (UNIT* uptr)
 {
-int32 u = uptr - mt_dev.units;                          /* get unit number */
+int32_t u = uptr - mt_dev.units;                        /* get unit number */
 
 if (!(uptr->flags & UNIT_ATT))                          /* check for attached */
     return SCPE_OK;
@@ -660,14 +662,14 @@ return sim_tape_detach (uptr);
 
 /* Write lock/enable routine */
 
-t_stat mt_vlock (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat mt_vlock (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-int32 u = uptr - mt_dev.units;                          /* get unit number */
+int32_t u = uptr - mt_dev.units;                        /* get unit number */
 
 if ((uptr->flags & UNIT_ATT) && (val || sim_tape_wrp (uptr)))
     uptr->USTAT = uptr->USTAT | STA_WLK;

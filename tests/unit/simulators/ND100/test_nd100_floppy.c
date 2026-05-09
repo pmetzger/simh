@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,7 @@
 
 #include "scp.h"
 #include "sim_defs.h"
+#include "sim_types.h"
 #include "nd100_defs.h"
 
 #define TEST_CB 0100
@@ -25,17 +27,17 @@ extern UNIT floppy_unit[];
 t_stat floppy_reset(DEVICE *dptr);
 t_stat floppy_svc(UNIT *uptr);
 
-uint16 PM[65536];
-uint16 R[8];
-uint16 regSTH;
+uint16_t PM[65536];
+uint16_t R[8];
+uint16_t regSTH;
 int ald;
 int curlvl;
 int userring;
 
-static uint16 test_memory[65536];
+static uint16_t test_memory[65536];
 static int interrupt_calls;
 
-static FILE *create_disk_file(const unsigned char *data, size_t size)
+static FILE *create_disk_file(const uchar_t *data, size_t size)
 {
     FILE *file;
 
@@ -69,7 +71,7 @@ static void prepare_floppy_read(FILE *file, int words)
     test_memory[TEST_CB + TEST_CB_DAHMAH] = 0;
     test_memory[TEST_CB + TEST_CB_MAL] = TEST_MEM;
     test_memory[TEST_CB + TEST_CB_OPTWCH] = TEST_CB_OPT_WC;
-    test_memory[TEST_CB + TEST_CB_WCL] = (uint16)words;
+    test_memory[TEST_CB + TEST_CB_WCL] = (uint16_t)words;
 
     regA = TEST_FL_CW_FCE;
     assert_int_equal(iox_floppy(3), SCPE_OK);
@@ -85,7 +87,7 @@ static void finish_floppy(FILE *file)
 
 static void test_floppy_read_copies_complete_word(void **state)
 {
-    const unsigned char data[] = {0x12, 0x34};
+    const uchar_t data[] = {0x12, 0x34};
     FILE *file;
 
     (void)state;
@@ -101,7 +103,7 @@ static void test_floppy_read_copies_complete_word(void **state)
 
 static void test_floppy_read_rejects_short_word(void **state)
 {
-    const unsigned char data[] = {0x12};
+    const uchar_t data[] = {0x12};
     FILE *file;
 
     (void)state;
@@ -115,7 +117,7 @@ static void test_floppy_read_rejects_short_word(void **state)
     finish_floppy(file);
 }
 
-uint16 prdmem(int addr, int how)
+uint16_t prdmem(int addr, int how)
 {
     (void)how;
 
@@ -126,14 +128,14 @@ void pwrmem(int addr, int val, int how)
 {
     (void)how;
 
-    test_memory[addr & 0177777] = (uint16)val;
+    test_memory[addr & 0177777] = (uint16_t)val;
 }
 
 void wrmem(int addr, int val, int how)
 {
     (void)how;
 
-    test_memory[addr & 0177777] = (uint16)val;
+    test_memory[addr & 0177777] = (uint16_t)val;
 }
 
 void extint(int lvl, struct intr *intr)

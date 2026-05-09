@@ -173,6 +173,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_cpu_ims.h"
@@ -257,18 +259,18 @@ const char *const sio_order_name [] = {         /* indexed by SIO_ORDER */
 
 /* Global IOP state */
 
-uint32 iop_interrupt_request_set = 0;           /* the set of interfaces requesting interrupts */
+uint32_t iop_interrupt_request_set = 0;         /* the set of interfaces requesting interrupts */
 
 
 /* Local IOP state */
 
-static uint32 IOA = 0;                          /* I/O Address Register */
+static uint32_t IOA = 0;                        /* I/O Address Register */
 
-static uint32 interrupt_poll_set = 0;           /* the set of interfaces breaking the poll chain */
+static uint32_t interrupt_poll_set = 0;         /* the set of interfaces breaking the poll chain */
 static DIB    *devs [DEVNO_MAX + 1];            /* index by device number for I/O instruction dispatch */
 static DIB    *irqs [INTPRI_MAX + 1];           /* index by interrupt priority number for interrupt requests */
 
-static uint32 filter [4] = {                    /* filter bitmap for device numbers 0-127 */
+static uint32_t filter [4] = {                  /* filter bitmap for device numbers 0-127 */
     TRACE_ALL,
     TRACE_ALL,
     TRACE_ALL,
@@ -279,8 +281,8 @@ static uint32 filter [4] = {                    /* filter bitmap for device numb
 /* IOP local SCP support routines */
 
 static t_stat iop_reset       (DEVICE *dptr);
-static t_stat iop_set_filter  (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat iop_show_filter (FILE *st,   UNIT  *uptr, int32 value, const void *desc);
+static t_stat iop_set_filter  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat iop_show_filter (FILE *st,   UNIT  *uptr, int32_t value, const void *desc);
 
 
 /* IOP SCP data structures */
@@ -380,11 +382,11 @@ DEVICE iop_dev = {
    case the value is the device number.
 */
 
-uint32 iop_initialize (void)
+uint32_t iop_initialize (void)
 {
 const DEVICE *dptr;
 DIB    *dibptr;
-uint32 i, irq;
+uint32_t i, irq;
 
 iop_interrupt_request_set = 0;                          /* set all interrupt requests inactive */
 interrupt_poll_set        = 0;                          /* set all poll continuity bits inactive */
@@ -518,11 +520,11 @@ return IOA;
        not the poll set bit.
 */
 
-uint32 iop_poll (void)
+uint32_t iop_poll (void)
 {
 DIB         *dibptr;
 SIGNALS_DATA outbound;
-uint32       ipn, priority_mask, request_granted;
+uint32_t     ipn, priority_mask, request_granted;
 
 if (CPX1 & cpx1_EXTINTR)                                /* if an external interrupt has been requested */
     return IOA;                                         /*   then return the device number in lieu of polling */
@@ -631,7 +633,7 @@ static const char *const io_command_name [] = {         /* indexed by IO_COMMAND
     "Read I/O"                                          /*   ioRIO  */
     };
 
-uint32       irq, devno;
+uint32_t     irq, devno;
 bool         no_response;
 DIB          *dibptr;
 SIGNALS_DATA outbound = NO_SIGNALS;
@@ -710,7 +712,7 @@ return IODATA (outbound);                                   /* return the outbou
 
 void iop_assert_INTREQ (DIB *dibptr)
 {
-uint32 irq;
+uint32_t irq;
 
 dprintf (iop_dev, FILTER (dibptr->device_number) ? DEB_IRQ : 0,
          "Device number %u asserted INTREQ at priority %u\n",
@@ -738,7 +740,7 @@ return;
 
 void iop_assert_PFWARN (void)
 {
-uint32       devno;
+uint32_t     devno;
 DIB          *dibptr;
 SIGNALS_DATA outbound;
 
@@ -831,7 +833,7 @@ return SCPE_OK;
    disturbed.
 */
 
-static t_stat iop_set_filter (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat iop_set_filter (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -842,7 +844,7 @@ const char *tptr;
 char       *mptr;
 t_addr     dev, low, high;
 t_stat     result = SCPE_OK;
-uint32     new_filter [4] = { TRACE_ALL, TRACE_ALL, TRACE_ALL, TRACE_ALL };
+uint32_t   new_filter [4] = { TRACE_ALL, TRACE_ALL, TRACE_ALL, TRACE_ALL };
 
 if (value == 1) {                                       /* if we are setting the filter */
     if ((cptr == NULL) || (*cptr == '\0'))              /*   then if a line range was not supplied */
@@ -898,7 +900,7 @@ return result;                                          /* return the result of 
    in the filter is encountered.
 */
 
-static t_stat iop_show_filter (FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat iop_show_filter (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -906,8 +908,8 @@ static t_stat iop_show_filter (FILE *st, UNIT *uptr, int32 value, const void *de
 (void) value;
 (void) desc;
 
-int32  group, low, high;
-uint32 test_filter;
+int32_t group, low, high;
+uint32_t test_filter;
 bool first = true, in_range = false;
 
 low = 0;                                                /* initialize the current starting value */

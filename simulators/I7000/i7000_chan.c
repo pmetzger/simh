@@ -25,6 +25,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "i7000_defs.h"
 
 extern DEVICE      *sim_devices[];
@@ -176,7 +178,7 @@ void help_set_chan_type(FILE *st, DEVICE *dptr, const char *name)
 
 /* Sets the device onto a given channel */
 t_stat
-set_chan(UNIT * uptr, int32 val, const char *cptr, void *desc)
+set_chan(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -298,7 +300,7 @@ set_chan(UNIT * uptr, int32 val, const char *cptr, void *desc)
 
    /* Hook up to new channel */
     if (dibp->upc > 1) {
-        uint32  unit;
+        uint32_t unit;
         for (unit = 0; unit < dptr->numunits; unit++) {
             /* Set the new channel */
             dptr->units[unit].flags &= ~UNIT_CHAN;
@@ -316,7 +318,7 @@ set_chan(UNIT * uptr, int32 val, const char *cptr, void *desc)
 
 /* Print devices on channel */
 t_stat
-print_chan(FILE * st, UNIT * uptr, int32 v, const void *desc)
+print_chan(FILE * st, UNIT * uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -331,7 +333,7 @@ print_chan(FILE * st, UNIT * uptr, int32 v, const void *desc)
     for (i = 0; sim_devices[i] != NULL; i++) {
         UNIT               *u = sim_devices[i]->units;
         DIB                *dibp = (DIB *) sim_devices[i]->ctxt;
-        uint32              num;
+        uint32_t            num;
 
         /* If no DIB, not channel device */
         if (dibp == NULL)
@@ -359,7 +361,7 @@ print_chan(FILE * st, UNIT * uptr, int32 v, const void *desc)
 }
 
 t_stat
-get_chan(FILE * st, UNIT * uptr, int32 v, const void *desc)
+get_chan(FILE * st, UNIT * uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -384,7 +386,7 @@ get_chan(FILE * st, UNIT * uptr, int32 v, const void *desc)
 }
 
 t_stat
-chan9_set_select(UNIT * uptr, int32 val, const char *cptr, void *desc)
+chan9_set_select(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -418,7 +420,7 @@ chan9_set_select(UNIT * uptr, int32 val, const char *cptr, void *desc)
 
    /* Change to new selection. */
     if (dibp->upc > 1) {
-        uint32  unit;
+        uint32_t unit;
         for (unit = 0; unit < dptr->numunits; unit++) {
             if (newsel)
                 dptr->units[unit].flags |= UNIT_SELECT;
@@ -435,7 +437,7 @@ chan9_set_select(UNIT * uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-chan9_get_select(FILE * st, UNIT * uptr, int32 v, const void *desc)
+chan9_get_select(FILE * st, UNIT * uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -458,7 +460,7 @@ int chan_error(int chan)
 }
 
 /* Check channel for flag, clear it if it was set */
-int chan_stat(int chan, uint32 flag)
+int chan_stat(int chan, uint32_t flag)
 {
     if (chan_flags[chan] & flag) {
         chan_flags[chan] &= ~flag;
@@ -468,7 +470,7 @@ int chan_stat(int chan, uint32 flag)
 }
 
 /* Check channel for flag */
-int chan_test(int chan, uint32 flag)
+int chan_test(int chan, uint32_t flag)
 {
     if (chan_flags[chan] & flag)
         return 1;
@@ -524,13 +526,13 @@ chan_clear_status(int chan)
 }
 
 void
-chan_set(int chan, uint32 flag)
+chan_set(int chan, uint32_t flag)
 {
     chan_flags[chan] |= flag;
 }
 
 void
-chan_clear(int chan, uint32 flag)
+chan_clear(int chan, uint32_t flag)
 {
     chan_flags[chan] &= ~flag;
 }
@@ -543,7 +545,7 @@ chan9_clear_error(int chan, int sel) {
 void
 chan9_set_attn(int chan, int sel)
 {
-    uint16              mask = SNS_ATTN1 >> sel;
+    uint16_t            mask = SNS_ATTN1 >> sel;
 
     chan9_set_error(chan, mask);
 }

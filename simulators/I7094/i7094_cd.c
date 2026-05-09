@@ -45,6 +45,8 @@
    (24 36b words).
 */
 
+#include <stdint.h>
+
 #include "i7094_defs.h"
 
 #define CD_BINLNT               24                      /* bin buf length */
@@ -59,36 +61,36 @@
 #define UNIT_CBN                (1 << UNIT_V_CBN)
 #define UNIT_PCA                (1 << UNIT_V_PCA)
 
-uint32 cdr_sta = 0;                                     /* state */
-uint32 cdr_bptr = 0;                                    /* buffer ptr */
-uint32 cdr_tstart = 27500;                              /* timing */
-uint32 cdr_tstop = 27500;
-uint32 cdr_tleft = 150;
-uint32 cdr_tright = 4000;
-t_uint64 cdr_bbuf[CD_BINLNT];                           /* col binary buf */
+uint32_t cdr_sta = 0;                                   /* state */
+uint32_t cdr_bptr = 0;                                  /* buffer ptr */
+uint32_t cdr_tstart = 27500;                            /* timing */
+uint32_t cdr_tstop = 27500;
+uint32_t cdr_tleft = 150;
+uint32_t cdr_tright = 4000;
+uint64_t cdr_bbuf[CD_BINLNT];                           /* col binary buf */
 
-uint32 cdp_sta = 0;                                     /* state */
-uint32 cdp_bptr = 0;                                    /* buffer ptr */
-uint32 cdp_tstart = 35000;                              /* timing */
-uint32 cdp_tstop = 35000;
-uint32 cdp_tleft = 150;
-uint32 cdp_tright = 15500;
-t_uint64 cdp_chob = 0;
-uint32 cdp_chob_v = 0;
-t_uint64 cdp_bbuf[CD_BINLNT];                           /* col binary buf */
+uint32_t cdp_sta = 0;                                   /* state */
+uint32_t cdp_bptr = 0;                                  /* buffer ptr */
+uint32_t cdp_tstart = 35000;                            /* timing */
+uint32_t cdp_tstop = 35000;
+uint32_t cdp_tleft = 150;
+uint32_t cdp_tright = 15500;
+uint64_t cdp_chob = 0;
+uint32_t cdp_chob_v = 0;
+uint64_t cdp_bbuf[CD_BINLNT];                           /* col binary buf */
 
-t_stat cdr_chsel (uint32 ch, uint32 sel, uint32 unit);
+t_stat cdr_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
 t_stat cdr_reset (DEVICE *dptr);
 t_stat cdr_svc (UNIT *uptr);
-t_stat cdr_boot (int32 unitno, DEVICE *dptr);
-t_stat cdp_chsel (uint32 ch, uint32 sel, uint32 unit);
-t_stat cdp_chwr (uint32 ch, t_uint64 val, uint32 flags);
+t_stat cdr_boot (int32_t unitno, DEVICE *dptr);
+t_stat cdp_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
+t_stat cdp_chwr (uint32_t ch, uint64_t val, uint32_t flags);
 t_stat cdp_reset (DEVICE *dptr);
 t_stat cdp_svc (UNIT *uptr);
 t_stat cdp_card_end (UNIT *uptr);
 t_stat cd_attach (UNIT *uptr, const char *cptr);
-t_stat cd_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-char colbin_to_bcd (uint32 cb);
+t_stat cd_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+char colbin_to_bcd (uint32_t cb);
 
 
 /* Card reader data structures
@@ -174,7 +176,7 @@ DEVICE cdp_dev = {
 
 /* Card reader select */
 
-t_stat cdr_chsel (uint32 ch, uint32 sel, uint32 unit)
+t_stat cdr_chsel (uint32_t ch, uint32_t sel, uint32_t unit)
 {
 /* Channel select callback signature.
    This implementation does not use every parameter. */
@@ -205,9 +207,9 @@ return SCPE_OK;
 
 t_stat cdr_svc (UNIT *uptr)
 {
-uint32 i, col, row, bufw, colbin;
+uint32_t i, col, row, bufw, colbin;
 char cdr_cbuf[(2 * CD_CHRLNT) + 2 + 1];
-t_uint64 dat = 0;
+uint64_t dat = 0;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* not attached? */
     return SCPE_UNATT;
@@ -234,8 +236,8 @@ switch (cdr_sta) {                                      /* case on state */
             cdr_cbuf[i] = ascii_to_bcd[cdr_cbuf[i] & 0177] & 077;
         for (col = 0; col < 72; col++) {                /* process 72 columns */
             if (uptr->flags & UNIT_CBN)                 /* column binary? */
-                colbin = (((uint32) cdr_cbuf[2 * col]) << 6) |
-                ((uint32) cdr_cbuf[(2 * col) + 1]);     /* 2 chars -> col bin */
+                colbin = (((uint32_t) cdr_cbuf[2 * col]) << 6) |
+                ((uint32_t) cdr_cbuf[(2 * col) + 1]);   /* 2 chars -> col bin */
             else colbin = bcd_to_colbin[cdr_cbuf[col] & 077]; /* cvt to col binary */
             dat = bit_masks[35 - (col % 36)];           /* mask for column */
             for (row = 0; row < 12; row++) {            /* rows 9..0, 11, 12 */
@@ -277,7 +279,7 @@ t_stat cdr_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < CD_BINLNT; i++)                         /* clear buffer */
     cdr_bbuf[i] = 0;
@@ -290,9 +292,9 @@ return SCPE_OK;
 /* Card reader bootstrap */
 
 #define BOOT_START      01000
-#define BOOT_SIZE       (sizeof (boot_rom) / sizeof (t_uint64))
+#define BOOT_SIZE       (sizeof (boot_rom) / sizeof (uint64_t))
 
-static const t_uint64 boot_rom[] = {
+static const uint64_t boot_rom[] = {
     INT64_C(00762000001000) + U_CDR,                    /* RDSA CDR */
     INT64_C(00544000000000) + BOOT_START + 4,           /* LCHA *+3 */
     INT64_C(00544000000000),                            /* LCHA 0 */
@@ -300,15 +302,15 @@ static const t_uint64 boot_rom[] = {
     INT64_C(05000030000000),                            /* IOCT 3,,0 */
     };
 
-t_stat cdr_boot (int32 unitno, DEVICE *dptr)
+t_stat cdr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic bootstrap signature.
    This implementation does not use every parameter. */
 (void) unitno;
 (void) dptr;
 
-uint32 i;
-extern t_uint64 *M;
+uint32_t i;
+extern uint64_t *M;
 
 for (i = 0; i < BOOT_SIZE; i++)
     WriteP (BOOT_START + i, boot_rom[i]);
@@ -338,7 +340,7 @@ return SCPE_OK;
 
 /* Reader/punch set mode - valid only if not attached */
 
-t_stat cd_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cd_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -351,7 +353,7 @@ return (uptr->flags & UNIT_ATT)? SCPE_NOFNC: SCPE_OK;
 
 /* Card punch select */
 
-t_stat cdp_chsel (uint32 ch, uint32 sel, uint32 unit)
+t_stat cdp_chsel (uint32_t ch, uint32_t sel, uint32_t unit)
 {
 /* Channel select callback signature.
    This implementation does not use every parameter. */
@@ -379,7 +381,7 @@ return SCPE_OK;
 
 /* Channel write routine - write word to buffer, write card when full */
 
-t_stat cdp_chwr (uint32 ch, t_uint64 val, uint32 eorfl)
+t_stat cdp_chwr (uint32_t ch, uint64_t val, uint32_t eorfl)
 {
 /* Channel write callback signature.
    This implementation does not use every parameter. */
@@ -402,7 +404,7 @@ return SCPE_IERR;
 
 t_stat cdp_svc (UNIT *uptr)
 {
-uint32 i;
+uint32_t i;
 
 switch (cdp_sta) {                                      /* case on state */
 
@@ -442,10 +444,10 @@ return SCPE_OK;
 
 t_stat cdp_card_end (UNIT *uptr)
 {
-uint32 i, col, row, bufw, colbin;
+uint32_t i, col, row, bufw, colbin;
 const char *pch;
 char bcd, cdp_cbuf[(2 * CD_CHRLNT) + 2];
-t_uint64 dat;
+uint64_t dat;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* not attached? */
     return SCPE_UNATT;
@@ -496,7 +498,7 @@ t_stat cdp_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < 24; i++)                                /* clear buffer */
     cdp_bbuf[i] = 0;
@@ -524,9 +526,9 @@ static const char row_val[12] = {
     003, 002, 001, 020, 040, 060
     };
 
-char colbin_to_bcd (uint32 cb)
+char colbin_to_bcd (uint32_t cb)
 {
-uint32 i;
+uint32_t i;
 char bcd;
 
 for (i = 0, bcd = 0; i < 12; i++) {                     /* 'sum' rows */

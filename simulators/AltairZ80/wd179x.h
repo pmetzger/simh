@@ -35,16 +35,18 @@
  *                                                                       *
  *************************************************************************/
 
+#include <stdint.h>
+
 extern t_stat wd179x_attach(UNIT *uptr, const char *cptr);
 extern t_stat wd179x_detach(UNIT *uptr);
-extern uint8 WD179X_Set_DMA(const uint32 dma_addr);
-extern uint8 WD179X_Read(const uint32 Addr);
-extern uint8 WD179X_Write(const uint32 Addr, uint8 cData);
+extern uint8_t WD179X_Set_DMA(const uint32_t dma_addr);
+extern uint8_t WD179X_Read(const uint32_t Addr);
+extern uint8_t WD179X_Write(const uint32_t Addr, uint8_t cData);
 
 extern void wd179x_external_restore(void);
-extern void wd179x_connect_external_fifo(uint16 fifo_len, uint8 *storage);
+extern void wd179x_connect_external_fifo(uint16_t fifo_len, uint8_t *storage);
 extern void wd179x_reset_external_fifo(void);
-extern uint8 wd179x_get_nheads(void);
+extern uint8_t wd179x_get_nheads(void);
 extern void wd179x_set_drive_rpm(int rpm);
 
 #define WD179X_FDC_MSR       0   /* R=FDC Main Status Register, W=Drive Select Register */
@@ -58,14 +60,14 @@ extern void wd179x_set_drive_rpm(int rpm);
 /* Note: this struct must be kept in sync with WD179X_INFO */
 typedef struct {
     PNP_INFO pnp;       /* Plug-n-Play Information */
-    uint16 fdctype;     /* Default is 1793 */
-    uint8 intenable;    /* Interrupt Enable */
-    uint8 intvector;    /* Interrupt Vector */
-    uint8 intrq;        /* WD179X Interrupt Request Output (EOJ) */
-    uint8 hld;          /* WD179X Head Load Output */
-    uint8 drq;          /* WD179X DMA Request Output */
-    uint8 ddens;        /* WD179X Double-Density Input */
-    uint8 fdc_head;     /* H Head Number */
-    uint8 sel_drive;    /* Currently selected drive */
-    uint8 drivetype;    /* 8 or 5 depending on disk type. */
+    uint16_t fdctype;   /* Default is 1793 */
+    uint8_t intenable;  /* Interrupt Enable */
+    uint8_t intvector;  /* Interrupt Vector */
+    uint8_t intrq;      /* WD179X Interrupt Request Output (EOJ) */
+    uint8_t hld;        /* WD179X Head Load Output */
+    uint8_t drq;        /* WD179X DMA Request Output */
+    uint8_t ddens;      /* WD179X Double-Density Input */
+    uint8_t fdc_head;   /* H Head Number */
+    uint8_t sel_drive;  /* Currently selected drive */
+    uint8_t drivetype;  /* 8 or 5 depending on disk type. */
 } WD179X_INFO_PUB;

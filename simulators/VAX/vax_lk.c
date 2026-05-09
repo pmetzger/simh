@@ -35,6 +35,7 @@
 #if !defined(VAX_620)
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "vax_lk.h"
 
@@ -60,17 +61,17 @@ static const char *lk_modes[] = {"DOWN", "AUTODOWN", "NONE", "DOWNUP"};
 static const char *lk_states[] = {"DOWN", "UP", "REPEAT"};
 
 typedef struct {
-    int32 head;
-    int32 tail;
-    int32 count;
-    uint8 buf[LK_BUF_LEN];
+    int32_t head;
+    int32_t tail;
+    int32_t count;
+    uint8_t buf[LK_BUF_LEN];
 } LK_FIFO;
 
 /* Scan codes */
 
 typedef struct {
-    int8 group;
-    uint8 code;
+    int8_t group;
+    uint8_t code;
 } LK_KEYDATA;
 
 LK_KEYDATA LK_KEY_UNKNOWN    = { 0, LK_UNKNOWN };
@@ -177,20 +178,20 @@ LK_KEYDATA LK_KEY_F12        = { 12, LK_F12 };
 
 bool lk_repeat = true;                                  /* autorepeat flag */
 bool lk_trpti = false;                                  /* temp repeat inhibit */
-int32 lk_keysdown = 0;                                  /* no of keys held down */
+int32_t lk_keysdown = 0;                                /* no of keys held down */
 LK_FIFO lk_sndf;                                        /* send FIFO */
 LK_FIFO lk_rcvf;                                        /* receive FIFO */
-int32 lk_mode[16];                                      /* mode of each key group */
+int32_t lk_mode[16];                                    /* mode of each key group */
 
-t_stat lk_wr (uint8 c);
-t_stat lk_rd (uint8 *c);
+t_stat lk_wr (uint8_t c);
+t_stat lk_rd (uint8_t *c);
 t_stat lk_reset (DEVICE *dptr);
 void lk_reset_mode (void);
 void lk_cmd (void);
 const char *lk_description (DEVICE *dptr);
 static LK_KEYDATA lk_map_key (int key);
-t_stat lk_put_fifo (LK_FIFO *fifo, uint8 data);
-t_stat lk_get_fifo (LK_FIFO *fifo, uint8 *data);
+t_stat lk_put_fifo (LK_FIFO *fifo, uint8_t data);
+t_stat lk_get_fifo (LK_FIFO *fifo, uint8_t *data);
 void lk_clear_fifo (LK_FIFO *fifo);
 
 /* LK data structures
@@ -230,7 +231,7 @@ DEVICE lk_dev = {
 
 /* Incoming data on serial line */
 
-t_stat lk_wr (uint8 c)
+t_stat lk_wr (uint8_t c)
 {
 sim_debug (DBG_SERIAL, &lk_dev, "vax -> lk: %02X\n", c);
 if (c == 0)
@@ -247,7 +248,7 @@ return SCPE_OK;
 
 /* Outgoing data on serial line */
 
-t_stat lk_rd (uint8 *c)
+t_stat lk_rd (uint8_t *c)
 {
 t_stat r;
 
@@ -258,7 +259,7 @@ if (r == SCPE_OK)
 return r;
 }
 
-t_stat lk_put_fifo (LK_FIFO *fifo, uint8 data)
+t_stat lk_put_fifo (LK_FIFO *fifo, uint8_t data)
 {
 if (fifo->count < LK_BUF_LEN) {
     fifo->buf[fifo->head++] = data;
@@ -271,7 +272,7 @@ else
     return SCPE_EOF;
 }
 
-t_stat lk_get_fifo (LK_FIFO *fifo, uint8 *data)
+t_stat lk_get_fifo (LK_FIFO *fifo, uint8_t *data)
 {
 if (fifo->count > 0) {
     *data = fifo->buf[fifo->tail++];
@@ -295,8 +296,8 @@ fifo->count = 0;
 
 void lk_cmd (void)
 {
-int32 i, group, mode;
-uint8 data;
+int32_t i, group, mode;
+uint8_t data;
 
 lk_get_fifo (&lk_rcvf, &data);
 
@@ -819,7 +820,7 @@ return SCPE_OK;
 void lk_event (SIM_KEY_EVENT *ev)
 {
 LK_KEYDATA lk_key;
-int32 mode;
+int32_t mode;
 
 lk_key = lk_map_key (ev->key);
 mode  = lk_mode[lk_key.group];

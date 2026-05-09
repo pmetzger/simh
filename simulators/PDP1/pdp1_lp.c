@@ -36,33 +36,36 @@
    13-Apr-01    RMS     Revised for register arrays
 */
 
+#include <stdint.h>
+
 #include "pdp1_defs.h"
+#include "sim_types.h"
 
 #define BPTR_MAX        40                              /* pointer max */
 #define LPT_BSIZE       (BPTR_MAX * 3)                  /* line size */
 #define BPTR_MASK       077                             /* buf ptr mask */
 
-int32 lpt_spc = 0;                                      /* print (0) vs spc */
-int32 lpt_ovrpr = 0;                                    /* overprint */
-int32 lpt_stopioe = 0;                                  /* stop on error */
-int32 lpt_bptr = 0;                                     /* buffer ptr */
-int32 lpt_sbs = 0;                                      /* SBS level */
+int32_t lpt_spc = 0;                                    /* print (0) vs spc */
+int32_t lpt_ovrpr = 0;                                  /* overprint */
+int32_t lpt_stopioe = 0;                                /* stop on error */
+int32_t lpt_bptr = 0;                                   /* buffer ptr */
+int32_t lpt_sbs = 0;                                    /* SBS level */
 char lpt_buf[LPT_BSIZE + 1] = { 0 };
-static const unsigned char lpt_trans[64] = {
+static const uchar_t lpt_trans[64] = {
     ' ','1','2','3','4','5','6','7','8','9','\'','~','#','V','^','<',
     '0','/','S','T','U','V','W','X','Y','Z','"',',','>','^','-','?',
     '@','J','K','L','M','N','O','P','Q','R','$','=','-',')','-','(',
     '_','A','B','C','D','E','F','G','H','I','*','.','+',']','|','['
     };
 
-extern int32 ios, cpls, iosta;
-extern int32 stop_inst;
+extern int32_t ios, cpls, iosta;
+extern int32_t stop_inst;
 
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *ptr);
 t_stat lpt_detach (UNIT *uptr);
-t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *lpt_description (DEVICE *dptr);
 
 /* LPT data structures
@@ -110,13 +113,13 @@ DEVICE lpt_dev = {
 
 /* Line printer IOT routine */
 
-int32 lpt (int32 inst, int32 dev, int32 dat)
+int32_t lpt (int32_t inst, int32_t dev, int32_t dat)
 {
 /* Generic IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 i;
+int32_t i;
 
 if (lpt_dev.flags & DEV_DIS)                            /* disabled? */
     return (stop_inst << IOT_V_REASON) | dat;           /* stop if requested */
@@ -156,7 +159,7 @@ return dat;
 
 t_stat lpt_svc (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 static const char *lpt_cc[] = {
     "\n",
     "\n\n",
@@ -215,7 +218,7 @@ t_stat lpt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 lpt_bptr = 0;                                           /* clear buffer ptr */
 for (i = 0; i <= LPT_BSIZE; i++)                        /* clear buffer */
@@ -242,7 +245,7 @@ t_stat lpt_detach (UNIT *uptr)
 return detach_unit (uptr);
 }
 
-t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

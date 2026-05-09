@@ -34,6 +34,7 @@
 #include "id_defs.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define DP_NUMBY        256                             /* bytes/sector */
 #define DP_NUMSC        24                              /* sectors/track */
@@ -125,9 +126,9 @@
 #define SIZE_5440       (2 * DP_NUMSC * SURF_5440 * CYL_5440 * DP_NUMBY)
 
 struct drvtyp {
-    int32       cyl;                                    /* cylinders */
-    uint32      surf;                                   /* surfaces */
-    uint32      size;                                   /* #blocks */
+    int32_t     cyl;                                    /* cylinders */
+    uint32_t    surf;                                   /* surfaces */
+    uint32_t    size;                                   /* #blocks */
     };
 
 static struct drvtyp drv_tab[] = {
@@ -136,37 +137,37 @@ static struct drvtyp drv_tab[] = {
     { 0 }
     };
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 
-uint8 dpxb[DP_NUMBY];                                   /* xfer buffer */
-uint32 dp_bptr = 0;                                     /* buffer ptr */
-uint32 dp_db = 0;                                       /* ctrl buffer */
-uint32 dp_cyl = 0;                                      /* drive buffer */
-uint32 dp_sta = 0;                                      /* ctrl status */
-uint32 dp_cmd = 0;                                      /* ctrl command */
-uint32 dp_plat = 0;                                     /* platter */
-uint32 dp_hdsc = 0;                                     /* head/sector */
-uint32 dp_svun = 0;                                     /* most recent unit */
-uint32 dp_1st = 0;                                      /* first byte */
-uint32 dpd_arm[DP_NUMDR] = { 0 };                       /* drives armed */
-int32 dp_stime = 100;                                   /* seek latency */
-int32 dp_rtime = 100;                                   /* rotate latency */
-int32 dp_wtime = 1;                                     /* word time */
-uint8 dp_tplte[(2 * DP_NUMDR) + 2];                     /* fix/rmv + ctrl + end */
+uint8_t dpxb[DP_NUMBY];                                 /* xfer buffer */
+uint32_t dp_bptr = 0;                                   /* buffer ptr */
+uint32_t dp_db = 0;                                     /* ctrl buffer */
+uint32_t dp_cyl = 0;                                    /* drive buffer */
+uint32_t dp_sta = 0;                                    /* ctrl status */
+uint32_t dp_cmd = 0;                                    /* ctrl command */
+uint32_t dp_plat = 0;                                   /* platter */
+uint32_t dp_hdsc = 0;                                   /* head/sector */
+uint32_t dp_svun = 0;                                   /* most recent unit */
+uint32_t dp_1st = 0;                                    /* first byte */
+uint32_t dpd_arm[DP_NUMDR] = { 0 };                     /* drives armed */
+int32_t dp_stime = 100;                                 /* seek latency */
+int32_t dp_rtime = 100;                                 /* rotate latency */
+int32_t dp_wtime = 1;                                   /* word time */
+uint8_t dp_tplte[(2 * DP_NUMDR) + 2];                   /* fix/rmv + ctrl + end */
 
-uint32 dp (uint32 dev, uint32 op, uint32 dat);
+uint32_t dp (uint32_t dev, uint32_t op, uint32_t dat);
 void dp_ini (bool dtpl);
 t_stat dp_svc (UNIT *uptr);
 t_stat dp_reset (DEVICE *dptr);
 t_stat dp_attach (UNIT *uptr, const char *cptr);
 t_stat dp_detach (UNIT *uptr);
-t_stat dp_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat dp_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat dp_rds (UNIT *uptr);
 t_stat dp_wds (UNIT *uptr);
-bool dp_dter (UNIT *uptr, uint32 first);
-void dp_done (uint32 flg);
+bool dp_dter (UNIT *uptr, uint32_t first);
+void dp_done (uint32_t flg);
 
-extern t_stat id_dboot (int32 u, DEVICE *dptr);
+extern t_stat id_dboot (int32_t u, DEVICE *dptr);
 
 /* DP data structures
 
@@ -253,11 +254,11 @@ DEVICE dp_dev = {
 
 /* Controller: IO routine */
 
-static uint32 dpc (uint32 dev, uint32 op, uint32 dat)
+static uint32_t dpc (uint32_t dev, uint32_t op, uint32_t dat)
 {
-uint32 f, t, u;
+uint32_t f, t, u;
 UNIT *uptr;
-static uint8 good_cmd[8] = { 0, 1, 1, 1, 0, 0, 0, 0 };
+static uint8_t good_cmd[8] = { 0, 1, 1, 1, 0, 0, 0, 0 };
 
 switch (op) {                                           /* case IO op */
 
@@ -319,10 +320,10 @@ return 0;
 
 /* Drives: IO routine */
 
-uint32 dp (uint32 dev, uint32 op, uint32 dat)
+uint32_t dp (uint32_t dev, uint32_t op, uint32_t dat)
 {
-int32 diff;
-uint32 t, u;
+int32_t diff;
+uint32_t t, u;
 UNIT *uptr;
 
 if (dev == dp_dib.dno)                                  /* controller? */
@@ -388,9 +389,9 @@ return 0;
 
 t_stat dp_svc (UNIT *uptr)
 {
-uint32 u = uptr - dp_dev.units;                         /* get unit number */
-int32 cyl = uptr->CYL;                                  /* get cylinder */
-uint32 dtype = GET_DTYPE (uptr->flags);                 /* get drive type */
+uint32_t u = uptr - dp_dev.units;                       /* get unit number */
+int32_t cyl = uptr->CYL;                                /* get cylinder */
+uint32_t dtype = GET_DTYPE (uptr->flags);               /* get drive type */
 t_stat r;
 
 if (uptr->STD & STD_MOV) {                              /* seek? */
@@ -456,9 +457,9 @@ return SCPE_OK;
 
 t_stat dp_rds (UNIT *uptr)
 {
-uint32 i;
+uint32_t i;
 
-i = fxread (dpxb, sizeof (uint8), DP_NUMBY, uptr->fileref);
+i = fxread (dpxb, sizeof (uint8_t), DP_NUMBY, uptr->fileref);
 for ( ; i < DP_NUMBY; i++)                              /* fill with 0's */
     dpxb[i] = 0;
 if (ferror (uptr->fileref)) {                           /* error? */
@@ -476,7 +477,7 @@ t_stat dp_wds (UNIT *uptr)
 {
 for ( ; dp_bptr < DP_NUMBY; dp_bptr++)
     dpxb[dp_bptr] = dp_db;                              /* fill with last */
-fxwrite (dpxb, sizeof (uint8), DP_NUMBY, uptr->fileref);
+fxwrite (dpxb, sizeof (uint8_t), DP_NUMBY, uptr->fileref);
 if (ferror (uptr->fileref)) {                           /* error? */
     sim_perror ("DP I/O error");
     clearerr (uptr->fileref);
@@ -488,10 +489,10 @@ return SCPE_OK;
 
 /* Data transfer error test routine */
 
-bool dp_dter (UNIT *uptr, uint32 first)
+bool dp_dter (UNIT *uptr, uint32_t first)
 {
-uint32 hd, sc, sa;
-uint32 dtype = GET_DTYPE (uptr->flags);                 /* get drive type */
+uint32_t hd, sc, sa;
+uint32_t dtype = GET_DTYPE (uptr->flags);               /* get drive type */
 
 if (((uptr->flags & UNIT_ATT) == 0) ||                  /* not attached? */
     ((uptr->flags & UNIT_WPRT) && (dp_cmd == CMC_WR))) {
@@ -500,7 +501,7 @@ if (((uptr->flags & UNIT_ATT) == 0) ||                  /* not attached? */
     }
 hd = GET_SRF (dp_hdsc);                                 /* get head */
 sc = GET_SEC (dp_hdsc);                                 /* get sector */
-if (dp_cyl != (uint32) uptr->CYL) {                     /* wrong cylinder? */
+if (dp_cyl != (uint32_t) uptr->CYL) {                   /* wrong cylinder? */
     if (dp_cyl == 0)
         uptr->CYL = 0;
     else {
@@ -526,7 +527,7 @@ return false;
 
 /* Data transfer done routine */
 
-void dp_done (uint32 flg)
+void dp_done (uint32_t flg)
 {
 dp_sta = (dp_sta | STC_IDL | flg) & ~STA_BSY;           /* set flag, idle */
 SET_INT (v_DPC);                                        /* unmaskable intr */
@@ -543,7 +544,7 @@ t_stat dp_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 u;
+uint32_t u;
 UNIT *uptr;
 
 dp_cmd = 0;                                             /* clear cmd */
@@ -569,7 +570,7 @@ return SCPE_OK;
 
 t_stat dp_attach (UNIT *uptr, const char *cptr)
 {
-uint32 i, p;
+uint32_t i, p;
 t_stat r;
 
 uptr->capac = drv_tab[GET_DTYPE (uptr->flags)].size;
@@ -595,7 +596,7 @@ return SCPE_OK;
 
 t_stat dp_detach (UNIT *uptr)
 {
-uint32 u = uptr - dp_dev.units;
+uint32_t u = uptr - dp_dev.units;
 
 if (!(uptr->flags & UNIT_ATT))                          /* attached? */
     return SCPE_OK;
@@ -606,7 +607,7 @@ return detach_unit (uptr);
 
 /* Set size command validation routine */
 
-t_stat dp_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dp_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -623,7 +624,7 @@ return SCPE_OK;
 
 void dp_ini (bool dtpl)
 {
-int32 u, j, dev;
+int32_t u, j, dev;
 
 dp_tplte[0] = 0;                                        /* controller */
 for (u = 0, j = 1; u < DP_NUMDR; u++) {                 /* loop thru units */

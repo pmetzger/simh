@@ -62,12 +62,14 @@ typedef struct {
 | division and square root approximations.  (Can be specialized to target if
 | desired.)
 *----------------------------------------------------------------------------*/
+#include <stdint.h>
+
 #include "softfloat-macros"
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE floating-point underflow tininess-detection mode.
 *----------------------------------------------------------------------------*/
-extern int8 float_detect_tininess;
+extern int8_t float_detect_tininess;
 enum {
     float_tininess_after_rounding  = 0,
     float_tininess_before_rounding = 1
@@ -76,7 +78,7 @@ enum {
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE floating-point rounding mode.
 *----------------------------------------------------------------------------*/
-extern int8 float_rounding_mode;
+extern int8_t float_rounding_mode;
 enum {
     float_round_nearest_even = 0,
     float_round_to_zero      = 1,
@@ -87,7 +89,7 @@ enum {
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE floating-point exception flags.
 *----------------------------------------------------------------------------*/
-extern int8 float_exception_flags;
+extern int8_t float_exception_flags;
 enum {
     float_flag_invalid = 0x01, float_flag_denormal = 0x02, float_flag_divbyzero = 0x04, float_flag_overflow = 0x08,
     float_flag_underflow = 0x10, float_flag_inexact = 0x20
@@ -97,18 +99,18 @@ enum {
 | Routine to raise any or all of the software IEC/IEEE floating-point
 | exception flags.
 *----------------------------------------------------------------------------*/
-void float_raise( int8 );
+void float_raise( int8_t );
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE integer-to-floating-point conversion routines.
 *----------------------------------------------------------------------------*/
-float32 int32_to_float32( int32 );
-float64 int32_to_float64( int32 );
+float32 int32_to_float32( int32_t );
+float64 int32_to_float64( int32_t );
 #ifdef FLOATX80
-floatx80 int32_to_floatx80( int32 );
+floatx80 int32_to_floatx80( int32_t );
 #endif
 #ifdef FLOAT128
-float128 int32_to_float128( int32 );
+float128 int32_to_float128( int32_t );
 #endif
 float32 int64_to_float32( int64 );
 float64 int64_to_float64( int64 );
@@ -122,8 +124,8 @@ float128 int64_to_float128( int64 );
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE single-precision conversion routines.
 *----------------------------------------------------------------------------*/
-int32 float32_to_int32( float32 );
-int32 float32_to_int32_round_to_zero( float32 );
+int32_t float32_to_int32( float32 );
+int32_t float32_to_int32_round_to_zero( float32 );
 int64 float32_to_int64( float32 );
 int64 float32_to_int64_round_to_zero( float32 );
 float64 float32_to_float64( float32 );
@@ -155,8 +157,8 @@ flag float32_is_signaling_nan( float32 );
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE double-precision conversion routines.
 *----------------------------------------------------------------------------*/
-int32 float64_to_int32( float64 );
-int32 float64_to_int32_round_to_zero( float64 );
+int32_t float64_to_int32( float64 );
+int32_t float64_to_int32_round_to_zero( float64 );
 int64 float64_to_int64( float64 );
 int64 float64_to_int64_round_to_zero( float64 );
 float32 float64_to_float32( float64 );
@@ -190,8 +192,8 @@ flag float64_is_signaling_nan( float64 );
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE extended double-precision conversion routines.
 *----------------------------------------------------------------------------*/
-int32 floatx80_to_int32( floatx80 );
-int32 floatx80_to_int32_round_to_zero( floatx80 );
+int32_t floatx80_to_int32( floatx80 );
+int32_t floatx80_to_int32_round_to_zero( floatx80 );
 int64 floatx80_to_int64( floatx80 );
 int64 floatx80_to_int64_round_to_zero( floatx80 );
 float32 floatx80_to_float32( floatx80 );
@@ -206,7 +208,7 @@ floatx80 floatx80_scale(floatx80 a, floatx80 b);
 | extended double-precision floating-point value, returning the result.
 *----------------------------------------------------------------------------*/
 
-static inline floatx80 packFloatx80( flag zSign, int32 zExp, bits64 zSig )
+static inline floatx80 packFloatx80( flag zSign, int32_t zExp, bits64 zSig )
 {
     floatx80 z;
 
@@ -220,7 +222,7 @@ static inline floatx80 packFloatx80( flag zSign, int32 zExp, bits64 zSig )
 | Software IEC/IEEE extended double-precision rounding precision.  Valid
 | values are 32, 64, and 80.
 *----------------------------------------------------------------------------*/
-extern int8 floatx80_rounding_precision;
+extern int8_t floatx80_rounding_precision;
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE extended double-precision operations.
@@ -250,7 +252,7 @@ floatx80 floatx80_flog2(floatx80 a);
 floatx80 floatx80_flog10(floatx80 a);
 
 // roundAndPackFloatx80 used to be in softfloat-round-pack, is now in softfloat.c
-floatx80 roundAndPackFloatx80(int8 roundingPrecision, flag zSign, int32 zExp, bits64 zSig0, bits64 zSig1);
+floatx80 roundAndPackFloatx80(int8_t roundingPrecision, flag zSign, int32_t zExp, bits64 zSig0, bits64 zSig1);
 
 #endif
 
@@ -259,8 +261,8 @@ floatx80 roundAndPackFloatx80(int8 roundingPrecision, flag zSign, int32 zExp, bi
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE quadruple-precision conversion routines.
 *----------------------------------------------------------------------------*/
-int32 float128_to_int32( float128 );
-int32 float128_to_int32_round_to_zero( float128 );
+int32_t float128_to_int32( float128 );
+int32_t float128_to_int32_round_to_zero( float128 );
 int64 float128_to_int64( float128 );
 int64 float128_to_int64_round_to_zero( float128 );
 float32 float128_to_float32( float128 );
@@ -301,7 +303,7 @@ flag float128_is_signaling_nan( float128 );
 *----------------------------------------------------------------------------*/
 
 static inline float128
-    packFloat128( flag zSign, int32 zExp, bits64 zSig0, bits64 zSig1 )
+    packFloat128( flag zSign, int32_t zExp, bits64 zSig0, bits64 zSig1 )
 {
     float128 z;
 
@@ -334,9 +336,9 @@ static inline float128
 
 static inline float128
     roundAndPackFloat128(
-        flag zSign, int32 zExp, bits64 zSig0, bits64 zSig1, bits64 zSig2 )
+        flag zSign, int32_t zExp, bits64 zSig0, bits64 zSig1, bits64 zSig2 )
 {
-    int8 roundingMode;
+    int8_t roundingMode;
     flag roundNearestEven, increment, isTiny;
 
     roundingMode = float_rounding_mode;
@@ -434,9 +436,9 @@ static inline float128
 
 static inline float128
     normalizeRoundAndPackFloat128(
-        flag zSign, int32 zExp, bits64 zSig0, bits64 zSig1 )
+        flag zSign, int32_t zExp, bits64 zSig0, bits64 zSig1 )
 {
-    int8 shiftCount;
+    int8_t shiftCount;
     bits64 zSig2;
 
     if ( zSig0 == 0 ) {

@@ -23,6 +23,8 @@
    to the MIT Mathlab and Dynamic Modeling PDP-10s.
 */
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "sim_tmxr.h"
 #include "kx10_defs.h"
@@ -49,7 +51,7 @@
 #define MTY_CONI_BITS   (MTY_PIA | MTY_DONE | MTY_LINE)
 #define MTY_CONO_BITS   (MTY_PIA | MTY_LINE)
 
-static t_stat       mty_devio(uint32 dev, uint64 *data);
+static t_stat       mty_devio(uint32_t dev, uint64 *data);
 static t_stat       mty_input_svc (UNIT *uptr);
 static t_stat       mty_output_svc (UNIT *uptr);
 static t_stat       mty_reset (DEVICE *dptr);
@@ -57,12 +59,12 @@ static t_stat       mty_attach (UNIT *uptr, const char *cptr);
 static t_stat       mty_detach (UNIT *uptr);
 static const char   *mty_description (DEVICE *dptr);
 static t_stat       mty_help (FILE *st, DEVICE *dptr, UNIT *uptr,
-                               int32 flag, const char *cptr);
-extern int32        tmxr_poll;
+                               int32_t flag, const char *cptr);
+extern int32_t      tmxr_poll;
 
-static uint32       mty_active_bitmask;
+static uint32_t     mty_active_bitmask;
 static uint64       mty_output_word[MTY_LINES];
-static int32        mty_input_character;
+static int32_t      mty_input_character;
 
 TMLN mty_ldsc[MTY_LINES] = { 0 };
 TMXR mty_desc = { MTY_LINES, 0, 0, mty_ldsc };
@@ -97,7 +99,7 @@ DEVICE mty_dev = {
     NULL, NULL, mty_help, NULL, NULL, mty_description
 };
 
-static t_stat mty_devio(uint32 dev, uint64 *data)
+static t_stat mty_devio(uint32_t dev, uint64 *data)
 {
     int line;
     uint64 word;
@@ -157,7 +159,7 @@ static t_stat mty_devio(uint32 dev, uint64 *data)
 static t_stat mty_input_svc (UNIT *uptr)
 {
     static int scan = 0;
-    int32 ch;
+    int32_t ch;
     int i;
 
     sim_clock_coschedule (uptr, 1000);
@@ -201,7 +203,7 @@ static t_stat mty_output_svc (UNIT *uptr)
     static int scan = 0;
     uint64 word;
     int i, ch;
-    int32 txdone;
+    int32_t txdone;
 
     if (status & MTY_DONE)
         return SCPE_OK;
@@ -311,7 +313,7 @@ static t_stat mty_detach (UNIT *uptr)
 }
 
 static t_stat mty_help (FILE *st, DEVICE *dptr, UNIT *uptr,
-                         int32 flag, const char *cptr)
+                         int32_t flag, const char *cptr)
 {
     fprintf (st, "MTY Morton box terminal multiplexor\n\n");
     fprintf (st, "The MTY supported 32 high-speed lines at up to 80 bits/second.\n");

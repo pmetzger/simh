@@ -293,6 +293,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_cpu_ims.h"
 #include "hp3000_io.h"
@@ -335,7 +337,7 @@
 #define CYCLES_PER_READ     4
 #define CYCLES_PER_WRITE    4
 
-#define CYCLES_PER_EVENT    (uint32) (USEC_PER_EVENT * 1000 / NS_PER_CYCLE)
+#define CYCLES_PER_EVENT    (uint32_t) (USEC_PER_EVENT * 1000 / NS_PER_CYCLE)
 
 #define CNTR_MASK           0007777u            /* word counter count mask */
 #define CNTR_MAX            0007777u            /* word counter maximum value */
@@ -394,13 +396,13 @@ bool sel_request = false;                       /* true if the channel sequencer
 static SEQ_STATE sequencer = Idle_Sequence;     /* the current sequencer execution state */
 static SIO_ORDER order;                         /* the current SIO order */
 static DIB      *active_dib;                    /* a pointer to the participating interface's DIB */
-static uint32    device_index;                  /* the index into the device table */
+static uint32_t  device_index;                  /* the index into the device table */
 static bool      prefetch_control;              /* true if the IOCW should be prefetched */
 static bool      prefetch_address;              /* true if the IOAW should be prefetched */
 
-static uint32    device_number;                 /* the participating interface's device number */
-static uint32    bank;                          /* the transfer bank register */
-static uint32    word_count;                    /* the transfer word count register */
+static uint32_t  device_number;                 /* the participating interface's device number */
+static uint32_t  bank;                          /* the transfer bank register */
+static uint32_t  word_count;                    /* the transfer word count register */
 
 static HP_WORD   program_counter;               /* the I/O program counter */
 static HP_WORD   control_word;                  /* the current IOCW */
@@ -411,7 +413,7 @@ static HP_WORD   input_buffer;                  /* the input data word buffer */
 static HP_WORD   output_buffer;                 /* the output data word buffer */
 
 static FLIP_FLOP rollover;                      /* SET if the transfer word count rolls over */
-static int32     excess_cycles;                 /* the count of cycles in excess of allocation */
+static int32_t   excess_cycles;                 /* the count of cycles in excess of allocation */
 
 
 /* Channel local SCP support routines */
@@ -799,7 +801,7 @@ return;
        though all cases are covered.
 */
 
-void sel_service (uint32 ticks_elapsed)
+void sel_service (uint32_t ticks_elapsed)
 {
 /* Shared channel service signature.
    This implementation does not use every parameter. */
@@ -808,8 +810,8 @@ void sel_service (uint32 ticks_elapsed)
 HP_WORD      inbound_data, outbound_data;
 INBOUND_SET  inbound_signals;
 SIGNALS_DATA outbound;
-int32        cycles;
-uint32       return_address;
+int32_t      cycles;
+uint32_t     return_address;
 
 cycles = CYCLES_PER_EVENT - excess_cycles;              /* decrease the cycles available by any left over */
 

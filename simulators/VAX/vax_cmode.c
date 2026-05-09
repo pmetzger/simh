@@ -39,6 +39,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #if defined (CMPM_VAX)
@@ -51,19 +53,19 @@
 #define CC_XOR_NV(x)    ((((x) & CC_N) != 0) ^ (((x) & CC_V) != 0))
 #define CC_XOR_NC(x)    ((((x) & CC_N) != 0) ^ (((x) & CC_C) != 0))
 
-int32 GeteaB (int32 spec);
-int32 GeteaW (int32 spec);
-int32 RdMemW (int32 a);
-int32 RdMemMW (int32 a);
-void WrMemW (int32 d, int32 a);
-int32 RdRegB (int32 rn);
-int32 RdRegW (int32 rn);
-void WrRegB (int32 val, int32 rn);
-void WrRegW (int32 val, int32 rn);
+int32_t GeteaB (int32_t spec);
+int32_t GeteaW (int32_t spec);
+int32_t RdMemW (int32_t a);
+int32_t RdMemMW (int32_t a);
+void WrMemW (int32_t d, int32_t a);
+int32_t RdRegB (int32_t rn);
+int32_t RdRegW (int32_t rn);
+void WrRegB (int32_t val, int32_t rn);
+void WrRegW (int32_t val, int32_t rn);
 
 /* Validate PSL for compatibility mode */
 
-bool BadCmPSL (int32 newpsl)
+bool BadCmPSL (int32_t newpsl)
 {
 if ((newpsl & (PSL_FPD|PSL_IS|PSL_CUR|PSL_PRV|PSL_IPL|PSW_DV|PSW_FU|PSW_IV)) !=
     ((USER << PSL_V_CUR) | (USER << PSL_V_PRV)))
@@ -73,11 +75,11 @@ else return false;
 
 /* Compatibility mode execution */
 
-int32 op_cmode (int32 cc)
+int32_t op_cmode (int32_t cc)
 {
-int32 IR, srcspec, dstspec, srcreg, dstreg, ea;
-int32 i, t, src, src2, dst, sign, oc;
-int32 acc = ACC_MASK (USER);
+int32_t IR, srcspec, dstspec, srcreg, dstreg, ea;
+int32_t i, t, src, src2, dst, sign, oc;
+int32_t acc = ACC_MASK (USER);
 
 PC = PC & WMASK;                                        /* PC must be 16b */
 if (sim_brk_summ && sim_brk_test (PC, SWMASK ('E'))) {  /* breakpoint? */
@@ -580,12 +582,12 @@ switch ((IR >> 12) & 017) {                             /* decode IR<15:12> */
                 src2 = RdRegW (dstspec);
             else src2 = RdMemW (GeteaW (dstspec));
             t = RdRegW (srcspec);
-            src = (((uint32) t) << 16) | RdRegW (srcspec | 1);
+            src = (((uint32_t) t) << 16) | RdRegW (srcspec | 1);
             if (src2 == 0) {                            /* div by 0? */
                 cc = CC_V | CC_C;                       /* set cc's */
                 break;                                  /* done */
                 }
-            if (((uint32)src == LSIGN) && ((uint32)src2 == WMASK)) {    /* -2^31 / -1? */
+            if (((uint32_t)src == LSIGN) && ((uint32_t)src2 == WMASK)) { /* -2^31 / -1? */
                 cc = CC_V;                              /* overflow */
                 break;                                  /* done */
                 }
@@ -647,17 +649,17 @@ switch ((IR >> 12) & 017) {                             /* decode IR<15:12> */
             else src2 = RdMemW (GeteaW (dstspec));
             src2 = src2 & 077;
             t = RdRegW (srcspec);
-            src = (((uint32) t) << 16) | RdRegW (srcspec | 1);
+            src = (((uint32_t) t) << 16) | RdRegW (srcspec | 1);
             sign = (t & WSIGN)? 1: 0;                   /* get src sign */
             if (src2 == 0) {                            /* [0] */
                 dst = src;                              /* result */
                 oc = 0;                                 /* last bit out */
                 }
             else if (src2 <= 31) {                      /* [1,31] */
-                dst = ((uint32) src) << src2;
+                dst = ((uint32_t) src) << src2;
                 i = ((src >> (32 - src2)) | (-sign << src2)) & LMASK;
                 oc = (i & 1)? CC_C: 0;
-                if ((dst & LSIGN)? ((uint32)i != LMASK): (i != 0))
+                if ((dst & LSIGN)? ((uint32_t)i != LMASK): (i != 0))
                     oc = oc | CC_V;
                 }
             else if (src2 == 32) {                      /* [32] = -32 */
@@ -1092,9 +1094,9 @@ return cc;
         ea      =       effective address
 */
 
-int32 GeteaW (int32 spec)
+int32_t GeteaW (int32_t spec)
 {
-int32 adr, reg;
+int32_t adr, reg;
 
 reg = spec & 07;                                        /* register number */
 switch (spec >> 3) {                                    /* decode spec<5:3> */
@@ -1158,9 +1160,9 @@ switch (spec >> 3) {                                    /* decode spec<5:3> */
         }                                               /* end switch */
 }
 
-int32 GeteaB (int32 spec)
+int32_t GeteaB (int32_t spec)
 {
-int32 adr, reg;
+int32_t adr, reg;
 
 reg = spec & 07;                                        /* reg number */
 switch (spec >> 3) {                                    /* decode spec<5:3> */
@@ -1234,27 +1236,27 @@ switch (spec >> 3) {                                    /* decode spec<5:3> */
 
 /* Memory and register access routines */
 
-int32 RdMemW (int32 a)
+int32_t RdMemW (int32_t a)
 {
-int32 acc = ACC_MASK (USER);
+int32_t acc = ACC_MASK (USER);
 
 if (a & 1)
     CMODE_FAULT (CMODE_ODD);
 return Read (a, L_WORD, RA);
 }
 
-int32 RdMemMW (int32 a)
+int32_t RdMemMW (int32_t a)
 {
-int32 acc = ACC_MASK (USER);
+int32_t acc = ACC_MASK (USER);
 
 if (a & 1)
     CMODE_FAULT (CMODE_ODD);
 return Read (a, L_WORD, WA);
 }
 
-void WrMemW (int32 d, int32 a)
+void WrMemW (int32_t d, int32_t a)
 {
-int32 acc = ACC_MASK (USER);
+int32_t acc = ACC_MASK (USER);
 
 if (a & 1)
     CMODE_FAULT (CMODE_ODD);
@@ -1262,21 +1264,21 @@ Write (a, d, L_WORD, WA);
 return;
 }
 
-int32 RdRegB (int32 rn)
+int32_t RdRegB (int32_t rn)
 {
 if (rn == 7)
     return (PC & BMASK);
 else return (R[rn] & BMASK);
 }
 
-int32 RdRegW (int32 rn)
+int32_t RdRegW (int32_t rn)
 {
 if (rn == 7)
     return (PC & WMASK);
 else return (R[rn] & WMASK);
 }
 
-void WrRegB (int32 val, int32 rn)
+void WrRegB (int32_t val, int32_t rn)
 {
 if (rn == 7) {
     CMODE_JUMP ((PC & ~BMASK) | val);
@@ -1285,7 +1287,7 @@ else R[rn] = (R[rn] & ~BMASK) | val;
 return;
 }
 
-void WrRegW (int32 val, int32 rn)
+void WrRegW (int32_t val, int32_t rn)
 {
 if (rn == 7) {
     CMODE_JUMP (val);
@@ -1302,7 +1304,7 @@ return;
    Should never get to instruction execution
 */
 
-bool BadCmPSL (int32 newpsl)
+bool BadCmPSL (int32_t newpsl)
 {
 /* Shared compatibility-mode signature.
    This build variant does not use every parameter. */
@@ -1311,7 +1313,7 @@ bool BadCmPSL (int32 newpsl)
 return true;                                            /* always bad */
 }
 
-int32 op_cmode (int32 cc)
+int32_t op_cmode (int32_t cc)
 {
 RSVD_INST_FAULT(0);
 return cc;

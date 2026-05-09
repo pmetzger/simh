@@ -158,6 +158,7 @@
 #include "id_defs.h"
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define PCQ_SIZE        64                              /* must be 2**n */
 #define PCQ_MASK        (PCQ_SIZE - 1)
@@ -183,22 +184,22 @@
 #define HIST_MAX        65536
 
 typedef struct {
-    uint32              pc;
-    uint32              ir1;
-    uint32              ir2;
-    uint32              ir3;
-    uint32              r1;
-    uint32              ea;
-    uint32              opnd;
+    uint32_t            pc;
+    uint32_t            ir1;
+    uint32_t            ir2;
+    uint32_t            ir3;
+    uint32_t            r1;
+    uint32_t            ea;
+    uint32_t            opnd;
     } InstHistory;
 
 #define PSW_GETREG(x)   (((x) >> PSW_V_REG) & psw_reg_mask)
-#define SEXT32(x)       (((x) & SIGN32)? ((int32) ((x) | ~0x7FFFFFFF)): \
-                        ((int32) ((x) & 0x7FFFFFFF)))
-#define SEXT16(x)       (((x) & SIGN16)? ((int32) ((x) | ~0x7FFF)): \
-                        ((int32) ((x) & 0x7FFF)))
-#define SEXT15(x)       (((x) & 0x4000)? ((int32) ((x) | ~0x3FFF)): \
-                        ((int32) ((x) & 0x3FFF)))
+#define SEXT32(x)       (((x) & SIGN32)? ((int32_t) ((x) | ~0x7FFFFFFF)): \
+                        ((int32_t) ((x) & 0x7FFFFFFF)))
+#define SEXT16(x)       (((x) & SIGN16)? ((int32_t) ((x) | ~0x7FFF)): \
+                        ((int32_t) ((x) & 0x7FFF)))
+#define SEXT15(x)       (((x) & 0x4000)? ((int32_t) ((x) | ~0x3FFF)): \
+                        ((int32_t) ((x) & 0x3FFF)))
 #define CC_GL_16(x)     if ((x) & SIGN16) \
                             cc = CC_L; \
                         else if (x) \
@@ -220,78 +221,78 @@ typedef struct {
 #define LOG_CPU_I       0x0001                          /* intr/exception */
 #define LOG_CPU_C       0x0002                          /* context change */
 
-uint32 GREG[16 * NRSETS] = { 0 };                       /* general registers */
-uint32 *M = NULL;                                       /* memory */
-uint32 *R = &GREG[0];                                   /* working reg set */
-uint32 F[8] = { 0 };                                    /* sp fp registers */
+uint32_t GREG[16 * NRSETS] = { 0 };                     /* general registers */
+uint32_t *M = NULL;                                     /* memory */
+uint32_t *R = &GREG[0];                                 /* working reg set */
+uint32_t F[8] = { 0 };                                  /* sp fp registers */
 dpr_t D[8] = { {0} };                                   /* dp fp registers */
-uint32 PSW = 0;                                         /* processor status word */
-uint32 PC = 0;                                          /* program counter */
-uint32 oPC = 0;                                         /* PC at inst start */
-uint32 SR = 0;                                          /* switch register */
-uint32 DR = 0;                                          /* display register */
-uint32 DRX = 0;                                         /* display extension */
-uint32 drmod = 0;                                       /* mode */
-uint32 srpos = 0;                                       /* switch register pos */
-uint32 drpos = 0;                                       /* display register pos */
-uint32 mac_reg[MAC_LNT] = { 0 };                        /* mac registers */
-uint32 mac_sta = 0;                                     /* mac status */
-uint32 int_req[INTSZ] = { 0 };                          /* interrupt requests */
-uint32 int_enb[INTSZ] = { 0 };                          /* interrupt enables */
-uint32 qevent = 0;                                      /* events */
-uint32 stop_inst = 0;                                   /* stop on ill inst */
-uint32 stop_wait = 0;                                   /* stop on wait */
-uint32 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+uint32_t PSW = 0;                                       /* processor status word */
+uint32_t PC = 0;                                        /* program counter */
+uint32_t oPC = 0;                                       /* PC at inst start */
+uint32_t SR = 0;                                        /* switch register */
+uint32_t DR = 0;                                        /* display register */
+uint32_t DRX = 0;                                       /* display extension */
+uint32_t drmod = 0;                                     /* mode */
+uint32_t srpos = 0;                                     /* switch register pos */
+uint32_t drpos = 0;                                     /* display register pos */
+uint32_t mac_reg[MAC_LNT] = { 0 };                      /* mac registers */
+uint32_t mac_sta = 0;                                   /* mac status */
+uint32_t int_req[INTSZ] = { 0 };                        /* interrupt requests */
+uint32_t int_enb[INTSZ] = { 0 };                        /* interrupt enables */
+uint32_t qevent = 0;                                    /* events */
+uint32_t stop_inst = 0;                                 /* stop on ill inst */
+uint32_t stop_wait = 0;                                 /* stop on wait */
+uint32_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-uint32 dec_flgs = 0;                                    /* decode flags */
-uint32 fp_in_hwre = 0;                                  /* ucode vs hwre fp */
-uint32 pawidth = PAWIDTH32;                             /* addr mask */
-uint32 hst_p = 0;                                       /* history pointer */
-uint32 hst_lnt = 0;                                     /* history length */
-uint32 psw_reg_mask = 1;                                /* PSW reg mask */
+uint32_t dec_flgs = 0;                                  /* decode flags */
+uint32_t fp_in_hwre = 0;                                /* ucode vs hwre fp */
+uint32_t pawidth = PAWIDTH32;                           /* addr mask */
+uint32_t hst_p = 0;                                     /* history pointer */
+uint32_t hst_lnt = 0;                                   /* history length */
+uint32_t psw_reg_mask = 1;                              /* PSW reg mask */
 InstHistory *hst = NULL;                                /* instruction history */
 jmp_buf save_env;                                       /* abort handler */
 struct BlockIO blk_io;                                  /* block I/O status */
-uint32 (*dev_tab[DEVNO])(uint32 dev, uint32 op, uint32 datout) = { NULL };
+uint32_t (*dev_tab[DEVNO])(uint32_t dev, uint32_t op, uint32_t datout) = { NULL };
 
-uint32 ReadB (uint32 loc, uint32 rel);
-uint32 ReadH (uint32 loc, uint32 rel);
-void WriteB (uint32 loc, uint32 val, uint32 rel);
-void WriteH (uint32 loc, uint32 val, uint32 rel);
-uint32 RelocT (uint32 va, uint32 base, uint32 rel, uint32 *pa);
-uint32 int_auto (uint32 dev, uint32 cc);
-uint32 addtoq (uint32 ea, uint32 val, uint32 flg);
-uint32 remfmq (uint32 ea, uint32 r1, uint32 flg);
-uint32 exception (uint32 loc, uint32 cc, uint32 flg);
-uint32 newPSW (uint32 val);
-uint32 testsysq (uint32 cc);
-uint32 display (uint32 dev, uint32 op, uint32 dat);
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+uint32_t ReadB (uint32_t loc, uint32_t rel);
+uint32_t ReadH (uint32_t loc, uint32_t rel);
+void WriteB (uint32_t loc, uint32_t val, uint32_t rel);
+void WriteH (uint32_t loc, uint32_t val, uint32_t rel);
+uint32_t RelocT (uint32_t va, uint32_t base, uint32_t rel, uint32_t *pa);
+uint32_t int_auto (uint32_t dev, uint32_t cc);
+uint32_t addtoq (uint32_t ea, uint32_t val, uint32_t flg);
+uint32_t remfmq (uint32_t ea, uint32_t r1, uint32_t flg);
+uint32_t exception (uint32_t loc, uint32_t cc, uint32_t flg);
+uint32_t newPSW (uint32_t val);
+uint32_t testsysq (uint32_t cc);
+uint32_t display (uint32_t dev, uint32_t op, uint32_t dat);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_consint (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-void set_r_display (uint32 *rbase);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_consint (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+void set_r_display (uint32_t *rbase);
 
 extern bool devtab_init (void);
 extern void int_eval (void);
-extern uint32 int_getdev (void);
-extern void sch_cycle (uint32 ch);
-extern bool sch_blk (uint32 dev);
-extern uint32 f_l (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_c (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_as (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_m (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_d (uint32 op, uint32 r1, uint32 r2, uint32 ea);
-extern uint32 f_fix32 (uint32 op, uint32 r1, uint32 r2);
-extern uint32 f_flt32 (uint32 op, uint32 r1, uint32 r2);
+extern uint32_t int_getdev (void);
+extern void sch_cycle (uint32_t ch);
+extern bool sch_blk (uint32_t dev);
+extern uint32_t f_l (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_c (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_as (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_m (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_d (uint32_t op, uint32_t r1, uint32_t r2, uint32_t ea);
+extern uint32_t f_fix32 (uint32_t op, uint32_t r1, uint32_t r2);
+extern uint32_t f_flt32 (uint32_t op, uint32_t r1, uint32_t r2);
 
 /* Instruction decoding table */
 
-const uint16 decrom[256] = {
+const uint16_t decrom[256] = {
     0,                                                  /* 00 */
     OP_RR,                                              /* BALR */
     OP_RR,                                              /* BTCR */
@@ -608,7 +609,7 @@ DEVICE cpu_dev = {
 
 t_stat sim_instr (void)
 {
-volatile uint32 cc;                                     /* set before setjmp */
+volatile uint32_t cc;                                   /* set before setjmp */
 t_stat reason;                                          /* set after setjmp */
 int abortval;
 
@@ -652,12 +653,12 @@ if (abortval != 0) {                                    /* mem mgt abort? */
 
 while (reason == 0) {                                   /* loop until halted */
 
-    uint32 dev, drom, opnd, inc, lim, bufa;
-    uint32 op, r1, r1p1, r2, rx2, ea = 0;
-    uint32 mpy, mpc, dvr;
-    uint32 i, rslt, rlo, t;
-    uint32 ir1, ir2, ir3, ityp;
-    int32 sr, st;
+    uint32_t dev, drom, opnd, inc, lim, bufa;
+    uint32_t op, r1, r1p1, r2, rx2, ea = 0;
+    uint32_t mpy, mpc, dvr;
+    uint32_t i, rslt, rlo, t;
+    uint32_t ir1, ir2, ir3, ityp;
+    int32_t sr, st;
 
     if (sim_interval <= 0) {                            /* check clock queue */
         if ((reason = sim_process_event ()))
@@ -1297,7 +1298,7 @@ while (reason == 0) {                                   /* loop until halted */
         if (R[r1] & SIGN32) { DNEG (rslt, rlo); }       /* |divd| */
         dvr = ABS (opnd);                               /* |divr| */
         if (rslt < dvr) {                               /* will div work? */
-            uint32 quos = R[r1] ^ opnd;                 /* expected sign */
+            uint32_t quos = R[r1] ^ opnd;               /* expected sign */
             for (i = t = 0; i < 32; i++) {              /* 32 iterations */
                 rslt = ((rslt << 1) & DMASK32) |        /* shift divd */
                     ((rlo >> 31) & 1);
@@ -1721,9 +1722,9 @@ return reason;
 
 /* Load new PSW */
 
-uint32 newPSW (uint32 val)
+uint32_t newPSW (uint32_t val)
 {
-uint32 rs = PSW_GETREG (val);                           /* register set */
+uint32_t rs = PSW_GETREG (val);                         /* register set */
 
 R = &GREG[rs * 16];                                     /* set register set */
 PSW = val & PSW_MASK;                                   /* store PSW */
@@ -1739,10 +1740,10 @@ return PSW & CC_MASK;
 
 /* Exception handler - 7/32 always uses register set 0 */
 
-uint32 exception (uint32 loc, uint32 cc, uint32 flg)
+uint32_t exception (uint32_t loc, uint32_t cc, uint32_t flg)
 {
-int32 oldPSW = BUILD_PSW (cc);                          /* save old PSW */
-int32 oldPC = PC;                                       /* save old PC */
+int32_t oldPSW = BUILD_PSW (cc);                        /* save old PSW */
+int32_t oldPC = PC;                                     /* save old PC */
 
 cc = newPSW (ReadF (loc, P));                           /* new PSW */
 PC = ReadF (loc + 4, P) & VAMASK;                       /* new PC */
@@ -1762,10 +1763,10 @@ return cc | flg;                                        /* return CC */
 
 /* Test for queue interrupts - system queue addresses are physical */
 
-uint32 testsysq (uint32 cc)
+uint32_t testsysq (uint32_t cc)
 {
-int32 qb = ReadF (SQP, P);                              /* get sys q addr */
-int32 usd = ReadH (qb + Q32_USD, P);                    /* get use count */
+int32_t qb = ReadF (SQP, P);                            /* get sys q addr */
+int32_t usd = ReadH (qb + Q32_USD, P);                  /* get use count */
 
 if (usd) {                                              /* entries? */
     cc = exception (SQTPSW, cc, 0);                     /* take sysq exc */
@@ -1778,9 +1779,9 @@ return cc;
 
 /* Add to queue */
 
-uint32 addtoq (uint32 ea, uint32 val, uint32 flg)
+uint32_t addtoq (uint32_t ea, uint32_t val, uint32_t flg)
 {
-uint32 slt, usd, wra, t;
+uint32_t slt, usd, wra, t;
 
 t = ReadF (ea, VR);                                     /* slots/used */
 slt = (t >> 16) & DMASK16;                              /* # slots */
@@ -1809,9 +1810,9 @@ return 0;
 
 /* Remove from queue */
 
-uint32 remfmq (uint32 ea, uint32 r1, uint32 flg)
+uint32_t remfmq (uint32_t ea, uint32_t r1, uint32_t flg)
 {
-uint32 slt, usd, rda, t;
+uint32_t slt, usd, rda, t;
 
 t = ReadF (ea, VR);                                     /* get slots/used */
 slt = (t >> 16) & DMASK16;                              /* # slots */
@@ -1842,12 +1843,12 @@ else return 0;
 
 /* Automatic interrupt processing */
 
-uint32 int_auto (uint32 dev, uint32 cc)
+uint32_t int_auto (uint32_t dev, uint32_t cc)
 {
-uint32 addr, vec, by, ccw, ccwa, ccwb;
-uint32 i, hw, tblad, tblen, bufe, st = 0, t;
-int32 bufc;
-uint32 oldPSW = BUILD_PSW (cc);
+uint32_t addr, vec, by, ccw, ccwa, ccwb;
+uint32_t i, hw, tblad, tblen, bufe, st = 0, t;
+int32_t bufc;
+uint32_t oldPSW = BUILD_PSW (cc);
 
 vec = ReadH (INTSVT + dev + dev, P);                    /* get vector */
 newPSW (0x2800);                                        /* new PSW */
@@ -1979,7 +1980,7 @@ return newPSW (R[0]);                                   /* restore PSW, CC */
 
 /* Display register device */
 
-uint32 display (uint32 dev, uint32 op, uint32 dat)
+uint32_t display (uint32_t dev, uint32_t op, uint32_t dat)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -2026,9 +2027,9 @@ return 0;
 
 /* Relocation and protection */
 
-static uint32 Reloc (uint32 va, uint32 rel)
+static uint32_t Reloc (uint32_t va, uint32_t rel)
 {
-uint32 seg, off, mapr, lim;
+uint32_t seg, off, mapr, lim;
 
 seg = VA_GETSEG (va);                                   /* get seg num */
 off = VA_GETOFF (va);                                   /* get offset */
@@ -2059,9 +2060,9 @@ if ((rel == VW) && (mapr & (SR_WPI | SR_WRP))) {        /* write, prot? */
 return (off + (mapr & SRF_MASK)) & PAMASK32;            /* relocate */
 }
 
-uint32 RelocT (uint32 va, uint32 base, uint32 rel, uint32 *pa)
+uint32_t RelocT (uint32_t va, uint32_t base, uint32_t rel, uint32_t *pa)
 {
-uint32 seg, off, mapr, lim;
+uint32_t seg, off, mapr, lim;
 
 seg = VA_GETSEG (va);                                   /* get seg num */
 off = VA_GETOFF (va);                                   /* get offset */
@@ -2093,10 +2094,10 @@ return 0;                                               /* ok */
    IOWriteH     write halfword (IO)
 */
 
-uint32 ReadB (uint32 loc, uint32 rel)
+uint32_t ReadB (uint32_t loc, uint32_t rel)
 {
-uint32 val;
-uint32 sc = (3 - (loc & 3)) << 3;
+uint32_t val;
+uint32_t sc = (3 - (loc & 3)) << 3;
 
 if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
     if ((loc & ~03) == MAC_STA) {                       /* MAC status? */
@@ -2108,15 +2109,15 @@ if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
 else if (rel == 0)                                      /* phys ref? */
     val = M[loc >> 2];
 else {
-    uint32 pa = Reloc (loc, rel);                       /* relocate */
+    uint32_t pa = Reloc (loc, rel);                     /* relocate */
     val = M[pa >> 2];
     }
 return (val >> sc) & DMASK8;
 }
 
-uint32 ReadH (uint32 loc, uint32 rel)
+uint32_t ReadH (uint32_t loc, uint32_t rel)
 {
-uint32 val;
+uint32_t val;
 
 if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
     if ((loc & ~03) == MAC_STA) {                       /* MAC status? */
@@ -2128,15 +2129,15 @@ if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
 else if (rel == 0)                                      /* phys ref? */
     val = M[loc >> 2];
 else {
-    uint32 pa = Reloc (loc, rel);                       /* relocate */
+    uint32_t pa = Reloc (loc, rel);                     /* relocate */
     val = M[pa >> 2];
     }
 return (val >> ((loc & 2)? 0: 16)) & DMASK16;
 }
 
-uint32 ReadF (uint32 loc, uint32 rel)
+uint32_t ReadF (uint32_t loc, uint32_t rel)
 {
-uint32 val;
+uint32_t val;
 
 if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
     if ((loc & ~03) == MAC_STA) {                       /* MAC status? */
@@ -2148,20 +2149,20 @@ if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
 else if (rel == 0)                                      /* phys ref? */
     val = M[loc >> 2];
 else {
-    uint32 pa = Reloc (loc, rel);                       /* relocate */
+    uint32_t pa = Reloc (loc, rel);                     /* relocate */
     val = M[pa >> 2];
     }
 return val;
 }
 
-void WriteB (uint32 loc, uint32 val, uint32 rel)
+void WriteB (uint32_t loc, uint32_t val, uint32_t rel)
 {
-uint32 pa = loc;
-uint32 sc = (3 - (loc & 3)) << 3;
+uint32_t pa = loc;
+uint32_t sc = (3 - (loc & 3)) << 3;
 
 val = val & DMASK8;
 if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
-    uint32 idx = (pa - MAC_BASE) >> 2;                  /* check for MAC */
+    uint32_t idx = (pa - MAC_BASE) >> 2;                /* check for MAC */
     if (idx <= MAC_LNT) {
         if (idx < MAC_LNT) mac_reg[idx] =
             ((mac_reg[idx] & ~(DMASK8 << sc)) | (val << sc)) & SR_MASK;
@@ -2178,13 +2179,13 @@ if (MEM_ADDR_OK (pa))
 return;
 }
 
-void WriteH (uint32 loc, uint32 val, uint32 rel)
+void WriteH (uint32_t loc, uint32_t val, uint32_t rel)
 {
-uint32 pa = loc;
+uint32_t pa = loc;
 
 val = val & DMASK16;
 if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
-    uint32 idx = (pa - MAC_BASE) >> 2;                  /* check for MAC */
+    uint32_t idx = (pa - MAC_BASE) >> 2;                /* check for MAC */
     if (idx <= MAC_LNT) {
         if (idx < MAC_LNT) mac_reg[idx] = ((loc & 2)?
             ((mac_reg[idx] & ~DMASK16) | val):
@@ -2203,9 +2204,9 @@ if (MEM_ADDR_OK (pa))
 return;
 }
 
-void WriteF (uint32 loc, uint32 val, uint32 rel)
+void WriteF (uint32_t loc, uint32_t val, uint32_t rel)
 {
-uint32 pa = loc;
+uint32_t pa = loc;
 
 val = val & DMASK32;
 if (loc & 2) {
@@ -2214,7 +2215,7 @@ if (loc & 2) {
     return;
     }
 if ((PSW & PSW_REL) == 0) {                             /* reloc off? */
-    uint32 idx = (pa - MAC_BASE) >> 2;                  /* check for MAC */
+    uint32_t idx = (pa - MAC_BASE) >> 2;                /* check for MAC */
     if (idx <= MAC_LNT) {
         if (idx < MAC_LNT) mac_reg[idx] = val & SR_MASK;
         else {
@@ -2230,30 +2231,30 @@ if (MEM_ADDR_OK (pa))
 return;
 }
 
-uint32 IOReadB (uint32 loc)
+uint32_t IOReadB (uint32_t loc)
 {
-uint32 sc = (3 - (loc & 3)) << 3;
+uint32_t sc = (3 - (loc & 3)) << 3;
 
 return (M[loc >> 2] >> sc) & DMASK8;
 }
 
-uint32 IOReadH (uint32 loc)
+uint32_t IOReadH (uint32_t loc)
 {
 return (M[loc >> 2] >> ((loc & 2)? 0: 16)) & DMASK16;
 }
 
-void IOWriteB (uint32 loc, uint32 val)
+void IOWriteB (uint32_t loc, uint32_t val)
 {
-uint32 sc = (3 - (loc & 3)) << 3;
+uint32_t sc = (3 - (loc & 3)) << 3;
 
 val = val & DMASK8;
 M[loc >> 2] = (M[loc >> 2] & ~(DMASK8 << sc)) | (val << sc);
 return;
 }
 
-void IOWriteH (uint32 loc, uint32 val)
+void IOWriteH (uint32_t loc, uint32_t val)
 {
-uint32 sc = (loc & 2)? 0: 16;
+uint32_t sc = (loc & 2)? 0: 16;
 
 val = val & DMASK16;
 M[loc >> 2] = (M[loc >> 2] & ~(DMASK16 << sc)) | (val << sc);
@@ -2273,7 +2274,7 @@ drmod = 0;
 blk_io.dfl = blk_io.cur = blk_io.end = 0;               /* no block I/O */
 sim_brk_types = sim_brk_dflt = SWMASK ('E');            /* init bkpts */
 if (M == NULL)
-    M = (uint32 *) calloc (MAXMEMSIZE32 >> 2, sizeof (uint32));
+    M = (uint32_t *) calloc (MAXMEMSIZE32 >> 2, sizeof (uint32_t));
 if (M == NULL)
     return SCPE_MEM;
 pcq_r = find_reg ("PCQ", NULL, dptr);                   /* init PCQ */
@@ -2285,14 +2286,14 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 
 if ((sw & SWMASK ('V')) && (PSW & PSW_REL)) {
-    int32 cc = RelocT (addr, MAC_BASE, P, &addr);
+    int32_t cc = RelocT (addr, MAC_BASE, P, &addr);
     if (cc & (CC_C | CC_V))
         return SCPE_NXM;
     }
@@ -2305,14 +2306,14 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) uptr;
 
 if ((sw & SWMASK ('V')) && (PSW & PSW_REL)) {
-    int32 cc = RelocT (addr, MAC_BASE, P, &addr);
+    int32_t cc = RelocT (addr, MAC_BASE, P, &addr);
     if (cc & (CC_C | CC_V))
         return SCPE_NXM;
     }
@@ -2324,7 +2325,7 @@ return SCPE_OK;
 
 /* Change memory size */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -2332,8 +2333,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-uint32 mc = 0;
-uint32 i;
+uint32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (((unsigned)val) > MAXMEMSIZE32) || ((val & 0xFFFF) != 0))
     return SCPE_ARG;
@@ -2349,10 +2350,10 @@ return SCPE_OK;
 
 /* Set current R pointers for SCP */
 
-void set_r_display (uint32 *rbase)
+void set_r_display (uint32_t *rbase)
 {
 REG *rptr;
-int32 i;
+int32_t i;
 
 rptr = find_reg ("R0", NULL, &cpu_dev);
 if (rptr == NULL)
@@ -2364,7 +2365,7 @@ return;
 
 /* Set console interrupt */
 
-t_stat cpu_set_consint (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_consint (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -2380,7 +2381,7 @@ return SCPE_OK;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -2388,7 +2389,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-uint32 i, lnt;
+uint32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -2397,7 +2398,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (uint32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (uint32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -2417,14 +2418,14 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 op, k, di, lnt;
+int32_t op, k, di, lnt;
 const char *cptr = (const char *) desc;
 t_value sim_eval[3];
 t_stat r;
@@ -2433,7 +2434,7 @@ InstHistory *h;
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }

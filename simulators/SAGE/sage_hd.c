@@ -26,10 +26,12 @@
    12-Oct-09    HV      Initial version
 */
 
+#include <stdint.h>
+
 #include "sage_defs.h"
 
 static t_stat sagehd_reset(DEVICE* dptr);
-static t_stat sagehd_boot(int32 unit_num,DEVICE* dptr);
+static t_stat sagehd_boot(int32_t unit_num,DEVICE* dptr);
 static t_stat sagehd_attach(UNIT* uptr, const char* file);
 static t_stat sagehd_detach(UNIT* uptr);
 
@@ -65,7 +67,7 @@ static t_stat sagehd_reset(DEVICE* dptr)
     return SCPE_OK;
 }
 
-static t_stat sagehd_boot(int32 unit_num,DEVICE* dptr)
+static t_stat sagehd_boot(int32_t unit_num,DEVICE* dptr)
 {
     printf("sagehd_boot\n");
     return SCPE_OK;

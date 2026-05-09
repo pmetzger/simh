@@ -42,6 +42,7 @@
 
 #include "pdp18b_defs.h"
 #include <math.h>
+#include <stdint.h>
 
 /* Constants */
 
@@ -78,27 +79,27 @@
 #define GET_POS(x)      ((int) fmod (sim_gtime () / ((double) (x)), \
                         ((double) (RB_NUMSC * RB_NUMWD))))
 
-extern int32 *M;
-extern int32 int_hwre[API_HLVL+1];
+extern int32_t *M;
+extern int32_t int_hwre[API_HLVL+1];
 extern UNIT cpu_unit;
 
-int32 rb_sta = 0;                                       /* status register */
-int32 rb_da = 0;                                        /* disk address */
-int32 rb_ma = 0;                                        /* current addr */
-int32 rb_wc = 0;                                        /* word count */
-int32 rb_wlk = 0;                                       /* write lock */
-int32 rb_time = 10;                                     /* inter-word time */
-int32 rb_burst = 1;                                     /* burst mode flag */
-int32 rb_stopioe = 1;                                   /* stop on error */
+int32_t rb_sta = 0;                                     /* status register */
+int32_t rb_da = 0;                                      /* disk address */
+int32_t rb_ma = 0;                                      /* current addr */
+int32_t rb_wc = 0;                                      /* word count */
+int32_t rb_wlk = 0;                                     /* write lock */
+int32_t rb_time = 10;                                   /* inter-word time */
+int32_t rb_burst = 1;                                   /* burst mode flag */
+int32_t rb_stopioe = 1;                                 /* stop on error */
 
-int32 rb71 (int32 dev, int32 pulse, int32 AC);
+int32_t rb71 (int32_t dev, int32_t pulse, int32_t AC);
 t_stat rb_svc (UNIT *uptr);
 t_stat rb_reset (DEVICE *dptr);
-int32 rb_updsta (int32 val);
-int32 rb_make_da (int32 dat);
-int32 rb_make_bcd (int32 dat);
-int32 rb_set_da (int32 dat, int32 old);
-int32 rb_set_bcd (int32 dat);
+int32_t rb_updsta (int32_t val);
+int32_t rb_make_da (int32_t dat);
+int32_t rb_make_bcd (int32_t dat);
+int32_t rb_set_da (int32_t dat, int32_t old);
+int32_t rb_set_bcd (int32_t dat);
 
 /* RB data structures
 
@@ -143,13 +144,13 @@ DEVICE rb_dev = {
 
 /* IOT routines */
 
-int32 rb71 (int32 dev, int32 pulse, int32 AC)
+int32_t rb71 (int32_t dev, int32_t pulse, int32_t AC)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 tow, t, sb = pulse & 060;
+int32_t tow, t, sb = pulse & 060;
 
 if (pulse & 001) {
     if (sb == 000)                                      /* DBCF */
@@ -190,21 +191,21 @@ rb_updsta (0);                                          /* update status */
 return AC;
 }
 
-int32 rb_make_da (int32 da)
+int32_t rb_make_da (int32_t da)
 {
-int32 t = da / (RB_NUMSC * RB_NUMWD);                   /* bin track */
-int32 s = (da % (RB_NUMSC * RB_NUMWD)) / RB_NUMWD;      /* bin sector */
-int32 bcd_t = rb_make_bcd (t);                          /* bcd track */
-int32 bcd_s = rb_make_bcd (s);                          /* bcd sector */
+int32_t t = da / (RB_NUMSC * RB_NUMWD);                 /* bin track */
+int32_t s = (da % (RB_NUMSC * RB_NUMWD)) / RB_NUMWD;    /* bin sector */
+int32_t bcd_t = rb_make_bcd (t);                        /* bcd track */
+int32_t bcd_s = rb_make_bcd (s);                        /* bcd sector */
 return (bcd_t << RBA_V_TR) | (bcd_s << RBA_V_SC);
 }
 
-int32 rb_set_da (int32 bcda, int32 old_da)
+int32_t rb_set_da (int32_t bcda, int32_t old_da)
 {
-int32 bcd_t = RBA_GETTR (bcda);                         /* bcd track */
-int32 bcd_s = RBA_GETSC (bcda);                         /* bcd sector */
-int32 t = rb_set_bcd (bcd_t);                           /* bin track */
-int32 s = rb_set_bcd (bcd_s);                           /* bin sector */
+int32_t bcd_t = RBA_GETTR (bcda);                       /* bcd track */
+int32_t bcd_s = RBA_GETSC (bcda);                       /* bcd sector */
+int32_t t = rb_set_bcd (bcd_t);                         /* bin track */
+int32_t s = rb_set_bcd (bcd_s);                         /* bin sector */
 
 if ((t >= RB_NUMTR) || (t < 0) ||                       /* invalid? */
     (s >= RB_NUMSC) || (s < 0)) {
@@ -214,9 +215,9 @@ if ((t >= RB_NUMTR) || (t < 0) ||                       /* invalid? */
 else return (((t * RB_NUMSC) + s) * RB_NUMWD);          /* new da */
 }
 
-int32 rb_make_bcd (int32 bin)
+int32_t rb_make_bcd (int32_t bin)
 {
-int32 d, i, r;
+int32_t d, i, r;
 
 for (r = i = 0; bin != 0; bin = bin / 10) {             /* while nz */
     d = bin % 10;                                       /* dec digit */
@@ -226,9 +227,9 @@ for (r = i = 0; bin != 0; bin = bin / 10) {             /* while nz */
 return r;
 }
 
-int32 rb_set_bcd (int32 bcd)
+int32_t rb_set_bcd (int32_t bcd)
 {
-int32 d, i, r;
+int32_t d, i, r;
 
 for (r = 0, i = 1; bcd != 0; bcd = bcd >> 4) {          /* while nz */
     d = bcd & 0xF;                                      /* bcd digit */
@@ -244,8 +245,8 @@ return r;
 
 t_stat rb_svc (UNIT *uptr)
 {
-int32 t, sw;
-int32 *fbuf = (int32 *) uptr->filebuf;
+int32_t t, sw;
+int32_t *fbuf = (int32_t *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
     rb_updsta (RBS_NRY | RBS_DON);                      /* set nxd, done */
@@ -283,7 +284,7 @@ return SCPE_OK;
 
 /* Update status */
 
-int32 rb_updsta (int32 val)
+int32_t rb_updsta (int32_t val)
 {
 rb_sta = (rb_sta | val) & ~(RBS_ERR | RBS_MBZ);         /* clear err, mbz */
 if (rb_sta & RBS_EFLGS)                                 /* error? */

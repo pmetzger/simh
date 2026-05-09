@@ -41,6 +41,7 @@
 #endif
 
 #include <math.h>
+#include <stdint.h>
 
 #define RS_NUMDR        8                               /* #drives */
 #define RS03_NUMWD      64                              /* words/sector */
@@ -157,14 +158,14 @@
    drive type.
 */
 
-uint16 rscs1[RS_NUMDR] = { 0 };                         /* control/status 1 */
-uint16 rsda[RS_NUMDR] = { 0 };                          /* track/sector */
-uint16 rsds[RS_NUMDR] = { 0 };                          /* drive status */
-uint16 rser[RS_NUMDR] = { 0 };                          /* error status */
-uint16 rsmr[RS_NUMDR] = { 0 };                          /* maint register */
-uint8 rswlk[RS_NUMDR] = { 0 };                          /* wlk switches */
-int32 rs_stopioe = 1;                                   /* stop on error */
-int32 rs_wait = 10;                                     /* rotate time */
+uint16_t rscs1[RS_NUMDR] = { 0 };                       /* control/status 1 */
+uint16_t rsda[RS_NUMDR] = { 0 };                        /* track/sector */
+uint16_t rsds[RS_NUMDR] = { 0 };                        /* drive status */
+uint16_t rser[RS_NUMDR] = { 0 };                        /* error status */
+uint16_t rsmr[RS_NUMDR] = { 0 };                        /* maint register */
+uint8_t rswlk[RS_NUMDR] = { 0 };                        /* wlk switches */
+int32_t rs_stopioe = 1;                                 /* stop on error */
+int32_t rs_wait = 10;                                   /* rotate time */
 static const char *rs_fname[CS1_N_FNC] = {
     "NOP", "01", "02", "03", "DCLR", "05", "06", "07",
     "10", "11", "12", "13", "SCH", "15", "16", "17",
@@ -172,20 +173,20 @@ static const char *rs_fname[CS1_N_FNC] = {
     "WRITE", "31", "32", "33", "READ", "35", "36", "37"
     };
 
-t_stat rs_mbrd (int32 *data, int32 ofs, int32 drv);
-t_stat rs_mbwr (int32 data, int32 ofs, int32 drv);
+t_stat rs_mbrd (int32_t *data, int32_t ofs, int32_t drv);
+t_stat rs_mbwr (int32_t data, int32_t ofs, int32_t drv);
 t_stat rs_svc (UNIT *uptr);
 t_stat rs_reset (DEVICE *dptr);
 t_stat rs_attach (UNIT *uptr, const char *cptr);
 t_stat rs_detach (UNIT *uptr);
-t_stat rs_boot (int32 unitno, DEVICE *dptr);
-void rs_set_er (uint16 flg, int32 drv);
-void rs_clr_as (int32 mask);
-void rs_update_ds (uint16 flg, int32 drv);
-t_stat rs_go (int32 drv);
-t_stat rs_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-int32 rs_abort (void);
-t_stat rs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat rs_boot (int32_t unitno, DEVICE *dptr);
+void rs_set_er (uint16_t flg, int32_t drv);
+void rs_clr_as (int32_t mask);
+void rs_update_ds (uint16_t flg, int32_t drv);
+t_stat rs_go (int32_t drv);
+t_stat rs_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+int32_t rs_abort (void);
+t_stat rs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *rs_description (DEVICE *dptr);
 
 /* RS data structures
@@ -268,9 +269,9 @@ DEVICE rs_dev = {
 
 /* Massbus register read */
 
-t_stat rs_mbrd (int32 *data, int32 ofs, int32 drv)
+t_stat rs_mbrd (int32_t *data, int32_t ofs, int32_t drv)
 {
-uint32 val, dtype, i;
+uint32_t val, dtype, i;
 UNIT *uptr;
 
 rs_update_ds (0, drv);                                  /* update ds */
@@ -331,7 +332,7 @@ return SCPE_OK;
 
 /* Massbus register write */
 
-t_stat rs_mbwr (int32 data, int32 ofs, int32 drv)
+t_stat rs_mbwr (int32_t data, int32_t ofs, int32_t drv)
 {
 UNIT *uptr;
 
@@ -354,7 +355,7 @@ switch (ofs) {                                          /* decode PA<5:1> */
         break;
 
     case RS_DA_OF:                                      /* RSDA */
-        rsda[drv] = (uint16) data;
+        rsda[drv] = (uint16_t) data;
         break;
 
     case RS_AS_OF:                                      /* RSAS */
@@ -362,7 +363,7 @@ switch (ofs) {                                          /* decode PA<5:1> */
         break;
 
     case RS_MR_OF:                                      /* RSMR */
-        rsmr[drv] = (uint16) data;
+        rsmr[drv] = (uint16_t) data;
         break;
 
     case RS_ER_OF:                                      /* RSER */
@@ -381,9 +382,9 @@ return SCPE_OK;
 
 /* Initiate operation - unit not busy, function set */
 
-t_stat rs_go (int32 drv)
+t_stat rs_go (int32_t drv)
 {
-int32 fnc, t;
+int32_t fnc, t;
 UNIT *uptr;
 
 fnc = GET_FNC (rscs1[drv]);                             /* get function */
@@ -437,7 +438,7 @@ return MBE_GOE;
 
 /* Abort opertion - there is a data transfer in progress */
 
-int32 rs_abort (void)
+int32_t rs_abort (void)
 {
 return rs_reset (&rs_dev);
 }
@@ -451,12 +452,12 @@ return rs_reset (&rs_dev);
 
 t_stat rs_svc (UNIT *uptr)
 {
-int32 i, fnc, dtype, drv;
-int32 wc, abc, awc, mbc, da;
-uint16 *fbuf = (uint16 *)uptr->filebuf;
+int32_t i, fnc, dtype, drv;
+int32_t wc, abc, awc, mbc, da;
+uint16_t *fbuf = (uint16_t *)uptr->filebuf;
 
 dtype = GET_DTYPE (uptr->flags);                        /* get drive type */
-drv = (int32) (uptr - rs_dev.units);                    /* get drv number */
+drv = (int32_t) (uptr - rs_dev.units);                  /* get drv number */
 da = rsda[drv] * RS_NUMWD (dtype);                      /* get disk addr */
 fnc = GET_FNC (rscs1[drv]);                             /* get function */
 
@@ -477,7 +478,7 @@ switch (fnc) {                                          /* case on function */
 
     case FNC_WRITE:                                     /* write */
         if ((uptr->flags & UNIT_WPRT) &&                /* write locked? */
-            (GET_TK (rsda[drv]) <= (int32) rswlk[drv])) {
+            (GET_TK (rsda[drv]) <= (int32_t) rswlk[drv])) {
             rs_set_er (ER_WLE, drv);                    /* set drive error */
             mba_set_exc (rs_dib.ba);                    /* set exception */
             rs_update_ds (DS_ATA, drv);                 /* set attn */
@@ -506,7 +507,7 @@ switch (fnc) {                                          /* case on function */
             awc = (wc + (RS_NUMWD (dtype) - 1)) & ~(RS_NUMWD (dtype) - 1);
             for (i = wc; i < awc; i++)                  /* fill buf */
                 fbuf[i] = 0;
-            if ((da + awc) > (int32) uptr->hwmark)      /* update hw mark*/
+            if ((da + awc) > (int32_t) uptr->hwmark)    /* update hw mark*/
                 uptr->hwmark = da + awc;
             }                                           /* end if wr */
         else if (fnc == FNC_READ)                       /* read  */
@@ -516,7 +517,7 @@ switch (fnc) {                                          /* case on function */
         da = da + wc + (RS_NUMWD (dtype) - 1);
         if (da >= RS_SIZE (dtype))
             rsds[drv] = rsds[drv] | DS_LST;
-        rsda[drv] = (uint16)(da / RS_NUMWD (dtype));
+        rsda[drv] = (uint16_t)(da / RS_NUMWD (dtype));
         mba_set_don (rs_dib.ba);                        /* set done */
         rs_update_ds (0, drv);                          /* update ds */
         break;
@@ -530,7 +531,7 @@ return SCPE_OK;
 
 /* Set drive error */
 
-void rs_set_er (uint16 flag, int32 drv)
+void rs_set_er (uint16_t flag, int32_t drv)
 {
 rser[drv] = rser[drv] | flag;
 rsds[drv] = rsds[drv] | DS_ATA;
@@ -540,9 +541,9 @@ return;
 
 /* Clear attention flags */
 
-void rs_clr_as (int32 mask)
+void rs_clr_as (int32_t mask)
 {
-uint32 i, as;
+uint32_t i, as;
 
 for (i = as = 0; i < RS_NUMDR; i++) {
     if (mask & (AS_U0 << i))
@@ -556,7 +557,7 @@ return;
 
 /* Drive status update */
 
-void rs_update_ds (uint16 flag, int32 drv)
+void rs_update_ds (uint16_t flag, int32_t drv)
 {
 if (flag & DS_ATA)
     mba_upd_ata (rs_dib.ba, 1);
@@ -568,7 +569,7 @@ else rsds[drv] = (rsds[drv] | DS_DPR) & ~(DS_ERR | DS_WLK);
 if (rs_unit[drv].flags & UNIT_ATT) {
     rsds[drv] = rsds[drv] | DS_MOL;
     if ((rs_unit[drv].flags & UNIT_WPRT) &&
-        (GET_TK (rsda[drv]) <= (int32) rswlk[drv]))
+        (GET_TK (rsda[drv]) <= (int32_t) rswlk[drv]))
         rsds[drv] = rsds[drv] | DS_WLK;
     }
 if (rser[drv])
@@ -581,7 +582,7 @@ return;
 
 t_stat rs_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 mba_set_enbdis (dptr);
@@ -602,14 +603,14 @@ return SCPE_OK;
 
 t_stat rs_attach (UNIT *uptr, const char *cptr)
 {
-int32 drv, p;
+int32_t drv, p;
 t_stat r;
 
 uptr->capac = RS_SIZE (GET_DTYPE (uptr->flags));
 r = attach_unit (uptr, cptr);                           /* attach unit */
 if (r != SCPE_OK)                                       /* error? */
     return r;
-drv = (int32) (uptr - rs_dev.units);                    /* get drv number */
+drv = (int32_t) (uptr - rs_dev.units);                  /* get drv number */
 rsds[drv] = DS_MOL | DS_RDY | DS_DPR;                   /* upd drv status */
 rser[drv] = 0;
 rs_update_ds (DS_ATA, drv);                             /* upd drive status */
@@ -632,11 +633,11 @@ return SCPE_OK;
 
 t_stat rs_detach (UNIT *uptr)
 {
-int32 drv;
+int32_t drv;
 
 if (!(uptr->flags & UNIT_ATT))                          /* attached? */
     return SCPE_OK;
-drv = (int32) (uptr - rs_dev.units);                    /* get drv number */
+drv = (int32_t) (uptr - rs_dev.units);                  /* get drv number */
 rsds[drv] = 0;
 if (!sim_is_running)                                    /* from console? */
     rs_update_ds (DS_ATA, drv);                         /* request intr */
@@ -645,14 +646,14 @@ return detach_unit (uptr);
 
 /* Set size command validation routine */
 
-t_stat rs_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rs_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-int32 dtype = GET_DTYPE (val);
+int32_t dtype = GET_DTYPE (val);
 
 if (uptr->flags & UNIT_ATT)
     return SCPE_ALATT;
@@ -668,9 +669,9 @@ return SCPE_OK;
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (uint16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0042123,                        /* "SD" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit, r0 */
@@ -691,7 +692,7 @@ static const uint16 boot_rom[] = {
     0005007                         /* clr PC */
     };
 
-t_stat rs_boot (int32 unitno, DEVICE *dptr)
+t_stat rs_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -707,7 +708,7 @@ cpu_set_boot (BOOT_ENTRY);
 return SCPE_OK;
 }
 
-t_stat rs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

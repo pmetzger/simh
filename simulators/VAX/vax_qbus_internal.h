@@ -5,14 +5,16 @@
 #ifndef VAX_QBUS_INTERNAL_H_
 #define VAX_QBUS_INTERNAL_H_ 0
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #ifdef VAX_QBUS_TEST_RECORD_READS
-int32 vax_qbus_test_record_read(uint32 pa);
+int32_t vax_qbus_test_record_read(uint32_t pa);
 #endif
 
 #ifdef VAX_QBUS_TEST_RECORD_WRITES
-void vax_qbus_test_record_write(uint32 pa, int32 val, int32 mode);
+void vax_qbus_test_record_write(uint32_t pa, int32_t val, int32_t mode);
 #endif
 
 #endif

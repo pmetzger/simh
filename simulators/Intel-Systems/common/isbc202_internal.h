@@ -5,27 +5,29 @@
 #ifndef ISBC202_INTERNAL_H_
 #define ISBC202_INTERNAL_H_
 
+#include <stdint.h>
+
 #include "system_defs.h"
 
 #define ISBC202_FDD_NUM 4
 
 typedef struct { // FDD definition
-    uint8 sec;
-    uint8 cyl;
-    uint8 att;
+    uint8_t sec;
+    uint8_t cyl;
+    uint8_t att;
 } FDDDEF;
 
 typedef struct {                 // FDC definition
-    uint8 baseport;              // FDC base port
-    uint8 intnum;                // interrupt number
-    uint8 verb;                  // verbose flag
-    uint16 iopb;                 // FDC IOPB
-    uint8 stat;                  // FDC status
-    uint8 rdychg;                // FDC ready change
-    uint8 rtype;                 // FDC result type
-    uint8 rbyte0;                // FDC result byte for type 00
-    uint8 rbyte1;                // FDC result byte for type 10
-    uint8 intff;                 // fdc interrupt FF
+    uint8_t baseport;            // FDC base port
+    uint8_t intnum;              // interrupt number
+    uint8_t verb;                // verbose flag
+    uint16_t iopb;               // FDC IOPB
+    uint8_t stat;                // FDC status
+    uint8_t rdychg;              // FDC ready change
+    uint8_t rtype;               // FDC result type
+    uint8_t rbyte0;              // FDC result byte for type 00
+    uint8_t rbyte1;              // FDC result byte for type 10
+    uint8_t intff;               // fdc interrupt FF
     FDDDEF fdd[ISBC202_FDD_NUM]; // indexed by the FDD number
 } FDCDEF;
 

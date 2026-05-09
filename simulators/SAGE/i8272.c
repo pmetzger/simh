@@ -41,10 +41,13 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "m68k_cpu.h"
 #include "chip_defs.h"
 
 #include "sim_imd.h"
+#include "sim_types.h"
 
 /* internal state machine:
  *
@@ -78,14 +81,14 @@
 #define NEXTSTATE(s) chip->fdc_state = s
 #endif
 
-extern uint32 PCX;
+extern uint32_t PCX;
 
-int32 find_unit_index (UNIT *uptr);
+int32_t find_unit_index (UNIT *uptr);
 static void i8272_interrupt(I8272* chip,int delay);
 
 /* need to be implemented elsewhere */
-extern void PutByteDMA(uint32 Addr, uint8 Value);
-extern uint8 GetByteDMA(uint32 Addr);
+extern void PutByteDMA(uint32_t Addr, uint8_t Value);
+extern uint8_t GetByteDMA(uint32_t Addr);
 
 #define IMAGE_TYPE_DSK          1               /* Flat binary "DSK" image file.            */
 #define IMAGE_TYPE_IMD          2               /* ImageDisk "IMD" image file.              */
@@ -160,14 +163,14 @@ static const char* messages[] = {
     "Undefined Command 0x1C","Scan High Equal",       "Undefined Command 0x1E","Undefined Command 0x1F"
 };
 
-static int8 cmdsizes[] = {
+static int8_t cmdsizes[] = {
     1, 1, 9, 3, 2, 9, 9, 2,
     1, 9, 2, 1, 9, 6, 1, 3,
     1, 9, 1, 1, 1, 1, 1, 1,
     1, 9, 1, 1, 1, 9, 1, 1
 };
 
-static int8 resultsizes[] = {
+static int8_t resultsizes[] = {
     1, 1, 7, 0, 1, 7, 7, 0,
     2, 7, 7, 1, 7, 7, 1, 0,
     1, 7, 1, 1, 1, 1, 1, 1,
@@ -186,10 +189,10 @@ void i8272_seldrv(I8272* chip, int drvnum)
 /*
  * find_unit_index   find index of a unit
  */
-int32 find_unit_index (UNIT *uptr)
+int32_t find_unit_index (UNIT *uptr)
 {
     DEVICE *dptr;
-    uint32 i;
+    uint32_t i;
 
     if (uptr == NULL) return -1;
     dptr = find_dev_from_unit(uptr);
@@ -205,7 +208,7 @@ t_stat i8272_attach(UNIT *uptr, const char *cptr)
 {
     char header[4];
     t_stat rc;
-    int32 i = 0;
+    int32_t i = 0;
     I8272* chip;
     DEVICE* dptr;
 
@@ -271,7 +274,7 @@ t_stat i8272_attach(UNIT *uptr, const char *cptr)
 t_stat i8272_detach(UNIT *uptr)
 {
     t_stat rc;
-    int8 i;
+    int8_t i;
     DEVICE* dptr;
     I8272* chip;
 
@@ -287,13 +290,13 @@ t_stat i8272_detach(UNIT *uptr)
     return detach_unit(uptr);  /* detach unit */
 }
 
-t_stat i8272_setDMA(I8272* chip, uint32 dma_addr)
+t_stat i8272_setDMA(I8272* chip, uint32_t dma_addr)
 {
     chip->fdc_dma_addr = dma_addr & 0xFFFFFF;
     return SCPE_OK;
 }
 
-t_stat i8272_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
+t_stat i8272_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask)
 {
     /* Shared I/O handler signature.
        This implementation does not use every parameter. */
@@ -316,10 +319,10 @@ t_stat i8272_reset(I8272* chip)
     return SCPE_OK;
 }
 
-static uint8 floorlog2(unsigned int n)
+static uint8_t floorlog2(uint_t n)
 {
     /* Compute log2(n) */
-    uint8 r = 0;
+    uint8_t r = 0;
     if (n >= 1<<16) { n >>=16; r += 16; }
     if (n >= 1<< 8) { n >>= 8; r +=  8; }
     if (n >= 1<< 4) { n >>= 4; r +=  4; }
@@ -330,7 +333,7 @@ static uint8 floorlog2(unsigned int n)
 
 static void i8272_resultphase(I8272* chip,int delay)
 {
-    uint8 cmd = chip->cmd[0] & 0x1f;
+    uint8_t cmd = chip->cmd[0] & 0x1f;
     chip->fdc_msr &= ~I8272_MSR_NON_DMA;
     chip->result_len = resultsizes[cmd];
     chip->result_cnt = 0;
@@ -394,7 +397,7 @@ t_stat i8272_abortio(I8272* chip)
 }
 
 
-static t_stat i8272_dataread(I8272* chip,uint32* value)
+static t_stat i8272_dataread(I8272* chip,uint32_t* value)
 {
     if (chip->fdc_nd_cnt < chip->fdc_secsz) {
         /* return a single byte */
@@ -420,7 +423,7 @@ static t_stat i8272_dataread(I8272* chip,uint32* value)
     return SCPE_OK;
 }
 
-static I8272_DRIVE_INFO* i8272_select_drive(I8272* chip, uint8 drive)
+static I8272_DRIVE_INFO* i8272_select_drive(I8272* chip, uint8_t drive)
 {
     I8272_DRIVE_INFO* dip;
 
@@ -432,8 +435,8 @@ static I8272_DRIVE_INFO* i8272_select_drive(I8272* chip, uint8 drive)
 static t_stat i8272_secread(I8272* chip)
 {
     int i;
-    unsigned int flags = 0;
-    unsigned int readlen;
+    uint_t flags = 0;
+    uint_t readlen;
     I8272_DRIVE_INFO* dip = &chip->drive[chip->fdc_curdrv];
 
     /* finished with sector read? */
@@ -479,7 +482,7 @@ static t_stat i8272_secread(I8272* chip)
     return SCPE_OK;
 }
 
-t_stat i8272_read(I8272* chip,int addr,uint32* value)
+t_stat i8272_read(I8272* chip,int addr,uint32_t* value)
 {
     t_stat rc;
     I8272_DRIVE_INFO* dip;
@@ -569,7 +572,7 @@ t_stat i8272_read(I8272* chip,int addr,uint32* value)
     return SCPE_OK;
 }
 
-static t_stat i8272_makeresult(I8272* chip, uint8 s0, uint8 s1, uint8 s2, uint8 s3,uint8 s4, uint8 s5, uint8 s6)
+static t_stat i8272_makeresult(I8272* chip, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3,uint8_t s4, uint8_t s5, uint8_t s6)
 {
     chip->result[0] = s0;
     chip->result[1] = s1;
@@ -604,7 +607,7 @@ static I8272_DRIVE_INFO* i8272_decodecmdbits(I8272* chip)
 
 static t_stat i8272_nodriveerror(I8272* chip,const char* command,int delay)
 {
-    uint8 st0;
+    uint8_t st0;
 
     TRACE_PRINT1(DBG_FD_ERROR,"%s: no drive or disk\n",command);
     st0 = 0x40 | 0x10 | chip->fdc_curdrv;
@@ -616,9 +619,9 @@ static t_stat i8272_nodriveerror(I8272* chip,const char* command,int delay)
 
 static t_stat i8272_format(I8272* chip)
 {
-    uint8 track, fillbyte, sc, cnt;
-    uint8 sectormap[I8272_MAX_SECTOR]; /* Physical to logical sector map for FORMAT TRACK */
-    unsigned int flags = 0;
+    uint8_t track, fillbyte, sc, cnt;
+    uint8_t sectormap[I8272_MAX_SECTOR]; /* Physical to logical sector map for FORMAT TRACK */
+    uint_t flags = 0;
     int i;
     I8272_DRIVE_INFO* dip;
 
@@ -682,7 +685,7 @@ static t_stat i8272_readid(I8272* chip)
 {
     TRACK_INFO* curtrk;
     I8272_DRIVE_INFO* dip;
-    uint8 hds = chip->fdc_hds;
+    uint8_t hds = chip->fdc_hds;
 
     if ((dip = i8272_decodecmdbits(chip)) == NULL)
         return i8272_nodriveerror(chip,"Readid",10);
@@ -754,7 +757,7 @@ static t_stat i8272_seek(I8272* chip)
 static t_stat i8272_senseint(I8272* chip)
 {
     I8272_DRIVE_INFO* dip = &chip->drive[chip->fdc_curdrv];
-    uint8 st0 = (chip->fdc_seek_end ? 0x20 : 0x00) | chip->fdc_curdrv;
+    uint8_t st0 = (chip->fdc_seek_end ? 0x20 : 0x00) | chip->fdc_curdrv;
     if (chip->fdc_fault)
         st0 |= (0x40 | chip->fdc_fault);
 
@@ -767,7 +770,7 @@ static t_stat i8272_senseint(I8272* chip)
 
 static t_stat i8272_sensedrive(I8272* chip)
 {
-    uint8 st3;
+    uint8_t st3;
     I8272_DRIVE_INFO* dip;
     bool track0;
 
@@ -829,7 +832,7 @@ static t_stat i8272_specify(I8272* chip)
     return SCPE_OK;
 }
 
-static bool i8272_secrw(I8272* chip,uint8 cmd)
+static bool i8272_secrw(I8272* chip,uint8_t cmd)
 {
     TRACK_INFO* curtrk;
     I8272_DRIVE_INFO* dip;
@@ -879,8 +882,8 @@ static bool i8272_secrw(I8272* chip,uint8 cmd)
 
 static bool i8272_secwrite(I8272* chip)
 {
-    unsigned int readlen;
-    unsigned int flags = 0;
+    uint_t readlen;
+    uint_t flags = 0;
     I8272_DRIVE_INFO* dip = &chip->drive[chip->fdc_curdrv];
 
     TRACE_PRINT(DBG_FD_WRDATA, (sim_deb,"SecWrite: C:%d/H:%d/S:%d/L:%4d",
@@ -903,7 +906,7 @@ static bool i8272_secwrite(I8272* chip)
     return false;
 }
 
-static bool i8272_datawrite(I8272* chip,uint32 value,I8272_DRIVE_INFO* dip)
+static bool i8272_datawrite(I8272* chip,uint32_t value,I8272_DRIVE_INFO* dip)
 {
     int i;
 
@@ -937,9 +940,9 @@ static bool i8272_datawrite(I8272* chip,uint32 value,I8272_DRIVE_INFO* dip)
     return false;
 }
 
-t_stat i8272_write(I8272* chip, int addr, uint32 value)
+t_stat i8272_write(I8272* chip, int addr, uint32_t value)
 {
-    uint8 cmd;
+    uint8_t cmd;
     I8272_DRIVE_INFO* dip;
     if ((dip = &chip->drive[chip->fdc_curdrv]) == NULL) {
         sim_printf("i8272_write: chip->drive returns 0 fdc_curdrv=%d\n",chip->fdc_curdrv);

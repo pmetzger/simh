@@ -29,7 +29,9 @@
  * from the authors.
  */
 
-typedef unsigned int ty340word;
+#include "sim_types.h"
+
+typedef uint_t ty340word;
 
 /*
  * Type340 status bits

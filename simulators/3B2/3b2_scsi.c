@@ -29,6 +29,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_scsi.h"
 #include "3b2_scsi_internal.h"
 
@@ -42,29 +44,29 @@
 #define HA_SCSI_ID      0
 #define HA_MAXFR        (1u << 16)
 
-static void ha_cmd(uint8 op, uint8 subdev, uint32 addr,
-                   int32 len, bool express);
-static void ha_build_req(uint8 tc, uint8 subdev, bool express);
-static void ha_ctrl(uint8 tc);
+static void ha_cmd(uint8_t op, uint8_t subdev, uint32_t addr,
+                   int32_t len, bool express);
+static void ha_build_req(uint8_t tc, uint8_t subdev, bool express);
+static void ha_ctrl(uint8_t tc);
 
-static uint32 diag_crc[] = {
+static uint32_t diag_crc[] = {
     0x271b114c,          /* BOOT DIAG CRC under SVR 3.2.3 */
     0x4bf2592f,          /* BOOT DIAG CRC under SVR 3.2 (SCSI HA Utilities 1.0) */
     0x23fc023c           /* dgmon phase 1 DIAG CRC under Maintenance Utilities 4.0 */
 };
 
-static uint32 pump_crc[] = {
+static uint32_t pump_crc[] = {
     0x6ec6932d,          /* SCSI HA Utilities 1.0 pump CRC */
     0x201b3617           /* SVR 3.2.3 pump CRC */
 };
 
 HA_STATE ha_state;
 SCSI_BUS ha_bus;
-uint8    *ha_buf;
-int8     ha_subdev_tab[8];    /* Map of subdevice to SCSI target */
-uint8    ha_subdev_cnt;
-uint32   ha_crc = 0;
-uint32   cq_offset = 0;
+uint8_t  *ha_buf;
+int8_t   ha_subdev_tab[8];    /* Map of subdevice to SCSI target */
+uint8_t  ha_subdev_cnt;
+uint32_t ha_crc = 0;
+uint32_t cq_offset = 0;
 bool     ha_conf = false;
 
 static struct scsi_dev_t ha_tab[] = {
@@ -160,7 +162,7 @@ DEVICE ha_dev = {
     NULL,
 };
 
-static void ha_cio_reset(uint8 slot)
+static void ha_cio_reset(uint8_t slot)
 {
     /* Generic CIO reset callback signature.
        This implementation does not use every parameter. */
@@ -174,8 +176,8 @@ static void ha_cio_reset(uint8 slot)
 
 t_stat ha_reset(DEVICE *dptr)
 {
-    uint8 slot;
-    uint32 t, dtyp;
+    uint8_t slot;
+    uint32_t t, dtyp;
     UNIT *uptr;
     t_stat r;
 
@@ -189,7 +191,7 @@ t_stat ha_reset(DEVICE *dptr)
     }
 
     if (ha_buf == NULL) {
-        ha_buf = (uint8 *)calloc(HA_MAXFR, sizeof(uint8));
+        ha_buf = (uint8_t *)calloc(HA_MAXFR, sizeof(uint8_t));
     }
 
     if (!ha_conf) {
@@ -237,7 +239,7 @@ t_stat ha_reset(DEVICE *dptr)
 
 static void ha_calc_subdevs(void)
 {
-    uint32 tc;
+    uint32_t tc;
     UNIT *uptr;
 
     ha_subdev_cnt = 0;
@@ -271,9 +273,9 @@ t_stat ha_detach(UNIT *uptr)
 t_stat ha_svc(UNIT *uptr)
 {
     cio_entry cqe;
-    uint8 capp_data[CAPP_LEN] = {0};
-    int8 i, tc = -1;
-    uint8 svc_req = 0;
+    uint8_t capp_data[CAPP_LEN] = {0};
+    int8_t i, tc = -1;
+    uint8_t svc_req = 0;
     ha_req *req = NULL;
     ha_resp *rep = NULL;
 
@@ -353,11 +355,11 @@ t_stat ha_svc(UNIT *uptr)
     return SCPE_OK;
 }
 
-void ha_sysgen(uint8 slot)
+void ha_sysgen(uint8_t slot)
 {
-    uint32 sysgen_p;
-    uint32 alert_buf_p;
-    uint32 i;
+    uint32_t sysgen_p;
+    uint32_t alert_buf_p;
+    uint32_t i;
 
     cq_offset = 0;
 
@@ -400,8 +402,8 @@ void ha_sysgen(uint8 slot)
 
 void ha_fast_queue_check(void)
 {
-    uint8 busy, op, subdev;
-    uint32 addr, len, rqp;
+    uint8_t busy, op, subdev;
+    uint32_t addr, len, rqp;
 
     rqp = cio[ha_state.slot].rqp;
 
@@ -421,10 +423,10 @@ void ha_fast_queue_check(void)
     }
 }
 
-void ha_express(uint8 slot)
+void ha_express(uint8_t slot)
 {
     cio_entry rqe;
-    uint8 rapp_data[RAPP_LEN] = {0};
+    uint8_t rapp_data[RAPP_LEN] = {0};
 
     if (ha_state.pump_state == PUMP_SYSGEN) {
         ha_state.pump_state = PUMP_COMPLETE;
@@ -438,7 +440,7 @@ void ha_express(uint8 slot)
     }
 }
 
-void ha_full(uint8 slot)
+void ha_full(uint8_t slot)
 {
     /* Generic CIO full request callback signature.
        This implementation does not use every parameter. */
@@ -462,12 +464,12 @@ void ha_full(uint8 slot)
     }
 }
 
-static void ha_boot_disk(UNIT *uptr, uint8 tc)
+static void ha_boot_disk(UNIT *uptr, uint8_t tc)
 {
     t_seccnt sectsread;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i, boot_loc;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i, boot_loc;
 
     /* Read in the Physical Descriptor (PD) block (block 0) */
     r = sim_disk_rdsect(uptr, 0, buf, &sectsread, 1);
@@ -516,12 +518,12 @@ static void ha_boot_disk(UNIT *uptr, uint8 tc)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_boot_tape(UNIT *uptr, uint8 tc)
+static void ha_boot_tape(UNIT *uptr, uint8_t tc)
 {
     t_seccnt sectsread;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i;
 
     if (!(uptr->flags & UNIT_ATT)) {
         sim_debug(HA_TRACE, &ha_dev,
@@ -571,12 +573,12 @@ static void ha_boot_tape(UNIT *uptr, uint8 tc)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_read_block_tape(UNIT *uptr, uint32 addr, uint8 tc)
+static void ha_read_block_tape(UNIT *uptr, uint32_t addr, uint8_t tc)
 {
     t_seccnt sectsread;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i;
 
     if (!(uptr->flags & UNIT_ATT)) {
         sim_debug(HA_TRACE, &ha_dev,
@@ -608,12 +610,12 @@ static void ha_read_block_tape(UNIT *uptr, uint32 addr, uint8 tc)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_read_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
+static void ha_read_block_disk(UNIT *uptr, uint32_t addr, uint8_t tc, uint32_t lba)
 {
     t_seccnt sectsread;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i;
 
     r = sim_disk_rdsect(uptr, lba, buf, &sectsread, 1);
 
@@ -639,12 +641,12 @@ static void ha_read_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_write_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
+static void ha_write_block_disk(UNIT *uptr, uint32_t addr, uint8_t tc, uint32_t lba)
 {
     t_seccnt sectswritten;
     t_stat r;
-    uint8 buf[HA_BLKSZ];
-    uint32 i;
+    uint8_t buf[HA_BLKSZ];
+    uint32_t i;
 
     for (i = 0 ; i < HA_BLKSZ; i++) {
         buf[i] = pread_b(addr + i, BUS_PER);
@@ -666,12 +668,12 @@ static void ha_write_block_disk(UNIT *uptr, uint32 addr, uint8 tc, uint32 lba)
     ha_state.ts[tc].rep.len = HA_BLKSZ;
 }
 
-static void ha_build_req(uint8 tc, uint8 subdev, bool express)
+static void ha_build_req(uint8_t tc, uint8_t subdev, bool express)
 {
-    uint32 i, rqp, ptr, dma_lst, daddr_ptr;
-    uint32 len, addr;
+    uint32_t i, rqp, ptr, dma_lst, daddr_ptr;
+    uint32_t len, addr;
     cio_entry rqe;
-    uint8 rapp_data[RAPP_LEN] = {0};
+    uint8_t rapp_data[RAPP_LEN] = {0};
 
     /*
      * There are two possible ways to get the SCSI command we've
@@ -789,7 +791,7 @@ static void ha_build_req(uint8 tc, uint8 subdev, bool express)
     }
 }
 
-static inline void ha_cmd_prep(uint8 tc, uint8 op, uint8 subdev, bool express)
+static inline void ha_cmd_prep(uint8_t tc, uint8_t op, uint8_t subdev, bool express)
 {
     ha_state.ts[tc].pending = true;
     ha_state.ts[tc].rep.op = op;
@@ -817,20 +819,20 @@ static inline void ha_cmd_prep(uint8 tc, uint8 op, uint8 subdev, bool express)
  * attached target. Since there is no device target state slot to update, use
  * the host adapter's own target slot to report the timeout completion.
  */
-static void ha_invalid_subdev(uint8 op, uint8 subdev, bool express)
+static void ha_invalid_subdev(uint8_t op, uint8_t subdev, bool express)
 {
     ha_cmd_prep(HA_SCSI_ID, op, subdev, express);
     ha_state.ts[HA_SCSI_ID].rep.status = CIO_TIMEOUT;
     sim_activate_abs(cio_unit, 1000);
 }
 
-static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, bool express)
+static void ha_cmd(uint8_t op, uint8_t subdev, uint32_t addr, int32_t len, bool express)
 {
-    int32 i, block;
+    int32_t i, block;
     UNIT *uptr;
     SCSI_DEV *dev;
-    int8 dsd_tc;
-    uint8 tc;
+    int8_t dsd_tc;
+    uint8_t tc;
 
     sim_debug(HA_TRACE, &ha_dev,
               "[ha_cmd] --------------------------[START]---------------------------------\n");
@@ -861,7 +863,7 @@ static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, bool express)
         sim_debug(HA_TRACE, &ha_dev,
                   "[ha_cmd] SCSI Force Function Call. (CRC=%08x)\n",
                   ha_crc);
-        for (i = 0; i < (int32)(sizeof(diag_crc) / sizeof(diag_crc[0])); i++) {
+        for (i = 0; i < (int32_t)(sizeof(diag_crc) / sizeof(diag_crc[0])); i++) {
             if (ha_crc == diag_crc[i]) {
                 sim_debug(HA_TRACE, &ha_dev,
                           "[ha_cmd] Found matching diagnostics CRC at position %d (%08x==%08x).\n",
@@ -1256,16 +1258,16 @@ static void ha_cmd(uint8 op, uint8 subdev, uint32 addr, int32 len, bool express)
 /*
  * Handle a raw SCSI control message.
  */
-void ha_ctrl(uint8 tc)
+void ha_ctrl(uint8_t tc)
 {
     volatile bool txn_done;
-    uint32 i, j;
-    uint32 plen, ha_ptr;
-    uint32 in_len, out_len;
-    uint8 lu, status;
-    uint8 msgi_buf[64];
-    uint32 msgi_len;
-    uint32 to_read;
+    uint32_t i, j;
+    uint32_t plen, ha_ptr;
+    uint32_t in_len, out_len;
+    uint8_t lu, status;
+    uint8_t msgi_buf[64];
+    uint32_t msgi_len;
+    uint32_t to_read;
 
     sim_debug(HA_TRACE, &ha_dev,
               "[ha_ctrl] [HA_REQ] TC=%d LU=%d TIMEOUT=%d DLEN=%d\n",
@@ -1473,9 +1475,9 @@ void ha_ctrl(uint8 tc)
     scsi_release(&ha_bus);
 }
 
-void ha_fcm_express(uint8 tc)
+void ha_fcm_express(uint8_t tc)
 {
-    uint32 cqp, cqs;
+    uint32_t cqp, cqs;
 
     cqp = cio[ha_state.slot].cqp;
     cqs = cio[ha_state.slot].cqs;
@@ -1500,7 +1502,7 @@ void ha_fcm_express(uint8 tc)
     }
 }
 
-t_stat ha_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ha_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1524,7 +1526,7 @@ t_stat ha_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat ha_show_type(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat ha_show_type(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */

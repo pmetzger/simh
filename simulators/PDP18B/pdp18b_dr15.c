@@ -62,37 +62,39 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp18b_defs.h"
 #include "uc15_defs.h"
 
 /* Declarations */
 
-extern int32 int_hwre[API_HLVL+1];
-extern int32 api_vec[API_HLVL][32];
-extern int32 *M;
+extern int32_t int_hwre[API_HLVL+1];
+extern int32_t api_vec[API_HLVL][32];
+extern int32_t *M;
 extern UNIT cpu_unit;
 
-uint32 dr15_tcbp = 0;                                   /* buffer = TCB ptr */
-int32 dr15_tcb_ack = 0;                                 /* TCBP write ack */
-int32 dr15_ie = 0;                                      /* int enable */
-uint32 dr15_int_req = 0;                                /* int req 0-3 */
-int32 dr15_poll = 3;                                    /* polling interval */
+uint32_t dr15_tcbp = 0;                                 /* buffer = TCB ptr */
+int32_t dr15_tcb_ack = 0;                               /* TCBP write ack */
+int32_t dr15_ie = 0;                                    /* int enable */
+uint32_t dr15_int_req = 0;                              /* int req 0-3 */
+int32_t dr15_poll = 3;                                  /* polling interval */
 SHMEM *uc15_shmem = NULL;                               /* shared state identifier */
-int32 *uc15_shstate = NULL;                             /* shared state base */
+int32_t *uc15_shstate = NULL;                           /* shared state base */
 SHMEM *pdp15_shmem = NULL;                              /* PDP15 mem identifier */
 
-int32 dr60 (int32 dev, int32 pulse, int32 AC);
-int32 dr61 (int32 dev, int32 pulse, int32 AC);
+int32_t dr60 (int32_t dev, int32_t pulse, int32_t AC);
+int32_t dr61 (int32_t dev, int32_t pulse, int32_t AC);
 t_stat dr15_reset (DEVICE *dptr);
-void dr15_set_clr_ie (int32 val);
+void dr15_set_clr_ie (int32_t val);
 t_stat dr15_svc (UNIT *uptr);
-t_stat dr15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat dr15_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat dr15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat dr15_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat dr15_attach (UNIT *uptr, const char *cptr);
 t_stat dr15_detach (UNIT *uptr);
 
-t_stat uc15_new_api (int32 val);                         /* callouts */
-t_stat uc15_tcbp_wr (int32 val);
+t_stat uc15_new_api (int32_t val);                       /* callouts */
+t_stat uc15_tcbp_wr (int32_t val);
 
 /* DR15 data structures
 
@@ -140,7 +142,7 @@ DEVICE dr15_dev = {
 
 /* IOT routines */
 
-int32 dr60 (int32 dev, int32 pulse, int32 AC)
+int32_t dr60 (int32_t dev, int32_t pulse, int32_t AC)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -157,13 +159,13 @@ if ((pulse & 04) != 0) {                                /* LIOR */
 return AC;
 }
 
-int32 dr61 (int32 dev, int32 pulse, int32 AC)
+int32_t dr61 (int32_t dev, int32_t pulse, int32_t AC)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 subdev = (pulse >> 4) & 03;
+int32_t subdev = (pulse >> 4) & 03;
 
 if (pulse & 01) {                                       /* SAPIn */
     if (((dr15_int_req >> subdev) & 01) != 0)
@@ -176,7 +178,7 @@ if (pulse & 02) {
         dr15_set_clr_ie (AC & 1);
     }
 if (pulse & 04) {                                       /* CAPI */
-    uint32 old_int_req = dr15_int_req;
+    uint32_t old_int_req = dr15_int_req;
     dr15_int_req &= ~(1 << subdev);                     /* clear local req */
     int_hwre[subdev] &= ~INT_DR;                        /* clear hwre req */
     if (dr15_int_req != old_int_req)                    /* state change? */
@@ -187,9 +189,9 @@ return AC;
 
 /* Set/clear interrupt enable */
 
-void dr15_set_clr_ie (int32 val)
+void dr15_set_clr_ie (int32_t val)
 {
-int32 i;
+int32_t i;
 
 dr15_ie = val;
 for (i = 0; i < 4; i++) {
@@ -202,19 +204,19 @@ return;
 
 /* Routines to inform UC15 of state changes */
 
-t_stat uc15_new_api (int32 req)
+t_stat uc15_new_api (int32_t req)
 {
 UC15_SHARED_WR (UC15_API_SUMM, req);                    /* new value */
 UC15_ATOMIC_CAS (UC15_API_UPD, 0, 1);                   /* signal UC15 */
 return SCPE_OK;
 }
 
-t_stat uc15_tcbp_wr (int32 tcbp)
+t_stat uc15_tcbp_wr (int32_t tcbp)
 {
 UC15_SHARED_WR (UC15_TCBP, tcbp);                       /* new value */
 UC15_ATOMIC_CAS (UC15_TCBP_WR, 0, 1);                   /* signal UC15 */
 if (DEBUG_PRS (dr15_dev)) {
-    uint32 apiv, apil, fnc, tsk;
+    uint32_t apiv, apil, fnc, tsk;
     bool spl;
 
     apiv = (M[tcbp] >> 8) & 0377;
@@ -234,8 +236,8 @@ return SCPE_OK;
 
 t_stat dr15_svc (UNIT *uptr)
 {
-int32 i, t;
-uint32 old_int_req = dr15_int_req;
+int32_t i, t;
+uint32_t old_int_req = dr15_int_req;
 
 t = UC15_SHARED_RD (UC15_TCBP_RD);                      /* TCBP read? */
 if ((t != 0) && UC15_ATOMIC_CAS (UC15_TCBP_RD, 1, 0))   /* for real? clear */
@@ -268,7 +270,7 @@ return SCPE_OK;
 
 t_stat dr15_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 void *basead;
 
@@ -285,20 +287,20 @@ if ((dptr->flags & DEV_DIS) != 0)                       /* disabled? */
     return SCPE_OK;
 
 if (uc15_shmem == NULL) {                               /* allocate shared state */
-    r = sim_shmem_open ("UC15SharedState", UC15_STATE_SIZE * sizeof (int32), &uc15_shmem, &basead);
+    r = sim_shmem_open ("UC15SharedState", UC15_STATE_SIZE * sizeof (int32_t), &uc15_shmem, &basead);
     if (r != SCPE_OK)
         return r;
-    uc15_shstate = (int32 *) basead;
+    uc15_shstate = (int32_t *) basead;
     for (i = 0; i < UC15_STATE_SIZE; i++) {             /* zero out shared state region */
         UC15_SHARED_WR (i, 0);
         }
     }
 if (pdp15_shmem == NULL) {                              /* allocate shared memory */
-    r = sim_shmem_open ("PDP15MainMemory", MAXMEMSIZE * sizeof (int32), &pdp15_shmem, &basead);
+    r = sim_shmem_open ("PDP15MainMemory", MAXMEMSIZE * sizeof (int32_t), &pdp15_shmem, &basead);
     if (r != SCPE_OK)
         return r;
     free (M);                                           /* release normal memory */
-    M = (int32 *) basead;
+    M = (int32_t *) basead;
     }
 UC15_SHARED_WR (UC15_PDP15MEM, cpu_unit.capac << 1);    /* write mem size to shared state */
 uc15_new_api (dr15_int_req);                            /* inform UC15 of new API (and mem) */
@@ -308,7 +310,7 @@ return SCPE_OK;
 
 /* Shared state ex/mod routines for debug */
 
-t_stat dr15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat dr15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -319,13 +321,13 @@ if (addr >= UC15_STATE_SIZE)
     return SCPE_NXM;
 if (vptr != NULL) {
     if (uc15_shmem != NULL)
-        *vptr = UC15_SHARED_RD ((int32) addr);
+        *vptr = UC15_SHARED_RD ((int32_t) addr);
     else *vptr = 0;
     }
 return SCPE_OK;
 }
 
-t_stat dr15_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat dr15_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -335,7 +337,7 @@ t_stat dr15_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 if (addr >= UC15_STATE_SIZE)
     return SCPE_NXM;
 if (uc15_shmem != NULL)
-    UC15_SHARED_WR ((int32) addr, (int32) val);
+    UC15_SHARED_WR ((int32_t) addr, (int32_t) val);
 return SCPE_OK;
 }
 

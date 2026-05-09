@@ -42,13 +42,15 @@ Notes:
     - register STOP_IOE determines return value issued if output to unattached PLT is attempted
 */
 
+#include <stdint.h>
+
 #include "nova_defs.h"
 
-extern int32 int_req, dev_busy, dev_done, dev_disable;
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
 
-int32 plt_stopioe = 0;                                  /* stop on error */
+int32_t plt_stopioe = 0;                                /* stop on error */
 
-int32 plt (int32 pulse, int32 code, int32 AC);
+int32_t plt (int32_t pulse, int32_t code, int32_t AC);
 t_stat plt_svc (UNIT *uptr);
 t_stat plt_reset (DEVICE *dptr);
 
@@ -101,7 +103,7 @@ DEVICE plt_dev = {
 
 /* plotter: IOT routine */
 
-int32 plt (int32 pulse, int32 code, int32 AC)
+int32_t plt (int32_t pulse, int32_t code, int32_t AC)
 {
 if (code == ioDOA)
     plt_unit.buf = AC & ((plt_unit.flags & UNIT_8B)?

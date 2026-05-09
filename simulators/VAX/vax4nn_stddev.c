@@ -29,6 +29,8 @@
    clk          100Hz and TODR clock
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "uint_bits.h"
 
@@ -40,37 +42,37 @@
 #define CLK_DELAY       5000                            /* 100 Hz */
 #define TMXR_MULT       1                               /* 100 Hz */
 
-uint32 *rom = NULL;                                     /* boot ROM */
-uint8 *nvr = NULL;                                      /* non-volatile mem */
-int32 clk_csr = 0;                                      /* control/status */
-int32 clk_tps = 100;                                    /* ticks/second */
-int32 tmr_int = 0;                                      /* interrupt */
-int32 tmxr_poll = CLK_DELAY * TMXR_MULT;                /* term mux poll */
-int32 tmr_poll = CLK_DELAY;                             /* pgm timer poll */
+uint32_t *rom = NULL;                                   /* boot ROM */
+uint8_t *nvr = NULL;                                    /* non-volatile mem */
+int32_t clk_csr = 0;                                    /* control/status */
+int32_t clk_tps = 100;                                  /* ticks/second */
+int32_t tmr_int = 0;                                    /* interrupt */
+int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
+int32_t tmr_poll = CLK_DELAY;                           /* pgm timer poll */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
+t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
 t_stat rom_reset (DEVICE *dptr);
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-int32 rom_rd (int32 pa);
-void rom_wr_B (int32 pa, int32 val);
+t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+int32_t rom_rd (int32_t pa);
+void rom_wr_B (int32_t pa, int32_t val);
 const char *rom_description (DEVICE *dptr);
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
+t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
 t_stat nvr_reset (DEVICE *dptr);
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 t_stat nvr_attach (UNIT *uptr, const char *cptr);
 t_stat nvr_detach (UNIT *uptr);
-int32 nvr_rd (int32 pa);
-void nvr_wr (int32 pa, int32 val, int32 lnt);
+int32_t nvr_rd (int32_t pa);
+void nvr_wr (int32_t pa, int32_t val, int32_t lnt);
 const char *nvr_description (DEVICE *dptr);
-int32 iccs_rd (void);
-void iccs_wr (int32 data);
+int32_t iccs_rd (void);
+void iccs_wr (int32_t data);
 t_stat clk_svc (UNIT *uptr);
 t_stat clk_reset (DEVICE *dptr);
 const char *clk_description (DEVICE *dptr);
 
-extern int32 nar_rd (int32 pa);
+extern int32_t nar_rd (int32_t pa);
 
 /* ROM data structures
 
@@ -173,36 +175,36 @@ DEVICE clk_dev = {
    issues with the embedded timing loops.
 */
 
-int32 rom_rd (int32 pa)
+int32_t rom_rd (int32_t pa)
 {
-uint32 rg = (((uint32) pa - ROMBASE) & ROMAMASK) >> 2;
-uint32 val = rom[rg];
+uint32_t rg = (((uint32_t) pa - ROMBASE) & ROMAMASK) >> 2;
+uint32_t val = rom[rg];
 
 if (rom_unit.flags & UNIT_NODELAY)
-    return (int32) val;
+    return (int32_t) val;
 
 return sim_rom_read_with_delay (val);
 }
 
-void rom_wr_B (int32 pa, int32 val)
+void rom_wr_B (int32_t pa, int32_t val)
 {
-uint32 addr = (uint32) pa;
-uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
+uint32_t addr = (uint32_t) pa;
+uint32_t rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32) val, addr);
+rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32_t) val, addr);
 return;
 }
 
 /* ROM examine */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -214,20 +216,20 @@ return SCPE_OK;
 
 /* ROM deposit */
 
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= ROMSIZE)
     return SCPE_NXM;
-rom[addr >> 2] = (uint32) val;
+rom[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -240,13 +242,13 @@ t_stat rom_reset (DEVICE *dptr)
 (void) dptr;
 
 if (rom == NULL)
-    rom = (uint32 *) calloc (ROMSIZE >> 2, sizeof (uint32));
+    rom = (uint32_t *) calloc (ROMSIZE >> 2, sizeof (uint32_t));
 if (rom == NULL)
     return SCPE_MEM;
 return SCPE_OK;
 }
 
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -282,10 +284,10 @@ return "read-only memory";
 
 /* NVR: non-volatile RAM - stored in a buffered file */
 
-int32 nvr_rd (int32 pa)
+int32_t nvr_rd (int32_t pa)
 {
-int32 rg = (pa - NVRBASE) >> 2;
-int32 val;
+int32_t rg = (pa - NVRBASE) >> 2;
+int32_t val;
 
 val = nvr[rg];
 if (rg < 0x40)                                          /* network addr */
@@ -293,26 +295,26 @@ if (rg < 0x40)                                          /* network addr */
 return val;
 }
 
-void nvr_wr (int32 pa, int32 val, int32 lnt)
+void nvr_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - NVRBASE) >> 2;
+int32_t rg = (pa - NVRBASE) >> 2;
 nvr[rg] = (val & BMASK);
 }
 
 /* NVR examine */
 
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw)
+t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if ((vptr == NULL) || (addr & 03))
     return SCPE_ARG;
@@ -324,20 +326,20 @@ return SCPE_OK;
 
 /* NVR deposit */
 
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw)
+t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) sw;
 
-uint32 addr = (uint32) exta;
+uint32_t addr = (uint32_t) exta;
 
 if (addr & 03)
     return SCPE_ARG;
 if (addr >= NVRSIZE)
     return SCPE_NXM;
-nvr[addr >> 2] = (uint32) val;
+nvr[addr >> 2] = (uint32_t) val;
 return SCPE_OK;
 }
 
@@ -350,7 +352,7 @@ t_stat nvr_reset (DEVICE *dptr)
 (void) dptr;
 
 if (nvr == NULL) {
-    nvr = (uint8 *) calloc (NVRSIZE >> 2, sizeof (uint32));
+    nvr = (uint8_t *) calloc (NVRSIZE >> 2, sizeof (uint32_t));
     nvr_unit.filebuf = nvr;
     }
 if (nvr == NULL)
@@ -358,7 +360,7 @@ if (nvr == NULL)
 return SCPE_OK;
 }
 
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -387,7 +389,7 @@ r = attach_unit (uptr, cptr);
 if (r != SCPE_OK)
     uptr->flags = uptr->flags & ~(UNIT_ATTABLE | UNIT_BUFABLE);
 else {
-    uptr->hwmark = (uint32) uptr->capac;
+    uptr->hwmark = (uint32_t) uptr->capac;
     wtc_set_valid ();
     }
 return r;
@@ -421,12 +423,12 @@ return "non-volatile memory";
    iccs_rd/wr   interval timer
 */
 
-int32 iccs_rd (void)
+int32_t iccs_rd (void)
 {
 return (clk_csr & CLKCSR_IMP);
 }
 
-void iccs_wr (int32 data)
+void iccs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     tmr_int = 0;
@@ -445,7 +447,7 @@ return;
 
 t_stat clk_svc (UNIT *uptr)
 {
-int32 t;
+int32_t t;
 
 if (clk_csr & CSR_IE)
     tmr_int = 1;
@@ -465,7 +467,7 @@ t_stat clk_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 t;
+int32_t t;
 
 clk_csr = 0;
 tmr_int = 0;
@@ -487,7 +489,7 @@ return "100hz clock tick";
 
 /* Dummy I/O space functions */
 
-int32 ReadIO (uint32 pa, int32 lnt)
+int32_t ReadIO (uint32_t pa, int32_t lnt)
 {
 /* Dummy I/O read signature.
    This implementation does not use every parameter. */
@@ -497,7 +499,7 @@ int32 ReadIO (uint32 pa, int32 lnt)
 return 0;
 }
 
-void WriteIO (uint32 pa, int32 val, int32 lnt)
+void WriteIO (uint32_t pa, int32_t val, int32_t lnt)
 {
 /* Dummy I/O write signature.
    This implementation does not use every parameter. */
@@ -508,7 +510,7 @@ void WriteIO (uint32 pa, int32 val, int32 lnt)
 return;
 }
 
-int32 ReadIOU (uint32 pa, int32 lnt)
+int32_t ReadIOU (uint32_t pa, int32_t lnt)
 {
 /* Dummy unaligned I/O read signature.
    This implementation does not use every parameter. */
@@ -518,7 +520,7 @@ int32 ReadIOU (uint32 pa, int32 lnt)
 return 0;
 }
 
-void WriteIOU (uint32 pa, int32 val, int32 lnt)
+void WriteIOU (uint32_t pa, int32_t val, int32_t lnt)
 {
 /* Dummy unaligned I/O write signature.
    This implementation does not use every parameter. */

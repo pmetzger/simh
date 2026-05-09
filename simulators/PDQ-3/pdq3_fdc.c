@@ -31,6 +31,7 @@
 #include "sim_imd.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* FDC/DMA bit definitions */
 /* declarations of FDC and DMA chip */
@@ -131,29 +132,29 @@
 #define FDC_WAIT_FORCEINT     100
 #define FDC_WAIT_IDXPULSE     16000
 
-uint8 reg_fdc_cmd;    /* FC30 write */
-uint8 reg_fdc_status; /* FC30 read */
-int8  reg_fdc_track;  /* FC31 */
-int8  reg_fdc_sector; /* FC32 */
-int8  reg_fdc_data;   /* FC33 */
-uint8 reg_fdc_drvsel; /* only combined */
+uint8_t reg_fdc_cmd;  /* FC30 write */
+uint8_t reg_fdc_status; /* FC30 read */
+int8_t reg_fdc_track; /* FC31 */
+int8_t reg_fdc_sector; /* FC32 */
+int8_t reg_fdc_data;  /* FC33 */
+uint8_t reg_fdc_drvsel; /* only combined */
 
-uint8 reg_dma_ctrl;   /* FC38 writeonly */
-uint8 reg_dma_status; /* FC39 */
-uint8 reg_dma_cntl;   /* FC3A */
-uint8 reg_dma_cnth;   /* FC3B */
-uint8 reg_dma_addrl;  /* FC3C */
-uint8 reg_dma_addrh;  /* FC3D */
-uint8 reg_dma_addre;  /* FC3E */
-uint8 reg_dma_id;     /* FC3F - unusable */
-uint16 _reg_dma_cnt;  /* combined reg */
-uint32 _reg_dma_addr; /* combined reg */
+uint8_t reg_dma_ctrl; /* FC38 writeonly */
+uint8_t reg_dma_status; /* FC39 */
+uint8_t reg_dma_cntl; /* FC3A */
+uint8_t reg_dma_cnth; /* FC3B */
+uint8_t reg_dma_addrl; /* FC3C */
+uint8_t reg_dma_addrh; /* FC3D */
+uint8_t reg_dma_addre; /* FC3E */
+uint8_t reg_dma_id;   /* FC3F - unusable */
+uint16_t _reg_dma_cnt; /* combined reg */
+uint32_t _reg_dma_addr; /* combined reg */
 
-int8 fdc_selected;    /* currently selected drive, -1=none */
-uint8 fdc_intpending; /* currently executing force interrupt command, 0=none */
+int8_t fdc_selected;  /* currently selected drive, -1=none */
+uint8_t fdc_intpending; /* currently executing force interrupt command, 0=none */
 
-uint8 fdc_recbuf[1024];
-uint32 fdc_recsize;
+uint8_t fdc_recbuf[1024];
+uint32_t fdc_recsize;
 
 bool dma_isautoload;
 
@@ -173,11 +174,11 @@ static void dma_reqinterrupt(void);
 typedef struct _drvdata {
   UNIT  *dr_unit;
   DISK_INFO *dr_imd;
-  uint8 dr_ready;
-  uint8 dr_head;
-  uint8 dr_trk;
-  uint8 dr_sec;
-  uint8 dr_stepdir; /* 0=in, 1=out */
+  uint8_t dr_ready;
+  uint8_t dr_head;
+  uint8_t dr_trk;
+  uint8_t dr_sec;
+  uint8_t dr_stepdir; /* 0=in, 1=out */
 } DRVDATA;
 
 DRVDATA fdc_drv[] = {
@@ -265,8 +266,8 @@ DEVICE fdc_dev = {
 };
 
 /* boot unit - not available through BOOT FDC cmd, use BOOT CPU instead */
-t_stat fdc_boot(int32 unitnum, DEVICE *dptr) {
-  if (unitnum < 0 || (uint32)unitnum > dptr->numunits)
+t_stat fdc_boot(int32_t unitnum, DEVICE *dptr) {
+  if (unitnum < 0 || (uint32_t)unitnum > dptr->numunits)
     return SCPE_NXUN;
 //  sim_printf("BOOT FDC%d\n",unitnum);
   return fdc_autoload(unitnum);
@@ -379,7 +380,7 @@ static bool fdc_driveready(DRVDATA *curdrv) {
   return true;
 }
 
-static bool fdc_istrk0(DRVDATA *curdrv,int8 trk) {
+static bool fdc_istrk0(DRVDATA *curdrv,int8_t trk) {
   curdrv->dr_trk = trk;
   if (trk <= 0) {
     setbit(reg_fdc_status,FDC_ST1_TRACK0);
@@ -459,10 +460,10 @@ static void dma_fix_regs(void) {
 }
 
 /* return true if successfully transferred */
-static bool dma_transfer_to_ram(uint8 *buf, int bufsize) {
+static bool dma_transfer_to_ram(uint8_t *buf, int bufsize) {
   bool rc = true;
   int i;
-  uint16 data;
+  uint16_t data;
   t_addr tstart = _reg_dma_addr/2;
   int cnt = _reg_dma_cnt ^ 0xffff;
   int xfersz = bufsize > cnt ? cnt : bufsize;
@@ -503,11 +504,11 @@ static bool dma_transfer_to_ram(uint8 *buf, int bufsize) {
 }
 
 /* return true if successfully transferred */
-static bool dma_transfer_from_ram(uint8 *buf, int bufsize) {
+static bool dma_transfer_from_ram(uint8_t *buf, int bufsize) {
   bool rc = true;
   int i;
-  uint16 data;
-  uint32 tstart = _reg_dma_addr/2;
+  uint16_t data;
+  uint32_t tstart = _reg_dma_addr/2;
   int cnt = _reg_dma_cnt ^ 0xffff;
   int xfersz = bufsize > cnt ? cnt : bufsize;
 
@@ -547,7 +548,7 @@ static bool dma_transfer_from_ram(uint8 *buf, int bufsize) {
 
 /* return true if read satisfied, false if error */
 static bool fdc_readsec(DRVDATA *curdrv) {
-  uint32 flags;
+  uint32_t flags;
 
   /* does sector exist? */
   if (sectSeek(curdrv->dr_imd, curdrv->dr_trk, curdrv->dr_head)) {
@@ -582,7 +583,7 @@ static bool fdc_readsec(DRVDATA *curdrv) {
 }
 
 static bool fdc_writesec(DRVDATA *curdrv) {
-  uint32 flags;
+  uint32_t flags;
 
   /* write protect? */
   if (imdIsWriteLocked(curdrv->dr_imd)) {
@@ -634,7 +635,7 @@ static bool fdc_rwerror(void) {
  return isbitset(reg_fdc_status,FDC_ST2_TYPEWFLT|FDC_ST2_RECNOTFND|FDC_ST2_CRCERROR /*|FDC_ST2_LOSTDATA*/);
 }
 
-static t_stat fdc_set_notready(uint8 cmd)
+static t_stat fdc_set_notready(uint8_t cmd)
 {
   switch (cmd & FDC_CMDMASK) {
   default:
@@ -823,9 +824,9 @@ static const char *cmdlist[] = {
   "ReadAddr","ForceInt","ReadTrack","WriteTrack"
 };
 
-static void debug_fdccmd(uint16 cmd) {
+static void debug_fdccmd(uint16_t cmd) {
   char buf[200];
-  uint16 dsel = cmd >> 8, cr = (cmd >> 4) & 0x0f;
+  uint16_t dsel = cmd >> 8, cr = (cmd >> 4) & 0x0f;
 
   buf[0] = 0;
   if (cmd & 0xff00) {
@@ -869,7 +870,7 @@ static void debug_fdccmd(uint16 cmd) {
   sim_debug(DBG_FD_CMD, &fdc_dev, DBG_PCFORMAT2 "Command: %s\n", DBG_PC,buf);
 }
 
-static t_stat fdc_docmd(uint16 data) {
+static t_stat fdc_docmd(uint16_t data) {
   UNIT *uptr;
   DRVDATA *curdrv = fdc_select();
   if (curdrv== NULL) return SCPE_IOERR;
@@ -936,7 +937,7 @@ static t_stat fdc_docmd(uint16 data) {
   return SCPE_OK;
 }
 
-static void dma_docmd(uint16 data) {
+static void dma_docmd(uint16_t data) {
   reg_dma_ctrl = data & 0xff;
   reg_dma_status &= 0x8f;
   reg_dma_status |= (reg_dma_ctrl & 0x70);
@@ -967,7 +968,7 @@ static bool fd_reg16bit[] = {
   false,false,false,false
 };
 
-t_stat fdc_write(t_addr ioaddr, uint16 data) {
+t_stat fdc_write(t_addr ioaddr, uint16_t data) {
   int io = ioaddr & 15;
   sim_debug(DBG_FD_WRITE, &fdc_dev, DBG_PCFORMAT0 "%s write %04x to IO=$%04x\n",
     DBG_PC, fd_reg16bit[io] ? "Byte":"Word", data, ioaddr);
@@ -1029,13 +1030,13 @@ t_stat fdc_write(t_addr ioaddr, uint16 data) {
   }
   _reg_dma_cnt = (reg_dma_cnth << 8) | reg_dma_cntl;
   if (_reg_dma_cnt) clrbit(reg_dma_status,DMA_ST_TCZI);
-  _reg_dma_addr = (((uint32)reg_dma_addre)<<16) | (((uint32)reg_dma_addrh)<<8) | reg_dma_addrl;
+  _reg_dma_addr = (((uint32_t)reg_dma_addre)<<16) | (((uint32_t)reg_dma_addrh)<<8) | reg_dma_addrl;
 
   (void)fdc_select();
   return SCPE_OK;
 }
 
-t_stat fdc_read(t_addr ioaddr, uint16 *data) {
+t_stat fdc_read(t_addr ioaddr, uint16_t *data) {
   switch (ioaddr & 15) {
   case 0: /* status readonly */
   case 4:
@@ -1095,7 +1096,7 @@ t_stat pdq3_diskCreate(FILE *fileref, const char *ctlr_comment) {
     char *comment;
     char *curptr;
     int answer;
-    int32 len, remaining;
+    int32_t len, remaining;
     long fsize;
 
     if(fileref == NULL) {
@@ -1163,9 +1164,9 @@ t_stat pdq3_diskCreate(FILE *fileref, const char *ctlr_comment) {
 }
 
 t_stat pdq3_diskFormat(DISK_INFO *myDisk) {
-    uint8 i = 0;
-    uint8 sector_map[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
-    uint32 flags;
+    uint8_t i = 0;
+    uint8_t sector_map[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
+    uint32_t flags;
 
     sim_printf("PDQ3_IMD: Formatting disk in PDQ3 format.\n");
 

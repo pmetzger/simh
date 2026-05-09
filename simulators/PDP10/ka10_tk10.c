@@ -23,6 +23,8 @@
    AI lab and Dynamic Modeling PDP-10s.
 */
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "sim_tmxr.h"
 #include "kx10_defs.h"
@@ -52,15 +54,15 @@
 #define TK10_CONI_BITS   (TK10_PIA | TK10_INT | TK10_TYI | TK10_GO | \
                           TK10_ODONE | TK10_IDONE)
 
-static t_stat       tk10_devio(uint32 dev, uint64 *data);
+static t_stat       tk10_devio(uint32_t dev, uint64 *data);
 static t_stat       tk10_svc (UNIT *uptr);
 static t_stat       tk10_reset (DEVICE *dptr);
 static t_stat       tk10_attach (UNIT *uptr, const char *cptr);
 static t_stat       tk10_detach (UNIT *uptr);
 static const char   *tk10_description (DEVICE *dptr);
 static t_stat       tk10_help (FILE *st, DEVICE *dptr, UNIT *uptr,
-                               int32 flag, const char *cptr);
-extern int32        tmxr_poll;
+                               int32_t flag, const char *cptr);
+extern int32_t      tmxr_poll;
 
 TMLN tk10_ldsc[TK10_LINES] = { 0 };
 TMXR tk10_desc = { TK10_LINES, 0, 0, tk10_ldsc };
@@ -95,7 +97,7 @@ DEVICE tk10_dev = {
     NULL, NULL, tk10_help, NULL, NULL, tk10_description
 };
 
-static t_stat tk10_devio(uint32 dev, uint64 *data)
+static t_stat tk10_devio(uint32_t dev, uint64 *data)
 {
     TMLN *lp;
     int port;
@@ -290,7 +292,7 @@ static t_stat tk10_detach (UNIT *uptr)
 }
 
 static t_stat tk10_help (FILE *st, DEVICE *dptr, UNIT *uptr,
-                         int32 flag, const char *cptr)
+                         int32_t flag, const char *cptr)
 {
     fprintf (st, "TK10 Knight kludge TTY scanner\n\n");
     fprintf (st, "The TK10 supported 8 or 16 lines, but only the latter is supported by\n");

@@ -27,10 +27,12 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
-#include "besm6_defs.h"
 #include <ctype.h>
-#include <sys/types.h>
+#include <stdint.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+
+#include "besm6_defs.h"
 
 /*
  * Управляющее слово обмена с магнитным диском.
@@ -189,7 +191,7 @@ REG disk_reg[] = {
 };
 
 static FILE * syslog = NULL;
-static t_stat disk_setsyslog (UNIT *up, int32 v, const char *cp, void *dp) {
+static t_stat disk_setsyslog (UNIT *up, int32_t v, const char *cp, void *dp) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) up;
@@ -213,7 +215,7 @@ static t_stat disk_setsyslog (UNIT *up, int32 v, const char *cp, void *dp) {
 #define DISK_TYPE_29M  (1 << UNIT_V_UF)
 #define IS_29MB(u) (((u)->flags & DISK_TYPE_MASK) == DISK_TYPE_29M)
 
-static t_stat disk_set_type (UNIT *up, int32 v, const char *cp, void *dp) {
+static t_stat disk_set_type (UNIT *up, int32_t v, const char *cp, void *dp) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) cp;
@@ -233,7 +235,7 @@ static t_stat disk_set_type (UNIT *up, int32 v, const char *cp, void *dp) {
     return SCPE_OK;
 }
 
-static t_stat disk_show_type (FILE *f, UNIT *up, int32 v, const void *dp) {
+static t_stat disk_show_type (FILE *f, UNIT *up, int32_t v, const void *dp) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) v;
@@ -360,7 +362,7 @@ t_stat disk_reset (DEVICE *dptr)
 t_stat disk_attach (UNIT *u, const char *cptr)
 {
     t_stat s;
-    int32 saved_switches = sim_switches;
+    int32_t saved_switches = sim_switches;
     sim_switches |= SWMASK ('E');
 
     while (1) {
@@ -407,7 +409,7 @@ t_stat disk_attach (UNIT *u, const char *cptr)
 
             /* Unlike the O/S routine, does not format the (useless) reserve tracks */
             for (blkno = 0; blkno < (IS_29MB(u) ? 4000 : 1000); ++blkno) {
-                uint32 val = IS_29MB(u) ? blkno : 2 * blkno;
+                uint32_t val = IS_29MB(u) ? blkno : 2 * blkno;
                 control[0] = SET_PARITY((t_value)val << 36, PARITY_NUMBER);
                 sim_fwrite(control, sizeof(t_value), 4, u->fileref);
                 control[0] = SET_PARITY((t_value)(val+1) << 36, PARITY_NUMBER);
@@ -557,12 +559,12 @@ static void disk_format (UNIT *u)
     if (u->dptr->dctrl & DEB_TRC) {
         if (IS_29MB(u))
             besm6_debug ("::: формат МД %02o зона %04o память %05o skip %02o и-а-кса %010o %010o",
-                         c->dev, c->zone, c->memory, (uint32) (ptr - memory -c ->memory),
+                         c->dev, c->zone, c->memory, (uint32_t) (ptr - memory -c ->memory),
                          (int) (fmtbuf[0] >> 8 & BITS(30)),
                          (int) (fmtbuf[2] >> 14 & BITS(30)));
         else
             besm6_debug ("::: формат МД %02o полузона %04o.%d память %05o skip %02o и-а-кса %010o %010o",
-                         c->dev, c->zone, c->track, c->memory, (uint32) (ptr - memory -c ->memory),
+                         c->dev, c->zone, c->track, c->memory, (uint32_t) (ptr - memory -c ->memory),
                          (int) (fmtbuf[0] >> 8 & BITS(30)),
                          (int) (fmtbuf[2] >> 14 & BITS(30)));
     }
@@ -694,10 +696,10 @@ static void disk_read_header (UNIT *u)
  * Задание адреса памяти и длины массива для последующего обращения к диску.
  * Номера дисковода и дорожки будут выданы позже, командой 033 0023(0024).
  */
-void disk_io (int ctlr, uint32 cmd)
+void disk_io (int ctlr, uint32_t cmd)
 {
     KMD *c = &controller [ctlr];
-    uint32 rem = cmd & ~(DISK_PAGE_MODE | DISK_PAGE | DISK_BLOCK | DISK_READ | DISK_READ_SYSDATA);
+    uint32_t rem = cmd & ~(DISK_PAGE_MODE | DISK_PAGE | DISK_BLOCK | DISK_READ | DISK_READ_SYSDATA);
     if (rem && md_dev[ctlr * 4].dctrl & DEB_RWR) {
         besm6_debug ("::: КМД %c: unknown bits in IO request %08o", ctlr + '3', rem);
     }
@@ -722,7 +724,7 @@ void disk_io (int ctlr, uint32 cmd)
 /*
  * Управление диском: команда 00 033 0023(0024).
  */
-void disk_ctl (int ctlr, uint32 cmd)
+void disk_ctl (int ctlr, uint32_t cmd)
 {
     KMD *c = &controller [ctlr];
     UNIT *u = c->dev < 0 ? &md_unit[0] : &md_unit [c->dev];

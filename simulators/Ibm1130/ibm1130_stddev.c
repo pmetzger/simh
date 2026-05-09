@@ -85,6 +85,9 @@
 #include "ibm1130_defs.h"
 #include <memory.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "sim_types.h"
 
 /* #define DEBUG_CONSOLE */
 
@@ -100,7 +103,7 @@ static void badio (const char *dev)
  */
 }
 
-void xio_1231_optical (int32 addr, int32 func, int32 modify)
+void xio_1231_optical (int32_t addr, int32_t func, int32_t modify)
 {
     /* Device dispatch signature.
        This implementation does not use every parameter. */
@@ -111,7 +114,7 @@ void xio_1231_optical (int32 addr, int32 func, int32 modify)
     badio("optical mark");
 }
 
-void xio_system7 (int32 addr, int32 func, int32 modify)
+void xio_system7 (int32_t addr, int32_t func, int32_t modify)
 {
     /* Device dispatch signature.
        This implementation does not use every parameter. */
@@ -131,19 +134,19 @@ void xio_system7 (int32 addr, int32 func, int32 modify)
 typedef struct tag_os_map {                 /* os_map = overstrike mapping */
     int ch;                                 /* ch = output character */
     int nin;                                /* nin = number of overstruck characters */
-    unsigned char inlist[MAX_OS_CHARS];     /* inlist = overstruck ASCII characters, sorted. NOT NULL TERMINATED */
+    uchar_t inlist[MAX_OS_CHARS];           /* inlist = overstruck ASCII characters, sorted. NOT NULL TERMINATED */
 } OS_MAP;
 
-static int32 tti_dsw = 0;                   /* device status words */
-static int32 tto_dsw = 0;
-       int32 con_dsw = 0;
+static int32_t tti_dsw = 0;                 /* device status words */
+static int32_t tto_dsw = 0;
+       int32_t con_dsw = 0;
 
-static unsigned char conout_map[256];       /* 1130 console code to ASCII translation. 0 = undefined, 0xFF = IGNR_ = no output */
-static unsigned char conin_map[256];        /* input mapping */
+static uchar_t conout_map[256];             /* 1130 console code to ASCII translation. 0 = undefined, 0xFF = IGNR_ = no output */
+static uchar_t conin_map[256];              /* input mapping */
 static int  curcol = 0;                     /* current typewriter element column, leftmost = 0 */
 static int  maxcol = 0;                     /* highest curcol seen in this output line         */
-static unsigned char black_ribbon[30];      /* output escape sequence for black ribbon shift   */
-static unsigned char red_ribbon[30];        /* output escape sequence for red ribbon shift     */
+static uchar_t black_ribbon[30];            /* output escape sequence for black ribbon shift   */
+static uchar_t red_ribbon[30];              /* output escape sequence for red ribbon shift     */
 
 static OS_MAP os_buf[MAX_OUTPUT_COLUMNS];           /* current typewriter output line, holds character struck in each column */
 static OS_MAP os_map[MAX_OS_MAPPINGS];              /* overstrike mapping entries */
@@ -157,13 +160,13 @@ static t_stat tto_reset(DEVICE *dptr);
 static t_stat emit_conout_character(int ch);
 static t_stat map_conout_character(int ch);
 static void   reset_mapping (void);
-static void   set_conout_mapping(int32 flags);
-static t_stat validate_conout_mapping(UNIT *uptr, int32 match, const char *cvptr, void *desc);
-static void   set_default_mapping(int32 flags);
+static void   set_conout_mapping(int32_t flags);
+static t_stat validate_conout_mapping(UNIT *uptr, int32_t match, const char *cvptr, void *desc);
+static void   set_default_mapping(int32_t flags);
 static void   finish_conout_mapping(void);
-static void   strsort (int n, unsigned char *s);        /* sorts an array of n characters */
+static void   strsort (int n, uchar_t *s);              /* sorts an array of n characters */
 static int    os_map_comp (OS_MAP *a, OS_MAP *b);       /* compares two mapping entries */
-static t_stat font_cmd(int32 flag, const char *cptr);           /* handles font command */
+static t_stat font_cmd(int32_t flag, const char *cptr);         /* handles font command */
 static void   read_map_file(FILE *fd);                  /* reads a font map file */
 static bool str_match(const char *str, const char *keyword);/* keyword/string comparison */
 static const char * handle_map_ansi_definition(char **pc);  /* input line parsers for map file sections */
@@ -267,7 +270,7 @@ DEVICE tto_dev = {
 #define TT_DSW_PRINTER_NOT_READY        0x0400
 #define TT_DSW_KEYBOARD_BUSY            0x0200
 
-void xio_1131_console (int32 iocc_addr, int32 func, int32 modify)
+void xio_1131_console (int32_t iocc_addr, int32_t func, int32_t modify)
 {
     int ch;
     char msg[80];
@@ -364,7 +367,7 @@ static void SendBeep (void)         /* notify user keyboard was locked or key wa
 
 static t_stat tti_svc (UNIT *uptr)
 {
-    int32 temp;
+    int32_t temp;
 
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -546,8 +549,8 @@ static t_stat tto_reset (DEVICE *dptr)
 #endif
 
 static struct {                         /* default input mapping for APL */
-    unsigned char in;
-    unsigned char out;
+    uchar_t in;
+    uchar_t out;
 } conin_to_APL[] =
 {                                       /* these map input keys to those in like positions on 1130 keyboard */
     {'[',   '\r'},                      /* enter (EOF) is APL left arrow */
@@ -567,8 +570,8 @@ static struct {                         /* default input mapping for APL */
 #define NCONIN_TO_APL (sizeof(conin_to_APL)/sizeof(conin_to_APL[0]))
 
 static struct {                         /* default output mapping for APLPLUS font */
-    unsigned char in;
-    unsigned char out;
+    uchar_t in;
+    uchar_t out;
 } conout_to_APL[] =
 {
     {'\x01', IGNR_},                        /* controls */
@@ -711,7 +714,7 @@ static OS_MAP default_os_map[] =            /* overstrike mapping for APLPLUS fo
 
 static int os_map_comp (OS_MAP *a, OS_MAP *b)
 {
-    unsigned char *sa, *sb;
+    uchar_t *sa, *sb;
     int i;
 
     if (a->nin > b->nin)
@@ -739,9 +742,9 @@ static int os_map_comp (OS_MAP *a, OS_MAP *b)
 
 /* strsort - sorts the n characters of array 's' using insertion sort */
 
-static void strsort (int n, unsigned char *s)
+static void strsort (int n, uchar_t *s)
 {
-    unsigned char temp;
+    uchar_t temp;
     int i, big;
 
     while (--n > 0) {               /* repeatedly */
@@ -764,7 +767,7 @@ OUT IN IN ...        overstrike mapping
 
 */
 
-static void set_conout_mapping (int32 flags)
+static void set_conout_mapping (int32_t flags)
 {
     curcol = 0;
     maxcol = 0;
@@ -799,7 +802,7 @@ static void finish_conout_mapping (void)
 
 /* validate_conout_mapping - called when set command gets a new value */
 
-static t_stat validate_conout_mapping (UNIT *uptr, int32 match, const char *cvptr, void *desc)
+static t_stat validate_conout_mapping (UNIT *uptr, int32_t match, const char *cvptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -823,12 +826,12 @@ static void reset_mapping (void)
     n_os_mappings = 0;                              /* erase overstrike mapping */
 
     for (i = (sizeof(conin_map)/sizeof(conin_map[0])); --i >= 0; )
-        conin_map[i] = (unsigned char) i;           /* default conin_map is identity map */
+        conin_map[i] = (uchar_t) i;                 /* default conin_map is identity map */
 }
 
 /* set_default_mapping - create standard font and overstrike map */
 
-static void set_default_mapping (int32 flags)
+static void set_default_mapping (int32_t flags)
 {
     int i;
 
@@ -904,7 +907,7 @@ static t_stat map_conout_character (int ch)
         if (curcol > 0)
             curcol--;
     }
-    else if (n_os_mappings && ch != (unsigned char) IGNR_) {
+    else if (n_os_mappings && ch != (uchar_t) IGNR_) {
         if (curcol >= MAX_OUTPUT_COLUMNS)
             map_conout_character('\x81');       /* precede with automatic carriage return/line feed, I guess */
 
@@ -914,7 +917,7 @@ static t_stat map_conout_character (int ch)
         }
 
         if (ch != ' ' && ch != 0) {             /* (if it's not a blank or unknown) */
-            os_buf[curcol].inlist[os_buf[curcol].nin] = (unsigned char) ch;
+            os_buf[curcol].inlist[os_buf[curcol].nin] = (uchar_t) ch;
             strsort(++os_buf[curcol].nin, os_buf[curcol].inlist);
         }
 
@@ -972,7 +975,7 @@ static t_stat map_conout_character (int ch)
 
 /* font_cmd - parse a font mapping file. Sets input and output translations */
 
-static t_stat font_cmd (int32 flag, const char *iptr)
+static t_stat font_cmd (int32_t flag, const char *iptr)
 {
     char *fname, quote;
         char gbuf[4*CBUFSIZE], *cptr = gbuf;
@@ -1128,7 +1131,7 @@ static void read_map_file (FILE *fd)
  * may be incremented by the caller
  */
 
-static const char * get_num_char (char **pc, unsigned char *out, int ndigits, int base, const char *errmsg)
+static const char * get_num_char (char **pc, uchar_t *out, int ndigits, int base, const char *errmsg)
 {
     int ch = 0, digit;
     char *c = *pc;
@@ -1150,7 +1153,7 @@ static const char * get_num_char (char **pc, unsigned char *out, int ndigits, in
         c++;
     }
 
-    *out = (unsigned char) ch;          /* return parsed character */
+    *out = (uchar_t) ch;                /* return parsed character */
     *pc  = c-1;                         /* make input pointer point to last character seen */
     return NULL;                        /* no error */
 }
@@ -1161,11 +1164,11 @@ static const char * get_num_char (char **pc, unsigned char *out, int ndigits, in
  * error encountered. *pc is advanced to next whitespace or whatever followed input.
  */
 
-static const char * get_characters (char **pc, unsigned char *outstr, int nmax, int *nout)
+static const char * get_characters (char **pc, uchar_t *outstr, int nmax, int *nout)
 {
     char *c = *pc;
     const char *errstr;
-    unsigned char *out = outstr;
+    uchar_t *out = outstr;
 
     while (*c && *c <= ' ')                 /* skip leading whitespace */
         c++;
@@ -1225,7 +1228,7 @@ static const char * get_characters (char **pc, unsigned char *outstr, int nmax, 
                     else if (BETWEEN(*c, 'A', 'Z') || BETWEEN(*c, 'a', 'z'))
                         return "invalid \\ escape"; /* other \x letters are bad */
                     else {
-                        *out++ = (unsigned char) *c;/* otherwise, accept \x as literal character x */
+                        *out++ = (uchar_t) *c;/* otherwise, accept \x as literal character x */
                     }
                     break;
             }
@@ -1233,18 +1236,18 @@ static const char * get_characters (char **pc, unsigned char *outstr, int nmax, 
         else if (*c == '^') {               /* control character */
             c++;
             if (BETWEEN(*c, 'A', 'Z'))      /* convert alpha, e.g. A -> 1 */
-                *out++ = (unsigned char) (*c - 'A' + 1);
+                *out++ = (uchar_t) (*c - 'A' + 1);
             else if (BETWEEN(*c, 'a', 'z'))
-                *out++ = (unsigned char) (*c - 'z' + 1);
+                *out++ = (uchar_t) (*c - 'z' + 1);
             else                            /* non alpha is bad */
                 return "invalid control letter";
         }
         else if (str_match(c, "IGNORE")) {  /* magic word: a character that will never be output */
-            *out++ = (unsigned char) IGNR_;
+            *out++ = (uchar_t) IGNR_;
             c += 6;
         }
         else {
-            *out++ = (unsigned char) *c;    /* save literal character */
+            *out++ = (uchar_t) *c;          /* save literal character */
         }
 
         c++;
@@ -1263,7 +1266,7 @@ static const char * get_characters (char **pc, unsigned char *outstr, int nmax, 
 
 static const char * handle_map_ansi_definition (char **pc)
 {
-    unsigned char *outstr;
+    uchar_t *outstr;
     const char *errmsg;
     int n;
 
@@ -1290,7 +1293,7 @@ static const char * handle_map_ansi_definition (char **pc)
 
 static const char * handle_map_input_definition (char **pc)
 {
-    unsigned char cin, cout;
+    uchar_t cin, cout;
     const char *errmsg;
     int n;
 
@@ -1314,7 +1317,7 @@ static const char * handle_map_input_definition (char **pc)
 
 static const char * handle_map_output_definition (char **pc)
 {
-    unsigned char cin, cout;
+    uchar_t cin, cout;
     const char *errmsg;
     int n;
 
@@ -1338,7 +1341,7 @@ static const char * handle_map_output_definition (char **pc)
 
 static const char * handle_map_overstrike_definition (char **pc)
 {
-    unsigned char ch, inlist[MAX_OS_CHARS];
+    uchar_t ch, inlist[MAX_OS_CHARS];
     const char *errmsg;
     int nin;
 

@@ -34,44 +34,45 @@
 
 #include "s3_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
-extern uint8 M[];
-extern int32 IAR[], level;
+extern uint8_t M[];
+extern int32_t IAR[], level;
 extern FILE *trace;
-extern int32 debug_reg;
+extern int32_t debug_reg;
 char dbuf[DSK_SECTSIZE];                                /* Disk buffer */
-int32 dsk (int32 disk, int32 op, int32 m, int32 n, int32 data);
-int32 read_sector(UNIT *uptr, char *dbuf, int32 sect);
-int32 write_sector(UNIT *uptr, char *dbuf, int32 sect);
+int32_t dsk (int32_t disk, int32_t op, int32_t m, int32_t n, int32_t data);
+int32_t read_sector(UNIT *uptr, char *dbuf, int32_t sect);
+int32_t write_sector(UNIT *uptr, char *dbuf, int32_t sect);
 t_stat r1_svc (UNIT *uptr);
-t_stat r1_boot (int32 unitno, DEVICE *dptr);
+t_stat r1_boot (int32_t unitno, DEVICE *dptr);
 t_stat r1_attach (UNIT *uptr, const char *cptr);
 t_stat r1_reset (DEVICE *dptr);
 t_stat f1_svc (UNIT *uptr);
-t_stat f1_boot (int32 unitno, DEVICE *dptr);
+t_stat f1_boot (int32_t unitno, DEVICE *dptr);
 t_stat f1_attach (UNIT *uptr, const char *cptr);
 t_stat f1_reset (DEVICE *dptr);
 t_stat r2_svc (UNIT *uptr);
-t_stat r2_boot (int32 unitno, DEVICE *dptr);
+t_stat r2_boot (int32_t unitno, DEVICE *dptr);
 t_stat r2_attach (UNIT *uptr, const char *cptr);
 t_stat r2_reset (DEVICE *dptr);
 t_stat f2_svc (UNIT *uptr);
-t_stat f2_boot (int32 unitno, DEVICE *dptr);
+t_stat f2_boot (int32_t unitno, DEVICE *dptr);
 t_stat f2_attach (UNIT *uptr, const char *cptr);
 t_stat f2_reset (DEVICE *dptr);
-extern int32 GetMem(int32 addr);
-extern int32 PutMem(int32 addr, int32 data);
+extern int32_t GetMem(int32_t addr);
+extern int32_t PutMem(int32_t addr, int32_t data);
 
 char opstr[5][5] = { "SIO", "LIO", "TIO", "SNS", "APL" };
 
-int32 DDAR[2];                                          /* Data address register */
-int32 DCAR[2];                                          /* Disk Control Address Register */
-int32 diskerr[2] = { 0, 0 };                            /* Error status */
-int32 notrdy[2] = { 0, 0 };                             /* Not ready error */
-int32 seekbusy[2] = { 0, 0 };                           /* Drive busy flags */
-int32 seekhead[2] = { 0, 0 };                           /* Disk head 0,1 */
-int32 found[2] = { 0, 0 };                              /* Scan found bit */
-int32 RIDsect[2] = { 0, 0 };                            /* for Read ID */
+int32_t DDAR[2];                                        /* Data address register */
+int32_t DCAR[2];                                        /* Disk Control Address Register */
+int32_t diskerr[2] = { 0, 0 };                          /* Error status */
+int32_t notrdy[2] = { 0, 0 };                           /* Not ready error */
+int32_t seekbusy[2] = { 0, 0 };                         /* Drive busy flags */
+int32_t seekhead[2] = { 0, 0 };                         /* Disk head 0,1 */
+int32_t found[2] = { 0, 0 };                            /* Scan found bit */
+int32_t RIDsect[2] = { 0, 0 };                          /* for Read ID */
 
 /* Disk data structures
 
@@ -179,17 +180,17 @@ DEVICE f2_dev = {
 
 /* 5444: master routines */
 
-int32 dsk1 (int32 op, int32 m, int32 n, int32 data)
+int32_t dsk1 (int32_t op, int32_t m, int32_t n, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     r = dsk(0, op, m, n, data);
     return (r);
 }
 
-int32 dsk2 (int32 op, int32 m, int32 n, int32 data)
+int32_t dsk2 (int32_t op, int32_t m, int32_t n, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     r = dsk(1, op, m, n, data);
     return (r);
@@ -197,10 +198,10 @@ int32 dsk2 (int32 op, int32 m, int32 n, int32 data)
 
 /* 5444: operational routine */
 
-int32 dsk (int32 disk, int32 op, int32 m, int32 n, int32 data)
+int32_t dsk (int32_t disk, int32_t op, int32_t m, int32_t n, int32_t data)
 {
-    int32 iodata, i, j, u, sect, nsects, addr, r, c, res;
-    int32 F, C, S, N, usave;
+    int32_t iodata, i, j, u, sect, nsects, addr, r, c, res;
+    int32_t F, C, S, N, usave;
     UNIT *uptr;
 
     u = m;
@@ -741,7 +742,7 @@ return attach_unit (uptr, cptr);
 
 /* Bootstrap routine */
 
-t_stat r1_boot (int32 unitno, DEVICE *dptr)
+t_stat r1_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -756,7 +757,7 @@ for (i = 0; i < 256; i++) {
 }
 return SCPE_OK;
 }
-t_stat f1_boot (int32 unitno, DEVICE *dptr)
+t_stat f1_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -771,7 +772,7 @@ for (i = 0; i < 256; i++) {
 }
 return SCPE_OK;
 }
-t_stat r2_boot (int32 unitno, DEVICE *dptr)
+t_stat r2_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -786,7 +787,7 @@ for (i = 0; i < 256; i++) {
 }
 return SCPE_OK;
 }
-t_stat f2_boot (int32 unitno, DEVICE *dptr)
+t_stat f2_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -805,9 +806,9 @@ return SCPE_OK;
 
 /* Raw Disk Data In/Out */
 
-int32 read_sector(UNIT *uptr, char *dbuf, int32 sect)
+int32_t read_sector(UNIT *uptr, char *dbuf, int32_t sect)
 {
-    static int32 rtn, realsect;
+    static int32_t rtn, realsect;
     static long pos;
 
                                                         /* calculate real sector no */
@@ -823,9 +824,9 @@ int32 read_sector(UNIT *uptr, char *dbuf, int32 sect)
         return (rtn);
 }
 
-int32 write_sector(UNIT *uptr, char *dbuf, int32 sect)
+int32_t write_sector(UNIT *uptr, char *dbuf, int32_t sect)
 {
-    static int32 rtn, realsect;
+    static int32_t rtn, realsect;
     static long pos;
 
                                                         /* calculate real sector no */

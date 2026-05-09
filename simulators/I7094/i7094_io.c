@@ -49,6 +49,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7094_defs.h"
 
 #define CHAMASK         ((cpu_model & I_CT)? PAMASK: AMASK) /* chan addr mask */
@@ -56,34 +58,34 @@
 
 typedef struct {
     const char  *name;
-    uint32      flags;
+    uint32_t    flags;
     } DEV_CHAR;
 
-uint32 ch_sta[NUM_CHAN];                                /* channel state */
-uint32 ch_dso[NUM_CHAN];                                /* data select op */
-uint32 ch_dsu[NUM_CHAN];                                /* data select unit */
-uint32 ch_ndso[NUM_CHAN];                               /* non-data select op */
-uint32 ch_ndsu[NUM_CHAN];                               /* non-data select unit */
-uint32 ch_flags[NUM_CHAN];                              /* flags */
-uint32 ch_clc[NUM_CHAN];                                /* chan loc ctr */
-uint32 ch_op[NUM_CHAN];                                 /* channel op */
-uint32 ch_wc[NUM_CHAN];                                 /* word count */
-uint32 ch_ca[NUM_CHAN];                                 /* core address */
-uint32 ch_lcc[NUM_CHAN];                                /* control cntr (7909) */
-uint32 ch_cnd[NUM_CHAN];                                /* cond reg (7909) */
-uint32 ch_sms[NUM_CHAN];                                /* cond mask reg (7909) */
-t_uint64 ch_ar[NUM_CHAN];                               /* assembly register */
-uint32 ch_idf[NUM_CHAN];                                /* channel input data flags */
+uint32_t ch_sta[NUM_CHAN];                              /* channel state */
+uint32_t ch_dso[NUM_CHAN];                              /* data select op */
+uint32_t ch_dsu[NUM_CHAN];                              /* data select unit */
+uint32_t ch_ndso[NUM_CHAN];                             /* non-data select op */
+uint32_t ch_ndsu[NUM_CHAN];                             /* non-data select unit */
+uint32_t ch_flags[NUM_CHAN];                            /* flags */
+uint32_t ch_clc[NUM_CHAN];                              /* chan loc ctr */
+uint32_t ch_op[NUM_CHAN];                               /* channel op */
+uint32_t ch_wc[NUM_CHAN];                               /* word count */
+uint32_t ch_ca[NUM_CHAN];                               /* core address */
+uint32_t ch_lcc[NUM_CHAN];                              /* control cntr (7909) */
+uint32_t ch_cnd[NUM_CHAN];                              /* cond reg (7909) */
+uint32_t ch_sms[NUM_CHAN];                              /* cond mask reg (7909) */
+uint64_t ch_ar[NUM_CHAN];                               /* assembly register */
+uint32_t ch_idf[NUM_CHAN];                              /* channel input data flags */
 DEVICE *ch2dev[NUM_CHAN] = { NULL };
-uint32 ch_tpoll = 5;                                    /* channel poll */
+uint32_t ch_tpoll = 5;                                  /* channel poll */
 
-extern t_uint64 *M;
-extern uint32 cpu_model, data_base;
-extern uint32 hst_ch;
-extern uint32 ch_req;
-extern uint32 chtr_inht, chtr_inhi, chtr_enab;
-extern uint32 ind_ioc;
-extern uint32 chtr_clk;
+extern uint64_t *M;
+extern uint32_t cpu_model, data_base;
+extern uint32_t hst_ch;
+extern uint32_t ch_req;
+extern uint32_t chtr_inht, chtr_inhi, chtr_enab;
+extern uint32_t ind_ioc;
+extern uint32_t chtr_clk;
 extern DEVICE cdr_dev, cdp_dev;
 extern DEVICE lpt_dev;
 extern DEVICE mt_dev[NUM_CHAN];
@@ -93,35 +95,35 @@ extern DEVICE com_dev;
 
 t_stat ch_reset (DEVICE *dptr);
 t_stat ch6_svc (UNIT *uptr);
-t_stat ch_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ch_set_disable (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ch_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
-DEVICE *ch_find_dev (uint32 ch, uint32 unit);
-t_stat ch6_sel (uint32 ch, uint32 sel, uint32 unit, uint32 sta);
-bool ch6_rd_putw (uint32 ch);
-t_stat ch6_wr_getw (uint32 ch, bool eorz);
-t_stat ch6_new_cmd (uint32 ch, bool ch_ld);
-t_stat ch6_ioxt (uint32 ch);
-void ch6_iosp_cclr (uint32 ch);
-t_stat ch9_new_cmd (uint32 ch);
-t_stat ch9_exec_cmd (uint32 ch, t_uint64 ir);
-t_stat ch9_sel (uint32 ch, uint32 sel);
-t_stat ch9_wr (uint32 ch, t_uint64 dat, uint32 fl);
-t_stat ch9_rd_putw (uint32 ch);
-t_stat ch9_wr_getw (uint32 ch);
-void ch9_eval_int (uint32 ch, uint32 iflags);
-DEVICE *ch_map_flags (uint32 ch, int32 fl);
+t_stat ch_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ch_set_disable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ch_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+DEVICE *ch_find_dev (uint32_t ch, uint32_t unit);
+t_stat ch6_sel (uint32_t ch, uint32_t sel, uint32_t unit, uint32_t sta);
+bool ch6_rd_putw (uint32_t ch);
+t_stat ch6_wr_getw (uint32_t ch, bool eorz);
+t_stat ch6_new_cmd (uint32_t ch, bool ch_ld);
+t_stat ch6_ioxt (uint32_t ch);
+void ch6_iosp_cclr (uint32_t ch);
+t_stat ch9_new_cmd (uint32_t ch);
+t_stat ch9_exec_cmd (uint32_t ch, uint64_t ir);
+t_stat ch9_sel (uint32_t ch, uint32_t sel);
+t_stat ch9_wr (uint32_t ch, uint64_t dat, uint32_t fl);
+t_stat ch9_rd_putw (uint32_t ch);
+t_stat ch9_wr_getw (uint32_t ch);
+void ch9_eval_int (uint32_t ch, uint32_t iflags);
+DEVICE *ch_map_flags (uint32_t ch, int32_t fl);
 
-extern t_stat ch_bkpt (uint32 ch, uint32 clc);
+extern t_stat ch_bkpt (uint32_t ch, uint32_t clc);
 
-const uint32 col_masks[12] = {                          /* row 9,8,..,0,11,12 */
+const uint32_t col_masks[12] = {                        /* row 9,8,..,0,11,12 */
     00001, 00002, 00004,
     00010, 00020, 00040,
     00100, 00200, 00400,
     01000, 02000, 04000
     };
 
-const t_uint64 bit_masks[36] = {
+const uint64_t bit_masks[36] = {
     0000000000001, 0000000000002, 0000000000004,
     0000000000010, 0000000000020, 0000000000040,
     0000000000100, 0000000000200, 0000000000400,
@@ -454,7 +456,7 @@ DEVICE ch_dev[NUM_CHAN] = {
 
    The channel has two interfaces to a device. The select routine:
 
-        dev_select (uint32 ch, uint32 sel, uint32 unit)
+        dev_select (uint32_t ch, uint32_t sel, uint32_t unit)
 
    Returns can include device errors and ERR_STALL.  If ERR_STALL, the
    device is busy.  For I/O instructions, ERR_STALL stalls execution of
@@ -561,7 +563,7 @@ DEVICE ch_dev[NUM_CHAN] = {
    - If channel is busy, stack command
    - Otherwise, start IO, set channel to waiting */
 
-t_stat ch_op_ds (uint32 ch, uint32 ds, uint32 unit)
+t_stat ch_op_ds (uint32_t ch, uint32_t ds, uint32_t unit)
 {
 t_stat r;
 
@@ -596,7 +598,7 @@ return SCPE_OK;
    - If channel is busy, stack command
    - Otherwise, start IO, set channel to waiting */
 
-t_stat ch_op_nds (uint32 ch, uint32 nds, uint32 unit)
+t_stat ch_op_nds (uint32_t ch, uint32_t nds, uint32_t unit)
 {
 DEVICE *dptr;
 t_stat r;
@@ -628,7 +630,7 @@ return SCPE_OK;
    - Set channel idle
    - If stacked nds, set up immediate channel timeout */
 
-static t_stat ch6_end_ds (uint32 ch)
+static t_stat ch6_end_ds (uint32_t ch)
 {
 if (ch >= NUM_CHAN)                                     /* invalid arg? */
     return STOP_NXCHN;
@@ -646,7 +648,7 @@ return SCPE_OK;
    - Set channel idle
    - If stacked ds, set up immediate channel timeout */
 
-t_stat ch6_end_nds (uint32 ch)
+t_stat ch6_end_nds (uint32_t ch)
 {
 if (ch >= NUM_CHAN)                                     /* invalid arg? */
     return STOP_NXCHN;
@@ -661,7 +663,7 @@ return SCPE_OK;
 
 /* Send select to device - 7607/7289 only */
 
-t_stat ch6_sel (uint32 ch, uint32 sel, uint32 unit, uint32 sta)
+t_stat ch6_sel (uint32_t ch, uint32_t sel, uint32_t unit, uint32_t sta)
 {
 DEVICE *dptr;
 DIB *dibp;
@@ -683,7 +685,7 @@ return r;
 
 t_stat ch6_svc (UNIT *uptr)
 {
-uint32 ch = uptr - &ch_unit[0];                         /* get channel */
+uint32_t ch = uptr - &ch_unit[0];                       /* get channel */
 t_stat r;
 
 if (ch >= NUM_CHAN)                                     /* invalid chan? */
@@ -711,7 +713,7 @@ return r;
 
 /* Map channel and unit number to device - all channels */
 
-DEVICE *ch_find_dev (uint32 ch, uint32 unit)
+DEVICE *ch_find_dev (uint32_t ch, uint32_t unit)
 {
 if (ch >= NUM_CHAN)                                     /* invalid arg? */
     return NULL;
@@ -737,9 +739,9 @@ return NULL;
    7607: channel should have a data select operation pending (DSW state)
    7909: channel should be idle (IDLE state) */
 
-t_stat ch_op_start (uint32 ch, uint32 clc, bool reset)
+t_stat ch_op_start (uint32_t ch, uint32_t clc, bool reset)
 {
-t_uint64 ir;
+uint64_t ir;
 t_stat r;
 
 clc = clc | data_base;                                  /* add A/B select */
@@ -780,9 +782,9 @@ switch (ch_sta[ch]) {                                   /* case on chan state */
         ir = ReadP (clc);                               /* get chan word */
         ch_clc[ch] = CHAINC (clc);                      /* incr chan pc */
         ch_wc[ch] = GET_DEC (ir);                       /* get word cnt */
-        ch_ca[ch] = ((uint32) ir) & CHAMASK;            /* get address */
+        ch_ca[ch] = ((uint32_t) ir) & CHAMASK;          /* get address */
         ch_op[ch] = (GET_OPD (ir) << 1) |               /* get opcode */
-            ((((uint32) ir) & CH6I_NST)? 1: 0);         /* plus 'no store' */
+            ((((uint32_t) ir) & CH6I_NST)? 1: 0);       /* plus 'no store' */
         break;
 
     case CH6S_PNDS:                                     /* NDS polling */
@@ -814,17 +816,17 @@ return SCPE_OK;
    7607/7289 stores op,ca,nostore,clc
    7909 stores clc,,ca */
 
-t_stat ch_op_store (uint32 ch, t_uint64 *dat)
+t_stat ch_op_store (uint32_t ch, uint64_t *dat)
 {
 if ((ch >= NUM_CHAN) || (ch_dev[ch].flags & DEV_DIS))
     return STOP_NXCHN;
 if (ch_dev[ch].flags & DEV_7909)
-    *dat = (((t_uint64) ch_ca[ch] & CHAMASK) << INST_V_DEC) |
-        (((t_uint64) ch_clc[ch] & CHAMASK) << INST_V_ADDR);
-else *dat = (((t_uint64) ch_clc[ch] & CHAMASK) << INST_V_DEC) |
-    (((t_uint64) ch_ca[ch] & CHAMASK) << INST_V_ADDR) |
-    (((t_uint64) (ch_op[ch] & 1)) << 16) |
-    (((t_uint64) (ch_op[ch] & 016)) << 32);
+    *dat = (((uint64_t) ch_ca[ch] & CHAMASK) << INST_V_DEC) |
+        (((uint64_t) ch_clc[ch] & CHAMASK) << INST_V_ADDR);
+else *dat = (((uint64_t) ch_clc[ch] & CHAMASK) << INST_V_DEC) |
+    (((uint64_t) ch_ca[ch] & CHAMASK) << INST_V_ADDR) |
+    (((uint64_t) (ch_op[ch] & 1)) << 16) |
+    (((uint64_t) (ch_op[ch] & 016)) << 32);
 return SCPE_OK;
 }
 
@@ -834,16 +836,16 @@ return SCPE_OK;
    7289 stores IOC+???
    7909 stores 7909 lcc+flags */
 
-t_stat ch_op_store_diag (uint32 ch, t_uint64 *dat)
+t_stat ch_op_store_diag (uint32_t ch, uint64_t *dat)
 {
-extern t_uint64 drm_sdc (uint32 ch);
+extern uint64_t drm_sdc (uint32_t ch);
 
 if ((ch >= NUM_CHAN) || (ch_dev[ch].flags & DEV_DIS))
     return STOP_NXCHN;
 if (ch_flags[ch] & DEV_7289)
     *dat = drm_sdc (ch);
 else if (ch_flags[ch] & DEV_7909)
-    *dat = (((t_uint64) (ch_lcc[ch] & CHF_M_LCC)) << CHF_V_LCC) |
+    *dat = (((uint64_t) (ch_lcc[ch] & CHF_M_LCC)) << CHF_V_LCC) |
         (ch_flags[ch] & CHF_SDC_7909);
 else *dat = 0;
 return SCPE_OK;
@@ -854,7 +856,7 @@ return SCPE_OK;
    7607 responds to RDC
    7909 responds to RIC */
 
-t_stat ch_op_reset (uint32 ch, bool ch7909)
+t_stat ch_op_reset (uint32_t ch, bool ch7909)
 {
 DEVICE *dptr;
 
@@ -885,7 +887,7 @@ return SCPE_OK;
    The device requests the channel and supplies the word to be stored in memory.
    In the next time slot, the channel stores the word in memory. */
 
-t_stat ch_proc (uint32 ch)
+t_stat ch_proc (uint32_t ch)
 {
 t_stat r;
 
@@ -896,17 +898,17 @@ if (ch_dev[ch].flags & DEV_DIS)                         /* disabled? */
     return SCPE_IERR;
 if (ch_dev[ch].flags & DEV_7909) {                      /* 7909 */
 
-    t_uint64 sr;
-    uint32 csel, sc, tval, mask, ta;
+    uint64_t sr;
+    uint32_t csel, sc, tval, mask, ta;
     bool xfr;
 
     if (ch_flags[ch] & CHF_IRQ) {                       /* interrupt? */
         ta = CHINT_CHA_SAV + (ch << 1);                 /* save location */
         if (ch_sta[ch] == CHXS_IDLE)                    /* waiting? */
-            sr = (((t_uint64) ch_ca[ch] & CHAMASK) << INST_V_DEC) |
-                ((t_uint64) ch_clc[ch] & CHAMASK);      /* save CLC */
-        else sr = (((t_uint64) ch_ca[ch] & CHAMASK) << INST_V_DEC) |
-            ((t_uint64) CHAINC (ch_clc[ch]));           /* no, save CLC+1 */
+            sr = (((uint64_t) ch_ca[ch] & CHAMASK) << INST_V_DEC) |
+                ((uint64_t) ch_clc[ch] & CHAMASK);      /* save CLC */
+        else sr = (((uint64_t) ch_ca[ch] & CHAMASK) << INST_V_DEC) |
+            ((uint64_t) CHAINC (ch_clc[ch]));           /* no, save CLC+1 */
         ch_sta[ch] = CHXS_DSX;                          /* set running */
         ch_flags[ch] = (ch_flags[ch] | CHF_INT) &       /* set intr state */
             ~(CHF_IRQ|CHF_PRD|CHF_PWR|CHF_RDS|CHF_WRS); /* clr flags */
@@ -938,7 +940,7 @@ if (ch_dev[ch].flags & DEV_7909) {                      /* 7909 */
         else {                                          /* C = 0..6 */
             if (csel == 0)                              /* C = 0? test cond */
                 tval = ch_cnd[ch];
-            else tval = (uint32) (ch_ar[ch] >> (6 * (6 - csel))) & 077;
+            else tval = (uint32_t) (ch_ar[ch] >> (6 * (6 - csel))) & 077;
             if (ch_wc[ch] & CH9D_B11)
                 xfr = ((tval & mask) == mask);
             else xfr = (tval == mask);
@@ -951,7 +953,7 @@ if (ch_dev[ch].flags & DEV_7909) {                      /* 7909 */
         ta = CHINT_CHA_SAV + (ch << 1);                 /* save location */
         ch_flags[ch] &= ~(CHF_INT|CHF_IRQ);             /* clear intr */
         ch_cnd[ch] = 0;                                 /* clear channel cond */
-        ch_clc[ch] = (uint32) ReadP (ta) & CHAMASK;
+        ch_clc[ch] = (uint32_t) ReadP (ta) & CHAMASK;
         break;
 
     case CH9_LIPT:                                      /* leave intr, transfer */
@@ -983,11 +985,11 @@ if (ch_dev[ch].flags & DEV_7909) {                      /* 7909 */
     case CH9_ICCA:
         csel = CH9D_COND (ch_wc[ch]);                   /* get C */
         if (csel == 0) ch_ar[ch] =                      /* C = 0? read SMS */
-            (ch_ar[ch] & INT64_C(0777777770000)) | ((t_uint64) ch_sms[ch]);
+            (ch_ar[ch] & INT64_C(0777777770000)) | ((uint64_t) ch_sms[ch]);
         else if (csel < 7) {                            /* else read cond cntr */
             sc = 6 * (6 - csel);
-            ch_ar[ch] = (ch_ar[ch] & ~(((t_uint64) 077) << sc)) |
-                (((t_uint64) ch_lcc[ch]) << sc);
+            ch_ar[ch] = (ch_ar[ch] & ~(((uint64_t) 077) << sc)) |
+                (((uint64_t) ch_lcc[ch]) << sc);
             }
         break;
 
@@ -1221,7 +1223,7 @@ else {                                                  /* 7607 write */
 
 /* 7607 channel input routine - put one word to memory */
 
-bool ch6_rd_putw (uint32 ch)
+bool ch6_rd_putw (uint32_t ch)
 {
 if (ch_idf[ch] & CH6DF_EOR)                             /* eor from dev? */
     ch_flags[ch] |= CHF_EOR;
@@ -1239,11 +1241,11 @@ return (ch_wc[ch]? true: false);
 
 /* 7607 channel output routine - get one word from memory */
 
-t_stat ch6_wr_getw (uint32 ch, bool eorz)
+t_stat ch6_wr_getw (uint32_t ch, bool eorz)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 eorfl;
+uint32_t eorfl;
 
 ch_flags[ch] = ch_flags[ch] & ~CHF_EOR;                 /* clr eor */
 if (ch_wc[ch]) {
@@ -1274,20 +1276,20 @@ return SCPE_IERR;                                       /* huh? */
      channel command as quickly as possible.
 */
 
-t_stat ch6_new_cmd (uint32 ch, bool ch_ld)
+t_stat ch6_new_cmd (uint32_t ch, bool ch_ld)
 {
-t_uint64 ir;
-uint32 op, t;
+uint64_t ir;
+uint32_t op, t;
 
 ir = ReadP (t = ch_clc[ch]);                            /* read cmd */
 ch_wc[ch] = GET_DEC (ir);                               /* get word cnt */
-ch_ca[ch] = ((uint32) ir) & CHAMASK;                    /* get address */
+ch_ca[ch] = ((uint32_t) ir) & CHAMASK;                  /* get address */
 op = GET_OPD (ir) << 1;                                 /* get opcode */
-ch_op[ch] = op | ((((uint32) ir) & CH6I_NST)? 1: 0);    /* plus 'no store' */
+ch_op[ch] = op | ((((uint32_t) ir) & CH6I_NST)? 1: 0);  /* plus 'no store' */
 if ((ir & CHI_IND) && (ch_wc[ch] ||                     /* indirect? */
     ((op != CH6_IOCP) && (op != CH6_IOSP)))) {          /* wc >0, or !IOxP? */
-    t_uint64 sr = ReadP (ch_ca[ch] & AMASK);            /* read indirect */
-    ch_ca[ch] = ((uint32) sr) & ((cpu_model & I_CT)? PAMASK: AMASK);
+    uint64_t sr = ReadP (ch_ca[ch] & AMASK);            /* read indirect */
+    ch_ca[ch] = ((uint32_t) sr) & ((cpu_model & I_CT)? PAMASK: AMASK);
     }
 if (hst_ch)
     cpu_ent_hist (ch_clc[ch] | ((ch + 1) << HIST_V_CH), ch_ca[ch], ir, 0);
@@ -1342,7 +1344,7 @@ return SCPE_OK;
 
 /* 7607 channel IOxT: if LCH stall, set state back to DSW; else disconnect and trap */
 
-t_stat ch6_ioxt (uint32 ch)
+t_stat ch6_ioxt (uint32_t ch)
 {
 if (ch_flags[ch] & CHF_LDW) {                           /* LCH cmd pending? */
     ch_flags[ch] &= ~CHF_LDW;                           /* clr pending flag */
@@ -1357,12 +1359,12 @@ return SCPE_OK;
 
 /* 7607 conditionally clear EOR on IOSx completion */
 
-void ch6_iosp_cclr (uint32 ch)
+void ch6_iosp_cclr (uint32_t ch)
 {
-uint32 i, op;
+uint32_t i, op;
 
 if (ch_wc[ch] == 0) {                                   /* wc = 0? */
-    uint32 ccnt = 5;                                    /* allow 5 for CPU */
+    uint32_t ccnt = 5;                                  /* allow 5 for CPU */
     for (i = 0; i < NUM_CHAN; i++) {                    /* test channels */
         if (ch_sta[ch] != CHXS_DSX)                     /* idle? skip */
             continue;
@@ -1383,7 +1385,7 @@ return;
 
 /* Input - store word, request channel input service */
 
-t_stat ch6_req_rd (uint32 ch, uint32 unit, t_uint64 val, uint32 fl)
+t_stat ch6_req_rd (uint32_t ch, uint32_t unit, uint64_t val, uint32_t fl)
 {
 if (ch6_qconn (ch, unit)) {                             /* ch conn to caller? */
     if (ch_idf[ch] & CH6DF_VLD)                         /* overrun? */
@@ -1400,7 +1402,7 @@ return SCPE_OK;
 
 /* Disconnect on error */
 
-t_stat ch6_err_disc (uint32 ch, uint32 unit, uint32 fl)
+t_stat ch6_err_disc (uint32_t ch, uint32_t unit, uint32_t fl)
 {
 if (ch6_qconn (ch, unit)) {                             /* ch conn to caller? */
     ch_flags[ch] |= fl;                                 /* set flag */
@@ -1411,7 +1413,7 @@ return SCPE_OK;
 
 /* Output - request channel output service */
 
-void ch6_req_wr (uint32 ch, uint32 unit)
+void ch6_req_wr (uint32_t ch, uint32_t unit)
 {
 if (ch6_qconn (ch, unit)) {                             /* ch conn to caller? */
     ch_req |= REQ_CH (ch);
@@ -1422,7 +1424,7 @@ return;
 
 /* Set/read channel flags */
 
-uint32 ch6_set_flags (uint32 ch, uint32 unit, uint32 flags)
+uint32_t ch6_set_flags (uint32_t ch, uint32_t unit, uint32_t flags)
 {
 if (ch6_qconn (ch, unit)) {                             /* ch conn to caller? */
     ch_flags[ch] = ch_flags[ch] | flags;
@@ -1433,7 +1435,7 @@ return 0;
 
 /* Channel connected to unit? */
 
-bool ch6_qconn (uint32 ch, uint32 unit)
+bool ch6_qconn (uint32_t ch, uint32_t unit)
 {
 if ((ch < NUM_CHAN) &&                                  /* valid chan */
     (ch_dsu[ch] == unit))                               /* for right unit? */
@@ -1445,7 +1447,7 @@ return false;
 
 /* 7909 channel input routine - put one word to memory */
 
-t_stat ch9_rd_putw (uint32 ch)
+t_stat ch9_rd_putw (uint32_t ch)
 {
 ch_idf[ch] = 0;                                         /* invalidate */
 if (ch_wc[ch]) {                                        /* wc > 0? */
@@ -1458,7 +1460,7 @@ return SCPE_OK;
 
 /* 7909 channel output routine - get one word from memory */
 
-t_stat ch9_wr_getw (uint32 ch)
+t_stat ch9_wr_getw (uint32_t ch)
 {
 if (ch_wc[ch]) {
     ch_ar[ch] = ReadP (ch_ca[ch]);                      /* get word */
@@ -1471,7 +1473,7 @@ return ch9_wr (ch, ch_ar[ch], 0);                       /* write to device */
 
 /* 7909 send select to device */
 
-t_stat ch9_sel (uint32 ch, uint32 sel)
+t_stat ch9_sel (uint32_t ch, uint32_t sel)
 {
 DEVICE *dptr = ch2dev[ch];
 DIB *dibp;
@@ -1486,7 +1488,7 @@ return SCPE_IERR;
 
 /* 7909 send word to device */
 
-t_stat ch9_wr (uint32 ch, t_uint64 dat, uint32 fl)
+t_stat ch9_wr (uint32_t ch, uint64_t dat, uint32_t fl)
 {
 DEVICE *dptr = ch2dev[ch];
 DIB *dibp;
@@ -1501,10 +1503,10 @@ return SCPE_IERR;
 
 /* 7909 channel new command */
 
-t_stat ch9_new_cmd (uint32 ch)
+t_stat ch9_new_cmd (uint32_t ch)
 {
-t_uint64 ir;
-uint32 t;
+uint64_t ir;
+uint32_t t;
 t_stat r;
 
 ir = ReadP (t = ch_clc[ch]);                            /* read cmd */
@@ -1516,18 +1518,18 @@ if ((r == SCPE_OK) && sim_brk_summ && sim_brk_test (t, SWMASK ('E')))
 return r;
 }
 
-t_stat ch9_exec_cmd (uint32 ch, t_uint64 ir)
+t_stat ch9_exec_cmd (uint32_t ch, uint64_t ir)
 {
-uint32 op;
+uint32_t op;
 
 ch_wc[ch] = GET_DEC (ir);                               /* get word cnt */
-ch_ca[ch] = ((uint32) ir) & CHAMASK;                    /* get address */
+ch_ca[ch] = ((uint32_t) ir) & CHAMASK;                  /* get address */
 op = (GET_OPD (ir) << 2);                               /* get opcode */
-ch_op[ch] = op | ((((uint32) ir) & 0200000)? 1: 0) |    /* plus bit<19> */
+ch_op[ch] = op | ((((uint32_t) ir) & 0200000)? 1: 0) |  /* plus bit<19> */
     (((op & 010) && (ch_wc[ch] & 040000))? 2: 0);       /* plus bit 3 if used */
 if (ir & CHI_IND) {                                     /* indirect? */
-    t_uint64 sr = ReadP (ch_ca[ch] & CHAMASK);          /* read indirect */
-    ch_ca[ch] = ((uint32) sr) & CHAMASK;                /* get address */
+    uint64_t sr = ReadP (ch_ca[ch] & CHAMASK);          /* read indirect */
+    ch_ca[ch] = ((uint32_t) sr) & CHAMASK;              /* get address */
     }
 if (hst_ch)
     cpu_ent_hist (ch_clc[ch] | ((ch + 1) << HIST_V_CH), ch_ca[ch], ir, 0);
@@ -1603,7 +1605,7 @@ return SCPE_OK;
 
 /* Input - store word, request channel input service */
 
-t_stat ch9_req_rd (uint32 ch, t_uint64 val)
+t_stat ch9_req_rd (uint32_t ch, uint64_t val)
 {
 if (ch < NUM_CHAN) {                                    /* valid chan? */
     if (ch_idf[ch] & CH9DF_VLD)                         /* prev still valid? io chk */
@@ -1617,7 +1619,7 @@ return SCPE_OK;
 
 /* Set attention */
 
-void ch9_set_atn (uint32 ch)
+void ch9_set_atn (uint32_t ch)
 {
 if (ch < NUM_CHAN)
     ch9_eval_int (ch, CHINT_ATN1);
@@ -1626,7 +1628,7 @@ return;
 
 /* Set IO check - UEND will occur at end - not recognized in int mode */
 
-void ch9_set_ioc (uint32 ch)
+void ch9_set_ioc (uint32_t ch)
 {
 if ((ch < NUM_CHAN) && !(ch_flags[ch] & CHF_INT)) {
     ind_ioc = 1;                                        /* IO check */
@@ -1637,7 +1639,7 @@ return;
 
 /* Set end */
 
-void ch9_set_end (uint32 ch, uint32 iflags)
+void ch9_set_end (uint32_t ch, uint32_t iflags)
 {
 if (ch < NUM_CHAN) {                                    /* valid chan? */
     ch_flags[ch] |= CHF_EOR;
@@ -1648,7 +1650,7 @@ return;
 
 /* Test connected */
 
-bool ch9_qconn (uint32 ch)
+bool ch9_qconn (uint32_t ch)
 {
 if ((ch < NUM_CHAN) && (ch_sta[ch] == CHXS_DSX))
     return true;
@@ -1666,9 +1668,9 @@ return false;
    This provides an effective stage of buffering for interrupt requests
    that are not immediately serviced */
 
-void ch9_eval_int (uint32 ch, uint32 iflags)
+void ch9_eval_int (uint32_t ch, uint32_t iflags)
 {
-uint32 ireq;
+uint32_t ireq;
 
 ch_flags[ch] |= (iflags << CHF_V_COND);                 /* or into chan flags */
 if ((ch_flags[ch] & CHF_INT) == 0) {                    /* int not in prog? */
@@ -1691,7 +1693,7 @@ return;
 
 bool ch_qidle (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NUM_CHAN; i++) {
     if (ch_sta[i] != CHXS_IDLE)
@@ -1702,9 +1704,9 @@ return true;
 
 /* Evaluate/execute channel traps */
 
-uint32 chtr_eval (uint32 *decr)
+uint32_t chtr_eval (uint32_t *decr)
 {
-uint32 i, cme;
+uint32_t i, cme;
 
 if (!chtr_inht && !chtr_inhi && chtr_enab) {
     if (BIT_TST (chtr_enab, CHTR_V_CLK) && chtr_clk) {  /* clock trap? */
@@ -1749,7 +1751,7 @@ return 0;
 
 t_stat ch_reset (DEVICE *dptr)
 {
-uint32 ch = dptr - &ch_dev[0];                          /* get channel */
+uint32_t ch = dptr - &ch_dev[0];                        /* get channel */
 
 if (ch == CH_A)                                         /* channel A fixed */
     ch2dev[ch] = &mt_dev[0];
@@ -1774,7 +1776,7 @@ return SCPE_OK;
 
 /* Show channel type */
 
-t_stat ch_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat ch_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1796,7 +1798,7 @@ return SCPE_OK;
 
 /* Enable channel, assign device */
 
-t_stat ch_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ch_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1805,7 +1807,7 @@ t_stat ch_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr, *dptr1;
 char gbuf[CBUFSIZE];
-uint32 i, ch;
+uint32_t i, ch;
 
 dptr = find_dev_from_unit (uptr);
 if (dptr == NULL)
@@ -1833,7 +1835,7 @@ return SCPE_ARG;
 
 /* Map device flags to device pointer */
 
-DEVICE *ch_map_flags (uint32 ch, int32 fl)
+DEVICE *ch_map_flags (uint32_t ch, int32_t fl)
 {
 if (fl & DEV_7289)
     return &drm_dev;
@@ -1850,7 +1852,7 @@ return NULL;
 
 void ch_set_map (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NUM_CHAN; i++) {
     if (ch_dev[i].flags & DEV_DIS)
@@ -1862,7 +1864,7 @@ return;
 
 /* Disable channel, deassign device */
 
-t_stat ch_set_disable (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ch_set_disable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1871,7 +1873,7 @@ t_stat ch_set_disable (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr, *dptr1;
 UNIT *uptr1;
-uint32 i, ch;
+uint32_t i, ch;
 
 dptr = find_dev_from_unit (uptr);
 if (dptr == NULL)
@@ -1898,7 +1900,7 @@ return reset_all (0);
 
 /* Show channel that device is on (tapes, 7289, 7909 only) */
 
-t_stat ch_show_chan (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat ch_show_chan (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1906,7 +1908,7 @@ t_stat ch_show_chan (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) desc;
 
 DEVICE *dptr;
-uint32 i;
+uint32_t i;
 
 dptr = find_dev_from_unit (uptr);
 if (dptr) {

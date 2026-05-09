@@ -29,6 +29,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_mem.h"
 
 #include "3b2_cpu.h"
@@ -39,7 +41,7 @@
 #include "3b2_dmac.h"
 
 #if defined(REV3)
-static uint32 ecc_addr;  /* ECC address */
+static uint32_t ecc_addr; /* ECC address */
 static bool ecc_err;     /* ECC multi-bit error */
 #endif
 
@@ -48,7 +50,7 @@ static bool ecc_err;     /* ECC multi-bit error */
  *
  * Checking and setting of ECC syndrome bits is a no-op for Rev 2.
  */
-static inline void check_ecc(uint32 pa, bool write, uint8 src)
+static inline void check_ecc(uint32_t pa, bool write, uint8_t src)
 {
 #if !defined(REV3)
     /* Shared helper signature.
@@ -85,10 +87,10 @@ static inline void check_ecc(uint32 pa, bool write, uint8 src)
 }
 
 /* Read Word (Physical Address) */
-uint32 pread_w(uint32 pa, uint8 src)
+uint32_t pread_w(uint32_t pa, uint8_t src)
 {
-    uint8 *m;
-    uint32 index = 0;
+    uint8_t *m;
+    uint32_t index = 0;
 
 #if defined(REV3)
     if ((pa & 3) && (R[NUM_PSW] & PSW_EA_MASK) == 0) {
@@ -123,9 +125,9 @@ uint32 pread_w(uint32 pa, uint8 src)
 /*
  * Write Word (Physical Address)
  */
-void pwrite_w(uint32 pa, uint32 val, uint8 src)
+void pwrite_w(uint32_t pa, uint32_t val, uint8_t src)
 {
-    uint32 index;
+    uint32_t index;
 
     if (pa & 3) {
         sim_debug(WRITE_MSG, &mmu_dev,
@@ -154,10 +156,10 @@ void pwrite_w(uint32 pa, uint32 val, uint8 src)
 /*
  * Read Halfword (Physical Address)
  */
-uint16 pread_h(uint32 pa, uint8 src)
+uint16_t pread_h(uint32_t pa, uint8_t src)
 {
-    uint8 *m;
-    uint32 index;
+    uint8_t *m;
+    uint32_t index;
 
     if (pa & 1) {
         sim_debug(READ_MSG, &mmu_dev,
@@ -168,7 +170,7 @@ uint16 pread_h(uint32 pa, uint8 src)
     }
 
     if (IS_IO(pa)) {
-        return (uint16) io_read(pa, 16);
+        return (uint16_t) io_read(pa, 16);
     }
 
     if (IS_ROM(pa)) {
@@ -188,9 +190,9 @@ uint16 pread_h(uint32 pa, uint8 src)
 /*
  * Write Halfword (Physical Address)
  */
-void pwrite_h(uint32 pa, uint16 val, uint8 src)
+void pwrite_h(uint32_t pa, uint16_t val, uint8_t src)
 {
-    uint32 index;
+    uint32_t index;
 
 #if defined(REV3)
     if ((pa & 1) && (R[NUM_PSW] & PSW_EA_MASK) == 0) {
@@ -220,10 +222,10 @@ void pwrite_h(uint32 pa, uint16 val, uint8 src)
 /*
  * Read Byte (Physical Address)
  */
-uint8 pread_b(uint32 pa, uint8 src)
+uint8_t pread_b(uint32_t pa, uint8_t src)
 {
     if (IS_IO(pa)) {
-        return (uint8)(io_read(pa, 8));
+        return (uint8_t)(io_read(pa, 8));
     }
 
     if (IS_ROM(pa)) {
@@ -237,9 +239,9 @@ uint8 pread_b(uint32 pa, uint8 src)
 }
 
 /* Write Byte (Physical Address) */
-void pwrite_b(uint32 pa, uint8 val, uint8 src)
+void pwrite_b(uint32_t pa, uint8_t val, uint8_t src)
 {
-    uint32 index;
+    uint32_t index;
 
     if (IS_IO(pa)) {
         io_write(pa, val, 8);
@@ -255,51 +257,51 @@ void pwrite_b(uint32 pa, uint8 val, uint8 src)
 }
 
 /* Write to ROM (used by ROM load) */
-void pwrite_b_rom(uint32 pa, uint8 val) {
+void pwrite_b_rom(uint32_t pa, uint8_t val) {
      if (IS_ROM(pa)) {
          ROM[pa] = val;
      }
  }
 
 /* Read Byte (Virtual Address) */
-uint8 read_b(uint32 va, uint8 r_acc, uint8 src)
+uint8_t read_b(uint32_t va, uint8_t r_acc, uint8_t src)
 {
     return pread_b(mmu_xlate_addr(va, r_acc), src);
 }
 
 /* Write Byte (Virtual Address) */
-void write_b(uint32 va, uint8 val, uint8 src)
+void write_b(uint32_t va, uint8_t val, uint8_t src)
 {
     pwrite_b(mmu_xlate_addr(va, ACC_W), val, src);
 }
 
 /* Read Halfword (Virtual Address) */
-uint16 read_h(uint32 va, uint8 r_acc, uint8 src)
+uint16_t read_h(uint32_t va, uint8_t r_acc, uint8_t src)
 {
     return pread_h(mmu_xlate_addr(va, r_acc), src);
 }
 
 /* Write Halfword (Virtual Address) */
-void write_h(uint32 va, uint16 val, uint8 src)
+void write_h(uint32_t va, uint16_t val, uint8_t src)
 {
     pwrite_h(mmu_xlate_addr(va, ACC_W), val, src);
 }
 
 /* Read Word (Virtual Address) */
-uint32 read_w(uint32 va, uint8 r_acc, uint8 src)
+uint32_t read_w(uint32_t va, uint8_t r_acc, uint8_t src)
 {
     return pread_w(mmu_xlate_addr(va, r_acc), src);
 }
 
 /* Write Word (Virtual Address) */
-void write_w(uint32 va, uint32 val, uint8 src)
+void write_w(uint32_t va, uint32_t val, uint8_t src)
 {
     pwrite_w(mmu_xlate_addr(va, ACC_W), val, src);
 }
 
-t_stat read_operand(uint32 va, uint8 *val)
+t_stat read_operand(uint32_t va, uint8_t *val)
 {
-    uint32 pa;
+    uint32_t pa;
     t_stat succ;
 
     succ = mmu_decode_va(va, ACC_IF, true, &pa);
@@ -313,9 +315,9 @@ t_stat read_operand(uint32 va, uint8 *val)
     return succ;
 }
 
-t_stat examine(uint32 va, uint8 *val)
+t_stat examine(uint32_t va, uint8_t *val)
 {
-    uint32 pa;
+    uint32_t pa;
     t_stat succ;
 
     succ = mmu_decode_va(va, 0, false, &pa);
@@ -334,9 +336,9 @@ t_stat examine(uint32 va, uint8 *val)
     }
 }
 
-t_stat deposit(uint32 va, uint8 val)
+t_stat deposit(uint32_t va, uint8_t val)
 {
-    uint32 pa;
+    uint32_t pa;
     t_stat succ;
 
     succ = mmu_decode_va(va, 0, false, &pa);

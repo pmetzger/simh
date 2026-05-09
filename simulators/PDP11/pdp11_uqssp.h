@@ -30,6 +30,8 @@
 #ifndef PDP11_UQSSP_H_
 #define PDP11_UQSSP_H_ 0
 
+#include <stdint.h>
+
 /* IP register - initialization and polling
 
    read - controller polls command queue
@@ -134,10 +136,10 @@
 /* Command/response rings */
 
 struct uq_ring {
-    int32               ioff;                           /* intr offset */
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* size in bytes */
-    uint32              idx;                            /* current index */
+    int32_t             ioff;                           /* intr offset */
+    uint32_t            ba;                             /* base addr */
+    uint32_t            lnt;                            /* size in bytes */
+    uint32_t            idx;                            /* current index */
     };
 
 /* Ring descriptor entry */

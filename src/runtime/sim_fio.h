@@ -16,6 +16,7 @@
 #include "sim_defs.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -24,13 +25,13 @@
 #define fxread(a,b,c,d)         sim_fread (a, b, c, d)
 #define fxwrite(a,b,c,d)        sim_fwrite (a, b, c, d)
 
-int32 sim_finit (void);
+int32_t sim_finit (void);
 #if (defined (__linux) || defined (__linux__) || defined (_WIN32) ||                           \
      defined (__APPLE__) ||                                                                    \
      defined (__FreeBSD__) || defined(__NetBSD__) || defined (__OpenBSD__)) && !defined (DONT_DO_LARGEFILE)
-typedef t_int64        t_offset;
+typedef int64_t        t_offset;
 #else
-typedef int32        t_offset;
+typedef int32_t      t_offset;
 #if !defined (DONT_DO_LARGEFILE)
 #define DONT_DO_LARGEFILE 1
 #endif
@@ -44,8 +45,8 @@ t_stat sim_set_file_times (const char *file_name, time_t access_time, time_t wri
 int sim_set_fifo_nonblock (FILE *fptr);
 size_t sim_fread (void *bptr, size_t size, size_t count, FILE *fptr);
 size_t sim_fwrite (const void *bptr, size_t size, size_t count, FILE *fptr);
-uint32 sim_fsize (FILE *fptr);
-uint32 sim_fsize_name (const char *fname);
+uint32_t sim_fsize (FILE *fptr);
+uint32_t sim_fsize_name (const char *fname);
 t_offset sim_ftell (FILE *st);
 t_offset sim_fsize_ex (FILE *fptr);
 t_offset sim_fsize_name_ex (const char *fname);
@@ -73,8 +74,8 @@ const char *sim_get_os_error_text (int error);
 typedef struct SHMEM SHMEM;
 t_stat sim_shmem_open (const char *name, size_t size, SHMEM **shmem, void **addr);
 void sim_shmem_close (SHMEM *shmem);
-int32 sim_shmem_atomic_add (int32 *ptr, int32 val);
-bool sim_shmem_atomic_cas (int32 *ptr, int32 oldv, int32 newv);
+int32_t sim_shmem_atomic_add (int32_t *ptr, int32_t val);
+bool sim_shmem_atomic_cas (int32_t *ptr, int32_t oldv, int32_t newv);
 
 extern bool sim_taddr_64;           /* t_addr is > 32b and Large File Support available */
 extern bool sim_toffset_64;         /* Large File (>2GB) file I/O support */

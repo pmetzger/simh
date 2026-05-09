@@ -27,6 +27,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_disk.h"
 
@@ -234,21 +236,21 @@
 #define UNIT_NOAUTO     DKUF_NOAUTOSIZE
 
 struct drvtyp {
-    int32       sect;                                   /* sectors */
-    int32       surf;                                   /* surfaces */
-    int32       cyl;                                    /* cylinders */
-    int32       tpg;                                    /* trk/grp */
-    int32       xbn;                                    /* XBN size */
-    int32       dbn;                                    /* DBN size */
-    uint32      lbn;                                    /* LBN size */
-    int32       rcts;                                   /* RCT size */
-    int32       rctc;                                   /* RCT copies */
-    int32       rbn;                                    /* RBNs */
-    int32       cylp;                                   /* first cyl for write precomp */
-    int32       cylr;                                   /* first cyl for reduced write current */
-    int32       ccs;                                    /* cyl/cyl skew */
-    int32       med;                                    /* MSCP media */
-    int32       flgs;                                   /* flags */
+    int32_t     sect;                                   /* sectors */
+    int32_t     surf;                                   /* surfaces */
+    int32_t     cyl;                                    /* cylinders */
+    int32_t     tpg;                                    /* trk/grp */
+    int32_t     xbn;                                    /* XBN size */
+    int32_t     dbn;                                    /* DBN size */
+    uint32_t    lbn;                                    /* LBN size */
+    int32_t     rcts;                                   /* RCT size */
+    int32_t     rctc;                                   /* RCT copies */
+    int32_t     rbn;                                    /* RBNs */
+    int32_t     cylp;                                   /* first cyl for write precomp */
+    int32_t     cylr;                                   /* first cyl for reduced write current */
+    int32_t     ccs;                                    /* cyl/cyl skew */
+    int32_t     med;                                    /* MSCP media */
+    int32_t     flgs;                                   /* flags */
     const char  *name;                                  /* name */
     };
 
@@ -266,36 +268,36 @@ static struct drvtyp drv_tab[] = {
     { 0 }
     };
 
-int32 rd_cwait = 20;                                    /* command wait time */
-int32 rd_dwait = 20;                                    /* data trasfer wait time */
+int32_t rd_cwait = 20;                                  /* command wait time */
+int32_t rd_dwait = 20;                                  /* data trasfer wait time */
 
-int32 rd_rg_p = 0;                                      /* register pointer */
-int32 rd_stat = 0;                                      /* interrupt status port */
+int32_t rd_rg_p = 0;                                    /* register pointer */
+int32_t rd_stat = 0;                                    /* interrupt status port */
 
-int32 rd_dma = 0;                                       /* DMA address */
-int32 rd_dsect = 0;                                     /* desired sector */
-int32 rd_dhead = 0;                                     /* desired head */
-int32 rd_dcyl = 0;                                      /* desired cylinder */
-int32 rd_scnt = 0;                                      /* sector count */
-int32 rd_rtcnt = 0;                                     /* retry count */
-int32 rd_mode = 0;                                      /* operating mode */
-int32 rd_cstat = 0;                                     /* chip status */
-int32 rd_term = 0;                                      /* termination conditions */
-int32 rd_data = 0;
+int32_t rd_dma = 0;                                     /* DMA address */
+int32_t rd_dsect = 0;                                   /* desired sector */
+int32_t rd_dhead = 0;                                   /* desired head */
+int32_t rd_dcyl = 0;                                    /* desired cylinder */
+int32_t rd_scnt = 0;                                    /* sector count */
+int32_t rd_rtcnt = 0;                                   /* retry count */
+int32_t rd_mode = 0;                                    /* operating mode */
+int32_t rd_cstat = 0;                                   /* chip status */
+int32_t rd_term = 0;                                    /* termination conditions */
+int32_t rd_data = 0;
 
-uint16 *rd_xb = NULL;                                   /* xfer buffer */
+uint16_t *rd_xb = NULL;                                 /* xfer buffer */
 
 t_stat rd_svc (UNIT *uptr);
 t_stat rd_reset (DEVICE *dptr);
 void rd_set_dstat (UNIT *uptr);
-void rd_done (int32 term_code, bool setint);
-void rd_cmd (int32 data);
-int32 rd_decode_cmd (int32 data);
-t_stat rd_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rd_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
+void rd_done (int32_t term_code, bool setint);
+void rd_cmd (int32_t data);
+int32_t rd_decode_cmd (int32_t data);
+t_stat rd_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rd_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat rd_attach (UNIT *uptr, const char *cptr);
 t_stat rd_detach (UNIT *uptr);
-t_stat rd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat rd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *rd_description (DEVICE *dptr);
 
 /* RD data structures
@@ -393,10 +395,10 @@ DEVICE rd_dev = {
    200C0004             interrupt status
 */
 
-int32 rd_rd (int32 pa)
+int32_t rd_rd (int32_t pa)
 {
-int32 rg = (pa >> 2) & 3;
-int32 data = 0;
+int32_t rg = (pa >> 2) & 3;
+int32_t data = 0;
 UNIT *uptr = &rd_unit[CUR_DRV];
 
 if (rd_dev.flags & DEV_DIS)                             /* disabled? */
@@ -472,13 +474,13 @@ return data;
    200C0004             controller command
 */
 
-void rd_wr (int32 pa, int32 data, int32 access)
+void rd_wr (int32_t pa, int32_t data, int32_t access)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) access;
 
-int32 rg = (pa >> 2) & 3;
+int32_t rg = (pa >> 2) & 3;
 
 if (rd_dev.flags & DEV_DIS)                             /* disabled? */
     return;
@@ -547,9 +549,9 @@ switch (rg) {
 SET_IRQL;
 }
 
-void rd_cmd (int32 data)
+void rd_cmd (int32_t data)
 {
-int32 max_cyl;
+int32_t max_cyl;
 UNIT *uptr = &rd_unit[CUR_DRV];
 
 /* put command in unit */
@@ -618,7 +620,7 @@ switch (uptr->CMD) {
         }
 }
 
-int32 rd_decode_cmd (int32 data)
+int32_t rd_decode_cmd (int32_t data)
 {
 if (data == 0) return CMD_RESET;                        /* 00000000    Reset */
 if (data & 0x80) {
@@ -643,10 +645,10 @@ return CMD_UNKNOWN;
 
 /* read cylinder 0 - simulate special formatting */
 
-static t_stat rd_rdcyl0 (int32 hd, int32 dtype)
+static t_stat rd_rdcyl0 (int32_t hd, int32_t dtype)
 {
-uint32 i;
-uint16 c;
+uint32_t i;
+uint16_t c;
 
 if (hd <= 2) {
     memset (rd_xb, 0, sizeof(*rd_xb) * 256);            /* fill sector buffer with 0's */
@@ -696,8 +698,8 @@ static t_stat rd_rddata (UNIT *uptr, t_lba lba, t_seccnt sects)
 t_seccnt sectsread;
 t_stat r;
 
-r = sim_disk_rdsect (uptr, lba, (uint8 *)rd_xb, &sectsread, sects);
-sim_disk_data_trace (uptr, (uint8 *)rd_xb, lba, sectsread*RD_NUMBY, "sim_disk_rdsect", DBG_DAT & rd_dev.dctrl, DBG_REQ);
+r = sim_disk_rdsect (uptr, lba, (uint8_t *)rd_xb, &sectsread, sects);
+sim_disk_data_trace (uptr, (uint8_t *)rd_xb, lba, sectsread*RD_NUMBY, "sim_disk_rdsect", DBG_DAT & rd_dev.dctrl, DBG_REQ);
 return r;
 }
 
@@ -705,8 +707,8 @@ static t_stat rd_wrdata (UNIT *uptr, t_lba lba, t_seccnt sects)
 {
 t_seccnt sectswritten;
 
-sim_disk_data_trace (uptr, (uint8 *)rd_xb, lba, sects*RD_NUMBY, "sim_disk_wrsect", DBG_DAT & rd_dev.dctrl, DBG_REQ);
-return sim_disk_wrsect (uptr, lba, (uint8 *)rd_xb, &sectswritten, sects);
+sim_disk_data_trace (uptr, (uint8_t *)rd_xb, lba, sects*RD_NUMBY, "sim_disk_wrsect", DBG_DAT & rd_dev.dctrl, DBG_REQ);
+return sim_disk_wrsect (uptr, lba, (uint8_t *)rd_xb, &sectswritten, sects);
 }
 
 /* Unit service */
@@ -714,7 +716,7 @@ return sim_disk_wrsect (uptr, lba, (uint8 *)rd_xb, &sectswritten, sects);
 t_stat rd_svc (UNIT *uptr)
 {
 t_lba lba;
-int32 dtype = GET_DTYPE (uptr->flags);
+int32_t dtype = GET_DTYPE (uptr->flags);
 
 switch (uptr->CMD) {
     case CMD_RDPHY:
@@ -842,7 +844,7 @@ else                                                    /* drive not present */
    request interrupt if needed, return to IDLE state.
 */
 
-void rd_done (int32 term_code, bool setint)
+void rd_done (int32_t term_code, bool setint)
 {
 rd_stat = ((term_code & STAT_M_TRMC) << STAT_V_TRMC) | STAT_DONE;
 if ((rd_term & 0x20) && setint) {
@@ -866,7 +868,7 @@ sim_cancel (&rd_unit[0]);                               /* cancel drive 0 */
 sim_cancel (&rd_unit[1]);                               /* cancel drive 1 */
 sim_cancel (&rd_unit[2]);                               /* cancel drive 2 */
 if (rd_xb == NULL)
-    rd_xb = (uint16 *) calloc (RD_MAXFR, sizeof (uint8));
+    rd_xb = (uint16_t *) calloc (RD_MAXFR, sizeof (uint8_t));
 if (rd_xb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -879,7 +881,7 @@ t_stat rd_attach (UNIT *uptr, const char *cptr)
 const char *drives[] = {"RX33", "RD31", "RD32", "RD53", "RD54", };
 
 return sim_disk_attach_ex (uptr, cptr, RD_NUMBY,
-                           sizeof (uint8), true, DBG_DSK,
+                           sizeof (uint8_t), true, DBG_DSK,
                            drv_tab[GET_DTYPE (uptr->flags)].name, 0, 0,
                            (uptr->flags & UNIT_NOAUTO) ? NULL: drives);
 }
@@ -894,7 +896,7 @@ return sim_disk_detach (uptr);
 
 /* Set unit type */
 
-t_stat rd_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rd_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -921,7 +923,7 @@ return SCPE_OK;
 
 /* Show unit type */
 
-t_stat rd_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rd_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -932,7 +934,7 @@ fprintf (st, "%s", drv_tab[GET_DTYPE (uptr->flags)].name);
 return SCPE_OK;
 }
 
-t_stat rd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "HDC9224 Disk Controller (RD)\n\n");
 fprintf (st, "The RD controller simulates the HDC9224 Universal Disk Controller\n");

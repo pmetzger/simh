@@ -179,6 +179,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
 
@@ -190,7 +192,7 @@
 #define CLK_RATE            (1000 / CLK_MULTIPLIER)     /* MPE clock rate in ticks per second */
 
 
-static const int32 delay [8] = {                /* clock delays, in event ticks per interval */
+static const int32_t delay [8] = {              /* clock delays, in event ticks per interval */
     0,                                          /*   000 = unused */
     uS (10),                                    /*   001 = 10 microseconds */
     uS (100),                                   /*   010 = 100 microseconds */
@@ -201,7 +203,7 @@ static const int32 delay [8] = {                /* clock delays, in event ticks 
     S (10)                                      /*   111 = 10 seconds */
     };
 
-static const int32 ticks [8] = {                /* clock ticks per second */
+static const int32_t ticks [8] = {              /* clock ticks per second */
     0,                                          /*   000 = unused */
     100000,                                     /*   001 = 10 microseconds */
     10000,                                      /*   010 = 100 microseconds */
@@ -212,7 +214,7 @@ static const int32 ticks [8] = {                /* clock ticks per second */
     10                                          /*   111 = 10 seconds */
     };
 
-static const int32 scale [8] = {                /* prescaler counts per clock tick */
+static const int32_t scale [8] = {              /* prescaler counts per clock tick */
     1,                                          /*   000 = unused */
     1,                                          /*   001 = 10 microseconds */
     1,                                          /*   010 = 100 microseconds */
@@ -360,10 +362,10 @@ static HP_WORD control_word;                    /* control word */
 static HP_WORD status_word;                     /* status word */
 static HP_WORD count_register;                  /* counter register */
 static HP_WORD limit_register;                  /* limit register */
-static uint32  rate;                            /* clock rate */
-static uint32  prescaler;                       /* clock rate prescaler */
+static uint32_t rate;                           /* clock rate */
+static uint32_t prescaler;                      /* clock rate prescaler */
 
-static uint32 increment     = 1;                /* count register increment */
+static uint32_t increment     = 1;              /* count register increment */
 static bool coschedulable = false;              /* true if the clock can be coscheduled with PCLK */
 static bool coscheduled   = false;              /* true if the clock is coscheduled with PCLK */
 
@@ -498,7 +500,7 @@ DEVICE clk_dev = {
 
 void clk_update_counter (void)
 {
-int32 elapsed, ticks;
+int32_t elapsed, ticks;
 
 if (coscheduled) {                                      /* if the clock is coscheduled, then adjust the count */
     elapsed = clk_unit [0].wait                         /* the elapsed time is the original wait time */

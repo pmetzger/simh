@@ -30,6 +30,8 @@
    38.4 microseconds per count.
 */
 
+#include <stdint.h>
+
 #include "sel32_clk_internal.h"
 #include "sel32_defs.h"
 
@@ -37,23 +39,23 @@
 
 #define UNIT_CLK UNIT_IDLE|UNIT_DISABLE
 
-void rtc_setup (uint32 ss, uint32 level);
+void rtc_setup (uint32_t ss, uint32_t level);
 t_stat rtc_srv (UNIT *uptr);
 t_stat rtc_reset (DEVICE *dptr);
-t_stat rtc_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat rtc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat rtc_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat rtc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *rtc_desc(DEVICE *dptr);
 
 extern  int      irq_pend;                  /* go scan for pending int or I/O */
-extern  uint32   INTS[];                    /* interrupt control flags */
-extern  uint32   SPAD[];                    /* computer SPAD */
-extern  uint32   outbusy;                   /* output waiting on timeout */
-extern  uint32   inbusy;                    /* input waiting on timeout */
+extern  uint32_t INTS[];                    /* interrupt control flags */
+extern  uint32_t SPAD[];                    /* computer SPAD */
+extern  uint32_t outbusy;                   /* output waiting on timeout */
+extern  uint32_t inbusy;                    /* input waiting on timeout */
 
-int32 rtc_pie = 0;                          /* rtc pulse ie */
-int32 rtc_tps = 60;                         /* rtc ticks/sec */
-int32 rtc_lvl = 0x18;                       /* rtc interrupt level */
+int32_t rtc_pie = 0;                        /* rtc pulse ie */
+int32_t rtc_tps = 60;                       /* rtc ticks/sec */
+int32_t rtc_lvl = 0x18;                     /* rtc interrupt level */
 
 /* Clock data structures
    rtc_dev      RTC device descriptor
@@ -147,9 +149,9 @@ t_stat rtc_srv (UNIT *uptr)
 /* ss = 1 - starting clock */
 /* ss = 0 - stopping clock */
 /* level = interrupt level */
-void rtc_setup(uint32 ss, uint32 level)
+void rtc_setup(uint32_t ss, uint32_t level)
 {
-    uint32 addr = SPAD[0xf1] + (level<<2);  /* vector address in SPAD */
+    uint32_t addr = SPAD[0xf1] + (level<<2); /* vector address in SPAD */
 
     rtc_lvl = level;                        /* save the interrupt level */
     addr = M[addr>>2];                      /* get the interrupt context block addr */
@@ -187,7 +189,7 @@ t_stat rtc_reset(DEVICE *dptr)
 }
 
 /* Set frequency */
-t_stat rtc_set_freq(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rtc_set_freq(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -203,7 +205,7 @@ t_stat rtc_set_freq(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 /* Show frequency */
-t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -220,7 +222,7 @@ t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 /* sho help rtc */
-t_stat rtc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rtc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */
@@ -250,22 +252,22 @@ const char *rtc_desc(DEVICE *dptr)
 /************************************************************************/
 
 /* Interval Timer support */
-int32 itm_src = 0;                          /* itm source freq 0=itm 1=rtc */
-int32 itm_pie = 0;                          /* itm pulse enable */
-int32 itm_run = 0;                          /* itm is running */
-int32 itm_cmd = 0;                          /* itm last user cmd */
-int32 itm_cnt = 0;                          /* itm reload pulse count */
-int32 itm_tick_size_x_100 = 3840;           /* itm 26042 ticks/sec = 38.4 us per tic */
-uint32 itm_lvl = 0x5f;                      /* itm interrupt level */
-int32 itm_strt = 0;                         /* clock start time in usec */
-int32 itm_load = 0;                         /* clock loaded */
-int32 itm_big = 26042 * 6000;               /* about 100 minutes */
+int32_t itm_src = 0;                        /* itm source freq 0=itm 1=rtc */
+int32_t itm_pie = 0;                        /* itm pulse enable */
+int32_t itm_run = 0;                        /* itm is running */
+int32_t itm_cmd = 0;                        /* itm last user cmd */
+int32_t itm_cnt = 0;                        /* itm reload pulse count */
+int32_t itm_tick_size_x_100 = 3840;         /* itm 26042 ticks/sec = 38.4 us per tic */
+uint32_t itm_lvl = 0x5f;                    /* itm interrupt level */
+int32_t itm_strt = 0;                       /* clock start time in usec */
+int32_t itm_load = 0;                       /* clock loaded */
+int32_t itm_big = 26042 * 6000;             /* about 100 minutes */
 t_stat itm_srv (UNIT *uptr);
-t_stat itm_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat itm_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat itm_reset (DEVICE *dptr);
-t_stat itm_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat itm_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-void itm_setup(uint32 ss, uint32 level);
+t_stat itm_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat itm_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+void itm_setup(uint32_t ss, uint32_t level);
 const char *itm_desc(DEVICE *dptr);
 
 /* Clock data structures
@@ -351,7 +353,7 @@ t_stat itm_srv (UNIT *uptr)
             itm_load = itm_cnt;             /* save loaded value */
             itm_strt = 0;                   /* no negative start time */
         } else {
-            int32 cnt = itm_big;            /* 0x65ba TRY 1,000,000/38.4 10 secs */
+            int32_t cnt = itm_big;          /* 0x65ba TRY 1,000,000/38.4 10 secs */
             itm_strt = cnt;                 /* get negative start time */
             sim_debug(DEBUG_CMD, &itm_dev,
                 "Intv Timer reload for neg cnts on expired int %02x value %08x src %x\n",
@@ -389,9 +391,9 @@ t_stat itm_srv (UNIT *uptr)
 /*     = 0x79 read/reload and start timer */
 /* cnt = value to write to timer */
 /* ret = return value read from timer */
-int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
+int32_t itm_rdwr(uint32_t cmd, int32_t cnt, uint32_t level)
 {
-    uint32  temp;
+    uint32_t temp;
 
     cmd &= 0x7f;                            /* just need the cmd */
     itm_cmd = cmd;                          /* save last cmd */
@@ -658,7 +660,7 @@ int32 itm_rdwr(uint32 cmd, int32 cnt, uint32 level)
 /* ss = 1 - clock interrupt enabled */
 /* ss = 0 - clock interrupt disabled */
 /* level = interrupt level */
-void itm_setup(uint32 ss, uint32 level)
+void itm_setup(uint32_t ss, uint32_t level)
 {
     if (ss && itm_pie && (level == itm_lvl)) {    /* timer enabled? */
         /* already setup, just return */
@@ -704,7 +706,7 @@ t_stat itm_reset (DEVICE *dptr)
 }
 
 /* Set frequency */
-t_stat itm_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat itm_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -720,7 +722,7 @@ t_stat itm_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 /* Show frequency */
-t_stat itm_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat itm_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -734,7 +736,7 @@ t_stat itm_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 /* sho help rtc */
-t_stat itm_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat itm_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

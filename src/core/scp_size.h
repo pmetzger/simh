@@ -11,20 +11,22 @@
 #ifndef SIM_SCP_SIZE_H_
 #define SIM_SCP_SIZE_H_ 0
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 /* Return the host storage size used for a width measured in bytes. */
 static inline size_t scp_storage_size_for_width_bytes(size_t width_bytes)
 {
     if (width_bytes <= 1)
-        return sizeof(int8);
+        return sizeof(int8_t);
     if (width_bytes == 2)
-        return sizeof(int16);
+        return sizeof(int16_t);
     if (width_bytes <= 4)
-        return sizeof(int32);
+        return sizeof(int32_t);
 #if defined(USE_INT64)
-    if (width_bytes <= sizeof(t_int64))
-        return sizeof(t_int64);
+    if (width_bytes <= sizeof(int64_t))
+        return sizeof(int64_t);
 #endif
     return 0;
 }

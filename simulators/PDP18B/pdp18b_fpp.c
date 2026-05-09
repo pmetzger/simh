@@ -76,6 +76,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp18b_defs.h"
 
 /* Instruction */
@@ -131,58 +133,58 @@ enum fop {
     };
 
 typedef struct {
-    int32               exp;                            /* exponent */
-    int32               sign;                           /* sign */
-    int32               hi;                             /* hi frac, 17b */
-    int32               lo;                             /* lo frac, 18b */
+    int32_t             exp;                            /* exponent */
+    int32_t             sign;                           /* sign */
+    int32_t             hi;                             /* hi frac, 17b */
+    int32_t             lo;                             /* lo frac, 18b */
     } UFP;
 
-static int32 fir;                                       /* instruction */
-static int32 jea;                                       /* exc address */
-static int32 fguard;                                    /* guard bit */
-static int32 stop_fpp = STOP_RSRV;                      /* stop if fp dis */
+static int32_t fir;                                     /* instruction */
+static int32_t jea;                                     /* exc address */
+static int32_t fguard;                                  /* guard bit */
+static int32_t stop_fpp = STOP_RSRV;                    /* stop if fp dis */
 #define fma fma_X   /* Avoid name conflict with math.h defined fma() routine */
 static UFP fma;                                         /* FMA */
 static UFP fmb;                                         /* FMB */
 static UFP fmq;                                         /* FMQ - hi,lo only */
 
-extern int32 *M;
+extern int32_t *M;
 #if defined (PDP15)
-extern int32 pcq[PCQ_SIZE];                             /* PC queue */
+extern int32_t pcq[PCQ_SIZE];                           /* PC queue */
 #else
-extern int16 pcq[PCQ_SIZE];                             /* PC queue */
+extern int16_t pcq[PCQ_SIZE];                           /* PC queue */
 #endif
-extern int32 pcq_p;
-extern int32 PC;
-extern int32 trap_pending, usmd;
+extern int32_t pcq_p;
+extern int32_t PC;
+extern int32_t trap_pending, usmd;
 
 t_stat fp15_reset (DEVICE *dptr);
-t_stat fp15_opnd (int32 ir, int32 addr, UFP *a);
-t_stat fp15_store (int32 ir, int32 addr, UFP *a);
-t_stat fp15_iadd (int32 ir, UFP *a, UFP *b, bool sub);
-t_stat fp15_imul (int32 ir, UFP *a, UFP *b);
-t_stat fp15_idiv (int32 ir, UFP *a, UFP *b);
-t_stat fp15_fadd (int32 ir, UFP *a, UFP *b, bool sub);
-t_stat fp15_fmul (int32 ir, UFP *a, UFP *b);
-t_stat fp15_fdiv (int32 ir, UFP *a, UFP *b);
-t_stat fp15_fix (int32 ir, UFP *a);
-t_stat fp15_norm (int32 ir, UFP *a, UFP *b, bool rnd);
+t_stat fp15_opnd (int32_t ir, int32_t addr, UFP *a);
+t_stat fp15_store (int32_t ir, int32_t addr, UFP *a);
+t_stat fp15_iadd (int32_t ir, UFP *a, UFP *b, bool sub);
+t_stat fp15_imul (int32_t ir, UFP *a, UFP *b);
+t_stat fp15_idiv (int32_t ir, UFP *a, UFP *b);
+t_stat fp15_fadd (int32_t ir, UFP *a, UFP *b, bool sub);
+t_stat fp15_fmul (int32_t ir, UFP *a, UFP *b);
+t_stat fp15_fdiv (int32_t ir, UFP *a, UFP *b);
+t_stat fp15_fix (int32_t ir, UFP *a);
+t_stat fp15_norm (int32_t ir, UFP *a, UFP *b, bool rnd);
 t_stat fp15_exc (t_stat sta);
-void fp15_asign (int32 ir, UFP *a);
+void fp15_asign (int32_t ir, UFP *a);
 void dp_add (UFP *a, UFP *b);
 void dp_sub (UFP *a, UFP *b);
 void dp_inc (UFP *a);
-int32 dp_cmp (UFP *a, UFP *b);
+int32_t dp_cmp (UFP *a, UFP *b);
 void dp_mul (UFP *a, UFP *b);
 void dp_lsh_1 (UFP *a, UFP *b);
 void dp_rsh_1 (UFP *a, UFP *b);
-void dp_dnrm_r (int32 ir, UFP *a, int32 sc);
+void dp_dnrm_r (int32_t ir, UFP *a, int32_t sc);
 void dp_swap (UFP *a, UFP *b);
 
-extern t_stat Read (int32 ma, int32 *dat, int32 cyc);
-extern t_stat Write (int32 ma, int32 dat, int32 cyc);
-extern int32 Incr_addr (int32 addr);
-extern int32 Jms_word (int32 t);
+extern t_stat Read (int32_t ma, int32_t *dat, int32_t cyc);
+extern t_stat Write (int32_t ma, int32_t dat, int32_t cyc);
+extern int32_t Incr_addr (int32_t addr);
+extern int32_t Jms_word (int32_t t);
 
 /* FPP data structures
 
@@ -229,9 +231,9 @@ DEVICE fpp_dev = {
    Indirect addresses are resolved during fetch, unless the NOLOAD modifier
    is set and the instruction is not a store. */
 
-t_stat fp15 (int32 ir)
+t_stat fp15 (int32_t ir)
 {
-int32 ar, ma, fop, dat;
+int32_t ar, ma, fop, dat;
 t_stat sta = FP_OK;
 
 if (fpp_dev.flags & DEV_DIS)                            /* disabled? */
@@ -378,9 +380,9 @@ return SCPE_OK;
 
 /* Operand load and store */
 
-t_stat fp15_opnd (int32 ir, int32 addr, UFP *fpn)
+t_stat fp15_opnd (int32_t ir, int32_t addr, UFP *fpn)
 {
-int32 i, numwd, wd[3] = { 0,0,0 };
+int32_t i, numwd, wd[3] = { 0,0,0 };
 
 fguard = 0;                                             /* clear guard */
 if (ir & FI_NOLOAD)                                     /* no load? */
@@ -425,9 +427,9 @@ else {
 return FP_OK;
 }
 
-t_stat fp15_store (int32 ir, int32 addr, UFP *a)
+t_stat fp15_store (int32_t ir, int32_t addr, UFP *a)
 {
-int32 i, numwd, wd[3] = { 0,0,0 };
+int32_t i, numwd, wd[3] = { 0,0,0 };
 t_stat sta;
 
 fguard = 0;                                             /* clear guard */
@@ -493,7 +495,7 @@ return FP_OK;
 
 /* Integer add - overflow only on add, if carry out of high fraction */
 
-t_stat fp15_iadd (int32 ir, UFP *a, UFP *b, bool sub)
+t_stat fp15_iadd (int32_t ir, UFP *a, UFP *b, bool sub)
 {
 fmq.hi = fmq.lo = 0;                                    /* clear FMQ */
 if (a->sign ^ b->sign ^ sub)                            /* eff subtract? */
@@ -511,7 +513,7 @@ return FP_OK;
 
 /* Integer multiply - overflow if high result (FMQ after swap) non-zero */
 
-t_stat fp15_imul (int32 ir, UFP *a, UFP *b)
+t_stat fp15_imul (int32_t ir, UFP *a, UFP *b)
 {
 a->sign = a->sign ^ b->sign;                            /* sign of result */
 dp_mul (a, b);                                          /* a'FMQ <- a * b */
@@ -534,9 +536,9 @@ return FP_OK;
    Note that dp_lsh_1 returns a 72b result; the last right shift
    guarantees a 71b remainder.  The quotient cannot exceed 71b */
 
-t_stat fp15_idiv (int32 ir, UFP *a, UFP *b)
+t_stat fp15_idiv (int32_t ir, UFP *a, UFP *b)
 {
-int32 i, sc;
+int32_t i, sc;
 
 a->sign = a->sign ^ b->sign;                            /* sign of result */
 fmq.hi = fmq.lo = 0;                                    /* clear quotient */
@@ -581,9 +583,9 @@ return FP_OK;
    - Special add case, overflow if carry out increments exp out of range
    - All cases, overflow/underflow detected in normalize */
 
-t_stat fp15_fadd (int32 ir, UFP *a, UFP *b, bool sub)
+t_stat fp15_fadd (int32_t ir, UFP *a, UFP *b, bool sub)
 {
-int32 ediff;
+int32_t ediff;
 
 fmq.hi = fmq.lo = 0;                                    /* clear FMQ */
 ediff = a->exp - b->exp;                                /* exp diff */
@@ -617,7 +619,7 @@ return fp15_norm (ir, a, NULL, 0);                      /* norm, no round */
 
 /* Floating multiply - overflow/underflow detected in normalize */
 
-t_stat fp15_fmul (int32 ir, UFP *a, UFP *b)
+t_stat fp15_fmul (int32_t ir, UFP *a, UFP *b)
 {
 a->sign = a->sign ^ b->sign;                            /* sign of result */
 a->exp = a->exp + b->exp;                               /* exp of result */
@@ -628,9 +630,9 @@ return fp15_norm (ir, a, &fmq, 1);                      /* norm and round */
 
 /* Floating divide - overflow/underflow detected in normalize */
 
-t_stat fp15_fdiv (int32 ir, UFP *a, UFP *b)
+t_stat fp15_fdiv (int32_t ir, UFP *a, UFP *b)
 {
-int32 i;
+int32_t i;
 
 a->sign = a->sign ^ b->sign;                            /* sign of result */
 a->exp = a->exp - b->exp;                               /* exp of result */
@@ -658,9 +660,9 @@ return fp15_norm (ir, a, &fmq, 1);                      /* norm and round */
 
 /* Floating to integer - overflow only if exponent out of range */
 
-t_stat fp15_fix (int32 ir, UFP *a)
+t_stat fp15_fix (int32_t ir, UFP *a)
 {
-int32 i;
+int32_t i;
 
 fmq.hi = fmq.lo = 0;                                    /* clear FMQ */
 if (a->exp > 35)                                        /* exp > 35? ovf */
@@ -718,7 +720,7 @@ return;
 
 /* Double precision compare - returns +1 (>), 0 (=), -1 (<) */
 
-int32 dp_cmp (UFP *a, UFP *b)
+int32_t dp_cmp (UFP *a, UFP *b)
 {
 if (a->hi < b->hi)
     return -1;
@@ -735,7 +737,7 @@ return 0;
 
 void dp_mul (UFP *a, UFP *b)
 {
-int32 i;
+int32_t i;
 
 fmq.hi = a->hi;                                         /* FMQ <- a */
 fmq.lo = a->lo;
@@ -758,7 +760,7 @@ return;
 
 void dp_lsh_1 (UFP *a, UFP *b)
 {
-int32 t = b? b->hi: 0;
+int32_t t = b? b->hi: 0;
 
 a->hi = (a->hi << 1) | ((a->lo >> 17) & 1);
 a->lo = ((a->lo << 1) | ((t >> 16) & 1)) & UFP_FL_MASK;
@@ -784,9 +786,9 @@ return;
 
 /* Double precision denormalize and round - returns 71b result */
 
-void dp_dnrm_r (int32 ir, UFP *a, int32 sc)
+void dp_dnrm_r (int32_t ir, UFP *a, int32_t sc)
 {
-int32 i;
+int32_t i;
 
 if (sc <= 0)                                            /* legit? */
     return;
@@ -801,7 +803,7 @@ return;
 
 void dp_swap (UFP *a, UFP *b)
 {
-int32 t;
+int32_t t;
 
 t = a->hi;                                              /* swap fractions */
 a->hi = b->hi;
@@ -814,9 +816,9 @@ return;
 
 /* Support routines */
 
-void fp15_asign (int32 fir, UFP *a)
+void fp15_asign (int32_t fir, UFP *a)
 {
-int32 sgnop = FI_GETSGNOP (fir);
+int32_t sgnop = FI_GETSGNOP (fir);
 
 switch (sgnop) {                                        /* modify FMA sign */
 
@@ -845,7 +847,7 @@ return;
      Normalization also does zero detect
    - Do rounding if enabled (NOR phase, part 2) */
 
-t_stat fp15_norm (int32 ir, UFP *a, UFP *b, bool rnd)
+t_stat fp15_norm (int32_t ir, UFP *a, UFP *b, bool rnd)
 {
 a->hi = a->hi & UFP_FH_MASK;                            /* mask a */
 a->lo = a->lo & UFP_FL_MASK;
@@ -872,9 +874,9 @@ if (rnd && b && (b->hi & UFP_FH_NORM)) {                /* rounding? */
             }
         }
     }
-if (a->exp > (int32) 0377777)                           /* overflow? */
+if (a->exp > (int32_t) 0377777)                         /* overflow? */
     return FP_OVF;
-if (a->exp < (int32) -0400000)                          /* underflow? */
+if (a->exp < (int32_t) -0400000)                        /* underflow? */
     return FP_UNF;
 return FP_OK;
 }
@@ -883,7 +885,7 @@ return FP_OK;
 
 t_stat fp15_exc (t_stat sta)
 {
-int32 ma, mb;
+int32_t ma, mb;
 
 if (sta == FP_MM)                                       /* if mm, kill trap */
     trap_pending = 0;

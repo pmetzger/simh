@@ -33,6 +33,8 @@
 #ifndef _SSEM_DEFS_H_
 #define _SSEM_DEFS_H_    0
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Simulator stop codes */
@@ -77,7 +79,7 @@ enum opcodes {
 
 /* Prototypes */
 
-uint32 Read (uint32 ea);
-void Write (uint32 ea, uint32 dat);
+uint32_t Read (uint32_t ea);
+void Write (uint32_t ea, uint32_t dat);
 
 #endif

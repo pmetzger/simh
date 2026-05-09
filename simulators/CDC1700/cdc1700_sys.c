@@ -29,27 +29,29 @@
  */
 
 #include "cdc1700_defs.h"
+#include "sim_types.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern void buildIOtable(void);
 
-extern int disassem(char *, uint16, bool, bool, bool);
+extern int disassem(char *, uint16_t, bool, bool, bool);
 
-extern uint16 M[];
+extern uint16_t M[];
 extern REG cpu_reg[];
 extern DEVICE cpu_dev, dca_dev, dcb_dev, dcc_dev,
   tti_dev, tto_dev, ptr_dev, ptp_dev, mt_dev, lp_dev, dp_dev,
   cd_dev, drm_dev, rtc_dev;
 extern UNIT cpu_unit;
 
-t_stat autoload(int32, const char *);
+t_stat autoload(int32_t, const char *);
 t_stat CDautoload(void);
 t_stat DPautoload(void);
 t_stat DRMautoload(void);
 
 bool RelValid = false;
-uint16 RelBase;
+uint16_t RelBase;
 
 /* SCP data structures and interface routines
 
@@ -65,7 +67,7 @@ char sim_name[] = "CDC1700";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 2;
+int32_t sim_emax = 2;
 
 DEVICE *sim_devices[] = {
   &cpu_dev,
@@ -132,7 +134,7 @@ static void sprintAddress(char *buf, DEVICE *dptr, t_addr addr)
 {
   if ((dptr == sim_devices[0]) && ((sim_switches & SWMASK('R')) != 0)) {
     if (!RelValid) {
-      RelBase = (uint16)addr;
+      RelBase = (uint16_t)addr;
       RelValid = true;
     }
     addr -= RelBase;
@@ -162,7 +164,7 @@ void VMinit(void)
 /*
  * Check for duplicate equipment addresses.
  */
-static bool checkDuplicate(DEVICE *dptr, uint8 equipment)
+static bool checkDuplicate(DEVICE *dptr, uint8_t equipment)
 {
   int i = 0;
   DEVICE *dptr2;
@@ -182,7 +184,7 @@ static bool checkDuplicate(DEVICE *dptr, uint8 equipment)
  * Common routine to change the equipment address of a peripheral. Some
  * devices (e.g. TT, PTR etc) cannot have their equipment address changed.
  */
-t_stat set_equipment(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_equipment(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -222,7 +224,7 @@ t_stat set_equipment(UNIT *uptr, int32 val, const char *cptr, void *desc)
  * Check for a duplicate address when a device is reset. If a duplicate is
  * found, the device being reset is disabled.
  */
-t_stat checkReset(DEVICE *dptr, uint8 equipment)
+t_stat checkReset(DEVICE *dptr, uint8_t equipment)
 {
   if (checkDuplicate(dptr, equipment)) {
     dptr->flags |= DEV_DIS;
@@ -301,13 +303,13 @@ t_stat sim_load(FILE *fileref, const char *cptr, const char *fname, int flag)
  */
 #define FMTASC(x)       ((x) < 040) ? "<%03o>" : "%c", (x)
 
-t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
   /* Generic symbolic output signature.
      This implementation does not use every parameter. */
   (void)uptr;
 
-  int32 inst = val[0];
+  int32_t inst = val[0];
   bool target = (sw & SWMASK('T')) != 0;
   char buf[128];
   int consume;
@@ -321,7 +323,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
   }
 
   if ((sw & SWMASK('C')) != 0) {
-    unsigned char c1 = (inst >> 8) & 0xFF, c2 = inst & 0xFF;
+    uchar_t c1 = (inst >> 8) & 0xFF, c2 = inst & 0xFF;
 
     fprintf(of, FMTASC(c1 & 0177));
     fprintf(of, FMTASC(c2 & 0177));
@@ -331,7 +333,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
   if ((sw & SWMASK('M')) == 0)
     return SCPE_ARG;
 
-  consume = disassem(buf, (uint16)addr, false, target, false);
+  consume = disassem(buf, (uint16_t)addr, false, target, false);
   fprintf(of, "%s", buf);
   return -(consume - 1);
 }
@@ -339,7 +341,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 /*
  * Autoload top-level command routine
  */
-t_stat autoload(int32 flag, const char *ptr)
+t_stat autoload(int32_t flag, const char *ptr)
 {
   /* Generic command signature.
      This implementation does not use every parameter. */

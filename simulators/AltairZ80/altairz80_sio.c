@@ -50,18 +50,20 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
-uint8 *URLContents(const char *URL, uint32 *length);
+uint8_t *URLContents(const char *URL, uint32_t *length);
 #ifndef URL_READER_SUPPORT
-uint8 *URLContents(const char *URL, uint32 *length) {
+uint8_t *URLContents(const char *URL, uint32_t *length) {
     /* Stub URL reader signature.
        This implementation does not use every parameter. */
     (void) URL;
 
     *length = 0;
-    return (uint8*)NULL;
+    return (uint8_t*)NULL;
 }
 #endif
 
@@ -113,18 +115,18 @@ uint8 *URLContents(const char *URL, uint32 *length) {
 #define CPM_COMMAND_LINE_LENGTH     128
 #define CPM_FCB_ADDRESS             0x0080      /* Default FCB address for CP/M.                */
 
-static t_stat simh_dev_set_timeron  (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat simh_dev_set_timeroff (UNIT *uptr, int32 value, const char *cptr, void *desc);
+static t_stat simh_dev_set_timeron  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat simh_dev_set_timeroff (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 static t_stat sio_reset(DEVICE *dptr);
 static t_stat sio_attach(UNIT *uptr, const char *cptr);
 static t_stat sio_detach(UNIT *uptr);
 static t_stat ptr_reset(DEVICE *dptr);
 static t_stat ptp_reset(DEVICE *dptr);
-static t_stat toBool(char tf, int32 *result);
-static t_stat sio_dev_set_port(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat sio_dev_show_port(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat sio_dev_set_interrupton(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat sio_dev_set_interruptoff(UNIT *uptr, int32 value, const char *cptr, void *desc);
+static t_stat toBool(char tf, int32_t *result);
+static t_stat sio_dev_set_port(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat sio_dev_show_port(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat sio_dev_set_interrupton(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat sio_dev_set_interruptoff(UNIT *uptr, int32_t value, const char *cptr, void *desc);
 static t_stat sio_svc(UNIT *uptr);
 static t_stat simh_dev_reset(DEVICE *dptr);
 static t_stat simh_svc(UNIT *uptr);
@@ -132,38 +134,38 @@ static const char* sio_description(DEVICE *dptr);
 static const char* simh_description(DEVICE *dptr);
 static const char* ptr_description(DEVICE *dptr);
 static const char* ptp_description(DEVICE *dptr);
-static t_stat ptpptr_dev_set_port(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat ptpptr_dev_show_port(FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat ptpptr_dev_set_port(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat ptpptr_dev_show_port(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 static void mapAltairPorts(void);
-int32 nulldev   (const int32 port, const int32 io, const int32 data);
-int32 sr_dev    (const int32 port, const int32 io, const int32 data);
-int32 simh_dev  (const int32 port, const int32 io, const int32 data);
-int32 sio0d     (const int32 port, const int32 io, const int32 data);
-int32 sio0s     (const int32 port, const int32 io, const int32 data);
-int32 sio1d     (const int32 port, const int32 io, const int32 data);
-int32 sio1s     (const int32 port, const int32 io, const int32 data);
+int32_t nulldev   (const int32_t port, const int32_t io, const int32_t data);
+int32_t sr_dev    (const int32_t port, const int32_t io, const int32_t data);
+int32_t simh_dev  (const int32_t port, const int32_t io, const int32_t data);
+int32_t sio0d     (const int32_t port, const int32_t io, const int32_t data);
+int32_t sio0s     (const int32_t port, const int32_t io, const int32_t data);
+int32_t sio1d     (const int32_t port, const int32_t io, const int32_t data);
+int32_t sio1s     (const int32_t port, const int32_t io, const int32_t data);
 void do_SIMH_sleep(void);
 static void pollConnection(void);
-static int32 mapCharacter(int32 ch);
+static int32_t mapCharacter(int32_t ch);
 static void checkSleep(void);
 static void voidSleep(void);
 
-extern int32 getBankSelect(void);
-extern void setBankSelect(const int32 b);
-extern uint32 getCommon(void);
-extern uint8 GetBYTEWrapper(const uint32 Addr);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern uint32 getClockFrequency(void);
-extern void setClockFrequency(const uint32 Value);
+extern int32_t getBankSelect(void);
+extern void setBankSelect(const int32_t b);
+extern uint32_t getCommon(void);
+extern uint8_t GetBYTEWrapper(const uint32_t Addr);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern uint32_t getClockFrequency(void);
+extern void setClockFrequency(const uint32_t Value);
 
-extern uint32 PCX;
-extern int32 SR;
-extern int32 DS_S;
+extern uint32_t PCX;
+extern int32_t SR;
+extern int32_t DS_S;
 extern UNIT cpu_unit;
-extern const char* handlerNameForPort(const int32 port);
-extern uint32 vectorInterrupt;            /* Interrupt Request */
-extern uint8 dataBus[MAX_INT_VECTORS];    /* Data Bus Value    */
+extern const char* handlerNameForPort(const int32_t port);
+extern uint32_t vectorInterrupt;          /* Interrupt Request */
+extern uint8_t dataBus[MAX_INT_VECTORS];  /* Data Bus Value    */
 
 /* Debug Flags */
 static DEBTAB generic_dt[] = {
@@ -177,51 +179,51 @@ static DEBTAB generic_dt[] = {
 
 /* SIMH pseudo device status registers                                                                          */
 /* ZSDOS clock definitions                                                                                      */
-static int32 ClockZSDOSDelta        = 0;        /* delta between real clock and Altair clock                    */
-static int32 setClockZSDOSPos       = 0;        /* determines state for receiving address of parameter block    */
-static int32 setClockZSDOSAdr       = 0;        /* address in M of 6 byte parameter block for setting time      */
-static int32 getClockZSDOSPos       = 0;        /* determines state for sending clock information               */
+static int32_t ClockZSDOSDelta        = 0;      /* delta between real clock and Altair clock                    */
+static int32_t setClockZSDOSPos       = 0;      /* determines state for receiving address of parameter block    */
+static int32_t setClockZSDOSAdr       = 0;      /* address in M of 6 byte parameter block for setting time      */
+static int32_t getClockZSDOSPos       = 0;      /* determines state for sending clock information               */
 
 /* CPM3 clock definitions                                                                                       */
-static int32 ClockCPM3Delta         = 0;        /* delta between real clock and Altair clock                    */
-static int32 setClockCPM3Pos        = 0;        /* determines state for receiving address of parameter block    */
-static int32 setClockCPM3Adr        = 0;        /* address in M of 5 byte parameter block for setting time      */
-static int32 getClockCPM3Pos        = 0;        /* determines state for sending clock information               */
-static int32 daysCPM3SinceOrg       = 0;        /* days since 1 Jan 1978                                        */
+static int32_t ClockCPM3Delta         = 0;      /* delta between real clock and Altair clock                    */
+static int32_t setClockCPM3Pos        = 0;      /* determines state for receiving address of parameter block    */
+static int32_t setClockCPM3Adr        = 0;      /* address in M of 5 byte parameter block for setting time      */
+static int32_t getClockCPM3Pos        = 0;      /* determines state for sending clock information               */
+static int32_t daysCPM3SinceOrg       = 0;      /* days since 1 Jan 1978                                        */
 
 /* timer interrupt related                                                                                      */
-static uint32 timeOfNextInterrupt;              /* time when next interrupt is scheduled                        */
-       int32 timerInterrupt         = false;    /* timer interrupt pending                                      */
-       int32 timerInterruptHandler  = 0x0fc00;  /* default address of interrupt handling routine                */
-static int32 setTimerInterruptAdrPos= 0;        /* determines state for receiving timerInterruptHandler         */
-static int32 timerDelta             = DEFAULT_TIMER_DELTA;  /* interrupt every 100 ms                           */
-static int32 setTimerDeltaPos       = 0;        /* determines state for receiving timerDelta                    */
+static uint32_t timeOfNextInterrupt;            /* time when next interrupt is scheduled                        */
+       int32_t timerInterrupt         = false;  /* timer interrupt pending                                      */
+       int32_t timerInterruptHandler  = 0x0fc00; /* default address of interrupt handling routine                */
+static int32_t setTimerInterruptAdrPos= 0;      /* determines state for receiving timerInterruptHandler         */
+static int32_t timerDelta             = DEFAULT_TIMER_DELTA; /* interrupt every 100 ms                           */
+static int32_t setTimerDeltaPos       = 0;      /* determines state for receiving timerDelta                    */
 
 /* stop watch and timer related                                                                                 */
-static uint32 stopWatchDelta        = 0;        /* stores elapsed time of stop watch                            */
-static int32 getStopWatchDeltaPos   = 0;        /* determines the state for receiving stopWatchDelta            */
-static uint32 stopWatchNow          = 0;        /* stores starting time of stop watch                           */
-static int32 markTimeSP             = 0;        /* stack pointer for timer stack                                */
-       uint32 SIMHSleep             = 1;        /* default time in milliseconds to sleep for SIMHSleepCmd is 1  */
-static uint32 sleepAllowedCounter   = 0;        /* only sleep on no character available when == 0               */
-static uint32 sleepAllowedStart     = SLEEP_ALLOWED_START_DEFAULT;  /* default start for above counter          */
+static uint32_t stopWatchDelta        = 0;      /* stores elapsed time of stop watch                            */
+static int32_t getStopWatchDeltaPos   = 0;      /* determines the state for receiving stopWatchDelta            */
+static uint32_t stopWatchNow          = 0;      /* stores starting time of stop watch                           */
+static int32_t markTimeSP             = 0;      /* stack pointer for timer stack                                */
+       uint32_t SIMHSleep             = 1;      /* default time in milliseconds to sleep for SIMHSleepCmd is 1  */
+static uint32_t sleepAllowedCounter   = 0;      /* only sleep on no character available when == 0               */
+static uint32_t sleepAllowedStart     = SLEEP_ALLOWED_START_DEFAULT; /* default start for above counter          */
 
 /* miscellaneous                                                                                                */
-static int32 versionPos             = 0;        /* determines state for sending device identifier               */
-static int32 lastCPMStatus          = 0;        /* result of last attachCPM command                             */
-static int32 lastCommand            = 0;        /* most recent command processed on port 0xfeh                  */
-static int32 getCommonPos           = 0;        /* determines state for sending the 'common' register           */
-static int32 genInterruptPos        = 0;        /* determines state for receiving interrupt vector and data     */
-static int32 genInterruptVec        = 0;        /* stores interrupt vector                                      */
+static int32_t versionPos             = 0;      /* determines state for sending device identifier               */
+static int32_t lastCPMStatus          = 0;      /* result of last attachCPM command                             */
+static int32_t lastCommand            = 0;      /* most recent command processed on port 0xfeh                  */
+static int32_t getCommonPos           = 0;      /* determines state for sending the 'common' register           */
+static int32_t genInterruptPos        = 0;      /* determines state for receiving interrupt vector and data     */
+static int32_t genInterruptVec        = 0;      /* stores interrupt vector                                      */
 
 /* CPU Clock Frequency related                                                                                  */
-static uint32 newClockFrequency;
-static int32 setClockFrequencyPos   = 0;        /* determines state for sending the clock frequency             */
-static int32 getClockFrequencyPos   = 0;        /* determines state for receiving the clock frequency           */
+static uint32_t newClockFrequency;
+static int32_t setClockFrequencyPos   = 0;      /* determines state for sending the clock frequency             */
+static int32_t getClockFrequencyPos   = 0;      /* determines state for receiving the clock frequency           */
 
 /* Set FCB Address (needed for MS-DOS READ and WRITE commands. */
-static int32 setFCBAddressPos       = 0;        /* determines state for setting the FCB address                 */
-static int32 FCBAddress = CPM_FCB_ADDRESS;      /* FCB Address                                                  */
+static int32_t setFCBAddressPos       = 0;      /* determines state for setting the FCB address                 */
+static int32_t FCBAddress = CPM_FCB_ADDRESS;    /* FCB Address                                                  */
 
 /* support for wild card file expansion */
 
@@ -241,9 +243,9 @@ typedef struct NameNode {
 static char cpmCommandLine[CPM_COMMAND_LINE_LENGTH];
 static NameNode_t *nameListHead         = NULL;
 static NameNode_t *currentName          = NULL;
-static int32 currentNameIndex           = 0;
-static int32 lastPathSeparatorIndex     = 0;
-static int32 firstPathCharacterIndex    = 0;
+static int32_t currentNameIndex           = 0;
+static int32_t lastPathSeparatorIndex     = 0;
+static int32_t firstPathCharacterIndex    = 0;
 
 static void deleteNameList(void) {
     while (nameListHead != NULL) {
@@ -280,23 +282,23 @@ static void processDirEntry (const char *directory,
 
 
 /* SIO status registers                                                                                         */
-static int32 warnLevelSIO           = 3;        /* display at most 'warnLevelSIO' times the same warning        */
-static int32 warnUnattachedPTP      = 0;        /* display a warning message if < warnLevel and SIO set to
+static int32_t warnLevelSIO           = 3;      /* display at most 'warnLevelSIO' times the same warning        */
+static int32_t warnUnattachedPTP      = 0;      /* display a warning message if < warnLevel and SIO set to
                                                 VERBOSE and output to PTP without an attached file              */
-static int32 warnUnattachedPTR      = 0;        /* display a warning message if < warnLevel and SIO set to
+static int32_t warnUnattachedPTR      = 0;      /* display a warning message if < warnLevel and SIO set to
                                                 VERBOSE and attempt to read from PTR without an attached file   */
-static int32 warnPTREOF             = 0;        /* display a warning message if < warnLevel and SIO set to
+static int32_t warnPTREOF             = 0;      /* display a warning message if < warnLevel and SIO set to
                                                 VERBOSE and attempt to read from PTR past EOF                   */
-static int32 warnUnassignedPort     = 0;        /* display a warning message if < warnLevel and SIO set to
+static int32_t warnUnassignedPort     = 0;      /* display a warning message if < warnLevel and SIO set to
                                                 VERBOSE and attempt to perform IN or OUT on an unassigned PORT  */
 
-       int32 keyboardInterrupt = false;         /* keyboard interrupt pending                                   */
-       uint32 keyboardInterruptHandler = 0x0038;/* address of keyboard interrupt handler                        */
+       int32_t keyboardInterrupt = false;       /* keyboard interrupt pending                                   */
+       uint32_t keyboardInterruptHandler = 0x0038;/* address of keyboard interrupt handler                        */
 
 /* PTR/PTP port assignments (read only)                                                                         */
-static int32 ptpptrStatusPort       = 0x12;     /* default status port for PTP/PTR device                       */
-static int32 ptpptrDataPort         = 0x13;     /* default data port for PTP/PTR device                         */
-       int32 kbdIrqPort             = 0;        /* Keyboard Interrupt port number.                              */
+static int32_t ptpptrStatusPort       = 0x12;   /* default status port for PTP/PTR device                       */
+static int32_t ptpptrDataPort         = 0x13;   /* default data port for PTP/PTR device                         */
+       int32_t kbdIrqPort             = 0;      /* Keyboard Interrupt port number.                              */
 
 static TMLN TerminalLines[TERMINALS] = {        /* four terminals   */
     { 0 }
@@ -587,7 +589,7 @@ static t_stat sio_detach(UNIT *uptr) {
 
 static void pollConnection(void) {
     if (sio_unit.flags & UNIT_ATT) {
-        int32 temp = tmxr_poll_conn(&altairTMXR);           /* poll connection                          */
+        int32_t temp = tmxr_poll_conn(&altairTMXR);         /* poll connection                          */
         if (temp >= 0)
             TerminalLines[temp].rcve = 1;                   /* enable receive                           */
         tmxr_poll_rx(&altairTMXR);                          /* poll input                               */
@@ -601,7 +603,7 @@ static t_stat sio_reset(DEVICE *dptr) {
        This implementation does not use every parameter. */
     (void) dptr;
 
-    int32 i;
+    int32_t i;
     sim_debug(VERBOSE_MSG, &sio_dev, "SIO: " ADDRESS_FORMAT " Reset\n", PCX);
     sio_unit.u3 = false;                                    /* no character in terminal input buffer    */
     sio_unit.buf = 0;
@@ -638,7 +640,7 @@ static t_stat ptp_reset(DEVICE *dptr) {
     return SCPE_OK;
 }
 
-static int32 mapCharacter(int32 ch) {
+static int32_t mapCharacter(int32_t ch) {
     ch &= 0xff;
     if (sio_unit.flags & UNIT_SIO_MAP) {
         if (sio_unit.flags & UNIT_SIO_BS) {
@@ -667,15 +669,15 @@ static int32 mapCharacter(int32 ch) {
 */
 
 typedef struct {
-    int32 port;             /* this information belongs to port number 'port'           */
-    int32 terminalLine;     /* map to this 'terminalLine'                               */
-    int32 sio_can_read;     /* bit mask to indicate that one can read from this port    */
-    int32 sio_cannot_read;  /* bit mask to indicate that one cannot read from this port */
-    int32 sio_can_write;    /* bit mask to indicate that one can write to this port     */
-    int32 hasReset;         /* true iff SIO has reset command                           */
-    int32 sio_reset;        /* reset command                                            */
-    int32 hasOUT;           /* true iff port supports OUT command                       */
-    int32 isBuiltin;        /* true iff mapping is built in                             */
+    int32_t port;           /* this information belongs to port number 'port'           */
+    int32_t terminalLine;   /* map to this 'terminalLine'                               */
+    int32_t sio_can_read;   /* bit mask to indicate that one can read from this port    */
+    int32_t sio_cannot_read; /* bit mask to indicate that one cannot read from this port */
+    int32_t sio_can_write;  /* bit mask to indicate that one can write to this port     */
+    int32_t hasReset;       /* true iff SIO has reset command                           */
+    int32_t sio_reset;      /* reset command                                            */
+    int32_t hasOUT;         /* true iff port supports OUT command                       */
+    int32_t isBuiltin;      /* true iff mapping is built in                             */
 } SIO_PORT_INFO;
 
 static SIO_PORT_INFO port_table[PORT_TABLE_SIZE] = {
@@ -769,8 +771,8 @@ static SIO_PORT_INFO port_table[PORT_TABLE_SIZE] = {
     {-1, 0, 0, 0, 0, 0, 0, 0, 0}   /* must be last */
 };
 
-static SIO_PORT_INFO lookupPortInfo(const int32 port, int32 *position) {
-    int32 i = 0;
+static SIO_PORT_INFO lookupPortInfo(const int32_t port, int32_t *position) {
+    int32_t i = 0;
     while ((port_table[i].port != -1) && (port_table[i].port != port))
         i++;
     *position = i;
@@ -794,8 +796,8 @@ static void voidSleep(void) {
 }
 
 /* generic status port for keyboard input / terminal output */
-static int32 sio0sCore(const int32 port, const int32 io, const int32 data) {
-    int32 ch, result;
+static int32_t sio0sCore(const int32_t port, const int32_t io, const int32_t data) {
+    int32_t ch, result;
     const SIO_PORT_INFO spi = lookupPortInfo(port, &ch);
     ASSURE(spi.port == port);
     pollConnection();
@@ -851,8 +853,8 @@ static int32 sio0sCore(const int32 port, const int32 io, const int32 data) {
     return 0x00;                                            /* ignored since OUT                        */
 }
 
-int32 sio0s(const int32 port, const int32 io, const int32 data) {
-    const int32 result = sio0sCore(port, io, data);
+int32_t sio0s(const int32_t port, const int32_t io, const int32_t data) {
+    const int32_t result = sio0sCore(port, io, data);
     if (io == 0) {
         sim_debug(IN_MSG, &sio_dev, "\tSIO_S: " ADDRESS_FORMAT
                   " IN(0x%03x) = 0x%02x\n", PCX, port, result);
@@ -864,8 +866,8 @@ int32 sio0s(const int32 port, const int32 io, const int32 data) {
 }
 
 /* generic data port for keyboard input / terminal output */
-static int32 sio0dCore(const int32 port, const int32 io, const int32 data) {
-    int32 ch;
+static int32_t sio0dCore(const int32_t port, const int32_t io, const int32_t data) {
+    int32_t ch;
     const SIO_PORT_INFO spi = lookupPortInfo(port, &ch);
     ASSURE(spi.port == port);
     pollConnection();
@@ -893,7 +895,7 @@ static int32 sio0dCore(const int32 port, const int32 io, const int32 data) {
     return 0x00;                                            /* ignored since OUT                        */
 }
 
-static char* printable(char* result, int32 data, const int32 isIn) {
+static char* printable(char* result, int32_t data, const int32_t isIn) {
     result[0] = 0;
     data &= 0x7f;
     if ((0x20 <= data) && (data < 0x7f))
@@ -901,9 +903,9 @@ static char* printable(char* result, int32 data, const int32 isIn) {
     return result;
 }
 
-int32 sio0d(const int32 port, const int32 io, const int32 data) {
+int32_t sio0d(const int32_t port, const int32_t io, const int32_t data) {
     char buffer[8];
-    const int32 result = sio0dCore(port, io, data);
+    const int32_t result = sio0dCore(port, io, data);
     if (io == 0) {
         sim_debug(IN_MSG, &sio_dev, "\tSIO_D: " ADDRESS_FORMAT
                   " IN(0x%03x) = 0x%02x%s\n", PCX, port, result, printable(buffer, result, true));
@@ -915,7 +917,7 @@ int32 sio0d(const int32 port, const int32 io, const int32 data) {
 }
 
 /* PTR/PTP status port */
-static int32 sio1sCore(const int32 port, const int32 io, const int32 data) {
+static int32_t sio1sCore(const int32_t port, const int32_t io, const int32_t data) {
     if (io == 0) {                                          /* IN                                       */
                                                             /* reset I bit iff PTR unit not attached or
                                                                 no more data available. O bit is always
@@ -940,8 +942,8 @@ static int32 sio1sCore(const int32 port, const int32 io, const int32 data) {
     return 0x00;                                            /* ignored since OUT                        */
 }
 
-int32 sio1s(const int32 port, const int32 io, const int32 data) {
-    const int32 result = sio1sCore(port, io, data);
+int32_t sio1s(const int32_t port, const int32_t io, const int32_t data) {
+    const int32_t result = sio1sCore(port, io, data);
     if (io == 0) {
         sim_debug(IN_MSG, &ptr_dev, "PTR_S: " ADDRESS_FORMAT
                   " IN(0x%02x) = 0x%02x\n", PCX, port, result);
@@ -957,8 +959,8 @@ int32 sio1s(const int32 port, const int32 io, const int32 data) {
 }
 
 /* PTR/PTP data port */
-static int32 sio1dCore(const int32 port, const int32 io, const int32 data) {
-    int32 ch;
+static int32_t sio1dCore(const int32_t port, const int32_t io, const int32_t data) {
+    int32_t ch;
     if (io == 0) {                                          /* IN                                       */
         if (ptr_unit.u3) {                                  /* EOF reached, no more data available      */
             if ((ptr_dev.dctrl & VERBOSE_MSG) && (warnPTREOF < warnLevelSIO)) {
@@ -993,8 +995,8 @@ static int32 sio1dCore(const int32 port, const int32 io, const int32 data) {
     return 0x00;                                            /* ignored since OUT                        */
 }
 
-int32 sio1d(const int32 port, const int32 io, const int32 data) {
-    const int32 result = sio1dCore(port, io, data);
+int32_t sio1d(const int32_t port, const int32_t io, const int32_t data) {
+    const int32_t result = sio1dCore(port, io, data);
     if (io == 0) {
         sim_debug(IN_MSG, &ptr_dev, "PTR_D: " ADDRESS_FORMAT
                   " IN(0x%02x) = 0x%02x\n", PCX, port, result);
@@ -1009,7 +1011,7 @@ int32 sio1d(const int32 port, const int32 io, const int32 data) {
     return result;
 }
 
-static t_stat toBool(char tf, int32 *result) {
+static t_stat toBool(char tf, int32_t *result) {
     if (tf == 'T') {
         *result = true;
         return SCPE_OK;
@@ -1037,7 +1039,7 @@ static void show_sio_port_info(FILE *st, SIO_PORT_INFO sip) {
                 handlerNameForPort(sip.port));
 }
 
-static uint32 equalSIP(SIO_PORT_INFO x, SIO_PORT_INFO y) {
+static uint32_t equalSIP(SIO_PORT_INFO x, SIO_PORT_INFO y) {
     /* isBuiltin is not relevant for equality, only for display */
     return (x.port == y.port) && (x.terminalLine == y.terminalLine) &&
     (x.sio_can_read == y.sio_can_read) && (x.sio_cannot_read == y.sio_cannot_read) &&
@@ -1045,14 +1047,14 @@ static uint32 equalSIP(SIO_PORT_INFO x, SIO_PORT_INFO y) {
     (x.sio_reset == y.sio_reset) && (x.hasOUT == y.hasOUT);
 }
 
-static t_stat ptpptr_dev_set_port(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat ptpptr_dev_set_port(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) value;
     (void) desc;
 
-    int32 result, n, statusPort, dataPort;
+    int32_t result, n, statusPort, dataPort;
     if (cptr == NULL)
         return SCPE_ARG;
     result = sscanf(cptr, "%x/%x%n", &statusPort, &dataPort, &n);
@@ -1073,7 +1075,7 @@ static t_stat ptpptr_dev_set_port(UNIT *uptr, int32 value, const char *cptr, voi
     return SCPE_OK;
 }
 
-static t_stat ptpptr_dev_show_port(FILE *st, UNIT *uptr, int32 val, const void *desc) {
+static t_stat ptpptr_dev_show_port(FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -1084,14 +1086,14 @@ static t_stat ptpptr_dev_show_port(FILE *st, UNIT *uptr, int32 val, const void *
     return SCPE_OK;
 }
 
-static t_stat sio_dev_set_port(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat sio_dev_set_port(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) value;
     (void) desc;
 
-    int32 result, n, position, isDataPort;
+    int32_t result, n, position, isDataPort;
     SIO_PORT_INFO sip = { 0 }, old;
     char hasReset, hasOUT;
     if (cptr == NULL)
@@ -1156,14 +1158,14 @@ static t_stat sio_dev_set_port(UNIT *uptr, int32 value, const char *cptr, void *
     return SCPE_OK;
 }
 
-static t_stat sio_dev_show_port(FILE *st, UNIT *uptr, int32 val, const void *desc) {
+static t_stat sio_dev_show_port(FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) val;
     (void) desc;
 
-    int32 i, first = true;
+    int32_t i, first = true;
     for (i = 0; port_table[i].port != -1; i++)
         if (!port_table[i].isBuiltin) {
             if (first)
@@ -1177,7 +1179,7 @@ static t_stat sio_dev_show_port(FILE *st, UNIT *uptr, int32 val, const void *des
     return SCPE_OK;
 }
 
-static t_stat sio_dev_set_interrupton(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat sio_dev_set_interrupton(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -1189,7 +1191,7 @@ static t_stat sio_dev_set_interrupton(UNIT *uptr, int32 value, const char *cptr,
     return sim_activate(&sio_unit, sio_unit.wait);          /* activate unit */
 }
 
-static t_stat sio_dev_set_interruptoff(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat sio_dev_set_interruptoff(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -1207,7 +1209,7 @@ static t_stat sio_svc(UNIT *uptr) {
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 ch;
+    int32_t ch;
     const SIO_PORT_INFO spi = lookupPortInfo(kbdIrqPort, &ch);
     ASSURE(spi.port == kbdIrqPort);
     if (sio0s(kbdIrqPort, 0, 0) & spi.sio_can_read)
@@ -1218,7 +1220,7 @@ static t_stat sio_svc(UNIT *uptr) {
 }
 
 static void mapAltairPorts(void) {
-    int32 i = 0;
+    int32_t i = 0;
     SIO_PORT_INFO spi;
     do {
         spi = port_table[i++];
@@ -1228,7 +1230,7 @@ static void mapAltairPorts(void) {
     } while (spi.port >= 0);
 }
 
-int32 nulldev(const int32 port, const int32 io, const int32 data) {
+int32_t nulldev(const int32_t port, const int32_t io, const int32_t data) {
     if ((sio_unit.flags & UNIT_SIO_VERBOSE) && (warnUnassignedPort < warnLevelSIO)) {
         warnUnassignedPort++;
         if (io == 0)
@@ -1243,7 +1245,7 @@ int32 nulldev(const int32 port, const int32 io, const int32 data) {
     return io == 0 ? 0xff : 0;
 }
 
-int32 sr_dev(const int32 port, const int32 io, const int32 data) {
+int32_t sr_dev(const int32_t port, const int32_t io, const int32_t data) {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) port;
@@ -1261,11 +1263,11 @@ int32 sr_dev(const int32 port, const int32 io, const int32 data) {
     return 0;
 }
 
-static int32 toBCD(const int32 x) {
+static int32_t toBCD(const int32_t x) {
     return (x / 10) * 16 + (x % 10);
 }
 
-static int32 fromBCD(const int32 x) {
+static int32_t fromBCD(const int32_t x) {
     return 10 * ((0xf0 & x) >> 4) + (0x0f & x);
 }
 
@@ -1390,19 +1392,19 @@ static const char *cmdNames[kSimhPseudoDeviceCommands] = {
 };
 
 #define TIMER_STACK_LIMIT          10       /* stack depth of timer stack   */
-static uint32 markTime[TIMER_STACK_LIMIT];  /* timer stack                  */
+static uint32_t markTime[TIMER_STACK_LIMIT]; /* timer stack                  */
 static struct tm currentTime;
-static int32 currentTimeValid = false;
+static int32_t currentTimeValid = false;
 static char version[] = "SIMH005";
 
 #define URL_MAX_LENGTH              1024
-static uint32 urlPointer;
+static uint32_t urlPointer;
 static char urlStore[URL_MAX_LENGTH];
-static uint8 *urlResult = NULL;
-static uint32 resultLength;
-static uint32 resultPointer;
-static int32 showAvailability;
-static int32 isInReadPhase;
+static uint8_t *urlResult = NULL;
+static uint32_t resultLength;
+static uint32_t resultPointer;
+static int32_t showAvailability;
+static int32_t isInReadPhase;
 
 static t_stat simh_dev_reset(DEVICE *dptr) {
     sim_map_resource(0xfe, 1, RESOURCE_TYPE_IO, &simh_dev, "simh_dev", dptr->flags & DEV_DIS);
@@ -1440,7 +1442,7 @@ static void warnNoRealTimeClock(void) {
               " Sorry - no real time clock available.\n", PCX);
 }
 
-static t_stat simh_dev_set_timeron(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat simh_dev_set_timeron(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -1452,7 +1454,7 @@ static t_stat simh_dev_set_timeron(UNIT *uptr, int32 value, const char *cptr, vo
     return sim_activate(&simh_unit, simh_unit.wait);    /* activate unit */
 }
 
-static t_stat simh_dev_set_timeroff(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat simh_dev_set_timeroff(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -1470,13 +1472,13 @@ static t_stat simh_svc(UNIT *uptr) {
     (void) uptr;
 
     if (simh_unit.flags & UNIT_SIMH_TIMERON) {
-        uint32 now = sim_os_msec();
+        uint32_t now = sim_os_msec();
         if (now >= timeOfNextInterrupt) {
             timerInterrupt = true;
             if (timerDelta == 0)
                 timeOfNextInterrupt = now + DEFAULT_TIMER_DELTA;
             else {
-                uint32 newTimeOfNextInterrupt = now + timerDelta - (now - timeOfNextInterrupt) % timerDelta;
+                uint32_t newTimeOfNextInterrupt = now + timerDelta - (now - timeOfNextInterrupt) % timerDelta;
                 if (newTimeOfNextInterrupt != timeOfNextInterrupt + timerDelta) {
                     sim_debug(VERBOSE_MSG, &simh_device, "SIMH: " ADDRESS_FORMAT
                               " Timer interrupts skipped %i. Delta %i. Expect %i. Got %i.\n",
@@ -1496,7 +1498,7 @@ static t_stat simh_svc(UNIT *uptr) {
 extern void setViewRegisters(void);
 
 static void createCPMCommandLine(void) {
-    int32 i, len = (GetBYTEWrapper(FCBAddress) & 0x7f); /* 0x80 contains length of command line, discard first char   */
+    int32_t i, len = (GetBYTEWrapper(FCBAddress) & 0x7f); /* 0x80 contains length of command line, discard first char   */
     for (i = 0; i < len - 1; i++) {
         cpmCommandLine[i] = (char)GetBYTEWrapper(FCBAddress + 0x02 + i); /* the first char, typically ' ', is discarded      */
     }
@@ -1523,7 +1525,7 @@ static void attachCPM(UNIT *uptr) {
 /* setClockZSDOSAdr points to 6 byte block in M: YY MM DD HH MM SS in BCD notation */
 static void setClockZSDOS(void) {
     struct tm newTime;
-    int32 year = fromBCD(GetBYTEWrapper(setClockZSDOSAdr));
+    int32_t year = fromBCD(GetBYTEWrapper(setClockZSDOSAdr));
     newTime.tm_year = year < 50 ? year + 100 : year;
     newTime.tm_mon  = fromBCD(GetBYTEWrapper(setClockZSDOSAdr + 1)) - 1;
     newTime.tm_mday = fromBCD(GetBYTEWrapper(setClockZSDOSAdr + 2));
@@ -1531,7 +1533,7 @@ static void setClockZSDOS(void) {
     newTime.tm_min  = fromBCD(GetBYTEWrapper(setClockZSDOSAdr + 4));
     newTime.tm_sec  = fromBCD(GetBYTEWrapper(setClockZSDOSAdr + 5));
     newTime.tm_isdst = 0;
-    ClockZSDOSDelta = (int32)(mktime(&newTime) - sim_get_time(NULL));
+    ClockZSDOSDelta = (int32_t)(mktime(&newTime) - sim_get_time(NULL));
 }
 
 #define SECONDS_PER_MINUTE  60
@@ -1550,7 +1552,7 @@ static time_t mkCPM3Origin(void) {
 }
 
 /* setClockCPM3Adr points to 5 byte block in M:
-    0 - 1 int16:    days since 31 Dec 77
+    0 - 1 int16_t:    days since 31 Dec 77
         2 BCD byte: HH
         3 BCD byte: MM
         4 BCD byte: SS                              */
@@ -1566,11 +1568,11 @@ static void setClockCPM3(void) {
     targetDate.tm_hour = fromBCD(GetBYTEWrapper(setClockCPM3Adr + 2));
     targetDate.tm_min = fromBCD(GetBYTEWrapper(setClockCPM3Adr + 3));
     targetDate.tm_sec = fromBCD(GetBYTEWrapper(setClockCPM3Adr + 4));
-    ClockCPM3Delta = (int32)(mktime(&targetDate) - sim_get_time(NULL));
+    ClockCPM3Delta = (int32_t)(mktime(&targetDate) - sim_get_time(NULL));
 }
 
-static int32 simh_in(const int32 port) {
-    int32 result = 0;
+static int32_t simh_in(const int32_t port) {
+    int32_t result = 0;
     switch(lastCommand) {
         case readURLCmd:
             if (isInReadPhase) {
@@ -1762,7 +1764,7 @@ void do_SIMH_sleep(void) {
         sim_os_ms_sleep(SIMHSleep);
 }
 
-static int32 simh_out(const int32 port, const int32 data) {
+static int32_t simh_out(const int32_t port, const int32_t data) {
     time_t now;
     switch(lastCommand) {
         case readURLCmd:
@@ -1971,7 +1973,7 @@ static int32 simh_out(const int32 port, const int32 data) {
                 case stopTimerCmd:  /* stop timer on top of stack and show time difference */
                     if (rtc_avail)
                         if (markTimeSP > 0) {
-                            uint32 delta = sim_os_msec() - markTime[--markTimeSP];
+                            uint32_t delta = sim_os_msec() - markTime[--markTimeSP];
                             sim_printf("SIMH: " ADDRESS_FORMAT " Timer stopped. Elapsed time in milliseconds = %d.\n", PCX, delta);
                         } else
                             sim_printf("SIMH: " ADDRESS_FORMAT " No timer active.\n", PCX);
@@ -2012,7 +2014,7 @@ static int32 simh_out(const int32 port, const int32 data) {
                     now += ClockCPM3Delta;
                     currentTime = *localtime(&now);
                     currentTimeValid = true;
-                    daysCPM3SinceOrg = (int32) ((now - mkCPM3Origin()) / SECONDS_PER_DAY);
+                    daysCPM3SinceOrg = (int32_t) ((now - mkCPM3Origin()) / SECONDS_PER_DAY);
                     getClockCPM3Pos = 0;
                     break;
 
@@ -2049,7 +2051,7 @@ static int32 simh_out(const int32 port, const int32 data) {
                 case showTimerCmd:  /* show time difference to timer on top of stack */
                     if (rtc_avail)
                         if (markTimeSP > 0) {
-                            uint32 delta = sim_os_msec() - markTime[markTimeSP - 1];
+                            uint32_t delta = sim_os_msec() - markTime[markTimeSP - 1];
                             sim_printf("SIMH: " ADDRESS_FORMAT " Timer running. Elapsed in milliseconds = %d.\n", PCX, delta);
                         } else
                             sim_printf("SIMH: " ADDRESS_FORMAT " No timer active.\n", PCX);
@@ -2116,8 +2118,8 @@ static int32 simh_out(const int32 port, const int32 data) {
 }
 
 /* port 0xfe is a device for communication SIMH <--> Altair machine */
-int32 simh_dev(const int32 port, const int32 io, const int32 data) {
-    int32 result = 0;
+int32_t simh_dev(const int32_t port, const int32_t io, const int32_t data) {
+    int32_t result = 0;
     if (io == 0) {
         result = simh_in(port);
         sim_debug(IN_MSG, &simh_device, "SIMH: " ADDRESS_FORMAT

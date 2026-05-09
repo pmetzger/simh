@@ -41,14 +41,16 @@ Notes:
     - register STOP_IOE determines return value issued if output to unattached LPT is attempted
 */
 
+#include <stdint.h>
+
 #include "nova_defs.h"
 
-extern int32 int_req, dev_busy, dev_done, dev_disable;
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
 
 
-int32 lpt_stopioe = 0;                                  /* stop on error flag */
+int32_t lpt_stopioe = 0;                                /* stop on error flag */
 
-int32 lpt (int32 pulse, int32 code, int32 AC);
+int32_t lpt (int32_t pulse, int32_t code, int32_t AC);
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *ptr);
@@ -89,7 +91,7 @@ DEVICE lpt_dev = {
 
 /* IOT routine */
 
-int32 lpt (int32 pulse, int32 code, int32 AC)
+int32_t lpt (int32_t pulse, int32_t code, int32_t AC)
 {
 if (code == ioDOA)
     lpt_unit.buf = AC & 0177 ;

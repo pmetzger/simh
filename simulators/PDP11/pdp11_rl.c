@@ -99,6 +99,8 @@
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_disk.h"
 
 /* Constants */
@@ -113,10 +115,10 @@
 #define RL02_SIZE       (RL01_SIZE * 2)                 /* words/drive */
 
 struct drvtyp {
-    int32       sect;                                   /* sectors */
-    int32       surf;                                   /* surfaces */
-    int32       cyl;                                    /* cylinders */
-    int32       size;                                   /* #blocks */
+    int32_t     sect;                                   /* sectors */
+    int32_t     surf;                                   /* surfaces */
+    int32_t     cyl;                                    /* cylinders */
+    int32_t     size;                                   /* #blocks */
     const char  *name;                                  /* device type name */
     };
 
@@ -264,39 +266,39 @@ const char *rl_regnames[] = {
 #define RLDEB_DAT      0100                             /* transfer data */
 
 
-uint16 *rlxb = NULL;                                    /* xfer buffer */
-int32 rlcs = 0;                                         /* control/status */
-int32 rlba = 0;                                         /* memory address */
-int32 rlbae = 0;                                        /* mem addr extension */
-int32 rlda = 0;                                         /* disk addr */
-uint16 rlmp = 0, rlmp1 = 0, rlmp2 = 0;                  /* mp register queue */
-int32 rl_swait = 10;                                    /* seek wait */
-int32 rl_rwait = 10;                                    /* rotate wait */
-int32 rl_stopioe = 1;                                   /* stop on error */
+uint16_t *rlxb = NULL;                                  /* xfer buffer */
+int32_t rlcs = 0;                                       /* control/status */
+int32_t rlba = 0;                                       /* memory address */
+int32_t rlbae = 0;                                      /* mem addr extension */
+int32_t rlda = 0;                                       /* disk addr */
+uint16_t rlmp = 0, rlmp1 = 0, rlmp2 = 0;                /* mp register queue */
+int32_t rl_swait = 10;                                  /* seek wait */
+int32_t rl_rwait = 10;                                  /* rotate wait */
+int32_t rl_stopioe = 1;                                 /* stop on error */
 
 /* forward references */
-t_stat rl_rd (int32 *data, int32 PA, int32 access);
-t_stat rl_wr (int32 data, int32 PA, int32 access);
+t_stat rl_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat rl_wr (int32_t data, int32_t PA, int32_t access);
 t_stat rl_svc (UNIT *uptr);
 t_stat rl_reset (DEVICE *dptr);
-void rl_set_done (int32 error);
-t_stat rl_boot (int32 unitno, DEVICE *dptr);
+void rl_set_done (int32_t error);
+t_stat rl_boot (int32_t unitno, DEVICE *dptr);
 t_stat rl_attach (UNIT *uptr, const char *cptr);
-t_stat rl_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rl_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat rl_set_bad (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat rl_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rl_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat rl_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 static void rlv_maint (void);
 t_stat rl_detach (UNIT *uptr);
-t_stat rl_set_cover (UNIT *, int32, const char *, void *);
-t_stat rl_show_cover (FILE *, UNIT *, int32, const void *);
-t_stat rl_set_load (UNIT *, int32, const char *, void *);
-t_stat rl_show_load (FILE *, UNIT *, int32, const void *);
-t_stat rl_show_dstate (FILE *, UNIT *, int32, const void *);
+t_stat rl_set_cover (UNIT *, int32_t, const char *, void *);
+t_stat rl_show_cover (FILE *, UNIT *, int32_t, const void *);
+t_stat rl_set_load (UNIT *, int32_t, const char *, void *);
+t_stat rl_show_load (FILE *, UNIT *, int32_t, const void *);
+t_stat rl_show_dstate (FILE *, UNIT *, int32_t, const void *);
 #if defined (VM_PDP11)
-t_stat rl_set_ctrl (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat rl_set_ctrl (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 #endif
-t_stat rl_show_ctrl (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat rl_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat rl_show_ctrl (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat rl_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *rl_description (DEVICE *dptr);
 
 /* RL11 data structures
@@ -428,7 +430,7 @@ static const char * const state[] = {
    17774410 RLBAE   read/write
 */
 
-t_stat rl_rd (int32 *data, int32 PA, int32 access)
+t_stat rl_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Generic I/O page read signature.
    This implementation does not use every parameter. */
@@ -498,9 +500,9 @@ sim_debug (RLDEB_RRD, &rl_dev, ">>RL%d read: %s=0%o\n", GET_DRIVE (rlcs), rl_reg
 return SCPE_OK;
 }
 
-t_stat rl_wr (int32 data, int32 PA, int32 access)
+t_stat rl_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 curr, offs, newc, maxc, tim;
+int32_t curr, offs, newc, maxc, tim;
 UNIT *uptr;
 
 switch ((PA >> 1) & 07) {                               /* decode PA<2:1> */
@@ -570,7 +572,7 @@ max 17ms for 1 track seek w/head switch
                 tim++;
             tim *= rl_swait;
             sim_debug (RLDEB_RWR, &rl_dev, ">>RL SEEK: drv %d, dist %d, head sw %d, tim %d\n",
-                    (int32) (uptr - rl_dev.units),
+                    (int32_t) (uptr - rl_dev.units),
                     abs (newc - curr), (rlda & RLDA_SK_HD), tim);
             uptr->FNC = RLCS_SEEK;
             sim_activate (uptr, tim);               /* must be > 0 */
@@ -584,7 +586,7 @@ max 17ms for 1 track seek w/head switch
             if (rlda & RLDA_GS_CLR)                 /* reset errors? */
                 uptr->STAT &= ~RLDS_ERR;
                 /* develop drive state */
-            rlmp = (uint16)(uptr->STAT | (uptr->TRK & RLDS_HD));
+            rlmp = (uint16_t)(uptr->STAT | (uptr->TRK & RLDS_HD));
             if (uptr->flags & UNIT_RL02)
                 rlmp |= RLDS_RL02;
             if (uptr->flags & UNIT_WPRT)
@@ -644,7 +646,7 @@ says, bit 0 can be written and read (as 1) on an RLV12 (verified
     case 3:                                             /* RLMP */
         if (access == WRITEB)
             data = (PA & 1)? (rlmp & 0377) | (data << 8): (rlmp & ~0377) | data;
-        rlmp = rlmp1 = rlmp2 = (uint16)data;
+        rlmp = rlmp1 = rlmp2 = (uint16_t)data;
         sim_debug (RLDEB_RWR, &rl_dev, ">>RL wr: RLMP %06o\n", rlmp);
         break;
 
@@ -665,10 +667,10 @@ return SCPE_OK;
 }
 
 /* CRC16 as implemented by the DEC 9401 chip */
-static uint16 calcCRC (const int wc, const uint16 *data)
+static uint16_t calcCRC (const int wc, const uint16_t *data)
 {
-    uint32  crc, j, d;
-    int32   i;
+    uint32_t crc, j, d;
+    int32_t i;
 
     crc = 0;
     for (i = 0; i < wc; i++) {
@@ -680,7 +682,7 @@ static uint16 calcCRC (const int wc, const uint16 *data)
             d >>= 1;
         }
     }
-    return (uint16)crc;
+    return (uint16_t)crc;
 }
 
 /*
@@ -691,9 +693,9 @@ for -511 is incorrect.
 */
 static void rlv_maint (void)
 {
-    int32   i;
-    uint32  ma;
-    uint16  w;
+    int32_t i;
+    uint32_t ma;
+    uint16_t w;
 
     sim_debug (RLDEB_OPS, &rl_dev, ">>RL maint: RLDA %06o\n", rlda);
     /* 1: check internal logic */
@@ -732,12 +734,12 @@ static void rlv_maint (void)
     rlba = ma & RLBA_IMP;                               /* lower 16b */
 
     /* 4: check the CRC of (DAR + 3) */
-    w = (uint16)rlda;
+    w = (uint16_t)rlda;
     rlxb[0] = calcCRC (1, &w);                          /* calculate CRC */
     rlda = (rlda & ~0377) | ((rlda + 1) & 0377);
 
     /* 5: check the CRC of (DAR + 4) */
-    w = (uint16)rlda;
+    w = (uint16_t)rlda;
     rlxb[1] = calcCRC (1, &w);                          /* calculate CRC */
     rlda = (rlda & ~0377) | ((rlda + 1) & 0377);
 
@@ -760,12 +762,12 @@ static void rlv_maint (void)
 
 t_stat rl_svc (UNIT *uptr)
 {
-int32 wc, maxwc, t;
+int32_t wc, maxwc, t;
 t_stat err = 0;
 t_seccnt sectsread;
-int32 i, da, awc;
-uint32 ma;
-uint16 comp;
+int32_t i, da, awc;
+uint32_t ma;
+uint16_t comp;
 DEVICE *dptr = find_dev_from_unit (uptr);
 static const char * const funcname[] = {
     "NOP", "WCK", "GSTA", "SEEK",
@@ -773,9 +775,9 @@ static const char * const funcname[] = {
 };
 
 if (uptr->FNC == RLCS_SPECIAL)
-    sim_debug (RLDEB_OPS, &rl_dev, ">>RL: svc: func=SPECIAL(%s) drv=%d\n", state[uptr->STAT & RLDS_M_STATE], (int32) (uptr - rl_dev.units));
+    sim_debug (RLDEB_OPS, &rl_dev, ">>RL: svc: func=SPECIAL(%s) drv=%d\n", state[uptr->STAT & RLDS_M_STATE], (int32_t) (uptr - rl_dev.units));
 else
-    sim_debug (RLDEB_OPS, &rl_dev, ">>RL svc: func=%s drv=%d rlda=%06o\n", funcname[uptr->FNC], (int32) (uptr - rl_dev.units), rlda);
+    sim_debug (RLDEB_OPS, &rl_dev, ">>RL svc: func=%s drv=%d rlda=%06o\n", funcname[uptr->FNC], (int32_t) (uptr - rl_dev.units), rlda);
 
 /* really shouldn't happen... */
 if ((uptr->FNC == RLCS_GSTA) || (uptr->FNC == RLCS_NOP)) {
@@ -877,7 +879,7 @@ if (uptr->FNC == RLCS_SEEK) {                           /* seek? */
     }
 
 if (uptr->FNC == RLCS_RHDR) {                           /* read header? */
-    uint16 hdr[2];
+    uint16_t hdr[2];
     hdr[0] = rlmp = uptr->TRK & 0177777;
     hdr[1] = rlmp1 = 0;
     rlmp2 = calcCRC (2, &hdr[0]);                       /* calculate header CRC */
@@ -916,8 +918,8 @@ if (wc > maxwc)                                         /* track overrun? */
 sim_debug (RLDEB_OPS, &rl_dev, ">>RL svc: cyl %d, sect %d, wc %d, maxwc %d\n", GET_CYL (rlda), GET_SECT (rlda), wc, maxwc);
 
 if (uptr->FNC >= RLCS_READ) {                           /* read (no hdr)? */
-    err = sim_disk_rdsect (uptr, da/RL_NUMWD, (uint8 *)rlxb, &sectsread, (wc + RL_NUMWD - 1)/RL_NUMWD);
-    sim_disk_data_trace (uptr, (uint8 *)rlxb, da/RL_NUMWD, sectsread*RL_NUMWD*sizeof(*rlxb), "sim_disk_rdsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
+    err = sim_disk_rdsect (uptr, da/RL_NUMWD, (uint8_t *)rlxb, &sectsread, (wc + RL_NUMWD - 1)/RL_NUMWD);
+    sim_disk_data_trace (uptr, (uint8_t *)rlxb, da/RL_NUMWD, sectsread*RL_NUMWD*sizeof(*rlxb), "sim_disk_rdsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
     if ((t = Map_WriteW (ma, wc << 1, rlxb))) {         /* store buffer */
         rlcs = rlcs | RLCS_ERR | RLCS_NXM;              /* nxm */
         wc = wc - t;                                    /* adjust wc */
@@ -934,15 +936,15 @@ if (uptr->FNC == RLCS_WRITE) {                          /* write? */
         awc = (wc + (RL_NUMWD - 1)) & ~(RL_NUMWD - 1);  /* clr to */
         for (i = wc; i < awc; i++)                      /* end of blk */
             rlxb[i] = 0;
-        sim_disk_data_trace (uptr, (uint8 *)rlxb, da/RL_NUMWD, awc, "sim_disk_wrsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
-        err = sim_disk_wrsect (uptr, da/RL_NUMWD, (uint8 *)rlxb, NULL, awc/RL_NUMWD);
+        sim_disk_data_trace (uptr, (uint8_t *)rlxb, da/RL_NUMWD, awc, "sim_disk_wrsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
+        err = sim_disk_wrsect (uptr, da/RL_NUMWD, (uint8_t *)rlxb, NULL, awc/RL_NUMWD);
         }
     }                                                   /* end write */
 
 else
 if (uptr->FNC == RLCS_WCHK) {                           /* write check? */
-    err = sim_disk_rdsect (uptr, da/RL_NUMWD, (uint8 *)rlxb, &sectsread, (wc + RL_NUMWD - 1)/RL_NUMWD);
-    sim_disk_data_trace (uptr, (uint8 *)rlxb, da/RL_NUMWD, sectsread*RL_NUMWD*sizeof(*rlxb), "sim_disk_rdsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
+    err = sim_disk_rdsect (uptr, da/RL_NUMWD, (uint8_t *)rlxb, &sectsread, (wc + RL_NUMWD - 1)/RL_NUMWD);
+    sim_disk_data_trace (uptr, (uint8_t *)rlxb, da/RL_NUMWD, sectsread*RL_NUMWD*sizeof(*rlxb), "sim_disk_rdsect", RLDEB_DAT & dptr->dctrl, RLDEB_OPS);
     awc = wc;                                           /* save wc */
     for (wc = 0; (err == 0) && (wc < awc); wc++)  {     /* loop thru buf */
         if (Map_ReadW (ma + (wc << 1), 2, &comp)) {     /* mem wd */
@@ -990,7 +992,7 @@ return SCPE_OK;
 
 /* Set done and possibly errors */
 
-void rl_set_done (int32 status)
+void rl_set_done (int32_t status)
 {
 rlcs |= status | CSR_DONE;                              /* set done */
 if (rlcs & CSR_IE)
@@ -1009,7 +1011,7 @@ t_stat rl_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 rlcs = CSR_DONE;
@@ -1021,7 +1023,7 @@ for (i = 0; i < RL_NUMDR; i++) {
     uptr->STAT &= ~RLDS_ERR;
     }
 if (rlxb == NULL)
-    rlxb = (uint16 *) calloc (RL_MAXFR, sizeof (uint16));
+    rlxb = (uint16_t *) calloc (RL_MAXFR, sizeof (uint16_t));
 if (rlxb == NULL)
     return SCPE_MEM;
 return auto_config (0, 0);
@@ -1035,8 +1037,8 @@ t_stat r;
 static const char *drives[] = {"RL01", "RL02", NULL};
 
 uptr->capac = (uptr->flags & UNIT_RL02)? RL02_SIZE: RL01_SIZE;
-r = sim_disk_attach_ex (uptr, cptr, RL_NUMWD * sizeof (uint16),
-                        sizeof (uint16), true, 0,
+r = sim_disk_attach_ex (uptr, cptr, RL_NUMWD * sizeof (uint16_t),
+                        sizeof (uint16_t), true, 0,
                         (uptr->capac == RL02_SIZE) ? "RL02" : "RL01", RL_NUMSC, 0,
                         (uptr->flags & UNIT_NOAUTO) ? NULL : drives);
 if (r != SCPE_OK)                                       /* error? */
@@ -1059,7 +1061,7 @@ return sim_disk_detach (uptr);
 
 /* Set type command validation routine */
 
-t_stat rl_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rl_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1076,7 +1078,7 @@ return SCPE_OK;
 
 /* Show unit type */
 
-t_stat rl_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rl_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1091,7 +1093,7 @@ return SCPE_OK;
 
 /* Set bad block routine */
 
-t_stat rl_set_bad (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rl_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1102,7 +1104,7 @@ t_stat rl_set_bad (UNIT *uptr, int32 val, const char *cptr, void *desc)
 return pdp11_bad_block (uptr, RL_NUMSC, RL_NUMWD);
 }
 
-t_stat rl_set_cover (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rl_set_cover (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1116,7 +1118,7 @@ t_stat rl_set_cover (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return (SCPE_OK);
 }
 
-t_stat rl_show_cover (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rl_show_cover (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1128,7 +1130,7 @@ t_stat rl_show_cover (FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 /* simulate the LOAD button on the drive */
-t_stat rl_set_load (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rl_set_load (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1155,7 +1157,7 @@ t_stat rl_set_load (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return (SCPE_OK);
 }
 
-t_stat rl_show_load (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rl_show_load (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1167,14 +1169,14 @@ t_stat rl_show_load (FILE *st, UNIT *uptr, int32 val, const void *desc)
     return (SCPE_OK);
 }
 
-t_stat rl_show_dstate (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rl_show_dstate (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) val;
     (void) desc;
 
-    int32   cnt;
+    int32_t cnt;
 
     fprintf (st, "drive state: %s\n", state[(uptr->STAT & RLDS_M_STATE)]);
     fprintf (st, "brushes: %s, heads: %s, cover: %s\n",
@@ -1201,7 +1203,7 @@ t_stat rl_show_dstate (FILE *st, UNIT *uptr, int32 val, const void *desc)
 #if defined (VM_PDP11)
 
 /* Handle SET RL RLV12|RLV11 */
-t_stat rl_set_ctrl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rl_set_ctrl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1220,7 +1222,7 @@ t_stat rl_set_ctrl (UNIT *uptr, int32 val, const char *cptr, void *desc)
 #endif
 
 /* SHOW RL will display the controller type */
-t_stat rl_show_ctrl (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rl_show_ctrl (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1246,9 +1248,9 @@ t_stat rl_show_ctrl (FILE *st, UNIT *uptr, int32 val, const void *desc)
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 020)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0042114,                        /* "LD" */
     0012706, BOOT_START,            /* MOV #boot_start, SP */
     0012700, 0000000,               /* MOV #unit, R0 */
@@ -1290,7 +1292,7 @@ static const uint16 boot_rom[] = {
     0005007                         /* CLR PC */
     };
 
-t_stat rl_boot (int32 unitno, DEVICE *dptr)
+t_stat rl_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1308,7 +1310,7 @@ return SCPE_OK;
 
 #else
 
-t_stat rl_boot (int32 unitno, DEVICE *dptr)
+t_stat rl_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1320,7 +1322,7 @@ return SCPE_NOFNC;
 
 #endif
 
-t_stat rl_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rl_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

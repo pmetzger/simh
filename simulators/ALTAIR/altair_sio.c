@@ -47,6 +47,7 @@
     to the data port writes the character to the device.
 */
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "altair_defs.h"
@@ -61,7 +62,7 @@ t_stat ptr_reset (DEVICE *dptr);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptp_reset (DEVICE *dptr);
 
-int32 ptr_stopioe = 0, ptp_stopioe = 0;                 /* stop on error */
+int32_t ptr_stopioe = 0, ptp_stopioe = 0;               /* stop on error */
 
 /* 2SIO Standard I/O Data Structures */
 
@@ -128,7 +129,7 @@ t_stat sio_svc (UNIT *uptr)
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 temp;
+    int32_t temp;
 
     sim_activate (&sio_unit, sio_unit.wait);            /* continue poll */
     if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)
@@ -211,7 +212,7 @@ t_stat ptp_reset (DEVICE *dptr)
     to the device.
 */
 
-int32 sio0s(int32 io, int32 data)
+int32_t sio0s(int32_t io, int32_t data)
 {
     if (io == 0) {
         return (sio_unit.u3);
@@ -225,7 +226,7 @@ int32 sio0s(int32 io, int32 data)
     }
 }
 
-int32 sio0d(int32 io, int32 data)
+int32_t sio0d(int32_t io, int32_t data)
 {
     if (io == 0) {
         sio_unit.u3 = sio_unit.u3 & 0xFE;
@@ -238,7 +239,7 @@ int32 sio0d(int32 io, int32 data)
 
 /* Port 2 controls the PTR/PTP devices */
 
-int32 sio1s(int32 io, int32 data)
+int32_t sio1s(int32_t io, int32_t data)
 {
     if (io == 0) {
         if ((ptr_unit.flags & UNIT_ATT) == 0)           /* attached? */
@@ -259,9 +260,9 @@ int32 sio1s(int32 io, int32 data)
     }
 }
 
-int32 sio1d(int32 io, int32 data)
+int32_t sio1d(int32_t io, int32_t data)
 {
-    int32 temp;
+    int32_t temp;
     UNIT *uptr;
 
     if (io == 0) {

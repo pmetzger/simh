@@ -16,33 +16,33 @@
 extern UNIT isbc202_unit[];
 extern DEVICE isbc202_dev;
 
-t_stat isbc202_set_port(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat isbc202_set_int(UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat isbc202_set_port(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat isbc202_set_int(UNIT *uptr, int32_t val, const char *cptr, void *desc);
 void isbc202_reset_dev(void);
-uint8 isbc202r0(bool io, uint8 data, uint8 devnum);
-uint8 isbc202r1(bool io, uint8 data, uint8 devnum);
-uint8 isbc202r2(bool io, uint8 data, uint8 devnum);
-uint8 isbc202r3(bool io, uint8 data, uint8 devnum);
-uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16 port,
-              uint16 devnum, uint8 dummy);
-uint8 unreg_dev(uint16 port);
-uint8 get_mbyte(uint16 addr);
-void put_mbyte(uint16 addr, uint8 val);
+uint8_t isbc202r0(bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc202r1(bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc202r2(bool io, uint8_t data, uint8_t devnum);
+uint8_t isbc202r3(bool io, uint8_t data, uint8_t devnum);
+uint8_t reg_dev(uint8_t (*routine)(bool, uint8_t, uint8_t), uint16_t port,
+              uint16_t devnum, uint8_t dummy);
+uint8_t unreg_dev(uint16_t port);
+uint8_t get_mbyte(uint16_t addr);
+void put_mbyte(uint16_t addr, uint8_t val);
 
-static uint8 test_memory[UINT16_MAX + 1];
-static uint8 test_disk[TEST_DISK_SIZE];
-static uint16 registered_ports[8];
-static uint8 registered_count;
+static uint8_t test_memory[UINT16_MAX + 1];
+static uint8_t test_disk[TEST_DISK_SIZE];
+static uint16_t registered_ports[8];
+static uint8_t registered_count;
 
-uint16 PCX;
+uint16_t PCX;
 
 /*
  * Provide the fake multibus registration hook used by the iSBC 202 setup
  * commands so tests can verify that valid port changes wire the expected
  * controller handlers.
  */
-uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16 port,
-              uint16 devnum, uint8 dummy)
+uint8_t reg_dev(uint8_t (*routine)(bool, uint8_t, uint8_t), uint16_t port,
+              uint16_t devnum, uint8_t dummy)
 {
     (void)routine;
     (void)devnum;
@@ -57,7 +57,7 @@ uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16 port,
  * Provide the fake multibus unregistration hook required by the linked
  * controller object. These tests do not exercise controller removal.
  */
-uint8 unreg_dev(uint16 port)
+uint8_t unreg_dev(uint16_t port)
 {
     (void)port;
 
@@ -67,7 +67,7 @@ uint8 unreg_dev(uint16 port)
 /*
  * Read one byte from the fake system memory image used for iSBC 202 IOPBs.
  */
-uint8 get_mbyte(uint16 addr)
+uint8_t get_mbyte(uint16_t addr)
 {
     return test_memory[addr];
 }
@@ -75,7 +75,7 @@ uint8 get_mbyte(uint16 addr)
 /*
  * Write one byte to the fake system memory image used for disk transfers.
  */
-void put_mbyte(uint16 addr, uint8 val)
+void put_mbyte(uint16_t addr, uint8_t val)
 {
     test_memory[addr] = val;
 }
@@ -95,7 +95,7 @@ static int setup_isbc202(void **state)
     PCX = 0;
 
     memset(&fdc202, 0, sizeof(fdc202));
-    for (uint32 i = 0; i < ISBC202_FDD_NUM; ++i) {
+    for (uint32_t i = 0; i < ISBC202_FDD_NUM; ++i) {
         isbc202_unit[i].flags = 0;
         isbc202_unit[i].filebuf = NULL;
         isbc202_unit[i].u6 = i;
@@ -112,7 +112,7 @@ static int setup_isbc202(void **state)
  * Fill the fake IOPB with a no-operation command whose channel word controls
  * whether the controller should raise a completion interrupt.
  */
-static void write_nop_iopb(uint8 channel_word)
+static void write_nop_iopb(uint8_t channel_word)
 {
     test_memory[TEST_IOPB_ADDR] = channel_word;
     test_memory[TEST_IOPB_ADDR + 1] = 0x00;
@@ -138,7 +138,7 @@ static void start_iopb(void)
  */
 static void test_set_port_accepts_hex_port(void **state)
 {
-    const uint16 expected_ports[] = {0x78, 0x79, 0x7a, 0x7b, 0x7f};
+    const uint16_t expected_ports[] = {0x78, 0x79, 0x7a, 0x7b, 0x7f};
 
     (void)state;
 

@@ -48,15 +48,17 @@
    32b superpage                0xFFFFFFFF80000000:0xFFFFFFFFBFFFFFFF
 */
 
+#include <stdint.h>
+
 #include "alpha_defs.h"
 
-extern t_uint64 trans_i (t_uint64 va);
-extern t_uint64 trans_d (t_uint64 va, uint32 acc);
+extern uint64_t trans_i (uint64_t va);
+extern uint64_t trans_d (uint64_t va, uint32_t acc);
 
-extern t_uint64 *M;
-extern t_uint64 p1;
-extern uint32 pal_mode, dmapen;
-extern uint32 cm_eacc, cm_racc, cm_wacc;
+extern uint64_t *M;
+extern uint64_t p1;
+extern uint32_t pal_mode, dmapen;
+extern uint32_t cm_eacc, cm_racc, cm_wacc;
 extern jmp_buf save_env;
 extern UNIT cpu_unit;
 
@@ -68,18 +70,18 @@ extern UNIT cpu_unit;
         returned data, right justified
 */
 
-t_uint64 ReadB (t_uint64 va)
+uint64_t ReadB (uint64_t va)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (dmapen) pa = trans_d (va, cm_racc);                 /* mapping on? */
 else pa = va;
 return ReadPB (pa);
 }
 
-t_uint64 ReadW (t_uint64 va)
+uint64_t ReadW (uint64_t va)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 1) ABORT1 (va, EXC_ALIGN);                     /* must be W aligned */
 if (dmapen) pa = trans_d (va, cm_racc);                 /* mapping on? */
@@ -87,9 +89,9 @@ else pa = va;
 return ReadPW (pa);
 }
 
-t_uint64 ReadL (t_uint64 va)
+uint64_t ReadL (uint64_t va)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 3) ABORT1 (va, EXC_ALIGN);                     /* must be L aligned */
 if (dmapen) pa = trans_d (va, cm_racc);                 /* mapping on? */
@@ -97,9 +99,9 @@ else pa = va;
 return ReadPL (pa);
 }
 
-t_uint64 ReadQ (t_uint64 va)
+uint64_t ReadQ (uint64_t va)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 7) ABORT1 (va, EXC_ALIGN);                     /* must be Q aligned */
 if (dmapen) pa = trans_d (va, cm_racc);                 /* mapping on? */
@@ -109,9 +111,9 @@ return ReadPQ (pa);
 
 /* Read with generalized access controls - used by PALcode */
 
-t_uint64 ReadAccL (t_uint64 va, uint32 acc)
+uint64_t ReadAccL (uint64_t va, uint32_t acc)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 3) ABORT1 (va, EXC_ALIGN);                     /* must be L aligned */
 if (dmapen) pa = trans_d (va, acc);                     /* mapping on? */
@@ -119,9 +121,9 @@ else pa = va;
 return ReadPL (pa);
 }
 
-t_uint64 ReadAccQ (t_uint64 va, uint32 acc)
+uint64_t ReadAccQ (uint64_t va, uint32_t acc)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 7) ABORT1 (va, EXC_ALIGN);                     /* must be Q aligned */
 if (dmapen) pa = trans_d (va, acc);                     /* mapping on? */
@@ -131,13 +133,13 @@ return ReadPQ (pa);
 
 /* Read instruction */
 
-uint32 ReadI (t_uint64 va)
+uint32_t ReadI (uint64_t va)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (!pal_mode) pa = trans_i (va);                       /* mapping on? */
 else pa = va;
-return (uint32) ReadPL (pa);
+return (uint32_t) ReadPL (pa);
 }
 
 /* Write virtual aligned
@@ -149,9 +151,9 @@ return (uint32) ReadPL (pa);
         none
 */
 
-void WriteB (t_uint64 va, t_uint64 dat)
+void WriteB (uint64_t va, uint64_t dat)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (dmapen) pa = trans_d (va, cm_wacc);                 /* mapping on? */
 else pa = va;
@@ -159,9 +161,9 @@ WritePB (pa, dat);
 return;
 }
 
-void WriteW (t_uint64 va, t_uint64 dat)
+void WriteW (uint64_t va, uint64_t dat)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 1) ABORT1 (va, EXC_ALIGN);                     /* must be W aligned */
 if (dmapen) pa = trans_d (va, cm_wacc);                 /* mapping on? */
@@ -170,9 +172,9 @@ WritePW (pa, dat);
 return;
 }
 
-void WriteL (t_uint64 va, t_uint64 dat)
+void WriteL (uint64_t va, uint64_t dat)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 3) ABORT1 (va, EXC_ALIGN);                     /* must be L aligned */
 if (dmapen) pa = trans_d (va, cm_wacc);                 /* mapping on? */
@@ -181,9 +183,9 @@ WritePL (pa, dat);
 return;
 }
 
-void WriteQ (t_uint64 va, t_uint64 dat)
+void WriteQ (uint64_t va, uint64_t dat)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 7) ABORT1 (va, EXC_ALIGN);                     /* must be Q aligned */
 if (dmapen) pa = trans_d (va, cm_wacc);                 /* mapping on? */
@@ -194,9 +196,9 @@ return;
 
 /* Write with generalized access controls - used by PALcode */
 
-void WriteAccL (t_uint64 va, t_uint64 dat, uint32 acc)
+void WriteAccL (uint64_t va, uint64_t dat, uint32_t acc)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 3) ABORT1 (va, EXC_ALIGN);                     /* must be L aligned */
 if (dmapen) pa = trans_d (va, acc);                     /* mapping on? */
@@ -205,9 +207,9 @@ WritePL (pa, dat);
 return;
 }
 
-void WriteAccQ (t_uint64 va, t_uint64 dat, uint32 acc)
+void WriteAccQ (uint64_t va, uint64_t dat, uint32_t acc)
 {
-t_uint64 pa;
+uint64_t pa;
 
 if (va & 7) ABORT1 (va, EXC_ALIGN);                     /* must be Q aligned */
 if (dmapen) pa = trans_d (va, acc);                     /* mapping on? */
@@ -218,33 +220,33 @@ return;
 
 /* Read and write physical aligned - access point to I/O */
 
-INLINE t_uint64 ReadPB (t_uint64 pa)
+INLINE uint64_t ReadPB (uint64_t pa)
 {
-t_uint64 val;
+uint64_t val;
 
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = ((uint32) pa) & 07;
+    uint32_t bo = ((uint32_t) pa) & 07;
     return (((M[pa >> 3] >> (bo << 3))) & M8);
     }
 if (ReadIO (pa, &val, L_BYTE)) return val;
 return 0;
 }
 
-INLINE t_uint64 ReadPW (t_uint64 pa)
+INLINE uint64_t ReadPW (uint64_t pa)
 {
-t_uint64 val;
+uint64_t val;
 
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = ((uint32) pa) & 06;
+    uint32_t bo = ((uint32_t) pa) & 06;
     return (((M[pa >> 3] >> (bo << 3))) & M16);
     }
 if (ReadIO (pa, &val, L_WORD)) return val;
 return 0;
 }
 
-INLINE t_uint64 ReadPL (t_uint64 pa)
+INLINE uint64_t ReadPL (uint64_t pa)
 {
-t_uint64 val;
+uint64_t val;
 
 if (ADDR_IS_MEM (pa)) {
     if (pa & 4) return (((M[pa >> 3] >> 32)) & M32);
@@ -254,52 +256,52 @@ if (ReadIO (pa, &val, L_LONG)) return val;
 return 0;
 }
 
-INLINE t_uint64 ReadPQ (t_uint64 pa)
+INLINE uint64_t ReadPQ (uint64_t pa)
 {
-t_uint64 val;
+uint64_t val;
 
 if (ADDR_IS_MEM (pa)) return M[pa >> 3];
 if (ReadIO (pa, &val, L_QUAD)) return val;
 return 0;
 }
 
-INLINE void WritePB (t_uint64 pa, t_uint64 dat)
+INLINE void WritePB (uint64_t pa, uint64_t dat)
 {
 dat = dat & M8;
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = ((uint32) pa) & 07;
-    M[pa >> 3] = (M[pa >> 3] & ~(((t_uint64) M8) << (bo << 3))) |
+    uint32_t bo = ((uint32_t) pa) & 07;
+    M[pa >> 3] = (M[pa >> 3] & ~(((uint64_t) M8) << (bo << 3))) |
         (dat << (bo << 3));
     }
 else WriteIO (pa, dat, L_BYTE);
 return;
 }
 
-INLINE void WritePW (t_uint64 pa, t_uint64 dat)
+INLINE void WritePW (uint64_t pa, uint64_t dat)
 {
 dat = dat & M16;
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = ((uint32) pa) & 07;
-    M[pa >> 3] = (M[pa >> 3] & ~(((t_uint64) M16) << (bo << 3))) |
+    uint32_t bo = ((uint32_t) pa) & 07;
+    M[pa >> 3] = (M[pa >> 3] & ~(((uint64_t) M16) << (bo << 3))) |
         (dat << (bo << 3));
     }
 else WriteIO (pa, dat, L_WORD);
 return;
 }
 
-INLINE void WritePL (t_uint64 pa, t_uint64 dat)
+INLINE void WritePL (uint64_t pa, uint64_t dat)
 {
 dat = dat & M32;
 if (ADDR_IS_MEM (pa)) {
     if (pa & 4) M[pa >> 3] = (M[pa >> 3] & M32) |
         (dat << 32);
-    else M[pa >> 3] = (M[pa >> 3] & ~((t_uint64) M32)) | dat;
+    else M[pa >> 3] = (M[pa >> 3] & ~((uint64_t) M32)) | dat;
     }
 else WriteIO (pa, dat, L_LONG);
 return;
 }
 
-INLINE void WritePQ (t_uint64 pa, t_uint64 dat)
+INLINE void WritePQ (uint64_t pa, uint64_t dat)
 {
 if (ADDR_IS_MEM (pa)) M[pa >> 3] = dat;
 else WriteIO (pa, dat, L_QUAD);

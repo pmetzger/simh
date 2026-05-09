@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,9 +35,9 @@ struct simh_test_saved_env {
 };
 
 extern bool sim_runlimit_enabled;
-extern int32 sim_runlimit_value;
+extern int32_t sim_runlimit_value;
 extern const char *sim_runlimit_units;
-extern t_stat set_verify(int32 flag, const char *cptr);
+extern t_stat set_verify(int32_t flag, const char *cptr);
 
 static int simh_test_cmdvars_clock_gettime(int clock_id, struct timespec *tp)
 {

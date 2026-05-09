@@ -281,9 +281,11 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp18b_cpu_internal.h"
 
-#define SEXT(x)         ((int32) (((x) & SIGN)? (x) | ~DMASK: (x) & DMASK))
+#define SEXT(x)         ((int32_t) (((x) & SIGN)? (x) | ~DMASK: (x) & DMASK))
 
 #define UNIT_V_NOEAE    (UNIT_V_UF + 0)                 /* EAE absent */
 #define UNIT_V_NOAPI    (UNIT_V_UF + 1)                 /* API absent */
@@ -308,11 +310,11 @@
 #define HIST_V_LVL      6
 
 typedef struct {
-    int32               pc;
-    int32               ir;
-    int32               ir1;
-    int32               lac;
-    int32               mq;
+    int32_t             pc;
+    int32_t             ir;
+    int32_t             ir1;
+    int32_t             lac;
+    int32_t             mq;
     } InstHistory;
 
 #define XVM             (cpu_unit.flags & UNIT_XVM)
@@ -334,91 +336,91 @@ typedef struct {
 #define ASW_DFLT        017720
 #endif
 
-int32 *M = NULL;                                        /* memory */
-int32 LAC = 0;                                          /* link'AC */
-int32 MQ = 0;                                           /* MQ */
-int32 PC = 0;                                           /* PC */
-int32 iors = 0;                                         /* IORS */
-int32 ion = 0;                                          /* int on */
-int32 ion_defer = 0;                                    /* int defer */
-int32 ion_inh = 0;                                      /* int inhibit */
-int32 int_pend = 0;                                     /* int pending */
-int32 int_hwre[API_HLVL+1] = { 0 };                     /* int requests */
-int32 api_enb = 0;                                      /* API enable */
-int32 api_req = 0;                                      /* API requests */
-int32 api_act = 0;                                      /* API active */
-int32 memm = 0;                                         /* mem mode */
+int32_t *M = NULL;                                      /* memory */
+int32_t LAC = 0;                                        /* link'AC */
+int32_t MQ = 0;                                         /* MQ */
+int32_t PC = 0;                                         /* PC */
+int32_t iors = 0;                                       /* IORS */
+int32_t ion = 0;                                        /* int on */
+int32_t ion_defer = 0;                                  /* int defer */
+int32_t ion_inh = 0;                                    /* int inhibit */
+int32_t int_pend = 0;                                   /* int pending */
+int32_t int_hwre[API_HLVL+1] = { 0 };                   /* int requests */
+int32_t api_enb = 0;                                    /* API enable */
+int32_t api_req = 0;                                    /* API requests */
+int32_t api_act = 0;                                    /* API active */
+int32_t memm = 0;                                       /* mem mode */
 #if defined (PDP15)
-int32 memm_init = 1;                                    /* mem init */
+int32_t memm_init = 1;                                  /* mem init */
 #else
-int32 memm_init = 0;
+int32_t memm_init = 0;
 #endif
-int32 usmd = 0;                                         /* user mode */
-int32 usmd_buf = 0;                                     /* user mode buffer */
-int32 usmd_defer = 0;                                   /* user mode defer */
-int32 trap_pending = 0;                                 /* trap pending */
-int32 emir_pending = 0;                                 /* emir pending */
-int32 rest_pending = 0;                                 /* restore pending */
-int32 BR = 0;                                           /* mem mgt bounds */
-int32 RR = 0;                                           /* mem mgt reloc */
-int32 MMR = 0;                                          /* XVM mem mgt */
-int32 nexm = 0;                                         /* nx mem flag */
-int32 prvn = 0;                                         /* priv viol flag */
-int32 SC = 0;                                           /* shift count */
-int32 eae_ac_sign = 0;                                  /* EAE AC sign */
-int32 SR = 0;                                           /* switch register */
-int32 ASW = ASW_DFLT;                                   /* address switches */
-int32 XR = 0;                                           /* index register */
-int32 LR = 0;                                           /* limit register */
-int32 stop_inst = 0;                                    /* stop on rsrv inst */
-int32 xct_max = 16;                                     /* nested XCT limit */
+int32_t usmd = 0;                                       /* user mode */
+int32_t usmd_buf = 0;                                   /* user mode buffer */
+int32_t usmd_defer = 0;                                 /* user mode defer */
+int32_t trap_pending = 0;                               /* trap pending */
+int32_t emir_pending = 0;                               /* emir pending */
+int32_t rest_pending = 0;                               /* restore pending */
+int32_t BR = 0;                                         /* mem mgt bounds */
+int32_t RR = 0;                                         /* mem mgt reloc */
+int32_t MMR = 0;                                        /* XVM mem mgt */
+int32_t nexm = 0;                                       /* nx mem flag */
+int32_t prvn = 0;                                       /* priv viol flag */
+int32_t SC = 0;                                         /* shift count */
+int32_t eae_ac_sign = 0;                                /* EAE AC sign */
+int32_t SR = 0;                                         /* switch register */
+int32_t ASW = ASW_DFLT;                                 /* address switches */
+int32_t XR = 0;                                         /* index register */
+int32_t LR = 0;                                         /* limit register */
+int32_t stop_inst = 0;                                  /* stop on rsrv inst */
+int32_t xct_max = 16;                                   /* nested XCT limit */
 #if defined (PDP15)
-int32 pcq[PCQ_SIZE] = { 0 };                            /* PC queue */
+int32_t pcq[PCQ_SIZE] = { 0 };                          /* PC queue */
 #else
-int16 pcq[PCQ_SIZE] = { 0 };                            /* PC queue */
+int16_t pcq[PCQ_SIZE] = { 0 };                          /* PC queue */
 #endif
-int32 pcq_p = 0;                                        /* PC queue ptr */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 
 bool build_dev_tab (void);
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 void cpu_caf (void);
-void cpu_inst_hist (int32 addr, int32 inst);
-void cpu_intr_hist (int32 flag, int32 lvl);
-int32 upd_iors (void);
-int32 api_eval (int32 *pend);
-t_stat Read (int32 ma, int32 *dat, int32 cyc);
-t_stat Write (int32 ma, int32 dat, int32 cyc);
-t_stat Ia (int32 ma, int32 *ea, bool jmp);
-int32 Incr_addr (int32 addr);
-int32 Jms_word (int32 t);
+void cpu_inst_hist (int32_t addr, int32_t inst);
+void cpu_intr_hist (int32_t flag, int32_t lvl);
+int32_t upd_iors (void);
+int32_t api_eval (int32_t *pend);
+t_stat Read (int32_t ma, int32_t *dat, int32_t cyc);
+t_stat Write (int32_t ma, int32_t dat, int32_t cyc);
+t_stat Ia (int32_t ma, int32_t *ea, bool jmp);
+int32_t Incr_addr (int32_t addr);
+int32_t Jms_word (int32_t t);
 #if defined (PDP15)
 #define INDEX(i,x)      if (!memm && ((i) & I_IDX)) \
                             x = ((x) + XR) & DMASK
-int32 Prot15 (int32 ma, bool bndchk);
-int32 Reloc15 (int32 ma, int32 acc);
-int32 RelocXVM (int32 ma, int32 acc);
-extern t_stat fp15 (int32 ir);
-extern int32 clk_task_upd (bool clr);
+int32_t Prot15 (int32_t ma, bool bndchk);
+int32_t Reloc15 (int32_t ma, int32_t acc);
+int32_t RelocXVM (int32_t ma, int32_t acc);
+extern t_stat fp15 (int32_t ir);
+extern int32_t clk_task_upd (bool clr);
 #else
 #define INDEX(i,x)
 #endif
 
-extern int32 clk (int32 dev, int32 pulse, int32 AC);
+extern int32_t clk (int32_t dev, int32_t pulse, int32_t AC);
 
-int32 (*dev_tab[DEV_MAX])(int32 dev, int32 pulse, int32 AC);    /* device dispatch */
+int32_t (*dev_tab[DEV_MAX])(int32_t dev, int32_t pulse, int32_t AC); /* device dispatch */
 
-int32 (*dev_iors[DEV_MAX])(void);                       /* IORS dispatch */
+int32_t (*dev_iors[DEV_MAX])(void);                     /* IORS dispatch */
 
-static const int32 api_ffo[256] = {
+static const int32_t api_ffo[256] = {
  8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -437,7 +439,7 @@ static const int32 api_ffo[256] = {
  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
  };
 
-int32 api_vec[API_HLVL][32] = {
+int32_t api_vec[API_HLVL][32] = {
  { ACH_PWRFL },                                         /* API 0 */
  { ACH_DTA, ACH_MTA, ACH_DRM, ACH_RF, ACH_RP, ACH_RB }, /* API 1 */
  { ACH_PTR, ACH_LPT, ACH_LPT },                         /* API 2 */
@@ -576,9 +578,9 @@ DEVICE cpu_dev = {
 
 t_stat sim_instr (void)
 {
-int32 api_int, api_usmd, skp;
-int32 iot_data, device, pulse;
-int32 last_IR;
+int32_t api_int, api_usmd, skp;
+int32_t iot_data, device, pulse;
+int32_t last_IR;
 t_stat reason;
 
 if (build_dev_tab ())                                   /* build, chk tables */
@@ -597,8 +599,8 @@ api_usmd = 0;                                           /* not API user cycle */
 
 while (reason == 0) {                                   /* loop until halted */
 
-    int32 IR, MA, MB, esc, t, xct_count;
-    int32 link_init, fill;
+    int32_t IR, MA, MB, esc, t, xct_count;
+    int32_t link_init, fill;
 
     if (sim_interval <= 0) {                            /* check clock queue */
         if ((reason = sim_process_event ()))
@@ -676,7 +678,7 @@ while (reason == 0) {                                   /* loop until halted */
         }
 
     if (api_int && !ion_defer) {                        /* API intr? */
-        int32 i, lvl = api_int - 1;                     /* get req level */
+        int32_t i, lvl = api_int - 1;                   /* get req level */
         if (hst_lnt)                                    /* record */
             cpu_intr_hist (HIST_API, lvl);
         api_act = api_act | (API_ML0 >> lvl);           /* set level active */
@@ -1140,10 +1142,10 @@ while (reason == 0) {                                   /* loop until halted */
 
         switch (((IR >> 8) & 04) | ((IR >> 3) & 03)) {  /* decode IR<7,13:14> */
         case 1:                                         /* RAL */
-            LAC = pdp18b_lac_rotate_left((uint32)LAC, 1);
+            LAC = pdp18b_lac_rotate_left((uint32_t)LAC, 1);
             break;
         case 2:                                         /* RAR */
-            LAC = pdp18b_lac_rotate_right((uint32)LAC, 1);
+            LAC = pdp18b_lac_rotate_right((uint32_t)LAC, 1);
             break;
         case 3:                                         /* RAL RAR */
 #if defined (PDP15)                                     /* PDP-15 */
@@ -1153,10 +1155,10 @@ while (reason == 0) {                                   /* loop until halted */
 #endif
             break;
         case 5:                                         /* RTL */
-            LAC = pdp18b_lac_rotate_left((uint32)LAC, 2);
+            LAC = pdp18b_lac_rotate_left((uint32_t)LAC, 2);
             break;
         case 6:                                         /* RTR */
-            LAC = pdp18b_lac_rotate_right((uint32)LAC, 2);
+            LAC = pdp18b_lac_rotate_right((uint32_t)LAC, 2);
             break;
         case 7:                                         /* RTL RTR */
 #if defined (PDP15)                                     /* PDP-15 */
@@ -1561,7 +1563,7 @@ while (reason == 0) {                                   /* loop until halted */
             else if (pulse == 044)                      /* DBR */
                 rest_pending = 1;
             if (((cpu_unit.flags & UNIT_NOAPI) == 0) && (pulse & 004)) {
-                int32 t = api_ffo[api_act & 0377];
+                int32_t t = api_ffo[api_act & 0377];
                 api_act = api_act & ~(API_ML0 >> t);
                 }
             break;
@@ -1654,7 +1656,7 @@ while (reason == 0) {                                   /* loop until halted */
             else if (pulse == 044)                      /* DBR */
                 rest_pending = 1;
             if (((cpu_unit.flags & UNIT_NOAPI) == 0) && (pulse & 004)) {
-                int32 t = api_ffo[api_act & 0377];
+                int32_t t = api_ffo[api_act & 0377];
                 api_act = api_act & ~(API_ML0 >> t);
                 }
             break;
@@ -1725,9 +1727,9 @@ return reason;
 
 /* Evaluate API */
 
-int32 api_eval (int32 *pend)
+int32_t api_eval (int32_t *pend)
 {
-int32 i, hi;
+int32_t i, hi;
 
 *pend = 0;                                              /* assume no intr */
 #if defined (PDP15)                                     /* PDP15 only */
@@ -1753,9 +1755,9 @@ return 0;
 
 /* Process IORS instruction */
 
-int32 upd_iors (void)
+int32_t upd_iors (void)
 {
-int32 d, p;
+int32_t d, p;
 
 d = (ion? IOS_ION: 0);                                  /* ION */
 for (p = 0; dev_iors[p] != NULL; p++)                   /* loop thru table */
@@ -1774,7 +1776,7 @@ return d;
         JMP I with EMIR pending can only clear extend
         There is no memory protection, nxm reads zero and ignores writes. */
 
-t_stat Read (int32 ma, int32 *dat, int32 cyc)
+t_stat Read (int32_t ma, int32_t *dat, int32_t cyc)
 {
 /* Shared memory helper signature.
    This build variant does not use every parameter. */
@@ -1787,7 +1789,7 @@ else *dat = 0;
 return MM_OK;
 }
 
-t_stat Write (int32 ma, int32 dat, int32 cyc)
+t_stat Write (int32_t ma, int32_t dat, int32_t cyc)
 {
 /* Shared memory helper signature.
    This build variant does not use every parameter. */
@@ -1799,9 +1801,9 @@ if (MEM_ADDR_OK (ma))
 return MM_OK;
 }
 
-t_stat Ia (int32 ma, int32 *ea, bool jmp)
+t_stat Ia (int32_t ma, int32_t *ea, bool jmp)
 {
-int32 t;
+int32_t t;
 t_stat sta = MM_OK;
 
 if ((ma & B_DAMASK & ~07) == 010) {                     /* autoindex? */
@@ -1821,12 +1823,12 @@ else *ea = (ma & B_EPCMASK) | (t & B_DAMASK);           /* bank-rel ia */
 return sta;
 }
 
-int32 Incr_addr (int32 ma)
+int32_t Incr_addr (int32_t ma)
 {
 return ((ma & B_EPCMASK) | ((ma + 1) & B_DAMASK));
 }
 
-int32 Jms_word (int32 t)
+int32_t Jms_word (int32_t t)
 {
 return (((LAC & LINK) >> 1) | ((memm & 1) << 16) |
     ((t & 1) << 15) | (PC & IAMASK));
@@ -1848,7 +1850,7 @@ return (((LAC & LINK) >> 1) | ((memm & 1) << 16) |
         JMP I with DBK pending restores L, user mode, extend mode
         Memory protection is implemented for foreground/background operation. */
 
-t_stat Read (int32 ma, int32 *dat, int32 cyc)
+t_stat Read (int32_t ma, int32_t *dat, int32_t cyc)
 {
 ma = ma & AMASK;
 if (usmd) {                                             /* user mode? */
@@ -1872,7 +1874,7 @@ else {
 return MM_OK;
 }
 
-t_stat Write (int32 ma, int32 dat, int32 cyc)
+t_stat Write (int32_t ma, int32_t dat, int32_t cyc)
 {
 ma = ma & AMASK;
 if (usmd) {
@@ -1891,9 +1893,9 @@ else nexm = 1;                                          /* set flag, no trap */
 return MM_OK;
 }
 
-t_stat Ia (int32 ma, int32 *ea, bool jmp)
+t_stat Ia (int32_t ma, int32_t *ea, bool jmp)
 {
-int32 t;
+int32_t t;
 t_stat sta = MM_OK;
 
 if ((ma & B_DAMASK & ~07) == 010) {                     /* autoindex? */
@@ -1919,12 +1921,12 @@ else *ea = (ma & B_EPCMASK) | (t & B_DAMASK);           /* bank-rel ia */
 return sta;
 }
 
-int32 Incr_addr (int32 ma)
+int32_t Incr_addr (int32_t ma)
 {
 return ((ma & B_EPCMASK) | ((ma + 1) & B_DAMASK));
 }
 
-int32 Jms_word (int32 t)
+int32_t Jms_word (int32_t t)
 {
 return (((LAC & LINK) >> 1) | ((memm & 1) << 16) |
     ((t & 1) << 15) | (PC & IAMASK));
@@ -1944,9 +1946,9 @@ return (((LAC & LINK) >> 1) | ((memm & 1) << 16) |
         Memory protection is implemented for foreground/background operation.
         Read and write mask addresses to 17b except for XVM systems */
 
-t_stat Read (int32 ma, int32 *dat, int32 cyc)
+t_stat Read (int32_t ma, int32_t *dat, int32_t cyc)
 {
-int32 pa;
+int32_t pa;
 
 if (usmd) {                                             /* user mode? */
     if (XVM)                                            /* XVM relocation? */
@@ -1969,9 +1971,9 @@ else {
 return MM_OK;
 }
 
-t_stat Write (int32 ma, int32 dat, int32 cyc)
+t_stat Write (int32_t ma, int32_t dat, int32_t cyc)
 {
-int32 pa;
+int32_t pa;
 
 if (usmd) {                                             /* user mode? */
     if (XVM)                                            /* XVM relocation? */
@@ -1991,11 +1993,11 @@ return MM_OK;
 
 /* XVM will do 18b defers if user_mode and G_Mode != 0 */
 
-t_stat Ia (int32 ma, int32 *ea, bool jmp)
+t_stat Ia (int32_t ma, int32_t *ea, bool jmp)
 {
-int32 gmode, t;
-int32 damask = memm? B_DAMASK: P_DAMASK;
-static const int32 g_mask[4] = { MM_G_W0, MM_G_W1, MM_G_W2, MM_G_W3 };
+int32_t gmode, t;
+int32_t damask = memm? B_DAMASK: P_DAMASK;
+static const int32_t g_mask[4] = { MM_G_W0, MM_G_W1, MM_G_W2, MM_G_W3 };
 t_stat sta = MM_OK;
 
 /* Shared helper signature.
@@ -2024,7 +2026,7 @@ else *ea = (PC & BLKMASK) | (t & IAMASK);               /* within 32K */
 return sta;
 }
 
-int32 Incr_addr (int32 ma)
+int32_t Incr_addr (int32_t ma)
 {
 if (memm)
     return ((ma & B_EPCMASK) | ((ma + 1) & B_DAMASK));
@@ -2033,7 +2035,7 @@ return ((ma & P_EPCMASK) | ((ma + 1) & P_DAMASK));
 
 /* XVM will store all 18b of PC if user mode and G_mode != 0 */
 
-int32 Jms_word (int32 t)
+int32_t Jms_word (int32_t t)
 {
 if (usmd && XVM && (MMR & MM_GM))
     return PC;
@@ -2043,7 +2045,7 @@ return (((LAC & LINK) >> 1) | ((memm & 1) << 16) |
 
 /* PDP-15 protection (KM15 option) */
 
-int32 Prot15 (int32 ma, bool bndchk)
+int32_t Prot15 (int32_t ma, bool bndchk)
 {
 ma = ma & AMASK;                                        /* 17b addressing */
 if (!MEM_ADDR_OK (ma)) {                                /* nxm? */
@@ -2059,9 +2061,9 @@ return ma;                                              /* no relocation */
 
 /* PDP-15 relocation and protection (KT15 option) */
 
-int32 Reloc15 (int32 ma, int32 rc)
+int32_t Reloc15 (int32_t ma, int32_t rc)
 {
-int32 pa;
+int32_t pa;
 
 ma = ma & AMASK;                                        /* 17b addressing */
 if (ma > (BR | 0377)) {                                 /* boundary viol? */
@@ -2080,11 +2082,11 @@ return pa;
 
 /* XVM relocation and protection option */
 
-int32 RelocXVM (int32 ma, int32 rc)
+int32_t RelocXVM (int32_t ma, int32_t rc)
 {
-int32 pa, gmode, slr;
-static const int32 g_base[4] = { MM_G_B0, MM_G_B1, MM_G_B2, MM_G_B3 };
-static const int32 slr_lnt[4] = { MM_SLR_L0, MM_SLR_L1, MM_SLR_L2, MM_SLR_L3 };
+int32_t pa, gmode, slr;
+static const int32_t g_base[4] = { MM_G_B0, MM_G_B1, MM_G_B2, MM_G_B3 };
+static const int32_t slr_lnt[4] = { MM_SLR_L0, MM_SLR_L1, MM_SLR_L2, MM_SLR_L3 };
 
 gmode = MM_GETGM (MMR);                                 /* get G_mode */
 slr = MM_GETSLR (MMR);                                  /* get segment length */
@@ -2139,7 +2141,7 @@ memm = memm_init;
 nexm = prvn = trap_pending = 0;
 emir_pending = rest_pending = 0;
 if (M == NULL)
-    M = (int32 *) calloc (MEMSIZE, sizeof (int32));
+    M = (int32_t *) calloc (MEMSIZE, sizeof (int32_t));
 if (M == NULL)
     return SCPE_MEM;
 pcq_r = find_reg ("PCQ", NULL, dptr);
@@ -2163,7 +2165,7 @@ return;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 #if !defined (PDP15)
 /* Generic examine signature.
@@ -2180,7 +2182,7 @@ if (usmd && (sw & SWMASK ('V'))) {
         addr = RelocXVM (addr, REL_C);
     else if (RELOC)
         addr = Reloc15 (addr, REL_C);
-    if (((int32) addr) < 0)
+    if (((int32_t) addr) < 0)
         return STOP_MME;
     }
 #endif
@@ -2193,7 +2195,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 #if !defined (PDP15)
 /* Generic deposit signature.
@@ -2210,7 +2212,7 @@ if (usmd && (sw & SWMASK ('V'))) {
         addr = RelocXVM (addr, REL_C);
     else if (RELOC)
         addr = Reloc15 (addr, REL_C);
-    if (((int32) addr) < 0)
+    if (((int32_t) addr) < 0)
         return STOP_MME;
     }
 #endif
@@ -2222,10 +2224,10 @@ return SCPE_OK;
 
 /* Change memory size */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -2247,11 +2249,11 @@ return SCPE_OK;
 
 /* Change device number for a device */
 
-t_stat set_devno (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_devno (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 newdev;
+uint32_t newdev;
 t_stat r;
 
 /* Generic callback signature.
@@ -2278,7 +2280,7 @@ return SCPE_OK;
 
 /* Show device number for a device */
 
-t_stat show_devno (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_devno (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 DEVICE *dptr;
 DIB *dibp;
@@ -2304,7 +2306,7 @@ return SCPE_OK;
 
 /* CPU device handler - should never get here! */
 
-static int32 bad_dev (int32 dev, int32 pulse, int32 AC)
+static int32_t bad_dev (int32_t dev, int32_t pulse, int32_t AC)
 {
 /* Device dispatch signature.
    This fallback does not use every parameter. */
@@ -2320,8 +2322,8 @@ bool build_dev_tab (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j, p;
-static const uint8 std_dev[] =
+uint32_t i, j, p;
+static const uint8_t std_dev[] =
 #if defined (PDP4)
     { 000 };
 #elif defined (PDP7)
@@ -2334,7 +2336,7 @@ for (i = 0; i < DEV_MAX; i++) {                         /* clr tables */
     dev_tab[i] = NULL;
     dev_iors[i] = NULL;
     }
-for (i = 0; i < ((uint32) sizeof (std_dev)); i++)       /* std entries */
+for (i = 0; i < ((uint32_t) sizeof (std_dev)); i++)     /* std entries */
     dev_tab[std_dev[i]] = &bad_dev;
 for (i = p = 0; (dptr = sim_devices[i]) != NULL; i++) { /* add devices */
     dibp = (DIB *) dptr->ctxt;                          /* get DIB */
@@ -2358,10 +2360,10 @@ return false;
 
 /* Set in memory 3-cycle databreak register */
 
-t_stat set_3cyc_reg (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_3cyc_reg (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 t_stat r;
-int32 newv;
+int32_t newv;
 
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -2370,7 +2372,7 @@ int32 newv;
 
 if (cptr == NULL)
     return SCPE_ARG;
-newv = (int32) get_uint (cptr, 8, 0777777, &r);
+newv = (int32_t) get_uint (cptr, 8, 0777777, &r);
 if (r != SCPE_OK)
     return SCPE_ARG;
 M[val] = newv;
@@ -2379,7 +2381,7 @@ return SCPE_OK;
 
 /* Show in-memory 3-cycle databreak register */
 
-t_stat show_3cyc_reg (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_3cyc_reg (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -2392,9 +2394,9 @@ return SCPE_OK;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 /* Generic callback signature.
@@ -2409,7 +2411,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -2429,9 +2431,9 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
-int32 l, j, k, di, lnt;
+int32_t l, j, k, di, lnt;
 
 const char *cptr = (const char *) desc;
 t_value sim_eval[2];
@@ -2446,7 +2448,7 @@ InstHistory *h;
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }
@@ -2480,7 +2482,7 @@ return SCPE_OK;
 
 /* Record events in history table */
 
-void cpu_inst_hist (int32 addr, int32 inst)
+void cpu_inst_hist (int32_t addr, int32_t inst)
 {
 t_value word = 0;
 
@@ -2497,9 +2499,9 @@ if (hst_p >= hst_lnt)
 return;
 }
 
-void cpu_intr_hist (int32 flag, int32 lvl)
+void cpu_intr_hist (int32_t flag, int32_t lvl)
 {
-int32 j;
+int32_t j;
 
 hst[hst_p].pc = PC | flag;
 hst[hst_p].ir = 0;

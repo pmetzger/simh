@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -6,49 +7,49 @@
 
 #include "id_defs.h"
 
-uint32 int_req[INTSZ];
-uint32 int_enb[INTSZ];
+uint32_t int_req[INTSZ];
+uint32_t int_enb[INTSZ];
 
-int32 int_chg(uint32 irq, int32 dat, int32 armdis)
+int32_t int_chg(uint32_t irq, int32_t dat, int32_t armdis)
 {
     (void)irq;
     (void)armdis;
     return dat;
 }
 
-void sch_adr(uint32 ch, uint32 dev)
+void sch_adr(uint32_t ch, uint32_t dev)
 {
     (void)ch;
     (void)dev;
 }
 
-bool sch_actv(uint32 sch, uint32 devno)
+bool sch_actv(uint32_t sch, uint32_t devno)
 {
     (void)sch;
     (void)devno;
     return false;
 }
 
-void sch_stop(uint32 sch)
+void sch_stop(uint32_t sch)
 {
     (void)sch;
 }
 
-uint32 sch_wrmem(uint32 sch, uint8 *buf, uint32 cnt)
-{
-    (void)sch;
-    (void)buf;
-    return cnt;
-}
-
-uint32 sch_rdmem(uint32 sch, uint8 *buf, uint32 cnt)
+uint32_t sch_wrmem(uint32_t sch, uint8_t *buf, uint32_t cnt)
 {
     (void)sch;
     (void)buf;
     return cnt;
 }
 
-t_stat set_sch(UNIT *uptr, int32 val, const char *cptr, void *desc)
+uint32_t sch_rdmem(uint32_t sch, uint8_t *buf, uint32_t cnt)
+{
+    (void)sch;
+    (void)buf;
+    return cnt;
+}
+
+t_stat set_sch(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -57,7 +58,7 @@ t_stat set_sch(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat set_dev(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_dev(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -66,7 +67,7 @@ t_stat set_dev(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_sch(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_sch(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -75,7 +76,7 @@ t_stat show_sch(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat show_dev(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_dev(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -84,7 +85,7 @@ t_stat show_dev(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat id_dboot(int32 u, DEVICE *dptr)
+t_stat id_dboot(int32_t u, DEVICE *dptr)
 {
     (void)u;
     (void)dptr;
@@ -97,7 +98,7 @@ static void test_idc_wds_returns_status_and_fills_sector_tail(void **state)
 {
     FILE *file;
     UNIT unit = {0};
-    uint8 sector[IDC_NUMBY];
+    uint8_t sector[IDC_NUMBY];
 
     (void)state;
 

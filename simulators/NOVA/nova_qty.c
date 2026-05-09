@@ -96,6 +96,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "nova_defs.h"
 
 #include "sim_sock.h"
@@ -107,20 +109,20 @@
 
 
 
-extern int32    int_req, dev_busy, dev_done, dev_disable ;
-extern int32    tmxr_poll ;                             /* calibrated delay */
+extern int32_t  int_req, dev_busy, dev_done, dev_disable ;
+extern int32_t  tmxr_poll ;                             /* calibrated delay */
 
-t_stat  qty_setnl   ( UNIT * uptr, int32 val, const char * cptr, void * desc ) ;
+t_stat  qty_setnl   ( UNIT * uptr, int32_t val, const char * cptr, void * desc ) ;
 
 t_stat  qty_attach  ( UNIT * uptr, const char * cptr ) ;
 t_stat  qty_detach  ( UNIT * uptr ) ;
 t_stat  qty_reset   ( DEVICE * dptr ) ;
 t_stat  qty_svc     ( UNIT * uptr ) ;
-int32   qty         ( int32 pulse, int32 code, int32 AC ) ;
+int32_t qty         ( int32_t pulse, int32_t code, int32_t AC ) ;
 
 t_stat  alm_reset   ( DEVICE * dptr ) ;
 t_stat  alm_svc     ( UNIT * uptr ) ;
-int32   alm         ( int32 pulse, int32 code, int32 AC ) ;
+int32_t alm         ( int32_t pulse, int32_t code, int32_t AC ) ;
 
 extern DEVICE  alm_dev ;
 
@@ -128,19 +130,19 @@ extern DEVICE  alm_dev ;
 #define QTY_MAX     64                          /*  max number of QTY lines - hardware  */
 
 
-int32   qty_brkio   = SCPE_OK ;                         /*  default I/O status code     */
-int32   qty_max     = QTY_MAX ;                         /*  max # QTY lines - user      */
+int32_t qty_brkio   = SCPE_OK ;                         /*  default I/O status code     */
+int32_t qty_max     = QTY_MAX ;                         /*  max # QTY lines - user      */
                                                         /*  controllable                */
-int32   qty_mdm     = 0 ;                               /*  QTY modem control active?   */
-int32   qty_auto    = 0 ;                               /*  QTY auto disconnect active? */
-int32   qty_polls   = 0 ;                               /*  total 'qty_svc' polls       */
+int32_t qty_mdm     = 0 ;                               /*  QTY modem control active?   */
+int32_t qty_auto    = 0 ;                               /*  QTY auto disconnect active? */
+int32_t qty_polls   = 0 ;                               /*  total 'qty_svc' polls       */
 
 
 TMLN    qty_ldsc[ QTY_MAX ] = { {0} } ;                 /*  QTY line descriptors        */
 TMXR    qty_desc    = { QTY_MAX, 0, 0, qty_ldsc } ;     /*  mux descriptor      */
-int32   qty_status[ QTY_MAX ] = { 0 } ;                 /*  QTY line status             */
+int32_t qty_status[ QTY_MAX ] = { 0 } ;                 /*  QTY line status             */
                                                         /*  (must be at least 32 bits)  */
-int32   qty_tx_chr[ QTY_MAX ] = { 0 } ;                 /*  QTY line output character   */
+int32_t qty_tx_chr[ QTY_MAX ] = { 0 } ;                 /*  QTY line output character   */
 
 
 /* QTY data structures
@@ -197,7 +199,7 @@ DEVICE  qty_dev =
         &qty_dib, (DEV_DISABLE | DEV_DIS | DEV_MUX)
         };
 
-#define DG_RETURN( status, data )   (int32)(((status) << IOT_V_REASON) | ((data) & 0x0FFFF) )
+#define DG_RETURN( status, data )   (int32_t)(((status) << IOT_V_REASON) | ((data) & 0x0FFFF) )
 
 /*
  *      QTY_S_xxx               QTY device status reference
@@ -266,7 +268,7 @@ DEVICE  qty_dev =
 
 #define QTY_L_DMASK     0x000FF                         /*  data mask (always 8 bits)   */
 
-/*  Note:  use at least an 'int32' for this guy  */
+/*  Note:  use at least an 'int32_t' for this guy  */
 
     /*------------------------------*/
     /*        qty_tmxr_putc         */
@@ -323,7 +325,7 @@ static int qty_update_rcvi( TMXR * mp )
     {
     int     line ;
     TMLN *      lp ;
-    int32       datum ;
+    int32_t     datum ;
     int     changes ;
 
     /*------------------------------------------------------*/
@@ -646,10 +648,10 @@ t_stat qty_svc( UNIT * uptr )
     /*                              qty                             */
     /*--------------------------------------------------------------*/
 
-int32 qty( int32 pulse, int32 code, int32 AC )
+int32_t qty( int32_t pulse, int32_t code, int32_t AC )
     {
-    int32       iodata ;
-    int32       ioresult ;
+    int32_t     iodata ;
+    int32_t     ioresult ;
     int     line ;
     TMLN *      tmlnp ;
     int     a ;
@@ -752,7 +754,7 @@ int32 qty( int32 pulse, int32 code, int32 AC )
     /*                             qty_setnl                        */
     /*--------------------------------------------------------------*/
 
-t_stat qty_setnl( UNIT * uptr, int32 val, const char * cptr, void * desc )
+t_stat qty_setnl( UNIT * uptr, int32_t val, const char * cptr, void * desc )
     {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -760,7 +762,7 @@ t_stat qty_setnl( UNIT * uptr, int32 val, const char * cptr, void * desc )
     (void) val ;
     (void) desc ;
 
-    int32   newln, i, t ;
+    int32_t newln, i, t ;
 
     t_stat  r ;
 
@@ -768,7 +770,7 @@ t_stat qty_setnl( UNIT * uptr, int32 val, const char * cptr, void * desc )
         {
         return ( SCPE_ARG ) ;
         }
-    newln = (int32) get_uint( cptr, 10, QTY_MAX, &r ) ;
+    newln = (int32_t) get_uint( cptr, 10, QTY_MAX, &r ) ;
     if ( (r != SCPE_OK) || (newln == qty_desc.lines) )
         {
         return ( r ) ;
@@ -906,10 +908,10 @@ t_stat alm_svc( UNIT * uptr )
     /*                              alm                             */
     /*--------------------------------------------------------------*/
 
-int32 alm( int32 pulse, int32 code, int32 AC )
+int32_t alm( int32_t pulse, int32_t code, int32_t AC )
     {
-    int32       iodata ;
-    int32       ioresult ;
+    int32_t     iodata ;
+    int32_t     ioresult ;
     TMLN *      tmlnp ;
     int     a ;
     int     kar ;

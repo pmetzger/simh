@@ -39,7 +39,9 @@
             contained in "[]".
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "swtp_defs.h"
 
 #define UNIT_V_USER_D   (UNIT_V_UF)     /* user defined switch */
@@ -63,30 +65,30 @@
 
 /* function prototypes */
 
-int32 get_base(void);
-int32 CPU_BD_get_mbyte(int32 addr);
-int32 CPU_BD_get_mword(int32 addr);
-void CPU_BD_put_mbyte(int32 addr, int32 val);
-void CPU_BD_put_mword(int32 addr, int32 val);
+int32_t get_base(void);
+int32_t CPU_BD_get_mbyte(int32_t addr);
+int32_t CPU_BD_get_mword(int32_t addr);
+void CPU_BD_put_mbyte(int32_t addr, int32_t val);
+void CPU_BD_put_mword(int32_t addr, int32_t val);
 
 /* external function prototypes */
 
 /* MP-B2 bus routines */
-extern int32 MB_get_mbyte(int32 addr);
-extern int32 MB_get_mword(int32 addr);
-extern void MB_put_mbyte(int32 addr, int32 val);
-extern void MB_put_mword(int32 addr, int32 val);
+extern int32_t MB_get_mbyte(int32_t addr);
+extern int32_t MB_get_mword(int32_t addr);
+extern void MB_put_mbyte(int32_t addr, int32_t val);
+extern void MB_put_mword(int32_t addr, int32_t val);
 
 /* M6810 bus routines */
-extern int32 m6810_get_mbyte(int32 addr);
-extern void m6810_put_mbyte(int32 addr, int32 val);
+extern int32_t m6810_get_mbyte(int32_t addr);
+extern void m6810_put_mbyte(int32_t addr, int32_t val);
 
 /* BOOTROM bus routines */
 extern UNIT BOOTROM_unit;
-extern int32 BOOTROM_get_mbyte(int32 offset);
+extern int32_t BOOTROM_get_mbyte(int32_t offset);
 
 /* I2716 bus routines */
-extern int32 i2716_get_mbyte(int32 offset);
+extern int32_t i2716_get_mbyte(int32_t offset);
 
 /* MP-A2 data structures
 
@@ -156,7 +158,7 @@ DEVICE CPU_BD_dev = {
 
 /*  get base address of 2716's */
 
-int32 get_base(void)
+int32_t get_base(void)
 {
     if (CPU_BD_unit.flags & UNIT_LO_PROM)
         return 0xC000;
@@ -167,9 +169,9 @@ int32 get_base(void)
 
 /*  get a byte from memory */
 
-int32 CPU_BD_get_mbyte(int32 addr)
+int32_t CPU_BD_get_mbyte(int32_t addr)
 {
-    int32 val = 0, EA = 0, EA1 = 0;
+    int32_t val = 0, EA = 0, EA1 = 0;
 
     switch(addr & 0xF000) {
         case 0xA000:
@@ -203,9 +205,9 @@ int32 CPU_BD_get_mbyte(int32 addr)
 
 /*  get a word from memory */
 
-int32 CPU_BD_get_mword(int32 addr)
+int32_t CPU_BD_get_mword(int32_t addr)
 {
-    int32 val;
+    int32_t val;
 
     val = (CPU_BD_get_mbyte(addr) << 8);
     val |= CPU_BD_get_mbyte(addr+1);
@@ -215,7 +217,7 @@ int32 CPU_BD_get_mword(int32 addr)
 
 /*  put a byte to memory */
 
-void CPU_BD_put_mbyte(int32 addr, int32 val)
+void CPU_BD_put_mbyte(int32_t addr, int32_t val)
 {
     switch(addr & 0xF000) {
         case 0xA000:
@@ -231,7 +233,7 @@ void CPU_BD_put_mbyte(int32 addr, int32 val)
 
 /*  put a word to memory */
 
-void CPU_BD_put_mword(int32 addr, int32 val)
+void CPU_BD_put_mword(int32_t addr, int32_t val)
 {
     CPU_BD_put_mbyte(addr, val >> 8);
     CPU_BD_put_mbyte(addr+1, val);

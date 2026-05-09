@@ -26,6 +26,7 @@
 
 #include "sim_frontpanel.h"
 #include "sim_time.h"
+#include "sim_types.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -98,9 +99,9 @@ struct PANEL {
     int                     usecs_between_callbacks;
     pthread_t               debugflush_thread;
     int                     debugflush_thread_running;
-    unsigned int            sample_frequency;
-    unsigned int            sample_dither_pct;
-    unsigned int            sample_depth;
+    uint_t                  sample_frequency;
+    uint_t                  sample_dither_pct;
+    uint_t                  sample_depth;
     int                     debug;
     char                    *simulator_version;
     int                     radix;
@@ -178,7 +179,7 @@ static pthread_key_t panel_thread_id;
 #define TN_LF           012                             /* line feed */
 #define TN_LINE          34                             /* line mode */
 
-static unsigned char mantra[] = {
+static uchar_t mantra[] = {
     TN_IAC, TN_WILL, TN_LINE,
     TN_IAC, TN_WILL, TN_SGA,
     TN_IAC, TN_WILL, TN_ECHO,
@@ -234,7 +235,7 @@ while (p && p->Debug && (dbits & p->debug)) {
         }
 
     for (i=0; i<bufsize; ++i) {
-        switch ((unsigned char)buf[i]) {
+        switch ((uchar_t)buf[i]) {
             case TN_CR:
                 sprintf (&obuf[strlen (obuf)], "_TN_CR_");
                 break;
@@ -243,7 +244,7 @@ while (p && p->Debug && (dbits & p->debug)) {
                 break;
             case TN_IAC:
                 sprintf (&obuf[strlen (obuf)], "_TN_IAC_");
-                switch ((unsigned char)buf[i+1]) {
+                switch ((uchar_t)buf[i+1]) {
                     case TN_IAC:
                         sprintf (&obuf[strlen (obuf)], "_TN_IAC_"); ++i;
                         break;
@@ -260,10 +261,10 @@ while (p && p->Debug && (dbits & p->debug)) {
                         sprintf (&obuf[strlen (obuf)], "_TN_WILL_"); ++i;
                         break;
                     default:
-                        sprintf (&obuf[strlen (obuf)], "_0x%02X_", (unsigned char)buf[i+1]); ++i;
+                        sprintf (&obuf[strlen (obuf)], "_0x%02X_", (uchar_t)buf[i+1]); ++i;
                         break;
                     }
-                switch ((unsigned char)buf[i+1]) {
+                switch ((uchar_t)buf[i+1]) {
                     case TN_BIN:
                         sprintf (&obuf[strlen (obuf)], "_TN_BIN_"); ++i;
                         break;
@@ -277,7 +278,7 @@ while (p && p->Debug && (dbits & p->debug)) {
                         sprintf (&obuf[strlen (obuf)], "_TN_LINE_"); ++i;
                         break;
                     default:
-                        sprintf (&obuf[strlen (obuf)], "_0x%02X_", (unsigned char)buf[i+1]); ++i;
+                        sprintf (&obuf[strlen (obuf)], "_0x%02X_", (uchar_t)buf[i+1]); ++i;
                         break;
                     }
                     break;
@@ -1347,9 +1348,9 @@ return 0;
 
 int
 sim_panel_set_sampling_parameters_ex (PANEL *panel,
-                                      unsigned int sample_frequency,
-                                      unsigned int sample_dither_pct,
-                                      unsigned int sample_depth)
+                                      uint_t sample_frequency,
+                                      uint_t sample_dither_pct,
+                                      uint_t sample_depth)
 {
 if (sample_frequency == 0) {
     sim_panel_set_error (NULL, "Invalid sample frequency value: %u", sample_frequency);
@@ -1371,8 +1372,8 @@ return 0;
 
 int
 sim_panel_set_sampling_parameters (PANEL *panel,
-                                   unsigned int sample_frequency,
-                                   unsigned int sample_depth)
+                                   uint_t sample_frequency,
+                                   uint_t sample_depth)
 {
 return sim_panel_set_sampling_parameters_ex (panel,
                                              sample_frequency,
@@ -2120,7 +2121,7 @@ while ((p->sock != INVALID_SOCKET) &&
             if (e) {
                 size_t i;
                 char smp_dev[32], smp_reg[32], smp_ind[32];
-                unsigned int bit;
+                uint_t bit;
 
                 *e++ = '\0';
                 if (!strcmp("Time", s)) {

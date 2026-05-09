@@ -56,6 +56,7 @@
 #include "i7094_defs.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define DRM_NUMDR       4                               /* drums/controller */
 
@@ -82,9 +83,9 @@
 #define DRM_M_LOG       07
 #define DRM_V_WDA       0                               /* word address */
 #define DRM_M_WDA       (DRM_NUMWDL - 1)
-#define DRM_GETPHY(x)   (((uint32) ((x) >> DRM_V_PHY)) & DRM_M_PHY)
-#define DRM_GETLOG(x)   ((((uint32) (x)) >> DRM_V_LOG) & DRM_M_LOG)
-#define DRM_GETWDA(x)   ((((uint32) (x)) >> DRM_V_WDA) & DRM_M_WDA)
+#define DRM_GETPHY(x)   (((uint32_t) ((x) >> DRM_V_PHY)) & DRM_M_PHY)
+#define DRM_GETLOG(x)   ((((uint32_t) (x)) >> DRM_V_LOG) & DRM_M_LOG)
+#define DRM_GETWDA(x)   ((((uint32_t) (x)) >> DRM_V_WDA) & DRM_M_WDA)
 #define DRM_GETDA(l,x)  ((((l) - 1) * DRM_NUMWDL) + (x))
 
 /* SCD word */
@@ -106,23 +107,23 @@
 #define DRM_DATA        3
 #define DRM_EOD         4
 
-uint32 drm_ch = CH_G;                                   /* drum channel */
-uint32 drm_da = 0;                                      /* drum address */
-uint32 drm_phy = 0;                                     /* physical drum */
-uint32 drm_log = 0;                                     /* logical drum */
-uint32 drm_sta = 0;                                     /* state */
-uint32 drm_op = 0;                                      /* operation */
-t_uint64 drm_chob = 0;                                  /* output buf */
-uint32 drm_chob_v = 0;                                  /* valid */
-uint32 drm_prot[DRM_NUMDR] = { 0 };                     /* drum protect sw */
-int32 drm_time = 10;                                    /* inter-word time */
+uint32_t drm_ch = CH_G;                                 /* drum channel */
+uint32_t drm_da = 0;                                    /* drum address */
+uint32_t drm_phy = 0;                                   /* physical drum */
+uint32_t drm_log = 0;                                   /* logical drum */
+uint32_t drm_sta = 0;                                   /* state */
+uint32_t drm_op = 0;                                    /* operation */
+uint64_t drm_chob = 0;                                  /* output buf */
+uint32_t drm_chob_v = 0;                                /* valid */
+uint32_t drm_prot[DRM_NUMDR] = { 0 };                   /* drum protect sw */
+int32_t drm_time = 10;                                  /* inter-word time */
 
-extern uint32 ind_ioc;
+extern uint32_t ind_ioc;
 
 t_stat drm_svc (UNIT *uptr);
 t_stat drm_reset (DEVICE *dptr);
-t_stat drm_chsel (uint32 ch, uint32 sel, uint32 unit);
-t_stat drm_chwr (uint32 ch, t_uint64 val, uint32 flags);
+t_stat drm_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
+t_stat drm_chwr (uint32_t ch, uint64_t val, uint32_t flags);
 bool drm_da_incr (void);
 
 /* DRM data structures
@@ -177,7 +178,7 @@ DEVICE drm_dev = {
 
 /* Channel select routine */
 
-t_stat drm_chsel (uint32 ch, uint32 sel, uint32 unit)
+t_stat drm_chsel (uint32_t ch, uint32_t sel, uint32_t unit)
 {
 /* Channel select callback signature.
    This implementation does not use every parameter. */
@@ -207,32 +208,32 @@ return SCPE_OK;
 
 /* Channel diagnostic store routine */
 
-t_uint64 drm_sdc (uint32 ch)
+uint64_t drm_sdc (uint32_t ch)
 {
 /* Shared channel diagnostic signature.
    This implementation does not use every parameter. */
 (void) ch;
 
-t_uint64 val;
+uint64_t val;
 
 
-val = (((t_uint64) ind_ioc) << DRMS_V_IOC) |
-    (((t_uint64) drm_phy) << DRMS_V_PHY) |
-    (((t_uint64) drm_log) << DRMS_V_LOG) |
-    (((t_uint64) (drm_da & ~ DRM_GPMASK)) << DRMS_V_WDA) |
-    (((t_uint64) GET_PROT(drm_prot)) << DRMS_V_WRP);
+val = (((uint64_t) ind_ioc) << DRMS_V_IOC) |
+    (((uint64_t) drm_phy) << DRMS_V_PHY) |
+    (((uint64_t) drm_log) << DRMS_V_LOG) |
+    (((uint64_t) (drm_da & ~ DRM_GPMASK)) << DRMS_V_WDA) |
+    (((uint64_t) GET_PROT(drm_prot)) << DRMS_V_WRP);
 return val;
 }
 
 /* Channel write routine */
 
-t_stat drm_chwr (uint32 ch, t_uint64 val, uint32 flags)
+t_stat drm_chwr (uint32_t ch, uint64_t val, uint32_t flags)
 {
 /* Channel write callback signature.
    This implementation does not use every parameter. */
 (void) flags;
 
-int32 cp, dp;
+int32_t cp, dp;
 
 if (drm_sta == DRM_1ST) {
     drm_phy = DRM_GETPHY (val);                         /* get unit */
@@ -269,9 +270,9 @@ return SCPE_OK;
 
 t_stat drm_svc (UNIT *uptr)
 {
-uint32 i;
-t_uint64 *fbuf = (t_uint64 *) uptr->filebuf;
-uint32 da = DRM_GETDA (drm_log, drm_da);
+uint32_t i;
+uint64_t *fbuf = (uint64_t *) uptr->filebuf;
+uint32_t da = DRM_GETDA (drm_log, drm_da);
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? */
     ch6_err_disc (drm_ch, U_DRM, CHF_TRC);              /* set TRC, disc */
@@ -332,7 +333,7 @@ return true;
 
 t_stat drm_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 
 drm_phy = 0;
 drm_log = 0;

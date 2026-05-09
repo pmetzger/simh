@@ -1,6 +1,7 @@
 #include "test_simh_personality.h"
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -12,7 +13,7 @@ DEVICE *sim_devices[SIMH_TEST_MAX_DEVICES];
 REG *sim_PC = NULL;
 char sim_name[64] = "zimh-unit";
 const char *sim_stop_messages[SCPE_BASE];
-int32 sim_emax = 0;
+int32_t sim_emax = 0;
 
 void simh_test_reset_simulator_state(void)
 {
@@ -79,7 +80,7 @@ t_stat sim_load(FILE *ptr, const char *cptr, const char *fnam, int flag)
     return SCPE_OK;
 }
 
-t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
     (void)ofile;
     (void)addr;
@@ -91,7 +92,7 @@ t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 }
 
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
-                 int32 sw)
+                 int32_t sw)
 {
     (void)cptr;
     (void)addr;

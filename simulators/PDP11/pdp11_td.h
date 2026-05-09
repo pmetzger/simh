@@ -37,24 +37,26 @@
 #define PDP11_TD_H
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 typedef struct CTLR CTLR;
 
 
 t_stat td_connect_console_device (DEVICE *dptr,
-                                  void (*rx_set_int) (int32 ctlr_num, bool val),
-                                  void (*tx_set_int) (int32 ctlr_num, bool val));
+                                  void (*rx_set_int) (int32_t ctlr_num, bool val),
+                                  void (*tx_set_int) (int32_t ctlr_num, bool val));
 
-t_stat td_rd_i_csr (CTLR *ctlr, int32 *data);
-t_stat td_rd_i_buf (CTLR *ctlr, int32 *data);
-t_stat td_rd_o_csr (CTLR *ctlr, int32 *data);
-t_stat td_rd_o_buf (CTLR *ctlr, int32 *data);
+t_stat td_rd_i_csr (CTLR *ctlr, int32_t *data);
+t_stat td_rd_i_buf (CTLR *ctlr, int32_t *data);
+t_stat td_rd_o_csr (CTLR *ctlr, int32_t *data);
+t_stat td_rd_o_buf (CTLR *ctlr, int32_t *data);
 
-t_stat td_wr_i_csr (CTLR *ctlr, int32 data);
-t_stat td_wr_i_buf (CTLR *ctlr, int32 data);
-t_stat td_wr_o_csr (CTLR *ctlr, int32 data);
-t_stat td_wr_o_buf (CTLR *ctlr, int32 data);
+t_stat td_wr_i_csr (CTLR *ctlr, int32_t data);
+t_stat td_wr_i_buf (CTLR *ctlr, int32_t data);
+t_stat td_wr_o_csr (CTLR *ctlr, int32_t data);
+t_stat td_wr_o_buf (CTLR *ctlr, int32_t data);
 
 /* Debug detail levels */
 

@@ -12,8 +12,10 @@
 #define SIM_TIMER_H_   0
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "sim_time.h"
+#include "sim_types.h"
 #if defined(SIM_ASYNCH_IO) || defined(USE_READER_THREAD)
 #include <pthread.h>
 #endif
@@ -52,66 +54,66 @@
 
 bool sim_timer_init (void);
 void sim_timespec_diff (struct timespec *diff, struct timespec *min, struct timespec *sub);
-int sim_timer_deadline_msec (struct timespec *deadline, unsigned int msec);
+int sim_timer_deadline_msec (struct timespec *deadline, uint_t msec);
 double sim_timenow_double (void);
-int32 sim_rtcn_init (int32 time, int32 tmr);
-int32 sim_rtcn_init_unit (UNIT *uptr, int32 time, int32 tmr);
-int32 sim_rtcn_init_unit_ticks (UNIT *uptr, int32 time, int32 tmr, int32 ticksper);
+int32_t sim_rtcn_init (int32_t time, int32_t tmr);
+int32_t sim_rtcn_init_unit (UNIT *uptr, int32_t time, int32_t tmr);
+int32_t sim_rtcn_init_unit_ticks (UNIT *uptr, int32_t time, int32_t tmr, int32_t ticksper);
 void sim_rtcn_get_time (struct timespec *now, int tmr);
 time_t sim_get_time (time_t *now);
-t_stat sim_rtcn_tick_ack (uint32 time, int32 tmr);
+t_stat sim_rtcn_tick_ack (uint32_t time, int32_t tmr);
 void sim_rtcn_init_all (void);
-int32 sim_rtcn_calb (uint32 ticksper, int32 tmr);
-int32 sim_rtcn_calb_tick (int32 tmr);
-int32 sim_rtc_init (int32 time);
-int32 sim_rtc_calb (uint32 ticksper);
-t_stat sim_set_timers (int32 arg, const char *cptr);
-t_stat sim_show_timers (FILE* st, DEVICE *dptr, UNIT* uptr, int32 val, const char* desc);
-t_stat sim_show_clock_queues (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-bool sim_idle (uint32 tmr, int sin_cyc);
-t_stat sim_set_throt (int32 arg, const char *cptr);
-t_stat sim_show_throt (FILE *st, DEVICE *dnotused, UNIT *unotused, int32 flag, const char *cptr);
-t_stat sim_set_idle (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat sim_clr_idle (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat sim_show_idle (FILE *st, UNIT *uptr, int32 val, const void *desc);
+int32_t sim_rtcn_calb (uint32_t ticksper, int32_t tmr);
+int32_t sim_rtcn_calb_tick (int32_t tmr);
+int32_t sim_rtc_init (int32_t time);
+int32_t sim_rtc_calb (uint32_t ticksper);
+t_stat sim_set_timers (int32_t arg, const char *cptr);
+t_stat sim_show_timers (FILE* st, DEVICE *dptr, UNIT* uptr, int32_t val, const char* desc);
+t_stat sim_show_clock_queues (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+bool sim_idle (uint32_t tmr, int sin_cyc);
+t_stat sim_set_throt (int32_t arg, const char *cptr);
+t_stat sim_show_throt (FILE *st, DEVICE *dnotused, UNIT *unotused, int32_t flag, const char *cptr);
+t_stat sim_set_idle (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat sim_clr_idle (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat sim_show_idle (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 void sim_throt_sched (void);
 void sim_throt_cancel (void);
 
 /* Return the current host time as a wrapping millisecond tick counter.
-   The uint32 value intentionally wraps; callers must compare tick values
+   The uint32_t value intentionally wraps; callers must compare tick values
    with unsigned subtraction rather than ordering raw timestamps. */
-uint32 sim_os_msec (void);
+uint32_t sim_os_msec (void);
 
-void sim_os_sleep (unsigned int sec);
-uint32 sim_os_ms_sleep (unsigned int msec);
-uint32 sim_os_ms_sleep_init (void);
+void sim_os_sleep (uint_t sec);
+uint32_t sim_os_ms_sleep (uint_t msec);
+uint32_t sim_os_ms_sleep_init (void);
 void sim_start_timer_services (void);
 void sim_stop_timer_services (void);
 t_stat sim_timer_change_asynch (void);
-t_stat sim_timer_activate (UNIT *uptr, int32 interval);
+t_stat sim_timer_activate (UNIT *uptr, int32_t interval);
 t_stat sim_timer_activate_after (UNIT *uptr, double usec_delay);
-int32 _sim_timer_activate_time (UNIT *uptr);
+int32_t _sim_timer_activate_time (UNIT *uptr);
 double sim_timer_activate_time_usecs (UNIT *uptr);
 bool sim_timer_is_active (UNIT *uptr);
 t_stat sim_timer_cancel (UNIT *uptr);
 t_stat sim_register_clock_unit (UNIT *uptr);
-t_stat sim_register_clock_unit_tmr (UNIT *uptr, int32 tmr);
-t_stat sim_clock_coschedule (UNIT *uptr, int32 interval);
-t_stat sim_clock_coschedule_abs (UNIT *uptr, int32 interval);
-t_stat sim_clock_coschedule_tmr (UNIT *uptr, int32 tmr, int32 ticks);
-t_stat sim_clock_coschedule_tmr_abs (UNIT *uptr, int32 tmr, int32 ticks);
+t_stat sim_register_clock_unit_tmr (UNIT *uptr, int32_t tmr);
+t_stat sim_clock_coschedule (UNIT *uptr, int32_t interval);
+t_stat sim_clock_coschedule_abs (UNIT *uptr, int32_t interval);
+t_stat sim_clock_coschedule_tmr (UNIT *uptr, int32_t tmr, int32_t ticks);
+t_stat sim_clock_coschedule_tmr_abs (UNIT *uptr, int32_t tmr, int32_t ticks);
 double sim_timer_inst_per_sec (void);
 void sim_timer_precalibrate_execution_rate (void);
-int32 sim_rtcn_tick_size (int32 tmr);
-int32 sim_rtcn_calibrated_tmr (void);
-bool sim_timer_idle_capable (uint32 *host_ms_sleep_1, uint32 *host_tick_ms);
+int32_t sim_rtcn_tick_size (int32_t tmr);
+int32_t sim_rtcn_calibrated_tmr (void);
+bool sim_timer_idle_capable (uint32_t *host_ms_sleep_1, uint32_t *host_tick_ms);
 #define PRIORITY_BELOW_NORMAL  -1
 #define PRIORITY_NORMAL         0
 #define PRIORITY_ABOVE_NORMAL   1
 t_stat sim_os_set_thread_priority (int below_normal_above);
-uint32 sim_get_rom_delay_factor (void);
-void sim_set_rom_delay_factor (uint32 delay);
-uint32 sim_rom_read_with_delay (uint32 val);
+uint32_t sim_get_rom_delay_factor (void);
+void sim_set_rom_delay_factor (uint32_t delay);
+uint32_t sim_rom_read_with_delay (uint32_t val);
 double sim_host_speed_factor (void);
 
 extern bool sim_idle_enab;                          /* idle enabled flag */

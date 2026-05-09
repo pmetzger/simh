@@ -1,6 +1,9 @@
+#include <stdint.h>
+
 #include "test_cmocka.h"
 
 #include "pdp18b_cpu_internal.h"
+#include "sim_types.h"
 
 /* Verify RAR moves the link into AC sign without signed host overflow. */
 static void test_lac_rotate_right_moves_link_to_sign(void **state)
@@ -31,10 +34,10 @@ static void test_lac_rotates_preserve_one_hot_bits(void **state)
 {
     (void)state;
 
-    for (unsigned int bit = 0; bit < 19; ++bit) {
-        uint32 value = (uint32)1 << bit;
+    for (uint_t bit = 0; bit < 19; ++bit) {
+        uint32_t value = (uint32_t)1 << bit;
 
-        for (unsigned int count = 0; count < 19; ++count) {
+        for (uint_t count = 0; count < 19; ++count) {
             assert_int_equal(
                 pdp18b_lac_rotate_right(
                     pdp18b_lac_rotate_left(value, count), count),

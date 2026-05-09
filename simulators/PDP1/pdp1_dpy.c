@@ -34,13 +34,14 @@
 
 #ifdef USE_DISPLAY
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "pdp1_defs.h"
 #include "display/display.h"
 #include "sim_video.h"
 
-extern int32 ios, cpls, iosta, PF;
-extern int32 stop_inst;
+extern int32_t ios, cpls, iosta, PF;
+extern int32_t stop_inst;
 
 t_stat dpy_svc (UNIT *uptr);
 t_stat dpy_reset (DEVICE *dptr);
@@ -88,9 +89,9 @@ DEVICE dpy_dev = {
 
 /* Display IOT routine */
 
-int32 dpy (int32 inst, int32 dev, int32 io, int32 ac)
+int32_t dpy (int32_t inst, int32_t dev, int32_t io, int32_t ac)
 {
-int32 x, y;
+int32_t x, y;
 int level;
 
 if (dpy_dev.flags & DEV_DIS)                            /* disabled? */
@@ -202,7 +203,7 @@ t_stat dpy_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-int32 spacewar (int32 inst, int32 dev, int32 io)
+int32_t spacewar (int32_t inst, int32_t dev, int32_t io)
 {
 if (dpy_dev.flags & DEV_DIS)                            /* disabled? */
         return (stop_inst << IOT_V_REASON) | io;        /* stop if requested */

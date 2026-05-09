@@ -18,6 +18,8 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "ibm1130_defs.h"
 
 /***************************************************************************************
@@ -38,16 +40,16 @@ static t_stat ptr_svc    (UNIT *uptr);
 static t_stat ptr_reset  (DEVICE *dptr);
 static t_stat ptr_attach (UNIT *uptr, const char *cptr);
 static t_stat ptr_detach (UNIT *uptr);
-static t_stat ptr_boot   (int32 unitno, DEVICE *dptr);
+static t_stat ptr_boot   (int32_t unitno, DEVICE *dptr);
 static t_stat ptp_svc    (UNIT *uptr);
 static t_stat ptp_reset  (DEVICE *dptr);
 static t_stat ptp_attach (UNIT *uptr, const char *cptr);
 static t_stat ptp_detach (UNIT *uptr);
 
-static int16 ptr_dsw   = 0;                             /* device status word */
-static int32 ptr_wait  = 1000;                          /* character read wait */
-static uint8 ptr_char  = 0;                             /* last character read */
-static int32 ptp_wait  = 1000;                          /* character punch wait */
+static int16_t ptr_dsw   = 0;                           /* device status word */
+static int32_t ptr_wait  = 1000;                        /* character read wait */
+static uint8_t ptr_char  = 0;                           /* last character read */
+static int32_t ptp_wait  = 1000;                        /* character punch wait */
 
 UNIT ptr_unit[1] = {
     { UDATA (&ptr_svc, UNIT_ATTABLE, 0) },
@@ -82,13 +84,13 @@ DEVICE ptp_dev = {
 
 /* xio_1134_papertape - XIO command interpreter for the 1134 paper tape reader and 1055 paper tape punch */
 
-void xio_1134_papertape (int32 iocc_addr, int32 iocc_func, int32 iocc_mod)
+void xio_1134_papertape (int32_t iocc_addr, int32_t iocc_func, int32_t iocc_mod)
 {
     char msg[80];
 
     switch (iocc_func) {
         case XIO_READ:                                          /* read: return last character read */
-            M[iocc_addr & mem_mask] = (uint16) (ptr_char << 8);
+            M[iocc_addr & mem_mask] = (uint16_t) (ptr_char << 8);
             break;
 
         case XIO_WRITE:                                         /* write: initiate punch operation */
@@ -238,7 +240,7 @@ static t_stat ptr_detach (UNIT *uptr)
 
 /* ptr_attach - perform paper tape initial program load */
 
-static t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+static t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
     int ch, nch, val, addr;
     bool leader = true, start = false;
@@ -271,7 +273,7 @@ static t_stat ptr_boot (int32 unitno, DEVICE *dptr)
         val = (val << 4) | (ch & 0x0F);         /* get next nybble */
 
         if (++nch == 4) {                       /* if we now have four nybbles, store the word */
-            M[addr & mem_mask] = (uint16) val;
+            M[addr & mem_mask] = (uint16_t) val;
 
             addr++;                             /* prepare for next word */
             nch = 0;

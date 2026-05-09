@@ -103,6 +103,8 @@
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_tape.h"
 #define ADDRTEST        (UNIBUS? 0177774: 0177700)
 
@@ -268,33 +270,33 @@
 
 #define MAX_PLNT        8                               /* max pkt length */
 
-uint8 *tsxb = NULL;                                     /* xfer buffer */
-int32 tssr = 0;                                         /* status register */
-int32 tsba = 0;                                         /* mem addr */
-int32 tsdbx = 0;                                        /* data buf ext */
-int32 tscmdp[CMD_PLNT] = { 0 };                         /* command packet */
-int32 tsmsgp[MSG_PLNT] = { 0 };                         /* message packet */
-int32 tswchp[WCH_PLNT] = { 0 };                         /* wr char packet */
-int32 ts_ownc = 0;                                      /* tape owns cmd */
-int32 ts_ownm = 0;                                      /* tape owns msg */
-int32 ts_qatn = 0;                                      /* queued attn */
-int32 ts_bcmd = 0;                                      /* boot cmd */
-int32 ts_time = 2000;                                   /* record latency */
-static uint16 cpy_buf[MAX_PLNT];                        /* copy buffer */
+uint8_t *tsxb = NULL;                                   /* xfer buffer */
+int32_t tssr = 0;                                       /* status register */
+int32_t tsba = 0;                                       /* mem addr */
+int32_t tsdbx = 0;                                      /* data buf ext */
+int32_t tscmdp[CMD_PLNT] = { 0 };                       /* command packet */
+int32_t tsmsgp[MSG_PLNT] = { 0 };                       /* message packet */
+int32_t tswchp[WCH_PLNT] = { 0 };                       /* wr char packet */
+int32_t ts_ownc = 0;                                    /* tape owns cmd */
+int32_t ts_ownm = 0;                                    /* tape owns msg */
+int32_t ts_qatn = 0;                                    /* queued attn */
+int32_t ts_bcmd = 0;                                    /* boot cmd */
+int32_t ts_time = 2000;                                 /* record latency */
+static uint16_t cpy_buf[MAX_PLNT];                      /* copy buffer */
 
-t_stat ts_rd (int32 *data, int32 PA, int32 access);
-t_stat ts_wr (int32 data, int32 PA, int32 access);
+t_stat ts_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat ts_wr (int32_t data, int32_t PA, int32_t access);
 t_stat ts_svc (UNIT *uptr);
 t_stat ts_reset (DEVICE *dptr);
 t_stat ts_attach (UNIT *uptr, const char *cptr);
 t_stat ts_detach (UNIT *uptr);
-t_stat ts_boot (int32 unitno, DEVICE *dptr);
-int32 ts_updtssr (int32 t);
-int32 ts_updxs0 (int32 t);
-void ts_cmpendcmd (int32 s0, int32 s1);
-void ts_endcmd (int32 ssf, int32 xs0f, int32 msg);
-int32 ts_map_status (t_stat st);
-t_stat ts_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat ts_boot (int32_t unitno, DEVICE *dptr);
+int32_t ts_updtssr (int32_t t);
+int32_t ts_updxs0 (int32_t t);
+void ts_cmpendcmd (int32_t s0, int32_t s1);
+void ts_endcmd (int32_t ssf, int32_t xs0f, int32_t msg);
+int32_t ts_map_status (t_stat st);
+t_stat ts_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *ts_description (DEVICE *dptr);
 
 /* TS data structures
@@ -394,7 +396,7 @@ DEVICE ts_dev = {
    17772522     TSSR    read/write
 */
 
-t_stat ts_rd (int32 *data, int32 PA, int32 access)
+t_stat ts_rd (int32_t *data, int32_t PA, int32_t access)
 {
 switch ((PA >> 1) & 01) {                               /* decode PA<1> */
 
@@ -411,9 +413,9 @@ sim_debug(DBG_REG, &ts_dev, "ts_rd(PA=0x%08X [%s], access=%d): 0x%04X\n", PA, ((
 return SCPE_OK;
 }
 
-t_stat ts_wr (int32 data, int32 PA, int32 access)
+t_stat ts_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 i, t;
+int32_t i, t;
 
 sim_debug(DBG_REG, &ts_dev, "ts_wr(PA=0x%08X [%s], access=%d): 0x%04X\n", PA, ((PA >> 1) & 01) ? "TSDB" : "TSSR", access, data);
 
@@ -470,7 +472,7 @@ return SCPE_OK;
 #define GET_X(x)        (((x) >> 16) & 0177777)
 #define GET_T(x)        ((x) & 0177777)
 
-int32 ts_map_status (t_stat st)
+int32_t ts_map_status (t_stat st)
 {
 switch (st) {
 
@@ -507,7 +509,7 @@ switch (st) {
 return 0;
 }
 
-static int32 ts_spacef (UNIT *uptr, int32 fc, bool upd)
+static int32_t ts_spacef (UNIT *uptr, int32_t fc, bool upd)
 {
 t_stat st;
 t_mtrlnt tbc;
@@ -523,7 +525,7 @@ do {
 return 0;
 }
 
-static int32 ts_skipf (UNIT *uptr, int32 fc)
+static int32_t ts_skipf (UNIT *uptr, int32_t fc)
 {
 t_stat st;
 t_mtrlnt tbc;
@@ -550,9 +552,9 @@ do {
 return 0;
 }
 
-static int32 ts_spacer (UNIT *uptr, int32 fc, bool upd)
+static int32_t ts_spacer (UNIT *uptr, int32_t fc, bool upd)
 {
-int32 st;
+int32_t st;
 t_mtrlnt tbc;
 
 do {
@@ -566,7 +568,7 @@ do {
 return 0;
 }
 
-static int32 ts_skipr (UNIT *uptr, int32 fc)
+static int32_t ts_skipr (UNIT *uptr, int32_t fc)
 {
 t_stat st;
 t_mtrlnt tbc;
@@ -591,11 +593,11 @@ do {
 return 0;
 }
 
-static int32 ts_readf (UNIT *uptr, uint32 fc)
+static int32_t ts_readf (UNIT *uptr, uint32_t fc)
 {
 t_stat st;
 t_mtrlnt i, t, tbc, wbc;
-int32 wa;
+int32_t wa;
 
 msgrfc = fc;
 st = sim_tape_rdrecf (uptr, tsxb, &tbc, MT_MAXFR);      /* read rec fwd */
@@ -633,11 +635,11 @@ if (tbc > wbc)                                          /* rec too big? */
 return 0;
 }
 
-static int32 ts_readr (UNIT *uptr, uint32 fc)
+static int32_t ts_readr (UNIT *uptr, uint32_t fc)
 {
 t_stat st;
 t_mtrlnt i, tbc, wbc;
-int32 wa;
+int32_t wa;
 
 msgrfc = fc;
 st = sim_tape_rdrecr (uptr, tsxb, &tbc, MT_MAXFR);      /* read rec rev */
@@ -664,10 +666,10 @@ if (tbc > wbc)                                          /* rec too big? */
 return 0;
 }
 
-static int32 ts_write (UNIT *uptr, int32 fc)
+static int32_t ts_write (UNIT *uptr, int32_t fc)
 {
-int32 i, t;
-uint32 wa;
+int32_t i, t;
+uint32_t wa;
 t_stat st;
 
 msgrfc = fc;
@@ -701,7 +703,7 @@ if (sim_tape_eot (&ts_unit))                            /* EOT on write? */
 return 0;
 }
 
-static int32 ts_wtmk (UNIT *uptr)
+static int32_t ts_wtmk (UNIT *uptr)
 {
 t_stat st;
 
@@ -717,15 +719,15 @@ return XTC (XS0_TMK, TC0);
 
 t_stat ts_svc (UNIT *uptr)
 {
-int32 i, t, bc, fnc, mod, st0, st1;
+int32_t i, t, bc, fnc, mod, st0, st1;
 
-static const int32 fnc_mod[CMD_N_FNC] = {               /* max mod+1 0 ill */
+static const int32_t fnc_mod[CMD_N_FNC] = {             /* max mod+1 0 ill */
  0, 4, 0, 0, 1, 2, 1, 0,                                /* 00 - 07 */
  5, 3, 5, 1, 0, 0, 0, 1,                                /* 10 - 17 */
  0, 0, 0, 0, 0, 0, 0, 0,                                /* 20 - 27 */
  0, 0, 0, 0, 0, 0, 0, 0                                 /* 30 - 37 */
  };
-static const int32 fnc_flg[CMD_N_FNC] = {
+static const int32_t fnc_flg[CMD_N_FNC] = {
  0, FLG_MO+FLG_AD, 0, 0, 0, FLG_MO+FLG_WR+FLG_AD, FLG_AD, 0,
  FLG_MO, FLG_MO+FLG_WR, FLG_MO, 0, 0, 0, 0, 0,
  0, 0, 0, 0, 0, 0, 0, 0,                                /* 20 - 27 */
@@ -974,7 +976,7 @@ return SCPE_OK;
 
 /* Utility routines */
 
-int32 ts_updtssr (int32 t)
+int32_t ts_updtssr (int32_t t)
 {
 t = (t & ~TSSR_EMA) | ((tsba >> (16 - TSSR_V_EMA)) & TSSR_EMA);
 if (ts_unit.flags & UNIT_ATT)
@@ -983,7 +985,7 @@ else t = t | TSSR_OFL;
 return (t & ~TSSR_MBZ);
 }
 
-int32 ts_updxs0 (int32 t)
+int32_t ts_updxs0 (int32_t t)
 {
 t = (t & ~(XS0_ONL | XS0_WLK | XS0_BOT | XS0_IE)) | XS0_PET;
 if (ts_unit.flags & UNIT_ATT) {
@@ -1001,10 +1003,10 @@ if (cmdhdr & CMD_IE)
 return t;
 }
 
-void ts_cmpendcmd (int32 s0, int32 s1)
+void ts_cmpendcmd (int32_t s0, int32_t s1)
 {
-int32 xs0, ssr, tc;
-static const int32 msg[8] = {
+int32_t xs0, ssr, tc;
+static const int32_t msg[8] = {
  MSG_ACK | MSG_CEND, MSG_ACK | MSG_MATN | MSG_CATN,
  MSG_ACK | MSG_CEND, MSG_ACK | MSG_CFAIL,
  MSG_ACK | MSG_CERR, MSG_ACK | MSG_CERR,
@@ -1020,9 +1022,9 @@ ts_endcmd (ssr | (tc << TSSR_V_TC), xs0, msg[tc]);      /* end cmd */
 return;
 }
 
-void ts_endcmd (int32 tc, int32 xs0, int32 msg)
+void ts_endcmd (int32_t tc, int32_t xs0, int32_t msg)
 {
-int32 i, t;
+int32_t i, t;
 
 msgxs0 = ts_updxs0 (msgxs0 | xs0);                      /* update XS0 */
 if (wchxopt & WCHX_HDS)                                 /* update XS4 */
@@ -1032,7 +1034,7 @@ if (msg && !(tssr & TSSR_NBA)) {                        /* send end pkt */
     msglnt = wchlnt - 4;                                /* exclude hdr, bc */
     tsba = (wchadh << 16) | wchadl;
     for (i = 0; (i < MSG_PLNT) && (i < (wchlnt / 2)); i++)
-        cpy_buf[i] = (uint16) tsmsgp[i];                /* copy buffer */
+        cpy_buf[i] = (uint16_t) tsmsgp[i];              /* copy buffer */
     t = Map_WriteW (tsba, i << 1, cpy_buf);             /* write to mem */
     tsba = tsba + ((i << 1) - t);                       /* incr tsba */
     if (t) {                                            /* nxm? */
@@ -1057,7 +1059,7 @@ t_stat ts_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 sim_tape_rewind (&ts_unit);
 tsba = tsdbx = 0;
@@ -1074,7 +1076,7 @@ for (i = 0; i < MSG_PLNT; i++)
 msgxs0 = ts_updxs0 (XS0_VCK);
 CLR_INT (TS);
 if (tsxb == NULL)
-    tsxb = (uint8 *) calloc (MT_MAXFR, sizeof (uint8));
+    tsxb = (uint8_t *) calloc (MT_MAXFR, sizeof (uint8_t));
 if (tsxb == NULL)
     return SCPE_MEM;
 return auto_config (0, 0);
@@ -1130,9 +1132,9 @@ return r;
 #define BOOT_START      01000
 #define BOOT_CSR0       (BOOT_START + 006)
 #define BOOT_CSR1       (BOOT_START + 012)
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0012706, 0001000,               /* mov #boot_start, sp */
     0012700, 0172520,               /* mov #tsba, r0 */
     0012701, 0172522,               /* mov #tssr, r1 */
@@ -1170,7 +1172,7 @@ static const uint16 boot_rom[] = {
                                     /* msg: .blk 4 */
     };
 
-t_stat ts_boot (int32 unitno, DEVICE *dptr)
+t_stat ts_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1190,7 +1192,7 @@ return SCPE_OK;
 
 #else
 
-t_stat ts_boot (int32 unitno, DEVICE *dptr)
+t_stat ts_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1201,7 +1203,7 @@ return SCPE_NOFNC;
 }
 #endif
 
-t_stat ts_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ts_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "TS11 Magnetic Tape (TS)\n\n");
 fprint_set_help (st, dptr);

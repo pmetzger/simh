@@ -29,6 +29,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -90,14 +92,14 @@
 #define CARD_RDY(u)       (sim_card_input_hopper_count(u) > 0 || \
                            sim_card_eof(u) == 1)
 
-t_stat              cr_devio(uint32 dev, uint64 *data);
+t_stat              cr_devio(uint32_t dev, uint64 *data);
 t_stat              cr_srv(UNIT *);
 t_stat              cr_reset(DEVICE *);
 t_stat              cr_attach(UNIT *, const char *);
 t_stat              cr_detach(UNIT *);
-t_stat              cr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              cr_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *cr_description(DEVICE *dptr);
-uint16              cr_buffer[80];
+uint16_t            cr_buffer[80];
 
 DIB cr_dib = { CR_DEVNUM, 1, cr_devio, NULL};
 
@@ -118,7 +120,7 @@ MTAB                cr_mod[] = {
 };
 
 REG                 cr_reg[] = {
-    {BRDATA(BUFF, cr_buffer, 16, 16, sizeof(cr_buffer)/sizeof(uint16)), REG_HRO},
+    {BRDATA(BUFF, cr_buffer, 16, 16, sizeof(cr_buffer)/sizeof(uint16_t)), REG_HRO},
     {0}
 };
 
@@ -135,7 +137,7 @@ DEVICE              cr_dev = {
 /*
  * Device entry points for card reader.
  */
-t_stat cr_devio(uint32 dev, uint64 *data) {
+t_stat cr_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &cr_unit;
     switch(dev & 3) {
     case CONI:
@@ -254,7 +256,7 @@ cr_srv(UNIT *uptr) {
 
     /* Copy next column over */
     if (uptr->STATUS & CARD_IN_READ) {
-        uint32     data;
+        uint32_t   data;
         int        i;
         if (uptr->COL >= 80) {
              uptr->STATUS &= ~(CARD_IN_READ|READING);
@@ -275,7 +277,7 @@ cr_srv(UNIT *uptr) {
              if (data & 0x100) {
                 /* Set flag it more then one punch */
                 if ((uptr->DATA & 07000000) != 0){
-                    uptr->DATA |= (int32)RSIGN;
+                    uptr->DATA |= (int32_t)RSIGN;
                     break;
                 }
                 uptr->DATA |= i << 18;
@@ -322,7 +324,7 @@ cr_detach(UNIT * uptr)
 }
 
 t_stat
-cr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    fprintf (st, "Card Reader\n\n");
    sim_card_attach_help(st, dptr, uptr, flag, cptr);

@@ -109,12 +109,14 @@
 #ifdef DEBUG_VT11
 #include <stdio.h>
 #endif
+#include <stdint.h>
 #include <string.h>                     /* memset */
 #ifndef NO_CONIC_OPT
 #include <math.h>                       /* atan2, cos, sin, sqrt */
 #endif
 
 #include "display.h"                    /* XY plot interface */
+#include "sim_types.h"
 #include "vt11.h"
 
 #define BITMASK(n) (1<<(n))             /* PDP-11 bit numbering */
@@ -141,7 +143,7 @@ static int vt11_dbit;
 int vt11_debug;
 
 #if defined(VM_PDP11)
-extern void _sim_debug_device (unsigned int dbits, DEVICE* dptr, const char* fmt, ...);
+extern void _sim_debug_device (uint_t dbits, DEVICE* dptr, const char* fmt, ...);
 
 #define DEBUGF(...) _sim_debug_device (vt11_dbit, vt11_dptr, ##  __VA_ARGS__)
 #else /* DEBUG_VT11 */
@@ -203,8 +205,8 @@ extern void _sim_debug_device (unsigned int dbits, DEVICE* dptr, const char* fmt
 /* virtual_CRT_coordinate = PNORM(scaled_value) */
 
 /* VS60 scales points/vectors and characters separately */
-#define VSCALE(x) ((PSCALE(vector_scale * (int32)(x)) + ((x)>=0 ? 1 : -1)) / 4)
-#define CSCALE(x) ((PSCALE(char_scale * (int32)(x)) + ((x)>=0 ? 1 : -1)) / 4)
+#define VSCALE(x) ((PSCALE(vector_scale * (int32_t)(x)) + ((x)>=0 ? 1 : -1)) / 4)
+#define CSCALE(x) ((PSCALE(char_scale * (int32_t)(x)) + ((x)>=0 ? 1 : -1)) / 4)
 /* (The "+ ((x)>=0 ? 1 : -1)" above is needed to pass the diagnostics.) */
 
 #define ABS(x)          ((x) >= 0 ? (x) : -(x))
@@ -212,7 +214,7 @@ extern void _sim_debug_device (unsigned int dbits, DEVICE* dptr, const char* fmt
 
 enum display_type vt11_display = DISPLAY_TYPE;  /* DIS_VR{14,17,48} */
 int vt11_scale = PIX_SCALE;     /* RES_{FULL,HALF,QUARTER,EIGHTH} */
-unsigned char vt11_init = 0;    /* set after display_init() called */
+uchar_t vt11_init = 0;          /* set after display_init() called */
 #define INIT { if (!vt11_init) { display_init(vt11_display, vt11_scale, vt11_dptr); \
                     vt11_init = 1; vt11_reset(vt11_dptr, vt11_dbit); } }
 
@@ -229,7 +231,7 @@ unsigned char vt11_init = 0;    /* set after display_init() called */
  * resume       0
  */
 #define DPC stack[8]._dpc               /* Display PC (always even) */
-static uint16 bdb = 0;                  /* Buffered Data Bits register;
+static uint16_t bdb = 0;                /* Buffered Data Bits register;
                                            see comment in vt11_get_dpc() */
 
 /*
@@ -246,20 +248,20 @@ static uint16 bdb = 0;                  /* Buffered Data Bits register;
  * edge flag status             2       (VS60 only)
  * line type register status    1:0
  */
-static unsigned char internal_stop = 0; /* 1 bit: stop display */
-static unsigned char mode_field = 0;    /* copy of control instr. bits 14-11 */
+static uchar_t internal_stop = 0;       /* 1 bit: stop display */
+static uchar_t mode_field = 0;          /* copy of control instr. bits 14-11 */
 #define graphic_mode stack[8]._mode     /* 4 bits: sets type for graphic data */
 enum gmode { CHAR=0, SVECTOR, LVECTOR, POINT, GRAPHX, GRAPHY, RELPOINT, /* all */
             BSVECT, CIRCLE, ABSVECTOR   /* VS60 only */
 };
 
 #define intensity    stack[8]._intens   /* 3 bits: 0 => dim .. 7 => bright */
-static unsigned char lp0_hit = 0;       /* 1 bit: light pen #0 detected hit */
-static unsigned char so_flag = 0;       /* 1 bit: illegal char. in SO mode */
-static unsigned char edge_indic = 0;    /* 1 bit: crossing visible area edge */
+static uchar_t lp0_hit = 0;             /* 1 bit: light pen #0 detected hit */
+static uchar_t so_flag = 0;             /* 1 bit: illegal char. in SO mode */
+static uchar_t edge_indic = 0;          /* 1 bit: crossing visible area edge */
 #define italics      stack[8]._italics  /* 1 bit: use italic font */
 #define blink_ena    stack[8]._blink    /* 1 bit: blink graphic item */
-static unsigned char edge_flag = 0;     /* 1 bit: edge intr if enabled (VS60) */
+static uchar_t edge_flag = 0;           /* 1 bit: edge intr if enabled (VS60) */
 #define line_type    stack[8]._ltype    /* 2 bits: style for drawing vectors */
 enum linetype { SOLID=0, LONG_DASH, SHORT_DASH, DOT_DASH };
 
@@ -269,8 +271,8 @@ enum linetype { SOLID=0, LONG_DASH, SHORT_DASH, DOT_DASH };
  * graphplot increment register value   15:10
  * X position register value            9:0
  */
-static int32         graphplot_step = 0;/* (scaled) graphplot step increment */
-static int32         xpos = 0;          /* X position register * PSCALEF */
+static int32_t       graphplot_step = 0;/* (scaled) graphplot step increment */
+static int32_t       xpos = 0;          /* X position register * PSCALEF */
                                         /* note: offset has been applied! */
 static int           lp_xpos;           /* (normalized) */
 static int           edge_xpos;         /* (normalized) */
@@ -281,8 +283,8 @@ static int           edge_xpos;         /* (normalized) */
  * character register contents  15:10
  * Y position register value    9:0
  */
-static unsigned char char_buf = 0;      /* (only lowest 6 bits reported) */
-static int32         ypos = 0;          /* Y position register * PSCALEF */
+static uchar_t char_buf = 0;            /* (only lowest 6 bits reported) */
+static int32_t       ypos = 0;          /* Y position register * PSCALEF */
                                         /* note: offset has been applied! */
 static int           lp_ypos;           /* (normalized) */
 static int           edge_ypos;         /* (normalized) */
@@ -293,7 +295,7 @@ static int           edge_ypos;         /* (normalized) */
  * spare                                15:12
  * relocate register value[17:6]        11:0
  */
-static uint32 reloc = 0;                /* relocation, aligned with DPC */
+static uint32_t reloc = 0;              /* relocation, aligned with DPC */
 
 /*
  * Status Parameter Register (VS60 only)
@@ -312,12 +314,12 @@ static uint32 reloc = 0;                /* relocation, aligned with DPC */
 #define busy (!(stopped || lphit_irq || lpsw_irq || edge_irq || char_irq \
                         || stack_over || stack_under || time_out || name_irq))
                                         /* 1 bit: display initiated | resumed */
-static unsigned char stack_over = 0;    /* 1 bit: "push" with full stack */
-static unsigned char stack_under = 0;   /* 1 bit: "pop" with empty stack */
-static unsigned char time_out = 0;      /* 1 bit: timeout has occurred */
+static uchar_t stack_over = 0;          /* 1 bit: "push" with full stack */
+static uchar_t stack_under = 0;         /* 1 bit: "pop" with empty stack */
+static uchar_t time_out = 0;            /* 1 bit: timeout has occurred */
 #define char_rotate  stack[8]._crotate  /* 1 bit: rotate chars 90 degrees CCW */
 #define cs_index     stack[8]._csi      /* character scale index 0..3 */
-static unsigned char ext_stop = 0;      /* 1 bit: stop display */
+static uchar_t ext_stop = 0;            /* 1 bit: stop display */
 #define menu         stack[8]._menu     /* 1 bit: VS60 graphics in menu area */
 #define vector_scale stack[8]._vscale   /* non-character scale factor * 4 */
 
@@ -328,8 +330,8 @@ static unsigned char ext_stop = 0;      /* 1 bit: stop display */
  * sign of X dynamic offset     13      (write)
  * X dynamic offset             11:0
  */
-static unsigned char    s_xoff = 0;     /* sign bit for xoff (needed for -0) */
-static int32            xoff = 0;       /* X offset register * PSCALEF */
+static uchar_t          s_xoff = 0;     /* sign bit for xoff (needed for -0) */
+static int32_t          xoff = 0;       /* X offset register * PSCALEF */
 
 /*
  * Y Offset Register (VS60 only)
@@ -338,8 +340,8 @@ static int32            xoff = 0;       /* X offset register * PSCALEF */
  * sign of Y dynamic offset     13      (write)
  * Y dynamic offset             11:0
  */
-static unsigned char    s_yoff = 0;     /* sign bit for yoff (needed for -0) */
-static int32            yoff = 0;       /* Y offset register * PSCALEF */
+static uchar_t          s_yoff = 0;     /* sign bit for yoff (needed for -0) */
+static int32_t          yoff = 0;       /* Y offset register * PSCALEF */
 
 /*
  * Associative Name Register (VS60 only)
@@ -349,7 +351,7 @@ static int32            yoff = 0;       /* Y offset register * PSCALEF */
  * name change enable           11
  * associative name             10:0
  */
-static unsigned char search = 0;        /* 00=> no search, no interrupt
+static uchar_t search = 0;              /* 00=> no search, no interrupt
                                            01 => intr. on 11-bit compare
                                            10 => intr. on high-8-bit compare
                                            11 => intr. on high-4-bit compare */
@@ -377,15 +379,15 @@ static unsigned      assoc_name = 0;    /* compare value */
  */
 #define int0_scope      stack[8]._inten0 /* enable con 0 for all graphic data */
 /* lp0_hit has already been defined, under Mode Parameter Register */
-static unsigned char    lp0_down = 0;   /* 1 bit: LP #0 switch was depressed */
-static unsigned char    lp0_up = 0;     /* 1 bit: LP #0 switch was released */
+static uchar_t          lp0_down = 0;   /* 1 bit: LP #0 switch was depressed */
+static uchar_t          lp0_up = 0;     /* 1 bit: LP #0 switch was released */
 #define lp0_intr_ena    stack[8]._lp0intr /* generate interrupt on LP #0 hit */
 #define lp0_sw_intr_ena stack[8]._lp0swintr /* generate intr. on LP #0 sw chg */
 #define int1_scope      stack[8]._inten1 /* enable con 1 for all graphic data */
 /* following 2 flags only mutable via writing this register w/ MS3 set: */
-static unsigned char    lp1_hit = 0;    /* 1 bit: light pen #1 detected hit */
-static unsigned char    lp1_down = 0;   /* 1 bit: LP #1 switch was depressed */
-static unsigned char    lp1_up = 0;     /* 1 bit: LP #1 switch was released */
+static uchar_t          lp1_hit = 0;    /* 1 bit: light pen #1 detected hit */
+static uchar_t          lp1_down = 0;   /* 1 bit: LP #1 switch was depressed */
+static uchar_t          lp1_up = 0;     /* 1 bit: LP #1 switch was released */
 #define lp1_intr_ena    stack[8]._lp1intr /* generate interrupt on LP #1 hit */
 #define lp1_sw_intr_ena stack[8]._lp1swintr /* generate intr. on LP #1 sw chg */
 
@@ -399,7 +401,7 @@ enum scolor { GREEN=0, YELLOW, ORANGE, RED };
  * search code                  13:12
  * name                         10:0
  */
-static unsigned char name_irq = 0;      /* 1 bit: name matches associative nm */
+static uchar_t name_irq = 0;            /* 1 bit: name matches associative nm */
                                         /* (always interrupts on name match!) */
 /* search previously defined, under Associative Name Register */
 #define name stack[8]._name             /* current name from display file */
@@ -425,29 +427,29 @@ static struct frame
         vt11word      _dpc;             /* Display Program Counter (even) */
         unsigned      _name;            /* (11-bit) name from display file */
         enum gmode    _mode;            /* 4 bits: sets type for graphic data */
-        unsigned char _vscale;          /* non-character scale factor * 4 */
-        unsigned char _csi;             /* character scale index 0..3 */
-        unsigned char _cscale;          /* character scale factor * 4 */
-        unsigned char _crotate;         /* rotate chars 90 degrees CCW */
-        unsigned char _intens;          /* intensity: 0 => dim .. 7 => bright */
+        uchar_t _vscale;                /* non-character scale factor * 4 */
+        uchar_t _csi;                   /* character scale index 0..3 */
+        uchar_t _cscale;                /* character scale factor * 4 */
+        uchar_t _crotate;               /* rotate chars 90 degrees CCW */
+        uchar_t _intens;                /* intensity: 0 => dim .. 7 => bright */
         enum linetype _ltype;           /* line type (long dash, etc.) */
-        unsigned char _blink;           /* blink enable */
-        unsigned char _italics;         /* italicize characters */
-        unsigned char _so;              /* currently in shift-out mode */
-        unsigned char _menu;            /* VS60 graphics in menu area */
-        unsigned char _cesc;            /* perform POPR on char. term. match */
-        unsigned char _edgeintr;        /* generate intr. on edge transition */
-        unsigned char _lp1swintr;       /* generate intr. on LP #1 switch chg */
-        unsigned char _lp0swintr;       /* generate intr. on LP #0 switch chg */
-        unsigned char _lp1intr;         /* generate interrupt on LP #1 hit */
-        unsigned char _inten1;          /* blank cons. 1 for all graphic data */
-        unsigned char _lp0intr;         /* generate interrupt on LP #0 hit */
-        unsigned char _inten0;          /* blank cons. 0 for all graphic data */
-        unsigned char _bright;          /* visually indicate hit on entity */
-        unsigned char _stopintr;        /* generate interrupt on intern. stop */
+        uchar_t _blink;                 /* blink enable */
+        uchar_t _italics;               /* italicize characters */
+        uchar_t _so;                    /* currently in shift-out mode */
+        uchar_t _menu;                  /* VS60 graphics in menu area */
+        uchar_t _cesc;                  /* perform POPR on char. term. match */
+        uchar_t _edgeintr;              /* generate intr. on edge transition */
+        uchar_t _lp1swintr;             /* generate intr. on LP #1 switch chg */
+        uchar_t _lp0swintr;             /* generate intr. on LP #0 switch chg */
+        uchar_t _lp1intr;               /* generate interrupt on LP #1 hit */
+        uchar_t _inten1;                /* blank cons. 1 for all graphic data */
+        uchar_t _lp0intr;               /* generate interrupt on LP #0 hit */
+        uchar_t _inten0;                /* blank cons. 0 for all graphic data */
+        uchar_t _bright;                /* visually indicate hit on entity */
+        uchar_t _stopintr;              /* generate interrupt on intern. stop */
         enum scolor   _color;           /* scope display color (option) */
-        unsigned char _zdata;           /* flag: display file has Z coords */
-        unsigned char _depth;           /* flag: display Z using depth cue */
+        uchar_t _zdata;                 /* flag: display file has Z coords */
+        uchar_t _depth;                 /* flag: display Z using depth cue */
         } stack[9] = { { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, GREEN, 0, 0 },
                        { 0, 0, CHAR, 0, 0, 0, 0, 0, SOLID, 0, 0, 0, 0,
@@ -470,7 +472,7 @@ static struct frame
 
 #define char_scale      stack[8]._cscale /* character scale factor * 4 */
                                         /* _cscale must track _csi! */
-static const unsigned char csi2csf[4] = { 2, 4, 6, 8 }; /* maps cs_index to " */
+static const uchar_t csi2csf[4] = { 2, 4, 6, 8 };       /* maps cs_index to " */
 #define shift_out       stack[8]._so    /* flag: using shift-out char. set */
 #define char_escape     stack[8]._cesc  /* perform POPR on char. term. match */
 #define edge_intr_ena   stack[8]._edgeintr /* generate intr. on edge transit */
@@ -504,19 +506,19 @@ static int char_term = 0;               /* char. processing POPRs after this */
  * stack level select           4:2     (manual has this messed up)
  * stack halfword select        1:0     (manual has this messed up)
  */
-static unsigned char maint4 = 0;        /* 1 bit: maintenance switch #4 */
-static unsigned char maint3 = 0;        /* 1 bit: maintenance switch #3 */
-static unsigned char maint2 = 0;        /* 1 bit: maintenance switch #2 */
-static unsigned char maint1 = 0;        /* 1 bit: maintenance switch #1 */
-static unsigned char offset = 0;        /* 1 bit: last data loaded offsets */
-static unsigned char jsr = 0;           /* 1 bit: last control was JSR ?rel. */
+static uchar_t maint4 = 0;              /* 1 bit: maintenance switch #4 */
+static uchar_t maint3 = 0;              /* 1 bit: maintenance switch #3 */
+static uchar_t maint2 = 0;              /* 1 bit: maintenance switch #2 */
+static uchar_t maint1 = 0;              /* 1 bit: maintenance switch #1 */
+static uchar_t offset = 0;              /* 1 bit: last data loaded offsets */
+static uchar_t jsr = 0;                 /* 1 bit: last control was JSR ?rel. */
 static int word_number = -2;            /* tracks multiple data words */
 #define CONTROL_MODE()  (word_number == -1)     /* true when in control mode */
 #define DATA_MODE()     (word_number >= 0)      /* true when in data mode */
 static struct frame *sp = &stack[8];    /* -> selected stack frame, or TOS */
 #define STACK_EMPTY (sp == &stack[8])   /* "TOS" */
 #define STACK_FULL  (sp == &stack[0])   /* "BOS" */
-static unsigned char stack_sel = 8<<2;  /* 8 levels, 4 PDP-11 words per level */
+static uchar_t stack_sel = 8<<2;        /* 8 levels, 4 PDP-11 words per level */
                                         /* stack_sel must track sp and TOS! */
 
 /*
@@ -524,10 +526,10 @@ static unsigned char stack_sel = 8<<2;  /* 8 levels, 4 PDP-11 words per level */
  * Read/Write
  * Z position register value[13:2]      11:0
  */
-static int32 zpos = 0;                  /* (Z "position" reg. * 4) * PSCALEF */
+static int32_t zpos = 0;                /* (Z "position" reg. * 4) * PSCALEF */
                                         /* note: offset has been applied! */
-static int32 lp_zpos;                   /* (scaled) */
-static int32 edge_zpos;                 /* (scaled) */
+static int32_t lp_zpos;                 /* (scaled) */
+static int32_t edge_zpos;               /* (scaled) */
 
 /*
  * Z Offset Register, Depth Cue Option (VS60 only)
@@ -537,34 +539,34 @@ static int32 edge_zpos;                 /* (scaled) */
  * sign of Z dynamic offset     13
  * Z dynamic offset             11:0
  */
-static unsigned char    s_zoff = 0;     /* sign bit for zoff (needed for -0) */
-static int32            zoff = 0;       /* Z offset register * PSCALEF */
+static uchar_t          s_zoff = 0;     /* sign bit for zoff (needed for -0) */
+static int32_t          zoff = 0;       /* Z offset register * PSCALEF */
 
 /*
  * Invisible state:
  */
-static unsigned char char_irq = 0;      /* intr. on illegal char in SO mode */
-static unsigned char lphit_irq = 0;     /* intr. on light-pen hit */
-static unsigned char lpsw_irq = 0;      /* intr. on tip-switch state change */
-static unsigned char edge_irq = 0;      /* intr. on edge transition */
+static uchar_t char_irq = 0;            /* intr. on illegal char in SO mode */
+static uchar_t lphit_irq = 0;           /* intr. on light-pen hit */
+static uchar_t lpsw_irq = 0;            /* intr. on tip-switch state change */
+static uchar_t edge_irq = 0;            /* intr. on edge transition */
 
-static unsigned char lp0_sw_state = 0;  /* last known LP tip-switch state */
-static unsigned char blink_off = 0;     /* set when blinking graphics is dark */
-static unsigned char finish_jmpa = 0;   /* reminder to fetch JMPA address */
-static unsigned char finish_jsra = 0;   /* reminder to fetch JSRA address */
+static uchar_t lp0_sw_state = 0;        /* last known LP tip-switch state */
+static uchar_t blink_off = 0;           /* set when blinking graphics is dark */
+static uchar_t finish_jmpa = 0;         /* reminder to fetch JMPA address */
+static uchar_t finish_jsra = 0;         /* reminder to fetch JSRA address */
 
-static unsigned char more_vect = 0;     /* remembers LP hit in middle of vec. */
-static unsigned char more_arc = 0;      /* remembers LP hit in middle of arc */
-static int32 save_x0, save_y0, save_z0, save_x1, save_y1, save_z1;
+static uchar_t more_vect = 0;           /* remembers LP hit in middle of vec. */
+static uchar_t more_arc = 0;            /* remembers LP hit in middle of arc */
+static int32_t save_x0, save_y0, save_z0, save_x1, save_y1, save_z1;
                                         /* CRT coords for rest of vector */
 
-static unsigned char lp_suppress = 0;   /* edge columns of char. (VT11 only) */
-static unsigned char stroking = 0;      /* set when drawing VS60 char strokes */
-static unsigned char skip_start = 0;    /* set between vis. char./arc strokes */
+static uchar_t lp_suppress = 0;         /* edge columns of char. (VT11 only) */
+static uchar_t stroking = 0;            /* set when drawing VS60 char strokes */
+static uchar_t skip_start = 0;          /* set between vis. char./arc strokes */
 
-static unsigned char stopped = 1;       /* display processor frozen */
-static unsigned char sync_period = 0;   /* frame sync period (msec) */
-static unsigned char refresh_rate = 0;  /* 2 bits:
+static uchar_t stopped = 1;             /* display processor frozen */
+static uchar_t sync_period = 0;         /* frame sync period (msec) */
+static uchar_t refresh_rate = 0;        /* 2 bits:
                                            00 => continuous display refresh
                                            01 => 30 fps (60 fps if VT11)
                                            10 => 40 fps (VS60)
@@ -576,8 +578,8 @@ static unsigned char refresh_rate = 0;  /* 2 bits:
 #define BLINK_COUNT 67                  /* 67 milliseconds */
 #endif
 
-int32 vt11_csp_w = VT11_CSP_W;          /* horizontal character spacing */
-int32 vt11_csp_h = VT11_CSP_H;          /* vertical character spacing */
+int32_t vt11_csp_w = VT11_CSP_W;        /* horizontal character spacing */
+int32_t vt11_csp_h = VT11_CSP_H;        /* vertical character spacing */
 /* VS60 spacing depends on char scale; above are right for char scale x1 */
 
 /* VS60 has a menu area to the right of the "main working surface" */
@@ -605,8 +607,8 @@ static int clip_vect = 0;       /* set when clipped coords saved; bit-coded:
                                         1 => entry clipped
                                         2 => exit clipped */
 static int clip_i;                      /* saved "intensify" bit */
-static int32 clip_x0, clip_y0, clip_z0; /* CRT coords for entry point */
-static int32 clip_x1, clip_y1, clip_z1; /* CRT coords for exit point */
+static int32_t clip_x0, clip_y0, clip_z0; /* CRT coords for entry point */
+static int32_t clip_x1, clip_y1, clip_z1; /* CRT coords for exit point */
 
 /*
  * Uncertain whether VS60 edge transitions in menu area are flagged and whether
@@ -627,7 +629,7 @@ static int32 clip_x1, clip_y1, clip_z1; /* CRT coords for exit point */
                       && (y) >= 0 && (y) <= CLIPYMAX)
 #endif
 
-static void lineTwoStep(int32, int32, int32, int32, int32, int32);
+static void lineTwoStep(int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
                                         /* forward reference */
 
 /*
@@ -639,7 +641,7 @@ static void lineTwoStep(int32, int32, int32, int32, int32, int32);
  * converted to/from our internal variables by the following functions.
  */
 
-int32
+int32_t
 vt11_get_dpc(void)
 {   INIT
     /*
@@ -654,7 +656,7 @@ vt11_get_dpc(void)
 }
 
 void
-vt11_set_dpc(uint16 d)
+vt11_set_dpc(uint16_t d)
 {   INIT
     bdb = d;                            /* save all bits in case maint1 used */
     DEBUGF("set DPC 0%06o\r\n", (unsigned)d);
@@ -684,7 +686,7 @@ vt11_set_dpc(uint16 d)
     } else {                            /* RESUME (after intr); DPC unchanged */
         /* if resuming from LP hit interrupt, finish drawing rest of vector */
         if (more_vect) {
-            unsigned char save_ena = lp0_intr_ena;
+            uchar_t save_ena = lp0_intr_ena;
             lp0_intr_ena = 0;           /* one hit per vector is plenty */
             lphit_irq = 0;              /* or else lineTwoStep aborts again! */
             /* line_counter is intact; draw rest of visible vector */
@@ -692,7 +694,7 @@ vt11_set_dpc(uint16 d)
             lp0_intr_ena = save_ena;
         }
         if (more_arc) {                 /* remainder of chord was just drawn */
-            unsigned char save_ena = lp0_intr_ena;
+            uchar_t save_ena = lp0_intr_ena;
             lp0_intr_ena = 0;           /* one hit per arc is plenty */
             lphit_irq = 0;              /* or else lineTwoStep aborts again! */
             /* line_counter is intact; draw rest of visible arc */
@@ -710,10 +712,10 @@ vt11_set_dpc(uint16 d)
     /* next vt11_cycle() will perform a fetch */
 }
 
-int32
+int32_t
 vt11_get_mpr(void)
 {
-    int32 ret;
+    int32_t ret;
     INIT
     ret = (internal_stop<<15) | (mode_field<<11) | (intensity<<8) |
           (lp0_hit<<7) | (so_flag<<6) | (edge_indic<<5) | (italics<<4) |
@@ -726,7 +728,7 @@ vt11_get_mpr(void)
 }
 
 void
-vt11_set_mpr(uint16 d)
+vt11_set_mpr(uint16_t d)
 {   INIT
     /* beeps the "bell" on the LK40 keyboard */
 #if 0   /* probably doesn't hurt to do it for the VS60 also */
@@ -735,51 +737,51 @@ vt11_set_mpr(uint16 d)
         display_beep();
 }
 
-int32
+int32_t
 vt11_get_xpr(void)
 {
-    int32 pos;
+    int32_t pos;
     INIT
     pos = lphit_irq ? lp_xpos : edge_irq ? edge_xpos : PNORM(xpos);
     return (graphplot_step << 10) | GETFIELD(TWOSCOMP(pos),9,0);
 }
 
 void
-vt11_set_xpr(uint16 d)
+vt11_set_xpr(uint16_t d)
 {   INIT
     DEBUGF("set XPR: no effect\r\n");
 }
 
-int32
+int32_t
 vt11_get_ypr(void)
 {
-    int32 pos;
+    int32_t pos;
     INIT
     pos = lphit_irq ? lp_ypos : edge_irq ? edge_ypos : PNORM(ypos);
     return (GETFIELD(char_buf,5,0) << 10) | GETFIELD(TWOSCOMP(pos),9,0);
 }
 
 void
-vt11_set_ypr(uint16 d)
+vt11_set_ypr(uint16_t d)
 {   INIT
     DEBUGF("set YPR: no effect\r\n");
 }
 
 /* All the remaining registers pertain to the VS60 only. */
 
-int32
+int32_t
 vt11_get_rr(void)
 {   INIT
     return reloc >> 6;
 }
 
 void
-vt11_set_rr(uint16 d)
+vt11_set_rr(uint16_t d)
 {   INIT
-    reloc = (uint32)GETFIELD(d,11,0) << 6;
+    reloc = (uint32_t)GETFIELD(d,11,0) << 6;
 }
 
-int32
+int32_t
 vt11_get_spr(void)
 {   INIT
     return (busy<<15) | (stack_over<<13) | (stack_under<<12) | (time_out<<11) |
@@ -788,7 +790,7 @@ vt11_get_spr(void)
 }
 
 void
-vt11_set_spr(uint16 d)
+vt11_set_spr(uint16_t d)
 {   INIT
     ext_stop = TESTBIT(d,7);    /* stop occurs at end of next display cycle */
 
@@ -798,10 +800,10 @@ vt11_set_spr(uint16 d)
     }
 }
 
-int32
+int32_t
 vt11_get_xor(void)
 {
-    int32 off, pos;
+    int32_t off, pos;
     INIT
     off = PNORM(xoff);
     pos = lphit_irq ? lp_xpos : edge_irq ? edge_xpos : PNORM(xpos);
@@ -809,7 +811,7 @@ vt11_get_xor(void)
 }
 
 void
-vt11_set_xor(uint16 d)
+vt11_set_xor(uint16_t d)
 {   INIT
     xoff = PSCALE(GETFIELD(d,11,0));
     s_xoff = TESTBIT(d,13);
@@ -817,10 +819,10 @@ vt11_set_xor(uint16 d)
         xoff = -xoff;
 }
 
-int32
+int32_t
 vt11_get_yor(void)
 {
-    int32 off, pos;
+    int32_t off, pos;
     INIT
     off = PNORM(yoff);
     pos = lphit_irq ? lp_ypos : edge_irq ? edge_ypos : PNORM(ypos);
@@ -828,7 +830,7 @@ vt11_get_yor(void)
 }
 
 void
-vt11_set_yor(uint16 d)
+vt11_set_yor(uint16_t d)
 {   INIT
     yoff = PSCALE(GETFIELD(d,11,0));
     s_yoff = TESTBIT(d,13);
@@ -836,7 +838,7 @@ vt11_set_yor(uint16 d)
         yoff = -yoff;
 }
 
-int32
+int32_t
 vt11_get_anr(void)
 {   INIT
     DEBUGF("get ANR: no effect\r\n");
@@ -844,7 +846,7 @@ vt11_get_anr(void)
 }
 
 void
-vt11_set_anr(uint16 d)
+vt11_set_anr(uint16_t d)
 {   INIT
     if (TESTBIT(d,14))
         search = GETFIELD(d,13,12);
@@ -852,7 +854,7 @@ vt11_set_anr(uint16 d)
         assoc_name = GETFIELD(d,10,0);
 }
 
-int32
+int32_t
 vt11_get_scr(void)
 {   INIT
     return (int0_scope<<15) | (lp0_hit<<14) | (lp0_down<<13) | (lp0_up<<12) |
@@ -862,7 +864,7 @@ vt11_get_scr(void)
 }
 
 void
-vt11_set_scr(uint16 d)
+vt11_set_scr(uint16_t d)
 {   INIT
     if (maint3) {
         if (TESTBIT(d,14) && lp0_intr_ena) {
@@ -906,19 +908,19 @@ vt11_set_scr(uint16 d)
     }
 }
 
-int32
+int32_t
 vt11_get_nr(void)
 {   INIT
     return (name_irq<<15) | (search<<12) | name;
 }
 
 void
-vt11_set_nr(uint16 d)
+vt11_set_nr(uint16_t d)
 {   INIT
     DEBUGF("set NR: no effect\r\n");
 }
 
-int32
+int32_t
 vt11_get_sdr(void)
 {
     struct frame *p;
@@ -949,28 +951,28 @@ vt11_get_sdr(void)
 }
 
 void
-vt11_set_sdr(uint16 d)
+vt11_set_sdr(uint16_t d)
 {   INIT
     DEBUGF("set SDR: no effect\r\n");
 }
 
-int32
+int32_t
 vt11_get_str(void)
 {   INIT
     return char_term;
 }
 
 void
-vt11_set_str(uint16 d)
+vt11_set_str(uint16_t d)
 {   INIT
     if (TESTBIT(d,7))
         char_term = GETFIELD(d,6,0);
 }
 
-int32
+int32_t
 vt11_get_sar(void)
 {
-    int32 ret;
+    int32_t ret;
     INIT
     ret = (maint4<<15) | (maint3<<14) | (maint2<<13) | (maint1<<12) |
           (offset<<10) | (jsr<<9) | stack_sel /*includes bit 5=TOS [level 8]*/;
@@ -992,7 +994,7 @@ vt11_get_sar(void)
 }
 
 void
-vt11_set_sar(uint16 d)
+vt11_set_sar(uint16_t d)
 {   INIT
     maint4 = TESTBIT(d,15);             /* 1 => synch. processing pipeline */
     maint3 = TESTBIT(d,14);             /* 1 => copy delta,tangent to x,y pos */
@@ -1017,25 +1019,25 @@ vt11_set_sar(uint16 d)
  * This is known as "depth cueing" and is implemented in dintens().
  */
 
-int32
+int32_t
 vt11_get_zpr(void)
 {
-    int32 pos;
+    int32_t pos;
     INIT
     pos = lphit_irq ? lp_zpos : edge_irq ? edge_zpos : PNORM(zpos);
     return GETFIELD(TWOSCOMP(pos),13,2);
 }
 
 void
-vt11_set_zpr(uint16 d)
+vt11_set_zpr(uint16_t d)
 {   INIT
     DEBUGF("set ZPR: no effect\r\n");
 }
 
-int32
+int32_t
 vt11_get_zor(void)
 {
-    int32 off, ret;
+    int32_t off, ret;
     INIT
     off = PNORM(zoff);
     ret = GETFIELD(ABS(off),11,0);
@@ -1049,7 +1051,7 @@ vt11_get_zor(void)
 }
 
 void
-vt11_set_zor(uint16 d)
+vt11_set_zor(uint16_t d)
 {   INIT
     zoff = PSCALE(GETFIELD(d,11,0));
     s_zoff = TESTBIT(d,13);
@@ -1148,7 +1150,7 @@ pop(int restore)
 /* compute depth-cued display intensity from current display-file intensity */
 
 int
-dintens(int32 z)
+dintens(int32_t z)
 {
     int i = intensity;
 
@@ -1175,7 +1177,7 @@ dintens(int32 z)
 /* illuminate pixel in raster image */
 
 static void
-illum3(int32 x, int32 y, int32 z)
+illum3(int32_t x, int32_t y, int32_t z)
                                 /* virtual CRT units (offset and normalized) */
 {
     int i;                              /* display intensity level */
@@ -1226,10 +1228,10 @@ illum3(int32 x, int32 y, int32 z)
                         /* the extra overhead if not depth cueing is not much */
 
 static void
-point3(int i, int32 x1, int32 y1, int32 z1, int detect_edge)
+point3(int i, int32_t x1, int32_t y1, int32_t z1, int detect_edge)
                                 /* VSCALEd, offset coordinates (z1 * 4) */
 {
-    int32 x0 = PNORM(xpos), y0 = PNORM(ypos);
+    int32_t x0 = PNORM(xpos), y0 = PNORM(ypos);
 
     if (detect_edge) {
         edge_indic =  ONSCREEN(x0, y0);         /* first test */
@@ -1274,7 +1276,7 @@ point3(int i, int32 x1, int32 y1, int32 z1, int detect_edge)
 
 /* 4 bit counter, fed from div 2 clock (to compensate for raster algorithm) */
 /* XXX  check display against example photos to see if div 2 is right */
-static unsigned char line_counter;
+static uchar_t line_counter;
 #define LC1 02
 #define LC2 04
 #define LC3 010
@@ -1282,7 +1284,7 @@ static unsigned char line_counter;
 
 /* point on a line (apply line style) */
 static void
-lpoint(int32 x, int32 y, int32 z)
+lpoint(int32_t x, int32_t y, int32_t z)
                         /* X, Y are in window-system screen pixel units */
                         /* Z is in virtual CRT units (offset and normalized) */
 {
@@ -1344,10 +1346,10 @@ lpoint(int32 x, int32 y, int32 z)
  */
 
 static void
-lineTwoStep(int32 x0, int32 y0, int32 z0, int32 x1, int32 y1, int32 z1)
+lineTwoStep(int32_t x0, int32_t y0, int32_t z0, int32_t x1, int32_t y1, int32_t z1)
                                 /* virtual CRT units (offset and normalized) */
 {
-    int32 dx, dy, dz;
+    int32_t dx, dy, dz;
     int stepx, stepy;
 
     /* when clipping is implemented, coords should always be on-screen */
@@ -1393,16 +1395,16 @@ lineTwoStep(int32 x0, int32 y0, int32 z0, int32 x1, int32 y1, int32 z1)
         /* XXX  not accurate for vector in Z direction */
 
     if (dx > dy) {
-        int32 length = (dx - 1) / 2;
+        int32_t length = (dx - 1) / 2;
         int extras = (dx - 1) & 1;
-        int32 incr2 = (dy * 4) - (dx * 2);
+        int32_t incr2 = (dy * 4) - (dx * 2);
         long twoN = 2 * dx, znum = twoN * z0 + dz;
         dz *= 2;
         if (incr2 < 0) {
-            int32 c = dy * 2;
-            int32 incr1 = c * 2;
-            int32 d =  incr1 - dx;
-            int32 i;
+            int32_t c = dy * 2;
+            int32_t incr1 = c * 2;
+            int32_t d =  incr1 - dx;
+            int32_t i;
             for (i = 0; i < length; i++) {
                 x0 += stepx;
                 if (d < 0) {                            /* Pattern: */
@@ -1432,10 +1434,10 @@ lineTwoStep(int32 x0, int32 y0, int32 z0, int32 x1, int32 y1, int32 z1)
             }
 
         } else {
-            int32 c = (dy - dx) * 2;    /* negative */
-            int32 incr1 = c * 2;        /* negative */
-            int32 d =  incr1 + dx;
-            int32 i;
+            int32_t c = (dy - dx) * 2;  /* negative */
+            int32_t incr1 = c * 2;      /* negative */
+            int32_t d =  incr1 + dx;
+            int32_t i;
             for (i = 0; i < length; i++) {
                 x0 += stepx;
                 if (d > 0) {                            /* Pattern: */
@@ -1467,16 +1469,16 @@ lineTwoStep(int32 x0, int32 y0, int32 z0, int32 x1, int32 y1, int32 z1)
         }
 
     } else {                            /* dy >= dx */
-        int32 length = (dy - 1) / 2;
+        int32_t length = (dy - 1) / 2;
         int extras = (dy - 1) & 1;
-        int32 incr2 = (dx * 4) - (dy * 2);
+        int32_t incr2 = (dx * 4) - (dy * 2);
         long twoN = 2 * dy, znum = twoN * z0 + dz;
         dz *= 2;
         if (incr2 < 0) {
-            int32 c = dx * 2;
-            int32 incr1 = c * 2;
-            int32 d =  incr1 - dy;
-            int32 i;
+            int32_t c = dx * 2;
+            int32_t incr1 = c * 2;
+            int32_t d =  incr1 - dy;
+            int32_t i;
             for (i = 0; i < length; i++) {
                 y0 += stepy;
                 if (d < 0) {                            /* Pattern: */
@@ -1507,10 +1509,10 @@ lineTwoStep(int32 x0, int32 y0, int32 z0, int32 x1, int32 y1, int32 z1)
             }
 
         } else {
-            int32 c = (dx - dy) * 2;    /* nonpositive */
-            int32 incr1 = c * 2;        /* nonpositive */
-            int32 d =  incr1 + dy;
-            int32 i;
+            int32_t c = (dx - dy) * 2;  /* nonpositive */
+            int32_t incr1 = c * 2;      /* nonpositive */
+            int32_t d =  incr1 + dy;
+            int32_t i;
             for (i = 0; i < length; i++) {
                 y0 += stepy;
                 if (d > 0) {                            /* Pattern: */
@@ -1568,13 +1570,13 @@ lineTwoStep(int32 x0, int32 y0, int32 z0, int32 x1, int32 y1, int32 z1)
  * The Z coordinate just goes along for the ride.
  */
 int
-clip3(int32 x0, int32 y0, int32 z0, int32 x1, int32 y1, int32 z1)
+clip3(int32_t x0, int32_t y0, int32_t z0, int32_t x1, int32_t y1, int32_t z1)
 {
     int code0, code1;                   /* Cohen-Sutherland endpoint codes */
     /* remaining variables are used in modified Liang-Barsky algorithm: */
-    int32 rdx, rdy, rdz;                /* x0-x1, y0-y1, z0-z1 */
-    int32 tn;                           /* Edge parameter: numerator */
-    int32 tPEn, tPEd, tPLn, tPLd;       /* Enter/Leave params: numer, denom */
+    int32_t rdx, rdy, rdz;              /* x0-x1, y0-y1, z0-z1 */
+    int32_t tn;                         /* Edge parameter: numerator */
+    int32_t tPEn, tPEd, tPLn, tPLd;     /* Enter/Leave params: numer, denom */
     int clipped;                        /* potential clip_vect value */
 
     /*
@@ -2011,9 +2013,9 @@ clip3(int32 x0, int32 y0, int32 z0, int32 x1, int32 y1, int32 z1)
 /* draw a relative vector, depth-cued when appropriate */
 
 static void
-vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
+vector3(int i, int32_t dx, int32_t dy, int32_t dz) /* unscaled display-file units */
 {
-    int32 x0, y0, z0, x1, y1, z1;
+    int32_t x0, y0, z0, x1, y1, z1;
 
     dx = stroking ? CSCALE(dx) : VSCALE(dx);    /* apply scale factor (VS60) */
     dy = stroking ? CSCALE(dy) : VSCALE(dy);
@@ -2052,7 +2054,7 @@ vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
 
         /* Maintenance Switch 3 => store delta length,tangent in xpos,ypos */
         if (maint3) {
-            int32 adx = ABS(dx), ady = ABS(dy);
+            int32_t adx = ABS(dx), ady = ABS(dy);
             if (adx == ady) {
                 xpos = 07777;           /* ~ 1.0 */
                 ypos = adx;             /* or ady */
@@ -2151,7 +2153,7 @@ vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
 
     if (lp0_hit) {
         long tangent = 0;
-        int32 adx = ABS(dx), ady = ABS(dy);
+        int32_t adx = ABS(dx), ady = ABS(dy);
         if (adx >= ady) {
             if (dx)
                 tangent = 010000L * dy / dx;        /* signed */
@@ -2181,7 +2183,7 @@ vector3(int i, int32 dx, int32 dy, int32 dz)   /* unscaled display-file units */
 static void
 basic_vector(int i, int dir, int len)   /* unscaled display-file units */
 {
-    int32 dx, dy;
+    int32_t dx, dy;
 
     /* Alternatively, could be rasterized specially for each case; then
        the general vector2() function could detect these special cases and
@@ -2252,14 +2254,14 @@ basic_vector(int i, int dir, int len)   /* unscaled display-file units */
  */
 
 static void
-conic3(int i, int32 dcx, int32 dcy, int32 dcz, int32 dex, int32 dey, int32 dez)
+conic3(int i, int32_t dcx, int32_t dcy, int32_t dcz, int32_t dex, int32_t dey, int32_t dez)
                                         /* unscaled display-file units */
 {
 #ifdef NO_CONIC_OPT
     /* just draw vector to endpoint (like real VS60 with option missing) */
     vector3(i, dex, dey, dez);
 #else
-    int32 xs, ys, zs, xc, yc, zc, xe, ye, ze, x, y, z, nseg, seg;
+    int32_t xs, ys, zs, xc, yc, zc, xe, ye, ze, x, y, z, nseg, seg;
     double rs, re, dr, as, da, zo, dz;
     int ons, one;                       /* ONSCREEN(xs,ys), ONSCREEN(xe,ye) */
     static double two_pi = -1.0;        /* will be set (once only) to 2*Pi */
@@ -2339,7 +2341,7 @@ conic3(int i, int32 dcx, int32 dcy, int32 dcz, int32 dex, int32 dey, int32 dez)
     dr = reduce / dr;
     if (dr > k)
         dr = k;
-    nseg = (int32)(da / sqrt(4.0*dr - dr*dr) + 1.0);
+    nseg = (int32_t)(da / sqrt(4.0*dr - dr*dr) + 1.0);
     if (nseg < 1)                       /* "can't happen" */
         nseg = 1;
     else if (nseg > 360)
@@ -2364,10 +2366,10 @@ conic3(int i, int32 dcx, int32 dcy, int32 dcz, int32 dex, int32 dey, int32 dez)
         rs += dr;
         as += da;
         re = rs * cos(as);
-        x = xc + (re >= 0 ? (int32)(re + 0.5) : -(int32)(-re + 0.5));
+        x = xc + (re >= 0 ? (int32_t)(re + 0.5) : -(int32_t)(-re + 0.5));
         re = rs * sin(as);
-        y = yc + (re >= 0 ? (int32)(re + 0.5) : -(int32)(-re + 0.5));
-        z = (int32)(zo + seg * dz);     /* truncates */
+        y = yc + (re >= 0 ? (int32_t)(re + 0.5) : -(int32_t)(-re + 0.5));
+        z = (int32_t)(zo + seg * dz);   /* truncates */
         lineTwoStep(xs, ys, zs, x, y, z);/* (continuing line style) */
         skip_start = 1;                 /* don't double-illuminate junctions */
         xs = x;
@@ -2401,7 +2403,7 @@ conic3(int i, int32 dcx, int32 dcy, int32 dcz, int32 dex, int32 dey, int32 dez)
  * 6x8 matrix, not serpentine encoded, decenders supported as in real VT11
  */
 
-static const unsigned char dots[0200][6] = {
+static const uchar_t dots[0200][6] = {
     { 0x8f, 0x50, 0x20, 0x10, 0x08, 0x07 },     /* 000 lambda */
     { 0x1e, 0x21, 0x22, 0x14, 0x0c, 0x13 },     /* 001 alpha */
     { 0x00, 0x18, 0x24, 0xff, 0x24, 0x18 },     /* 002 phi */
@@ -2557,7 +2559,7 @@ static const unsigned char dots[0200][6] = {
  *              YYY     = final Y coord of stroke (0..6)
  */
 
-static const unsigned char stroke[] = {
+static const uchar_t stroke[] = {
     /*
      * While based on the actual VT48 strokes, these have been tweaked
      * (especially the lower-case letters, which had erratic sizes) to
@@ -2733,7 +2735,7 @@ static const unsigned char stroke[] = {
     };
 
 /* pointers to start of stroke data for each character */
-static const unsigned char *sstroke[128] = { NULL };    /* init. at run time */
+static const uchar_t *sstroke[128] = { NULL };          /* init. at run time */
 
 /* character generator; supports control chars, POPR on term character (VS60) */
 
@@ -2741,24 +2743,24 @@ static int      /* returns nonzero iff VS60 char terminate feature triggered */
 character(int c)
 {
     /* following table maps cs_index to line-feed spacing for VS60 */
-    static const unsigned char vs60_csp_h[4] =
+    static const uchar_t vs60_csp_h[4] =
                         {PSCALE(12), PSCALE(24), PSCALE(46), PSCALE(62)};
     /* following tables map cs_index to adjustments for sub/superscript */
     /* (cs_index 0 just a guess; others from VS60 Instruction Test Part II) */
-    static const unsigned char sus_left[4] =
+    static const uchar_t sus_left[4] =
                                 {PSCALE(0), PSCALE(2), PSCALE(4), PSCALE(3)};
-    static const unsigned char susr_left[4] =
+    static const uchar_t susr_left[4] =
                                 {PSCALE(0), PSCALE(2), PSCALE(4), PSCALE(0)};
-    static const unsigned char sub_down[4] =
+    static const uchar_t sub_down[4] =
                                 {PSCALE(2), PSCALE(3), PSCALE(6), PSCALE(7)};
-    static const unsigned char sup_up[4] =
+    static const uchar_t sup_up[4] =
                                 {PSCALE(5), PSCALE(9), PSCALE(18), PSCALE(24)};
-    static const unsigned char esus_right[4] =
+    static const uchar_t esus_right[4] =
                                 {PSCALE(0), PSCALE(2), PSCALE(0), PSCALE(0)};
-    static const unsigned char esub_up[4] =
+    static const uchar_t esub_up[4] =
                                 {PSCALE(2), PSCALE(3), PSCALE(6), PSCALE(8)};
     int x, y;
-    int32 xbase, ybase, xnext, ynext;
+    int32_t xbase, ybase, xnext, ynext;
 
     if (shift_out) {
         if (c >= 040) {
@@ -2891,7 +2893,7 @@ character(int c)
     /* plot a (nominally on-screen) graphic symbol */
 
     if (VT11) {
-        unsigned char col, prvcol;
+        uchar_t col, prvcol;
 
         /* plot a graphic symbol (unscaled, unrotated) using a dot matrix */
 
@@ -2911,7 +2913,7 @@ character(int c)
         col = dots[c][x];               /* starting column bit pattern */
         for (; x < 6; ++x) {
             int xllc = 2*x, yllc = 0;
-            unsigned char nxtcol = (x == 5) ? 0 : dots[c][x+1];
+            uchar_t nxtcol = (x == 5) ? 0 : dots[c][x+1];
 
             /* no LP hit on first or last column */
             lp_suppress = x == 0 || x == 5;
@@ -2951,10 +2953,10 @@ character(int c)
         lp_suppress = 0;
 
     } else {                            /* VS60 */
-        const unsigned char *p;         /* -> stroke data */
-        unsigned char s;                /* encoded stroke */
-        int32 xlast, ylast;             /* "beam follower" within character */
-        int32 xp = xpos, yp = ypos;     /* save these (altered by vector2()) */
+        const uchar_t *p;               /* -> stroke data */
+        uchar_t s;                      /* encoded stroke */
+        int32_t xlast, ylast;           /* "beam follower" within character */
+        int32_t xp = xpos, yp = ypos;   /* save these (altered by vector2()) */
 
         /* plot a graphic symbol using vector strokes */
 
@@ -2986,7 +2988,7 @@ character(int c)
             ynext *= 2;                 /* safe to stretch now */
 
             if (s & 0100) {             /* visible stroke */
-                int32 dx = xnext - xlast,       /* (okay if both 0) */
+                int32_t dx = xnext - xlast,     /* (okay if both 0) */
                       dy = ynext - ylast;
 
                 if (char_rotate)
@@ -3052,12 +3054,12 @@ vt11_cycle(int us, int slowdown)
 {
     static vt11word inst;
     static int i;
-    static int32 x, y, z, ex, ey, sxo, syo, szo;
+    static int32_t x, y, z, ex, ey, sxo, syo, szo;
     int c;
-    int32 ez;
-    static uint32 usec = 0;             /* cumulative */
-    static uint32 msec = 0;             /* ditto */
-    uint32 new_msec;
+    int32_t ez;
+    static uint32_t usec = 0;           /* cumulative */
+    static uint32_t msec = 0;           /* ditto */
+    uint32_t new_msec;
     INIT
     /* keep running time counter; track state even when processor is idle */
 
@@ -3078,7 +3080,7 @@ vt11_cycle(int us, int slowdown)
     /* draw a clipped vector [perhaps after resume from edge interrupt] */
 
     if (clip_vect) {
-        int32 dx = clip_x1 - clip_x0,
+        int32_t dx = clip_x1 - clip_x0,
               dy = clip_y1 - clip_y0,
               dz = clip_z1 - clip_z0;
         DEBUGF("clipped vector i%d (%ld,%ld,%ld) to (%ld,%ld,%ld)\r\n", clip_i,
@@ -3102,7 +3104,7 @@ vt11_cycle(int us, int slowdown)
          */
         if (lp0_hit) {
             long tangent;
-            int32 adx = ABS(dx), ady = ABS(dy);
+            int32_t adx = ABS(dx), ady = ABS(dy);
             if (adx >= ady) {
                 tangent = 010000L * dy / dx;    /* signed */
                 lp_ypos = clip_y0 + tangent * (lp_xpos - clip_x0) / 010000L;
@@ -3137,7 +3139,7 @@ vt11_cycle(int us, int slowdown)
     /* fetch next word from display file (if needed) and process it */
 
     if (word_number != 1 || (graphic_mode != CHAR && graphic_mode != BSVECT)) {
-        time_out = vt_fetch((uint32)((DPC+reloc)&0777777), &inst);
+        time_out = vt_fetch((uint32_t)((DPC+reloc)&0777777), &inst);
         DPC += 2;
         if (time_out)
             goto bus_timeout;
@@ -3323,25 +3325,25 @@ vt11_cycle(int us, int slowdown)
                         ez = TESTBIT(inst,6);
                         DEBUGF(" blank=%d", (int)!ez);
                         if (c)
-                            int1_scope = (unsigned char)(ez & 0xFF);
+                            int1_scope = (uchar_t)(ez & 0xFF);
                         else
-                            int0_scope = (unsigned char)(ez & 0xFF);
+                            int0_scope = (uchar_t)(ez & 0xFF);
                     }
                     if (TESTBIT(inst,5)) {
                         ez = TESTBIT(inst,4);
                         DEBUGF(" lp_intr_ena=%d", (int)ez);
                         if (c)
-                            lp1_intr_ena = (unsigned char)(ez & 0xFF);
+                            lp1_intr_ena = (uchar_t)(ez & 0xFF);
                         else
-                            lp0_intr_ena = (unsigned char)(ez & 0xFF);
+                            lp0_intr_ena = (uchar_t)(ez & 0xFF);
                     }
                     if (TESTBIT(inst,3)) {
                         ez = TESTBIT(inst,2);
                         DEBUGF(" lp_sw_intr_ena=%d", (int)ez);
                         if (c)
-                            lp1_sw_intr_ena = (unsigned char)(ez & 0xFF);
+                            lp1_sw_intr_ena = (uchar_t)(ez & 0xFF);
                         else
-                            lp0_sw_intr_ena = (unsigned char)(ez & 0xFF);
+                            lp0_sw_intr_ena = (uchar_t)(ez & 0xFF);
                     }
                     DEBUGF("\r\n");
                     break;
@@ -3586,9 +3588,9 @@ vt11_cycle(int us, int slowdown)
                     xoff = PSCALE(ex);
                     yoff = PSCALE(ey);
                     zoff = PSCALE(ez * 4);      /* XXX  include bits 1:0 ? */
-                    s_xoff = (unsigned char)(sxo & 0xFF);
-                    s_yoff = (unsigned char)(syo & 0xFF);
-                    s_zoff = (unsigned char)(szo & 0xFF);
+                    s_xoff = (uchar_t)(sxo & 0xFF);
+                    s_yoff = (uchar_t)(syo & 0xFF);
+                    s_zoff = (uchar_t)(szo & 0xFF);
                 } else {
                     DEBUGF("point i%d (%d,%d,%d)\r\n", i,
                            (int)ex, (int)ey, (int)ez);
@@ -3600,8 +3602,8 @@ vt11_cycle(int us, int slowdown)
                     DEBUGF("offset (%d,%d)\r\n", (int)ex, (int)ey);
                     xoff = PSCALE(ex);
                     yoff = PSCALE(ey);
-                    s_xoff = (unsigned char)(sxo & 0xFF);
-                    s_yoff = (unsigned char)(syo & 0xFF);
+                    s_xoff = (uchar_t)(sxo & 0xFF);
+                    s_yoff = (uchar_t)(syo & 0xFF);
                 } else {
                     DEBUGF("point i%d (%d,%d)\r\n", i, (int)ex, (int)ey);
                     point2(i, VSCALE(ex) + xoff, VSCALE(ey) + yoff, VS60);

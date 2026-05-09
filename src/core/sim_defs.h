@@ -100,15 +100,18 @@
 #ifndef SIM_DEFS_H_
 #define SIM_DEFS_H_    0
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <string.h>
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
-#include <ctype.h>
+#include <math.h>
+#include <setjmp.h>
+#include <stdbool.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* Allow the compiler to validate printf-style format arguments. */
 #if defined(__GNUC__) || defined(__clang__)
@@ -116,10 +119,6 @@
 #else
 #define PRINTF_FMT(n, m)
 #endif
-
-#include <math.h>
-#include <setjmp.h>
-#include <stdint.h>
 
 #ifndef EXIT_FAILURE
 #define EXIT_FAILURE 1
@@ -187,51 +186,25 @@
 #  endif
 #endif
 
-/* Length specific integer declarations */
-
-/* All supported toolchains provide stdint.h. */
-typedef int8_t          int8;
-typedef int16_t         int16;
-typedef int32_t         int32;
-typedef uint8_t         uint8;
-typedef uint16_t        uint16;
-typedef uint32_t        uint32;
-
 typedef int             t_stat;                         /* status */
 
-/* 64b integers */
-
-#if defined (__GNUC__)                                  /* GCC */
-typedef signed long long        t_int64;
-typedef unsigned long long      t_uint64;
-#elif defined (_WIN32)                                  /* Windows */
-typedef signed __int64          t_int64;
-typedef unsigned __int64        t_uint64;
-#else                                                   /* default */
-#define t_int64                 signed long long
-#define t_uint64                unsigned long long
-#endif                                                  /* end 64b */
-#ifndef INT64_C
-#define INT64_C(x)      x ## LL
-#endif
-
 #if defined (USE_INT64)                                 /* 64b data */
-typedef t_int64         t_svalue;                       /* signed value */
-typedef t_uint64        t_value;                        /* value */
+typedef int64_t         t_svalue;                       /* signed value */
+typedef uint64_t        t_value;                        /* value */
 #define T_VALUE_MAX     0xffffffffffffffffuLL
 #define T_SVALUE_MAX    0x7fffffffffffffffLL
 #else                                                   /* 32b data */
-typedef int32           t_svalue;
-typedef uint32          t_value;
+typedef int32_t         t_svalue;
+typedef uint32_t        t_value;
 #define T_VALUE_MAX     0xffffffffUL
 #define T_SVALUE_MAX    0x7fffffffL
 #endif                                                  /* end 64b data */
 
 #if defined (USE_INT64) && defined (USE_ADDR64)         /* 64b address */
-typedef t_uint64        t_addr;
+typedef uint64_t        t_addr;
 #define T_ADDR_W        64
 #else                                                   /* 32b address */
-typedef uint32          t_addr;
+typedef uint32_t        t_addr;
 #define T_ADDR_W        32
 #endif                                                  /* end 64b address */
 
@@ -422,7 +395,7 @@ typedef struct FILEREF FILEREF;
 typedef struct MEMFILE MEMFILE;
 typedef struct BITFIELD BITFIELD;
 
-typedef t_stat (*ACTIVATE_API)(UNIT *unit, int32 interval);
+typedef t_stat (*ACTIVATE_API)(UNIT *unit, int32_t interval);
 
 /* Device data structure */
 
@@ -431,34 +404,34 @@ struct DEVICE {
     UNIT                *units;                         /* units */
     REG                 *registers;                     /* registers */
     MTAB                *modifiers;                     /* modifiers */
-    uint32              numunits;                       /* #units */
-    uint32              aradix;                         /* address radix */
-    uint32              awidth;                         /* address width */
-    uint32              aincr;                          /* addr increment */
-    uint32              dradix;                         /* data radix */
-    uint32              dwidth;                         /* data width */
+    uint32_t            numunits;                       /* #units */
+    uint32_t            aradix;                         /* address radix */
+    uint32_t            awidth;                         /* address width */
+    uint32_t            aincr;                          /* addr increment */
+    uint32_t            dradix;                         /* data radix */
+    uint32_t            dwidth;                         /* data width */
     t_stat              (*examine)(t_value *v, t_addr a, UNIT *up,
-                            int32 sw);                  /* examine routine */
+                            int32_t sw);                /* examine routine */
     t_stat              (*deposit)(t_value v, t_addr a, UNIT *up,
-                            int32 sw);                  /* deposit routine */
+                            int32_t sw);                /* deposit routine */
     t_stat              (*reset)(DEVICE *dp);           /* reset routine */
-    t_stat              (*boot)(int32 u, DEVICE *dp);
+    t_stat              (*boot)(int32_t u, DEVICE *dp);
                                                         /* boot routine */
     t_stat              (*attach)(UNIT *up, const char *cp);
                                                         /* attach routine */
     t_stat              (*detach)(UNIT *up);            /* detach routine */
     void                *ctxt;                          /* context */
-    uint32              flags;                          /* flags */
-    uint32              dctrl;                          /* debug control */
+    uint32_t            flags;                          /* flags */
+    uint32_t            dctrl;                          /* debug control */
     DEBTAB              *debflags;                      /* debug flags */
-    t_stat              (*msize)(UNIT *up, int32 v, const char *cp, void *dp);
+    t_stat              (*msize)(UNIT *up, int32_t v, const char *cp, void *dp);
                                                         /* mem size routine */
     char                *lname;                         /* logical name */
     t_stat              (*help)(FILE *st, DEVICE *dptr,
-                            UNIT *uptr, int32 flag, const char *cptr);
+                            UNIT *uptr, int32_t flag, const char *cptr);
                                                         /* help */
     t_stat              (*attach_help)(FILE *st, DEVICE *dptr,
-                            UNIT *uptr, int32 flag, const char *cptr);
+                            UNIT *uptr, int32_t flag, const char *cptr);
                                                         /* attach help */
     void                *help_ctx;                      /* Context available to help routines */
     const char          *(*description)(DEVICE *dptr);  /* Device Description */
@@ -522,25 +495,25 @@ struct UNIT {
     FILE                *fileref;                       /* file reference */
     void                *filebuf;                       /* memory buffer */
     void                *filebuf2;                      /* copy of initial memory buffer */
-    uint32              hwmark;                         /* high water mark */
-    int32               time;                           /* time out */
-    uint32              flags;                          /* flags */
-    uint32              dynflags;                       /* dynamic flags */
+    uint32_t            hwmark;                         /* high water mark */
+    int32_t             time;                           /* time out */
+    uint32_t            flags;                          /* flags */
+    uint32_t            dynflags;                       /* dynamic flags */
     t_addr              capac;                          /* capacity */
     t_addr              pos;                            /* file position */
     void                (*io_flush)(UNIT *up);          /* io flush routine */
-    uint32              iostarttime;                    /* I/O start time */
-    int32               buf;                            /* buffer */
-    int32               wait;                           /* wait */
-    int32               u3;                             /* device specific */
-    int32               u4;                             /* device specific */
-    int32               u5;                             /* device specific */
-    int32               u6;                             /* device specific */
+    uint32_t            iostarttime;                    /* I/O start time */
+    int32_t             buf;                            /* buffer */
+    int32_t             wait;                           /* wait */
+    int32_t             u3;                             /* device specific */
+    int32_t             u4;                             /* device specific */
+    int32_t             u5;                             /* device specific */
+    int32_t             u6;                             /* device specific */
     void                *up7;                           /* device specific */
     void                *up8;                           /* device specific */
-    uint16              us9;                            /* device specific */
-    uint16              us10;                           /* device specific */
-    uint32              disk_type;                      /* Disk specific info */
+    uint16_t            us9;                            /* device specific */
+    uint16_t            us10;                           /* device specific */
+    uint32_t            disk_type;                      /* Disk specific info */
     void                *tmxr;                          /* TMXR linkage */
     size_t              recsize;                        /* Tape specific info */
     t_addr              tape_eom;                       /* Tape specific info */
@@ -548,17 +521,17 @@ struct UNIT {
     double              usecs_remaining;                /* time balance for long delays */
     char                *uname;                         /* Unit name */
     DEVICE              *dptr;                          /* DEVICE linkage (backpointer) */
-    uint32              dctrl;                          /* debug control */
+    uint32_t            dctrl;                          /* debug control */
 #ifdef SIM_ASYNCH_IO
     void                (*a_check_completion)(UNIT *);
     bool                (*a_is_active)(UNIT *);
     UNIT                *a_next;                        /* next asynch active */
-    int32               a_event_time;
+    int32_t             a_event_time;
     ACTIVATE_API        a_activate_call;
     /* Asynchronous Polling control */
     /* These fields should only be referenced when holding the sim_tmxr_poll_lock */
     bool                a_polling_now;                  /* polling active flag */
-    int32               a_poll_waiter_count;            /* count of polling threads */
+    int32_t             a_poll_waiter_count;            /* count of polling threads */
                                                         /* waiting for this unit */
     /* Asynchronous Timer control */
     double              a_due_time;                     /* due time for timer event */
@@ -634,8 +607,8 @@ typedef enum {
 
 struct BITFIELD {
     const char      *name;                              /* field name */
-    uint32          offset;                             /* starting bit */
-    uint32          width;                              /* width */
+    uint32_t        offset;                             /* starting bit */
+    uint32_t        width;                              /* width */
     const char      **valuenames;                       /* map of values to strings */
     BITF_FMT        format;                             /* value display format */
     };
@@ -645,19 +618,19 @@ struct BITFIELD {
 struct REG {
     const char          *name;                          /* name */
     void                *loc;                           /* location */
-    uint32              radix;                          /* radix */
-    uint32              width;                          /* width */
-    uint32              offset;                         /* starting bit */
-    uint32              depth;                          /* save depth */
+    uint32_t            radix;                          /* radix */
+    uint32_t            width;                          /* width */
+    uint32_t            offset;                         /* starting bit */
+    uint32_t            depth;                          /* save depth */
     const char          *desc;                          /* description */
     BITFIELD            *fields;                        /* bit fields */
-    uint32              qptr;                           /* circ q ptr */
+    uint32_t            qptr;                           /* circ q ptr */
     size_t              stride;                         /* structure/object size (for indexing) */
     size_t              obj_size;                       /* sizeof(*loc) */
     size_t              size;                           /* sizeof(**loc) or sizeof(*loc) if depth == 1 */
     const char          *macro;                         /* Initializer Macro Name */
     /* NOTE: Flags and maxval MUST always be last since they are initialized outside of macro definitions */
-    uint32              flags;                          /* flags */
+    uint32_t            flags;                          /* flags */
     t_value             maxval;                         /* maximum value */
     };
 
@@ -682,9 +655,9 @@ struct REG {
 
 struct CTAB {
     const char          *name;                          /* name */
-    t_stat              (*action)(int32 flag, const char *cptr);
+    t_stat              (*action)(int32_t flag, const char *cptr);
                                                         /* action routine */
-    int32               arg;                            /* argument */
+    int32_t             arg;                            /* argument */
     const char          *help;                          /* help string/structured locator */
     const char          *help_base;                     /* structured help base*/
     void                (*message)(const char *unechoed_cmdline, t_stat stat);
@@ -694,29 +667,29 @@ struct CTAB {
 struct C1TAB {
     const char          *name;                          /* name */
     t_stat              (*action)(DEVICE *dptr, UNIT *uptr,
-                            int32 flag, const char *cptr);/* action routine */
-    int32               arg;                            /* argument */
+                            int32_t flag, const char *cptr);/* action routine */
+    int32_t             arg;                            /* argument */
     const char          *help;                          /* help string */
     };
 
 struct SHTAB {
     const char          *name;                          /* name */
     t_stat              (*action)(FILE *st, DEVICE *dptr,
-                            UNIT *uptr, int32 flag, const char *cptr);
-    int32               arg;                            /* argument */
+                            UNIT *uptr, int32_t flag, const char *cptr);
+    int32_t             arg;                            /* argument */
     const char          *help;                          /* help string */
     };
 
 /* Modifier table - only extended entries have disp, reg, or flags */
 
 struct MTAB {
-    uint32              mask;                           /* mask */
-    uint32              match;                          /* match */
+    uint32_t            mask;                           /* mask */
+    uint32_t            match;                          /* match */
     const char          *pstring;                       /* print string */
     const char          *mstring;                       /* match string */
-    t_stat              (*valid)(UNIT *up, int32 v, const char *cp, void *dp);
+    t_stat              (*valid)(UNIT *up, int32_t v, const char *cp, void *dp);
                                                         /* validation routine */
-    t_stat              (*disp)(FILE *st, UNIT *up, int32 v, const void *dp);
+    t_stat              (*disp)(FILE *st, UNIT *up, int32_t v, const void *dp);
                                                         /* display routine */
     void                *desc;                          /* value descriptor */
                                                         /* pointer to something needed by */
@@ -736,14 +709,14 @@ struct MTAB {
 #define MTAB_NC         (0040 | MTAB_XTD)               /* no UC conversion */
 #define MTAB_QUOTE      (0100 | MTAB_XTD)               /* quoted string */
 #define MTAB_SHP        (0200 | MTAB_XTD)               /* show takes parameter */
-#define MODMASK(mptr,flag) (((mptr)->mask & (uint32)(flag)) == (uint32)(flag))/* flag mask test */
+#define MODMASK(mptr,flag) (((mptr)->mask & (uint32_t)(flag)) == (uint32_t)(flag))/* flag mask test */
 
 /* Search table */
 
 struct SCHTAB {
     int                 logic;                          /* logical operator */
     int                 boolop;                         /* boolean operator */
-    uint32              count;                          /* value count in mask and comp arrays */
+    uint32_t            count;                          /* value count in mask and comp arrays */
     t_value             *mask;                          /* mask for logical */
     t_value             *comp;                          /* comparison for boolean */
     };
@@ -752,14 +725,14 @@ struct SCHTAB {
 
 struct BRKTAB {
     t_addr              addr;                           /* address */
-    uint32              typ;                            /* mask of types */
+    uint32_t            typ;                            /* mask of types */
 #define BRK_TYP_USR_TYPES       ((1 << ('Z'-'A'+1)) - 1)/* all types A-Z */
 #define BRK_TYP_DYN_STEPOVER    (SWMASK ('Z'+1))
 #define BRK_TYP_DYN_USR         (SWMASK ('Z'+2))
 #define BRK_TYP_DYN_ALL         (BRK_TYP_DYN_USR|BRK_TYP_DYN_STEPOVER) /* Mask of All Dynamic types */
 #define BRK_TYP_TEMP            (SWMASK ('Z'+3))        /* Temporary (one-shot) */
 #define BRK_TYP_MAX             (('Z'-'A')+3)           /* Maximum breakpoint type */
-    int32               cnt;                            /* proceed count */
+    int32_t             cnt;                            /* proceed count */
     char                *act;                           /* action string */
     double              time_fired[SIM_BKPT_N_SPC];     /* instruction count when match occurred */
     BRKTAB *next;                                       /* list with same address value */
@@ -768,7 +741,7 @@ struct BRKTAB {
 /* Breakpoint table */
 
 struct BRKTYPTAB {
-    uint32      btyp;                                   /* type mask */
+    uint32_t    btyp;                                   /* type mask */
     const char *desc;                                   /* description */
     };
 #define BRKTYPE(typ,descrip) {SWMASK(typ), descrip}
@@ -776,12 +749,12 @@ struct BRKTYPTAB {
 /* Expect rule */
 
 struct EXPTAB {
-    uint8               *match;                         /* match string */
+    uint8_t             *match;                         /* match string */
     size_t              size;                           /* match string size */
     char                *match_pattern;                 /* match pattern for format */
-    int32               cnt;                            /* proceed count */
-    uint32              after;                          /* delay before halting */
-    int32               switches;                       /* flags */
+    int32_t             cnt;                            /* proceed count */
+    uint32_t            after;                          /* delay before halting */
+    int32_t             switches;                       /* flags */
 #define EXP_TYP_PERSIST         (SWMASK ('P'))      /* rule persists after match, default is once a rule matches, it is removed */
 #define EXP_TYP_CLEARALL        (SWMASK ('C'))      /* clear all rules after matching this rule, default is to once a rule matches, it is removed */
 #define EXP_TYP_REGEX           (SWMASK ('R'))      /* rule pattern is a regular expression */
@@ -796,38 +769,38 @@ struct EXPTAB {
 
 struct EXPECT {
     DEVICE              *dptr;                          /* Device (for Debug) */
-    uint32              dbit;                           /* Debugging Bit */
+    uint32_t            dbit;                           /* Debugging Bit */
     EXPTAB              *rules;                         /* match rules */
     size_t              size;                           /* count of match rules */
-    uint8               *buf;                           /* buffer of output data which has produced */
+    uint8_t             *buf;                           /* buffer of output data which has produced */
     size_t              buf_ins;                        /* buffer insertion point for the next output data */
     size_t              buf_size;                       /* buffer size */
     size_t              buf_data;                       /* count of data in buffer */
-    uint32              default_haltafter;              /* default halt delay */
+    uint32_t            default_haltafter;              /* default halt delay */
     };
 
 /* Send Context */
 
 struct SEND {
-    uint32              delay;                          /* instruction delay between sent data */
+    uint32_t            delay;                          /* instruction delay between sent data */
 #define SEND_DEFAULT_DELAY  1000                        /* default delay instruction count */
     DEVICE              *dptr;                          /* Device (for Debug) */
-    uint32              dbit;                           /* Debugging Bit */
-    uint32              after;                          /* instruction delay before sending any data */
+    uint32_t            dbit;                           /* Debugging Bit */
+    uint32_t            after;                          /* instruction delay before sending any data */
     double              next_time;                      /* execution time when next data can be sent */
-    uint8               *buffer;                        /* buffer */
+    uint8_t             *buffer;                        /* buffer */
     size_t              bufsize;                        /* buffer size */
     size_t              insoff;                         /* insert offset */
     size_t              extoff;                         /* extra offset */
-    uint32              default_delay;                  /* default character delay */
-    uint32              default_after;                  /* default initial delay */
+    uint32_t            default_delay;                  /* default character delay */
+    uint32_t            default_after;                  /* default initial delay */
     };
 
 /* Debug table */
 
 struct DEBTAB {
     const char          *name;                          /* control name */
-    uint32              mask;                           /* control bit */
+    uint32_t            mask;                           /* control bit */
     const char          *desc;                          /* description */
     };
 
@@ -842,7 +815,7 @@ struct DEBTAB {
 struct FILEREF {
     char                name[CBUFSIZE];                 /* file name */
     FILE                *file;                          /* file handle */
-    int32               refcount;                       /* reference count */
+    int32_t             refcount;                       /* reference count */
     };
 
 struct MEMFILE {
@@ -1158,15 +1131,15 @@ extern pthread_cond_t sim_asynch_wake;
 extern pthread_mutex_t sim_timer_lock;
 extern pthread_cond_t sim_timer_wake;
 extern bool sim_timer_event_canceled;
-extern int32 sim_tmxr_poll_count;
+extern int32_t sim_tmxr_poll_count;
 extern pthread_cond_t sim_tmxr_poll_cond;
 extern pthread_mutex_t sim_tmxr_poll_lock;
 extern pthread_t sim_asynch_main_threadid;
 extern UNIT * volatile sim_asynch_queue;
 extern volatile bool sim_idle_wait;
-extern int32 sim_asynch_check;
-extern int32 sim_asynch_latency;
-extern int32 sim_asynch_inst_latency;
+extern int32_t sim_asynch_check;
+extern int32_t sim_asynch_latency;
+extern int32_t sim_asynch_inst_latency;
 
 /* Thread-local storage for asynchronous I/O diagnostics.
 
@@ -1355,7 +1328,7 @@ extern int32 sim_asynch_inst_latency;
       } else (void)0
 #define AIO_SET_INTERRUPT_LATENCY(instpersec)                                                   \
     do {                                                                                        \
-      sim_asynch_inst_latency = (int32)((((double)(instpersec))*sim_asynch_latency)/1000000000);\
+      sim_asynch_inst_latency = (int32_t)((((double)(instpersec))*sim_asynch_latency)/1000000000);\
       if (sim_asynch_inst_latency == 0)                                                         \
         sim_asynch_inst_latency = 1;                                                            \
       } while (0)

@@ -82,7 +82,7 @@ static void test_map_status_clamps_oversized_residual(void **state)
  */
 static void test_csr_set_bus_timeout_preserves_control_bits(void **state)
 {
-    uint32 csr;
+    uint32_t csr;
 
     (void)state;
 
@@ -100,7 +100,7 @@ static void test_csr_set_bus_timeout_preserves_control_bits(void **state)
  */
 static void test_csr_clear_dma_errors_preserves_non_error_bits(void **state)
 {
-    uint32 csr;
+    uint32_t csr;
 
     (void)state;
 

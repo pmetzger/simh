@@ -53,12 +53,13 @@
 #include "vax_mmu.h"
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-uint32 d_p0br, d_p0lr;                                  /* dynamic copies */
-uint32 d_p1br, d_p1lr;                                  /* altered per ucode */
-uint32 d_sbr, d_slr;
+uint32_t d_p0br, d_p0lr;                                /* dynamic copies */
+uint32_t d_p1br, d_p1lr;                                /* altered per ucode */
+uint32_t d_sbr, d_slr;
 TLBENT stlb[VA_TBSIZE], ptlb[VA_TBSIZE];
-static const int32 cvtacc[16] = { 0, 0,
+static const int32_t cvtacc[16] = { 0, 0,
     TLB_ACCW (KERN)+TLB_ACCR (KERN),
     TLB_ACCR (KERN),
     TLB_ACCW (KERN)+TLB_ACCW (EXEC)+TLB_ACCW (SUPV)+TLB_ACCW (USER)+
@@ -81,18 +82,18 @@ static const int32 cvtacc[16] = { 0, 0,
     TLB_ACCR (KERN)+TLB_ACCR (EXEC)+TLB_ACCR (SUPV)+TLB_ACCR (USER)
     };
 
-t_stat tlb_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat tlb_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat tlb_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat tlb_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat tlb_reset (DEVICE *dptr);
 const char *tlb_description (DEVICE *dptr);
 
-TLBENT fill (uint32 va, int32 lnt, int32 acc, int32 *stat);
-extern int32 ReadIO (uint32 pa, int32 lnt);
-extern void WriteIO (uint32 pa, int32 val, int32 lnt);
-extern int32 ReadReg (uint32 pa, int32 lnt);
-extern void WriteReg (uint32 pa, int32 val, int32 lnt);
-int32 ReadU (uint32 pa, int32 lnt);
-void WriteU (uint32 pa, int32 val, int32 lnt);
+TLBENT fill (uint32_t va, int32_t lnt, int32_t acc, int32_t *stat);
+extern int32_t ReadIO (uint32_t pa, int32_t lnt);
+extern void WriteIO (uint32_t pa, int32_t val, int32_t lnt);
+extern int32_t ReadReg (uint32_t pa, int32_t lnt);
+extern void WriteReg (uint32_t pa, int32_t val, int32_t lnt);
+int32_t ReadU (uint32_t pa, int32_t lnt);
+void WriteU (uint32_t pa, int32_t val, int32_t lnt);
 
 /* TLB data structures
 
@@ -139,10 +140,10 @@ DEVICE tlb_dev = {
     p2 = va; \
     ABORT ((param & PR_TNV)? ABORT_TNV: ABORT_ACV); }
 
-TLBENT fill (uint32 va, int32 lnt, int32 acc, int32 *stat)
+TLBENT fill (uint32_t va, int32_t lnt, int32_t acc, int32_t *stat)
 {
-uint32 ptidx = (va >> 7) & ~03u;
-uint32 tlbpte, ptead, pte, tbi, vpn;
+uint32_t ptidx = (va >> 7) & ~03u;
+uint32_t tlbpte, ptead, pte, tbi, vpn;
 static TLBENT zero_pte = { 0, 0 };
 
 if (va & VA_S0) {                                       /* system space? */
@@ -167,7 +168,7 @@ else {
     vpn = VA_GETVPN (ptead);                            /* get vpn, tbi */
     tbi = VA_GETTBI (vpn);
     if (stlb[tbi].tag != vpn) {                         /* in sys tlb? */
-        ptidx = ((uint32) ptead) >> 7;                  /* xlate like sys */
+        ptidx = ((uint32_t) ptead) >> 7;                /* xlate like sys */
         if (ptidx >= d_slr)
             MM_ERR (PR_PLNV);
         pte = ReadLP ((d_sbr + ptidx) & PAMASK);        /* get system pte */
@@ -213,11 +214,11 @@ return stlb[tbi];
 void set_map_reg (void)
 {
 d_p0br = P0BR & ~03;
-d_p1br = (((uint32) P1BR) - 0x800000u) & ~03u;          /* VA<30> >> 7 */
-d_sbr = (((uint32) SBR) - 0x1000000u) & ~03u;           /* VA<31> >> 7 */
-d_p0lr = ((uint32) P0LR) << 2;
-d_p1lr = (((uint32) P1LR) << 2) + 0x800000u;            /* VA<30> >> 7 */
-d_slr = (((uint32) SLR) << 2) + 0x1000000u;             /* VA<31> >> 7 */
+d_p1br = (((uint32_t) P1BR) - 0x800000u) & ~03u;        /* VA<30> >> 7 */
+d_sbr = (((uint32_t) SBR) - 0x1000000u) & ~03u;         /* VA<31> >> 7 */
+d_p0lr = ((uint32_t) P0LR) << 2;
+d_p1lr = (((uint32_t) P1LR) << 2) + 0x800000u;          /* VA<30> >> 7 */
+d_slr = (((uint32_t) SLR) << 2) + 0x1000000u;           /* VA<31> >> 7 */
 }
 
 /* Zap process (0) or whole (1) tb */
@@ -235,9 +236,9 @@ for (i = 0; i < VA_TBSIZE; i++) {
 
 /* Zap single tb entry corresponding to va */
 
-void zap_tb_ent (uint32 va)
+void zap_tb_ent (uint32_t va)
 {
-int32 tbi = VA_GETTBI (VA_GETVPN (va));
+int32_t tbi = VA_GETTBI (VA_GETVPN (va));
 
 if (va & VA_S0)
     stlb[tbi].tag = stlb[tbi].pte = -1;
@@ -246,10 +247,10 @@ else ptlb[tbi].tag = ptlb[tbi].pte = -1;
 
 /* Check for tlb entry corresponding to va */
 
-bool chk_tb_ent (uint32 va)
+bool chk_tb_ent (uint32_t va)
 {
-int32 vpn = VA_GETVPN (va);
-int32 tbi = VA_GETTBI (vpn);
+int32_t vpn = VA_GETVPN (va);
+int32_t tbi = VA_GETTBI (vpn);
 TLBENT xpte;
 
 xpte = (va & VA_S0)? stlb[tbi]: ptlb[tbi];
@@ -260,43 +261,43 @@ return false;
 
 /* TLB examine */
 
-t_stat tlb_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat tlb_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) sw;
 
-int32 tlbn = uptr - tlb_unit;
-uint32 idx = (uint32) addr >> 1;
+int32_t tlbn = uptr - tlb_unit;
+uint32_t idx = (uint32_t) addr >> 1;
 
 if (idx >= VA_TBSIZE)
     return SCPE_NXM;
 if (addr & 1)
-    *vptr = ((uint32) (tlbn? stlb[idx].pte: ptlb[idx].pte));
-else *vptr = ((uint32) (tlbn? stlb[idx].tag: ptlb[idx].tag));
+    *vptr = ((uint32_t) (tlbn? stlb[idx].pte: ptlb[idx].pte));
+else *vptr = ((uint32_t) (tlbn? stlb[idx].tag: ptlb[idx].tag));
 return SCPE_OK;
 }
 
 /* TLB deposit */
 
-t_stat tlb_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat tlb_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) sw;
 
-int32 tlbn = uptr - tlb_unit;
-uint32 idx = (uint32) addr >> 1;
+int32_t tlbn = uptr - tlb_unit;
+uint32_t idx = (uint32_t) addr >> 1;
 
 if (idx >= VA_TBSIZE)
     return SCPE_NXM;
 if (addr & 1) {
-    if (tlbn) stlb[idx].pte = (int32) val;
-    else ptlb[idx].pte = (int32) val;
+    if (tlbn) stlb[idx].pte = (int32_t) val;
+    else ptlb[idx].pte = (int32_t) val;
     }
 else {
-    if (tlbn) stlb[idx].tag = (int32) val;
-    else ptlb[idx].tag = (int32) val;
+    if (tlbn) stlb[idx].tag = (int32_t) val;
+    else ptlb[idx].tag = (int32_t) val;
     }
 return SCPE_OK;
 }

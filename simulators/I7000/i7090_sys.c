@@ -24,8 +24,9 @@
 #include "i7090_defs.h"
 #include "sim_card.h"
 #include <ctype.h>
+#include <stdint.h>
 
-t_stat  parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw);
+t_stat  parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw);
 
 /* SCP data structures and interface routines
 
@@ -45,7 +46,7 @@ char                sim_name[] = "IBM 7090";
 
 REG                *sim_PC = &cpu_reg[0];
 
-int32               sim_emax = 1;
+int32_t             sim_emax = 1;
 
 DEVICE             *sim_devices[] = {
     &cpu_dev,
@@ -227,9 +228,9 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
     (void)cptr;
     (void)flag;
 
-    t_uint64            wd;
-    t_uint64            mask;
-    uint8               buffer[160];
+    uint64_t            wd;
+    uint64_t            mask;
+    uint8_t             buffer[160];
     int                 addr = 0;
     int                 dlen = 0;
     char               *p;
@@ -237,8 +238,8 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
 
     if (match_ext(fnam, "crd")) {
         int                 firstcard = 1;
-        uint16              image[80];
-        t_uint64            lbuff[24];
+        uint16_t            image[80];
+        uint64_t            lbuff[24];
 
         while (sim_fread(buffer, 1, 160, fileref) == 160) {
             /* Convert bits into image */
@@ -279,8 +280,8 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
         }
     } else if (match_ext(fnam, "cbn")) {
         int                 firstcard = 1;
-        uint16              image[80];
-        t_uint64            lbuff[24];
+        uint16_t            image[80];
+        uint64_t            lbuff[24];
 
         while (sim_fread(buffer, 1, 160, fileref) == 160) {
             /* Convert bits into image */
@@ -361,9 +362,9 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              opbase;
+    uint16_t            opbase;
     const char         *name;
-    uint8               type;
+    uint8_t             type;
 }
 t_opcode;
 
@@ -729,7 +730,7 @@ const char *chname[11] = {
 static void
 lookup_sopcode(FILE * of, t_value val, t_opcode * tab)
 {
-    uint16              op = (uint16)(val & 07777);
+    uint16_t            op = (uint16_t)(val & 07777);
 
     while (tab->name != NULL) {
         if (tab->opbase == op) {
@@ -768,7 +769,7 @@ lookup_sopcode(FILE * of, t_value val, t_opcode * tab)
 static void
 lookup_opcode(FILE * of, t_value val, t_opcode * tab)
 {
-    uint16              op = (uint16)(val >> 24) & 07777;
+    uint16_t            op = (uint16_t)(val >> 24) & 07777;
 
     while (tab->name != NULL) {
         if (tab->opbase == op) {
@@ -842,13 +843,13 @@ lookup_opcode(FILE * of, t_value val, t_opcode * tab)
 */
 
 t_stat
-fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32 sw)
+fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32_t sw)
 {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
     (void)addr;
 
-    t_uint64            inst = *val;
+    uint64_t            inst = *val;
 
 /* Print value in octal first */
     fputc(' ', of);
@@ -859,7 +860,7 @@ fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32 sw)
     fprint_val(of, inst & PMASK, 8, 35, PV_RZRO);
 
     if (sw & SWMASK('L')) {
-        t_uint64        v;
+        uint64_t        v;
 
         fputs("   L ", of);
         v = (inst >> 18) & AMASK;
@@ -950,7 +951,7 @@ find_opcode(char *op, t_opcode * tab)
 */
 
 t_stat
-parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
+parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -979,12 +980,12 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
             sign = 1;
         }
         if ((op = find_opcode(buffer, base_ops)) != 0) {
-            d = (t_uint64) op->opbase << 33;
+            d = (uint64_t) op->opbase << 33;
             if (sign)
                 return STOP_UUO;
         } else if ((op = find_opcode(buffer, pos_ops)) != 0 ||
                    (op = find_opcode(buffer, neg_ops)) != 0) {
-            d = (t_uint64) op->opbase << 24;
+            d = (uint64_t) op->opbase << 24;
             if (sign)
                 d |= 03LL << 22;
         } else if ((op = find_opcode(buffer, pos_760)) != 0) {

@@ -25,6 +25,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sigma_defs.h"
 
 #define UFP_V_GUARD     4
@@ -89,29 +91,29 @@
                             } while (0)
 
 typedef struct {
-    uint32      sign;
-    int32       exp;
-    uint32      h;
-    uint32      l;
+    uint32_t    sign;
+    int32_t     exp;
+    uint32_t    h;
+    uint32_t    l;
     } ufp_t;
 
-extern uint32 *R;
-extern uint32 PSW1;
-extern uint32 CC;
+extern uint32_t *R;
+extern uint32_t PSW1;
+extern uint32_t CC;
 
-void fp_unpack (uint32 hi, uint32 lo, ufp_t *dst);
+void fp_unpack (uint32_t hi, uint32_t lo, ufp_t *dst);
 bool fp_clnzro (ufp_t *src, bool abnorm);
-uint32 fp_pack (ufp_t *src, uint32 rn, bool dbl, bool rndtrap);
-uint32 fp_norm (ufp_t *src);
+uint32_t fp_pack (ufp_t *src, uint32_t rn, bool dbl, bool rndtrap);
+uint32_t fp_norm (ufp_t *src);
 
-uint32 fp (uint32 op, uint32 rn, uint32 bva)
+uint32_t fp (uint32_t op, uint32_t rn, uint32_t bva)
 {
-uint32 rh, rl, mh, ml, i, ediff, nsh;
+uint32_t rh, rl, mh, ml, i, ediff, nsh;
 bool s1nz, s2nz;
 bool dbl = ((op & 0x20) == 0);
 ufp_t fop1, fop2, t;
 ufp_t res = { 0, 0, 0, 0 };
-uint32 tr;
+uint32_t tr;
 
 if (dbl) {                                              /* double prec? */
     rh = R[rn];                                         /* get reg operands */
@@ -252,7 +254,7 @@ switch (op) {                                           /* case on opcode */
                 UFP_LSH_K (fop1, 4);                    /* ensure success */
                 }
             else res.exp = res.exp + 1;                 /* incr exponent */
-            for (i = 0; i < (uint32)(dbl? 15: 7); i++) {/* 7/15 hex digits */
+            for (i = 0; i < (uint32_t)(dbl? 15: 7); i++) {/* 7/15 hex digits */
                 UFP_LSH_K (res, 4);                     /* shift quotient */
                 while (UFP_GE (fop1, fop2)) {           /* while sub works */
                     UFP_SUB (fop1, fop2, fop1);         /* decrement */
@@ -272,9 +274,9 @@ switch (op) {                                           /* case on opcode */
 return SCPE_IERR;
 }
 
-void ShiftF (uint32 rn, uint32 stype, uint32 sc)
+void ShiftF (uint32_t rn, uint32_t stype, uint32_t sc)
 {
-uint32 opnd, opnd1;
+uint32_t opnd, opnd1;
 ufp_t src;
 
 opnd = R[rn];                                           /* get operands */
@@ -328,7 +330,7 @@ fp_pack (&src, rn, stype != 0, false);                  /* pack result */
 return;
 }
 
-void fp_unpack (uint32 hi, uint32 lo, ufp_t *dst)
+void fp_unpack (uint32_t hi, uint32_t lo, ufp_t *dst)
 {
 dst->sign = FP_GETSIGN (hi);                            /* get sign */
 if (dst->sign)                                          /* negative? */
@@ -354,10 +356,10 @@ if (((src->h | src->l) == 0) &&                         /* frac zero and */
 return true;                                            /* non-zero */
 }
 
-uint32 fp_pack (ufp_t *src, uint32 rn, bool dbl, bool rndtrap)
+uint32_t fp_pack (ufp_t *src, uint32_t rn, bool dbl, bool rndtrap)
 {
 static ufp_t fp_zero = { 0, 0, 0, 0};
-uint32 opnd, opnd1;
+uint32_t opnd, opnd1;
 
 if (src->h || (dbl && src->l)) {                        /* result != 0? */
     CC |= (src->sign? CC4: CC3);                        /* set CC's */
@@ -404,9 +406,9 @@ if (dbl && ((rn & 1) == 0))
 return 0;
 }
 
-uint32 fp_norm (ufp_t *src)
+uint32_t fp_norm (ufp_t *src)
 {
-uint32 nsh;
+uint32_t nsh;
 
 nsh = 0;
 src->h &= UFP_FRHI;

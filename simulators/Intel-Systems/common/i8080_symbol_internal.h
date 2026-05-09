@@ -6,6 +6,8 @@
 #ifndef I8080_SYMBOL_INTERNAL_H_
 #define I8080_SYMBOL_INTERNAL_H_ 0
 
+#include <stdint.h>
+
 #include "system_defs.h"
 
 /*
@@ -14,14 +16,14 @@
  */
 #define I8080_SYMBOL_WORDS 3
 
-t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw);
+t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
-                 int32 sw);
+                 int32_t sw);
 
 /*
  * Return the encoded instruction length for one i8080 opcode, or zero for an
  * invalid opcode.
  */
-int32 i8080_symbol_instruction_length(uint8 opcode);
+int32_t i8080_symbol_instruction_length(uint8_t opcode);
 
 #endif

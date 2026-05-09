@@ -37,6 +37,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 
 /* Global data structures */
@@ -150,8 +151,8 @@ typedef enum {
    cpu_power_cmd    : process the POWER commands
 */
 
-extern t_stat cpu_cold_cmd  (int32 arg, const char *buf);
-extern t_stat cpu_power_cmd (int32 arg, const char *buf);
+extern t_stat cpu_cold_cmd  (int32_t arg, const char *buf);
+extern t_stat cpu_power_cmd (int32_t arg, const char *buf);
 
 
 /* Global SIO order structures.
@@ -173,10 +174,10 @@ extern const char *const sio_order_name [];
    iop_direct_io    : dispatch an I/O command to an interface
 */
 
-extern uint32 iop_interrupt_request_set;
+extern uint32_t iop_interrupt_request_set;
 
-extern uint32  iop_initialize   (void);
-extern uint32  iop_poll         (void);
+extern uint32_t iop_initialize   (void);
+extern uint32_t iop_poll         (void);
 extern HP_WORD iop_direct_io    (HP_WORD device_number, IO_COMMAND io_cmd, HP_WORD write_value);
 
 
@@ -188,10 +189,10 @@ extern HP_WORD iop_direct_io    (HP_WORD device_number, IO_COMMAND io_cmd, HP_WO
    mpx_service    : poll the interfaces for an active service request
 */
 
-extern uint32 mpx_request_set;
+extern uint32_t mpx_request_set;
 
 extern void mpx_initialize (void);
-extern void mpx_service    (uint32 ticks_elapsed);
+extern void mpx_service    (uint32_t ticks_elapsed);
 
 
 /* Global selector channel state and functions
@@ -205,4 +206,4 @@ extern void mpx_service    (uint32 ticks_elapsed);
 extern bool sel_request;
 
 extern void sel_initialize (void);
-extern void sel_service    (uint32 ticks_elapsed);
+extern void sel_service    (uint32_t ticks_elapsed);

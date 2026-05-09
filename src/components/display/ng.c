@@ -24,10 +24,13 @@
  * from the authors.
  */
 
-#include <string.h>
 #include <assert.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "display.h"                    /* XY plot interface */
 #include "ng.h"
+#include "sim_types.h"
 
 
 /* Bits in the CSR register, type Dazzle. */
@@ -42,24 +45,24 @@ static void *ng_dptr;
 static int ng_dbit;
 
 #define DEVICE void
-extern void _sim_debug_device (unsigned int dbits, DEVICE* dptr, const char* fmt, ...);
+extern void _sim_debug_device (uint_t dbits, DEVICE* dptr, const char* fmt, ...);
 
 #define DEBUGF(...) _sim_debug_device (ng_dbit, ng_dptr, ##  __VA_ARGS__)
 
 int ng_type = 0;
 int ng_scale = PIX_SCALE;
 
-static uint16 status[DISPLAYS];
+static uint16_t status[DISPLAYS];
 static int reloc = 0;
 static int console = 0;
 static int dpc[DISPLAYS];
 static int x[DISPLAYS];
 static int y[DISPLAYS];
 
-static unsigned char sync_period = 0;
-static unsigned char time_out = 0;
+static uchar_t sync_period = 0;
+static uchar_t time_out = 0;
 
-int32
+int32_t
 ng_get_csr(void)
 {
   if (ng_type == TYPE_DAZZLE) {
@@ -76,14 +79,14 @@ ng_get_csr(void)
   return 0;
 }
 
-int32
+int32_t
 ng_get_reloc(void)
 {
   return reloc & 0177777;
 }
 
 void
-ng_set_csr(uint16 d)
+ng_set_csr(uint16_t d)
 {
   if (ng_type == TYPE_DAZZLE) {
     console = d & 0377;
@@ -107,7 +110,7 @@ ng_set_csr(uint16 d)
 }
 
 void
-ng_set_reloc(uint16 d)
+ng_set_reloc(uint16_t d)
 {
   reloc = d;
   DEBUGF("Set REL: %06o\n", d);
@@ -125,12 +128,12 @@ ng_init(void *dev, int debug)
   return display_init(DIS_NG, ng_scale, ng_dptr);
 }
 
-static int fetch (int a, uint16 *x)
+static int fetch (int a, uint16_t *x)
 {
   return ng_fetch (a + reloc, x);
 }
 
-static int store (int a, uint16 x)
+static int store (int a, uint16_t x)
 {
   return ng_store (a + reloc, x);
 }
@@ -144,7 +147,7 @@ static void point (void)
   display_point(x1 + 256, y1 + 256, DISPLAY_INT_MAX, 0);
 }
 
-void increment (uint16 inst)
+void increment (uint16_t inst)
 {
   int n = (inst >> 8) & 7;
   int i, mask;
@@ -206,9 +209,9 @@ void increment (uint16 inst)
   }
 }
 
-void pushj (uint16 inst)
+void pushj (uint16_t inst)
 {
-  uint16 a;
+  uint16_t a;
   fetch (16 + 2*console, &a);
   store (16 + 2*console, a + 1);
   store (2*a, dpc[console]);
@@ -226,9 +229,9 @@ void stop (void)
     dpc[0] = 2*0;
 }
 
-uint16 pop (void)
+uint16_t pop (void)
 {
-  uint16 a;
+  uint16_t a;
   fetch (16 + 2*console, &a);
   store (16 + 2*console, a - 1);
   DEBUGF("[%d] POP (%06o -> %06o)\n", console, a, a - 1);
@@ -237,7 +240,7 @@ uint16 pop (void)
 
 void popj (void)
 {
-  uint16 a, x;
+  uint16_t a, x;
   a = pop ();
   fetch (2*a, &x);
   DEBUGF("[%d] POPJ %06o -> %06o\n", console, dpc[console], x);
@@ -256,7 +259,7 @@ void resety (void)
   y[console] = 0;
 }
 
-void delta (uint16 inst)
+void delta (uint16_t inst)
 {
   int delta = inst & 01777;
 
@@ -298,10 +301,10 @@ void delta (uint16 inst)
 int
 ng_cycle(int us, int slowdown)
 {
-  uint16 inst;
-  static uint32 usec = 0;
-  static uint32 msec = 0;
-  uint32 new_msec;
+  uint16_t inst;
+  static uint32_t usec = 0;
+  static uint32_t msec = 0;
+  uint32_t new_msec;
   int running = 0;
   int saved;
 

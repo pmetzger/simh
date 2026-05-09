@@ -55,6 +55,9 @@
 #undef sint16
 #undef sint32
 #undef sint64
+#undef int8
+#undef int16
+#undef int32
 #undef uint8
 #undef uint16
 #undef uint32
@@ -65,6 +68,12 @@
 typedef signed   char  sint8;       /* ASG: changed from char to signed char */
 typedef signed   short sint16;
 typedef signed   int   sint32;      /* AWJ: changed from long to int */
+typedef sint8 int8;
+typedef sint16 int16;
+typedef sint32 int32;
+typedef unsigned char  uint8;
+typedef unsigned short uint16;
+typedef unsigned int   uint32;      /* AWJ: changed from long to int */
 
 /* signed and unsigned int must be at least 32 bits wide */
 typedef signed   int sint;
@@ -98,6 +107,8 @@ typedef uint32 uint64;
 #else
     #undef  sint8
     #define sint8  signed   int
+    #undef  int8
+    #define int8   signed   int
     #undef  uint8
     #define uint8  unsigned int
     static inline sint MAKE_INT_8(uint value)
@@ -113,6 +124,8 @@ typedef uint32 uint64;
 #else
     #undef  sint16
     #define sint16 signed   int
+    #undef  int16
+    #define int16  signed   int
     #undef  uint16
     #define uint16 unsigned int
     static inline sint MAKE_INT_16(uint value)
@@ -128,6 +141,8 @@ typedef uint32 uint64;
 #else
     #undef  sint32
     #define sint32  signed   int
+    #undef  int32
+    #define int32   signed   int
     #undef  uint32
     #define uint32  unsigned int
     static inline sint MAKE_INT_32(uint value)

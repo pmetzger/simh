@@ -65,6 +65,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -183,18 +185,18 @@ static const OP_PAT op_ffp_e [32] = {                   /* patterns for 2100/M/E
   OP_N,    OP_N,    OP_N,    OP_N                       /*  ---    ---    ---    ---  */
   };
 
-t_stat cpu_ffp (uint32 intrq)
+t_stat cpu_ffp (uint32_t intrq)
 {
 OP fpop;
 OPS op, op2;
-uint32 entry;
+uint32_t entry;
 HP_WORD j, sa, sb, sc, da, dc, ra, MA;
-int32 expon;
+int32_t expon;
 t_stat reason = SCPE_OK;
 
 #if defined (HAVE_INT64)                                /* int64 support available */
 
-int32 i;
+int32_t i;
 
 #endif                                                  /* end of int64 support */
 
@@ -660,7 +662,7 @@ t_stat cpu_dbi (HP_WORD IR)
 {
 OP din;
 OPS op;
-uint32 entry, t;
+uint32_t entry, t;
 t_stat reason = SCPE_OK;
 
 entry = IR & 017;                                       /* mask to entry point */
@@ -693,26 +695,26 @@ switch (entry) {                                        /* decode IR<3:0> */
 
 #if defined (HAVE_INT64)                                /* int64 support available */
 
-            t_int64 t64;
+            int64_t t64;
 
-            t64 = (t_int64) INT32 (op[0].dword) *       /* multiply signed values */
-                  (t_int64) INT32 (op[1].dword);
-            O = ((t64 < -(t_int64) 0x80000000) ||       /* overflow if out of range */
-                 (t64 >  (t_int64) 0x7FFFFFFF));
+            t64 = (int64_t) INT32 (op[0].dword) *       /* multiply signed values */
+                  (int64_t) INT32 (op[1].dword);
+            O = ((t64 < -(int64_t) 0x80000000) ||       /* overflow if out of range */
+                 (t64 >  (int64_t) 0x7FFFFFFF));
             if (O)
                 t = D32_SMAX;                           /* if overflow, rtn max pos */
             else
-                t = (uint32) (t64 & D32_MASK);          /* else lower 32 bits of result */
+                t = (uint32_t) (t64 & D32_MASK);        /* else lower 32 bits of result */
 
 #else                                                   /* int64 support unavailable */
 
-            uint32 sign, xu, yu, rh, rl;
+            uint32_t sign, xu, yu, rh, rl;
 
-            sign = ((int32) op[0].dword < 0) ^          /* save sign of result */
-                   ((int32) op[1].dword < 0);
+            sign = ((int32_t) op[0].dword < 0) ^        /* save sign of result */
+                   ((int32_t) op[1].dword < 0);
 
-            xu = (uint32) abs ((int32) op[0].dword);    /* make operands pos */
-            yu = (uint32) abs ((int32) op[1].dword);
+            xu = (uint32_t) abs ((int32_t) op[0].dword); /* make operands pos */
+            yu = (uint32_t) abs ((int32_t) op[1].dword);
 
             if ((xu & 0xFFFF0000) == 0 &&               /* 16 x 16 multiply? */
                 (yu & 0xFFFF0000) == 0) {
@@ -756,9 +758,9 @@ switch (entry) {                                        /* decode IR<3:0> */
 
     case 004:                                           /* .DCO 105324 (OP_JD) */
         t = op[0].dword;                                /* copy for later store */
-        if ((int32) op[0].dword < (int32) op[1].dword)
+        if ((int32_t) op[0].dword < (int32_t) op[1].dword)
             PR = (PR + 1) & LA_MASK;                    /* < rtns to P+2 */
-        else if ((int32) op[0].dword > (int32) op[1].dword)
+        else if ((int32_t) op[0].dword > (int32_t) op[1].dword)
             PR = (PR + 2) & LA_MASK;                    /* > rtns to P+3 */
         break;                                          /* = rtns to P+1 */
 
@@ -766,11 +768,11 @@ switch (entry) {                                        /* decode IR<3:0> */
     DDI:
         O = ((op[1].dword == 0) ||                      /* overflow if div 0 */
              ((op[0].dword == D32_SMIN) &&              /*   or max neg div -1 */
-              ((int32) op[1].dword == -1)));
+              ((int32_t) op[1].dword == -1)));
         if (O)
             t = D32_SMAX;                               /* rtn max pos for ovf */
         else
-            t = (uint32) (INT32 (op[0].dword) /         /* else return quotient */
+            t = (uint32_t) (INT32 (op[0].dword) /       /* else return quotient */
                           INT32 (op[1].dword));
         break;
 
@@ -798,7 +800,7 @@ switch (entry) {                                        /* decode IR<3:0> */
     case 011:                                           /* .DDE 105331 (OP_J) */
         t = op[0].dword - 1;                            /* decrement value */
         O = (t == D32_SMAX);                            /* overflow if sign flipped */
-        if ((int32) t == -1)
+        if ((int32_t) t == -1)
             E = 1;                                      /* borrow if result -1 */
         break;
 

@@ -29,6 +29,8 @@
 #define _KA10_DEFS_H_  0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -149,7 +151,7 @@
    Code  = 0 stops execution for an interrupt check
 */
 
-typedef t_uint64     uint64;
+typedef uint64_t     uint64;
 
 #define STOP_HALT       1                               /* halted */
 #define STOP_IBKPT      2                               /* breakpoint */
@@ -261,12 +263,12 @@ extern DEBTAB crd_debug[];
 #define OP_JUMPA        0324                            /* JUMPA */
 #define AC_XPCW         07                              /* XPCW */
 #define OP_JSR          0264                            /* JSR */
-#define GET_OP(x)       ((int32) (((x) >> INST_V_OP) & INST_M_OP))
-#define GET_DEV(x)      ((int32) (((x) >> INST_V_DEV) & INST_M_DEV))
-#define GET_AC(x)       ((int32) (((x) >> INST_V_AC) & INST_M_AC))
+#define GET_OP(x)       ((int32_t) (((x) >> INST_V_OP) & INST_M_OP))
+#define GET_DEV(x)      ((int32_t) (((x) >> INST_V_DEV) & INST_M_DEV))
+#define GET_AC(x)       ((int32_t) (((x) >> INST_V_AC) & INST_M_AC))
 #define TST_IND(x)      ((x) & INST_IND)
-#define GET_XR(x)       ((int32) (((x) >> INST_V_XR) & INST_M_XR))
-#define GET_ADDR(x)     ((uint32) ((x) & RMASK))
+#define GET_XR(x)       ((int32_t) (((x) >> INST_V_XR) & INST_M_XR))
+#define GET_ADDR(x)     ((uint32_t) ((x) & RMASK))
 #define LRZ(x)          (((x) >> 18) & RMASK)
 #define JRST1           (((uint64)OP_JRST << 27) + 1)
 
@@ -453,8 +455,8 @@ extern DEBTAB crd_debug[];
 /* DTE memory access functions, n = DTE# */
 extern int      Mem_examine_word(int n, int wrd, uint64 *data);
 extern int      Mem_deposit_word(int n, int wrd, uint64 *data);
-extern int      Mem_read_byte(int n, uint16 *data, int byte);
-extern int      Mem_write_byte(int n, uint16 *data);
+extern int      Mem_read_byte(int n, uint16_t *data, int byte);
+extern int      Mem_write_byte(int n, uint16_t *data);
 #endif
 
 /*
@@ -551,37 +553,37 @@ extern DEVICE   gtyo_dev;
 #if KS
 
 struct rh_if {
-      int            (*dev_write)(DEVICE *dptr, struct rh_if *rh, int reg, uint32 data);
-      int            (*dev_read)(DEVICE *dptr, struct rh_if *rh, int reg, uint32 *data);
+      int            (*dev_write)(DEVICE *dptr, struct rh_if *rh, int reg, uint32_t data);
+      int            (*dev_read)(DEVICE *dptr, struct rh_if *rh, int reg, uint32_t *data);
       void           (*dev_reset)(DEVICE *dptr);
       struct pdp_dib *dib;       /* Pointer back to DIB */
       int            drive;      /* Last drive selected */
-      t_uint64       buf;        /* Data buffer */
-      uint32         status;     /* Status word */
-      uint16         cs1;        /* Control register 1 */
-      uint16         cs2;        /* Control register 1 */
-      uint16         error;      /* Controller Error register */
-      uint32         wcr;        /* Current word count */
-      uint32         cda;        /* Current bus address */
-      uint16         dba;        /* Input data buffer */
-      uint16         dbb;        /* Output data buffer*/
+      uint64_t       buf;        /* Data buffer */
+      uint32_t       status;     /* Status word */
+      uint16_t       cs1;        /* Control register 1 */
+      uint16_t       cs2;        /* Control register 1 */
+      uint16_t       error;      /* Controller Error register */
+      uint32_t       wcr;        /* Current word count */
+      uint32_t       cda;        /* Current bus address */
+      uint16_t       dba;        /* Input data buffer */
+      uint16_t       dbb;        /* Output data buffer*/
       int            rae;        /* Access register error */
       int            attn;       /* Attention bits */
       int            xfer_drive; /* Current transfering drive */
-      uint16         regs[16];   /* Space for TM03 formater */
+      uint16_t       regs[16];   /* Space for TM03 formater */
 };
 
 /* Device context block */
 struct pdp_dib {
-    uint32              uba_addr;                       /* device address, includes adaptor */
-    uint32              uba_mask;                       /* Compare mask */
-    uint16              uba_vect;                       /* Floating IRQ vector */
-    uint16              uba_br;                         /* Unibus IRQ level */
-    uint16              uba_ctl;                        /* Unibus controller number */
-    t_stat              (*rd_io)(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
-    t_stat              (*wr_io)(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
-    uint16              (*irqv)(struct pdp_dib *dibp);
-    uint8               uba_irq_pend;                   /* Device has pending */
+    uint32_t            uba_addr;                       /* device address, includes adaptor */
+    uint32_t            uba_mask;                       /* Compare mask */
+    uint16_t            uba_vect;                       /* Floating IRQ vector */
+    uint16_t            uba_br;                         /* Unibus IRQ level */
+    uint16_t            uba_ctl;                        /* Unibus controller number */
+    t_stat              (*rd_io)(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access);
+    t_stat              (*wr_io)(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access);
+    uint16_t            (*irqv)(struct pdp_dib *dibp);
+    uint8_t             uba_irq_pend;                   /* Device has pending */
     struct rh_if       *rh11_if;
 };
 typedef struct pdp_dib DIB;
@@ -596,31 +598,31 @@ t_stat  cty_reset (DEVICE *dptr);
 #define BYTE     1
 int     uba_read(t_addr addr, int ctl, uint64 *data, int access);
 int     uba_write(t_addr addr, int ctl, uint64 data, int access);
-int     uba_read_npr(t_addr addr, uint16 ctl, uint64 *data);
-int     uba_write_npr(t_addr addr, uint16 ctl, uint64 data);
-int     uba_read_npr_byte(t_addr addr, uint16 ctl, uint8 *data);
-int     uba_write_npr_byte(t_addr addr, uint16 ctl, uint8 data);
-int     uba_read_npr_word(t_addr addr, uint16 ctl, uint16 *data);
-int     uba_write_npr_word(t_addr addr, uint16 ctl, uint16 data);
+int     uba_read_npr(t_addr addr, uint16_t ctl, uint64 *data);
+int     uba_write_npr(t_addr addr, uint16_t ctl, uint64 data);
+int     uba_read_npr_byte(t_addr addr, uint16_t ctl, uint8_t *data);
+int     uba_write_npr_byte(t_addr addr, uint16_t ctl, uint8_t data);
+int     uba_read_npr_word(t_addr addr, uint16_t ctl, uint16_t *data);
+int     uba_write_npr_word(t_addr addr, uint16_t ctl, uint16_t data);
 void    uba_set_irq(DIB *dibp, int vect);
 void    uba_clr_irq(DIB *dibp, int vect);
 t_addr  uba_get_vect(t_addr addr, int lvl, int dev);
-void    uba_set_parity(uint16 ctl);
-int     uba_rh_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
-int     uba_rh_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
+void    uba_set_parity(uint16_t ctl);
+int     uba_rh_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access);
+int     uba_rh_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access);
 void    uba_reset(void);
 
-t_stat  uba_set_addr(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat  uba_show_addr (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat  uba_set_br(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat  uba_show_br (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat  uba_set_vect(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat  uba_show_vect (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat  uba_set_ctl(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat  uba_show_ctl (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat  uba_set_addr(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat  uba_show_addr (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat  uba_set_br(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat  uba_show_br (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat  uba_set_vect(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat  uba_show_vect (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat  uba_set_ctl(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat  uba_show_ctl (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 void    rh_reset(DEVICE *dptr, struct rh_if *rh);
-void    rh_setup(struct rh_if *rh, uint32 addr);
+void    rh_setup(struct rh_if *rh, uint32_t addr);
 void    rh_setattn(struct rh_if *rh, int unit);
 void    rh_error(struct rh_if *rh);
 int     rh_blkend(struct rh_if *rh);
@@ -630,20 +632,20 @@ void    rh_finish_op(struct rh_if *rh, int flags);
 int     rh_read(struct rh_if *rh);
 int     rh_write(struct rh_if *rh);
 #else
-extern t_stat (*dev_tab[128])(uint32 dev, t_uint64 *data);
+extern t_stat (*dev_tab[128])(uint32_t dev, uint64_t *data);
 
 #define VEC_DEVMAX      8                               /* max device vec */
 
 /* DF10 Interface */
 struct df10 {
-      uint32         status;     /* DF10 status word */
-      uint32         cia;        /* Initial transfer address */
-      uint32         ccw;        /* Next control word address */
-      uint32         wcr;        /* CUrrent word count */
-      uint32         cda;        /* Current transfer address */
-      uint32         devnum;     /* Device number */
+      uint32_t       status;     /* DF10 status word */
+      uint32_t       cia;        /* Initial transfer address */
+      uint32_t       ccw;        /* Next control word address */
+      uint32_t       wcr;        /* CUrrent word count */
+      uint32_t       cda;        /* Current transfer address */
+      uint32_t       devnum;     /* Device number */
       uint64         buf;        /* Data buffer */
-      uint8          nxmerr;     /* Bit to set for NXM */
+      uint8_t        nxmerr;     /* Bit to set for NXM */
       uint64         amask;      /* Address mask */
       uint64         wmask;      /* Word mask */
       int            cshift;     /* Shift amount */
@@ -651,44 +653,44 @@ struct df10 {
 
 /* RH10/RH20 Interface */
 struct rh_if {
-      int            (*dev_write)(DEVICE *dptr, struct rh_if *rh, int reg, uint32 data);
-      int            (*dev_read)(DEVICE *dptr, struct rh_if *rh, int reg, uint32 *data);
+      int            (*dev_write)(DEVICE *dptr, struct rh_if *rh, int reg, uint32_t data);
+      int            (*dev_read)(DEVICE *dptr, struct rh_if *rh, int reg, uint32_t *data);
       void           (*dev_reset)(DEVICE *dptr);
-      t_uint64       buf;        /* Data buffer */
-      uint32         status;     /* DF10 status word */
-      uint32         cia;        /* Initial transfer address */
-      uint32         ccw;        /* Current word count */
-      uint32         wcr;
-      uint32         cda;        /* Current transfer address */
-      uint32         devnum;     /* Device number */
+      uint64_t       buf;        /* Data buffer */
+      uint32_t       status;     /* DF10 status word */
+      uint32_t       cia;        /* Initial transfer address */
+      uint32_t       ccw;        /* Current word count */
+      uint32_t       wcr;
+      uint32_t       cda;        /* Current transfer address */
+      uint32_t       devnum;     /* Device number */
       int            ivect;      /* Interrupt vector */
-      uint8          imode;      /* Mode of vector */
+      uint8_t        imode;      /* Mode of vector */
       int            cop;        /* RH20 Channel operator */
-      uint32         sbar;       /* RH20 Starting address */
-      uint32         stcr;       /* RH20 Count */
-      uint32         pbar;
-      uint32         ptcr;
+      uint32_t       sbar;       /* RH20 Starting address */
+      uint32_t       stcr;       /* RH20 Count */
+      uint32_t       pbar;
+      uint32_t       ptcr;
       int            reg;        /* Last register selected */
       int            drive;      /* Last drive selected */
       int            rae;        /* Access register error */
       int            attn;       /* Attention bits */
       int            xfer_drive; /* Current transfering drive */
-      uint16         regs[16];   /* Space for TM03 formater */
+      uint16_t       regs[16];   /* Space for TM03 formater */
 };
 
 /* Device context block */
 struct pdp_dib {
-    uint32              dev_num;                        /* device address */
-    uint32              num_devs;                       /* length */
-    t_stat              (*io)(uint32 dev, t_uint64 *data);
-    t_addr              (*irq)(uint32 dev, t_addr addr);
+    uint32_t            dev_num;                        /* device address */
+    uint32_t            num_devs;                       /* length */
+    t_stat              (*io)(uint32_t dev, uint64_t *data);
+    t_addr              (*irq)(uint32_t dev, t_addr addr);
     struct rh_if        *rh;
 };
 
 #define RH10_DEV        01000
 #define RH20_DEV        02000
 struct rh_dev {
-    uint32              dev_num;
+    uint32_t            dev_num;
     DEVICE             *dev;
     struct rh_if       *rh;
 };
@@ -698,27 +700,27 @@ typedef struct pdp_dib DIB;
 void df10_setirq(struct df10 *df);
 void df10_writecw(struct df10 *df);
 void df10_finish_op(struct df10 *df, int flags);
-void df10_setup(struct df10 *df, uint32 addr);
+void df10_setup(struct df10 *df, uint32_t addr);
 int  df10_fetch(struct df10 *df);
 int  df10_read(struct df10 *df);
 int  df10_write(struct df10 *df);
-void df10_init(struct df10 *df, uint32 dev_num, uint8 nxmerr);
+void df10_init(struct df10 *df, uint32_t dev_num, uint8_t nxmerr);
 #if PDP6_DEV
-int  dct_read(int u, t_uint64 *data, int c);
-int  dct_write(int u, t_uint64 *data, int c);
+int  dct_read(int u, uint64_t *data, int c);
+int  dct_write(int u, uint64_t *data, int c);
 int  dct_is_connect(int u);
 #endif
 
 /* Define RH10/RH20 functions */
-t_stat  rh_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat  rh_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat  rh_devio(uint32 dev, t_uint64 *data);
-t_addr  rh_devirq(uint32 dev, t_addr addr);
+t_stat  rh_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat  rh_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat  rh_devio(uint32_t dev, uint64_t *data);
+t_addr  rh_devirq(uint32_t dev, t_addr addr);
 void    rh_reset(DEVICE *dptr, struct rh_if *rh);
 #if KL
 void    rh20_setup(struct rh_if *rhc);
 #endif
-void    rh_setup(struct rh_if *rh, uint32 addr);
+void    rh_setup(struct rh_if *rh, uint32_t addr);
 void    rh_setattn(struct rh_if *rh, int unit);
 void    rh_error(struct rh_if *rh);
 int     rh_blkend(struct rh_if *rh);
@@ -731,7 +733,7 @@ int     rh_write(struct rh_if *rh);
 
 /* Console lights. */
 extern void ka10_lights_init (void);
-extern void ka10_lights_main (t_uint64);
+extern void ka10_lights_main (uint64_t);
 extern void ka10_lights_set_aux (int);
 extern void ka10_lights_clear_aux (int);
 #endif
@@ -831,14 +833,14 @@ extern bool sim_idle_enab;
 #if !KS
 extern struct rh_dev rh[];
 #endif
-extern t_uint64   M[MAXMEMSIZE];
-extern t_uint64   FM[];
-extern uint32   PC;
-extern uint32   FLAGS;
+extern uint64_t   M[MAXMEMSIZE];
+extern uint64_t   FM[];
+extern uint32_t PC;
+extern uint32_t FLAGS;
 
 #if NUM_DEVS_TEN11
-int ten11_read (t_addr addr, t_uint64 *data);
-int ten11_write (t_addr addr, t_uint64 data);
+int ten11_read (t_addr addr, uint64_t *data);
+int ten11_write (t_addr addr, uint64_t data);
 extern t_addr ten11_base;
 extern t_addr ten11_end;
 #endif
@@ -854,10 +856,10 @@ extern UNIT     auxcpu_unit[];
 //extern UNIT     slave_unit[];
 #endif
 #if NUM_DEVS_III
-extern uint32 iii_keyboard_line (void *);
+extern uint32_t iii_keyboard_line (void *);
 #endif
 #if NUM_DEVS_DD
-extern uint32 dd_keyboard_line (void *);
+extern uint32_t dd_keyboard_line (void *);
 #endif
 
 #if PIDP10

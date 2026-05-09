@@ -32,21 +32,23 @@
 #define __3B2_IF_H__
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_defs.h"
 
 typedef struct {
-    uint8 data;
-    uint8 cmd;
-    uint8 cmd_type;
-    uint8 status;
-    uint8 track;
-    uint8 sector;
-    uint8 side;
-    uint8 read_addr_ptr;
-    int8  step_dir;
+    uint8_t data;
+    uint8_t cmd;
+    uint8_t cmd_type;
+    uint8_t status;
+    uint8_t track;
+    uint8_t sector;
+    uint8_t side;
+    uint8_t read_addr_ptr;
+    int8_t step_dir;
     bool drq;
 #if defined(REV3)
-    uint8 csr;
+    uint8_t csr;
 #endif
 } IF_STATE;
 
@@ -116,16 +118,16 @@ t_stat if_svc(UNIT *uptr);
 t_stat if_reset(DEVICE *dptr);
 t_stat if_attach(UNIT *uptr, const char *cptr);
 t_stat if_detach(UNIT *uptr);
-uint32 if_read(uint32 pa, size_t size);
-void if_write(uint32 pa, uint32 val, size_t size);
+uint32_t if_read(uint32_t pa, size_t size);
+void if_write(uint32_t pa, uint32_t val, size_t size);
 #if defined(REV3)
-uint32 if_csr_read(uint32 pa, size_t size);
-void if_csr_write(uint32 pa, uint32 val, size_t size);
+uint32_t if_csr_read(uint32_t pa, size_t size);
+void if_csr_write(uint32_t pa, uint32_t val, size_t size);
 #endif
 void if_handle_command(void);
 void if_after_dma(void);
 const char *if_description(DEVICE *dptr);
-t_stat if_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat if_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 
 extern IF_STATE if_state;
 

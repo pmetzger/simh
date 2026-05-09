@@ -50,6 +50,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sds_defs.h"
 #include "sim_tape.h"
 
@@ -59,18 +61,18 @@
 #define botf            u3                              /* bot tape flag */
 #define eotf            u4                              /* eot tape flag */
 
-extern uint32 xfr_req;
-extern int32 stop_invins, stop_invdev, stop_inviop;
-int32 mt_inst = 0;                                      /* saved instr */
-int32 mt_eof = 0;                                       /* end of file */
-int32 mt_gap = 0;                                       /* in gap */
-int32 mt_skip = 0;                                      /* skip rec */
-int32 mt_bptr = 0;                                      /* buf ptr */
-int32 mt_blnt = 0;                                      /* buf length */
-int32 mt_ctime = 10;                                    /* char time */
-int32 mt_gtime = 1000;                                  /* gap time */
-int32 mt_stopioe = 1;                                   /* stop on err */
-uint8 mtxb[MT_MAXFR];                                   /* record buffer */
+extern uint32_t xfr_req;
+extern int32_t stop_invins, stop_invdev, stop_inviop;
+int32_t mt_inst = 0;                                    /* saved instr */
+int32_t mt_eof = 0;                                     /* end of file */
+int32_t mt_gap = 0;                                     /* in gap */
+int32_t mt_skip = 0;                                    /* skip rec */
+int32_t mt_bptr = 0;                                    /* buf ptr */
+int32_t mt_blnt = 0;                                    /* buf length */
+int32_t mt_ctime = 10;                                  /* char time */
+int32_t mt_gtime = 1000;                                /* gap time */
+int32_t mt_stopioe = 1;                                 /* stop on err */
+uint8_t mtxb[MT_MAXFR];                                 /* record buffer */
 DSPT mt_tplt[] = {                                      /* template */
     { MT_NUMDR, 0 },
     { MT_NUMDR, DEV_MTS },
@@ -81,15 +83,15 @@ DSPT mt_tplt[] = {                                      /* template */
 
 t_stat mt_svc (UNIT *uptr);
 t_stat mt_reset (DEVICE *dptr);
-t_stat mt_boot (int32 unitno, DEVICE *dptr);
+t_stat mt_boot (int32_t unitno, DEVICE *dptr);
 t_stat mt_attach (UNIT *uptr, const char *cptr);
 t_stat mt_detach (UNIT *uptr);
 t_stat mt_readrec (UNIT *uptr);
 t_mtrlnt mt_readbc (UNIT *uptr);
 void mt_readend (UNIT *uptr);
-t_stat mt_wrend (uint32 dev);
+t_stat mt_wrend (uint32_t dev);
 void mt_set_err (UNIT *uptr);
-t_stat mt (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat mt (uint32_t fnc, uint32_t inst, uint32_t *dat);
 
 static const char sds_to_bcd[64] = {
     012, 001, 002, 003, 004, 005, 006, 007,
@@ -185,12 +187,12 @@ DEVICE mt_dev = {
    write -      inst = device number, dat = ptr to result
 */
 
-t_stat mt (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat mt (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-int32 u = inst & MT_UNIT;                               /* get unit */
+int32_t u = inst & MT_UNIT;                             /* get unit */
 UNIT *uptr = mt_dev.units + u;                          /* get unit ptr */
-int32 t, new_ch;
-uint8 chr;
+int32_t t, new_ch;
+uint8_t chr;
 t_stat r;
 
 switch (fnc) {                                          /* case function */
@@ -407,7 +409,7 @@ return;
 
 /* Write complete (end of record or disconnect) */
 
-t_stat mt_wrend (uint32 dev)
+t_stat mt_wrend (uint32_t dev)
 {
 UNIT *uptr = mt_dev.units + (dev & MT_UNIT);
 t_stat st;
@@ -465,7 +467,7 @@ t_stat mt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 chan_disc (mt_dib.chan);                                /* disconnect */
 mt_eof = 0;                                             /* clear state */
@@ -504,13 +506,13 @@ return sim_tape_detach (uptr);
 
 /* Boot routine - simulate FILL console command */
 
-t_stat mt_boot (int32 unitno, DEVICE *dptr)
+t_stat mt_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
 (void) dptr;
 
-extern uint32 P, M[];
+extern uint32_t P, M[];
 
 if (unitno)                                             /* only unit 0 */
     return SCPE_ARG;

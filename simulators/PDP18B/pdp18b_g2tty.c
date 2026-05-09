@@ -112,6 +112,8 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp18b_defs.h"
 #ifdef GRAPHICS2
 #include "sim_tmxr.h"
@@ -119,30 +121,30 @@
 int debug = 0;
 
 /* hardware registers */
-uint8 g2kb_done = 0;                    /* keyboard flag */
-uint32 g2kb_buf = 0;                    /* keyboard buffer */
-uint8 g2bb_flag = 0;                    /* button flag */
-uint32 g2bb_bbuf = 0;                   /* button buffer */
-uint32 g2bb_lbuf = 0;                   /* button lights buffer */
-uint32 g2out_addr = 0;                  /* display address */
+uint8_t g2kb_done = 0;                  /* keyboard flag */
+uint32_t g2kb_buf = 0;                  /* keyboard buffer */
+uint8_t g2bb_flag = 0;                  /* button flag */
+uint32_t g2bb_bbuf = 0;                 /* button buffer */
+uint32_t g2bb_lbuf = 0;                 /* button lights buffer */
+uint32_t g2out_addr = 0;                /* display address */
 #define PB7 02000
 
 /* not hardware registers: */
-uint32 g2out_count = 0;
-uint8 g2out_stuffcr = 0;                /* need to stuff a CR */
+uint32_t g2out_count = 0;
+uint8_t g2out_stuffcr = 0;              /* need to stuff a CR */
 
 
 /* keep old and new version of characters to display
  * a count & checksum of the "old" screen contents might suffice,
  * time will tell....
  */
-uint8 g2out_which = 0;
+uint8_t g2out_which = 0;
 #define OLD g2out_which
 #define NEW (g2out_which ^ 1)
 
 #define MAXBUFCHARS 700                 /* larger than kernel display list */
 static struct dspbuf {
-    uint16 count;
+    uint16_t count;
     char buffer[MAXBUFCHARS];           /* 7-bit ASCII */
 } g2out_dspbufs[2];
 
@@ -151,33 +153,33 @@ TMLN g2_ldsc = { 0 };                   /* line descriptor */
 TMXR g2_desc = { 1, 0, 0, &g2_ldsc };   /* mux descriptor */
 
 /* kernel display lists always start like this: */
-static const uint32 g2_expect[3] = {
+static const uint32_t g2_expect[3] = {
     0065057, /* PARAM: clear blink, clear light pen, scale=1, intensity=3 */
     0147740, /* X-Y: invisible, no delay, Y=01740 (992) */
     0160000  /* X-Y: invisible, settling delay, X=0 */
 };
 
-extern int32 *M;
-extern int32 int_hwre[API_HLVL+1];
-extern int32 api_vec[API_HLVL][32];
-extern int32 tmxr_poll;
-extern int32 stop_inst;
+extern int32_t *M;
+extern int32_t int_hwre[API_HLVL+1];
+extern int32_t api_vec[API_HLVL][32];
+extern int32_t tmxr_poll;
+extern int32_t stop_inst;
 
 /* SIMH G2IN DEVICE */
 bool g2kb_test_done (void);
 void g2kb_set_done (void);
 void g2kb_clr_done (void);
-int32 g2kb_iot (int32 dev, int32 pulse, int32 dat); /* device 043 */
+int32_t g2kb_iot (int32_t dev, int32_t pulse, int32_t dat); /* device 043 */
 
 bool g2bb_test_flag (void);
 void g2bb_set_flag (void);
 void g2bb_clr_flag (void);
-int32 g2bb_iot (int32 dev, int32 pulse, int32 dat); /* device 044 */
+int32_t g2bb_iot (int32_t dev, int32_t pulse, int32_t dat); /* device 044 */
 
 t_stat g2in_svc (UNIT *uptr);
 
 /* SIMH G2OUT DEVICE */
-int32 g2d1_iot (int32 dev, int32 pulse, int32 dat); /* device 05 */
+int32_t g2d1_iot (int32_t dev, int32_t pulse, int32_t dat); /* device 05 */
 static void g2out_clear (void);
 static void g2out_process_display_list (void);
 static int g2out_send_new (void);
@@ -291,7 +293,7 @@ DEVICE g2out_dev = {
 
 /* Keyboard input IOT routine */
 /* real device could have done bitwise decode?! */
-int32 g2kb_iot (int32 dev, int32 pulse, int32 dat)
+int32_t g2kb_iot (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -312,7 +314,7 @@ return dat;
 }
 
 /* Button Box IOT routine */
-int32 g2bb_iot (int32 dev, int32 pulse, int32 dat)
+int32_t g2bb_iot (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -338,7 +340,7 @@ return dat;
 /* Input side Unit service */
 t_stat g2in_svc (UNIT *uptr)
 {
-int32 ln, c;
+int32_t ln, c;
 
 if ((uptr->flags & UNIT_ATT) == 0)              /* attached? */
     return SCPE_OK;
@@ -455,7 +457,7 @@ return 1;
 }
 
 /* Device 05 IOT routine */
-int32 g2d1_iot (int32 dev, int32 pulse, int32 dat)
+int32_t g2d1_iot (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -495,12 +497,12 @@ static void g2out_clear(void) {
  * quits early if display list doesn't conform to what's expected
  */
 static void g2out_process_display_list(void) {
-    uint32 i;
+    uint32_t i;
     struct dspbuf *dp = g2out_dspbufs + NEW;
 
     dp->count = 0;
     for (i = g2out_addr; i < 020000; i++) {
-        uint32 w = M[i] & 0777777;
+        uint32_t w = M[i] & 0777777;
         int offset = i - g2out_addr;
         char c;
 

@@ -17,25 +17,25 @@
 #define DGA_MODE_PTB (3u << 9)
 #define DMA_REQUEST_BYTES 128u
 
-extern uint32 va_dga_addr;
-extern uint32 va_dga_count;
-extern uint32 va_dga_csr;
-extern uint32 va_dga_int;
+extern uint32_t va_dga_addr;
+extern uint32_t va_dga_count;
+extern uint32_t va_dga_csr;
+extern uint32_t va_dga_int;
 extern t_stat va_dmasvc(UNIT *uptr);
 extern UNIT va_unit[];
 
-int32 int_req[IPL_HLVL];
-int32 sys_model;
-uint32 fault_PC;
-uint32 trpirq;
-int32 hlt_pin;
-int32 tmxr_poll = 10000;
+int32_t int_req[IPL_HLVL];
+int32_t sys_model;
+uint32_t fault_PC;
+uint32_t trpirq;
+int32_t hlt_pin;
+int32_t tmxr_poll = 10000;
 jmp_buf save_env;
 
-int32 va_adp[ADP_NUMREG];
+int32_t va_adp[ADP_NUMREG];
 
-static int32 fake_map_read_residual;
-static int32 fake_map_write_residual;
+static int32_t fake_map_read_residual;
+static int32_t fake_map_write_residual;
 
 /*
  * Reset only the state touched by these DGA DMA tests. The full QDSS reset
@@ -140,7 +140,7 @@ static void test_ptb_success_consumes_full_dma_request(void **state)
     assert_int_equal(va_dga_int & 0x1000, 0x1000);
 }
 
-int32 Map_ReadW(uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_ReadW(uint32_t ba, int32_t bc, uint16_t *buf)
 {
     (void)ba;
     (void)bc;
@@ -148,7 +148,7 @@ int32 Map_ReadW(uint32 ba, int32 bc, uint16 *buf)
     return fake_map_read_residual;
 }
 
-int32 Map_WriteW(uint32 ba, int32 bc, const uint16 *buf)
+int32_t Map_WriteW(uint32_t ba, int32_t bc, const uint16_t *buf)
 {
     (void)ba;
     (void)bc;
@@ -156,12 +156,12 @@ int32 Map_WriteW(uint32 ba, int32 bc, const uint16 *buf)
     return fake_map_write_residual;
 }
 
-uint32 va_fifo_rd(void)
+uint32_t va_fifo_rd(void)
 {
     return 0;
 }
 
-void va_fifo_wr(uint32 val)
+void va_fifo_wr(uint32_t val)
 {
     (void)val;
 }
@@ -180,13 +180,13 @@ t_stat va_ptb(UNIT *uptr, bool zmode)
     return SCPE_OK;
 }
 
-int32 va_adp_rd(int32 rg)
+int32_t va_adp_rd(int32_t rg)
 {
     (void)rg;
     return 0;
 }
 
-void va_adp_wr(int32 rg, int32 val)
+void va_adp_wr(int32_t rg, int32_t val)
 {
     (void)rg;
     (void)val;
@@ -204,19 +204,19 @@ t_stat va_adp_svc(UNIT *uptr)
     return SCPE_OK;
 }
 
-void va_adpstat(uint32 set, uint32 clr)
+void va_adpstat(uint32_t set, uint32_t clr)
 {
     va_adp[ADP_STAT] |= set;
     va_adp[ADP_STAT] &= ~clr;
 }
 
-t_stat lk_rd(uint8 *c)
+t_stat lk_rd(uint8_t *c)
 {
     (void)c;
     return SCPE_OK;
 }
 
-t_stat lk_wr(uint8 c)
+t_stat lk_wr(uint8_t c)
 {
     (void)c;
     return SCPE_OK;
@@ -227,13 +227,13 @@ void lk_event(SIM_KEY_EVENT *ev)
     (void)ev;
 }
 
-t_stat vs_rd(uint8 *c)
+t_stat vs_rd(uint8_t *c)
 {
     (void)c;
     return SCPE_OK;
 }
 
-t_stat vs_wr(uint8 c)
+t_stat vs_wr(uint8_t c)
 {
     (void)c;
     return SCPE_OK;
@@ -244,14 +244,14 @@ void vs_event(SIM_MOUSE_EVENT *ev)
     (void)ev;
 }
 
-void ua2681_wr(UART2681 *ctx, uint32 rg, uint32 data)
+void ua2681_wr(UART2681 *ctx, uint32_t rg, uint32_t data)
 {
     (void)ctx;
     (void)rg;
     (void)data;
 }
 
-uint32 ua2681_rd(UART2681 *ctx, uint32 rg)
+uint32_t ua2681_rd(UART2681 *ctx, uint32_t rg)
 {
     (void)ctx;
     (void)rg;
@@ -270,49 +270,49 @@ t_stat ua2681_reset(UART2681 *ctx)
     return SCPE_OK;
 }
 
-void ua2681_ip0_wr(UART2681 *ctx, uint32 set)
+void ua2681_ip0_wr(UART2681 *ctx, uint32_t set)
 {
     (void)ctx;
     (void)set;
 }
 
-void ua2681_ip1_wr(UART2681 *ctx, uint32 set)
+void ua2681_ip1_wr(UART2681 *ctx, uint32_t set)
 {
     (void)ctx;
     (void)set;
 }
 
-void ua2681_ip2_wr(UART2681 *ctx, uint32 set)
+void ua2681_ip2_wr(UART2681 *ctx, uint32_t set)
 {
     (void)ctx;
     (void)set;
 }
 
-void ua2681_ip3_wr(UART2681 *ctx, uint32 set)
+void ua2681_ip3_wr(UART2681 *ctx, uint32_t set)
 {
     (void)ctx;
     (void)set;
 }
 
-uint8 ua2681_oport(UART2681 *ctx)
+uint8_t ua2681_oport(UART2681 *ctx)
 {
     (void)ctx;
     return 0;
 }
 
-int32 eval_int(void)
+int32_t eval_int(void)
 {
     return 0;
 }
 
-t_stat auto_config(const char *name, int32 n)
+t_stat auto_config(const char *name, int32_t n)
 {
     (void)name;
     (void)n;
     return SCPE_OK;
 }
 
-t_stat set_addr(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_addr(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -321,7 +321,7 @@ t_stat set_addr(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -330,7 +330,7 @@ t_stat show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat set_vec(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_vec(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -339,7 +339,7 @@ t_stat set_vec(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_vec(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_vec(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -348,7 +348,7 @@ t_stat show_vec(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat cpu_set_model(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;

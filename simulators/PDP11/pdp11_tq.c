@@ -88,6 +88,8 @@
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_uqssp.h"
 #include "pdp11_mscp.h"
 #include "sim_tape.h"
@@ -154,18 +156,18 @@
 #define TQ_NPKTS        32                              /* # packets (pwr of 2) */
 #define TQ_M_NPKTS      (TQ_NPKTS - 1)                  /* mask */
 #define TQ_PKT_SIZE_W   32                              /* payload size (wds) */
-#define TQ_PKT_SIZE     (TQ_PKT_SIZE_W * sizeof (int16))
+#define TQ_PKT_SIZE     (TQ_PKT_SIZE_W * sizeof (int16_t))
 
 struct tqpkt {
-    int16       link;                                   /* link to next */
-    uint16      d[TQ_PKT_SIZE_W];                       /* data */
+    int16_t     link;                                   /* link to next */
+    uint16_t    d[TQ_PKT_SIZE_W];                       /* data */
     };
 
 /* Packet payload extraction and insertion */
 
 #define GETP(p,w,f)     ((tq_pkt[p].d[w] >> w##_V_##f) & w##_M_##f)
-#define GETP32(p,w)     (((uint32) tq_pkt[p].d[w]) | \
-                        (((uint32) tq_pkt[p].d[(w)+1]) << 16))
+#define GETP32(p,w)     (((uint32_t) tq_pkt[p].d[w]) | \
+                        (((uint32_t) tq_pkt[p].d[(w)+1]) << 16))
 #define PUTP32(p,w,x)   tq_pkt[p].d[w] = (x) & 0xFFFF; \
                         tq_pkt[p].d[(w)+1] = ((x) >> 16) & 0xFFFF
 
@@ -226,15 +228,15 @@ struct tqpkt {
 #define TEST_EOT(u)     (sim_tape_eot (u))
 
 struct drvtyp {
-    uint32      uqpm;                                   /* UQ port model */
-    uint16      cmod;                                   /* ctrl model */
-    uint32      med;                                    /* MSCP media */
-    uint16      fmt;                                    /* flags */
+    uint32_t    uqpm;                                   /* UQ port model */
+    uint16_t    cmod;                                   /* ctrl model */
+    uint32_t    med;                                    /* MSCP media */
+    uint16_t    fmt;                                    /* flags */
     t_addr      cap;                                    /* capacity */
-    uint16      umod;                                   /* unit model */
-    uint16      cver;
-    uint16      fver;
-    uint16      uver;
+    uint16_t    umod;                                   /* unit model */
+    uint16_t    cver;
+    uint16_t    fver;
+    uint16_t    uver;
     const char  *name;
     };
 
@@ -247,34 +249,34 @@ static struct drvtyp drv_tab[] = {
 
 /* Data */
 
-uint32 tq_sa = 0;                                       /* status, addr */
-uint32 tq_saw = 0;                                      /* written data */
-uint32 tq_s1dat = 0;                                    /* S1 data */
-uint32 tq_csta = 0;                                     /* ctrl state */
-uint32 tq_perr = 0;                                     /* last error */
-uint16 tq_cflgs = 0;                                    /* ctrl flags */
-uint32 tq_prgi = 0;                                     /* purge int */
-uint32 tq_pip = 0;                                      /* poll in progress */
+uint32_t tq_sa = 0;                                     /* status, addr */
+uint32_t tq_saw = 0;                                    /* written data */
+uint32_t tq_s1dat = 0;                                  /* S1 data */
+uint32_t tq_csta = 0;                                   /* ctrl state */
+uint32_t tq_perr = 0;                                   /* last error */
+uint16_t tq_cflgs = 0;                                  /* ctrl flags */
+uint32_t tq_prgi = 0;                                   /* purge int */
+uint32_t tq_pip = 0;                                    /* poll in progress */
 struct uq_ring tq_cq = { 0 };                           /* cmd ring */
 struct uq_ring tq_rq = { 0 };                           /* rsp ring */
 struct tqpkt tq_pkt[TQ_NPKTS];                          /* packet queue */
-uint16 tq_freq = 0;                                     /* free list */
-uint16 tq_rspq = 0;                                     /* resp list */
-uint16 tq_max_plug;                                     /* highest unit plug number */
-uint32 tq_pbsy = 0;                                     /* #busy pkts */
-uint32 tq_credits = 0;                                  /* credits */
-uint32 tq_hat = 0;                                      /* host timer */
-uint32 tq_htmo = TQ_DHTMO;                              /* host timeout */
-int32 tq_itime = 200;                                   /* init time, except */
-int32 tq_itime4 = 10;                                   /* stage 4 */
-int32 tq_qtime = 200;                                   /* queue time */
-int32 tq_xtime = 500;                                   /* transfer time */
-int32 tq_rwtime = 2000000;                              /* rewind time 2 sec (adjusted later) */
-int32 tq_typ = INIT_TYPE;                               /* device type */
+uint16_t tq_freq = 0;                                   /* free list */
+uint16_t tq_rspq = 0;                                   /* resp list */
+uint16_t tq_max_plug;                                   /* highest unit plug number */
+uint32_t tq_pbsy = 0;                                   /* #busy pkts */
+uint32_t tq_credits = 0;                                /* credits */
+uint32_t tq_hat = 0;                                    /* host timer */
+uint32_t tq_htmo = TQ_DHTMO;                            /* host timeout */
+int32_t tq_itime = 200;                                 /* init time, except */
+int32_t tq_itime4 = 10;                                 /* stage 4 */
+int32_t tq_qtime = 200;                                 /* queue time */
+int32_t tq_xtime = 500;                                 /* transfer time */
+int32_t tq_rwtime = 2000000;                            /* rewind time 2 sec (adjusted later) */
+int32_t tq_typ = INIT_TYPE;                             /* device type */
 
 /* Command table - legal modifiers (low 16b) and flags (high 16b) */
 
-static uint32 tq_cmf[64] = {
+static uint32_t tq_cmf[64] = {
     0,                                                  /* 0 */
     CMF_IMM,                                            /* abort */
     CMF_IMM|MD_CSE,                                     /* get cmd status */
@@ -343,67 +345,67 @@ static const char *tq_cmdname[] = {
 
 /* Forward references */
 
-t_stat tq_rd (int32 *data, int32 PA, int32 access);
-t_stat tq_wr (int32 data, int32 PA, int32 access);
-int32 tq_inta (void);
+t_stat tq_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat tq_wr (int32_t data, int32_t PA, int32_t access);
+int32_t tq_inta (void);
 t_stat tq_svc (UNIT *uptr);
 t_stat tq_tmrsvc (UNIT *uptr);
 t_stat tq_quesvc (UNIT *uptr);
 t_stat tq_reset (DEVICE *dptr);
 t_stat tq_attach (UNIT *uptr, const char *cptr);
 t_stat tq_detach (UNIT *uptr);
-t_stat tq_boot (int32 unitno, DEVICE *dptr);
-t_stat tq_show_ctrl (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat tq_show_unitq (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat tq_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tq_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat tq_set_plug (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tq_show_plug (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat tq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat tq_boot (int32_t unitno, DEVICE *dptr);
+t_stat tq_show_ctrl (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat tq_show_unitq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat tq_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tq_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat tq_set_plug (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tq_show_plug (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat tq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *tq_description (DEVICE *dptr);
 
 bool tq_step4 (void);
-bool tq_mscp (uint16 pkt, bool q);
-bool tq_abo (uint16 pkt);
-bool tq_avl (uint16 pkt);
-bool tq_erase (uint16 pkt);
-bool tq_flu (uint16 pkt);
-bool tq_gcs (uint16 pkt);
-bool tq_gus (uint16 pkt);
-bool tq_onl (uint16 pkt);
-bool tq_pos (uint16 pkt);
-bool tq_rw (uint16 pkt);
-bool tq_scc (uint16 pkt);
-bool tq_suc (uint16 pkt);
-bool tq_wtm (uint16 pkt);
-bool tq_plf (uint32 err);
-bool tq_dte (UNIT *uptr, uint16 err);
-bool tq_hbe (UNIT *uptr, uint32 ba);
+bool tq_mscp (uint16_t pkt, bool q);
+bool tq_abo (uint16_t pkt);
+bool tq_avl (uint16_t pkt);
+bool tq_erase (uint16_t pkt);
+bool tq_flu (uint16_t pkt);
+bool tq_gcs (uint16_t pkt);
+bool tq_gus (uint16_t pkt);
+bool tq_onl (uint16_t pkt);
+bool tq_pos (uint16_t pkt);
+bool tq_rw (uint16_t pkt);
+bool tq_scc (uint16_t pkt);
+bool tq_suc (uint16_t pkt);
+bool tq_wtm (uint16_t pkt);
+bool tq_plf (uint32_t err);
+bool tq_dte (UNIT *uptr, uint16_t err);
+bool tq_hbe (UNIT *uptr, uint32_t ba);
 bool tq_una (UNIT *uptr);
-uint32 tq_map_status (UNIT *uptr, t_stat st);
+uint32_t tq_map_status (UNIT *uptr, t_stat st);
 void tq_rdbuff_top (UNIT *uptr, t_mtrlnt *tbc);
-uint32 tq_rdbuff_bottom (UNIT *uptr, t_mtrlnt *tbc);
+uint32_t tq_rdbuff_bottom (UNIT *uptr, t_mtrlnt *tbc);
 void tq_rdbufr_top (UNIT *uptr, t_mtrlnt *tbc);
-uint32 tq_rdbufr_bottom (UNIT *uptr, t_mtrlnt *tbc);
-bool tq_deqf (uint16 *pkt);
-uint16 tq_deqh (uint16 *lh);
-void tq_enqh (uint16 *lh, int16 pkt);
-void tq_enqt (uint16 *lh, int16 pkt);
-bool tq_getpkt (uint16 *pkt);
-bool tq_putpkt (uint16 pkt, bool qt);
-bool tq_getdesc (struct uq_ring *ring, uint32 *desc);
-bool tq_putdesc (struct uq_ring *ring, uint32 desc);
-uint16 tq_mot_valid (UNIT *uptr, uint32 cmd);
-t_stat tq_mot_err (UNIT *uptr, uint32 rsiz);
-bool tq_mot_end (UNIT *uptr, uint32 flg, uint16 sts, uint32 rsiz);
-void tq_putr (int32 pkt, uint32 cmd, uint32 flg, uint16 sts, uint16 lnt, uint16 typ);
-void tq_putr_unit (int16 pkt, UNIT *uptr, uint16 lu, bool all);
-void tq_setf_unit (int16 pkt, UNIT *uptr);
-uint32 tq_efl (UNIT *uptr);
+uint32_t tq_rdbufr_bottom (UNIT *uptr, t_mtrlnt *tbc);
+bool tq_deqf (uint16_t *pkt);
+uint16_t tq_deqh (uint16_t *lh);
+void tq_enqh (uint16_t *lh, int16_t pkt);
+void tq_enqt (uint16_t *lh, int16_t pkt);
+bool tq_getpkt (uint16_t *pkt);
+bool tq_putpkt (uint16_t pkt, bool qt);
+bool tq_getdesc (struct uq_ring *ring, uint32_t *desc);
+bool tq_putdesc (struct uq_ring *ring, uint32_t desc);
+uint16_t tq_mot_valid (UNIT *uptr, uint32_t cmd);
+t_stat tq_mot_err (UNIT *uptr, uint32_t rsiz);
+bool tq_mot_end (UNIT *uptr, uint32_t flg, uint16_t sts, uint32_t rsiz);
+void tq_putr (int32_t pkt, uint32_t cmd, uint32_t flg, uint16_t sts, uint16_t lnt, uint16_t typ);
+void tq_putr_unit (int16_t pkt, UNIT *uptr, uint16_t lu, bool all);
+void tq_setf_unit (int16_t pkt, UNIT *uptr);
+uint32_t tq_efl (UNIT *uptr);
 void tq_init_int (void);
 void tq_ring_int (struct uq_ring *ring);
-bool tq_fatal (uint32 err);
-UNIT *tq_getucb (uint16 lu);
+bool tq_fatal (uint32_t err);
+UNIT *tq_getucb (uint16_t lu);
 
 /* TQ data structures
 
@@ -558,14 +560,14 @@ DEVICE tq_dev = {
 
 struct tq_req_results {           /* intermediate State during tape motion commands */
     t_stat io_status;
-    int32 io_complete;
+    int32_t io_complete;
     int rewind_done;
-    uint32 sts;
-    uint32 sktmk;
-    uint32 skrec;
+    uint32_t sts;
+    uint32_t sktmk;
+    uint32_t skrec;
     t_mtrlnt tbc;
-    int32 objupd;
-    uint8 tqxb[TQ_MAXFR];
+    int32_t objupd;
+    uint8_t tqxb[TQ_MAXFR];
     };
 
 /* I/O dispatch routines, I/O addresses 17774500 - 17774502
@@ -574,7 +576,7 @@ struct tq_req_results {           /* intermediate State during tape motion comma
    17774502     SA      read/write
 */
 
-t_stat tq_rd (int32 *data, int32 PA, int32 access)
+t_stat tq_rd (int32_t *data, int32_t PA, int32_t access)
 {
 sim_debug(DBG_REG, &tq_dev, "tq_rd(PA=0x%08X [%s], access=%d)=0x%04X\n", PA, ((PA >> 1) & 01) ? "SA" : "IP", access, ((PA >> 1) & 01) ? tq_sa : 0);
 
@@ -597,7 +599,7 @@ switch ((PA >> 1) & 01) {                               /* decode PA<1> */
 return SCPE_OK;
 }
 
-t_stat tq_wr (int32 data, int32 PA, int32 access)
+t_stat tq_wr (int32_t data, int32_t PA, int32_t access)
 {
 sim_debug(DBG_REG, &tq_dev, "tq_wr(PA=0x%08X [%s], access=%d, data=0x%04X)\n", PA, ((PA >> 1) & 01) ? "SA" : "IP", access, data);
 
@@ -624,9 +626,9 @@ return SCPE_OK;
 
 bool tq_step4 (void)
 {
-int32 i, lnt;
-uint32 base;
-uint16 zero[SA_COMM_MAX >> 1];
+int32_t i, lnt;
+uint32_t base;
+uint16_t zero[SA_COMM_MAX >> 1];
 
 tq_rq.ioff = SA_COMM_RI;                                /* set intr offset */
 tq_rq.ba = tq_comm;                                     /* set rsp q base */
@@ -669,8 +671,8 @@ t_stat tq_quesvc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 i, cnid;
-uint16 pkt = 0;
+int32_t i, cnid;
+uint16_t pkt = 0;
 UNIT *nuptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_quesvc\n");
@@ -738,7 +740,7 @@ if (tq_csta < CST_UP) {                                 /* still init? */
     }                                                   /* end if */
 
 for (i = 0; i < TQ_NUMDR; i++) {                        /* chk unit q's */
-    uint16 tpkt;
+    uint16_t tpkt;
 
     nuptr = tq_dev.units + i;                           /* ptr to unit */
     if (nuptr->cpkt || (nuptr->pktq == 0))
@@ -786,7 +788,7 @@ if ((pkt == 0) && tq_pip) {                             /* polling? */
     else tq_pip = 0;                                    /* discontinue poll */
     }                                                   /* end if pip */
 if (tq_rspq) {                                          /* resp q? */
-    pkt = tq_deqh ((uint16 *)&tq_rspq);                 /* get top of q */
+    pkt = tq_deqh ((uint16_t *)&tq_rspq);               /* get top of q */
     if (!tq_putpkt (pkt, false))                        /* send to host */
         return SCPE_OK;
     }                                                   /* end if resp q */
@@ -799,7 +801,7 @@ return SCPE_OK;                                         /* done */
 
 t_stat tq_tmrsvc (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 UNIT *nuptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_tmrsvc\n");
@@ -822,13 +824,13 @@ return SCPE_OK;
 
 /* MSCP packet handling */
 
-bool tq_mscp (uint16 pkt, bool q)
+bool tq_mscp (uint16_t pkt, bool q)
 {
-uint16 sts;
-uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* command */
-uint32 flg = GETP (pkt, CMD_OPC, FLG);                  /* flags */
-uint32 mdf = tq_pkt[pkt].d[CMD_MOD];                    /* modifier */
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
+uint16_t sts;
+uint32_t cmd = GETP (pkt, CMD_OPC, OPC);                /* command */
+uint32_t flg = GETP (pkt, CMD_OPC, FLG);                /* flags */
+uint32_t mdf = tq_pkt[pkt].d[CMD_MOD];                  /* modifier */
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_mscp\n");
@@ -917,11 +919,11 @@ return tq_putpkt (pkt, true);
 
 /* Abort a command - 1st parameter is ref # of cmd to abort */
 
-bool tq_abo (uint16 pkt)
+bool tq_abo (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint32 ref = GETP32 (pkt, ABO_REFL);                    /* cmd ref # */
-uint16 tpkt, prv;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint32_t ref = GETP32 (pkt, ABO_REFL);                  /* cmd ref # */
+uint16_t tpkt, prv;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_abo\n");
@@ -950,7 +952,7 @@ if ((uptr = tq_getucb (lu))) {                          /* get unit */
             }
         }
     if (tpkt) {                                         /* found target? */
-        uint32 tcmd = GETP (tpkt, CMD_OPC, OPC);        /* get opcode */
+        uint32_t tcmd = GETP (tpkt, CMD_OPC, OPC);      /* get opcode */
         tq_putr (tpkt, tcmd | OP_END, 0, ST_ABO, RSP_LNT, UQ_TYP_SEQ);
         if (!tq_putpkt (tpkt, true))
             return ERR;
@@ -963,11 +965,11 @@ return tq_putpkt (pkt, true);
 /* Unit available - set unit status to available
    Deferred if q'd cmds, bypassed if ser exc */
 
-bool tq_avl (uint16 pkt)
+bool tq_avl (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint32 mdf = tq_pkt[pkt].d[CMD_MOD];                    /* modifiers */
-uint16 sts;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint32_t mdf = tq_pkt[pkt].d[CMD_MOD];                  /* modifiers */
+uint16_t sts;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_avl\n");
@@ -994,11 +996,11 @@ return tq_putpkt (pkt, true);
 
 /* Get command status - only interested in active xfr cmd */
 
-bool tq_gcs (uint16 pkt)
+bool tq_gcs (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint32 ref = GETP32 (pkt, GCS_REFL);                    /* ref # */
-int32 tpkt;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint32_t ref = GETP32 (pkt, GCS_REFL);                  /* ref # */
+int32_t tpkt;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_gcs\n");
@@ -1017,10 +1019,10 @@ return tq_putpkt (pkt, true);
 
 /* Get unit status */
 
-bool tq_gus (uint16 pkt)
+bool tq_gus (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint16 sts;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint16_t sts;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_gus\n");
@@ -1028,7 +1030,7 @@ sim_debug(DBG_TRC, &tq_dev, "tq_gus\n");
 if (tq_pkt[pkt].d[CMD_MOD] & MD_NXU) {                  /* next unit? */
     if (lu > tq_max_plug) {                             /* beyond last unit plug? */
         lu = 0;                                         /* reset to 0 */
-        tq_pkt[pkt].d[RSP_UN] = (uint16)lu;
+        tq_pkt[pkt].d[RSP_UN] = (uint16_t)lu;
         }
     }
 if ((uptr = tq_getucb (lu))) {                          /* unit exist? */
@@ -1050,10 +1052,10 @@ return tq_putpkt (pkt, true);
 
 /* Unit online - deferred if q'd commands */
 
-bool tq_onl (uint16 pkt)
+bool tq_onl (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint16 sts;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint16_t sts;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_onl\n");
@@ -1080,7 +1082,7 @@ return tq_putpkt (pkt, true);
 
 /* Set controller characteristics */
 
-bool tq_scc (uint16 pkt)
+bool tq_scc (uint16_t pkt)
 {
 sim_debug(DBG_TRC, &tq_dev, "tq_scc\n");
 
@@ -1107,10 +1109,10 @@ return tq_putpkt (pkt, true);
 
 /* Set unit characteristics - defer if q'd commands */
 
-bool tq_suc (uint16 pkt)
+bool tq_suc (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint16 sts;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint16_t sts;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_suc\n");
@@ -1131,10 +1133,10 @@ return tq_putpkt (pkt, true);
 
 /* Flush - sequential nop - deferred if q'd cmds, bypassed if ser exc */
 
-bool tq_flu (uint16 pkt)
+bool tq_flu (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint16 sts;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint16_t sts;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_flu\n");
@@ -1148,11 +1150,11 @@ return tq_putpkt (pkt, true);
 
 /* Erase, erase gap - deferred if q'd cmds, bypassed if ser exc */
 
-bool tq_erase (uint16 pkt)
+bool tq_erase (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* opcode */
-uint16 sts;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint32_t cmd = GETP (pkt, CMD_OPC, OPC);                /* opcode */
+uint16_t sts;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_erase\n");
@@ -1173,11 +1175,11 @@ return tq_putpkt (pkt, true);
 
 /* Write tape mark - deferred if q'd cmds, bypassed if ser exc */
 
-bool tq_wtm (uint16 pkt)
+bool tq_wtm (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint16 sts;
-uint32 objp = 0;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint16_t sts;
+uint32_t objp = 0;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_wtm\n");
@@ -1200,11 +1202,11 @@ return tq_putpkt (pkt, true);
 
 /* Position - deferred if q'd cmds, bypassed if ser exc */
 
-bool tq_pos (uint16 pkt)
+bool tq_pos (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint16 sts;
-uint32 objp = 0;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint16_t sts;
+uint32_t objp = 0;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_pos\n");
@@ -1239,13 +1241,13 @@ return tq_putpkt (pkt, true);
 
 /* Data transfer commands - deferred if q'd commands, bypassed if ser exc */
 
-bool tq_rw (uint16 pkt)
+bool tq_rw (uint16_t pkt)
 {
-uint16 lu = tq_pkt[pkt].d[CMD_UN];                      /* unit # */
-uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* opcode */
-uint32 bc = GETP32 (pkt, RW_BCL);                       /* byte count */
-uint16 sts;
-uint32 objp = 0;
+uint16_t lu = tq_pkt[pkt].d[CMD_UN];                    /* unit # */
+uint32_t cmd = GETP (pkt, CMD_OPC, OPC);                /* opcode */
+uint32_t bc = GETP32 (pkt, RW_BCL);                     /* byte count */
+uint16_t sts;
+uint32_t objp = 0;
 UNIT *uptr;
 
 sim_debug(DBG_TRC, &tq_dev, "tq_rw\n");
@@ -1276,7 +1278,7 @@ return tq_putpkt (pkt, true);
 
 /* Validity checks */
 
-uint16 tq_mot_valid (UNIT *uptr, uint32 cmd)
+uint16_t tq_mot_valid (UNIT *uptr, uint32_t cmd)
 {
 sim_debug(DBG_TRC, &tq_dev, "tq_mot_valid\n");
 
@@ -1318,17 +1320,17 @@ sim_activate_notbefore (uptr, uptr->iostarttime+tq_xtime);
 
 t_stat tq_svc (UNIT *uptr)
 {
-uint32 t;
+uint32_t t;
 t_mtrlnt wbc;
-int32 pkt = uptr->cpkt;                                 /* get packet */
-uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* get cmd */
-uint32 mdf = tq_pkt[pkt].d[CMD_MOD];                    /* modifier */
-uint32 ba = GETP32 (pkt, RW_BAL);                       /* buf addr */
+int32_t pkt = uptr->cpkt;                               /* get packet */
+uint32_t cmd = GETP (pkt, CMD_OPC, OPC);                /* get cmd */
+uint32_t mdf = tq_pkt[pkt].d[CMD_MOD];                  /* modifier */
+uint32_t ba = GETP32 (pkt, RW_BAL);                     /* buf addr */
 t_mtrlnt bc = GETP32 (pkt, RW_BCL);                     /* byte count */
-uint32 nrec = GETP32 (pkt, POS_RCL);                    /* #rec to skip */
-uint32 ntmk = GETP32 (pkt, POS_TMCL);                   /* #tmk to skp */
+uint32_t nrec = GETP32 (pkt, POS_RCL);                  /* #rec to skip */
+uint32_t ntmk = GETP32 (pkt, POS_TMCL);                 /* #tmk to skp */
 struct tq_req_results *res = (struct tq_req_results *)uptr->results;
-int32 io_complete = res->io_complete;
+int32_t io_complete = res->io_complete;
 
 sim_debug (DBG_TRC, &tq_dev, "tq_svc(unit=%d, pkt=%d, cmd=%s, mdf=0x%0X, bc=0x%0x, phase=%s)\n",
            (int)(uptr-tq_dev.units), pkt, tq_cmdname[tq_pkt[pkt].d[CMD_OPC]&0x3f], mdf, bc,
@@ -1397,17 +1399,17 @@ switch (cmd) {                                          /* case on command */
                 }
             }                                           /* end if read */
         else {                                          /* compare */
-            uint8 mby, dby;
-            uint32 mba;
+            uint8_t mby, dby;
+            uint32_t mba;
             t_mtrlnt i;
             for (i = 0; i < wbc; i++) {                 /* loop */
                 if (mdf & MD_REV) {                     /* reverse? */
                     mba = ba + bc - 1 - i;              /* mem addr */
-                    dby = ((uint8 *)res->tqxb)[res->tbc - 1 - i]; /* byte */
+                    dby = ((uint8_t *)res->tqxb)[res->tbc - 1 - i]; /* byte */
                     }
                 else {
                     mba = ba + i;
-                    dby = ((uint8 *)res->tqxb)[i];
+                    dby = ((uint8_t *)res->tqxb)[i];
                     }
                 if (Map_ReadB (mba, 1, &mby)) {         /* fetch, nxm? */
                     PUTP32 (pkt, RW_BCL, i);            /* adj bc */
@@ -1483,7 +1485,7 @@ switch (cmd) {                                          /* case on command */
                                  ((mdf & MD_REV) ? MTPOS_M_REV : 0) |
                                  ((mdf & MD_OBC) ? MTPOS_M_OBJ : 0) |
                                  (((mdf & MD_DLE) && !(mdf & MD_REV)) ? MTPOS_M_DLE : 0),
-                                 nrec, &res->skrec, ntmk, &res->sktmk, (uint32 *)&res->objupd, tq_io_complete);
+                                 nrec, &res->skrec, ntmk, &res->sktmk, (uint32_t *)&res->objupd, tq_io_complete);
             return SCPE_OK;
             }
         res->sts = tq_map_status (uptr, res->io_status);
@@ -1503,13 +1505,13 @@ switch (cmd) {                                          /* case on command */
         return SCPE_IERR;
         }
 
-tq_mot_end (uptr, 0, (uint16)res->sts, res->tbc);       /* done */
+tq_mot_end (uptr, 0, (uint16_t)res->sts, res->tbc);     /* done */
 return SCPE_OK;
 }
 
 /* Motion command drive error */
 
-t_stat tq_mot_err (UNIT *uptr, uint32 rsiz)
+t_stat tq_mot_err (UNIT *uptr, uint32_t rsiz)
 {
 uptr->flags = (uptr->flags | UNIT_SXC) & ~UNIT_TMK;     /* serious exception */
 if (tq_dte (uptr, ST_DRV))                              /* post err log */
@@ -1519,11 +1521,11 @@ return SCPE_IOERR;
 
 /* Motion command complete */
 
-bool tq_mot_end (UNIT *uptr, uint32 flg, uint16 sts, uint32 rsiz)
+bool tq_mot_end (UNIT *uptr, uint32_t flg, uint16_t sts, uint32_t rsiz)
 {
-uint16 pkt = uptr->cpkt;                                /* packet */
-uint32 cmd = GETP (pkt, CMD_OPC, OPC);                  /* get cmd */
-uint16 lnt = RW_LNT_T;                                  /* assume rw */
+uint16_t pkt = uptr->cpkt;                              /* packet */
+uint32_t cmd = GETP (pkt, CMD_OPC, OPC);                /* get cmd */
+uint16_t lnt = RW_LNT_T;                                /* assume rw */
 
 if (cmd == OP_ERG)                                      /* set pkt lnt */
     lnt = ERG_LNT;
@@ -1549,7 +1551,7 @@ return OK;
 
 /* Tape motion routines */
 
-uint32 tq_map_status (UNIT *uptr, t_stat st)
+uint32_t tq_map_status (UNIT *uptr, t_stat st)
 {
 switch (st) {
 
@@ -1609,7 +1611,7 @@ struct tq_req_results *res = (struct tq_req_results *)uptr->results;
 sim_tape_rdrecf_a (uptr, res->tqxb, tbc, MT_MAXFR, tq_io_complete);/* read rec fwd */
 }
 
-uint32 tq_rdbuff_bottom (UNIT *uptr, t_mtrlnt *tbc)
+uint32_t tq_rdbuff_bottom (UNIT *uptr, t_mtrlnt *tbc)
 {
 t_stat st;
 struct tq_req_results *res = (struct tq_req_results *)uptr->results;
@@ -1634,7 +1636,7 @@ struct tq_req_results *res = (struct tq_req_results *)uptr->results;
 sim_tape_rdrecr_a (uptr, res->tqxb, tbc, MT_MAXFR, tq_io_complete);        /* read rec rev */
 }
 
-uint32 tq_rdbufr_bottom (UNIT *uptr, t_mtrlnt *tbc)
+uint32_t tq_rdbufr_bottom (UNIT *uptr, t_mtrlnt *tbc)
 {
 t_stat st;
 struct tq_req_results *res = (struct tq_req_results *)uptr->results;
@@ -1653,10 +1655,10 @@ return ST_SUC;
 
 /* Data transfer error log packet */
 
-bool tq_dte (UNIT *uptr, uint16 err)
+bool tq_dte (UNIT *uptr, uint16_t err)
 {
-uint16 pkt, tpkt;
-uint16 lu;
+uint16_t pkt, tpkt;
+uint16_t lu;
 
 if ((tq_cflgs & CF_THS) == 0)                           /* logging? */
     return OK;
@@ -1690,9 +1692,9 @@ return tq_putpkt (pkt, true);
 
 /* Host bus error log packet */
 
-bool tq_hbe (UNIT *uptr, uint32 ba)
+bool tq_hbe (UNIT *uptr, uint32_t ba)
 {
-uint16 pkt, tpkt;
+uint16_t pkt, tpkt;
 
 if ((tq_cflgs & CF_THS) == 0)                           /* logging? */
     return OK;
@@ -1717,9 +1719,9 @@ return tq_putpkt (pkt, true);
 
 /* Port last failure error log packet */
 
-bool tq_plf (uint32 err)
+bool tq_plf (uint32_t err)
 {
-uint16 pkt = 0;
+uint16_t pkt = 0;
 
 if (!tq_deqf (&pkt))                                    /* get log pkt */
     return ERR;
@@ -1731,7 +1733,7 @@ tq_pkt[pkt].d[PLF_CIDC] = 0;
 tq_pkt[pkt].d[PLF_CIDD] = (TQ_CLASS << PLF_CIDD_V_CLS) |
     (drv_tab[tq_typ].cmod << PLF_CIDD_V_MOD);
 tq_pkt[pkt].d[PLF_VER] = drv_tab[tq_typ].cver;
-tq_pkt[pkt].d[PLF_ERR] = (uint16)err;
+tq_pkt[pkt].d[PLF_ERR] = (uint16_t)err;
 tq_putr (pkt, FM_CNT, LF_SNR, ST_CNT, PLF_LNT, UQ_TYP_DAT);
 tq_pkt[pkt].d[UQ_HCTC] |= (UQ_CID_DIAG << UQ_HCTC_V_CID);
 return tq_putpkt (pkt, true);
@@ -1741,12 +1743,12 @@ return tq_putpkt (pkt, true);
 
 bool tq_una (UNIT *uptr)
 {
-uint16 pkt;
-uint16 lu;
+uint16_t pkt;
+uint16_t lu;
 
 if (!tq_deqf (&pkt))                                    /* get log pkt */
     return ERR;
-lu = (uint16) (uptr->unit_plug);                        /* get unit */
+lu = (uint16_t) (uptr->unit_plug);                      /* get unit */
 tq_pkt[pkt].d[RSP_REFL] = tq_pkt[pkt].d[RSP_REFH] = 0;  /* ref = 0 */
 tq_pkt[pkt].d[RSP_UN] = lu;
 tq_pkt[pkt].d[RSP_RSV] = 0;
@@ -1763,7 +1765,7 @@ return tq_putpkt (pkt, true);
    tq_enqt      -       enqueue at tail of list
 */
 
-bool tq_deqf (uint16 *pkt)
+bool tq_deqf (uint16_t *pkt)
 {
 if (tq_freq == 0)                                       /* no free pkts?? */
     return tq_fatal (PE_NSR);
@@ -1773,16 +1775,16 @@ tq_freq = tq_pkt[tq_freq].link;                         /* next */
 return OK;
 }
 
-uint16 tq_deqh (uint16 *lh)
+uint16_t tq_deqh (uint16_t *lh)
 {
-int16 ptr = *lh;                                        /* head of list */
+int16_t ptr = *lh;                                      /* head of list */
 
 if (ptr)                                                /* next */
     *lh = tq_pkt[ptr].link;
 return ptr;
 }
 
-void tq_enqh (uint16 *lh, int16 pkt)
+void tq_enqh (uint16_t *lh, int16_t pkt)
 {
 if (pkt == 0)                                           /* any pkt? */
     return;
@@ -1791,7 +1793,7 @@ tq_pkt[pkt].link = *lh;                                 /* link is old lh */
 return;
 }
 
-void tq_enqt (uint16 *lh, int16 pkt)
+void tq_enqt (uint16_t *lh, int16_t pkt)
 {
 if (pkt == 0)                                           /* any pkt? */
     return;
@@ -1799,7 +1801,7 @@ tq_pkt[pkt].link = 0;                                   /* it will be tail */
 if (*lh == 0)                                           /* if empty, enqh */
     *lh = pkt;
 else {
-    uint16 ptr = *lh;                                   /* chase to end */
+    uint16_t ptr = *lh;                                 /* chase to end */
     while (tq_pkt[ptr].link)
         ptr = tq_pkt[ptr].link;
     tq_pkt[ptr].link = pkt;                             /* enq at tail */
@@ -1811,9 +1813,9 @@ return;
 
 /* Get packet from command ring */
 
-bool tq_getpkt (uint16 *pkt)
+bool tq_getpkt (uint16_t *pkt)
 {
-uint32 addr, desc;
+uint32_t addr, desc;
 
 if (!tq_getdesc (&tq_cq, &desc))                        /* get cmd desc */
     return ERR;
@@ -1835,9 +1837,9 @@ return tq_putdesc (&tq_cq, desc);                       /* release desc */
    supplies one credit for every response packet sent over.  Simple!
 */
 
-bool tq_putpkt (uint16 pkt, bool qt)
+bool tq_putpkt (uint16_t pkt, bool qt)
 {
-uint32 addr, desc, lnt, cr;
+uint32_t addr, desc, lnt, cr;
 UNIT *up = tq_getucb (tq_pkt[pkt].d[CMD_UN]);
 
 if (pkt == 0)                                           /* any packet? */
@@ -1877,14 +1879,14 @@ return tq_putdesc (&tq_rq, desc);                       /* release desc */
 
 /* Get a descriptor from the host */
 
-bool tq_getdesc (struct uq_ring *ring, uint32 *desc)
+bool tq_getdesc (struct uq_ring *ring, uint32_t *desc)
 {
-uint32 addr = ring->ba + ring->idx;
-uint16 d[2];
+uint32_t addr = ring->ba + ring->idx;
+uint16_t d[2];
 
 if (Map_ReadW (addr, 4, d))                             /* fetch desc */
     return tq_fatal (PE_QRE);                           /* err? dead */
-*desc = ((uint32) d[0]) | (((uint32) d[1]) << 16);
+*desc = ((uint32_t) d[0]) | (((uint32_t) d[1]) << 16);
 return OK;
 }
 
@@ -1894,11 +1896,11 @@ return OK;
    Actually, test whether previous ring entry was owned by host.
 */
 
-bool tq_putdesc (struct uq_ring *ring, uint32 desc)
+bool tq_putdesc (struct uq_ring *ring, uint32_t desc)
 {
-uint32 prvd, newd = (desc & ~UQ_DESC_OWN) | UQ_DESC_F;
-uint32 prva, addr = ring->ba + ring->idx;
-uint16 d[2];
+uint32_t prvd, newd = (desc & ~UQ_DESC_OWN) | UQ_DESC_F;
+uint32_t prva, addr = ring->ba + ring->idx;
+uint16_t d[2];
 
 d[0] = newd & 0xFFFF;                                   /* 32b to 16b */
 d[1] = (newd >> 16) & 0xFFFF;
@@ -1912,7 +1914,7 @@ if (desc & UQ_DESC_F) {                                 /* was F set? */
             ((ring->idx - 4) & (ring->lnt - 1));
         if (Map_ReadW (prva, 4, d))                     /* read prv */
             return tq_fatal (PE_QRE);
-        prvd = ((uint32) d[0]) | (((uint32) d[1]) << 16);
+        prvd = ((uint32_t) d[0]) | (((uint32_t) d[1]) << 16);
         if (prvd & UQ_DESC_OWN)
             tq_ring_int (ring);
         }
@@ -1924,9 +1926,9 @@ return OK;
 /* Get unit descriptor for logical unit - trivial now,
    but eventually, hide multiboard complexities here */
 
-UNIT *tq_getucb (uint16 lu)
+UNIT *tq_getucb (uint16_t lu)
 {
-uint32 i;
+uint32_t i;
 UNIT *uptr;
 
 for (i = 0; i < tq_dev.numunits - 2; i++) {
@@ -1940,7 +1942,7 @@ return NULL;
 
 /* Hack unit flags */
 
-void tq_setf_unit (int16 pkt, UNIT *uptr)
+void tq_setf_unit (int16_t pkt, UNIT *uptr)
 {
 uptr->uf = tq_pkt[pkt].d[ONL_UFL] & UF_MSK;             /* settable flags */
 if ((tq_pkt[pkt].d[CMD_MOD] & MD_SWP) &&                /* swre wrp enb? */
@@ -1951,9 +1953,9 @@ return;
 
 /* Hack end flags */
 
-uint32 tq_efl (UNIT *uptr)
+uint32_t tq_efl (UNIT *uptr)
 {
-uint32 t = 0;
+uint32_t t = 0;
 
 if (uptr) {                                             /* any unit? */
     if (uptr->flags & UNIT_POL)                         /* note pos lost */
@@ -1968,13 +1970,13 @@ return t;
 
 /* Unit response fields */
 
-void tq_putr_unit (int16 pkt, UNIT *uptr, uint16 lu, bool all)
+void tq_putr_unit (int16_t pkt, UNIT *uptr, uint16_t lu, bool all)
 {
-tq_pkt[pkt].d[ONL_MLUN] = (uint16)lu;                   /* multi-unit */
-tq_pkt[pkt].d[ONL_UFL] = (uint16)(uptr->uf | TQ_WPH (uptr));/* unit flags */
+tq_pkt[pkt].d[ONL_MLUN] = (uint16_t)lu;                 /* multi-unit */
+tq_pkt[pkt].d[ONL_UFL] = (uint16_t)(uptr->uf | TQ_WPH (uptr));/* unit flags */
 tq_pkt[pkt].d[ONL_UFL] |= tq_efl (uptr);                /* end flags accordingly */
 tq_pkt[pkt].d[ONL_RSVL] = tq_pkt[pkt].d[ONL_RSVH] = 0;  /* reserved */
-tq_pkt[pkt].d[ONL_UIDA] = (uint16)lu;                           /* UID low */
+tq_pkt[pkt].d[ONL_UIDA] = (uint16_t)lu;                         /* UID low */
 tq_pkt[pkt].d[ONL_UIDB] = 0;
 tq_pkt[pkt].d[ONL_UIDC] = 0;
 tq_pkt[pkt].d[ONL_UIDD] = (UID_TAPE << ONL_UIDD_V_CLS) |
@@ -1992,9 +1994,9 @@ return;
 
 /* UQ_HDR and RSP_OP fields */
 
-void tq_putr (int32 pkt, uint32 cmd, uint32 flg, uint16 sts, uint16 lnt, uint16 typ)
+void tq_putr (int32_t pkt, uint32_t cmd, uint32_t flg, uint16_t sts, uint16_t lnt, uint16_t typ)
 {
-tq_pkt[pkt].d[RSP_OPF] = (uint16)((cmd << RSP_OPF_V_OPC) |/* set cmd, flg */
+tq_pkt[pkt].d[RSP_OPF] = (uint16_t)((cmd << RSP_OPF_V_OPC) |/* set cmd, flg */
                                   (flg << RSP_OPF_V_FLG));
 tq_pkt[pkt].d[RSP_STS] = sts;
 tq_pkt[pkt].d[UQ_HLNT] = lnt;                           /* length */
@@ -2016,8 +2018,8 @@ return;
 
 void tq_ring_int (struct uq_ring *ring)
 {
-uint32 iadr = tq_comm + ring->ioff;                     /* addr intr wd */
-uint16 flag = 1;
+uint32_t iadr = tq_comm + ring->ioff;                   /* addr intr wd */
+uint16_t flag = 1;
 
 (void)Map_WriteW (iadr, 2, &flag);                      /* write flag */
 if (tq_dib.vec)                                         /* if enb, intr */
@@ -2027,14 +2029,14 @@ return;
 
 /* Return interrupt vector */
 
-int32 tq_inta (void)
+int32_t tq_inta (void)
 {
 return tq_dib.vec;                                      /* prog vector */
 }
 
 /* Fatal error */
 
-bool tq_fatal (uint32 err)
+bool tq_fatal (uint32_t err)
 {
 sim_debug (DBG_TRC, &tq_dev, "tq_fatal\n");
 
@@ -2078,15 +2080,15 @@ return SCPE_OK;
 
 t_stat tq_reset (DEVICE *dptr)
 {
-int32 i, j;
+int32_t i, j;
 UNIT *uptr;
 static bool plugs_inited = false;
 
 for (i=tq_max_plug=0; i<TQ_NUMDR; i++)
     if (dptr->units[i].unit_plug > tq_max_plug)
-        tq_max_plug = (uint16)dptr->units[i].unit_plug;
+        tq_max_plug = (uint16_t)dptr->units[i].unit_plug;
 if (!plugs_inited ) {
-    uint32 d;
+    uint32_t d;
     char uname[16];
 
     sprintf (uname, "%s-TIMER", dptr->name);
@@ -2146,7 +2148,7 @@ return SCPE_OK;
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 014)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16_t))
 
 /* Data structure definitions */
 
@@ -2159,7 +2161,7 @@ return SCPE_OK;
 #define B_TKCMD         (B_CMDH + 004)                  /* cmd pkt */
 #define B_UNIT          (B_TKCMD + 004)                 /* unit # */
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
 
     0046525,                        /* ST: "UM" */
 
@@ -2247,14 +2249,14 @@ static const uint16 boot_rom[] = {
     0000001                         /* go */
     };
 
-t_stat tq_boot (int32 unitno, DEVICE *dptr)
+t_stat tq_boot (int32_t unitno, DEVICE *dptr)
 {
 size_t i;
 UNIT *uptr = &dptr->units[unitno];
 
 for (i = 0; i < BOOT_LEN; i++)
     WrMemW (BOOT_START + (2 * i), boot_rom[i]);
-WrMemW (BOOT_UNIT, (uint16)uptr->unit_plug);
+WrMemW (BOOT_UNIT, (uint16_t)uptr->unit_plug);
 WrMemW (BOOT_CSR, tq_dib.ba & DMASK);
 cpu_set_boot (BOOT_ENTRY);
 return SCPE_OK;
@@ -2262,7 +2264,7 @@ return SCPE_OK;
 
 #else
 
-t_stat tq_boot (int32 unitno, DEVICE *dptr)
+t_stat tq_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic simulator boot signature.
    This implementation does not use every parameter. */
@@ -2278,8 +2280,8 @@ return SCPE_NOFNC;
 
 static void tq_show_ring (FILE *st, struct uq_ring *rp)
 {
-uint32 i, desc;
-uint16 d[2];
+uint32_t i, desc;
+uint16_t d[2];
 
 #if defined (VM_PDP11)
 fprintf (st, "ring, base = %o, index = %d, length = %d\n",
@@ -2293,7 +2295,7 @@ for (i = 0; i < (rp->lnt >> 2); i++) {
         fprintf (st, " %3d: non-existent memory\n", i);
         break;
         }
-    desc = ((uint32) d[0]) | (((uint32) d[1]) << 16);
+    desc = ((uint32_t) d[0]) | (((uint32_t) d[1]) << 16);
 #if defined (VM_PDP11)
     fprintf (st, " %3d: %011o\n", i, desc);
 #else
@@ -2303,12 +2305,12 @@ for (i = 0; i < (rp->lnt >> 2); i++) {
 return;
 }
 
-static void tq_show_pkt (FILE *st, int32 pkt)
+static void tq_show_pkt (FILE *st, int32_t pkt)
 {
-int32 i, j;
-uint32 cr = GETP (pkt, UQ_HCTC, CR);
-uint32 typ = GETP (pkt, UQ_HCTC, TYP);
-uint32 cid = GETP (pkt, UQ_HCTC, CID);
+int32_t i, j;
+uint32_t cr = GETP (pkt, UQ_HCTC, CR);
+uint32_t typ = GETP (pkt, UQ_HCTC, TYP);
+uint32_t cid = GETP (pkt, UQ_HCTC, CID);
 
 fprintf (st, "packet %d, credits = %d, type = %d, cid = %d\n",
     pkt, cr, typ, cid);
@@ -2325,14 +2327,14 @@ for (i = 0; i < TQ_SH_MAX; i = i + TQ_SH_PPL) {
 return;
 }
 
-t_stat tq_show_unitq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat tq_show_unitq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) val;
 (void) desc;
 
-int32 pkt, u = uptr - tq_dev.units;
+int32_t pkt, u = uptr - tq_dev.units;
 
 if (tq_csta != CST_UP) {
     fprintf (st, "Controller is not initialized\n");
@@ -2358,14 +2360,14 @@ else fprintf (st, "Unit %d queues are empty\n", u);
 return SCPE_OK;
 }
 
-t_stat tq_show_ctrl (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat tq_show_ctrl (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) desc;
 
-int32 i, pkt;
+int32_t i, pkt;
 
 if (tq_csta != CST_UP) {
     fprintf (st, "Controller is not initialized\n");
@@ -2411,15 +2413,15 @@ return SCPE_OK;
 
 /* Set controller type (and capacity for user-defined type) */
 
-t_stat tq_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tq_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) desc;
 
-uint32 i, cap;
-uint32 max = sim_taddr_64? TQU_EMAXC: TQU_MAXC;
+uint32_t i, cap;
+uint32_t max = sim_taddr_64? TQU_EMAXC: TQU_MAXC;
 t_stat r;
 
 if ((val < 0) || (val > TQU_TYPE) || ((val != TQU_TYPE) && cptr))
@@ -2429,7 +2431,7 @@ for (i = 0; i < TQ_NUMDR; i++) {
         return SCPE_ALATT;
     }
 if (cptr) {
-    cap = (uint32) get_uint (cptr, 10, max, &r);
+    cap = (uint32_t) get_uint (cptr, 10, max, &r);
     if ((r != SCPE_OK) || (cap < TQU_MINC))
         return SCPE_ARG;
     drv_tab[TQU_TYPE].cap = ((t_addr) cap) << 20;
@@ -2442,7 +2444,7 @@ return SCPE_OK;
 
 /* Show controller type and capacity */
 
-t_stat tq_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat tq_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -2450,13 +2452,13 @@ t_stat tq_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) val;
 (void) desc;
 
-fprintf (st, "%s (%dMB)", drv_tab[tq_typ].name, (uint32) (drv_tab[tq_typ].cap >> 20));
+fprintf (st, "%s (%dMB)", drv_tab[tq_typ].name, (uint32_t) (drv_tab[tq_typ].cap >> 20));
 return SCPE_OK;
 }
 
 /* Show unit plug */
 
-t_stat tq_show_plug (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat tq_show_plug (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -2469,21 +2471,21 @@ return SCPE_OK;
 
 /* Set unit plug */
 
-t_stat tq_set_plug (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tq_set_plug (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) val;
 (void) desc;
 
-int32 plug;
-uint32 i;
+int32_t plug;
+uint32_t i;
 t_stat r;
 DEVICE *dptr = find_dev_from_unit (uptr);
 
 if (cptr == NULL)
     return sim_messagef (SCPE_ARG, "Must specify UNIT=value\n");
-plug = (int32) get_uint (cptr, 10, 0xFFFFFFFF, &r);
+plug = (int32_t) get_uint (cptr, 10, 0xFFFFFFFF, &r);
 if ((r != SCPE_OK) || (plug > 65534))
     return sim_messagef (SCPE_ARG, "Invalid Unit Plug Number: %s\n", cptr);
 if (uptr->unit_plug == plug)
@@ -2495,7 +2497,7 @@ uptr->unit_plug = plug;
 return SCPE_OK;
 }
 
-static t_stat tq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat tq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char *devtype = UNIBUS ? "TUK50" : "TQK50";
 

@@ -128,6 +128,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i1620_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -139,91 +141,91 @@
 #define HIST_MAX        65536
 
 typedef struct {
-    uint16              vld;
-    uint16              pc;
-    uint8               inst[INST_LEN];
+    uint16_t            vld;
+    uint16_t            pc;
+    uint8_t             inst[INST_LEN];
     } InstHistory;
 
-uint8 M[MAXMEMSIZE] = { 0 };                            /* main memory */
-uint32 saved_PC = 0;                                    /* saved PC */
-uint32 actual_PC = 0;                                   /* actual PC at halt */
-uint32 IR2 = 1;                                         /* inst reg 2 */
-uint32 PAR = 0;                                         /* P address */
-uint32 QAR = 0;                                         /* Q address */
-uint32 PR1 = 1;                                         /* proc reg 1 */
-uint32 iae = 1;                                         /* ind addr enb */
-uint32 idxe = 0;                                        /* index enable */
-uint32 idxb = 0;                                        /* index band */
-uint32 io_stop = 1;                                     /* I/O stop */
-uint32 ar_stop = 1;                                     /* arith stop */
-uint32 cpuio_inp = 0;                                   /* IO in progress */
-uint32 cpuio_opc = 0;
-uint32 cpuio_dev = 0;
-uint32 cpuio_cnt = 0;
-int32 ind_max = 16;                                     /* iadr nest limit */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+uint8_t M[MAXMEMSIZE] = { 0 };                          /* main memory */
+uint32_t saved_PC = 0;                                  /* saved PC */
+uint32_t actual_PC = 0;                                 /* actual PC at halt */
+uint32_t IR2 = 1;                                       /* inst reg 2 */
+uint32_t PAR = 0;                                       /* P address */
+uint32_t QAR = 0;                                       /* Q address */
+uint32_t PR1 = 1;                                       /* proc reg 1 */
+uint32_t iae = 1;                                       /* ind addr enb */
+uint32_t idxe = 0;                                      /* index enable */
+uint32_t idxb = 0;                                      /* index band */
+uint32_t io_stop = 1;                                   /* I/O stop */
+uint32_t ar_stop = 1;                                   /* arith stop */
+uint32_t cpuio_inp = 0;                                 /* IO in progress */
+uint32_t cpuio_opc = 0;
+uint32_t cpuio_dev = 0;
+uint32_t cpuio_cnt = 0;
+int32_t ind_max = 16;                                   /* iadr nest limit */
+uint16_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
-uint8 ind[NUM_IND] = { 0 };                             /* indicators */
+uint8_t ind[NUM_IND] = { 0 };                           /* indicators */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_opt1 (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_opt2 (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_save (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_table (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_release (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_set_cps (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_cps (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat cpu_set_opt1 (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_opt2 (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_save (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_table (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_release (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_set_cps (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_cps (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
-int32 get_2d (uint32 ad);
-t_stat get_addr (uint32 alast, int32 lnt, bool indexok, uint32 *addr);
-t_stat cvt_addr (uint32 alast, int32 lnt, bool signok, int32 *val);
-t_stat get_idx (uint32 aidx);
-t_stat xmt_field (uint32 d, uint32 s, uint32 skp);
-t_stat xmt_record (uint32 d, uint32 s, bool cpy);
-t_stat xmt_index (uint32 d, uint32 s);
-t_stat xmt_divd (uint32 d, uint32 s);
-t_stat xmt_tns (uint32 d, uint32 s);
-t_stat xmt_tnf (uint32 d, uint32 s);
-t_stat add_field (uint32 d, uint32 s, bool sub, uint32 skp, int32 *sta);
-t_stat cmp_field (uint32 d, uint32 s);
-uint32 add_one_digit (uint32 dst, uint32 src, uint32 *cry);
-t_stat mul_field (uint32 mpc, uint32 mpy);
-t_stat mul_one_digit (uint32 mpyd, uint32 mpcp, uint32 prop, uint32 last);
-t_stat div_field (uint32 dvd, uint32 dvr, int32 *ez);
-t_stat div_one_digit (uint32 dvd, uint32 dvr, uint32 max, uint32 *quod, uint32 *quop);
-t_stat oct_to_dec (uint32 tbl, uint32 s);
-t_stat dec_to_oct (uint32 d, uint32 tbl, int32 *ez);
-t_stat or_field (uint32 d, uint32 s);
-t_stat and_field (uint32 d, uint32 s);
-t_stat xor_field (uint32 d, uint32 s);
-t_stat com_field (uint32 d, uint32 s);
+int32_t get_2d (uint32_t ad);
+t_stat get_addr (uint32_t alast, int32_t lnt, bool indexok, uint32_t *addr);
+t_stat cvt_addr (uint32_t alast, int32_t lnt, bool signok, int32_t *val);
+t_stat get_idx (uint32_t aidx);
+t_stat xmt_field (uint32_t d, uint32_t s, uint32_t skp);
+t_stat xmt_record (uint32_t d, uint32_t s, bool cpy);
+t_stat xmt_index (uint32_t d, uint32_t s);
+t_stat xmt_divd (uint32_t d, uint32_t s);
+t_stat xmt_tns (uint32_t d, uint32_t s);
+t_stat xmt_tnf (uint32_t d, uint32_t s);
+t_stat add_field (uint32_t d, uint32_t s, bool sub, uint32_t skp, int32_t *sta);
+t_stat cmp_field (uint32_t d, uint32_t s);
+uint32_t add_one_digit (uint32_t dst, uint32_t src, uint32_t *cry);
+t_stat mul_field (uint32_t mpc, uint32_t mpy);
+t_stat mul_one_digit (uint32_t mpyd, uint32_t mpcp, uint32_t prop, uint32_t last);
+t_stat div_field (uint32_t dvd, uint32_t dvr, int32_t *ez);
+t_stat div_one_digit (uint32_t dvd, uint32_t dvr, uint32_t max, uint32_t *quod, uint32_t *quop);
+t_stat oct_to_dec (uint32_t tbl, uint32_t s);
+t_stat dec_to_oct (uint32_t d, uint32_t tbl, int32_t *ez);
+t_stat or_field (uint32_t d, uint32_t s);
+t_stat and_field (uint32_t d, uint32_t s);
+t_stat xor_field (uint32_t d, uint32_t s);
+t_stat com_field (uint32_t d, uint32_t s);
 void upd_ind (void);
 
-extern t_stat tty (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-extern t_stat ptp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-extern t_stat ptr (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-extern t_stat cdp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-extern t_stat cdr (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-extern t_stat dp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-extern t_stat lpt (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-extern t_stat btp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-extern t_stat btr (uint32 op, uint32 pa, uint32 f0, uint32 f1);
+extern t_stat tty (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+extern t_stat ptp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+extern t_stat ptr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+extern t_stat cdp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+extern t_stat cdr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+extern t_stat dp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+extern t_stat lpt (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+extern t_stat btp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+extern t_stat btr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
 
-extern t_stat fp_add (uint32 d, uint32 s, bool sub);
-extern t_stat fp_mul (uint32 d, uint32 s);
-extern t_stat fp_div (uint32 d, uint32 s);
-extern t_stat fp_fsl (uint32 d, uint32 s);
-extern t_stat fp_fsr (uint32 d, uint32 s);
+extern t_stat fp_add (uint32_t d, uint32_t s, bool sub);
+extern t_stat fp_mul (uint32_t d, uint32_t s);
+extern t_stat fp_div (uint32_t d, uint32_t s);
+extern t_stat fp_fsl (uint32_t d, uint32_t s);
+extern t_stat fp_fsr (uint32_t d, uint32_t s);
 
 /* CPU data structures
 
@@ -309,7 +311,7 @@ DEVICE cpu_dev = {
 
 /* Instruction table */
 
-const int32 op_table[100] = {
+const int32_t op_table[100] = {
     0,                                                  /* 0 */
     IF_FP + IF_VPA + IF_VQA,                            /* FADD */
     IF_FP + IF_VPA + IF_VQA,                            /* FSUB */
@@ -414,7 +416,7 @@ const int32 op_table[100] = {
 
 /* IO dispatch table */
 
-t_stat (*iodisp[NUM_IO])(uint32 op, uint32 pa, uint32 f0, uint32 f1) = {
+t_stat (*iodisp[NUM_IO])(uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1) = {
     NULL, &tty, &ptp, &ptr, &cdp,                       /* 00 - 09 */
     &cdr, NULL, &dp,  NULL, &lpt,
     NULL, NULL, NULL, NULL, NULL,                       /* 10 - 19 */
@@ -439,7 +441,7 @@ t_stat (*iodisp[NUM_IO])(uint32 op, uint32 pa, uint32 f0, uint32 f1) = {
 
 /* K instruction validate P field table */
 
-const uint8 k_valid_p[NUM_IO] = {
+const uint8_t k_valid_p[NUM_IO] = {
     0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -456,7 +458,7 @@ const uint8 k_valid_p[NUM_IO] = {
 /* Indicator 8 is MAR CHECK, for maintenance use only */
 /* Undefined indicators always read as 0 */
 
-const int32 ind_table[NUM_IND] = {
+const int32_t ind_table[NUM_IND] = {
     -1,  0,  0,  0,  0, -1,  1,  1,  0,  1,             /* 00 - 09 */
     -1,  0,  0,  0,  1,  1,  1,  1, -1,  0,             /* 10 - 19 */
     -1, -1, -1, -1, -1,  0, -1, -1, -1, -1,             /* 20 - 29 */
@@ -471,7 +473,7 @@ const int32 ind_table[NUM_IND] = {
 
 /* Add table for 1620 Model 1 */
 
-const uint8 std_add_table[ADD_TABLE_LEN] = {
+const uint8_t std_add_table[ADD_TABLE_LEN] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10,
     0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11,
@@ -486,14 +488,14 @@ const uint8 std_add_table[ADD_TABLE_LEN] = {
 
 /* Add table for 1620 Model 2 ("hardware add") */
 
-const uint8 sum_table[20] = {
+const uint8_t sum_table[20] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19
     };
 
 /* Multiply table */
 
-const uint8 std_mul_table[MUL_TABLE_LEN] = {
+const uint8_t std_mul_table[MUL_TABLE_LEN] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 1, 0, 2, 0, 3, 0, 4, 0,
     0, 0, 2, 0, 4, 0, 6, 0, 8, 0,
@@ -527,8 +529,8 @@ static t_stat commit_pc[] = {
 
 t_stat sim_instr (void)
 {
-uint32 PC, pla, qla, f0, f1;
-int32 i, t, idx, flags, sta, dev, op;
+uint32_t PC, pla, qla, f0, f1;
+int32_t i, t, idx, flags, sta, dev, op;
 t_stat reason;
 
 /* Restore saved state */
@@ -1142,9 +1144,9 @@ return reason;
                         -1 if bad digit
 */
 
-int32 get_2d (uint32 ad)
+int32_t get_2d (uint32_t ad)
 {
-int32 d, d1;
+int32_t d, d1;
 
 d = M[ad] & DIGIT;                                      /* get 1st digit */
 d1 = M[ADDR_A (ad, 1)] & DIGIT;                         /* get 2nd digit */
@@ -1170,10 +1172,10 @@ return ((d * 10) + d1);                                 /* cvt to binary */
    - An address that exceeds memory produces a MAR check stop
 */
 
-t_stat get_addr (uint32 alast, int32 lnt, bool indexok, uint32 *reta)
+t_stat get_addr (uint32_t alast, int32_t lnt, bool indexok, uint32_t *reta)
 {
-uint8 indir;
-int32 cnt, idx, idxa, idxv, addr;
+uint8_t indir;
+int32_t cnt, idx, idxa, idxv, addr;
 
 if (iae)                                                /* init indirect */
     indir = FLAG;
@@ -1193,7 +1195,7 @@ do {
         if (addr < 0)                                   /* -? 10's comp */
             addr = addr + 100000;
         }
-    if (addr >= (int32) MEMSIZE)                        /* invalid addr? */
+    if (addr >= (int32_t) MEMSIZE)                      /* invalid addr? */
         return STOP_INVPAD;
     alast = addr;                                       /* new address */
     lnt = ADDR_LEN;                                     /* std len */
@@ -1215,9 +1217,9 @@ return SCPE_OK;
         status  =       0 if ok, != 0 if error
 */
 
-t_stat cvt_addr (uint32 alast, int32 lnt, bool signok, int32 *val)
+t_stat cvt_addr (uint32_t alast, int32_t lnt, bool signok, int32_t *val)
 {
-int32 sign = 0, addr = 0, t;
+int32_t sign = 0, addr = 0, t;
 
 if (signok && (M[alast] & FLAG))                        /* signed? */
     sign = 1;
@@ -1245,9 +1247,9 @@ return SCPE_OK;
                         <0 if indexing disabled
 */
 
-t_stat get_idx (uint32 aidx)
+t_stat get_idx (uint32_t aidx)
 {
-int32 i, idx;
+int32_t i, idx;
 
 if (idxe == 0)                                          /* indexing off? */
     return -1;
@@ -1281,10 +1283,10 @@ return;
 
 /* Transmit field from 's' to 'd' - ignore first 'skp' flags */
 
-t_stat xmt_field (uint32 d, uint32 s, uint32 skp)
+t_stat xmt_field (uint32_t d, uint32_t s, uint32_t skp)
 {
-uint32 cnt = 0;
-uint8 t;
+uint32_t cnt = 0;
+uint8_t t;
 
 do {
     t = M[d] = M[s] & (FLAG | DIGIT);                   /* copy src to dst */
@@ -1298,9 +1300,9 @@ return SCPE_OK;
 
 /* Transmit record from 's' to 'd' - copy record mark if 'cpy' = true */
 
-t_stat xmt_record (uint32 d, uint32 s, bool cpy)
+t_stat xmt_record (uint32_t d, uint32_t s, bool cpy)
 {
-uint32 cnt = 0;
+uint32_t cnt = 0;
 
 while ((M[s] & REC_MARK) != REC_MARK) {                 /* until rec mark */
     M[d] = M[s] & (FLAG | DIGIT);                       /* copy src to dst */
@@ -1316,9 +1318,9 @@ return SCPE_OK;
 
 /* Transmit index from 's' to 'd' - fixed five character field */
 
-t_stat xmt_index (uint32 d, uint32 s)
+t_stat xmt_index (uint32_t d, uint32_t s)
 {
-int32 i;
+int32_t i;
 
 M[d] = M[s] & (FLAG | DIGIT);                           /* preserve sign */
 MM (d); MM (s);                                         /* decr mem addrs */
@@ -1333,9 +1335,9 @@ return SCPE_OK;
 
 /* Transmit dividend from 'd' to 's' - clear flag on first digit */
 
-t_stat xmt_divd (uint32 d, uint32 s)
+t_stat xmt_divd (uint32_t d, uint32_t s)
 {
-uint32 cnt = 0;
+uint32_t cnt = 0;
 
 M[d] = M[s] & DIGIT;                                    /* first w/o flag */
 do {
@@ -1350,10 +1352,10 @@ return SCPE_OK;
 
 /* Transmit numeric strip from 's' to 'd' - s is odd */
 
-t_stat xmt_tns (uint32 d, uint32 s)
+t_stat xmt_tns (uint32_t d, uint32_t s)
 {
-uint32 cnt = 0;
-uint8 t, z;
+uint32_t cnt = 0;
+uint8_t t, z;
 
 t = M[s] & DIGIT;                                       /* get units */
 z = M[s - 1] & DIGIT;                                   /* get zone */
@@ -1375,10 +1377,10 @@ return SCPE_OK;
 
 /* Transmit numeric fill from 's' to 'd' - d is odd */
 
-t_stat xmt_tnf (uint32 d, uint32 s)
+t_stat xmt_tnf (uint32_t d, uint32_t s)
 {
-uint32 cnt = 0;
-uint8 t;
+uint32_t cnt = 0;
+uint8_t t;
 
 t = M[s];                                               /* get 1st digit */
 M[d] = t & DIGIT;                                       /* store */
@@ -1417,10 +1419,10 @@ return SCPE_OK;
    as 0 (Dave Wise; from schematics).
 */
 
-t_stat add_field (uint32 d, uint32 s, bool sub, uint32 skp, int32 *sta)
+t_stat add_field (uint32_t d, uint32_t s, bool sub, uint32_t skp, int32_t *sta)
 {
-uint32 cry, src, dst, res, comp, dp, dsv;
-uint32 src_f = 0, cnt = 0, dst_f = 0;
+uint32_t cry, src, dst, res, comp, dp, dsv;
+uint32_t src_f = 0, cnt = 0, dst_f = 0;
 
 *sta = ADD_NOCRY;                                       /* assume no cry */
 dsv = d;                                                /* save dst */
@@ -1506,10 +1508,10 @@ return SCPE_OK;
    See add for Model I hack in handling Q field record marks.
 */
 
-t_stat cmp_field (uint32 d, uint32 s)
+t_stat cmp_field (uint32_t d, uint32_t s)
 {
-uint32 cry, src, dst, unlike, dsv;
-uint32 src_f = 0, cnt = 0, dst_f = 0;
+uint32_t cry, src, dst, unlike, dsv;
+uint32_t src_f = 0, cnt = 0, dst_f = 0;
 
 dsv = d;                                                /* save dst */
 cry = 0;                                                /* clr carry */
@@ -1566,9 +1568,9 @@ return SCPE_OK;
 
 /* Add one digit via table (Model 1) or "hardware" (Model 2) */
 
-uint32 add_one_digit (uint32 dst, uint32 src, uint32 *cry)
+uint32_t add_one_digit (uint32_t dst, uint32_t src, uint32_t *cry)
 {
-uint32 res;
+uint32_t res;
 
 if (*cry)                                               /* cry in? incr src */
     src = src + 1;
@@ -1599,13 +1601,13 @@ return res & DIGIT;
    depending on the signs of the fields at the P and Q addresses."
 */
 
-t_stat mul_field (uint32 mpc, uint32 mpy)
+t_stat mul_field (uint32_t mpc, uint32_t mpy)
 {
-int32 i;
-uint32 pro;                                             /* prod pointer */
-uint32 mpyd, mpyf;                                      /* mpy digit, flag */
-uint32 cnt = 0;                                         /* counter */
-uint8 sign;                                             /* final sign */
+int32_t i;
+uint32_t pro;                                           /* prod pointer */
+uint32_t mpyd, mpyf;                                    /* mpy digit, flag */
+uint32_t cnt = 0;                                       /* counter */
+uint8_t sign;                                           /* final sign */
 t_stat r;
 
 PR1 = 1;                                                /* step on PR1 */
@@ -1659,15 +1661,15 @@ return SCPE_OK;
    EZ indicator is cleared if a non-zero digit is ever generated
 */
 
-t_stat mul_one_digit (uint32 mpyd, uint32 mpcp, uint32 prop, uint32 last)
+t_stat mul_one_digit (uint32_t mpyd, uint32_t mpcp, uint32_t prop, uint32_t last)
 {
-uint32 mpta, mptb;                                      /* mult table */
-uint32 mptd;                                            /* mult table digit */
-uint32 mpcd, mpcf;                                      /* mpc digit, flag */
-uint32 prwp;                                            /* prod working ptr */
-uint32 prod;                                            /* product digit */
-uint32 cry;                                             /* carry */
-uint32 mpcc, cryc;                                      /* counters */
+uint32_t mpta, mptb;                                    /* mult table */
+uint32_t mptd;                                          /* mult table digit */
+uint32_t mpcd, mpcf;                                    /* mpc digit, flag */
+uint32_t prwp;                                          /* prod working ptr */
+uint32_t prod;                                          /* product digit */
+uint32_t cry;                                           /* carry */
+uint32_t mpcc, cryc;                                    /* counters */
 
 mptb = MUL_TABLE + ((mpyd <= 4)? (mpyd * 2):            /* set mpy table 100's, */
     (((mpyd - 5) * 2) + 100));                          /* 1's digits */
@@ -1852,10 +1854,10 @@ return SCPE_OK;
    code maintains its own EZ indicator for the quotient.
 */
 
-t_stat div_field (uint32 dvd, uint32 dvr, int32 *ez)
+t_stat div_field (uint32_t dvd, uint32_t dvr, int32_t *ez)
 {
-uint32 quop, quod, quos;                                /* quo ptr, dig, sign */
-uint32 dvds;                                            /* dvd sign */
+uint32_t quop, quod, quos;                              /* quo ptr, dig, sign */
+uint32_t dvds;                                          /* dvd sign */
 bool first = true;                                      /* first pass */
 t_stat r;
 
@@ -1914,13 +1916,13 @@ return SCPE_OK;
    subtraction; dividend flags are ignored.
 */
 
-t_stat div_one_digit (uint32 dvd, uint32 dvr, uint32 max,
-                 uint32 *quod, uint32 *quop)
+t_stat div_one_digit (uint32_t dvd, uint32_t dvr, uint32_t max,
+                 uint32_t *quod, uint32_t *quop)
 {
-uint32 dvrp, dvrd, dvrf;                                /* dvr ptr, dig, flag */
-uint32 dvdp, dvdd;                                      /* dvd ptr, dig */
-uint32 qd, cry;                                         /* quo dig, carry */
-uint32 cnt;
+uint32_t dvrp, dvrd, dvrf;                              /* dvr ptr, dig, flag */
+uint32_t dvdp, dvdd;                                    /* dvd ptr, dig */
+uint32_t qd, cry;                                       /* quo dig, carry */
+uint32_t cnt;
 
 for (qd = 0; qd < max; qd++) {                          /* devel quo dig */
     dvrp = dvr;                                         /* divisor ptr */
@@ -1988,10 +1990,10 @@ return SCPE_OK;
    COM does not obey normal field length restrictions.
 */
 
-t_stat or_field (uint32 d, uint32 s)
+t_stat or_field (uint32_t d, uint32_t s)
 {
-uint32 cnt = 0;
-int32 t;
+uint32_t cnt = 0;
+int32_t t;
 
 ind[IN_EZ] = 1;                                         /* assume result zero */
 do {
@@ -2007,10 +2009,10 @@ do {
 return SCPE_OK;
 }
 
-t_stat and_field (uint32 d, uint32 s)
+t_stat and_field (uint32_t d, uint32_t s)
 {
-uint32 cnt = 0;
-int32 t;
+uint32_t cnt = 0;
+int32_t t;
 
 ind[IN_EZ] = 1;                                         /* assume result zero */
 do {
@@ -2026,10 +2028,10 @@ do {
 return SCPE_OK;
 }
 
-t_stat xor_field (uint32 d, uint32 s)
+t_stat xor_field (uint32_t d, uint32_t s)
 {
-uint32 cnt = 0;
-int32 t;
+uint32_t cnt = 0;
+int32_t t;
 
 ind[IN_EZ] = 1;                                         /* assume result zero */
 do {
@@ -2045,10 +2047,10 @@ do {
 return SCPE_OK;
 }
 
-t_stat com_field (uint32 d, uint32 s)
+t_stat com_field (uint32_t d, uint32_t s)
 {
-uint32 cnt = 0;
-int32 t;
+uint32_t cnt = 0;
+int32_t t;
 
 ind[IN_EZ] = 1;                                         /* assume result zero */
 do {
@@ -2079,10 +2081,10 @@ return SCPE_OK;
    does not say, this code assumes that EZ and HP are affected.
  */
 
-t_stat oct_to_dec (uint32 tbl, uint32 s)
+t_stat oct_to_dec (uint32_t tbl, uint32_t s)
 {
-uint32 cnt = 0, tblc;
-uint32 i, sd, sf, tf, sign;
+uint32_t cnt = 0, tblc;
+uint32_t i, sd, sf, tf, sign;
 t_stat r;
 
 for (i = 0; i < PROD_AREA_LEN; i++)                     /* clr prod area */
@@ -2130,11 +2132,11 @@ return SCPE_OK;
    this code assumes that EZ and HP are affected.
  */
 
-t_stat dec_to_oct (uint32 d, uint32 tbl, int32 *ez)
+t_stat dec_to_oct (uint32_t d, uint32_t tbl, int32_t *ez)
 {
-uint32 sign, octd, t;
+uint32_t sign, octd, t;
 bool first = true;
-uint32 ctr = 0;
+uint32_t ctr = 0;
 t_stat r;
 
 sign = M[PROD_AREA + PROD_AREA_LEN - 1] & FLAG;         /* input sign */
@@ -2179,7 +2181,7 @@ return SCPE_OK;
 
 /* Set and clear IO in progress */
 
-t_stat cpuio_set_inp (uint32 op, uint32 dev, UNIT *uptr)
+t_stat cpuio_set_inp (uint32_t op, uint32_t dev, UNIT *uptr)
 {
 cpuio_inp = 1;
 cpuio_opc = op;
@@ -2205,7 +2207,7 @@ return SCPE_OK;
 
 t_stat cpu_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 static bool one_time = true;
 
 PR1 = IR2 = 1;                                          /* invalidate PR1,IR2 */
@@ -2234,7 +2236,7 @@ return SCPE_OK;
 
 /* Release routine */
 
-t_stat cpu_set_release (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_release (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2243,7 +2245,7 @@ t_stat cpu_set_release (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 
 if (cpuio_inp != 0) {                                   /* IO in progress? */
@@ -2267,7 +2269,7 @@ return SCPE_OK;
 
 /* Character rate */
 
-t_stat cpu_set_cps (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_cps (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2275,7 +2277,7 @@ t_stat cpu_set_cps (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-uint32 i, j, cps;
+uint32_t i, j, cps;
 DEVICE *dptr;
 t_stat r;
 
@@ -2296,7 +2298,7 @@ return SCPE_OK;
 
 /* Show CPS */
 
-t_stat cpu_show_cps (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_cps (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -2304,7 +2306,7 @@ t_stat cpu_show_cps (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) val;
 (void) desc;
 
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 
 for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {
@@ -2316,7 +2318,7 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory examine signature.
    This implementation does not use every parameter. */
@@ -2332,7 +2334,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory deposit signature.
    This implementation does not use every parameter. */
@@ -2347,7 +2349,7 @@ return SCPE_OK;
 
 /* Memory size change */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2355,8 +2357,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val % 1000) != 0))
     return SCPE_ARG;
@@ -2372,7 +2374,7 @@ return SCPE_OK;
 
 /* Model change */
 
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2389,7 +2391,7 @@ return SCPE_OK;
 
 /* Set/clear Model 1 option */
 
-t_stat cpu_set_opt1 (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_opt1 (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2408,7 +2410,7 @@ return SCPE_OK;
 
 /* Set/clear Model 2 option */
 
-t_stat cpu_set_opt2 (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_opt2 (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2426,7 +2428,7 @@ return SCPE_OK;
 
 /* Front panel save */
 
-t_stat cpu_set_save (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_save (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2443,7 +2445,7 @@ return SCPE_OK;
 
 /* Set standard add/multiply tables */
 
-t_stat cpu_set_table (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_table (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2451,7 +2453,7 @@ t_stat cpu_set_table (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 i;
+int32_t i;
 
 for (i = 0; i < MUL_TABLE_LEN; i++)                     /* set mul table */
     M[MUL_TABLE + i] = std_mul_table[i];
@@ -2464,7 +2466,7 @@ return SCPE_OK;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -2472,7 +2474,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -2481,7 +2483,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -2501,25 +2503,25 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 i, k, di, lnt;
+int32_t i, k, di, lnt;
 const char *cptr = (const char *) desc;
 t_value sim_eval[INST_LEN];
 t_stat r;
 InstHistory *h;
 extern t_stat fprint_sym (FILE *ofile, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw);
+    UNIT *uptr, int32_t sw);
 
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }

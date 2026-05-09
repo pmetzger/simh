@@ -59,6 +59,7 @@
 #include "pdp18b_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev;
 #if defined (PDP15)
@@ -114,9 +115,9 @@ extern DEVICE dpy_dev;
 #endif
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern int32 *M;
-extern int32 memm;
-extern int32 PC;
+extern int32_t *M;
+extern int32_t memm;
+extern int32_t PC;
 
 /* SCP data structures and interface routines
 
@@ -140,7 +141,7 @@ char sim_name[] = "PDP-15";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 3;
+int32_t sim_emax = 3;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -211,9 +212,9 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 /* Binary loaders */
 
-static int32 getword (FILE *fileref, int32 *hi)
+static int32_t getword (FILE *fileref, int32_t *hi)
 {
-int32 word, bits, st, ch;
+int32_t word, bits, st, ch;
 
 word = st = bits = 0;
 do {
@@ -243,7 +244,7 @@ return word;
 
 static t_stat rim_load_47 (FILE *fileref, const char *cptr)
 {
-int32 origin, val;
+int32_t origin, val;
 
 if (*cptr != 0)
     return SCPE_2MARG;
@@ -280,7 +281,7 @@ return SCPE_OK;                                         /* done */
 
 static t_stat hri_load_7915 (FILE *fileref, const char *cptr)
 {
-int32 bits, origin, val;
+int32_t bits, origin, val;
 char gbuf[CBUFSIZE];
 t_stat r;
 
@@ -326,7 +327,7 @@ return SCPE_OK;
 
 static t_stat bin_load_915 (FILE *fileref, const char *cptr)
 {
-int32 i, val, bits, origin, count, cksum;
+int32_t i, val, bits, origin, count, cksum;
 
 if (*cptr != 0)                                         /* no arguments */
     return SCPE_2MARG;
@@ -376,7 +377,7 @@ if (sim_switches & SWMASK ('R'))                        /* HRI format? */
     return hri_load_7915 (fileref, cptr);
 if (!(sim_switches & SWMASK ('B')) &&                   /* .rim extension? */
     match_ext (fnam, "RIM")) {
-    int32 val, bits;
+    int32_t val, bits;
     do {                                                /* look for HRI flag */
         val = getword (fileref, &bits);
         } while ((val >= 0) && ((bits & 1) == 0));
@@ -423,7 +424,7 @@ return bin_load_915 (fileref, cptr);                    /* must be BIN */
 #define I_FPN           (I_V_FPN << I_V_FL)
 #define MD(x) ((I_EMD) + ((x) << I_V_DC))
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
  0777777, 0777767, 0770000, 0760000,
  0763730, 0760000, 0777000, 0777000,
  0740700, 0760700, 0777700, 0777777,
@@ -684,7 +685,7 @@ static const char *opcode[] = {
  NULL
  };
 
-static const int32 opc_val[] = {
+static const int32_t opc_val[] = {
  0000000+I_MRF, 0040000+I_MRF, 0100000+I_MRF, 0140000+I_MRF,
  0200000+I_MRF, 0240000+I_MRF, 0300000+I_MRF, 0340000+I_MRF,
  0400000+I_MRF, 0440000+I_MRF, 0500000+I_MRF, 0540000+I_MRF,
@@ -923,9 +924,9 @@ static const int32 opc_val[] = {
         status  =       space needed?
 */
 
-static int32 fprint_opr (FILE *of, int32 inst, int32 clss, int32 sp)
+static int32_t fprint_opr (FILE *of, int32_t inst, int32_t clss, int32_t sp)
 {
-int32 i, j;
+int32_t i, j;
 
 for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
     j = (opc_val[i] >> I_V_FL) & I_M_FL;                /* get class */
@@ -938,7 +939,7 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
 return sp;
 }
 
-static int32 rar (int32 c)
+static int32_t rar (int32_t c)
 {
 c = c & 077;
 return (c >> 1) | (c << 5);
@@ -960,9 +961,9 @@ return (c >> 1) | (c << 5);
 #define SIXTOASC(x) (((x) >= 040)? (x): ((x) + 0100))
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 i, j, k, sp, inst, disp, ma;
+int32_t i, j, k, sp, inst, disp, ma;
 bool cflag;
 DEVICE *dptr;
 
@@ -1009,7 +1010,7 @@ if ((sw & SWMASK ('U')) != 0) {                         /* Unix v0 ASCII? */
     }
 #elif defined (PDP15)
 if ((sw & SWMASK ('P')) != 0) {                         /* packed ASCII? */
-    int32 t = val[1];
+    int32_t t = val[1];
     fprintf (of, FMTASC ((inst >> 11) & 0177));
     fprintf (of, FMTASC ((inst >> 4) & 0177));
     fprintf (of, FMTASC (((inst << 3) | (t >> 15)) & 0177));
@@ -1134,7 +1135,7 @@ return SCPE_ARG;
         val     =       output value
 */
 
-static t_value get_sint (char *cptr, int32 *sign, t_stat *status)
+static t_value get_sint (char *cptr, int32_t *sign, t_stat *status)
 {
 *sign = 0;
 if (*cptr == '+') {
@@ -1159,9 +1160,9 @@ return get_uint (cptr, 8, 0777777, status);
    Outputs:
         status  =       error status
 */
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 d, i, j, k, sign, damask, epcmask;
+int32_t d, i, j, k, sign, damask, epcmask;
 t_stat r, sta = SCPE_OK;
 char gbuf[CBUFSIZE], cbuf[2*CBUFSIZE];
 bool cflag;

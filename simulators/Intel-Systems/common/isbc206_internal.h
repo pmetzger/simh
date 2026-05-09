@@ -5,6 +5,8 @@
 #ifndef ISBC206_INTERNAL_H_
 #define ISBC206_INTERNAL_H_
 
+#include <stdint.h>
+
 #include "system_defs.h"
 
 #define ISBC206_HDD_NUM 2
@@ -12,21 +14,21 @@
 typedef struct { // HDD definition
     int t0;
     int rdy;
-    uint8 sec;
-    uint8 cyl;
+    uint8_t sec;
+    uint8_t cyl;
 } HDDDEF;
 
 typedef struct {                // HDC definition
-    uint8 baseport;             // HDC base port
-    uint8 intnum;               // interrupt number
-    uint8 verb;                 // verbose flag
-    uint16 iopb;                // HDC IOPB
-    uint8 stat;                 // HDC status
-    uint8 rdychg;               // HDC ready change
-    uint8 rtype;                // HDC result type
-    uint8 rbyte0;               // HDC result byte for type 00
-    uint8 rbyte1;               // HDC result byte for type 10
-    uint8 intff;                // HDC interrupt FF
+    uint8_t baseport;           // HDC base port
+    uint8_t intnum;             // interrupt number
+    uint8_t verb;               // verbose flag
+    uint16_t iopb;              // HDC IOPB
+    uint8_t stat;               // HDC status
+    uint8_t rdychg;             // HDC ready change
+    uint8_t rtype;              // HDC result type
+    uint8_t rbyte0;             // HDC result byte for type 00
+    uint8_t rbyte1;             // HDC result byte for type 10
+    uint8_t intff;              // HDC interrupt FF
     HDDDEF hd[ISBC206_HDD_NUM]; // indexed by the HDD number
 } HDCDEF;
 

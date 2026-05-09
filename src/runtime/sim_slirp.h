@@ -7,9 +7,11 @@
 #define SIM_SLIRP_H
 
 #if defined(HAVE_SLIRP_NETWORK)
+#include <stdint.h>
 
 #include "sim_defs.h"
 #include "sim_sock.h"
+#include "sim_types.h"
 
 /* Protocol values used by parsed host-forwarding rules. */
 typedef enum sim_slirp_forward_protocol {
@@ -59,15 +61,15 @@ typedef struct sim_slirp_backend {
                        int guest_port);
     int (*remove_hostfwd)(void *state, int is_udp, struct in_addr host_addr,
                           int host_port);
-    void (*input)(void *state, const uint8 *packet, int packet_size);
-    void (*pollfds_fill)(void *state, void *pollfds, uint32 *timeout);
+    void (*input)(void *state, const uint8_t *packet, int packet_size);
+    void (*pollfds_fill)(void *state, void *pollfds, uint32_t *timeout);
     void (*pollfds_poll)(void *state, void *pollfds, int select_error);
     void (*connection_info)(void *state, FILE *st);
     int uses_doorbell; /* nonzero when sends need a local wakeup socket */
 } sim_slirp_backend;
 
 /* Callback used by a backend to deliver Ethernet frames to the simulator. */
-typedef void (*packet_callback)(void *opaque, const unsigned char *buf,
+typedef void (*packet_callback)(void *opaque, const uchar_t *buf,
                                 int len);
 
 /* Initialize a NAT configuration with historical SIMH defaults. */
@@ -89,7 +91,7 @@ int sim_slirp_set_doorbell_enabled_for_test(int enabled);
 
 /* Deliver a backend output frame directly to the simulator callback. */
 void sim_slirp_deliver_packet_for_test(sim_slirp_handle *slirp,
-                                       const uint8 *packet, int packet_size);
+                                       const uint8_t *packet, int packet_size);
 
 /* Verify the libslirp callback table matches the compiled libslirp ABI. */
 int sim_slirp_callbacks_are_complete_for_test(void);
@@ -97,7 +99,7 @@ int sim_slirp_callbacks_are_complete_for_test(void);
 /* Open a NAT adapter using the supplied option string and packet callback. */
 sim_slirp_handle *sim_slirp_open(const char *args, void *opaque,
                                  packet_callback callback, DEVICE *dptr,
-                                 uint32 dbit, char *errbuf, size_t errbuf_size);
+                                 uint32_t dbit, char *errbuf, size_t errbuf_size);
 
 /* Close a NAT adapter and release all owned resources. */
 void sim_slirp_close(sim_slirp_handle *slirp);
@@ -113,7 +115,7 @@ int sim_slirp_select(sim_slirp_handle *slirp, int ms_timeout);
 void sim_slirp_dispatch(sim_slirp_handle *slirp);
 
 /* Print attach help for supported NAT options. */
-t_stat sim_slirp_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat sim_slirp_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                              const char *cptr);
 
 /* Print current NAT configuration and backend connection state. */

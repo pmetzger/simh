@@ -415,6 +415,7 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "hp3000_lp_internal.h"
 #include "hp3000_io.h"
@@ -566,9 +567,9 @@ typedef enum {
 */
 
 typedef struct {
-    uint32  line_length;                        /* the maximum number of print positions */
-    uint32  char_set;                           /* the size of the character set */
-    uint32  vfu_channels;                       /* the number of VFU channels */
+    uint32_t line_length;                       /* the maximum number of print positions */
+    uint32_t char_set;                          /* the size of the character set */
+    uint32_t vfu_channels;                      /* the number of VFU channels */
     bool    not_ready;                          /* true if the printer reports a separate not ready status */
     bool    overprints;                         /* true if the printer supports overprinting */
     bool    autoprints;                         /* true if the printer automatically prints on buffer overflow */
@@ -604,9 +605,9 @@ static const PRINTER_PROPS print_props [] = {   /* printer properties, indexed b
 */
 
 typedef struct {
-    int32  buffer_load;                         /* per-character transfer time */
-    int32  print;                               /* print time */
-    int32  advance;                             /* paper advance time per line */
+    int32_t buffer_load;                        /* per-character transfer time */
+    int32_t print;                              /* print time */
+    int32_t advance;                            /* paper advance time per line */
     } DELAY_PROPS;
 
 static const DELAY_PROPS real_times [] = {      /* real-time delays, indexed by PRINTER_TYPE */
@@ -707,7 +708,7 @@ static const char *const state_name [] = {      /* sequencer state names, indexe
 #define J2W9_INSTALLED      ((jumper_set & W9)  != 0)
 #define J2W10_INSTALLED     ((jumper_set & W10) != 0)
 
-static const uint32 jumper_map [16] = {         /* jumper removal map, indexed by CN_DHA_FN */
+static const uint32_t jumper_map [16] = {       /* jumper removal map, indexed by CN_DHA_FN */
      0,                                         /*   0000 = (unaffected) */
     ~W2,                                        /*   0001 = remove jumper J2W2 */
      0,                                         /*   0010 = (unaffected) */
@@ -926,7 +927,7 @@ static const BITSET_FORMAT prt_control_format =         /* names, offset, direct
 
 #define ST_CLRIL            (ST_CLRIF_IRQ | ST_XFERERR_IRQ) /* conditions that assert the CLRIL signal */
 
-static const uint32 sequence_counter [] = {     /* externally visible sequencer values, indexed by SEQ_STATE */
+static const uint32_t sequence_counter [] = {   /* externally visible sequencer values, indexed by SEQ_STATE */
     ST_SEQ_COUNT_0,                             /*   00 = Idle */
     ST_SEQ_COUNT_1,                             /*   10 = Device_Command_1 */
     ST_SEQ_COUNT_2,                             /*   11 = Device_Flag_1 */
@@ -934,7 +935,7 @@ static const uint32 sequence_counter [] = {     /* externally visible sequencer 
     ST_SEQ_COUNT_0                              /*   00 = Device_Flag_2 */
     };
 
-static const uint32 reset_irq [8] = {           /* selective reset irq mask values, indexed by CN_RESET */
+static const uint32_t reset_irq [8] = {         /* selective reset irq mask values, indexed by CN_RESET */
     ~0u,                                        /*   000 = none */
     ~(ST_XFR_TMR_IRQ | ST_XFERERR_IRQ),         /*   001 = watchdog timer and transfer error */
     ~ST_IOSYS_IRQ,                              /*   010 = I/O system */
@@ -1033,7 +1034,7 @@ static HP_WORD read_word        = 0;            /* read word */
 static HP_WORD write_word       = 0;            /* write word */
 
 static SEQ_STATE sequencer  = Idle;             /* data transfer handshake sequencer */
-static uint32    jumper_set = PRINTER_JUMPERS;  /* set of configuration jumpers */
+static uint32_t  jumper_set = PRINTER_JUMPERS;  /* set of configuration jumpers */
 
 static FLIP_FLOP sio_busy       = CLEAR;        /* SIO busy flip-flop */
 static FLIP_FLOP channel_sr     = CLEAR;        /* channel service request flip-flop */
@@ -1067,17 +1068,17 @@ static bool    power_warning    = false;        /* PFWARN is not asserted to the
 static bool paper_fault     = true;             /* true if the printer is out of paper */
 static bool tape_fault      = false;            /* true if there is no punch in a commanded VFU channel */
 static bool offline_pending = false;            /* true if an offline request is waiting for the printer to finish */
-static uint32 overprint_char  = DEL;            /* character to use if overprinted */
-static uint32 current_line    = 1;              /* current form line */
-static uint32 buffer_index    = 0;              /* current index into the print buffer */
+static uint32_t overprint_char  = DEL;          /* character to use if overprinted */
+static uint32_t current_line    = 1;            /* current form line */
+static uint32_t buffer_index    = 0;            /* current index into the print buffer */
 
-static uint32 form_length;                      /* form length in lines */
-static uint8  buffer [BUFFER_SIZE];             /* character and paper advance buffer */
-static uint16 VFU [VFU_SIZE];                   /* vertical format unit tape */
+static uint32_t form_length;                    /* form length in lines */
+static uint8_t buffer [BUFFER_SIZE];            /* character and paper advance buffer */
+static uint16_t VFU [VFU_SIZE];                 /* vertical format unit tape */
 static char   vfu_title [LINE_SIZE];            /* descriptive title of the tape currently in the VFU */
 
-static int32  punched_char   = 'O';             /* character to display if VFU channel is punched */
-static int32  unpunched_char = '.';             /* character to display if VFU channel is not punched */
+static int32_t punched_char   = 'O';            /* character to display if VFU channel is punched */
+static int32_t unpunched_char = '.';            /* character to display if VFU channel is not punched */
 
 static const DELAY_PROPS *dlyptr = &fast_times; /* pointer to the event delay times to use */
 
@@ -1097,8 +1098,8 @@ static t_stat       master_reset          (bool programmed_clear);
 static void         clear_interface_logic (void);
 static void         activate_unit         (UNIT   *uptr);
 static void         report_error          (FILE   *stream);
-static OUTBOUND_SET set_interrupt         (uint32 interrupt);
-static OUTBOUND_SET set_device_status     (uint32 status_mask, uint32 new_status_word);
+static OUTBOUND_SET set_interrupt         (uint32_t interrupt);
+static OUTBOUND_SET set_device_status     (uint32_t status_mask, uint32_t new_status_word);
 static OUTBOUND_SET handshake_xfer        (void);
 
 
@@ -1110,7 +1111,7 @@ static t_stat diag_service (UNIT *uptr);
 /* Diagnostic Hardware Assembly local utility routines */
 
 static t_stat       diag_reset   (bool programmed_clear);
-static OUTBOUND_SET diag_control (uint32 control_word);
+static OUTBOUND_SET diag_control (uint32_t control_word);
 
 
 /* Printer local SCP support routines */
@@ -1119,22 +1120,22 @@ static t_stat lp_service        (UNIT *uptr);
 static t_stat lp_attach         (UNIT *uptr, const char *cptr);
 static t_stat lp_detach         (UNIT *uptr);
 
-static t_stat lp_set_mode       (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lp_set_model      (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lp_set_on_offline (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lp_set_vfu        (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lp_show_mode      (FILE *st,   UNIT *uptr,  int32 value,      const void *desc);
-static t_stat lp_show_vfu       (FILE *st,   UNIT *uptr,  int32 value,      const void *desc);
+static t_stat lp_set_mode       (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lp_set_model      (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lp_set_on_offline (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lp_set_vfu        (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lp_show_mode      (FILE *st,   UNIT *uptr,  int32_t value,      const void *desc);
+static t_stat lp_show_vfu       (FILE *st,   UNIT *uptr,  int32_t value,      const void *desc);
 
 
 /* Printer local utility routines */
 
 static t_stat       lp_reset        (bool programmed_clear);
-static OUTBOUND_SET lp_control      (uint32 control_word);
+static OUTBOUND_SET lp_control      (uint32_t control_word);
 static bool         lp_set_alarm    (UNIT   *uptr);
 static bool         lp_set_locality (UNIT   *uptr, LOCALITY printer_state);
 static t_stat       lp_load_vfu     (UNIT   *uptr, FILE *vf);
-static int32        lp_read_line    (FILE   *vf,   char *line, uint32 size);
+static int32_t      lp_read_line    (FILE   *vf,   char *line, uint32_t size);
 
 
 /* Interface SCP data structures */
@@ -1532,7 +1533,7 @@ while (working_set) {
 
 
         case DWRITESTB:
-            write_word = (uint32) inbound_value;        /* store the value in the data output register */
+            write_word = (uint32_t) inbound_value;      /* store the value in the data output register */
 
             device_command = SET;                       /* set the device command flip-flop */
             write_xfer     = SET;                       /*   and the write transfer flip-flop */
@@ -1620,7 +1621,7 @@ while (working_set) {
                 }
 
             else {                                          /* otherwise the transfer continues */
-                write_word = (uint32) inbound_value;        /*   so store the value in the data output register */
+                write_word = (uint32_t) inbound_value;      /*   so store the value in the data output register */
 
                 device_command = SET;                       /* set the device command flip-flop */
                 write_xfer     = SET;                       /*   and the write transfer flip-flop */
@@ -1970,7 +1971,7 @@ return;
    whether an interrupt should be requested.
 */
 
-static OUTBOUND_SET set_interrupt (uint32 interrupt)
+static OUTBOUND_SET set_interrupt (uint32_t interrupt)
 {
 int_status_word |= interrupt;                           /* set the specified interrupt flip-flop */
 
@@ -1995,7 +1996,7 @@ else                                                    /* otherwise an interrup
    bits 8-10 may be generated.
 */
 
-static OUTBOUND_SET set_device_status (uint32 status_mask, uint32 new_status_word)
+static OUTBOUND_SET set_device_status (uint32_t status_mask, uint32_t new_status_word)
 {
 OUTBOUND_SET outbound_signals = NO_SIGNALS;
 
@@ -2441,9 +2442,9 @@ return SCPE_OK;
        power is lost.
 */
 
-static OUTBOUND_SET diag_control (uint32 control_word)
+static OUTBOUND_SET diag_control (uint32_t control_word)
 {
-uint32       new_status;
+uint32_t     new_status;
 OUTBOUND_SET outbound_signals = NO_SIGNALS;
 
 if (control_word & CN_DHA_FN_ENABLE)                    /* if the decoder is enabled */
@@ -2650,11 +2651,11 @@ return outbound_signals;                                /* return INTREQ if any 
 static t_stat lp_service (UNIT *uptr)
 {
 const bool    printing = ((control_word & CN_FORMAT) != 0);    /* true if a print command was received */
-static uint32 overprint_index = 0;
+static uint32_t overprint_index = 0;
 PRINTER_TYPE  model;
-uint8         data_byte, format_byte;
-uint16        channel;
-uint32        line_count, slew_count, vfu_status;
+uint8_t       data_byte, format_byte;
+uint16_t      channel;
+uint32_t      line_count, slew_count, vfu_status;
 
 if (uptr == NULL)                                       /* if we're called for a state update */
     return SCPE_OK;                                     /*   then return with no other action */
@@ -2693,7 +2694,7 @@ if (device_command_out == false) {                      /* if STROBE has denied 
 else if (device_flag_in == false) {                     /* otherwise if STROBE has asserted while DEMAND is asserted */
     device_flag_in = true;                              /*   then deny DEMAND */
 
-    data_byte = (uint8) (data_out & DATA_MASK);         /* only the lower 7 bits are connected */
+    data_byte = (uint8_t) (data_out & DATA_MASK);       /* only the lower 7 bits are connected */
 
     if (printing == false) {                            /* if loading the print buffer */
         if (data_byte > '_'                             /*   then if the character is "lowercase" */
@@ -2712,7 +2713,7 @@ else if (device_flag_in == false) {                     /* otherwise if STROBE h
 
             else if (data_byte != ' '                           /* otherwise if we're overprinting a character */
               && data_byte != buffer [buffer_index])            /*   with a different character */
-                buffer [buffer_index] = (uint8) overprint_char; /*     then substitute the overprint character */
+                buffer [buffer_index] = (uint8_t) overprint_char; /*     then substitute the overprint character */
 
             buffer_index++;                             /* increment the buffer index */
 
@@ -3059,7 +3060,7 @@ else                                                    /* otherwise */
        queued.
 */
 
-static t_stat lp_set_mode (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lp_set_mode (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3108,7 +3109,7 @@ return SCPE_OK;                                         /* mode changes always s
    the real-time delays accordingly.
 */
 
-static t_stat lp_set_model (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lp_set_model (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3163,7 +3164,7 @@ return SCPE_OK;                                         /* allow the reassignmen
        before the printer actually goes offline.
 */
 
-static t_stat lp_set_on_offline (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lp_set_on_offline (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3213,7 +3214,7 @@ return SCPE_OK;                                         /* return operation succ
    load the VFU tape image contained therein.
 */
 
-static t_stat lp_set_vfu (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lp_set_vfu (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3251,7 +3252,7 @@ return result;                                          /* return the result of 
    ignored.  The timing mode and connection mode are printed.
 */
 
-static t_stat lp_show_mode (FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat lp_show_mode (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -3287,7 +3288,7 @@ return SCPE_OK;
        appropriate number of channels.
 */
 
-static t_stat lp_show_vfu (FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat lp_show_vfu (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -3297,8 +3298,8 @@ static const char header_1 [] = " Ch 1 Ch 2 Ch 3 Ch 4 Ch 5 Ch 6 Ch 7 Ch 8 Ch 9 C
 static const char header_2 [] = " ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----";
 
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);             /* the printer model number */
-const uint32 channel_count = print_props [model].vfu_channels;  /* the count of VFU channels */
-uint32 chan, line, current_channel;
+const uint32_t channel_count = print_props [model].vfu_channels; /* the count of VFU channels */
+uint32_t chan, line, current_channel;
 
 if (value == 0)                                         /* if we're called for a summary display */
     fputs (vfu_title, st);                              /*   then output only the VFU title */
@@ -3371,7 +3372,7 @@ static t_stat lp_reset (bool programmed_clear)
 {
 const PRINTER_TYPE model = GET_MODEL (xfer_unit.flags); /* the printer model number */
 OUTBOUND_SET signals;
-uint32       new_status = 0;
+uint32_t     new_status = 0;
 t_stat       result     = SCPE_OK;
 
 if (! programmed_clear && (sim_switches & SWMASK ('P'))) {  /* if this is a commanded power-on reset */
@@ -3425,7 +3426,7 @@ return result;                                          /* return the result of 
    response, so the routine simply returns.
 */
 
-static OUTBOUND_SET lp_control (uint32 control_word)
+static OUTBOUND_SET lp_control (uint32_t control_word)
 {
 /* Generic printer control signature.
    This implementation does not use every parameter. */
@@ -3653,11 +3654,11 @@ return true;                                            /*   successfully */
 static t_stat lp_load_vfu (UNIT *uptr, FILE *vf)
 {
 const PRINTER_TYPE model = GET_MODEL (uptr->flags);     /* the printer model number */
-uint32             line, channel, vfu_status;
-int32              len;
+uint32_t           line, channel, vfu_status;
+int32_t            len;
 char               buffer [LINE_SIZE], punch [LINE_SIZE], no_punch;
 char               *bptr, *tptr;
-uint16             tape [VFU_SIZE] = { 0 };
+uint16_t           tape [VFU_SIZE] = { 0 };
 
 if (vf == NULL) {                                       /* if the standard VFU is requested */
     tape [ 1] = VFU_CHANNEL_1;                          /*   then punch channel 1 for the top of form */
@@ -3787,10 +3788,10 @@ return SCPE_OK;                                         /* the VFU was successfu
        the end-of-line removal.
 */
 
-static int32 lp_read_line (FILE *vf, char *line, uint32 size)
+static int32_t lp_read_line (FILE *vf, char *line, uint32_t size)
 {
 char  *result;
-int32 len = 0;
+int32_t len = 0;
 
 while (len == 0) {
     result = fgets (line, size, vf);                    /* get the next line from the file */
@@ -3813,7 +3814,7 @@ while (len == 0) {
 
     if (result != NULL) {                               /* if one was found */
         *result = '\0';                                 /*   then truncate the line at that point */
-        len = (int32) (result - line);                  /*     and recalculate the line length */
+        len = (int32_t) (result - line);                /*     and recalculate the line length */
         }
     }
 

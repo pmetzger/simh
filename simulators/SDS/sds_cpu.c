@@ -135,6 +135,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sds_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -151,89 +153,89 @@
 #define HIST_NOEA       0x40000000
 
 typedef struct {
-    uint32              typ;
-    uint32              pc;
-    uint32              ir;
-    uint32              a;
-    uint32              b;
-    uint32              x;
-    uint32              ea;
+    uint32_t            typ;
+    uint32_t            pc;
+    uint32_t            ir;
+    uint32_t            a;
+    uint32_t            b;
+    uint32_t            x;
+    uint32_t            ea;
     } InstHistory;
 
-uint32 M[MAXMEMSIZE] = { 0 };                           /* memory */
-uint32 A, B, X;                                         /* registers */
-uint32 P;                                               /* program counter */
-uint32 OV;                                              /* overflow */
-uint32 xfr_req = 0;                                     /* xfr req */
-uint32 ion = 0;                                         /* int enable */
-uint32 ion_defer = 0;                                   /* int defer */
-uint32 int_req = 0;                                     /* int requests */
-uint32 int_reqhi = 0;                                   /* highest int request */
-uint32 api_lvl = 0;                                     /* api active */
-uint32 api_lvlhi = 0;                                   /* highest api active */
+uint32_t M[MAXMEMSIZE] = { 0 };                         /* memory */
+uint32_t A, B, X;                                       /* registers */
+uint32_t P;                                             /* program counter */
+uint32_t OV;                                            /* overflow */
+uint32_t xfr_req = 0;                                   /* xfr req */
+uint32_t ion = 0;                                       /* int enable */
+uint32_t ion_defer = 0;                                 /* int defer */
+uint32_t int_req = 0;                                   /* int requests */
+uint32_t int_reqhi = 0;                                 /* highest int request */
+uint32_t api_lvl = 0;                                   /* api active */
+uint32_t api_lvlhi = 0;                                 /* highest api active */
 bool chan_req;                                          /* chan request */
-uint32 cpu_mode = NML_MODE;                             /* normal mode */
-uint32 mon_usr_trap = 0;                                /* mon-user trap */
-uint32 EM2 = 2, EM3 = 3;                                /* extension registers */
-uint32 RL1, RL2, RL4;                                   /* relocation maps */
-uint32 bpt;                                             /* breakpoint switches */
-uint32 alert;                                           /* alert dispatch */
-uint32 em2_dyn, em3_dyn;                                /* extensions, dynamic */
-uint32 usr_map[8];                                      /* user map, dynamic */
-uint32 mon_map[8];                                      /* mon map, dynamic */
-int32 ind_lim = 32;                                     /* indirect limit */
-int32 exu_lim = 32;                                     /* EXU limit */
-int32 cpu_genie = 0;                                    /* Genie flag */
-int32 cpu_astop = 0;                                    /* address stop */
-int32 stop_invins = 1;                                  /* stop inv inst */
-int32 stop_invdev = 1;                                  /* stop inv dev */
-int32 stop_inviop = 1;                                  /* stop inv io op */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+uint32_t cpu_mode = NML_MODE;                           /* normal mode */
+uint32_t mon_usr_trap = 0;                              /* mon-user trap */
+uint32_t EM2 = 2, EM3 = 3;                              /* extension registers */
+uint32_t RL1, RL2, RL4;                                 /* relocation maps */
+uint32_t bpt;                                           /* breakpoint switches */
+uint32_t alert;                                         /* alert dispatch */
+uint32_t em2_dyn, em3_dyn;                              /* extensions, dynamic */
+uint32_t usr_map[8];                                    /* user map, dynamic */
+uint32_t mon_map[8];                                    /* mon map, dynamic */
+int32_t ind_lim = 32;                                   /* indirect limit */
+int32_t exu_lim = 32;                                   /* EXU limit */
+int32_t cpu_genie = 0;                                  /* Genie flag */
+int32_t cpu_astop = 0;                                  /* address stop */
+int32_t stop_invins = 1;                                /* stop inv inst */
+int32_t stop_invdev = 1;                                /* stop inv dev */
+int32_t stop_inviop = 1;                                /* stop inv io op */
+uint16_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
-uint32 hst_exclude = BAD_MODE;                          /* cpu_mode excluded from history */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
+uint32_t hst_exclude = BAD_MODE;                        /* cpu_mode excluded from history */
 InstHistory *hst = NULL;                                /* instruction history */
-int32 rtc_pie = 0;                                      /* rtc pulse ie */
-int32 rtc_tps = 60;                                     /* rtc ticks/sec */
+int32_t rtc_pie = 0;                                    /* rtc pulse ie */
+int32_t rtc_tps = 60;                                   /* rtc ticks/sec */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
 bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat Ea (uint32 wd, uint32 *va);
-t_stat EaSh (uint32 wd, uint32 *va);
-t_stat Read (uint32 va, uint32 *dat);
-t_stat Write (uint32 va, uint32 dat);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat Ea (uint32_t wd, uint32_t *va);
+t_stat EaSh (uint32_t wd, uint32_t *va);
+t_stat Read (uint32_t va, uint32_t *dat);
+t_stat Write (uint32_t va, uint32_t dat);
 void set_dyn_map (void);
-uint32 api_findreq (void);
+uint32_t api_findreq (void);
 void api_dismiss (void);
-uint32 Add24 (uint32 s1, uint32 s2, uint32 cin);
-uint32 AddM24 (uint32 s1, uint32 s2);
-void Mul48 (uint32 mplc, uint32 mplr);
-void Div48 (uint32 dvdh, uint32 dvdl, uint32 dvr);
-void RotR48 (uint32 sc);
-void ShfR48 (uint32 sc, uint32 sgn);
-t_stat one_inst (uint32 inst, uint32 pc, uint32 mode, uint32 *trappc);
-void inst_hist (uint32 inst, uint32 pc, uint32 typ);
-t_stat rtc_inst (uint32 inst);
+uint32_t Add24 (uint32_t s1, uint32_t s2, uint32_t cin);
+uint32_t AddM24 (uint32_t s1, uint32_t s2);
+void Mul48 (uint32_t mplc, uint32_t mplr);
+void Div48 (uint32_t dvdh, uint32_t dvdl, uint32_t dvr);
+void RotR48 (uint32_t sc);
+void ShfR48 (uint32_t sc, uint32_t sgn);
+t_stat one_inst (uint32_t inst, uint32_t pc, uint32_t mode, uint32_t *trappc);
+void inst_hist (uint32_t inst, uint32_t pc, uint32_t typ);
+t_stat rtc_inst (uint32_t inst);
 t_stat rtc_svc (UNIT *uptr);
 t_stat rtc_reset (DEVICE *dptr);
-t_stat rtc_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat rtc_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 extern bool io_init (void);
-extern t_stat op_wyim (uint32 inst, uint32 *dat);
-extern t_stat op_miwy (uint32 inst, uint32 dat);
-extern t_stat op_pin (uint32 *dat);
-extern t_stat op_pot (uint32 dat);
-extern t_stat op_eomd (uint32 inst);
-extern t_stat op_sks (uint32 inst, uint32 *skp);
+extern t_stat op_wyim (uint32_t inst, uint32_t *dat);
+extern t_stat op_miwy (uint32_t inst, uint32_t dat);
+extern t_stat op_pin (uint32_t *dat);
+extern t_stat op_pot (uint32_t dat);
+extern t_stat op_eomd (uint32_t inst);
+extern t_stat op_sks (uint32_t inst, uint32_t *skp);
 
 /* CPU data structures
 
@@ -336,7 +338,7 @@ DEVICE rtc_dev = {
 
 /* Interrupt tables */
 
-static const uint32 api_mask[32] = {
+static const uint32_t api_mask[32] = {
     0xFFFFFFFE, 0xFFFFFFFC, 0xFFFFFFF8, 0xFFFFFFF0,
     0xFFFFFFE0, 0xFFFFFFC0, 0xFFFFFF80, 0xFFFFFF00,
     0xFFFFFE00, 0xFFFFFC00, 0xFFFFF800, 0xFFFFF000,
@@ -347,7 +349,7 @@ static const uint32 api_mask[32] = {
     0xE0000000, 0xC0000000, 0x80000000, 0x00000000
     };
 
-static const uint32 int_vec[32] = {
+static const uint32_t int_vec[32] = {
     0, 0, 0, 0,
     VEC_FORK, VEC_DRM,  VEC_MUXCF,VEC_MUXCO,
     VEC_MUXT, VEC_MUXR, VEC_HEOR, VEC_HZWC,
@@ -360,7 +362,7 @@ static const uint32 int_vec[32] = {
 
 t_stat sim_instr (void)
 {
-uint32 inst, tinst, pa, save_P, save_mode, trap_P, tmp;
+uint32_t inst, tinst, pa, save_P, save_mode, trap_P, tmp;
 t_stat reason, tr;
 
 /* Restore register state */
@@ -433,10 +435,10 @@ while (reason == 0) {                                   /* loop until halted */
         }
     else {                                              /* normal instr */
         if (sim_brk_summ) {
-            static uint32 bmask[] = {SWMASK ('E') | SWMASK ('N'),
+            static uint32_t bmask[] = {SWMASK ('E') | SWMASK ('N'),
                                      SWMASK ('E') | SWMASK ('M'),
                                      SWMASK ('E') | SWMASK ('U')};
-            uint32 btyp;
+            uint32_t btyp;
 
             btyp = sim_brk_test (P, bmask[cpu_mode]);
             if (btyp) {
@@ -475,7 +477,7 @@ while (reason == 0) {                                   /* loop until halted */
                 }
             }                                           /* end if r == 0 */
         if (reason < 0) {                               /* mm (fet or ex)? */
-            int8 op;
+            int8_t op;
             pa = -reason;                               /* get vector */
             if (reason == MM_MONUSR)                    /* record P of user-mode */
                 save_P = P;                             /*  transition point     */
@@ -516,11 +518,11 @@ return reason;
 
 /* Simulate one instruction */
 
-t_stat one_inst (uint32 inst, uint32 pc, uint32 mode, uint32 *trappc)
+t_stat one_inst (uint32_t inst, uint32_t pc, uint32_t mode, uint32_t *trappc)
 {
-uint32 op, shf_op, va, dat;
-uint32 old_A, old_B, old_X;
-int32 i, exu_cnt, sc;
+uint32_t op, shf_op, va, dat;
+uint32_t old_A, old_B, old_X;
+int32_t i, exu_cnt, sc;
 t_stat r;
 
 *trappc = pc;                                           /* default trap pc to pc */
@@ -1143,11 +1145,11 @@ return SCPE_OK;
 
 /* Effective address calculation */
 
-t_stat Ea (uint32 inst, uint32 *addr)
+t_stat Ea (uint32_t inst, uint32_t *addr)
 {
-int32 i;
-uint32 wd = inst;                                       /* homeable */
-uint32 va = wd & XVA_MASK;                              /* initial va */
+int32_t i;
+uint32_t wd = inst;                                     /* homeable */
+uint32_t va = wd & XVA_MASK;                            /* initial va */
 t_stat r;
 
 for (i = 0; i < ind_lim; i++) {                         /* count indirects */
@@ -1168,11 +1170,11 @@ return STOP_INDLIM;                                     /* too many indirects */
 
 /* Effective address calculation for shifts - direct indexing is 9b */
 
-t_stat EaSh (uint32 inst, uint32 *addr)
+t_stat EaSh (uint32_t inst, uint32_t *addr)
 {
-int32 i;
-uint32 wd = inst;                                       /* homeable */
-uint32 va = wd & XVA_MASK;                              /* initial va */
+int32_t i;
+uint32_t wd = inst;                                     /* homeable */
+uint32_t va = wd & XVA_MASK;                            /* initial va */
 t_stat r;
 
 for (i = 0; i < ind_lim; i++) {                         /* count indirects */
@@ -1195,9 +1197,9 @@ return STOP_INDLIM;                                     /* too many indirects */
 
 /* Read word from virtual address */
 
-t_stat Read (uint32 va, uint32 *dat)
+t_stat Read (uint32_t va, uint32_t *dat)
 {
-uint32 pgn, map, pa;
+uint32_t pgn, map, pa;
 
 if (cpu_mode == NML_MODE) {                             /* normal? */
     va = va & VA_MASK;                                  /* ignore user */
@@ -1227,9 +1229,9 @@ return SCPE_OK;
 
 /* Write word to virtual address */
 
-t_stat Write (uint32 va, uint32 dat)
+t_stat Write (uint32_t va, uint32_t dat)
 {
-uint32 pgn, map, pa;
+uint32_t pgn, map, pa;
 
 if (cpu_mode == NML_MODE) {                             /* normal? */
     va = va & VA_MASK;                                  /* ignore user */
@@ -1263,10 +1265,10 @@ return SCPE_OK;
 
 /* Relocate addr for console access */
 
-static uint32 RelocC (int32 va, int32 sw)
+static uint32_t RelocC (int32_t va, int32_t sw)
 {
-uint32 mode = cpu_mode;
-uint32 pa, pgn, map;
+uint32_t mode = cpu_mode;
+uint32_t pa, pgn, map;
 
 if (sw & SWMASK ('N'))                                  /* -n: normal */
     mode = NML_MODE;
@@ -1297,9 +1299,9 @@ return pa;
 
 /* Arithmetic routines */
 
-uint32 Add24 (uint32 s1, uint32 s2, uint32 cin)
+uint32_t Add24 (uint32_t s1, uint32_t s2, uint32_t cin)
 {
-uint32 t = s1 + s2 + cin;                               /* add with carry in */
+uint32_t t = s1 + s2 + cin;                             /* add with carry in */
 if (t > DMASK)                                          /* carry to X<0> */
     X = X | SIGN;
 else X = X & ~SIGN;
@@ -1308,19 +1310,19 @@ if (((s1 ^ ~s2) & (s1 ^ t))                             /* overflow */
 return t & DMASK;
 }
 
-uint32 AddM24 (uint32 s1, uint32 s2)
+uint32_t AddM24 (uint32_t s1, uint32_t s2)
 {
-uint32 t = s1 + s2;                                     /* add */
+uint32_t t = s1 + s2;                                   /* add */
 if (((s1 ^ ~s2) & (s1 ^ t)) & SIGN)                     /* overflow */
     OV = 1;
 return t & DMASK;
 }
 
-void Mul48 (uint32 s1, uint32 s2)
+void Mul48 (uint32_t s1, uint32_t s2)
 {
-uint32 a = ABS (s1);
-uint32 b = ABS (s2);
-uint32 hi, md, lo, t, u;
+uint32_t a = ABS (s1);
+uint32_t b = ABS (s2);
+uint32_t hi, md, lo, t, u;
 
 if ((a == 0) || (b == 0)) {                             /* ops zero? */
     A = B = 0;
@@ -1350,12 +1352,12 @@ return;
    negative, AB are 2's complemented starting at B<22>, and B<23>
    is unchanged. */
 
-void Div48 (uint32 ar, uint32 br, uint32 m)
+void Div48 (uint32_t ar, uint32_t br, uint32_t m)
 {
-int32 i;
-uint32 quo = 0;                                         /* quotient */
-uint32 dvdh = ar, dvdl = br;                            /* dividend */
-uint32 dvr = ABS (m);                                   /* make dvr pos */
+int32_t i;
+uint32_t quo = 0;                                       /* quotient */
+uint32_t dvdh = ar, dvdl = br;                          /* dividend */
+uint32_t dvr = ABS (m);                                 /* make dvr pos */
 
 if (TSTS (dvdh)) {                                      /* dvd < 0? */
     dvdl = (((dvdl ^ DMASK) + 2) & (DMASK & ~1)) |      /* 23b negate */
@@ -1388,9 +1390,9 @@ else B = dvdh;                                          /* B = rem */
 return;
 }
 
-void RotR48 (uint32 sc)
+void RotR48 (uint32_t sc)
 {
-uint32 t = A;
+uint32_t t = A;
 
 if (sc >= 24) {
     sc = sc - 24;
@@ -1404,7 +1406,7 @@ else {
 return;
 }
 
-void ShfR48 (uint32 sc, uint32 sgn)
+void ShfR48 (uint32_t sc, uint32_t sgn)
 {
 if (sc >= 48)
     A = B = sgn;
@@ -1422,7 +1424,7 @@ return;
 
 /* POT routines for RL1, RL2, RL4 */
 
-t_stat pot_RL1 (uint32 num, uint32 *dat)
+t_stat pot_RL1 (uint32_t num, uint32_t *dat)
 {
 /* SDS POT routine signature.
    This implementation does not use every parameter. */
@@ -1433,7 +1435,7 @@ set_dyn_map ();
 return SCPE_OK;
 }
 
-t_stat pot_RL2 (uint32 num, uint32 *dat)
+t_stat pot_RL2 (uint32_t num, uint32_t *dat)
 {
 /* SDS POT routine signature.
    This implementation does not use every parameter. */
@@ -1444,7 +1446,7 @@ set_dyn_map ();
 return SCPE_OK;
 }
 
-t_stat pot_RL4 (uint32 num, uint32 *dat)
+t_stat pot_RL4 (uint32_t num, uint32_t *dat)
 {
 /* SDS POT routine signature.
    This implementation does not use every parameter. */
@@ -1492,9 +1494,9 @@ return;
 
 /* Recalculate api requests */
 
-uint32 api_findreq (void)
+uint32_t api_findreq (void)
 {
-uint32 i, t;
+uint32_t i, t;
 
 t = (int_req & ~1) & api_mask[api_lvlhi];               /* unmasked int */
 for (i = 31; t && (i > 0); i--) {                       /* find highest */
@@ -1508,7 +1510,7 @@ return 0;                                               /* none */
 
 void api_dismiss (void)
 {
-uint32 i, t;
+uint32_t i, t;
 
 t = 1u << api_lvlhi;                                    /* highest active */
 int_req = int_req & ~t;                                 /* clear int req */
@@ -1587,12 +1589,12 @@ Next_Case Op_Cases[64] = {
 bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 {
 static t_addr returns[10];
-uint32 inst;
+uint32_t inst;
 Next_Case op_case;
-int32 atomic, forward;
+int32_t atomic, forward;
 t_addr *return_p;
-uint32 va;
-int32 exu_cnt = 0;
+uint32_t va;
+int32_t exu_cnt = 0;
 
 *ret_addrs = return_p = returns;
 atomic = sim_switches & SWMASK('A');
@@ -1668,13 +1670,13 @@ return true;                        /*  and return true       */
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
 (void) uptr;
 
-uint32 pa;
+uint32_t pa;
 
 pa = RelocC (addr, sw);
 if (pa > MAXMEMSIZE)
@@ -1688,13 +1690,13 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
 (void) uptr;
 
-uint32 pa;
+uint32_t pa;
 
 pa = RelocC (addr, sw);
 if (pa > MAXMEMSIZE)
@@ -1707,7 +1709,7 @@ return SCPE_OK;
 
 /* Set memory size */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1715,8 +1717,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 037777) != 0))
     return SCPE_ARG;
@@ -1732,7 +1734,7 @@ return SCPE_OK;
 
 /* Set system type (1 = Genie, 0 = standard) */
 
-t_stat cpu_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1745,7 +1747,7 @@ extern DEVICE drm_dev, mux_dev, muxl_dev;
 extern UNIT drm_unit, mux_unit;
 extern DIB mux_dib;
 
-if ((cpu_unit.flags & UNIT_GENIE) == (uint32) val)
+if ((cpu_unit.flags & UNIT_GENIE) == (uint32_t) val)
     return SCPE_OK;
 if ((drm_unit.flags & UNIT_ATT) ||                      /* attached? */
     (mux_unit.flags & UNIT_ATT))                        /* can't do it */
@@ -1785,9 +1787,9 @@ return SCPE_OK;
 
 /* Clock interrupt instruction */
 
-t_stat rtc_inst (uint32 inst)
+t_stat rtc_inst (uint32_t inst)
 {
-uint32 op, dat, val, va;
+uint32_t op, dat, val, va;
 t_stat r;
 
 op = I_GETOP (inst);                                    /* get opcode */
@@ -1824,7 +1826,7 @@ return SCPE_OK;
 
 /* Set frequency */
 
-t_stat rtc_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rtc_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1841,7 +1843,7 @@ return SCPE_OK;
 
 /* Show frequency */
 
-t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rtc_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1855,7 +1857,7 @@ return SCPE_OK;
 
 /* Record history */
 
-void inst_hist (uint32 ir, uint32 pc, uint32 tp)
+void inst_hist (uint32_t ir, uint32_t pc, uint32_t tp)
 {
 if (cpu_mode == hst_exclude)
     return;
@@ -1874,7 +1876,7 @@ return;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1882,7 +1884,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -1891,7 +1893,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -1919,14 +1921,14 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 ov, k, di, lnt;
+int32_t ov, k, di, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 InstHistory *h;
@@ -1936,7 +1938,7 @@ static const char *modes = "NMU?";
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }

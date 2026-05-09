@@ -49,6 +49,8 @@
         echo    row 8 to row 1
 */
 
+#include <stdint.h>
+
 #include "i7094_defs.h"
 
 #define UNIT_V_CONS             (UNIT_V_UF + 0)         /* print to console */
@@ -85,21 +87,21 @@
 #define CMD_BIN                 1                       /* cmd: bcd/bin */
 #define CMD_ECHO                2                       /* cmd: wrs/rds */
 
-uint32 lpt_sta = 0;                                     /* state */
-uint32 lpt_bptr = 0;                                    /* buffer ptr */
-uint32 lpt_cmd = 0;                                     /* modes */
-uint32 lpt_tstart = 27500;                              /* timing */
-uint32 lpt_tstop = 27500;
-uint32 lpt_tleft = 150;
-uint32 lpt_tright = 4000;
-t_uint64 lpt_chob = 0;
-uint32 lpt_chob_v = 0;
-t_uint64 lpt_bbuf[LPT_BINLNT];                          /* binary buffer */
-t_uint64 lpt_ebuf[LPT_ECHLNT];                          /* echo buffer */
+uint32_t lpt_sta = 0;                                   /* state */
+uint32_t lpt_bptr = 0;                                  /* buffer ptr */
+uint32_t lpt_cmd = 0;                                   /* modes */
+uint32_t lpt_tstart = 27500;                            /* timing */
+uint32_t lpt_tstop = 27500;
+uint32_t lpt_tleft = 150;
+uint32_t lpt_tright = 4000;
+uint64_t lpt_chob = 0;
+uint32_t lpt_chob_v = 0;
+uint64_t lpt_bbuf[LPT_BINLNT];                          /* binary buffer */
+uint64_t lpt_ebuf[LPT_ECHLNT];                          /* echo buffer */
 
 /* Echo ordering map */
 
-static const uint8 echo_map[LPT_BINLNT + LPT_ECHLNT] = {
+static const uint8_t echo_map[LPT_BINLNT + LPT_ECHLNT] = {
   0,  1,  2,  3,  4,  5,  6,  7,                        /* write 9 to 1 */
   8,  9, 10, 11, 12, 13, 14, 15,
  16, 17,
@@ -121,11 +123,11 @@ const char *pch_table[4] = {
 
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_svc (UNIT *uptr);
-t_stat lpt_chsel (uint32 ch, uint32 sel, uint32 unit);
-t_stat lpt_chwr (uint32 ch, t_uint64 val, uint32 flags);
+t_stat lpt_chsel (uint32_t ch, uint32_t sel, uint32_t unit);
+t_stat lpt_chwr (uint32_t ch, uint64_t val, uint32_t flags);
 t_stat lpt_end_line (UNIT *uptr);
 
-extern char colbin_to_bcd (uint32 colbin);
+extern char colbin_to_bcd (uint32_t colbin);
 
 /* LPT data structures
 
@@ -176,7 +178,7 @@ DEVICE lpt_dev = {
 
 /* Channel select routine */
 
-t_stat lpt_chsel (uint32 ch, uint32 sel, uint32 unit)
+t_stat lpt_chsel (uint32_t ch, uint32_t sel, uint32_t unit)
 {
 if (sel & CHSL_NDS)                                     /* nds? nop */
     return ch6_end_nds (ch);
@@ -207,13 +209,13 @@ return SCPE_OK;
    - Normal mode is processed here
    - Echo mode is processed in the service routine (like a read) */
 
-t_stat lpt_chwr (uint32 ch, t_uint64 val, uint32 eorfl)
+t_stat lpt_chwr (uint32_t ch, uint64_t val, uint32_t eorfl)
 {
 /* Shared channel write signature.
    This implementation does not use every parameter. */
 (void) ch;
 
-uint32 u = (lpt_cmd & CMD_BIN)? U_LPBIN: U_LPBCD;       /* reconstruct unit */
+uint32_t u = (lpt_cmd & CMD_BIN)? U_LPBIN: U_LPBCD;     /* reconstruct unit */
 
 lpt_chob = val & DMASK;                                 /* store data */
 lpt_chob_v = 1;                                         /* set valid */
@@ -237,8 +239,8 @@ return SCPE_IERR;
 
 t_stat lpt_svc (UNIT *uptr)
 {
-uint32 u = (lpt_cmd & CMD_BIN)? U_LPBIN: U_LPBCD;       /* reconstruct unit */
-uint32 i, map;
+uint32_t u = (lpt_cmd & CMD_BIN)? U_LPBIN: U_LPBCD;     /* reconstruct unit */
+uint32_t i, map;
 
 switch (lpt_sta) {                                      /* case on state */
 
@@ -311,10 +313,10 @@ return SCPE_OK;
 
 t_stat lpt_end_line (UNIT *uptr)
 {
-uint32 i, col, row, bufw, colbin;
+uint32_t i, col, row, bufw, colbin;
 const char *pch;
 char bcd, lpt_cbuf[LPT_CHRLNT + 1];
-t_uint64 dat;
+uint64_t dat;
 
 pch = pch_table[GET_PCHAIN (lpt_unit.flags)];           /* get print chain */
 for (col = 0; col < (LPT_CHRLNT + 1); col++)            /* clear ascii buf */
@@ -364,7 +366,7 @@ t_stat lpt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < LPT_BINLNT; i++)                        /* clear bin buf */
     lpt_bbuf[i] = 0;

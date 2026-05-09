@@ -50,6 +50,8 @@
  */
 
 
+#include <stdint.h>
+
 #include "sds_defs.h"
 #include "sim_card.h"
 
@@ -57,24 +59,24 @@
 
 #define STATUS      u3
 
-extern uint32 xfr_req;
-extern int32 stop_invins, stop_invdev, stop_inviop;
+extern uint32_t xfr_req;
+extern int32_t stop_invins, stop_invdev, stop_inviop;
 
-uint16  cp_buffer[80];                  /* card output image */
-int32   cp_bptr = 0;                    /* buf ptr */
-int32   cp_blnt = 0;                    /* buf length */
-int32   cp_row = 0;                     /* row counter */
-int32   cp_chr = 0;
-int32  cp_eor;
-int32  cp_inst;                        /* saved instr */
+uint16_t cp_buffer[80];                 /* card output image */
+int32_t cp_bptr = 0;                    /* buf ptr */
+int32_t cp_blnt = 0;                    /* buf length */
+int32_t cp_row = 0;                     /* row counter */
+int32_t cp_chr = 0;
+int32_t cp_eor;
+int32_t cp_inst;                       /* saved instr */
 
-t_stat  cp_devio(uint32 fnc, uint32 inst, uint32 *dat);
+t_stat  cp_devio(uint32_t fnc, uint32_t inst, uint32_t *dat);
 t_stat  cp_svc(UNIT *);
 t_stat  cp_attach(UNIT * uptr, const char *file);
-t_stat  cp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat  cp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 t_stat  cp_detach(UNIT * uptr);
 t_stat  cp_wrend(UNIT * uptr);
-t_stat  cp_show_cap (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat  cp_show_cap (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 void    cp_set_err (UNIT *uptr);
 
 
@@ -117,8 +119,8 @@ DEVICE cp_dev = {
 
 /* Convert SDS BCD character into hollerith code */
 
-static uint16 sdsbcd_to_hol(uint8 bcd) {
-    uint16      hol;
+static uint16_t sdsbcd_to_hol(uint8_t bcd) {
+    uint16_t    hol;
 
     /* Handle space correctly */
     if (bcd == 0)                       /* 0 to row 10 */
@@ -154,12 +156,12 @@ static uint16 sdsbcd_to_hol(uint8 bcd) {
     return hol;
 }
 
-t_stat cp_devio(uint32 fnc, uint32 inst, uint32 *dat) {
+t_stat cp_devio(uint32_t fnc, uint32_t inst, uint32_t *dat) {
     UNIT   *uptr = &cp_unit;
-    int32  new_ch;
-    uint8  chr;
+    int32_t new_ch;
+    uint8_t chr;
     t_stat r;
-    uint32 t;
+    uint32_t t;
 
     switch (fnc) {
         case IO_CONN:
@@ -295,14 +297,14 @@ t_stat cp_detach(UNIT * uptr) {
 
 /* Channel assignment routines */
 
-t_stat cp_set_chan (UNIT *uptr, int32 val, const char *sptr, void *desc)
+t_stat cp_set_chan (UNIT *uptr, int32_t val, const char *sptr, void *desc)
 {
     t_stat r;
     r = set_chan (uptr, val, sptr, desc);
     return r;
 }
 
-t_stat cp_show_cap (FILE *st, UNIT *uptr, int32 val, const void *desc) {
+t_stat cp_show_cap (FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) val;

@@ -61,6 +61,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7070_defs.h"
 #include "sim_timer.h"
 
@@ -86,25 +88,25 @@
 
 struct InstHistory
 {
-    t_int64             op;
-    uint32              ic;
-    uint32              ea;
-    t_int64             before;
-    t_int64             after;
+    int64_t             op;
+    uint32_t            ic;
+    uint32_t            ea;
+    int64_t             before;
+    int64_t             after;
 };
 
 t_stat              cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr,
-                           int32 sw);
+                           int32_t sw);
 t_stat              cpu_dep(t_value val, t_addr addr, UNIT * uptr,
-                            int32 sw);
+                            int32_t sw);
 t_stat              cpu_reset(DEVICE * dptr);
-t_stat              cpu_set_size(UNIT * uptr, int32 val, const char *cptr,
+t_stat              cpu_set_size(UNIT * uptr, int32_t val, const char *cptr,
                                  void *desc);
-t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32 val,
+t_stat              cpu_show_hist(FILE * st, UNIT * uptr, int32_t val,
                                   const void *desc);
-t_stat              cpu_set_hist(UNIT * uptr, int32 val, const char *cptr,
+t_stat              cpu_set_hist(UNIT * uptr, int32_t val, const char *cptr,
                                  void *desc);
-t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *cpu_description (DEVICE *dptr);
 
@@ -114,24 +116,24 @@ void                mem_init(void);
 t_stat              rtc_srv(UNIT * uptr);
 t_stat              rtc_reset(DEVICE * dptr);
 
-t_uint64            M[MAXMEMSIZE] = { PSIGN };  /* memory */
-t_uint64            AC[4];                      /* registers */
-t_uint64            inds;                       /* Error indicators */
-t_uint64            diaglatch;                  /* Diagnostic latches */
-uint16              timer;                      /* Timer register */
-uint32              IC;                         /* program counter */
-uint16              timer_clock;                /* Timer clock */
-uint8               SW = 0;                     /* Sense switch */
-uint8               emode;                      /* Extended address mode */
-uint16              pri_latchs[10];             /* Priority latchs */
-uint32              pri_mask = 0xFFFFFF;        /* Priority masks */
-uint8               pri_enb = 1;                /* Enable priority procs */
-uint8               lpr_chan9[NUM_CHAN];        /* Line printer on channel 9 */
+uint64_t            M[MAXMEMSIZE] = { PSIGN };  /* memory */
+uint64_t            AC[4];                      /* registers */
+uint64_t            inds;                       /* Error indicators */
+uint64_t            diaglatch;                  /* Diagnostic latches */
+uint16_t            timer;                      /* Timer register */
+uint32_t            IC;                         /* program counter */
+uint16_t            timer_clock;                /* Timer clock */
+uint8_t             SW = 0;                     /* Sense switch */
+uint8_t             emode;                      /* Extended address mode */
+uint16_t            pri_latchs[10];             /* Priority latchs */
+uint32_t            pri_mask = 0xFFFFFF;        /* Priority masks */
+uint8_t             pri_enb = 1;                /* Enable priority procs */
+uint8_t             lpr_chan9[NUM_CHAN];        /* Line printer on channel 9 */
 int                 cycle_time = 20;            /* Cycle time of 12us */
 
 /* History information */
-int32               hst_p = 0;                  /* History pointer */
-int32               hst_lnt = 0;                /* History length */
+int32_t             hst_p = 0;                  /* History pointer */
+int32_t             hst_lnt = 0;                /* History length */
 struct InstHistory *hst = NULL;                 /* History stack */
 
 
@@ -188,7 +190,7 @@ DEVICE              cpu_dev = {
     NULL, NULL, &cpu_help, NULL, NULL, &cpu_description
 };
 
-uint32  dscale[4][16] = {
+uint32_t dscale[4][16] = {
     {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 0,0,0,0,0,0},
     {0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 0,0,0,0,0,0},
     {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 0,0,0,0,0,0},
@@ -196,34 +198,34 @@ uint32  dscale[4][16] = {
                                                                    0,0,0,0,0,0}
 };
 
-t_uint64 fdmask[11] = {
+uint64_t fdmask[11] = {
     0x0000000000LL,
     0xF000000000LL, 0xFF00000000LL, 0xFFF0000000LL, 0xFFFF000000LL,
     0xFFFFF00000LL, 0xFFFFFF0000LL, 0xFFFFFFF000LL, 0xFFFFFFFF00LL,
     0xFFFFFFFFF0LL, 0xFFFFFFFFFFLL
 };
 
-t_uint64 rdmask[11] = {
+uint64_t rdmask[11] = {
     0xFFFFFFFFFFLL, 0x0FFFFFFFFFLL, 0x00FFFFFFFFLL, 0x000FFFFFFFLL,
     0x0000FFFFFFLL, 0x00000FFFFFLL, 0x000000FFFFLL, 0x0000000FFFLL,
     0x00000000FFLL, 0x000000000FLL, 0x0LL
 };
 
-t_uint64 ldmask[11] = {
+uint64_t ldmask[11] = {
     0x0LL, 0xFLL, 0xFFLL, 0xFFFLL, 0xFFFFLL, 0xFFFFFLL, 0xFFFFFFLL, 0xFFFFFFFLL,
     0xFFFFFFFFLL, 0xFFFFFFFFFLL, 0xFFFFFFFFFFLL
 };
 
-t_uint64 dmask[11] = {
+uint64_t dmask[11] = {
     0x0LL, 0xFLL, 0xF0LL, 0xF00LL, 0xF000LL, 0xF0000LL,
     0xF00000LL, 0xF000000LL, 0xF0000000LL, 0xF00000000LL, 0xF000000000LL
 };
 
 #define gdigit(w, d) (((w) >> ((d) * 4)) & 0xF)
-#define sdigit(d, v) ((((t_uint64)v) & 0xFLL) << ((d) * 4))
+#define sdigit(d, v) ((((uint64_t)v) & 0xFLL) << ((d) * 4))
 #define mdigit(d)    (0xFLL << ((d) * 4))
 
-static t_uint64 ReadP(uint32 addr) {
+static uint64_t ReadP(uint32_t addr) {
     sim_interval -= (CPU_MODEL == 0x0)? 2: 1;
     if (emode) {
         if (addr > MAXMEMSIZE) {
@@ -249,7 +251,7 @@ static t_uint64 ReadP(uint32 addr) {
     return 0LL;
 }
 
-static void WriteP(uint32 addr, t_uint64 value) {
+static void WriteP(uint32_t addr, uint64_t value) {
     sim_interval -= (CPU_MODEL == 0x0)? 2: 1;
     if (emode) {
         if (addr > MAXMEMSIZE) {
@@ -277,21 +279,21 @@ t_stat
 sim_instr(void)
 {
     t_stat              reason;
-    t_uint64            temp;
-    t_uint64            MBR;
-    uint16              opcode = 0;
-    uint32              MA = 0;
-    uint32              utmp;   /* Unsigned temp */
+    uint64_t            temp;
+    uint64_t            MBR;
+    uint16_t            opcode = 0;
+    uint32_t            MA = 0;
+    uint32_t            utmp;   /* Unsigned temp */
     int                 tmp;    /* Signed temp */
-    uint8               f = 0;
-    uint8               stopnext;
-    uint8               IX = 0;
-    uint8               f1 = 0;
-    uint8               f2 = 0;
-    uint8               op2 = 0;
+    uint8_t             f = 0;
+    uint8_t             stopnext;
+    uint8_t             IX = 0;
+    uint8_t             f1 = 0;
+    uint8_t             f2 = 0;
+    uint8_t             op2 = 0;
     int                 iowait = 0;     /* Wait for IO to start */
     int                 chwait = 0;     /* Wait for channel to be inactive */
-    uint8               sign;
+    uint8_t             sign;
     int                 instr_count = 0; /* Number of instructions to execute */
 
     if (sim_step != 0) {
@@ -561,7 +563,7 @@ sim_instr(void)
                      temp &= ldmask[f2-f1+1];
                      /* Compute final sign */
                      if ((opcode & 0x10f) == (OP_AAS1 & 0x10f)) {
-                          sign = (uint8)(utmp & 0xf);
+                          sign = (uint8_t)(utmp & 0xf);
                      } else if (sign & 0xc) {
                           sign = ASIGN >> 40;
                      } else if (sign & 2) {
@@ -581,7 +583,7 @@ sim_instr(void)
                      }
                      /* Restore results and sign */
                      MBR |= DMASK & temp << ((9 - f2) * 4);
-                     MBR |= ((t_uint64)sign) << 40;
+                     MBR |= ((uint64_t)sign) << 40;
                      WriteP(MA, MBR);
                      if (hst_lnt) {  /* history enabled? */
                          hst[hst_p].after = MBR;
@@ -680,7 +682,7 @@ sim_instr(void)
                 case OP_M:
                      /* Multiplicand in AC[3] */
                      AC[1] = AC[2] = 0;
-                     sign = (uint8)(((MBR & SMASK) >> 40) & 0xf);
+                     sign = (uint8_t)(((MBR & SMASK) >> 40) & 0xf);
                      MBR = (rdmask[f1] & MBR) >> ((9 - f2) * 4);
                      sign = (((AC[3] & SMASK) >> 40) != sign) ? 6 : 9;
                      /* Multiply MBR * AC[3] result to AC[1],AC[2] <low> */
@@ -704,8 +706,8 @@ sim_instr(void)
                             sim_interval -= (CPU_MODEL == 0x0)? 2: 0;
                      }
                      /* Set sign */
-                     AC[1] |= ((t_uint64)sign) << 40;
-                     AC[2] |= ((t_uint64)sign) << 40;
+                     AC[1] |= ((uint64_t)sign) << 40;
+                     AC[2] |= ((uint64_t)sign) << 40;
                      if (hst_lnt) {  /* history enabled? */
                          hst[hst_p].after = AC[1];
                      }
@@ -715,10 +717,10 @@ sim_instr(void)
                 case OP_D:
                      /* dividend AC[1],AC[2] */
                      /* divisor in MBR */
-                     sign = (uint8)(((MBR & SMASK) >> 40) & 0xf);
+                     sign = (uint8_t)(((MBR & SMASK) >> 40) & 0xf);
                      AC[3] = (rdmask[f1] & MBR) >> ((9 - f2) * 4);
                      if (AC[3] == 0) {
-                        AC[3] |= ((t_uint64)sign) << 40;
+                        AC[3] |= ((uint64_t)sign) << 40;
                         reason = STOP_DIV;
                         break;
                      }
@@ -737,10 +739,10 @@ sim_instr(void)
                          div_step(AC[3]);
                      dec_comp(&AC[3]);
                     /* Fix signs */
-                     AC[1] |= ((t_uint64)utmp) << 40;
-                     AC[2] |= ((t_uint64)sign) << 40;
+                     AC[1] |= ((uint64_t)utmp) << 40;
+                     AC[2] |= ((uint64_t)sign) << 40;
                      AC[3] &= DMASK;
-                     AC[3] |= ((t_uint64)sign) << 40;
+                     AC[3] |= ((uint64_t)sign) << 40;
                      if (hst_lnt) {  /* history enabled? */
                          hst[hst_p].after = AC[1];
                      }
@@ -786,7 +788,7 @@ sim_instr(void)
                             MBR |= PSIGN;
                             if (utmp > 10)      /* BCD adjust */
                                 utmp += 6;
-                            MBR |= ((t_uint64)utmp) << 16;
+                            MBR |= ((uint64_t)utmp) << 16;
                             WriteP(IX, MBR);
                         }
                         break;
@@ -819,7 +821,7 @@ sim_instr(void)
                          for(;utmp != 0; utmp--) {
                              f1 = AC[1] & 0xf;
                              AC[1] >>= 4;
-                             AC[2] |= ((t_uint64)f1) << 40;
+                             AC[2] |= ((uint64_t)f1) << 40;
                              AC[2] >>= 4;
                         }
                         break;
@@ -830,7 +832,7 @@ sim_instr(void)
                          for(;utmp != 0; utmp--) {
                              f1 = AC[1] & 0xf;
                              AC[1] >>= 4;
-                             AC[2] |= ((t_uint64)f1) << 40;
+                             AC[2] |= ((uint64_t)f1) << 40;
                              f1 = AC[2] & 0xf;
                              AC[2] >>= 4;
                         }
@@ -872,7 +874,7 @@ sim_instr(void)
                             MBR &= DMASK;
                             if (utmp > 10)      /* BCD adjust */
                                 utmp += 6;
-                            MBR |= ((t_uint64)utmp) << 16;
+                            MBR |= ((uint64_t)utmp) << 16;
                             WriteP(IX, MBR);
                         }
                         break;
@@ -885,7 +887,7 @@ sim_instr(void)
                              f1 = AC[1] & 0xf;
                              AC[1] = (AC[1] & fdmask[tmp]) |
                                         ((AC[1] & rdmask[tmp]) >> 4);
-                             AC[2] |= ((t_uint64)f1) << 40;
+                             AC[2] |= ((uint64_t)f1) << 40;
                              AC[2] >>= 4;
                         }
                         break;
@@ -923,8 +925,8 @@ sim_instr(void)
                         }
                         break;
                      }
-                     AC[1] |= ((t_uint64)sign) << 40;
-                     AC[2] |= ((t_uint64)sign) << 40;
+                     AC[1] |= ((uint64_t)sign) << 40;
+                     AC[2] |= ((uint64_t)sign) << 40;
                      if (hst_lnt) {  /* history enabled? */
                          hst[hst_p].after = AC[1];
                      }
@@ -1328,7 +1330,7 @@ sim_instr(void)
                          if (tmp > 16)
                             goto float_norm;
                          while(tmp > 0) {
-                            temp |= ((t_uint64)(MBR & 0xf)) << 32;
+                            temp |= ((uint64_t)(MBR & 0xf)) << 32;
                             MBR >>= 4;
                             temp >>= 4;
                             tmp--;
@@ -1338,7 +1340,7 @@ sim_instr(void)
                         /* Shift AC */
                          if (tmp > -16) {
                              while(tmp < 0) {
-                                 AC[2] |= ((t_uint64)(AC[1] & 0xf)) << 32;
+                                 AC[2] |= ((uint64_t)(AC[1] & 0xf)) << 32;
                                  AC[1] >>= 4;
                                  AC[2] >>= 4;
                                  tmp++;
@@ -1382,7 +1384,7 @@ sim_instr(void)
                              dec_add(&AC[1], (AC[2] >> 32) & 0xf);
                      }
                      if (AC[1] & EMASK) {
-                          AC[2] |= ((t_uint64)(AC[1] & 0xf)) << 32;
+                          AC[2] |= ((uint64_t)(AC[1] & 0xf)) << 32;
                           AC[1] >>= 4;
                           AC[2] >>= 4;
                           utmp++;
@@ -1537,7 +1539,7 @@ sim_instr(void)
                          hst[hst_p].before = MBR;
                      }
                      temp = dec_bin_idx(MBR);
-                     sign = (uint8)(((MBR & SMASK)>> 40) & 0xf);
+                     sign = (uint8_t)(((MBR & SMASK)>> 40) & 0xf);
                      MBR &= DMASK;
                      switch(sign) {
                      case 0x6:  /* + -  tc b add */
@@ -1553,8 +1555,8 @@ sim_instr(void)
                           }
                           break;
                      }
-                     MBR |= ((t_uint64)sign) << 40;
-                     upd_idx(&MBR, (uint32)temp);
+                     MBR |= ((uint64_t)sign) << 40;
+                     upd_idx(&MBR, (uint32_t)temp);
                      WriteP(IX, MBR);
                      if (hst_lnt) {  /* history enabled? */
                          hst[hst_p].after = MBR;
@@ -1568,7 +1570,7 @@ sim_instr(void)
                      }
                      temp = 0;
                      upd_idx(&temp, MA);
-                     sign = (uint8)(((MBR & SMASK)>> 40) & 0xf);
+                     sign = (uint8_t)(((MBR & SMASK)>> 40) & 0xf);
                      MBR &= DMASK;
                      switch(sign) {
                      default:
@@ -1587,7 +1589,7 @@ sim_instr(void)
                           }
                           break;
                      }
-                     MBR |= ((t_uint64)sign) << 40;
+                     MBR |= ((uint64_t)sign) << 40;
                      MBR &= (emode)?~IMASK2:~IMASK;
                      MBR |= temp;
                      WriteP(IX, MBR);
@@ -1720,7 +1722,7 @@ sim_instr(void)
                            break;
                       case 1:
                            MBR &= DMASK;
-                           MBR |= ((t_uint64)f1) << 40;
+                           MBR |= ((uint64_t)f1) << 40;
                            WriteP(MA, MBR);
                            if (hst_lnt) {  /* history enabled? */
                                hst[hst_p].after = MBR;
@@ -1761,7 +1763,7 @@ sim_instr(void)
                      temp = M[IX];
                      utmp = dec_bin_idx(temp);
                      do {
-                       uint32 dst, limit;
+                       uint32_t dst, limit;
                        MBR = ReadP(MA++);       /* Grab next RDW */
                        get_rdw(MBR, &dst, &limit);
                        while(dst <= limit) {
@@ -1780,7 +1782,7 @@ sim_instr(void)
                      temp = M[IX];
                      utmp = dec_bin_idx(temp);
                      do {
-                          uint32 src, limit;
+                          uint32_t src, limit;
                           MBR = ReadP(MA++);    /* Grab next RDW */
                           get_rdw(MBR, &src, &limit);
                           while(src <= limit) {
@@ -1801,11 +1803,11 @@ sim_instr(void)
                      temp = M[IX];
                      utmp = dec_bin_idx(temp);
                      do {
-                          uint32 dst, limit;
+                          uint32_t dst, limit;
                           MBR = ReadP(MA++);    /* Grab next RDW */
                           get_rdw(MBR, &dst, &limit);
                           while(dst <= limit) {
-                                t_uint64   buffer;
+                                uint64_t   buffer;
                                 f1 = (opcode == OP_ENB)? 0: 1;
                                 temp = ReadP(utmp++);
                                 if (utmp > MEMSIZE)
@@ -1856,11 +1858,11 @@ sim_instr(void)
                         temp = M[IX];
                         utmp = dec_bin_idx(temp);
                         do {
-                          uint32 src, limit;
+                          uint32_t src, limit;
                           MBR = ReadP(MA++);    /* Grab next RDW */
                           get_rdw(MBR, &src, &limit);
                           while(src <= limit) {
-                                t_uint64   buffer = 0;
+                                uint64_t   buffer = 0;
                                 temp = ReadP(src++);
                                 for(tmp = 8, f1 = 16; tmp >= 0; tmp-= 2) {
                                     buffer |= (temp & dmask[tmp+1]) << f1;
@@ -1894,7 +1896,7 @@ sim_instr(void)
                         temp = M[98];
                         utmp = dec_bin_idx(temp);
                         do {
-                          uint32 src, limit;
+                          uint32_t src, limit;
                           MBR = ReadP(MA++);    /* Grab next RDW */
                           get_rdw(MBR, &src, &limit);
                           while(src <= limit) {
@@ -2274,7 +2276,7 @@ sim_instr(void)
                                                       break;    /* TRA */
                       }
                       MBR = ((utmp & 0x1000) ? PSIGN:MSIGN) | 0x8000000000LL |
-                                (((t_uint64)f2)<<32);
+                                (((uint64_t)f2)<<32);
                       upd_idx(&MBR, IC);
                       bin_dec(&MBR, MA, 0, 4);
                       f = (utmp >> 8) & 0xf;
@@ -2323,7 +2325,7 @@ sim_instr(void)
                                 goto done;
                       }
                       MBR = ((utmp & 0x1000) ? PSIGN:MSIGN) | 0x8000000000LL |
-                                (((t_uint64)f2)<<32);
+                                (((uint64_t)f2)<<32);
                       upd_idx(&MBR, IC);
                       bin_dec(&MBR, MA, 0, 4);
                       f = (utmp >> 8) & 0xf;
@@ -2361,7 +2363,7 @@ sim_instr(void)
                       if ((opcode & 0x100) == 0)  /* Set priority signal */
                             utmp |= 0x1000;
                       /* Build initial status word */
-                      MBR = ((t_uint64)opcode & 0xFF) << 32;
+                      MBR = ((uint64_t)opcode & 0xFF) << 32;
                       MBR |= (opcode & 0x100)?MSIGN:PSIGN;
                       upd_idx(&MBR, IC);
                       bin_dec(&MBR, MA, 0, 4);
@@ -2438,8 +2440,8 @@ sim_instr(void)
 
 /* Decimal arithmetic routines */
 /* Add a to b result in a */
-int dec_add(t_uint64 *a, t_uint64 b) {
-  t_uint64      t1,t2,t3;
+int dec_add(uint64_t *a, uint64_t b) {
+  uint64_t      t1,t2,t3;
   t1 = *a ^ b;
   t2 = *a + b;
   t3 = t2 + 0x6666666666LL;
@@ -2459,8 +2461,8 @@ int dec_add(t_uint64 *a, t_uint64 b) {
 /* Decimal arithmetic routines */
 /* Add a to b result in a */
 /* Don't detect overflow, and use 2 more guard digits */
-void dec_add_noov(t_uint64 *a, t_uint64 b) {
-  t_uint64      t1,t2,t3;
+void dec_add_noov(uint64_t *a, uint64_t b) {
+  uint64_t      t1,t2,t3;
   t1 = *a ^ b;
   t2 = *a + b;
   t3 = t2 + 0x666666666666LL;
@@ -2473,14 +2475,14 @@ void dec_add_noov(t_uint64 *a, t_uint64 b) {
 
 
 /* tens compliment a */
-void dec_comp(t_uint64 *a) {
+void dec_comp(uint64_t *a) {
   *a = 0x9999999999LL - *a;
   dec_add(a, 1LL);
 }
 
 /* Compare to words, includeing sign */
-int dec_cmp(t_uint64 a, t_uint64 b) {
-  t_uint64      t1,t2,t3;
+int dec_cmp(uint64_t a, uint64_t b) {
+  uint64_t      t1,t2,t3;
 
   a = 0x99999999999LL - a;
   t1 = a ^ b;
@@ -2500,8 +2502,8 @@ int dec_cmp(t_uint64 a, t_uint64 b) {
 }
 
 /* Do a multiply step */
-void mul_step(t_uint64 *a, t_uint64 b, int c) {
-  t_uint64      prod;
+void mul_step(uint64_t *a, uint64_t b, int c) {
+  uint64_t      prod;
   int           i;
 
   for(i = 0; i < 40; i+=4) {
@@ -2516,8 +2518,8 @@ void mul_step(t_uint64 *a, t_uint64 b, int c) {
   }
 }
 
-void div_step(t_uint64 b) {
-  t_uint64      t1,t2,t3;
+void div_step(uint64_t b) {
+  uint64_t      t1,t2,t3;
 
   AC[1] &= DMASK;
   AC[1] <<= 4;
@@ -2541,21 +2543,21 @@ void div_step(t_uint64 b) {
 }
 
 /* Convert a binary number to BCD */
-void bin_dec(t_uint64 *a, uint32 b, int s, int l) {
+void bin_dec(uint64_t *a, uint32_t b, int s, int l) {
   s *= 4;
   l *= 4;
   l += s;
   while (s < l) {
       *a &= ~(0xFLL << s);
-      *a |= ((t_uint64)(b % 10)) << s;
+      *a |= ((uint64_t)(b % 10)) << s;
       b /= 10;
       s += 4;
    }
 }
 
 /* Convert index to binary */
-uint32 dec_bin_idx(t_uint64 a) {
-    uint32      v = (a >> 16) & 0xf;
+uint32_t dec_bin_idx(uint64_t a) {
+    uint32_t    v = (a >> 16) & 0xf;
     v += dscale[0][(a >> 20) & 0xf];
     v += dscale[1][(a >> 24) & 0xf];
     v += dscale[2][(a >> 28) & 0xf];
@@ -2564,8 +2566,8 @@ uint32 dec_bin_idx(t_uint64 a) {
     return v;
 }
 
-uint32 dec_bin_lim(t_uint64 a, uint32 b) {
-    uint32      v = a & 0xf;
+uint32_t dec_bin_lim(uint64_t a, uint32_t b) {
+    uint32_t    v = a & 0xf;
     v += dscale[0][(a >> 4) & 0xf];
     v += dscale[1][(a >> 8) & 0xf];
     v += dscale[2][(a >> 12) & 0xf];
@@ -2577,13 +2579,13 @@ uint32 dec_bin_lim(t_uint64 a, uint32 b) {
 }
 
 /* Extract information from a RDW */
-int get_rdw(t_uint64 a, uint32 *base, uint32 *limit) {
+int get_rdw(uint64_t a, uint32_t *base, uint32_t *limit) {
     *base = dec_bin_idx(a);
     *limit = dec_bin_lim(a, *base);
     return (a >> 40);
 }
 
-void upd_idx(t_uint64 *a, uint32 b) {
+void upd_idx(uint64_t *a, uint32_t b) {
     bin_dec(a, b, 4, (emode)?5:4);
 }
 
@@ -2811,7 +2813,7 @@ rtc_srv(UNIT * uptr)
     if (cpu_unit.flags & OPTION_TIMER) {
         timer_clock++;
         if (timer_clock == 300) {
-            t_uint64    t = (t_uint64) timer;
+            uint64_t    t = (uint64_t) timer;
             dec_add(&t, 1);
             timer = t & 0xfff;
             timer_clock = 0;
@@ -2837,7 +2839,7 @@ rtc_reset(DEVICE * dptr)
 /* Memory examine */
 
 t_stat
-cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
+cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -2855,7 +2857,7 @@ cpu_ex(t_value * vptr, t_addr addr, UNIT * uptr, int32 sw)
 /* Memory deposit */
 
 t_stat
-cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
+cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -2869,7 +2871,7 @@ cpu_dep(t_value val, t_addr addr, UNIT * uptr, int32 sw)
 }
 
 t_stat
-cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
+cpu_set_size(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -2877,9 +2879,9 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
     (void)desc;
     (void)uptr;
 
-    t_uint64            mc = 0;
-    uint32              i;
-    int32               v;
+    uint64_t            mc = 0;
+    uint32_t            i;
+    int32_t             v;
 
     v = val >> UNIT_V_MSIZE;
     v = (v + 1) * 5000;
@@ -2905,7 +2907,7 @@ cpu_set_size(UNIT * uptr, int32 val, const char *cptr, void *desc)
 
 /* Set history */
 t_stat
-cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
+cpu_set_hist(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -2913,7 +2915,7 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
     (void)uptr;
     (void)val;
 
-    int32               i, lnt;
+    int32_t             i, lnt;
     t_stat              r;
 
     if (cptr == NULL) {
@@ -2922,7 +2924,7 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
         hst_p = 0;
         return SCPE_OK;
     }
-    lnt = (int32) get_uint(cptr, 10, HIST_MAX, &r);
+    lnt = (int32_t) get_uint(cptr, 10, HIST_MAX, &r);
     if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
         return SCPE_ARG;
     hst_p = 0;
@@ -2944,14 +2946,14 @@ cpu_set_hist(UNIT * uptr, int32 val, const char *cptr, void *desc)
 /* Show history */
 
 t_stat
-cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
+cpu_show_hist(FILE * st, UNIT * uptr, int32_t val, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)val;
 
-    int32               k, di, lnt;
+    int32_t             k, di, lnt;
     char               *cptr = (char *) desc;
     t_stat              r;
     t_value             sim_eval;
@@ -2960,7 +2962,7 @@ cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
     if (hst_lnt == 0)
         return SCPE_NOFNC;      /* enabled? */
     if (cptr) {
-        lnt = (int32) get_uint(cptr, 10, hst_lnt, &r);
+        lnt = (int32_t) get_uint(cptr, 10, hst_lnt, &r);
         if ((r != SCPE_OK) || (lnt == 0))
             return SCPE_ARG;
     } else
@@ -3012,7 +3014,7 @@ cpu_show_hist(FILE * st, UNIT * uptr, int32 val, const void *desc)
 }
 
 t_stat
-cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr) {
+cpu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr) {
     /* Generic help signature.
        This implementation does not use every parameter. */
     (void)cptr;

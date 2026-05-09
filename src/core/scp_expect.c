@@ -9,13 +9,15 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "scp.h"
 #include "scp_pcre2.h"
 #include "sim_tmxr.h"
 
 /* Initialize one SEND context with the standard default timing values. */
-void sim_send_init_context(SEND *snd, DEVICE *dptr, uint32 dbit)
+void sim_send_init_context(SEND *snd, DEVICE *dptr, uint32_t dbit)
 {
     snd->dptr = dptr;
     snd->dbit = dbit;
@@ -27,7 +29,7 @@ void sim_send_init_context(SEND *snd, DEVICE *dptr, uint32 dbit)
 }
 
 /* Initialize one EXPECT context with the standard default halt value. */
-void sim_expect_init_context(EXPECT *exp, DEVICE *dptr, uint32 dbit)
+void sim_expect_init_context(EXPECT *exp, DEVICE *dptr, uint32_t dbit)
 {
     exp->dptr = dptr;
     exp->dbit = dbit;
@@ -110,15 +112,15 @@ static void sim_exp_free_regex_rule(EXPTAB *ep)
 }
 
 /* Decode a slash-delimited regex pattern body into a temporary buffer. */
-static void sim_exp_extract_regex_pattern(const char *match, uint8 *match_buf)
+static void sim_exp_extract_regex_pattern(const char *match, uint8_t *match_buf)
 {
     memcpy(match_buf, match + 1, strlen(match) - 2);
     match_buf[strlen(match) - 2] = '\0';
 }
 
 /* Compile one regex pattern and report its capture-group count. */
-static t_stat sim_exp_compile_regex_pattern(EXPECT *exp, const uint8 *match_buf,
-                                            int32 switches, EXPTAB *ep)
+static t_stat sim_exp_compile_regex_pattern(EXPECT *exp, const uint8_t *match_buf,
+                                            int32_t switches, EXPTAB *ep)
 {
     int error_code;
     PCRE2_SIZE error_offset;
@@ -147,8 +149,8 @@ static t_stat sim_exp_compile_regex_pattern(EXPECT *exp, const uint8 *match_buf,
 
 /* Compile a regex rule directly into one EXPTAB entry. */
 static t_stat sim_exp_install_regex_rule(EXPECT *exp, EXPTAB *ep,
-                                         const uint8 *match_buf,
-                                         int32 switches)
+                                         const uint8_t *match_buf,
+                                         int32_t switches)
 {
     return sim_exp_compile_regex_pattern(exp, match_buf, switches, ep);
 }
@@ -228,7 +230,7 @@ static void sim_exp_log_regex_check(const EXPECT *exp, const char *cbuf,
 
     if (!sim_exp_debug_enabled(exp))
         return;
-    estr = sim_encode_quoted_string((const uint8 *)cbuf, exp->buf_ins);
+    estr = sim_encode_quoted_string((const uint8_t *)cbuf, exp->buf_ins);
     sim_debug(exp->dbit, exp->dptr, "Checking String: %s\n", estr);
     sim_debug(exp->dbit, exp->dptr, "Against RegEx Match Rule: %s\n",
               ep->match_pattern);
@@ -236,8 +238,8 @@ static void sim_exp_log_regex_check(const EXPECT *exp, const char *cbuf,
 }
 
 /* Log one exact-match buffer comparison. */
-static void sim_exp_log_exact_check(const EXPECT *exp, const uint8 *data,
-                                    size_t data_size, const uint8 *match,
+static void sim_exp_log_exact_check(const EXPECT *exp, const uint8_t *data,
+                                    size_t data_size, const uint8_t *match,
                                     size_t match_size, size_t start_offs)
 {
     char *estr;
@@ -307,7 +309,7 @@ static t_stat sim_exp_clr_tab(EXPECT *exp, EXPTAB *ep)
 /* Display one expect rule in command-replay form. */
 static t_stat sim_exp_show_tab(FILE *st, const EXPECT *exp, const EXPTAB *ep)
 {
-    uint32 default_haltafter = exp->default_haltafter;
+    uint32_t default_haltafter = exp->default_haltafter;
 
     if (!ep)
         return SCPE_OK;
@@ -332,7 +334,7 @@ static t_stat sim_exp_show_tab(FILE *st, const EXPECT *exp, const EXPTAB *ep)
 }
 
 static void sim_exp_show_context_state(FILE *st, const EXPECT *exp,
-                                       uint32 default_haltafter);
+                                       uint32_t default_haltafter);
 
 /* Return whether one command token looks like a TMXR dev:line target. */
 static bool sim_exp_has_line_target(const char *token)
@@ -386,15 +388,15 @@ static t_stat sim_exp_resolve_expect_target(const char **cptr, EXPECT **exp,
     return SCPE_OK;
 }
 
-t_stat send_cmd(int32 flag, const char *cptr)
+t_stat send_cmd(int32_t flag, const char *cptr)
 {
     const char *tptr;
     char gbuf[CBUFSIZE];
-    uint8 dbuf[CBUFSIZE];
-    uint32 dsize = 0;
-    uint32 delay;
+    uint8_t dbuf[CBUFSIZE];
+    uint32_t dsize = 0;
+    uint32_t delay;
     bool delay_set = false;
-    uint32 after;
+    uint32_t after;
     bool after_set = false;
     t_stat r;
     SEND *snd;
@@ -410,7 +412,7 @@ t_stat send_cmd(int32 flag, const char *cptr)
     tptr = get_glyph(cptr, gbuf, ',');
     while (*cptr) {
         if ((!strncmp(gbuf, "DELAY=", 6)) && (gbuf[6])) {
-            delay = (uint32)get_uint(&gbuf[6], 10, 2000000000, &r);
+            delay = (uint32_t)get_uint(&gbuf[6], 10, 2000000000, &r);
             if (r != SCPE_OK)
                 return sim_messagef(SCPE_ARG, "Invalid Delay Value: %s\n",
                                     &gbuf[6]);
@@ -422,7 +424,7 @@ t_stat send_cmd(int32 flag, const char *cptr)
             continue;
         }
         if ((!strncmp(gbuf, "AFTER=", 6)) && (gbuf[6])) {
-            after = (uint32)get_uint(&gbuf[6], 10, 2000000000, &r);
+            after = (uint32_t)get_uint(&gbuf[6], 10, 2000000000, &r);
             if (r != SCPE_OK)
                 return sim_messagef(SCPE_ARG, "Invalid After Value: %s\n",
                                     &gbuf[6]);
@@ -453,7 +455,7 @@ t_stat send_cmd(int32 flag, const char *cptr)
     return sim_send_input(snd, dbuf, dsize, after, delay);
 }
 
-t_stat sim_show_send(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat sim_show_send(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                      const char *cptr)
 {
     t_stat r;
@@ -472,7 +474,7 @@ t_stat sim_show_send(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
     return sim_show_send_input(st, snd);
 }
 
-t_stat expect_cmd(int32 flag, const char *cptr)
+t_stat expect_cmd(int32_t flag, const char *cptr)
 {
     t_stat r;
     EXPECT *exp;
@@ -486,7 +488,7 @@ t_stat expect_cmd(int32 flag, const char *cptr)
     return sim_set_noexpect(exp, cptr);
 }
 
-t_stat sim_show_expect(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat sim_show_expect(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                        const char *cptr)
 {
     char gbuf[CBUFSIZE];
@@ -517,16 +519,16 @@ t_stat sim_set_expect(EXPECT *exp, const char *cptr)
     char gbuf[CBUFSIZE];
     const char *tptr;
     const char *c1ptr;
-    uint32 after;
+    uint32_t after;
     bool after_set = false;
-    int32 cnt = 0;
+    int32_t cnt = 0;
     t_stat r;
 
     if ((cptr == NULL) || (*cptr == 0))
         return SCPE_2FARG;
     after = exp->default_haltafter;
     if (*cptr == '[') {
-        cnt = (int32)strtotv(cptr + 1, &c1ptr, 10);
+        cnt = (int32_t)strtotv(cptr + 1, &c1ptr, 10);
         if ((cptr == c1ptr) || (*c1ptr != ']') || (cnt <= 0))
             return sim_messagef(SCPE_ARG,
                                 "Invalid Repeat count specification\n");
@@ -537,7 +539,7 @@ t_stat sim_set_expect(EXPECT *exp, const char *cptr)
     }
     tptr = get_glyph(cptr, gbuf, ',');
     if ((!strncmp(gbuf, "HALTAFTER=", 10)) && (gbuf[10])) {
-        after = (uint32)get_uint(&gbuf[10], 10, 2000000000, &r);
+        after = (uint32_t)get_uint(&gbuf[10], 10, 2000000000, &r);
         if (r != SCPE_OK)
             return sim_messagef(SCPE_ARG, "Invalid Halt After Value: %s\n",
                                 &gbuf[10]);
@@ -601,15 +603,15 @@ t_stat sim_exp_clrall(EXPECT *exp)
     return SCPE_OK;
 }
 
-t_stat sim_exp_set(EXPECT *exp, const char *match, int32 cnt, uint32 after,
-                   int32 switches, const char *act)
+t_stat sim_exp_set(EXPECT *exp, const char *match, int32_t cnt, uint32_t after,
+                   int32_t switches, const char *act)
 {
     EXPTAB *ep;
-    uint8 *match_buf;
-    uint32 match_size;
+    uint8_t *match_buf;
+    uint32_t match_size;
     size_t i;
 
-    match_buf = (uint8 *)calloc(strlen(match) + 1, 1);
+    match_buf = (uint8_t *)calloc(strlen(match) + 1, 1);
     if (!match_buf)
         return SCPE_MEM;
     if (switches & EXP_TYP_REGEX) {
@@ -631,7 +633,7 @@ t_stat sim_exp_set(EXPECT *exp, const char *match, int32 cnt, uint32 after,
                 SCPE_ARG, "Case independent matching is only valid for RegEx "
                           "expect rules.\n");
         }
-        sim_data_trace(exp->dptr, exp->dptr->units, (const uint8 *)match, "",
+        sim_data_trace(exp->dptr, exp->dptr->units, (const uint8_t *)match, "",
                        strlen(match) + 1, "Expect Match String", exp->dbit);
         if (SCPE_OK !=
             sim_decode_quoted_string(match, match_buf, &match_size)) {
@@ -662,7 +664,7 @@ t_stat sim_exp_set(EXPECT *exp, const char *match, int32 cnt, uint32 after,
         strcpy(ep->match_pattern, match);
     ep->cnt = cnt;
     ep->switches = switches;
-    match_buf = (uint8 *)calloc(strlen(match) + 1, 1);
+    match_buf = (uint8_t *)calloc(strlen(match) + 1, 1);
     if ((match_buf == NULL) || (ep->match_pattern == NULL)) {
         sim_exp_clr_tab(exp, ep);
         free(match_buf);
@@ -678,7 +680,7 @@ t_stat sim_exp_set(EXPECT *exp, const char *match, int32 cnt, uint32 after,
         free(match_buf);
         match_buf = NULL;
     } else {
-        sim_data_trace(exp->dptr, exp->dptr->units, (const uint8 *)match, "",
+        sim_data_trace(exp->dptr, exp->dptr->units, (const uint8_t *)match, "",
                        strlen(match) + 1, "Expect Match String", exp->dbit);
         (void)sim_decode_quoted_string(match, match_buf, &match_size);
         ep->match = match_buf;
@@ -708,7 +710,7 @@ t_stat sim_exp_set(EXPECT *exp, const char *match, int32 cnt, uint32 after,
                 ? ((pattern_bytes >= 1024) ? pattern_bytes : 1024)
                 : exp->rules[i].size;
         if (compare_size >= exp->buf_size) {
-            exp->buf = (uint8 *)realloc(exp->buf, compare_size + 2);
+            exp->buf = (uint8_t *)realloc(exp->buf, compare_size + 2);
             exp->buf_size = compare_size + 1;
         }
     }
@@ -718,7 +720,7 @@ t_stat sim_exp_set(EXPECT *exp, const char *match, int32 cnt, uint32 after,
 t_stat sim_exp_show(FILE *st, const EXPECT *exp, const char *match)
 {
     const EXPTAB *ep = (const EXPTAB *)sim_exp_fnd(exp, match, 0);
-    uint32 default_haltafter = exp->default_haltafter;
+    uint32_t default_haltafter = exp->default_haltafter;
 
     sim_exp_show_context_state(st, exp, default_haltafter);
     if (!*match)
@@ -745,7 +747,7 @@ t_stat sim_exp_showall(FILE *st, const EXPECT *exp)
 
 /* Render SHOW EXPECT state from already-gathered values. */
 static void sim_exp_show_context_state(FILE *st, const EXPECT *exp,
-                                       uint32 default_haltafter)
+                                       uint32_t default_haltafter)
 {
     if (exp->buf_size) {
         char *bstr = sim_encode_quoted_string(exp->buf, exp->buf_ins);
@@ -780,8 +782,8 @@ static void sim_show_send_pending_data(FILE *st, const SEND *snd)
 }
 
 /* Render SEND timing and default state from explicit values. */
-static void sim_show_send_timing(FILE *st, const SEND *snd, uint32 delay,
-                                 uint32 after)
+static void sim_show_send_timing(FILE *st, const SEND *snd, uint32_t delay,
+                                 uint32_t after)
 {
     if ((snd->next_time - sim_gtime()) > 0) {
         if (((snd->next_time - sim_gtime()) >
@@ -845,7 +847,7 @@ static bool sim_exp_check_exact_rule(EXPECT *exp, EXPTAB *ep)
            0;
 }
 
-t_stat sim_exp_check(EXPECT *exp, uint8 data)
+t_stat sim_exp_check(EXPECT *exp, uint8_t data)
 {
     size_t i;
     EXPTAB *ep = NULL;
@@ -900,8 +902,8 @@ t_stat sim_exp_check(EXPECT *exp, uint8 data)
                       "Waiting for %d more match%s before stopping\n", ep->cnt,
                       (ep->cnt == 1) ? "" : "es");
         } else {
-            uint32 after = ep->after;
-            int32 switches = ep->switches;
+            uint32_t after = ep->after;
+            int32_t switches = ep->switches;
 
             if (ep->act && *ep->act)
                 sim_debug(exp->dbit, exp->dptr, "Initiating actions: %s\n",
@@ -917,7 +919,7 @@ t_stat sim_exp_check(EXPECT *exp, uint8 data)
             sim_activate(
                 &sim_expect_unit,
                 (switches & EXP_TYP_TIME)
-                    ? (int32)((sim_timer_inst_per_sec() * after) / 1000000.0)
+                    ? (int32_t)((sim_timer_inst_per_sec() * after) / 1000000.0)
                     : after);
         }
         exp->buf_data = exp->buf_ins = 0;
@@ -926,8 +928,8 @@ t_stat sim_exp_check(EXPECT *exp, uint8 data)
     return SCPE_OK;
 }
 
-t_stat sim_send_input(SEND *snd, uint8 *data, size_t size, uint32 after,
-                      uint32 delay)
+t_stat sim_send_input(SEND *snd, uint8_t *data, size_t size, uint32_t after,
+                      uint32_t delay)
 {
     if (snd->extoff != 0) {
         if (snd->insoff > snd->extoff)
@@ -938,15 +940,15 @@ t_stat sim_send_input(SEND *snd, uint8 *data, size_t size, uint32 after,
     }
     if (snd->insoff + size > snd->bufsize) {
         snd->bufsize = snd->insoff + size;
-        snd->buffer = (uint8 *)realloc(snd->buffer, snd->bufsize);
+        snd->buffer = (uint8_t *)realloc(snd->buffer, snd->bufsize);
     }
     memcpy(snd->buffer + snd->insoff, data, size);
     snd->insoff += size;
     snd->delay = (sim_switches & SWMASK('T'))
-                     ? (uint32)((sim_timer_inst_per_sec() * delay) / 1000000.0)
+                     ? (uint32_t)((sim_timer_inst_per_sec() * delay) / 1000000.0)
                      : delay;
     snd->after = (sim_switches & SWMASK('T'))
-                     ? (uint32)((sim_timer_inst_per_sec() * after) / 1000000.0)
+                     ? (uint32_t)((sim_timer_inst_per_sec() * after) / 1000000.0)
                      : after;
     if (sim_switches & SWMASK('T'))
         sim_debug(snd->dbit, snd->dptr,
@@ -971,8 +973,8 @@ t_stat sim_send_clear(SEND *snd)
 
 t_stat sim_show_send_input(FILE *st, const SEND *snd)
 {
-    uint32 delay = snd->default_delay;
-    uint32 after = snd->default_after;
+    uint32_t delay = snd->default_delay;
+    uint32_t after = snd->default_after;
 
     fprintf(st, "%s\n", tmxr_send_line_name(snd));
     sim_show_send_pending_data(st, snd);

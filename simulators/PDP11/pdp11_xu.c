@@ -99,28 +99,31 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_xu.h"
+#include "sim_types.h"
 
-extern int32 tmxr_poll;
+extern int32_t tmxr_poll;
 
-t_stat xu_rd(int32* data, int32 PA, int32 access);
-t_stat xu_wr(int32  data, int32 PA, int32 access);
+t_stat xu_rd(int32_t* data, int32_t PA, int32_t access);
+t_stat xu_wr(int32_t data, int32_t PA, int32_t access);
 t_stat xu_svc(UNIT * uptr);
 t_stat xu_tmrsvc(UNIT * uptr);
 t_stat xu_reset (DEVICE * dptr);
 t_stat xu_attach (UNIT * uptr, const char * cptr);
 t_stat xu_detach (UNIT * uptr);
-t_stat xu_showmac (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xu_setmac  (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xu_show_stats (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xu_set_stats  (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xu_show_type (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xu_set_type (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xu_show_throttle (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xu_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc);
-int32 xu_int (void);
-t_stat xu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat xu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat xu_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xu_setmac  (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xu_show_stats (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xu_set_stats  (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xu_show_type (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xu_set_type (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xu_show_throttle (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xu_set_throttle (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+int32_t xu_int (void);
+t_stat xu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat xu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 void xua_read_callback(int status);
 void xub_read_callback(int status);
 void xua_write_callback(int status);
@@ -130,8 +133,8 @@ void xu_clrint (CTLR* xu);
 void xu_process_receive(CTLR* xu);
 void xu_dump_rxring(CTLR* xu);
 void xu_dump_txring(CTLR* xu);
-t_stat xu_show_filters (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat xu_show_filters (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *xu_description (DEVICE *dptr);
 
 #define IOLN_XU        010
@@ -321,7 +324,7 @@ CTLR xu_ctrl[] = {
 static CTLR* xu_unit2ctlr(UNIT* uptr)
 {
   int i;
-  unsigned int j;
+  uint_t j;
   for (i=0; i<XU_MAX_CONTROLLERS; i++)
     for (j=0; j<xu_ctrl[i].dev->numunits; j++)
       if (&xu_ctrl[i].unit[j] == uptr)
@@ -340,7 +343,7 @@ static CTLR* xu_dev2ctlr(DEVICE* dptr)
   return 0;
 }
 
-static CTLR* xu_pa2ctlr(uint32 PA)
+static CTLR* xu_pa2ctlr(uint32_t PA)
 {
   int i;
   for (i=0; i<XU_MAX_CONTROLLERS; i++)
@@ -353,7 +356,7 @@ static CTLR* xu_pa2ctlr(uint32 PA)
 /*============================================================================*/
 
 /* stop simh from reading non-existant unit data stream */
-t_stat xu_ex (t_value* vptr, t_addr addr, UNIT* uptr, int32 sw)
+t_stat xu_ex (t_value* vptr, t_addr addr, UNIT* uptr, int32_t sw)
 {
   /* Generic examine signature.
      This implementation does not use every parameter. */
@@ -366,7 +369,7 @@ t_stat xu_ex (t_value* vptr, t_addr addr, UNIT* uptr, int32 sw)
 }
 
 /* stop simh from writing non-existant unit data stream */
-t_stat xu_dep (t_value val, t_addr addr, UNIT* uptr, int32 sw)
+t_stat xu_dep (t_value val, t_addr addr, UNIT* uptr, int32_t sw)
 {
   /* Generic deposit signature.
      This implementation does not use every parameter. */
@@ -378,7 +381,7 @@ t_stat xu_dep (t_value val, t_addr addr, UNIT* uptr, int32 sw)
   return SCPE_NOFNC;
 }
 
-t_stat xu_showmac (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xu_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -393,7 +396,7 @@ t_stat xu_showmac (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xu_setmac (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xu_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -409,7 +412,7 @@ t_stat xu_setmac (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return status;
 }
 
-t_stat xu_set_stats (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xu_set_stats (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -429,7 +432,7 @@ static void xu_fprint_stat (FILE* st, const char* label, int value)
   fprintf(st, "  %-26s%d\n", label, value);
 }
 
-t_stat xu_show_stats (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xu_show_stats (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -453,7 +456,7 @@ t_stat xu_show_stats (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xu_show_filters (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xu_show_filters (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -476,7 +479,7 @@ t_stat xu_show_filters (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xu_show_type (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xu_show_type (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -492,7 +495,7 @@ t_stat xu_show_type (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xu_set_type (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xu_set_type (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -511,7 +514,7 @@ t_stat xu_set_type (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat xu_show_throttle (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xu_show_throttle (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -527,7 +530,7 @@ t_stat xu_show_throttle (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xu_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xu_set_throttle (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -537,10 +540,10 @@ t_stat xu_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc)
   CTLR* xu = xu_unit2ctlr(uptr);
   char tbuf[CBUFSIZE], gbuf[CBUFSIZE];
   const char *tptr = cptr;
-  uint32 newval;
-  uint32 set_time = xu->var->throttle_time;
-  uint32 set_burst = xu->var->throttle_burst;
-  uint32 set_delay = xu->var->throttle_delay;
+  uint32_t newval;
+  uint32_t set_time = xu->var->throttle_time;
+  uint32_t set_burst = xu->var->throttle_burst;
+  uint32_t set_delay = xu->var->throttle_delay;
   t_stat r = SCPE_OK;
 
   if (!cptr) {
@@ -566,7 +569,7 @@ t_stat xu_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc)
         cptr = get_glyph (cptr, gbuf, '=');
         if ((NULL == cptr) || ('\0' == *cptr))
           return SCPE_ARG;
-        newval = (uint32)get_uint (cptr, 10, 100, &r);
+        newval = (uint32_t)get_uint (cptr, 10, 100, &r);
         if (r != SCPE_OK)
           return SCPE_ARG;
         if (!MATCH_CMD(gbuf, "TIME")) {
@@ -595,7 +598,7 @@ t_stat xu_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc)
 
 /*============================================================================*/
 
-static void upd_stat16(uint16* stat, uint16 add)
+static void upd_stat16(uint16_t* stat, uint16_t add)
 {
   *stat += add;
   /* did stat roll over? latches at maximum */
@@ -603,7 +606,7 @@ static void upd_stat16(uint16* stat, uint16 add)
     *stat = 0xFFFF;
 }
 
-static void upd_stat32(uint32* stat, uint32 add)
+static void upd_stat32(uint32_t* stat, uint32_t add)
 {
   *stat += add;
   /* did stat roll over? latches at maximum */
@@ -611,7 +614,7 @@ static void upd_stat32(uint32* stat, uint32 add)
     *stat = 0xFFFFFFFF;
 }
 
-static void bit_stat16(uint16* stat, uint16 bits)
+static void bit_stat16(uint16_t* stat, uint16_t bits)
 {
   *stat |= bits;
 }
@@ -708,11 +711,11 @@ void xub_read_callback(int status)
   xu_read_callback(&xu_ctrl[1], status);
 }
 
-static t_stat xu_system_id (CTLR* xu, const ETH_MAC dest, uint16 receipt_id)
+static t_stat xu_system_id (CTLR* xu, const ETH_MAC dest, uint16_t receipt_id)
 {
-  static uint16 receipt = 0;
+  static uint16_t receipt = 0;
   ETH_PACK system_id;
-  uint8* const msg = &system_id.msg[0];
+  uint8_t* const msg = &system_id.msg[0];
   t_stat status;
 
   sim_debug(DBG_TRC, xu->dev, "xu_system_id()\n");
@@ -841,7 +844,7 @@ void xub_write_callback (int status)
   xu_write_callback(&xu_ctrl[1], status);
 }
 
-static void xu_setclrint(CTLR* xu, int32 bits)
+static void xu_setclrint(CTLR* xu, int32_t bits)
 {
   if (xu->var->pcsr0 & 0xFF00) {    /* if any interrupt bits on, */
     xu->var->pcsr0 |= PCSR0_INTR;   /*   turn master bit on */
@@ -943,15 +946,15 @@ t_stat xu_reset(DEVICE* dptr)
 
 
 /* Perform one of the defined ancillary functions. */
-static int32 xu_command(CTLR* xu)
+static int32_t xu_command(CTLR* xu)
 {
-  uint32 udbb;
+  uint32_t udbb;
   int fnc, mtlen, i, j;
-  uint16 value, pltlen;
+  uint16_t value, pltlen;
   t_stat rstatus, wstatus, wstatus2, wstatus3;
   struct xu_stats* stats = &xu->var->stats;
-  uint16* udb = xu->var->udb;
-  uint16* mac_w = (uint16*) xu->var->mac;
+  uint16_t* udb = xu->var->udb;
+  uint16_t* mac_w = (uint16_t*) xu->var->mac;
   static const ETH_MAC mcast_load_server = {0xAB, 0x00, 0x00, 0x01, 0x00, 0x00};
   static const char* command[] = {
       "NO-OP",
@@ -1002,13 +1005,13 @@ static int32 xu_command(CTLR* xu)
       break;
 
     case FC_RPA:            /* read current physical address */
-      wstatus = Map_WriteB(xu->var->pcbb + 2, 6, (uint8*)&xu->var->setup.macs[0]);
+      wstatus = Map_WriteB(xu->var->pcbb + 2, 6, (uint8_t*)&xu->var->setup.macs[0]);
       if (wstatus)
         return PCSR0_PCEI + 1;
       break;
 
     case FC_WPA:            /* write current physical address */
-      rstatus = Map_ReadB(xu->var->pcbb + 2, 6, (uint8*)&xu->var->setup.macs[0]);
+      rstatus = Map_ReadB(xu->var->pcbb + 2, 6, (uint8_t*)&xu->var->setup.macs[0]);
       if (xu->var->pcb[1] & 1)
         return PCSR0_PCEI;
       break;
@@ -1016,7 +1019,7 @@ static int32 xu_command(CTLR* xu)
     case FC_RMAL:   /* read multicast address list */
       mtlen = (xu->var->pcb[2] & 0xFF00) >> 8;
       udbb = xu->var->pcb[1] | ((xu->var->pcb[2] & 03) << 16);
-      wstatus = Map_WriteB(udbb, mtlen * 3, (uint8*) &xu->var->setup.macs[2]);
+      wstatus = Map_WriteB(udbb, mtlen * 3, (uint8_t*) &xu->var->setup.macs[2]);
       break;
 
     case FC_WMAL:   /* write multicast address list */
@@ -1031,7 +1034,7 @@ static int32 xu_command(CTLR* xu)
           xu->var->setup.macs[i][j] = 0;
       }
       /* get multicast list from host */
-      rstatus = Map_ReadB(udbb, mtlen * 6, (uint8*) &xu->var->setup.macs[2]);
+      rstatus = Map_ReadB(udbb, mtlen * 6, (uint8_t*) &xu->var->setup.macs[2]);
       if (rstatus == 0) {
         xu->var->setup.valid = 1;
         xu->var->setup.mac_count = mtlen + 2;
@@ -1047,11 +1050,11 @@ static int32 xu_command(CTLR* xu)
       if ((xu->var->pcb[1] & 1) || (xu->var->pcb[2] & 0374))
         return PCSR0_PCEI;
       xu->var->udb[0] = xu->var->tdrb & 0177776;
-      xu->var->udb[1] = (uint16)((xu->var->telen << 8) + ((xu->var->tdrb >> 16) & 3));
-      xu->var->udb[2] = (uint16)xu->var->trlen;
+      xu->var->udb[1] = (uint16_t)((xu->var->telen << 8) + ((xu->var->tdrb >> 16) & 3));
+      xu->var->udb[2] = (uint16_t)xu->var->trlen;
       xu->var->udb[3] = xu->var->rdrb & 0177776;
-      xu->var->udb[4] = (uint16)((xu->var->relen << 8) + ((xu->var->rdrb >> 16) & 3));
-      xu->var->udb[5] = (uint16)xu->var->rrlen;
+      xu->var->udb[4] = (uint16_t)((xu->var->relen << 8) + ((xu->var->rdrb >> 16) & 3));
+      xu->var->udb[5] = (uint16_t)xu->var->rrlen;
 
       /* Write UDB to host memory. */
       udbb = xu->var->pcb[1] + ((xu->var->pcb[2] & 3) << 16);
@@ -1104,7 +1107,7 @@ static int32 xu_command(CTLR* xu)
       udb[4]  = stats->mfrecv & 0xFFFF;   /* multicast frames received <15:00> */
       udb[5]  = stats->mfrecv >> 16;      /* multicast frames received <31:16> */
       udb[6]  = stats->rxerf;             /* receive error status bits */
-      udb[7]  = (uint16)stats->frecve;    /* frames received with error */
+      udb[7]  = (uint16_t)stats->frecve;  /* frames received with error */
       udb[8]  = stats->rbytes & 0xFFFF;   /* data bytes received <15:00> */
       udb[9]  = stats->rbytes >> 16;      /* data bytes received <31:16> */
       udb[10] = stats->mrbytes & 0xFFFF;  /* multicast data bytes received <15:00> */
@@ -1145,14 +1148,14 @@ static int32 xu_command(CTLR* xu)
       break;
 
     case FC_RMODE:          /* read mode register */
-      value = (uint16)xu->var->mode;
+      value = (uint16_t)xu->var->mode;
       wstatus = Map_WriteW(xu->var->pcbb+2, 2, &value);
       if (wstatus)
         return PCSR0_PCEI + 1;
       break;
 
     case FC_WMODE:          /* write mode register */
-      value = (uint16)xu->var->mode;
+      value = (uint16_t)xu->var->mode;
       xu->var->mode = xu->var->pcb[1];
       sim_debug(DBG_TRC, xu->dev, "FC_WMODE: mode=%04x\n", xu->var->mode);
 
@@ -1232,7 +1235,7 @@ static int32 xu_command(CTLR* xu)
     case FC_RLSA: /* read load server address */
       if (eth_mac_cmp(xu->var->load_server, eth_mac_any)) {
         /* not set, use default multicast load address */
-        wstatus = Map_WriteB(xu->var->pcbb + 2, 6, (const uint8*) mcast_load_server);
+        wstatus = Map_WriteB(xu->var->pcbb + 2, 6, (const uint8_t*) mcast_load_server);
       } else {
         /* is set, use load_server */
         wstatus = Map_WriteB(xu->var->pcbb + 2, 6, xu->var->load_server);
@@ -1261,7 +1264,7 @@ static int32 xu_command(CTLR* xu)
 /* Transfer received packets into receive ring. */
 void xu_process_receive(CTLR* xu)
 {
-  uint32 segb, ba;
+  uint32_t segb, ba;
   int slen, wlen;
   t_stat rstatus, wstatus;
   ETH_ITEM* item = 0;
@@ -1278,7 +1281,7 @@ void xu_process_receive(CTLR* xu)
 
   /* check read queue for buffer loss */
   if (xu->var->ReadQ.loss) {
-    upd_stat16(&xu->var->stats.rlossl, (uint16) xu->var->ReadQ.loss);
+    upd_stat16(&xu->var->stats.rlossl, (uint16_t) xu->var->ReadQ.loss);
     xu->var->ReadQ.loss = 0;
   }
 
@@ -1385,7 +1388,7 @@ void xu_process_receive(CTLR* xu)
      * part of the packet, and is included in the MLEN count. -- DTH
      */
     xu->var->rxhdr[3] &= ~RXR_MLEN;
-    xu->var->rxhdr[3] |= (uint16)(item->packet.crc_len);
+    xu->var->rxhdr[3] |= (uint16_t)(item->packet.crc_len);
 
     /* Is this the end-of-frame? OR is buffer chaining disabled? */
     if ((item->packet.used == item->packet.crc_len) ||
@@ -1451,7 +1454,7 @@ void xu_process_receive(CTLR* xu)
 
 static void xu_process_transmit(CTLR* xu)
 {
-  uint32 segb, ba;
+  uint32_t segb, ba;
   int slen, wlen, i, off, giant, runt;
   t_stat rstatus, wstatus;
 
@@ -1535,7 +1538,7 @@ static void xu_process_transmit(CTLR* xu)
       /* update transmit status in transmit buffer */
       if (xu->var->write_buffer.status != 0) {
         /* failure */
-        const uint16 tdr = (uint16)(100 + wlen * 8); /* arbitrary value */
+        const uint16_t tdr = (uint16_t)(100 + wlen * 8); /* arbitrary value */
         xu->var->txhdr[3] |= TXR_RTRY;
         xu->var->txhdr[3] |= tdr & TXR_TDR;
         xu->var->txhdr[2] |= TXR_ERRS;
@@ -1705,7 +1708,7 @@ static void xu_port_command (CTLR* xu)
   xu_setclrint(xu, 0);
 }
 
-t_stat xu_rd(int32 *data, int32 PA, int32 access)
+t_stat xu_rd(int32_t *data, int32_t PA, int32_t access)
 {
   /* Generic I/O read signature.
      This implementation does not use every parameter. */
@@ -1735,7 +1738,7 @@ t_stat xu_rd(int32 *data, int32 PA, int32 access)
   return SCPE_OK;
 }
 
-t_stat xu_wr(int32 data, int32 PA, int32 access)
+t_stat xu_wr(int32_t data, int32_t PA, int32_t access)
 {
   CTLR* xu = xu_pa2ctlr(PA);
   int reg = (PA >> 1) & 03;
@@ -1773,7 +1776,7 @@ t_stat xu_wr(int32 data, int32 PA, int32 access)
           return SCPE_OK;
         }
       } else {                       /* access == WRITE [Word] */
-        uint16 mask = data & 0xFF00; /* only interested in high byte */
+        uint16_t mask = data & 0xFF00; /* only interested in high byte */
         xu->var->pcsr0 &= ~mask;     /* clear write-one-to-clear bits */
       }
       /* RESET function requested? */
@@ -1921,7 +1924,7 @@ void xu_clrint(CTLR* xu)
   return;
 }
 
-int32 xu_int (void)
+int32_t xu_int (void)
 {
   int i;
   for (i=0; i<XU_MAX_CONTROLLERS; i++) {
@@ -1944,12 +1947,12 @@ void xu_dump_rxring (CTLR* xu)
   int rrlen = xu->var->rrlen;
   sim_printf ("receive ring[%s]: base address: %08x  headers: %d, header size: %d, current: %d\n", xu->dev->name, xu->var->rdrb, xu->var->rrlen, xu->var->relen, xu->var->rxnext);
   for (i=0; i<rrlen; i++) {
-    uint16 rxhdr[4] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
-    uint32 ba = xu->var->rdrb + (xu->var->relen * 2) * i;
+    uint16_t rxhdr[4] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+    uint32_t ba = xu->var->rdrb + (xu->var->relen * 2) * i;
     t_stat rstatus = Map_ReadW (ba, 8, rxhdr);  /* get rxring entry[i] */
     int own = (rxhdr[2] & RXR_OWN) >> 15;
     int len = rxhdr[0];
-    uint32 addr = rxhdr[1] + ((rxhdr[2] & 3) << 16);
+    uint32_t addr = rxhdr[1] + ((rxhdr[2] & 3) << 16);
     if (rstatus == 0)
       sim_printf ("  header[%d]: own:%d, len:%d, address:%08x data:{%04x,%04x,%04x,%04x}\n", i, own, len, addr, rxhdr[0], rxhdr[1], rxhdr[2], rxhdr[3]);
   }
@@ -1961,18 +1964,18 @@ void xu_dump_txring (CTLR* xu)
   int trlen = xu->var->trlen;
   sim_printf ("transmit ring[%s]: base address: %08x  headers: %d, header size: %d, current: %d\n", xu->dev->name, xu->var->tdrb, xu->var->trlen, xu->var->telen, xu->var->txnext);
   for (i=0; i<trlen; i++) {
-    uint16 txhdr[4];
-    uint32 ba = xu->var->tdrb + (xu->var->telen * 2) * i;
+    uint16_t txhdr[4];
+    uint32_t ba = xu->var->tdrb + (xu->var->telen * 2) * i;
     t_stat tstatus = Map_ReadW (ba, 8, txhdr);  /* get rxring entry[i] */
     int own = (txhdr[2] & RXR_OWN) >> 15;
     int len = txhdr[0];
-    uint32 addr = txhdr[1] + ((txhdr[2] & 3) << 16);
+    uint32_t addr = txhdr[1] + ((txhdr[2] & 3) << 16);
     if (tstatus == 0)
       sim_printf ("  header[%d]: own:%d, len:%d, address:%08x data:{%04x,%04x,%04x,%04x}\n", i, own, len, addr, txhdr[0], txhdr[1], txhdr[2], txhdr[3]);
   }
 }
 
-t_stat xu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat xu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char helpString[] =
  /* The '*'s in the next line represent the standard text width of a help line */

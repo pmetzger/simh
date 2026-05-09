@@ -81,6 +81,7 @@
 #include "sim_tmxr.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define UNIT_V_RASCII   (UNIT_V_UF + 0)                 /* reader ASCII */
 #define UNIT_RASCII     (1 << UNIT_V_RASCII)
@@ -89,23 +90,23 @@
 #define UNIT_V_PASCII   (UNIT_V_UF + 0)                 /* punch ASCII */
 #define UNIT_PASCII     (1 << UNIT_V_PASCII)
 
-extern int32 *M;
-extern int32 int_hwre[API_HLVL+1], PC, ASW;
-extern int32 api_vec[API_HLVL][32];
+extern int32_t *M;
+extern int32_t int_hwre[API_HLVL+1], PC, ASW;
+extern int32_t api_vec[API_HLVL][32];
 extern UNIT cpu_unit;
 
-int32 clk_state = 0;
-int32 ptr_err = 0, ptr_stopioe = 0, ptr_state = 0;
-int32 ptp_err = 0, ptp_stopioe = 0;
-int32 tti_2nd = 0;                                      /* 2nd char waiting */
-int32 tty_shift = 0;                                    /* KSR28 shift state */
-int32 tti_fdpx = 0;                                     /* prog mode full duplex */
-int32 clk_tps = 60;                                     /* ticks/second */
-int32 tmxr_poll = 16000;                                /* term mux poll */
-uint32 clk_task_last = 0;
-uint32 clk_task_timer = 0;
+int32_t clk_state = 0;
+int32_t ptr_err = 0, ptr_stopioe = 0, ptr_state = 0;
+int32_t ptp_err = 0, ptp_stopioe = 0;
+int32_t tti_2nd = 0;                                    /* 2nd char waiting */
+int32_t tty_shift = 0;                                  /* KSR28 shift state */
+int32_t tti_fdpx = 0;                                   /* prog mode full duplex */
+int32_t clk_tps = 60;                                   /* ticks/second */
+int32_t tmxr_poll = 16000;                              /* term mux poll */
+uint32_t clk_task_last = 0;
+uint32_t clk_task_timer = 0;
 
-const int32 asc_to_baud[128] = {
+const int32_t asc_to_baud[128] = {
     000,000,000,000,000,000,000,064,                    /* bell */
     000,000,0110,000,000,0102,000,000,                  /* lf, cr */
     000,000,000,000,000,000,000,000,
@@ -135,15 +136,15 @@ const char baud_to_asc[64] = {
     '-','2','\'',0 ,'7','1','(', 0
     };
 
-int32 ptr (int32 dev, int32 pulse, int32 dat);
-int32 ptp (int32 dev, int32 pulse, int32 dat);
-int32 tti (int32 dev, int32 pulse, int32 dat);
-int32 tto (int32 dev, int32 pulse, int32 dat);
-int32 clk_iors (void);
-int32 ptr_iors (void);
-int32 ptp_iors (void);
-int32 tti_iors (void);
-int32 tto_iors (void);
+int32_t ptr (int32_t dev, int32_t pulse, int32_t dat);
+int32_t ptp (int32_t dev, int32_t pulse, int32_t dat);
+int32_t tti (int32_t dev, int32_t pulse, int32_t dat);
+int32_t tto (int32_t dev, int32_t pulse, int32_t dat);
+int32_t clk_iors (void);
+int32_t ptr_iors (void);
+int32_t ptp_iors (void);
+int32_t tti_iors (void);
+int32_t tto_iors (void);
 t_stat clk_svc (UNIT *uptr);
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptp_svc (UNIT *uptr);
@@ -158,13 +159,13 @@ t_stat ptr_attach (UNIT *uptr, const char *cptr);
 t_stat ptp_attach (UNIT *uptr, const char *cptr);
 t_stat ptr_detach (UNIT *uptr);
 t_stat ptp_detach (UNIT *uptr);
-t_stat ptr_boot (int32 unitno, DEVICE *dptr);
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
-int32 clk_task_upd (bool clr);
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr);
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+int32_t clk_task_upd (bool clr);
 
-extern int32 upd_iors (void);
+extern int32_t upd_iors (void);
 
 /* CLK data structures
 
@@ -420,7 +421,7 @@ DEVICE tto_dev = {
 
 /* Clock: IOT routine */
 
-int32 clk (int32 dev, int32 pulse, int32 dat)
+int32_t clk (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -443,7 +444,7 @@ return dat;
 
 t_stat clk_svc (UNIT *uptr)
 {
-int32 t;
+int32_t t;
 
 t = sim_rtc_calb (clk_tps);                             /* calibrate clock */
 tmxr_poll = t;                                          /* set mux poll */
@@ -468,10 +469,10 @@ return SCPE_OK;
    reading.  The timer is also updated at clock events to keep the cycle
    counters from wrapping around more than once between updates. */
 
-int32 clk_task_upd (bool clr)
+int32_t clk_task_upd (bool clr)
 {
-uint32 delta, val, iusec10;
-uint32 cur = sim_grtime ();
+uint32_t delta, val, iusec10;
+uint32_t cur = sim_grtime ();
 double usec10;
 
 if (cur > clk_task_last)
@@ -479,20 +480,20 @@ if (cur > clk_task_last)
 else delta = clk_task_last - cur;
 usec10 = ((((double) delta) * 100000.0) /
     (((double) tmxr_poll) * ((double) clk_tps)));
-iusec10 = (int32) usec10;
+iusec10 = (int32_t) usec10;
 val = (clk_task_timer + iusec10) & DMASK;
 if (clr)
     clk_task_timer = 0;
 else clk_task_timer = val;
 clk_task_last = cur;
-return ((int32) val);
+return ((int32_t) val);
 }
 
 #endif
 
 /* IORS service */
 
-int32 clk_iors (void)
+int32_t clk_iors (void)
 {
 return (TST_INT (CLK)? IOS_CLK: 0);
 }
@@ -505,7 +506,7 @@ t_stat clk_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 t;
+int32_t t;
 
 sim_register_clock_unit (&clk_unit);                    /* declare clock unit */
 CLR_INT (CLK);                                          /* clear flag */
@@ -522,7 +523,7 @@ return SCPE_OK;
 
 /* Set frequency */
 
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -539,7 +540,7 @@ return SCPE_OK;
 
 /* Show frequency */
 
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -566,7 +567,7 @@ return SCPE_OK;
 
 /* Paper tape reader: IOT routine */
 
-int32 ptr (int32 dev, int32 pulse, int32 dat)
+int32_t ptr (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -600,7 +601,7 @@ t_stat ptr_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp;
+int32_t temp;
 
 if ((ptr_unit.flags & UNIT_ATT) == 0) {                 /* attached? */
 #if defined (IOS_PTRERR)
@@ -668,7 +669,7 @@ return SCPE_OK;
 
 /* IORS service */
 
-int32 ptr_iors (void)
+int32_t ptr_iors (void)
 {
 return ((TST_INT (PTR)? IOS_PTR: 0)
 #if defined (IOS_PTRERR)
@@ -682,7 +683,7 @@ return ((TST_INT (PTR)? IOS_PTR: 0)
 t_stat ptr_attach (UNIT *uptr, const char *cptr)
 {
 t_stat reason;
-int32 saved_switches = sim_switches;
+int32_t saved_switches = sim_switches;
 
 sim_switches &= ~SWMASK ('A');
 reason = attach_unit (uptr, cptr);
@@ -711,9 +712,9 @@ return detach_unit (uptr);
 
 /* Hardware RIM loader routines, PDP-7/9/15 */
 
-int32 ptr_getw (UNIT *uptr, int32 *hi)
+int32_t ptr_getw (UNIT *uptr, int32_t *hi)
 {
-int32 word, bits, st, ch;
+int32_t word, bits, st, ch;
 
 word = st = bits = 0;
 do {
@@ -731,9 +732,9 @@ if (hi != NULL)
 return word;
 }
 
-static t_stat ptr_rim_load (UNIT *uptr, int32 origin)
+static t_stat ptr_rim_load (UNIT *uptr, int32_t origin)
 {
-int32 bits, val;
+int32_t bits, val;
 
 for (;;) {                                              /* word loop */
     if ((val = ptr_getw (uptr, &bits)) < 0)
@@ -767,7 +768,7 @@ return SCPE_FMT;
 #define BOOT_RPC        017770                          /* RIM loader */
 #define BOOT_LEN (sizeof (boot_rom) / sizeof (int))
 
-static const int32 boot_rom[] = {
+static const int32_t boot_rom[] = {
     0700144,                                            /* rsb */
     0117762,                                            /* ff,  jsb r1b */
     0057666,                                            /*      dac done 1 */
@@ -898,7 +899,7 @@ static const int32 boot_rom[] = {
     0617771                                             /*      jmp g */
     };
 
-t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -906,7 +907,7 @@ t_stat ptr_boot (int32 unitno, DEVICE *dptr)
 (void) dptr;
 
 size_t i;
-int32 mask, wd;
+int32_t mask, wd;
 
 #if defined (PDP7)
 if (sim_switches & SWMASK ('H'))                        /* hardware RIM load? */
@@ -931,7 +932,7 @@ return SCPE_OK;
 
 /* PDP-9 and PDP-15 have built-in hardware RIM loaders */
 
-t_stat ptr_boot (int32 unitno, DEVICE *dptr)
+t_stat ptr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -945,7 +946,7 @@ return ptr_rim_load (&ptr_unit, ASW);
 
 /* Paper tape punch: IOT routine */
 
-int32 ptp (int32 dev, int32 pulse, int32 dat)
+int32_t ptp (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -996,7 +997,7 @@ return SCPE_OK;
 
 /* IORS service */
 
-int32 ptp_iors (void)
+int32_t ptp_iors (void)
 {
 return  ((TST_INT (PTP)? IOS_PTP: 0)
 #if defined (IOS_PTPERR)
@@ -1025,7 +1026,7 @@ return SCPE_OK;
 t_stat ptp_attach (UNIT *uptr, const char *cptr)
 {
 t_stat reason;
-int32 saved_switches = sim_switches;
+int32_t saved_switches = sim_switches;
 
 sim_switches |= SWMASK ('A');   /* Default to Append to existing file */
 reason = attach_unit (uptr, cptr);
@@ -1050,7 +1051,7 @@ return detach_unit (uptr);
 
 /* Terminal input: IOT routine */
 
-int32 tti (int32 dev, int32 pulse, int32 dat)
+int32_t tti (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -1080,7 +1081,7 @@ return dat;
 t_stat tti_svc (UNIT *uptr)
 {
 #if defined (KSR28)                                     /* Baudot... */
-int32 in, c, out;
+int32_t in, c, out;
 
 sim_clock_coschedule (uptr, tmxr_poll);                 /* continue poll */
 if (tti_2nd) {                                          /* char waiting? */
@@ -1115,7 +1116,7 @@ else {
     }
 
 #else                                                   /* ASCII... */
-int32 c, out;
+int32_t c, out;
 
 sim_clock_coschedule (uptr, tmxr_poll);                 /* continue poll */
 if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or error? */
@@ -1147,7 +1148,7 @@ return SCPE_OK;
 
 /* IORS service */
 
-int32 tti_iors (void)
+int32_t tti_iors (void)
 {
 return (TST_INT (TTI)? IOS_TTI: 0);
 }
@@ -1174,7 +1175,7 @@ return SCPE_OK;
 
 /* Terminal output: IOT routine */
 
-int32 tto (int32 dev, int32 pulse, int32 dat)
+int32_t tto (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -1197,7 +1198,7 @@ return dat;
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 t_stat r;
 
 #if defined (KSR28)                                     /* Baudot... */
@@ -1226,7 +1227,7 @@ return SCPE_OK;
 
 /* IORS service */
 
-int32 tto_iors (void)
+int32_t tto_iors (void)
 {
 return (TST_INT (TTO)? IOS_TTO: 0);
 }
@@ -1248,7 +1249,7 @@ return SCPE_OK;
 
 /* Set mode */
 
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

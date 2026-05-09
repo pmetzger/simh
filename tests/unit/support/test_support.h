@@ -2,6 +2,7 @@
 #define TEST_SUPPORT_H
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "sim_defs.h"
@@ -12,8 +13,8 @@ const char *simh_test_source_root(void);
 const char *simh_test_binary_root(void);
 void simh_test_init_device_unit(DEVICE *device, UNIT *unit,
                                 const char *dev_name, const char *unit_name,
-                                uint32 dev_flags, uint32 unit_flags,
-                                uint32 dwidth, uint32 aincr);
+                                uint32_t dev_flags, uint32_t unit_flags,
+                                uint32_t dwidth, uint32_t aincr);
 int simh_test_join_path(char *buffer, size_t buffer_size, const char *base,
                         const char *relative_path);
 int simh_test_fixture_path(char *buffer, size_t buffer_size,

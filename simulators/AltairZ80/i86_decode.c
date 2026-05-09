@@ -22,36 +22,38 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "i86.h"
 
 /* GLOBAL */
 volatile int intr;
 
-extern uint32 GetBYTEExtended(uint32 Addr);
-extern void PutBYTEExtended(uint32 Addr, const uint32 Value);
-extern int32 AX_S;      /* AX register (8086)                           */
-extern int32 BX_S;      /* BX register (8086)                           */
-extern int32 CX_S;      /* CX register (8086)                           */
-extern int32 DX_S;      /* DX register (8086)                           */
-extern int32 CS_S;      /* CS register (8086)                           */
-extern int32 DS_S;      /* DS register (8086)                           */
-extern int32 ES_S;      /* ES register (8086)                           */
-extern int32 SS_S;      /* SS register (8086)                           */
-extern int32 DI_S;      /* DI register (8086)                           */
-extern int32 SI_S;      /* SI register (8086)                           */
-extern int32 BP_S;      /* BP register (8086)                           */
-extern int32 SPX_S;     /* SP register (8086)                           */
-extern int32 IP_S;      /* IP register (8086)                           */
-extern int32 FLAGS_S;   /* flags register (8086)                        */
-extern int32 PCX_S;     /* PC register (8086), 20 bit                   */
-extern uint32 PCX;      /* external view of PC                          */
+extern uint32_t GetBYTEExtended(uint32_t Addr);
+extern void PutBYTEExtended(uint32_t Addr, const uint32_t Value);
+extern int32_t AX_S;    /* AX register (8086)                           */
+extern int32_t BX_S;    /* BX register (8086)                           */
+extern int32_t CX_S;    /* CX register (8086)                           */
+extern int32_t DX_S;    /* DX register (8086)                           */
+extern int32_t CS_S;    /* CS register (8086)                           */
+extern int32_t DS_S;    /* DS register (8086)                           */
+extern int32_t ES_S;    /* ES register (8086)                           */
+extern int32_t SS_S;    /* SS register (8086)                           */
+extern int32_t DI_S;    /* DI register (8086)                           */
+extern int32_t SI_S;    /* SI register (8086)                           */
+extern int32_t BP_S;    /* BP register (8086)                           */
+extern int32_t SPX_S;   /* SP register (8086)                           */
+extern int32_t IP_S;    /* IP register (8086)                           */
+extern int32_t FLAGS_S; /* flags register (8086)                        */
+extern int32_t PCX_S;   /* PC register (8086), 20 bit                   */
+extern uint32_t PCX;    /* external view of PC                          */
 extern UNIT cpu_unit;
 
-void i86_intr_raise(PC_ENV *m,uint8 intrnum);
+void i86_intr_raise(PC_ENV *m,uint8_t intrnum);
 void cpu8086reset(void);
 t_stat sim_instr_8086(void);
-void cpu8086_intr(uint8 intrnum);
+void cpu8086_intr(uint8_t intrnum);
 
 /* $Log: $
  * Revision 0.05  1992/04/12  23:16:42  hudgens
@@ -83,8 +85,8 @@ void cpu8086_intr(uint8 intrnum);
 */
 
 static void i86_intr_handle(PC_ENV *m)
-{   uint16 tmp;
-    uint8  intno;
+{   uint16_t tmp;
+    uint8_t intno;
     if (intr & INTR_SYNCH)   /* raised by something */
     {
         intno = m->intno;
@@ -113,7 +115,7 @@ static void i86_intr_handle(PC_ENV *m)
     DECODE_CLEAR_SEGOVR(m);
 }
 
-void i86_intr_raise(PC_ENV *m,uint8 intrnum)
+void i86_intr_raise(PC_ENV *m,uint8_t intrnum)
 {
     m->intno = intrnum;
     intr |= INTR_SYNCH;
@@ -121,7 +123,7 @@ void i86_intr_raise(PC_ENV *m,uint8 intrnum)
 
 static PC_ENV cpu8086;
 
-void cpu8086_intr(uint8 intrnum)
+void cpu8086_intr(uint8_t intrnum)
 {
     i86_intr_raise(&cpu8086, intrnum);
 }
@@ -186,16 +188,16 @@ void cpu8086reset(void) {
     setViewRegisters();
 }
 
-static uint32 getFullPC(void) {
+static uint32_t getFullPC(void) {
     return cpu8086.R_IP + (cpu8086.R_CS << 4);
 }
 
-extern int32 switch_cpu_now;
+extern int32_t switch_cpu_now;
 
 t_stat sim_instr_8086(void) {
     t_stat reason = SCPE_OK;
-    uint8 op1;
-    int32 newIP;
+    uint8_t op1;
+    int32_t newIP;
     setCPURegisters();
     intr = 0;
     newIP = PCX_S - 16 * CS_S;
@@ -220,7 +222,7 @@ t_stat sim_instr_8086(void) {
             break;
         }
         PCX = getFullPC();
-        op1 = GetBYTEExtended((((uint32)cpu8086.R_CS<<4) + cpu8086.R_IP) & 0xFFFFF);
+        op1 = GetBYTEExtended((((uint32_t)cpu8086.R_CS<<4) + cpu8086.R_IP) & 0xFFFFF);
         if (sim_brk_summ && sim_brk_test(op1, (1u << SIM_BKPT_V_SPC) | SWMASK('I'))) {  /* instruction breakpoint?  */
             reason = STOP_IBKPT;                                                        /* stop simulation          */
             break;
@@ -291,7 +293,7 @@ void halt_sys(PC_ENV *m)
 /* this code generated the following table */
 main()
 {    int i;
-    sim_printf("\n\nstruct modrm{ uint8 mod,rh,rl;} modrmtab[] = {\n");
+    sim_printf("\n\nstruct modrm{ uint8_t mod,rh,rl;} modrmtab[] = {\n");
     for (i=0; i<256; i++)
     {
        sim_printf("{%d,%d,%d}, ",((i&0xc0)>>6),((i&0x38)>>3),(i&0x07));
@@ -302,7 +304,7 @@ main()
 }
 #endif
 
-struct modrm { uint16 mod, rh, rl; };
+struct modrm { uint16_t mod, rh, rl; };
 static struct modrm modrmtab[] = {
     {0,0,0}, {0,0,1}, {0,0,2}, {0,0,3}, /* 0 to 3 */
     {0,0,4}, {0,0,5}, {0,0,6}, {0,0,7}, /* 4 to 7 */
@@ -370,8 +372,8 @@ static struct modrm modrmtab[] = {
     {3,7,4}, {3,7,5}, {3,7,6}, {3,7,7}, /* 252 to 255 */
 };
 
-void fetch_decode_modrm(PC_ENV *m, uint16 *mod, uint16 *regh, uint16 *regl)
-{    uint8 fetched;
+void fetch_decode_modrm(PC_ENV *m, uint16_t *mod, uint16_t *regh, uint16_t *regl)
+{    uint8_t fetched;
     struct modrm *p;
     /* do the fetch in real mode.  Shift the CS segment register
        over by 4 bits, and add in the IP register.  Index into
@@ -398,7 +400,7 @@ void fetch_decode_modrm(PC_ENV *m, uint16 *mod, uint16 *regh, uint16 *regl)
     the modrm byte, for byte operands.
     Also enables the decoding of instructions.
 */
-uint8 *decode_rm_byte_register(PC_ENV *m, int reg)
+uint8_t *decode_rm_byte_register(PC_ENV *m, int reg)
 {
     switch(reg)
     {
@@ -436,7 +438,7 @@ uint8 *decode_rm_byte_register(PC_ENV *m, int reg)
     the modrm byte, for word operands.
     Also enables the decoding of instructions.
 */
-uint16 *decode_rm_word_register(PC_ENV *m, int reg)
+uint16_t *decode_rm_word_register(PC_ENV *m, int reg)
 {
     switch(reg)
     {
@@ -475,7 +477,7 @@ uint16 *decode_rm_word_register(PC_ENV *m, int reg)
     for the weirdo special case of segreg operands.
     Also enables the decoding of instructions.
 */
-uint16 *decode_rm_seg_register(PC_ENV *m, int reg)
+uint16_t *decode_rm_seg_register(PC_ENV *m, int reg)
 {
     switch(reg)
     {
@@ -505,28 +507,28 @@ uint16 *decode_rm_seg_register(PC_ENV *m, int reg)
     has 3 fields encoded in it.  This routine  fetches the byte
     and breaks into the three fields.
 */
-uint8 fetch_byte_imm(PC_ENV *m)
+uint8_t fetch_byte_imm(PC_ENV *m)
 {
-    uint8 fetched;
+    uint8_t fetched;
     /* do the fetch in real mode.  Shift the CS segment register
        over by 4 bits, and add in the IP register.  Index into
        the system memory.
        */
     /* [JCE] Wrap at 1Mb (the A20 gate) */
-    fetched = GetBYTEExtended((((uint32)m->R_CS << 4) + (m->R_IP++)) & 0xFFFFF);
+    fetched = GetBYTEExtended((((uint32_t)m->R_CS << 4) + (m->R_IP++)) & 0xFFFFF);
     return fetched;
 }
 
-uint16 fetch_word_imm(PC_ENV *m)
+uint16_t fetch_word_imm(PC_ENV *m)
 {
-    uint16 fetched;
+    uint16_t fetched;
     /* do the fetch in real mode.  Shift the CS segment register
        over by 4 bits, and add in the IP register.  Index into
        the system PC_ENVory.
        */
     /* [JCE] Wrap at 1Mb (the A20 gate) */
-    fetched = GetBYTEExtended((((uint32)m->R_CS << 4) + (m->R_IP++)) & 0xFFFFF);
-    fetched |= (GetBYTEExtended((((uint32)m->R_CS << 4) + (m->R_IP++)) & 0xFFFFF) << 8);
+    fetched = GetBYTEExtended((((uint32_t)m->R_CS << 4) + (m->R_IP++)) & 0xFFFFF);
+    fetched |= (GetBYTEExtended((((uint32_t)m->R_CS << 4) + (m->R_IP++)) & 0xFFFFF) << 8);
     return fetched;
 }
 
@@ -534,9 +536,9 @@ uint16 fetch_word_imm(PC_ENV *m)
     return the offset given by mod=00 addressing.
     Also enables the decoding of instructions.
 */
-uint16 decode_rm00_address(PC_ENV *m, int rm)
+uint16_t decode_rm00_address(PC_ENV *m, int rm)
 {
-    uint16 offset;
+    uint16_t offset;
     /* note the code which specifies the corresponding segment (ds vs ss)
        below in the case of [BP+..].  The assumption here is that at the
        point that this subroutine is called, the bit corresponding to
@@ -549,18 +551,18 @@ uint16 decode_rm00_address(PC_ENV *m, int rm)
     switch(rm)
     {
      case 0:
-       return (int16)m->R_BX + (int16)m->R_SI;
+       return (int16_t)m->R_BX + (int16_t)m->R_SI;
        break;
      case 1:
-       return (int16)m->R_BX + (int16)m->R_DI;
+       return (int16_t)m->R_BX + (int16_t)m->R_DI;
        break;
      case 2:
        m->sysmode |= SYSMODE_SEG_DS_SS;
-       return (int16)m->R_BP + (int16)m->R_SI;
+       return (int16_t)m->R_BP + (int16_t)m->R_SI;
        break;
      case 3:
        m->sysmode |= SYSMODE_SEG_DS_SS;
-       return (int16)m->R_BP + (int16)m->R_DI;
+       return (int16_t)m->R_BP + (int16_t)m->R_DI;
        break;
      case 4:
        return m->R_SI;
@@ -569,7 +571,7 @@ uint16 decode_rm00_address(PC_ENV *m, int rm)
        return m->R_DI;
        break;
      case 6:
-       offset = (int16)fetch_word_imm(m);
+       offset = (int16_t)fetch_word_imm(m);
        return offset;
        break;
      case 7:
@@ -583,39 +585,39 @@ uint16 decode_rm00_address(PC_ENV *m, int rm)
     return the offset given by mod=01 addressing.
     Also enables the decoding of instructions.
 */
-uint16 decode_rm01_address(PC_ENV *m, int rm)
+uint16_t decode_rm01_address(PC_ENV *m, int rm)
 {
-    int8 displacement;
+    int8_t displacement;
     /* note comment on decode_rm00_address above */
-    displacement = (int8)fetch_byte_imm(m); /* !!!! Check this */
+    displacement = (int8_t)fetch_byte_imm(m); /* !!!! Check this */
     switch(rm)
     {
      case 0:
-       return (int16)m->R_BX + (int16)m->R_SI + displacement;
+       return (int16_t)m->R_BX + (int16_t)m->R_SI + displacement;
        break;
      case 1:
-       return (int16)m->R_BX + (int16)m->R_DI + displacement;
+       return (int16_t)m->R_BX + (int16_t)m->R_DI + displacement;
        break;
      case 2:
        m->sysmode |= SYSMODE_SEG_DS_SS;
-       return (int16)m->R_BP + (int16)m->R_SI + displacement;
+       return (int16_t)m->R_BP + (int16_t)m->R_SI + displacement;
        break;
      case 3:
        m->sysmode |= SYSMODE_SEG_DS_SS;
-       return (int16)m->R_BP + (int16)m->R_DI + displacement;
+       return (int16_t)m->R_BP + (int16_t)m->R_DI + displacement;
        break;
      case 4:
-       return (int16)m->R_SI + displacement;
+       return (int16_t)m->R_SI + displacement;
        break;
      case 5:
-       return (int16)m->R_DI + displacement;
+       return (int16_t)m->R_DI + displacement;
        break;
      case 6:
        m->sysmode |= SYSMODE_SEG_DS_SS;
-       return (int16)m->R_BP + displacement;
+       return (int16_t)m->R_BP + displacement;
        break;
      case 7:
-       return (int16)m->R_BX + displacement;
+       return (int16_t)m->R_BX + displacement;
        break;
     }
     halt_sys(m);
@@ -626,39 +628,39 @@ uint16 decode_rm01_address(PC_ENV *m, int rm)
     return the offset given by mod=01 addressing.
     Also enables the decoding of instructions.
 */
-uint16 decode_rm10_address(PC_ENV *m, int rm)
+uint16_t decode_rm10_address(PC_ENV *m, int rm)
 {
-    int16 displacement;
+    int16_t displacement;
     /* note comment on decode_rm00_address above */
-    displacement = (int16)fetch_word_imm(m);
+    displacement = (int16_t)fetch_word_imm(m);
     switch(rm)
     {
      case 0:
-       return (int16)m->R_BX + (int16)m->R_SI + displacement;
+       return (int16_t)m->R_BX + (int16_t)m->R_SI + displacement;
        break;
      case 1:
-       return (int16)m->R_BX + (int16)m->R_DI + displacement;
+       return (int16_t)m->R_BX + (int16_t)m->R_DI + displacement;
        break;
      case 2:
        m->sysmode |= SYSMODE_SEG_DS_SS;
-       return (int16)m->R_BP + (int16)m->R_SI + displacement;
+       return (int16_t)m->R_BP + (int16_t)m->R_SI + displacement;
        break;
      case 3:
        m->sysmode |= SYSMODE_SEG_DS_SS;
-       return (int16)m->R_BP + (int16)m->R_DI + displacement;
+       return (int16_t)m->R_BP + (int16_t)m->R_DI + displacement;
        break;
      case 4:
-       return (int16)m->R_SI + displacement;
+       return (int16_t)m->R_SI + displacement;
        break;
      case 5:
-       return (int16)m->R_DI + displacement;
+       return (int16_t)m->R_DI + displacement;
        break;
      case 6:
        m->sysmode |= SYSMODE_SEG_DS_SS;
-       return (int16)m->R_BP + displacement;
+       return (int16_t)m->R_BP + displacement;
        break;
      case 7:
-       return (int16)m->R_BX + displacement;
+       return (int16_t)m->R_BX + displacement;
        break;
     }
     halt_sys(m);
@@ -669,9 +671,9 @@ uint16 decode_rm10_address(PC_ENV *m, int rm)
 /* fetch a byte of data, given an offset, the current register set,
     and a descriptor for memory.
 */
-uint8 fetch_data_byte(PC_ENV *m, uint16 offset)
+uint8_t fetch_data_byte(PC_ENV *m, uint16_t offset)
 {
-    uint8 value;
+    uint8_t value;
     /* this code originally completely broken, and never showed
        up since the DS segments === SS segment in all test cases.
        It had been originally assumed, that all access to data would
@@ -697,40 +699,40 @@ uint8 fetch_data_byte(PC_ENV *m, uint16 offset)
     {
      case 0:
        /* default case: use ds register */
-       value = GetBYTEExtended(((uint32)m->R_DS<<4) + offset);
+       value = GetBYTEExtended(((uint32_t)m->R_DS<<4) + offset);
        break;
      case SYSMODE_SEG_DS_SS:
        /* non-overridden, use ss register */
     /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value  = GetBYTEExtended((((uint32)m->R_SS << 4) +  offset) & 0xFFFFF);
+       value  = GetBYTEExtended((((uint32_t)m->R_SS << 4) +  offset) & 0xFFFFF);
        break;
      case SYSMODE_SEGOVR_CS:
        /* ds overridden */
      case SYSMODE_SEGOVR_CS|SYSMODE_SEG_DS_SS:
        /* ss overridden, use cs register */
         /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value  = GetBYTEExtended((((uint32)m->R_CS << 4) + offset) & 0xFFFFF);
+       value  = GetBYTEExtended((((uint32_t)m->R_CS << 4) + offset) & 0xFFFFF);
        break;
      case SYSMODE_SEGOVR_DS:
        /* ds overridden --- shouldn't happen, but hey. */
      case SYSMODE_SEGOVR_DS|SYSMODE_SEG_DS_SS:
        /* ss overridden, use ds register */
         /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value  = GetBYTEExtended((((uint32)m->R_DS << 4) + offset) & 0xFFFFF);
+       value  = GetBYTEExtended((((uint32_t)m->R_DS << 4) + offset) & 0xFFFFF);
        break;
      case SYSMODE_SEGOVR_ES:
        /* ds overridden */
      case SYSMODE_SEGOVR_ES|SYSMODE_SEG_DS_SS:
        /* ss overridden, use es register */
         /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value  = GetBYTEExtended((((uint32)m->R_ES << 4) + offset) & 0xFFFFF);
+       value  = GetBYTEExtended((((uint32_t)m->R_ES << 4) + offset) & 0xFFFFF);
        break;
      case SYSMODE_SEGOVR_SS:
        /* ds overridden */
      case SYSMODE_SEGOVR_SS|SYSMODE_SEG_DS_SS:
        /* ss overridden, use ss register === should not happen */
     /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value  =  GetBYTEExtended((((uint32)m->R_SS << 4) + offset) & 0xFFFFF);
+       value  =  GetBYTEExtended((((uint32_t)m->R_SS << 4) + offset) & 0xFFFFF);
        break;
      default:
        sim_printf("error: should not happen:  multiple overrides. \n");
@@ -743,14 +745,14 @@ uint8 fetch_data_byte(PC_ENV *m, uint16 offset)
 /* fetch a byte of data, given an offset, the current register set,
     and a descriptor for memory.
 */
-uint8 fetch_data_byte_abs(PC_ENV *m, uint16 segment, uint16 offset)
+uint8_t fetch_data_byte_abs(PC_ENV *m, uint16_t segment, uint16_t offset)
 {
     /* Shared helper signature.
        This implementation does not use every parameter. */
     (void)m;
 
-    uint8 value;
-    uint32 addr;
+    uint8_t value;
+    uint32_t addr;
     /* note, cannot change this, since we do not know the ID of the segment. */
 /* [JCE] Simulate wrap at top of memory (the A20 gate) */
 /*    addr = (segment << 4) + offset; */
@@ -762,59 +764,59 @@ uint8 fetch_data_byte_abs(PC_ENV *m, uint16 segment, uint16 offset)
 /* fetch a byte of data, given an offset, the current register set,
     and a descriptor for memory.
 */
-uint16 fetch_data_word(PC_ENV *m, uint16 offset)
+uint16_t fetch_data_word(PC_ENV *m, uint16_t offset)
 {
-    uint16 value;
+    uint16_t value;
     /* See note above in fetch_data_byte. */
     switch(m->sysmode & SYSMODE_SEGMASK)
     {
      case 0:
        /* default case: use ds register */
     /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value = GetBYTEExtended((((uint32)m->R_DS << 4) + offset) & 0xFFFFF)
-         | (GetBYTEExtended((((uint32)m->R_DS << 4) +
-                (uint16)(offset + 1)) & 0xFFFFF) << 8);
+       value = GetBYTEExtended((((uint32_t)m->R_DS << 4) + offset) & 0xFFFFF)
+         | (GetBYTEExtended((((uint32_t)m->R_DS << 4) +
+                (uint16_t)(offset + 1)) & 0xFFFFF) << 8);
        break;
      case SYSMODE_SEG_DS_SS:
        /* non-overridden, use ss register */
     /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value = GetBYTEExtended((((uint32)m->R_SS << 4) + offset) & 0xFFFFF)
-         | (GetBYTEExtended((((uint32)m->R_SS << 4)
-                + (uint16)(offset + 1)) & 0xFFFFF) << 8);
+       value = GetBYTEExtended((((uint32_t)m->R_SS << 4) + offset) & 0xFFFFF)
+         | (GetBYTEExtended((((uint32_t)m->R_SS << 4)
+                + (uint16_t)(offset + 1)) & 0xFFFFF) << 8);
        break;
      case SYSMODE_SEGOVR_CS:
        /* ds overridden */
      case SYSMODE_SEGOVR_CS|SYSMODE_SEG_DS_SS:
        /* ss overridden, use cs register */
     /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value = GetBYTEExtended((((uint32)m->R_CS << 4) + offset) & 0xFFFFF)
-         | (GetBYTEExtended((((uint32)m->R_CS << 4)
-                + (uint16)(offset + 1)) & 0xFFFFF) << 8);
+       value = GetBYTEExtended((((uint32_t)m->R_CS << 4) + offset) & 0xFFFFF)
+         | (GetBYTEExtended((((uint32_t)m->R_CS << 4)
+                + (uint16_t)(offset + 1)) & 0xFFFFF) << 8);
        break;
      case SYSMODE_SEGOVR_DS:
        /* ds overridden --- shouldn't happen, but hey. */
      case SYSMODE_SEGOVR_DS|SYSMODE_SEG_DS_SS:
        /* ss overridden, use ds register */
     /* [JCE] Wrap at 1Mb (the A20 gate) */
-       value = GetBYTEExtended((((uint32)m->R_DS << 4) + offset) & 0xFFFFF)
-         | (GetBYTEExtended((((uint32)m->R_DS << 4)
-                + (uint16)(offset + 1)) & 0xFFFFF) << 8);
+       value = GetBYTEExtended((((uint32_t)m->R_DS << 4) + offset) & 0xFFFFF)
+         | (GetBYTEExtended((((uint32_t)m->R_DS << 4)
+                + (uint16_t)(offset + 1)) & 0xFFFFF) << 8);
        break;
      case SYSMODE_SEGOVR_ES:
        /* ds overridden */
      case SYSMODE_SEGOVR_ES|SYSMODE_SEG_DS_SS:
        /* ss overridden, use es register */
-       value = GetBYTEExtended((((uint32)m->R_ES << 4) + offset) & 0xFFFFF)
-         | (GetBYTEExtended((((uint32)m->R_ES << 4) +
-                (uint16)(offset + 1)) & 0xFFFFF) << 8);
+       value = GetBYTEExtended((((uint32_t)m->R_ES << 4) + offset) & 0xFFFFF)
+         | (GetBYTEExtended((((uint32_t)m->R_ES << 4) +
+                (uint16_t)(offset + 1)) & 0xFFFFF) << 8);
        break;
      case SYSMODE_SEGOVR_SS:
        /* ds overridden */
      case SYSMODE_SEGOVR_SS|SYSMODE_SEG_DS_SS:
        /* ss overridden, use ss register === should not happen */
-       value = GetBYTEExtended((((uint32)m->R_SS << 4) + offset) & 0xFFFFF)
-         | (GetBYTEExtended((((uint32)m->R_SS << 4)
-                + (uint16)(offset + 1)) & 0xFFFFF) << 8);
+       value = GetBYTEExtended((((uint32_t)m->R_SS << 4) + offset) & 0xFFFFF)
+         | (GetBYTEExtended((((uint32_t)m->R_SS << 4)
+                + (uint16_t)(offset + 1)) & 0xFFFFF) << 8);
        break;
      default:
        sim_printf("error: should not happen:  multiple overrides. \n");
@@ -827,14 +829,14 @@ uint16 fetch_data_word(PC_ENV *m, uint16 offset)
 /* fetch a byte of data, given an offset, the current register set,
     and a descriptor for memory.
 */
-uint16 fetch_data_word_abs(PC_ENV *m, uint16 segment, uint16 offset)
+uint16_t fetch_data_word_abs(PC_ENV *m, uint16_t segment, uint16_t offset)
 {
     /* Shared helper signature.
        This implementation does not use every parameter. */
     (void)m;
 
-    uint16 value;
-    uint32 addr;
+    uint16_t value;
+    uint32_t addr;
 /* [JCE] Simulate wrap at top of memory (the A20 gate) */
 /*    addr = (segment << 4) + offset; */
     addr = ((segment << 4) + offset) & 0xFFFFF;
@@ -845,11 +847,11 @@ uint16 fetch_data_word_abs(PC_ENV *m, uint16 segment, uint16 offset)
 /* Store a byte of data, given an offset, the current register set,
     and a descriptor for memory.
 */
-void store_data_byte(PC_ENV *m, uint16 offset, uint8 val)
+void store_data_byte(PC_ENV *m, uint16_t offset, uint8_t val)
 {
     /* See note above in fetch_data_byte. */
-    uint32             addr;
-    uint16 segment;
+    uint32_t           addr;
+    uint16_t segment;
     switch(m->sysmode & SYSMODE_SEGMASK)
     {
      case 0:
@@ -891,30 +893,30 @@ void store_data_byte(PC_ENV *m, uint16 offset, uint8 val)
     }
 /* [JCE] Simulate wrap at top of memory (the A20 gate) */
 /*    addr = (segment << 4) + offset; */
-    addr = (((uint32)segment << 4) + offset) & 0xFFFFF;
+    addr = (((uint32_t)segment << 4) + offset) & 0xFFFFF;
     PutBYTEExtended(addr, val);
 }
 
-void store_data_byte_abs(PC_ENV *m, uint16 segment, uint16 offset, uint8 val)
+void store_data_byte_abs(PC_ENV *m, uint16_t segment, uint16_t offset, uint8_t val)
 {
     /* Shared helper signature.
        This implementation does not use every parameter. */
     (void)m;
 
-    uint32 addr;
+    uint32_t addr;
 /* [JCE] Simulate wrap at top of memory (the A20 gate) */
 /*    addr = (segment << 4) + offset; */
-    addr = (((uint32)segment << 4) + offset) & 0xFFFFF;
+    addr = (((uint32_t)segment << 4) + offset) & 0xFFFFF;
     PutBYTEExtended(addr, val);
 }
 
 /* Store  a word of data, given an offset, the current register set,
     and a descriptor for memory.
 */
-void store_data_word(PC_ENV *m, uint16 offset, uint16 val)
+void store_data_word(PC_ENV *m, uint16_t offset, uint16_t val)
 {
-    uint32 addr;
-    uint16 segment;
+    uint32_t addr;
+    uint16_t segment;
     /* See note above in fetch_data_byte. */
     switch(m->sysmode & SYSMODE_SEGMASK)
     {
@@ -957,18 +959,18 @@ void store_data_word(PC_ENV *m, uint16 offset, uint16 val)
     }
 /* [JCE] Simulate wrap at top of memory (the A20 gate) */
 /*    addr = (segment << 4) + offset; */
-    addr = (((uint32)segment << 4) + offset) & 0xFFFFF;
+    addr = (((uint32_t)segment << 4) + offset) & 0xFFFFF;
     PutBYTEExtended(addr, val & 0xff);
     PutBYTEExtended(addr + 1, val >> 8);
 }
 
-void store_data_word_abs(PC_ENV *m, uint16 segment, uint16 offset, uint16 val)
+void store_data_word_abs(PC_ENV *m, uint16_t segment, uint16_t offset, uint16_t val)
 {
     /* Shared helper signature.
        This implementation does not use every parameter. */
     (void)m;
 
-    uint32 addr;
+    uint32_t addr;
     /* [JCE] Wrap at top of memory */
     addr = ((segment << 4) + offset) & 0xFFFFF;
     PutBYTEExtended(addr, val & 0xff);

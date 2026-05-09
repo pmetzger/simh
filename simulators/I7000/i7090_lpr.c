@@ -35,6 +35,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7090_defs.h"
 #include "sim_console.h"
 #include "sim_card.h"
@@ -69,20 +71,20 @@
 
 struct _lpr_data
 {
-    t_uint64            wbuff[24];      /* Line buffer */
+    uint64_t            wbuff[24];      /* Line buffer */
     char                lbuff[74];      /* Output line buffer */
 }
 lpr_data[NUM_DEVS_LPR];
 
-uint32              lpr_cmd(UNIT *, uint16, uint16);
+uint32_t            lpr_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              lpr_srv(UNIT *);
 void                lpr_ini(UNIT *, bool);
 t_stat              lpr_reset(DEVICE *);
 t_stat              lpr_attach(UNIT *, const char *);
 t_stat              lpr_detach(UNIT *);
-t_stat              lpr_setlpp(UNIT *, int32, const char *, void *);
-t_stat              lpr_getlpp(FILE *, UNIT *, int32, const void *);
-t_stat              lpr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              lpr_setlpp(UNIT *, int32_t, const char *, void *);
+t_stat              lpr_getlpp(FILE *, UNIT *, int32_t, const void *);
+t_stat              lpr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *lpr_description (DEVICE *dptr);
 
@@ -129,7 +131,7 @@ DEVICE              lpr_dev = {
  */
 
 t_stat
-lpr_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
+lpr_setlpp(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -155,7 +157,7 @@ lpr_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-lpr_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
+lpr_getlpp(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -176,7 +178,7 @@ print_line(UNIT * uptr, int chan, int unit)
 /* If failed and text report error and dump what we have */
 /* Else if binary or not convertable, dump as image */
 
-    uint16              buff[80];       /* Temp conversion buffer */
+    uint16_t            buff[80];       /* Temp conversion buffer */
     int                 i, j;
     int                 outsel = uptr->u3;
 
@@ -218,8 +220,8 @@ print_line(UNIT * uptr, int chan, int unit)
     /* Bit flip into temp buffer */
     for (i = 0; i < 24; i++) {
         int                 bit = 1 << (i / 2);
-        t_uint64            mask = 1;
-        t_uint64            wd = 0;
+        uint64_t            mask = 1;
+        uint64_t            wd = 0;
         int                 b = 36 * (i & 1);
         int                 col;
 
@@ -312,7 +314,7 @@ print_line(UNIT * uptr, int chan, int unit)
     }
 
     if (outsel & PRINT_1) {
-        while (uptr->u4 < (int32)uptr->capac) {
+        while (uptr->u4 < (int32_t)uptr->capac) {
             if (uptr->flags & UNIT_ATT) {
                 sim_fwrite("\r\n", 1, 2, uptr->fileref);
                 uptr->pos += 2;
@@ -325,15 +327,15 @@ print_line(UNIT * uptr, int chan, int unit)
         }
     }
 
-    if (uptr->u4 >= (int32)uptr->capac) {
-       uptr->u4 -= (int32)uptr->capac;
+    if (uptr->u4 >= (int32_t)uptr->capac) {
+       uptr->u4 -= (int32_t)uptr->capac;
        dev_pulse[chan] |= PRINT_I;
     }
 
     return SCPE_OK;
 }
 
-uint32 lpr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t lpr_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - lpr_unit);
@@ -463,7 +465,7 @@ t_stat lpr_srv(UNIT * uptr)
     /* Check if he write out last data */
     if (uptr->u5 & URCSTA_READ) {
         int                 wrow = 0;
-        t_uint64            wd = 0;
+        uint64_t            wd = 0;
         int                 action = 0;
 
         /* Case 0: Read word from MF memory, DEV_WRITE=1 */
@@ -692,7 +694,7 @@ lpr_detach(UNIT * uptr)
 }
 
 t_stat
-lpr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+lpr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic callback signature.
       This implementation does not use every parameter. */

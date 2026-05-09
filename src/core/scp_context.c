@@ -10,6 +10,8 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "scp.h"
 
@@ -18,7 +20,7 @@
 DEVICE *sim_dfdev = NULL;
 UNIT *sim_dfunit = NULL;
 DEVICE **sim_internal_devices = NULL;
-uint32 sim_internal_device_count = 0;
+uint32_t sim_internal_device_count = 0;
 
 /* Return the display name for a device, preferring any assigned alias. */
 const char *sim_dname(DEVICE *dptr)
@@ -56,7 +58,7 @@ const char *sim_set_uname(UNIT *uptr, const char *uname)
 /* Find the named device in either simulator or internal device tables. */
 DEVICE *find_dev(const char *cptr)
 {
-    int32 i;
+    int32_t i;
     DEVICE *dptr;
 
     if (cptr == NULL)
@@ -78,7 +80,7 @@ DEVICE *find_dev(const char *cptr)
 /* Find the named unit, accepting both device and fully qualified names. */
 DEVICE *find_unit(const char *cptr, UNIT **uptr)
 {
-    uint32 i, u;
+    uint32_t i, u;
     const char *nptr;
     const char *tptr;
     t_stat r;
@@ -105,7 +107,7 @@ DEVICE *find_unit(const char *cptr, UNIT **uptr)
             if (sim_isdigit(*tptr)) {
                 if (qdisable(dptr))
                     return NULL;
-                u = (uint32)get_uint(tptr, 10, dptr->numunits - 1, &r);
+                u = (uint32_t)get_uint(tptr, 10, dptr->numunits - 1, &r);
                 if (r != SCPE_OK)
                     *uptr = NULL;
                 else
@@ -126,7 +128,7 @@ DEVICE *find_unit(const char *cptr, UNIT **uptr)
 /* Add a device to the internal device list if it is not already present. */
 t_stat sim_register_internal_device(DEVICE *dptr)
 {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; i < sim_internal_device_count; i++)
         if (sim_internal_devices[i] == dptr)

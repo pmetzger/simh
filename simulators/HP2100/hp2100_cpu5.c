@@ -850,6 +850,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -883,27 +885,27 @@ static const HP_WORD umaps = 0003740u;
 /* EMA utility structure declarations */
 
 typedef struct ema4 {
-    uint32 mseg;                                /* logical start of MSEG */
-    uint32 msegsz;                              /* size of std mseg in pgs */
-    uint32 pgoff;                               /* pg # in EMA containing element */
-    uint32 offs;                                /* offset into page of element */
-    uint32 msoff;                               /* total offset to element in MSEG */
-    uint32 emasz;                               /* size of ema in pgs */
-    uint32 msegno;                              /* # of std mseg */
-    uint32 ipgs;                                /* # of pgs to start of MSEG */
-    uint32 npgs;                                /* # of pgs needed */
-    uint32 spmseg;                              /* first phys pg of MSEG */
+    uint32_t mseg;                              /* logical start of MSEG */
+    uint32_t msegsz;                            /* size of std mseg in pgs */
+    uint32_t pgoff;                             /* pg # in EMA containing element */
+    uint32_t offs;                              /* offset into page of element */
+    uint32_t msoff;                             /* total offset to element in MSEG */
+    uint32_t emasz;                             /* size of ema in pgs */
+    uint32_t msegno;                            /* # of std mseg */
+    uint32_t ipgs;                              /* # of pgs to start of MSEG */
+    uint32_t npgs;                              /* # of pgs needed */
+    uint32_t spmseg;                            /* first phys pg of MSEG */
     } EMA4;
 
 
 /* EMA local utility routine declarations */
 
-static t_stat ema_emap (uint32* rtn, uint32 abase, uint32 dtbl, uint32 atbl);
-static t_stat ema_emio (uint32* rtn, uint32 bufl, uint32 dtbl, uint32 atbl);
-static t_stat ema_mmap (uint32 ipage, uint32 npgs);
+static t_stat ema_emap (uint32_t* rtn, uint32_t abase, uint32_t dtbl, uint32_t atbl);
+static t_stat ema_emio (uint32_t* rtn, uint32_t bufl, uint32_t dtbl, uint32_t atbl);
+static t_stat ema_mmap (uint32_t ipage, uint32_t npgs);
 
-static bool ema_resolve (uint32 dtbl, uint32 atbl, uint32* sum);
-static bool ema_emas    (uint32 dtbl, uint32 atbl, EMA4* e);
+static bool ema_resolve (uint32_t dtbl, uint32_t atbl, uint32_t* sum);
+static bool ema_emas    (uint32_t dtbl, uint32_t atbl, EMA4* e);
 static bool ema_emat    (EMA4* e);
 static bool ema_mmap01  (EMA4* e);
 static bool ema_mmap02  (EMA4* e);
@@ -915,8 +917,8 @@ static const char *fmt_ab (bool success);
 
 /* VIS local utility routine declarations */
 
-static void vis_svop   (uint32 subcode, OPS op, OPSIZE opsize);
-static void vis_vvop   (uint32 subcode, OPS op, OPSIZE opsize);
+static void vis_svop   (uint32_t subcode, OPS op, OPSIZE opsize);
+static void vis_vvop   (uint32_t subcode, OPS op, OPSIZE opsize);
 static void vis_abs    (OP* in, OPSIZE opsize);
 static void vis_minmax (OPS op, OPSIZE opsize, bool domax, bool doabs);
 static void vis_vpiv   (OPS op, OPSIZE opsize);
@@ -926,17 +928,17 @@ static void vis_vsmnm  (OPS op, OPSIZE opsize, bool doabs);
 static void vis_vdot   (OPS op, OPSIZE opsize);
 static void vis_movswp (OPS op, OPSIZE opsize, bool doswp);
 
-static t_stat vis_eres (HP_WORD *rtn, uint32 dtbl, uint32 atbl);
-static t_stat vis_eseg (HP_WORD *rtn, uint32 tbl);
+static t_stat vis_eres (HP_WORD *rtn, uint32_t dtbl, uint32_t atbl);
+static t_stat vis_eseg (HP_WORD *rtn, uint32_t tbl);
 static t_stat vis_vset (HP_WORD *rtn, OPS op);
 
 
 /* SIGNAL local utility routine declarations */
 
-static void sig_caddsub (uint16 addsub, OPS op);
-static void sig_btrfy   (uint32 re, uint32 im, OP wr, OP wi, uint32 k, uint32 n2);
-static void sig_bitrev  (uint32 re, uint32 im, uint32 idx, uint32 log2n, int sz);
-static OP   sig_scadd   (uint16 oper, bool addh, OP a, OP b);
+static void sig_caddsub (uint16_t addsub, OPS op);
+static void sig_btrfy   (uint32_t re, uint32_t im, OP wr, OP wi, uint32_t k, uint32_t n2);
+static void sig_bitrev  (uint32_t re, uint32_t im, uint32_t idx, uint32_t log2n, int sz);
+static OP   sig_scadd   (uint16_t oper, bool addh, OP a, OP b);
 static void sig_cmul    (OP *r, OP *i, OP a, OP b, OP c, OP d);
 
 #endif                                                  /* int64 conditional */
@@ -998,7 +1000,7 @@ t_stat cpu_rte_ema (void)
 t_stat reason = SCPE_OK;
 OPS op;
 OP_PAT pattern;
-uint32 entry, rtn;
+uint32_t entry, rtn;
 
 entry = IR & 017;                                       /* mask to entry point */
 pattern = op_ema[entry];                                /* get operand pattern */
@@ -1138,7 +1140,7 @@ t_stat reason = SCPE_OK;
 OPS op;
 OP_PAT pattern;
 OPSIZE opsize;
-uint32 entry, subcode;
+uint32_t entry, subcode;
 HP_WORD rtn = 0;
 
 opsize = (IR & 004000) ? fp_t : fp_f;                   /* double or single precision */
@@ -1315,8 +1317,8 @@ t_stat cpu_signal (void)
 t_stat reason = SCPE_OK;
 OPS op;
 OP a,b,c,d,p1,p2,p3,p4,m1,m2,wr,wi;
-uint32 entry, v, idx1, idx2;
-int32 exc, exd;
+uint32_t entry, v, idx1, idx2;
+int32_t exc, exd;
 
 entry = IR & 017;                                       /* mask to entry point */
 
@@ -1632,11 +1634,11 @@ return reason;
  *        OFFSET 2     EMA High
  */
 
-static t_stat ema_emap(uint32* rtn,uint32 abase,uint32 dtbl,uint32 atbl)
+static t_stat ema_emap(uint32_t* rtn,uint32_t abase,uint32_t dtbl,uint32_t atbl)
 {
-uint32 xidex, eqt, idext0, idext1;
-int32 sub, ndim, sz;
-uint32 offs, pgoff, emasz, phys, msgn, mseg, sum, pg0, pg1, act, low, usz;
+uint32_t xidex, eqt, idext0, idext1;
+int32_t sub, ndim, sz;
+uint32_t offs, pgoff, emasz, phys, msgn, mseg, sum, pg0, pg1, act, low, usz;
 
 xidex = ReadU (idx);                                    /* read ID Extension */
 if (xidex) {                                            /* is EMA declared? */
@@ -1734,10 +1736,10 @@ em15:                                                   /* error condition */
  *        OFFSET 2     EMA High
  */
 
-static t_stat ema_emio(uint32* rtn,uint32 bufl,uint32 dtbl,uint32 atbl)
+static t_stat ema_emio(uint32_t* rtn,uint32_t bufl,uint32_t dtbl,uint32_t atbl)
 {
-uint32 xidex, idext1;
-uint32 mseg, bufpgs, npgs;
+uint32_t xidex, idext1;
+uint32_t mseg, bufpgs, npgs;
 EMA4 ema4, *e = &ema4;
 
 xidex = ReadU (idx);                                    /* read ID extension */
@@ -1773,9 +1775,9 @@ return SCPE_OK;                                         /* return via unmodified
 
 /* Map a sequence of physical memory pages into the mapping segment */
 
-static t_stat ema_mmap(uint32 ipage,uint32 npgs)
+static t_stat ema_mmap(uint32_t ipage,uint32_t npgs)
 {
-uint32 xidex;
+uint32_t xidex;
 EMA4 ema4, *e = &ema4;
 
 e->ipgs = ipage;                                        /* S6 set the arguments */
@@ -1794,10 +1796,10 @@ return SCPE_OK;                                         /* leave */
 
 /* calculate the 32 bit EMA subscript for an array */
 
-static bool ema_resolve(uint32 dtbl,uint32 atbl,uint32* sum)
+static bool ema_resolve(uint32_t dtbl,uint32_t atbl,uint32_t* sum)
 {
-int32 sub, sz, ndim;
-uint32 base, udim, usz, act, low;
+int32_t sub, sz, ndim;
+uint32_t base, udim, usz, act, low;
 
 udim = ReadW(dtbl++);                                   /* # dimensions */
 ndim = SEXT16(udim);                                    /* sign extend */
@@ -1827,10 +1829,10 @@ return true;
 }
 
 
-static bool ema_emas(uint32 dtbl,uint32 atbl,EMA4* e)
+static bool ema_emas(uint32_t dtbl,uint32_t atbl,EMA4* e)
 {
-uint32 xidex, eqt;
-uint32 sum, msegsz,pgoff,offs,emasz,msegno,msoff,ipgs;
+uint32_t xidex, eqt;
+uint32_t sum, msegsz,pgoff,offs,emasz,msegno,msoff,ipgs;
 
 if (!ema_resolve(dtbl,atbl,&sum)) return false;         /* calculate 32 bit index */
 
@@ -1861,8 +1863,8 @@ return true;
 
 static bool ema_emat(EMA4* e)
 {
-uint32 xidex,idext0;
-uint32 curmseg,phys,msnum,lastpgs;
+uint32_t xidex,idext0;
+uint32_t curmseg,phys,msnum,lastpgs;
 
 xidex = ReadU (idx);                                    /* read ID extension */
 idext0 = ReadWA(xidex+0);                               /* get current segment */
@@ -1884,9 +1886,9 @@ return true;                                            /* and everything done *
 
 static bool ema_mmap01(EMA4* e)
 {
-uint32 xidex,idext0, pg, pg0, pg1, i;
+uint32_t xidex,idext0, pg, pg0, pg1, i;
 
-uint32 base = e->mseg >> 10;                            /* get the # of first MSEG DMS reg */
+uint32_t base = e->mseg >> 10;                          /* get the # of first MSEG DMS reg */
 xidex = ReadU (idx);                                    /* get ID extension */
 idext0 = ReadWA(xidex+1);
 
@@ -1923,8 +1925,8 @@ return true;
 
 static bool ema_mmap02(EMA4* e)
 {
-uint32 xidex, eqt, idext1;
-uint32 mseg,phys,spmseg,emasz,msegsz,msegno;
+uint32_t xidex, eqt, idext1;
+uint32_t mseg,phys,spmseg,emasz,msegsz,msegno;
 
 xidex = ReadU (idx);                                    /* get ID extension */
 msegsz = ReadWA(xidex+0) & 037;                         /* P size of std MSEG */
@@ -1991,17 +1993,17 @@ else {                                                  /* otherwise */
 
 /* handle the scalar/vector base ops */
 
-static void vis_svop(uint32 subcode, OPS op, OPSIZE opsize)
+static void vis_svop(uint32_t subcode, OPS op, OPSIZE opsize)
 {
 OP v1,v2;
-int16 delta = opsize==fp_f ? 2 : 4;
+int16_t delta = opsize==fp_f ? 2 : 4;
 OP s = ReadOp(op[0].word,opsize);
-uint32 v1addr = op[1].word;
-int16 ix1 = INT16(op[2].word) * delta;
-uint32 v2addr = op[3].word;
-int16 ix2 = INT16(op[4].word) * delta;
-int16 i, n = INT16(op[5].word);
-uint16 fpuop = (uint16) (subcode & 060) | (opsize==fp_f ? 0 : 2);
+uint32_t v1addr = op[1].word;
+int16_t ix1 = INT16(op[2].word) * delta;
+uint32_t v2addr = op[3].word;
+int16_t ix2 = INT16(op[4].word) * delta;
+int16_t i, n = INT16(op[5].word);
+uint16_t fpuop = (uint16_t) (subcode & 060) | (opsize==fp_f ? 0 : 2);
 
 if (n <= 0) return;
 for (i=0; i<n; i++) {
@@ -2016,18 +2018,18 @@ for (i=0; i<n; i++) {
 
 /* handle the vector/vector base ops */
 
-static void vis_vvop(uint32 subcode, OPS op,OPSIZE opsize)
+static void vis_vvop(uint32_t subcode, OPS op,OPSIZE opsize)
 {
 OP v1,v2,v3;
-int16 delta = opsize==fp_f ? 2 : 4;
-uint32 v1addr = op[0].word;
-int32 ix1 = INT16(op[1].word) * delta;
-uint32 v2addr = op[2].word;
-int32 ix2 = INT16(op[3].word) * delta;
-uint32 v3addr = op[4].word;
-int32 ix3 = INT16(op[5].word) * delta;
-int16 i, n = INT16(op[6].word);
-uint16 fpuop = (uint16) (subcode & 060) | (opsize==fp_f ? 0 : 2);
+int16_t delta = opsize==fp_f ? 2 : 4;
+uint32_t v1addr = op[0].word;
+int32_t ix1 = INT16(op[1].word) * delta;
+uint32_t v2addr = op[2].word;
+int32_t ix2 = INT16(op[3].word) * delta;
+uint32_t v3addr = op[4].word;
+int32_t ix3 = INT16(op[5].word) * delta;
+int16_t i, n = INT16(op[6].word);
+uint16_t fpuop = (uint16_t) (subcode & 060) | (opsize==fp_f ? 0 : 2);
 
 if (n <= 0) return;
 for (i=0; i<n; i++) {
@@ -2044,7 +2046,7 @@ for (i=0; i<n; i++) {
 
 static void vis_abs(OP* in, OPSIZE opsize)
 {
-uint32 sign = GET_MSIGN(in);                            /* get sign */
+uint32_t sign = GET_MSIGN(in);                          /* get sign */
 if (sign) (void)fp_pcom(in, opsize);                    /* if negative, make positive */
 }
 
@@ -2052,13 +2054,13 @@ if (sign) (void)fp_pcom(in, opsize);                    /* if negative, make pos
 static void vis_minmax(OPS op,OPSIZE opsize,bool domax,bool doabs)
 {
 OP v1,vmxmn,res;
-int16 delta = opsize==fp_f ? 2 : 4;
-uint32 mxmnaddr = op[0].word;
-uint32 v1addr = op[1].word;
-int16 ix1 = INT16(op[2].word) * delta;
-int16 n = INT16(op[3].word);
-int16 i,mxmn,sign;
-uint16 subop = 020 | (opsize==fp_f ? 0 : 2);
+int16_t delta = opsize==fp_f ? 2 : 4;
+uint32_t mxmnaddr = op[0].word;
+uint32_t v1addr = op[1].word;
+int16_t ix1 = INT16(op[2].word) * delta;
+int16_t n = INT16(op[3].word);
+int16_t i,mxmn,sign;
+uint16_t subop = 020 | (opsize==fp_f ? 0 : 2);
 
 if (n <= 0) return;
 mxmn = 0;                                               /* index of maxmin element */
@@ -2085,16 +2087,16 @@ WriteOp(mxmnaddr, res, in_s);                           /* save result */
 static void vis_vpiv(OPS op, OPSIZE opsize)
 {
 OP s,v1,v2,v3;
-int16 delta = opsize==fp_f ? 2 : 4;
-uint32 saddr = op[0].word;
-uint32 v1addr = op[1].word;
-int16 ix1 = INT16(op[2].word) * delta;
-uint32 v2addr = op[3].word;
-int16 ix2 = INT16(op[4].word) * delta;
-uint32 v3addr = op[5].word;
-int16 ix3 = INT16(op[6].word) * delta;
-int16 i, n = INT16(op[7].word);
-int16 oplen = opsize==fp_f ? 0 : 2;
+int16_t delta = opsize==fp_f ? 2 : 4;
+uint32_t saddr = op[0].word;
+uint32_t v1addr = op[1].word;
+int16_t ix1 = INT16(op[2].word) * delta;
+uint32_t v2addr = op[3].word;
+int16_t ix2 = INT16(op[4].word) * delta;
+uint32_t v3addr = op[5].word;
+int16_t ix3 = INT16(op[6].word) * delta;
+int16_t i, n = INT16(op[7].word);
+int16_t oplen = opsize==fp_f ? 0 : 2;
 
 if (n <= 0) return;
 s = ReadOp(saddr,opsize);
@@ -2115,12 +2117,12 @@ for (i=0; i<n; i++) {
 static void vis_vabs(OPS op, OPSIZE opsize)
 {
 OP v1;
-int16 delta = opsize==fp_f ? 2 : 4;
-uint32 v1addr = op[0].word;
-int16 ix1 = INT16(op[1].word) * delta;
-uint32 v2addr = op[2].word;
-int32 ix2 = INT16(op[3].word) * delta;
-int16 i,n = INT16(op[4].word);
+int16_t delta = opsize==fp_f ? 2 : 4;
+uint32_t v1addr = op[0].word;
+int16_t ix1 = INT16(op[1].word) * delta;
+uint32_t v2addr = op[2].word;
+int32_t ix2 = INT16(op[3].word) * delta;
+int16_t i,n = INT16(op[4].word);
 
 if (n <= 0) return;
 /* calculates v2[j] = ABS(v1[i]) for incrementing i,j */
@@ -2145,13 +2147,13 @@ out->fpk[1] = (in.fpk[1] & 0177400) | (in.fpk[3] & 0377);
 
 static void vis_vsmnm(OPS op,OPSIZE opsize,bool doabs)
 {
-uint16 fpuop;
+uint16_t fpuop;
 OP v1,sumnrm = ZERO;
-int16 delta = opsize==fp_f ? 2 : 4;
-uint32 saddr = op[0].word;
-uint32 v1addr = op[1].word;
-int16 ix1 = INT16(op[2].word) * delta;
-int16 i,n = INT16(op[3].word);
+int16_t delta = opsize==fp_f ? 2 : 4;
+uint32_t saddr = op[0].word;
+uint32_t v1addr = op[1].word;
+int16_t ix1 = INT16(op[2].word) * delta;
+int16_t i,n = INT16(op[3].word);
 
 if (n <= 0) return;
 /* calculates sumnrm = sumnrm + DBLE(v1[i]) resp DBLE(ABS(v1[i])) for incrementing i */
@@ -2171,13 +2173,13 @@ WriteOp(saddr, sumnrm, opsize);                         /* write result */
 static void vis_vdot(OPS op,OPSIZE opsize)
 {
 OP v1,v2,dot = ZERO;
-int16 delta = opsize==fp_f ? 2 : 4;
-uint32 daddr = op[0].word;
-uint32 v1addr = op[1].word;
-int16 ix1 = INT16(op[2].word) * delta;
-uint32 v2addr = op[3].word;
-int16 ix2 = INT16(op[4].word) * delta;
-int16 i,n = INT16(op[5].word);
+int16_t delta = opsize==fp_f ? 2 : 4;
+uint32_t daddr = op[0].word;
+uint32_t v1addr = op[1].word;
+int16_t ix1 = INT16(op[2].word) * delta;
+uint32_t v2addr = op[3].word;
+int16_t ix2 = INT16(op[4].word) * delta;
+int16_t i,n = INT16(op[5].word);
 
 if (n <= 0) return;
 /* calculates dot = dot + v1[i]*v2[j] for incrementing i,j */
@@ -2200,12 +2202,12 @@ WriteOp(daddr, dot, opsize);                            /* write result */
 static void vis_movswp(OPS op, OPSIZE opsize, bool doswp)
 {
 OP v1,v2;
-int16 delta = opsize==fp_f ? 2 : 4;
-uint32 v1addr = op[0].word;
-int16 ix1 = INT16(op[1].word) * delta;
-uint32 v2addr = op[2].word;
-int16 ix2 = INT16(op[3].word) * delta;
-int16 i,n = INT16(op[4].word);
+int16_t delta = opsize==fp_f ? 2 : 4;
+uint32_t v1addr = op[0].word;
+int16_t ix1 = INT16(op[1].word) * delta;
+uint32_t v2addr = op[2].word;
+int16_t ix2 = INT16(op[3].word) * delta;
+int16_t i,n = INT16(op[4].word);
 
 if (n <= 0) return;
 for (i=0; i<n; i++) {
@@ -2247,9 +2249,9 @@ for (i=0; i<n; i++) {
  *        OFFSET 2     EMA High
  */
 
-static t_stat vis_eres(HP_WORD *rtn,uint32 dtbl,uint32 atbl)
+static t_stat vis_eres(HP_WORD *rtn,uint32_t dtbl,uint32_t atbl)
 {
-uint32 sum;
+uint32_t sum;
 if (ema_resolve(dtbl,atbl,&sum)) {                      /* calculate subscript */
     AR = sum & 0xffff;
     BR = sum >> 16;
@@ -2279,10 +2281,10 @@ return SCPE_OK;                                         /* return via unmodified
  * update map table in base page.  Set LOG_START MSEG=0 if opcode==105475
  */
 
-static t_stat vis_eseg(HP_WORD* rtn, uint32 tbl)
+static t_stat vis_eseg(HP_WORD* rtn, uint32_t tbl)
 {
-uint32 xidex,eqt,idext0,idext1;
-uint32 msegsz,phys,msegn,last,emasz,pg0,pg1,pg,i,lp;
+uint32_t xidex,eqt,idext0,idext1;
+uint32_t msegsz,phys,msegn,last,emasz,pg0,pg1,pg,i,lp;
 
 if ((BR & D16_SIGN) || BR==0) goto em21;                /* #maps not positive? */
 xidex = ReadU (idx);                                    /* read ID extension */
@@ -2353,8 +2355,8 @@ HP_WORD maps    = op[2].word;                            /* S3 */
 HP_WORD scalars = op[3].word;                            /* S4 */
 HP_WORD vectors = op[4].word;                            /* S5 */
 HP_WORD k       = op[5].word;                            /* S6 */
-uint32  imax    = 0;                                     /* imax S11*/
-uint32  xidex, idext1, mseg, addr, i;
+uint32_t imax    = 0;                                    /* imax S11*/
+uint32_t xidex, idext1, mseg, addr, i;
 bool negflag = false;
 
 for (i=0; i<scalars; i++) {                             /* copy scalars */
@@ -2419,7 +2421,7 @@ vi22:                                                   /* error condition */
 
 /* complex addition helper */
 
-static void sig_caddsub(uint16 addsub,OPS op)
+static void sig_caddsub(uint16_t addsub,OPS op)
 {
 OP a,b,c,d,p1,p2;
 
@@ -2445,7 +2447,7 @@ WriteOp(IM(op[0].word), p2, fp_f);                      /* write result */
  *
  */
 
-static void sig_btrfy(uint32 re,uint32 im,OP wr,OP wi,uint32 k, uint32 n2)
+static void sig_btrfy(uint32_t re,uint32_t im,OP wr,OP wi,uint32_t k, uint32_t n2)
 {
 OP p1,p2,p3,p4;
 OP v1r = ReadOp(re+k, fp_f);                            /* read v1 */
@@ -2477,9 +2479,9 @@ O = 0;
 /* helper for bit reversal
  * idx is 0-based already */
 
-static void sig_bitrev(uint32 re,uint32 im, uint32 idx, uint32 log2n, int sz)
+static void sig_bitrev(uint32_t re,uint32_t im, uint32_t idx, uint32_t log2n, int sz)
 {
-uint32 i, org=idx, rev = 0;
+uint32_t i, org=idx, rev = 0;
 OP v1r,v1i,v2r,v2i;
 
 for (i=0; i<log2n; i++) {                               /* swap bits of idx */
@@ -2505,7 +2507,7 @@ WriteOp(im+rev, v1i, fp_f);
 
 /* helper for PRSCR/UNSCR */
 
-static OP sig_scadd(uint16 oper,bool addh, OP a, OP b)
+static OP sig_scadd(uint16_t oper,bool addh, OP a, OP b)
 {
 OP r;
 static const OP plus_half = { { 0040000, 0000000 } };   /* DEC +0.5 */

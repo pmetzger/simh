@@ -38,6 +38,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "sigma_io_defs.h"
 #include "sim_card.h"
 
@@ -65,22 +67,22 @@
 #define DPS_UEN     0x04                /* unusual end occured */
 
 char    cp_buffer[LEN];                 /* card output image */
-int32   cp_bptr = 0;                    /* buf ptr */
-int32   cp_row = 0;                     /* row counter */
-int32   cp_stacker1;
-int32   cp_stacker2;
+int32_t cp_bptr = 0;                    /* buf ptr */
+int32_t cp_row = 0;                     /* row counter */
+int32_t cp_stacker1;
+int32_t cp_stacker2;
 
-uint32  cp_disp(uint32 fnc, uint32 inst, uint32 *dat);
-uint32  cp_tio_status(void);
-uint32  cp_tdv_status(void);
-t_stat  cp_chan_err (uint32 st);
+uint32_t cp_disp(uint32_t fnc, uint32_t inst, uint32_t *dat);
+uint32_t cp_tio_status(void);
+uint32_t cp_tdv_status(void);
+t_stat  cp_chan_err (uint32_t st);
 t_stat  cp_svc(UNIT *);
 t_stat  cp_reset (DEVICE *dptr);
 t_stat  cp_attach(UNIT * uptr, const char *file);
 t_stat  cp_detach(UNIT * uptr);
-t_stat  cp_show_cap (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat  cp_show_cap (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
-uint8 cp_op[] = {
+uint8_t cp_op[] = {
     1, 1, 0, 0, 0, 1, 0, 0,
     0, 1, 0, 0, 0, 1, 0, 0,
     0, 1, 0, 0, 0, 1, 0, 0,
@@ -101,8 +103,8 @@ uint8 cp_op[] = {
 };
 
 
-extern uint32 chan_ctl_time;
-extern uint16 ebcdic_to_hol[];
+extern uint32_t chan_ctl_time;
+extern uint16_t ebcdic_to_hol[];
 
 dib_t cp_dib = { DVA_CP, cp_disp, 0, NULL };
 
@@ -132,7 +134,7 @@ DEVICE cp_dev = {
 
 /* Card Punch : IO Dispatch rotine*/
 
-uint32 cp_disp (uint32 op, uint32 dva, uint32 *dvst) {
+uint32_t cp_disp (uint32_t op, uint32_t dva, uint32_t *dvst) {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) dva;
@@ -185,11 +187,11 @@ uint32 cp_disp (uint32 op, uint32 dva, uint32 *dvst) {
 
 /* punch service */
 t_stat cp_svc(UNIT *uptr) {
-    uint32 cmd;
-    uint32 dva = cp_dib.dva;
-    uint32 st;
-    uint32 i;
-    uint32 c;
+    uint32_t cmd;
+    uint32_t dva = cp_dib.dva;
+    uint32_t st;
+    uint32_t i;
+    uint32_t c;
 
     if (uptr->UCMD == CPS_INIT) {                           /* init state? */
         st = chan_get_cmd (cp_dib.dva, &cmd);               /* get order */
@@ -271,9 +273,9 @@ t_stat cp_svc(UNIT *uptr) {
 
 /* CP status routine */
 
-uint32 cp_tio_status (void)
+uint32_t cp_tio_status (void)
 {
-    uint32 st;
+    uint32_t st;
 
     st = cp_unit.flags & UNIT_ATT? DVS_AUTO: 0;     /* AUTO : MANUAL */
     if (sim_is_active (&cp_unit))                   /* dev busy? */
@@ -282,7 +284,7 @@ uint32 cp_tio_status (void)
     return st;
 }
 
-uint32 cp_tdv_status (void)
+uint32_t cp_tdv_status (void)
 {
 
     if (cp_unit.flags & UNIT_ATT)                   /* rdr att? */
@@ -292,7 +294,7 @@ uint32 cp_tdv_status (void)
 
 /* Channel error */
 
-t_stat cp_chan_err (uint32 st)
+t_stat cp_chan_err (uint32_t st)
 {
     cp_unit.UST = DPS_UEN;
     chan_uen (cp_dib.dva);                          /* uend */
@@ -329,7 +331,7 @@ t_stat cp_detach(UNIT * uptr) {
 }
 
 
-t_stat cp_show_cap (FILE *st, UNIT *uptr, int32 val, const void *desc) {
+t_stat cp_show_cap (FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;

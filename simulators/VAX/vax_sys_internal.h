@@ -5,9 +5,11 @@
 #ifndef VAX_SYS_INTERNAL_H_
 #define VAX_SYS_INTERNAL_H_ 0
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
-t_stat fprint_sym_m(FILE *of, uint32 addr, t_value *val);
-t_stat parse_sym_m(const char *cptr, uint32 addr, t_value *val);
+t_stat fprint_sym_m(FILE *of, uint32_t addr, t_value *val);
+t_stat parse_sym_m(const char *cptr, uint32_t addr, t_value *val);
 
 #endif

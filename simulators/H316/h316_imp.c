@@ -46,26 +46,28 @@
    TODO
 */
 #ifdef VM_IMPTIP
+#include <stdint.h>
+
 #include "h316_defs.h"                  // H316 emulator definitions
 #include "h316_imp.h"                   // ARPAnet IMP/TIP definitions
 
 // Locals ...
-uint16 imp_station  = IMP_STATION;      // IMP number (or address)
-uint16 imp_ismlc    = 0;                // 1 for MLC (not yet implemented!)
+uint16_t imp_station  = IMP_STATION;    // IMP number (or address)
+uint16_t imp_ismlc    = 0;              // 1 for MLC (not yet implemented!)
 
 // Externals from other parts of simh ...
-extern uint16 dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
-extern int32 PC;                        // current PC (for debug messages)
-extern int32 stop_inst;                 // needed by IOBADFNC()
+extern uint16_t dev_ext_int, dev_ext_enb; // current IRQ and IEN bit vectors
+extern int32_t PC;                      // current PC (for debug messages)
+extern int32_t stop_inst;               // needed by IOBADFNC()
 
 // Forward declarations ...
-int32  imp_io      (int32 inst, int32 fnc, int32 dat, int32 dev);
+int32_t imp_io      (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
 t_stat imp_service (UNIT *uptr);
 t_stat imp_reset   (DEVICE *dptr);
-t_stat imp_show_station (FILE *st, UNIT *uptr, int32 val, const void *dp);
-t_stat io_show_int (FILE *st, UNIT *uptr, int32 val, const void *dp);
-t_stat imp_set_station (UNIT *uptr, int32 val, const char *cptr, void *dp);
-t_stat io_set_int (UNIT *uptr, int32 val, const char *cptr, void *dp);
+t_stat imp_show_station (FILE *st, UNIT *uptr, int32_t val, const void *dp);
+t_stat io_show_int (FILE *st, UNIT *uptr, int32_t val, const void *dp);
+t_stat imp_set_station (UNIT *uptr, int32_t val, const char *cptr, void *dp);
+t_stat io_set_int (UNIT *uptr, int32_t val, const char *cptr, void *dp);
 
 
 
@@ -120,7 +122,7 @@ DEVICE imp_dev = {
 #define CLR_TASK_IEN()  CLR_EXT_ENB((1u << (imp_dib.inum - INT_V_EXTD)))
 
 // IMP I/O routine ...
-int32 imp_io (int32 inst, int32 fnc, int32 dat, int32 dev)
+int32_t imp_io (int32_t inst, int32_t fnc, int32_t dat, int32_t dev)
 {
   if (dev == IMP) {
     if ((inst == ioOCP) && (fnc == 000)) {
@@ -180,7 +182,7 @@ t_stat imp_reset (DEVICE *dptr)
 ////////////////////////////////////////////////////////////////////////////////
 
 // Show the station number ...
-t_stat imp_show_station (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat imp_show_station (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -193,7 +195,7 @@ t_stat imp_show_station (FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 // Set the station number ...
-t_stat imp_set_station (UNIT *uptr, int32 val, const char *cptr, void *dp)
+t_stat imp_set_station (UNIT *uptr, int32_t val, const char *cptr, void *dp)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -201,7 +203,7 @@ t_stat imp_set_station (UNIT *uptr, int32 val, const char *cptr, void *dp)
   (void) val;
   (void) dp;
 
-  uint32 newnum;  t_stat sts;
+  uint32_t newnum;  t_stat sts;
   if (cptr == NULL) return SCPE_ARG;
   newnum = get_uint (cptr, 10, 9999, &sts);
   if (newnum == 0) return SCPE_ARG;

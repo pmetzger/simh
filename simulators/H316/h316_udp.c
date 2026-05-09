@@ -130,6 +130,8 @@
 */
 #ifdef VM_IMPTIP
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"           // simh machine independent definitions
 #include "sim_tmxr.h"           // The MUX layer exposes packet send and receive semantics
 #include "h316_imp.h"           // ARPAnet IMP/TIP definitions
@@ -142,8 +144,8 @@ struct _UDP_LINK {
   bool    used;                 // true if this UDP_LINK is in use
   char    rhostport[90];        // Remote host:port
   char    lport[64];            // Local port
-  uint32  rxsequence;           // next message sequence number for receive
-  uint32  txsequence;           // next message sequence number for transmit
+  uint32_t rxsequence;          // next message sequence number for receive
+  uint32_t txsequence;          // next message sequence number for transmit
   DEVICE  *dptr;                // Device associated with link
 };
 typedef struct _UDP_LINK UDP_LINK;
@@ -152,7 +154,7 @@ typedef struct _UDP_LINK UDP_LINK;
 // checked on receive.  It's hardly foolproof, but its a simple attempt to
 // guard against other applications dumping unsolicited UDP messages into our
 // receiver socket...
-#define MAGIC   ((uint32) (((((('H' << 8) | '3') << 8) | '1') << 8) | '6'))
+#define MAGIC   ((uint32_t) (((((('H' << 8) | '3') << 8) | '1') << 8) | '6'))
 
 // UDP wrapper data structure ...
 //   This is the UDP packet which is actually transmitted or received.  It
@@ -160,24 +162,24 @@ typedef struct _UDP_LINK UDP_LINK;
 // need to keep track of things.  NOTE THAT ALL DATA IN THIS PACKET, INCLUDING
 // THE H316 MEMORY WORDS, ARE SENT AND RECEIVED WITH NETWORK BYTE ORDER!
 struct _UDP_PACKET {
-  uint32  magic;                // UDP "magic number" (see above)
-  uint32  sequence;             // UDP packet sequence number
-  uint16  count;                // number of H316 words to follow
-  uint16  data[MAXDATA];        // and the actual H316 data words/IMP packet
+  uint32_t magic;               // UDP "magic number" (see above)
+  uint32_t sequence;            // UDP packet sequence number
+  uint16_t count;               // number of H316 words to follow
+  uint16_t data[MAXDATA];       // and the actual H316 data words/IMP packet
 };
 typedef struct _UDP_PACKET UDP_PACKET;
-#define UDP_HEADER_LEN  (2*sizeof(uint32) + sizeof(uint16))
+#define UDP_HEADER_LEN  (2*sizeof(uint32_t) + sizeof(uint16_t))
 
 // Locals ...
 UDP_LINK udp_links[MAXLINKS] = { {0} };         // data for every active connection
 TMLN udp_lines[MAXLINKS] = { {0} };             // line descriptors
 TMXR udp_tmxr = { MAXLINKS, NULL, 0, udp_lines};// datagram mux
 
-static int32 udp_find_free_link (void)
+static int32_t udp_find_free_link (void)
 {
   //   Find a free UDP_LINK block, initialize it and return its index.  If none
   // are free, then return -1 ...
-  int32 i;
+  int32_t i;
   for (i = 0;  i < MAXLINKS;  ++i) {
     if (udp_links[i].used == 0) {
       memset(&udp_links[i], 0, sizeof(UDP_LINK));
@@ -187,7 +189,7 @@ static int32 udp_find_free_link (void)
   return NOLINK;
 }
 
-static t_stat udp_parse_remote (int32 link, const char *premote)
+static t_stat udp_parse_remote (int32_t link, const char *premote)
 {
   // This routine will parse a remote address string in any of these forms -
   //
@@ -205,7 +207,7 @@ static t_stat udp_parse_remote (int32 link, const char *premote)
   // yourself!!  In both cases, "w.x.y.z" is a dotted IP for the remote machine
   // and "name.domain.com" is its name (which will be looked up to get the IP).
   // If the host name/IP is omitted then it defaults to "localhost".
-  char *end;  int32 lport, rport;
+  char *end;  int32_t lport, rport;
   char host[64], port[16];
 
   if (*premote == '\0') return SCPE_2FARG;
@@ -239,7 +241,7 @@ static t_stat udp_parse_remote (int32 link, const char *premote)
   return SCPE_OK;
 }
 
-t_stat udp_create (DEVICE *dptr, const char *premote, int32 *pln)
+t_stat udp_create (DEVICE *dptr, const char *premote, int32_t *pln)
 {
   //   Create a logical UDP link to the specified remote system.  The "remote"
   // string specifies both the remote host name or IP and a port number.  The
@@ -255,14 +257,14 @@ t_stat udp_create (DEVICE *dptr, const char *premote, int32 *pln)
   //  calls.
   t_stat ret;
   char linkinfo[256];
-  int32 link = udp_find_free_link();
+  int32_t link = udp_find_free_link();
   if (link < 0) return SCPE_MEM;
 
   // Parse the remote name and set up the ipaddr and port ...
   if ((ret = udp_parse_remote(link, premote)) != SCPE_OK) return ret;
 
   // Create the socket connection to the destination ...
-  sprintf(linkinfo, "Buffer=%d,Line=%d,%s,UDP,Connect=%s", (int)(sizeof(UDP_PACKET)+sizeof(int32)), link, udp_links[link].lport, udp_links[link].rhostport);
+  sprintf(linkinfo, "Buffer=%d,Line=%d,%s,UDP,Connect=%s", (int)(sizeof(UDP_PACKET)+sizeof(int32_t)), link, udp_links[link].lport, udp_links[link].rhostport);
   ret = tmxr_open_master (&udp_tmxr, linkinfo);
   if (ret != SCPE_OK) return ret;
 
@@ -277,7 +279,7 @@ t_stat udp_create (DEVICE *dptr, const char *premote, int32 *pln)
   return SCPE_OK;
 }
 
-t_stat udp_release (DEVICE *dptr, int32 link)
+t_stat udp_release (DEVICE *dptr, int32_t link)
 {
   //   Close a link that was created by udp_create() and release any resources
   // allocated to it.  We always return SCPE_OK unless the link specified is
@@ -293,7 +295,7 @@ t_stat udp_release (DEVICE *dptr, int32 link)
   return SCPE_OK;
 }
 
-t_stat udp_send (DEVICE *dptr, int32 link, uint16 *pdata, uint16 count)
+t_stat udp_send (DEVICE *dptr, int32_t link, uint16_t *pdata, uint16_t count)
 {
   //   This routine does all the work of sending an IMP data packet.  pdata
   // is a pointer (usually into H316 simulated memory) to the IMP packet data,
@@ -303,7 +305,7 @@ t_stat udp_send (DEVICE *dptr, int32 link, uint16 *pdata, uint16 count)
   // doesn't necessarily need to have the same endian-ness as this machine.
   // Second, notice that transmitting sockets are NOT set to non blocking so
   // this routine might wait, but we assume the wait will never be too long.
-  UDP_PACKET pkt;  int pktlen;  uint16 i;  t_stat iret;
+  UDP_PACKET pkt;  int pktlen;  uint16_t i;  t_stat iret;
   if ((link < 0) || (link >= MAXLINKS)) return SCPE_IERR;
   if (!udp_links[link].used) return SCPE_IERR;
   if ((pdata == NULL) || (count == 0) || (count > MAXDATA)) return SCPE_IERR;
@@ -315,16 +317,16 @@ t_stat udp_send (DEVICE *dptr, int32 link, uint16 *pdata, uint16 count)
   pkt.sequence = htonl(udp_links[link].txsequence++);
   pkt.count = htons(count);
   for (i = 0;  i < count;  ++i)  pkt.data[i] = htons(*pdata++);
-  pktlen = UDP_HEADER_LEN + count*sizeof(uint16);
+  pktlen = UDP_HEADER_LEN + count*sizeof(uint16_t);
 
   // Send it and we're outta here ...
-  iret = tmxr_put_packet_ln (&udp_lines[link], (const uint8 *)&pkt, (size_t)pktlen);
+  iret = tmxr_put_packet_ln (&udp_lines[link], (const uint8_t *)&pkt, (size_t)pktlen);
   if (iret != SCPE_OK) return sim_messagef(iret, "UDP%d - tmxr_put_packet_ln() failed with error %s\n", link, sim_error_text(iret));
   sim_debug(IMP_DBG_UDP, dptr, "link %d - packet sent (sequence=%d, length=%d)\n", link, ntohl(pkt.sequence), ntohs(pkt.count));
   return SCPE_OK;
 }
 
-t_stat udp_set_link_loopback (DEVICE *dptr, int32 link, bool enable_loopback)
+t_stat udp_set_link_loopback (DEVICE *dptr, int32_t link, bool enable_loopback)
 {
   // Enable or disable the local (interface) loopback on this link...
   if ((link < 0) || (link >= MAXLINKS)) return SCPE_IERR;
@@ -334,7 +336,7 @@ t_stat udp_set_link_loopback (DEVICE *dptr, int32 link, bool enable_loopback)
   return tmxr_set_line_loopback (&udp_lines[link], enable_loopback);
 }
 
-static int32 udp_receive_packet (int32 link, UDP_PACKET *ppkt)
+static int32_t udp_receive_packet (int32_t link, UDP_PACKET *ppkt)
 {
   //   This routine will do the hard part of receiving a UDP packet.  If it's
   // successful the packet length, in bytes, is returned.  The receiver socket
@@ -345,7 +347,7 @@ static int32 udp_receive_packet (int32 link, UDP_PACKET *ppkt)
   // of the checking for valid packets, unexpected packets, duplicate or out of
   // sequence packets.  That's strictly the caller's problem!
   size_t pktsiz;
-  const uint8 *pbuf;
+  const uint8_t *pbuf;
   t_stat ret;
 
   udp_lines[link].rcve = true;          // Enable receiver
@@ -362,7 +364,7 @@ static int32 udp_receive_packet (int32 link, UDP_PACKET *ppkt)
   return pktsiz;
 }
 
-int32 udp_receive (DEVICE *dptr, int32 link, uint16 *pdata, uint16 maxbuf)
+int32_t udp_receive (DEVICE *dptr, int32_t link, uint16_t *pdata, uint16_t maxbuf)
 {
   //   Receive an IMP packet from the virtual modem. pdata is a pointer usually
   // directly into H316 simulated memory) to where the IMP packet data should
@@ -379,7 +381,7 @@ int32 udp_receive (DEVICE *dptr, int32 link, uint16 *pdata, uint16 maxbuf)
   //   One final note - it's explicitly allowed for pdata to be null and/or
   // maxbuf to be zero.  In either case the received package is discarded, but
   // the actual length of the discarded package is still returned.
-  UDP_PACKET pkt;  int32 pktlen, explen, implen, i;  uint32 magic, pktseq;
+  UDP_PACKET pkt;  int32_t pktlen, explen, implen, i;  uint32_t magic, pktseq;
   if ((link < 0) || (link >= MAXLINKS)) return SCPE_IERR;
   if (!udp_links[link].used) return SCPE_IERR;
   if (dptr != udp_links[link].dptr) return SCPE_IERR;
@@ -396,7 +398,7 @@ int32 udp_receive (DEVICE *dptr, int32 link, uint16 *pdata, uint16 maxbuf)
       continue;
     }
     implen = ntohs(pkt.count);
-    explen = UDP_HEADER_LEN + implen*sizeof(uint16);
+    explen = UDP_HEADER_LEN + implen*sizeof(uint16_t);
     if (explen != pktlen) {
       sim_debug(IMP_DBG_UDP, dptr, "link %d - received packet length wrong (expected=%d received=%d)\n", link, explen, pktlen);
       continue;

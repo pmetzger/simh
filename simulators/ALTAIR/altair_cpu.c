@@ -79,9 +79,11 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "altair_defs.h"
+#include "sim_types.h"
 
 #define UNIT_V_OPSTOP   (UNIT_V_UF)                     /* Stop on Invalid OP? */
 #define UNIT_OPSTOP     (1 << UNIT_V_OPSTOP)
@@ -90,58 +92,58 @@
 #define UNIT_V_MSIZE    (UNIT_V_UF+2)                   /* Memory Size */
 #define UNIT_MSIZE      (1 << UNIT_V_MSIZE)
 
-unsigned char M[MAXMEMSIZE];                            /* memory */
-int32 A = 0;                                            /* accumulator */
-int32 BC = 0;                                           /* BC register pair */
-int32 DE = 0;                                           /* DE register pair */
-int32 HL = 0;                                           /* HL register pair */
-int32 SP = 0;                                           /* Stack pointer */
-int32 C = 0;                                            /* carry flag */
-int32 Z = 0;                                            /* Zero flag */
-int32 AC = 0;                                           /* Aux carry */
-int32 S = 0;                                            /* sign flag */
-int32 P = 0;                                            /* parity flag */
-int32 saved_PC = 0;                                     /* program counter */
-int32 SR = 0;                                           /* switch register */
-int32 INTE = 0;                                         /* Interrupt Enable */
-int32 int_req = 0;                                      /* Interrupt request */
-int32 chip = 0;                                         /* 0 = 8080 chip, 1 = z80 chip */
+uchar_t M[MAXMEMSIZE];                                  /* memory */
+int32_t A = 0;                                          /* accumulator */
+int32_t BC = 0;                                         /* BC register pair */
+int32_t DE = 0;                                         /* DE register pair */
+int32_t HL = 0;                                         /* HL register pair */
+int32_t SP = 0;                                         /* Stack pointer */
+int32_t C = 0;                                          /* carry flag */
+int32_t Z = 0;                                          /* Zero flag */
+int32_t AC = 0;                                         /* Aux carry */
+int32_t S = 0;                                          /* sign flag */
+int32_t P = 0;                                          /* parity flag */
+int32_t saved_PC = 0;                                   /* program counter */
+int32_t SR = 0;                                         /* switch register */
+int32_t INTE = 0;                                       /* Interrupt Enable */
+int32_t int_req = 0;                                    /* Interrupt request */
+int32_t chip = 0;                                       /* 0 = 8080 chip, 1 = z80 chip */
 
-int32 PCX;                                              /* External view of PC */
+int32_t PCX;                                            /* External view of PC */
 
 /* function prototypes */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-void setarith(int32 reg);
-void setlogical(int32 reg);
-void setinc(int32 reg);
-int32 getreg(int32 reg);
-void putreg(int32 reg, int32 val);
-int32 getpair(int32 reg);
-int32 getpush(int32 reg);
-void putpush(int32 reg, int32 data);
-void putpair(int32 reg, int32 val);
-void parity(int32 reg);
-int32 cond(int32 con);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void setarith(int32_t reg);
+void setlogical(int32_t reg);
+void setinc(int32_t reg);
+int32_t getreg(int32_t reg);
+void putreg(int32_t reg, int32_t val);
+int32_t getpair(int32_t reg);
+int32_t getpush(int32_t reg);
+void putpush(int32_t reg, int32_t data);
+void putpair(int32_t reg, int32_t val);
+void parity(int32_t reg);
+int32_t cond(int32_t con);
 
-extern int32 sio0s(int32 io, int32 data);
-extern int32 sio0d(int32 io, int32 data);
-extern int32 sio1s(int32 io, int32 data);
-extern int32 sio1d(int32 io, int32 data);
-extern int32 dsk10(int32 io, int32 data);
-extern int32 dsk11(int32 io, int32 data);
-extern int32 dsk12(int32 io, int32 data);
-int32 nulldev(int32 io, int32 data);
+extern int32_t sio0s(int32_t io, int32_t data);
+extern int32_t sio0d(int32_t io, int32_t data);
+extern int32_t sio1s(int32_t io, int32_t data);
+extern int32_t sio1d(int32_t io, int32_t data);
+extern int32_t dsk10(int32_t io, int32_t data);
+extern int32_t dsk11(int32_t io, int32_t data);
+extern int32_t dsk12(int32_t io, int32_t data);
+int32_t nulldev(int32_t io, int32_t data);
 
 /* This is the I/O configuration table.  There are 255 possible
 device addresses, if a device is plugged to a port it's routine
 address is here, 'nulldev' means no device is available
 */
 struct idev {
-    int32 (*routine)(int32, int32);
+    int32_t (*routine)(int32_t, int32_t);
 };
 struct idev dev_table[256] = {
 {&nulldev}, {&nulldev}, {&nulldev}, {&nulldev},         /* 000 */
@@ -212,7 +214,7 @@ struct idev dev_table[256] = {
 
 /* Altair MITS standard BOOT EPROM, fits in upper 256K of memory */
 
-int32 bootrom[256] = {
+int32_t bootrom[256] = {
     0041, 0000, 0114, 0021, 0030, 0377, 0016, 0346,
     0032, 0167, 0023, 0043, 0015, 0302, 0010, 0377,
     0303, 0000, 0114, 0000, 0000, 0000, 0000, 0000,
@@ -301,7 +303,7 @@ DEVICE cpu_dev = {
 
 t_stat sim_instr (void)
 {
-    int32 PC, IR, OP, DAR, reason, hi, lo, carry, i;
+    int32_t PC, IR, OP, DAR, reason, hi, lo, carry, i;
 
     PC = saved_PC & ADDRMASK;                           /* load local PC */
     C = C & 0200000;
@@ -844,7 +846,7 @@ return reason;
 }
 
 /* Test an 8080 flag condition and return 1 if true, 0 if false */
-int32 cond(int32 con)
+int32_t cond(int32_t con)
 {
     switch (con) {
         case 0:
@@ -881,9 +883,9 @@ int32 cond(int32 con)
    an arithmetic operation on 'reg'.
 */
 
-void setarith(int32 reg)
+void setarith(int32_t reg)
 {
-    int32 bc = 0;
+    int32_t bc = 0;
 
     if (reg & 0x100)
         C = 0200000;
@@ -911,7 +913,7 @@ void setarith(int32 reg)
    a logical (bitwise) operation on 'reg'.
 */
 
-void setlogical(int32 reg)
+void setlogical(int32_t reg)
 {
     C = 0;
     if (reg & 0x80) {
@@ -931,9 +933,9 @@ void setlogical(int32 reg)
    of bits on even: P=0200000, else P=0
 */
 
-void parity(int32 reg)
+void parity(int32_t reg)
 {
-    int32 bc = 0;
+    int32_t bc = 0;
 
     if (reg & 0x01) bc++;
     if (reg & 0x02) bc++;
@@ -951,9 +953,9 @@ void parity(int32 reg)
    an INR/DCR operation on 'reg'.
 */
 
-void setinc(int32 reg)
+void setinc(int32_t reg)
 {
-    int32 bc = 0;
+    int32_t bc = 0;
 
     if (reg & 0x80) {
         bc++;
@@ -973,7 +975,7 @@ void setinc(int32 reg)
 }
 
 /* Get an 8080 register and return it */
-int32 getreg(int32 reg)
+int32_t getreg(int32_t reg)
 {
     switch (reg) {
         case 0:
@@ -999,7 +1001,7 @@ int32 getreg(int32 reg)
 }
 
 /* Put a value into an 8080 register from memory */
-void putreg(int32 reg, int32 val)
+void putreg(int32_t reg, int32_t val)
 {
     switch (reg) {
         case 0:
@@ -1037,7 +1039,7 @@ void putreg(int32 reg, int32 val)
 }
 
 /* Return the value of a selected register pair */
-int32 getpair(int32 reg)
+int32_t getpair(int32_t reg)
 {
     switch (reg) {
         case 0:
@@ -1056,9 +1058,9 @@ int32 getpair(int32 reg)
 
 /* Return the value of a selected register pair, in PUSH
    format where 3 means A& flags, not SP */
-int32 getpush(int32 reg)
+int32_t getpush(int32_t reg)
 {
-    int32 stat;
+    int32_t stat;
 
     switch (reg) {
         case 0:
@@ -1085,7 +1087,7 @@ int32 getpush(int32 reg)
 
 /* Place data into the indicated register pair, in PUSH
    format where 3 means A& flags, not SP */
-void putpush(int32 reg, int32 data)
+void putpush(int32_t reg, int32_t data)
 {
     switch (reg) {
         case 0:
@@ -1113,7 +1115,7 @@ void putpush(int32 reg, int32 data)
 
 
 /* Put a value into an 8080 register pair */
-void putpair(int32 reg, int32 val)
+void putpair(int32_t reg, int32_t val)
 {
     switch (reg) {
         case 0:
@@ -1152,7 +1154,7 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory examine signature.
    This implementation does not use every parameter. */
@@ -1166,7 +1168,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic memory deposit signature.
        This implementation does not use every parameter. */
@@ -1178,7 +1180,7 @@ t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
     return SCPE_OK;
 }
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1186,8 +1188,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
@@ -1199,7 +1201,7 @@ for (i = MEMSIZE; i < MAXMEMSIZE; i++) M[i] = 0377;
 return SCPE_OK;
 }
 
-int32 nulldev(int32 flag, int32 data)
+int32_t nulldev(int32_t flag, int32_t data)
 {
     /* Shared I/O handler signature.
        This implementation does not use every parameter. */

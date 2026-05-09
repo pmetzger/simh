@@ -22,44 +22,44 @@ extern DEVICE dz_dev;
 extern TMXR dz_desc;
 extern TMLN *dz_ldsc;
 extern UNIT dz_unit[];
-extern uint16 dz_csr;
-extern uint16 dz_tcr;
+extern uint16_t dz_csr;
+extern uint16_t dz_tcr;
 
 t_stat dz_clear(bool flag);
-void dz_wr(int32 pa, int32 data, int32 access);
+void dz_wr(int32_t pa, int32_t data, int32_t access);
 
-int32 int_req[IPL_HLVL];
-int32 sys_model;
-uint32 trpirq;
-int32 hlt_pin;
-int32 tmxr_poll = 10000;
+int32_t int_req[IPL_HLVL];
+int32_t sys_model;
+uint32_t trpirq;
+int32_t hlt_pin;
+int32_t tmxr_poll = 10000;
 jmp_buf save_env;
 
-t_stat lk_rd(uint8 *data)
+t_stat lk_rd(uint8_t *data)
 {
     (void)data;
     return SCPE_OK;
 }
 
-t_stat lk_wr(uint8 data)
+t_stat lk_wr(uint8_t data)
 {
     (void)data;
     return SCPE_OK;
 }
 
-t_stat vs_rd(uint8 *data)
+t_stat vs_rd(uint8_t *data)
 {
     (void)data;
     return SCPE_OK;
 }
 
-t_stat vs_wr(uint8 data)
+t_stat vs_wr(uint8_t data)
 {
     (void)data;
     return SCPE_OK;
 }
 
-int32 eval_int(void)
+int32_t eval_int(void)
 {
     return 0;
 }

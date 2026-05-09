@@ -3,6 +3,7 @@
 #ifndef H316_HI_INTERNAL_H_
 #define H316_HI_INTERNAL_H_ 0
 
+#include <stdint.h>
 #include <string.h>
 
 #include "h316_imp.h"
@@ -37,11 +38,11 @@
  * word count, the original count for packets that are not long-leader
  * packets, or zero for long leaders that cannot be represented.
  */
-static inline int16 hi_convert_long_to_short(HIDB *hidb, int16 count)
+static inline int16_t hi_convert_long_to_short(HIDB *hidb, int16_t count)
 {
-    uint16 nflags, mtype, htype, host, imp, id, stype;
-    uint16 oflags;
-    uint16 *data = hidb->rxdata;
+    uint16_t nflags, mtype, htype, host, imp, id, stype;
+    uint16_t oflags;
+    uint16_t *data = hidb->rxdata;
 
     if (count == 0)
         return 0;
@@ -94,7 +95,7 @@ static inline int16 hi_convert_long_to_short(HIDB *hidb, int16 count)
             return 0;
         memmove(&data[3], &data[7 + hidb->padding],
                 sizeof(data[0]) * (size_t)payload_count);
-        count = (int16)(3 + payload_count);
+        count = (int16_t)(3 + payload_count);
     } else {
         count = 3;
     }

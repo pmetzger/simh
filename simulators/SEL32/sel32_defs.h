@@ -82,6 +82,8 @@
 #define ONIPU 0x0010                    /* BIT27 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                   /* simh simulator defns */
 #include "uint_bits.h"
 
@@ -308,50 +310,50 @@ extern DEVICE ec_dev;
 typedef struct chp {
     /* channel program values */
     UNIT        *unitptr;               /* Back pointer to units structure */
-    uint32      chan_inch_addr;         /* Current channel status dw addr in memory */
-    uint32      base_inch_addr;         /* Original channel status dw addr in memory */
-    uint16      max_inch_addr;          /* maximum inch buffer pointer */
-    uint32      chan_caw;               /* Channel command address word */
-    uint32      ccw_addr;               /* Channel address */
+    uint32_t    chan_inch_addr;         /* Current channel status dw addr in memory */
+    uint32_t    base_inch_addr;         /* Original channel status dw addr in memory */
+    uint16_t    max_inch_addr;          /* maximum inch buffer pointer */
+    uint32_t    chan_caw;               /* Channel command address word */
+    uint32_t    ccw_addr;               /* Channel address */
 #ifdef TEST_FOR_IOCL_CHANGE
-    uint32      new_iocla;              /* start iocl address */
-    uint32      new_iocd1;              /* start word 1 of iocd */
-    uint32      new_iocd2;              /* start word 2 of iocd */
+    uint32_t    new_iocla;              /* start iocl address */
+    uint32_t    new_iocd1;              /* start word 1 of iocd */
+    uint32_t    new_iocd2;              /* start word 2 of iocd */
 #endif
-    uint32      chan_buf;               /* Channel data buffer */
-    uint16      ccw_count;              /* Channel count */
-    uint16      ccw_flags;              /* Channel flags */
-    uint16      chan_status;            /* Channel status */
-    uint16      chan_dev;               /* Device on channel */
-    uint8       ccw_cmd;                /* Channel command and flags */
-    uint8       chan_byte;              /* Current byte, empty/full */
-    uint8       chan_int;               /* channel interrupt level */
-    uint8       chan_info;              /* misc flags for channel */
+    uint32_t    chan_buf;               /* Channel data buffer */
+    uint16_t    ccw_count;              /* Channel count */
+    uint16_t    ccw_flags;              /* Channel flags */
+    uint16_t    chan_status;            /* Channel status */
+    uint16_t    chan_dev;               /* Device on channel */
+    uint8_t     ccw_cmd;                /* Channel command and flags */
+    uint8_t     chan_byte;              /* Current byte, empty/full */
+    uint8_t     chan_int;               /* channel interrupt level */
+    uint8_t     chan_info;              /* misc flags for channel */
 } CHANP;
 
 /* Device information block */
 #define FIFO_SIZE 256                   /* fifo to hold 128 double words of status */
-extern  int32   FIFO_Put(uint16 chsa, uint32 entry);
-extern  int32   FIFO_Get(uint16 chsa, uint32 *old);
-extern  int32   FIFO_Num(uint16 chsa);
+extern  int32_t FIFO_Put(uint16_t chsa, uint32_t entry);
+extern  int32_t FIFO_Get(uint16_t chsa, uint32_t *old);
+extern  int32_t FIFO_Num(uint16_t chsa);
 
 #define IOCLQ_SIZE 32                   /* fifo to hold 32 iocl cmds */
 
 typedef struct ioclq {
-        uint32  ioclq_fifo[IOCLQ_SIZE];
-        int16   ioclq_in;
-        int16   ioclq_out;
+        uint32_t ioclq_fifo[IOCLQ_SIZE];
+        int16_t ioclq_in;
+        int16_t ioclq_out;
 } IOCLQ;
 
-extern  int32   IOCLQ_Put(IOCLQ *qptr, uint32 entry);
-extern  int32   IOCLQ_Get(IOCLQ *qptr, uint32 *old);
-extern  int32   IOCLQ_Num(IOCLQ *qptr);
+extern  int32_t IOCLQ_Put(IOCLQ *qptr, uint32_t entry);
+extern  int32_t IOCLQ_Get(IOCLQ *qptr, uint32_t *old);
+extern  int32_t IOCLQ_Num(IOCLQ *qptr);
 
 typedef struct dib {
         /* Pre start I/O operation */
-        t_stat      (*pre_io)(UNIT *uptr, uint16 chan);
+        t_stat      (*pre_io)(UNIT *uptr, uint16_t chan);
         /* Start a channel command SIO */
-        t_stat      (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd);
+        t_stat      (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd);
         /* Halt I/O HIO */
         t_stat      (*halt_io)(UNIT *uptr); /* Halt I/O */
         /* Test I/O STOPIO */
@@ -363,18 +365,18 @@ typedef struct dib {
         /* Reset Controller RSCHNL */
         t_stat      (*rschnl_io)(UNIT *uptr);   /* Reset Channel */
         /* Post I/O processing  */
-        t_stat      (*iocl_io)(CHANP *chp, int32 tic_ok);   /* IOCL processing */
+        t_stat      (*iocl_io)(CHANP *chp, int32_t tic_ok); /* IOCL processing */
         /* Controller init */
         void        (*dev_ini)(UNIT *, bool);   /* init function */
         UNIT        *units;             /* Pointer to units structure */
         CHANP       *chan_prg;          /* Pointer to channel program */
         IOCLQ       *ioclq_ptr;         /* pointer to array of IOCLQ entries */
-        uint8       numunits;           /* number of units */
-        uint8       mask;               /* device mask */
-        uint16      chan_addr;          /* parent channel address */
-        uint32      chan_fifo_in;       /* fifo input index */
-        uint32      chan_fifo_out;      /* fifo output index */
-        uint32      chan_fifo[FIFO_SIZE];   /* interrupt status fifo for each channel */
+        uint8_t     numunits;           /* number of units */
+        uint8_t     mask;               /* device mask */
+        uint16_t    chan_addr;          /* parent channel address */
+        uint32_t    chan_fifo_in;       /* fifo input index */
+        uint32_t    chan_fifo_out;      /* fifo output index */
+        uint32_t    chan_fifo[FIFO_SIZE];   /* interrupt status fifo for each channel */
 } DIB;
 
 extern  DIB     *dib_unit[MAX_DEV];     /* Pointer to Device info block */
@@ -426,12 +428,12 @@ extern DEBTAB dev_debug[];
 #define MSIGN           0x80000000      /* 32 bit minus sign */
 #define DMSIGN          0x8000000000000000LL    /* 64 bit minus sign */
 #define FSIGN           0x80000000      /* 32 bit minus sign */
-/* sign extend 16 bit value to uint32 */
-#define SEXT16(x)       (x&0x8000?(uint32)(((uint32)x&RMASK)|LMASK):(uint32)x)
+/* sign extend 16 bit value to uint32_t */
+#define SEXT16(x)       (x&0x8000?(uint32_t)(((uint32_t)x&RMASK)|LMASK):(uint32_t)x)
 /* sign extend 16 bit value to uint64 */
-#define DSEXT16(x)      (x&0x8000?(l_uint64)(((l_uint64)x&RMASK)|D48LMASK):(t_uint64)x)
+#define DSEXT16(x)      (x&0x8000?(l_uint64)(((l_uint64)x&RMASK)|D48LMASK):(uint64_t)x)
 /* sign extend 32 bit value to uint64 */
-#define DSEXT32(x)      (x&0x8000?(l_uint64)(((l_uint64)x&D32RMASK)|D32LMASK):(t_uint64)x)
+#define DSEXT32(x)      (x&0x8000?(l_uint64)(((l_uint64)x&D32RMASK)|D32LMASK):(uint64_t)x)
 #define NEGATE32(val)   ((~val) + 1)    /* negate a value 16/32/64 bits */
 
 /* defined in rightmost 9 bits of upper 16 bits of uptr->flags */
@@ -584,22 +586,22 @@ extern DEBTAB dev_debug[];
 #define PC PC_Global
 
 /* Definitions for commonly used functions */
-extern  t_stat  set_dev_addr(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern  t_stat  show_dev_addr(FILE * st, UNIT *uptr, int32 v, const void *desc);
-extern  int32   itm_rdwr(uint32 cmd, int32 cnt, uint32 level);
-extern  void    chan_end(uint16 chan, uint16 flags);
-extern  int     chan_read_byte(uint16 chsa, uint8 *data);
-extern  int     chan_write_byte(uint16 chsa, uint8 *data);
-extern  int     fprint_inst(FILE *of, uint32 val, int32 sw);
-extern  int     readfull(CHANP *chp, uint32 maddr, uint32 *word);
-extern  void    set_devattn(uint16 addr, uint16 flags);
-extern  void    set_devwake(uint16 chsa, uint16 flags);
-extern  t_stat  chan_boot(uint16 addr, DEVICE *dptr);
-extern  t_stat  stopxio(uint16 addr, uint32 *status);
-extern  int     test_write_byte_end(uint16 chsa);
+extern  t_stat  set_dev_addr(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern  t_stat  show_dev_addr(FILE * st, UNIT *uptr, int32_t v, const void *desc);
+extern  int32_t itm_rdwr(uint32_t cmd, int32_t cnt, uint32_t level);
+extern  void    chan_end(uint16_t chan, uint16_t flags);
+extern  int     chan_read_byte(uint16_t chsa, uint8_t *data);
+extern  int     chan_write_byte(uint16_t chsa, uint8_t *data);
+extern  int     fprint_inst(FILE *of, uint32_t val, int32_t sw);
+extern  int     readfull(CHANP *chp, uint32_t maddr, uint32_t *word);
+extern  void    set_devattn(uint16_t addr, uint16_t flags);
+extern  void    set_devwake(uint16_t chsa, uint16_t flags);
+extern  t_stat  chan_boot(uint16_t addr, DEVICE *dptr);
+extern  t_stat  stopxio(uint16_t addr, uint32_t *status);
+extern  int     test_write_byte_end(uint16_t chsa);
 extern  DEVICE *get_dev(UNIT *uptr);
-extern  t_stat  set_inch(UNIT *uptr, uint32 inch_addr, uint32 num_inch);    /* set inch addr */
-extern  CHANP  *find_chanp_ptr(uint16 chsa);    /* find chanp pointer */
+extern  t_stat  set_inch(UNIT *uptr, uint32_t inch_addr, uint32_t num_inch); /* set inch addr */
+extern  CHANP  *find_chanp_ptr(uint16_t chsa);  /* find chanp pointer */
 #ifdef USE_IPU_THREAD
 extern  void   *ipu_sim_instr(void *value);
 #endif
@@ -607,76 +609,76 @@ extern  void   *ipu_sim_instr(void *value);
 #ifndef CPUONLY
 #ifndef USE_IPU_THREAD
 extern  struct ipcom *IPC;
-extern  uint32  *M;                     /* our memory shared with fork IPU */
+extern  uint32_t *M;                    /* our memory shared with fork IPU */
 #else
 extern  struct ipcom *IPC;
-extern  uint32  M[];                    /* our local memory with thread IPU */
+extern  uint32_t M[];                   /* our local memory with thread IPU */
 #endif
 #else
-extern  uint32  M[];                    /* our local memory without IPU */
+extern  uint32_t M[];                   /* our local memory without IPU */
 #endif
 
 #ifndef USE_IPU_CODE
-extern  uint32  SPAD[];                 /* cpu SPAD memory */
+extern  uint32_t SPAD[];                /* cpu SPAD memory */
 #endif
-extern  uint32  attention_trap;
+extern  uint32_t attention_trap;
 extern  int     irq_pend;               /* pending interrupt flag */
 
 /* Read a byte from a SEL-32 word-addressed memory array. */
-static inline uint32
-sel32_read_byte_from(const uint32 *memory, uint32 addr)
+static inline uint32_t
+sel32_read_byte_from(const uint32_t *memory, uint32_t addr)
 {
     return u32_get_addr_u8_be(memory[addr >> 2], addr);
 }
 
 /* Write a byte into a SEL-32 word-addressed memory array. */
 static inline void
-sel32_write_byte_to(uint32 *memory, uint32 addr, uint32 data)
+sel32_write_byte_to(uint32_t *memory, uint32_t addr, uint32_t data)
 {
-    uint32 index = addr >> 2;
+    uint32_t index = addr >> 2;
 
     memory[index] = u32_put_addr_u8_be(memory[index], data, addr);
 }
 
 /* Read a halfword from a SEL-32 word-addressed memory array. */
-static inline uint32
-sel32_read_halfword_from(const uint32 *memory, uint32 addr)
+static inline uint32_t
+sel32_read_halfword_from(const uint32_t *memory, uint32_t addr)
 {
     return u32_get_addr_u16_be(memory[addr >> 2], addr);
 }
 
 /* Write a halfword into a SEL-32 word-addressed memory array. */
 static inline void
-sel32_write_halfword_to(uint32 *memory, uint32 addr, uint32 data)
+sel32_write_halfword_to(uint32_t *memory, uint32_t addr, uint32_t data)
 {
-    uint32 index = addr >> 2;
+    uint32_t index = addr >> 2;
 
     memory[index] = u32_put_addr_u16_be(memory[index], data, addr);
 }
 
 #ifdef NOT_USED
-extern  uint32  RDYQ[];                 /* ready queue */
-extern  uint32  RDYQIN;                 /* input index */
-extern  uint32  RDYQOUT;                /* output index */
-extern  int32   RDYQ_Put(uint32 entry);
-extern  int32   RDYQ_Get(uint32 *old);
-extern  int32   RDYQ_Num(void);
+extern  uint32_t RDYQ[];                /* ready queue */
+extern  uint32_t RDYQIN;                /* input index */
+extern  uint32_t RDYQOUT;               /* output index */
+extern  int32_t RDYQ_Put(uint32_t entry);
+extern  int32_t RDYQ_Get(uint32_t *old);
+extern  int32_t RDYQ_Num(void);
 #define RDYQ_SIZE 128
 #endif
 
 struct InstHistory
 {
-    uint32   opsd1;                     /* original PSD1 */
-    uint32   opsd2;                     /* original PSD2 */
-    uint32   npsd1;                     /* new PSD1 after instruction */
-    uint32   npsd2;                     /* new PSD2 after instruction */
-    uint32   oir;                       /* the instruction itself */
-    uint32   modes;                     /* current ipu mode bits */
-    uint32   reg[16];                   /* regs/bregs for operation */
+    uint32_t opsd1;                     /* original PSD1 */
+    uint32_t opsd2;                     /* original PSD2 */
+    uint32_t npsd1;                     /* new PSD1 after instruction */
+    uint32_t npsd2;                     /* new PSD2 after instruction */
+    uint32_t oir;                       /* the instruction itself */
+    uint32_t modes;                     /* current ipu mode bits */
+    uint32_t reg[16];                   /* regs/bregs for operation */
 };
 
-extern  char *dump_mem(uint32 mp, int cnt);
-extern  char *dump_buf(uint8 *mp, int32 off, int cnt);
+extern  char *dump_mem(uint32_t mp, int cnt);
+extern  char *dump_buf(uint8_t *mp, int32_t off, int cnt);
 
 #define get_chan(chsa)  ((chsa>>8)&0x7f)    /* get channel number from ch/sa */
 

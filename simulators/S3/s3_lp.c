@@ -31,19 +31,22 @@
 */
 
 #include <stdbool.h>
-#include "s3_defs.h"
+#include <stdint.h>
 
-extern uint8 M[];
+#include "s3_defs.h"
+#include "sim_types.h"
+
+extern uint8_t M[];
 extern char bcd_to_ascii[64];
-extern int32 iochk, ind[64];
-int32 cct[CCT_LNT] = { 03 };
-int32 cctlnt = 66, cctptr = 0, lines = 0, lflag = 0;
+extern int32_t iochk, ind[64];
+int32_t cct[CCT_LNT] = { 03 };
+int32_t cctlnt = 66, cctptr = 0, lines = 0, lflag = 0;
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *cptr);
-t_stat write_line (int32 ilnt, int32 mod);
-t_stat space (int32 lines, int32 lflag);
-t_stat carriage_control (int32 action, int32 mod);
-extern unsigned char ebcdic_to_ascii[];
+t_stat write_line (int32_t ilnt, int32_t mod);
+t_stat space (int32_t lines, int32_t lflag);
+t_stat carriage_control (int32_t action, int32_t mod);
+extern uchar_t ebcdic_to_ascii[];
 
 #define UNIT_V_PCHAIN   (UNIT_V_UF + 0)
 #define UNIT_M_PCHAIN   03
@@ -59,13 +62,13 @@ extern unsigned char ebcdic_to_ascii[];
 #define GET_PCHAIN(x)   (((x) >> UNIT_V_PCHAIN) & UNIT_M_PCHAIN)
 #define CHP(ch,val)     ((val) & (1 << (ch)))
 
-int32 LPDAR;                                            /* Data Address */
-int32 LPFLR;                                            /* Forms Length */
-int32 LPIAR;                                            /* Image address */
-int32 linectr;                                          /* current line # */
-int32 lpterror = 0;
-int32 CC9 = 0;
-int32 CC12 = 0;
+int32_t LPDAR;                                          /* Data Address */
+int32_t LPFLR;                                          /* Forms Length */
+int32_t LPIAR;                                          /* Image address */
+int32_t linectr;                                        /* current line # */
+int32_t lpterror = 0;
+int32_t CC9 = 0;
+int32_t CC12 = 0;
 
 /* LPT data structures
 
@@ -110,13 +113,13 @@ DEVICE lpt_dev = {
 
 /* Printer: master routine */
 
-int32 lpt (int32 op, int32 m, int32 n, int32 data)
+int32_t lpt (int32_t op, int32_t m, int32_t n, int32_t data)
 {
     /* Generic I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) m;
 
-    int32 iodata;
+    int32_t iodata;
     switch (op) {
         case 0:                                         /* SIO 1403 */
             iodata = 0;
@@ -219,9 +222,9 @@ int32 lpt (int32 op, int32 m, int32 n, int32 data)
         S       =       suppress automatic newline
 */
 
-t_stat write_line (int32 ilnt, int32 mod)
+t_stat write_line (int32_t ilnt, int32_t mod)
 {
-int32 i, t, lc;
+int32_t i, t, lc;
 static char lbuf[LPT_WIDTH + 1];                        /* + null */
 
 if ((lpt_unit.flags & UNIT_ATT) == 0)
@@ -263,9 +266,9 @@ return SCPE_OK;
         mod     =       number of lines or channel number or line number
 */
 
-t_stat carriage_control (int32 action, int32 mod)
+t_stat carriage_control (int32_t action, int32_t mod)
 {
-int32 i;
+int32_t i;
 
 if ((lpt_unit.flags & UNIT_ATT) == 0)
      return SCPE_UNATT;
@@ -326,9 +329,9 @@ return SCPE_OK;
         sflag   =       skip (true) or space (false)
 */
 
-t_stat space (int32 count, int32 sflag)
+t_stat space (int32_t count, int32_t sflag)
 {
-int32 i;
+int32_t i;
 
 if ((lpt_unit.flags & UNIT_ATT) == 0) return SCPE_UNATT;
 cctptr = (cctptr + count) % cctlnt;                     /* adv cct, mod lnt */

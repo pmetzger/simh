@@ -162,8 +162,11 @@
 /* #define DBG_MSG */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_imd.h"
+#include "sim_types.h"
 
 #ifdef DBG_MSG
 #define DBG_PRINT(args) sim_printf args
@@ -171,12 +174,12 @@
 #define DBG_PRINT(args)
 #endif
 
-extern t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
 #define ICOM_MAX_DRIVES        4
 #define ICOM_SD_SECTOR_LEN     128
@@ -196,11 +199,11 @@ extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_typ
 #define ICOM_MEM_SIZE    256                 /* Must be on a page boundary */
 #define ICOM_MEM_MASK    (ICOM_MEM_SIZE-1)
 
-static uint8 icom_mem[ICOM_MEM_SIZE];
+static uint8_t icom_mem[ICOM_MEM_SIZE];
 
 /* iCOM PROMs are 1024 bytes */
 
-static uint8 icom_3712_prom[ICOM_PROM_SIZE] = {
+static uint8_t icom_3712_prom[ICOM_PROM_SIZE] = {
     0xc3, 0x73, 0xf0, 0x20, 0x41, 0x4c, 0x54, 0x41,
     0x49, 0x52, 0x43, 0x20, 0xc3, 0x85, 0xf0, 0x15,
     0xc3, 0xa6, 0xf0, 0xc3, 0xc7, 0xf0, 0xc3, 0x06,
@@ -331,7 +334,7 @@ static uint8 icom_3712_prom[ICOM_PROM_SIZE] = {
     0xc6, 0xf2, 0xf6, 0xf2, 0xc6, 0xf2, 0xb7, 0xf2,
 };
 
-static uint8 icom_3812_prom[ICOM_PROM_SIZE] = {
+static uint8_t icom_3812_prom[ICOM_PROM_SIZE] = {
     0xc3, 0x46, 0xf0, 0x06, 0x80, 0x7e, 0x12, 0x23,
     0x13, 0x05, 0xc2, 0x05, 0xf0, 0xc9, 0xff, 0x3a,
     0xc3, 0x6d, 0xf0, 0xc3, 0x8a, 0xf0, 0x79, 0x32,
@@ -462,22 +465,22 @@ static uint8 icom_3812_prom[ICOM_PROM_SIZE] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 };
 
-static uint8 *icom_prom = icom_3812_prom;  /* default is 3812 */
+static uint8_t *icom_prom = icom_3812_prom; /* default is 3812 */
 
 /*
 ** ICOM Registers and Interface Controls
 */
 typedef struct {
-    uint8   status;         /* Status Register */
-    uint8   track;          /* Track Register */
-    uint8   sector;         /* Sector Register */
-    uint8   command;        /* Command Register */
-    uint8   rData;          /* Read Data Register */
-    uint32  rDataBuf;       /* Read buffer index */
-    uint8   wData;          /* Write Data Register */
-    uint32  wDataBuf;       /* Write buffer index */
-    uint8   formatMode;     /* format mode */
-    uint16  bytesPerSec;    /* bytes per sector */
+    uint8_t status;         /* Status Register */
+    uint8_t track;          /* Track Register */
+    uint8_t sector;         /* Sector Register */
+    uint8_t command;        /* Command Register */
+    uint8_t rData;          /* Read Data Register */
+    uint32_t rDataBuf;      /* Read buffer index */
+    uint8_t wData;          /* Write Data Register */
+    uint32_t wDataBuf;      /* Write buffer index */
+    uint8_t formatMode;     /* format mode */
+    uint16_t bytesPerSec;   /* bytes per sector */
 } ICOM_REG;
 
 /* iCOM Registers */
@@ -519,20 +522,20 @@ typedef struct {
 #define ICOM_TYPE_3812       0x01
 
 typedef struct {
-    uint32    mem_base;       /* Memory Base Address                 */
-    uint32    mem_size;       /* Memory Address space requirement    */
-    uint32    io_base;        /* I/O Base Address                    */
-    uint32    io_size;        /* I/O Address Space requirement       */
-    uint32    prom_base;      /* Boot PROM Base Address              */
-    uint32    prom_size;      /* Boot PROM Address space requirement */
-    uint8     promEnabled;    /* PROM is enabled                     */
-    uint8     boardType;      /* Interface Board Type                */
-    uint8     rwsMs;          /* Read/Write Sector ms                */
-    uint8     seekMs;         /* Seek ms                             */
-    uint8     currentDrive;   /* Currently selected drive            */
-    uint8     currentTrack[ICOM_MAX_DRIVES];
-    uint8     mediaDen[ICOM_MAX_DRIVES];
-    uint32    msTime;         /* MS time for BUSY                    */
+    uint32_t  mem_base;       /* Memory Base Address                 */
+    uint32_t  mem_size;       /* Memory Address space requirement    */
+    uint32_t  io_base;        /* I/O Base Address                    */
+    uint32_t  io_size;        /* I/O Address Space requirement       */
+    uint32_t  prom_base;      /* Boot PROM Base Address              */
+    uint32_t  prom_size;      /* Boot PROM Address space requirement */
+    uint8_t   promEnabled;    /* PROM is enabled                     */
+    uint8_t   boardType;      /* Interface Board Type                */
+    uint8_t   rwsMs;          /* Read/Write Sector ms                */
+    uint8_t   seekMs;         /* Seek ms                             */
+    uint8_t   currentDrive;   /* Currently selected drive            */
+    uint8_t   currentTrack[ICOM_MAX_DRIVES];
+    uint8_t   mediaDen[ICOM_MAX_DRIVES];
+    uint32_t  msTime;         /* MS time for BUSY                    */
     ICOM_REG  ICOM;           /* ICOM Registers and Data             */
     UNIT *uptr[ICOM_MAX_DRIVES];
 } ICOM_INFO;
@@ -549,38 +552,38 @@ static ICOM_INFO *icom_info = &icom_info_data;
 */
 #define DATA_MASK ICOM_DD_SECTOR_LEN-1
 
-static uint8 rdata[ICOM_DD_SECTOR_LEN];
-static uint8 wdata[ICOM_DD_SECTOR_LEN];
+static uint8_t rdata[ICOM_DD_SECTOR_LEN];
+static uint8_t wdata[ICOM_DD_SECTOR_LEN];
 
 /* Local function prototypes */
 static t_stat icom_reset(DEVICE *icom_dev);
 static t_stat icom_svc(UNIT *uptr);
 static t_stat icom_attach(UNIT *uptr, const char *cptr);
 static t_stat icom_detach(UNIT *uptr);
-static t_stat icom_boot(int32 unitno, DEVICE *dptr);
-static t_stat icom_set_prom(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat icom_show_prom(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat icom_set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat icom_show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat icom_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat icom_show_type(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static uint32 calculate_icom_sec_offset(ICOM_REG *pICOM, uint8 track, uint8 sector);
-static void icom_set_busy(uint32 msec);
-static int icom_set_crc(uint8 drive);
-static uint8 ICOM_Read(uint32 Addr);
-static uint8 ICOM_Write(uint32 Addr, int32 data);
-static const char * ICOM_CommandString(uint8 command);
-static uint8 ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32 data);
-static uint32 ICOM_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer);
-static uint32 ICOM_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer);
-static uint32 ICOM_FormatTrack(UNIT *uptr, uint8 track, uint8 *buffer);
-static uint8 ICOM_DriveNotReady(UNIT *uptr, ICOM_REG *pICOM);
+static t_stat icom_boot(int32_t unitno, DEVICE *dptr);
+static t_stat icom_set_prom(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat icom_show_prom(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat icom_set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat icom_show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat icom_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat icom_show_type(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static uint32_t calculate_icom_sec_offset(ICOM_REG *pICOM, uint8_t track, uint8_t sector);
+static void icom_set_busy(uint32_t msec);
+static int icom_set_crc(uint8_t drive);
+static uint8_t ICOM_Read(uint32_t Addr);
+static uint8_t ICOM_Write(uint32_t Addr, int32_t data);
+static const char * ICOM_CommandString(uint8_t command);
+static uint8_t ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32_t data);
+static uint32_t ICOM_ReadSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer);
+static uint32_t ICOM_WriteSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer);
+static uint32_t ICOM_FormatTrack(UNIT *uptr, uint8_t track, uint8_t *buffer);
+static uint8_t ICOM_DriveNotReady(UNIT *uptr, ICOM_REG *pICOM);
 static const char* icom_description(DEVICE *dptr);
 static void showReadSec(void);
 static void showWriteSec(void);
-static int32 icomdev(int32 Addr, int32 rw, int32 data);
-static int32 icomprom(int32 Addr, int32 rw, int32 data);
-static int32 icommem(int32 Addr, int32 rw, int32 data);
+static int32_t icomdev(int32_t Addr, int32_t rw, int32_t data);
+static int32_t icomprom(int32_t Addr, int32_t rw, int32_t data);
+static int32_t icommem(int32_t Addr, int32_t rw, int32_t data);
 
 static UNIT icom_unit[ICOM_MAX_DRIVES] = {
     { UDATA (icom_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, ICOM_DD_CAPACITY), 10000 },
@@ -696,7 +699,7 @@ DEVICE icom_dev = {
 /* Reset routine */
 static t_stat icom_reset(DEVICE *dptr)
 {
-    uint8 i;
+    uint8_t i;
 
     if (dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
         sim_map_resource(icom_info->prom_base, icom_info->prom_size, RESOURCE_TYPE_MEMORY, &icomprom, "icomprom", true);
@@ -761,7 +764,7 @@ static t_stat icom_svc(UNIT *uptr)
 static t_stat icom_attach(UNIT *uptr, const char *cptr)
 {
     t_stat r;
-    unsigned int i = 0;
+    uint_t i = 0;
 
     r = attach_unit(uptr, cptr);    /* attach unit  */
     if (r != SCPE_OK) {             /* error?       */
@@ -805,7 +808,7 @@ static t_stat icom_attach(UNIT *uptr, const char *cptr)
 static t_stat icom_detach(UNIT *uptr)
 {
     t_stat r;
-    int8 i;
+    int8_t i;
 
     for (i = 0; i < ICOM_MAX_DRIVES; i++) {
         if (icom_dev.units[i].fileref == uptr->fileref) {
@@ -835,9 +838,9 @@ static t_stat icom_detach(UNIT *uptr)
 /*
 ** If membase is 0, remove from system
 */
-static t_stat icom_set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat icom_set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL) {
@@ -873,7 +876,7 @@ static t_stat icom_set_membase(UNIT *uptr, int32 val, const char *cptr, void *de
 }
 
 /* Show Base Address routine */
-t_stat icom_show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat icom_show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -895,7 +898,7 @@ t_stat icom_show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-static t_stat icom_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat icom_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -921,7 +924,7 @@ static t_stat icom_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat icom_show_type(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat icom_show_type(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -934,7 +937,7 @@ static t_stat icom_show_type(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-static t_stat icom_set_prom(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat icom_set_prom(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -962,7 +965,7 @@ static t_stat icom_set_prom(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat icom_show_prom(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat icom_show_prom(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -975,7 +978,7 @@ static t_stat icom_show_prom(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-static t_stat icom_boot(int32 unitno, DEVICE *dptr)
+static t_stat icom_boot(int32_t unitno, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -983,12 +986,12 @@ static t_stat icom_boot(int32 unitno, DEVICE *dptr)
 
     sim_debug(VERBOSE_MSG, dptr, "Booting using PROM at 0x%04x\n", icom_info->prom_base);
 
-    *((int32 *) sim_PC->loc) = icom_info->prom_base;
+    *((int32_t *) sim_PC->loc) = icom_info->prom_base;
 
     return SCPE_OK;
 }
 
-static void icom_set_busy(uint32 msec)
+static void icom_set_busy(uint32_t msec)
 {
     icom_info->ICOM.status |= ICOM_STAT_BUSY;
 
@@ -1002,9 +1005,9 @@ static void icom_set_busy(uint32 msec)
 }
 
 /* Set CRC flag if trying to read/write wrong density */
-static int icom_set_crc(uint8 drive)
+static int icom_set_crc(uint8_t drive)
 {
-    uint8 track;
+    uint8_t track;
 
     track = icom_info->currentTrack[drive];
 
@@ -1029,7 +1032,7 @@ static int icom_set_crc(uint8 drive)
     return (icom_info->ICOM.status & ICOM_STAT_CRC);
 }
 
-static int32 icomdev(int32 Addr, int32 rw, int32 data)
+static int32_t icomdev(int32_t Addr, int32_t rw, int32_t data)
 {
     if (rw == 0) {
         return(ICOM_Read(Addr));
@@ -1078,10 +1081,10 @@ static void showWriteSec(void)
     }
 }
 
-static uint32 calculate_icom_sec_offset(ICOM_REG *pICOM, uint8 track, uint8 sector)
+static uint32_t calculate_icom_sec_offset(ICOM_REG *pICOM, uint8_t track, uint8_t sector)
 {
-    uint32 offset;
-    uint16 bps;
+    uint32_t offset;
+    uint16_t bps;
 
     bps = pICOM->bytesPerSec;
 
@@ -1106,10 +1109,10 @@ static uint32 calculate_icom_sec_offset(ICOM_REG *pICOM, uint8 track, uint8 sect
     return (offset);
 }
 
-static uint8 ICOM_Read(uint32 Addr)
+static uint8_t ICOM_Read(uint32_t Addr)
 {
-    uint8 cData;
-    uint8 driveNum;
+    uint8_t cData;
+    uint8_t driveNum;
     ICOM_REG *pICOM;
     UNIT *uptr;
 
@@ -1142,10 +1145,10 @@ static uint8 ICOM_Read(uint32 Addr)
     return (cData);
 }
 
-static uint8 ICOM_Write(uint32 Addr, int32 Data)
+static uint8_t ICOM_Write(uint32_t Addr, int32_t Data)
 {
-    uint8 cData;
-    uint8 driveNum;
+    uint8_t cData;
+    uint8_t driveNum;
     UNIT *uptr;
     ICOM_REG *pICOM;
 
@@ -1176,10 +1179,10 @@ static uint8 ICOM_Write(uint32 Addr, int32 Data)
     return(cData);
 }
 
-static uint32 ICOM_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer)
+static uint32_t ICOM_ReadSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer)
 {
-    uint32 sec_offset;
-    uint32 rtn = 0;
+    uint32_t sec_offset;
+    uint32_t rtn = 0;
     ICOM_REG *pICOM;
 
     pICOM = &icom_info->ICOM;
@@ -1206,10 +1209,10 @@ static uint32 ICOM_ReadSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buff
 }
 
 
-static uint32 ICOM_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buffer)
+static uint32_t ICOM_WriteSector(UNIT *uptr, uint8_t track, uint8_t sector, uint8_t *buffer)
 {
-    uint32 sec_offset;
-    uint32 rtn = 0;
+    uint32_t sec_offset;
+    uint32_t rtn = 0;
     ICOM_REG *pICOM;
 
     pICOM = &icom_info->ICOM;
@@ -1235,10 +1238,10 @@ static uint32 ICOM_WriteSector(UNIT *uptr, uint8 track, uint8 sector, uint8 *buf
     return rtn;
 }
 
-static uint32 ICOM_FormatTrack(UNIT *uptr, uint8 track, uint8 *buffer)
+static uint32_t ICOM_FormatTrack(UNIT *uptr, uint8_t track, uint8_t *buffer)
 {
-    uint8 sector;
-    uint32 rtn;
+    uint8_t sector;
+    uint32_t rtn;
 
     for (sector = 1; sector <= ICOM_SPT; sector++) {
         rtn = ICOM_WriteSector(uptr, track, sector, buffer);
@@ -1251,7 +1254,7 @@ static uint32 ICOM_FormatTrack(UNIT *uptr, uint8 track, uint8 *buffer)
     return rtn;
 }
 
-static uint8 ICOM_DriveNotReady(UNIT *uptr, ICOM_REG *pICOM)
+static uint8_t ICOM_DriveNotReady(UNIT *uptr, ICOM_REG *pICOM)
 {
     pICOM->status &= ~ICOM_STAT_DRVFAIL;
 
@@ -1263,7 +1266,7 @@ static uint8 ICOM_DriveNotReady(UNIT *uptr, ICOM_REG *pICOM)
     return (pICOM->status & ICOM_STAT_DRVFAIL);
 }
 
-static const char * ICOM_CommandString(uint8 command)
+static const char * ICOM_CommandString(uint8_t command)
 {
     switch (command) {
         case ICOM_CMD_STATUS:
@@ -1321,11 +1324,11 @@ static const char * ICOM_CommandString(uint8 command)
     return "UNRECOGNIZED COMMAND";
 }
 
-static uint8 ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32 Data)
+static uint8_t ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32_t Data)
 {
-    uint8 cData;
-    uint8 newTrack;
-    int32 rtn;
+    uint8_t cData;
+    uint8_t newTrack;
+    int32_t rtn;
 
     cData = 0;
 
@@ -1414,7 +1417,7 @@ static uint8 ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32 Data)
                 break;
             }
 
-            icom_set_busy(icom_info->seekMs * abs((int8) pICOM->track - (int8) icom_info->currentTrack[icom_info->currentDrive]));
+            icom_set_busy(icom_info->seekMs * abs((int8_t) pICOM->track - (int8_t) icom_info->currentTrack[icom_info->currentDrive]));
             icom_info->currentTrack[icom_info->currentDrive] = pICOM->track;
 
             break;
@@ -1430,7 +1433,7 @@ static uint8 ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32 Data)
             }
 
             pICOM->track = 0;
-            icom_set_busy(icom_info->seekMs * abs((int8) pICOM->track - (int8) icom_info->currentTrack[icom_info->currentDrive]));
+            icom_set_busy(icom_info->seekMs * abs((int8_t) pICOM->track - (int8_t) icom_info->currentTrack[icom_info->currentDrive]));
             icom_info->currentTrack[icom_info->currentDrive] = 0;
 
             break;
@@ -1512,7 +1515,7 @@ static uint8 ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32 Data)
     return(cData);
 }
 
-static int32 icomprom(int32 Addr, int32 rw, int32 Data)
+static int32_t icomprom(int32_t Addr, int32_t rw, int32_t Data)
 {
     /* Memory resource handler signature.
        This implementation does not use every parameter. */
@@ -1530,7 +1533,7 @@ static int32 icomprom(int32 Addr, int32 rw, int32 Data)
     return 0xff;
 }
 
-static int32 icommem(int32 Addr, int32 rw, int32 Data)
+static int32_t icommem(int32_t Addr, int32_t rw, int32_t Data)
 {
     if (rw) {
        icom_mem[Addr & ICOM_MEM_MASK] = Data & 0xff;

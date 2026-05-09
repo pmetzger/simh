@@ -24,6 +24,8 @@
    in this Software without prior written authorization from Charles E. Owen.
 */
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Simulator stop codes */
@@ -65,18 +67,18 @@
 */
 
 struct ndev {
-    int32   level;                                      /* interrupt level */
-    int32   pri;                                        /* Device priority */
-    int32   (*routine)(int32, int32, int32, int32);     /* dispatch routine */
+    int32_t level;                                      /* interrupt level */
+    int32_t pri;                                        /* Device priority */
+    int32_t (*routine)(int32_t, int32_t, int32_t, int32_t); /* dispatch routine */
 };
 
 /* Structure to define operation codes */
 
 struct opdef {
     const char op[6];                                   /* Mnemonic for op */
-    int32   opmask;                                     /* Bits set on in opcode */
-    int32   q;                                          /* Qbyte */
-    int32   form;                                       /* Forms are:
+    int32_t opmask;                                     /* Bits set on in opcode */
+    int32_t q;                                          /* Qbyte */
+    int32_t form;                                       /* Forms are:
                                                            0 - 1-byte hex operand
                                                            1 - 1-byte register addr, A-Addr
                                                            2 - A-addr,B-addr,Qbyte
@@ -86,7 +88,7 @@ struct opdef {
                                                            6 - da,m,n,A-addr
                                                            7 - 1-address implict Q
                                                            8 - 2-address implict Q */
-    int32   group;                                      /* Group Code:
+    int32_t group;                                      /* Group Code:
                                                            0 - Command Format (0xFx)
                                                            1 - 1-address A (0x<C,D,E>x)
                                                            2 - 2-address (0x<0,1,2,4,5,6,8,9,A>x)
@@ -95,8 +97,8 @@ struct opdef {
 
 /* Function prototypes */
 
-int32 crd (int32 op, int32 m, int32 n, int32 data);
-int32 pkb (int32 op, int32 m, int32 n, int32 data);
-int32 lpt (int32 op, int32 m, int32 n, int32 data);
-int32 dsk1 (int32 op, int32 m, int32 n, int32 data);
-int32 dsk2 (int32 op, int32 m, int32 n, int32 data);
+int32_t crd (int32_t op, int32_t m, int32_t n, int32_t data);
+int32_t pkb (int32_t op, int32_t m, int32_t n, int32_t data);
+int32_t lpt (int32_t op, int32_t m, int32_t n, int32_t data);
+int32_t dsk1 (int32_t op, int32_t m, int32_t n, int32_t data);
+int32_t dsk2 (int32_t op, int32_t m, int32_t n, int32_t data);

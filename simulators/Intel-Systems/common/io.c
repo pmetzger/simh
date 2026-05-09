@@ -34,6 +34,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "system_defs.h"
 
 #if defined (IO_NUM) && (IO_NUM > 0)
@@ -101,26 +103,26 @@
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint8, uint8);
+extern uint8_t reg_dev(uint8_t (*routine)(bool, uint8_t, uint8_t), uint8_t, uint8_t);
 
 /* globals */
 
-uint8   status = 0;
-uint8   command = 0;
+uint8_t status = 0;
+uint8_t command = 0;
 
 /* function prototypes */
 
-t_stat IO_cfg(uint8 base, uint8 devnum);
+t_stat IO_cfg(uint8_t base, uint8_t devnum);
 t_stat IO_svc (UNIT *uptr);
 t_stat IO_reset (DEVICE *dptr);
 t_stat IO_attach (UNIT *uptr, const char *cptr);
 t_stat PTR_reset(DEVICE *dptr);
 t_stat PTR_attach (UNIT *uptr, const char *cptr);
-uint8 IO_is(bool io, uint8 data, uint8 devnum);
-uint8 IO_id(bool io, uint8 data, uint8 devnum);
-uint8 IO_oc(bool io, uint8 data, uint8 devnum);
-uint8 IO_od(bool io, uint8 data, uint8 devnum);
-void IO_reset_dev(uint8 devnum);
+uint8_t IO_is(bool io, uint8_t data, uint8_t devnum);
+uint8_t IO_id(bool io, uint8_t data, uint8_t devnum);
+uint8_t IO_oc(bool io, uint8_t data, uint8_t devnum);
+uint8_t IO_od(bool io, uint8_t data, uint8_t devnum);
+void IO_reset_dev(uint8_t devnum);
 
 /* imm-60 Standard I/O Data Structures */
 
@@ -249,7 +251,7 @@ DEVICE PTR_dev = {
 
 // imm-60 configuration
 
-t_stat IO_cfg(uint8 base, uint8 devnum)
+t_stat IO_cfg(uint8_t base, uint8_t devnum)
 {
     sim_printf("    io[%d]: at base port 0%02XH\n",
         devnum, base & 0xFF);
@@ -266,7 +268,7 @@ t_stat IO_cfg(uint8 base, uint8 devnum)
 
 t_stat IO_svc (UNIT *uptr)
 {
-    int32 temp;
+    int32_t temp;
 
     sim_activate (uptr, uptr->wait); /* continue poll */
     if ((temp = sim_poll_kbd ()) < SCPE_KFLAG) {
@@ -285,7 +287,7 @@ t_stat IO_svc (UNIT *uptr)
 
 t_stat IO_reset (DEVICE *dptr)
 {
-    uint8 devnum;
+    uint8_t devnum;
 
     for (devnum=0; devnum < IO_NUM; devnum++) {
         IO_reset_dev(devnum);
@@ -294,7 +296,7 @@ t_stat IO_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-void IO_reset_dev(uint8 devnum)
+void IO_reset_dev(uint8_t devnum)
 {
     status = TTYDA | PTRDA | DSB;         /* set data not avail status */
     IO_unit[devnum].u4 = 0;
@@ -337,7 +339,7 @@ t_stat PTR_attach (UNIT *uptr, const char *cptr)
 
 // status/command
 
-uint8 IO_is(bool io, uint8 data, uint8 devnum)
+uint8_t IO_is(bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                  /* read status port - works*/
         return status;
@@ -353,7 +355,7 @@ uint8 IO_is(bool io, uint8 data, uint8 devnum)
 
 // TTY in/out
 
-uint8 IO_id(bool io, uint8 data, uint8 devnum)
+uint8_t IO_id(bool io, uint8_t data, uint8_t devnum)
 {
     char val;
 
@@ -375,7 +377,7 @@ uint8 IO_id(bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 IO_oc(bool io, uint8 data, uint8 devnum)
+uint8_t IO_oc(bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                  /* read status port */
         data = data;
@@ -386,7 +388,7 @@ uint8 IO_oc(bool io, uint8 data, uint8 devnum)
 }
 
 // TTY RDR in/PCH out
-uint8 IO_od(bool io, uint8 data, uint8 devnum)
+uint8_t IO_od(bool io, uint8_t data, uint8_t devnum)
 {
     char val;
 

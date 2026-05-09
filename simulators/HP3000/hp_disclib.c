@@ -375,6 +375,7 @@
 
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "hp3000_defs.h"                        /* this must reflect the machine used */
 #include "hp_disclib.h"
@@ -738,12 +739,12 @@ static const BITSET_FORMAT offset_format =      /* names, offset, direction, alt
 
 typedef struct {
     const char  *name;                          /* drive name */
-    uint32      sectors;                        /* sectors per head */
-    uint32      heads;                          /* heads per cylinder*/
-    uint32      cylinders;                      /* cylinders per drive */
-    uint32      words;                          /* words per drive */
-    uint32      remov_heads;                    /* number of removable-platter heads */
-    uint32      fixed_heads;                    /* number of fixed-platter heads */
+    uint32_t    sectors;                        /* sectors per head */
+    uint32_t    heads;                          /* heads per cylinder*/
+    uint32_t    cylinders;                      /* cylinders per drive */
+    uint32_t    words;                          /* words per drive */
+    uint32_t    remov_heads;                    /* number of removable-platter heads */
+    uint32_t    fixed_heads;                    /* number of fixed-platter heads */
     } DRIVE_PROPS;
 
 static const DRIVE_PROPS drive_props [] = {     /* indexed by DRIVE_TYPE */
@@ -795,7 +796,7 @@ static const DELAY_PROPS real_times [] = {
 */
 
 #define CURRENT_SECTOR(cvptr,uptr) \
-            (uint32) fmod (sim_gtime () / cvptr->dlyptr->sector_full, \
+            (uint32_t) fmod (sim_gtime () / cvptr->dlyptr->sector_full, \
                            drive_props [GET_MODEL (uptr->flags)].sectors)
 
 
@@ -816,7 +817,7 @@ static const DELAY_PROPS real_times [] = {
 */
 
 typedef struct {
-    uint32       param_count;                   /* count of input or output parameters */
+    uint32_t     param_count;                   /* count of input or output parameters */
     CNTLR_CLASS  classification;                /* command classification */
     bool         valid [CNTLR_COUNT];           /* command validity, indexed by CNTLR_TYPE */
     bool         clear_status;                  /* command clears the controller status */
@@ -826,9 +827,9 @@ typedef struct {
     bool         seek_wait;                     /* command waits for seek completion */
     bool         verify_address;                /* command does address verification */
     bool         idle_at_end;                   /* command idles the controller at completion */
-    uint32       preamble_size;                 /* size of preamble in words */
-    uint32       transfer_size;                 /* size of data transfer in words */
-    uint32       postamble_size;                /* size of postamble in words */
+    uint32_t     preamble_size;                 /* size of preamble in words */
+    uint32_t     transfer_size;                 /* size of data transfer in words */
+    uint32_t     postamble_size;                /* size of postamble in words */
     } COMMAND_PROPERTIES;
 
 typedef const COMMAND_PROPERTIES *PRPTR;
@@ -1289,12 +1290,12 @@ static void   idle_controller  (CVPTR cvptr);
 
 /* Disc library local utility routines */
 
-static void    set_address   (CVPTR cvptr, uint32    index);
+static void    set_address   (CVPTR cvptr, uint32_t  index);
 static void    wait_timer    (CVPTR cvptr, FLIP_FLOP action);
 static HP_WORD drive_status  (UNIT  *uptr);
 static t_stat  activate_unit (CVPTR cvptr, UNIT *uptr);
 static void    set_rotation  (CVPTR cvptr, UNIT *uptr);
-static void    set_file_pos  (CVPTR cvptr, UNIT *uptr, uint32 model);
+static void    set_file_pos  (CVPTR cvptr, UNIT *uptr, uint32_t model);
 
 
 
@@ -1546,8 +1547,8 @@ static CNTLR_IFN_IBUS start_command (CVPTR cvptr, CNTLR_FLAG_SET inbound_flags, 
 (void) inbound_flags;
 
 UNIT *cuptr, *duptr, *rptr;
-uint32 unit;
-int32 seek_wait_time;
+uint32_t unit;
+int32_t seek_wait_time;
 PRPTR props;
 CNTLR_IFN_IBUS outbound;
 DIAG_ENTRY *dop = NULL;
@@ -2062,11 +2063,11 @@ CNTLR_OPCODE opcode;
 CNTLR_PHASE phase;
 CNTLR_IFN_IBUS outbound;
 bool controller_service, controller_was_busy;
-int32 unit;
-uint32 sector_count;
+int32_t unit;
+uint32_t sector_count;
 
 if (service_entry) {                                    /* if this is an event service entry */
-    unit = (int32) (uptr - cvptr->device->units);       /*   then get the unit number */
+    unit = (int32_t) (uptr - cvptr->device->units);     /*   then get the unit number */
 
     controller_service = (uptr == CNTLR_UPTR            /* set true if the controller is being serviced */
                             && cvptr->type == MAC);
@@ -2476,7 +2477,7 @@ return outbound;                                        /* return the data word 
 
 static CNTLR_IFN_IBUS poll_drives (CVPTR cvptr)
 {
-uint32  unit;
+uint32_t unit;
 UNIT   *units = cvptr->device->units;
 
 dpprintf (cvptr->device, DL_DEB_INCO, "Controller polled drives for attention\n");
@@ -2611,7 +2612,7 @@ return NO_ACTION;                                       /* no drives have attent
 
 static void clear_controller (CVPTR cvptr, CNTLR_CLEAR clear_type)
 {
-uint32  unit_count;
+uint32_t unit_count;
 UNIT   *uptr;
 
 if (clear_type == Timeout_Clear) {                      /* if this is a timeout clear */
@@ -2844,7 +2845,7 @@ return SCPE_OK;                                         /* return normal complet
        ensure that both protect bits are set so that all heads are protected.
 */
 
-t_stat dl_set_model (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat dl_set_model (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -2890,13 +2891,13 @@ return SCPE_OK;
    PROTECT, then both upper and lower heads are (un)protected.
 */
 
-t_stat dl_set_protect (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat dl_set_protect (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) desc;
 
-const uint32 model = uptr->flags & UNIT_MODEL;
+const uint32_t model = uptr->flags & UNIT_MODEL;
 char gbuf [CBUFSIZE];
 
 if (cptr == NULL)                                       /* if there are no arguments */
@@ -2947,14 +2948,14 @@ return SCPE_OK;
    bits set, indicating that the entire drive is protected.
 */
 
-t_stat dl_show_protect (FILE *st, UNIT *uptr, int32 value, const void *desc)
+t_stat dl_show_protect (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) value;
 (void) desc;
 
-const uint32 model = uptr->flags & UNIT_MODEL;
+const uint32_t model = uptr->flags & UNIT_MODEL;
 
 if ((uptr->flags & UNIT_PROT) == 0)                     /* if the protection flags are clear */
     fputs ("unprotected", st);                          /*   then report the disc as unprotected */
@@ -3041,7 +3042,7 @@ return SCPE_OK;
        number of configurable entries is one less than the defined table size.
 */
 
-t_stat dl_set_diag (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat dl_set_diag (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3049,7 +3050,7 @@ t_stat dl_set_diag (UNIT *uptr, int32 value, const char *cptr, void *desc)
 
 typedef struct {
     t_value  max;                               /* maximum allowed value */
-    uint32   radix;                             /* numeric parsing radix */
+    uint32_t radix;                             /* numeric parsing radix */
     } PARSER_PROP;
 
 static const PARSER_PROP param [] = {
@@ -3069,7 +3070,7 @@ static const PARSER_PROP param [] = {
 
 const CVPTR cvptr = (CVPTR) desc;
 DIAG_ENTRY *entry;
-uint32 pidx, params [10];
+uint32_t pidx, params [10];
 t_stat status;
 char gbuf [CBUFSIZE];
 
@@ -3135,13 +3136,13 @@ else {                                                  /* otherwise at least on
                 if (gbuf [0] == '-') {                  /* if the argument is negative */
                     gbuf [0] = ' ';                     /*   then clear the sign */
                     params [pidx] =                     /*     and negate the resulting value */
-                      (uint32) NEG16 (get_uint (gbuf, param [pidx].radix,
+                      (uint32_t) NEG16 (get_uint (gbuf, param [pidx].radix,
                                                 param [pidx].max, &status));
                     }
 
                 else                                    /* otherwise the argument is unsigned */
                     params [pidx] =                     /*   so use the value as is */
-                      (uint32) get_uint (gbuf, param [pidx].radix,
+                      (uint32_t) get_uint (gbuf, param [pidx].radix,
                                          param [pidx].max, &status);
                 }
 
@@ -3223,7 +3224,7 @@ return SCPE_OK;
        pointer instead.
 */
 
-t_stat dl_show_diag (FILE *st, UNIT *uptr, int32 value, const void *desc)
+t_stat dl_show_diag (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -3297,7 +3298,7 @@ return SCPE_OK;
    is common to every controller in the array.
 */
 
-t_stat dl_set_timing (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat dl_set_timing (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3306,7 +3307,7 @@ t_stat dl_set_timing (UNIT *uptr, int32 value, const char *cptr, void *desc)
 CVPTR  cvptr = (CVPTR) desc;                            /* the controller pointer is supplied */
 const  DELAY_PROPS *dpptr;
 DRIVE_TYPE model;
-uint32 delay, cntlr_count;
+uint32_t delay, cntlr_count;
 
 if (cvptr->type == MAC)                                 /* if this is a MAC controller */
     cntlr_count = 1;                                    /*   then there is one controller for all units */
@@ -3361,7 +3362,7 @@ return SCPE_OK;
        pointer instead.
 */
 
-t_stat dl_show_timing (FILE *st, UNIT *uptr, int32 value, const void *desc)
+t_stat dl_show_timing (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -3533,7 +3534,7 @@ return;
 
 static bool start_read (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags)
 {
-uint32 count, offset;
+uint32_t count, offset;
 const CNTLR_OPCODE opcode = (CNTLR_OPCODE) uptr->OPCODE;
 
 if (flags & EOD) {                                      /* if the end of data is indicated */
@@ -3558,7 +3559,7 @@ if (position_sector (cvptr, uptr) == false)             /* position the sector; 
     return false;                                       /*   then a seek is in progress or an error occurred */
 
 dpprintf (cvptr->device, DL_DEB_INCO, "Unit %d %s from cylinder %u head %u sector %u\n",
-          (int32) (uptr - cvptr->device->units), opcode_name [opcode],
+          (int32_t) (uptr - cvptr->device->units), opcode_name [opcode],
           uptr->CYL, cvptr->head, cvptr->sector);
 
 count = sim_fread (cvptr->buffer + offset,              /* read the sector from the image */
@@ -3636,7 +3637,7 @@ return true;                                            /* the read was successf
 
 static void end_read (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags)
 {
-uint32 bound;
+uint32_t bound;
 
 if (cvptr->status != Normal_Completion)                 /* if a diagnostic override is present */
     end_command (cvptr, uptr, cvptr->status);           /*   then report the indicated status */
@@ -3729,7 +3730,7 @@ else if (position_sector (cvptr, uptr) == true) {       /* otherwise if position
     cvptr->index = 0;                                   /*     and reset the data index */
 
     dpprintf (cvptr->device, DL_DEB_INCO, "Unit %d %s to cylinder %u head %u sector %u\n",
-              (int32) (uptr - cvptr->device->units), opcode_name [opcode],
+              (int32_t) (uptr - cvptr->device->units), opcode_name [opcode],
               uptr->CYL, cvptr->head, cvptr->sector);
 
     return true;                                        /* the write was successfully started */
@@ -3778,10 +3779,10 @@ return false;                                           /* otherwise an error oc
 
 static void end_write (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags)
 {
-uint32 count;
+uint32_t count;
 DL_BUFFER pad;
 const CNTLR_OPCODE opcode = (CNTLR_OPCODE) uptr->OPCODE;
-const uint32 offset = (opcode == Write_Full_Sector ? 3 : 0);
+const uint32_t offset = (opcode == Write_Full_Sector ? 3 : 0);
 
 if (uptr->flags & UNIT_UNLOAD) {                        /* if the drive is not ready */
     end_command (cvptr, uptr, Access_Not_Ready);        /*   then terminate the command */
@@ -3901,7 +3902,7 @@ else if (cvptr->eoc == SET)                                     /* otherwise if 
         start_seek (cvptr, uptr);                               /* start the auto-seek */
 
         dpprintf (cvptr->device, DL_DEB_INCO, "Unit %d %s%s autoseek to cylinder %u head %u sector %u\n",
-                  (int32) (uptr - cvptr->device->units), opcode_name [uptr->OPCODE],
+                  (int32_t) (uptr - cvptr->device->units), opcode_name [uptr->OPCODE],
                   (uptr->STATUS & S2_SEEK_CHECK ? " seek check on" : ""),
                   cvptr->cylinder, cvptr->head, cvptr->sector);
 
@@ -3916,11 +3917,11 @@ else if (cvptr->eoc == SET)                                     /* otherwise if 
         end_command (cvptr, uptr, End_of_Cylinder);         /*   so terminate with an EOC error */
 
 else if (cvptr->verify                                      /* if address verification is enabled */
-  && (uint32) uptr->CYL != cvptr->cylinder) {               /*   and the positioner is on the wrong cylinder */
+  && (uint32_t) uptr->CYL != cvptr->cylinder) {             /*   and the positioner is on the wrong cylinder */
     start_seek (cvptr, uptr);                               /*     then start a seek to the correct cylinder */
 
     dpprintf (cvptr->device, DL_DEB_INCO, "Unit %d %s%s reseek to cylinder %u head %u sector %u\n",
-              (int32) (uptr - cvptr->device->units), opcode_name [uptr->OPCODE],
+              (int32_t) (uptr - cvptr->device->units), opcode_name [uptr->OPCODE],
               (uptr->STATUS & S2_SEEK_CHECK ? " seek check on" : ""),
               cvptr->cylinder, cvptr->head, cvptr->sector);
 
@@ -3928,7 +3929,7 @@ else if (cvptr->verify                                      /* if address verifi
         end_command (cvptr, uptr, Status_2_Error);          /*   then report a Status-2 error */
     }
 
-else if (((uint32) uptr->CYL >= drive_props [model].cylinders)  /* otherwise the heads are positioned correctly */
+else if (((uint32_t) uptr->CYL >= drive_props [model].cylinders) /* otherwise the heads are positioned correctly */
   || (cvptr->head >= drive_props [model].heads)                 /*   but if the cylinder */
   || (cvptr->sector >= drive_props [model].sectors)) {          /*     or head or sector is out of bounds */
     uptr->STATUS |= S2_SEEK_CHECK;                              /*       then set Seek Check status */
@@ -4074,8 +4075,8 @@ return;                                                 /*   to indicate that an
 
 static bool start_seek (CVPTR cvptr, UNIT *uptr)
 {
-int32 delta;
-uint32 target_cylinder;
+int32_t delta;
+uint32_t target_cylinder;
 const DRIVE_TYPE model = GET_MODEL (uptr->flags);       /* get the drive model */
 
 if (uptr->flags & UNIT_UNLOAD)                          /* if the heads are unloaded */
@@ -4100,7 +4101,7 @@ if (target_cylinder >= drive_props [model].cylinders) { /* if the cylinder is ou
     }
 
 else {                                                  /* otherwise the cylinder value is OK */
-    delta = abs (uptr->CYL - (int32) target_cylinder);  /* calculate the relative movement */
+    delta = abs (uptr->CYL - (int32_t) target_cylinder); /* calculate the relative movement */
     uptr->CYL = target_cylinder;                        /*   and move the positioner */
 
     if (cvptr->head >= drive_props [model].heads        /* if the head */
@@ -4192,7 +4193,7 @@ return;
        mask.
 */
 
-static void set_address (CVPTR cvptr, uint32 index)
+static void set_address (CVPTR cvptr, uint32_t index)
 {
 cvptr->buffer [index] =                                 /* update the cylinder if EOC is set */
   (DL_BUFFER) cvptr->cylinder + (cvptr->eoc == SET ? 1 : 0);
@@ -4280,7 +4281,7 @@ return status;                                          /* return the unit statu
 static t_stat activate_unit (CVPTR cvptr, UNIT *uptr)
 {
 t_stat result;
-const int32 unit = (int32) (uptr - cvptr->device->units);   /* the unit number */
+const int32_t unit = (int32_t) (uptr - cvptr->device->units); /* the unit number */
 
 dpprintf (cvptr->device, DL_DEB_SERV, (unit == CNTLR_UNIT
                                          ? "Controller unit%.0d %s %s phase delay %d service scheduled\n"
@@ -4319,7 +4320,7 @@ return result;                                          /* return the activation
 
 static void set_rotation (CVPTR cvptr, UNIT *uptr)
 {
-uint32 sectors_per_track;
+uint32_t sectors_per_track;
 double distance;
 
 uptr->PHASE = Rotate_Phase;                             /* set the phase */
@@ -4332,7 +4333,7 @@ if (cvptr->device->flags & DEV_REALTIME) {              /* if the mode is real t
       fmod (sectors_per_track + cvptr->sector - CURRENT_SECTOR (cvptr, uptr),
             sectors_per_track);
 
-    uptr->wait = (int32) (cvptr->dlyptr->sector_full * distance);
+    uptr->wait = (int32_t) (cvptr->dlyptr->sector_full * distance);
     }
 
 else                                                    /* otherwise the mode is fast time */
@@ -4360,9 +4361,9 @@ else                                                    /* otherwise the mode is
      (target_track * sectors_per_track + sector) * bytes_per_sector
 */
 
-static void set_file_pos (CVPTR cvptr, UNIT *uptr, uint32 model)
+static void set_file_pos (CVPTR cvptr, UNIT *uptr, uint32_t model)
 {
-uint32 track;
+uint32_t track;
 
 if (cvptr->head < drive_props [model].remov_heads)              /* if the head is on a removable platter */
     track = uptr->CYL * drive_props [model].remov_heads         /*   then the tracks in the file are contiguous */

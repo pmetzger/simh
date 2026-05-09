@@ -22,6 +22,8 @@
 */
 
 
+#include <stdint.h>
+
 /* Flags in the unit flags word */
 
 #define UNIT_V_FMT      (UNIT_V_UF + 7)
@@ -67,12 +69,12 @@
 t_stat disk_read(UNIT *uptr, uint64 *buffer, int sector, int wps);
 t_stat disk_write(UNIT *uptr, uint64 *buffer, int sector, int wps);
 /* Set disk format */
-t_stat disk_set_fmt (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat disk_set_fmt (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 /* Show disk format */
-t_stat disk_show_fmt (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat disk_show_fmt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 /* Device attach */
 t_stat disk_attach (UNIT *uptr, const char *cptr);
 /* Device detach */
 t_stat disk_detach (UNIT *uptr);
 /* Print attach help */
-t_stat disk_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat disk_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);

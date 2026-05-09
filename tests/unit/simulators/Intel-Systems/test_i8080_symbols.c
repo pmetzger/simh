@@ -34,7 +34,7 @@ REG *sim_PC = NULL;
 DEVICE *sim_devices[] = {NULL};
 char sim_name[] = "Intel-MDS";
 const char *sim_stop_messages[SCPE_BASE];
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 static UNIT symbol_unit;
 
@@ -198,7 +198,7 @@ static void assert_parse_sym_rejects_all(const char *const *inputs,
  */
 static void test_opcode_table_has_expected_instruction_lengths(void **state)
 {
-    static const uint8 expected_lengths[256] = {
+    static const uint8_t expected_lengths[256] = {
         1, 3, 1, 1, 1, 1, 2, 1, 0, 1, 1, 1, 1, 1, 2, 1,
         0, 3, 1, 1, 1, 1, 2, 1, 0, 1, 1, 1, 1, 1, 2, 1,
         1, 3, 3, 1, 1, 1, 2, 1, 0, 1, 3, 1, 1, 1, 2, 1,
@@ -222,7 +222,7 @@ static void test_opcode_table_has_expected_instruction_lengths(void **state)
 
     for (op = 0; op < sizeof(expected_lengths) / sizeof(*expected_lengths);
          op++)
-        assert_int_equal(i8080_symbol_instruction_length((uint8)op),
+        assert_int_equal(i8080_symbol_instruction_length((uint8_t)op),
                          expected_lengths[op]);
 }
 
@@ -974,7 +974,7 @@ static void test_parse_sym_accepts_all_fprint_sym_outputs(void **state)
     for (op = 0; op < 256; op++) {
         size_t pattern;
 
-        if (i8080_symbol_instruction_length((uint8)op) == 0)
+        if (i8080_symbol_instruction_length((uint8_t)op) == 0)
             continue;
 
         for (pattern = 0; pattern < sizeof(patterns) / sizeof(*patterns);
@@ -993,9 +993,9 @@ static void test_parse_sym_accepts_all_fprint_sym_outputs(void **state)
                                        SWMASK('M')),
                              expected_status);
             assert_int_equal(output[0], input[0]);
-            if (i8080_symbol_instruction_length((uint8)op) > 1)
+            if (i8080_symbol_instruction_length((uint8_t)op) > 1)
                 assert_int_equal(output[1], input[1]);
-            if (i8080_symbol_instruction_length((uint8)op) > 2)
+            if (i8080_symbol_instruction_length((uint8_t)op) > 2)
                 assert_int_equal(output[2], input[2]);
             free(symbol);
         }

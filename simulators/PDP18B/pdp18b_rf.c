@@ -62,6 +62,7 @@
 
 #include "pdp18b_defs.h"
 #include <math.h>
+#include <stdint.h>
 
 #define UNIT_V_AUTO     (UNIT_V_UF + 0)                 /* autosize */
 #define UNIT_V_PLAT     (UNIT_V_UF + 1)                 /* #platters - 1 */
@@ -112,27 +113,27 @@
                         ((double) RF_NUMWD)))
 #define RF_BUSY         (sim_is_active (&rf_unit))
 
-extern int32 *M;
-extern int32 int_hwre[API_HLVL+1];
-extern int32 api_vec[API_HLVL][32];
+extern int32_t *M;
+extern int32_t int_hwre[API_HLVL+1];
+extern int32_t api_vec[API_HLVL][32];
 extern UNIT cpu_unit;
 
-int32 rf_sta = 0;                                       /* status register */
-int32 rf_da = 0;                                        /* disk address */
-int32 rf_dbuf = 0;                                      /* data buffer */
-int32 rf_wlk[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };           /* write lock */
-int32 rf_time = 10;                                     /* inter-word time */
-int32 rf_burst = 1;                                     /* burst mode flag */
-int32 rf_stopioe = 1;                                   /* stop on error */
+int32_t rf_sta = 0;                                     /* status register */
+int32_t rf_da = 0;                                      /* disk address */
+int32_t rf_dbuf = 0;                                    /* data buffer */
+int32_t rf_wlk[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };         /* write lock */
+int32_t rf_time = 10;                                   /* inter-word time */
+int32_t rf_burst = 1;                                   /* burst mode flag */
+int32_t rf_stopioe = 1;                                 /* stop on error */
 
-int32 rf70 (int32 dev, int32 pulse, int32 dat);
-int32 rf72 (int32 dev, int32 pulse, int32 dat);
-int32 rf_iors (void);
+int32_t rf70 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t rf72 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t rf_iors (void);
 t_stat rf_svc (UNIT *uptr);
 t_stat rf_reset (DEVICE *dptr);
-int32 rf_updsta (int32 newst);
+int32_t rf_updsta (int32_t newst);
 t_stat rf_attach (UNIT *uptr, const char *cptr);
-t_stat rf_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat rf_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* RF data structures
 
@@ -189,13 +190,13 @@ DEVICE rf_dev = {
 
 /* IOT routines */
 
-int32 rf70 (int32 dev, int32 pulse, int32 dat)
+int32_t rf70 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 t, sb;
+int32_t t, sb;
 
 sb = pulse & 060;                                       /* subopcode */
 if (pulse & 01) {
@@ -239,7 +240,7 @@ if (pulse & 04) {
         }
     else if (sb == 060) {                               /* DLAH */
         rf_da = (rf_da & DMASK) | ((dat & 07) << 18);
-        if ((uint32) rf_da >= rf_unit.capac)            /* for sizing */
+        if ((uint32_t) rf_da >= rf_unit.capac)          /* for sizing */
             rf_updsta (RFS_NED);
         }
     }
@@ -247,13 +248,13 @@ rf_updsta (0);                                          /* update status */
 return dat;
 }
 
-int32 rf72 (int32 dev, int32 pulse, int32 dat)
+int32_t rf72 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 sb = pulse & 060;
+int32_t sb = pulse & 060;
 
 if (pulse & 02) {
     if (sb == 000)                                      /* DLOK */
@@ -278,9 +279,9 @@ return dat;
 
 t_stat rf_svc (UNIT *uptr)
 {
-int32 f, pa, d, t;
-int32 wc = 0;
-int32 *fbuf = (int32 *) uptr->filebuf;
+int32_t f, pa, d, t;
+int32_t wc = 0;
+int32_t *fbuf = (int32_t *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
     rf_updsta (RFS_NED | RFS_DON);                      /* set nxd, done */
@@ -289,7 +290,7 @@ if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
 
 f = GET_FNC (rf_sta);                                   /* get function */
 do {
-    if ((uint32) rf_da >= uptr->capac) {                /* disk overflow? */
+    if ((uint32_t) rf_da >= uptr->capac) {              /* disk overflow? */
         rf_updsta (RFS_NED);                            /* nx disk error */
         break;
         }
@@ -310,7 +311,7 @@ do {
             }
         else {                                          /* not locked */
             fbuf[rf_da] = M[pa];                        /* write word */
-            if (((uint32) rf_da) >= uptr->hwmark)
+            if (((uint32_t) rf_da) >= uptr->hwmark)
                 uptr->hwmark = rf_da + 1;
             }
         }
@@ -325,7 +326,7 @@ return SCPE_OK;
 
 /* Update status */
 
-int32 rf_updsta (int32 newst)
+int32_t rf_updsta (int32_t newst)
 {
 rf_sta = (rf_sta | newst) & ~(RFS_ERR | RFS_CLR);
 if (rf_sta & RFS_EFLGS)
@@ -352,7 +353,7 @@ return SCPE_OK;
 
 /* IORS routine */
 
-int32 rf_iors (void)
+int32_t rf_iors (void)
 {
 return ((rf_sta & (RFS_ERR | RFS_DON))? IOS_RF: 0);
 }
@@ -361,8 +362,8 @@ return ((rf_sta & (RFS_ERR | RFS_DON))? IOS_RF: 0);
 
 t_stat rf_attach (UNIT *uptr, const char *cptr)
 {
-uint32 p, sz;
-uint32 ds_bytes = RF_DKSIZE * sizeof (int32);
+uint32_t p, sz;
+uint32_t ds_bytes = RF_DKSIZE * sizeof (int32_t);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;
@@ -377,7 +378,7 @@ return attach_unit (uptr, cptr);
 
 /* Change disk size */
 
-t_stat rf_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rf_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

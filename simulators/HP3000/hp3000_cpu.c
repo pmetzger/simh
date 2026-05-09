@@ -735,6 +735,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_cpu_ims.h"
@@ -876,7 +878,7 @@ const HP_WORD cpu_ccb_table [256] = {
 /* CPU global state */
 
 jmp_buf     cpu_save_env;                       /* the saved environment for microcode aborts */
-uint32      cpu_stop_flags;                     /* the simulation stop flag set */
+uint32_t    cpu_stop_flags;                     /* the simulation stop flag set */
 
 POWER_STATE cpu_power_state   = power_on;       /* the power supply state */
 EXEC_STATE  cpu_micro_state   = halted;         /* the microcode execution state */
@@ -887,10 +889,10 @@ UNIT       *cpu_pclk_uptr     = &cpu_unit [0];  /* a (constant) pointer to the p
 
 /* CPU local state */
 
-static uint32  sim_stops      = 0;              /* the current simulation stop flag settings */
-static uint32  cpu_speed      = 1;              /* the CPU speed, expressed as a multiplier of a real machine */
-static uint32  pclk_increment = 1;              /* the process clock increment per event service */
-static uint32  dump_control   = 0002006u;       /* the cold dump control word (default CNTL = 4, DEVNO = 6 */
+static uint32_t sim_stops      = 0;             /* the current simulation stop flag settings */
+static uint32_t cpu_speed      = 1;             /* the CPU speed, expressed as a multiplier of a real machine */
+static uint32_t pclk_increment = 1;             /* the process clock increment per event service */
+static uint32_t dump_control   = 0002006u;      /* the cold dump control word (default CNTL = 4, DEVNO = 6 */
 static HP_WORD exec_mask      = 0;              /* the current instruction execution trace mask */
 static HP_WORD exec_match     = D16_UMAX;       /* the current instruction execution trace matching value */
 
@@ -979,9 +981,9 @@ static const char *const trap_name [] = {       /* trap names, indexed by TRAP_C
 */
 
 struct FEATURE_TABLE {
-    uint32      typ;                            /* standard features plus typically configured options */
-    uint32      opt;                            /* complete list of optional features */
-    uint32      maxmem;                         /* maximum configurable memory in 16-bit words */
+    uint32_t    typ;                            /* standard features plus typically configured options */
+    uint32_t    opt;                            /* complete list of optional features */
+    uint32_t    maxmem;                         /* maximum configurable memory in 16-bit words */
     };
 
 static const struct FEATURE_TABLE cpu_features [] = {   /* features indexed by CPU_MODEL */
@@ -999,18 +1001,18 @@ static const struct FEATURE_TABLE cpu_features [] = {   /* features indexed by C
 static t_stat cpu_service (UNIT    *uptr);
 static t_stat cpu_reset   (DEVICE  *dptr);
 
-static t_stat set_stops  (UNIT *uptr, int32 option,     const char *cptr, void *desc);
-static t_stat set_exec   (UNIT *uptr, int32 option,     const char *cptr, void *desc);
-static t_stat set_dump   (UNIT *uptr, int32 option,     const char *cptr, void *desc);
-static t_stat set_size   (UNIT *uptr, int32 new_size,   const char *cptr, void *desc);
-static t_stat set_model  (UNIT *uptr, int32 new_model,  const char *cptr, void *desc);
-static t_stat set_option (UNIT *uptr, int32 new_option, const char *cptr, void *desc);
-static t_stat set_pfars  (UNIT *uptr, int32 setting,    const char *cptr, void *desc);
+static t_stat set_stops  (UNIT *uptr, int32_t option,     const char *cptr, void *desc);
+static t_stat set_exec   (UNIT *uptr, int32_t option,     const char *cptr, void *desc);
+static t_stat set_dump   (UNIT *uptr, int32_t option,     const char *cptr, void *desc);
+static t_stat set_size   (UNIT *uptr, int32_t new_size,   const char *cptr, void *desc);
+static t_stat set_model  (UNIT *uptr, int32_t new_model,  const char *cptr, void *desc);
+static t_stat set_option (UNIT *uptr, int32_t new_option, const char *cptr, void *desc);
+static t_stat set_pfars  (UNIT *uptr, int32_t setting,    const char *cptr, void *desc);
 
-static t_stat show_stops (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat show_exec  (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat show_dump  (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat show_speed (FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat show_stops (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat show_exec  (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat show_dump  (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat show_speed (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 
 /* CPU local utility routine declarations */
@@ -1415,7 +1417,7 @@ int        abortval;
 HP_WORD    label, parameter;
 TRAP_CLASS trap;
 bool       exec_test;
-volatile   uint32  debug_save;
+volatile   uint32_t debug_save;
 volatile   HP_WORD device;
 volatile   t_stat  status = SCPE_OK;
 
@@ -1788,7 +1790,7 @@ return status;                                          /* return the reason for
        the CPU and all I/O devices, or just the I/O devices, respectively).
 */
 
-t_stat cpu_cold_cmd (int32 arg, const char *buf)
+t_stat cpu_cold_cmd (int32_t arg, const char *buf)
 {
 const char *cptr;
 char       gbuf [CBUFSIZE];
@@ -1899,7 +1901,7 @@ return run_cmd (RU_CONT, buf);                          /* execute the halt-mode
        switch and stops simulation if auto-restart is disabled.
 */
 
-t_stat cpu_power_cmd (int32 arg, const char *cptr)
+t_stat cpu_power_cmd (int32_t arg, const char *cptr)
 {
 /* Generic command signature.
    This implementation does not use every parameter. */
@@ -2169,7 +2171,7 @@ return;
 
 void cpu_update_pclk (void)
 {
-int32 elapsed, ticks;
+int32_t elapsed, ticks;
 
 if (cpu_is_calibrated) {                                /* if the process clock is calibrated */
     elapsed = cpu_unit [0].wait                         /*   then the elapsed time is the original wait time */
@@ -2370,7 +2372,7 @@ return;
        underflow after each word is moved rather than only after the last word.
 */
 
-void cpu_adjust_sr (uint32 target)
+void cpu_adjust_sr (uint32_t target)
 {
 do {
     cpu_read_memory (stack, SM, &TR [SR]);              /* read the value from memory into a TOS register */
@@ -2719,9 +2721,9 @@ return;
     1. This routine implements the DBBC microcode subroutine.
 */
 
-uint32 cpu_byte_ea (ACCESS_CLASS class, uint32 byte_offset, uint32 block_length)
+uint32_t cpu_byte_ea (ACCESS_CLASS class, uint32_t byte_offset, uint32_t block_length)
 {
-uint32 starting_word, ending_word, increment;
+uint32_t starting_word, ending_word, increment;
 
 if (block_length & D16_SIGN)                            /* if the block length is negative */
     increment = 0177777;                                /*   then the memory increment is negative also */
@@ -3525,7 +3527,7 @@ return SCPE_OK;                                         /* indicate that the res
        execution only.
 */
 
-static t_stat set_stops (UNIT *uptr, int32 option, const char *cptr, void *desc)
+static t_stat set_stops (UNIT *uptr, int32_t option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3533,7 +3535,7 @@ static t_stat set_stops (UNIT *uptr, int32 option, const char *cptr, void *desc)
 (void) desc;
 
 char gbuf [CBUFSIZE];
-uint32 stop;
+uint32_t stop;
 
 if (cptr == NULL) {                                     /* if there are no arguments */
     sim_stops = 0;                                      /*   then clear all of the stop flags */
@@ -3585,7 +3587,7 @@ return SCPE_OK;                                         /* the stops were succes
    unless an override switch is present on the command line.
 */
 
-static t_stat set_exec (UNIT *uptr, int32 option, const char *cptr, void *desc)
+static t_stat set_exec (UNIT *uptr, int32_t option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3593,7 +3595,7 @@ static t_stat set_exec (UNIT *uptr, int32 option, const char *cptr, void *desc)
 (void) desc;
 
 char   gbuf [CBUFSIZE];
-uint32 match, mask, radix;
+uint32_t match, mask, radix;
 t_stat status;
 
 if (option == 0)                                        /* if this is a NOEXEC request */
@@ -3621,7 +3623,7 @@ else {                                                  /* otherwise at least on
     else                                                /* otherwise */
         radix = cpu_dev.dradix;                         /*   use the current CPU data radix */
 
-    match = (uint32) get_uint (gbuf, radix, D16_UMAX, &status); /* parse the match value */
+    match = (uint32_t) get_uint (gbuf, radix, D16_UMAX, &status); /* parse the match value */
 
     if (status != SCPE_OK)                              /* if a parsing error occurred */
         return status;                                  /*   then return the error status */
@@ -3635,7 +3637,7 @@ else {                                                  /* otherwise at least on
     else {                                              /* otherwise another argument is present */
         cptr = get_glyph (cptr, gbuf, ';');             /*   so get the mask argument */
 
-        mask = (uint32) get_uint (gbuf, radix, D16_UMAX, &status);  /* parse the mask value */
+        mask = (uint32_t) get_uint (gbuf, radix, D16_UMAX, &status); /* parse the mask value */
 
         if (status != SCPE_OK)                          /* if a parsing error occurred */
             return status;                              /*   then return the error status */
@@ -3676,7 +3678,7 @@ else {                                                  /* otherwise at least on
    rejected.
 */
 
-static t_stat set_dump (UNIT *uptr, int32 option, const char *cptr, void *desc)
+static t_stat set_dump (UNIT *uptr, int32_t option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3696,7 +3698,7 @@ else if (option == 0) {                                 /* otherwise if a device
     if (status == SCPE_OK)                                  /* if it is valid */
         if (value >= 3)                                     /*   and in the proper range */
             dump_control = REPLACE_LOWER (dump_control,     /*     then set the new device number */
-                                          (uint32) value);  /*       into the dump control word */
+                                          (uint32_t) value); /*       into the dump control word */
         else                                                /*   otherwise the device number */
             status = SCPE_ARG;                              /*     is invalid */
     }
@@ -3707,7 +3709,7 @@ else {                                                  /* otherwise a control b
 
     if (status == SCPE_OK)                              /* if it is valid */
         dump_control = REPLACE_UPPER (dump_control,     /*   then set the new control value */
-                                      (uint32) value);  /*     into the dump control word */
+                                      (uint32_t) value); /*     into the dump control word */
     }
 
 return status;                                          /* return the operation status */
@@ -3742,7 +3744,7 @@ return status;                                          /* return the operation 
        explicitly zeroed.
 */
 
-static t_stat set_size (UNIT *uptr, int32 new_size, const char *cptr, void *desc)
+static t_stat set_size (UNIT *uptr, int32_t new_size, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3751,9 +3753,9 @@ static t_stat set_size (UNIT *uptr, int32 new_size, const char *cptr, void *desc
 
 static const char confirm [] = "Really truncate memory [N]?";
 
-const uint32 model = CPU_MODEL (uptr->flags);           /* the current CPU model index */
+const uint32_t model = CPU_MODEL (uptr->flags);         /* the current CPU model index */
 
-if ((uint32) new_size > cpu_features [model].maxmem)    /* if the new memory size is not supported on current model */
+if ((uint32_t) new_size > cpu_features [model].maxmem)  /* if the new memory size is not supported on current model */
     return SCPE_NOFNC;                                  /*   then report the error */
 
 if (!(sim_switches & SWMASK ('F'))                      /* if truncation is not explicitly forced */
@@ -3790,22 +3792,22 @@ return SCPE_OK;                                         /* confirm that the chan
    initial CPU model.  The current memory size will be 0 when this call is made.
 */
 
-static t_stat set_model (UNIT *uptr, int32 new_model, const char *cptr, void *desc)
+static t_stat set_model (UNIT *uptr, int32_t new_model, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-const uint32 new_index = CPU_MODEL (new_model);         /* the new index into the CPU features table */
-uint32 new_memsize;
+const uint32_t new_index = CPU_MODEL (new_model);       /* the new index into the CPU features table */
+uint32_t new_memsize;
 t_stat status;
 
 if (MEMSIZE == 0                                        /* if this is the initial establishing call */
   || MEMSIZE > cpu_features [new_index].maxmem)         /*   or if the current memory size is unsupported */
     new_memsize = cpu_features [new_index].maxmem;      /*     then set the new size to the maximum supported size */
 else                                                    /* otherwise the current size is valid for the new model */
-    new_memsize = (uint32) MEMSIZE;                     /*   so leave it unchanged */
+    new_memsize = (uint32_t) MEMSIZE;                   /*   so leave it unchanged */
 
 status = set_size (uptr, new_memsize, NULL, NULL);      /* set the new memory size */
 
@@ -3832,14 +3834,14 @@ return status;                                          /* return the validation
    rejected.
 */
 
-static t_stat set_option (UNIT *uptr, int32 new_option, const char *cptr, void *desc)
+static t_stat set_option (UNIT *uptr, int32_t new_option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-const uint32 model = CPU_MODEL (uptr->flags);           /* the current CPU model index */
+const uint32_t model = CPU_MODEL (uptr->flags);         /* the current CPU model index */
 
 if ((cpu_features [model].opt & new_option) != 0)       /* if the option is supported on the current model */
     return SCPE_OK;                                     /*   then confirm the change */
@@ -3863,7 +3865,7 @@ else                                                    /* otherwise */
    of the CPX2 register.
 */
 
-static t_stat set_pfars (UNIT *uptr, int32 setting, const char *cptr, void *desc)
+static t_stat set_pfars (UNIT *uptr, int32_t setting, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3893,7 +3895,7 @@ return SCPE_OK;                                         /* confirm the change */
    newline to the output before returning.
 */
 
-static t_stat show_stops (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_stops (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -3901,7 +3903,7 @@ static t_stat show_stops (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) val;
 (void) desc;
 
-uint32 stop;
+uint32_t stop;
 bool need_spacer = false;
 
 if (sim_stops == 0)                                     /* if no simulation stops are set */
@@ -3937,7 +3939,7 @@ return SCPE_OK;                                         /* report the success of
    newline to the output before returning.
 */
 
-static t_stat show_exec (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_exec (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -3945,7 +3947,7 @@ static t_stat show_exec (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) val;
 (void) desc;
 
-uint32 radix;
+uint32_t radix;
 
 if (exec_mask == 0)                                     /* if the instruction is entirely masked */
     fputs ("Execution trace disabled\n", st);           /*   then report that matching is disabled */
@@ -3981,7 +3983,7 @@ return SCPE_OK;                                         /* report the success of
    are not used.
 */
 
-static t_stat show_dump (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_dump (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -4007,7 +4009,7 @@ return SCPE_OK;
    (which suspends the normal fetch/execute instruction cycle).
 */
 
-static t_stat show_speed (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_speed (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -4127,7 +4129,7 @@ return SCPE_OK;                                         /*   and report success 
 static t_stat halt_mode_interrupt (HP_WORD device_number)
 {
 static HP_WORD cold_device, sio_pointer, status, offset, pointer;
-static uint32 address;
+static uint32_t address;
 static bool error_recovery;
 
 if (CPX2 & cpx2_RUNSWCH) {                              /* if the RUN switch is pressed */
@@ -4460,7 +4462,7 @@ return SCPE_OK;
 static t_stat machine_instruction (void)
 {
 HP_WORD       displacement, opcode, offset, operand, operand_1, operand_2, result;
-int32         control, limit;
+int32_t       control, limit;
 ACCESS_CLASS  class;
 BYTE_SELECTOR selector;
 bool          branch;

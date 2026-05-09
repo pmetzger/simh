@@ -34,18 +34,20 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "system_defs.h"                /* system header in system dir */
 
 #define i8259_NAME    "Intel i8259 PIC Chip"
 
 /* function prototypes */
 
-t_stat i8259_cfg(uint16 base, uint16 devnum, uint8 dummy);
+t_stat i8259_cfg(uint16_t base, uint16_t devnum, uint8_t dummy);
 t_stat i8259_clr(void);
-t_stat i8259_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
-uint8 i8259a(bool io, uint8 data, uint8 devnum);
-uint8 i8259b(bool io, uint8 data, uint8 devnum);
-void i8259_dump(uint8 devnum);
+t_stat i8259_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+uint8_t i8259a(bool io, uint8_t data, uint8_t devnum);
+uint8_t i8259b(bool io, uint8_t data, uint8_t devnum);
+void i8259_dump(uint8_t devnum);
 t_stat i8259_reset (DEVICE *dptr);
 
 /* external globals */
@@ -58,33 +60,33 @@ static const char* i8259_desc(DEVICE *dptr) {
     return i8259_NAME;
 }
 int     i8259_num = 0;
-uint8 icw_num0 = 1, icw_num1 = 1;
+uint8_t icw_num0 = 1, icw_num1 = 1;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
+extern uint8_t reg_dev(uint8_t (*routine)(bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
 
 /* globals */
 
 /* these bytes represent the input and output to/from a device instance */
 
-uint8 i8259_IR[4];                      //interrupt inputs (bits 0-7)
-uint8 i8259_CAS[4];                     //interrupt cascade I/O (bits 0-2)
-uint8 i8259_INT[4];                     //interrupt output (bit 0)
+uint8_t i8259_IR[4];                    //interrupt inputs (bits 0-7)
+uint8_t i8259_CAS[4];                   //interrupt cascade I/O (bits 0-2)
+uint8_t i8259_INT[4];                   //interrupt output (bit 0)
 
-uint8 i8259_base[4];
-uint8 i8259_icw1[4];
-uint8 i8259_icw2[4];
-uint8 i8259_icw3[4];
-uint8 i8259_icw4[4];
-uint8 i8259_ocw1[4];
-uint8 i8259_ocw2[4];
-uint8 i8259_ocw3[4];
+uint8_t i8259_base[4];
+uint8_t i8259_icw1[4];
+uint8_t i8259_icw2[4];
+uint8_t i8259_icw3[4];
+uint8_t i8259_icw4[4];
+uint8_t i8259_ocw1[4];
+uint8_t i8259_ocw2[4];
+uint8_t i8259_ocw3[4];
 
 int     i8259_baseport[] = { -1, -1, -1, -1 }; //base port
-uint8   i8259_intnum[4] = { 0, 0, 0, 0 }; //interrupt number
-uint8   i8259_verb[4] = { 0, 0, 0, 0 }; //verbose flag
+uint8_t i8259_intnum[4] = { 0, 0, 0, 0 }; //interrupt number
+uint8_t i8259_verb[4] = { 0, 0, 0, 0 }; //verbose flag
 
 /* i8259 Standard I/O Data Structures */
 /* up to 4 i8259 devices */
@@ -155,7 +157,7 @@ DEVICE i8259_dev = {
 
 // i8259 configuration
 
-t_stat i8259_cfg(uint16 base, uint16 devnum, uint8 dummy)
+t_stat i8259_cfg(uint16_t base, uint16_t devnum, uint8_t dummy)
 {
     /* Shared configuration signature.
        This implementation does not use every parameter. */
@@ -187,7 +189,7 @@ t_stat i8259_clr(void)
 
 // show configuration parameters
 
-t_stat i8259_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat i8259_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -219,7 +221,7 @@ t_stat i8259_reset (DEVICE *dptr)
        This implementation does not use every parameter. */
     (void) dptr;
 
-    uint8 devnum;
+    uint8_t devnum;
 
     for (devnum=0; devnum < 4; devnum++) {
         if (devnum < i8259_num) {
@@ -237,7 +239,7 @@ t_stat i8259_reset (DEVICE *dptr)
 
 /* i8259 functions */
 
-uint8 i8259a(bool io, uint8 data, uint8 devnum)
+uint8_t i8259a(bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         if ((i8259_ocw3[devnum] & 0x03) == 0x02)
@@ -271,7 +273,7 @@ uint8 i8259a(bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 i8259b(bool io, uint8 data, uint8 devnum)
+uint8_t i8259b(bool io, uint8_t data, uint8_t devnum)
 {
     if (io == 0) {                      /* read data port */
         if ((i8259_ocw3[devnum] & 0x03) == 0x02)
@@ -305,7 +307,7 @@ uint8 i8259b(bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-void i8259_dump(uint8 devnum)
+void i8259_dump(uint8_t devnum)
 {
     sim_printf("Device %d", devnum);
     sim_printf(" IRR=%02X", i8259_unit[devnum].u3);

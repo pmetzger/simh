@@ -38,6 +38,7 @@
 #if !defined(VAX_620)
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "vax_defs.h"
 #include "sim_video.h"
@@ -201,53 +202,53 @@ BITFIELD vc_ic_mode_bits[] = {
 
 #define IOLN_QVSS       0100
 
-extern int32 tmxr_poll;                                 /* calibrated delay */
+extern int32_t tmxr_poll;                               /* calibrated delay */
 
 struct vc_int_t {
-    uint32 ptr;
-    uint32 vec[8];                                      /* Interrupt vectors */
-    uint32 irr;                                         /* Interrupt request */
-    uint32 imr;                                         /* Interrupt mask */
-    uint32 isr;                                         /* Interrupt status */
-    uint32 acr;                                         /* Auto-clear mask */
-    uint32 mode;
+    uint32_t ptr;
+    uint32_t vec[8];                                    /* Interrupt vectors */
+    uint32_t irr;                                       /* Interrupt request */
+    uint32_t imr;                                       /* Interrupt mask */
+    uint32_t isr;                                       /* Interrupt status */
+    uint32_t acr;                                       /* Auto-clear mask */
+    uint32_t mode;
     };
 
 struct vc_int_t vc_intc;                                /* Interrupt controller */
 
-uint32 vc_csr = 0;                                      /* Control/status */
-uint32 vc_curx = 0;                                     /* Cursor X-position */
-uint32 vc_cur_x = 0;                                    /* Last cursor X-position */
-uint32 vc_cur_y = 0;                                    /* Last cursor Y-position */
-uint32 vc_cur_f = 0;                                    /* Last cursor function (0->AND, 1->OR) */
+uint32_t vc_csr = 0;                                    /* Control/status */
+uint32_t vc_curx = 0;                                   /* Cursor X-position */
+uint32_t vc_cur_x = 0;                                  /* Last cursor X-position */
+uint32_t vc_cur_y = 0;                                  /* Last cursor Y-position */
+uint32_t vc_cur_f = 0;                                  /* Last cursor function (0->AND, 1->OR) */
 bool vc_cur_v = false;                                  /* Last cursor visible */
 bool vc_cur_new_data = false;                           /* New Cursor image data */
 bool vc_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
-uint32 vc_mpos = 0;                                     /* Mouse position */
-uint32 vc_crtc[CRTC_SIZE];                              /* CRTC registers */
-uint32 vc_crtc_p = 0;                                   /* CRTC pointer */
-uint32 vc_icdr = 0;                                     /* Interrupt controller data */
-uint32 vc_icsr = 0;                                     /* Interrupt controller status */
-uint32 *vc_map;                                         /* Scanline map */
-uint32 *vc_buf = NULL;                                  /* Video memory */
-uint32 *vc_lines = NULL;                                /* Video Display Lines */
-uint8 vc_cur[256];                                      /* Cursor image */
-uint32 vc_palette[2];                                   /* Monochrome palette */
+uint32_t vc_mpos = 0;                                   /* Mouse position */
+uint32_t vc_crtc[CRTC_SIZE];                            /* CRTC registers */
+uint32_t vc_crtc_p = 0;                                 /* CRTC pointer */
+uint32_t vc_icdr = 0;                                   /* Interrupt controller data */
+uint32_t vc_icsr = 0;                                   /* Interrupt controller status */
+uint32_t *vc_map;                                       /* Scanline map */
+uint32_t *vc_buf = NULL;                                /* Video memory */
+uint32_t *vc_lines = NULL;                              /* Video Display Lines */
+uint8_t vc_cur[256];                                    /* Cursor image */
+uint32_t vc_palette[2];                                 /* Monochrome palette */
 bool vc_active = false;
 
-t_stat vc_rd (int32 *data, int32 PA, int32 access);
-t_stat vc_wr (int32 data, int32 PA, int32 access);
+t_stat vc_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat vc_wr (int32_t data, int32_t PA, int32_t access);
 t_stat vc_svc (UNIT *uptr);
 t_stat vc_reset (DEVICE *dptr);
 t_stat vc_detach (UNIT *dptr);
-t_stat vc_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat vc_set_capture (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat vc_show_capture (FILE* st, UNIT* uptr, int32 val, const void* desc);
-void vc_setint (int32 src);
-int32 vc_inta (void);
-void vc_clrint (int32 src);
-void vc_uart_int (uint32 set);
-t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+void vc_setint (int32_t src);
+int32_t vc_inta (void);
+void vc_clrint (int32_t src);
+void vc_uart_int (uint32_t set);
+t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *vc_description (DEVICE *dptr);
 
 
@@ -418,14 +419,14 @@ const char *vc_crtc_regnames[] = {
 };
 
 
-t_stat vc_rd (int32 *data, int32 PA, int32 access)
+t_stat vc_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-uint32 rg = (PA >> 1) & 0x1F;
-uint32 crtc_rg, i;
+uint32_t rg = (PA >> 1) & 0x1F;
+uint32_t crtc_rg, i;
 
 *data = 0;
 switch (rg) {
@@ -510,15 +511,15 @@ sim_debug (DBG_REG, &vc_dev, "vc_rd(%s) data=0x%04X\n", vc_regnames[(PA >> 1) & 
 return SCPE_OK;
 }
 
-t_stat vc_wr (int32 data, int32 PA, int32 access)
+t_stat vc_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-uint32 rg = (PA >> 1) & 0x1F;
-uint32 crtc_rg;
-uint32 old_data;
+uint32_t rg = (PA >> 1) & 0x1F;
+uint32_t crtc_rg;
+uint32_t old_data;
 
 sim_debug (DBG_REG, &vc_dev, "vc_wr(%s) data=0x%04X\n", vc_regnames[(PA >> 1) & 0x1F], data);
 switch (rg) {
@@ -678,23 +679,23 @@ switch (rg) {
 return SCPE_OK;
 }
 
-int32 vc_mem_rd (int32 pa)
+int32_t vc_mem_rd (int32_t pa)
 {
-uint32 rg = (pa >> 2) & 0xFFFF;
+uint32_t rg = (pa >> 2) & 0xFFFF;
 
 return (pa & 0x2) ? (vc_buf[rg] >> 16) : vc_buf[rg] & WMASK;
 }
 
-void vc_mem_wr (int32 pa, int32 val, int32 mode)
+void vc_mem_wr (int32_t pa, int32_t val, int32_t mode)
 {
-uint32 rg = (pa >> 2) & 0xFFFF;
-uint32 nval, t;
-int32 lnt = (mode == WRITE) ? 2 : 1;
-int32 i;
-int32 sc = (pa & 3) << 3;
-uint32 scrln, bufln;
-uint32 idx;
-uint32 mask = (mode == WRITE)? WMASK : BMASK;
+uint32_t rg = (pa >> 2) & 0xFFFF;
+uint32_t nval, t;
+int32_t lnt = (mode == WRITE) ? 2 : 1;
+int32_t i;
+int32_t sc = (pa & 3) << 3;
+uint32_t scrln, bufln;
+uint32_t idx;
+uint32_t mask = (mode == WRITE)? WMASK : BMASK;
 
 t = vc_buf[rg];
 nval = ((val & mask) << sc) | (t & ~(mask << sc));
@@ -703,7 +704,7 @@ if (rg >= 0xFFF8) {                                     /* cursor image */
     idx = (pa << 3) & 0xFF;                             /* get byte index */
     if (sim_deb) {
         char binary[40];
-        int32 i;
+        int32_t i;
 
         for (i=0; i<8*lnt; i++)
             binary[i] = '0' + ((val & (1 << i)) != 0);
@@ -738,9 +739,9 @@ for (scrln = 0; scrln < 1024; scrln++) {
 vc_buf[rg] = nval;
 }
 
-static inline void vc_invalidate (uint32 y1, uint32 y2)
+static inline void vc_invalidate (uint32_t y1, uint32_t y2)
 {
-uint32 ln;
+uint32_t ln;
 
 if ((!vc_input_captured) && (!(vc_dev.dctrl & DBG_CURSOR)))
     return;
@@ -748,10 +749,10 @@ for (ln = y1; ln < y2; ln++)
     vc_map[ln] &= ~VCMAP_VLD;                           /* invalidate map entry */
 }
 
-static void vc_set_vid_cursor (bool visible, int func, uint8 *cur_bits)
+static void vc_set_vid_cursor (bool visible, int func, uint8_t *cur_bits)
 {
-uint8 data[2*16];
-uint8 mask[2*16];
+uint8_t data[2*16];
+uint8_t mask[2*16];
 int i, d, m;
 
 sim_debug (DBG_CURSOR, &vc_dev, "vc_set_vid_cursor(%s, %s)\n", visible ? "Visible" : "Invisible", func ? "OR" : "AND");
@@ -799,8 +800,8 @@ vid_set_cursor (visible, 16, 16, data, mask, 0, 0);
 
 static void vc_checkint (void)
 {
-uint32 i;
-uint32 msk = (vc_intc.irr & ~vc_intc.imr);              /* unmasked interrutps */
+uint32_t i;
+uint32_t msk = (vc_intc.irr & ~vc_intc.imr);            /* unmasked interrutps */
 vc_icsr &= ~(ICSR_GRI|ICSR_M_IRRVEC);                   /* clear GRI & vector */
 
 if ((vc_intc.mode & (ICM_MM | ICM_IM)) == ICM_MM) {     /* group int MM & not polled */
@@ -830,24 +831,24 @@ else {
     }
 }
 
-void vc_clrint (int32 src)
+void vc_clrint (int32_t src)
 {
-uint32 msk = (1u << src);
+uint32_t msk = (1u << src);
 vc_intc.irr &= ~msk;
 vc_intc.isr &= ~msk;
 sim_debug (msk, &vc_dev, "vc_clrint(%d)\n", src);
 vc_checkint ();
 }
 
-void vc_setint (int32 src)
+void vc_setint (int32_t src)
 {
-uint32 msk = (1u << src);
+uint32_t msk = (1u << src);
 vc_intc.irr |= msk;
 sim_debug (msk, &vc_dev, "vc_setint(%d)\n", src);
 vc_checkint ();
 }
 
-void vc_uart_int (uint32 set)
+void vc_uart_int (uint32_t set)
 {
 if (set)
     vc_setint (IRQ_DUART);
@@ -855,11 +856,11 @@ else
     vc_clrint (IRQ_DUART);
 }
 
-int32 vc_inta (void)
+int32_t vc_inta (void)
 {
-uint32 i;
-uint32 msk = (vc_intc.irr & ~vc_intc.imr);              /* unmasked interrutps */
-int32 result;
+uint32_t i;
+uint32_t msk = (vc_intc.irr & ~vc_intc.imr);            /* unmasked interrutps */
+int32_t result;
 
 for (i = 0; i < 8; i++) {
     if (msk & (1u << i)) {
@@ -882,10 +883,10 @@ t_stat vc_svc (UNIT *uptr)
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
 bool updated = false;                                   /* flag for refresh */
-uint32 lines;
-uint32 ln, col, off;
-int32 xpos, ypos, dx, dy;
-uint8 *cur;
+uint32_t lines;
+uint32_t ln, col, off;
+int32_t xpos, ypos, dx, dy;
+uint8_t *cur;
 
 vc_crtc_p = vc_crtc_p ^ CRTCP_VB;                       /* Toggle VBI */
 vc_crtc_p = vc_crtc_p | CRTCP_LPF;                      /* Light pen full */
@@ -994,7 +995,7 @@ return SCPE_OK;
 
 t_stat vc_reset (DEVICE *dptr)
 {
-uint32 i;
+uint32_t i;
 t_stat r;
 
 CLR_INT (QVSS);                                         /* clear int req */
@@ -1037,19 +1038,19 @@ if (!vid_active)  {
     r = vid_open (dptr, NULL, VC_XSIZE, VC_YSIZE, vc_input_captured ? SIM_VID_INPUTCAPTURED : 0);/* display size & capture mode */
     if (r != SCPE_OK)
         return r;
-    vc_buf = (uint32 *) calloc (VC_MEMSIZE, sizeof (uint32));
+    vc_buf = (uint32_t *) calloc (VC_MEMSIZE, sizeof (uint32_t));
     if (vc_buf == NULL) {
         vid_close ();
         return SCPE_MEM;
         }
-    vc_lines = (uint32 *) calloc (VC_XSIZE*VC_YSIZE, sizeof (uint32));
+    vc_lines = (uint32_t *) calloc (VC_XSIZE*VC_YSIZE, sizeof (uint32_t));
     if (vc_lines == NULL) {
         free (vc_buf);
         vc_buf = NULL;
         vid_close ();
         return SCPE_MEM;
         }
-    vc_map = (uint32 *) calloc (VC_XSIZE, sizeof (uint32));
+    vc_map = (uint32_t *) calloc (VC_XSIZE, sizeof (uint32_t));
     if (vc_map == NULL) {
         free (vc_lines);
         vc_lines = NULL;
@@ -1084,7 +1085,7 @@ if ((vc_dev.flags & DEV_DIS) == 0) {
 return SCPE_OK;
 }
 
-t_stat vc_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -1095,7 +1096,7 @@ t_stat vc_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc)
 return cpu_set_model (NULL, 0, (val ? "VAXSTATION" : "MICROVAX"), NULL);
 }
 
-t_stat vc_set_capture (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -1109,7 +1110,7 @@ vc_input_captured = (val != 0);
 return SCPE_OK;
 }
 
-t_stat vc_show_capture (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 if (vc_input_captured) {
     fprintf (st, "Captured Input Mode, ");
@@ -1120,7 +1121,7 @@ else
 return SCPE_OK;
 }
 
-t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

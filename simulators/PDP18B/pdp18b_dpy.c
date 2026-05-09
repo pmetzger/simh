@@ -29,6 +29,8 @@
 */
 
 
+#include <stdint.h>
+
 #include "pdp18b_defs.h"
 
 #if defined(TYPE340)
@@ -50,11 +52,11 @@
  */
 #define DPY_CYCLE_US    100
 
-int32 dpy05 (int32 dev, int32 pulse, int32 dat);
-int32 dpy06 (int32 dev, int32 pulse, int32 dat);
-int32 dpy07 (int32 dev, int32 pulse, int32 dat);
-int32 dpy10 (int32 dev, int32 pulse, int32 dat);
-int32 dpy_iors (void);
+int32_t dpy05 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t dpy06 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t dpy07 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t dpy10 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t dpy_iors (void);
 t_stat dpy_svc (UNIT *uptr);
 t_stat dpy_reset (DEVICE *dptr);
 
@@ -87,7 +89,7 @@ DEVICE dpy_dev = {
     dpy_deb, NULL, NULL
     };
 
-static uint16 dpy_x, dpy_y, dpy_i;
+static uint16_t dpy_x, dpy_y, dpy_i;
 
 t_stat dpy_svc (UNIT *uptr)
 {
@@ -100,7 +102,7 @@ t_stat dpy_svc (UNIT *uptr)
 
 ty340word ty340_fetch(ty340word addr)
 {
-  extern int32 *M;
+  extern int32_t *M;
   return (ty340word)M[addr];
 }
 
@@ -137,7 +139,7 @@ ty340_rfd(void)
 {
 }
 
-int32 dpy_iors (void)
+int32_t dpy_iors (void)
 {
 #if defined IOS_LPEN
   return IOS_LPEN;
@@ -146,7 +148,7 @@ int32 dpy_iors (void)
 #endif
 }
 
-int32 dpy05 (int32 dev, int32 pulse, int32 dat)
+int32_t dpy05 (int32_t dev, int32_t pulse, int32_t dat)
 {
   sim_debug(DBG_IOT, &dpy_dev, "7005%02o, %06o\n", pulse, dat);
 
@@ -183,7 +185,7 @@ int32 dpy05 (int32 dev, int32 pulse, int32 dat)
   return dat;
 }
 
-int32 dpy06 (int32 dev, int32 pulse, int32 dat)
+int32_t dpy06 (int32_t dev, int32_t pulse, int32_t dat)
 {
   sim_debug(DBG_IOT, &dpy_dev, "7006%02o, %06o\n", pulse, dat);
 
@@ -222,7 +224,7 @@ int32 dpy06 (int32 dev, int32 pulse, int32 dat)
   return dat;
 }
 
-int32 dpy07 (int32 dev, int32 pulse, int32 dat)
+int32_t dpy07 (int32_t dev, int32_t pulse, int32_t dat)
 {
   sim_debug(DBG_IOT, &dpy_dev, "7007%02o, %06o\n", pulse, dat);
 
@@ -251,7 +253,7 @@ int32 dpy07 (int32 dev, int32 pulse, int32 dat)
   return dat;
 }
 
-int32 dpy10 (int32 dev, int32 pulse, int32 dat)
+int32_t dpy10 (int32_t dev, int32_t pulse, int32_t dat)
 {
   sim_debug(DBG_IOT, &dpy_dev, "7010%02o, %06o\n", pulse, dat);
 

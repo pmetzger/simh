@@ -11,6 +11,7 @@
 #define SIM_SCP_PARSE_H_ 0
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "sim_defs.h"
 
@@ -34,7 +35,7 @@ const char *get_glyph_quoted(const char *iptr, char *optr, char mchar);
 const char *get_glyph_cmd(const char *iptr, char *optr);
 
 /* Decode either symbolic switches or a numeric switch argument. */
-SWITCH_PARSE get_switches(const char *cptr, int32 *sw, int32 *number);
+SWITCH_PARSE get_switches(const char *cptr, int32_t *sw, int32_t *number);
 
 /* Consume leading simulator switches from an SCP command string. */
 const char *get_sim_sw(const char *cptr);

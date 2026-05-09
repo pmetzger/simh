@@ -113,6 +113,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 
@@ -334,9 +336,9 @@
 
 #define USEC_PER_EVENT      2.57                /* average CPU instruction time in microseconds */
 
-#define uS(t)               (uint32) ((t) > USEC_PER_EVENT ? (t) / USEC_PER_EVENT + 0.5 : 1)
-#define mS(t)               (uint32) (((t) * 1000.0)    / USEC_PER_EVENT + 0.5)
-#define S(t)                (uint32) (((t) * 1000000.0) / USEC_PER_EVENT + 0.5)
+#define uS(t)               (uint32_t) ((t) > USEC_PER_EVENT ? (t) / USEC_PER_EVENT + 0.5 : 1)
+#define mS(t)               (uint32_t) (((t) * 1000.0)    / USEC_PER_EVENT + 0.5)
+#define S(t)                (uint32_t) (((t) * 1000000.0) / USEC_PER_EVENT + 0.5)
 
 
 /* Architectural constants.
@@ -361,14 +363,14 @@
        Using 16-bit operands omits the masking required for 32-bit values.  For
        example, the code generated for the following operations is as follows:
 
-         uint16 a, b, c;
+         uint16_t a, b, c;
          a = b + c & 0xFFFF;
 
             movzwl  _b, %eax
             addw    _c, %ax
             movw    %ax, _a
 
-         uint32 x, y, z;
+         uint32_t x, y, z;
          x = y + z & 0xFFFF;
 
             movl    _z, %eax
@@ -381,11 +383,11 @@
        This time outweighs the additional 32-bit AND instruction, which executes
        in 1 clock cycle.
 
-       On an Intel Core 2 Duo processor, defining HP_WORD as uint16 causes the
+       On an Intel Core 2 Duo processor, defining HP_WORD as uint16_t causes the
        HP 3000 memory diagnostic to run about 10% slower.
 */
 
-typedef uint32              HP_WORD;                    /* HP 16-bit data word representation */
+typedef uint32_t            HP_WORD;                    /* HP 16-bit data word representation */
 
 #define R_MASK              0177777u                    /* 16-bit register mask */
 
@@ -427,10 +429,10 @@ typedef uint32              HP_WORD;                    /* HP 16-bit data word r
 #define D64_SMIN            01000000000000000000000uL   /* 64-bit signed minimum value */
 #define D64_SIGN            01000000000000000000000uL   /* 64-bit sign */
 
-#define S16_OVFL_MASK       ((uint32) D16_UMAX << D16_WIDTH | \
+#define S16_OVFL_MASK       ((uint32_t) D16_UMAX << D16_WIDTH | \
                               D16_SIGN)                 /* 16-bit signed overflow mask */
 
-#define S32_OVFL_MASK       ((t_uint64) D32_UMAX << D32_WIDTH | \
+#define S32_OVFL_MASK       ((uint64_t) D32_UMAX << D32_WIDTH | \
                               D32_SIGN)                 /* 32-bit signed overflow mask */
 
 
@@ -472,7 +474,7 @@ typedef uint32              HP_WORD;                    /* HP 16-bit data word r
        In the few cases where it is not, explicit masking is required.
 */
 
-#define TO_PA(b,o)          (((uint32) (b) & BA_MASK) << LA_WIDTH | (uint32) (o))
+#define TO_PA(b,o)          (((uint32_t) (b) & BA_MASK) << LA_WIDTH | (uint32_t) (o))
 #define TO_BANK(p)          ((p) >> LA_WIDTH & BA_MASK)
 #define TO_OFFSET(p)        ((p) & LA_MASK)
 
@@ -541,24 +543,24 @@ typedef enum {
 /* Portable conversions.
 
    SIMH is written with the assumption that the defined-size types (e.g.,
-   uint16) are at least the required number of bits but may be larger.
+   uint16_t) are at least the required number of bits but may be larger.
    Conversions that otherwise would make inherent size assumptions must instead
    be coded explicitly.  For example, doing:
 
-     negative_value_32 = (int32) negative_value_16;
+     negative_value_32 = (int32_t) negative_value_16;
 
    ...will not guarantee that bits 0-15 of "negative_value_32" are ones, whereas
    the supplied sign-extension macro will.
 
    The conversions available are:
 
-     - SEXT8  -- int8 sign-extended to int32
-     - SEXT16 -- int16 sign-extended to int32
-     - NEG16  -- int8 negated
-     - NEG16  -- int16 negated
-     - NEG32  -- int32 negated
-     - INT16  -- uint16 to int16
-     - INT32  -- uint32 to int32
+     - SEXT8  -- int8_t sign-extended to int32_t
+     - SEXT16 -- int16_t sign-extended to int32_t
+     - NEG16  -- int8_t negated
+     - NEG16  -- int16_t negated
+     - NEG32  -- int32_t negated
+     - INT16  -- uint16_t to int16_t
+     - INT32  -- uint32_t to int32_t
 
 
    Implementation notes:
@@ -567,15 +569,15 @@ typedef enum {
        before invoking.
 */
 
-#define SEXT8(x)        (int32) ((x) & D8_SIGN  ? (x) | ~D8_MASK  : (x))
-#define SEXT16(x)       (int32) ((x) & D16_SIGN ? (x) | ~D16_MASK : (x))
+#define SEXT8(x)        (int32_t) ((x) & D8_SIGN  ? (x) | ~D8_MASK  : (x))
+#define SEXT16(x)       (int32_t) ((x) & D16_SIGN ? (x) | ~D16_MASK : (x))
 
 #define NEG8(x)         ((~(x) + 1) & D8_MASK)
 #define NEG16(x)        ((~(x) + 1) & D16_MASK)
 #define NEG32(x)        ((~(x) + 1) & D32_MASK)
 
-#define INT16(u)        ((u) > D16_SMAX ? (-(int16) (D16_UMAX - (u)) - 1) : (int16) (u))
-#define INT32(u)        ((u) > D32_SMAX ? (-(int32) (D32_UMAX - (u)) - 1) : (int32) (u))
+#define INT16(u)        ((u) > D16_SMAX ? (-(int16_t) (D16_UMAX - (u)) - 1) : (int16_t) (u))
+#define INT32(u)        ((u) > D32_SMAX ? (-(int32_t) (D32_UMAX - (u)) - 1) : (int32_t) (u))
 
 
 /* Half-byte accessors */
@@ -606,8 +608,8 @@ typedef enum {
     lower                                       /* lower byte selected */
     } BYTE_SELECTOR;
 
-#define UPPER_BYTE(w)       (uint8)   ((w) >> D8_WIDTH & D8_MASK)
-#define LOWER_BYTE(w)       (uint8)   ((w) &  D8_MASK)
+#define UPPER_BYTE(w)       (uint8_t)   ((w) >> D8_WIDTH & D8_MASK)
+#define LOWER_BYTE(w)       (uint8_t)   ((w) &  D8_MASK)
 #define TO_WORD(u,l)        (HP_WORD) (((u) & D8_MASK) << D8_WIDTH | (l) & D8_MASK)
 
 #define REPLACE_UPPER(w,b)  ((w) & D8_MASK | ((b) & D8_MASK) << D8_WIDTH)
@@ -619,7 +621,7 @@ typedef enum {
 #define UPPER_WORD(d)       (HP_WORD) ((d) >> D16_WIDTH & D16_MASK)
 #define LOWER_WORD(d)       (HP_WORD) ((d) &  D16_MASK)
 
-#define TO_DWORD(u,l)       ((uint32) (u) << D16_WIDTH | (l))
+#define TO_DWORD(u,l)       ((uint32_t) (u) << D16_WIDTH | (l))
 
 
 /* Flip-flops */
@@ -658,9 +660,9 @@ typedef enum {                                  /* trailing separator */
 typedef const char *const BITSET_NAME;          /* a bit name string pointer */
 
 typedef struct {                                /* bit set format descriptor */
-    uint32            name_count;               /*   count of bit names */
+    uint32_t          name_count;               /*   count of bit names */
     BITSET_NAME       *names;                   /*   pointer to an array of bit names */
-    uint32            offset;                   /*   offset from LSB to first bit */
+    uint32_t          offset;                   /*   offset from LSB to first bit */
     BITSET_DIRECTION  direction;                /*   direction of interpretation */
     BITSET_ALTERNATE  alternate;                /*   alternate interpretations presence */
     BITSET_BAR        bar;                      /*   trailing separator choice */
@@ -684,26 +686,26 @@ extern const BITSET_FORMAT outbound_format;     /* the outbound signal format st
 /* System interface global SCP support routines declared in scp.h
 
 extern t_stat sim_load   (FILE       *fptr,  const char *cptr, const char *fnam, int     flag);
-extern t_stat fprint_sym (FILE       *ofile, t_addr     addr,  t_value    *val,  UNIT    *uptr, int32 sw);
-extern t_stat parse_sym  (const char *cptr,  t_addr     addr,  UNIT       *uptr, t_value *val,  int32 sw);
+extern t_stat fprint_sym (FILE       *ofile, t_addr     addr,  t_value    *val,  UNIT    *uptr, int32_t sw);
+extern t_stat parse_sym  (const char *cptr,  t_addr     addr,  UNIT       *uptr, t_value *val,  int32_t sw);
 */
 
 /* System interface global SCP support routines */
 
-extern t_stat hp_set_dib  (UNIT *uptr, int32 code,  const char *cptr, void       *desc);
-extern t_stat hp_show_dib (FILE *st,   UNIT  *uptr, int32      code,  const void *desc);
+extern t_stat hp_set_dib  (UNIT *uptr, int32_t code,  const char *cptr, void       *desc);
+extern t_stat hp_show_dib (FILE *st,   UNIT  *uptr, int32_t    code,  const void *desc);
 
 
 /* System interface global utility routines */
 
-extern t_stat fprint_cpu  (FILE *ofile, t_value *val, uint32 radix, int32  switches);
-extern uint32 fprint_edit (FILE *ofile, t_value *val, uint32 radix, uint32 byte_address);
+extern t_stat fprint_cpu  (FILE *ofile, t_value *val, uint32_t radix, int32_t switches);
+extern uint32_t fprint_edit (FILE *ofile, t_value *val, uint32_t radix, uint32_t byte_address);
 
-extern const char *fmt_status (uint32 status);
-extern const char *fmt_char   (uint32 charval);
-extern const char *fmt_bitset (uint32 bitset, const BITSET_FORMAT bitfmt);
+extern const char *fmt_status (uint32_t status);
+extern const char *fmt_char   (uint32_t charval);
+extern const char *fmt_bitset (uint32_t bitset, const BITSET_FORMAT bitfmt);
 
-extern void   hp_debug           (DEVICE *dptr, uint32 flag,
+extern void   hp_debug           (DEVICE *dptr, uint32_t flag,
                                   const char *format, ...) PRINTF_FMT(3, 4);
 extern bool hp_device_conflict (void);
 

@@ -102,12 +102,13 @@
 #include "pdp10_defs.h"
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct {                                        /* unpacked fp number */
-    int32               sign;                           /* sign */
-    int32               exp;                            /* exponent */
-    t_uint64    fhi;                                    /* fraction high */
-    t_uint64    flo;                                    /* for double prec */
+    int32_t             sign;                           /* sign */
+    int32_t             exp;                            /* exponent */
+    uint64_t    fhi;                                    /* fraction high */
+    uint64_t    flo;                                    /* for double prec */
     } UFP;
 
 #define MSK32           0xFFFFFFFF
@@ -129,8 +130,8 @@ typedef struct {                                        /* unpacked fp number */
 #define FP_N_FLO        35                              /* # of lo frac bits */
 #define FP_V_FLO        0                               /* must be zero */
 #define FP_M_FLO        INT64_C(0377777777777)
-#define GET_FPSIGN(x)   ((int32) (((x) >> FP_V_SIGN) & 1))
-#define GET_FPEXP(x)    ((int32) (((x) >> FP_V_EXP) & FP_M_EXP))
+#define GET_FPSIGN(x)   ((int32_t) (((x) >> FP_V_SIGN) & 1))
+#define GET_FPEXP(x)    ((int32_t) (((x) >> FP_V_EXP) & FP_M_EXP))
 #define GET_FPHI(x)     ((x) & FP_M_FHI)
 #define GET_FPLO(x)     ((x) & FP_M_FLO)
 
@@ -157,7 +158,7 @@ typedef struct {                                        /* unpacked fp number */
 
 void mul (d10 a, d10 b, d10 *rs);
 void funpack (d10 h, d10 l, UFP *r, bool sgn);
-void fnorm (UFP *r, t_int64 rnd);
+void fnorm (UFP *r, int64_t rnd);
 d10 fpack (UFP *r, d10 *lo, bool fdvneg);
 
 /* Integer multiply - checked against KS-10 ucode */
@@ -205,9 +206,9 @@ return true;
 
 void mul (d10 s1, d10 s2, d10 *rs)
 {
-t_uint64 a = ABS (s1);
-t_uint64 b = ABS (s2);
-t_uint64 t, u, r;
+uint64_t a = ABS (s1);
+uint64_t b = ABS (s2);
+uint64_t t, u, r;
 
 if ((a == 0) || (b == 0)) {                             /* operand = 0? */
     rs[0] = rs[1] = 0;                                  /* result 0 */
@@ -243,12 +244,12 @@ return;
    thus, the quotient can have at most 35 bits.
 */
 
-bool divi (int32 ac, d10 b, d10 *rs)
+bool divi (int32_t ac, d10 b, d10 *rs)
 {
-int32 p1 = ADDAC (ac, 1);
+int32_t p1 = ADDAC (ac, 1);
 d10 dvr = ABS (b);                                      /* make divr positive */
-t_int64 t;
-int32 i;
+int64_t t;
+int32_t i;
 d10 dvd[2];
 
 dvd[0] = AC(ac);                                        /* divd high */
@@ -288,12 +289,12 @@ return true;
    product multiplies would be a lot faster but would require more code.
 */
 
-void dmul (int32 ac, d10 *mpy)
+void dmul (int32_t ac, d10 *mpy)
 {
-int32 p1 = ADDAC (ac, 1);
-int32 p2 = ADDAC (ac, 2);
-int32 p3 = ADDAC (ac, 3);
-int32 i;
+int32_t p1 = ADDAC (ac, 1);
+int32_t p2 = ADDAC (ac, 2);
+int32_t p3 = ADDAC (ac, 3);
+int32_t i;
 d10 mpc[2], sign;
 
 mpc[0] = AC(ac);                                        /* mplcnd hi */
@@ -342,9 +343,9 @@ return;
 
 /* Double precision divide - checked against KS10 ucode */
 
-void ddiv (int32 ac, d10 *dvr)
+void ddiv (int32_t ac, d10 *dvr)
 {
-int32 i, cryin;
+int32_t i, cryin;
 d10 sign, qu[2], dvd[4];
 
 dvd[0] = AC(ac);                                        /* save dividend */
@@ -405,9 +406,9 @@ return;
    result sign is determined by the fraction sign.
 */
 
-d10 fad (d10 op1, d10 op2, bool rnd, int32 inv)
+d10 fad (d10 op1, d10 op2, bool rnd, int32_t inv)
 {
-int32 ediff;
+int32_t ediff;
 UFP a, b, t;
 
 if (inv)                                                /* subtract? -b */
@@ -429,7 +430,7 @@ else {
     if (ediff > 63)                                     /* cap diff at 63 */
         ediff = 63;
     if (ediff)                                          /* shift b (signed) */
-        b.fhi = (t_int64) b.fhi >> ediff;
+        b.fhi = (int64_t) b.fhi >> ediff;
     a.fhi = a.fhi + b.fhi;                              /* add fractions */
     if (a.sign ^ b.sign) {                              /* add or subtract? */
         if (a.fhi & FP_UCRY) {                          /* subtract, frac -? */
@@ -484,7 +485,7 @@ return fpack (&a, NULL, false);
 bool fdv (d10 op1, d10 op2, d10 *rs, bool rnd)
 {
 UFP a, b;
-t_uint64 savhi;
+uint64_t savhi;
 bool rem = false;
 
 funpack (op1, 0, &a, AFRC);                             /* unpack operands */
@@ -515,7 +516,7 @@ return true;
 
 d10 fsc (d10 val, a10 ea)
 {
-int32 sc = LIT8 (ea);
+int32_t sc = LIT8 (ea);
 UFP a;
 
 if (val == 0)
@@ -545,10 +546,10 @@ return fpack (&a, NULL, false);                         /* pack result */
 
 /* Fix and truncate/round floating operand */
 
-void fix (int32 ac, d10 mb, bool rnd)
+void fix (int32_t ac, d10 mb, bool rnd)
 {
-int32 sc;
-t_uint64 so;
+int32_t sc;
+uint64_t so;
 UFP a;
 
 funpack (mb, 0, &a, AFRC);                              /* unpack operand */
@@ -575,10 +576,10 @@ return;
    the denormalization step.  If there's no denormalization, bflo is zero too.
 */
 
-void dfad (int32 ac, d10 *rs, int32 inv)
+void dfad (int32_t ac, d10 *rs, int32_t inv)
 {
-int32 p1 = ADDAC (ac, 1);
-int32 ediff;
+int32_t p1 = ADDAC (ac, 1);
+int32_t ediff;
 UFP a, b, t;
 
 if (inv) {                                              /* subtract? -b */
@@ -601,12 +602,12 @@ else {
     if (ediff > 127)                                    /* cap diff at 127 */
         ediff = 127;
     if (ediff > 63) {                                   /* diff > 63? */
-        a.flo = (t_int64) b.fhi >> (ediff - 64);        /* b hi to a lo */
+        a.flo = (int64_t) b.fhi >> (ediff - 64);        /* b hi to a lo */
         b.fhi = b.sign? FP_ONES: 0;                     /* hi = all sign */
         }
     else if (ediff) {                                   /* diff <= 63 */
         a.flo = (b.flo >> ediff) | (b.fhi << (64 - ediff));
-        b.fhi = (t_int64) b.fhi >> ediff;               /* shift b (signed) */
+        b.fhi = (int64_t) b.fhi >> ediff;               /* shift b (signed) */
         }
     a.fhi = a.fhi + b.fhi;                              /* do add */
     if (a.sign ^ b.sign) {                              /* add or subtract? */
@@ -639,10 +640,10 @@ return;
    increments the result exponent, to compensate for normalization.
 */
 
-void dfmp (int32 ac, d10 *rs)
+void dfmp (int32_t ac, d10 *rs)
 {
-int32 p1 = ADDAC (ac, 1);
-t_uint64 xh, xl, yh, yl, mid;
+int32_t p1 = ADDAC (ac, 1);
+uint64_t xh, xl, yh, yl, mid;
 UFP a, b;
 
 funpack (AC(ac), AC(p1), &a, AFRC);                     /* unpack operands */
@@ -674,11 +675,11 @@ return;
    the dividend left and decrement the result exponent accordingly.
 */
 
-void dfdv (int32 ac, d10 *rs)
+void dfdv (int32_t ac, d10 *rs)
 {
-int32 p1 = ADDAC (ac, 1);
-int32 i;
-t_uint64 qu = 0;
+int32_t p1 = ADDAC (ac, 1);
+int32_t i;
+uint64_t qu = 0;
 UFP a, b;
 
 funpack (AC(ac), AC(p1), &a, AFRC);                     /* unpack operands */
@@ -728,7 +729,7 @@ if (r->sign) {
             r->fhi = r->fhi | FP_UCRY;
         else {
             r->exp = r->exp + 1;
-            r->fhi = (t_uint64)(FP_UCRY | FP_UNORM);
+            r->fhi = (uint64_t)(FP_UCRY | FP_UNORM);
             }
         }
     else {                                              /* abs frac */
@@ -745,14 +746,14 @@ return;
 
 /* Normalize and optionally round floating point operand */
 
-void fnorm (UFP *a, t_int64 rnd)
+void fnorm (UFP *a, int64_t rnd)
 {
-int32 i;
-static t_uint64 normmask[6] = {
+int32_t i;
+static uint64_t normmask[6] = {
  0x6000000000000000, 0x7800000000000000, 0x7F80000000000000,
  0x7FFF800000000000, 0x7FFFFFFF80000000, 0x7FFFFFFFFFFFFFFF
  };
-static int32 normtab[7] = { 1, 2, 4, 8, 16, 32, 63 };
+static int32_t normtab[7] = { 1, 2, 4, 8, 16, 32, 63 };
 
 if (a->fhi & FP_UCRY) {                                 /* carry set? */
     sim_printf ("%%PDP-10 FP: carry bit set at normalization, PC = %o\n", pager_PC);

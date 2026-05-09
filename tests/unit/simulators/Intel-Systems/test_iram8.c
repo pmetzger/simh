@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "test_cmocka.h"
@@ -6,10 +7,10 @@
 
 extern UNIT RAM_unit;
 
-t_stat RAM_cfg(uint16 base, uint16 size, uint8 dummy);
+t_stat RAM_cfg(uint16_t base, uint16_t size, uint8_t dummy);
 t_stat RAM_clr(void);
-uint8 RAM_get_mbyte(uint16 addr);
-void RAM_put_mbyte(uint16 addr, uint8 val);
+uint8_t RAM_get_mbyte(uint16_t addr);
+void RAM_put_mbyte(uint16_t addr, uint8_t val);
 
 /*
  * Reset the shared RAM device state so each test starts without configured

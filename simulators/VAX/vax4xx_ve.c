@@ -27,6 +27,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_video.h"
 #include "vax_lk.h"
@@ -114,57 +116,57 @@
 #define GET_FIFO(x)     ((x >> 3) - 2)
 #define FIFO_LEN        0x4000
 
-extern int32 tmxr_poll;
-extern int32 ka_cfgtst;
-extern uint32 vc_org;
-extern uint32 vc_last_org;
+extern int32_t tmxr_poll;
+extern int32_t ka_cfgtst;
+extern uint32_t vc_org;
+extern uint32_t vc_last_org;
 
 struct fifo_reg_t {
-    uint32 buf[FIFO_LEN >> 2];
-    uint32 put_ptr;
-    uint32 get_ptr;
-    uint32 count;
-    uint32 threshold;
-    uint32 semaphore;
+    uint32_t buf[FIFO_LEN >> 2];
+    uint32_t put_ptr;
+    uint32_t get_ptr;
+    uint32_t count;
+    uint32_t threshold;
+    uint32_t semaphore;
     };
 
 typedef struct fifo_reg_t FIFO_REG;
 
-uint32 bt459_addr = 0;
-uint32 bt459_cmap_p = 0;
-uint32 bt459_cmap[3];
-uint32 cp_fb_format = 0;
-uint32 cp_int_status = 0;
-uint32 cp_int_mask = 0;
-uint32 gf_fb_format = 0;
-uint32 spx_xstart = 0;
-uint32 spx_ystart = 0;
-uint32 spx_xend = 0;
-uint32 spx_yend = 0;
-uint32 spx_dstpix = 0;
-uint32 spx_srcpix = 0;
-uint32 spx_fg = 0;
-uint32 spx_cmd = 0;
-uint32 spx_rmask = 0;
-uint32 spx_wmask = 0;
-uint32 spx_smask = 0;
-uint32 spx_dmask = 0;
-uint32 spx_strx = 0;
-uint32 spx_stry = 0;
-uint32 spx_destloop = 0;
-uint32 spx_upc = 0;                                     /* micro pc */
-uint32 spx_status = 0;
-uint32 tbc_csr = 0;
+uint32_t bt459_addr = 0;
+uint32_t bt459_cmap_p = 0;
+uint32_t bt459_cmap[3];
+uint32_t cp_fb_format = 0;
+uint32_t cp_int_status = 0;
+uint32_t cp_int_mask = 0;
+uint32_t gf_fb_format = 0;
+uint32_t spx_xstart = 0;
+uint32_t spx_ystart = 0;
+uint32_t spx_xend = 0;
+uint32_t spx_yend = 0;
+uint32_t spx_dstpix = 0;
+uint32_t spx_srcpix = 0;
+uint32_t spx_fg = 0;
+uint32_t spx_cmd = 0;
+uint32_t spx_rmask = 0;
+uint32_t spx_wmask = 0;
+uint32_t spx_smask = 0;
+uint32_t spx_dmask = 0;
+uint32_t spx_strx = 0;
+uint32_t spx_stry = 0;
+uint32_t spx_destloop = 0;
+uint32_t spx_upc = 0;                                   /* micro pc */
+uint32_t spx_status = 0;
+uint32_t tbc_csr = 0;
 FIFO_REG tbc_fifo[4];
-uint32 tbc_table = 0;
-uint32 tbc_timing_setup = 0;
-uint32 spx_timing_csr = 0;
-uint32 tbc_ltrr = 0;
-uint32 tbc_timing = 0;
+uint32_t tbc_table = 0;
+uint32_t tbc_timing_setup = 0;
+uint32_t spx_timing_csr = 0;
+uint32_t tbc_ltrr = 0;
+uint32_t tbc_timing = 0;
 bool ve_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
-uint8 *ve_buf = NULL;                                   /* Video memory */
-uint32 *ve_lines = NULL;                                /* Video Display Lines */
-uint32 ve_palette[256];
+uint8_t *ve_buf = NULL;                                 /* Video memory */
+uint32_t *ve_lines = NULL;                              /* Video Display Lines */
+uint32_t ve_palette[256];
 bool ve_updated[VE_YSIZE];
 bool ve_active = false;
 
@@ -172,18 +174,18 @@ t_stat ve_svc (UNIT *uptr);
 t_stat ve_micro_svc (UNIT *uptr);
 t_stat ve_reset (DEVICE *dptr);
 t_stat ve_detach (UNIT *dptr);
-t_stat ve_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ve_set_capture (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ve_show_capture (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat ve_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat ve_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ve_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ve_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat ve_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *ve_description (DEVICE *dptr);
-int32 tbc_rd (int32 rg);
-void tbc_wr (int32 rg, int32 val, int32 lnt);
-int32 scn_rd (int32 rg);
-void scn_wr (int32 rg, int32 val, int32 lnt);
-static void ve_put_fifo (uint32 id, uint32 data);
-static void ve_get_fifo (uint32 id, uint32 *data);
-static void ve_clear_fifo (uint32 id);
+int32_t tbc_rd (int32_t rg);
+void tbc_wr (int32_t rg, int32_t val, int32_t lnt);
+int32_t scn_rd (int32_t rg);
+void scn_wr (int32_t rg, int32_t val, int32_t lnt);
+static void ve_put_fifo (uint32_t id, uint32_t data);
+static void ve_get_fifo (uint32_t id, uint32_t *data);
+static void ve_clear_fifo (uint32_t id);
 
 
 /* VE data structures
@@ -256,10 +258,10 @@ DEVICE ve_dev = {
    ve_detach   process detach
 */
 
-int32 ve_rd (int32 pa)
+int32_t ve_rd (int32_t pa)
 {
-int32 rg = ((pa - 0x38000000) >> 2);
-uint32 data = 0;
+int32_t rg = ((pa - 0x38000000) >> 2);
+uint32_t data = 0;
 
 if (pa >= 0x39bc0000) {                                 /* ROMCFG */
         data = 0xC0000202;                              /* from real hardware */
@@ -346,10 +348,10 @@ rg = pa & 0x3FFFFF;
 return (GETL (ve_buf, rg) & spx_rmask);
 }
 
-void ve_wr (int32 pa, int32 val, int32 lnt)
+void ve_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 rg = ((pa - 0x38000000) >> 2);
-uint32 scrln;
+int32_t rg = ((pa - 0x38000000) >> 2);
+uint32_t scrln;
 
 if (pa >= 0x39b20000) {
     rg = rg & 0xFFF;
@@ -458,7 +460,7 @@ if (scrln < VE_YSIZE)
 return;
 }
 
-static void ve_put_fifo (uint32 id, uint32 data)
+static void ve_put_fifo (uint32_t id, uint32_t data)
 {
 if (tbc_fifo[id].count > 0) {
     tbc_fifo[id].buf[tbc_fifo[id].put_ptr++] = data;
@@ -470,7 +472,7 @@ if (tbc_fifo[id].count > 0) {
     }
 }
 
-static void ve_get_fifo (uint32 id, uint32 *data)
+static void ve_get_fifo (uint32_t id, uint32_t *data)
 {
 if (tbc_fifo[id].count < FIFO_LEN) {
     *data = tbc_fifo[id].buf[tbc_fifo[id].get_ptr++];
@@ -482,16 +484,16 @@ else
     *data = 0;
 }
 
-static void ve_clear_fifo (uint32 id)
+static void ve_clear_fifo (uint32_t id)
 {
 tbc_fifo[id].put_ptr = 0;
 tbc_fifo[id].get_ptr = 0;
 tbc_fifo[id].count = FIFO_LEN;
 }
 
-int32 tbc_rd (int32 rg)
+int32_t tbc_rd (int32_t rg)
 {
-uint32 data = 0;
+uint32_t data = 0;
 
 switch (rg) {
     case 0x0:
@@ -639,13 +641,13 @@ switch (rg) {
 return data;
 }
 
-void tbc_wr (int32 rg, int32 val, int32 lnt)
+void tbc_wr (int32_t rg, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-uint32 i;
+uint32_t i;
 
 switch (rg) {
     case 0x0:
@@ -857,9 +859,9 @@ switch (rg) {
         }
 }
 
-int32 scn_rd (int32 rg)
+int32_t scn_rd (int32_t rg)
 {
-uint32 data = 0;
+uint32_t data = 0;
 
 switch (rg) {
     case 0x40:                                          /* STATUS */
@@ -974,7 +976,7 @@ switch (rg) {
 return data;
 }
 
-void scn_wr (int32 rg, int32 val, int32 lnt)
+void scn_wr (int32_t rg, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -1113,9 +1115,9 @@ switch (rg) {
 
 static void spx_fill_rect (void)
 {
-uint32 xstart, xend, ystart, yend;
-uint32 dstpix;
-uint32 x, y;
+uint32_t xstart, xend, ystart, yend;
+uint32_t dstpix;
+uint32_t x, y;
 
 xstart = (spx_xstart >> 16);
 ystart = (spx_ystart >> 16);
@@ -1148,9 +1150,9 @@ cp_int_status |= 0x2;
 
 static void spx_copy_rect (void)
 {
-uint32 xstart, xend, ystart, yend;
-uint32 srcpix, dstpix;
-uint32 x, y;
+uint32_t xstart, xend, ystart, yend;
+uint32_t srcpix, dstpix;
+uint32_t x, y;
 
 xstart = (spx_xstart >> 16);
 ystart = (spx_ystart >> 16);
@@ -1184,9 +1186,9 @@ cp_int_status |= 0x2;
 
 static void spx_stream_data (void)
 {
-uint32 xstart, xend, ystart, yend;
-uint32 dstpix;
-uint32 data, i;
+uint32_t xstart, xend, ystart, yend;
+uint32_t dstpix;
+uint32_t data, i;
 
 xstart = (spx_xstart >> 16);
 ystart = (spx_ystart >> 16);
@@ -1283,9 +1285,9 @@ switch (spx_upc) {
 return SCPE_OK;
 }
 
-static inline void ve_invalidate (uint32 y1, uint32 y2)
+static inline void ve_invalidate (uint32_t y1, uint32_t y2)
 {
-uint32 ln;
+uint32_t ln;
 
 for (ln = y1; ln < y2; ln++)
     ve_updated[ln] = true;                              /* flag as updated */
@@ -1296,10 +1298,10 @@ t_stat ve_svc (UNIT *uptr)
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
 bool updated = false;                                   /* flag for refresh */
-uint32 lines;
-uint32 ln, col, off;
-uint32 i, c;
-uint32 rg, val;
+uint32_t lines;
+uint32_t ln, col, off;
+uint32_t i, c;
+uint32_t rg, val;
 
 for (i = 0; i < 4; i++) {
     if (tbc_csr & TBC_CSR_FIFOEN(i)) {
@@ -1411,7 +1413,7 @@ return SCPE_OK;
 t_stat ve_reset (DEVICE *dptr)
 {
 t_stat r;
-uint32 i;
+uint32_t i;
 
 CLR_INT (VC2);
 sim_cancel (&ve_unit[0]);                               /* deactivate units */
@@ -1468,12 +1470,12 @@ if (!vid_active && !ve_active)  {
     r = vid_open (dptr, NULL, VE_XSIZE, VE_YSIZE, ve_input_captured ? SIM_VID_INPUTCAPTURED : 0);/* display size & capture mode */
     if (r != SCPE_OK)
         return r;
-    ve_buf = (uint8 *) calloc (VE_BUFSIZE, sizeof (uint8));
+    ve_buf = (uint8_t *) calloc (VE_BUFSIZE, sizeof (uint8_t));
     if (ve_buf == NULL) {
         vid_close ();
         return SCPE_MEM;
         }
-    ve_lines = (uint32 *) calloc (VE_XSIZE*VE_YSIZE, sizeof (uint32));
+    ve_lines = (uint32_t *) calloc (VE_XSIZE*VE_YSIZE, sizeof (uint32_t));
     if (ve_lines == NULL) {
         free (ve_buf);
         ve_buf = NULL;
@@ -1504,7 +1506,7 @@ if ((ve_dev.flags & DEV_DIS) == 0) {
 return SCPE_OK;
 }
 
-t_stat ve_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ve_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1515,7 +1517,7 @@ t_stat ve_set_enable (UNIT *uptr, int32 val, const char *cptr, void *desc)
 return cpu_set_model (NULL, 0, (val ? "VAXSTATIONSPX" : "MICROVAX"), NULL);
 }
 
-t_stat ve_set_capture (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ve_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1529,7 +1531,7 @@ ve_input_captured = (val != 0);
 return SCPE_OK;
 }
 
-t_stat ve_show_capture (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat ve_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 if (ve_input_captured) {
     fprintf (st, "Captured Input Mode, ");
@@ -1540,7 +1542,7 @@ else
 return SCPE_OK;
 }
 
-t_stat ve_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ve_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */

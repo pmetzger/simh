@@ -26,6 +26,8 @@
     11 Jul 16 - Original file.
 */
 
+#include <stdint.h>
+
 #include "system_defs.h"
 
 extern DEVICE i8088_dev;
@@ -71,7 +73,7 @@ char sim_name[] = "IBM PC";
 
 REG *sim_PC = &i8088_reg[0];
 
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 
 DEVICE *sim_devices[] = {
     &i8088_dev,

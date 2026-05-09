@@ -84,6 +84,8 @@
    End of tape is two consecutive end of file marks.
 */
 
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 #include "sim_tape.h"
 
@@ -154,29 +156,29 @@
 
 #define RDL_CLK         0100000                         /* 10 Khz clock */
 
-uint8 *tmxb = NULL;                                     /* xfer buffer */
-int32 tm_sta = 0;                                       /* status register */
-int32 tm_cmd = 0;                                       /* command register */
-int32 tm_ca = 0;                                        /* current address */
-int32 tm_bc = 0;                                        /* byte count */
-int32 tm_db = 0;                                        /* data buffer */
-int32 tm_rdl = 0;                                       /* read lines */
-int32 tm_time = 10;                                     /* record latency */
-int32 tm_stopioe = 1;                                   /* stop on error */
+uint8_t *tmxb = NULL;                                   /* xfer buffer */
+int32_t tm_sta = 0;                                     /* status register */
+int32_t tm_cmd = 0;                                     /* command register */
+int32_t tm_ca = 0;                                      /* current address */
+int32_t tm_bc = 0;                                      /* byte count */
+int32_t tm_db = 0;                                      /* data buffer */
+int32_t tm_rdl = 0;                                     /* read lines */
+int32_t tm_time = 10;                                   /* record latency */
+int32_t tm_stopioe = 1;                                 /* stop on error */
 
-t_stat tm_rd (int32 *data, int32 PA, int32 access);
-t_stat tm_wr (int32 data, int32 PA, int32 access);
+t_stat tm_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat tm_wr (int32_t data, int32_t PA, int32_t access);
 t_stat tm_svc (UNIT *uptr);
 t_stat tm_reset (DEVICE *dptr);
 t_stat tm_attach (UNIT *uptr, const char *cptr);
 t_stat tm_detach (UNIT *uptr);
-t_stat tm_boot (int32 unitno, DEVICE *dptr);
+t_stat tm_boot (int32_t unitno, DEVICE *dptr);
 void tm_go (UNIT *uptr);
-int32 tm_updcsta (UNIT *uptr);
+int32_t tm_updcsta (UNIT *uptr);
 void tm_set_done (void);
 t_stat tm_map_err (UNIT *uptr, t_stat st);
-t_stat tm_vlock (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat tm_vlock (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *tm_description (DEVICE *dptr);
 
 /* MT data structures
@@ -263,7 +265,7 @@ DEVICE tm_dev = {
    17772532     MTRD    read only
 */
 
-t_stat tm_rd (int32 *data, int32 PA, int32 access)
+t_stat tm_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -308,7 +310,7 @@ switch ((PA >> 1) & 07) {                               /* decode PA<3:1> */
 return SCPE_OK;
 }
 
-t_stat tm_wr (int32 data, int32 PA, int32 access)
+t_stat tm_wr (int32_t data, int32_t PA, int32_t access)
 {
 UNIT *uptr;
 
@@ -367,7 +369,7 @@ return SCPE_OK;
 
 void tm_go (UNIT *uptr)
 {
-int32 f;
+int32_t f;
 
 f = GET_FNC (tm_cmd);                                   /* get function */
 if (((uptr->flags & UNIT_ATT) == 0) ||                  /* not attached? */
@@ -401,12 +403,12 @@ return;
 
 t_stat tm_svc (UNIT *uptr)
 {
-int32 f, t, u;
-uint32 xma;
+int32_t f, t, u;
+uint32_t xma;
 t_mtrlnt tbc, cbc;
 t_stat st, r = SCPE_OK;
 
-u = (int32) (uptr - tm_dev.units);                      /* get unit number */
+u = (int32_t) (uptr - tm_dev.units);                    /* get unit number */
 f = GET_FNC (tm_cmd);                                   /* get command */
 xma = GET_EMA (tm_cmd) | tm_ca;                         /* get mem addr */
 cbc = 0200000 - tm_bc;                                  /* get bc */
@@ -510,7 +512,7 @@ return r;
 
 /* Update controller status */
 
-int32 tm_updcsta (UNIT *uptr)
+int32_t tm_updcsta (UNIT *uptr)
 {
 tm_sta = (tm_sta & ~(STA_DYN | STA_CLR)) | (uptr->USTAT & STA_DYN);
 if (sim_tape_eot (uptr))
@@ -591,7 +593,7 @@ t_stat tm_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 tm_cmd = MTC_DONE;                                      /* set done */
@@ -607,7 +609,7 @@ for (u = 0; u < TM_NUMDR; u++) {                        /* loop thru units */
     else uptr->USTAT = 0;
     }
 if (tmxb == NULL)
-    tmxb = (uint8 *) calloc (MT_MAXFR, sizeof (uint8));
+    tmxb = (uint8_t *) calloc (MT_MAXFR, sizeof (uint8_t));
 if (tmxb == NULL)
     return SCPE_MEM;
 return auto_config (0, 0);
@@ -618,7 +620,7 @@ return auto_config (0, 0);
 t_stat tm_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
-int32 u = uptr - tm_dev.units;
+int32_t u = uptr - tm_dev.units;
 
 r = sim_tape_attach (uptr, cptr);
 if (r != SCPE_OK)
@@ -633,7 +635,7 @@ return r;
 
 t_stat tm_detach (UNIT* uptr)
 {
-int32 u = uptr - tm_dev.units;
+int32_t u = uptr - tm_dev.units;
 
 if (!(uptr->flags & UNIT_ATT))
     return SCPE_OK;
@@ -646,14 +648,14 @@ return sim_tape_detach (uptr);
 
 /* Write lock/enable routine */
 
-t_stat tm_vlock (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tm_vlock (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-int32 u = uptr - tm_dev.units;
+int32_t u = uptr - tm_dev.units;
 
 if ((uptr->flags & UNIT_ATT) &&
     (val || sim_tape_wrp (uptr)))
@@ -679,10 +681,10 @@ return SCPE_OK;
 #define BOOT_ENTRY      (BOOT_START + 2)
 #define BOOT_UNIT       (BOOT_START + 010)
 #define BOOT_CSR        (BOOT_START + 014)
-#define BOOT1_LEN       (sizeof (boot1_rom) / sizeof (int16))
-#define BOOT2_LEN       (sizeof (boot2_rom) / sizeof (int16))
+#define BOOT1_LEN       (sizeof (boot1_rom) / sizeof (int16_t))
+#define BOOT2_LEN       (sizeof (boot2_rom) / sizeof (int16_t))
 
-static const uint16 boot1_rom[] = {
+static const uint16_t boot1_rom[] = {
     0046524,                        /* boot_start: "TM" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit_num, r0 */
@@ -702,7 +704,7 @@ static const uint16 boot1_rom[] = {
     0005007                         /* clr r7 */
     };
 
-static const uint16 boot2_rom[] = {
+static const uint16_t boot2_rom[] = {
     0046524,                        /* boot_start: "TM" */
     0012706, BOOT_START,            /* mov #boot_start, sp */
     0012700, 0000000,               /* mov #unit_num, r0 */
@@ -728,7 +730,7 @@ static const uint16 boot2_rom[] = {
     0005007                         /* clr r7 */
     };
 
-t_stat tm_boot (int32 unitno, DEVICE *dptr)
+t_stat tm_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -745,13 +747,13 @@ else {
     for (i = 0; i < BOOT2_LEN; i++)
         WrMemW (BOOT_START + (2 * i), boot2_rom[i]);
     }
-WrMemW (BOOT_UNIT, (uint16)unitno);
+WrMemW (BOOT_UNIT, (uint16_t)unitno);
 WrMemW (BOOT_CSR, (tm_dib.ba & DMASK) + 06);
 cpu_set_boot (BOOT_ENTRY);
 return SCPE_OK;
 }
 
-t_stat tm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char *text2;
 const char *const text =

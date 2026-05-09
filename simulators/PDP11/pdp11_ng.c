@@ -26,6 +26,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "pdp11_defs.h"
 #include "display/display.h"
@@ -41,16 +42,16 @@
 
 #define CYCLE_US (MEMORY_CYCLE*(NG_DELAY*2+1))
 
-t_stat ng_rd(int32 *data, int32 PA, int32 access);
-t_stat ng_wr(int32 data, int32 PA, int32 access);
+t_stat ng_rd(int32_t *data, int32_t PA, int32_t access);
+t_stat ng_wr(int32_t data, int32_t PA, int32_t access);
 t_stat ng_svc(UNIT *uptr);
 t_stat ng_reset(DEVICE *dptr);
-t_stat ng_boot(int32 unit, DEVICE *dptr);
-t_stat ng_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ng_show_type(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat ng_set_scale(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat ng_show_scale(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat ng_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat ng_boot(int32_t unit, DEVICE *dptr);
+t_stat ng_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ng_show_type(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat ng_set_scale(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat ng_show_scale(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat ng_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *ng_description (DEVICE *dptr);
 
 #define IOLN_NG   4
@@ -119,7 +120,7 @@ const char *ng_regnam[] = {
 };
 
 t_stat
-ng_rd(int32 *data, int32 PA, int32 access)
+ng_rd(int32_t *data, int32_t PA, int32_t access)
 {
   t_stat stat = SCPE_OK;
 
@@ -132,7 +133,7 @@ ng_rd(int32 *data, int32 PA, int32 access)
 }
 
 t_stat
-ng_wr(int32 data, int32 PA, int32 access)
+ng_wr(int32_t data, int32_t PA, int32_t access)
 {
   switch (PA & 002) {
   case 000:
@@ -203,7 +204,7 @@ ng_reset(DEVICE *dptr)
 }
 
 t_stat
-ng_boot(int32 unit, DEVICE *dptr)
+ng_boot(int32_t unit, DEVICE *dptr)
 {
     t_stat r;
 
@@ -237,7 +238,7 @@ ng_boot(int32 unit, DEVICE *dptr)
 }
 
 t_stat
-ng_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+ng_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   if (MATCH_CMD (cptr, "DAZZLE") == 0)
     ng_type = TYPE_DAZZLE;
@@ -249,7 +250,7 @@ ng_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-ng_show_type(FILE *st, UNIT *uptr, int32 val, const void *desc)
+ng_show_type(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   if (ng_type == TYPE_DAZZLE)
     fprintf(st, "type=DAZZLE");
@@ -261,7 +262,7 @@ ng_show_type(FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 t_stat
-ng_set_scale(UNIT *uptr, int32 val, const char *cptr, void *desc)
+ng_set_scale(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   t_stat r;
   t_value v;
@@ -279,7 +280,7 @@ ng_set_scale(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-ng_show_scale(FILE *st, UNIT *uptr, int32 val, const void *desc)
+ng_show_scale(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   fprintf(st, "scale=%d", (int)ng_scale);
   return SCPE_OK;
@@ -293,16 +294,16 @@ ng_nxm_intr(void)
 }
 
 int
-ng_store(uint32 addr, uint16 x)
+ng_store(uint32_t addr, uint16_t x)
 {
-  uint16 word = x;
+  uint16_t word = x;
   if (Map_WriteW(addr, 2, &word) == 0)
     return 0;
   return 1;
 }
 
 int
-ng_fetch(uint32 addr, uint16 *wp)
+ng_fetch(uint32_t addr, uint16_t *wp)
 {
   if (Map_ReadW(addr, 2, wp) == 0)
     return 0;
@@ -315,7 +316,7 @@ const char *ng_description (DEVICE *dptr)
   return "Vector display controller for MIT Logo PDP-11/45";
 }
 
-t_stat ng_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ng_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
  /* The '*'s in the next line represent the standard text width of a help line */
               /****************************************************************************/

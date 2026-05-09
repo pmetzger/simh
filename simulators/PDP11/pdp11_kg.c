@@ -94,10 +94,12 @@
 #error "KG11 is not supported!"
 #endif
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
 extern REG cpu_reg[];
-extern int32 R[];
+extern int32_t R[];
 
 #ifndef KG_UNITS
 #define KG_UNITS        (8)
@@ -211,8 +213,8 @@ static const char *kg_regs[] =
     {"CSR", "BCC", "DR", "UNKNOWN"};
 
 static const struct {
-    uint16              poly;
-    uint16              pulses;
+    uint16_t            poly;
+    uint16_t            pulses;
     const char * const  name;
 } config[] = {
                                                         /* DDB=0 */
@@ -237,12 +239,12 @@ static const struct {
 
 /* Forward declarations */
 
-static t_stat kg_rd (int32 *, int32, int32);
-static t_stat kg_wr (int32, int32, int32);
+static t_stat kg_rd (int32_t *, int32_t, int32_t);
+static t_stat kg_wr (int32_t, int32_t, int32_t);
 static t_stat kg_reset (DEVICE *);
 static void do_poly (int, bool);
-static t_stat set_units (UNIT *, int32, const char *, void *);
-t_stat kg_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+static t_stat set_units (UNIT *, int32_t, const char *, void *);
+t_stat kg_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *kg_description (DEVICE *dptr);
 
 /* 16-bit rotate right */
@@ -331,7 +333,7 @@ DEVICE kg_dev = {
 };
                                                        /* KG I/O address routines */
 
-static t_stat kg_rd (int32 *data, int32 PA, int32 access)
+static t_stat kg_rd (int32_t *data, int32_t PA, int32_t access)
 {
     int unit = (PA >> 3) & 07;
 
@@ -355,15 +357,15 @@ static t_stat kg_rd (int32 *data, int32 PA, int32 access)
             break;
     }
     sim_debug (DBG_REG, &kg_dev, "kg_rd(PA=%o [%s], access=%d, data=0x%X) ", PA, kg_regs[(PA >> 1) & 03], access, *data);
-    sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32)(*data), (uint32)(*data), true);
+    sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32_t)(*data), (uint32_t)(*data), true);
     return (SCPE_OK);
 }
 
-static t_stat kg_wr (int32 data, int32 PA, int32 access)
+static t_stat kg_wr (int32_t data, int32_t PA, int32_t access)
 {
     int setup;
     int unit = (PA >> 3) & 07;
-    int32 saved_SR, saved_BCC, saved_DR;
+    int32_t saved_SR, saved_BCC, saved_DR;
 
     if ((unit >= KG_UNITS) || (kg_unit[unit].flags & UNIT_DIS))
         return (SCPE_NXM);
@@ -379,7 +381,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                 data = (PA & 1) ?
                     (kg_unit[unit].SR & 0377) | (data << 8) :
                     (kg_unit[unit].SR & ~0377) | data;
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, true);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32_t)saved_SR, (uint32_t)data, true);
             if (data & KGSR_M_CLR) {
                 kg_unit[unit].PULSCNT = 0;              /* not sure about this */
                 kg_unit[unit].BCC = 0;
@@ -393,10 +395,10 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                 kg_unit[unit].PULSCNT = 0;
             }
             if ((saved_SR & KG_SR_POLYMASK) != (data & KG_SR_POLYMASK))
-                sim_debug_bits(DBG_POLY, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, false);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32)saved_SR, (uint32)data, false);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[01], (uint32)saved_BCC, (uint32)data, false);
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32)saved_DR, (uint32)data, true);
+                sim_debug_bits(DBG_POLY, &kg_dev, kg_bitdefs[00], (uint32_t)saved_SR, (uint32_t)data, false);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[00], (uint32_t)saved_SR, (uint32_t)data, false);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[01], (uint32_t)saved_BCC, (uint32_t)data, false);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32_t)saved_DR, (uint32_t)data, true);
             if (data & KGSR_M_SEN)
                 break;
             if (data & KGSR_M_STEP) {
@@ -406,7 +408,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
             break;
 
         case 01:                                        /* BCC */
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32)saved_BCC, (uint32)data, true);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[(PA >> 1) & 03], (uint32_t)saved_BCC, (uint32_t)data, true);
             break;                                      /* ignored */
 
         case 02:                                        /* DR */
@@ -415,7 +417,7 @@ static t_stat kg_wr (int32 data, int32 PA, int32 access)
                     (kg_unit[unit].DR & 0377) | (data << 8) :
                     (kg_unit[unit].DR & ~0377) | data;
             kg_unit[unit].DR = data & DMASK;
-            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32)saved_DR, (uint32)data, true);
+            sim_debug_bits(DBG_REG, &kg_dev, kg_bitdefs[02], (uint32_t)saved_DR, (uint32_t)data, true);
             kg_unit[unit].SR &= ~KGSR_M_DONE;
             kg_unit[unit].PULSCNT = 0;
 
@@ -506,7 +508,7 @@ static void do_poly (int unit, bool step)
     }
 }
 
-static t_stat set_units (UNIT *u, int32 val, const char *s, void *desc)
+static t_stat set_units (UNIT *u, int32_t val, const char *s, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -514,7 +516,7 @@ static t_stat set_units (UNIT *u, int32 val, const char *s, void *desc)
     (void) val;
     (void) desc;
 
-    uint32      i, units;
+    uint32_t    i, units;
     t_stat      stat;
 
     if (s == NULL)
@@ -538,7 +540,7 @@ static t_stat set_units (UNIT *u, int32 val, const char *s, void *desc)
     return (SCPE_OK);
 }
 
-t_stat kg_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat kg_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

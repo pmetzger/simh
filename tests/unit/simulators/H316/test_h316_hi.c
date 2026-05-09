@@ -18,9 +18,9 @@ static void reset_hidb(HIDB *hidb)
  * Write a host-to-IMP 1822L leader into rxdata, leaving rxdata[0] for the
  * simulator-private packet flags word used by the H316 UDP shim.
  */
-static void write_long_leader(HIDB *hidb, uint16 nflags, uint16 mtype,
-                              uint16 htype, uint16 host, uint16 imp, uint16 id,
-                              uint16 stype, uint16 reserved)
+static void write_long_leader(HIDB *hidb, uint16_t nflags, uint16_t mtype,
+                              uint16_t htype, uint16_t host, uint16_t imp, uint16_t id,
+                              uint16_t stype, uint16_t reserved)
 {
     hidb->rxdata[1] = NEW_FORMAT_FLAG;
     hidb->rxdata[2] = (nflags << 8) | mtype;
@@ -56,8 +56,8 @@ static void test_non_long_packet_is_left_unchanged(void **state)
 static void test_regular_long_leader_converts_and_moves_payload(void **state)
 {
     HIDB hidb;
-    const uint16 id = 0123;
-    uint16 expected_flags;
+    const uint16_t id = 0123;
+    uint16_t expected_flags;
 
     (void)state;
     reset_hidb(&hidb);
@@ -104,7 +104,7 @@ static void test_nop_long_leader_records_padding(void **state)
 static void test_regular_long_leader_skips_recorded_padding(void **state)
 {
     HIDB hidb;
-    const uint16 id = 0456;
+    const uint16_t id = 0456;
 
     (void)state;
     reset_hidb(&hidb);

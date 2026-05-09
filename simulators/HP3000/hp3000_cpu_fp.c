@@ -101,6 +101,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_cpu_fp.h"
@@ -122,16 +124,16 @@
 
 #define UNPACKED_BITS       54                  /* the number of significant bits in the unpacked mantissa */
 
-#define IMPLIED_BIT         ((t_uint64) 1uL << UNPACKED_BITS)       /* the implied MSB in the mantissa */
-#define CARRY_BIT           ((t_uint64) 1uL << UNPACKED_BITS + 1)   /* the carry from the MSB in the mantissa */
+#define IMPLIED_BIT         ((uint64_t) 1uL << UNPACKED_BITS)       /* the implied MSB in the mantissa */
+#define CARRY_BIT           ((uint64_t) 1uL << UNPACKED_BITS + 1)   /* the carry from the MSB in the mantissa */
 
 #define DELTA_ALIGNMENT     (D64_WIDTH - UNPACKED_BITS)             /* net shift to align the binary point */
 
 
 /* Floating-point accessors */
 
-#define MANTISSA(w)         ((t_uint64) (((w) & MANTISSA_MASK) >> MANTISSA_SHIFT))
-#define EXPONENT(w)         ((int32)    (((w) & EXPONENT_MASK) >> EXPONENT_SHIFT))
+#define MANTISSA(w)         ((uint64_t) (((w) & MANTISSA_MASK) >> MANTISSA_SHIFT))
+#define EXPONENT(w)         ((int32_t)    (((w) & EXPONENT_MASK) >> EXPONENT_SHIFT))
 
 #define TO_EXPONENT(w)      ((w) + EXPONENT_BIAS << EXPONENT_SHIFT & EXPONENT_MASK)
 
@@ -141,8 +143,8 @@
 /* Floating-point unpacked representation */
 
 typedef struct {
-    t_uint64   mantissa;                        /* the unsigned mantissa */
-    int32      exponent;                        /* the unbiased exponent */
+    uint64_t   mantissa;                        /* the unsigned mantissa */
+    int32_t    exponent;                        /* the unbiased exponent */
     bool       negative;                        /* true if the mantissa is negative */
     FP_OPSIZE  precision;                       /* the precision currently expressed by the value */
     } FPU;
@@ -152,7 +154,7 @@ static const FPU zero = { 0, 0, false, fp_f };  /* an unpacked zero value */
 
 /* Floating-point descriptors */
 
-static const int32 mantissa_bits [] = {         /* the number of mantissa bits, indexed by FP_OPSIZE */
+static const int32_t mantissa_bits [] = {       /* the number of mantissa bits, indexed by FP_OPSIZE */
     16 - 1,                                     /*   in_s bits available - sign bit */
     32 - 1,                                     /*   in_d bits available - sign bit */
     22 + 1,                                     /*   fp_f bits explicit + bits implied */
@@ -160,21 +162,21 @@ static const int32 mantissa_bits [] = {         /* the number of mantissa bits, 
     54 + 1                                      /*   fp_e bits explicit + bits implied */
     };
 
-static const t_uint64 mantissa_mask [] = {      /* the mask to the mantissa bits, indexed by FP_OPSIZE */
-    ((t_uint64) 1 << 16) - 1 <<  0,             /*   in_s 16-bit mantissa */
-    ((t_uint64) 1 << 32) - 1 <<  0,             /*   in_d 32-bit mantissa */
-    ((t_uint64) 1 << 22) - 1 << 32,             /*   fp_f 22-bit mantissa */
-    ((t_uint64) 1 << 38) - 1 << 16,             /*   fp_x 38-bit mantissa */
-    ((t_uint64) 1 << 54) - 1 <<  0              /*   fp_e 54-bit mantissa */
+static const uint64_t mantissa_mask [] = {      /* the mask to the mantissa bits, indexed by FP_OPSIZE */
+    ((uint64_t) 1 << 16) - 1 <<  0,             /*   in_s 16-bit mantissa */
+    ((uint64_t) 1 << 32) - 1 <<  0,             /*   in_d 32-bit mantissa */
+    ((uint64_t) 1 << 22) - 1 << 32,             /*   fp_f 22-bit mantissa */
+    ((uint64_t) 1 << 38) - 1 << 16,             /*   fp_x 38-bit mantissa */
+    ((uint64_t) 1 << 54) - 1 <<  0              /*   fp_e 54-bit mantissa */
     };
 
 
-static const t_uint64 half_lsb [] = {           /* half of the LSB for rounding, indexed by FP_OPSIZE */
+static const uint64_t half_lsb [] = {           /* half of the LSB for rounding, indexed by FP_OPSIZE */
     0,                                          /*   in_s not used */
     0,                                          /*   in_d not used */
-    (t_uint64) 1 << 31,                         /*   fp_f word 2 LSB */
-    (t_uint64) 1 << 15,                         /*   fp_x word 3 LSB */
-    (t_uint64) 1 <<  0                          /*   fp_e word 4 LSB */
+    (uint64_t) 1 << 31,                         /*   fp_f word 2 LSB */
+    (uint64_t) 1 << 15,                         /*   fp_x word 3 LSB */
+    (uint64_t) 1 <<  0                          /*   fp_e word 4 LSB */
     };
 
 
@@ -310,7 +312,7 @@ return result_op;                                       /* return the result */
 static FPU unpack (FP_OPND packed)
 {
 FPU    unpacked;
-uint32 word;
+uint32_t word;
 
 switch (packed.precision) {                             /* dispatch based on the operand precision */
 
@@ -325,7 +327,7 @@ switch (packed.precision) {                             /* dispatch based on the
         else                                            /* otherwise the value is positive */
             unpacked.negative = false;                  /*   so clear the sign flag */
 
-        unpacked.mantissa = (t_uint64) word << 32;      /* store the preshifted value as the mantissa */
+        unpacked.mantissa = (uint64_t) word << 32;      /* store the preshifted value as the mantissa */
         unpacked.exponent = UNPACKED_BITS - 32;         /*   and set the exponent to account for the shift */
         unpacked.precision = fp_f;                      /* set the precision */
         break;
@@ -342,7 +344,7 @@ switch (packed.precision) {                             /* dispatch based on the
         else                                            /* otherwise the value is positive */
             unpacked.negative = false;                  /*   so clear the sign flag */
 
-        unpacked.mantissa = (t_uint64) word << 16;      /* store the preshifted value as the mantissa */
+        unpacked.mantissa = (uint64_t) word << 16;      /* store the preshifted value as the mantissa */
         unpacked.exponent = UNPACKED_BITS - 16;         /*   and set the exponent to account for the shift */
         unpacked.precision = fp_f;                      /* set the precision */
         break;
@@ -420,7 +422,7 @@ return unpacked;                                        /* return the unpacked v
 static FP_OPND norm_round_pack (FPU unpacked)
 {
 FP_OPND packed;
-int32   integer;
+int32_t integer;
 
 packed.precision = unpacked.precision;                  /* set the precision */
 
@@ -441,7 +443,7 @@ else if (unpacked.precision <= in_d)                                /* if packin
         }
 
     else {                                                          /* otherwise */
-        integer = (int32)                                           /*   convert the value to an integer */
+        integer = (int32_t)                                         /*   convert the value to an integer */
            (unpacked.mantissa >> UNPACKED_BITS - unpacked.exponent  /*     by shifting right to align */
            & mantissa_mask [unpacked.precision]);                   /*       and masking to the desired precision */
 
@@ -526,7 +528,7 @@ return packed;                                          /* return the packed val
 
 static TRAP_CLASS add (FPU *sum, FPU augend, FPU addend)
 {
-int32 magnitude;
+int32_t magnitude;
 
 if (addend.mantissa == 0)                              /* if the addend is zero */
     if (augend.mantissa == 0) {                        /*   then if the augend is also zero */
@@ -671,8 +673,8 @@ return trap_None;                                       /* report that the subtr
 
 static TRAP_CLASS multiply (FPU *product, FPU multiplicand, FPU multiplier)
 {
-uint32   ah, al, bh, bl;
-t_uint64 hh, hl, lh, ll, carry;
+uint32_t ah, al, bh, bl;
+uint64_t hh, hl, lh, ll, carry;
 
 if (multiplicand.mantissa == 0 || multiplier.mantissa == 0) {   /* if either operand is zero */
     *product = zero;                                            /*   then the product is (positive) zero */
@@ -685,16 +687,16 @@ else {                                                  /* otherwise both operan
     product->exponent = multiplicand.exponent           /* the product exponent */
                           + multiplier.exponent;        /*   is the sum of the operand exponents */
 
-    ah = (uint32) (multiplicand.mantissa >> D32_WIDTH); /* split the multiplicand */
-    al = (uint32) (multiplicand.mantissa &  D32_MASK);  /*   into high and low double-words */
+    ah = (uint32_t) (multiplicand.mantissa >> D32_WIDTH); /* split the multiplicand */
+    al = (uint32_t) (multiplicand.mantissa &  D32_MASK); /*   into high and low double-words */
 
-    bh = (uint32) (multiplier.mantissa   >> D32_WIDTH); /* split the multiplier */
-    bl = (uint32) (multiplier.mantissa   &  D32_MASK);  /*   into high and low double-words */
+    bh = (uint32_t) (multiplier.mantissa   >> D32_WIDTH); /* split the multiplier */
+    bl = (uint32_t) (multiplier.mantissa   &  D32_MASK); /*   into high and low double-words */
 
-    hh = ((t_uint64) ah * bh);                          /* form the */
-    hl = ((t_uint64) ah * bl);                          /*   four cross products */
-    lh = ((t_uint64) al * bh);                          /*     using 32 x 32 = 64-bit multiplies */
-    ll = ((t_uint64) al * bl);                          /*       for efficiency */
+    hh = ((uint64_t) ah * bh);                          /* form the */
+    hl = ((uint64_t) ah * bl);                          /*   four cross products */
+    lh = ((uint64_t) al * bh);                          /*     using 32 x 32 = 64-bit multiplies */
+    ll = ((uint64_t) al * bl);                          /*       for efficiency */
 
     carry = ((ll >> D32_WIDTH) + (hl & D32_MASK)        /* add the upper half of "ll" to the lower halves of "hl" */
               + (lh & D32_MASK)) >> D32_WIDTH;          /*   and "lh" and shift to leave just the carry bit */
@@ -778,8 +780,8 @@ return trap_None;                                       /* report that the multi
 
 static TRAP_CLASS divide (FPU *quotient, FPU dividend, FPU divisor)
 {
-t_uint64 bh, bl, q1, q2, r1, r2;
-t_int64  c1, c2;
+uint64_t bh, bl, q1, q2, r1, r2;
+int64_t  c1, c2;
 
 if (divisor.mantissa == 0) {                            /* if the divisor is zero */
     *quotient = dividend;                               /*   then return the dividend */
@@ -882,7 +884,7 @@ else {                                                  /* otherwise the value i
 
     if (round && real.exponent < UNPACKED_BITS)         /* if rounding is requested and the value won't overflow */
         integer->mantissa +=                            /*   then add one-half of the LSB to the value */
-           (t_uint64) 1 << (UNPACKED_BITS - real.exponent - 1);
+           (uint64_t) 1 << (UNPACKED_BITS - real.exponent - 1);
     }
 
 integer->exponent = real.exponent;                      /* copy the exponent */

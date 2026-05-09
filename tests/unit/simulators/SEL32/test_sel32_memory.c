@@ -1,18 +1,20 @@
+#include <stdint.h>
+
 #include "test_cmocka.h"
 
 #include "sel32_defs.h"
 
 struct ipcom *IPC;
-uint32 M[4];
-uint32 MAPC[4];
+uint32_t M[4];
+uint32_t MAPC[4];
 
 /* Verify byte writes preserve neighboring bytes and handle the high byte. */
 static void test_write_memory_byte_updates_each_byte(void **state)
 {
     static const struct {
-        uint32 addr;
-        uint32 value;
-        uint32 expected;
+        uint32_t addr;
+        uint32_t value;
+        uint32_t expected;
     } cases[] = {
         {0, 0xff, 0xff000000},
         {1, 0x7e, 0xff7e0000},

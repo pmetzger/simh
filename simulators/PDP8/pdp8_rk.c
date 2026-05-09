@@ -36,6 +36,8 @@
    29-Jun-96    RMS     Added unit enable/disable support
 */
 
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
 /* Constants */
@@ -122,24 +124,24 @@
                             int_req = int_req | INT_RK; \
                         else int_req = int_req & ~INT_RK
 #define RK_MIN          50
-extern uint16 M[];
-extern int32 int_req, stop_inst;
+extern uint16_t M[];
+extern int32_t int_req, stop_inst;
 extern UNIT cpu_unit;
 
-int32 rk_busy = 0;                                      /* controller busy */
-int32 rk_sta = 0;                                       /* status register */
-int32 rk_cmd = 0;                                       /* command register */
-int32 rk_da = 0;                                        /* disk address */
-int32 rk_ma = 0;                                        /* memory address */
-int32 rk_swait = 10, rk_rwait = 10;                     /* seek, rotate wait */
-int32 rk_stopioe = 1;                                   /* stop on error */
+int32_t rk_busy = 0;                                    /* controller busy */
+int32_t rk_sta = 0;                                     /* status register */
+int32_t rk_cmd = 0;                                     /* command register */
+int32_t rk_da = 0;                                      /* disk address */
+int32_t rk_ma = 0;                                      /* memory address */
+int32_t rk_swait = 10, rk_rwait = 10;                   /* seek, rotate wait */
+int32_t rk_stopioe = 1;                                 /* stop on error */
 
-int32 rk (int32 IR, int32 AC);
+int32_t rk (int32_t IR, int32_t AC);
 t_stat rk_svc (UNIT *uptr);
 t_stat rk_reset (DEVICE *dptr);
-t_stat rk_boot (int32 unitno, DEVICE *dptr);
+t_stat rk_boot (int32_t unitno, DEVICE *dptr);
 const char *rk_description (DEVICE *dptr);
-void rk_go (int32 function, int32 cylinder);
+void rk_go (int32_t function, int32_t cylinder);
 
 /* RK-8E data structures
 
@@ -198,9 +200,9 @@ DEVICE rk_dev = {
 
 /* IOT routine */
 
-int32 rk (int32 IR, int32 AC)
+int32_t rk (int32_t IR, int32_t AC)
 {
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 switch (IR & 07) {                                      /* decode IR<9:11> */
@@ -286,9 +288,9 @@ return 0;                                               /* clear AC */
    request will be done by the caller.
 */
 
-void rk_go (int32 func, int32 cyl)
+void rk_go (int32_t func, int32_t cyl)
 {
-int32 t;
+int32_t t;
 UNIT *uptr;
 
 if (func == RKC_RALL)                                   /* all? use standard */
@@ -338,10 +340,10 @@ return;
    Note that memory addresses wrap around in the current field.
 */
 
-static uint16 fill[RK_NUMWD/2] = { 0 };
+static uint16_t fill[RK_NUMWD/2] = { 0 };
 t_stat rk_svc (UNIT *uptr)
 {
-int32 err, wc, wc1, awc, swc, pa, da;
+int32_t err, wc, wc1, awc, swc, pa, da;
 UNIT *seluptr;
 
 if (uptr->FUNC == RKC_SEEK) {                           /* seek? */
@@ -368,20 +370,20 @@ if ((uptr->FUNC == RKC_WRITE) && (uptr->flags & (UNIT_HWLK|UNIT_SWLK))) {
     }
 
 pa = GET_MEX (rk_cmd) | rk_ma;                          /* phys address */
-da = GET_DA (rk_cmd, rk_da) * RK_NUMWD * sizeof (int16);/* disk address */
+da = GET_DA (rk_cmd, rk_da) * RK_NUMWD * sizeof (int16_t);/* disk address */
 swc = wc = (rk_cmd & RKC_HALF)? RK_NUMWD / 2: RK_NUMWD; /* get transfer size */
 if ((wc1 = ((rk_ma + wc) - 010000)) > 0)                /* if wrap, limit */
     wc = wc - wc1;
 err = fseek (uptr->fileref, da, SEEK_SET);              /* locate sector */
 
 if ((uptr->FUNC == RKC_READ) && (err == 0) && MEM_ADDR_OK (pa)) { /* read? */
-    awc = fxread (&M[pa], sizeof (int16), wc, uptr->fileref);
+    awc = fxread (&M[pa], sizeof (int16_t), wc, uptr->fileref);
     for ( ; awc < wc; awc++)                            /* fill if eof */
         M[pa + awc] = 0;
     err = ferror (uptr->fileref);
     if ((wc1 > 0) && (err == 0))  {                     /* field wraparound? */
         pa = pa & 070000;                               /* wrap phys addr */
-        awc = fxread (&M[pa], sizeof (int16), wc1, uptr->fileref);
+        awc = fxread (&M[pa], sizeof (int16_t), wc1, uptr->fileref);
         for ( ; awc < wc1; awc++)                       /* fill if eof */
             M[pa + awc] = 0;
         err = ferror (uptr->fileref);
@@ -389,15 +391,15 @@ if ((uptr->FUNC == RKC_READ) && (err == 0) && MEM_ADDR_OK (pa)) { /* read? */
     }
 
 if ((uptr->FUNC == RKC_WRITE) && (err == 0)) {          /* write? */
-    fxwrite (&M[pa], sizeof (int16), wc, uptr->fileref);
+    fxwrite (&M[pa], sizeof (int16_t), wc, uptr->fileref);
     err = ferror (uptr->fileref);
     if ((wc1 > 0) && (err == 0)) {                      /* field wraparound? */
         pa = pa & 070000;                               /* wrap phys addr */
-        fxwrite (&M[pa], sizeof (int16), wc1, uptr->fileref);
+        fxwrite (&M[pa], sizeof (int16_t), wc1, uptr->fileref);
         err = ferror (uptr->fileref);
         }
     if ((rk_cmd & RKC_HALF) && (err == 0)) {            /* fill half sector */
-        fxwrite (fill, sizeof (int16), RK_NUMWD/2, uptr->fileref);
+        fxwrite (fill, sizeof (int16_t), RK_NUMWD/2, uptr->fileref);
         err = ferror (uptr->fileref);
         }
     }
@@ -423,7 +425,7 @@ t_stat rk_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 rk_cmd = rk_ma = rk_da = rk_sta = rk_busy = 0;
@@ -441,9 +443,9 @@ return SCPE_OK;
 
 #define BOOT_START 023
 #define BOOT_UNIT 032
-#define BOOT_LEN (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN (sizeof (boot_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     06007,                      /* 23, CAF */
     06744,                      /* 24, DLCA             ; addr = 0 */
     01032,                      /* 25, TAD UNIT         ; unit no */
@@ -454,7 +456,7 @@ static const uint16 boot_rom[] = {
     00000                       /* UNIT, 0              ; in bits <9:10> */
     };
 
-t_stat rk_boot (int32 unitno, DEVICE *dptr)
+t_stat rk_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */

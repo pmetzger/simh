@@ -9,6 +9,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "vax750_mem_internal.h"
 #include "uint_bits.h"
@@ -52,16 +54,16 @@
 #define MCTL_DEB_RRD     0x01                            /* reg reads */
 #define MCTL_DEB_RWR     0x02                            /* reg writes */
 
-uint32 mcsr0 = 0;
-uint32 mcsr1 = 0;
-uint32 mcsr2 = 0;
+uint32_t mcsr0 = 0;
+uint32_t mcsr1 = 0;
+uint32_t mcsr2 = 0;
 
-uint32 rom[ROMSIZE/sizeof(uint32)];                     /* boot ROM */
+uint32_t rom[ROMSIZE/sizeof(uint32_t)];                 /* boot ROM */
 
 t_stat mctl_reset (DEVICE *dptr);
 const char *mctl_description (DEVICE *dptr);
-t_stat mctl_rdreg (int32 *val, int32 pa, int32 mode);
-t_stat mctl_wrreg (int32 val, int32 pa, int32 mode);
+t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
+t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
 
 /* MCTL data structures
 
@@ -106,13 +108,13 @@ DEVICE mctl_dev = {
 
 /* Memory controller register read */
 
-t_stat mctl_rdreg (int32 *val, int32 pa, int32 lnt)
+t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 /* Nexus register read signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 ofs;
+int32_t ofs;
 ofs = NEXUS_GETOFS (pa);                                /* get offset */
 
 switch (ofs) {                                          /* case on offset */
@@ -141,13 +143,13 @@ return SCPE_OK;
 
 /* Memory controller register write */
 
-t_stat mctl_wrreg (int32 val, int32 pa, int32 lnt)
+t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 /* Nexus register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 ofs;
+int32_t ofs;
 
 ofs = NEXUS_GETOFS (pa);                                /* get offset */
 
@@ -176,11 +178,11 @@ return SCPE_OK;
 
 /* Used by CPU */
 
-void rom_wr_B (int32 pa, int32 val)
+void rom_wr_B (int32_t pa, int32_t val)
 {
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
+int32_t rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = u32_put_addr_u8_le(rom[rg], (uint32)val, (uint32)pa);
+rom[rg] = u32_put_addr_u8_le(rom[rg], (uint32_t)val, (uint32_t)pa);
 return;
 }
 
@@ -194,7 +196,7 @@ t_stat mctl_reset (DEVICE *dptr)
 
 mcsr0 = 0;
 mcsr1 = 0;
-mcsr2 = vax750_mcsr2_reset_value((uint32)MEMSIZE);
+mcsr2 = vax750_mcsr2_reset_value((uint32_t)MEMSIZE);
 return SCPE_OK;
 }
 
@@ -219,7 +221,7 @@ const char *mctl_description (DEVICE *dptr)
 return "Memory controller";
 }
 
-t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -227,16 +229,16 @@ t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
 (void) val;
 (void) desc;
 
-uint32 baseaddr = 0;
+uint32_t baseaddr = 0;
 struct {
-    uint32 capacity;
+    uint32_t capacity;
     const char *option;
     } boards[] = {
         { 4096, "MS750-JD M7199"},
         { 1024, "MS750-CA M8750"},
         {  256, "MS750-AA M8728"},
         {    0, NULL}};
-int32 i, bd = 0;
+int32_t i, bd = 0;
 
 for (i=0; i<8; i++) {
     if (mcsr2&MCSR2_CS256) {

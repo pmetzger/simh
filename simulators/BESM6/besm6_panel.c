@@ -29,7 +29,10 @@
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
 
+#include <stdint.h>
+
 #include "besm6_defs.h"
+#include "sim_types.h"
 #if defined (HAVE_LIBSDL)
 #if !defined (FONTFILE)
 #include "besm6_panel_font.h"
@@ -70,7 +73,7 @@ static const SDL_Color black = { 0,   0,   0   };
 static const SDL_Color cyan  = { 0,   128, 128 };
 static const SDL_Color grey  = { 64,  64,  64  };
 static t_value old_BRZ [8], old_GRP [2];
-static uint32 old_M [NREGS], old_PRP [2], old_PC;
+static uint32_t old_M [NREGS], old_PRP [2], old_PC;
 static char M_lamps[NREGS][15], BRZ_lamps[8][48],
     GRP_lamps[2][48], PRP_lamps[2][24], PC_lamps[16];
 
@@ -118,7 +121,7 @@ static void render_utf8 (TTF_Font *font, int x, int y, int halign, char *message
 }
 
 static SDL_Surface *sprite_from_data (int width, int height,
-                                      const unsigned char *data)
+                                      const uchar_t *data)
 {
     SDL_Surface *sprite;
     unsigned *s, r, g, b;
@@ -153,7 +156,7 @@ static void draw_lamp (int left, int top, int on)
     /* Images created by GIMP: save as C file without alpha channel. */
     static const int lamp_width = 12;
     static const int lamp_height = 12;
-    static const unsigned char lamp_on [12 * 12 * 3 + 1] =
+    static const uchar_t lamp_on [12 * 12 * 3 + 1] =
         "\0\0\0\0\0\0\0\0\0\13\2\2-\14\14e\31\31e\31\31-\14\14\13\2\2\0\0\0\0\0\0"
         "\0\0\0\0\0\0\0\0\0D\20\20\313,,\377??\377CC\377CC\377DD\31333D\21\21\0\0"
         "\0\0\0\0\0\0\0D\20\20\357LL\377\243\243\376~~\37699\376@@\376@@\377AA\357"
@@ -167,7 +170,7 @@ static void draw_lamp (int left, int top, int on)
         "AA\376@@\376??\376??\376@@\377AA\357<<D\21\21\0\0\0\0\0\0\0\0\0D\21\21\313"
         "33\377DD\377CC\377CC\377DD\31333D\21\21\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\13"
         "\2\2-\14\14e\31\31e\31\31-\14\14\13\2\2\0\0\0\0\0\0\0\0\0";
-    static const unsigned char lamp_off [12 * 12 * 3 + 1] =
+    static const uchar_t lamp_off [12 * 12 * 3 + 1] =
         "\0\0\0\0\0\0\0\0\0\0\0\0\14\2\2\14\2\2\14\2\2\14\2\2\0\0\0\0\0\0\0\0\0\0"
         "\0\0\0\0\0\0\0\0\25\5\5A\21\21h\32\32c\30\30c\30\30h\32\32A\21\21\25\5\5"
         "\0\0\0\0\0\0\0\0\0\25\5\5\\\30\30""8\16\16\0\0\0\0\0\0\0\0\0\0\0\0""8\16"
@@ -183,7 +186,7 @@ static void draw_lamp (int left, int top, int on)
         "\0\0\0\0\0\0\0\0\0\0\0\0\0\14\2\2\14\2\2\14\2\2\14\2\2\0\0\0\0\0\0\0\0\0"
         "\0\0\0";
 
-    static unsigned char lamp_mid [sizeof(lamp_on)];
+    static uchar_t lamp_mid [sizeof(lamp_on)];
     static SDL_Surface * sprites[3];
     SDL_Rect area;
     int i;
@@ -264,11 +267,11 @@ static void draw_grp_periodic (int left, int top)
     draw_full_word (MGRP, &old_GRP[1], GRP_lamps[1], left + TEXTW, top+HEADER+STEPY);
 }
 
-static void draw_partial_word (uint32 val, int bits, uint32 * old,
+static void draw_partial_word (uint32_t val, int bits, uint32_t * old,
                                char * lamps, int hpos, int vpos)
 {
     int x;
-    uint32 anded, ored;
+    uint32_t anded, ored;
     anded = *old & val;
     ored = *old | val;
     *old = val;
@@ -429,7 +432,7 @@ static void draw_brz_static (int left, int top)
 /*
  * Closing the graphical window.
  */
-t_stat besm6_close_panel (UNIT *u, int32 val, const char *cptr, void *desc)
+t_stat besm6_close_panel (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     if (! screen)
         return SCPE_UNATT;
@@ -441,7 +444,7 @@ t_stat besm6_close_panel (UNIT *u, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat besm6_show_panel (FILE *st, UNIT *up, int32 v, const void *dp)
+t_stat besm6_show_panel (FILE *st, UNIT *up, int32_t v, const void *dp)
 {
     if (screen)
         fprintf(st, "Panel displayed");
@@ -459,7 +462,7 @@ static SDL_Texture *sdlTexture;
 /*
  * Initializing of the graphical window and the fonts.
  */
-t_stat besm6_init_panel (UNIT *u, int32 val, const char *cptr, void *desc)
+t_stat besm6_init_panel (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     if (screen)
         return SCPE_ALATT;
@@ -584,7 +587,7 @@ void besm6_draw_panel (int force)
 /*
  * Initializing of the graphical window and the fonts.
  */
-t_stat besm6_init_panel (UNIT *u, int32 val, const char *cptr, void *desc)
+t_stat besm6_init_panel (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     if (screen)
         return SCPE_ALATT;
@@ -678,7 +681,7 @@ void besm6_draw_panel (int force)
 #endif /* SDL_MAJOR_VERSION */
 
 #else /* HAVE_LIBSDL */
-t_stat besm6_init_panel (UNIT *u, int32 val, const char *cptr, void *desc)
+t_stat besm6_init_panel (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     /* Shared build-variant signature.
        This build variant does not use every parameter. */
@@ -690,7 +693,7 @@ t_stat besm6_init_panel (UNIT *u, int32 val, const char *cptr, void *desc)
     return sim_messagef(SCPE_OPENERR, "Need SDL and SDLttf libraries\n");
 }
 
-t_stat besm6_close_panel (UNIT *u, int32 val, const char *cptr, void *desc)
+t_stat besm6_close_panel (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
     /* Shared build-variant signature.
        This build variant does not use every parameter. */
@@ -702,7 +705,7 @@ t_stat besm6_close_panel (UNIT *u, int32 val, const char *cptr, void *desc)
     return SCPE_UNATT;
 }
 
-t_stat besm6_show_panel (FILE *st, UNIT *up, int32 v, const void *dp)
+t_stat besm6_show_panel (FILE *st, UNIT *up, int32_t v, const void *dp)
 {
     /* Shared build-variant signature.
        This build variant does not use every parameter. */

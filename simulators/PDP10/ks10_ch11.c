@@ -29,6 +29,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
@@ -75,10 +77,10 @@
 #define DBG_INT  0x0010
 #define DBG_ERR  0x0020
 
-int    ch11_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
-int    ch11_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
-uint16 ch11_checksum (const uint8 *p, int count);
-void   ch11_validate (const uint8 *p, int count);
+int    ch11_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access);
+int    ch11_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access);
+uint16_t ch11_checksum (const uint8_t *p, int count);
+void   ch11_validate (const uint8_t *p, int count);
 t_stat ch11_transmit (struct pdp_dib *dibp);
 int    ch11_receive (struct pdp_dib *dibp);
 void   ch11_clear (struct pdp_dib *dibp);
@@ -86,22 +88,22 @@ t_stat ch11_svc(UNIT *);
 t_stat ch11_reset (DEVICE *);
 t_stat ch11_attach (UNIT *, const char *);
 t_stat ch11_detach (UNIT *);
-t_stat ch11_show_peer (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat ch11_set_peer (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat ch11_show_node (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat ch11_set_node (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat ch11_help (FILE *, DEVICE *, UNIT *, int32, const char *);
-t_stat ch11_help_attach (FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat ch11_show_peer (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat ch11_set_peer (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat ch11_show_node (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat ch11_set_node (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat ch11_help (FILE *, DEVICE *, UNIT *, int32_t, const char *);
+t_stat ch11_help_attach (FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char *ch11_description (DEVICE *);
 
 static char peer[256];
 static int address;
-static uint16 ch11_csr;
+static uint16_t ch11_csr;
 static int rx_count;
 static int rx_pos;
 static int tx_count;
-static uint8 rx_buffer[514+100];
-static uint8 tx_buffer[514+100];
+static uint8_t rx_buffer[514+100];
+static uint8_t tx_buffer[514+100];
 
 TMLN ch11_lines[1] = { {0} };
 TMXR ch11_tmxr = { 1, NULL, 0, ch11_lines};
@@ -161,7 +163,7 @@ DEVICE ch11_dev = {
   };
 
 int
-ch11_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
+ch11_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
     int               i;
@@ -220,7 +222,7 @@ ch11_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
 }
 
 int
-ch11_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
+ch11_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
 
@@ -269,10 +271,10 @@ ch11_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
     return 0;
 }
 
-uint16
-ch11_checksum (const uint8 *p, int count)
+uint16_t
+ch11_checksum (const uint8_t *p, int count)
 {
-  int32 sum = 0;
+  int32_t sum = 0;
 
   while (count > 1) {
     sum += (p[0]<<8) | p[1];
@@ -290,9 +292,9 @@ ch11_checksum (const uint8 *p, int count)
 }
 
 void
-ch11_validate (const uint8 *p, int count)
+ch11_validate (const uint8_t *p, int count)
 {
-  uint16 chksum;
+  uint16_t chksum;
   int size;
 
   sim_debug (DBG_TRC, &ch11_dev, "Packet opcode: %02x\n", p[0]);
@@ -324,7 +326,7 @@ ch11_transmit (struct pdp_dib *dibp)
   size_t len;
   t_stat r;
   int i = CHUDP_HEADER + tx_count;
-  uint16 chk;
+  uint16_t chk;
 
   if (tx_count > (512 - CHUDP_HEADER)) {
     sim_debug (DBG_PKT, &ch11_dev, "Pack size failed, %d bytes.\n", (int)tx_count);
@@ -341,7 +343,7 @@ ch11_transmit (struct pdp_dib *dibp)
 
   tmxr_poll_tx (&ch11_tmxr);
   len = CHUDP_HEADER + (size_t)tx_count;
-  r = tmxr_put_packet_ln (&ch11_lines[0], (const uint8 *)&tx_buffer, len);
+  r = tmxr_put_packet_ln (&ch11_lines[0], (const uint8_t *)&tx_buffer, len);
   if (r == SCPE_OK) {
     sim_debug (DBG_PKT, &ch11_dev, "Sent UDP packet, %d bytes. %04x checksum.\n", (int)len, chk);
     tmxr_poll_tx (&ch11_tmxr);
@@ -358,8 +360,8 @@ int
 ch11_receive (struct pdp_dib *dibp)
 {
   size_t count;
-  const uint8 *p;
-  uint16 dest;
+  const uint8_t *p;
+  uint16_t dest;
 
   tmxr_poll_rx (&ch11_tmxr);
   if (tmxr_get_packet_ln (&ch11_lines[0], &p, &count) != SCPE_OK) {
@@ -481,7 +483,7 @@ t_stat ch11_reset (DEVICE *dptr)
   return SCPE_OK;
 }
 
-t_stat ch11_show_peer (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat ch11_show_peer (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -493,7 +495,7 @@ t_stat ch11_show_peer (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat ch11_set_peer (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat ch11_set_peer (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -515,7 +517,7 @@ t_stat ch11_set_peer (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat ch11_show_node (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat ch11_show_node (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -530,7 +532,7 @@ t_stat ch11_show_node (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat ch11_set_node (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat ch11_set_node (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -562,7 +564,7 @@ const char *ch11_description (DEVICE *dptr)
   return "CH11 Chaosnet interface";
 }
 
-t_stat ch11_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ch11_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   fprintf (st, "CH11 Chaosnet interface\n\n");
   fprintf (st, "It's a network interface for MIT's Chaosnet.  Options allow\n");
@@ -584,7 +586,7 @@ t_stat ch11_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cp
   return SCPE_OK;
 }
 
-t_stat ch11_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ch11_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   /* Generic attach help signature.
      This implementation does not use every parameter. */

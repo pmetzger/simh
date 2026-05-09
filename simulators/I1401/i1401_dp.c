@@ -47,6 +47,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i1401_defs.h"
 
 #define DP_NUMDR        5                               /* #drives */
@@ -92,30 +94,30 @@
 
 #define CYL             u3                              /* current cylinder */
 
-extern uint8 M[];                                       /* memory */
-extern int32 ind[64];
-extern int32 AS, BS, iochk;
-extern const int32 bcd_to_bin[16];
-extern const int32 bin_to_bcd[16];
+extern uint8_t M[];                                     /* memory */
+extern int32_t ind[64];
+extern int32_t AS, BS, iochk;
+extern const int32_t bcd_to_bin[16];
+extern const int32_t bin_to_bcd[16];
 extern UNIT cpu_unit;
 
-int32 dp_lastf = 0;                                     /* prior function */
-int32 dp_time = 0;                                      /* seek time */
+int32_t dp_lastf = 0;                                   /* prior function */
+int32_t dp_time = 0;                                    /* seek time */
 
 t_stat dp_reset (DEVICE *dptr);
-t_stat dp_rdadr (UNIT *uptr, int32 sec, int32 flg, int32 wchk);
-t_stat dp_rdsec (UNIT *uptr, int32 sec, int32 flg, int32 wchk);
-t_stat dp_wradr (UNIT *uptr, int32 sec, int32 flg);
-t_stat dp_wrsec (UNIT *uptr, int32 sec, int32 flg);
-int32 dp_fndsec (UNIT *uptr, int32 sec, int32 dcf);
-t_stat dp_nexsec (UNIT *uptr, int32 psec, int32 dcf);
-bool dp_zeroad (uint8 *ap);
-bool dp_cmp_ad (uint8 *ap, int32 dcf);
-int32 dp_trkop (int32 drv, int32 sec);
-int32 dp_cvt_bcd (int32 ad, int32 len);
-void dp_cvt_bin (int32 ad, int32 len, int32 val, int32 flg);
-int32 dp_get_cnt (int32 dcf);
-void dp_fill (UNIT *uptr, uint32 da, int32 cnt);
+t_stat dp_rdadr (UNIT *uptr, int32_t sec, int32_t flg, int32_t wchk);
+t_stat dp_rdsec (UNIT *uptr, int32_t sec, int32_t flg, int32_t wchk);
+t_stat dp_wradr (UNIT *uptr, int32_t sec, int32_t flg);
+t_stat dp_wrsec (UNIT *uptr, int32_t sec, int32_t flg);
+int32_t dp_fndsec (UNIT *uptr, int32_t sec, int32_t dcf);
+t_stat dp_nexsec (UNIT *uptr, int32_t psec, int32_t dcf);
+bool dp_zeroad (uint8_t *ap);
+bool dp_cmp_ad (uint8_t *ap, int32_t dcf);
+int32_t dp_trkop (int32_t drv, int32_t sec);
+int32_t dp_cvt_bcd (int32_t ad, int32_t len);
+void dp_cvt_bin (int32_t ad, int32_t len, int32_t val, int32_t flg);
+int32_t dp_get_cnt (int32_t dcf);
+void dp_fill (UNIT *uptr, uint32_t da, int32_t cnt);
 
 /* DP data structures
 
@@ -175,9 +177,9 @@ DEVICE dp_dev = {
         status  =       status
 */
 
-t_stat dp_io (int32 fnc, int32 flg, int32 mod)
+t_stat dp_io (int32_t fnc, int32_t flg, int32_t mod)
 {
-int32 dcf, drv, sec, psec, cnt, qwc, qzr, diff;
+int32_t dcf, drv, sec, psec, cnt, qwc, qzr, diff;
 UNIT *uptr;
 t_stat r;
 
@@ -360,14 +362,14 @@ CRETIOE (iochk || !ind[IN_DSK], r);                     /* return status */
 
 /* Read or compare address with memory */
 
-t_stat dp_rdadr (UNIT *uptr, int32 sec, int32 flg, int32 qwc)
+t_stat dp_rdadr (UNIT *uptr, int32_t sec, int32_t flg, int32_t qwc)
 {
-int32 i;
-uint8 ac;
-int32 da = (sec % DP_TOTSC) * DP_NUMCH;                 /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+int32_t i;
+uint8_t ac;
+int32_t da = (sec % DP_TOTSC) * DP_NUMCH;               /* char number */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;         /* buf ptr */
 bool zad = dp_zeroad (ap);                              /* zero address */
-static const int32 dec_tab[DP_ADDR] = {                 /* powers of 10 */
+static const int32_t dec_tab[DP_ADDR] = {               /* powers of 10 */
     100000, 10000, 1000, 100, 10, 1
     } ;
 
@@ -401,11 +403,11 @@ return SCPE_OK;
 
 /* Read or compare data with memory */
 
-t_stat dp_rdsec (UNIT *uptr, int32 sec, int32 flg, int32 qwc)
+t_stat dp_rdsec (UNIT *uptr, int32_t sec, int32_t flg, int32_t qwc)
 {
-int32 i, lim;
-int32 da = (sec % DP_TOTSC) * DP_NUMCH;                 /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da + DP_ADDR;   /* buf ptr */
+int32_t i, lim;
+int32_t da = (sec % DP_TOTSC) * DP_NUMCH;               /* char number */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da + DP_ADDR; /* buf ptr */
 
 lim = flg? (DP_DATA - 10): DP_DATA;                     /* load vs move */
 for (i = 0; i < lim; i++) {                             /* copy data */
@@ -433,11 +435,11 @@ return SCPE_OK;
 
 /* Write address to disk */
 
-t_stat dp_wradr (UNIT *uptr, int32 sec, int32 flg)
+t_stat dp_wradr (UNIT *uptr, int32_t sec, int32_t flg)
 {
-int32 i;
-uint32 da = (sec % DP_TOTSC) * DP_NUMCH;                /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+int32_t i;
+uint32_t da = (sec % DP_TOTSC) * DP_NUMCH;              /* char number */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;         /* buf ptr */
 
 for (i = 0; i < DP_ADDR; i++) {                         /* copy address */
     if (M[BS] == (WM | BCD_GRPMRK)) {                   /* premature GWM? */
@@ -461,11 +463,11 @@ return SCPE_OK;
 
 /* Write data to disk */
 
-t_stat dp_wrsec (UNIT *uptr, int32 sec, int32 flg)
+t_stat dp_wrsec (UNIT *uptr, int32_t sec, int32_t flg)
 {
-int32 i, lim;
-uint32 da = ((sec % DP_TOTSC) * DP_NUMCH) + DP_ADDR;    /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+int32_t i, lim;
+uint32_t da = ((sec % DP_TOTSC) * DP_NUMCH) + DP_ADDR;  /* char number */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;         /* buf ptr */
 
 lim = flg? (DP_DATA - 10): DP_DATA;                     /* load vs move */
 for (i = 0; i < lim; i++) {                             /* copy data */
@@ -490,13 +492,13 @@ return SCPE_OK;
 
 /* Find sector */
 
-int32 dp_fndsec (UNIT *uptr, int32 sec, int32 dcf)
+int32_t dp_fndsec (UNIT *uptr, int32_t sec, int32_t dcf)
 {
-int32 ctrk = sec % (DP_NUMSF * DP_NUMSC);               /* curr trk-sec */
-int32 psec = ((uptr->CYL) * (DP_NUMSF * DP_NUMSC)) + ctrk;
-int32 da = psec * DP_NUMCH;                             /* char number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
-int32 i;
+int32_t ctrk = sec % (DP_NUMSF * DP_NUMSC);             /* curr trk-sec */
+int32_t psec = ((uptr->CYL) * (DP_NUMSF * DP_NUMSC)) + ctrk;
+int32_t da = psec * DP_NUMCH;                           /* char number */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;         /* buf ptr */
+int32_t i;
 
 if (dp_zeroad (ap))                                     /* addr zero? ok */
     return psec;
@@ -505,7 +507,7 @@ if (dp_cmp_ad (ap, dcf))                                /* addr comp? ok */
 psec = psec - (psec % DP_NUMSC);                        /* sector 0 */
 for (i = 0; i < DP_NUMSC; i++, psec++) {                /* check track */
     da = psec * DP_NUMCH;                               /* char number */
-    ap = ((uint8 *) uptr->filebuf) + da;                /* word pointer */
+    ap = ((uint8_t *) uptr->filebuf) + da;              /* word pointer */
     if (dp_zeroad (ap))                                 /* no implicit match */
         continue;
     if (dp_cmp_ad (ap, dcf))                            /* match? */
@@ -517,11 +519,11 @@ return -1;
 
 /* Find next sector - must be sequential, cannot cross cylinder boundary */
 
-t_stat dp_nexsec (UNIT *uptr, int32 psec, int32 dcf)
+t_stat dp_nexsec (UNIT *uptr, int32_t psec, int32_t dcf)
 {
-int32 ctrk = psec % (DP_NUMSF * DP_NUMSC);              /* curr trk-sec */
-int32 da = psec * DP_NUMCH;                             /* word number */
-uint8 *ap = ((uint8 *) uptr->filebuf) + da;             /* buf ptr */
+int32_t ctrk = psec % (DP_NUMSF * DP_NUMSC);            /* curr trk-sec */
+int32_t da = psec * DP_NUMCH;                           /* word number */
+uint8_t *ap = ((uint8_t *) uptr->filebuf) + da;         /* buf ptr */
 
 if (ctrk) {                                             /* not trk zero? */
     if (dp_zeroad (ap))                                 /* addr zero? ok */
@@ -535,9 +537,9 @@ return STOP_INVDAD;
 
 /* Test for zero address */
 
-bool dp_zeroad (uint8 *ap)
+bool dp_zeroad (uint8_t *ap)
 {
-int32 i;
+int32_t i;
 
 for (i = 0; i < DP_ADDR; i++, ap++) {                   /* loop thru addr */
     if (*ap & CHAR)                                     /* nonzero? lose */
@@ -548,10 +550,10 @@ return true;                                            /* all zeroes */
 
 /* Compare disk address to memory sector address - always omit word marks */
 
-bool dp_cmp_ad (uint8 *ap, int32 dcf)
+bool dp_cmp_ad (uint8_t *ap, int32_t dcf)
 {
-int32 i;
-uint8 c;
+int32_t i;
+uint8_t c;
 
 for (i = 0; i < DP_ADDR; i++, ap++) {                   /* loop thru addr */
     c = M[dcf + DCF_SEC + i];                           /* sector addr char */
@@ -563,9 +565,9 @@ return true;                                            /* compare ok */
 
 /* Track operation setup */
 
-int32 dp_trkop (int32 drv, int32 sec)
+int32_t dp_trkop (int32_t drv, int32_t sec)
 {
-int32 ctrk = (sec / DP_NUMSC) % DP_NUMSF;
+int32_t ctrk = (sec / DP_NUMSC) % DP_NUMSF;
 
 return ((drv * DP_TOTSC) + (dp_unit[drv].CYL * DP_NUMSF * DP_NUMSC) +
     (ctrk * DP_NUMSC));
@@ -573,10 +575,10 @@ return ((drv * DP_TOTSC) + (dp_unit[drv].CYL * DP_NUMSF * DP_NUMSC) +
 
 /* Convert DCF BCD field to binary */
 
-int32 dp_cvt_bcd (int32 ad, int32 len)
+int32_t dp_cvt_bcd (int32_t ad, int32_t len)
 {
-uint8 c;
-int32 r;
+uint8_t c;
+int32_t r;
 
 for (r = 0; len > 0; len--) {                           /* loop thru char */
     c = M[ad] & DIGIT;                                  /* get digit */
@@ -590,9 +592,9 @@ return r;
 
 /* Convert binary to DCF BCD field */
 
-void dp_cvt_bin (int32 ad, int32 len, int32 val, int32 flg)
+void dp_cvt_bin (int32_t ad, int32_t len, int32_t val, int32_t flg)
 {
-int32 r;
+int32_t r;
 
 for ( ; len > 0; len--) {                               /* loop thru char */
     r = val % 10;                                       /* get digit */
@@ -606,9 +608,9 @@ return;
 
 /* Get and validate count */
 
-int32 dp_get_cnt (int32 dcf)
+int32_t dp_get_cnt (int32_t dcf)
 {
-int32 cnt = dp_cvt_bcd (dcf + DCF_CNT, DCF_CNT_LEN);    /* get new count */
+int32_t cnt = dp_cvt_bcd (dcf + DCF_CNT, DCF_CNT_LEN);  /* get new count */
 if (cnt < 0)                                            /* bad count? */
     return -1;
 if (cnt == 0)                                           /* 0 => 1000 */
@@ -618,10 +620,10 @@ return cnt;
 
 /* Fill sector buffer with blanks */
 
-void dp_fill (UNIT *uptr, uint32 da, int32 cnt)
+void dp_fill (UNIT *uptr, uint32_t da, int32_t cnt)
 {
 while (cnt-- > 0) {                                     /* fill with blanks */
-    *(((uint8 *) uptr->filebuf) + da) = BCD_BLANK;
+    *(((uint8_t *) uptr->filebuf) + da) = BCD_BLANK;
     if (da >= uptr->hwmark)
         uptr->hwmark = da + 1;
     da++;
@@ -637,7 +639,7 @@ t_stat dp_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 for (i = 0; i < DP_NUMDR; i++)                          /* reset cylinder */
     dp_unit[i].CYL = 0;

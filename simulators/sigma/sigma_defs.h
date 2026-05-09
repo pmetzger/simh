@@ -33,6 +33,8 @@
 #define SIGMA_DEFS_H_  0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -123,15 +125,15 @@
 #define CPU_MUNIT_SIZE  (1u << 15)                      /* mem unit size */
 
 typedef struct {
-    uint32              psw1_mbz;                       /* PSW1 mbz */
-    uint32              psw2_mbz;                       /* PSW2 mbz */
-    uint32              mmc_cm_map1;                    /* MMC mode 1 cmask */
-    uint32              pamask;                         /* physical addr mask */
-    uint32              eigrp_max;                      /* max num ext int groups */
-    uint32              chan_max;                       /* max num channels */
-    uint32              iocc;                           /* IO instr CC bits */
-    uint32              std;                            /* required options */
-    uint32              opt;                            /* variable options */
+    uint32_t            psw1_mbz;                       /* PSW1 mbz */
+    uint32_t            psw2_mbz;                       /* PSW2 mbz */
+    uint32_t            mmc_cm_map1;                    /* MMC mode 1 cmask */
+    uint32_t            pamask;                         /* physical addr mask */
+    uint32_t            eigrp_max;                      /* max num ext int groups */
+    uint32_t            chan_max;                       /* max num channels */
+    uint32_t            iocc;                           /* IO instr CC bits */
+    uint32_t            std;                            /* required options */
+    uint32_t            opt;                            /* variable options */
     } cpu_var_t;
 
 /* Instruction format */
@@ -396,11 +398,11 @@ typedef struct {
    of various widths that map non-uniformly to control register bits */
 
 typedef struct {
-    uint32              psw2_inh;                       /* PSW2 inhibit */
-    uint32              nbits;                          /* number of bits */
-    uint32              vecbase;                        /* vector base */
-    uint32              rwgroup;                        /* RWdirect group */
-    uint32              regbit;                         /* RWdirect reg bit */
+    uint32_t            psw2_inh;                       /* PSW2 inhibit */
+    uint32_t            nbits;                          /* number of bits */
+    uint32_t            vecbase;                        /* vector base */
+    uint32_t            rwgroup;                        /* RWdirect group */
+    uint32_t            regbit;                         /* RWdirect reg bit */
     } int_grp_t;
 
 #define INTG_MAX        17                              /* max # int groups */
@@ -464,43 +466,43 @@ enum opcodes {
 
 /* Function prototypes */
 
-uint32 Ea (uint32 ir, uint32 *bva, uint32 acc, uint32 lnt);
-uint32 ReadB (uint32 bva, uint32 *dat, uint32 acc);
-uint32 ReadH (uint32 bva, uint32 *dat, uint32 acc);
-uint32 ReadW (uint32 bva, uint32 *dat, uint32 acc);
-uint32 ReadD (uint32 bva, uint32 *dat, uint32 *dat1, uint32 acc);
-uint32 WriteB (uint32 bva, uint32 dat, uint32 acc);
-uint32 WriteH (uint32 bva, uint32 dat, uint32 acc);
-uint32 WriteW (uint32 bva, uint32 dat, uint32 acc);
-uint32 WriteD (uint32 bva, uint32 dat, uint32 dat1, uint32 acc);
-uint32 ReadMemVW (uint32 bva, uint32 *dat, uint32 acc);
-uint32 WriteMemVW (uint32 bva, uint32 dat, uint32 acc);
-uint32 ReadPB (uint32 ba, uint32 *dat);
-uint32 WritePB (uint32 ba, uint32 dat);
-uint32 ReadPW (uint32 pa, uint32 *dat);
-uint32 WritePW (uint32 pa, uint32 dat);
-uint32 ReadHist (uint32 bva, uint32 *dat, uint32 *dat1, uint32 acc, uint32 lnt);
-uint32 cis_dec (uint32 op, uint32 rn, uint32 bva);
-uint32 cis_ebs (uint32 rn, uint32 disp);
-uint32 map_lra (uint32 rn, uint32 inst);
-uint32 map_mmc (uint32 rn, uint32 map);
-uint32 map_lms (uint32 rn, uint32 bva);
-uint32 fp (uint32 op, uint32 rn, uint32 bva);
-void ShiftF (uint32 rn, uint32 stype, uint32 sc);
-uint32 io_rwd (uint32 op, uint32 rn, uint32 bva);
-uint32 io_sio (uint32 rn, uint32 bva);
-uint32 io_tio (uint32 rn, uint32 bva);
-uint32 io_tdv (uint32 rn, uint32 bva);
-uint32 io_hio (uint32 rn, uint32 bva);
-uint32 io_aio (uint32 rn, uint32 bva);
-uint32 io_eval_int (void);
+uint32_t Ea (uint32_t ir, uint32_t *bva, uint32_t acc, uint32_t lnt);
+uint32_t ReadB (uint32_t bva, uint32_t *dat, uint32_t acc);
+uint32_t ReadH (uint32_t bva, uint32_t *dat, uint32_t acc);
+uint32_t ReadW (uint32_t bva, uint32_t *dat, uint32_t acc);
+uint32_t ReadD (uint32_t bva, uint32_t *dat, uint32_t *dat1, uint32_t acc);
+uint32_t WriteB (uint32_t bva, uint32_t dat, uint32_t acc);
+uint32_t WriteH (uint32_t bva, uint32_t dat, uint32_t acc);
+uint32_t WriteW (uint32_t bva, uint32_t dat, uint32_t acc);
+uint32_t WriteD (uint32_t bva, uint32_t dat, uint32_t dat1, uint32_t acc);
+uint32_t ReadMemVW (uint32_t bva, uint32_t *dat, uint32_t acc);
+uint32_t WriteMemVW (uint32_t bva, uint32_t dat, uint32_t acc);
+uint32_t ReadPB (uint32_t ba, uint32_t *dat);
+uint32_t WritePB (uint32_t ba, uint32_t dat);
+uint32_t ReadPW (uint32_t pa, uint32_t *dat);
+uint32_t WritePW (uint32_t pa, uint32_t dat);
+uint32_t ReadHist (uint32_t bva, uint32_t *dat, uint32_t *dat1, uint32_t acc, uint32_t lnt);
+uint32_t cis_dec (uint32_t op, uint32_t rn, uint32_t bva);
+uint32_t cis_ebs (uint32_t rn, uint32_t disp);
+uint32_t map_lra (uint32_t rn, uint32_t inst);
+uint32_t map_mmc (uint32_t rn, uint32_t map);
+uint32_t map_lms (uint32_t rn, uint32_t bva);
+uint32_t fp (uint32_t op, uint32_t rn, uint32_t bva);
+void ShiftF (uint32_t rn, uint32_t stype, uint32_t sc);
+uint32_t io_rwd (uint32_t op, uint32_t rn, uint32_t bva);
+uint32_t io_sio (uint32_t rn, uint32_t bva);
+uint32_t io_tio (uint32_t rn, uint32_t bva);
+uint32_t io_tdv (uint32_t rn, uint32_t bva);
+uint32_t io_hio (uint32_t rn, uint32_t bva);
+uint32_t io_aio (uint32_t rn, uint32_t bva);
+uint32_t io_eval_int (void);
 bool io_poss_int (void);
-uint32 io_actv_int (void);
-uint32 io_ackn_int (uint32 hireq);
-uint32 io_rels_int (uint32 hiact, bool arm);
+uint32_t io_actv_int (void);
+uint32_t io_ackn_int (uint32_t hireq);
+uint32_t io_rels_int (uint32_t hiact, bool arm);
 t_stat io_set_pint (void);
 t_stat io_init (void);
-t_stat io_set_nchan (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat io_show_nchan (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat io_set_nchan (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat io_show_nchan (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 #endif

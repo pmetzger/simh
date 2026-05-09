@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "sim_defs.h"
@@ -39,7 +40,7 @@ const char *sim_disk_ramdisk_spec_type(const sim_disk_ramdisk_spec *spec);
 
 /* Create the memory buffer and FILE stream for a RAMDISK: attachment. */
 t_stat sim_disk_ramdisk_create(UNIT *uptr, const sim_disk_ramdisk_spec *spec,
-                               t_offset default_size, uint32 sector_size,
+                               t_offset default_size, uint32_t sector_size,
                                bool restoring, const char *mode, FILE **fileref,
                                sim_disk_ramdisk **ramdisk);
 #endif

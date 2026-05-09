@@ -43,6 +43,8 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_id.h"
 
 #include "sim_disk.h"
@@ -60,7 +62,7 @@
 #define POLLING(id)         ((id_dtlh & ID_DTLH_POLL) == 0)
 
 /* Static function declarations */
-static inline t_lba id_lba(uint16 cyl, uint8 head, uint8 sec);
+static inline t_lba id_lba(uint16_t cyl, uint8_t head, uint8_t sec);
 
 /* DMAC request */
 bool id_drq = false;
@@ -70,41 +72,41 @@ struct id_state id_state[ID_NUM_UNITS] = {0};
 /* Enable support for disks with > 1024 cylinders */
 static bool     id_large = false;
 /* Data FIFO pointer - Read */
-static uint8    id_dpr = 0;
+static uint8_t  id_dpr = 0;
 /* Data FIFO pointer - Write */
-static uint8    id_dpw = 0;
+static uint8_t  id_dpw = 0;
 /* Controller Status Register */
-static uint8    id_status = 0;
+static uint8_t  id_status = 0;
 /* Unit Interrupt Status */
-static uint8    id_int_status = 0;
+static uint8_t  id_int_status = 0;
 /* Last command received */
-static uint8    id_cmd = 0;
+static uint8_t  id_cmd = 0;
 /* 8-byte FIFO */
-static uint8    id_data[ID_FIFO_LEN] = {0};
+static uint8_t  id_data[ID_FIFO_LEN] = {0};
 /* SRQM bit */
 static bool     id_srqm = false;
 /* The logical unit number (0-1) */
-static uint8    id_unit_num = 0;
+static uint8_t  id_unit_num = 0;
 /* The physical unit number (0-3) */
-static uint8    id_ua = 0;
+static uint8_t  id_ua = 0;
 /* Whether we are using buffered SEEK/RECAL or not */
 static bool     id_buffered = false;
 /* Sector buffer */
-static uint8    id_buf[ID_SEC_SIZE];
+static uint8_t  id_buf[ID_SEC_SIZE];
 /* Buffer pointer */
 static size_t   id_buf_ptr = 0;
 
 /* SPECIFY parameters */
-static uint8    id_esn;
-static uint8    id_etn;
-static uint8    id_dtlh;
+static uint8_t  id_esn;
+static uint8_t  id_etn;
+static uint8_t  id_dtlh;
 
-static uint8    id_idfield[ID_IDFIELD_LEN];
-static uint8    id_idfield_ptr = 0;
+static uint8_t  id_idfield[ID_IDFIELD_LEN];
+static uint8_t  id_idfield_ptr = 0;
 
 struct id_dtype {
-    uint8  hd;    /* Number of heads */
-    uint32 capac; /* Capacity (in sectors) */
+    uint8_t hd;   /* Number of heads */
+    uint32_t capac; /* Capacity (in sectors) */
     const char *name;
 };
 
@@ -175,13 +177,13 @@ DEVICE id_dev = {
         }                                                \
     }
 
-static inline void id_set_status(uint8 flags)
+static inline void id_set_status(uint8_t flags)
 {
     id_status |= flags;
     UPDATE_INT;
 }
 
-static inline void id_clr_status(uint8 flags)
+static inline void id_clr_status(uint8_t flags)
 {
     id_status &= ~(flags);
     UPDATE_INT;
@@ -199,7 +201,7 @@ static inline void id_clear_fifo(void)
     id_dpw = 0;
 }
 
-static inline void id_activate(UNIT *uptr, int32 delay)
+static inline void id_activate(UNIT *uptr, int32_t delay)
 {
     sim_activate_abs(uptr, delay);
 }
@@ -213,7 +215,7 @@ static inline void id_activate(UNIT *uptr, int32 delay)
  */
 t_stat id_ctlr_svc(UNIT *uptr)
 {
-    uint8 cmd;
+    uint8_t cmd;
 
     cmd = uptr->u4;  /* The command that caused the activity */
 
@@ -245,7 +247,7 @@ t_stat id_ctlr_svc(UNIT *uptr)
 t_stat id_unit_svc(UNIT *uptr)
 {
     bool recal_error;
-    uint8 unit, other, cmd, end_flags;
+    uint8_t unit, other, cmd, end_flags;
 
     unit  = uptr->u3;  /* The unit number that needs an interrupt */
     cmd   = uptr->u4;  /* The command that caused the activity    */
@@ -327,7 +329,7 @@ t_stat id_unit_svc(UNIT *uptr)
     return SCPE_OK;
 }
 
-t_stat id_set_large(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat id_set_large(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -345,7 +347,7 @@ t_stat id_set_large(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat id_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat id_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -374,7 +376,7 @@ t_stat id_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat id_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat id_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -413,9 +415,9 @@ t_stat id_detach(UNIT *uptr)
 }
 
 /* Return the logical block address of the given sector */
-static t_lba id_lba(uint16 cyl, uint8 head, uint8 sec)
+static t_lba id_lba(uint16_t cyl, uint8_t head, uint8_t sec)
 {
-    uint8 dtype;
+    uint8_t dtype;
 
     dtype = ID_GET_DTYPE(id_sel_unit->flags);
 
@@ -426,9 +428,9 @@ static t_lba id_lba(uint16 cyl, uint8 head, uint8 sec)
 
 /* At the end of each sector read or write, we update the FIFO
  * with the correct return parameters. */
-static inline void id_end_rw(uint8 est)
+static inline void id_end_rw(uint8_t est)
 {
-    uint8 id = id_sel_unit->u3;
+    uint8_t id = id_sel_unit->u3;
 
     id_clear_fifo();
     id_data[0] = est;
@@ -444,7 +446,7 @@ static inline void id_end_rw(uint8 est)
  * read, so that they point to the next C/H/S */
 static inline void id_update_chs(void)
 {
-    uint8 id = id_sel_unit->u3;
+    uint8_t id = id_sel_unit->u3;
 
     if (id_state[id].lsn++ >= id_esn) {
         id_state[id].lsn = 0;
@@ -460,20 +462,20 @@ static inline void id_update_chs(void)
     }
 }
 
-uint32 id_read(uint32 pa, size_t size)
+uint32_t id_read(uint32_t pa, size_t size)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) size;
 
-    uint8 reg, id;
-    uint16 cyl;
+    uint8_t reg, id;
+    uint16_t cyl;
     t_lba lba;
-    uint32 data;
+    uint32_t data;
     t_seccnt sectsread;
 
     id = id_sel_unit->u3;
-    reg = (uint8) (pa - IDBASE);
+    reg = (uint8_t) (pa - IDBASE);
 
     switch(reg) {
     case ID_DATA_REG:     /* Data Buffer Register */
@@ -507,7 +509,7 @@ uint32 id_read(uint32 pa, size_t size)
                 if (id_buf_ptr == 0 || id_buf_ptr >= ID_SEC_SIZE) {
                     /* It's time to read a new sector into our sector buf */
                     id_buf_ptr = 0;
-                    cyl = (uint16) (((uint16)id_state[id].lcnh << 8)|(uint16)id_state[id].lcnl);
+                    cyl = (uint16_t) (((uint16_t)id_state[id].lcnh << 8)|(uint16_t)id_state[id].lcnl);
                     id_state[id_unit_num].cyl = cyl;
                     lba = id_lba(cyl, id_state[id].lhn, id_state[id].lsn);
                     if (sim_disk_rdsect(id_sel_unit, lba, id_buf, &sectsread, 1) == SCPE_OK) {
@@ -596,18 +598,18 @@ uint32 id_read(uint32 pa, size_t size)
     return 0;
 }
 
-void id_write(uint32 pa, uint32 val, size_t size)
+void id_write(uint32_t pa, uint32_t val, size_t size)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) size;
 
-    uint8 reg, id;
-    uint16 cyl;
+    uint8_t reg, id;
+    uint16_t cyl;
     t_lba lba;
     t_seccnt sectswritten;
 
-    reg = (uint8) (pa - IDBASE);
+    reg = (uint8_t) (pa - IDBASE);
     id = id_sel_unit->u3;
 
     switch(reg) {
@@ -627,10 +629,10 @@ void id_write(uint32 pa, uint32 val, size_t size)
 
             /* Write to the disk buffer */
             if (id_buf_ptr < ID_SEC_SIZE) {
-                id_buf[id_buf_ptr++] = (uint8)(val & 0xff);
+                id_buf[id_buf_ptr++] = (uint8_t)(val & 0xff);
                 sim_debug(WRITE_MSG, &id_dev,
                           "DATA\t%02x\n",
-                          (uint8)(val & 0xff));
+                          (uint8_t)(val & 0xff));
             } else {
                 sim_debug(WRITE_MSG, &id_dev,
                           "ERROR\tWDATA OVERRUN\n");
@@ -642,7 +644,7 @@ void id_write(uint32 pa, uint32 val, size_t size)
             if (id_buf_ptr >= ID_SEC_SIZE) {
                 /* It's time to start the next sector, and flush the old. */
                 id_buf_ptr = 0;
-                cyl = (uint16) (((uint16) id_state[id].lcnh << 8)|(uint16)id_state[id].lcnl);
+                cyl = (uint16_t) (((uint16_t) id_state[id].lcnh << 8)|(uint16_t)id_state[id].lcnl);
                 id_state[id].cyl = cyl;
                 lba = id_lba(cyl, id_state[id].lhn, id_state[id].lsn);
                 if (sim_disk_wrsect(id_sel_unit, lba, id_buf, &sectswritten, 1) == SCPE_OK) {
@@ -670,7 +672,7 @@ void id_write(uint32 pa, uint32 val, size_t size)
                       "DATA\t%02x\n",
                       val);
             if (id_dpw < ID_FIFO_LEN) {
-                id_data[id_dpw++] = (uint8) val;
+                id_data[id_dpw++] = (uint8_t) val;
             } else {
                 sim_debug(WRITE_MSG, &id_dev,
                           "ERROR\tFIFO OVERRUN\n");
@@ -678,18 +680,18 @@ void id_write(uint32 pa, uint32 val, size_t size)
         }
         return;
     case ID_CMD_STAT_REG:
-        id_handle_command((uint8) val);
+        id_handle_command((uint8_t) val);
         return;
     default:
         return;
     }
 }
 
-void id_handle_command(uint8 val)
+void id_handle_command(uint8_t val)
 {
-    uint8 cmd, aux_cmd, sec, pattern, id;
-    uint16 cyl;
-    uint32 time;
+    uint8_t cmd, aux_cmd, sec, pattern, id;
+    uint16_t cyl;
+    uint32_t time;
     t_lba lba;
 
     /* Reset the FIFO pointer */
@@ -827,7 +829,7 @@ void id_handle_command(uint8 val)
         id_buffered = (val & 0x08) == 0x08;
         id_state[id].lcnh = id_data[0];
         id_state[id].lcnl = id_data[1];
-        cyl = ((uint16)id_state[id].lcnh) << 8 | (uint16)id_state[id].lcnl;
+        cyl = ((uint16_t)id_state[id].lcnh) << 8 | (uint16_t)id_state[id].lcnl;
         time = MAX(ID_STEP_MIN, ID_STEP_WAIT * (cyl > id_state[id].cyl ? cyl - id_state[id].cyl : id_state[id].cyl - cyl));
 
         sim_debug(WRITE_MSG, &id_dev,
@@ -930,7 +932,7 @@ void id_handle_command(uint8 val)
         sim_debug(WRITE_MSG, &id_dev,
                   "COMMAND\t%02x\tRead Data - %d - CYL=%u PH=%u LH=%u SEC=%u SCNT=%u\n",
                   val, id_ua,
-                  (uint16)id_state[id].lcnh << 8 | (uint16)id_state[id].lcnl,
+                  (uint16_t)id_state[id].lcnh << 8 | (uint16_t)id_state[id].lcnl,
                   id_data[0], id_data[3], id_data[4], id_data[5]);
 
         if (id_sel_unit->flags & UNIT_ATT) {
@@ -974,7 +976,7 @@ void id_handle_command(uint8 val)
         sim_debug(WRITE_MSG, &id_dev,
                   "COMMAND\t%02x\tWrite Data - %d - CYL=%u PH=%u LH=%u SEC=%u SCNT=%u\n",
                   val, id_ua,
-                  (uint16)id_state[id].lcnh << 8 | (uint16)id_state[id].lcnl,
+                  (uint16_t)id_state[id].lcnh << 8 | (uint16_t)id_state[id].lcnl,
                   id_data[0], id_data[3], id_data[4], id_data[5]);
 
         if (id_sel_unit->flags & UNIT_ATT) {
@@ -1005,7 +1007,7 @@ const char *id_description(DEVICE *dptr)
     return "Integrated Hard Disk";
 }
 
-t_stat id_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat id_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

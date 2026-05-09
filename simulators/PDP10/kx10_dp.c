@@ -22,6 +22,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "kx10_disk.h"
 
@@ -150,11 +152,11 @@
 #define RP03_SIZE       (RP03_SECT * RP03_SURF * RP03_CYL * RP_NUMWD)
 
 struct drvtyp {
-    int32       sect;                                   /* sectors */
-    int32       surf;                                   /* surfaces */
-    int32       cyl;                                    /* cylinders */
-    int32       size;                                   /* #blocks */
-    int32       devtype;                                /* device type */
+    int32_t     sect;                                   /* sectors */
+    int32_t     surf;                                   /* surfaces */
+    int32_t     cyl;                                    /* cylinders */
+    int32_t     size;                                   /* #blocks */
+    int32_t     devtype;                                /* device type */
     };
 
 struct drvtyp dp_drv_tab[] = {
@@ -166,21 +168,21 @@ struct drvtyp dp_drv_tab[] = {
 
 
 struct df10   dp_df10[NUM_DEVS_DP];
-uint32        dp_cur_unit[NUM_DEVS_DP];
+uint32_t      dp_cur_unit[NUM_DEVS_DP];
 uint64        dp_buf[NUM_DEVS_DP][RP_NUMWD];
 int           readin_flag = 0;
 
-t_stat        dp_devio(uint32 dev, uint64 *data);
+t_stat        dp_devio(uint32_t dev, uint64 *data);
 t_stat        dp_svc(UNIT *);
-t_stat        dp_boot(int32, DEVICE *);
+t_stat        dp_boot(int32_t, DEVICE *);
 void          dp_ini(UNIT *, bool);
 t_stat        dp_reset(DEVICE *);
 t_stat        dp_attach(UNIT *, const char *);
 t_stat        dp_detach(UNIT *);
-t_stat        dp_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat        dp_set_hdr(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat        dp_show_hdr(FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat        dp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat        dp_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat        dp_set_hdr(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat        dp_show_hdr(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat        dp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                  const char *cptr);
 const char    *dp_description (DEVICE *dptr);
 
@@ -395,7 +397,7 @@ DEVICE *dp_devs[] = {
 };
 
 
-t_stat dp_devio(uint32 dev, uint64 *data) {
+t_stat dp_devio(uint32_t dev, uint64 *data) {
      uint64         res;
      int            ctlr = (dev - DP_DEVNUM) >> 2;
      struct df10   *df10;
@@ -468,7 +470,7 @@ t_stat dp_devio(uint32 dev, uint64 *data) {
          }
 
          sim_debug(DEBUG_CONO, dptr, "DP %03o CONO %06o %d PC=%o %06o\n", dev,
-                 (uint32)*data, ctlr, PC, df10->status);
+                 (uint32_t)*data, ctlr, PC, df10->status);
          break;
 
      case DATAI:
@@ -563,7 +565,7 @@ t_stat dp_devio(uint32 dev, uint64 *data) {
                               | (tmp << 3) | ctlr;
              uptr->DATAPTR = 0;      /* Set no data */
              CLR_BUF(uptr);
-             df10_setup(df10, (uint32)*data);
+             df10_setup(df10, (uint32_t)*data);
              uptr->STATUS |= BUSY;
              break;
 
@@ -870,7 +872,7 @@ t_stat dp_svc (UNIT *uptr)
 
 
 t_stat
-dp_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
+dp_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -892,7 +894,7 @@ dp_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-dp_set_hdr(UNIT *uptr, int32 val, const char *cptr, void *desc)
+dp_set_hdr(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -909,7 +911,7 @@ dp_set_hdr(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat dp_show_hdr (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dp_show_hdr (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
    /* Generic show modifier signature.
       This implementation does not use every parameter. */
@@ -949,11 +951,11 @@ dp_reset(DEVICE * dptr)
 
 /* Boot from given device */
 t_stat
-dp_boot(int32 unit_num, DEVICE * dptr)
+dp_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
-    uint32              addr;
-    uint32              ptr;
+    uint32_t            addr;
+    uint32_t            ptr;
     int                 sect;
     int                 wc;
 
@@ -1004,7 +1006,7 @@ t_stat dp_detach (UNIT *uptr)
     return disk_detach (uptr);
 }
 
-t_stat dp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "RP10 RP01/2/3  Disk Pack Drives (DP)\n\n");
 fprintf (st, "The DP controller implements the RP10 disk drives.  RP\n");

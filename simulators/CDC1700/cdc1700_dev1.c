@@ -30,16 +30,18 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "cdc1700_defs.h"
 
 extern char INTprefix[];
 
-extern void fw_IOunderwayData(IO_DEVICE *, uint16);
-extern void fw_IOcompleteData(bool, DEVICE *, IO_DEVICE *, uint16, const char *);
-extern void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16, uint16, uint16, const char *);
-extern bool fw_reject(IO_DEVICE *, bool, uint8);
-extern void fw_setForced(IO_DEVICE *, uint16);
-extern void fw_clearForced(IO_DEVICE *, uint16);
+extern void fw_IOunderwayData(IO_DEVICE *, uint16_t);
+extern void fw_IOcompleteData(bool, DEVICE *, IO_DEVICE *, uint16_t, const char *);
+extern void fw_IOintr(bool, DEVICE *, IO_DEVICE *, uint16_t, uint16_t, uint16_t, const char *);
+extern bool fw_reject(IO_DEVICE *, bool, uint8_t);
+extern void fw_setForced(IO_DEVICE *, uint16_t);
+extern void fw_clearForced(IO_DEVICE *, uint16_t);
 
 extern void rebuildPending(void);
 
@@ -47,15 +49,15 @@ extern void RaiseExternalInterrupt(DEVICE *);
 
 extern bool doDirectorFunc(DEVICE *, bool);
 
-extern t_stat show_addr(FILE *, UNIT *, int32, const void *);
+extern t_stat show_addr(FILE *, UNIT *, int32_t, const void *);
 
-extern t_stat set_stoponrej(UNIT *, int32, const char *, void *);
-extern t_stat clr_stoponrej(UNIT *, int32, const char *, void *);
+extern t_stat set_stoponrej(UNIT *, int32_t, const char *, void *);
+extern t_stat clr_stoponrej(UNIT *, int32_t, const char *, void *);
 
-extern t_stat set_protected(UNIT *, int32, const char *, void *);
-extern t_stat clear_protected(UNIT *, int32, const char *, void *);
+extern t_stat set_protected(UNIT *, int32_t, const char *, void *);
+extern t_stat clear_protected(UNIT *, int32_t, const char *, void *);
 
-extern uint16 Areg, IOAreg;
+extern uint16_t Areg, IOAreg;
 
 extern bool IOFWinitialized;
 
@@ -67,12 +69,12 @@ t_stat tto_reset(DEVICE *);
 static void TTIstate(const char *, DEVICE *, IO_DEVICE *);
 static void TTOstate(const char *, DEVICE *, IO_DEVICE *);
 static void TTstate(const char *, DEVICE *, IO_DEVICE *);
-uint16 TTrebuild(void);
-static bool TTreject(IO_DEVICE *, bool, uint8);
-static enum IOstatus TTin(IO_DEVICE *, uint8);
-static enum IOstatus TTout(IO_DEVICE *, uint8);
+uint16_t TTrebuild(void);
+static bool TTreject(IO_DEVICE *, bool, uint8_t);
+static enum IOstatus TTin(IO_DEVICE *, uint8_t);
+static enum IOstatus TTout(IO_DEVICE *, uint8_t);
 
-t_stat tt_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat tt_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 
 /*
         1711-A/B, 1712-A Teletypewriter
@@ -183,7 +185,7 @@ IO_DEVICE TTdev = IODEV("TT", "1711-A", 1711, 1, 1, 0,
    tti_mod      TTI modifiers list
 */
 
-uint8 tti_manualIntr = 0x7;
+uint8_t tti_manualIntr = 0x7;
 
 #define TTUF_V_HDX      (TTUF_V_UF + 0)
 #define TTUF_HDX        (1 << TTUF_V_HDX)
@@ -312,7 +314,7 @@ static void TTIstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
 
 t_stat tti_svc(UNIT *uptr)
 {
-  int32 c, out;
+  int32_t c, out;
 
   if (TTIdev.iod_indelay != 0) {
     /*
@@ -445,7 +447,7 @@ t_stat tti_reset(DEVICE *dptr)
 
 /* Perform I/O */
 
-static enum IOstatus TTIin(IO_DEVICE *iod, uint8 reg)
+static enum IOstatus TTIin(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -523,7 +525,7 @@ static void TTOstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
 
 t_stat tto_svc(UNIT *uptr)
 {
-  int32 c;
+  int32_t c;
   t_stat r;
 
   c = sim_tt_outcvt(uptr->buf, TT_GET_MODE(uptr->flags) | TTUF_KSR);
@@ -569,7 +571,7 @@ t_stat tto_reset(DEVICE *dptr)
 
 /* Perform I/O */
 
-static enum  IOstatus TTOout(IO_DEVICE *iod, uint8 reg)
+static enum  IOstatus TTOout(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -656,7 +658,7 @@ static void TTreset(void)
 
 /* Rebuild the director status register */
 
-uint16 TTrebuild(void)
+uint16_t TTrebuild(void)
 {
   TTdev.STATUS &= IO_1711_CONTR;
   if (TTdev.iod_rmode) {
@@ -669,7 +671,7 @@ uint16 TTrebuild(void)
 
 /* Check if I/O should be rejected */
 
-static bool TTreject(IO_DEVICE *iod, bool output, uint8 reg)
+static bool TTreject(IO_DEVICE *iod, bool output, uint8_t reg)
 {
   /* Registered I/O reject signature.
      This implementation does not use every parameter. */
@@ -682,7 +684,7 @@ static bool TTreject(IO_DEVICE *iod, bool output, uint8 reg)
   }
 
   if (output) {
-    uint16 func = Areg & IO_1711_DIRMSK;
+    uint16_t func = Areg & IO_1711_DIRMSK;
 
     if (func != 0) {
       if ((func & (IO_DIR_ALARM | IO_DIR_EOP | IO_DIR_DATA | \
@@ -704,7 +706,7 @@ static bool TTreject(IO_DEVICE *iod, bool output, uint8 reg)
 
 /* Perform I/O */
 
-static enum IOstatus TTin(IO_DEVICE *iod, uint8 reg)
+static enum IOstatus TTin(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -720,7 +722,7 @@ static enum IOstatus TTin(IO_DEVICE *iod, uint8 reg)
   return IO_REPLY;
 }
 
-static enum IOstatus TTout(IO_DEVICE *iod, uint8 reg)
+static enum IOstatus TTout(IO_DEVICE *iod, uint8_t reg)
 {
   bool rmode, changed = false;
   DEVICE *dptr;
@@ -795,7 +797,7 @@ static enum IOstatus TTout(IO_DEVICE *iod, uint8 reg)
   return IO_REPLY;
 }
 
-t_stat tt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   const char helpString[] =
     /****************************************************************************/
@@ -829,10 +831,10 @@ t_stat ptr_attach(UNIT *, const char *);
 t_stat ptr_detach(UNIT *);
 
 static void PTRstate(const char *, DEVICE *, IO_DEVICE *);
-static enum IOstatus PTRin(IO_DEVICE *, uint8);
-static enum IOstatus PTRout(IO_DEVICE *, uint8);
+static enum IOstatus PTRin(IO_DEVICE *, uint8_t);
+static enum IOstatus PTRout(IO_DEVICE *, uint8_t);
 
-t_stat ptr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat ptr_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 
 /*
         1721-A/B/C/D, 1722-A/B Paper Tape Reader
@@ -972,7 +974,7 @@ static void PTRstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
 
 t_stat ptr_svc(UNIT *uptr)
 {
-  int32 temp;
+  int32_t temp;
 
   if ((ptr_dev.dctrl & DBG_DTRACE) != 0) {
     fprintf(DBGOUT, "%s[PTR: ptr_svc() entry]\r\n", INTprefix);
@@ -1063,7 +1065,7 @@ t_stat ptr_detach(UNIT *uptr)
 
 /* Perform I/O */
 
-static enum IOstatus PTRin(IO_DEVICE *iod, uint8 reg)
+static enum IOstatus PTRin(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -1086,7 +1088,7 @@ static enum IOstatus PTRin(IO_DEVICE *iod, uint8 reg)
   return IO_REPLY;
 }
 
-static enum IOstatus PTRout(IO_DEVICE *iod, uint8 reg)
+static enum IOstatus PTRout(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -1121,7 +1123,7 @@ static enum IOstatus PTRout(IO_DEVICE *iod, uint8 reg)
   return IO_REPLY;
 }
 
-t_stat ptr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ptr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   const char helpString[] =
     /****************************************************************************/
@@ -1149,10 +1151,10 @@ t_stat ptp_svc(UNIT *);
 t_stat ptp_reset(DEVICE *);
 
 static void PTPstate(const char *, DEVICE *, IO_DEVICE *);
-static enum IOstatus PTPin(IO_DEVICE *, uint8);
-static enum IOstatus PTPout(IO_DEVICE *, uint8);
+static enum IOstatus PTPin(IO_DEVICE *, uint8_t);
+static enum IOstatus PTPout(IO_DEVICE *, uint8_t);
 
-t_stat ptp_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat ptp_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 
 /*
         1723-A/B, 1724-A/B Paper Tape Punch
@@ -1357,7 +1359,7 @@ t_stat ptp_reset(DEVICE *dptr)
 
 /* Perform I/O */
 
-static enum IOstatus PTPin(IO_DEVICE *iod, uint8 reg)
+static enum IOstatus PTPin(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -1370,7 +1372,7 @@ static enum IOstatus PTPin(IO_DEVICE *iod, uint8 reg)
   return IO_REJECT;
 }
 
-static enum IOstatus PTPout(IO_DEVICE *iod, uint8 reg)
+static enum IOstatus PTPout(IO_DEVICE *iod, uint8_t reg)
 {
   /* Registered I/O handler signature.
      This implementation does not use every parameter. */
@@ -1442,7 +1444,7 @@ static enum IOstatus PTPout(IO_DEVICE *iod, uint8 reg)
   return IO_REPLY;
 }
 
-t_stat ptp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ptp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   const char helpString[] =
     /****************************************************************************/
@@ -1470,13 +1472,13 @@ t_stat ptp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr
  * Return device 1 interrupt status. If any of the sub-devices have their
  * interrupt status active, return the device 1 interrupt mask bit.
  */
-uint16 dev1INTR(DEVICE *dptr)
+uint16_t dev1INTR(DEVICE *dptr)
 {
   /* Generic device interrupt signature.
      This implementation does not use every parameter. */
   (void) dptr;
 
-  uint16 status;
+  uint16_t status;
 
   status = TTIdev.STATUS |  TTOdev.STATUS | PTRdev.STATUS | PTPdev.STATUS;
 

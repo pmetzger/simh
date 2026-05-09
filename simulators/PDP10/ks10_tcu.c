@@ -25,6 +25,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -39,9 +41,9 @@
 #define UNIT_Y2K        (1u << UNIT_V_Y2K)
 
 
-int    tcu_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
-int    tcu_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
-t_stat tcu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+int    tcu_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access);
+int    tcu_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access);
+t_stat tcu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
         const char *cptr);
 const char *tcu_description (DEVICE *dptr);
 DIB tcu_dib = { 0760770, 07, 0, 0, 3, &tcu_read, &tcu_write, NULL, 0, 0 };
@@ -69,7 +71,7 @@ DEVICE tcu_dev = {
 
 /* Time can't be set in device */
 int
-tcu_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
+tcu_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access)
 {
     /* Unibus write dispatch signature.
        This implementation does not use every parameter. */
@@ -85,7 +87,7 @@ tcu_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
 
 /* Read current time of day */
 int
-tcu_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
+tcu_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access)
 {
     time_t            curtim;
     struct tm        *tptr;
@@ -129,7 +131,7 @@ tcu_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
 }
 
 
-t_stat tcu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat tcu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

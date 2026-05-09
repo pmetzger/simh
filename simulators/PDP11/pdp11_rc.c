@@ -76,6 +76,8 @@
 #include "pdp11_defs.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_disk.h"
 
 #define UNIT_V_PLAT     (DKUF_V_UF + 0)                 /* #platters - 1 */
@@ -149,30 +151,30 @@
 #define GET_POS(x)      ((int) fmod (sim_gtime() / ((double) (x)), \
                         ((double) (RC_NUMWD * RC_NUMSC))))
 
-extern int32 R[];
+extern int32_t R[];
 
-static uint32   rc_la = 0;                              /* look-ahead */
-static uint32   rc_da = 0;                              /* disk address */
-static uint32   rc_er = 0;                              /* error status */
-static uint32   rc_cs = 0;                              /* command and status */
-static uint32   rc_wc = 0;                              /* word count */
-static uint32   rc_ca = 0;                              /* current address */
-static uint32   rc_maint = 0;                           /* maintenance */
-static uint32   rc_db = 0;                              /* data buffer */
-static uint32   rc_wlk = 0;                             /* write lock */
-static uint32   rc_time = 16;                           /* inter-word time: 16us */
-static uint32   rc_stopioe = 1;                         /* stop on error */
+static uint32_t rc_la = 0;                              /* look-ahead */
+static uint32_t rc_da = 0;                              /* disk address */
+static uint32_t rc_er = 0;                              /* error status */
+static uint32_t rc_cs = 0;                              /* command and status */
+static uint32_t rc_wc = 0;                              /* word count */
+static uint32_t rc_ca = 0;                              /* current address */
+static uint32_t rc_maint = 0;                           /* maintenance */
+static uint32_t rc_db = 0;                              /* data buffer */
+static uint32_t rc_wlk = 0;                             /* write lock */
+static uint32_t rc_time = 16;                           /* inter-word time: 16us */
+static uint32_t rc_stopioe = 1;                         /* stop on error */
 
 /* forward references */
 
-static t_stat rc_rd (int32 *, int32, int32);
-static t_stat rc_wr (int32, int32, int32);
+static t_stat rc_rd (int32_t *, int32_t, int32_t);
+static t_stat rc_wr (int32_t, int32_t, int32_t);
 static t_stat rc_svc (UNIT *);
 static t_stat rc_reset (DEVICE *);
 static t_stat rc_attach (UNIT *, const char *);
-static t_stat rc_set_size (UNIT *, int32, const char *, void *);
-static t_stat rc_show_size (FILE *, UNIT *, int32, const void *);
-static uint32 update_rccs (uint32, uint32);
+static t_stat rc_set_size (UNIT *, int32_t, const char *, void *);
+static t_stat rc_show_size (FILE *, UNIT *, int32_t, const void *);
+static uint32_t update_rccs (uint32_t, uint32_t);
 static const char *rc_description (DEVICE *dptr);
 
 /* RC11 data structures
@@ -257,13 +259,13 @@ DEVICE rc_dev = {
 
 /* I/O dispatch routine, I/O addresses 17777440 - 17777456 */
 
-static t_stat rc_rd (int32 *data, int32 PA, int32 access)
+static t_stat rc_rd (int32_t *data, int32_t PA, int32_t access)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) access;
 
-    uint32      t;
+    uint32_t    t;
 
     switch ((PA >> 1) & 07) {                           /* decode PA<3:1> */
 
@@ -327,9 +329,9 @@ static t_stat rc_rd (int32 *data, int32 PA, int32 access)
     return (SCPE_OK);
 }
 
-static t_stat rc_wr (int32 data, int32 PA, int32 access)
+static t_stat rc_wr (int32_t data, int32_t PA, int32_t access)
 {
-    int32       t;
+    int32_t     t;
 
     switch ((PA >> 1) & 07) {                           /* decode PA<3:1> */
 
@@ -431,9 +433,9 @@ static t_stat rc_wr (int32 data, int32 PA, int32 access)
 
 /* sector (32W) CRC-16 */
 
-static uint32 sectorCRC (const uint16 *data)
+static uint32_t sectorCRC (const uint16_t *data)
 {
-    uint32      crc, i, j, d;
+    uint32_t    crc, i, j, d;
 
     crc = 0;
     for (i = 0; i < 32; i++) {
@@ -456,9 +458,9 @@ static uint32 sectorCRC (const uint16 *data)
 
 static t_stat rc_svc (UNIT *uptr)
 {
-    uint32      ma, da, t, u_old, u_new, last_da = 0;
-    uint16      dat;
-    uint16      *fbuf = (uint16 *) uptr->filebuf;
+    uint32_t    ma, da, t, u_old, u_new, last_da = 0;
+    uint16_t    dat;
+    uint16_t    *fbuf = (uint16_t *) uptr->filebuf;
 
     if ((uptr->flags & UNIT_BUF) == 0) {                /* not buf? abort */
         update_rccs (RCCS_NED | RCCS_DONE, 0);          /* nx disk */
@@ -539,9 +541,9 @@ static t_stat rc_svc (UNIT *uptr)
 
 /* Update CS register */
 
-static uint32 update_rccs (uint32 newcs, uint32 newer)
+static uint32_t update_rccs (uint32_t newcs, uint32_t newer)
 {
-    uint32 oldcs = rc_cs;
+    uint32_t oldcs = rc_cs;
 
     rc_er |= newer;                                     /* update RCER */
     rc_cs |= newcs;                                     /* update CS */
@@ -584,13 +586,13 @@ static t_stat rc_attach (UNIT *uptr, const char *cptr)
 
     sprintf (plat, "%dP", UNIT_GETP (uptr->flags));
 
-    return sim_disk_attach_ex (uptr, cptr, RC_NUMWD * sizeof (uint16), sizeof (uint16),
+    return sim_disk_attach_ex (uptr, cptr, RC_NUMWD * sizeof (uint16_t), sizeof (uint16_t),
                                     true, 0, plat, false, 0, (uptr->flags & UNIT_NOAUTO) ? NULL : platters);
 }
 
 /* Change disk size */
 
-static t_stat rc_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat rc_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -606,7 +608,7 @@ static t_stat rc_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return (SCPE_OK);
 }
 
-static t_stat rc_show_size (FILE *st, UNIT *uptr, int32 flag, const void *desc)
+static t_stat rc_show_size (FILE *st, UNIT *uptr, int32_t flag, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

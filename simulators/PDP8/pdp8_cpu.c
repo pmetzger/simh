@@ -195,6 +195,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
 #define PCQ_SIZE        64                              /* must be 2**n */
@@ -211,50 +213,50 @@
 #define HIST_MAX        65536
 
 typedef struct {
-    int32               pc;
-    int32               ea;
-    int16               ir;
-    int16               opnd;
-    int16               lac;
-    int16               mq;
+    int32_t             pc;
+    int32_t             ea;
+    int16_t             ir;
+    int16_t             opnd;
+    int16_t             lac;
+    int16_t             mq;
     } InstHistory;
 
-uint16 M[MAXMEMSIZE] = { 0 };                           /* main memory */
-int32 saved_LAC = 0;                                    /* saved L'AC */
-int32 saved_MQ = 0;                                     /* saved MQ */
-int32 saved_PC = 0;                                     /* saved IF'PC */
-int32 saved_DF = 0;                                     /* saved Data Field */
-int32 IB = 0;                                           /* Instruction Buffer */
-int32 SF = 0;                                           /* Save Field */
-int32 emode = 0;                                        /* EAE mode */
-int32 gtf = 0;                                          /* EAE gtf flag */
-int32 SC = 0;                                           /* EAE shift count */
-int32 UB = 0;                                           /* User mode Buffer */
-int32 UF = 0;                                           /* User mode Flag */
-int32 SR = 0;                                           /* Switch Register */
-int32 tsc_ir = 0;                                       /* TSC8-75 IR */
-int32 tsc_pc = 0;                                       /* TSC8-75 PC */
-int32 tsc_cdf = 0;                                      /* TSC8-75 CDF flag */
-int32 tsc_enb = 0;                                      /* TSC8-75 enabled */
-int32 cpu_astop = 0;                                    /* address stop */
-int16 pcq[PCQ_SIZE] = { 0 };                            /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+uint16_t M[MAXMEMSIZE] = { 0 };                         /* main memory */
+int32_t saved_LAC = 0;                                  /* saved L'AC */
+int32_t saved_MQ = 0;                                   /* saved MQ */
+int32_t saved_PC = 0;                                   /* saved IF'PC */
+int32_t saved_DF = 0;                                   /* saved Data Field */
+int32_t IB = 0;                                         /* Instruction Buffer */
+int32_t SF = 0;                                         /* Save Field */
+int32_t emode = 0;                                      /* EAE mode */
+int32_t gtf = 0;                                        /* EAE gtf flag */
+int32_t SC = 0;                                         /* EAE shift count */
+int32_t UB = 0;                                         /* User mode Buffer */
+int32_t UF = 0;                                         /* User mode Flag */
+int32_t SR = 0;                                         /* Switch Register */
+int32_t tsc_ir = 0;                                     /* TSC8-75 IR */
+int32_t tsc_pc = 0;                                     /* TSC8-75 PC */
+int32_t tsc_cdf = 0;                                    /* TSC8-75 CDF flag */
+int32_t tsc_enb = 0;                                    /* TSC8-75 enabled */
+int32_t cpu_astop = 0;                                  /* address stop */
+int16_t pcq[PCQ_SIZE] = { 0 };                          /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-int32 dev_done = 0;                                     /* dev done flags */
-int32 int_enable = INT_INIT_ENABLE;                     /* intr enables */
-int32 int_req = 0;                                      /* intr requests */
-int32 stop_inst = 0;                                    /* trap on ill inst */
-int32 (*dev_tab[DEV_MAX])(int32 IR, int32 dat);         /* device dispatch */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+int32_t dev_done = 0;                                   /* dev done flags */
+int32_t int_enable = INT_INIT_ENABLE;                   /* intr enables */
+int32_t int_req = 0;                                    /* intr requests */
+int32_t stop_inst = 0;                                  /* trap on ill inst */
+int32_t (*dev_tab[DEV_MAX])(int32_t IR, int32_t dat);   /* device dispatch */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 bool build_dev_tab (void);
 
 /* CPU data structures
@@ -325,9 +327,9 @@ DEVICE cpu_dev = {
 
 t_stat sim_instr (void)
 {
-int32 IR, MB, IF, DF, LAC, MQ;
-uint32 PC, MA;
-int32 device, pulse, temp, iot_data;
+int32_t IR, MB, IF, DF, LAC, MQ;
+uint32_t PC, MA;
+int32_t device, pulse, temp, iot_data;
 t_stat reason;
 
 /* Restore register state */
@@ -401,7 +403,7 @@ while (reason == 0) {                                   /* loop until halted */
 */
 
     if (hst_lnt) {                                      /* history enabled? */
-        int32 ea;
+        int32_t ea;
 
         hst_p = (hst_p + 1);                            /* next entry */
         if (hst_p >= hst_lnt)
@@ -1410,7 +1412,7 @@ return SCPE_OK;
 
 /* Set PC for boot (PC<14:12> will typically be 0) */
 
-void cpu_set_bootpc (int32 pc)
+void cpu_set_bootpc (int32_t pc)
 {
 saved_PC = pc;                                          /* set PC, IF */
 saved_DF = IB = pc & 070000;                            /* set IB, DF */
@@ -1419,7 +1421,7 @@ return;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -1435,7 +1437,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -1450,7 +1452,7 @@ return SCPE_OK;
 
 /* Memory size change */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1458,8 +1460,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
@@ -1475,7 +1477,7 @@ return SCPE_OK;
 
 /* Change device number for a device */
 
-t_stat set_dev (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_dev (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1484,7 +1486,7 @@ t_stat set_dev (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newdev;
+uint32_t newdev;
 t_stat r;
 
 if (cptr == NULL)
@@ -1506,7 +1508,7 @@ return SCPE_OK;
 
 /* Show device number for a device */
 
-t_stat show_dev (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_dev (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1532,7 +1534,7 @@ return SCPE_OK;
 
 /* CPU device handler - should never get here! */
 
-static int32 bad_dev (int32 IR, int32 AC)
+static int32_t bad_dev (int32_t IR, int32_t AC)
 {
 /* Generic IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -1547,14 +1549,14 @@ bool build_dev_tab (void)
 {
 DEVICE *dptr;
 DIB *dibp;
-uint32 i, j;
-static const uint8 std_dev[] = {
+uint32_t i, j;
+static const uint8_t std_dev[] = {
     000, 010, 020, 021, 022, 023, 024, 025, 026, 027
     };
 
 for (i = 0; i < DEV_MAX; i++)                           /* clr table */
     dev_tab[i] = NULL;
-for (i = 0; i < ((uint32) sizeof (std_dev)); i++)       /* std entries */
+for (i = 0; i < ((uint32_t) sizeof (std_dev)); i++)     /* std entries */
     dev_tab[std_dev[i]] = &bad_dev;
 for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* add devices */
     dibp = (DIB *) dptr->ctxt;                          /* get DIB */
@@ -1591,7 +1593,7 @@ return false;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1599,7 +1601,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -1608,7 +1610,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -1628,14 +1630,14 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 l, k, di, lnt;
+int32_t l, k, di, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 InstHistory *h;
@@ -1643,7 +1645,7 @@ InstHistory *h;
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }

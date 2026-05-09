@@ -34,6 +34,7 @@ endif ()
 
 set(SIMH_CORE_ROOT ${CMAKE_SOURCE_DIR}/src/core)
 set(SIMH_COMPAT_ROOT ${CMAKE_SOURCE_DIR}/src/compat)
+set(SIMH_INCLUDE_ROOT ${CMAKE_SOURCE_DIR}/src/include)
 set(SIMH_RUNTIME_ROOT ${CMAKE_SOURCE_DIR}/src/runtime)
 set(SIMH_COMPONENTS_ROOT ${CMAKE_SOURCE_DIR}/src/components)
 set(SIMH_SIMULATOR_ROOT ${CMAKE_SOURCE_DIR}/simulators)
@@ -334,6 +335,7 @@ endforeach ()
 
 ## Source directory is always on the global include path.
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${SIMH_INCLUDE_ROOT})
 
 if (NOT USING_VCPKG AND ENABLE_DEP_BUILD)
     # Make sure we can include and link from the dependency directory
@@ -542,6 +544,7 @@ if (NOT DO_DEPENDENCY_BUILD)
           PRIVATE
             "${SIMH_COMPAT_ROOT}"
             "${SIMH_CORE_ROOT}"
+            "${SIMH_INCLUDE_ROOT}"
           PUBLIC
             "${SIMH_RUNTIME_ROOT}")
         target_compile_options(slirp PRIVATE ${EXTRA_TARGET_CFLAGS})

@@ -101,6 +101,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -200,15 +202,15 @@ static CARD_STATE msd;                          /* data per-card state */
 static CARD_STATE msc;                          /* command per-card state */
 
 static CNTLR_TYPE ms_ctype  = A13181;           /* ctrl type */
-static int32      ms_timing = 1;                /* timing type */
+static int32_t    ms_timing = 1;                /* timing type */
 
-static int32 msc_sta = 0;                       /* status */
-static int32 msc_buf = 0;                       /* buffer */
-static int32 msc_usl = 0;                       /* unit select */
-static int32 msc_1st = 0;                       /* first service */
+static int32_t msc_sta = 0;                     /* status */
+static int32_t msc_buf = 0;                     /* buffer */
+static int32_t msc_usl = 0;                     /* unit select */
+static int32_t msc_1st = 0;                     /* first service */
 
-static int32    msd_buf = 0;                    /* data buffer */
-static uint8    msxb [DBSIZE] = { 0 };          /* data buffer */
+static int32_t  msd_buf = 0;                    /* data buffer */
+static uint8_t  msxb [DBSIZE] = { 0 };          /* data buffer */
 static t_mtrlnt ms_ptr = 0;                     /* buffer ptrs */
 static t_mtrlnt ms_max = 0;                     /* buffer ptrs */
 static bool     ms_crc = false;                 /* buffer ready for CRC calc */
@@ -231,16 +233,16 @@ static bool     ms_crc = false;                 /* buffer ready for CRC calc */
           passes with the correct data transfer time.
 */
 
-static int32 msc_btime = 0;                     /* BOT start delay */
-static int32 msc_ctime = 0;                     /* motion cmd start delay */
-static int32 msc_gtime = 0;                     /* GAP traversal time */
-static int32 msc_itime = 0;                     /* IRG traversal time */
-static int32 msc_rtime = 0;                     /* rewind initiation time */
-static int32 msc_xtime = 0;                     /* data xfer time / word */
+static int32_t msc_btime = 0;                   /* BOT start delay */
+static int32_t msc_ctime = 0;                   /* motion cmd start delay */
+static int32_t msc_gtime = 0;                   /* GAP traversal time */
+static int32_t msc_itime = 0;                   /* IRG traversal time */
+static int32_t msc_rtime = 0;                   /* rewind initiation time */
+static int32_t msc_xtime = 0;                   /* data xfer time / word */
 
-typedef int32 TIMESET[6];                       /* set of controller times */
+typedef int32_t TIMESET[6];                     /* set of controller times */
 
-static int32 * const timers [] = { &msc_btime, &msc_ctime, &msc_gtime,
+static int32_t * const timers [] = { &msc_btime, &msc_ctime, &msc_gtime,
                                    &msc_itime, &msc_rtime, &msc_xtime };
 
 static const TIMESET msc_times [3] = {
@@ -256,20 +258,20 @@ static t_stat msc_svc (UNIT *uptr);
 static t_stat ms_reset (DEVICE *dptr);
 static t_stat msc_attach (UNIT *uptr, const char *cptr);
 static t_stat msc_detach (UNIT *uptr);
-static t_stat msc_online (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat msc_boot (int32 unitno, DEVICE *dptr);
+static t_stat msc_online (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat msc_boot (int32_t unitno, DEVICE *dptr);
 static t_stat ms_write_gap (UNIT *uptr);
 static t_stat ms_map_err (UNIT *uptr, t_stat st);
-static t_stat ms_settype (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat ms_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat ms_set_timing (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat ms_show_timing (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat ms_set_reelsize (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat ms_show_reelsize (FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat ms_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat ms_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat ms_set_timing (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat ms_show_timing (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat ms_set_reelsize (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat ms_show_reelsize (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 static void ms_config_timing (void);
-static char *ms_cmd_name (uint32 cmd);
+static char *ms_cmd_name (uint32_t cmd);
 static t_stat ms_clear (void);
-static uint32 calc_crc_lrc (uint8 *buffer, t_mtrlnt length);
+static uint32_t calc_crc_lrc (uint8_t *buffer, t_mtrlnt length);
 
 
 /* Device information blocks */
@@ -516,7 +518,7 @@ INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
 bool           irq_enabled = false;
-uint32         check;
+uint32_t       check;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -666,11 +668,11 @@ static SIGNALS_VALUE msc_interface (const DIB *dibptr, INBOUND_SET inbound_signa
    This implementation does not use every parameter. */
 (void) dibptr;
 
-static const uint8 map_sel [16] = {
+static const uint8_t map_sel [16] = {
     0, 0, 1, 1, 2, 2, 2, 2,
     3, 3, 3, 3, 3, 3, 3, 3
     };
-int32          sched_time;
+int32_t        sched_time;
 UNIT           *uptr = msc_dev.units + msc_usl;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
@@ -901,7 +903,7 @@ return outbound;                                        /* return the outbound s
 
 static t_stat msc_svc (UNIT *uptr)
 {
-int32 unum;
+int32_t unum;
 t_mtrlnt tbc;
 t_stat st, r = SCPE_OK;
 
@@ -1022,7 +1024,7 @@ switch (uptr->FNC) {                                    /* case on function */
             }
         if (msd.control && (ms_ptr < ms_max)) {         /* DCH on, more data? */
             if (msd.flag) msc_sta = msc_sta | STA_TIM | STA_PAR;
-            msd_buf = ((uint16) msxb[ms_ptr] << 8) |
+            msd_buf = ((uint16_t) msxb[ms_ptr] << 8) |
                       ((ms_ptr + 1 == ms_max) ? 0 : msxb[ms_ptr + 1]);
             ms_ptr = ms_ptr + 2;
 
@@ -1063,7 +1065,7 @@ switch (uptr->FNC) {                                    /* case on function */
             }
         else {                                          /* not 1st, next char */
             if (ms_ptr < DBSIZE) {                      /* room in buffer? */
-                msxb[ms_ptr] = (uint8) (msd_buf >> 8);  /* store 2 char */
+                msxb[ms_ptr] = (uint8_t) (msd_buf >> 8); /* store 2 char */
                 msxb[ms_ptr + 1] = msd_buf & 0377;
                 ms_ptr = ms_ptr + 2;
                 }
@@ -1117,7 +1119,7 @@ return r;
 static t_stat ms_write_gap (UNIT *uptr)
 {
 t_stat st;
-uint32 gap_len = ms_ctype ? GAP_13183 : GAP_13181;      /* establish gap length */
+uint32_t gap_len = ms_ctype ? GAP_13183 : GAP_13181;    /* establish gap length */
 
 st = sim_tape_wrgap (uptr, gap_len);                    /* write gap */
 
@@ -1132,7 +1134,7 @@ else
 
 static t_stat ms_map_err (UNIT *uptr, t_stat st)
 {
-int32 unum = uptr - msc_unit;                           /* get unit number */
+int32_t unum = uptr - msc_unit;                         /* get unit number */
 
 tprintf (msc_dev, DEB_RWS, "Unit %d tape library status = %d\n", unum, st);
 
@@ -1183,7 +1185,7 @@ return SCPE_OK;
 
 static t_stat ms_clear (void)
 {
-int32 i;
+int32_t i;
 t_stat st;
 UNIT *uptr;
 
@@ -1217,7 +1219,7 @@ return SCPE_OK;
 
 static t_stat ms_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 hp_enbdis_pair (dptr,                                   /* make pair cons */
@@ -1271,7 +1273,7 @@ return sim_tape_detach (uptr);                          /* detach unit */
 
 /* Online routine */
 
-static t_stat msc_online (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat msc_online (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1287,7 +1289,7 @@ else return SCPE_UNATT;
 
 static void ms_config_timing (void)
 {
-uint32 i, tset;
+uint32_t i, tset;
 
 tset = (ms_timing << 1) | (ms_timing ? 0 : ms_ctype);   /* select timing set */
 for (i = 0; i < (sizeof (timers) / sizeof (timers[0])); i++)
@@ -1296,7 +1298,7 @@ for (i = 0; i < (sizeof (timers) / sizeof (timers[0])); i++)
 
 /* Set controller timing */
 
-static t_stat ms_set_timing (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat ms_set_timing (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1311,7 +1313,7 @@ return SCPE_OK;
 
 /* Show controller timing */
 
-static t_stat ms_show_timing (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat ms_show_timing (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1326,13 +1328,13 @@ return SCPE_OK;
 
 /* Set controller type */
 
-static t_stat ms_settype (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat ms_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) desc;
 
-int32 i;
+int32_t i;
 
 if ((val < 0) || (val > 1) || (cptr != NULL)) return SCPE_ARG;
 for (i = 0; i < MS_NUMDR; i++) {
@@ -1349,7 +1351,7 @@ return SCPE_OK;
 
 /* Show controller type */
 
-static t_stat ms_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat ms_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1369,9 +1371,9 @@ return SCPE_OK;
    val = 0 -> SET MSCn CAPACITY=n
    val = 1 -> SET MSCn REEL=n */
 
-static t_stat ms_set_reelsize (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat ms_set_reelsize (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-int32 reel;
+int32_t reel;
 t_stat status;
 
 if (val == 0) {
@@ -1386,7 +1388,7 @@ if (val == 0) {
 if (cptr == NULL)
     return SCPE_ARG;
 
-reel = (int32) get_uint (cptr, 10, 2400, &status);
+reel = (int32_t) get_uint (cptr, 10, 2400, &status);
 
 if (status != SCPE_OK)
     return status;
@@ -1421,7 +1423,7 @@ return SCPE_OK;
    val = 0 -> SHOW MSC or SHOW MSCn or SHOW MSCn CAPACITY
    val = 1 -> SHOW MSCn REEL */
 
-static t_stat ms_show_reelsize (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat ms_show_reelsize (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 t_stat status = SCPE_OK;
 
@@ -1442,7 +1444,7 @@ return status;
    manual.
 */
 
-static char *ms_cmd_name (uint32 cmd)
+static char *ms_cmd_name (uint32_t cmd)
 {
 switch (cmd & 0377) {
     case FNC_WC:  return "WCC";         /* Write command */
@@ -1673,11 +1675,11 @@ static const LOADER_ARRAY ms_loaders = {
    A-register content is read.
 */
 
-static t_stat msc_boot (int32 unitno, DEVICE *dptr)
+static t_stat msc_boot (int32_t unitno, DEVICE *dptr)
 {
 static const HP_WORD ms_preserved  = 0000000u;              /* no S-register bits are preserved */
 static const HP_WORD ms_reposition = 0000001u;              /* S-register bit 0 set for a repositioning boot */
-uint32 start;
+uint32_t start;
 
 if (dptr == NULL)                                           /* if we are being called for a BOOT/LOAD CPU */
     start = cpu_copy_loader (ms_loaders, unitno,            /*   then copy the boot loader to memory */
@@ -1700,9 +1702,9 @@ else                                                    /* otherwise */
 
 /* Calculate tape record CRC and LRC characters */
 
-static uint32 calc_crc_lrc (uint8 *buffer, t_mtrlnt length)
+static uint32_t calc_crc_lrc (uint8_t *buffer, t_mtrlnt length)
 {
-uint32 i;
+uint32_t i;
 HP_WORD byte, crc, lrc;
 
 lrc = crc = 0;
@@ -1722,5 +1724,5 @@ for (i = 0; i < length; i++) {
 crc = crc ^ 0727;
 lrc = lrc ^ crc;
 
-return (uint32) crc << 16 | lrc;
+return (uint32_t) crc << 16 | lrc;
 }

@@ -25,6 +25,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -113,33 +115,33 @@
 
 
 
-int             lp20_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access);
-int             lp20_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access);
+int             lp20_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access);
+int             lp20_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access);
 void            lp20_printline(UNIT *uptr, int nl);
-void            lp20_output(UNIT *uptr, uint8 c);
+void            lp20_output(UNIT *uptr, uint8_t c);
 void            lp20_update_chkirq (UNIT *uptr, int done, int irq);
-void            lp20_update_ready(UNIT *uptr, uint16 setrdy, uint16 clrrdy);
+void            lp20_update_ready(UNIT *uptr, uint16_t setrdy, uint16_t clrrdy);
 t_stat          lp20_svc (UNIT *uptr);
 t_stat          lp20_init (UNIT *uptr);
 t_stat          lp20_reset (DEVICE *dptr);
 t_stat          lp20_attach (UNIT *uptr, const char *cptr);
 t_stat          lp20_detach (UNIT *uptr);
-t_stat          lp20_setlpp(UNIT *, int32, const char *, void *);
-t_stat          lp20_getlpp(FILE *, UNIT *, int32, const void *);
-t_stat          lp20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat          lp20_setlpp(UNIT *, int32_t, const char *, void *);
+t_stat          lp20_getlpp(FILE *, UNIT *, int32_t, const void *);
+t_stat          lp20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                          const char *cptr);
 const char     *lp20_description (DEVICE *dptr);
 
 char            lp20_buffer[134 * 3];
-uint16          lp20_cs1;
-uint16          lp20_cs2;
-uint16          lp20_pagcnt;
-uint32          lp20_ba;
-uint16          lp20_wcnt;
-uint8           lp20_col;
-uint8           lp20_chksum;
-uint8           lp20_buf;
-uint8           lp20_data;
+uint16_t        lp20_cs1;
+uint16_t        lp20_cs2;
+uint16_t        lp20_pagcnt;
+uint32_t        lp20_ba;
+uint16_t        lp20_wcnt;
+uint8_t         lp20_col;
+uint8_t         lp20_chksum;
+uint8_t         lp20_buf;
+uint8_t         lp20_data;
 int             lp20_odd = 0;
 int             lp20_duvfa_state = 0;
 int             lp20_index = 0;
@@ -151,9 +153,9 @@ int             lp20_index = 0;
 #define LP20_RAM_PI   00400      /* Paper Instruction */
 #define LP20_RAM_CHR  00377      /* Character translation */
 
-uint16          lp20_vfu[256];
-uint16          lp20_ram[256];
-uint16          lp20_dvfu[] = {   /* Default VFU */
+uint16_t        lp20_vfu[256];
+uint16_t        lp20_ram[256];
+uint16_t        lp20_dvfu[] = {   /* Default VFU */
     /* 66 line page with 6 line margin */
     00377,    /* Line   0     8  7  6  5  4  3  2  1 */
     00220,    /* Line   1     8        5             */
@@ -241,8 +243,8 @@ UNIT lp20_unit = {
 
 REG lp20_reg[] = {
    {BRDATA(BUFFER, lp20_buffer, 16, 8, sizeof(lp20_buffer)), REG_HRO},
-   {BRDATA(VFU, lp20_vfu, 16, 16, (sizeof(lp20_vfu)/sizeof(uint16))), REG_HRO},
-   {BRDATA(RAM, lp20_ram, 16, 16, (sizeof(lp20_ram)/sizeof(uint16))), REG_HRO},
+   {BRDATA(VFU, lp20_vfu, 16, 16, (sizeof(lp20_vfu)/sizeof(uint16_t))), REG_HRO},
+   {BRDATA(RAM, lp20_ram, 16, 16, (sizeof(lp20_ram)/sizeof(uint16_t))), REG_HRO},
    {ORDATA(CS1, lp20_cs1, 16)},
    {ORDATA(CS2, lp20_cs2, 16)},
    {ORDATA(PAGCNT, lp20_pagcnt, 12)},
@@ -282,10 +284,10 @@ DEVICE lp20_dev = {
 };
 
 int
-lp20_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
+lp20_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
-    uint16            temp;
+    uint16_t          temp;
 
     addr &= dibp->uba_mask;
     sim_debug(DEBUG_DETAIL, dptr, "LP20 write %06o %06o %o\n",
@@ -397,10 +399,10 @@ lp20_write(DEVICE *dptr, t_addr addr, uint16 data, int32 access)
 }
 
 int
-lp20_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
+lp20_read(DEVICE *dptr, t_addr addr, uint16_t *data, int32_t access)
 {
     struct pdp_dib   *dibp = (DIB *)dptr->ctxt;
-    uint16            temp;
+    uint16_t          temp;
     int               par;
 
     addr &= dibp->uba_mask;
@@ -439,13 +441,13 @@ lp20_read(DEVICE *dptr, t_addr addr, uint16 *data, int32 access)
             break;
 
      case 014: /* LPCOL/LPCBUF */
-            *data = ((uint16)lp20_col) << 8;
-            *data |= (uint16)lp20_buf;
+            *data = ((uint16_t)lp20_col) << 8;
+            *data |= (uint16_t)lp20_buf;
             break;
 
      case 016: /* LPCSUM/LPPDAT */
-            *data = ((uint16)lp20_chksum) << 8;
-            *data |= (uint16)lp20_data;
+            *data = ((uint16_t)lp20_chksum) << 8;
+            *data |= (uint16_t)lp20_data;
             break;
      }
      sim_debug(DEBUG_DETAIL, dptr, "LP20 read %06o %06o %o\n",
@@ -478,7 +480,7 @@ lp20_printline(UNIT *uptr, int nl) {
         lp20_pagcnt = (lp20_pagcnt - 1) & 07777;
         if (lp20_pagcnt == 0)
            lp20_cs1 |= CS1_PZERO;
-    } else if (nl < 0 && uptr->LINE >= (int32)uptr->capac) {
+    } else if (nl < 0 && uptr->LINE >= (int32_t)uptr->capac) {
         uptr->LINE = 0;
         lp20_pagcnt = (lp20_pagcnt - 1) & 07777;
         if (lp20_pagcnt == 0)
@@ -494,7 +496,7 @@ lp20_printline(UNIT *uptr, int nl) {
 
 /* Unit service */
 void
-lp20_output(UNIT *uptr, uint8 c) {
+lp20_output(UNIT *uptr, uint8_t c) {
 
     if (c == 0)
        return;
@@ -559,11 +561,11 @@ lp20_update_chkirq (UNIT *uptr, int done, int irq)
  */
 
 void
-lp20_update_ready(UNIT *uptr, uint16 setrdy, uint16 clrrdy)
+lp20_update_ready(UNIT *uptr, uint16_t setrdy, uint16_t clrrdy)
 {
     DEVICE         *dptr = find_dev_from_unit (uptr);
     struct pdp_dib *dibp = (DIB *)dptr->ctxt;
-    uint16  new_cs1 = (lp20_cs1 | setrdy) & ~clrrdy;
+    uint16_t new_cs1 = (lp20_cs1 | setrdy) & ~clrrdy;
 
     if ((new_cs1 ^ lp20_cs1) & (CS1_ONL|CS1_DVON) && !sim_is_active(uptr)) {
         if (new_cs1 & CS1_IE)
@@ -585,8 +587,8 @@ lp20_svc (UNIT *uptr)
     struct pdp_dib *dibp = (DIB *)dptr->ctxt;
     char            ch;
     int             fnc = (lp20_cs1 >> CS1_V_FNC) & CS1_M_FNC;
-    uint16          ram_ch;
-    uint8           data;
+    uint16_t        ram_ch;
+    uint8_t         data;
 
     if (fnc == FNC_PRINT && (uptr->flags & UNIT_ATT) == 0) {
         lp20_cs1 |= CS1_ERR;
@@ -630,7 +632,7 @@ lp20_svc (UNIT *uptr)
         }
         /* Check if translate flag set */
         if (ram_ch & LP20_RAM_TRN) {
-            lp20_buf = (uint8)(ram_ch & 0377);
+            lp20_buf = (uint8_t)(ram_ch & 0377);
         }
         /* Check if paper motion */
         if (ram_ch & LP20_RAM_PI) {
@@ -843,7 +845,7 @@ t_stat lp20_detach (UNIT *uptr)
  */
 
 t_stat
-lp20_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
+lp20_setlpp(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -865,7 +867,7 @@ lp20_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-lp20_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
+lp20_getlpp(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -878,7 +880,7 @@ lp20_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
     return SCPE_OK;
 }
 
-t_stat lp20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat lp20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
         const char *cptr)
 {
 /* Generic help signature.

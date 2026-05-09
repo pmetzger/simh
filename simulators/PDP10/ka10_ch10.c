@@ -29,6 +29,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
@@ -93,13 +95,13 @@ t_stat ch10_svc(UNIT *);
 t_stat ch10_reset (DEVICE *);
 t_stat ch10_attach (UNIT *, const char *);
 t_stat ch10_detach (UNIT *);
-t_stat ch10_devio(uint32 dev, uint64 *data);
-t_stat ch10_show_peer (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat ch10_set_peer (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat ch10_show_node (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat ch10_set_node (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat ch10_help (FILE *, DEVICE *, UNIT *, int32, const char *);
-t_stat ch10_help_attach (FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat ch10_devio(uint32_t dev, uint64 *data);
+t_stat ch10_show_peer (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat ch10_set_peer (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat ch10_show_node (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat ch10_set_node (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat ch10_help (FILE *, DEVICE *, UNIT *, int32_t, const char *);
+t_stat ch10_help_attach (FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char *ch10_description (DEVICE *);
 
 static char peer[256];
@@ -108,8 +110,8 @@ static uint64 ch10_status;
 static int rx_count;
 static int rx_pos;
 static int tx_count;
-static uint8 rx_buffer[514+100];
-static uint8 tx_buffer[514+100];
+static uint8_t rx_buffer[514+100];
+static uint8_t tx_buffer[514+100];
 
 TMLN ch10_lines[1] = { {0} };
 TMXR ch10_tmxr = { 1, NULL, 0, ch10_lines};
@@ -158,9 +160,9 @@ DEVICE ch10_dev = {
     &ch10_description
   };
 
-static uint16 ch10_checksum (const uint8 *p, int count)
+static uint16_t ch10_checksum (const uint8_t *p, int count)
 {
-  int32 sum = 0;
+  int32_t sum = 0;
 
   while (count > 1) {
     sum += (p[0]<<8) | p[1];
@@ -193,9 +195,9 @@ static int ch10_test_int (void)
   }
 }
 
-static void ch10_validate (const uint8 *p, int count)
+static void ch10_validate (const uint8_t *p, int count)
 {
-  uint16 chksum;
+  uint16_t chksum;
   int size;
 
   sim_debug (DBG_TRC, &ch10_dev, "Packet opcode: %02x\n", p[0]);
@@ -226,7 +228,7 @@ static t_stat ch10_transmit (void)
   size_t len;
   t_stat r;
   int i = CHUDP_HEADER + tx_count;
-  uint16 chk;
+  uint16_t chk;
 
   if (tx_count > (514 - CHUDP_HEADER)) {
     sim_debug (DBG_PKT, &ch10_dev, "Pack size failed, %d bytes.\n", (int)tx_count);
@@ -243,7 +245,7 @@ static t_stat ch10_transmit (void)
 
   tmxr_poll_tx (&ch10_tmxr);
   len = CHUDP_HEADER + (size_t)tx_count;
-  r = tmxr_put_packet_ln (&ch10_lines[0], (const uint8 *)&tx_buffer, len);
+  r = tmxr_put_packet_ln (&ch10_lines[0], (const uint8_t *)&tx_buffer, len);
   if (r == SCPE_OK) {
     sim_debug (DBG_PKT, &ch10_dev, "Sent UDP packet, %d bytes. %04x checksum\n", (int)len, chk);
     tmxr_poll_tx (&ch10_tmxr);
@@ -260,8 +262,8 @@ static t_stat ch10_transmit (void)
 static int ch10_receive (void)
 {
   size_t count;
-  const uint8 *p;
-  uint16 dest;
+  const uint8_t *p;
+  uint16_t dest;
 
   tmxr_poll_rx (&ch10_tmxr);
   if (tmxr_get_packet_ln (&ch10_lines[0], &p, &count) != SCPE_OK) {
@@ -312,7 +314,7 @@ static void ch10_clear (void)
   ch10_test_int ();
 }
 
-static void ch10_command (uint32 data)
+static void ch10_command (uint32_t data)
 {
   if (data & RXD) {
      sim_debug (DBG_REG, &ch10_dev, "Clear RX\n");
@@ -339,12 +341,12 @@ static void ch10_command (uint32 data)
   }
 }
 
-t_stat ch10_devio(uint32 dev, uint64 *data)
+t_stat ch10_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 07) {
     case CONO:
         sim_debug (DBG_REG, &ch10_dev, "CONO %012llo %012llo \n", *data, ch10_status);
-        ch10_command ((uint32)(*data & RMASK));
+        ch10_command ((uint32_t)(*data & RMASK));
         ch10_status &= ~STATUS_BITS;
         ch10_status |= *data & STATUS_BITS;
         ch10_test_int ();
@@ -469,7 +471,7 @@ t_stat ch10_reset (DEVICE *dptr)
   return SCPE_OK;
 }
 
-t_stat ch10_show_peer (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat ch10_show_peer (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -481,7 +483,7 @@ t_stat ch10_show_peer (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat ch10_set_peer (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat ch10_set_peer (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -504,7 +506,7 @@ t_stat ch10_set_peer (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat ch10_show_node (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat ch10_show_node (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -519,7 +521,7 @@ t_stat ch10_show_node (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat ch10_set_node (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat ch10_set_node (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -551,7 +553,7 @@ const char *ch10_description (DEVICE *dptr)
   return "CH11 Chaosnet interface";
 }
 
-t_stat ch10_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ch10_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   fprintf (st, "CH10 Chaosnet interface\n\n");
   fprintf (st, "It's a network interface for MIT's Chaosnet.  Options allow\n");
@@ -573,7 +575,7 @@ t_stat ch10_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cp
   return SCPE_OK;
 }
 
-t_stat ch10_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ch10_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   /* Generic help signature.
      This implementation does not use every parameter. */

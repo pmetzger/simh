@@ -31,6 +31,8 @@
 #ifndef ALPHA_EV5_DEFS_H_
 #define ALPHA_EV5_DEFS_H_      0
 
+#include <stdint.h>
+
 /* Address limits */
 
 #define VA_SIZE                 43                       /* VA size */
@@ -52,10 +54,10 @@
 #define VA_WIDTH        (VA_N_VPN + VA_N_OFF)           /* total VA size */
 #define VA_V_SEXT       (VA_WIDTH - 1)                  /* sext start */
 #define VA_M_SEXT       ((1u << (64 - VA_V_SEXT)) - 1)  /* sext mask */
-#define VA_GETOFF(x)    (((uint32) (x)) & VA_M_OFF)
-#define VA_GETVPN(x)    (((uint32) ((x) >> VA_V_VPN)) & VA_M_VPN)
-#define VA_GETSEXT(x)   (((uint32) ((x) >> VA_V_SEXT)) & VA_M_SEXT)
-#define PHYS_ADDR(p,v)  (((((t_uint64) (p)) < VA_N_OFF) | VA_GETOFF (v)) & EV5_PA_MASK)
+#define VA_GETOFF(x)    (((uint32_t) (x)) & VA_M_OFF)
+#define VA_GETVPN(x)    (((uint32_t) ((x) >> VA_V_VPN)) & VA_M_VPN)
+#define VA_GETSEXT(x)   (((uint32_t) ((x) >> VA_V_SEXT)) & VA_M_SEXT)
+#define PHYS_ADDR(p,v)  (((((uint64_t) (p)) < VA_N_OFF) | VA_GETOFF (v)) & EV5_PA_MASK)
 
 /* 43b and 32b superpages - present in all implementations */
 
@@ -63,8 +65,8 @@
 #define SPEN_32                 0x1
 #define SP43_MASK               (EV5_PA_MASK)
 #define SP32_MASK               0x000000003FFFFFFF
-#define VPN_GETSP43(x)          ((uint32) (((x) >> (VA_WIDTH - VA_N_OFF - 2)) & 3))
-#define VPN_GETSP32(x)          ((uint32) (((x) >> (NTVA_WIDTH - VA_N_OFF - 2)) & 0x1FFF))
+#define VPN_GETSP43(x)          ((uint32_t) (((x) >> (VA_WIDTH - VA_N_OFF - 2)) & 3))
+#define VPN_GETSP32(x)          ((uint32_t) (((x) >> (NTVA_WIDTH - VA_N_OFF - 2)) & 0x1FFF))
 
 /* TLBs */
 
@@ -79,12 +81,12 @@
 #define TLB_CA                  0x4                     /* clear all */
 
 typedef struct {
-    uint32                      tag;                    /* tag */
-    uint8                       asn;                    /* addr space # */
-    uint8                       idx;                    /* entry # */
-    uint16                      gh_mask;                /* gh mask */
-    uint32                      pfn;                    /* pfn */
-    uint32                      pte;                    /* swre/pte */
+    uint32_t                    tag;                    /* tag */
+    uint8_t                     asn;                    /* addr space # */
+    uint8_t                     idx;                    /* entry # */
+    uint16_t                    gh_mask;                /* gh mask */
+    uint32_t                    pfn;                    /* pfn */
+    uint32_t                    pte;                    /* swre/pte */
     } TLBENT;
 
 /* Register shadow */
@@ -127,7 +129,7 @@ typedef struct {
 #define SIGN_HW_LD_DSP          0x0200
 #define HW_LD_GETDSP(x)         ((x) & HW_LD_DSP)
 #define SEXT_HW_LD_DSP(x)       (((x) & SIGN_HW_LD_DSP)? \
-                                ((x) | ~((t_uint64) HW_LD_DSP)): ((x) & HW_LD_DSP))
+                                ((x) | ~((uint64_t) HW_LD_DSP)): ((x) & HW_LD_DSP))
 
 #define HW_REI_S                0x4000
 
@@ -194,12 +196,12 @@ enum ev5_internal_reg {
 #define ISR_V_SLI               33
 #define ISR_V_HALT              34
 
-#define ISR_ATR                 (((t_uint64) 1u) << ISR_V_ATR)
-#define ISR_IRQ0                (((t_uint64) 1u) << ISR_V_IRQ0)
-#define ISR_IRQ1                (((t_uint64) 1u) << ISR_V_IRQ1)
-#define ISR_IRQ2                (((t_uint64) 1u) << ISR_V_IRQ2)
-#define ISR_IRQ3                (((t_uint64) 1u) << ISR_V_IRQ3)
-#define ISR_HALT                (((t_uint64) 1u) << ISR_V_HALT)
+#define ISR_ATR                 (((uint64_t) 1u) << ISR_V_ATR)
+#define ISR_IRQ0                (((uint64_t) 1u) << ISR_V_IRQ0)
+#define ISR_IRQ1                (((uint64_t) 1u) << ISR_V_IRQ1)
+#define ISR_IRQ2                (((uint64_t) 1u) << ISR_V_IRQ2)
+#define ISR_IRQ3                (((uint64_t) 1u) << ISR_V_IRQ3)
+#define ISR_HALT                (((uint64_t) 1u) << ISR_V_HALT)
 
 /* ITB_TAG - ITLB tag - write only - stores VPN (tag) of faulting address */
 
@@ -297,16 +299,16 @@ enum ev5_internal_reg {
 #define ICSR_V_BIST             38
 #define ICSR_V_TEST             39
 
-#define ICSR_NT                 (((t_uint64) 1u) << ICSR_V_SPE)
-#define ICSR_BSE                (((t_uint64) 1u) << ICSR_V_BSE)
-#define ICSR_MSK0               (((t_uint64) 1u) << ICSR_V_MSK0)
-#define ICSR_MSK1               (((t_uint64) 1u) << ICSR_V_MSK1)
-#define ICSR_MSK2               (((t_uint64) 1u) << ICSR_V_MSK2)
-#define ICSR_MSK3               (((t_uint64) 1u) << ICSR_V_MSK3)
-#define ICSR_HWE                (((t_uint64) 1u) << ICSR_V_HWE)
-#define ICSR_SDE                (((t_uint64) 1u) << ICSR_V_SDE)
-#define ICSR_CRDE               (((t_uint64) 1u) << ICSR_V_CRDE)
-#define ICSR_SLE                (((t_uint64) 1u) << ICSR_V_SLE)
+#define ICSR_NT                 (((uint64_t) 1u) << ICSR_V_SPE)
+#define ICSR_BSE                (((uint64_t) 1u) << ICSR_V_BSE)
+#define ICSR_MSK0               (((uint64_t) 1u) << ICSR_V_MSK0)
+#define ICSR_MSK1               (((uint64_t) 1u) << ICSR_V_MSK1)
+#define ICSR_MSK2               (((uint64_t) 1u) << ICSR_V_MSK2)
+#define ICSR_MSK3               (((uint64_t) 1u) << ICSR_V_MSK3)
+#define ICSR_HWE                (((uint64_t) 1u) << ICSR_V_HWE)
+#define ICSR_SDE                (((uint64_t) 1u) << ICSR_V_SDE)
+#define ICSR_CRDE               (((uint64_t) 1u) << ICSR_V_CRDE)
+#define ICSR_SLE                (((uint64_t) 1u) << ICSR_V_SLE)
 
 #define ICSR_RW                 0x0000009F4BF00300
 #define ICSR_MBO                0x0000006000000000
@@ -363,7 +365,7 @@ enum ev5_internal_reg {
 
 /* MVPTBR - DTB virtual page table base - write only */
 
-#define MVPTBR_MBZ              ((t_uint64) 0x3FFFFFFF)
+#define MVPTBR_MBZ              ((uint64_t) 0x3FFFFFFF)
 
 /* DTB_IAP, DTB_IA, DTB_IS - DTB invalidates - write only */
 
@@ -409,19 +411,19 @@ enum ev5_internal_reg {
 
 /* Function prototypes (TLB interface) */
 
-void tlb_ia (uint32 flags);
-void tlb_is (t_uint64 va, uint32 flags);
-void itlb_set_asn (uint32 asn);
-void itlb_set_cm (uint32 mode);
-void itlb_set_spage (uint32 spage);
-TLBENT *itlb_lookup (uint32 vpn);
-TLBENT *itlb_load (uint32 vpn, t_uint64 pte);
-t_uint64 itlb_read (void);
-void dtlb_set_asn (uint32 asn);
-void dtlb_set_cm (uint32 mode);
-void dtlb_set_spage (uint32 spage);
-TLBENT *dtlb_lookup (uint32 vpn);
-TLBENT *dtlb_load (uint32 vpn, t_uint64 pte);
-t_uint64 dtlb_read (void);
+void tlb_ia (uint32_t flags);
+void tlb_is (uint64_t va, uint32_t flags);
+void itlb_set_asn (uint32_t asn);
+void itlb_set_cm (uint32_t mode);
+void itlb_set_spage (uint32_t spage);
+TLBENT *itlb_lookup (uint32_t vpn);
+TLBENT *itlb_load (uint32_t vpn, uint64_t pte);
+uint64_t itlb_read (void);
+void dtlb_set_asn (uint32_t asn);
+void dtlb_set_cm (uint32_t mode);
+void dtlb_set_spage (uint32_t spage);
+TLBENT *dtlb_lookup (uint32_t vpn);
+TLBENT *dtlb_load (uint32_t vpn, uint64_t pte);
+uint64_t dtlb_read (void);
 
 #endif

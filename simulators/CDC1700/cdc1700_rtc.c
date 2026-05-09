@@ -29,6 +29,8 @@
  *                Simh devices: rtc
  */
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "cdc1700_defs.h"
 
 #define HOLDREG         iod_writeR[0]           /* Holding register */
@@ -36,31 +38,31 @@
 
 extern char INTprefix[];
 
-extern t_stat checkReset(DEVICE *, uint8);
+extern t_stat checkReset(DEVICE *, uint8_t);
 
-extern t_stat show_addr(FILE *, UNIT *, int32, const void *);
+extern t_stat show_addr(FILE *, UNIT *, int32_t, const void *);
 
-extern t_stat set_equipment(UNIT *, int32, const char *, void *);
+extern t_stat set_equipment(UNIT *, int32_t, const char *, void *);
 
 extern void RaiseExternalInterrupt(DEVICE *);
 extern void rebuildPending(void);
 
-extern uint16 Areg;
+extern uint16_t Areg;
 
 extern bool IOFWinitialized;
 
-t_stat rtc_show_rate(FILE *, UNIT *, int32, const void *);
-t_stat rtc_set_rate(UNIT *, int32, const char *, void *);
+t_stat rtc_show_rate(FILE *, UNIT *, int32_t, const void *);
+t_stat rtc_set_rate(UNIT *, int32_t, const char *, void *);
 
 void RTCstate(char *, DEVICE *, IO_DEVICE *);
-uint16 RTCraised(DEVICE *);
-enum IOstatus RTCin(IO_DEVICE *, uint8);
-enum IOstatus RTCout(IO_DEVICE *, uint8);
+uint16_t RTCraised(DEVICE *);
+enum IOstatus RTCin(IO_DEVICE *, uint8_t);
+enum IOstatus RTCout(IO_DEVICE *, uint8_t);
 
 t_stat rtc_svc(UNIT *);
 t_stat rtc_reset(DEVICE *);
 
-t_stat rtc_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat rtc_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 
 /*
         10336-1 Real-Time Clock
@@ -138,7 +140,7 @@ IO_DEVICE RTCdev = IODEV(NULL, "10336-1", 10336, 13, 0xFF, 0,
 struct RTCtimebase {
   const char    *name;
   const char    *rate;
-  int32         icount;
+  int32_t       icount;
 } timeBase[] = {
   { "1USEC", "1 uSec", RTC_1USEC },
   { "10USEC", "10 uSec", RTC_10USEC },
@@ -193,7 +195,7 @@ DEVICE rtc_dev = {
   NULL, NULL, &rtc_help, NULL, NULL, NULL
 };
 
-t_stat rtc_show_rate(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rtc_show_rate(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -213,7 +215,7 @@ t_stat rtc_show_rate(FILE *st, UNIT *uptr, int32 val, const void *desc)
   return SCPE_IERR;
 }
 
-t_stat rtc_set_rate(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rtc_set_rate(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -239,7 +241,7 @@ t_stat rtc_set_rate(UNIT *uptr, int32 val, const char *cptr, void *desc)
  * Determine if the clock interrupt is asserted, returning the appropriate
  * interrupt bit or 0.
  */
-uint16 RTCraised(DEVICE *dptr)
+uint16_t RTCraised(DEVICE *dptr)
 {
   IO_DEVICE *iod = (IO_DEVICE *)dptr->ctxt;
 
@@ -290,7 +292,7 @@ t_stat rtc_reset(DEVICE * dptr)
 
 /* Perform I/O */
 
-enum IOstatus RTCin(IO_DEVICE *iod, uint8 reg)
+enum IOstatus RTCin(IO_DEVICE *iod, uint8_t reg)
 {
   /* Generic I/O handler signature.
      This implementation does not use every parameter. */
@@ -303,7 +305,7 @@ enum IOstatus RTCin(IO_DEVICE *iod, uint8 reg)
   return IO_REJECT;
 }
 
-enum IOstatus RTCout(IO_DEVICE *iod, uint8 reg)
+enum IOstatus RTCout(IO_DEVICE *iod, uint8_t reg)
 {
   /* Generic I/O handler signature.
      This implementation does not use every parameter. */
@@ -364,7 +366,7 @@ enum IOstatus RTCout(IO_DEVICE *iod, uint8 reg)
   return IO_REPLY;
 }
 
-t_stat rtc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rtc_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   const char helpString[] =
     /****************************************************************************/

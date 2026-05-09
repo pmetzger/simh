@@ -25,7 +25,7 @@ struct sim_disk_fixture {
 extern t_offset pseudo_filesystem_size;
 extern t_stat sim_save(FILE *sfile);
 extern t_stat sim_rest(FILE *rfile);
-extern t_stat show_unit(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag);
+extern t_stat show_unit(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag);
 
 struct detach_capture {
     UNIT *unit;
@@ -38,7 +38,7 @@ static t_stat attach_test_sector_disk(UNIT *uptr, const char *cptr)
                               NULL);
 }
 
-static t_stat set_test_drive_type(UNIT *uptr, int32 val, const char *cptr,
+static t_stat set_test_drive_type(UNIT *uptr, int32_t val, const char *cptr,
                                   void *desc)
 {
     (void)cptr;
@@ -120,7 +120,7 @@ static int teardown_sim_disk_fixture(void **state)
 static void create_temp_disk_image(struct sim_disk_fixture *fixture,
                                    size_t size)
 {
-    uint8 *data;
+    uint8_t *data;
 
     data = calloc(1, size);
     assert_non_null(data);
@@ -137,7 +137,7 @@ static void attach_temp_disk_image(struct sim_disk_fixture *fixture, UNIT *uptr)
                      SCPE_OK);
 }
 
-static t_stat test_backend_read(UNIT *uptr, t_lba lba, uint8 *buf,
+static t_stat test_backend_read(UNIT *uptr, t_lba lba, uint8_t *buf,
                                 t_seccnt *sectsread, t_seccnt sects)
 {
     (void)buf;
@@ -150,7 +150,7 @@ static t_stat test_backend_read(UNIT *uptr, t_lba lba, uint8 *buf,
     return SCPE_OK;
 }
 
-static t_stat test_backend_write(UNIT *uptr, t_lba lba, uint8 *buf,
+static t_stat test_backend_write(UNIT *uptr, t_lba lba, uint8_t *buf,
                                  t_seccnt *sectswritten, t_seccnt sects)
 {
     (void)buf;
@@ -163,7 +163,7 @@ static t_stat test_backend_write(UNIT *uptr, t_lba lba, uint8 *buf,
     return SCPE_OK;
 }
 
-static void assert_disk_show_output(t_stat (*show_fn)(FILE *, UNIT *, int32,
+static void assert_disk_show_output(t_stat (*show_fn)(FILE *, UNIT *, int32_t,
                                                       const void *),
                                     UNIT *uptr, const char *expected)
 {
@@ -272,7 +272,7 @@ static void test_sim_disk_test_backend_intercepts_read(void **state)
     SIM_DISK_TEST_BACKEND backend = {
         .rdsect = test_backend_read,
     };
-    uint8 data[1] = {0};
+    uint8_t data[1] = {0};
     t_seccnt sectsread = 0;
 
     assert_int_equal(sim_disk_set_test_backend(&fixture->byte_unit, &backend),
@@ -291,7 +291,7 @@ static void test_sim_disk_test_backend_intercepts_write(void **state)
     SIM_DISK_TEST_BACKEND backend = {
         .wrsect = test_backend_write,
     };
-    uint8 data[1] = {0};
+    uint8_t data[1] = {0};
     t_seccnt sectswritten = 0;
 
     assert_int_equal(sim_disk_set_test_backend(&fixture->sector_unit, &backend),
@@ -319,7 +319,7 @@ static void test_sim_disk_test_backend_rejects_null_unit(void **state)
 static void test_sim_disk_size_restores_nonboolean_quiet_value(void **state)
 {
     struct sim_disk_fixture *fixture = *state;
-    int32 saved_quiet = sim_quiet;
+    int32_t saved_quiet = sim_quiet;
 
     attach_temp_disk_image(fixture, &fixture->sector_unit);
     pseudo_filesystem_size = 1024;
@@ -360,12 +360,12 @@ static void test_sim_disk_detach_restores_auto_format(void **state)
 static void create_pattern_disk_image(struct sim_disk_fixture *fixture,
                                       size_t size)
 {
-    uint8 *data;
+    uint8_t *data;
 
     data = malloc(size);
     assert_non_null(data);
     for (size_t index = 0; index < size; index++)
-        data[index] = (uint8)(index ^ 0x5A);
+        data[index] = (uint8_t)(index ^ 0x5A);
     assert_int_equal(simh_test_write_file(fixture->image_path, data, size), 0);
     free(data);
 }
@@ -375,9 +375,9 @@ static void create_pattern_disk_image(struct sim_disk_fixture *fixture,
 static void test_sim_disk_ramdisk_default_size_is_volatile(void **state)
 {
     struct sim_disk_fixture *fixture = *state;
-    uint8 zeros[512];
-    uint8 write_buf[512];
-    uint8 read_buf[512];
+    uint8_t zeros[512];
+    uint8_t write_buf[512];
+    uint8_t read_buf[512];
     t_seccnt sectors = 0;
 
     fixture->sector_unit.capac = 2;
@@ -499,8 +499,8 @@ static void test_sim_disk_ramdisk_type_selects_default_size(void **state)
 static void test_sim_disk_ramdisk_read_only_switch_write_protects(void **state)
 {
     struct sim_disk_fixture *fixture = *state;
-    uint8 read_buf[512];
-    uint8 write_buf[512];
+    uint8_t read_buf[512];
+    uint8_t write_buf[512];
     t_seccnt sectors = 99;
 
     sim_switches = SWMASK('R');
@@ -547,9 +547,9 @@ static void test_sim_disk_ramdisk_from_seeds_contents(void **state)
 {
     struct sim_disk_fixture *fixture = *state;
     char attach_spec[2 * CBUFSIZE];
-    uint8 expected[512];
-    uint8 zeros[512];
-    uint8 read_buf[512];
+    uint8_t expected[512];
+    uint8_t zeros[512];
+    uint8_t read_buf[512];
     t_seccnt sectors = 0;
 
     create_pattern_disk_image(fixture, 1024);
@@ -562,7 +562,7 @@ static void test_sim_disk_ramdisk_from_seeds_contents(void **state)
                      SCPE_OK);
 
     for (size_t index = 0; index < sizeof(expected); index++)
-        expected[index] = (uint8)(index ^ 0x5A);
+        expected[index] = (uint8_t)(index ^ 0x5A);
     assert_int_equal(sim_disk_rdsect(&fixture->sector_unit, 0, read_buf,
                                      &sectors, 1),
                      SCPE_OK);
@@ -585,9 +585,9 @@ static void test_sim_disk_ramdisk_read_only_from_seeds_contents(void **state)
 {
     struct sim_disk_fixture *fixture = *state;
     char attach_spec[2 * CBUFSIZE];
-    uint8 expected[512];
-    uint8 write_buf[512];
-    uint8 read_buf[512];
+    uint8_t expected[512];
+    uint8_t write_buf[512];
+    uint8_t read_buf[512];
     t_seccnt sectors = 0;
 
     create_pattern_disk_image(fixture, 512);
@@ -601,7 +601,7 @@ static void test_sim_disk_ramdisk_read_only_from_seeds_contents(void **state)
     assert_true(sim_disk_wrp(&fixture->sector_unit));
 
     for (size_t index = 0; index < sizeof(expected); index++)
-        expected[index] = (uint8)(index ^ 0x5A);
+        expected[index] = (uint8_t)(index ^ 0x5A);
     assert_int_equal(sim_disk_rdsect(&fixture->sector_unit, 0, read_buf,
                                      &sectors, 1),
                      SCPE_OK);
@@ -667,7 +667,7 @@ static void test_sim_disk_ramdisk_sim_save_writes_save_image(void **state)
     char save_path[CBUFSIZE];
     char attach_spec[2 * CBUFSIZE];
     FILE *save_state;
-    uint8 write_buf[512];
+    uint8_t write_buf[512];
     void *saved_data = NULL;
     size_t saved_size = 0;
     t_seccnt sectors = 0;
@@ -697,7 +697,7 @@ static void test_sim_disk_ramdisk_sim_save_writes_save_image(void **state)
     assert_int_equal(simh_test_read_file(save_path, &saved_data, &saved_size),
                      0);
     assert_int_equal(saved_size, 4096);
-    assert_memory_equal((uint8 *)saved_data + 512, write_buf,
+    assert_memory_equal((uint8_t *)saved_data + 512, write_buf,
                         sizeof(write_buf));
     free(saved_data);
 
@@ -736,7 +736,7 @@ static void test_sim_disk_ramdisk_sim_save_writes_read_only_image(void **state)
                      0);
     assert_int_equal(saved_size, 4096);
     for (size_t index = 0; index < 512; index++)
-        assert_int_equal(((uint8 *)saved_data)[index], (uint8)(index ^ 0x5A));
+        assert_int_equal(((uint8_t *)saved_data)[index], (uint8_t)(index ^ 0x5A));
     free(saved_data);
 
     assert_int_equal(sim_disk_detach(&fixture->sector_unit), SCPE_OK);
@@ -768,9 +768,9 @@ static void test_sim_disk_ramdisk_sim_restore_reads_save_image(void **state)
     char save_path[CBUFSIZE];
     char attach_spec[2 * CBUFSIZE];
     FILE *save_state;
-    uint8 write_buf[512];
-    uint8 clobber_buf[512];
-    uint8 read_buf[512];
+    uint8_t write_buf[512];
+    uint8_t clobber_buf[512];
+    uint8_t read_buf[512];
     t_seccnt sectors = 0;
 
     assert_int_equal(simh_test_join_path(save_path, sizeof(save_path),
@@ -819,10 +819,10 @@ static void test_sim_disk_ramdisk_sim_restore_keeps_read_only(void **state)
     char save_path[CBUFSIZE];
     char attach_spec[2 * CBUFSIZE];
     FILE *save_state;
-    uint8 expected[512];
-    uint8 replacement[512];
-    uint8 write_buf[512];
-    uint8 read_buf[512];
+    uint8_t expected[512];
+    uint8_t replacement[512];
+    uint8_t write_buf[512];
+    uint8_t read_buf[512];
     t_seccnt sectors = 0;
 
     create_pattern_disk_image(fixture, 512);
@@ -854,7 +854,7 @@ static void test_sim_disk_ramdisk_sim_restore_keeps_read_only(void **state)
 
     assert_true(sim_disk_wrp(&fixture->sector_unit));
     for (size_t index = 0; index < sizeof(expected); index++)
-        expected[index] = (uint8)(index ^ 0x5A);
+        expected[index] = (uint8_t)(index ^ 0x5A);
     assert_int_equal(sim_disk_rdsect(&fixture->sector_unit, 0, read_buf,
                                      &sectors, 1),
                      SCPE_OK);
@@ -926,7 +926,7 @@ static void test_sim_disk_ramdisk_sim_restore_rejects_wrong_size(void **state)
     char save_path[CBUFSIZE];
     char attach_spec[2 * CBUFSIZE];
     FILE *save_state;
-    uint8 short_image[512];
+    uint8_t short_image[512];
 
     assert_int_equal(simh_test_join_path(save_path, sizeof(save_path),
                                          fixture->temp_dir, "short.dsk"),
@@ -1003,7 +1003,7 @@ static void test_sim_disk_ramdisk_sim_save_reports_bad_save_path(void **state)
 static void test_sim_disk_ramdisk_rejects_container_switches(void **state)
 {
     struct sim_disk_fixture *fixture = *state;
-    const int32 switches[] = {
+    const int32_t switches[] = {
         SWMASK('C'),
         SWMASK('D'),
         SWMASK('E'),

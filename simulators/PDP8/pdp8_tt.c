@@ -44,18 +44,19 @@
 #include "pdp8_defs.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdint.h>
 
-extern int32 int_req, int_enable, dev_done, stop_inst;
-extern int32 tmxr_poll;
+extern int32_t int_req, int_enable, dev_done, stop_inst;
+extern int32_t tmxr_poll;
 
-int32 tti (int32 IR, int32 AC);
-int32 tto (int32 IR, int32 AC);
+int32_t tti (int32_t IR, int32_t AC);
+int32_t tto (int32_t IR, int32_t AC);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tti_reset (DEVICE *dptr);
 t_stat tto_reset (DEVICE *dptr);
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_set_parity (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_set_parity (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 const char *tti_description (DEVICE *dptr);
 const char *tto_description (DEVICE *dptr);
 
@@ -105,7 +106,7 @@ DEVICE tti_dev = {
     &tti_description
     };
 
-uint32 tti_buftime;                                     /* time input character arrived */
+uint32_t tti_buftime;                                   /* time input character arrived */
 
 /* TTO data structures
 
@@ -154,7 +155,7 @@ DEVICE tto_dev = {
 
 /* Terminal input: IOT routine */
 
-int32 tti (int32 IR, int32 AC)
+int32_t tti (int32_t IR, int32_t AC)
 {
 switch (IR & 07) {                                      /* decode IR<9:11> */
     case 0:                                             /* KCF */
@@ -195,7 +196,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 sim_clock_coschedule (uptr, tmxr_poll);                 /* continue poll */
 if ((dev_done & INT_TTI) &&                             /* prior character still pending and < 500ms? */
@@ -233,7 +234,7 @@ return SCPE_OK;
 
 /* Terminal output: IOT routine */
 
-int32 tto (int32 IR, int32 AC)
+int32_t tto (int32_t IR, int32_t AC)
 {
 switch (IR & 07) {                                      /* decode IR<9:11> */
 
@@ -270,7 +271,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 t_stat r;
 
 c = sim_tt_outcvt (uptr->buf, TT_GET_MODE (uptr->flags) | TTUF_KSR);
@@ -302,7 +303,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -313,7 +314,7 @@ sim_tt_set_mode (&tto_unit, val, cptr, desc);
 return SCPE_OK;
 }
 
-t_stat tty_set_parity (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_parity (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

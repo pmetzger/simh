@@ -29,6 +29,8 @@
 #ifndef LGP_DEFS_H_
 #define LGP_DEFS_H_    0
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -139,15 +141,15 @@ enum opcodes {
 
 /* Prototypes */
 
-uint32 Read (uint32 ea);
-void Write (uint32 ea, uint32 dat);
+uint32_t Read (uint32_t ea);
+void Write (uint32_t ea, uint32_t dat);
 void lgp_vm_init (void);
-t_stat op_i (uint32 dev, uint32 ch, uint32 sh4);
-t_stat op_p (uint32 dev, uint32 ch);
+t_stat op_i (uint32_t dev, uint32_t ch, uint32_t sh4);
+t_stat op_p (uint32_t dev, uint32_t ch);
 
 /* Translation Tables */
 
-extern const int32 flex_to_ascii[128];
-extern const int32 ascii_to_flex[128];
+extern const int32_t flex_to_ascii[128];
+extern const int32_t ascii_to_flex[128];
 
 #endif

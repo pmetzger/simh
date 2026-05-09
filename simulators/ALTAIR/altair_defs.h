@@ -24,6 +24,8 @@
    in this Software without prior written authorization from Charles E. Owen.
 */
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                    /* simulator defns */
 
 /* Memory */
@@ -31,7 +33,7 @@
 #define MAXMEMSIZE      65536                            /* max memory size */
 #define MEMSIZE         (cpu_unit.capac)                 /* actual memory size */
 #define ADDRMASK        (MAXMEMSIZE - 1)                 /* address mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Simulator stop codes */
 
@@ -46,10 +48,10 @@
 
 /* I/O port handlers */
 
-int32 dsk10(int32 io, int32 data);
-int32 dsk11(int32 io, int32 data);
-int32 dsk12(int32 io, int32 data);
-int32 sio0s(int32 io, int32 data);
-int32 sio0d(int32 io, int32 data);
-int32 sio1s(int32 io, int32 data);
-int32 sio1d(int32 io, int32 data);
+int32_t dsk10(int32_t io, int32_t data);
+int32_t dsk11(int32_t io, int32_t data);
+int32_t dsk12(int32_t io, int32_t data);
+int32_t sio0s(int32_t io, int32_t data);
+int32_t sio0d(int32_t io, int32_t data);
+int32_t sio1s(int32_t io, int32_t data);
+int32_t sio1d(int32_t io, int32_t data);

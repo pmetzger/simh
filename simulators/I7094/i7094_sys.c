@@ -32,6 +32,8 @@
 #include "i7094_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7094_dat.h"
 
 extern DEVICE cpu_dev;
@@ -46,8 +48,8 @@ extern DEVICE clk_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
 
-uint32 cvt_code_to_ascii (uint32 c, int32 sw);
-uint32 cvt_ascii_to_code (uint32 c, int32 sw);
+uint32_t cvt_code_to_ascii (uint32_t c, int32_t sw);
+uint32_t cvt_ascii_to_code (uint32_t c, int32_t sw);
 
 /* SCP data structures and interface routines
 
@@ -63,7 +65,7 @@ char sim_name[] = "IBM 7094";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -121,7 +123,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 
 /* Modify channel breakpoint message */
 
-t_stat ch_bkpt (uint32 ch, uint32 clc)
+t_stat ch_bkpt (uint32_t ch, uint32_t clc)
 {
 ch_bkpt_msg[8] = 'A' + ch;
 sprintf (&ch_bkpt_msg[27], "%06o", clc);
@@ -187,7 +189,7 @@ return SCPE_NOFNC;
 #define INST_P_PNZ      3                               /* print if nz */
 #define INST_P_PNT      4                               /* print if nz, term */
 
-static const t_uint64 masks[15] = {
+static const uint64_t masks[15] = {
  INT64_C(03777700000000), INT64_C(03777700000000),
  INT64_C(03777700000000), INT64_C(03777700000000),
  INT64_C(03777400000000), INT64_C(03700000000000),
@@ -197,7 +199,7 @@ static const t_uint64 masks[15] = {
  INT64_C(03760000200000), INT64_C(03740000200000),
  INT64_C(03777700077760) };
 
-static const uint32 fld_max[15][3] = {                  /* addr,tag,decr limit */
+static const uint32_t fld_max[15][3] = {                /* addr,tag,decr limit */
  { INST_M_ADDR, INST_M_TAG, 0 },
  { INST_M_ADDR, INST_M_TAG, 0 },
  { INST_M_ADDR, INST_M_TAG, 0 },
@@ -215,7 +217,7 @@ static const uint32 fld_max[15][3] = {                  /* addr,tag,decr limit *
  { INST_M_4B,   INST_M_TAG, 0 }
  };
 
-static const uint32 fld_fmt[15][3] = {                  /* addr,tag,decr print */
+static const uint32_t fld_fmt[15][3] = {                /* addr,tag,decr print */
  { INST_P_PNT, INST_P_PNT, INST_P_XIT },                /* nop: all optional */
  { INST_P_PRA, INST_P_PNT, INST_P_XIT },                /* mxr: tag optional */
  { INST_P_PRA, INST_P_PNT, INST_P_XIT },                /* mxn: tag optional */
@@ -233,7 +235,7 @@ static const uint32 fld_fmt[15][3] = {                  /* addr,tag,decr print *
  { INST_P_PNZ, INST_P_PNT, INST_P_XIT }                 /* SPx: tag optional */
  };
 
-static const t_uint64 ind_test[15] = {
+static const uint64_t ind_test[15] = {
  0, 0, INST_IND, 0, 0, 0, 0, 0,
  0, 0, CHI_IND, CHI_IND, CHI_IND, CHI_IND, 0
  };
@@ -410,7 +412,7 @@ static const char *opcode[] = {
  NULL
  };
 
-static const t_uint64 opc_v[] = {
+static const uint64_t opc_v[] = {
  INT64_C(0100000000000)+I_DEC, INT64_C(0200000000000)+I_DEC, INT64_C(0300000000000)+I_DEC,
  INT64_C(0500000000000)+I_DNP, INT64_C(0600000000000)+I_DEC, INT64_C(0700000000000)+I_DEC,
  INT64_C(0000000000000)+I_MXN, INT64_C(0002000000000)+I_MXN, INT64_C(0002100000000)+I_MXN,
@@ -596,15 +598,15 @@ static const t_uint64 opc_v[] = {
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
 (void)addr;
 
-uint32 i, j, k, l, fmt, c, fld[3];
+uint32_t i, j, k, l, fmt, c, fld[3];
 DEVICE *dptr;
-t_uint64 inst;
+uint64_t inst;
 
 inst = val[0];
 if (uptr == NULL)
@@ -614,13 +616,13 @@ if (dptr == NULL)
     return SCPE_IERR;
 
 if (sw & SWMASK ('C')) {                                /* character? */
-    c = (uint32) (inst & 077);
+    c = (uint32_t) (inst & 077);
     fprintf (of, "%c", cvt_code_to_ascii (c, sw));
     return SCPE_OK;
     }
 if (sw & SWMASK ('S')) {                                /* string? */
     for (i = 36; i > 0; i = i - 6) {
-        c = (uint32) ((inst >> (i - 6)) & 077);
+        c = (uint32_t) ((inst >> (i - 6)) & 077);
         fprintf (of, "%c", cvt_code_to_ascii (c, sw));
         }
     return SCPE_OK;
@@ -631,7 +633,7 @@ if (!(sw & (SWMASK ('M')|SWMASK ('I')|SWMASK ('N'))) || /* M, N or I? */
 
 /* Instruction decode */
 
-fld[0] = ((uint32) inst & 0777777);
+fld[0] = ((uint32_t) inst & 0777777);
 fld[1] = GET_TAG (inst);                                /* get 3 fields */
 fld[2] = GET_DEC (inst);
 if (sw & SWMASK ('I'))                                  /* decode as 7607? */
@@ -640,7 +642,7 @@ if (sw & SWMASK ('N'))                                  /* decode as 7909? */
     inst |= IFAKE_7909;
 
 for (i = 0; opc_v[i] > 0; i++) {                        /* loop thru ops */
-    j = (int32) ((opc_v[i] >> I_V_FL) & I_M_FL);        /* get class */
+    j = (int32_t) ((opc_v[i] >> I_V_FL) & I_M_FL);      /* get class */
     if ((opc_v[i] & DFAKE) == (inst & masks[j])) {      /* match? */
         if (inst & ind_test[j])                         /* indirect? */
             fprintf (of, "%s*", opcode[i]);
@@ -682,7 +684,7 @@ return SCPE_ARG;
    -b       BCD
    -a       business-chain */
 
-uint32 cvt_code_to_ascii (uint32 c, int32 sw)
+uint32_t cvt_code_to_ascii (uint32_t c, int32_t sw)
 {
 if (sw & SWMASK ('B')) {
     if (sw & SWMASK ('A'))
@@ -706,15 +708,15 @@ else return nine_to_ascii_h[c];
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-uint32 i, j, c;
-t_uint64 fld[3];
+uint32_t i, j, c;
+uint64_t fld[3];
 bool ind;
 t_stat r;
 char gbuf[CBUFSIZE];
@@ -751,7 +753,7 @@ else ind = false;
 for (i = 0; (opcode[i] != NULL) && (strcmp (opcode[i], gbuf) != 0) ; i++) ;
 if (opcode[i] == NULL)
     return SCPE_ARG;
-j = (uint32) ((opc_v[i] >> I_V_FL) & I_M_FL);           /* get class */
+j = (uint32_t) ((opc_v[i] >> I_V_FL) & I_M_FL);         /* get class */
 val[0] = opc_v[i] & DMASK;
 if (ind) {
     if (ind_test[j])
@@ -782,7 +784,7 @@ return SCPE_OK;
 
    -b       BCD */
 
-uint32 cvt_ascii_to_code (uint32 c, int32 sw)
+uint32_t cvt_ascii_to_code (uint32_t c, int32_t sw)
 {
 if (sw & SWMASK ('B'))
     return ascii_to_bcd[c];

@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 #include "test_support.h"
 
 extern t_stat show_config(FILE *st, DEVICE *dnotused, UNIT *unotused,
-                          int32 flag, const char *cptr);
+                          int32_t flag, const char *cptr);
 
 struct scp_context_fixture {
     DEVICE disk;
@@ -200,7 +201,7 @@ static void test_show_config_enabled_filter_hides_disabled_devices(void **state)
     FILE *stream;
     char *text;
     size_t text_size;
-    int32 saved_switches;
+    int32_t saved_switches;
 
     (void)state;
 

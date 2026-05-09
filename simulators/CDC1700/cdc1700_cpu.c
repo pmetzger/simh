@@ -139,25 +139,27 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "cdc1700_defs.h"
 
-uint16 M[MAXMEMSIZE];
-uint8 P[MAXMEMSIZE];
+uint16_t M[MAXMEMSIZE];
+uint8_t P[MAXMEMSIZE];
 
-t_uint64 Instructions;
-uint16 Preg, Areg, Qreg, Mreg, CAenable, OrigPreg, Pending, IOAreg, IOQreg;
-uint16 R1reg, R2reg, R3reg, R4reg;
-uint8 Pfault, Protected, lastP, Oflag, INTflag, DEFERflag;
+uint64_t Instructions;
+uint16_t Preg, Areg, Qreg, Mreg, CAenable, OrigPreg, Pending, IOAreg, IOQreg;
+uint16_t R1reg, R2reg, R3reg, R4reg;
+uint8_t Pfault, Protected, lastP, Oflag, INTflag, DEFERflag;
 
 bool ExecutionStarted = false;
-uint16 CharAddrMode[16];
+uint16_t CharAddrMode[16];
 
-uint16 INTlevel;
+uint16_t INTlevel;
 
 char INTprefix[8];
 
 bool FirstRejSeen = false;
-uint32 CountRejects = 0;
+uint32_t CountRejects = 0;
 
 bool FirstAddr = true;
 
@@ -166,9 +168,9 @@ bool FirstAddr = true;
  */
 #define NMON    0x00F4
 
-extern void MSOS5request(uint16, uint16);
+extern void MSOS5request(uint16_t, uint16_t);
 
-extern int disassem(char *, uint16, bool, bool, bool);
+extern int disassem(char *, uint16_t, bool, bool, bool);
 
 extern enum IOstatus doIO(bool, DEVICE **);
 extern void fw_init(void);
@@ -177,15 +179,15 @@ extern void rebuildPending(void);
 
 extern void dev1Interrupts(char *);
 
-t_stat cpu_set_instr(UNIT *, int32, const char *, void *);
-t_stat cpu_show_instr(FILE *, UNIT *, int32, const void *);
+t_stat cpu_set_instr(UNIT *, int32_t, const char *, void *);
+t_stat cpu_show_instr(FILE *, UNIT *, int32_t, const void *);
 
 t_stat cpu_reset(DEVICE *);
-t_stat cpu_set_size(UNIT *, int32, const char *, void *);
-t_stat cpu_ex(t_value *, t_addr, UNIT *, int32);
-t_stat cpu_dep(t_value, t_addr, UNIT *uptr, int32 sw);
+t_stat cpu_set_size(UNIT *, int32_t, const char *, void *);
+t_stat cpu_ex(t_value *, t_addr, UNIT *, int32_t);
+t_stat cpu_dep(t_value, t_addr, UNIT *uptr, int32_t sw);
 
-t_stat cpu_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat cpu_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 
 #define UNIT_V_STOPSW   (UNIT_V_UF + 1)         /* Selective STOP switch */
 #define UNIT_STOPSW     (1 << UNIT_V_STOPSW)
@@ -311,7 +313,7 @@ static bool storagemode[] = {
 /*
  * Table of parity values
  */
-static uint8 parity[256] = {
+static uint8_t parity[256] = {
   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
@@ -333,12 +335,12 @@ static uint8 parity[256] = {
 /*
  * Table of interrupt bits
  */
-static uint16 interruptBit[] = {
+static uint16_t interruptBit[] = {
   0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080,
   0x0100, 0x0200, 0x0400, 0x0800, 0x1000, 0x2000, 0x4000, 0x8000
 };
 
-t_stat cpu_set_instr(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_instr(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -360,7 +362,7 @@ t_stat cpu_set_instr(UNIT *uptr, int32 val, const char *cptr, void *desc)
   return SCPE_OK;
 }
 
-t_stat cpu_show_instr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_instr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -427,7 +429,7 @@ t_stat cpu_reset(DEVICE *dptr)
 /*
  * Memory size change
  */
-t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -435,8 +437,8 @@ t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
   (void) cptr;
   (void) desc;
 
-  uint16 mc = 0;
-  uint32 i;
+  uint16_t mc = 0;
+  uint32_t i;
 
   if ((val <= 0) || (val > MAXMEMSIZE))
     return SCPE_ARG;
@@ -456,7 +458,7 @@ t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
 /*
  * Memory examine
  */
-t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
   /* Generic memory examine signature.
      This implementation does not use every parameter. */
@@ -473,7 +475,7 @@ t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
 /*
  * Memory deposit
  */
-t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
   /* Generic memory deposit signature.
      This implementation does not use every parameter. */
@@ -508,7 +510,7 @@ bool inProtectedMode(void)
  * Returns CPU interrupt status. This always returns 0 since the interrupt
  * has already been set in the Pending register.
  */
-uint16 cpuINTR(DEVICE *dptr)
+uint16_t cpuINTR(DEVICE *dptr)
 {
   /* Generic device interrupt signature.
      This implementation does not use every parameter. */
@@ -537,7 +539,7 @@ static void RaiseInternalInterrupt(void)
 void RaiseExternalInterrupt(DEVICE *dev)
 {
   IO_DEVICE *iod = IODEVICE(dev);
-  uint16 Opending = Pending;
+  uint16_t Opending = Pending;
 
   /*
    * Don't touch the STATUS register if the device has completely
@@ -549,7 +551,7 @@ void RaiseExternalInterrupt(DEVICE *dev)
   rebuildPending();
 
   if ((cpu_dev.dctrl & DBG_INTR) != 0) {
-    uint16 level = iod->iod_equip;
+    uint16_t level = iod->iod_equip;
 
     fprintf(DBGOUT,
             "%sINT(%d, %s)[A: %04X, Q: %04X, M: %04X, P: %04x->%04x, Ovf: %d, I: %d, D: %d]\r\n",
@@ -565,7 +567,7 @@ void RaiseExternalInterrupt(DEVICE *dev)
 /*
  * Reads are always allowed
  */
-uint16 LoadFromMem(uint16 addr)
+uint16_t LoadFromMem(uint16_t addr)
 {
   return M[MEMADDR(addr)];
 }
@@ -575,7 +577,7 @@ uint16 LoadFromMem(uint16 addr)
  * if the write succeeded and false if the write failed and an interrupt
  * has been scheduled.
  */
-static bool StoreToMem(uint16 addr, uint16 value)
+static bool StoreToMem(uint16_t addr, uint16_t value)
 {
   if (inProtectedMode()) {
     if (!Protected) {
@@ -602,7 +604,7 @@ static bool StoreToMem(uint16 addr, uint16 value)
  * the device status. Return true if the write succeeded and false if the
  * write failed due to a protect failure.
  */
-bool IOStoreToMem(uint16 addr, uint16 value, bool prot)
+bool IOStoreToMem(uint16_t addr, uint16_t value, bool prot)
 {
   if (inProtectedMode()) {
     if (!prot) {
@@ -620,11 +622,11 @@ bool IOStoreToMem(uint16 addr, uint16 value, bool prot)
  * eliminates minus zero in all but one case (the only case is when minus zero
  * is added to minus zero).
  */
-static uint16 doSUB(uint16 a, uint16 b)
+static uint16_t doSUB(uint16_t a, uint16_t b)
 {
-  uint32 ea = EXTEND16(a);
-  uint32 eb = EXTEND16(b);
-  uint32 result = ea - eb;
+  uint32_t ea = EXTEND16(a);
+  uint32_t eb = EXTEND16(b);
+  uint32_t result = ea - eb;
 
   if (((a - b) & 0x10000) != 0)
     result -= 1;
@@ -635,7 +637,7 @@ static uint16 doSUB(uint16 a, uint16 b)
 
   return TRUNC16(result);
 }
-static uint16 doADD(uint16 a, uint16 b)
+static uint16_t doADD(uint16_t a, uint16_t b)
 {
   return doSUB(a, TRUNC16(~b));
 }
@@ -644,9 +646,9 @@ static uint16 doADD(uint16 a, uint16 b)
  * Internal operations such as address computations do not modify the
  * overflow flag.
  */
-uint16 doADDinternal(uint16 a, uint16 b)
+uint16_t doADDinternal(uint16_t a, uint16_t b)
 {
-  uint32 result = a - TRUNC16(~b);
+  uint32_t result = a - TRUNC16(~b);
 
   if ((result & 0x10000) != 0)
     result -= 1;
@@ -658,10 +660,10 @@ uint16 doADDinternal(uint16 a, uint16 b)
  * For multiply, we do the actual multiply in the positive domain and adjust
  * the resulting sign based on the input values.
  */
-static void doMUL(uint16 a)
+static void doMUL(uint16_t a)
 {
-  uint32 val1, result = 0;
-  uint16 sign = Areg ^ a;
+  uint32_t val1, result = 0;
+  uint16_t sign = Areg ^ a;
   int i;
 
   val1 = ABS(Areg) & 0xFFFF;
@@ -688,11 +690,11 @@ static void doMUL(uint16 a)
  * For divide, we once again do the actual division in the positive domain
  * and adjust the resulting signs based on the input values.
  */
-static void doDIV(uint16 a)
+static void doDIV(uint16_t a)
 {
-  uint32 result = 0, divisor, remainder = (Qreg << 16) | Areg;
-  uint32 mask = 1;
-  uint8 sign = 0, rsign = 0;
+  uint32_t result = 0, divisor, remainder = (Qreg << 16) | Areg;
+  uint32_t mask = 1;
+  uint8_t sign = 0, rsign = 0;
 
   if ((Qreg & SIGN) != 0) {
     remainder = ~remainder;
@@ -763,11 +765,11 @@ static void doDIV(uint16 a)
 /*
  * Compute the effective address of an instruction
  */
-static t_stat getEffectiveAddr(uint16 p, uint16 instr, uint16 *addr)
+static t_stat getEffectiveAddr(uint16_t p, uint16_t instr, uint16_t *addr)
 {
-  uint16 count = MAXINDIRECT;
-  uint16 delta = instr & OPC_ADDRMASK;
-  uint32 result = delta;
+  uint16_t count = MAXINDIRECT;
+  uint16_t delta = instr & OPC_ADDRMASK;
+  uint32_t result = delta;
 
   if (delta == 0) {
     result = Preg;
@@ -851,11 +853,11 @@ static t_stat getEffectiveAddr(uint16 p, uint16 instr, uint16 *addr)
 /*
  * Compute the effective address of an instruction
  */
-t_stat disEffectiveAddr(uint16 p, uint16 instr, uint16 *base, uint16 *addr)
+t_stat disEffectiveAddr(uint16_t p, uint16_t instr, uint16_t *base, uint16_t *addr)
 {
-  uint16 count = MAXINDIRECT;
-  uint16 delta = instr & OPC_ADDRMASK;
-  uint32 result = delta;
+  uint16_t count = MAXINDIRECT;
+  uint16_t delta = instr & OPC_ADDRMASK;
+  uint32_t result = delta;
 
   if (delta == 0) {
     result = MEMADDR(p + 1);
@@ -934,8 +936,8 @@ t_stat disEffectiveAddr(uint16 p, uint16 instr, uint16 *base, uint16 *addr)
 static t_stat executeAnInstruction(void)
 {
   DEVICE *dev;
-  uint16 instr, operand, operand1, operand2, from;
-  uint32 temp;
+  uint16_t instr, operand, operand1, operand2, from;
+  uint32_t temp;
   t_stat status;
 
   INTprefix[0] = '\0';
@@ -1112,7 +1114,7 @@ static t_stat executeAnInstruction(void)
         operand = LoadFromMem(operand);
 
       if ((cpu_unit.flags & UNIT_CHAR) != 0) {
-        uint16 xxx = operand;
+        uint16_t xxx = operand;
         if (CAenable != 0) {
           if ((LoadFromMem(0xFF) & 0x01) == 0)
             operand >>= 8;
@@ -1722,7 +1724,7 @@ static t_stat executeAnInstruction(void)
           /* Assume shifts without A or Q are a NOP */
           if ((instr & (MOD_S_A | MOD_S_Q)) != 0) {
             int i, count = instr & OPC_SHIFTCOUNT;
-            uint32 temp32;
+            uint32_t temp32;
 
             if (count) {
               switch (instr & (OPC_SHIFTS | OPC_SHIFTMASK)) {
@@ -1780,7 +1782,7 @@ static t_stat executeAnInstruction(void)
                 case OPC_LLS:
                   temp32 = (Qreg << 16) | Areg;
                   for (i = 0; i < count; i++) {
-                    uint32 sign = temp32 & 0x80000000;
+                    uint32_t sign = temp32 & 0x80000000;
 
                     temp32 <<= 1;
                     if (sign)
@@ -1824,7 +1826,7 @@ t_stat sim_instr(void)
   return reason;
 }
 
-t_stat cpu_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   const char helpString[] =
     /****************************************************************************/

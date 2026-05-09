@@ -110,6 +110,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "system_defs.h"
 #include "i8080_symbol_internal.h"
 
@@ -166,43 +168,43 @@
 #define HIST_ILNT       3                               /* max inst length */
 
 typedef struct {
-    uint16              pc;
-    uint16              sp;
-    uint8               psw;
-    uint8               a;
-    uint8               b;
-    uint8               c;
-    uint8               d;
-    uint8               e;
-    uint8               h;
-    uint8               l;
+    uint16_t            pc;
+    uint16_t            sp;
+    uint8_t             psw;
+    uint8_t             a;
+    uint8_t             b;
+    uint8_t             c;
+    uint8_t             d;
+    uint8_t             e;
+    uint8_t             h;
+    uint8_t             l;
     t_value             inst[HIST_ILNT];
     } InstHistory;
 
 /* storage for the rest of the registers */
-uint32 PSW = 0;                         /* program status word */
-uint32 A = 0;                           /* accumulator */
-uint32 BC = 0;                          /* BC register pair */
-uint32 DE = 0;                          /* DE register pair */
-uint32 HL = 0;                          /* HL register pair */
-uint32 SP = 0;                          /* Stack pointer */
-uint32 saved_PC = 0;                    /* program counter */
-uint32 IM = 0;                          /* Interrupt Mask Register */
-uint8  xack = 0;                        /* XACK signal */
-uint32 int_req = 0;                     /* Interrupt request */
-uint8 INTA = 0;                         // interrupt acknowledge
-uint16 PCX;                             /* External view of PC */
-uint16 PCY;                             /* Internal view of PC */
-uint16 PC;
+uint32_t PSW = 0;                       /* program status word */
+uint32_t A = 0;                         /* accumulator */
+uint32_t BC = 0;                        /* BC register pair */
+uint32_t DE = 0;                        /* DE register pair */
+uint32_t HL = 0;                        /* HL register pair */
+uint32_t SP = 0;                        /* Stack pointer */
+uint32_t saved_PC = 0;                  /* program counter */
+uint32_t IM = 0;                        /* Interrupt Mask Register */
+uint8_t xack = 0;                       /* XACK signal */
+uint32_t int_req = 0;                   /* Interrupt request */
+uint8_t INTA = 0;                       // interrupt acknowledge
+uint16_t PCX;                           /* External view of PC */
+uint16_t PCY;                           /* Internal view of PC */
+uint16_t PC;
 UNIT *uptr;
-uint16 port;                            //port used in any IN/OUT
-uint16 addr;                            //addr used for operand fetch
-uint32 IR;
-uint16 devnum = 0;
-uint8 cpu_onetime = 0;
+uint16_t port;                          //port used in any IN/OUT
+uint16_t addr;                          //addr used for operand fetch
+uint32_t IR;
+uint16_t devnum = 0;
+uint8_t cpu_onetime = 0;
 
-int32 hst_p = 0;                        /* history pointer */
-int32 hst_lnt = 0;                      /* history length */
+int32_t hst_p = 0;                      /* history pointer */
+int32_t hst_lnt = 0;                    /* history length */
 InstHistory *hst = NULL;                /* instruction history */
 
 static const char* i8080_desc(DEVICE *dptr) {
@@ -215,44 +217,44 @@ static const char* i8080_desc(DEVICE *dptr) {
 
 /* function prototypes */
 
-void    set_cpuint(int32 int_num);
+void    set_cpuint(int32_t int_num);
 void    dumpregs(void);
-int32   fetch_byte(int32 flag);
-int32   fetch_word(void);
-uint16  pop_word(void);
-void    push_word(uint16 val);
-void    setarith(int32 reg);
-void    setlogical(int32 reg);
-void    setinc(int32 reg);
-int32   getreg(int32 reg);
-void    putreg(int32 reg, int32 val);
-int32   getpair(int32 reg);
-int32   getpush(int32 reg);
-void    putpush(int32 reg, int32 data);
-void    putpair(int32 reg, int32 val);
-void    parity(int32 reg);
-int32   cond(int32 con);
-t_stat  cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat  cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat  i8080_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat  i8080_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+int32_t fetch_byte(int32_t flag);
+int32_t fetch_word(void);
+uint16_t pop_word(void);
+void    push_word(uint16_t val);
+void    setarith(int32_t reg);
+void    setlogical(int32_t reg);
+void    setinc(int32_t reg);
+int32_t getreg(int32_t reg);
+void    putreg(int32_t reg, int32_t val);
+int32_t getpair(int32_t reg);
+int32_t getpush(int32_t reg);
+void    putpush(int32_t reg, int32_t data);
+void    putpair(int32_t reg, int32_t val);
+void    parity(int32_t reg);
+int32_t cond(int32_t con);
+t_stat  cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat  cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat  i8080_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat  i8080_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat  i8080_reset (DEVICE *dptr);
 
 /* external function prototypes */
 
 extern t_stat i8080_reset (DEVICE *dptr);
-extern uint8 get_mbyte(uint16 addr);
-extern uint16 get_mword(uint16 addr);
-extern void put_mbyte(uint16 addr, uint8 val);
-extern void put_mword(uint16 addr, uint16 val);
-extern int32 sim_int_char;
-extern uint32 sim_brk_types, sim_brk_dflt, sim_brk_summ; /* breakpoint info */
+extern uint8_t get_mbyte(uint16_t addr);
+extern uint16_t get_mword(uint16_t addr);
+extern void put_mbyte(uint16_t addr, uint8_t val);
+extern void put_mword(uint16_t addr, uint16_t val);
+extern int32_t sim_int_char;
+extern uint32_t sim_brk_types, sim_brk_dflt, sim_brk_summ; /* breakpoint info */
 
 struct idev {
-    uint8 (*routine)(bool io, uint8 data, uint8 devnum);
-    uint16 port;
-    uint16 devnum;
-    uint8 dummy;
+    uint8_t (*routine)(bool io, uint8_t data, uint8_t devnum);
+    uint16_t port;
+    uint16_t devnum;
+    uint8_t dummy;
 };
 
 /* This is the I/O configuration table.  There are 256 possible
@@ -338,17 +340,17 @@ DEVICE i8080_dev = {
     &i8080_desc                         //device description
 };
 
-void set_cpuint(int32 int_num)
+void set_cpuint(int32_t int_num)
 {
     int_req |= int_num;
 }
 
 
 /* instruction simulator */
-int32 sim_instr(void)
+int32_t sim_instr(void)
 {
-    extern int32 sim_interval;
-    uint32 OP, DAR, reason, adr;
+    extern int32_t sim_interval;
+    uint32_t OP, DAR, reason, adr;
     int i;
     InstHistory *hst_ent = NULL;
 
@@ -909,9 +911,9 @@ void dumpregs(void)
 }
 
 /* fetch an instruction or byte */
-int32 fetch_byte(int32 flag)
+int32_t fetch_byte(int32_t flag)
 {
-    uint32 val;
+    uint32_t val;
 
     val = get_mbyte(PC) & 0xFF;         /* fetch byte */
     PC = (PC + 1) & ADDRMASK;           /* increment PC */
@@ -920,9 +922,9 @@ int32 fetch_byte(int32 flag)
 }
 
 /* fetch a word */
-int32 fetch_word(void)
+int32_t fetch_word(void)
 {
-    uint16 val;
+    uint16_t val;
 
     val = get_mbyte(PC) & BYTE_R;       /* fetch low byte */
     val |= get_mbyte(PC + 1) << 8;      /* fetch high byte */
@@ -935,7 +937,7 @@ int32 fetch_word(void)
 }
 
 /* push a word to the stack */
-void push_word(uint16 val)
+void push_word(uint16_t val)
 {
     SP--;
     put_mbyte(SP, (val >> 8));
@@ -944,9 +946,9 @@ void push_word(uint16 val)
 }
 
 /* pop a word from the stack */
-uint16 pop_word(void)
+uint16_t pop_word(void)
 {
-    uint16 res;
+    uint16_t res;
 
     res = get_mbyte(SP);
     SP++;
@@ -956,7 +958,7 @@ uint16 pop_word(void)
 }
 
 /* Test an 8080 flag condition and return 1 if true, 0 if false */
-int32 cond(int32 con)
+int32_t cond(int32_t con)
 {
     switch (con) {
     case 0:                         /* NZ */
@@ -993,7 +995,7 @@ int32 cond(int32 con)
    an arithmetic operation on 'reg'.
 */
 
-void setarith(int32 reg)
+void setarith(int32_t reg)
 {
     COND_SET_FLAG(reg & 0x100, CF);
     COND_SET_FLAG(reg & 0x80, SF);
@@ -1006,7 +1008,7 @@ void setarith(int32 reg)
    a logical (bitwise) operation on 'reg'.
 */
 
-void setlogical(int32 reg)
+void setlogical(int32_t reg)
 {
     CLR_FLAG(CF);
     COND_SET_FLAG(reg & 0x80, SF);
@@ -1019,9 +1021,9 @@ void setlogical(int32 reg)
    of bits on even: P=0200000, else P=0
 */
 
-void parity(int32 reg)
+void parity(int32_t reg)
 {
-    int32 bc = 0;
+    int32_t bc = 0;
 
     if (reg & 0x01) bc++;
     if (reg & 0x02) bc++;
@@ -1041,7 +1043,7 @@ void parity(int32 reg)
    an INR/DCR operation on 'reg'.
 */
 
-void setinc(int32 reg)
+void setinc(int32_t reg)
 {
     COND_SET_FLAG(reg & 0x80, SF);
     COND_SET_FLAG((reg & BYTE_R) == 0, ZF);
@@ -1049,7 +1051,7 @@ void setinc(int32 reg)
 }
 
 /* Get an 8080 register and return it */
-int32 getreg(int32 reg)
+int32_t getreg(int32_t reg)
 {
     switch (reg) {
     case 0:                         /* reg B */
@@ -1075,7 +1077,7 @@ int32 getreg(int32 reg)
 }
 
 /* Put a value into an 8-bit 8080 register from memory */
-void putreg(int32 reg, int32 val)
+void putreg(int32_t reg, int32_t val)
 {
     switch (reg) {
     case 0:                         /* reg B */
@@ -1113,7 +1115,7 @@ void putreg(int32 reg, int32 val)
 }
 
 /* Return the value of a selected register pair */
-int32 getpair(int32 reg)
+int32_t getpair(int32_t reg)
 {
     switch (reg) {
     case 0:                         /* reg BC */
@@ -1132,9 +1134,9 @@ int32 getpair(int32 reg)
 
 /* Return the value of a selected register pair, in PUSH
    format where 3 means A & flags, not SP */
-int32 getpush(int32 reg)
+int32_t getpush(int32_t reg)
 {
-    int32 stat;
+    int32_t stat;
 
     switch (reg) {
     case 0:                         /* reg BC */
@@ -1155,7 +1157,7 @@ int32 getpush(int32 reg)
 
 /* Place data into the indicated register pair, in PUSH
    format where 3 means A & flags, not SP */
-void putpush(int32 reg, int32 data)
+void putpush(int32_t reg, int32_t data)
 {
     switch (reg) {
     case 0:                         /* reg BC */
@@ -1178,7 +1180,7 @@ void putpush(int32 reg, int32 data)
 
 
 /* Put a value into an 8080 register pair */
-void putpair(int32 reg, int32 val)
+void putpair(int32_t reg, int32_t val)
 {
     switch (reg) {
     case 0:                         /* reg BC */
@@ -1219,7 +1221,7 @@ t_stat i8080_reset(DEVICE *dptr)
 
 /* Set history */
 
-t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1236,7 +1238,7 @@ t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
         hst_p = 0;
         return SCPE_OK;
         }
-    lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+    lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
     if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
         return SCPE_ARG;
     hst_p = 0;
@@ -1256,7 +1258,7 @@ t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* Show history */
 
-t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1271,7 +1273,7 @@ t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
     if (hst_lnt == 0)                       /* enabled? */
         return SCPE_NOFNC;
     if (cptr) {
-        lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+        lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
         if ((r != SCPE_OK) || (lnt == 0))
             return SCPE_ARG;
         }
@@ -1295,7 +1297,7 @@ t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 /* Memory examine */
 
-t_stat i8080_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat i8080_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic examine signature.
        This implementation does not use every parameter. */
@@ -1311,7 +1313,7 @@ t_stat i8080_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
 
 /* Memory deposit */
 
-t_stat i8080_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat i8080_dep(t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic deposit signature.
        This implementation does not use every parameter. */

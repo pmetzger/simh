@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 #define LINC_BLOCK_BYTES (LINC_DATA_WORDS * 2)
 
 REG cpu_reg[13];
-uint16 M[MEMSIZE];
+uint16_t M[MEMSIZE];
 
 t_stat cpu_do(void)
 {
@@ -53,18 +54,18 @@ static int teardown_linc_tape_fixture(void **state)
     return 0;
 }
 
-static void write_word(FILE *file, uint16 word)
+static void write_word(FILE *file, uint16_t word)
 {
-    uint8 bytes[2];
+    uint8_t bytes[2];
 
     bytes[0] = word & 0xff;
     bytes[1] = (word >> 8) & 0x0f;
     assert_int_equal(fwrite(bytes, 1, sizeof(bytes), file), sizeof(bytes));
 }
 
-static void write_bad_word(FILE *file, uint16 word)
+static void write_bad_word(FILE *file, uint16_t word)
 {
-    uint8 bytes[2];
+    uint8_t bytes[2];
 
     bytes[0] = word & 0xff;
     bytes[1] = ((word >> 8) & 0x0f) | 0x80;
@@ -82,7 +83,7 @@ static FILE *open_fixture_image(struct linc_tape_fixture *fixture)
 
 static void write_zero_block(FILE *file)
 {
-    uint8 zeroes[LINC_BLOCK_BYTES];
+    uint8_t zeroes[LINC_BLOCK_BYTES];
 
     memset(zeroes, 0, sizeof(zeroes));
     assert_int_equal(fwrite(zeroes, 1, sizeof(zeroes), file), sizeof(zeroes));
@@ -91,9 +92,9 @@ static void write_zero_block(FILE *file)
 static void test_plain_image_metadata(void **state)
 {
     struct linc_tape_fixture *fixture = *state;
-    uint16 block_size = 0;
-    int16 forward_offset = -1;
-    int16 reverse_offset = -1;
+    uint16_t block_size = 0;
+    int16_t forward_offset = -1;
+    int16_t reverse_offset = -1;
     FILE *file;
 
     file = open_fixture_image(fixture);
@@ -115,9 +116,9 @@ static void test_plain_image_metadata(void **state)
 static void test_extended_image_metadata(void **state)
 {
     struct linc_tape_fixture *fixture = *state;
-    uint16 block_size = 0;
-    int16 forward_offset = 0;
-    int16 reverse_offset = 0;
+    uint16_t block_size = 0;
+    int16_t forward_offset = 0;
+    int16_t reverse_offset = 0;
     FILE *file;
 
     file = open_fixture_image(fixture);
@@ -140,9 +141,9 @@ static void test_extended_image_metadata(void **state)
 static void test_extended_image_metadata_rejects_high_bits(void **state)
 {
     struct linc_tape_fixture *fixture = *state;
-    uint16 block_size = 0;
-    int16 forward_offset = 0;
-    int16 reverse_offset = 0;
+    uint16_t block_size = 0;
+    int16_t forward_offset = 0;
+    int16_t reverse_offset = 0;
     FILE *file;
 
     file = open_fixture_image(fixture);

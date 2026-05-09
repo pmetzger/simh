@@ -37,15 +37,16 @@ commands may NOT be accurate. This should probably be fixed.
 #include "ibm1130_bool_internal.h"
 #include <memory.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define TRACE_DMS_IO                /* define to enable debug of DMS phase IO */
 
 #ifdef TRACE_DMS_IO
 static int trace_dms = 0;
 static void tracesector (int iswrite, int nwords, int addr, int sector);
-static t_stat where_cmd (int32 flag, const char *ptr);
-static t_stat phdebug_cmd (int32 flag, const char *ptr);
-static t_stat fdump_cmd (int32 flags, const char *cptr);
+static t_stat where_cmd (int32_t flag, const char *ptr);
+static t_stat phdebug_cmd (int32_t flag, const char *ptr);
+static t_stat fdump_cmd (int32_t flags, const char *cptr);
 static void enable_dms_tracing (int newsetting);
 #endif
 
@@ -80,18 +81,18 @@ static void enable_dms_tracing (int newsetting);
 #define DSK_DSW_SECTOR_MASK             0x0003
 
                                         /* device status words */
-static int16 dsk_dsw[DSK_NUMDR] = {DSK_DSW_NOT_READY, DSK_DSW_NOT_READY, DSK_DSW_NOT_READY, DSK_DSW_NOT_READY, DSK_DSW_NOT_READY};
-static int16 dsk_sec[DSK_NUMDR] = {0};  /* next-sector-up */
+static int16_t dsk_dsw[DSK_NUMDR] = {DSK_DSW_NOT_READY, DSK_DSW_NOT_READY, DSK_DSW_NOT_READY, DSK_DSW_NOT_READY, DSK_DSW_NOT_READY};
+static int16_t dsk_sec[DSK_NUMDR] = {0}; /* next-sector-up */
 static char dsk_lastio[DSK_NUMDR];      /* last stdio operation: IO_READ or IO_WRITE */
-int32 dsk_swait = 50;                   /* seek time  -- see how short a delay we can get away with */
-int32 dsk_rwait = 50;                   /* rotate time */
+int32_t dsk_swait = 50;                 /* seek time  -- see how short a delay we can get away with */
+int32_t dsk_rwait = 50;                 /* rotate time */
 static bool raw_disk_debug = false;
 
 static t_stat dsk_svc    (UNIT *uptr);
 static t_stat dsk_reset  (DEVICE *dptr);
 static t_stat dsk_attach (UNIT *uptr, const char *cptr);
 static t_stat dsk_detach (UNIT *uptr);
-static t_stat dsk_boot   (int32 unitno, DEVICE *dptr);
+static t_stat dsk_boot   (int32_t unitno, DEVICE *dptr);
 
 static void diskfail (UNIT *uptr, int dswflag, int unitflag, bool do_interrupt);
 
@@ -138,7 +139,7 @@ DEVICE dsk_dev = {
     NULL, NULL, &dsk_reset,
     dsk_boot, dsk_attach, dsk_detach};
 
-static int32 dsk_ilswbit[DSK_NUMDR] = {     /* interrupt level status word bits for the drives */
+static int32_t dsk_ilswbit[DSK_NUMDR] = {   /* interrupt level status word bits for the drives */
     ILSW_2_1131_DISK,
     ILSW_2_2310_DRV_1,
     ILSW_2_2310_DRV_2,
@@ -146,7 +147,7 @@ static int32 dsk_ilswbit[DSK_NUMDR] = {     /* interrupt level status word bits 
     ILSW_2_2310_DRV_4,
 };
 
-static int32 dsk_ilswlevel[DSK_NUMDR] =
+static int32_t dsk_ilswlevel[DSK_NUMDR] =
 {
     2,                                      /* interrupt levels for the drives */
     2, 2, 2, 2
@@ -155,8 +156,8 @@ static int32 dsk_ilswlevel[DSK_NUMDR] =
 typedef enum {DSK_FUNC_IDLE, DSK_FUNC_READ, DSK_FUNC_VERIFY, DSK_FUNC_WRITE, DSK_FUNC_SEEK, DSK_FUNC_FAILED} DSK_FUNC;
 
 static struct tag_dsk_action {              /* stores data needed for pending IO activity */
-    int32    io_address;
-    uint32   io_filepos;
+    int32_t  io_address;
+    uint32_t io_filepos;
     int      io_nwords;
     int      io_sector;
 } dsk_action[DSK_NUMDR];
@@ -184,13 +185,13 @@ static struct tag_dsk_action {              /* stores data needed for pending IO
 
 extern int boot_drive;
 
-void xio_disk (int32 iocc_addr, int32 func, int32 modify, int drv)
+void xio_disk (int32_t iocc_addr, int32_t func, int32_t modify, int drv)
 {
     int i, rev, nsteps, newcyl, sec, nwords;
-    uint32 newpos;                                  /* changed from t_addr to uint32 in anticipation of simh 64-bit development */
+    uint32_t newpos;                                /* changed from t_addr to uint32_t in anticipation of simh 64-bit development */
     char msg[80];
     UNIT *uptr = dsk_unit+drv;
-    int16 buf[DSK_NUMWD];
+    int16_t buf[DSK_NUMWD];
 
     if (! BETWEEN(drv, 0, DSK_NUMDR-1)) {           /* hmmm, invalid drive */
         if (func != XIO_SENSE_DEV) {                /* tried to use it, too  */
@@ -356,7 +357,7 @@ void xio_disk (int32 iocc_addr, int32 func, int32 modify, int drv)
                 uptr->CYL = 0;
             }
 
-            dsk_sec[drv] = (int16) ((dsk_sec[drv] + 1) % 4);        /* advance the "next sector" count every time */
+            dsk_sec[drv] = (int16_t) ((dsk_sec[drv] + 1) % 4);      /* advance the "next sector" count every time */
             ACC = dsk_dsw[drv] | dsk_sec[drv];
 
             if (modify & 0x01) {                        /* reset interrupts */
@@ -389,9 +390,9 @@ static void diskfail (UNIT *uptr, int dswflag, int unitflag, bool do_interrupt)
 static t_stat dsk_svc (UNIT *uptr)
 {
     int drv = uptr - dsk_unit, i, nwords, sec;
-    int16 buf[DSK_NUMWD];
-    uint32 newpos;                      /* changed from t_addr to uint32 in anticipation of simh 64-bit development */
-    int32 iocc_addr;
+    int16_t buf[DSK_NUMWD];
+    uint32_t newpos;                    /* changed from t_addr to uint32_t in anticipation of simh 64-bit development */
+    int32_t iocc_addr;
 
     if (uptr->FUNC == DSK_FUNC_IDLE)                    /* service function called with no activity? not good, but ignore */
         return SCPE_OK;
@@ -492,7 +493,7 @@ static t_stat dsk_reset (DEVICE *dptr)
 
         uptr->CYL    = 0;
         uptr->FUNC   = DSK_FUNC_IDLE;
-        dsk_dsw[drv] = (int16) ((uptr->flags & UNIT_ATT) ? DSK_DSW_CARRIAGE_HOME : 0);
+        dsk_dsw[drv] = (int16_t) ((uptr->flags & UNIT_ATT) ? DSK_DSW_CARRIAGE_HOME : 0);
     }
 
     calc_ints();
@@ -578,7 +579,7 @@ static t_stat dsk_detach (UNIT *uptr)
 
 /* boot routine - if they type BOOT DSK, load the standard boot card. */
 
-static t_stat dsk_boot (int32 unitno, DEVICE *dptr)
+static t_stat dsk_boot (int32_t unitno, DEVICE *dptr)
 {
     t_stat rval;
 
@@ -605,10 +606,10 @@ static struct {
 #pragma pack(2)
 #define MAXSLET ((3*320)/4)
 struct tag_slet {
-    int16   phid;
-    int16   addr;
-    int16   nwords;
-    int16   sector;
+    int16_t phid;
+    int16_t addr;
+    int16_t nwords;
+    int16_t sector;
 } slet[MAXSLET] = {
 #include "dmsr2v12slet.h"       /* without RPG, use this info until overwritten by actual data from disk */
 };
@@ -655,7 +656,7 @@ const char * saywhere (int addr)
 
 static int phdebug_lo = -1, phdebug_hi = -1;
 
-static t_stat phdebug_cmd (int32 flag, const char *ptr)
+static t_stat phdebug_cmd (int32_t flag, const char *ptr)
 {
     int val1, val2;
 
@@ -686,7 +687,7 @@ static t_stat phdebug_cmd (int32 flag, const char *ptr)
     return SCPE_OK;
 }
 
-static t_stat where_cmd (int32 flag, const char *ptr)
+static t_stat where_cmd (int32_t flag, const char *ptr)
 {
     int addr;
     const char *where;
@@ -855,7 +856,7 @@ done:
         savesector(addr, offset, nwords, phid, name);
 }
 
-static t_stat fdump_cmd (int32 flags, const char *cptr)
+static t_stat fdump_cmd (int32_t flags, const char *cptr)
 {
     int addr = 0x7a24;                              /* address of next statement */
     int sofst = 0x7a26, symaddr;

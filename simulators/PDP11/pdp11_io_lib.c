@@ -34,20 +34,22 @@
 #include "pdp11_defs.h"
 #endif
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include "sim_ether.h"
 
-extern int32 int_vec[IPL_HLVL][32];
+extern int32_t int_vec[IPL_HLVL][32];
 #if !defined(VEC_SET)
 #define VEC_SET 0
 #endif
 #if (VEC_SET != 0)
-extern int32 int_vec_set[IPL_HLVL][32];                 /* bits to set in vector */
+extern int32_t int_vec_set[IPL_HLVL][32];               /* bits to set in vector */
 #endif
-extern int32 (*int_ack[IPL_HLVL][32])(void);
-extern t_stat (*iodispR[IOPAGESIZE >> 1])(int32 *dat, int32 ad, int32 md);
-extern t_stat (*iodispW[IOPAGESIZE >> 1])(int32 dat, int32 ad, int32 md);
+extern int32_t (*int_ack[IPL_HLVL][32])(void);
+extern t_stat (*iodispR[IOPAGESIZE >> 1])(int32_t *dat, int32_t ad, int32_t md);
+extern t_stat (*iodispW[IOPAGESIZE >> 1])(int32_t dat, int32_t ad, int32_t md);
 extern DIB *iodibp[IOPAGESIZE >> 1];
 
 extern t_stat build_dib_tab (void);
@@ -65,7 +67,7 @@ static void build_vector_tab (void);
 
 /* Enable/disable autoconfiguration */
 
-t_stat set_autocon (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_autocon (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -94,7 +96,7 @@ return auto_config (NULL, 0);
 
 /* Show autoconfiguration status */
 
-t_stat show_autocon (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_autocon (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -109,7 +111,7 @@ return SCPE_OK;
 
 /* Change device address */
 
-t_stat set_addr (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_addr (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -117,7 +119,7 @@ t_stat set_addr (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newba;
+uint32_t newba;
 t_stat r;
 
 if (cptr == NULL)
@@ -130,11 +132,11 @@ if (dptr == NULL)
 dibp = (DIB *) dptr->ctxt;
 if (dibp == NULL)
     return SCPE_IERR;
-newba = (uint32) get_uint (cptr, DEV_RDX, IOPAGEBASE+IOPAGEMASK, &r); /* get new */
+newba = (uint32_t) get_uint (cptr, DEV_RDX, IOPAGEBASE+IOPAGEMASK, &r); /* get new */
 if (r != SCPE_OK)
     return r;
 if ((newba < IOPAGEBASE) ||                             /* > IO page base? */
-    (newba % ((uint32) val)))                           /* check modulus */
+    (newba % ((uint32_t) val)))                         /* check modulus */
     return SCPE_ARG;
 dibp->ba = newba;                                       /* store */
 set_autocon (NULL, 0, NULL, NULL);                      /* autoconfig off */
@@ -143,7 +145,7 @@ return SCPE_OK;
 
 /* Show device address */
 
-t_stat show_addr (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_addr (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -152,7 +154,7 @@ t_stat show_addr (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 radix = DEV_RDX;
+uint32_t radix = DEV_RDX;
 
 if (uptr == NULL)
     return SCPE_IERR;
@@ -189,7 +191,7 @@ return SCPE_OK;
 
 /* Set address floating */
 
-t_stat set_addr_flt (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_addr_flt (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -210,7 +212,7 @@ return auto_config (NULL, 0);                           /* autoconfigure */
 
 /* Show device address */
 
-t_stat show_mapped_addr (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_mapped_addr (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -222,7 +224,7 @@ return SCPE_OK;
 
 /* Change device vector */
 
-t_stat set_vec (UNIT *uptr, int32 arg, const char *cptr, void *desc)
+t_stat set_vec (UNIT *uptr, int32_t arg, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -231,7 +233,7 @@ t_stat set_vec (UNIT *uptr, int32 arg, const char *cptr, void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 newvec;
+uint32_t newvec;
 t_stat r;
 
 if (cptr == NULL)
@@ -244,7 +246,7 @@ if (dptr == NULL)
 dibp = (DIB *) dptr->ctxt;
 if (dibp == NULL)
     return SCPE_IERR;
-newvec = (uint32) get_uint (cptr, DEV_RDX, 01000, &r);
+newvec = (uint32_t) get_uint (cptr, DEV_RDX, 01000, &r);
 if ((r != SCPE_OK) ||
     ((newvec + (dibp->vnum * 4)) >= 01000) ||           /* total too big? */
     (newvec & ((dibp->vnum > 1)? 07: 03)))              /* properly aligned value? */
@@ -256,7 +258,7 @@ return SCPE_OK;
 
 /* Show device vector */
 
-t_stat show_vec (FILE *st, UNIT *uptr, int32 arg, const void *desc)
+t_stat show_vec (FILE *st, UNIT *uptr, int32_t arg, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -264,7 +266,7 @@ t_stat show_vec (FILE *st, UNIT *uptr, int32 arg, const void *desc)
 
 DEVICE *dptr;
 DIB *dibp;
-uint32 vec, numvec, br_lvl, radix = DEV_RDX;
+uint32_t vec, numvec, br_lvl, radix = DEV_RDX;
 
 if (uptr == NULL)
     return SCPE_IERR;
@@ -318,7 +320,7 @@ return SCPE_OK;
 
 /* Show vector for terminal multiplexor */
 
-t_stat show_vec_mux (FILE *st, UNIT *uptr, int32 arg, const void *desc)
+t_stat show_vec_mux (FILE *st, UNIT *uptr, int32_t arg, const void *desc)
 {
 const TMXR *mp = (const TMXR *) desc;
 
@@ -352,7 +354,7 @@ return;
 
 t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp)
 {
-int32 i, idx, vec, hivec, ilvl, ibit;
+int32_t i, idx, vec, hivec, ilvl, ibit;
 DEVICE *cdptr;
 size_t j;
 const char *cdname;
@@ -379,7 +381,7 @@ hivec = vec + (dibp->vnum * 4 * (dibp->ulnt? dibp->lnt/dibp->ulnt:
 if (vec && !(sim_switches & SWMASK ('P'))) {
     for (j = 0; vec && (cdptr = sim_devices[j]) != NULL; j++) {
         DIB *cdibp = (DIB *)(cdptr->ctxt);
-        int32 cdvec, cdhivec;
+        int32_t cdvec, cdhivec;
 
         if (!cdibp || (cdptr->flags & DEV_DIS)) {
             continue;
@@ -435,7 +437,7 @@ for (i = 0; i < dibp->vnum; i++) {                      /* loop thru vec */
         }
     }
 /* Register(Deregister) I/O space address and check for conflicts */
-for (i = 0; i < (int32) dibp->lnt; i = i + 2) {         /* create entries */
+for (i = 0; i < (int32_t) dibp->lnt; i = i + 2) {       /* create entries */
     idx = ((dibp->ba + i) & IOPAGEMASK) >> 1;           /* index into disp */
     if ((iodispR[idx] && dibp->rd &&                    /* conflict? */
         (iodispR[idx] != dibp->rd)) ||
@@ -482,7 +484,7 @@ return SCPE_OK;
 
 /* Show IO space */
 
-t_stat show_iospace (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_iospace (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -490,13 +492,13 @@ t_stat show_iospace (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) val;
 (void) desc;
 
-uint32 i, j;
+uint32_t i, j;
 DEVICE *dptr;
 DIB *dibp;
-uint32 maxaddr, maxname, maxdev;
-int32 maxvec, vecwid;
-int32 brbase = 0;
-uint32 rdx = DEV_RDX;
+uint32_t maxaddr, maxname, maxdev;
+int32_t maxvec, vecwid;
+int32_t brbase = 0;
+uint32_t rdx = DEV_RDX;
 char valbuf[40];
 
 if ((sim_switches & SWMASK('O')) || (sim_switch_number == 8))
@@ -526,7 +528,7 @@ for (i = 0, dibp = NULL; i < (IOPAGESIZE >> 1); i++) {  /* loop thru entries */
             maxvec = dibp->vec;
         l = strlen (dptr? sim_dname (dptr): "CPU");
         if (l>maxname)
-            maxname = (int32)l;
+            maxname = (int32_t)l;
         j = (dibp->ulnt? dibp->lnt/dibp->ulnt:
              (dptr? dptr->numunits: 1));
         if (j > maxdev)
@@ -535,11 +537,11 @@ for (i = 0, dibp = NULL; i < (IOPAGESIZE >> 1); i++) {  /* loop thru entries */
     }                                                   /* end for i */
 maxaddr = fprint_val (NULL, (t_value) dibp->ba, rdx, 32, PV_LEFT);
 sprintf (valbuf, (rdx == 16) ? "%03X" : "%03o", maxvec);
-vecwid = maxvec = (int32) strlen (valbuf);
+vecwid = maxvec = (int32_t) strlen (valbuf);
 if (vecwid < 3)
     vecwid = 3;
 sprintf (valbuf, "%u", maxdev);
-maxdev = (uint32)strlen (valbuf);
+maxdev = (uint32_t)strlen (valbuf);
 
 j = strlen ("Address");
 i = (maxaddr*2)+3+1;
@@ -563,7 +565,7 @@ fprintf (st, " BR %*.*s# Device\n", (maxdev -1), (maxdev-1), " ");
 for (i = 0; i < maxaddr; i++)
     fputc ('-', st);
 fprintf (st, " ");
-for (i = 0; i < (uint32)maxvec; i++)
+for (i = 0; i < (uint32_t)maxvec; i++)
     fputc ('-', st);
 
 fprintf (st, " -- ");
@@ -594,7 +596,7 @@ for (i = 0, dibp = NULL; i < (IOPAGESIZE >> 1); i++) {  /* loop thru entries */
         else {
             fprintf (st, (rdx == 16) ? "%0*X" : "%0*o", vecwid, dibp->vec);
             if (dibp->vnum > 1) {
-                uint32 vec_end = dibp->vec + (4 *
+                uint32_t vec_end = dibp->vec + (4 *
                     (dibp->ulnt? dibp->lnt/dibp->ulnt:
                                   (dptr? dptr->numunits: 1)) *
                     dibp->vnum) - 4;
@@ -617,7 +619,7 @@ for (i = 0, dibp = NULL; i < (IOPAGESIZE >> 1); i++) {  /* loop thru entries */
 return SCPE_OK;
 }
 
-static bool _map_description (char *buf, size_t buf_size, uint32 val, uint32 index, uint32 valid_mask)
+static bool _map_description (char *buf, size_t buf_size, uint32_t val, uint32_t index, uint32_t valid_mask)
 {
 bool ind_eq = (index == (val & ~valid_mask));
 const char *desc = ind_eq ? "Value == Index" : "";
@@ -631,20 +633,20 @@ return ind_eq;
 
 /* Display bus map registers */
 
-t_stat show_bus_map (FILE *st, const char *cptr, uint32 *busmap, uint32 nmapregs, const char *busname, uint32 mapvalid)
+t_stat show_bus_map (FILE *st, const char *cptr, uint32_t *busmap, uint32_t nmapregs, const char *busname, uint32_t mapvalid)
 {
 t_stat r;
-uint32 mr;
-uint32 mstart = 0;
-uint32 mend = nmapregs - 1;
-uint32 same_val;
-uint32 same_start;
+uint32_t mr;
+uint32_t mstart = 0;
+uint32_t mend = nmapregs - 1;
+uint32_t same_val;
+uint32_t same_start;
 bool ind_eq;
 char same_desc[32];
 char desc[32];
 
 if (cptr) {
-    mstart = mend = (uint32) get_uint (cptr, 16, nmapregs - 1, &r);
+    mstart = mend = (uint32_t) get_uint (cptr, 16, nmapregs - 1, &r);
     if (r != SCPE_OK)
         return sim_messagef (SCPE_ARG, "Invalid %s Map Register: %s\n", busname, cptr);
     }
@@ -696,12 +698,12 @@ return SCPE_OK;
 
 typedef struct {
     const char  *dnam[AUTO_MAXC];
-    int32       valid;
-    int32       numv;
-    uint32      amod;
-    uint32      vmod;
-    uint32      fixa[AUTO_MAXC];
-    uint32      fixv[AUTO_MAXC];
+    int32_t     valid;
+    int32_t     numv;
+    uint32_t    amod;
+    uint32_t    vmod;
+    uint32_t    fixa[AUTO_MAXC];
+    uint32_t    fixv[AUTO_MAXC];
     } AUTO_CON;
 
 AUTO_CON auto_tab[] = {/*c  #v  am vm  fxa   fxv */
@@ -929,7 +931,7 @@ static void build_vector_tab (void)
 static bool done = false;
 AUTO_CON *autp;
 DEVICE *dptr;
-uint32 j, k;
+uint32_t j, k;
 
 if (done)
     return;
@@ -941,7 +943,7 @@ for (j = 0; (dptr = sim_devices[j]) != NULL; j++) {
         for (k=0; autp->dnam[k]; k++) {
             if (!strcmp(dptr->name, autp->dnam[k])) {
 #if (VEC_SET != 0)
-                int32 ilvl, ibit;
+                int32_t ilvl, ibit;
                 DIB *dibp;
 
                 dibp = (DIB *)dptr->ctxt;
@@ -962,15 +964,15 @@ for (j = 0; (dptr = sim_devices[j]) != NULL; j++) {
 done = true;
 }
 
-t_stat auto_config (const char *name, int32 nctrl)
+t_stat auto_config (const char *name, int32_t nctrl)
 {
-uint32 csr = IOPAGEBASE + AUTO_CSRBASE;
-uint32 vec = AUTO_VECBASE;
-int32 numc;
+uint32_t csr = IOPAGEBASE + AUTO_CSRBASE;
+uint32_t vec = AUTO_VECBASE;
+int32_t numc;
 AUTO_CON *autp;
 DEVICE *dptr;
 DIB *dibp;
-uint32 j, k, jena, vmask, amask;
+uint32_t j, k, jena, vmask, amask;
 
 if (autcon_enb == 0)                                    /* enabled? */
     return SCPE_OK;
@@ -1030,7 +1032,7 @@ for (autp = auto_tab; autp->valid >= 0; autp++) {       /* loop thru table */
                     dibp->vec = autp->fixv[jena];       /* use it */
                 }
             else {                                      /* no fixed left */
-                uint32 numv = abs (autp->numv);         /* get num vec */
+                uint32_t numv = abs (autp->numv);       /* get num vec */
                 vmask = autp->vmod - 1;
                 vec = (vec + vmask) & ~vmask;           /* align vector */
                 if (autp->numv > 0)
@@ -1068,7 +1070,7 @@ return SCPE_OK;
 
 #include "sim_disk.h"
 
-t_stat pdp11_bad_block (UNIT *uptr, int32 sec, int32 wds)
+t_stat pdp11_bad_block (UNIT *uptr, int32_t sec, int32_t wds)
 {
 return sim_disk_pdp11_bad_block (uptr, sec, wds);
 }

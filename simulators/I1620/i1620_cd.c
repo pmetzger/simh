@@ -44,25 +44,27 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i1620_defs.h"
 
 #define CD_LEN          80
 
-extern uint8 M[MAXMEMSIZE];
-extern uint8 ind[NUM_IND];
+extern uint8_t M[MAXMEMSIZE];
+extern uint8_t ind[NUM_IND];
 extern UNIT cpu_unit;
-extern uint32 io_stop;
+extern uint32_t io_stop;
 
 char cdr_buf[CD_LEN + 2];
 char cdp_buf[CD_LEN + 2];
 
 t_stat cdr_reset (DEVICE *dptr);
 t_stat cdr_attach (UNIT *uptr, const char *cptr);
-t_stat cdr_boot (int32 unitno, DEVICE *dptr);
+t_stat cdr_boot (int32_t unitno, DEVICE *dptr);
 t_stat cdr_read (void);
 t_stat cdp_reset (DEVICE *dptr);
-t_stat cdp_write (uint32 len);
-t_stat cdp_num (uint32 pa, uint32 ndig, bool dump);
+t_stat cdp_write (uint32_t len);
+t_stat cdp_num (uint32_t pa, uint32_t ndig, bool dump);
 
 /* Card reader data structures
 
@@ -147,7 +149,7 @@ DEVICE cdp_dev = {
 */
 /* Card reader (ASCII) to numeric (one digit) */
 
-const int8 cdr_to_num[128] = {
+const int8_t cdr_to_num[128] = {
  0x00,   -1,   -1,   -1,   -1,   -1,   -1,   -1,        /* 00 */
    -1, 0x00, 0x00,   -1,   -1, 0x00,   -1,   -1,
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,        /* 10 */
@@ -172,7 +174,7 @@ const int8 cdr_to_num[128] = {
    codes except that both numeric blanks and flagged
    numeric blanks both produce a blank column. (tfm) */
 
-const int8 num_to_cdp[32] = {
+const int8_t num_to_cdp[32] = {
  '0', '1', '2', '3', '4', '5', '6', '7',                /* 0 */
  '8', '9', '|',  -1, ' ',  -1,  -1, '}',
  ']', 'J', 'K', 'L', 'M', 'N', 'O', 'P',                /* F + 0 */
@@ -195,7 +197,7 @@ const int8 num_to_cdp[32] = {
 
 */
 
-const int8 cdr_to_alp[128] = {
+const int8_t cdr_to_alp[128] = {
  0x00,   -1,   -1,   -1,   -1,   -1,   -1,   -1,        /* 00 */
    -1, 0x00, 0x00,   -1,   -1, 0x00,   -1,   -1,
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,        /* 10 */
@@ -237,7 +239,7 @@ const int8 cdr_to_alp[128] = {
      5F - punches as " (flagged group mark)
 */
 
-const int8 alp_to_cdp[256] = {
+const int8_t alp_to_cdp[256] = {
  ' ',  -1,  -1, '.', ')',  -1,  -1,  -1,                /* 00 */
   -1,  -1, '|',  -1,  -1,  -1,  -1, '}',
  '+',  -1,  -1, '$', '*',  -1,  -1,  -1,                /* 10 */
@@ -279,15 +281,15 @@ const int8 alp_to_cdp[256] = {
      If IO stop is set, the system halts at the end of the operation.
 */
 
-t_stat cdr (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat cdr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 /* Shared I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) f0;
 (void) f1;
 
-int32 i;
-int8 cdc;
+int32_t i;
+int8_t cdc;
 t_stat r, sta;
 
 sta = SCPE_OK;                                          /* assume ok */
@@ -344,7 +346,7 @@ return sta;
 
 t_stat cdr_read (void)
 {
-int32 i;
+int32_t i;
 
 ind[IN_LAST] = 0;                                       /* clear last card */
 if ((cdr_unit.flags & UNIT_ATT) == 0)                   /* attached? */
@@ -409,7 +411,7 @@ return SCPE_OK;
 
 #define BOOT_START      0
 
-t_stat cdr_boot (int32 unitno, DEVICE *dptr)
+t_stat cdr_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic bootstrap signature.
    This implementation does not use every parameter. */
@@ -417,8 +419,8 @@ t_stat cdr_boot (int32 unitno, DEVICE *dptr)
 (void) dptr;
 
 t_stat r;
-uint32 old_io_stop;
-extern uint32 saved_PC;
+uint32_t old_io_stop;
+extern uint32_t saved_PC;
 
 old_io_stop = io_stop;
 io_stop = 1;
@@ -437,16 +439,16 @@ return SCPE_OK;
      If IO stop is set, the system halts.
 */
 
-t_stat cdp (uint32 op, uint32 pa, uint32 f0, uint32 f1)
+t_stat cdp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1)
 {
 /* Shared I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) f0;
 (void) f1;
 
-int32 i;
-int8 cdc;
-uint8 z, d;
+int32_t i;
+int8_t cdc;
+uint8_t z, d;
 
 switch (op) {                                           /* decode op */
 
@@ -505,11 +507,11 @@ return STOP_INVFNC;
 
 /* Punch card numeric */
 
-t_stat cdp_num (uint32 pa, uint32 ndig, bool dump)
+t_stat cdp_num (uint32_t pa, uint32_t ndig, bool dump)
 {
-int32 i, ncd, len;
-uint8 d;
-int8 cdc;
+int32_t i, ncd, len;
+uint8_t d;
+int8_t cdc;
 t_stat r;
 
 ncd = ndig / CD_LEN;                                    /* number of cards */
@@ -538,7 +540,7 @@ return SCPE_OK;
 
 /* Write punch card buffer - all errors are hard errors */
 
-t_stat cdp_write (uint32 len)
+t_stat cdp_write (uint32_t len)
 {
 if ((cdp_unit.flags & UNIT_ATT) == 0)                   /* attached? */
     return SCPE_UNATT;

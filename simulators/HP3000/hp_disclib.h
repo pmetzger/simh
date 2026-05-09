@@ -43,6 +43,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 
 /* Architectural constants.
@@ -51,7 +52,7 @@
    for the file representation to be packed.
 */
 
-typedef uint16              DL_BUFFER;          /* a buffer containing 16-bit disc data words */
+typedef uint16_t            DL_BUFFER;          /* a buffer containing 16-bit disc data words */
 
 
 /* Program limits */
@@ -239,7 +240,7 @@ typedef HP_WORD         CNTLR_IBUS;             /* the interface data bus */
 #define NO_DATA         ((CNTLR_IBUS) 0)        /* no data asserted */
 
 
-typedef uint32          CNTLR_IFN_IBUS;         /* a combined interface function set and data bus value */
+typedef uint32_t        CNTLR_IFN_IBUS;         /* a combined interface function set and data bus value */
 
 
 /* Controller opcodes */
@@ -364,11 +365,11 @@ typedef enum {
 */
 
 typedef struct {
-    uint32       cylinder;                      /* matching cylinder address */
-    uint32       head;                          /* matching head address */
-    uint32       sector;                        /* matching sector address */
+    uint32_t     cylinder;                      /* matching cylinder address */
+    uint32_t     head;                          /* matching head address */
+    uint32_t     sector;                        /* matching sector address */
     CNTLR_OPCODE opcode;                        /* matching controller opcode */
-    uint32       spd;                           /* returned S/P/D flags */
+    uint32_t     spd;                           /* returned S/P/D flags */
     CNTLR_STATUS status;                        /* returned controller status */
     } DIAG_ENTRY;
 
@@ -380,12 +381,12 @@ typedef struct {
 typedef struct {
     CNTLR_TYPE   type;                          /* controller type */
     DRIVE_TYPE   drive;                         /* drive type */
-    int32        seek_one;                      /* track-to-track seek time */
-    int32        seek_full;                     /* full-stroke seek time */
-    int32        sector_full;                   /* full sector rotation time */
-    int32        data_xfer;                     /* per-word data transfer time */
-    int32        intersector_gap;               /* intersector gap time */
-    int32        overhead;                      /* controller execution overhead */
+    int32_t      seek_one;                      /* track-to-track seek time */
+    int32_t      seek_full;                     /* full-stroke seek time */
+    int32_t      sector_full;                   /* full sector rotation time */
+    int32_t      data_xfer;                     /* per-word data transfer time */
+    int32_t      intersector_gap;               /* intersector gap time */
+    int32_t      overhead;                      /* controller execution overhead */
     } DELAY_PROPS;
 
 #define DELAY_INIT(sk1,skf,scf,dxfr,isg,ovhd) \
@@ -403,18 +404,18 @@ typedef struct {
     CNTLR_STATUS       status;                  /* controller status */
     FLIP_FLOP          eoc;                     /* end-of-cylinder flag */
     bool               verify;                  /* address verification required */
-    uint32             spd_unit;                /* S/P/D flags and unit number */
-    uint32             file_mask;               /* file mask */
-    uint32             cylinder;                /* cylinder address */
-    uint32             head;                    /* head address */
-    uint32             sector;                  /* sector address */
-    uint32             count;                   /* count of words transferred or to verify */
-    uint32             poll_unit;               /* last unit polled for attention */
+    uint32_t           spd_unit;                /* S/P/D flags and unit number */
+    uint32_t           file_mask;               /* file mask */
+    uint32_t           cylinder;                /* cylinder address */
+    uint32_t           head;                    /* head address */
+    uint32_t           sector;                  /* sector address */
+    uint32_t           count;                   /* count of words transferred or to verify */
+    uint32_t           poll_unit;               /* last unit polled for attention */
     DL_BUFFER         *buffer;                  /* data buffer pointer */
-    uint32             index;                   /* data buffer current index */
-    uint32             length;                  /* data buffer valid length */
+    uint32_t           index;                   /* data buffer current index */
+    uint32_t           length;                  /* data buffer valid length */
     DIAG_ENTRY        *dop_base;                /* pointer to the diagnostic override array */
-    int32              dop_index;               /* current diagnostic override entry index */
+    int32_t            dop_index;               /* current diagnostic override entry index */
     DELAY_PROPS       *fastptr;                 /* pointer to the FASTTIME delays */
     const DELAY_PROPS *dlyptr;                  /* current delay property pointer */
     } CNTLR_VARS;
@@ -554,11 +555,11 @@ extern const char *dl_status_name (CNTLR_STATUS status);
 extern t_stat dl_attach (CVPTR cvptr, UNIT *uptr, const char *cptr);
 extern t_stat dl_detach (CVPTR cvptr, UNIT *uptr);
 
-extern t_stat dl_set_model   (UNIT *uptr, int32 value, const char *cptr, void *desc);
-extern t_stat dl_set_protect (UNIT *uptr, int32 value, const char *cptr, void *desc);
-extern t_stat dl_set_diag    (UNIT *uptr, int32 value, const char *cptr, void *desc);
-extern t_stat dl_set_timing  (UNIT *uptr, int32 value, const char *cptr, void *desc);
+extern t_stat dl_set_model   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+extern t_stat dl_set_protect (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+extern t_stat dl_set_diag    (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+extern t_stat dl_set_timing  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
-extern t_stat dl_show_protect (FILE *st, UNIT *uptr, int32 value, const void *desc);
-extern t_stat dl_show_diag    (FILE *st, UNIT *uptr, int32 value, const void *desc);
-extern t_stat dl_show_timing  (FILE *st, UNIT *uptr, int32 value, const void *desc);
+extern t_stat dl_show_protect (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+extern t_stat dl_show_diag    (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+extern t_stat dl_show_timing  (FILE *st, UNIT *uptr, int32_t value, const void *desc);

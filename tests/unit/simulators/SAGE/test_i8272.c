@@ -1,35 +1,37 @@
+#include <stdint.h>
 #include <string.h>
 
 #include "test_cmocka.h"
+#include "sim_types.h"
 
 #define sectWrite test_i8272_sectWrite
 #include "i8272.c"
 #undef sectWrite
 
-uint8 test_i8272_dma[256];
+uint8_t test_i8272_dma[256];
 t_addr saved_PC;
-static unsigned int test_i8272_irq_calls;
+static uint_t test_i8272_irq_calls;
 static int test_i8272_irq_delay;
-static unsigned int test_i8272_sector_writes;
-static uint32 test_i8272_write_cyl;
-static uint32 test_i8272_write_head;
-static uint32 test_i8272_write_sector;
-static uint32 test_i8272_write_len;
-static uint8 test_i8272_write_data[I8272_MAX_SECTOR_SZ];
+static uint_t test_i8272_sector_writes;
+static uint32_t test_i8272_write_cyl;
+static uint32_t test_i8272_write_head;
+static uint32_t test_i8272_write_sector;
+static uint32_t test_i8272_write_len;
+static uint8_t test_i8272_write_data[I8272_MAX_SECTOR_SZ];
 
-uint8 GetByteDMA(uint32 Addr)
+uint8_t GetByteDMA(uint32_t Addr)
 {
     return test_i8272_dma[Addr % sizeof(test_i8272_dma)];
 }
 
-void PutByteDMA(uint32 Addr, uint8 Value)
+void PutByteDMA(uint32_t Addr, uint8_t Value)
 {
     test_i8272_dma[Addr % sizeof(test_i8272_dma)] = Value;
 }
 
-t_stat test_i8272_sectWrite(DISK_INFO *myDisk, uint32 Cyl, uint32 Head,
-                            uint32 Sector, uint8 *buf, uint32 buflen,
-                            uint32 *flags, uint32 *writelen)
+t_stat test_i8272_sectWrite(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head,
+                            uint32_t Sector, uint8_t *buf, uint32_t buflen,
+                            uint32_t *flags, uint32_t *writelen)
 {
     (void)myDisk;
 

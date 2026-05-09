@@ -92,10 +92,12 @@ Rank:       32
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_tmxr.h"
 
 /* imports from pdp11_stddev.c: */
-extern int32    tmxr_poll, clk_tps;
+extern int32_t  tmxr_poll, clk_tps;
 /* convert ms to SIMH time units based on tmxr_poll polls per second */
 #define MS2SIMH(ms) (((ms) * clk_tps) / 1000)
 
@@ -389,52 +391,52 @@ BITFIELD vh_tbuffct_bits[] = {
 #define LOOP_H3101      (2) /* p.2-13 DHQ manual */
 /* Local storage */
 
-static uint16   vh_csr[VH_MUXES]    = { 0 };    /* CSRs */
-static uint16   vh_timer[VH_MUXES]  = { 1 };    /* controller timeout */
-static uint16   vh_mcount[VH_MUXES] = { 0 };
-static int32    vh_timeo[VH_MUXES]  = { 0 };
-static uint32   vh_ovrrun[VH_MUXES] = { 0 };    /* line overrun bits */
+static uint16_t vh_csr[VH_MUXES]    = { 0 };    /* CSRs */
+static uint16_t vh_timer[VH_MUXES]  = { 1 };    /* controller timeout */
+static uint16_t vh_mcount[VH_MUXES] = { 0 };
+static int32_t  vh_timeo[VH_MUXES]  = { 0 };
+static uint32_t vh_ovrrun[VH_MUXES] = { 0 };    /* line overrun bits */
 /* XOFF'd channels, one bit/channel */
-static uint32   vh_stall[VH_MUXES]  = { 0 };
-static uint16   vh_loop[VH_MUXES]   = { 0 };    /* loopback status */
+static uint32_t vh_stall[VH_MUXES]  = { 0 };
+static uint16_t vh_loop[VH_MUXES]   = { 0 };    /* loopback status */
 
 /* One bit per controller: */
-static uint32   vh_rxi = 0; /* rcv interrupts */
-static uint32   vh_txi = 0; /* xmt interrupts */
-static uint32   vh_crit = 0;/* FIFO.CRIT */
+static uint32_t vh_rxi = 0; /* rcv interrupts */
+static uint32_t vh_txi = 0; /* xmt interrupts */
+static uint32_t vh_crit = 0;/* FIFO.CRIT */
 
-static uint32   vh_wait = 50;                   /* input polling adjustment */
+static uint32_t vh_wait = 50;                   /* input polling adjustment */
 
-static const int32 bitmask[4] = { 037, 077, 0177, 0377 };
+static const int32_t bitmask[4] = { 037, 077, 0177, 0377 };
 
 /* RX FIFO state */
 
-static int32    rbuf_idx[VH_MUXES]      = { 0 };/* index into vh_rbuf */
-static uint32   vh_rbuf[VH_MUXES][FIFO_SIZE]    = { { 0 } };
+static int32_t  rbuf_idx[VH_MUXES]      = { 0 };/* index into vh_rbuf */
+static uint32_t vh_rbuf[VH_MUXES][FIFO_SIZE]    = { { 0 } };
 
 /* TXQ state */
 
 #define TXQ_SIZE    (16)
-static int32    txq_idx[VH_MUXES]       = { 0 };
-static uint32   vh_txq[VH_MUXES][TXQ_SIZE]  = { { 0 } };
+static int32_t  txq_idx[VH_MUXES]       = { 0 };
+static uint32_t vh_txq[VH_MUXES][TXQ_SIZE]  = { { 0 } };
 
 /* Need to extend the TMLN structure */
 
 typedef struct {
     TMLN    *tmln;
-    uint16  lpr;        /* line parameters */
-    uint16  lnctrl;     /* line control */
-    uint16  lstat;      /* line modem status */
-    uint16  tbuffct;    /* remaining character count */
-    uint16  tbuf1;
-    uint16  tbuf2;
-    uint16  txchar;     /* single character I/O */
+    uint16_t lpr;       /* line parameters */
+    uint16_t lnctrl;    /* line control */
+    uint16_t lstat;     /* line modem status */
+    uint16_t tbuffct;   /* remaining character count */
+    uint16_t tbuf1;
+    uint16_t tbuf2;
+    uint16_t txchar;    /* single character I/O */
 #define TX_FIFO_SIZE 64
-    uint16  txfifo[TX_FIFO_SIZE];/* transmit FIFO - circular */
+    uint16_t txfifo[TX_FIFO_SIZE];/* transmit FIFO - circular */
 
-    uint16  txfifo_idx; /* Extraction index */
-    uint16  txfifo_cnt; /* Count of FIFO entries  */
-    uint16  txstate;    /* transmit state */
+    uint16_t txfifo_idx; /* Extraction index */
+    uint16_t txfifo_cnt; /* Count of FIFO entries  */
+    uint16_t txstate;   /* transmit state */
 #define TXS_IDLE        0
 #define TXS_PIO_START   1
 #define TXS_PIO_PENDING 2
@@ -482,31 +484,31 @@ DEBTAB vh_debug[] = {
 };
 
 /* Forward references */
-static t_stat vh_rd (int32 *data, int32 PA, int32 access);
-static t_stat vh_wr (int32 data, int32 PA, int32 access);
+static t_stat vh_rd (int32_t *data, int32_t PA, int32_t access);
+static t_stat vh_wr (int32_t data, int32_t PA, int32_t access);
 static t_stat vh_svc (UNIT *uptr);
 static t_stat vh_xmt_svc (UNIT *uptr);
 static t_stat vh_timersvc (UNIT *uptr);
-static int32 vh_rxinta (void);
-static int32 vh_txinta (void);
-static t_stat vh_clear (int32 vh, bool flag);
+static int32_t vh_rxinta (void);
+static int32_t vh_txinta (void);
+static t_stat vh_clear (int32_t vh, bool flag);
 static t_stat vh_reset (DEVICE *dptr);
 static t_stat vh_attach (UNIT *uptr, const char *cptr);
 static t_stat vh_detach (UNIT *uptr);
-static t_stat vh_show_detail (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat vh_show_rbuf (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat vh_show_txq (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat vh_putc (int32 vh, TMLX *lp, int32 chan, int32 data);
+static t_stat vh_show_detail (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat vh_show_rbuf (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat vh_show_txq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat vh_putc (int32_t vh, TMLX *lp, int32_t chan, int32_t data);
 static void vh_set_config (TMLX *lp);
-static void doDMA (int32 vh, int32 chan);
-static t_stat vh_setmode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat vh_show_vec (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat vh_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat vh_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat vh_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat vh_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat vh_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-static t_stat vh_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+static void doDMA (int32_t vh, int32_t chan);
+static t_stat vh_setmode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat vh_show_vec (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat vh_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat vh_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat vh_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat vh_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat vh_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat vh_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 static const char *vh_description (DEVICE *dptr);
 
 /* SIMH I/O Structures */
@@ -640,7 +642,7 @@ static const char *vh_wr_dhu_regs[] =
 
 /* Interrupt routines */
 
-static void vh_clr_rxint (  int32   vh  )
+static void vh_clr_rxint (  int32_t vh  )
 {
     vh_rxi &= ~(1 << vh);
     if (vh_rxi == 0)
@@ -649,7 +651,7 @@ static void vh_clr_rxint (  int32   vh  )
         SET_INT (VHRX);
 }
 
-static void vh_set_rxint (  int32   vh  )
+static void vh_set_rxint (  int32_t vh  )
 {
     vh_rxi |= (1 << vh);
     SET_INT (VHRX);
@@ -657,9 +659,9 @@ static void vh_set_rxint (  int32   vh  )
 
 /* RX interrupt ack. (bus cycle) */
 
-static int32 vh_rxinta (void)
+static int32_t vh_rxinta (void)
 {
-    int32   vh;
+    int32_t vh;
 
     for (vh = 0; vh < vh_desc.lines/VH_LINES; vh++) {
         if (vh_rxi & (1 << vh)) {
@@ -671,7 +673,7 @@ static int32 vh_rxinta (void)
     return (0);
 }
 
-static void vh_clr_txint (  int32   vh  )
+static void vh_clr_txint (  int32_t vh  )
 {
     vh_txi &= ~(1 << vh);
     if (vh_txi == 0)
@@ -680,7 +682,7 @@ static void vh_clr_txint (  int32   vh  )
         SET_INT (VHTX);
 }
 
-static void vh_set_txint (  int32   vh  )
+static void vh_set_txint (  int32_t vh  )
 {
     sim_debug(DBG_INT, &vh_dev, "vh_set_txint(vh=%d)\n", vh);
     vh_txi |= (1 << vh);
@@ -689,9 +691,9 @@ static void vh_set_txint (  int32   vh  )
 
 /* TX interrupt ack. (bus cycle) */
 
-static int32 vh_txinta (void)
+static int32_t vh_txinta (void)
 {
-    int32   vh;
+    int32_t vh;
 
     for (vh = 0; vh < vh_desc.lines/VH_LINES; vh++) {
         if (vh_txi & (1 << vh)) {
@@ -706,11 +708,11 @@ static int32 vh_txinta (void)
 
 /* return 0 on success, -1 on FIFO overflow */
 
-static int32 fifo_put ( int32   vh,
+static int32_t fifo_put ( int32_t vh,
             TMLX    *lp,
-            int32   data    )
+            int32_t data    )
 {
-    int32   status = 0;
+    int32_t status = 0;
 
     if (lp == NULL)
         goto override;
@@ -779,7 +781,7 @@ override:
     if (lp != NULL) {
         if ((lp->lnctrl & LNCTRL_FORCE_XOFF) ||
               ((vh_crit & (1 << vh)) && (lp->lnctrl & LNCTRL_IAUTO))) {
-            int32   chan = RBUF_GETLINE(vh, data);
+            int32_t chan = RBUF_GETLINE(vh, data);
             vh_stall[vh] ^= (1 << chan);
             /* send XOFF every other character received */
             if (vh_stall[vh] & (1 << chan))
@@ -789,9 +791,9 @@ override:
     return (status);
 }
 
-static int32 fifo_get ( int32   vh  )
+static int32_t fifo_get ( int32_t vh  )
 {
-    int32   data, i;
+    int32_t data, i;
 
     if (rbuf_idx[vh] == 0)
         return (0);
@@ -841,13 +843,13 @@ static int32 fifo_get ( int32   vh  )
 
 /* return 0 on success, -1 on FIFO overflow */
 
-static int32 tx_fifo_free_count ( TMLX    *lp)
+static int32_t tx_fifo_free_count ( TMLX    *lp)
 {
 return TX_FIFO_SIZE - lp->txfifo_cnt;
 }
 
-static int32 tx_fifo_put ( TMLX    *lp,
-            int32   data    )
+static int32_t tx_fifo_put ( TMLX    *lp,
+            int32_t data    )
 {
     if (tx_fifo_free_count (lp) == 0)
         return -1;
@@ -856,9 +858,9 @@ static int32 tx_fifo_put ( TMLX    *lp,
     return 0;
 }
 
-static int32 tx_fifo_get ( TMLX    *lp    )
+static int32_t tx_fifo_get ( TMLX    *lp    )
 {
-    int32 data = lp->txfifo[lp->txfifo_idx];
+    int32_t data = lp->txfifo[lp->txfifo_idx];
 
     if (lp->txfifo_cnt == 0)
         return -1;
@@ -872,9 +874,9 @@ static int32 tx_fifo_get ( TMLX    *lp    )
 
 /* TX Q manipulation */
 
-static int32 dq_tx_report ( int32   vh  )
+static int32_t dq_tx_report ( int32_t vh  )
 {
-    int32   data, i;
+    int32_t data, i;
 
     if (txq_idx[vh] == 0)
         return (0);
@@ -889,10 +891,10 @@ static int32 dq_tx_report ( int32   vh  )
 }
 
 static void q_tx_report ( TMLX    *lp,
-                          int32   extra_data )
+                          int32_t extra_data )
 {
-    int32   vh = (lp - vh_parm) / VH_LINES;
-    int32   data = (((lp - vh_parm) - (vh * VH_LINES)) << CSR_V_TX_LINE) | extra_data;
+    int32_t vh = (lp - vh_parm) / VH_LINES;
+    int32_t data = (((lp - vh_parm) - (vh * VH_LINES)) << CSR_V_TX_LINE) | extra_data;
 
     if (vh_csr[vh] & CSR_TXIE)
         vh_set_txint (vh);
@@ -908,12 +910,12 @@ static void q_tx_report ( TMLX    *lp,
 
 /* TX a character on a line, regardless of the TX enable state */
 
-static t_stat vh_putc ( int32   vh,
+static t_stat vh_putc ( int32_t vh,
             TMLX    *lp,
-            int32   chan,
-            int32   data    )
+            int32_t chan,
+            int32_t data    )
 {
-    int32   val;
+    int32_t val;
     t_stat  status = SCPE_OK;
 
     /* truncate to desired character length */
@@ -954,14 +956,14 @@ static t_stat vh_putc ( int32   vh,
 
 /* Retrieve all stored input from TMXR and place in RX FIFO */
 
-static void vh_getc (   int32   vh  )
+static void vh_getc (   int32_t vh  )
 {
-    uint32  i, c;
+    uint32_t i, c;
     TMLX    *lp;
-    int32   modem_incoming_bits;
-    uint16  new_lstat;
+    int32_t modem_incoming_bits;
+    uint16_t new_lstat;
 
-    for (i = 0; i < (uint32)VH_LINES; i++) {
+    for (i = 0; i < (uint32_t)VH_LINES; i++) {
         if (rbuf_idx[vh] >= (FIFO_ALARM-1)) /* close to fifo capacity? */
             continue;                       /* don't bother checking for data */
         lp = &vh_parm[(vh * VH_LINES) + i];
@@ -1000,11 +1002,11 @@ static void vh_set_config (     TMLX    *lp)
 
 /* I/O dispatch routines */
 
-static t_stat vh_rd (   int32   *data,
-                        int32   PA,
-                        int32   access  )
+static t_stat vh_rd (   int32_t *data,
+                        int32_t PA,
+                        int32_t access  )
 {
-    int32   vh = ((PA - vh_dib.ba) >> 4), line;
+    int32_t vh = ((PA - vh_dib.ba) >> 4), line;
     TMLX    *lp;
     static BITFIELD* bitdefs[] = {vh_csr_bits, vh_rbuf_bits, vh_lpr_bits, vh_stat_bits,
                                   vh_lnctrl_bits, vh_tbuffad1_bits, vh_tbuffad2_bits, vh_tbuffct_bits};
@@ -1083,18 +1085,18 @@ static t_stat vh_rd (   int32   *data,
 
     sim_debug(DBG_RREG, &vh_dev, "vh_rd(vh=%d, PA=0x%08X [%s], access=%d, data=0x%X) ", vh, PA,
               ((vh_unit[vh].flags & UNIT_MODEDHU) ? vh_rd_dhu_regs : vh_rd_dhv_regs)[(PA >> 1) & 07], access, *data);
-    sim_debug_bits(DBG_RREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32)(*data), (uint32)(*data), true);
+    sim_debug_bits(DBG_RREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32_t)(*data), (uint32_t)(*data), true);
 
     return (SCPE_OK);
 }
 
-static t_stat vh_wr (   int32   ldata,
-                        int32   PA,
-                        int32   access  )
+static t_stat vh_wr (   int32_t ldata,
+                        int32_t PA,
+                        int32_t access  )
 {
-    int32   vh = ((PA - vh_dib.ba) >> 4), line;
+    int32_t vh = ((PA - vh_dib.ba) >> 4), line;
     TMLX    *lp;
-    uint16  data = (uint16)ldata;
+    uint16_t data = (uint16_t)ldata;
     static BITFIELD* bitdefs[] = {vh_csr_bits, vh_rbuf_bits, vh_lpr_bits, vh_stat_bits,
                                   vh_lnctrl_bits, vh_tbuffad1_bits, vh_tbuffad1_bits, vh_tbuffct_bits};
 
@@ -1103,7 +1105,7 @@ static t_stat vh_wr (   int32   ldata,
 
     sim_debug(DBG_WREG, &vh_dev, "vh_wr(vh=%d, PA=0x%08X [%s], access=%d, data=0x%X) ", vh, PA,
               ((vh_unit[vh].flags & UNIT_MODEDHU) ? vh_wr_dhu_regs : vh_wr_dhv_regs)[(PA >> 1) & 07], access, data);
-    sim_debug_bits(DBG_WREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32)((PA & 1) ? data<<8 : data), (uint32)((PA & 1) ? data<<8 : data), true);
+    sim_debug_bits(DBG_WREG, &vh_dev, bitdefs[(PA >> 1) & 07], (uint32_t)((PA & 1) ? data<<8 : data), (uint32_t)((PA & 1) ? data<<8 : data), true);
 
     switch ((PA >> 1) & 7) {
     case 0:     /* CSR, but no read-modify-write */
@@ -1142,7 +1144,7 @@ static t_stat vh_wr (   int32   ldata,
         else if (((vh_csr[vh] & CSR_TXIE) == 0) &&
               (txq_idx[vh] != 0))
             vh_set_txint (vh);
-        vh_csr[vh] = (vh_csr[vh] & ~((uint16) CSR_RW)) | (data & (uint16) CSR_RW);
+        vh_csr[vh] = (vh_csr[vh] & ~((uint16_t) CSR_RW)) | (data & (uint16_t) CSR_RW);
         break;
     case 1:     /* TXCHAR/RXTIMER */
         if (CSR_GETCHAN (vh_csr[vh]) >= VH_LINES)
@@ -1380,23 +1382,23 @@ static t_stat vh_wr (   int32   ldata,
     return (SCPE_OK);
 }
 
-static void doDMA ( int32   vh,
-            int32   chan    )
+static void doDMA ( int32_t vh,
+            int32_t chan    )
 {
-    int32   line, status;
-    uint32  pa;
+    int32_t line, status;
+    uint32_t pa;
     TMLX    *lp;
 
     line = (vh * VH_LINES) + chan;
     lp = &vh_parm[line];
     if ((lp->tbuf2 & TB2_TX_ENA) && (lp->tbuf2 & TB2_TX_DMA_START)) {
-        int32 sent = 0;
+        int32_t sent = 0;
 
         pa = lp->tbuf1;
         pa |= (lp->tbuf2 & TB2_M_TBUFFAD) << 16;
         status = 0;
         while (tmxr_txdone_ln (lp->tmln) && (lp->tbuffct > 0)) {
-            uint8   buf;
+            uint8_t buf;
             if (lp->lnctrl & LNCTRL_TX_ABORT) {
                 lp->tbuf2 &= ~TB2_TX_DMA_START;
                 q_tx_report (lp, 0);
@@ -1435,7 +1437,7 @@ static void doDMA ( int32   vh,
 
 static t_stat vh_timersvc (  UNIT    *uptr   )
 {
-    int32   vh;
+    int32_t vh;
 
     sim_debug(DBG_TIMTRC, &vh_dev, "vh_timersvc()\n");
 
@@ -1472,7 +1474,7 @@ static t_stat vh_timersvc (  UNIT    *uptr   )
 
 static t_stat vh_svc (  UNIT    *uptr   )
 {
-    int32   vh, newln;
+    int32_t vh, newln;
 
     sim_debug(DBG_TRC, find_dev_from_unit(uptr), "vh_svc()\n");
     sim_debug(DBG_RCVSCH, find_dev_from_unit(uptr), "vh_svc()\n");
@@ -1481,7 +1483,7 @@ static t_stat vh_svc (  UNIT    *uptr   )
     newln = tmxr_poll_conn (&vh_desc);
     if (newln >= 0) {
         TMLX    *lp;
-        int32   line;
+        int32_t line;
 
         vh = newln / VH_LINES;  /* determine which mux */
         line = newln - (vh * VH_LINES);
@@ -1497,7 +1499,7 @@ static t_stat vh_svc (  UNIT    *uptr   )
     if (newln == -2) {      /* Ringing */
         for (newln = 0; newln < vh_desc.lines; newln++) {
             TMLX    *lp;
-            int32   line;
+            int32_t line;
 
             vh = newln/VH_LINES;
             line = newln - (vh * VH_LINES);
@@ -1522,7 +1524,7 @@ static t_stat vh_svc (  UNIT    *uptr   )
 
 static t_stat vh_xmt_svc (  UNIT    *uptr   )
 {
-    int32   vh, i;
+    int32_t vh, i;
 
     sim_debug(DBG_TRC, find_dev_from_unit(uptr), "vh_xmt_svc()\n");
     sim_debug(DBG_XMTSCH, find_dev_from_unit(uptr), "vh_xmt_svc()\n");
@@ -1530,7 +1532,7 @@ static t_stat vh_xmt_svc (  UNIT    *uptr   )
     /* scan all muxes lines */
     for (vh = 0; vh < vh_desc.lines/VH_LINES; vh++) {
         for (i = 0; i < VH_LINES; i++) {
-            int32   line = (vh * VH_LINES) + i;
+            int32_t line = (vh * VH_LINES) + i;
             TMLX    *lp = &vh_parm[line];
 
             /* process any pending programmed output */
@@ -1592,10 +1594,10 @@ auto-flow reports enabled
 FIFO size set to 64
 */
 
-static void vh_init_chan (  int32   vh,
-                int32   chan    )
+static void vh_init_chan (  int32_t vh,
+                int32_t chan    )
 {
-    int32   line;
+    int32_t line;
     TMLX    *lp;
 
     line = (vh * VH_LINES) + chan;
@@ -1623,10 +1625,10 @@ static void vh_init_chan (  int32   vh,
 
 /* init a controller; flag true if BINIT, false if master.reset */
 
-static t_stat vh_clear (    int32   vh,
+static t_stat vh_clear (    int32_t vh,
                 bool    flag    )
 {
-    int32   i;
+    int32_t i;
 
     txq_idx[vh] = 0;
     rbuf_idx[vh] = 0;
@@ -1673,7 +1675,7 @@ static t_stat vh_clear (    int32   vh,
 
 static t_stat vh_reset (    DEVICE  *dptr   )
 {
-    int32   i, lines, maxlines;
+    int32_t i, lines, maxlines;
 
     tmxr_set_port_speed_control (&vh_desc);
     tmxr_set_modem_control_passthru (&vh_desc);
@@ -1748,7 +1750,7 @@ static t_stat vh_detach (   UNIT    *uptr   )
     return (tmxr_detach (&vh_desc, uptr));
 }
 
-static t_stat vh_show_vec (FILE *st, UNIT *uptr, int32 arg, const void *desc)
+static t_stat vh_show_vec (FILE *st, UNIT *uptr, int32_t arg, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1760,10 +1762,10 @@ return show_vec (st, uptr, ((mp->lines * 2) / VH_LINES), desc);
 }
 
 static void vh_detail_line (    FILE    *st,
-                int32   vh,
-                int32   chan    )
+                int32_t vh,
+                int32_t chan    )
 {
-    int32   line;
+    int32_t line;
     TMLX    *lp;
 
     line = (vh * VH_LINES) + chan;
@@ -1778,7 +1780,7 @@ static void vh_detail_line (    FILE    *st,
 
 static t_stat vh_show_detail (   FILE    *st,
                 UNIT    *uptr,
-                int32   val,
+                int32_t val,
                 const void    *desc   )
 {
     /* Generic show modifier signature.
@@ -1787,7 +1789,7 @@ static t_stat vh_show_detail (   FILE    *st,
     (void) val;
     (void) desc;
 
-    int32   i, j;
+    int32_t i, j;
 
     fprintf (st, "VH:\trxi %d, txi %d\n", vh_rxi, vh_txi);
     for (i = 0; i < vh_desc.lines/VH_LINES; i++) {
@@ -1804,7 +1806,7 @@ static t_stat vh_show_detail (   FILE    *st,
 
 static t_stat vh_show_rbuf (    FILE    *st,
                 UNIT    *uptr,
-                int32   val,
+                int32_t val,
                 const void    *desc   )
 {
     /* Generic show modifier signature.
@@ -1813,7 +1815,7 @@ static t_stat vh_show_rbuf (    FILE    *st,
     (void) val;
     (void) desc;
 
-    int32   i;
+    int32_t i;
 
     for (i = 0; i < rbuf_idx[0]; i++)
         fprintf (st, "%03d: %06o\n", i, vh_rbuf[0][i]);
@@ -1822,7 +1824,7 @@ static t_stat vh_show_rbuf (    FILE    *st,
 
 static t_stat vh_show_txq ( FILE    *st,
                 UNIT    *uptr,
-                int32   val,
+                int32_t val,
                 const void    *desc   )
 {
     /* Generic show modifier signature.
@@ -1831,7 +1833,7 @@ static t_stat vh_show_txq ( FILE    *st,
     (void) val;
     (void) desc;
 
-    int32   i;
+    int32_t i;
 
     for (i = 0; i < txq_idx[0]; i++)
         fprintf (st, "%02d: %06o\n", i, vh_txq[0][i]);
@@ -1840,7 +1842,7 @@ static t_stat vh_show_txq ( FILE    *st,
 
 /* SET LINES processor */
 
-static t_stat vh_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat vh_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1848,12 +1850,12 @@ static t_stat vh_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)
     return SCPE_ARG;
-newln = (int32) get_uint (cptr, 10, (VH_MUXES * VH_LINES), &r);
+newln = (int32_t) get_uint (cptr, 10, (VH_MUXES * VH_LINES), &r);
 if ((r != SCPE_OK) || (newln == vh_desc.lines))
     return r;
 if ((newln == 0) || (newln % VH_LINES))
@@ -1878,7 +1880,7 @@ return vh_reset (&vh_dev);
 
 /* SET DHU/DHV mode processor */
 
-static t_stat vh_setmode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat vh_setmode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1894,7 +1896,7 @@ return SCPE_OK;
 
 /* SET LOG processor */
 
-static t_stat vh_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat vh_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1903,14 +1905,14 @@ static t_stat vh_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 t_stat r;
 char gbuf[CBUFSIZE];
-int32 ln;
+int32_t ln;
 
 if (cptr == NULL)
     return SCPE_ARG;
 cptr = get_glyph (cptr, gbuf, '=');
 if ((cptr == NULL) || (*cptr == 0) || (gbuf[0] == 0))
     return SCPE_ARG;
-ln = (int32) get_uint (gbuf, 10, vh_desc.lines, &r);
+ln = (int32_t) get_uint (gbuf, 10, vh_desc.lines, &r);
 if ((r != SCPE_OK) || (ln >= vh_desc.lines))
     return SCPE_ARG;
 return tmxr_set_log (NULL, ln, cptr, desc);
@@ -1918,7 +1920,7 @@ return tmxr_set_log (NULL, ln, cptr, desc);
 
 /* SET NOLOG processor */
 
-static t_stat vh_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat vh_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1926,11 +1928,11 @@ static t_stat vh_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 
 t_stat r;
-int32 ln;
+int32_t ln;
 
 if (cptr == NULL)
     return SCPE_ARG;
-ln = (int32) get_uint (cptr, 10, (VH_MUXES * VH_LINES), &r);
+ln = (int32_t) get_uint (cptr, 10, (VH_MUXES * VH_LINES), &r);
 if ((r != SCPE_OK) || (ln >= vh_desc.lines))
     return SCPE_ARG;
 return tmxr_set_nolog (NULL, ln, NULL, desc);
@@ -1938,14 +1940,14 @@ return tmxr_set_nolog (NULL, ln, NULL, desc);
 
 /* SHOW LOG processor */
 
-static t_stat vh_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat vh_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 i;
+int32_t i;
 
 for (i = 0; i < vh_desc.lines; i++) {
     fprintf (st, "line %d: ", i);
@@ -1955,7 +1957,7 @@ for (i = 0; i < vh_desc.lines; i++) {
 return SCPE_OK;
 }
 
-static t_stat vh_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat vh_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char *devtype = (UNIBUS) ? "DHU11" : "DHQ11";
 
@@ -2010,7 +2012,7 @@ vh_help_attach (st, dptr, uptr, flag, cptr);
 return SCPE_OK;
 }
 
-static t_stat vh_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat vh_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic attach-help signature.
    This implementation does not use every parameter. */

@@ -10,6 +10,8 @@
  * Mail to sim@ibm1130.org
  */
 
+#include "sim_types.h"
+
 #define _0_ '\0'
 
 #define CENT_       0xA2                    /* cent and not: standard DOS mapping */
@@ -32,7 +34,7 @@
 #  pragma warning(disable:4245)                     /* enable int->char demotion warning caused by characters with high-bit set */
 #endif
 
-static unsigned char conout_to_ascii[] =    /* console output code to ASCII */
+static uchar_t conout_to_ascii[] =          /* console output code to ASCII */
 {
               /*  00    01    02    03    04    05    06    07    08    09    0A    0B    0C    0D    0E    0F */
     /* 00 */     '.',  IGNR_,CENT_, '\n', '@', IGNR_,'%',  _0_,  _0_,  IGNR_,_0_,  _0_,  _0_,  _0_,  _0_,  _0_,

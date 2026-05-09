@@ -61,6 +61,8 @@
    25-Jun-98    RMS     Fixed bugs in paper tape error handling
 */
 
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 #include "sim_tmxr.h"
 #if defined(USE_DISPLAY)
@@ -75,34 +77,34 @@
 #define CLKCSR_RW       (CSR_IE)
 #define CLK_DELAY       16667
 
-int32 tti_csr = 0;                                      /* control/status */
-uint32 tti_buftime;                                     /* time input character arrived */
-int32 tto_csr = 0;                                      /* control/status */
-int32 clk_csr = 0;                                      /* control/status */
-int32 clk_tps = 60;                                     /* ticks/second */
-int32 clk_default = 60;                                 /* default ticks/second */
-int32 clk_fie = 0;                                      /* force IE = 1 */
-int32 clk_fnxm = 0;                                     /* force NXM on reg */
-int32 tmxr_poll = CLK_DELAY;                            /* term mux poll */
-int32 tmr_poll = CLK_DELAY;                             /* timer poll */
+int32_t tti_csr = 0;                                    /* control/status */
+uint32_t tti_buftime;                                   /* time input character arrived */
+int32_t tto_csr = 0;                                    /* control/status */
+int32_t clk_csr = 0;                                    /* control/status */
+int32_t clk_tps = 60;                                   /* ticks/second */
+int32_t clk_default = 60;                               /* default ticks/second */
+int32_t clk_fie = 0;                                    /* force IE = 1 */
+int32_t clk_fnxm = 0;                                   /* force NXM on reg */
+int32_t tmxr_poll = CLK_DELAY;                          /* term mux poll */
+int32_t tmr_poll = CLK_DELAY;                           /* timer poll */
 
-t_stat tti_rd (int32 *data, int32 PA, int32 access);
-t_stat tti_wr (int32 data, int32 PA, int32 access);
+t_stat tti_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat tti_wr (int32_t data, int32_t PA, int32_t access);
 t_stat tti_svc (UNIT *uptr);
 t_stat tti_reset (DEVICE *dptr);
-t_stat tto_rd (int32 *data, int32 PA, int32 access);
-t_stat tto_wr (int32 data, int32 PA, int32 access);
+t_stat tto_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat tto_wr (int32_t data, int32_t PA, int32_t access);
 t_stat tto_svc (UNIT *uptr);
 t_stat tto_reset (DEVICE *dptr);
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat tty_set_parity (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat clk_rd (int32 *data, int32 PA, int32 access);
-t_stat clk_wr (int32 data, int32 PA, int32 access);
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat tty_set_parity (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat clk_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat clk_wr (int32_t data, int32_t PA, int32_t access);
 t_stat clk_svc (UNIT *uptr);
-int32 clk_inta (void);
+int32_t clk_inta (void);
 t_stat clk_reset (DEVICE *dptr);
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 const char *clk_description (DEVICE *dptr);
 
 
@@ -294,7 +296,7 @@ DEVICE clk_dev = {
 
 /* Terminal input address routines */
 
-t_stat tti_rd (int32 *data, int32 PA, int32 access)
+t_stat tti_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -322,7 +324,7 @@ sim_debug (DBG_RREG, &tti_dev, "tti_rd(%s) - 0x%04X\n", ((PA >> 1) & 01) ? "BUF"
 return SCPE_OK;
 }
 
-t_stat tti_wr (int32 data, int32 PA, int32 access)
+t_stat tti_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -356,7 +358,7 @@ return SCPE_OK;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 sim_clock_coschedule (uptr, tmxr_poll);                 /* continue poll */
 
@@ -404,7 +406,7 @@ return auto_config (dptr->name, (dptr->flags & DEV_DIS) ? 0 : 1);
 
 /* Terminal output address routines */
 
-t_stat tto_rd (int32 *data, int32 PA, int32 access)
+t_stat tto_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -424,7 +426,7 @@ switch ((PA >> 1) & 01) {                               /* decode PA<1> */
 return SCPE_NXM;
 }
 
-t_stat tto_wr (int32 data, int32 PA, int32 access)
+t_stat tto_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -458,7 +460,7 @@ return SCPE_NXM;
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 t_stat r;
 
 c = sim_tt_outcvt (uptr->buf, TT_GET_MODE (uptr->flags));
@@ -486,7 +488,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return auto_config (dptr->name, (dptr->flags & DEV_DIS) ? 0 : 1);
 }
 
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -497,7 +499,7 @@ sim_tt_set_mode (&tto_unit, val, cptr, desc);
 return SCPE_OK;
 }
 
-t_stat tty_set_parity (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_parity (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -520,14 +522,14 @@ return SCPE_OK;
 
 /* Clock I/O address routines */
 
-t_stat clk_rd (int32 *data, int32 PA, int32 access)
+t_stat clk_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) PA;
 (void) access;
 
-int32 orig_csr = clk_csr;
+int32_t orig_csr = clk_csr;
 
 if (clk_fnxm)                                           /* not there??? */
     return SCPE_NXM;
@@ -538,13 +540,13 @@ sim_debug_bits(DBG_RREG, &clk_dev, clk_bits, orig_csr, *data, 1);
 return SCPE_OK;
 }
 
-t_stat clk_wr (int32 data, int32 PA, int32 access)
+t_stat clk_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-int32 orig_csr = clk_csr;
+int32_t orig_csr = clk_csr;
 
 if (clk_fnxm)                                           /* not there??? */
     return SCPE_NXM;
@@ -566,7 +568,7 @@ return SCPE_OK;
 
 t_stat clk_svc (UNIT *uptr)
 {
-int32 t;
+int32_t t;
 
 clk_csr = clk_csr | CSR_DONE;                           /* set done */
 if ((clk_csr & CSR_IE) || clk_fie) {
@@ -582,7 +584,7 @@ return SCPE_OK;
 
 /* Clock interrupt acknowledge */
 
-int32 clk_inta (void)
+int32_t clk_inta (void)
 {
 if (CPUT (CPUT_24))
     clk_csr = clk_csr & ~CSR_DONE;
@@ -616,7 +618,7 @@ return SCPE_OK;
 
 /* Set frequency */
 
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -633,7 +635,7 @@ return SCPE_OK;
 
 /* Show frequency */
 
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

@@ -24,8 +24,11 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
+#include "sim_types.h"
 
 #ifndef NUM_DEVS_TEN11
 #define NUM_DEVS_TEN11 0
@@ -70,9 +73,9 @@ static t_stat ten11_svc (UNIT *uptr);
 static t_stat ten11_reset (DEVICE *dptr);
 static t_stat ten11_attach (UNIT *uptr, const char *ptr);
 static t_stat ten11_detach (UNIT *uptr);
-static t_stat ten11_set_base (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat ten11_show_base (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat ten11_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+static t_stat ten11_set_base (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat ten11_show_base (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat ten11_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 static const char *ten11_description (DEVICE *dptr);
 
 UNIT ten11_unit[1] = {
@@ -171,7 +174,7 @@ static t_stat ten11_detach (UNIT *uptr)
   return r;
 }
 
-static void build (unsigned char *request, unsigned char octet)
+static void build (uchar_t *request, uchar_t octet)
 {
   request[0]++;
   request[request[0]] = octet;
@@ -199,7 +202,7 @@ static t_stat ten11_svc (UNIT *uptr)
   return SCPE_OK;
 }
 
-static t_stat ten11_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat ten11_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char helpString[] =
  /* The '*'s in the next line represent the standard text width of a help line */
@@ -237,9 +240,9 @@ static int error (int unibus, const char *message)
   return -1;
 }
 
-static int transaction (int unibus, unsigned char *request, unsigned char *response)
+static int transaction (int unibus, uchar_t *request, uchar_t *response)
 {
-  const uint8 *ten11_request;
+  const uint8_t *ten11_request;
   size_t size;
   t_stat stat;
 
@@ -263,8 +266,8 @@ static int transaction (int unibus, unsigned char *request, unsigned char *respo
 
 static int read_word (int unibus, t_addr addr, int *data)
 {
-  unsigned char request[8];
-  unsigned char response[8];
+  uchar_t request[8];
+  uchar_t response[8];
 
   sim_interval -= UNIBUS_MEM_CYCLE;
 
@@ -352,10 +355,10 @@ int ten11_read (t_addr addr, uint64 *data)
   return 0;
 }
 
-static int write_word (int unibus, t_addr addr, uint16 data)
+static int write_word (int unibus, t_addr addr, uint16_t data)
 {
-  unsigned char request[8];
-  unsigned char response[8];
+  uchar_t request[8];
+  uchar_t response[8];
 
   sim_interval -= UNIBUS_MEM_CYCLE;
 
@@ -440,7 +443,7 @@ int ten11_write (t_addr addr, uint64 data)
   return 0;
 }
 
-static t_stat ten11_set_base (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat ten11_set_base (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -464,7 +467,7 @@ static t_stat ten11_set_base (UNIT *uptr, int32 val, const char *cptr, void *des
     return SCPE_OK;
 }
 
-static t_stat ten11_show_base (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat ten11_show_base (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */

@@ -53,6 +53,7 @@
 #include "sim_defs.h"                                   /* simulator defns */
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #if defined(USE_ADDR64)
 #error "PDP-10 does not support 64b addresses!"
@@ -98,8 +99,8 @@
 
 /* Data types */
 
-typedef int32           a10;                            /* PDP-10 addr (30b) */
-typedef t_int64         d10;                            /* PDP-10 data (36b) */
+typedef int32_t         a10;                            /* PDP-10 addr (30b) */
+typedef int64_t         d10;                            /* PDP-10 data (36b) */
 
 /* Abort codes, used to sort out longjmp's back to the main loop
    Codes > 0 are simulator stop codes
@@ -180,11 +181,11 @@ typedef t_int64         d10;                            /* PDP-10 data (36b) */
 #define OP_JRST         0254                            /* JRST */
 #define AC_XPCW         07                              /* XPCW */
 #define OP_JSR          0264                            /* JSR */
-#define GET_OP(x)       ((int32) (((x) >> INST_V_OP) & INST_M_OP))
-#define GET_DEV(x)      ((int32) (((x) >> INST_V_DEV) & INST_M_DEV))
-#define GET_AC(x)       ((int32) (((x) >> INST_V_AC) & INST_M_AC))
+#define GET_OP(x)       ((int32_t) (((x) >> INST_V_OP) & INST_M_OP))
+#define GET_DEV(x)      ((int32_t) (((x) >> INST_V_DEV) & INST_M_DEV))
+#define GET_AC(x)       ((int32_t) (((x) >> INST_V_AC) & INST_M_AC))
 #define TST_IND(x)      ((x) & INST_IND)
-#define GET_XR(x)       ((int32) (((x) >> INST_V_XR) & INST_M_XR))
+#define GET_XR(x)       ((int32_t) (((x) >> INST_V_XR) & INST_M_XR))
 #define GET_ADDR(x)     ((a10) ((x) & AMASK))
 
 /* Byte pointer format */
@@ -195,9 +196,9 @@ typedef t_int64         d10;                            /* PDP-10 data (36b) */
 #define BP_V_S          24                              /* size */
 #define BP_M_S          INT64_C(077)
 #define BP_S            INT64_C(0007700000000)
-#define GET_P(x)        ((int32) (((x) >> BP_V_P) & BP_M_P))
-#define GET_S(x)        ((int32) (((x) >> BP_V_S) & BP_M_S))
-#define PUT_P(b,x)      (((b) & ~BP_P) | ((((t_int64) (x)) & BP_M_P) << BP_V_P))
+#define GET_P(x)        ((int32_t) (((x) >> BP_V_P) & BP_M_P))
+#define GET_S(x)        ((int32_t) (((x) >> BP_V_S) & BP_M_S))
+#define PUT_P(b,x)      (((b) & ~BP_P) | ((((int64_t) (x)) & BP_M_P) << BP_V_P))
 
 /* Flags (stored in their own halfword) */
 
@@ -282,7 +283,7 @@ typedef t_int64         d10;                            /* PDP-10 data (36b) */
 #define PAG_GETOFF(x)   ((x) & PAG_M_OFF)
 #define PAG_GETVPN(x)   (((x) >> PAG_V_PN) & PAG_M_VPN)
 #define PAG_XPTEPA(p,x) (((p) + PAG_GETOFF (x)) & PAMASK)
-#define PAG_PTEPA(p,x)  (((((int32) (p)) & PTE_PPMASK) << PAG_V_PN) + PAG_GETOFF (x))
+#define PAG_PTEPA(p,x)  (((((int32_t) (p)) & PTE_PPMASK) << PAG_V_PN) + PAG_GETOFF (x))
 
 /* Page table entry, TOPS-10 paging */
 
@@ -306,8 +307,8 @@ typedef t_int64         d10;                            /* PDP-10 data (36b) */
 #define PTE_T20_STM     INT64_C(0000077000000)          /* T20: storage medium */
 #define PTE_T20_V_PMI   18                              /* page map index */
 #define PTE_T20_M_PMI   0777
-#define T20_GETTYP(x)   ((int32) (((x) >> PTE_T20_V_TYP) & PTE_T20_M_TYP))
-#define T20_GETPMI(x)   ((int32) (((x) >> PTE_T20_V_PMI) & PTE_T20_M_PMI))
+#define T20_GETTYP(x)   ((int32_t) (((x) >> PTE_T20_V_TYP) & PTE_T20_M_TYP))
+#define T20_GETPMI(x)   ((int32_t) (((x) >> PTE_T20_V_PMI) & PTE_T20_M_PMI))
 
 /* CST entry, TOPS-20 paging */
 
@@ -385,9 +386,9 @@ typedef t_int64         d10;                            /* PDP-10 data (36b) */
 #define UBR_N_UBR       11
 #define UBR_M_UBR       03777
 #define UBR_UBRMASK     INT64_C(0000000003777)
-#define UBR_GETCURAC(x) ((int32) (((x) >> UBR_V_CURAC) & UBR_M_AC))
-#define UBR_GETPRVAC(x) ((int32) (((x) >> UBR_V_PRVAC) & UBR_M_AC))
-#define UBR_GETUBR(x)   ((int32) (((x) >> UBR_V_UBR) & PAG_M_PPN))
+#define UBR_GETCURAC(x) ((int32_t) (((x) >> UBR_V_CURAC) & UBR_M_AC))
+#define UBR_GETPRVAC(x) ((int32_t) (((x) >> UBR_V_PRVAC) & UBR_M_AC))
+#define UBR_GETUBR(x)   ((int32_t) (((x) >> UBR_V_UBR) & PAG_M_PPN))
 #define UBRWORD         (ubr | UBR_SETACB | UBR_SETUBR)
 
 /* Executive base register */
@@ -400,7 +401,7 @@ typedef t_int64         d10;                            /* PDP-10 data (36b) */
 #define EBR_N_EBR       11
 #define EBR_M_EBR       03777
 #define EBR_MASK        (EBR_T20P | EBR_PGON | (EBR_M_EBR << EBR_V_EBR))
-#define EBR_GETEBR(x)   ((int32) (((x) >> EBR_V_EBR) & PAG_M_PPN))
+#define EBR_GETEBR(x)   ((int32_t) (((x) >> EBR_V_EBR) & PAG_M_PPN))
 #define PAGING          (ebr & EBR_PGON)
 #define T20PAG          (ebr & EBR_T20P)
 
@@ -609,16 +610,16 @@ typedef t_int64         d10;                            /* PDP-10 data (36b) */
 #define VEC_DEVMAX      8                               /* max device vec */
 
 struct pdp_dib {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
-    t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
-    t_stat              (*wr)(int32 dat, int32 ad, int32 md);
-    int32               vnum;                           /* vectors: number */
-    int32               vloc;                           /* locator */
-    int32               vec;                            /* value */
-    int32               (*ack[VEC_DEVMAX])(void);       /* ack routines */
-    uint32              ulnt;                           /* IO length per unit */
-    uint32              flags;                          /* Special flags */
+    uint32_t            ba;                             /* base addr */
+    uint32_t            lnt;                            /* length */
+    t_stat              (*rd)(int32_t *dat, int32_t ad, int32_t md);
+    t_stat              (*wr)(int32_t dat, int32_t ad, int32_t md);
+    int32_t             vnum;                           /* vectors: number */
+    int32_t             vloc;                           /* locator */
+    int32_t             vec;                            /* value */
+    int32_t             (*ack[VEC_DEVMAX])(void);       /* ack routines */
+    uint32_t            ulnt;                           /* IO length per unit */
+    uint32_t            flags;                          /* Special flags */
 #define DIB_M_REGSIZE   03                              /* Device register size */
 #define DIB_REG16BIT     00
 #define DIB_REG18BIT     01
@@ -768,97 +769,97 @@ typedef struct pdp_dib DIB;
 
 /* Function prototypes */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_ReadW18 (uint32 ba, int32 bc, uint32 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
-int32 Map_WriteW18 (uint32 ba, int32 bc, const uint32 *buf);
-void uba_debug_dma_in (uint32 ba, a10 pa_start, a10 pa_end);
-void uba_debug_dma_out (uint32 ba, a10 pa_start, a10 pa_end);
-void uba_debug_dma_nxm (const char *msg, a10 pa10, uint32 ba, int32 bc);
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
+int32_t Map_ReadW18 (uint32_t ba, int32_t bc, uint32_t *buf);
+int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
+int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
+int32_t Map_WriteW18 (uint32_t ba, int32_t bc, const uint32_t *buf);
+void uba_debug_dma_in (uint32_t ba, a10 pa_start, a10 pa_end);
+void uba_debug_dma_out (uint32_t ba, a10 pa_start, a10 pa_end);
+void uba_debug_dma_nxm (const char *msg, a10 pa10, uint32_t ba, int32_t bc);
 
-extern d10 Read (a10 ea, int32 prv);                    /* read, read check */
-extern d10 ReadM (a10 ea, int32 prv);                   /* read, write check */
+extern d10 Read (a10 ea, int32_t prv);                  /* read, read check */
+extern d10 ReadM (a10 ea, int32_t prv);                 /* read, write check */
 extern d10 ReadE (a10 ea);                              /* read, exec */
 extern d10 ReadP (a10 ea);                              /* read, physical */
-extern void Write (a10 ea, d10 val, int32 prv);         /* write */
+extern void Write (a10 ea, d10 val, int32_t prv);       /* write */
 extern void WriteE (a10 ea, d10 val);                   /* write, exec */
 extern void WriteP (a10 ea, d10 val);                   /* write, physical */
-extern bool AccViol (a10 ea, int32 prv, int32 mode);    /* access check */
+extern bool AccViol (a10 ea, int32_t prv, int32_t mode); /* access check */
 extern d10 imul (d10 val, d10 mb);
 extern bool idiv (d10 val, d10 mb, d10 *rs);
 extern void mul (d10 val, d10 mb, d10 *rs);
-extern bool divi (int32 ac, d10 mb, d10 *rs);
-extern void dmul (int32 ac, d10 *rs);
-extern void ddiv (int32 ac, d10 *rs);
-extern d10 fad (d10 val, d10 mb, bool rnd, int32 inv);
+extern bool divi (int32_t ac, d10 mb, d10 *rs);
+extern void dmul (int32_t ac, d10 *rs);
+extern void ddiv (int32_t ac, d10 *rs);
+extern d10 fad (d10 val, d10 mb, bool rnd, int32_t inv);
 extern d10 fmp (d10 val, d10 mb, bool rnd);
 extern bool fdv (d10 val, d10 mb, d10 *rs, bool rnd);
 extern d10 fsc (d10 val, a10 ea);
 extern d10 fltr (d10 mb);
-extern void fix (int32 ac, d10 mb, bool rnd);
-extern void dfad (int32 ac, d10 *rs, int32 inv);
-extern void dfmp (int32 ac, d10 *rs);
-extern void dfdv (int32 ac, d10 *rs);
-extern bool rdtim (a10 ea, int32 prv);
-extern bool rdint (a10 ea, int32 prv);
-extern bool wrtim (a10 ea, int32 prv);
-extern bool wrint (a10 ea, int32 prv);
-extern t_stat tim_set_mod (UNIT *uptr, int32 val, const char *cptr, void *desc);
+extern void fix (int32_t ac, d10 mb, bool rnd);
+extern void dfad (int32_t ac, d10 *rs, int32_t inv);
+extern void dfmp (int32_t ac, d10 *rs);
+extern void dfdv (int32_t ac, d10 *rs);
+extern bool rdtim (a10 ea, int32_t prv);
+extern bool rdint (a10 ea, int32_t prv);
+extern bool wrtim (a10 ea, int32_t prv);
+extern bool wrint (a10 ea, int32_t prv);
+extern t_stat tim_set_mod (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 extern void fe_intr (void);
 extern void set_dyn_ptrs (void);
-extern d10 map (a10 ea, int32 prv);
-extern a10 conmap (a10 ea, int32 mode, int32 sw);
-extern bool clrpt (a10 ea, int32 prv);
-extern bool wrebr (a10 ea, int32 prv);
-extern bool rdebr (a10 ea, int32 prv);
-extern bool wrubr (a10 ea, int32 prv);
-extern bool rdubr (a10 ea, int32 prv);
-extern bool wrhsb (a10 ea, int32 prv);
-extern bool rdhsb (a10 ea, int32 prv);
-extern bool wrspb (a10 ea, int32 prv);
-extern bool rdspb (a10 ea, int32 prv);
-extern bool wrcsb (a10 ea, int32 prv);
-extern bool rdcsb (a10 ea, int32 prv);
-extern bool wrpur (a10 ea, int32 prv);
-extern bool rdpur (a10 ea, int32 prv);
-extern bool wrcstm (a10 ea, int32 prv);
-extern bool rdcstm (a10 ea, int32 prv);
-extern bool clrcsh (a10 ea, int32 prv);
-extern bool ldbr1 (a10 ea, int32 prv);
-extern bool sdbr1 (a10 ea, int32 prv);
-extern bool ldbr2 (a10 ea, int32 prv);
-extern bool sdbr2 (a10 ea, int32 prv);
-extern bool ldbr3 (a10 ea, int32 prv);
-extern bool sdbr3 (a10 ea, int32 prv);
-extern bool ldbr4 (a10 ea, int32 prv);
-extern bool sdbr4 (a10 ea, int32 prv);
-extern bool wrpcst (a10 ea, int32 prv);
-extern bool rdpcst (a10 ea, int32 prv);
-extern bool lpmr (a10 ea, int32 prv);
-extern bool spm (a10 ea, int32 prv);
-extern int xtend (int32 ac, int32 ea, int32 pflgs);
-extern void xtcln (int32 rlog);
+extern d10 map (a10 ea, int32_t prv);
+extern a10 conmap (a10 ea, int32_t mode, int32_t sw);
+extern bool clrpt (a10 ea, int32_t prv);
+extern bool wrebr (a10 ea, int32_t prv);
+extern bool rdebr (a10 ea, int32_t prv);
+extern bool wrubr (a10 ea, int32_t prv);
+extern bool rdubr (a10 ea, int32_t prv);
+extern bool wrhsb (a10 ea, int32_t prv);
+extern bool rdhsb (a10 ea, int32_t prv);
+extern bool wrspb (a10 ea, int32_t prv);
+extern bool rdspb (a10 ea, int32_t prv);
+extern bool wrcsb (a10 ea, int32_t prv);
+extern bool rdcsb (a10 ea, int32_t prv);
+extern bool wrpur (a10 ea, int32_t prv);
+extern bool rdpur (a10 ea, int32_t prv);
+extern bool wrcstm (a10 ea, int32_t prv);
+extern bool rdcstm (a10 ea, int32_t prv);
+extern bool clrcsh (a10 ea, int32_t prv);
+extern bool ldbr1 (a10 ea, int32_t prv);
+extern bool sdbr1 (a10 ea, int32_t prv);
+extern bool ldbr2 (a10 ea, int32_t prv);
+extern bool sdbr2 (a10 ea, int32_t prv);
+extern bool ldbr3 (a10 ea, int32_t prv);
+extern bool sdbr3 (a10 ea, int32_t prv);
+extern bool ldbr4 (a10 ea, int32_t prv);
+extern bool sdbr4 (a10 ea, int32_t prv);
+extern bool wrpcst (a10 ea, int32_t prv);
+extern bool rdpcst (a10 ea, int32_t prv);
+extern bool lpmr (a10 ea, int32_t prv);
+extern bool spm (a10 ea, int32_t prv);
+extern int xtend (int32_t ac, int32_t ea, int32_t pflgs);
+extern void xtcln (int32_t rlog);
 
-t_stat set_addr (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat set_addr_flt (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_addr (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat set_vec (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_vec (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat show_vec_mux (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat auto_config (const char *name, int32 num);
+t_stat set_addr (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat set_addr_flt (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_addr (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat set_vec (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_vec (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat show_vec_mux (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat auto_config (const char *name, int32_t num);
 
 extern d10 *ac_cur;                                     /* current AC block */
-extern int32 flags;                                     /* flags */
-extern const int32 pi_l2bit[8];
+extern int32_t flags;                                   /* flags */
+extern const int32_t pi_l2bit[8];
 extern const d10 bytemask[64];
-extern int32 int_req;
+extern int32_t int_req;
 extern d10 *M;                                          /* memory */
 extern a10 pager_PC;                                    /* pager: saved PC */
 extern d10 pager_word;                                  /* pager: error word */
 extern UNIT cpu_unit;
-extern int32 apr_flg;
+extern int32_t apr_flg;
 extern jmp_buf save_env;
 
 #endif

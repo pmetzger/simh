@@ -1,7 +1,9 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
+#include "sim_types.h"
 #include "test_cmocka.h"
 
 #include "vax_defs.h"
@@ -11,26 +13,26 @@
  * ROM byte writer used while patching model-specific boot ROM images.
  */
 
-void rom_wr_B(int32 pa, int32 val);
+void rom_wr_B(int32_t pa, int32_t val);
 
 #if defined(TEST_VAX630_SYSDEV)
-int32 rom_rd(int32 pa, int32 lnt);
-int32 ReadRegU(uint32 pa, int32 lnt);
+int32_t rom_rd(int32_t pa, int32_t lnt);
+int32_t ReadRegU(uint32_t pa, int32_t lnt);
 #else
-int32 rom_rd(int32 pa);
+int32_t rom_rd(int32_t pa);
 #endif
 
-extern uint32 *rom;
+extern uint32_t *rom;
 extern UNIT rom_unit;
 
-static uint32 test_rom[ROMSIZE >> 2];
+static uint32_t test_rom[ROMSIZE >> 2];
 
-int32 wtc_rd(int32 rg);
-void wtc_wr(int32 rg, int32 val);
+int32_t wtc_rd(int32_t rg);
+void wtc_wr(int32_t rg, int32_t val);
 void wtc_set_valid(void);
 void wtc_set_invalid(void);
 
-int32 wtc_rd(int32 rg)
+int32_t wtc_rd(int32_t rg)
 {
     /* Stubbed watch-chip read for tests that target ROM byte writes. */
     (void)rg;
@@ -38,7 +40,7 @@ int32 wtc_rd(int32 rg)
     return 0;
 }
 
-void wtc_wr(int32 rg, int32 val)
+void wtc_wr(int32_t rg, int32_t val)
 {
     /* Stubbed watch-chip write for tests that target ROM byte writes. */
     (void)rg;
@@ -56,60 +58,60 @@ void wtc_set_invalid(void)
 }
 
 #if defined(TEST_VAX630_SYSDEV)
-TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat);
-t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32 val, const void *desc);
+TLBENT fill(uint32_t va, int32_t lnt, int32_t acc, int32_t *stat);
+t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat cpu_load_bootcode(const char *filename,
-                         const unsigned char *builtin_code, size_t size,
+                         const uchar_t *builtin_code, size_t size,
                          bool load_rom, t_addr offset);
-int32 intexc(int32 vec, int32 cc, int32 ipl, int ei);
-int32 qbmap_rd(int32 pa, int32 lnt);
-void qbmap_wr(int32 pa, int32 val, int32 lnt);
-int32 qbmem_rd(int32 pa, int32 lnt);
-void qbmem_wr(int32 pa, int32 val, int32 lnt);
-void WriteIO(uint32 pa, int32 val, int32 lnt);
-void WriteIOU(uint32 pa, int32 val, int32 lnt);
-int32 iccs_rd(void);
-int32 todr_rd(void);
-int32 rxcs_rd(void);
-int32 rxdb_rd(void);
-int32 txcs_rd(void);
-void iccs_wr(int32 dat);
-void todr_wr(int32 dat);
-void rxcs_wr(int32 dat);
-void txcs_wr(int32 dat);
-void txdb_wr(int32 dat);
-void ioreset_wr(int32 dat);
+int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei);
+int32_t qbmap_rd(int32_t pa, int32_t lnt);
+void qbmap_wr(int32_t pa, int32_t val, int32_t lnt);
+int32_t qbmem_rd(int32_t pa, int32_t lnt);
+void qbmem_wr(int32_t pa, int32_t val, int32_t lnt);
+void WriteIO(uint32_t pa, int32_t val, int32_t lnt);
+void WriteIOU(uint32_t pa, int32_t val, int32_t lnt);
+int32_t iccs_rd(void);
+int32_t todr_rd(void);
+int32_t rxcs_rd(void);
+int32_t rxdb_rd(void);
+int32_t txcs_rd(void);
+void iccs_wr(int32_t dat);
+void todr_wr(int32_t dat);
+void rxcs_wr(int32_t dat);
+void txcs_wr(int32_t dat);
+void txdb_wr(int32_t dat);
+void ioreset_wr(int32_t dat);
 void cpu_idle(void);
 
-uint32 *M;
-uint32 R[16];
-uint32 STK[5];
-uint32 PSL;
-uint32 SISR;
-uint32 fault_PC;
-uint32 p1;
-uint32 p2;
-uint32 pcq[PCQ_SIZE];
-uint32 mchk_va;
-uint32 mchk_ref;
-int32 pcq_p;
-int32 in_ie;
-int32 ibcnt;
-int32 ppc;
-int32 mapen;
+uint32_t *M;
+uint32_t R[16];
+uint32_t STK[5];
+uint32_t PSL;
+uint32_t SISR;
+uint32_t fault_PC;
+uint32_t p1;
+uint32_t p2;
+uint32_t pcq[PCQ_SIZE];
+uint32_t mchk_va;
+uint32_t mchk_ref;
+int32_t pcq_p;
+int32_t in_ie;
+int32_t ibcnt;
+int32_t ppc;
+int32_t mapen;
 TLBENT stlb[VA_TBSIZE];
 TLBENT ptlb[VA_TBSIZE];
 DEVICE cpu_dev;
 UNIT cpu_unit;
 UNIT clk_unit;
-int32 tmr_poll;
+int32_t tmr_poll;
 DEVICE va_dev;
 DEVICE vc_dev;
 DEVICE lk_dev;
 DEVICE vs_dev;
 jmp_buf save_env;
 
-TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat)
+TLBENT fill(uint32_t va, int32_t lnt, int32_t acc, int32_t *stat)
 {
     /* Stubbed MMU fill for uncalled memory access paths. */
     (void)va;
@@ -120,7 +122,7 @@ TLBENT fill(uint32 va, int32 lnt, int32 acc, int32 *stat)
     return (TLBENT){0, 0};
 }
 
-t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)st;
@@ -132,7 +134,7 @@ t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 t_stat cpu_load_bootcode(const char *filename,
-                         const unsigned char *builtin_code, size_t size,
+                         const uchar_t *builtin_code, size_t size,
                          bool load_rom, t_addr offset)
 {
     /* Stubbed boot-code loader for uncalled boot paths. */
@@ -145,7 +147,7 @@ t_stat cpu_load_bootcode(const char *filename,
     return SCPE_OK;
 }
 
-int32 intexc(int32 vec, int32 cc, int32 ipl, int ei)
+int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei)
 {
     /* Stubbed interrupt helper for uncalled legacy paths. */
     (void)vec;
@@ -156,7 +158,7 @@ int32 intexc(int32 vec, int32 cc, int32 ipl, int ei)
     return 0;
 }
 
-int32 qbmap_rd(int32 pa, int32 lnt)
+int32_t qbmap_rd(int32_t pa, int32_t lnt)
 {
     /* Stubbed Qbus map read for uncalled register dispatch entries. */
     (void)pa;
@@ -165,7 +167,7 @@ int32 qbmap_rd(int32 pa, int32 lnt)
     return 0;
 }
 
-void qbmap_wr(int32 pa, int32 val, int32 lnt)
+void qbmap_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed Qbus map write for uncalled register dispatch entries. */
     (void)pa;
@@ -173,7 +175,7 @@ void qbmap_wr(int32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 qbmem_rd(int32 pa, int32 lnt)
+int32_t qbmem_rd(int32_t pa, int32_t lnt)
 {
     /* Stubbed Qbus memory read for uncalled register dispatch entries. */
     (void)pa;
@@ -182,7 +184,7 @@ int32 qbmem_rd(int32 pa, int32 lnt)
     return 0;
 }
 
-void qbmem_wr(int32 pa, int32 val, int32 lnt)
+void qbmem_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed Qbus memory write for uncalled register dispatch entries. */
     (void)pa;
@@ -190,7 +192,7 @@ void qbmem_wr(int32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-void WriteIO(uint32 pa, int32 val, int32 lnt)
+void WriteIO(uint32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed I/O write for uncalled memory access paths. */
     (void)pa;
@@ -198,7 +200,7 @@ void WriteIO(uint32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-void WriteIOU(uint32 pa, int32 val, int32 lnt)
+void WriteIOU(uint32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed unaligned I/O write for uncalled memory access paths. */
     (void)pa;
@@ -206,62 +208,62 @@ void WriteIOU(uint32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 iccs_rd(void)
+int32_t iccs_rd(void)
 {
     return 0;
 }
 
-int32 todr_rd(void)
+int32_t todr_rd(void)
 {
     return 0;
 }
 
-int32 rxcs_rd(void)
+int32_t rxcs_rd(void)
 {
     return 0;
 }
 
-int32 rxdb_rd(void)
+int32_t rxdb_rd(void)
 {
     return 0;
 }
 
-int32 txcs_rd(void)
+int32_t txcs_rd(void)
 {
     return 0;
 }
 
-void iccs_wr(int32 dat)
+void iccs_wr(int32_t dat)
 {
     /* Stubbed interval clock write for uncalled legacy paths. */
     (void)dat;
 }
 
-void todr_wr(int32 dat)
+void todr_wr(int32_t dat)
 {
     /* Stubbed TODR write for uncalled legacy paths. */
     (void)dat;
 }
 
-void rxcs_wr(int32 dat)
+void rxcs_wr(int32_t dat)
 {
     /* Stubbed console receiver status write for uncalled legacy paths. */
     (void)dat;
 }
 
-void txcs_wr(int32 dat)
+void txcs_wr(int32_t dat)
 {
     /* Stubbed console transmitter status write for uncalled legacy paths. */
     (void)dat;
 }
 
-void txdb_wr(int32 dat)
+void txdb_wr(int32_t dat)
 {
     /* Stubbed console transmitter data write for uncalled legacy paths. */
     (void)dat;
 }
 
-void ioreset_wr(int32 dat)
+void ioreset_wr(int32_t dat)
 {
     /* Stubbed I/O reset write for uncalled legacy paths. */
     (void)dat;
@@ -272,9 +274,9 @@ void cpu_idle(void)
     /* Stubbed idle hook for uncalled halt paths. */
 }
 #else
-int32 nar_rd(int32 pa);
+int32_t nar_rd(int32_t pa);
 
-int32 nar_rd(int32 pa)
+int32_t nar_rd(int32_t pa)
 {
     /* Stubbed NAR read for uncalled I/O paths. */
     (void)pa;
@@ -290,12 +292,12 @@ static void reset_rom_byte_write_state(void)
     rom_unit.flags |= (1u << UNIT_V_UF);
 }
 
-static uint32 read_rom_word(void)
+static uint32_t read_rom_word(void)
 {
 #if defined(TEST_VAX630_SYSDEV)
-    return (uint32)rom_rd((int32)ROMBASE, L_LONG);
+    return (uint32_t)rom_rd((int32_t)ROMBASE, L_LONG);
 #else
-    return (uint32)rom_rd((int32)ROMBASE);
+    return (uint32_t)rom_rd((int32_t)ROMBASE);
 #endif
 }
 
@@ -303,9 +305,9 @@ static uint32 read_rom_word(void)
 static void test_rom_byte_write_preserves_legacy_lanes(void **state)
 {
     static const struct {
-        uint32 pa;
-        int32 val;
-        uint32 expected;
+        uint32_t pa;
+        int32_t val;
+        uint32_t expected;
     } cases[] = {
         {ROMBASE, 0xa5, 0x123456a5u},
         {ROMBASE + 1, 0xa5, 0x1234a578u},
@@ -321,7 +323,7 @@ static void test_rom_byte_write_preserves_legacy_lanes(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_rom_byte_write_state();
         test_rom[0] = 0x12345678u;
-        rom_wr_B((int32)cases[i].pa, cases[i].val);
+        rom_wr_B((int32_t)cases[i].pa, cases[i].val);
         assert_int_equal(test_rom[0], cases[i].expected);
         assert_int_equal(read_rom_word(), cases[i].expected);
     }
@@ -332,8 +334,8 @@ static void test_rom_byte_write_preserves_legacy_lanes(void **state)
 static void test_unaligned_read_preserves_high_half(void **state)
 {
     static const struct {
-        uint32 stored;
-        uint32 expected;
+        uint32_t stored;
+        uint32_t expected;
     } cases[] = {
         {0x12345678u, 0x12345678u},
         {0x80015678u, 0x80015678u},
@@ -347,9 +349,9 @@ static void test_unaligned_read_preserves_high_half(void **state)
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         reset_rom_byte_write_state();
         test_rom[0] = cases[i].stored;
-        assert_int_equal((uint32)ReadRegU(ROMBASE + 1, L_WORD),
+        assert_int_equal((uint32_t)ReadRegU(ROMBASE + 1, L_WORD),
                          cases[i].expected);
-        assert_int_equal((uint32)ReadRegU(ROMBASE + 1, 3), cases[i].expected);
+        assert_int_equal((uint32_t)ReadRegU(ROMBASE + 1, 3), cases[i].expected);
     }
 }
 #endif

@@ -31,6 +31,7 @@
 
 #include "id_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #define MSK_SBF         0x0100
 
@@ -45,7 +46,7 @@ extern DEVICE dp_dev, idc_dev;
 extern DEVICE fd_dev, mt_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint16 *M;
+extern uint16_t *M;
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val);
 t_stat parse_sym_m (const char *cptr, t_addr addr, t_value *val);
@@ -66,7 +67,7 @@ char sim_name[] = "Interdata 16b";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 2;
+int32_t sim_emax = 2;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -137,19 +138,19 @@ return lp_load (fileref, cptr, fnam);
 #define R_R             2                               /* reg int reg */
 #define R_F             3                               /* reg flt reg */
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
  0xFF00, 0xFF00, 0xFFF0, 0xFF00,
  0xFF00, 0xFFF0, 0xFF00, 0xFF00,
  0xFF00, 0xFE00, 0xFEF0
  };
 
-static const uint32 r1_type[] = {
+static const uint32_t r1_type[] = {
  R_M, R_R, R_X, R_M,
  R_R, R_X, R_F, R_F,
  R_R, R_M, R_X
  };
 
-static const uint32 r2_type[] = {
+static const uint32_t r2_type[] = {
  R_X, R_R, R_R, R_X,
  R_X, R_X, R_F, R_X,
  R_M, R_X, R_X
@@ -210,7 +211,7 @@ static const char *opcode[] = {
 NULL
 };
 
-static const uint32 opc_val[] = {
+static const uint32_t opc_val[] = {
 0x0330+I_R,  0x0230+I_R,  0x0330+I_R,  0x0230+I_R,
 0x0220+I_R,  0x0320+I_R,  0x0280+I_R,  0x0380+I_R,
 0x0210+I_R,  0x0310+I_R,  0x0240+I_R,  0x0340+I_R,
@@ -279,9 +280,9 @@ static const uint32 opc_val[] = {
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 bflag, c1, c2, rdx;
+int32_t bflag, c1, c2, rdx;
 t_stat r;
 DEVICE *dptr;
 
@@ -352,7 +353,7 @@ return -1;
 
 t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val)
 {
-uint32 i, j, inst, r1, r2, ea;
+uint32_t i, j, inst, r1, r2, ea;
 
 inst = val[0];                                          /* first 16b */
 ea = val[1];                                            /* second 16b */
@@ -420,9 +421,9 @@ return SCPE_ARG;                                        /* no match */
         rnum    =       output register number, -1 if error
 */
 
-static int32 get_reg (char *cptr, char **optr, int32 rtype)
+static int32_t get_reg (char *cptr, char **optr, int32_t rtype)
 {
-int32 reg;
+int32_t reg;
 
 if ((*cptr == 'R') || (*cptr == 'r')) {                 /* R? */
     cptr++;                                             /* skip */
@@ -461,7 +462,7 @@ return reg;
 
 static t_stat get_addr (char *cptr, char **tptr, t_addr *ea, t_addr addr)
 {
-int32 sign = 1;
+int32_t sign = 1;
 
 if (*cptr == '.') {                                     /* relative? */
     cptr++;
@@ -476,7 +477,7 @@ if (*cptr == '.') {                                     /* relative? */
     }
 else *ea = 0;
 errno = 0;
-*ea = *ea + (sign * ((int32) strtoul (cptr, tptr, 16)));
+*ea = *ea + (sign * ((int32_t) strtoul (cptr, tptr, 16)));
 if (errno || (cptr == *tptr))
     return SCPE_ARG;
 return SCPE_OK;
@@ -484,9 +485,9 @@ return SCPE_OK;
 
 /* Symbolic input */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 bflag, by, rdx, num;
+int32_t bflag, by, rdx, num;
 t_stat r;
 DEVICE *dptr;
 
@@ -537,7 +538,7 @@ if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII chars? */
     return -1;
     }
 if (sw & SWMASK ('F')) {
-    num = (int32) get_uint (cptr, rdx, DMASK32, &r);    /* get number */
+    num = (int32_t) get_uint (cptr, rdx, DMASK32, &r);  /* get number */
     if (r != SCPE_OK)
         return r;
     val[0] = (num >> 16) & DMASK16;
@@ -548,7 +549,7 @@ if (sw & SWMASK ('F')) {
 r = parse_sym_m (cptr, addr, val);                      /* try to parse inst */
 if (r <= 0)
     return r;
-val[0] = (int32) get_uint (cptr, rdx, DMASK16, &r);     /* get number */
+val[0] = (int32_t) get_uint (cptr, rdx, DMASK16, &r);   /* get number */
 if (r != SCPE_OK)
     return r;
 return -1;
@@ -568,8 +569,8 @@ return -1;
 
 t_stat parse_sym_m (const char *cptr, t_addr addr, t_value *val)
 {
-uint32 i, j, t, df, db, inst;
-int32 r1, r2;
+uint32_t i, j, t, df, db, inst;
+int32_t r1, r2;
 t_stat r;
 char *tptr, gbuf[CBUFSIZE];
 

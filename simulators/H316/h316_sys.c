@@ -33,6 +33,7 @@
 
 #include "h316_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev;
 extern UNIT cpu_unit;
@@ -50,7 +51,7 @@ extern DEVICE mi1_dev, mi2_dev, mi3_dev, mi4_dev, mi5_dev;
 extern DEVICE hi1_dev, hi2_dev, hi3_dev, hi4_dev;
 #endif
 extern REG cpu_reg[];
-extern uint16 M[];
+extern uint16_t M[];
 
 /* SCP data structures and interface routines
 
@@ -66,7 +67,7 @@ char sim_name[] = "H316";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -137,7 +138,7 @@ return SCPE_FMT;
 #define I_SK0           (I_V_SK0 << I_V_FL)
 #define I_SK1           (I_V_SK1 << I_V_FL)
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
  0177777, 0136000, 0176000, 0176000,
  0177700, 0177000, 0177000
  };
@@ -188,7 +189,7 @@ static const char *ioname[DEV_MAX] = {
  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
  };
 
-static const int32 opc_val[] = {
+static const int32_t opc_val[] = {
  0000000+I_NPN, 0000005+I_NPN, 0000007+I_NPN,
  0000011+I_NPN, 0000013+I_NPN, 0000021+I_NPN,
  0000041+I_NPN, 0000043+I_NPN, 0000101+I_NPN,
@@ -234,9 +235,9 @@ static const int32 opc_val[] = {
         status  =       space needed
 */
 
-static void fprint_opr (FILE *of, int32 inst, int32 Class)
+static void fprint_opr (FILE *of, int32_t inst, int32_t Class)
 {
-int32 i, j, sp;
+int32_t i, j, sp;
 
 for (i = sp = 0; opc_val[i] >= 0; i++) {                /* loop thru ops */
     j = (opc_val[i] >> I_V_FL) & I_M_FL;                /* get class */
@@ -264,9 +265,9 @@ return;
 #define FMTASC(x) ((x) < 040)? "<%03o>": "%c", (x)
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 cflag, i, j, inst, fnc, disp;
+int32_t cflag, i, j, inst, fnc, disp;
 
 cflag = (uptr == NULL) || (uptr == &cpu_unit);
 inst = val[0];
@@ -345,9 +346,9 @@ return SCPE_ARG;
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 cflag, d, i, j, k;
+int32_t cflag, d, i, j, k;
 t_stat r;
 char gbuf[CBUFSIZE];
 

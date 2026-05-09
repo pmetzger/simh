@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include "sim.h"
+#include "sim_types.h"
 #include "m68k.h"
 #include "osd.h"
 
@@ -46,14 +47,14 @@ void disassemble_program();
 /* Prototypes */
 void exit_error(char* fmt, ...);
 
-unsigned int cpu_read_byte(unsigned int address);
-unsigned int cpu_read_word(unsigned int address);
-unsigned int cpu_read_long(unsigned int address);
-void cpu_write_byte(unsigned int address, unsigned int value);
-void cpu_write_word(unsigned int address, unsigned int value);
-void cpu_write_long(unsigned int address, unsigned int value);
+uint_t cpu_read_byte(uint_t address);
+uint_t cpu_read_word(uint_t address);
+uint_t cpu_read_long(uint_t address);
+void cpu_write_byte(uint_t address, uint_t value);
+void cpu_write_word(uint_t address, uint_t value);
+void cpu_write_long(uint_t address, uint_t value);
 void cpu_pulse_reset(void);
-void cpu_set_fc(unsigned int fc);
+void cpu_set_fc(uint_t fc);
 int cpu_irq_ack(int level);
 
 void nmi_device_reset(void);
@@ -63,36 +64,36 @@ int nmi_device_ack(void);
 void input_device_reset(void);
 void input_device_update(void);
 int input_device_ack(void);
-unsigned int input_device_read(void);
-void input_device_write(unsigned int value);
+uint_t input_device_read(void);
+void input_device_write(uint_t value);
 
 void output_device_reset(void);
 void output_device_update(void);
 int output_device_ack(void);
-unsigned int output_device_read(void);
-void output_device_write(unsigned int value);
+uint_t output_device_read(void);
+void output_device_write(uint_t value);
 
-void int_controller_set(unsigned int value);
-void int_controller_clear(unsigned int value);
+void int_controller_set(uint_t value);
+void int_controller_clear(uint_t value);
 
 void get_user_input(void);
 
 
 /* Data */
-unsigned int g_quit = 0;                        /* 1 if we want to quit */
-unsigned int g_nmi = 0;                         /* 1 if nmi pending */
+uint_t g_quit = 0;                              /* 1 if we want to quit */
+uint_t g_nmi = 0;                               /* 1 if nmi pending */
 
 int          g_input_device_value = -1;         /* Current value in input device */
 
-unsigned int g_output_device_ready = 0;         /* 1 if output device is ready */
+uint_t g_output_device_ready = 0;               /* 1 if output device is ready */
 time_t       g_output_device_last_output;       /* Time of last char output */
 
-unsigned int g_int_controller_pending = 0;      /* list of pending interrupts */
-unsigned int g_int_controller_highest_int = 0;  /* Highest pending interrupt */
+uint_t g_int_controller_pending = 0;            /* list of pending interrupts */
+uint_t g_int_controller_highest_int = 0;        /* Highest pending interrupt */
 
-unsigned char g_rom[MAX_ROM+1];                 /* ROM */
-unsigned char g_ram[MAX_RAM+1];                 /* RAM */
-unsigned int  g_fc;                             /* Current function code from CPU */
+uchar_t g_rom[MAX_ROM+1];                       /* ROM */
+uchar_t g_ram[MAX_RAM+1];                       /* RAM */
+uint_t        g_fc;                             /* Current function code from CPU */
 
 
 /* Exit with an error message.  Use printf syntax. */
@@ -100,7 +101,7 @@ void exit_error(char* fmt, ...)
 {
 	static int guard_val = 0;
 	char buff[100];
-	unsigned int pc;
+	uint_t pc;
 	va_list args;
 
 	if(guard_val)
@@ -121,7 +122,7 @@ void exit_error(char* fmt, ...)
 
 
 /* Read data from RAM, ROM, or a device */
-unsigned int cpu_read_byte(unsigned int address)
+uint_t cpu_read_byte(uint_t address)
 {
 	if(g_fc & 2)	/* Program */
 	{
@@ -145,7 +146,7 @@ unsigned int cpu_read_byte(unsigned int address)
 	return READ_BYTE(g_ram, address);
 }
 
-unsigned int cpu_read_word(unsigned int address)
+uint_t cpu_read_word(uint_t address)
 {
 	if(g_fc & 2)	/* Program */
 	{
@@ -169,7 +170,7 @@ unsigned int cpu_read_word(unsigned int address)
 	return READ_WORD(g_ram, address);
 }
 
-unsigned int cpu_read_long(unsigned int address)
+uint_t cpu_read_long(uint_t address)
 {
 	if(g_fc & 2)	/* Program */
 	{
@@ -194,14 +195,14 @@ unsigned int cpu_read_long(unsigned int address)
 }
 
 
-unsigned int cpu_read_word_dasm(unsigned int address)
+uint_t cpu_read_word_dasm(uint_t address)
 {
 	if(address > MAX_ROM)
 		exit_error("Disassembler attempted to read word from ROM address %08x", address);
 	return READ_WORD(g_rom, address);
 }
 
-unsigned int cpu_read_long_dasm(unsigned int address)
+uint_t cpu_read_long_dasm(uint_t address)
 {
 	if(address > MAX_ROM)
 		exit_error("Dasm attempted to read long from ROM address %08x", address);
@@ -210,7 +211,7 @@ unsigned int cpu_read_long_dasm(unsigned int address)
 
 
 /* Write data to RAM or a device */
-void cpu_write_byte(unsigned int address, unsigned int value)
+void cpu_write_byte(uint_t address, uint_t value)
 {
 	if(g_fc & 2)	/* Program */
 		exit_error("Attempted to write %02x to ROM address %08x", value&0xff, address);
@@ -232,7 +233,7 @@ void cpu_write_byte(unsigned int address, unsigned int value)
 	WRITE_BYTE(g_ram, address, value);
 }
 
-void cpu_write_word(unsigned int address, unsigned int value)
+void cpu_write_word(uint_t address, uint_t value)
 {
 	if(g_fc & 2)	/* Program */
 		exit_error("Attempted to write %04x to ROM address %08x", value&0xffff, address);
@@ -254,7 +255,7 @@ void cpu_write_word(unsigned int address, unsigned int value)
 	WRITE_WORD(g_ram, address, value);
 }
 
-void cpu_write_long(unsigned int address, unsigned int value)
+void cpu_write_long(uint_t address, uint_t value)
 {
 	if(g_fc & 2)	/* Program */
 		exit_error("Attempted to write %08x to ROM address %08x", value, address);
@@ -285,7 +286,7 @@ void cpu_pulse_reset(void)
 }
 
 /* Called when the CPU changes the function code pins */
-void cpu_set_fc(unsigned int fc)
+void cpu_set_fc(uint_t fc)
 {
 	g_fc = fc;
 }
@@ -349,7 +350,7 @@ int input_device_ack(void)
 	return M68K_INT_ACK_AUTOVECTOR;
 }
 
-unsigned int input_device_read(void)
+uint_t input_device_read(void)
 {
 	int value = g_input_device_value > 0 ? g_input_device_value : 0;
 	int_controller_clear(IRQ_INPUT_DEVICE);
@@ -357,7 +358,7 @@ unsigned int input_device_read(void)
 	return value;
 }
 
-void input_device_write(unsigned int value)
+void input_device_write(uint_t value)
 {
 	(void)value;
 }
@@ -388,13 +389,13 @@ int output_device_ack(void)
 	return M68K_INT_ACK_AUTOVECTOR;
 }
 
-unsigned int output_device_read(void)
+uint_t output_device_read(void)
 {
 	int_controller_clear(IRQ_OUTPUT_DEVICE);
 	return 0;
 }
 
-void output_device_write(unsigned int value)
+void output_device_write(uint_t value)
 {
 	char ch;
 	if(g_output_device_ready)
@@ -409,9 +410,9 @@ void output_device_write(unsigned int value)
 
 
 /* Implementation for the interrupt controller */
-void int_controller_set(unsigned int value)
+void int_controller_set(uint_t value)
 {
-	unsigned int old_pending = g_int_controller_pending;
+	uint_t old_pending = g_int_controller_pending;
 
 	g_int_controller_pending |= (1<<value);
 
@@ -422,7 +423,7 @@ void int_controller_set(unsigned int value)
 	}
 }
 
-void int_controller_clear(unsigned int value)
+void int_controller_clear(uint_t value)
 {
 	g_int_controller_pending &= ~(1<<value);
 
@@ -459,7 +460,7 @@ void get_user_input(void)
 }
 
 /* Disassembler */
-void make_hex(char* buff, unsigned int pc, unsigned int length)
+void make_hex(char* buff, uint_t pc, uint_t length)
 {
 	char* ptr = buff;
 
@@ -475,8 +476,8 @@ void make_hex(char* buff, unsigned int pc, unsigned int length)
 
 void disassemble_program()
 {
-	unsigned int pc;
-	unsigned int instr_size;
+	uint_t pc;
+	uint_t instr_size;
 	char buff[100];
 	char buff2[100];
 
@@ -499,8 +500,8 @@ void cpu_instr_callback(int pc)
 /*
 	static char buff[100];
 	static char buff2[100];
-	static unsigned int pc;
-	static unsigned int instr_size;
+	static uint_t pc;
+	static uint_t instr_size;
 
 	pc = m68k_get_reg(NULL, M68K_REG_PC);
 	instr_size = m68k_disassemble(buff, pc, M68K_CPU_TYPE_68000);

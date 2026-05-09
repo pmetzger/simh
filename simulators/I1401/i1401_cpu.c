@@ -137,6 +137,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "i1401_defs.h"
 #include "i1401_bool_internal.h"
@@ -150,9 +151,9 @@
 #define HIST_MAX        65536
 
 typedef struct {
-    uint16              is;
-    uint16              ilnt;
-    uint8               inst[MAX_L];
+    uint16_t            is;
+    uint16_t            ilnt;
+    uint8_t             inst[MAX_L];
     } InstHistory;
 
 /* These macros validate addresses.  If an addresses error is detected,
@@ -192,53 +193,53 @@ typedef struct {
                         IS = AS;
 
 
-uint8 M[MAXMEMSIZE] = { 0 };                            /* main memory */
-int32 saved_IS = 0;                                     /* saved IS */
-int32 AS = 0;                                           /* AS */
-int32 BS = 0;                                           /* BS */
-int32 D = 0;                                            /* modifier */
-int32 as_err = 0, bs_err = 0;                           /* error flags */
-int32 hb_pend = 0;                                      /* halt br pending */
-uint16 pcq[PCQ_SIZE] = { 0 };                           /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+uint8_t M[MAXMEMSIZE] = { 0 };                          /* main memory */
+int32_t saved_IS = 0;                                   /* saved IS */
+int32_t AS = 0;                                         /* AS */
+int32_t BS = 0;                                         /* BS */
+int32_t D = 0;                                          /* modifier */
+int32_t as_err = 0, bs_err = 0;                         /* error flags */
+int32_t hb_pend = 0;                                    /* halt br pending */
+uint16_t pcq[PCQ_SIZE] = { 0 };                         /* PC queue */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
-int32 ind[64] = { 0 };                                  /* indicators */
-int32 ssa = 1;                                          /* sense switch A */
-int32 prchk = 0;                                        /* process check stop */
-int32 iochk = 0;                                        /* I/O check stop */
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+int32_t ind[64] = { 0 };                                /* indicators */
+int32_t ssa = 1;                                        /* sense switch A */
+int32_t prchk = 0;                                      /* process check stop */
+int32_t iochk = 0;                                      /* I/O check stop */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 bool conv_old = false;                                  /* old conversions */
 
-extern int32 sim_emax;
+extern int32_t sim_emax;
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_set_conv (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_conv (FILE *st, UNIT *uptr, int32 val, const void *desc);
-int32 store_addr_h (int32 addr);
-int32 store_addr_t (int32 addr);
-int32 store_addr_u (int32 addr);
-int32 div_add (int32 ap, int32 bp);
-int32 div_sub (int32 ap, int32 bp);
-void div_sign (int32 dvrc, int32 dvdc, int32 qp, int32 rp);
-t_stat iomod (int32 ilnt, int32 mod, const int32 *tptr);
-t_stat iodisp (int32 dev, int32 unit, int32 flag, int32 mod);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_set_conv (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_conv (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+int32_t store_addr_h (int32_t addr);
+int32_t store_addr_t (int32_t addr);
+int32_t store_addr_u (int32_t addr);
+int32_t div_add (int32_t ap, int32_t bp);
+int32_t div_sub (int32_t ap, int32_t bp);
+void div_sign (int32_t dvrc, int32_t dvdc, int32_t qp, int32_t rp);
+t_stat iomod (int32_t ilnt, int32_t mod, const int32_t *tptr);
+t_stat iodisp (int32_t dev, int32_t unit, int32_t flag, int32_t mod);
 
-extern t_stat read_card (int32 ilnt, int32 mod);
-extern t_stat punch_card (int32 ilnt, int32 mod);
-extern t_stat select_stack (int32 mod);
-extern t_stat carriage_control (int32 mod);
-extern t_stat write_line (int32 ilnt, int32 mod);
-extern t_stat inq_io (int32 flag, int32 mod);
-extern t_stat mt_io (int32 unit, int32 flag, int32 mod);
-extern t_stat dp_io (int32 fnc, int32 flag, int32 mod);
-extern t_stat mt_func (int32 unit, int32 flag, int32 mod);
+extern t_stat read_card (int32_t ilnt, int32_t mod);
+extern t_stat punch_card (int32_t ilnt, int32_t mod);
+extern t_stat select_stack (int32_t mod);
+extern t_stat carriage_control (int32_t mod);
+extern t_stat write_line (int32_t ilnt, int32_t mod);
+extern t_stat inq_io (int32_t flag, int32_t mod);
+extern t_stat mt_io (int32_t unit, int32_t flag, int32_t mod);
+extern t_stat dp_io (int32_t fnc, int32_t flag, int32_t mod);
+extern t_stat mt_func (int32_t unit, int32_t flag, int32_t mod);
 
 /* CPU data structures
 
@@ -323,7 +324,7 @@ DEVICE cpu_dev = {
 /* Opcode table - length, dispatch, and option flags.  This table is
    used by the symbolic input routine to validate instruction lengths  */
 
-const int32 op_table[64] = {
+const int32_t op_table[64] = {
     0,                                                  /* 00: illegal */
     L1 | L2 | L4 | L5,                                  /* read */
     L1 | L2 | L4 | L5,                                  /* write */
@@ -390,12 +391,12 @@ const int32 op_table[64] = {
     0                                                   /* illegal */
     };
 
-const int32 len_table[9] = { 0, L1, L2, 0, L4, L5, 0, L7, L8 };
+const int32_t len_table[9] = { 0, L1, L2, 0, L4, L5, 0, L7, L8 };
 
 /* Address character conversion tables.  Illegal characters are marked by
    the flag BA but also contain the post-adder value for indexing  */
 
-const int32 hun_table[64] = {
+const int32_t hun_table[64] = {
     BA+000, 100, 200, 300, 400, 500, 600, 700,
     800, 900, 000, BA+300, BA+400, BA+500, BA+600, BA+700,
     BA+1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700,
@@ -406,7 +407,7 @@ const int32 hun_table[64] = {
     3800, 3900, 3000, BA+3300, BA+3400, BA+3500, BA+3600, BA+3700
     };
 
-const int32 ten_table[64] = {
+const int32_t ten_table[64] = {
     BA+00, 10, 20, 30, 40, 50, 60, 70,
     80, 90, 00, BA+30, BA+40, BA+50, BA+60, BA+70,
     X1+00, X1+10, X1+20, X1+30, X1+40, X1+50, X1+60, X1+70,
@@ -417,7 +418,7 @@ const int32 ten_table[64] = {
     X3+80, X3+90, X3+00, X3+30, X3+40, X3+50, X3+60, X3+70
     };
 
-const int32 one_table[64] = {
+const int32_t one_table[64] = {
     BA+0, 1, 2, 3, 4, 5, 6, 7,
     8, 9, 0, BA+3, BA+4, BA+5, BA+6, BA+7,
     BA+4000, 4001, 4002, 4003, 4004, 4005, 4006, 4007,
@@ -428,17 +429,17 @@ const int32 one_table[64] = {
     12008, 12009, 12000, BA+12003, BA+12004, BA+12005, BA+12006, BA+12007
     };
 
-const int32 bin_to_bcd[16] = {
+const int32_t bin_to_bcd[16] = {
     10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
     };
 
-const int32 bcd_to_bin[16] = {
+const int32_t bcd_to_bin[16] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 3, 4, 5, 6, 7
     };
 
 /* Indicator resets - a 1 marks an indicator that resets when tested */
 
-static const int32 ind_table[64] = {
+static const int32_t ind_table[64] = {
     0, 0, 0, 0, 0, 0, 0, 0,                             /* 00 - 07 */
     0, 0, 0, 0, 0, 0, 0, 0,                             /* 10 - 17 */
     0, 0, 0, 0, 0, 0, 0, 0,                             /* 20 - 27 */
@@ -451,7 +452,7 @@ static const int32 ind_table[64] = {
 
 /* Character collation table for compare with HLE option */
 
-static const int32 col_table[64] = {
+static const int32_t col_table[64] = {
     000, 067, 070, 071, 072, 073, 074, 075,
     076, 077, 066, 024, 025, 026, 027, 030,
     023, 015, 056, 057, 060, 061, 062, 063,
@@ -467,7 +468,7 @@ static const int32 col_table[64] = {
    with carry forward
 */
 
-static const int32 sum_table[100] = {
+static const int32_t sum_table[100] = {
     BCD_ZERO, BCD_ONE, BCD_TWO, BCD_THREE, BCD_FOUR,
     BCD_FIVE, BCD_SIX, BCD_SEVEN, BCD_EIGHT, BCD_NINE,
     BCD_ZERO, BCD_ONE, BCD_TWO, BCD_THREE, BCD_FOUR,
@@ -490,7 +491,7 @@ static const int32 sum_table[100] = {
     BCD_FIVE, BCD_SIX, BCD_SEVEN, BCD_EIGHT, BCD_NINE
     };
 
-static const int32 cry_table[100] = {
+static const int32_t cry_table[100] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -505,32 +506,32 @@ static const int32 cry_table[100] = {
 
 /* Legal modifier tables */
 
-static const int32 r_mod[] = {
+static const int32_t r_mod[] = {
     BCD_C, -1
     };
-static const int32 p_mod[] = {
+static const int32_t p_mod[] = {
     BCD_C, -1
     };
-static const int32 w_mod[] = {
+static const int32_t w_mod[] = {
     BCD_S, BCD_SQUARE, -1
     };
-static const int32 ss_mod[] = {
+static const int32_t ss_mod[] = {
     BCD_ONE, BCD_TWO, BCD_FOUR, BCD_EIGHT,
     BCD_DOLLAR, BCD_DECIMAL, BCD_SQUARE, -1
     };
-static const int32 mtf_mod[] = {
+static const int32_t mtf_mod[] = {
     BCD_A, BCD_B, BCD_E,
     BCD_M, BCD_R, BCD_U, -1
     };
 
 t_stat sim_instr (void)
 {
-int32 IS, ilnt, flags;
-int32 op, xa, t, wm, ioind = 0, dev = 0, unit = 0;
-int32 a, b, i, k, asave, bsave;
-int32 carry, lowprd, sign, ps;
-int32 quo, qs;
-int32 qzero, qawm, qbody, qsign, qdollar, qaster, qdecimal;
+int32_t IS, ilnt, flags;
+int32_t op, xa, t, wm, ioind = 0, dev = 0, unit = 0;
+int32_t a, b, i, k, asave, bsave;
+int32_t carry, lowprd, sign, ps;
+int32_t quo, qs;
+int32_t qzero, qawm, qbody, qsign, qdollar, qaster, qdecimal;
 t_stat reason, r1, r2;
 
 /* Restore saved state */
@@ -1687,22 +1688,22 @@ return reason;
         char    =       converted address character
 */
 
-int32 store_addr_h (int32 addr)
+int32_t store_addr_h (int32_t addr)
 {
-int32 thous;
+int32_t thous;
 
 thous = (addr / 1000) & 03;
 return  bin_to_bcd[(addr % 1000) / 100] | (thous << V_ZONE);
 }
 
-int32 store_addr_t (int32 addr)
+int32_t store_addr_t (int32_t addr)
 {
 return bin_to_bcd[(addr % 100) / 10];
 }
 
-int32 store_addr_u (int32 addr)
+int32_t store_addr_u (int32_t addr)
 {
-int32 thous;
+int32_t thous;
 
 thous = (addr / 1000) & 014;
 return bin_to_bcd[addr % 10] | (thous << (V_ZONE - 2));
@@ -1710,9 +1711,9 @@ return bin_to_bcd[addr % 10] | (thous << (V_ZONE - 2));
 
 /* div_add - add string for divide */
 
-int32 div_add (int32 ap, int32 bp)
+int32_t div_add (int32_t ap, int32_t bp)
 {
-int32 a, b, c, r;
+int32_t a, b, c, r;
 
 c = 0;                                                  /* init carry */
 do {
@@ -1730,9 +1731,9 @@ return c;
 
 /* div_sub - substract string for divide */
 
-int32 div_sub (int32 ap, int32 bp)
+int32_t div_sub (int32_t ap, int32_t bp)
 {
-int32 a, b, c, r;
+int32_t a, b, c, r;
 
 c = 0;                                                  /* init borrow */
 do {
@@ -1756,9 +1757,9 @@ return c;                                               /* return borrow */
 
 /* div_sign - set signs for divide */
 
-void div_sign (int32 dvrc, int32 dvdc, int32 qp, int32 rp)
+void div_sign (int32_t dvrc, int32_t dvdc, int32_t qp, int32_t rp)
 {
-int32 sign = dvrc & ZONE;                               /* divisor sign */
+int32_t sign = dvrc & ZONE;                             /* divisor sign */
 
 M[rp] = M[rp] | ZONE;                                   /* assume rem pos */
 if (sign == BBIT)                                       /* if dvr -, rem - */
@@ -1779,7 +1780,7 @@ return;
         status  =       SCPE_OK if ok, STOP_INVM if invalid
 */
 
-t_stat iomod (int32 ilnt, int32 mod, const int32 *tptr)
+t_stat iomod (int32_t ilnt, int32_t mod, const int32_t *tptr)
 {
 if ((ilnt != 2) && (ilnt != 5) && (ilnt < 8))
     return SCPE_OK;
@@ -1801,7 +1802,7 @@ return STOP_INVM;
         mod     =       modifier
 */
 
-t_stat iodisp (int32 dev, int32 unit, int32 flag, int32 mod)
+t_stat iodisp (int32_t dev, int32_t unit, int32_t flag, int32_t mod)
 {
 if (dev == IO_INQ)                                      /* inq terminal? */
     return inq_io (flag, mod);
@@ -1818,7 +1819,7 @@ return STOP_NXD;                                        /* not implemented */
 
 t_stat cpu_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 
 for (i = 0; i < 64; i++) {                              /* clr indicators */
     if ((i < IN_SSB) || (i > IN_SSG))                   /* except SSB-SSG */
@@ -1841,7 +1842,7 @@ return SCPE_OK;
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory examine signature.
    This implementation does not use every parameter. */
@@ -1857,7 +1858,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic memory deposit signature.
    This implementation does not use every parameter. */
@@ -1872,7 +1873,7 @@ return SCPE_OK;
 
 /* Memory size change */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1880,8 +1881,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val % 1000) != 0))
     return SCPE_ARG;
@@ -1900,7 +1901,7 @@ return SCPE_OK;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1908,7 +1909,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -1917,7 +1918,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -1937,14 +1938,14 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 i, k, di, lnt;
+int32_t i, k, di, lnt;
 const char *cptr = (const char *) desc;
 t_value sim_eval[MAX_L + 1];
 t_stat r;
@@ -1953,7 +1954,7 @@ InstHistory *h;
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }
@@ -1982,7 +1983,7 @@ return SCPE_OK;
 
 /* Set conversions */
 
-t_stat cpu_set_conv (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_conv (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1996,7 +1997,7 @@ return SCPE_OK;
 
 /* Show conversions */
 
-t_stat cpu_show_conv (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_conv (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

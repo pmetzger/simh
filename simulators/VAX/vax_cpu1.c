@@ -75,10 +75,12 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "vax_cpu1_internal.h"
 
-static const uint8 rcnt[128] = {
+static const uint8_t rcnt[128] = {
  0, 4, 4, 8, 4, 8, 8,12, 4, 8, 8,12, 8,12,12,16,        /* 00 - 0F */
  4, 8, 8,12, 8,12,12,16, 8,12,12,16,12,16,16,20,        /* 10 - 1F */
  4, 8, 8,12, 8,12,12,16, 8,12,12,16,12,16,16,20,        /* 20 - 2F */
@@ -89,9 +91,9 @@ static const uint8 rcnt[128] = {
 12,16,16,20,16,20,20,24,16,20,20,24,20,24,24,28         /* 70 - 7F */
 };
 
-extern int32 ReadIPR (int32 rg);
-extern void WriteIPR (int32 rg, int32 val);
-extern bool BadCmPSL (int32 newpsl);
+extern int32_t ReadIPR (int32_t rg);
+extern void WriteIPR (int32_t rg, int32_t val);
+extern bool BadCmPSL (int32_t newpsl);
 
 /* Branch on bit and no modify
    Branch on bit and modify
@@ -102,15 +104,15 @@ extern bool BadCmPSL (int32 newpsl);
    Returns bit to be tested
 */
 
-int32 op_bb_n (uint32 *opnd, int32 acc)
+int32_t op_bb_n (uint32_t *opnd, int32_t acc)
 {
-int32 pos = opnd[0];
-int32 rn = opnd[1];
-int32 ea;
-int32 by;
+int32_t pos = opnd[0];
+int32_t rn = opnd[1];
+int32_t ea;
+int32_t by;
 
 if (rn != OP_MEM) {                                     /* register? */
-    if (((uint32) pos) > 31)                            /* pos > 31? fault */
+    if (((uint32_t) pos) > 31)                          /* pos > 31? fault */
         RSVD_OPND_FAULT(op_bb_n);
     return (R[rn] >> pos) & 1;                          /* get bit */
     }
@@ -120,15 +122,15 @@ by = Read (ea, L_BYTE, RA);                             /* read byte */
 return ((by >> pos) & 1);                               /* get bit */
 }
 
-int32 op_bb_x (uint32 *opnd, int32 newb, int32 acc)
+int32_t op_bb_x (uint32_t *opnd, int32_t newb, int32_t acc)
 {
-int32 pos = opnd[0];
-int32 rn = opnd[1];
-int32 ea;
-int32 by, bit;
+int32_t pos = opnd[0];
+int32_t rn = opnd[1];
+int32_t ea;
+int32_t by, bit;
 
 if (rn != OP_MEM) {                                     /* register? */
-    if (((uint32) pos) > 31)                            /* pos > 31? fault */
+    if (((uint32_t) pos) > 31)                          /* pos > 31? fault */
         RSVD_OPND_FAULT(op_bb_x);
     bit = (R[rn] >> pos) & 1;                           /* get bit */
     R[rn] = newb? (R[rn] | (1u << pos)): (R[rn] & ~(1u << pos));
@@ -153,25 +155,25 @@ return bit;
    If the field is in a register, rn + 1 is in vfldrp1
 */
 
-int32 op_extv (uint32 *opnd, int32 vfldrp1, int32 acc)
+int32_t op_extv (uint32_t *opnd, int32_t vfldrp1, int32_t acc)
 {
-int32 pos = opnd[0];
-int32 size = opnd[1];
-int32 rn = opnd[2];
-uint32 wd = opnd[3];
-int32 ba, wd1 = 0;
+int32_t pos = opnd[0];
+int32_t size = opnd[1];
+int32_t rn = opnd[2];
+uint32_t wd = opnd[3];
+int32_t ba, wd1 = 0;
 
 if (size == 0)                                          /* size 0? field = 0 */
     return 0;
 if (size > 32)                                          /* size > 32? fault */
     RSVD_OPND_FAULT(op_extv);
 if (rn != OP_MEM) {                                     /* register? */
-    if (((uint32) pos) > 31)                            /* pos > 31? fault */
+    if (((uint32_t) pos) > 31)                          /* pos > 31? fault */
         RSVD_OPND_FAULT(op_extv);
     if (((pos + size) > 32) && (rn >= nSP))             /* span 2 reg, PC? */
         RSVD_ADDR_FAULT;                                /* fault */
     if (pos)
-        wd = (wd >> pos) | (((uint32) vfldrp1) << (32 - pos));
+        wd = (wd >> pos) | (((uint32_t) vfldrp1) << (32 - pos));
     }
 else {
     ba = wd + (pos >> 3);                               /* base byte addr */
@@ -181,7 +183,7 @@ else {
     if ((size + pos) > 32)
         wd1 = Read (ba + 4, L_LONG, RA);
     if (pos)
-        wd = (wd >> pos) | (((uint32) wd1) << (32 - pos));
+        wd = (wd >> pos) | (((uint32_t) wd1) << (32 - pos));
     }
 return wd & byte_mask[size];
 }
@@ -197,20 +199,20 @@ return wd & byte_mask[size];
    If the field is in a register, rn + 1 is in vfldrp1
 */
 
-void op_insv (uint32 *opnd, int32 vfldrp1, int32 acc)
+void op_insv (uint32_t *opnd, int32_t vfldrp1, int32_t acc)
 {
-uint32 ins = opnd[0];
-int32 pos = opnd[1];
-int32 size = opnd[2];
-int32 rn = opnd[3];
-int32 val, mask, ba, wd, wd1;
+uint32_t ins = opnd[0];
+int32_t pos = opnd[1];
+int32_t size = opnd[2];
+int32_t rn = opnd[3];
+int32_t val, mask, ba, wd, wd1;
 
 if (size == 0)                                          /* size = 0? done */
     return;
 if (size > 32)                                          /* size > 32? fault */
     RSVD_OPND_FAULT(op_insv);
 if (rn != OP_MEM) {                                     /* in registers? */
-    if (((uint32) pos) > 31)                            /* pos > 31? fault */
+    if (((uint32_t) pos) > 31)                          /* pos > 31? fault */
         RSVD_OPND_FAULT(op_insv);
     if ((pos + size) > 32) {                            /* span two reg? */
         if (rn >= nSP)                                  /* if PC, fault */
@@ -243,9 +245,9 @@ return;
 
 /* Find first */
 
-int32 op_ffs (uint32 wd, int32 size)
+int32_t op_ffs (uint32_t wd, int32_t size)
 {
-int32 i;
+int32_t i;
 
 for (i = 0; wd; i++, wd = wd >> 1) {
     if (wd & 1)
@@ -326,10 +328,10 @@ return size;
                 update PSW traps, clear condition codes
 */
 
-int32 op_call (uint32 *opnd, bool gs, int32 acc)
+int32_t op_call (uint32_t *opnd, bool gs, int32_t acc)
 {
-int32 addr = opnd[1];
-int32 mask, stklen, tsp, wd;
+int32_t addr = opnd[1];
+int32_t mask, stklen, tsp, wd;
 
 mask = Read (addr, L_WORD, RA);                         /* get proc mask */
 if (mask & CALL_MBZ)                                    /* test mbz */
@@ -370,10 +372,10 @@ JUMP (addr + 2);                                        /* new PC */
 return 0;                                               /* new cc's */
 }
 
-int32 op_ret (int32 acc)
+int32_t op_ret (int32_t acc)
 {
-int32 spamask, stklen, newpc, nargs;
-int32 tsp = FP;
+int32_t spamask, stklen, newpc, nargs;
+int32_t tsp = FP;
 
 spamask = Read (tsp + 4, L_LONG, RA);                   /* spa/s/mask/psw */
 if (spamask & PSW_MBZ)                                  /* test mbz */
@@ -410,10 +412,10 @@ return spamask & (CC_MASK);                             /* return cc's */
 
 /* PUSHR and POPR */
 
-void op_pushr (uint32 *opnd, int32 acc)
+void op_pushr (uint32_t *opnd, int32_t acc)
 {
-int32 mask = opnd[0] & 0x7FFF;
-int32 stklen, tsp;
+int32_t mask = opnd[0] & 0x7FFF;
+int32_t stklen, tsp;
 
 if (mask == 0)
     return;
@@ -440,10 +442,10 @@ SP = tsp;                                               /* update stk ptr */
 return;
 }
 
-void op_popr (uint32 *opnd, int32 acc)
+void op_popr (uint32_t *opnd, int32_t acc)
 {
-int32 mask = opnd[0] & 0x7FFF;
-int32 stklen;
+int32_t mask = opnd[0] & 0x7FFF;
+int32_t stklen;
 
 if (mask == 0)
     return;
@@ -494,12 +496,12 @@ return;
    might be misaligned.
 */
 
-int32 op_insque (uint32 *opnd, int32 acc)
+int32_t op_insque (uint32_t *opnd, int32_t acc)
 {
-uint32 p = opnd[1];
-uint32 e = opnd[0];
-uint32 s;
-int32 cc;
+uint32_t p = opnd[1];
+uint32_t e = opnd[0];
+uint32_t s;
+int32_t cc;
 
 s = Read (p, L_LONG, WA);                               /* s <- (p), wchk */
 Read (s + 4, L_LONG, WA);                               /* wchk s+4 */
@@ -535,11 +537,11 @@ return cc;
 
 */
 
-int32 op_remque (uint32 *opnd, int32 acc)
+int32_t op_remque (uint32_t *opnd, int32_t acc)
 {
-uint32 e = opnd[0];
-uint32 s, p;
-int32 cc;
+uint32_t e = opnd[0];
+uint32_t s, p;
+int32_t cc;
 
 s = Read (e, L_LONG, RA);                               /* s <- (e) */
 p = Read (e + 4, L_LONG, RA);                           /* p <- (e+4) */
@@ -588,12 +590,12 @@ return cc;
         not be equal.
 */
 
-int32 op_insqhi (uint32 *opnd, int32 acc)
+int32_t op_insqhi (uint32_t *opnd, int32_t acc)
 {
-uint32 h = opnd[1];
-uint32 d = opnd[0];
-uint32 a;
-int32 t;
+uint32_t h = opnd[1];
+uint32_t d = opnd[0];
+uint32_t a;
+int32_t t;
 
 if ((h == d) || ((h | d) & 07))                         /* h, d quad align? */
     RSVD_OPND_FAULT(op_insqhi);
@@ -614,12 +616,12 @@ Write (h, d - h, L_LONG, WA);                           /* (h) <- d-h, rls int *
 return (a == h)? CC_Z: 0;                               /* Z = 1 if a = h */
 }
 
-int32 op_insqti (uint32 *opnd, int32 acc)
+int32_t op_insqti (uint32_t *opnd, int32_t acc)
 {
-uint32 h = opnd[1];
-uint32 d = opnd[0];
-uint32 a, c;
-int32 t;
+uint32_t h = opnd[1];
+uint32_t d = opnd[0];
+uint32_t a, c;
+int32_t t;
 
 if ((h == d) || ((h | d) & 07))                         /* h, d quad align? */
     RSVD_OPND_FAULT(op_insqti);
@@ -673,11 +675,11 @@ return 0;                                               /* q >= 2 entries */
         the header and the destination must not be equal.
 */
 
-int32 op_remqhi (uint32 *opnd, int32 acc)
+int32_t op_remqhi (uint32_t *opnd, int32_t acc)
 {
-uint32 h = opnd[0];
-uint32 ar, a, b;
-int32 t;
+uint32_t h = opnd[0];
+uint32_t ar, a, b;
+int32_t t;
 
 if (h & 07)                                             /* h quad aligned? */
     RSVD_OPND_FAULT(op_remqhi);
@@ -714,11 +716,11 @@ if (ar == 0)                                            /* empty, cc = 0110 */
 return (b == h)? CC_Z: 0;                               /* if b = h, q empty */
 }
 
-int32 op_remqti (uint32 *opnd, int32 acc)
+int32_t op_remqti (uint32_t *opnd, int32_t acc)
 {
-uint32 h = opnd[0];
-uint32 ar, b, c;
-int32 t;
+uint32_t h = opnd[0];
+uint32_t ar, b, c;
+int32_t t;
 
 if (h & 07)                                             /* h quad aligned? */
     RSVD_OPND_FAULT(op_remqti);
@@ -797,11 +799,11 @@ return 0;                                               /* q can't be empty */
         R5      =       cc/state
 */
 
-int32 op_movc (uint32 *opnd, int32 movc5, int32 acc)
+int32_t op_movc (uint32_t *opnd, int32_t movc5, int32_t acc)
 {
-int32 i, cc, fill, wd;
-int32 j, lnt, mlnt[3];
-static const int32 looplnt[3] = { L_BYTE, L_LONG, L_BYTE };
+int32_t i, cc, fill, wd;
+int32_t j, lnt, mlnt[3];
+static const int32_t looplnt[3] = { L_BYTE, L_LONG, L_BYTE };
 
 if (PSL & PSL_FPD) {                                    /* FPD set? */
     SETPC (fault_PC + STR_GETDPC (R[0]));               /* reset PC */
@@ -902,7 +904,7 @@ switch (R[5] & MVC_M_STATE) {                           /* case on state */
             lnt = looplnt[i];                           /* length for loop */
             fill = fill & BMASK;                        /* fill for loop */
             if (lnt == L_LONG)
-                fill = (((uint32) fill) << 24) | (fill << 16) | (fill << 8) | fill;
+                fill = (((uint32_t) fill) << 24) | (fill << 16) | (fill << 8) | fill;
             for (j = 0; j < mlnt[i]; j = j + lnt, extra_bytes++) {
                 Write (R[3], fill, lnt, WA);            /* write fill */
                 R[3] = R[3] + lnt;                      /* inc dst addr */
@@ -943,9 +945,9 @@ return cc;
         R3      =       source2 address
 */
 
-int32 op_cmpc (uint32 *opnd, int32 cmpc5, int32 acc)
+int32_t op_cmpc (uint32_t *opnd, int32_t cmpc5, int32_t acc)
 {
-int32 cc, s1, s2, fill;
+int32_t cc, s1, s2, fill;
 
 if (PSL & PSL_FPD) {                                    /* FPD set? */
     SETPC (fault_PC + STR_GETDPC (R[0]));               /* reset PC */
@@ -1003,9 +1005,9 @@ return cc;
         R1      =       source address
 */
 
-int32 op_locskp (uint32 *opnd, int32 skpc, int32 acc)
+int32_t op_locskp (uint32_t *opnd, int32_t skpc, int32_t acc)
 {
-int32 c, match;
+int32_t c, match;
 
 if (PSL & PSL_FPD) {                                    /* FPD set? */
     SETPC (fault_PC + STR_GETDPC (R[0]));               /* reset PC */
@@ -1043,9 +1045,9 @@ return (R[0]? 0: CC_Z);                                 /* set cc's */
         R3      =       table address
 */
 
-int32 op_scnspn (uint32 *opnd, int32 spanc, int32 acc)
+int32_t op_scnspn (uint32_t *opnd, int32_t spanc, int32_t acc)
 {
-int32 c, t, mask;
+int32_t c, t, mask;
 
 if (PSL & PSL_FPD) {                                    /* FPD set? */
     SETPC (fault_PC + STR_GETDPC (R[0]));               /* reset PC */
@@ -1084,14 +1086,14 @@ return (R[0]? 0: CC_Z);
                         1:  interrupt
 */
 
-int32 intexc (int32 vec, int32 cc, int32 ipl, int ei)
+int32_t intexc (int32_t vec, int32_t cc, int32_t ipl, int ei)
 {
-int32 oldpsl = PSL | cc;
-int32 oldcur = PSL_GETCUR (oldpsl);
-int32 oldsp = SP;
-int32 newpsl;
-int32 newpc;
-int32 acc;
+int32_t oldpsl = PSL | cc;
+int32_t oldcur = PSL_GETCUR (oldpsl);
+int32_t oldsp = SP;
+int32_t newpsl;
+int32_t newpc;
+int32_t acc;
 
 in_ie = 1;                                              /* flag int/exc */
 CLR_TRAPS;                                              /* clear traps */
@@ -1114,7 +1116,7 @@ else {
         }
     }
 if (ei > 0) {                                           /* if int, new IPL */
-    int32 newipl;
+    int32_t newipl;
     if ((VEC_QBUS & vec) != 0)                          /* Qbus vector? */
         newipl = PSL_IPL17;                             /* force IPL 17 */
     else
@@ -1141,12 +1143,12 @@ return 0;
         opnd[0] =       operand
 */
 
-int32 op_chm (uint32 *opnd, int32 cc, int32 opc)
+int32_t op_chm (uint32_t *opnd, int32_t cc, int32_t opc)
 {
-int32 mode = opc & PSL_M_MODE;
-int32 cur = PSL_GETCUR (PSL);
-int32 tsp, newpc, acc;
-int32 sta;
+int32_t mode = opc & PSL_M_MODE;
+int32_t cur = PSL_GETCUR (PSL);
+int32_t tsp, newpc, acc;
+int32_t sta;
 
 if (PSL & PSL_IS)
     ABORT (STOP_CHMFI);
@@ -1200,13 +1202,13 @@ Rule    SRM formulation                     Comment
                      PC, PSL, SP - 8, newpc, newpsl, ((newpsl & IS)? IS: STK[newcur]), desc);                       \
         RSVD_OPND_FAULT(REI); } while (0)
 
-int32 op_rei (int32 acc)
+int32_t op_rei (int32_t acc)
 {
-int32 newpc = Read (SP, L_LONG, RA);
-int32 newpsl = Read (SP + 4, L_LONG, RA);
-int32 newcur = PSL_GETCUR (newpsl);
-int32 oldcur = PSL_GETCUR (PSL);
-int32 newipl, i;
+int32_t newpc = Read (SP, L_LONG, RA);
+int32_t newpsl = Read (SP + 4, L_LONG, RA);
+int32_t newcur = PSL_GETCUR (newpsl);
+int32_t oldcur = PSL_GETCUR (PSL);
+int32_t newipl, i;
 
 if ((newpsl & PSL_MBZ) ||                               /* rule 8 */
     (newcur < oldcur))                                  /* rule 1 */
@@ -1255,9 +1257,9 @@ return newpsl & CC_MASK;                                /* set new cc */
 
 /* LDCPTX - load process context */
 
-void op_ldpctx (int32 acc)
+void op_ldpctx (int32_t acc)
 {
-uint32 newpc, newpsl, pcbpa, t;
+uint32_t newpc, newpsl, pcbpa, t;
 
 if (PSL & PSL_CUR)                                      /* must be kernel */
     RSVD_INST_FAULT(LDPCTX);
@@ -1317,9 +1319,9 @@ return;
 
 /* SVPCTX - save processor context */
 
-void op_svpctx (int32 acc)
+void op_svpctx (int32_t acc)
 {
-int32 savpc, savpsl, pcbpa;
+int32_t savpc, savpsl, pcbpa;
 
 if (PSL & PSL_CUR)                                      /* must be kernel */
     RSVD_INST_FAULT(SVPCTX);
@@ -1367,13 +1369,13 @@ return;
         opnd[2] =       base address
 */
 
-int32 op_probe (uint32 *opnd, int32 rw)
+int32_t op_probe (uint32_t *opnd, int32_t rw)
 {
-int32 mode = opnd[0] & PSL_M_MODE;                      /* mask mode */
-int32 length = opnd[1];
-int32 ba = opnd[2];
-int32 prv = PSL_GETPRV (PSL);
-int32 acc, sta, sta1;
+int32_t mode = opnd[0] & PSL_M_MODE;                    /* mask mode */
+int32_t length = opnd[1];
+int32_t ba = opnd[2];
+int32_t prv = PSL_GETPRV (PSL);
+int32_t acc, sta, sta1;
 
 if (prv > mode)                                         /* maximize mode */
     mode = prv;
@@ -1417,11 +1419,11 @@ return 0;
         opnd[1] =       register number
 */
 
-int32 op_mtpr (uint32 *opnd)
+int32_t op_mtpr (uint32_t *opnd)
 {
-uint32 val = (uint32)opnd[0];
-uint32 prn = (uint32)opnd[1];
-int32 cc;
+uint32_t val = (uint32_t)opnd[0];
+uint32_t prn = (uint32_t)opnd[1];
+int32_t cc;
 
 if (PSL & PSL_CUR)                                      /* must be kernel */
     RSVD_INST_FAULT(MTPR);
@@ -1549,10 +1551,10 @@ switch (prn) {                                          /* case on reg # */
 return cc;
 }
 
-int32 op_mfpr (uint32 *opnd)
+int32_t op_mfpr (uint32_t *opnd)
 {
-uint32 prn = (uint32)opnd[0];
-int32 val;
+uint32_t prn = (uint32_t)opnd[0];
+int32_t val;
 
 if (PSL & PSL_CUR)                                      /* must be kernel */
     RSVD_INST_FAULT(MFPR);

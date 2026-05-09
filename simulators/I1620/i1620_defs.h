@@ -39,6 +39,8 @@
 #define I1620_DEFS_H_  0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 #if defined(USE_INT64) || defined(USE_ADDR64)
@@ -249,25 +251,25 @@ enum opcodes {
 
 /* Function declarations */
 
-t_stat cpuio_set_inp (uint32 op, uint32 dev, UNIT *uptr);
+t_stat cpuio_set_inp (uint32_t op, uint32_t dev, UNIT *uptr);
 t_stat cpuio_clr_inp (UNIT *uptr);
-const char *opc_lookup (uint32 op, uint32 qv, uint32 *fl);
-t_stat tty (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat ptp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat ptr (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat cdp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat cdr (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat dp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat lpt (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat btp (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat btr (uint32 op, uint32 pa, uint32 f0, uint32 f1);
-t_stat fp_add (uint32 d, uint32 s, bool sub);
-t_stat fp_mul (uint32 d, uint32 s);
-t_stat fp_div (uint32 d, uint32 s);
-t_stat fp_fsl (uint32 d, uint32 s);
-t_stat fp_fsr (uint32 d, uint32 s);
+const char *opc_lookup (uint32_t op, uint32_t qv, uint32_t *fl);
+t_stat tty (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat ptp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat ptr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat cdp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat cdr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat dp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat lpt (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat btp (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat btr (uint32_t op, uint32_t pa, uint32_t f0, uint32_t f1);
+t_stat fp_add (uint32_t d, uint32_t s, bool sub);
+t_stat fp_mul (uint32_t d, uint32_t s);
+t_stat fp_div (uint32_t d, uint32_t s);
+t_stat fp_fsl (uint32_t d, uint32_t s);
+t_stat fp_fsr (uint32_t d, uint32_t s);
 
-extern const int8 cdr_to_alp[128];
-extern const int8 alp_to_cdp[256];
+extern const int8_t cdr_to_alp[128];
+extern const int8_t alp_to_cdp[256];
 
 #endif

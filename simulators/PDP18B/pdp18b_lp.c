@@ -51,10 +51,12 @@
    03-Jan-97    RMS     Fixed bug in Type 62 state handling
 */
 
+#include <stdint.h>
+
 #include "pdp18b_defs.h"
 
-extern int32 int_hwre[API_HLVL+1];
-extern int32 api_vec[API_HLVL][32];
+extern int32_t int_hwre[API_HLVL+1];
+extern int32_t api_vec[API_HLVL][32];
 
 const char fio_to_asc[64] = {
     ' ','1','2','3','4','5','6','7','8','9','\'','~','#','V','^','<',
@@ -71,10 +73,10 @@ const char fio_to_asc[64] = {
 #define BPTR_MAX        40                              /* pointer max */
 #define BPTR_MASK       077                             /* buf ptr max */
 
-int32 lp62_spc = 0;                                     /* print vs spc */
-int32 lp62_ovrpr = 0;                                   /* overprint */
-int32 lp62_stopioe = 0;
-int32 lp62_bp = 0;                                      /* buffer ptr */
+int32_t lp62_spc = 0;                                   /* print vs spc */
+int32_t lp62_ovrpr = 0;                                 /* overprint */
+int32_t lp62_stopioe = 0;
+int32_t lp62_bp = 0;                                    /* buffer ptr */
 char lp62_buf[LP62_BSIZE + 1] = { 0 };
 static const char *lp62_cc[] = {
     "\n",
@@ -87,9 +89,9 @@ static const char *lp62_cc[] = {
     "\f"
     };
 
-int32 lp62_65 (int32 dev, int32 pulse, int32 dat);
-int32 lp62_66 (int32 dev, int32 pulse, int32 dat);
-int32 lp62_iors (void);
+int32_t lp62_65 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t lp62_66 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t lp62_iors (void);
 t_stat lp62_svc (UNIT *uptr);
 t_stat lp62_reset (DEVICE *dptr);
 t_stat lp62_attach (UNIT *uptr, const char *cptr);
@@ -138,18 +140,18 @@ DEVICE lp62_dev = {
 
 /* IOT routines */
 
-int32 lp62_65 (int32 dev, int32 pulse, int32 dat)
+int32_t lp62_65 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 i;
+int32_t i;
 
 if ((pulse & 01) && TST_INT (LPT))                      /* LPSF */
     dat = IOT_SKP | dat;
 if (pulse & 02) {
-    int32 sb = pulse & 060;                             /* subopcode */
+    int32_t sb = pulse & 060;                           /* subopcode */
     if (sb == 000)                                      /* LPCF */
         CLR_INT (LPT);
     if ((sb == 040) && (lp62_bp < BPTR_MAX)) {          /* LPLD */
@@ -167,7 +169,7 @@ if (pulse & 04) {                                       /* LPSE */
 return dat;
 }
 
-int32 lp62_66 (int32 dev, int32 pulse, int32 dat)
+int32_t lp62_66 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -192,7 +194,7 @@ return dat;
 
 t_stat lp62_svc (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 
 if (lp62_spc) {                                         /* space? */
     SET_INT (LPTSPC);                                   /* set flag */
@@ -237,7 +239,7 @@ t_stat lp62_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 CLR_INT (LPT);                                          /* clear intrs */
 CLR_INT (LPTSPC);
@@ -260,7 +262,7 @@ return attach_unit (uptr, cptr);
 
 /* IORS routine */
 
-int32 lp62_iors (void)
+int32_t lp62_iors (void)
 {
 return (TST_INT (LPT)? IOS_LPT: 0) |
        (TST_INT (LPTSPC)? IOS_LPT1: 0);
@@ -274,12 +276,12 @@ return (TST_INT (LPT)? IOS_LPT: 0) |
 
 #define LP647_BSIZE     120                             /* line size */
 
-int32 lp647_don = 0;                                    /* ready */
-int32 lp647_ie = 1;                                     /* int enable */
-int32 lp647_err = 0;                                    /* error */
-int32 lp647_iot = 0;                                    /* saved state */
-int32 lp647_stopioe = 0;
-int32 lp647_bp = 0;                                     /* buffer ptr */
+int32_t lp647_don = 0;                                  /* ready */
+int32_t lp647_ie = 1;                                   /* int enable */
+int32_t lp647_err = 0;                                  /* error */
+int32_t lp647_iot = 0;                                  /* saved state */
+int32_t lp647_stopioe = 0;
+int32_t lp647_bp = 0;                                   /* buffer ptr */
 char lp647_buf[LP647_BSIZE] = { 0 };
 static const char *lp647_cc[] = {
     "\n",
@@ -292,9 +294,9 @@ static const char *lp647_cc[] = {
     "\f"
     };
 
-int32 lp647_65 (int32 dev, int32 pulse, int32 dat);
-int32 lp647_66 (int32 dev, int32 pulse, int32 dat);
-int32 lp647_iors (void);
+int32_t lp647_65 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t lp647_66 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t lp647_iors (void);
 t_stat lp647_svc (UNIT *uptr);
 t_stat lp647_reset (DEVICE *dptr);
 t_stat lp647_attach (UNIT *uptr, const char *cptr);
@@ -346,13 +348,13 @@ DEVICE lp647_dev = {
 
 /* IOT routines */
 
-int32 lp647_65 (int32 dev, int32 pulse, int32 dat)
+int32_t lp647_65 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 i, sb;
+int32_t i, sb;
 
 sb = pulse & 060;                                       /* subcode */
 if ((pulse & 01) && lp647_don)                          /* LPSF */
@@ -405,7 +407,7 @@ if (pulse & 004) {                                      /* LPDI */
 return dat;
 }
 
-int32 lp647_66 (int32 dev, int32 pulse, int32 dat)
+int32_t lp647_66 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -442,7 +444,7 @@ return dat;
 
 t_stat lp647_svc (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 char pbuf[LP647_BSIZE + 2];
 
 lp647_don = 1;
@@ -490,7 +492,7 @@ t_stat lp647_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 lp647_don = 0;                                          /* clear done */
 lp647_err = (lp647_unit.flags & UNIT_ATT)? 0: 1;        /* clr/set error */
@@ -506,7 +508,7 @@ return SCPE_OK;
 
 /* IORS routine */
 
-int32 lp647_iors (void)
+int32_t lp647_iors (void)
 {
 return (lp647_don? IOS_LPT: 0) | (lp647_err? IOS_LPT1: 0);
 }
@@ -539,13 +541,13 @@ return detach_unit (uptr);
 
 #define LP09_BSIZE      132                             /* line size */
 
-int32 lp09_don = 0;                                     /* ready */
-int32 lp09_err = 0;                                     /* error */
-int32 lp09_ie = 1;                                      /* int enable */
-int32 lp09_stopioe = 0;
+int32_t lp09_don = 0;                                   /* ready */
+int32_t lp09_err = 0;                                   /* error */
+int32_t lp09_ie = 1;                                    /* int enable */
+int32_t lp09_stopioe = 0;
 
-int32 lp09_66 (int32 dev, int32 pulse, int32 dat);
-int32 lp09_iors (void);
+int32_t lp09_66 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t lp09_iors (void);
 t_stat lp09_svc (UNIT *uptr);
 t_stat lp09_reset (DEVICE *dptr);
 t_stat lp09_attach (UNIT *uptr, const char *cptr);
@@ -593,13 +595,13 @@ DEVICE lp09_dev = {
 
 /* IOT routines */
 
-int32 lp09_66 (int32 dev, int32 pulse, int32 dat)
+int32_t lp09_66 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 sb = pulse & 060;                                 /* subopcode */
+int32_t sb = pulse & 060;                               /* subopcode */
 
 if (pulse & 001) {
     if ((sb == 000) && lp09_don)                        /* LSDF */
@@ -640,7 +642,7 @@ return dat;
 
 t_stat lp09_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 lp09_don = 1;                                           /* set done */
 if (lp09_ie)                                            /* int enb? req int */
@@ -679,7 +681,7 @@ return SCPE_OK;
 
 /* IORS routine */
 
-int32 lp09_iors (void)
+int32_t lp09_iors (void)
 {
 return (lp09_don? IOS_LPT: 0);
 }
@@ -725,23 +727,23 @@ return detach_unit (uptr);
 #define STA_EFLGS       (STA_ALM | STA_OVF | STA_IHT | STA_ILK)
 #define STA_CLR         0003777                         /* always clear */
 
-extern int32 *M;
-int32 lp15_sta = 0;
-int32 lp15_ie = 1;
-int32 lp15_stopioe = 0;
-int32 lp15_mode = 0;
-int32 lp15_lc = 0;
-int32 lp15_bp = 0;
+extern int32_t *M;
+int32_t lp15_sta = 0;
+int32_t lp15_ie = 1;
+int32_t lp15_stopioe = 0;
+int32_t lp15_mode = 0;
+int32_t lp15_lc = 0;
+int32_t lp15_bp = 0;
 char lp15_buf[LP15_BSIZE + 1] = { 0 };
 
-int32 lp15_65 (int32 dev, int32 pulse, int32 dat);
-int32 lp15_66 (int32 dev, int32 pulse, int32 dat);
-int32 lp15_iors (void);
+int32_t lp15_65 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t lp15_66 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t lp15_iors (void);
 t_stat lp15_svc (UNIT *uptr);
 t_stat lp15_reset (DEVICE *dptr);
 t_stat lp15_attach (UNIT *uptr, const char *cptr);
 
-int32 lp15_updsta (int32 New);
+int32_t lp15_updsta (int32_t New);
 
 /* LP15 LPT data structures
 
@@ -788,13 +790,13 @@ DEVICE lp15_dev = {
 
 /* IOT routines */
 
-int32 lp15_65 (int32 dev, int32 pulse, int32 dat)
+int32_t lp15_65 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 header, sb;
+int32_t header, sb;
 
 sb = pulse & 060;                                       /* subopcode */
 if (pulse & 01) {
@@ -823,7 +825,7 @@ lp15_updsta (0);                                        /* update status */
 return dat;
 }
 
-int32 lp15_66 (int32 dev, int32 pulse, int32 dat)
+int32_t lp15_66 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
@@ -841,7 +843,7 @@ return dat;
 
 t_stat lp15_svc (UNIT *uptr)
 {
-int32 i, ccnt, more, w0, w1;
+int32_t i, ccnt, more, w0, w1;
 char c[5];
 static const char *ctrl[040] = {
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -908,7 +910,7 @@ return SCPE_OK;
 
 /* Update status */
 
-int32 lp15_updsta (int32 New)
+int32_t lp15_updsta (int32_t New)
 {
 lp15_sta = (lp15_sta | New) & ~(STA_CLR | STA_ERR | STA_BUSY);
 if (lp15_sta & STA_EFLGS)                               /* update errors */
@@ -947,7 +949,7 @@ return attach_unit (uptr, cptr);
 
 /* IORS routine */
 
-int32 lp15_iors (void)
+int32_t lp15_iors (void)
 {
 return ((lp15_sta & STA_DON)? IOS_LPT: 0);
 }

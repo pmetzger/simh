@@ -20,7 +20,7 @@ static t_stat i8008_test_messagef(t_stat stat, const char *fmt, ...)
 struct idev dev_table[32];
 char sim_name[] = "i8008-unit";
 REG *sim_PC = &cpu_reg[0];
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 DEVICE *sim_devices[] = {&cpu_dev, NULL};
 const char *sim_stop_messages[SCPE_BASE];
 

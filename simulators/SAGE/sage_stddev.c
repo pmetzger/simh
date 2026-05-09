@@ -26,6 +26,8 @@
    04-Oct-09    HV      Initial version
 */
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "m68k_cpu.h"
 #include "sage_defs.h"
@@ -152,30 +154,30 @@ t_stat sage_raiseint(int level)
  */
 
 #if defined(SAGE_IV)
-       uint32 groupa = 0xd7;    /* used by cons device, 19k2, no parity, boot floppy 0 */
-       uint32 groupb = 0xf8;    /* used by ieee device */
+       uint32_t groupa = 0xd7;  /* used by cons device, 19k2, no parity, boot floppy 0 */
+       uint32_t groupb = 0xf8;  /* used by ieee device */
 #else
-       uint32 groupa = 0xe7;    /* used by cons device, 19k2, no parity, boot winchester 0 */
-       uint32 groupb = 0xf8;    /* used by ieee device */
+       uint32_t groupa = 0xe7;  /* used by cons device, 19k2, no parity, boot winchester 0 */
+       uint32_t groupb = 0xf8;  /* used by ieee device */
 #endif
 
 static t_stat sagedip_reset(DEVICE* dptr);
-static t_stat set_groupa(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat show_groupa(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat set_groupb(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat show_groupb(FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat set_groupa(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat show_groupa(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat set_groupb(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat show_groupb(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 static t_stat u22_reset(I8255* chip);
 static t_stat u22_calla(I8255* chip,int rw);
 static t_stat u22_callb(I8255* chip,int rw);
 static t_stat u22_callc(I8255* chip,int rw);
-static t_stat u22_ckmode(I8255* chip,uint32 data);
+static t_stat u22_ckmode(I8255* chip,uint32_t data);
 
 extern DEVICE sagedip_dev;
 static I8255 u22 = {
         { 0,0,U22_ADDR,8,2 },
         &sagedip_dev,i8255_write,i8255_read,u22_reset,u22_calla,u22_callb,u22_callc,u22_ckmode
 };
-uint32* u22_portc = &u22.portc; /* this is used in the FD device as well, but whole 8255 is handled here */
+uint32_t* u22_portc = &u22.portc; /* this is used in the FD device as well, but whole 8255 is handled here */
 
 UNIT sagedip_unit = {
     UDATA (NULL, UNIT_IDLE, 0)
@@ -226,7 +228,7 @@ static t_stat sagedip_reset(DEVICE* dptr)
     return u22.reset(&u22);
 }
 
-static t_stat set_gr(const char* cptr, uint32* sw)
+static t_stat set_gr(const char* cptr, uint32_t* sw)
 {
     int i;
     char c;
@@ -245,7 +247,7 @@ static t_stat set_gr(const char* cptr, uint32* sw)
     return SCPE_OK;
 }
 
-static t_stat set_groupa(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat set_groupa(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -256,7 +258,7 @@ static t_stat set_groupa(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return set_gr(cptr,&groupa);
 }
 
-static t_stat set_groupb(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat set_groupb(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -267,7 +269,7 @@ static t_stat set_groupb(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return set_gr(cptr,&groupb);
 }
 
-static t_stat show_gr(FILE* st, const char* prefix, uint32 gr)
+static t_stat show_gr(FILE* st, const char* prefix, uint32_t gr)
 {
     int i;
     fputs(prefix, st);
@@ -276,7 +278,7 @@ static t_stat show_gr(FILE* st, const char* prefix, uint32 gr)
     return SCPE_OK;
 }
 
-static t_stat show_groupa(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_groupa(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -287,7 +289,7 @@ static t_stat show_groupa(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return show_gr(st, "GROUPA=", groupa);
 }
 
-static t_stat show_groupb(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_groupb(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -370,7 +372,7 @@ static t_stat u22_callc(I8255* chip,int rw)
     return SCPE_OK;
 }
 
-static t_stat u22_ckmode(I8255* chip, uint32 data)
+static t_stat u22_ckmode(I8255* chip, uint32_t data)
 {
     /* hardwired:
      * d7=1 -- mode set flag
@@ -442,13 +444,13 @@ static t_stat u22_ckmode(I8255* chip, uint32 data)
  ***********************************************************************************/
 static t_stat sagetimer1_reset(DEVICE* dptr);
 static t_stat timer1_svc(UNIT* uptr);
-static t_stat u75_ckmode(I8253* chip, uint32 data);
-static t_stat u75_call0(I8253* chip,int addr, uint32* value);
+static t_stat u75_ckmode(I8253* chip, uint32_t data);
+static t_stat u75_call0(I8253* chip,int addr, uint32_t* value);
 
 static t_stat sagetimer2_reset(DEVICE* dptr);
 static t_stat timer2_svc(UNIT* uptr);
-static t_stat u74_ckmode(I8253* chip, uint32 data);
-static t_stat u74_call1(I8253* chip,int addr, uint32* value);
+static t_stat u74_ckmode(I8253* chip, uint32_t data);
+static t_stat u74_call1(I8253* chip,int addr, uint32_t* value);
 
 extern DEVICE sagetimer1_dev;
 extern DEVICE sagetimer2_dev;
@@ -526,7 +528,7 @@ static t_stat timer1_svc(UNIT* uptr)
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 wait;
+    int32_t wait;
     I8253CNTR* t1c0 = &u75.cntr[0];
     I8253CNTR* t2c0 = &u74.cntr[0];
 
@@ -552,7 +554,7 @@ static t_stat timer1_svc(UNIT* uptr)
     return SCPE_OK;
 }
 
-static t_stat u75_ckmode(I8253* chip,uint32 mode)
+static t_stat u75_ckmode(I8253* chip,uint32_t mode)
 {
     /* Chip callback signature.
        This implementation does not use every parameter. */
@@ -563,7 +565,7 @@ static t_stat u75_ckmode(I8253* chip,uint32 mode)
     return SCPE_OK;
 }
 
-static t_stat u75_call0(I8253* chip,int rw,uint32* value)
+static t_stat u75_call0(I8253* chip,int rw,uint32_t* value)
 {
     /* Chip callback signature.
        This implementation does not use every parameter. */
@@ -630,7 +632,7 @@ static t_stat sagetimer2_reset(DEVICE* dptr)
     return u74.reset(&u74);
 }
 
-static t_stat u74_ckmode(I8253* chip,uint32 mode)
+static t_stat u74_ckmode(I8253* chip,uint32_t mode)
 {
     /* Chip callback signature.
        This implementation does not use every parameter. */
@@ -641,7 +643,7 @@ static t_stat u74_ckmode(I8253* chip,uint32 mode)
     return SCPE_OK;
 }
 
-static t_stat u74_call1(I8253* chip,int rw,uint32* value)
+static t_stat u74_call1(I8253* chip,int rw,uint32_t* value)
 {
     /* Chip callback signature.
        This implementation does not use every parameter. */
@@ -666,7 +668,7 @@ static t_stat timer2_svc(UNIT* uptr)
        This implementation does not use every parameter. */
     (void) uptr;
 
-    int32 wait;
+    int32_t wait;
     I8253CNTR* t2c1 = &u74.cntr[1];
     I8253CNTR* t2c2 = &u74.cntr[2];
 

@@ -33,14 +33,16 @@
    30-May-02    RMS     Widened POS to 32b
 */
 
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
-extern int32 int_req, int_enable, dev_done, stop_inst;
+extern int32_t int_req, int_enable, dev_done, stop_inst;
 
-int32 lpt_err = 0;                                      /* error flag */
-int32 lpt_stopioe = 0;                                  /* stop on error */
+int32_t lpt_err = 0;                                    /* error flag */
+int32_t lpt_stopioe = 0;                                /* stop on error */
 
-int32 lpt (int32 IR, int32 AC);
+int32_t lpt (int32_t IR, int32_t AC);
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *cptr);
@@ -91,7 +93,7 @@ DEVICE lpt_dev = {
 
 /* IOT routine */
 
-int32 lpt (int32 IR, int32 AC)
+int32_t lpt (int32_t IR, int32_t AC)
 {
 switch (IR & 07) {                                      /* decode IR<9:11> */
 

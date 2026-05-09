@@ -30,6 +30,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_PD
@@ -48,12 +50,12 @@
 
 int pd_tps =            60;
 
-t_stat         pd_devio(uint32 dev, uint64 *data);
+t_stat         pd_devio(uint32_t dev, uint64 *data);
 const char     *pd_description (DEVICE *dptr);
 t_stat         pd_srv(UNIT *uptr);
-t_stat         pd_set_on(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat         pd_set_off(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat         pd_show_on(FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat         pd_set_on(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat         pd_set_off(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat         pd_show_on(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 UNIT                pd_unit[] = {
     {UDATA(pd_srv, UNIT_IDLE|UNIT_DISABLE, 0)},  /* 0 */
@@ -87,7 +89,7 @@ static uint64 pd_ticks (void)
     return 60ULL * seconds;
 }
 
-t_stat pd_devio(uint32 dev, uint64 *data)
+t_stat pd_devio(uint32_t dev, uint64 *data)
 {
     DEVICE *dptr = &pd_dev;
 
@@ -103,7 +105,7 @@ t_stat pd_devio(uint32 dev, uint64 *data)
         break;
     case CONO:
         pd_unit[0].PIA_CH &= ~(PIA_FLG);
-        pd_unit[0].PIA_CH |= (int32)(*data & PIA_FLG);
+        pd_unit[0].PIA_CH |= (int32_t)(*data & PIA_FLG);
         if (pd_unit[0].PIA_CH & PIA_FLG) {
             if (!sim_is_active(pd_unit))
                 sim_activate(pd_unit, 10000);
@@ -142,7 +144,7 @@ const char *pd_description (DEVICE *dptr)
     return "Paul DeCoriolis clock";
 }
 
-t_stat pd_set_on(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat pd_set_on(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -157,7 +159,7 @@ t_stat pd_set_on(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat pd_set_off(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat pd_set_off(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -172,7 +174,7 @@ t_stat pd_set_off(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat pd_show_on(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat pd_show_on(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */

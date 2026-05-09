@@ -40,6 +40,8 @@
  *************************************************************************/
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "wd179x.h"
 
@@ -65,18 +67,18 @@ extern WD179X_INFO_PUB *wd179x_infop;
 
 static TDD_INFO tdd_info_data = { { 0x0000, 0, TDD_IO_BASE, TDD_IO_SIZE } };
 
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
-extern uint32 PCX;      /* external view of PC  */
+extern uint32_t PCX;    /* external view of PC  */
 
 #define TDD_CAPACITY        (77*1*26*128)   /* Default SSSD 8" (IBM 3740) Disk Capacity */
 
 static t_stat tdd_reset(DEVICE *tdd_dev);
 
-static int32 tdd_control(const int32 port, const int32 io, const int32 data);
+static int32_t tdd_control(const int32_t port, const int32_t io, const int32_t data);
 static const char* tdd_description(DEVICE *dptr);
 
 #define TDD_FLAG_EOJ        (1 << 7)    /* End of Job (INTRQ) */
@@ -145,9 +147,9 @@ static t_stat tdd_reset(DEVICE *dptr)
 }
 
 /* Tarbell pp. 12-5 Disk Control/Status */
-static int32 tdd_control(const int32 port, const int32 io, const int32 data)
+static int32_t tdd_control(const int32_t port, const int32_t io, const int32_t data)
 {
-    int32 result = 0;
+    int32_t result = 0;
     if(io) { /* I/O Write */
         if ((port & TDD_IO_MASK) == 0) {
             wd179x_infop->fdc_head = (data & 0x40) >> 6;

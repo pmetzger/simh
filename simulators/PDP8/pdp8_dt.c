@@ -98,6 +98,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
 #define DT_NUMDR        8                               /* #drives */
@@ -133,8 +135,8 @@
 #define D18_CAPAC       (D18_TSIZE * D18_BSIZE)         /* tape capacity */
 
 #define D18_NBSIZE      ((D18_BSIZE * D8_WSIZE) / D18_WSIZE)
-#define D18_FILSIZ      (D18_NBSIZE * D18_TSIZE * sizeof (int32))
-#define D11_FILSIZ      (D18_NBSIZE * D18_TSIZE * sizeof (int16))
+#define D18_FILSIZ      (D18_NBSIZE * D18_TSIZE * sizeof (int32_t))
+#define D11_FILSIZ      (D18_NBSIZE * D18_TSIZE * sizeof (int16_t))
 
 /* 12b DECtape constants */
 
@@ -144,7 +146,7 @@
 #define D8_LPERB        (DT_HTLIN + (D8_BSIZE * DT_WSIZE) + DT_HTLIN)
 #define D8_FWDEZ        (DT_EZLIN + (D8_LPERB * D8_TSIZE))
 #define D8_CAPAC        (D8_TSIZE * D8_BSIZE)           /* tape capacity */
-#define D8_FILSIZ       (D8_CAPAC * sizeof (int16))
+#define D8_FILSIZ       (D8_CAPAC * sizeof (int16_t))
 
 /* This controller */
 
@@ -164,7 +166,7 @@
 #define DT_LIN2WD(p,u)  ((DT_LIN2OF (p,u) - DT_HTLIN) / DT_WSIZE)
 #define DT_BLK2LN(p,u)  (((p) * DTU_LPERB (u)) + DT_EZLIN)
 #define DT_QREZ(u)      (((u)->pos) < DT_EZLIN)
-#define DT_QFEZ(u)      (((u)->pos) >= ((uint32) DTU_FWDEZ (u)))
+#define DT_QFEZ(u)      (((u)->pos) >= ((uint32_t) DTU_FWDEZ (u)))
 #define DT_QEZ(u)       (DT_QREZ (u) || DT_QFEZ (u))
 
 /* Status register A */
@@ -265,36 +267,36 @@
                         else int_req = int_req & ~INT_DTA;
 #define ABS(x)          (((x) < 0)? (-(x)): (x))
 
-extern uint16 M[];
-extern int32 int_req;
+extern uint16_t M[];
+extern int32_t int_req;
 extern UNIT cpu_unit;
 
-int32 dtsa = 0;                                         /* status A */
-int32 dtsb = 0;                                         /* status B */
-int32 dt_ltime = 12;                                    /* interline time */
-int32 dt_dctime = 40000;                                /* decel time */
-int32 dt_substate = 0;
-int32 dt_logblk = 0;
-int32 dt_stopoffr = 0;
+int32_t dtsa = 0;                                       /* status A */
+int32_t dtsb = 0;                                       /* status B */
+int32_t dt_ltime = 12;                                  /* interline time */
+int32_t dt_dctime = 40000;                              /* decel time */
+int32_t dt_substate = 0;
+int32_t dt_logblk = 0;
+int32_t dt_stopoffr = 0;
 
-int32 dt76 (int32 IR, int32 AC);
-int32 dt77 (int32 IR, int32 AC);
+int32_t dt76 (int32_t IR, int32_t AC);
+int32_t dt77 (int32_t IR, int32_t AC);
 t_stat dt_svc (UNIT *uptr);
 t_stat dt_reset (DEVICE *dptr);
 t_stat dt_attach (UNIT *uptr, const char *cptr);
 const char *dt_description (DEVICE *dptr);
 void dt_flush (UNIT *uptr);
 t_stat dt_detach (UNIT *uptr);
-t_stat dt_boot (int32 unitno, DEVICE *dptr);
-void dt_deselect (int32 oldf);
-void dt_newsa (int32 newf);
-void dt_newfnc (UNIT *uptr, int32 newsta);
+t_stat dt_boot (int32_t unitno, DEVICE *dptr);
+void dt_deselect (int32_t oldf);
+void dt_newsa (int32_t newf);
+void dt_newfnc (UNIT *uptr, int32_t newsta);
 bool dt_setpos (UNIT *uptr);
-void dt_schedez (UNIT *uptr, int32 dir);
-void dt_seterr (UNIT *uptr, int32 e);
-int32 dt_comobv (int32 val);
-int32 dt_csum (UNIT *uptr, int32 blk);
-int32 dt_gethdr (UNIT *uptr, int32 blk, int32 relpos, int32 dir);
+void dt_schedez (UNIT *uptr, int32_t dir);
+void dt_seterr (UNIT *uptr, int32_t e);
+int32_t dt_comobv (int32_t val);
+int32_t dt_csum (UNIT *uptr, int32_t blk);
+int32_t dt_gethdr (UNIT *uptr, int32_t blk, int32_t relpos, int32_t dir);
 
 /* DT data structures
 
@@ -381,10 +383,10 @@ DEVICE dt_dev = {
 
 /* IOT routines */
 
-int32 dt76 (int32 IR, int32 AC)
+int32_t dt76 (int32_t IR, int32_t AC)
 {
-int32 pulse = IR & 07;
-int32 old_dtsa = dtsa, fnc;
+int32_t pulse = IR & 07;
+int32_t old_dtsa = dtsa, fnc;
 UNIT *uptr;
 
 if (pulse & 01)                                         /* DTRA */
@@ -413,9 +415,9 @@ if (pulse & 06) {                                       /* select */
 return AC;
 }
 
-int32 dt77 (int32 IR, int32 AC)
+int32_t dt77 (int32_t IR, int32_t AC)
 {
-int32 pulse = IR & 07;
+int32_t pulse = IR & 07;
 
 if ((pulse & 01) && (dtsb & (DTB_ERF |DTB_DTF)))        /* DTSF */
     AC = IOT_SKP | AC;
@@ -430,11 +432,11 @@ return AC;
 
 /* Unit deselect */
 
-void dt_deselect (int32 oldf)
+void dt_deselect (int32_t oldf)
 {
-int32 old_unit = DTA_GETUNIT (oldf);
+int32_t old_unit = DTA_GETUNIT (oldf);
 UNIT *uptr = dt_dev.units + old_unit;
-int32 old_mot = DTS_GETMOT (uptr->STATE);
+int32_t old_mot = DTS_GETMOT (uptr->STATE);
 
 if (old_mot >= DTS_ATSF)                                /* at speed? */
     dt_newfnc (uptr, DTS_STA (old_mot, DTS_OFR));
@@ -464,10 +466,10 @@ return;
         - set function as current state, schedule function
 */
 
-void dt_newsa (int32 newf)
+void dt_newsa (int32_t newf)
 {
-int32 new_unit, prev_mot, new_fnc;
-int32 prev_mving, new_mving, prev_dir, new_dir;
+int32_t new_unit, prev_mot, new_fnc;
+int32_t prev_mving, new_mving, prev_dir, new_dir;
 UNIT *uptr;
 
 new_unit = DTA_GETUNIT (newf);                          /* new, old units */
@@ -551,10 +553,10 @@ return;
    - schedules the new operation
 */
 
-void dt_newfnc (UNIT *uptr, int32 newsta)
+void dt_newfnc (UNIT *uptr, int32_t newsta)
 {
-int32 fnc, dir, blk, unum, relpos, newpos;
-uint32 oldpos;
+int32_t fnc, dir, blk, unum, relpos, newpos;
+uint32_t oldpos;
 
 oldpos = uptr->pos;                                     /* save old pos */
 if (dt_setpos (uptr))                                   /* update pos */
@@ -562,7 +564,7 @@ if (dt_setpos (uptr))                                   /* update pos */
 uptr->STATE = newsta;                                   /* update state */
 fnc = DTS_GETFNC (uptr->STATE);                         /* set variables */
 dir = DTS_GETMOT (uptr->STATE) & DTS_DIR;
-unum = (int32) (uptr - dt_dev.units);
+unum = (int32_t) (uptr - dt_dev.units);
 if (oldpos == uptr->pos)                                /* bump pos */
     uptr->pos = uptr->pos + (dir? -1: 1);
 blk = DT_LIN2BL (uptr->pos, uptr);
@@ -625,7 +627,7 @@ switch (fnc) {                                          /* case function */
         return;
         }
 
-sim_activate (uptr, ABS (newpos - ((int32) uptr->pos)) * dt_ltime);
+sim_activate (uptr, ABS (newpos - ((int32_t) uptr->pos)) * dt_ltime);
 return;
 }
 
@@ -649,9 +651,9 @@ return;
 
 bool dt_setpos (UNIT *uptr)
 {
-uint32 new_time, ut, ulin, udelt;
-int32 mot = DTS_GETMOT (uptr->STATE);
-int32 unum, delta = 0;
+uint32_t new_time, ut, ulin, udelt;
+int32_t mot = DTS_GETMOT (uptr->STATE);
+int32_t unum, delta = 0;
 
 new_time = sim_grtime ();                               /* current time */
 ut = new_time - uptr->LASTT;                            /* elapsed time */
@@ -665,30 +667,30 @@ switch (mot & ~DTS_DIR) {                               /* case on motion */
         break;
 
     case DTS_DECF:                                      /* slowing */
-        ulin = ut / (uint32) dt_ltime;
+        ulin = ut / (uint32_t) dt_ltime;
         udelt = dt_dctime / dt_ltime;
         delta = ((ulin * udelt * 2) - (ulin * ulin)) / (2 * udelt);
         break;
 
     case DTS_ACCF:                                      /* accelerating */
-        ulin = ut / (uint32) dt_ltime;
+        ulin = ut / (uint32_t) dt_ltime;
         udelt = (dt_dctime - (dt_dctime >> 2)) / dt_ltime;
         delta = (ulin * ulin) / (2 * udelt);
         break;
 
     case DTS_ATSF:                                      /* at speed */
-        delta = ut / (uint32) dt_ltime;
+        delta = ut / (uint32_t) dt_ltime;
         break;
         }
 
 if (mot & DTS_DIR)                                      /* update pos */
     uptr->pos = uptr->pos - delta;
 else uptr->pos = uptr->pos + delta;
-if (((int32) uptr->pos < 0) ||
-    ((int32) uptr->pos > (DTU_FWDEZ (uptr) + DT_EZLIN))) {
+if (((int32_t) uptr->pos < 0) ||
+    ((int32_t) uptr->pos > (DTU_FWDEZ (uptr) + DT_EZLIN))) {
     detach_unit (uptr);                                 /* off reel? */
     uptr->STATE = uptr->pos = 0;
-    unum = (int32) (uptr - dt_dev.units);
+    unum = (int32_t) (uptr - dt_dev.units);
     if (unum == DTA_GETUNIT (dtsa))                     /* if selected, */
         dt_seterr (uptr, DTB_SEL);                      /* error */
     return true;
@@ -703,13 +705,13 @@ return false;
 
 t_stat dt_svc (UNIT *uptr)
 {
-int32 mot = DTS_GETMOT (uptr->STATE);
-int32 dir = mot & DTS_DIR;
-int32 fnc = DTS_GETFNC (uptr->STATE);
-int16 *fbuf = (int16 *) uptr->filebuf;
-int32 unum = uptr - dt_dev.units;
-int32 blk, wrd, ma, relpos, dat;
-uint32 ba;
+int32_t mot = DTS_GETMOT (uptr->STATE);
+int32_t dir = mot & DTS_DIR;
+int32_t fnc = DTS_GETFNC (uptr->STATE);
+int16_t *fbuf = (int16_t *) uptr->filebuf;
+int32_t unum = uptr - dt_dev.units;
+int32_t blk, wrd, ma, relpos, dat;
+uint32_t ba;
 
 /* Motion cases
 
@@ -1022,7 +1024,7 @@ return SCPE_OK;
         7       7       rev csm         136     7       00'fwd csm
 */
 
-int32 dt_gethdr (UNIT *uptr, int32 blk, int32 relpos, int32 dir)
+int32_t dt_gethdr (UNIT *uptr, int32_t blk, int32_t relpos, int32_t dir)
 {
 if (relpos >= DT_HTLIN)
     relpos = relpos - (DT_WSIZE * DTU_BSIZE (uptr));
@@ -1069,9 +1071,9 @@ return 0;
 
 /* Set error flag */
 
-void dt_seterr (UNIT *uptr, int32 e)
+void dt_seterr (UNIT *uptr, int32_t e)
 {
-int32 mot = DTS_GETMOT (uptr->STATE);
+int32_t mot = DTS_GETMOT (uptr->STATE);
 
 dtsa = dtsa & ~DTA_STSTP;                               /* clear go */
 dtsb = dtsb | DTB_ERF | e;                              /* set error flag */
@@ -1089,20 +1091,20 @@ return;
 
 /* Schedule end zone */
 
-void dt_schedez (UNIT *uptr, int32 dir)
+void dt_schedez (UNIT *uptr, int32_t dir)
 {
-int32 newpos;
+int32_t newpos;
 
 if (dir)                                                /* rev? rev ez */
     newpos = DT_EZLIN - DT_WSIZE;
 else newpos = DTU_FWDEZ (uptr) + DT_WSIZE;              /* fwd? fwd ez */
-sim_activate (uptr, ABS (newpos - ((int32) uptr->pos)) * dt_ltime);
+sim_activate (uptr, ABS (newpos - ((int32_t) uptr->pos)) * dt_ltime);
 return;
 }
 
 /* Complement obverse routine */
 
-int32 dt_comobv (int32 dat)
+int32_t dt_comobv (int32_t dat)
 {
 dat = dat ^ 07777;                                      /* compl obverse */
 dat = ((dat >> 9) & 07) | ((dat >> 3) & 070) |
@@ -1112,11 +1114,11 @@ return dat;
 
 /* Checksum routine */
 
-int32 dt_csum (UNIT *uptr, int32 blk)
+int32_t dt_csum (UNIT *uptr, int32_t blk)
 {
-int16 *fbuf = (int16 *) uptr->filebuf;
-int32 ba = blk * DTU_BSIZE (uptr);
-int32 i, csum, wrd;
+int16_t *fbuf = (int16_t *) uptr->filebuf;
+int32_t ba = blk * DTU_BSIZE (uptr);
+int32_t i, csum, wrd;
 
 csum = 077;                                             /* init csum */
 for (i = 0; i < DTU_BSIZE (uptr); i++) {                /* loop thru buf */
@@ -1134,7 +1136,7 @@ t_stat dt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i, prev_mot;
+int32_t i, prev_mot;
 UNIT *uptr;
 
 for (i = 0; i < DT_NUMDR; i++) {                        /* stop all activity */
@@ -1168,9 +1170,9 @@ return SCPE_OK;
 */
 
 #define BOOT_START      0200
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     07600,                      /* 200, CLA             ; group 2 */
     01216,                      /*      TAD MVB         ; move back */
     04210,                      /*      JMS DO          ; action */
@@ -1192,7 +1194,7 @@ static const uint16 boot_rom[] = {
     00220                       /* RF,  0220 */
     };
 
-t_stat dt_boot (int32 unitno, DEVICE *dptr)
+t_stat dt_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1221,12 +1223,12 @@ return SCPE_OK;
 
 t_stat dt_attach (UNIT *uptr, const char *cptr)
 {
-uint32 pdp18b[D18_NBSIZE];
-uint16 pdp11b[D18_NBSIZE], *fbuf;
-int32 i, k;
-int32 u = uptr - dt_dev.units;
+uint32_t pdp18b[D18_NBSIZE];
+uint16_t pdp11b[D18_NBSIZE], *fbuf;
+int32_t i, k;
+int32_t u = uptr - dt_dev.units;
 t_stat r;
-uint32 ba, sz;
+uint32_t ba, sz;
 
 r = attach_unit (uptr, cptr);                           /* attach */
 if (r != SCPE_OK) return r;                             /* fail? */
@@ -1245,12 +1247,12 @@ if ((sim_switches & SIM_SW_REST) == 0) {                /* not from rest? */
         }
     }
 uptr->capac = DTU_CAPAC (uptr);                         /* set capacity */
-uptr->filebuf = calloc (uptr->capac, sizeof (uint16));
+uptr->filebuf = calloc (uptr->capac, sizeof (uint16_t));
 if (uptr->filebuf == NULL) {                            /* can't alloc? */
     detach_unit (uptr);
     return SCPE_MEM;
     }
-fbuf = (uint16 *) uptr->filebuf;                        /* file buffer */
+fbuf = (uint16_t *) uptr->filebuf;                      /* file buffer */
 sim_printf ("%s%d: ", sim_dname (&dt_dev), u);
 if (uptr->flags & UNIT_8FMT)
     sim_printf ("12b format");
@@ -1260,16 +1262,16 @@ else sim_printf ("18b/36b format");
 sim_printf (", buffering file in memory\n");
 uptr->io_flush = dt_flush;
 if (uptr->flags & UNIT_8FMT)                            /* 12b? */
-    uptr->hwmark = fxread (uptr->filebuf, sizeof (uint16),
+    uptr->hwmark = fxread (uptr->filebuf, sizeof (uint16_t),
             uptr->capac, uptr->fileref);
 else {                                                  /* 16b/18b */
     for (ba = 0; ba < uptr->capac; ) {                  /* loop thru file */
         if (uptr->flags & UNIT_11FMT) {
-            k = fxread (pdp11b, sizeof (uint16), D18_NBSIZE, uptr->fileref);
+            k = fxread (pdp11b, sizeof (uint16_t), D18_NBSIZE, uptr->fileref);
             for (i = 0; i < k; i++)
                 pdp18b[i] = pdp11b[i];
             }
-        else k = fxread (pdp18b, sizeof (uint32), D18_NBSIZE, uptr->fileref);
+        else k = fxread (pdp18b, sizeof (uint32_t), D18_NBSIZE, uptr->fileref);
         if (k == 0)
             break;
         for ( ; k < D18_NBSIZE; k++) pdp18b[k] = 0;
@@ -1298,34 +1300,34 @@ return SCPE_OK;
 */
 void dt_flush (UNIT* uptr)
 {
-uint32 pdp18b[D18_NBSIZE];
-uint16 pdp11b[D18_NBSIZE], *fbuf;
-int32 i, k;
-uint32 ba;
+uint32_t pdp18b[D18_NBSIZE];
+uint16_t pdp11b[D18_NBSIZE], *fbuf;
+int32_t i, k;
+uint32_t ba;
 
 if (uptr->WRITTEN && uptr->hwmark && ((uptr->flags & UNIT_RO)== 0)) {    /* any data? */
     sim_printf ("%s: writing buffer to file: %s\n", sim_uname (uptr), uptr->filename);
     rewind (uptr->fileref);                             /* start of file */
-    fbuf = (uint16 *) uptr->filebuf;                    /* file buffer */
+    fbuf = (uint16_t *) uptr->filebuf;                  /* file buffer */
     if (uptr->flags & UNIT_8FMT)                        /* PDP8? */
-        fxwrite (uptr->filebuf, sizeof (uint16),        /* write file */
+        fxwrite (uptr->filebuf, sizeof (uint16_t),      /* write file */
             uptr->hwmark, uptr->fileref);
     else {                                              /* 16b/18b */
         for (ba = 0; ba < uptr->hwmark; ) {             /* loop thru buf */
             for (k = 0; k < D18_NBSIZE; k = k + 2) {
-                pdp18b[k] = ((uint32) (fbuf[ba] & 07777) << 6) |
-                    ((uint32) (fbuf[ba + 1] >> 6) & 077);
-                pdp18b[k + 1] = ((uint32) (fbuf[ba + 1] & 077) << 12) |
-                    ((uint32) (fbuf[ba + 2] & 07777));
+                pdp18b[k] = ((uint32_t) (fbuf[ba] & 07777) << 6) |
+                    ((uint32_t) (fbuf[ba + 1] >> 6) & 077);
+                pdp18b[k + 1] = ((uint32_t) (fbuf[ba + 1] & 077) << 12) |
+                    ((uint32_t) (fbuf[ba + 2] & 07777));
                 ba = ba + 3;
                 }                                       /* end loop blk */
             if (uptr->flags & UNIT_11FMT) {             /* 16b? */
                 for (i = 0; i < D18_NBSIZE; i++)
                     pdp11b[i] = pdp18b[i];
-                fxwrite (pdp11b, sizeof (uint16),
+                fxwrite (pdp11b, sizeof (uint16_t),
                     D18_NBSIZE, uptr->fileref);
                 }
-            else fxwrite (pdp18b, sizeof (uint32),
+            else fxwrite (pdp18b, sizeof (uint32_t),
                 D18_NBSIZE, uptr->fileref);
             }                                           /* end loop buf */
         }                                               /* end else */

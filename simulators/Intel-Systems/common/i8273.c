@@ -99,6 +99,7 @@
 
 */
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "multibus_defs.h"
@@ -106,7 +107,7 @@
 #define UNIT_V_ANSI (UNIT_V_UF + 0)                     /* ANSI mode */
 #define UNIT_ANSI   (1 << UNIT_V_ANSI)
 
-uint8
+uint8_t
     wr0 = 0,                            /* command register */
     wr1 = 0,                            /* enable register */
     wr2 = 0,                            /* CH A mode register */
@@ -214,7 +215,7 @@ t_stat i8273_reset (DEVICE *dptr)
     to the device.
 */
 
-int32 i8273s(int32 io, int32 data)
+int32_t i8273s(int32_t io, int32_t data)
 {
     if (io == 0) {                                      /* read status port */
         return i8273_unit.u3;
@@ -239,7 +240,7 @@ int32 i8273s(int32 io, int32 data)
     }
 }
 
-int32 i8273d(int32 io, int32 data)
+int32_t i8273d(int32_t io, int32_t data)
 {
     if (io == 0) {                                      /* read data port */
         i8273_unit.u3 &= 0xFD;

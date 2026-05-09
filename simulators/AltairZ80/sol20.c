@@ -72,6 +72,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "sim_tmxr.h"
@@ -81,17 +83,17 @@
 /* SIMH */
 /********/
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern t_stat set_dev_enbdis(DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern t_stat set_dev_enbdis(DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 extern t_stat (*vdm1_kb_callback)(SIM_KEY_EVENT *kev);
-extern t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_rambase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern t_stat show_rombase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern t_stat set_cmd(int32 flag, const char *cptr);
+extern t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_rambase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern t_stat show_rombase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern t_stat set_cmd(int32_t flag, const char *cptr);
 
-extern void PutBYTEWrapper(const uint32 Addr, const uint32 Value);
-extern uint32 nmiInterrupt;
+extern void PutBYTEWrapper(const uint32_t Addr, const uint32_t Value);
+extern uint32_t nmiInterrupt;
 
 /* Debug flags */
 #define VERBOSE_MSG         (1 << 0)
@@ -114,8 +116,8 @@ static t_stat sol20_reset(DEVICE *dptr);
 static t_stat sol20_kb_reset(DEVICE *dptr);
 static t_stat sol20_port_reset(DEVICE *dptr);
 static t_stat sol20_svc(UNIT *uptr);
-static t_stat sol20_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-static t_stat sol20_boot(int32 unitno, DEVICE *dptr);
+static t_stat sol20_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat sol20_boot(int32_t unitno, DEVICE *dptr);
 static t_stat sol20_attach_tape(UNIT *uptr, const char *cptr);
 static t_stat sol20_detach_tape(UNIT *uptr);
 static t_stat sol20_attach_mux(UNIT *uptr, const char *cptr);
@@ -126,22 +128,22 @@ static const char* sol20k_description(DEVICE *dptr);
 static const char* sol20t_description(DEVICE *dptr);
 static const char* sol20s_description(DEVICE *dptr);
 static const char* sol20p_description(DEVICE *dptr);
-static t_stat sol20_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat sol20_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc);
-static t_stat sol20_set_rom(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat sol20_show_rom(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat sol20_show_ports(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat sol20_set_tape(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat sol20_show_tape(FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat sol20_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat sol20_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc);
+static t_stat sol20_set_rom(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat sol20_show_rom(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat sol20_show_ports(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat sol20_set_tape(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat sol20_show_tape(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 static t_stat sol20_rewind(UNIT *uptr);
 static t_stat sol20_erase(UNIT *uptr);
-static int32 sol20io(int32 addr, int32 rw, int32 data);
-static int32 sol20rom(int32 addr, int32 rw, int32 data);
-static int32 sol20ram(int32 addr, int32 rw, int32 data);
-static uint8 sol20_io_in(uint32 addr);
-static uint8 sol20_io_out(uint32 addr, int32 data);
+static int32_t sol20io(int32_t addr, int32_t rw, int32_t data);
+static int32_t sol20rom(int32_t addr, int32_t rw, int32_t data);
+static int32_t sol20ram(int32_t addr, int32_t rw, int32_t data);
+static uint8_t sol20_io_in(uint32_t addr);
+static uint8_t sol20_io_out(uint32_t addr, int32_t data);
 static t_stat sol20_kb_callback(SIM_KEY_EVENT *kev);
-static uint8 translate_key(SIM_KEY_EVENT *kev);
+static uint8_t translate_key(SIM_KEY_EVENT *kev);
 
 /***********/
 /* RAM/ROM */
@@ -151,14 +153,14 @@ static uint8 translate_key(SIM_KEY_EVENT *kev);
 #define SOL20_RAM_SIZE   1024
 #define SOL20_RAM_MASK   (SOL20_RAM_SIZE-1)
 
-static uint8 sol20_ram[SOL20_RAM_SIZE];
+static uint8_t sol20_ram[SOL20_RAM_SIZE];
 
 #define SOL20_ROM_BASE   0xc000
 #define SOL20_ROM_SIZE   2048
 #define SOL20_ROM_MASK   (SOL20_ROM_SIZE-1)
 
 /* SOLOS 1.3 ROM */
-static uint8 sol20_rom_13[SOL20_ROM_SIZE] = {
+static uint8_t sol20_rom_13[SOL20_ROM_SIZE] = {
     0x00, 0xc3, 0xaf, 0xc1, 0xc3, 0xc9, 0xc1, 0xc3,
     0xe0, 0xc5, 0xc3, 0x03, 0xc6, 0xc3, 0x46, 0xc6,
     0xc3, 0x83, 0xc6, 0xc3, 0xcb, 0xc6, 0xc3, 0x7f,
@@ -418,7 +420,7 @@ static uint8 sol20_rom_13[SOL20_ROM_SIZE] = {
 };
 
 /* SOLOS 1.3C ROM for CP/M */
-static uint8 sol20_rom_13c[SOL20_ROM_SIZE] = {
+static uint8_t sol20_rom_13c[SOL20_ROM_SIZE] = {
     0x00, 0xc3, 0xaf, 0xc1, 0xc3, 0xc9, 0xc1, 0xc3,
     0xe0, 0xc5, 0xc3, 0x03, 0xc6, 0xc3, 0x46, 0xc6,
     0xc3, 0x83, 0xc6, 0xc3, 0xcb, 0xc6, 0xc3, 0x7f,
@@ -678,7 +680,7 @@ static uint8 sol20_rom_13c[SOL20_ROM_SIZE] = {
 };
 
 /* SOLOS 4.1 ROM */
-static uint8 sol20_rom_41[SOL20_ROM_SIZE] = {
+static uint8_t sol20_rom_41[SOL20_ROM_SIZE] = {
     0x00, 0xc3, 0xaf, 0xc1, 0xc3, 0xc9, 0xc1, 0xc3,
     0xe0, 0xc5, 0xc3, 0x03, 0xc6, 0xc3, 0x46, 0xc6,
     0xc3, 0x83, 0xc6, 0xc3, 0xcb, 0xc6, 0xc3, 0x7f,
@@ -937,7 +939,7 @@ static uint8 sol20_rom_41[SOL20_ROM_SIZE] = {
     0xf4, 0xc7, 0x05, 0xc2, 0xf1, 0xc7, 0xc9, 0x00,
 };
 
-static uint8 sol20_rom_cuter13[SOL20_ROM_SIZE] = {
+static uint8_t sol20_rom_cuter13[SOL20_ROM_SIZE] = {
     0x7f, 0xc3, 0xd7, 0xc1, 0xc3, 0x18, 0xc2, 0xc3,
     0xdc, 0xc5, 0xc3, 0xff, 0xc5, 0xc3, 0x42, 0xc6,
     0xc3, 0x7f, 0xc6, 0xc3, 0xc7, 0xc6, 0xc3, 0x7b,
@@ -1196,7 +1198,7 @@ static uint8 sol20_rom_cuter13[SOL20_ROM_SIZE] = {
     0xed, 0xc7, 0xc9, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static uint8 *sol20_rom = sol20_rom_41;    /* Default 4.1 ROM */
+static uint8_t *sol20_rom = sol20_rom_41;  /* Default 4.1 ROM */
 
 /*********************/
 /* SOL20 Definitions */
@@ -1246,12 +1248,12 @@ static uint8 *sol20_rom = sol20_rom_41;    /* Default 4.1 ROM */
 */
 
 typedef struct {
-    uint32    rom_base;     /* ROM Base Address */
-    uint32    rom_size;     /* ROM Address space requirement */
-    uint32    io_base;      /* I/O Base Address */
-    uint32    io_size;      /* I/O Address Space requirement */
-    uint32    ram_base;     /* RAM Base Address */
-    uint32    ram_size;     /* RAM Address space requirement */
+    uint32_t  rom_base;     /* ROM Base Address */
+    uint32_t  rom_size;     /* ROM Address space requirement */
+    uint32_t  io_base;      /* I/O Base Address */
+    uint32_t  io_size;      /* I/O Address Space requirement */
+    uint32_t  ram_base;     /* RAM Base Address */
+    uint32_t  ram_size;     /* RAM Address space requirement */
 } SOL20_CTX;
 
 static SOL20_CTX sol20_ctx = {
@@ -1313,13 +1315,13 @@ DEVICE sol20_dev = {
 
 typedef struct {
     PNP_INFO  pnp;          /* Must be first */
-    int32     conn;         /* Connected Status */
-    uint16    baud;         /* Baud rate */
-    uint8     status;       /* Status Byte */
-    uint8     rdr;          /* Receive Data Ready */
-    uint8     rxd;          /* Receive Data Buffer */
-    uint8     txd;          /* Transmit Data Buffer */
-    uint8     tbe;          /* Transmit Buffer Empty */
+    int32_t   conn;         /* Connected Status */
+    uint16_t  baud;         /* Baud rate */
+    uint8_t   status;       /* Status Byte */
+    uint8_t   rdr;          /* Receive Data Ready */
+    uint8_t   rxd;          /* Receive Data Buffer */
+    uint8_t   txd;          /* Transmit Data Buffer */
+    uint8_t   tbe;          /* Transmit Buffer Empty */
     TMLN     *tmln;         /* TMLN pointer */
     TMXR     *tmxr;         /* TMXR pointer */
 } SOL20_PORT_CTX;
@@ -1669,7 +1671,7 @@ static const char* sol20p_description(DEVICE *dptr) {
  */
 static t_stat sol20_reset(DEVICE *dptr)
 {
-    static uint8 first = 1;
+    static uint8_t first = 1;
 #if defined(USE_SIM_VIDEO) && defined(HAVE_LIBSDL)
     DEVICE *vdm1;
 #endif
@@ -1723,7 +1725,7 @@ static t_stat sol20_reset(DEVICE *dptr)
 /*
  * The BOOT command will enter the SOLOS ROM at 0xC000
  */
-static t_stat sol20_boot(int32 unitno, DEVICE *dptr)
+static t_stat sol20_boot(int32_t unitno, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -1732,7 +1734,7 @@ static t_stat sol20_boot(int32 unitno, DEVICE *dptr)
 
     sim_printf("%s: Booting using ROM at 0x%04x\n", SOL20_SNAME, sol20_ctx.rom_base);
 
-    *((int32 *) sim_PC->loc) = sol20_ctx.rom_base;
+    *((int32_t *) sim_PC->loc) = sol20_ctx.rom_base;
 
     return SCPE_OK;
 }
@@ -1753,7 +1755,7 @@ static t_stat sol20_kb_reset(DEVICE *dptr) {
 
 static t_stat sol20_port_reset(DEVICE *dptr) {
     SOL20_PORT_CTX *port;
-    uint32 u;
+    uint32_t u;
 
     port = (SOL20_PORT_CTX *) dptr->ctxt;
 
@@ -1799,7 +1801,7 @@ static t_stat sol20_port_reset(DEVICE *dptr) {
 static t_stat sol20_svc(UNIT *uptr)
 {
     SOL20_PORT_CTX *port;
-    int32 c = 0;
+    int32_t c = 0;
     t_stat r = SCPE_OK;
 
     port = (SOL20_PORT_CTX *) uptr->dptr->ctxt;
@@ -1940,7 +1942,7 @@ static t_stat sol20_detach_mux(UNIT *uptr)
     return r;
 }
 
-static t_stat sol20_show_ports(FILE *st, UNIT *uptr, int32 val, const void *desc) {
+static t_stat sol20_show_ports(FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) val;
@@ -1973,14 +1975,14 @@ static t_stat sol20_config_line(DEVICE *dev, TMLN *tmln, int baud)
     return r;
 }
 
-static t_stat sol20_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat sol20_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) value;
     (void) desc;
 
-    int32 baud;
+    int32_t baud;
     t_stat r = SCPE_ARG;
     SOL20_PORT_CTX *port;
 
@@ -2000,7 +2002,7 @@ static t_stat sol20_set_baud(UNIT *uptr, int32 value, const char *cptr, void *de
     return r;
 }
 
-static t_stat sol20_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat sol20_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -2018,7 +2020,7 @@ static t_stat sol20_show_baud(FILE *st, UNIT *uptr, int32 value, const void *des
     return SCPE_OK;
 }
 
-static t_stat sol20_set_rom(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat sol20_set_rom(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -2049,7 +2051,7 @@ static t_stat sol20_set_rom(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-static t_stat sol20_show_rom(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat sol20_show_rom(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -2079,7 +2081,7 @@ static t_stat sol20_show_rom(FILE *st, UNIT *uptr, int32 val, const void *desc)
 /*
  * Sets tape speed to NORMAL or FAST
  */
-static t_stat sol20_set_tape(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat sol20_set_tape(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -2103,7 +2105,7 @@ static t_stat sol20_set_tape(UNIT *uptr, int32 val, const char *cptr, void *desc
     return SCPE_OK;
 }
 
-static t_stat sol20_show_tape(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat sol20_show_tape(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -2157,7 +2159,7 @@ static t_stat sol20_erase(UNIT *uptr)
 /*
  * Handles memory reads from ROM
  */
-static int32 sol20rom(int32 addr, int32 rw, int32 data)
+static int32_t sol20rom(int32_t addr, int32_t rw, int32_t data)
 {
     /* Memory resource handler signature.
        This implementation does not use every parameter. */
@@ -2170,7 +2172,7 @@ static int32 sol20rom(int32 addr, int32 rw, int32 data)
 /*
  * Handles memory reads/writes
  */
-static int32 sol20ram(int32 addr, int32 rw, int32 data)
+static int32_t sol20ram(int32_t addr, int32_t rw, int32_t data)
 {
     if (rw == 0) {
         return(sol20_ram[addr & SOL20_RAM_MASK]);
@@ -2184,7 +2186,7 @@ static int32 sol20ram(int32 addr, int32 rw, int32 data)
 /*
  * Handles I/O input and output
  */
-static int32 sol20io(int32 addr, int32 rw, int32 data)
+static int32_t sol20io(int32_t addr, int32_t rw, int32_t data)
 {
     if (rw == 0) {
         return(sol20_io_in(addr));
@@ -2194,9 +2196,9 @@ static int32 sol20io(int32 addr, int32 rw, int32 data)
     }
 }
 
-static uint8 sol20_io_in(uint32 addr)
+static uint8_t sol20_io_in(uint32_t addr)
 {
-    uint8 data = 0xff;
+    uint8_t data = 0xff;
 
     switch(addr & 0xff) {
         case SOL20_SERST:
@@ -2243,7 +2245,7 @@ static uint8 sol20_io_in(uint32 addr)
     return (data);
 }
 
-static uint8 sol20_io_out(uint32 addr, int32 data)
+static uint8_t sol20_io_out(uint32_t addr, int32_t data)
 {
     switch(addr & 0xff) {
         case SOL20_SDATA:
@@ -2288,7 +2290,7 @@ static uint8 sol20_io_out(uint32 addr, int32 data)
  */
 static t_stat sol20_kb_callback(SIM_KEY_EVENT *kev)
 {
-    uint8 c;
+    uint8_t c;
 
     if ((c = translate_key(kev))) {
         sol20k_ctx.rxd = c;
@@ -2306,7 +2308,7 @@ static t_stat sol20_kb_callback(SIM_KEY_EVENT *kev)
 /*
  * Translate KEYBOARD event keys to Sol-20 ASCII
  */
-static uint8 translate_key(SIM_KEY_EVENT *kev)
+static uint8_t translate_key(SIM_KEY_EVENT *kev)
 {
     static bool shifted = false;
     static bool caps = false;
@@ -2622,7 +2624,7 @@ static uint8 translate_key(SIM_KEY_EVENT *kev)
 }
 
 /* Show ROM Address routine */
-t_stat show_rombase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_rombase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -2646,7 +2648,7 @@ t_stat show_rombase(FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 /* Show RAM Address routine */
-t_stat show_rambase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_rambase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -2672,7 +2674,7 @@ t_stat show_rambase(FILE *st, UNIT *uptr, int32 val, const void *desc)
 /*
  * Display Sol-20 function key help
  */
-static t_stat sol20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat sol20_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

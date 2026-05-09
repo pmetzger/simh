@@ -51,6 +51,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 
 /* Program constants */
@@ -128,7 +129,7 @@ typedef enum {
 
 #define BUS_UNADDRESS   0037                            /* unlisten and untalk addresses */
 
-#define PPR(a)          (uint8) (1 << (7 - (a)))        /* parallel poll response */
+#define PPR(a)          (uint8_t) (1 << (7 - (a)))      /* parallel poll response */
 
 
 /* Per-card state variables */
@@ -143,20 +144,20 @@ typedef struct {
     BYTE_SELECTOR ibp;                          /* input byte pointer selector */
     BYTE_SELECTOR obp;                          /* output byte pointer selector */
 
-    uint16        cntl_register;                /* control word register */
-    uint16        status_register;              /* status word register */
-    uint16        input_data_register;          /* input data register */
+    uint16_t      cntl_register;                /* control word register */
+    uint16_t      status_register;              /* status word register */
+    uint16_t      input_data_register;          /* input data register */
 
-    uint32        fifo [FIFO_SIZE];             /* FIFO buffer */
-    uint32        fifo_count;                   /* FIFO occupancy counter */
+    uint32_t      fifo [FIFO_SIZE];             /* FIFO buffer */
+    uint32_t      fifo_count;                   /* FIFO occupancy counter */
     REG          *fifo_reg;                     /* FIFO register pointer */
 
-    uint32        acceptors;                    /* unit bitmap of the bus acceptors */
-    uint32        listeners;                    /* unit bitmap of the bus listeners */
-    uint32        talker;                       /* unit bitmap of the bus talker */
+    uint32_t      acceptors;                    /* unit bitmap of the bus acceptors */
+    uint32_t      listeners;                    /* unit bitmap of the bus listeners */
+    uint32_t      talker;                       /* unit bitmap of the bus talker */
 
-    uint8         bus_cntl;                     /* HP-IB bus control state (ATN, EOI, etc.) */
-    uint8         poll_response;                /* address bitmap of parallel poll responses */
+    uint8_t       bus_cntl;                     /* HP-IB bus control state (ATN, EOI, etc.) */
+    uint8_t       poll_response;                /* address bitmap of parallel poll responses */
 
     double        ifc_timer;                    /* 100 microsecond IFC timer */
     } DI_STATE;
@@ -221,8 +222,8 @@ typedef struct {
 
 /* Disc interface global bus routine definitions */
 
-typedef bool ACCEPTOR  (uint32  unit, uint8  data);
-typedef void   RESPONDER (CARD_ID card, uint32 unit, uint8 new_cntl);
+typedef bool ACCEPTOR  (uint32_t unit, uint8_t data);
+typedef void   RESPONDER (CARD_ID card, uint32_t unit, uint8_t new_cntl);
 
 
 /* Disc interface global variables */
@@ -238,17 +239,17 @@ extern t_stat    di_reset (DEVICE *dptr);
 
 /* Disc interface global SCP routines */
 
-extern t_stat di_set_address (UNIT *uptr, int32 value, const char *cptr, void *desc);
-extern t_stat di_set_cable   (UNIT *uptr, int32 value, const char *cptr, void *desc);
+extern t_stat di_set_address (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+extern t_stat di_set_cable   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
-extern t_stat di_show_address (FILE *st, UNIT *uptr, int32 value, const void *desc);
-extern t_stat di_show_cable   (FILE *st, UNIT *uptr, int32 value, const void *desc);
+extern t_stat di_show_address (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+extern t_stat di_show_cable   (FILE *st, UNIT *uptr, int32_t value, const void *desc);
 
 /* Disc interface global bus routines */
 
-extern bool di_bus_source    (CARD_ID card, uint8  data);
-extern void   di_bus_control   (CARD_ID card, uint32 unit, uint8 assert, uint8 deny);
-extern void   di_poll_response (CARD_ID card, uint32 unit, FLIP_FLOP response);
+extern bool di_bus_source    (CARD_ID card, uint8_t data);
+extern void   di_bus_control   (CARD_ID card, uint32_t unit, uint8_t assert, uint8_t deny);
+extern void   di_poll_response (CARD_ID card, uint32_t unit, FLIP_FLOP response);
 
 
 /* Amigo disc global bus routines */

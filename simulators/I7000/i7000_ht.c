@@ -46,6 +46,8 @@
                                 3x or 42
 */
 
+#include <stdint.h>
+
 #include "i7000_defs.h"
 #include "sim_tape.h"
 
@@ -125,28 +127,28 @@
 #define WRITE_BSY       0x00000004      /* *Controller writing */
 #define BACK_MODE       0x00000002      /* *Backwards mode */
 
-uint32              ht_cmd(UNIT *, uint16, uint16);
+uint32_t            ht_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              ht_srv(UNIT *);
 t_stat              htc_srv(UNIT *);
 void                ht_tape_cmd(DEVICE *, UNIT *);
 t_stat              ht_error(UNIT *, int, t_stat);
-t_stat              ht_boot(int32, DEVICE *);
+t_stat              ht_boot(int32_t, DEVICE *);
 t_stat              ht_reset(DEVICE *);
 t_stat              ht_attach(UNIT *, const char *);
 t_stat              ht_detach(UNIT *);
-t_stat              ht_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              ht_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *ht_description (DEVICE *dptr);
-void                ht_tape_posterr(UNIT * uptr, uint32 error);
+void                ht_tape_posterr(UNIT * uptr, uint32_t error);
 
 
 
 /* One buffer per channel */
-uint8               ht_unit[NUM_CHAN * 2];      /* Currently selected unit */
-uint8               ht_buffer[NUM_DEVS_HT+1][BUFFSIZE];
+uint8_t             ht_unit[NUM_CHAN * 2];      /* Currently selected unit */
+uint8_t             ht_buffer[NUM_DEVS_HT+1][BUFFSIZE];
 int                 ht_cmdbuffer[NUM_CHAN];     /* Buffer holding command ids */
 int                 ht_cmdcount[NUM_CHAN];      /* Count of command digits recieved */
-uint32              ht_sense[NUM_CHAN * 2];     /* Sense data for unit */
+uint32_t            ht_sense[NUM_CHAN * 2];     /* Sense data for unit */
 
 UNIT                hta_unit[] = {
 /* Controller 1 */
@@ -217,7 +219,7 @@ DEVICE              htb_dev = {
 #endif
 
 
-uint32 ht_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t ht_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -254,7 +256,7 @@ t_stat htc_srv(UNIT * uptr)
 
     /* Handle sense on unit */
     if (chan_test(chan, CTL_SNS)) {
-        uint8           ch = 0;
+        uint8_t         ch = 0;
         int             eor = 0;
         int             i;
         UNIT           *up;
@@ -385,7 +387,7 @@ t_stat ht_srv(UNIT * uptr)
 
     /* Handle writing of data */
     if (chan_test(chan, CTL_WRITE) && (uptr->u5 & HT_CMDMSK) == HSEL) {
-        uint8               ch;
+        uint8_t             ch;
 
         if (uptr->u6 == 0 && sim_tape_wrp(uptr)) {
             ctlr->u5 &= ~(HT_NOTRDY);
@@ -430,7 +432,7 @@ t_stat ht_srv(UNIT * uptr)
 
     /* Handle reading of data */
     if (chan_test(chan, CTL_READ) && (uptr->u5 & HT_CMDMSK) == (HSEL)) {
-        uint8           ch;
+        uint8_t         ch;
 
         if (uptr->u6 == 0) {
             if (ht_sense[schan] & BACK_MODE)
@@ -470,7 +472,7 @@ t_stat ht_srv(UNIT * uptr)
             ctlr->u5 |= HT_NOTRDY;
         }
 
-        if (uptr->u6 > (int32)uptr->hwmark) {
+        if (uptr->u6 > (int32_t)uptr->hwmark) {
             chan_set(chan, DEV_REOR|CTL_END);
             sim_activate(uptr, us_to_ticks(50));
             return SCPE_OK;
@@ -478,7 +480,7 @@ t_stat ht_srv(UNIT * uptr)
         ch = ht_buffer[GET_DEV_BUF(dptr->flags)][uptr->u6++];
         sim_debug(DEBUG_DATA, dptr, "data %02o\n", ch);
         switch(chan_write_char(chan, &ch,
-                                (uptr->u6 > (int32)uptr->hwmark)?DEV_REOR:0)) {
+                                (uptr->u6 > (int32_t)uptr->hwmark)?DEV_REOR:0)) {
         case TIME_ERROR:
             /* Nop flag as timming error */
             ht_tape_posterr(uptr, DATA_RESPONSE);
@@ -501,7 +503,7 @@ t_stat ht_srv(UNIT * uptr)
 
 /* Post a error on a given unit. */
 void
-ht_tape_posterr(UNIT * uptr, uint32 error)
+ht_tape_posterr(UNIT * uptr, uint32_t error)
 {
     int                 chan;
     int                 schan;
@@ -570,7 +572,7 @@ ht_tape_cmd(DEVICE * dptr, UNIT * uptr)
     int                 sel = (uptr->flags & UNIT_SELECT) ? 1 : 0;
     int                 schan = (chan * 2) + sel;
     UNIT               *up;
-    uint8               c;
+    uint8_t             c;
     int                 i;
     int                 t;
     int                 cmd;
@@ -905,7 +907,7 @@ ht_boot(int unit_num, DEVICE * dptr)
     int                 sel = (uptr->flags & UNIT_SELECT) ? 1 : 0;
     int                 dev = uptr->u3;
     int                 msk = (chan / 2) | ((chan & 1) << 11);
-    extern uint16       IC;
+    extern uint16_t     IC;
 
     if ((uptr->flags & UNIT_ATT) == 0)
         return SCPE_UNATT;      /* attached? */
@@ -918,19 +920,19 @@ ht_boot(int unit_num, DEVICE * dptr)
     M[2] = 0002000000101LL;     /*      TRA RSCQ */
 
     M[0101] = 0054000000113LL;  /* RSCQ RSCC SMSQ  Mod */
-    M[0101] |= ((t_uint64) (msk)) << 24;
+    M[0101] |= ((uint64_t) (msk)) << 24;
     M[0102] = 0064500000000LL;  /* SCDQ SCDC 0  Mod */
-    M[0102] |= ((t_uint64) (msk)) << 24;
+    M[0102] |= ((uint64_t) (msk)) << 24;
     M[0103] = 0044100000000LL;  /*      LDI 0 */
     M[0104] = 0405400001700LL;  /*      LFT 1700 */
     M[0105] = 0002000000122LL;  /*      TRA HYP7 */
     M[0106] = 0006000000102LL;  /* TCOQ TCOC SCDQ  Mod */
-    M[0106] |= ((t_uint64) (chan)) << 24;
+    M[0106] |= ((uint64_t) (chan)) << 24;
     M[0107] = 0002000000003LL;  /*      TRA 3    Enter IBSYS */
     M[0110] = 0120600120112LL;
-    M[0110] |= ((t_uint64) (dev)) << 18;
+    M[0110] |= ((uint64_t) (dev)) << 18;
     M[0111] = 0120600030412LL;  /*LDVCY DVCY  Mod */
-    M[0111] |= ((t_uint64) (dev)) << 18;
+    M[0111] |= ((uint64_t) (dev)) << 18;
     M[0112] = 0010000000000LL;  /*      *    */
     M[0113] = 0700000000012LL;  /* HYP6 SMS   10 */
     M[0113] |= sel;
@@ -941,9 +943,9 @@ ht_boot(int unit_num, DEVICE * dptr)
     M[0120] = 0700000400113LL;  /*      SMS*  HYP6 */
     M[0121] = 0200000000111LL;  /*      CTL  HYP6-2 */
     M[0122] = 0076000000350LL;  /* HYP7 RICC **     */
-    M[0122] |= ((t_uint64) (chan)) << 9;
+    M[0122] |= ((uint64_t) (chan)) << 9;
     M[0123] = 0054000000120LL;  /*      RSCC *-3  Mod */
-    M[0123] |= ((t_uint64) (msk)) << 24;
+    M[0123] |= ((uint64_t) (msk)) << 24;
     M[0124] = 0500000000000LL;  /*      CPYD  0,,0 */
     M[0125] = 0340000000125LL;  /*      TWT   * */
     IC = 0101;
@@ -990,7 +992,7 @@ ht_detach(UNIT * uptr)
 }
 
 t_stat
-ht_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+ht_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic callback signature.
       This implementation does not use every parameter. */

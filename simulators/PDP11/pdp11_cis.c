@@ -88,6 +88,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
 /* Opcode bits */
@@ -167,42 +169,42 @@
 #define MAXDVAL         429496730                       /* 2^32 / 10 */
 
 typedef struct {
-    uint32              sign;
-    uint32              val[DSTRLNT];
+    uint32_t            sign;
+    uint32_t            val[DSTRLNT];
     } DSTR;
 
 static DSTR Dstr0 = { 0, {0, 0, 0, 0} };
 
-extern int32 isenable, dsenable;
-extern int32 N, Z, V, C, fpd, ipl;
-extern int32 R[8], trap_req;
+extern int32_t isenable, dsenable;
+extern int32_t N, Z, V, C, fpd, ipl;
+extern int32_t R[8], trap_req;
 
-int32 ReadDstr (int32 *dscr, DSTR *dec, int32 flag);
-void WriteDstr (int32 *dscr, DSTR *dec, int32 flag);
-int32 AddDstr (DSTR *src1, DSTR *src2, DSTR *dst, int32 cin);
+int32_t ReadDstr (int32_t *dscr, DSTR *dec, int32_t flag);
+void WriteDstr (int32_t *dscr, DSTR *dec, int32_t flag);
+int32_t AddDstr (DSTR *src1, DSTR *src2, DSTR *dst, int32_t cin);
 void SubDstr (DSTR *src1, DSTR *src2, DSTR *dst);
-int32 CmpDstr (DSTR *src1, DSTR *src2);
-int32 TestDstr (DSTR *dsrc);
-int32 LntDstr (DSTR *dsrc, int32 nz);
-uint32 NibbleLshift (DSTR *dsrc, int32 sc);
-uint32 NibbleRshift (DSTR *dsrc, int32 sc, uint32 cin);
-int32 WordLshift (DSTR *dsrc, int32 sc);
-void WordRshift (DSTR *dsrc, int32 sc);
+int32_t CmpDstr (DSTR *src1, DSTR *src2);
+int32_t TestDstr (DSTR *dsrc);
+int32_t LntDstr (DSTR *dsrc, int32_t nz);
+uint32_t NibbleLshift (DSTR *dsrc, int32_t sc);
+uint32_t NibbleRshift (DSTR *dsrc, int32_t sc, uint32_t cin);
+int32_t WordLshift (DSTR *dsrc, int32_t sc);
+void WordRshift (DSTR *dsrc, int32_t sc);
 void CreateTable (DSTR *dsrc, DSTR mtable[10]);
-bool cis_int_test (int32 cycles, int32 oldpc, t_stat *st);
-int32 movx_setup (int32 op, int32 *arg);
-void movx_cleanup (int32 op);
+bool cis_int_test (int32_t cycles, int32_t oldpc, t_stat *st);
+int32_t movx_setup (int32_t op, int32_t *arg);
+void movx_cleanup (int32_t op);
 
-extern int32 ReadW (int32 addr);
-extern void WriteW (int32 data, int32 addr);
-extern int32 ReadB (int32 addr);
-extern int32 ReadMB (int32 addr);
-extern void WriteB (int32 data, int32 addr);
-extern int32 calc_ints (int32 nipl, int32 trq);
+extern int32_t ReadW (int32_t addr);
+extern void WriteW (int32_t data, int32_t addr);
+extern int32_t ReadB (int32_t addr);
+extern int32_t ReadMB (int32_t addr);
+extern void WriteB (int32_t data, int32_t addr);
+extern int32_t calc_ints (int32_t nipl, int32_t trq);
 
 /* Table of instruction operands */
 
-static int32 opntab[128][MAXOPN] = {
+static int32_t opntab[128][MAXOPN] = {
     {0, 0, 0, 0}, {0, 0, 0, 0},                         /* 000 - 007 */
     {0, 0, 0, 0}, {0, 0, 0, 0},
     {0, 0, 0, 0}, {0, 0, 0, 0},
@@ -298,7 +300,7 @@ static int32 opntab[128][MAXOPN] = {
 
 /* ASCII to overpunch table: sign is <7>, digit is <4:0> */
 
-static int32 overbin[128] = {
+static int32_t overbin[128] = {
     0, 0, 0, 0, 0, 0, 0, 0,                             /* 000 - 037 */
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -319,7 +321,7 @@ static int32 overbin[128] = {
 
 /* Overpunch to ASCII table: indexed by sign and digit */
 
-static int32 binover[2][16] = {
+static int32_t binover[2][16] = {
     {'{', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
      '0', '0', '0', '0', '0', '0'},
     {'}', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
@@ -328,14 +330,14 @@ static int32 binover[2][16] = {
 
 /* CIS emulator */
 
-t_stat cis11 (int32 IR)
+t_stat cis11 (int32_t IR)
 {
-int32 c, i, j, t, op, rn, addr;
-int32 match, limit, mvlnt, shift;
-int32 spc, ldivd, ldivr;
-int32 arg[6];                                           /* operands */
-int32 old_PC;
-uint32 nc, digit, result;
+int32_t c, i, j, t, op, rn, addr;
+int32_t match, limit, mvlnt, shift;
+int32_t spc, ldivd, ldivr;
+int32_t arg[6];                                         /* operands */
+int32_t old_PC;
+uint32_t nc, digit, result;
 t_stat st;
 static DSTR accum, src1, src2, dst;
 static DSTR mptable[10];
@@ -1186,7 +1188,7 @@ return SCPE_OK;
         src     =       decimal string structure
         flag    =       numeric/packed flag
 
-   The routine returns the length in int32's of the non-zero part of
+   The routine returns the length in int32_t's of the non-zero part of
    the string.
 
    This routine plays fast and loose with operand checking, as did the
@@ -1203,9 +1205,9 @@ return SCPE_OK;
    and bad digits are replaced with 0's.
 */
 
-int32 ReadDstr (int32 *dscr, DSTR *src, int32 flag)
+int32_t ReadDstr (int32_t *dscr, DSTR *src, int32_t flag)
 {
-int32 c, i, end, lnt, type, t = 0;
+int32_t c, i, end, lnt, type, t = 0;
 
 *src = Dstr0;                                           /* clear result */
 type = GET_DTYP (dscr[0]);                              /* get type */
@@ -1272,15 +1274,15 @@ return TestDstr (src);                                  /* clean -0 */
    sign, but PSW.N is clear
 */
 
-void WriteDstr (int32 *dscr, DSTR *dst, int32 flag)
+void WriteDstr (int32_t *dscr, DSTR *dst, int32_t flag)
 {
-int32 c, i, limit, end, type, lnt;
-uint32 mask;
-static uint32 masktab[8] = {
+int32_t c, i, limit, end, type, lnt;
+uint32_t mask;
+static uint32_t masktab[8] = {
     0xFFFFFFF0, 0xFFFFFF00, 0xFFFFF000, 0xFFFF0000,
     0xFFF00000, 0xFF000000, 0xF0000000, 0x00000000
     };
-static int32 unsignedtab[8] = { 0, 1, 0, 0, 0, 0, 0, 1 };
+static int32_t unsignedtab[8] = { 0, 1, 0, 0, 0, 0, 0, 1 };
 
 type = GET_DTYP (dscr[0]);                              /* get type */
 lnt = GET_DLNT (dscr[0]);                               /* get string length */
@@ -1368,10 +1370,10 @@ return;
    (actually, shift it right 3 and subtract 3*adjustment).
 */
 
-int32 AddDstr (DSTR *s1, DSTR *s2, DSTR *ds, int32 cy)
+int32_t AddDstr (DSTR *s1, DSTR *s2, DSTR *ds, int32_t cy)
 {
-int32 i;
-uint32 sm1, sm2, tm1, tm2, tm3, tm4;
+int32_t i;
+uint32_t sm1, sm2, tm1, tm2, tm3, tm4;
 
 for (i = 0; i < DSTRLNT; i++) {                         /* loop low to high */
     tm1 = s1->val[i] ^ (s2->val[i] + cy);               /* xor operands */
@@ -1400,7 +1402,7 @@ return cy;
 
 void SubDstr (DSTR *s1, DSTR *s2, DSTR *ds)
 {
-int32 i;
+int32_t i;
 DSTR complX;
 
 for (i = 0; i < DSTRLNT; i++)
@@ -1417,9 +1419,9 @@ return;
    Output       =       1 if >, 0 if =, -1 if <
 */
 
-int32 CmpDstr (DSTR *s1, DSTR *s2)
+int32_t CmpDstr (DSTR *s1, DSTR *s2)
 {
-int32 i;
+int32_t i;
 
 for (i = DSTRMAX; i >=0; i--) {
     if (s1->val[i] > s2->val[i])
@@ -1435,13 +1437,13 @@ return 0;
    Arguments:
         dsrc    =       decimal string structure
 
-   Returns the non-zero length of the string, in int32 units
+   Returns the non-zero length of the string, in int32_t units
    If the string is zero, the sign is cleared
 */
 
-int32 TestDstr (DSTR *dsrc)
+int32_t TestDstr (DSTR *dsrc)
 {
-int32 i;
+int32_t i;
 
 for (i = DSTRMAX; i >= 0; i--) {
     if (dsrc->val[i])
@@ -1458,9 +1460,9 @@ return 0;
         nz      =       result from TestDstr
 */
 
-int32 LntDstr (DSTR *dsrc, int32 nz)
+int32_t LntDstr (DSTR *dsrc, int32_t nz)
 {
-int32 i;
+int32_t i;
 
 if (nz == 0)
     return 0;
@@ -1484,7 +1486,7 @@ return ((nz - 1) * 8) + i;
 
 void CreateTable (DSTR *dsrc, DSTR mtable[10])
 {
-int32 i;
+int32_t i;
 
 mtable[1] = *dsrc;
 for (i = 2; i < 10; i++)
@@ -1499,9 +1501,9 @@ return;
         sc      =       shift count
 */
 
-void WordRshift (DSTR *dsrc, int32 sc)
+void WordRshift (DSTR *dsrc, int32_t sc)
 {
-int32 i;
+int32_t i;
 
 if (sc) {
     for (i = 0; i < DSTRLNT; i++) {
@@ -1520,9 +1522,9 @@ return;
         sc      =       shift count
 */
 
-int32 WordLshift (DSTR *dsrc, int32 sc)
+int32_t WordLshift (DSTR *dsrc, int32_t sc)
 {
-int32 i, c;
+int32_t i, c;
 
 c = 0;
 if (sc) {
@@ -1546,9 +1548,9 @@ return c;
         cin     =       carry in
 */
 
-uint32 NibbleRshift (DSTR *dsrc, int32 sc, uint32 cin)
+uint32_t NibbleRshift (DSTR *dsrc, int32_t sc, uint32_t cin)
 {
-int32 i, s, nc;
+int32_t i, s, nc;
 
 if ((s = sc * 4)) {
     for (i = DSTRMAX; i >= 0; i--) {
@@ -1569,10 +1571,10 @@ return 0;
         sc      =       shift count
 */
 
-uint32 NibbleLshift (DSTR *dsrc, int32 sc)
+uint32_t NibbleLshift (DSTR *dsrc, int32_t sc)
 {
-int32 i, s;
-uint32 nc, cin;
+int32_t i, s;
+uint32_t nc, cin;
 
 cin = 0;
 if ((s = sc * 4)) {
@@ -1588,9 +1590,9 @@ return 0;
 
 /* Common setup routine for MOVC class instructions */
 
-int32 movx_setup (int32 op, int32 *arg)
+int32_t movx_setup (int32_t op, int32_t *arg)
 {
-int32 mvlnt, t;
+int32_t mvlnt, t;
 
 if (CPUT (CPUT_44)) {                                   /* 11/44? */
     ReadMB (((SP - 0200) & 0177777) | dsenable);        /* probe both blocks */
@@ -1629,7 +1631,7 @@ return mvlnt;
 
 /* Common cleanup routine for MOVC class instructions */
 
-void movx_cleanup (int32 op)
+void movx_cleanup (int32_t op)
 {
 SP = (SP + 2) & 0177777;                                /* discard mvlnt */
 if (op & INLINE) {                                      /* inline? */
@@ -1648,7 +1650,7 @@ return;
 
 /* Test for CIS mid-instruction interrupt */
 
-bool cis_int_test (int32 cycles, int32 oldpc, t_stat *st)
+bool cis_int_test (int32_t cycles, int32_t oldpc, t_stat *st)
 {
 while (cycles >= 0) {                                   /* until delay done */
     if (sim_interval > cycles) {                        /* event > delay */

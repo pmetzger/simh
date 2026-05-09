@@ -32,6 +32,8 @@
    12-Sep-02    RMS     Split off from pdp11_stddev.c
 */
 
+#include <stdint.h>
+
 #if defined (VM_PDP10)                                  /* PDP10 version */
 #include "pdp10_defs.h"
 #define PT_DIS          DEV_DIS
@@ -50,24 +52,24 @@
 #define PTPCSR_IMP      (CSR_ERR + CSR_DONE + CSR_IE)   /* paper tape punch */
 #define PTPCSR_RW       (CSR_IE)
 
-int32 ptr_csr = 0;                                      /* control/status */
-int32 ptr_stopioe = 0;                                  /* stop on error */
-int32 ptp_csr = 0;                                      /* control/status */
-int32 ptp_stopioe = 0;                                  /* stop on error */
+int32_t ptr_csr = 0;                                    /* control/status */
+int32_t ptr_stopioe = 0;                                /* stop on error */
+int32_t ptp_csr = 0;                                    /* control/status */
+int32_t ptp_stopioe = 0;                                /* stop on error */
 
-t_stat ptr_rd (int32 *data, int32 PA, int32 access);
-t_stat ptr_wr (int32 data, int32 PA, int32 access);
+t_stat ptr_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat ptr_wr (int32_t data, int32_t PA, int32_t access);
 t_stat ptr_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *dptr);
-t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *ptr_description (DEVICE *dptr);
 t_stat ptr_attach (UNIT *uptr, const char *ptr);
 t_stat ptr_detach (UNIT *uptr);
-t_stat ptp_rd (int32 *data, int32 PA, int32 access);
-t_stat ptp_wr (int32 data, int32 PA, int32 access);
+t_stat ptp_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat ptp_wr (int32_t data, int32_t PA, int32_t access);
 t_stat ptp_svc (UNIT *uptr);
 t_stat ptp_reset (DEVICE *dptr);
-t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *ptp_description (DEVICE *dptr);
 t_stat ptp_attach (UNIT *uptr, const char *ptr);
 t_stat ptp_detach (UNIT *uptr);
@@ -180,7 +182,7 @@ DEVICE ptp_dev = {
 
 /* Paper tape reader I/O address routines */
 
-t_stat ptr_rd (int32 *data, int32 PA, int32 access)
+t_stat ptr_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -202,7 +204,7 @@ switch ((PA >> 1) & 01) {                               /* decode PA<1> */
 return SCPE_NXM;                                        /* can't get here */
 }
 
-t_stat ptr_wr (int32 data, int32 PA, int32 access)
+t_stat ptr_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -242,7 +244,7 @@ t_stat ptr_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp;
+int32_t temp;
 
 ptr_csr = (ptr_csr | CSR_ERR) & ~CSR_BUSY;
 if (ptr_csr & CSR_IE) SET_INT (PTR);
@@ -296,7 +298,7 @@ return detach_unit (uptr);
 
 /* Paper tape punch I/O address routines */
 
-t_stat ptp_rd (int32 *data, int32 PA, int32 access)
+t_stat ptp_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -316,7 +318,7 @@ switch ((PA >> 1) & 01) {                               /* decode PA<1> */
 return SCPE_NXM;                                        /* can't get here */
 }
 
-t_stat ptp_wr (int32 data, int32 PA, int32 access)
+t_stat ptp_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -401,7 +403,7 @@ ptp_csr = ptp_csr | CSR_ERR;
 return detach_unit (uptr);
 }
 
-t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -435,7 +437,7 @@ const char *ptr_description (DEVICE *dptr)
 return "PC11 paper tape reader";
 }
 
-t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

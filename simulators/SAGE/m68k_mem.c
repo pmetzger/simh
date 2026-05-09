@@ -27,6 +27,8 @@
    20-Dec-09    HV      Rewrite memory handler for MMU and noncontiguous memory
 */
 
+#include <stdint.h>
+
 #include "m68k_cpu.h"
 
 /* io hash */
@@ -37,14 +39,14 @@ static IOHANDLER** iohash = NULL;
 /*
  * memory
  */
-uint8*  M = 0;
+uint8_t*  M = 0;
 t_addr  addrmask = 0xffffffff;
 int     m68k_fcode = 0;
 int     m68k_dma = 0;
 
 #if 0
 /* TODO */
-t_stat m68k_set_mmu(UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat m68k_set_mmu(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     uptr->flags |= value;
 
@@ -53,7 +55,7 @@ t_stat m68k_set_mmu(UNIT *uptr, int32 value, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat m68k_set_nommu(UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat m68k_set_nommu(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     uptr->flags &= ~value;
 
@@ -83,11 +85,11 @@ t_stat m68k_ioinit(void)
 }
 
 t_stat add_iohandler(UNIT* u,void* ctxt,
-    t_stat (*io)(struct _iohandler* ioh,uint32* value,uint32 rw,uint32 mask))
+    t_stat (*io)(struct _iohandler* ioh,uint32_t* value,uint32_t rw,uint32_t mask))
 {
     PNP_INFO* pnp = (PNP_INFO*)ctxt;
     IOHANDLER* ioh;
-    uint32 i,k;
+    uint32_t i,k;
 
     if (!pnp) return SCPE_IERR;
     for (k=i=0; i<pnp->io_size; i+=pnp->io_incr,k++) {
@@ -112,7 +114,7 @@ t_stat add_iohandler(UNIT* u,void* ctxt,
 }
 t_stat del_iohandler(void* ctxt)
 {
-    uint32 i;
+    uint32_t i;
     PNP_INFO* pnp = (PNP_INFO*)ctxt;
 
     if (!pnp) return SCPE_IERR;
@@ -170,7 +172,7 @@ t_stat m68k_translateaddr(t_addr in,t_addr* out, IOHANDLER** ioh,int rw,int fc,i
 }
 
 /* default memory pointer */
-t_stat m68k_mem(t_addr addr,uint8** mem)
+t_stat m68k_mem(t_addr addr,uint8_t** mem)
 {
     if (addr > MEMORYSIZE) return STOP_ERRADR;
     *mem = M+addr;
@@ -178,7 +180,7 @@ t_stat m68k_mem(t_addr addr,uint8** mem)
 }
 
 t_stat (*TranslateAddr)(t_addr in,t_addr* out,IOHANDLER** ioh,int rw,int fc,int dma) = &m68k_translateaddr;
-t_stat (*Mem)(t_addr addr,uint8** mem) = &m68k_mem;
+t_stat (*Mem)(t_addr addr,uint8_t** mem) = &m68k_mem;
 
 /* memory access routines
  * The Motorola CPU is big endian, whereas others like the i386 is
@@ -190,9 +192,9 @@ t_stat (*Mem)(t_addr addr,uint8** mem) = &m68k_mem;
  *            ------68K Byte0-(MSB)-- ---68K Byte1-----------
  *            ------68K Byte2-------- ---68K Byte3-(LSB)-----
  */
-t_stat ReadPB(t_addr a, uint32* val)
+t_stat ReadPB(t_addr a, uint32_t* val)
 {
-    uint8* mem;
+    uint8_t* mem;
 
     t_stat rc = Mem(a & addrmask,&mem);
     switch (rc) {
@@ -207,10 +209,10 @@ t_stat ReadPB(t_addr a, uint32* val)
     }
 }
 
-t_stat ReadPW(t_addr a, uint32* val)
+t_stat ReadPW(t_addr a, uint32_t* val)
 {
-    uint8* mem;
-    uint32 dat1,dat2;
+    uint8_t* mem;
+    uint32_t dat1,dat2;
 
     t_stat rc = Mem((a+1)&addrmask,&mem);
     switch (rc) {
@@ -229,10 +231,10 @@ t_stat ReadPW(t_addr a, uint32* val)
     }
 }
 
-t_stat ReadPL(t_addr a, uint32* val)
+t_stat ReadPL(t_addr a, uint32_t* val)
 {
-    uint8* mem;
-    uint32 dat1,dat2,dat3,dat4;
+    uint8_t* mem;
+    uint32_t dat1,dat2,dat3,dat4;
 
     t_stat rc = Mem((a+3)&addrmask,&mem);
     switch (rc) {
@@ -253,9 +255,9 @@ t_stat ReadPL(t_addr a, uint32* val)
     }
 }
 
-t_stat WritePB(t_addr a, uint32 val)
+t_stat WritePB(t_addr a, uint32_t val)
 {
-    uint8* mem;
+    uint8_t* mem;
 
     t_stat rc = Mem(a&addrmask,&mem);
     switch (rc) {
@@ -269,9 +271,9 @@ t_stat WritePB(t_addr a, uint32 val)
     }
 }
 
-t_stat WritePW(t_addr a, uint32 val)
+t_stat WritePW(t_addr a, uint32_t val)
 {
-    uint8* mem;
+    uint8_t* mem;
     t_stat rc = Mem((a+1)&addrmask,&mem);
     switch (rc) {
     default:
@@ -287,9 +289,9 @@ t_stat WritePW(t_addr a, uint32 val)
     }
 }
 
-t_stat WritePL(t_addr a, uint32 val)
+t_stat WritePL(t_addr a, uint32_t val)
 {
-    uint8* mem;
+    uint8_t* mem;
 
     t_stat rc = Mem((a+3)&addrmask,&mem);
     switch (rc) {
@@ -308,7 +310,7 @@ t_stat WritePL(t_addr a, uint32 val)
     }
 }
 
-t_stat ReadVB(t_addr a, uint32* val)
+t_stat ReadVB(t_addr a, uint32_t* val)
 {
     t_addr addr;
     IOHANDLER* ioh;
@@ -333,7 +335,7 @@ t_stat ReadVB(t_addr a, uint32* val)
     }
 }
 
-t_stat ReadVW(t_addr a, uint32* val)
+t_stat ReadVW(t_addr a, uint32_t* val)
 {
     t_addr addr;
     IOHANDLER* ioh;
@@ -351,7 +353,7 @@ t_stat ReadVW(t_addr a, uint32* val)
     }
 }
 
-t_stat ReadVL(t_addr a, uint32* val)
+t_stat ReadVL(t_addr a, uint32_t* val)
 {
     t_addr addr;
     IOHANDLER* ioh;
@@ -369,7 +371,7 @@ t_stat ReadVL(t_addr a, uint32* val)
     }
 }
 
-t_stat WriteVB(t_addr a, uint32 val)
+t_stat WriteVB(t_addr a, uint32_t val)
 {
     t_addr addr;
     IOHANDLER* ioh;
@@ -389,7 +391,7 @@ t_stat WriteVB(t_addr a, uint32 val)
     }
 }
 
-t_stat WriteVW(t_addr a, uint32 val)
+t_stat WriteVW(t_addr a, uint32_t val)
 {
     t_addr addr;
     IOHANDLER* ioh;
@@ -406,7 +408,7 @@ t_stat WriteVW(t_addr a, uint32 val)
     }
 }
 
-t_stat WriteVL(t_addr a, uint32 val)
+t_stat WriteVL(t_addr a, uint32_t val)
 {
     t_addr addr;
     IOHANDLER* ioh;

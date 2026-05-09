@@ -254,6 +254,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
 #include "hp_tapelib.h"
@@ -466,9 +468,9 @@ static CNTLR_VARS ms_cntlr =                            /* the tape controller *
 static CNTLR_INTRF ms_interface;
 static t_stat      ms_service   (UNIT   *uptr);
 static t_stat      ms_reset     (DEVICE *dptr);
-static t_stat      ms_boot      (int32  unit_number, DEVICE *dptr);
+static t_stat      ms_boot      (int32_t unit_number, DEVICE *dptr);
 static t_stat      ms_attach    (UNIT   *uptr,       const char *cptr);
-static t_stat      ms_onoffline (UNIT   *uptr,       int32      value, const char *cptr, void *desc);
+static t_stat      ms_onoffline (UNIT   *uptr,       int32_t    value, const char *cptr, void *desc);
 
 
 /* Interface local utility routines */
@@ -1006,7 +1008,7 @@ static t_stat ms_service (UNIT *uptr)
 t_stat result;
 
 dprintf (ms_dev, DEB_SERV, "%s service entered\n",
-         tl_unit_name ((int32) (uptr - ms_unit)));
+         tl_unit_name ((int32_t) (uptr - ms_unit)));
 
 result = call_controller (uptr);                        /* call the controller */
 
@@ -1063,7 +1065,7 @@ return tl_reset (&ms_cntlr);                            /* reset the controller 
    The cold load procedure always uses unit 0.
 */
 
-static t_stat ms_boot (int32 unit_number, DEVICE *dptr)
+static t_stat ms_boot (int32_t unit_number, DEVICE *dptr)
 {
 /* Generic simulator boot signature.
    This implementation does not use every parameter. */
@@ -1138,7 +1140,7 @@ else                                                    /* otherwise */
    becomes idle.
 */
 
-static t_stat ms_onoffline (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat ms_onoffline (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

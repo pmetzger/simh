@@ -38,6 +38,7 @@
 
 #include "sigma_io_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 /* Device definitions */
 
@@ -59,24 +60,24 @@
 #define E_HT            0x05                            /* tab */
 #define E_NL            0x15                            /* new line */
 
-uint32 tt_cmd = TTS_IDLE;
-uint32 tti_tps = RTC_HZ_100;
-uint32 tti_panel = 020;                                 /* panel int char */
-uint32 tto_pos = 0;                                     /* char position */
+uint32_t tt_cmd = TTS_IDLE;
+uint32_t tti_tps = RTC_HZ_100;
+uint32_t tti_panel = 020;                               /* panel int char */
+uint32_t tto_pos = 0;                                   /* char position */
 
-extern uint32 chan_ctl_time;
-extern uint8 ascii_to_ebcdic[128];
-extern uint8 ebcdic_to_ascii[256];
+extern uint32_t chan_ctl_time;
+extern uint8_t ascii_to_ebcdic[128];
+extern uint8_t ebcdic_to_ascii[256];
 
-uint32 tt_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 tt_tio_status (void);
-t_stat tt_chan_err (uint32 st);
-t_stat tti_rtc_svc (uint32 tm);
+uint32_t tt_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t tt_tio_status (void);
+t_stat tt_chan_err (uint32_t st);
+t_stat tti_rtc_svc (uint32_t tm);
 t_stat tti_svc (UNIT *uptr);
 t_stat tto_svc (UNIT *uptr);
 t_stat tt_reset (DEVICE *dptr);
-t_stat tt_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-void tto_echo (int32 c);
+t_stat tt_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void tto_echo (int32_t c);
 
 extern t_stat io_set_pint (void);
 
@@ -130,7 +131,7 @@ DEVICE tt_dev = {
 
 /* Terminal: IO dispatch routine */
 
-uint32 tt_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t tt_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
 switch (op) {                                           /* case on op */
 
@@ -178,8 +179,8 @@ return 0;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 c, ebcdic;
-uint32 st;
+int32_t c, ebcdic;
+uint32_t st;
 
 if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or err? */
     return c;
@@ -192,7 +193,7 @@ if (c & SCPE_BREAK) {                                   /* break? */
     return SCPE_OK;
     }
 c = c & 0x7F;
-if (c == (int32) tti_panel)                             /* panel interrupt? */
+if (c == (int32_t) tti_panel)                           /* panel interrupt? */
     return io_set_pint ();
 uptr->pos = uptr->pos + 1;                              /* incr count */
 if (c == '\r')                                          /* map CR to NL */
@@ -221,8 +222,8 @@ return SCPE_OK;
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 c;
-uint32 uc, cmd, st;
+int32_t c;
+uint32_t uc, cmd, st;
 
 switch (tt_cmd) {                                       /* case on state */
 
@@ -266,9 +267,9 @@ return SCPE_OK;
 
 /* Actual tty output routines; simulates horizontal tabs */
 
-void tto_echo (int32 c)
+void tto_echo (int32_t c)
 {
-uint32 cnt;
+uint32_t cnt;
 
 cnt = 1;
 if (c == '\r')
@@ -295,7 +296,7 @@ return;
 
 /* TTY status routine */
 
-uint32 tt_tio_status (void)
+uint32_t tt_tio_status (void)
 {
 if (tt_cmd == TTS_IDLE)
     return DVS_AUTO;
@@ -304,7 +305,7 @@ return (CC2 << DVT_V_CC) | DVS_DBUSY | DVS_CBUSY | DVS_AUTO;
 
 /* Channel error */
 
-t_stat tt_chan_err (uint32 st)
+t_stat tt_chan_err (uint32_t st)
 {
 tt_cmd = TTS_IDLE;
 sim_cancel (&tt_unit[TTO]);                             /* stop dev thread */
@@ -332,7 +333,7 @@ return SCPE_OK;
 
 /* Make mode flags uniform */
 
-t_stat tt_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tt_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */

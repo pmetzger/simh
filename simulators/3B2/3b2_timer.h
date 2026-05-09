@@ -32,6 +32,8 @@
 #define _3B2_TIMER_H_
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_defs.h"
 
 #define TIMER_REG_DIVA    0x03
@@ -53,11 +55,11 @@
 #define TMR_BUS           2
 
 struct timer_ctr {
-    uint16 divider;
-    uint16 val;
-    uint8  ctrl_latch;
-    uint16 cnt_latch;
-    uint8  ctrl;
+    uint16_t divider;
+    uint16_t val;
+    uint8_t ctrl_latch;
+    uint16_t cnt_latch;
+    uint8_t ctrl;
     bool r_lmb;
     bool w_lmb;
     bool enabled;
@@ -67,13 +69,13 @@ struct timer_ctr {
 };
 
 t_stat timer_reset(DEVICE *dptr);
-uint32 timer_read(uint32 pa, size_t size);
-void timer_write(uint32 pa, uint32 val, size_t size);
-void timer_gate(uint8 ctrnum, bool inhibit);
+uint32_t timer_read(uint32_t pa, size_t size);
+void timer_write(uint32_t pa, uint32_t val, size_t size);
+void timer_gate(uint8_t ctrnum, bool inhibit);
 
 t_stat tmr_svc(UNIT *uptr);
 t_stat tmr_int_svc(UNIT *uptr);
 const char *tmr_description(DEVICE *dptr);
-t_stat tmr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat tmr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 
 #endif /* _3B2_TIMER_H_ */

@@ -48,6 +48,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 #include "pdp11_cpumod.h"
 
@@ -73,82 +75,82 @@
         cur =((pa & 1)? (((prv) & 0377) | ((cur) & 0177400)) : \
                         (((prv) & 0177400) | ((cur) & 0377)))
 
-int32 SR = 0;                                           /* switch register */
-int32 DR = 0;                                           /* display register */
-int32 MBRK = 0;                                         /* 11/70 microbreak */
-int32 SYSID = 0x1234;                                   /* 11/70 system ID */
-int32 WCS = 0;                                          /* 11/60 WCS control */
-int32 CPUERR = 0;                                       /* CPU error reg */
-int32 MEMERR = 0;                                       /* memory error reg */
-int32 CCR = 0;                                          /* cache control reg */
-int32 HITMISS = 0;                                      /* hit/miss reg */
-int32 MAINT = 0;                                        /* maint reg */
-int32 JCSR = 0;                                         /* J11 control */
-int32 JCSR_dflt = 0;                                    /* J11 boot ctl def */
-int32 JPCR = 0;                                         /* J11 page ctrl */
-int32 JASR = 0;                                         /* J11 addtl status */
-int32 UDCR = 0;                                         /* UBA diag ctrl */
-int32 UDDR = 0;                                         /* UBA diag data */
-int32 UCSR = 0;                                         /* UBA control */
-int32 uba_last = 0;                                     /* UBA last mapped */
-int32 ub_map[UBM_LNT_LW] = { 0 };                       /* UBA map array */
-int32 toy_state = 0;
-uint8 toy_data[TOY_LNT] = { 0 };
-static int32 clk_tps_map[4] = { 0, 50, 60, 800 };       /* 0 = use BEVENT */
+int32_t SR = 0;                                         /* switch register */
+int32_t DR = 0;                                         /* display register */
+int32_t MBRK = 0;                                       /* 11/70 microbreak */
+int32_t SYSID = 0x1234;                                 /* 11/70 system ID */
+int32_t WCS = 0;                                        /* 11/60 WCS control */
+int32_t CPUERR = 0;                                     /* CPU error reg */
+int32_t MEMERR = 0;                                     /* memory error reg */
+int32_t CCR = 0;                                        /* cache control reg */
+int32_t HITMISS = 0;                                    /* hit/miss reg */
+int32_t MAINT = 0;                                      /* maint reg */
+int32_t JCSR = 0;                                       /* J11 control */
+int32_t JCSR_dflt = 0;                                  /* J11 boot ctl def */
+int32_t JPCR = 0;                                       /* J11 page ctrl */
+int32_t JASR = 0;                                       /* J11 addtl status */
+int32_t UDCR = 0;                                       /* UBA diag ctrl */
+int32_t UDDR = 0;                                       /* UBA diag data */
+int32_t UCSR = 0;                                       /* UBA control */
+int32_t uba_last = 0;                                   /* UBA last mapped */
+int32_t ub_map[UBM_LNT_LW] = { 0 };                     /* UBA map array */
+int32_t toy_state = 0;
+uint8_t toy_data[TOY_LNT] = { 0 };
+static int32_t clk_tps_map[4] = { 0, 50, 60, 800 };     /* 0 = use BEVENT */
 
-extern int32 R[8];
-extern int32 STKLIM, PIRQ;
-extern int32 clk_fie, clk_fnxm, clk_tps, clk_default;
+extern int32_t R[8];
+extern int32_t STKLIM, PIRQ;
+extern int32_t clk_fie, clk_fnxm, clk_tps, clk_default;
 
-t_stat CPU24_rd (int32 *data, int32 addr, int32 access);
-t_stat CPU24_wr (int32 data, int32 addr, int32 access);
-t_stat CPU44_rd (int32 *data, int32 addr, int32 access);
-t_stat CPU44_wr (int32 data, int32 addr, int32 access);
-t_stat CPU45_rd (int32 *data, int32 addr, int32 access);
-t_stat CPU45_wr (int32 data, int32 addr, int32 access);
-t_stat CPU60_rd (int32 *data, int32 addr, int32 access);
-t_stat CPU60_wr (int32 data, int32 addr, int32 access);
-t_stat CPU70_rd (int32 *data, int32 addr, int32 access);
-t_stat CPU70_wr (int32 data, int32 addr, int32 access);
-t_stat CPUJ_rd (int32 *data, int32 addr, int32 access);
-t_stat CPUJ_wr (int32 data, int32 addr, int32 access);
-t_stat REG_rd (int32 *data, int32 addr, int32 access);
-t_stat REG_wr (int32 data, int32 addr, int32 access);
-t_stat SR_rd (int32 *data, int32 addr, int32 access);
-t_stat DR_wr (int32 data, int32 addr, int32 access);
-t_stat CTLFB_rd (int32 *data, int32 addr, int32 access);
-t_stat CTLFB_wr (int32 data, int32 addr, int32 access);
-t_stat CTLJB_rd (int32 *data, int32 addr, int32 access);
-t_stat CTLJB_wr (int32 data, int32 addr, int32 access);
-t_stat CTLJD_rd (int32 *data, int32 addr, int32 access);
-t_stat CTLJD_wr (int32 data, int32 addr, int32 access);
-t_stat CTLJE_rd (int32 *data, int32 addr, int32 access);
-t_stat CTLJE_wr (int32 data, int32 addr, int32 access);
-t_stat UBA24_rd (int32 *data, int32 addr, int32 access);
-t_stat UBA24_wr (int32 data, int32 addr, int32 access);
-t_stat UBAJ_rd (int32 *data, int32 addr, int32 access);
-t_stat UBAJ_wr (int32 data, int32 addr, int32 access);
+t_stat CPU24_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CPU24_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CPU44_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CPU44_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CPU45_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CPU45_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CPU60_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CPU60_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CPU70_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CPU70_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CPUJ_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CPUJ_wr (int32_t data, int32_t addr, int32_t access);
+t_stat REG_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat REG_wr (int32_t data, int32_t addr, int32_t access);
+t_stat SR_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat DR_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CTLFB_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CTLFB_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CTLJB_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CTLJB_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CTLJD_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CTLJD_wr (int32_t data, int32_t addr, int32_t access);
+t_stat CTLJE_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat CTLJE_wr (int32_t data, int32_t addr, int32_t access);
+t_stat UBA24_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat UBA24_wr (int32_t data, int32_t addr, int32_t access);
+t_stat UBAJ_rd (int32_t *data, int32_t addr, int32_t access);
+t_stat UBAJ_wr (int32_t data, int32_t addr, int32_t access);
 t_stat sys_reset (DEVICE *dptr);
-int32 toy_read (void);
-void toy_write (int32 bit);
-uint8 toy_set (int32 val);
-t_stat sys_set_jclk_dflt (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat sys_show_jclk_dflt (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat sys_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+int32_t toy_read (void);
+void toy_write (int32_t bit);
+uint8_t toy_set (int32_t val);
+t_stat sys_set_jclk_dflt (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat sys_show_jclk_dflt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat sys_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 static const char *sys_description (DEVICE *dptr);
 
 
-extern t_stat PSW_rd (int32 *data, int32 addr, int32 access);
-extern t_stat PSW_wr (int32 data, int32 addr, int32 access);
-extern t_stat APR_rd (int32 *data, int32 addr, int32 access);
-extern t_stat APR_wr (int32 data, int32 addr, int32 access);
-extern t_stat MMR012_rd (int32 *data, int32 addr, int32 access);
-extern t_stat MMR012_wr (int32 data, int32 addr, int32 access);
-extern t_stat MMR3_rd (int32 *data, int32 addr, int32 access);
-extern t_stat MMR3_wr (int32 data, int32 addr, int32 access);
-extern t_stat ubm_rd (int32 *data, int32 addr, int32 access);
-extern t_stat ubm_wr (int32 data, int32 addr, int32 access);
-extern void put_PIRQ (int32 val);
+extern t_stat PSW_rd (int32_t *data, int32_t addr, int32_t access);
+extern t_stat PSW_wr (int32_t data, int32_t addr, int32_t access);
+extern t_stat APR_rd (int32_t *data, int32_t addr, int32_t access);
+extern t_stat APR_wr (int32_t data, int32_t addr, int32_t access);
+extern t_stat MMR012_rd (int32_t *data, int32_t addr, int32_t access);
+extern t_stat MMR012_wr (int32_t data, int32_t addr, int32_t access);
+extern t_stat MMR3_rd (int32_t *data, int32_t addr, int32_t access);
+extern t_stat MMR3_wr (int32_t data, int32_t addr, int32_t access);
+extern t_stat ubm_rd (int32_t *data, int32_t addr, int32_t access);
+extern t_stat ubm_wr (int32_t data, int32_t addr, int32_t access);
+extern void put_PIRQ (int32_t val);
 
 /* Fixed I/O address table entries */
 
@@ -359,7 +361,7 @@ DEVICE sys_dev = {
 
 /* Switch and display registers - many */
 
-t_stat SR_rd (int32 *data, int32 pa, int32 access)
+t_stat SR_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -370,7 +372,7 @@ t_stat SR_rd (int32 *data, int32 pa, int32 access)
 return SCPE_OK;
 }
 
-t_stat DR_wr (int32 data, int32 pa, int32 access)
+t_stat DR_wr (int32_t data, int32_t pa, int32_t access)
 {
 /* Generic I/O write signature.
    This implementation does not use every parameter. */
@@ -383,7 +385,7 @@ return SCPE_OK;
 
 /* GPR's - 11/04, 11/05 */
 
-t_stat REG_rd (int32 *data, int32 pa, int32 access)
+t_stat REG_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -393,9 +395,9 @@ t_stat REG_rd (int32 *data, int32 pa, int32 access)
 return SCPE_OK;
 }
 
-t_stat REG_wr (int32 data, int32 pa, int32 access)
+t_stat REG_wr (int32_t data, int32_t pa, int32_t access)
 {
-int32 reg = pa & 07;
+int32_t reg = pa & 07;
 
 if (access == WRITE)
     R[reg] = data;
@@ -407,7 +409,7 @@ return SCPE_OK;
 
 /* CPU control registers - 11/24 */
 
-t_stat CPU24_rd (int32 *data, int32 pa, int32 access)
+t_stat CPU24_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -424,7 +426,7 @@ switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 return SCPE_NXM;                                        /* unimplemented */
 }
 
-t_stat CPU24_wr (int32 data, int32 pa, int32 access)
+t_stat CPU24_wr (int32_t data, int32_t pa, int32_t access)
 {
 /* Generic I/O write signature.
    This implementation does not use every parameter. */
@@ -442,7 +444,7 @@ return SCPE_NXM;                                        /* unimplemented */
 
 /* CPU control registers - 11/44 */
 
-t_stat CPU44_rd (int32 *data, int32 pa, int32 access)
+t_stat CPU44_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -487,7 +489,7 @@ switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 return SCPE_NXM;                                        /* unimplemented */
 }
 
-t_stat CPU44_wr (int32 data, int32 pa, int32 access)
+t_stat CPU44_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 
@@ -524,7 +526,7 @@ return SCPE_NXM;                                        /* unimplemented */
 
 /* CPU control registers - 11/45 */
 
-t_stat CPU45_rd (int32 *data, int32 pa, int32 access)
+t_stat CPU45_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -549,7 +551,7 @@ switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 return SCPE_NXM;                                        /* unimplemented */
 }
 
-t_stat CPU45_wr (int32 data, int32 pa, int32 access)
+t_stat CPU45_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 
@@ -571,7 +573,7 @@ return SCPE_NXM;                                        /* unimplemented */
 
 /* CPU control registers - 11/60 */
 
-t_stat CPU60_rd (int32 *data, int32 pa, int32 access)
+t_stat CPU60_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -610,7 +612,7 @@ switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 return SCPE_NXM;                                        /* unimplemented */
 }
 
-t_stat CPU60_wr (int32 data, int32 pa, int32 access)
+t_stat CPU60_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 
@@ -650,7 +652,7 @@ return SCPE_NXM;                                        /* unimplemented */
 
 /* CPU control registers - 11/70 */
 
-t_stat CPU70_rd (int32 *data, int32 pa, int32 access)
+t_stat CPU70_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -722,7 +724,7 @@ return SCPE_NXM;                                        /* unimplemented */
    to the high byte.
 */
 
-t_stat CPU70_wr (int32 data, int32 pa, int32 access)
+t_stat CPU70_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
     case 000:
@@ -781,7 +783,7 @@ return SCPE_NXM;                                        /* unimplemented */
 
 /* CPU control registers - J11 */
 
-t_stat CPUJ_rd (int32 *data, int32 pa, int32 access)
+t_stat CPUJ_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -828,7 +830,7 @@ switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 return SCPE_NXM;                                        /* unimplemented */
 }
 
-t_stat CPUJ_wr (int32 data, int32 pa, int32 access)
+t_stat CPUJ_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 
@@ -863,7 +865,7 @@ return SCPE_NXM;                                        /* unimplemented */
 
 /* Board control registers - KDF11B */
 
-t_stat CTLFB_rd (int32 *data, int32 pa, int32 access)
+t_stat CTLFB_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -888,7 +890,7 @@ switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 return SCPE_NXM;
 }
 
-t_stat CTLFB_wr (int32 data, int32 pa, int32 access)
+t_stat CTLFB_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 
@@ -913,7 +915,7 @@ return SCPE_NXM;
 
 /* Board control registers - KDJ11B */
 
-t_stat CTLJB_rd (int32 *data, int32 pa, int32 access)
+t_stat CTLJB_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -938,9 +940,9 @@ switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 return SCPE_NXM;
 }
 
-t_stat CTLJB_wr (int32 data, int32 pa, int32 access)
+t_stat CTLJB_wr (int32_t data, int32_t pa, int32_t access)
 {
-int32 t;
+int32_t t;
 
 switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 
@@ -975,7 +977,7 @@ return SCPE_NXM;
 
 /* Board control registers - KDJ11D */
 
-t_stat CTLJD_rd (int32 *data, int32 pa, int32 access)
+t_stat CTLJD_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -992,7 +994,7 @@ switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 return SCPE_NXM;
 }
 
-t_stat CTLJD_wr (int32 data, int32 pa, int32 access)
+t_stat CTLJD_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 
@@ -1007,7 +1009,7 @@ return SCPE_NXM;
 
 /* Board control registers - KDJ11E */
 
-t_stat CTLJE_rd (int32 *data, int32 pa, int32 access)
+t_stat CTLJE_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -1037,9 +1039,9 @@ switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 return SCPE_NXM;
 }
 
-t_stat CTLJE_wr (int32 data, int32 pa, int32 access)
+t_stat CTLJE_wr (int32_t data, int32_t pa, int32_t access)
 {
-int32 t;
+int32_t t;
 
 switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 
@@ -1080,7 +1082,7 @@ return SCPE_NXM;
 
 /* Unibus adapter registers - KT24 */
 
-t_stat UBA24_rd (int32 *data, int32 pa, int32 access)
+t_stat UBA24_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -1100,7 +1102,7 @@ switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 return SCPE_NXM;
 }
 
-t_stat UBA24_wr (int32 data, int32 pa, int32 access)
+t_stat UBA24_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 
@@ -1115,7 +1117,7 @@ return SCPE_NXM;
 
 /* Unibus registers - KTJ11B */
 
-t_stat UBAJ_rd (int32 *data, int32 pa, int32 access)
+t_stat UBAJ_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O read signature.
    This implementation does not use every parameter. */
@@ -1140,7 +1142,7 @@ switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 return SCPE_NXM;
 }
 
-t_stat UBAJ_wr (int32 data, int32 pa, int32 access)
+t_stat UBAJ_wr (int32_t data, int32_t pa, int32_t access)
 {
 switch ((pa >> 1) & 03) {                               /* decode pa<2:1> */
 
@@ -1165,9 +1167,9 @@ return SCPE_NXM;
 
 /* KDJ11E TOY routines */
 
-int32 toy_read (void)
+int32_t toy_read (void)
 {
-int32 bit;
+int32_t bit;
 
 if (toy_state == 0) {
     struct timespec now;
@@ -1196,26 +1198,26 @@ toy_state = (toy_state + 1) % (TOY_LNT * 8);
 return (bit & 1);
 }
 
-void toy_write (int32 bit)
+void toy_write (int32_t bit)
 {
 toy_state = 0;
 return;
 }
 
-uint8 toy_set (int32 val)
+uint8_t toy_set (int32_t val)
 {
-uint32 d1, d2;
+uint32_t d1, d2;
 
 d1 = val / 10;
 d2 = val % 10;
-return (uint8) ((d1 << 4) | d2);
+return (uint8_t) ((d1 << 4) | d2);
 }
 
 /* Build I/O space entries for CPU */
 
 t_stat cpu_build_dib (void)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 for (i = 0; cnf_tab[i].dib != NULL; i++) {              /* loop thru config tab */
@@ -1230,7 +1232,7 @@ return SCPE_OK;
 
 /* Set/show CPU model */
 
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1240,7 +1242,7 @@ if (cptr != NULL)
     return SCPE_ARG;
 if (val >= MOD_MAX)
     return SCPE_IERR;
-if (val == (int32) cpu_model)
+if (val == (int32_t) cpu_model)
     return SCPE_OK;
 cpu_model = val;
 cpu_type = 1u << cpu_model;
@@ -1254,7 +1256,7 @@ reset_all (0);                                          /* reset world */
 return SCPE_OK;
 }
 
-t_stat cpu_show_model (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_model (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1262,7 +1264,7 @@ t_stat cpu_show_model (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) val;
 (void) desc;
 
-uint32 i, all_opt;
+uint32_t i, all_opt;
 
 fprintf (st, "%s", cpu_tab[cpu_model].name);
 all_opt = cpu_tab[cpu_model].opt;
@@ -1276,7 +1278,7 @@ return SCPE_OK;
 
 /* Set/clear CPU option */
 
-t_stat cpu_set_opt (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_opt (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1286,7 +1288,7 @@ t_stat cpu_set_opt (UNIT *uptr, int32 val, const char *cptr, void *desc)
 if (cptr)
     return SCPE_ARG;
 if ((val & cpu_tab[cpu_model].opt) == 0) {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; opt_name[2 * i] != NULL; i++) {
         if ((val >> i) & 1)
@@ -1300,7 +1302,7 @@ cpu_opt = cpu_opt | val;
 return SCPE_OK;
 }
 
-t_stat cpu_clr_opt (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_clr_opt (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1310,7 +1312,7 @@ t_stat cpu_clr_opt (UNIT *uptr, int32 val, const char *cptr, void *desc)
 if (cptr)
     return SCPE_ARG;
 if ((val & cpu_tab[cpu_model].opt) == 0) {
-    uint32 i;
+    uint32_t i;
 
     for (i = 0; opt_name[2 * i] != NULL; i++) {
         if ((val >> i) & 1)
@@ -1326,7 +1328,7 @@ return SCPE_OK;
 
 /* Memory allocation */
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1334,24 +1336,24 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i, clim;
-uint16 *nM;
+int32_t mc = 0;
+uint32_t i, clim;
+uint16_t *nM;
 
 if ((val <= 0) ||
-    (val > ((int32) cpu_tab[cpu_model].maxm)) ||
+    (val > ((int32_t) cpu_tab[cpu_model].maxm)) ||
     ((val & 07777) != 0))
     return SCPE_ARG;
-if (val > ((int32) (cpu_tab[cpu_model].maxm - IOPAGESIZE)))
-    val = (int32) (cpu_tab[cpu_model].maxm - IOPAGESIZE);
+if (val > ((int32_t) (cpu_tab[cpu_model].maxm - IOPAGESIZE)))
+    val = (int32_t) (cpu_tab[cpu_model].maxm - IOPAGESIZE);
 for (i = val; i < MEMSIZE; i = i + 2)
     mc = mc | M[i >> 1];
 if ((mc != 0) && !get_yn ("Really truncate memory [N]?", false))
     return SCPE_OK;
-nM = (uint16 *) calloc (val >> 1, sizeof (uint16));
+nM = (uint16_t *) calloc (val >> 1, sizeof (uint16_t));
 if (nM == NULL)
     return SCPE_MEM;
-clim = (((t_addr) val) < MEMSIZE)? (uint32)val: MEMSIZE;
+clim = (((t_addr) val) < MEMSIZE)? (uint32_t)val: MEMSIZE;
 for (i = 0; i < clim; i = i + 2)
     nM[i >> 1] = M[i >> 1];
 free (M);
@@ -1364,10 +1366,10 @@ return SCPE_OK;
 
 /* Bus configuration, disable Unibus or Qbus devices */
 
-t_stat cpu_set_bus (int32 opt)
+t_stat cpu_set_bus (int32_t opt)
 {
 DEVICE *dptr;
-uint32 i, mask;
+uint32_t i, mask;
 
 if (opt & BUS_U)                                        /* Unibus variant? */
     mask = DEV_UBUS;
@@ -1393,7 +1395,7 @@ t_stat sys_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 CCR = 0;
 HITMISS = 0;
@@ -1423,7 +1425,7 @@ return SCPE_OK;
 
 /* Set/show JCLK default values */
 
-t_stat sys_set_jclk_dflt (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat sys_set_jclk_dflt (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1431,7 +1433,7 @@ t_stat sys_set_jclk_dflt (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-uint32 i;
+uint32_t i;
 
 if ((CPUT (CPUT_JB|CPUT_JE)) && cptr) {
     for (i = 0; i < 4; i++) {
@@ -1444,7 +1446,7 @@ if ((CPUT (CPUT_JB|CPUT_JE)) && cptr) {
 return SCPE_ARG;
 }
 
-t_stat sys_show_jclk_dflt (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat sys_show_jclk_dflt (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1467,7 +1469,7 @@ const char *sys_description (DEVICE *dptr)
 return "PDP-11 model options";
 }
 
-t_stat sys_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat sys_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */

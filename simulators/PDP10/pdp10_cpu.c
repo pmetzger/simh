@@ -139,6 +139,7 @@
 #include "pdp10_defs.h"
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define PCQ_SIZE        64                              /* must be 2**n */
 #define PCQ_MASK        (PCQ_SIZE - 1)
@@ -166,7 +167,7 @@ a10 epta, upta;                                         /* proc tbl addr (dyn) *
 a10 saved_PC = 0;                                       /* scp: saved PC */
 d10 pager_word = 0;                                     /* pager: error word */
 a10 pager_PC = 0;                                       /* pager: saved PC */
-int32 pager_flags = 0;                                  /* pager: trap flags */
+int32_t pager_flags = 0;                                /* pager: trap flags */
 bool pager_pi = false;                                  /* pager: in pi seq */
 bool pager_tc = false;                                  /* pager: trap cycle */
 d10 ebr = 0;                                            /* exec base reg */
@@ -181,148 +182,148 @@ a10 dbr2 = 0;
 a10 dbr3 = 0;
 a10 dbr4 = 0;
 d10 pcst = 0;                                           /* ITS PC sampling */
-int32 pi_on = 0;                                        /* pi system enable */
-int32 pi_enb = 0;                                       /* pi enabled levels */
-int32 pi_act = 0;                                       /* pi active levels */
-int32 pi_ioq = 0;                                       /* pi io requests */
-int32 pi_apr = 0;                                       /* pi apr requests */
-int32 pi_prq = 0;                                       /* pi prog requests */
-int32 apr_enb = 0;                                      /* apr enables */
-int32 apr_flg = 0;                                      /* apr flags */
-int32 apr_lvl = 0;                                      /* apr level */
-int32 qintr = 0;                                        /* interrupt pending */
-int32 flags = 0;                                        /* flags */
-int32 its_1pr = 0;                                      /* ITS 1-proceed */
-int32 stop_op0 = 0;                                     /* stop on 0 */
-int32 rlog = 0;                                         /* extend fixup log */
-int32 ind_max = 0;                                      /* nested ind limit */
-int32 xct_max = 0;                                      /* nested XCT limit */
+int32_t pi_on = 0;                                      /* pi system enable */
+int32_t pi_enb = 0;                                     /* pi enabled levels */
+int32_t pi_act = 0;                                     /* pi active levels */
+int32_t pi_ioq = 0;                                     /* pi io requests */
+int32_t pi_apr = 0;                                     /* pi apr requests */
+int32_t pi_prq = 0;                                     /* pi prog requests */
+int32_t apr_enb = 0;                                    /* apr enables */
+int32_t apr_flg = 0;                                    /* apr flags */
+int32_t apr_lvl = 0;                                    /* apr level */
+int32_t qintr = 0;                                      /* interrupt pending */
+int32_t flags = 0;                                      /* flags */
+int32_t its_1pr = 0;                                    /* ITS 1-proceed */
+int32_t stop_op0 = 0;                                   /* stop on 0 */
+int32_t rlog = 0;                                       /* extend fixup log */
+int32_t ind_max = 0;                                    /* nested ind limit */
+int32_t xct_max = 0;                                    /* nested XCT limit */
 a10 pcq[PCQ_SIZE] = { 0 };                              /* PC queue */
-int32 pcq_p = 0;                                        /* PC queue ptr */
+int32_t pcq_p = 0;                                      /* PC queue ptr */
 REG *pcq_r = NULL;                                      /* PC queue reg ptr */
 jmp_buf save_env;
-int32 hst_p = 0;                                        /* history pointer */
-int32 hst_lnt = 0;                                      /* history length */
+int32_t hst_p = 0;                                      /* history pointer */
+int32_t hst_lnt = 0;                                    /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
-int32 apr_serial = -1;                                  /* CPU Serial number */
+int32_t apr_serial = -1;                                /* CPU Serial number */
 
 /* Forward and external declarations */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
 bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat cpu_set_serial (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat cpu_show_serial (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat cpu_set_serial (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat cpu_show_serial (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 d10 adjsp (d10 val, a10 ea);
-void ibp (a10 ea, int32 pflgs);
-d10 ldb (a10 ea, int32 pflgs);
-void dpb (d10 val, a10 ea, int32 pflgs);
-void adjbp (int32 ac, a10 ea, int32 pflgs);
+void ibp (a10 ea, int32_t pflgs);
+d10 ldb (a10 ea, int32_t pflgs);
+void dpb (d10 val, a10 ea, int32_t pflgs);
+void adjbp (int32_t ac, a10 ea, int32_t pflgs);
 d10 add (d10 val, d10 mb);
 d10 sub (d10 val, d10 mb);
-void dadd (int32 ac, d10 *rs);
-void dsub (int32 ac, d10 *rs);
-int32 jffo (d10 val);
+void dadd (int32_t ac, d10 *rs);
+void dsub (int32_t ac, d10 *rs);
+int32_t jffo (d10 val);
 d10 lsh (d10 val, a10 ea);
 d10 rot (d10 val, a10 ea);
 d10 ash (d10 val, a10 ea);
-void lshc (int32 ac, a10 ea);
-void rotc (int32 ac, a10 ea);
-void ashc (int32 ac, a10 ea);
-void circ (int32 ac, a10 ea);
-void blt (int32 ac, a10 ea, int32 pflgs);
-void bltu (int32 ac, a10 ea, int32 pflgs, int dir);
-a10 calc_ea (d10 inst, int32 prv);
-a10 calc_ioea (d10 inst, int32 prv);
-d10 calc_jrstfea (d10 inst, int32 pflgs);
+void lshc (int32_t ac, a10 ea);
+void rotc (int32_t ac, a10 ea);
+void ashc (int32_t ac, a10 ea);
+void circ (int32_t ac, a10 ea);
+void blt (int32_t ac, a10 ea, int32_t pflgs);
+void bltu (int32_t ac, a10 ea, int32_t pflgs, int dir);
+a10 calc_ea (d10 inst, int32_t prv);
+a10 calc_ioea (d10 inst, int32_t prv);
+d10 calc_jrstfea (d10 inst, int32_t pflgs);
 void pi_dismiss (void);
 void set_newflags (d10 fl, bool jrst);
-extern bool aprid (a10 ea, int32 prv);
-bool wrpi (a10 ea, int32 prv);
-bool rdpi (a10 ea, int32 prv);
-bool czpi (a10 ea, int32 prv);
-bool copi (a10 ea, int32 prv);
-bool wrapr (a10 ea, int32 prv);
-bool rdapr (a10 ea, int32 prv);
-bool czapr (a10 ea, int32 prv);
-bool coapr (a10 ea, int32 prv);
-int32 pi_eval (void);
-int32 test_int (void);
+extern bool aprid (a10 ea, int32_t prv);
+bool wrpi (a10 ea, int32_t prv);
+bool rdpi (a10 ea, int32_t prv);
+bool czpi (a10 ea, int32_t prv);
+bool copi (a10 ea, int32_t prv);
+bool wrapr (a10 ea, int32_t prv);
+bool rdapr (a10 ea, int32_t prv);
+bool czapr (a10 ea, int32_t prv);
+bool coapr (a10 ea, int32_t prv);
+int32_t pi_eval (void);
+int32_t test_int (void);
 void set_ac_display (d10 *acbase);
 
 extern t_stat build_dib_tab (void);
-extern t_stat show_iospace (FILE *st, UNIT *uptr, int32 val, const void *desc);
+extern t_stat show_iospace (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 extern void set_dyn_ptrs (void);
-extern a10 conmap (a10 ea, int32 mode, int32 sw);
+extern a10 conmap (a10 ea, int32_t mode, int32_t sw);
 extern void fe_intr (void);
-extern void dfad (int32 ac, d10 *rs, int32 inv);
-extern void dfmp (int32 ac, d10 *rs);
-extern void dfdv (int32 ac, d10 *rs);
-extern void dmul (int32 ac, d10 *rs);
-extern void ddiv (int32 ac, d10 *rs);
-extern void fix (int32 ac, d10 mb, bool rnd);
-extern d10 fad (d10 val, d10 mb, bool rnd, int32 inv);
+extern void dfad (int32_t ac, d10 *rs, int32_t inv);
+extern void dfmp (int32_t ac, d10 *rs);
+extern void dfdv (int32_t ac, d10 *rs);
+extern void dmul (int32_t ac, d10 *rs);
+extern void ddiv (int32_t ac, d10 *rs);
+extern void fix (int32_t ac, d10 mb, bool rnd);
+extern d10 fad (d10 val, d10 mb, bool rnd, int32_t inv);
 extern d10 fmp (d10 val, d10 mb, bool rnd);
 extern bool fdv (d10 val, d10 mb, d10 *rs, bool rnd);
 extern d10 fsc (d10 val, a10 ea);
 extern d10 fltr (d10 mb);
-extern int xtend (int32 ac, a10 ea, int32 pflgs);
-extern void xtcln (int32 rlog);
-extern d10 map (a10 ea, int32 prv);
+extern int xtend (int32_t ac, a10 ea, int32_t pflgs);
+extern void xtcln (int32_t rlog);
+extern d10 map (a10 ea, int32_t prv);
 extern d10 imul (d10 val, d10 mb);
 extern bool idiv (d10 val, d10 mb, d10 *rs);
 extern void mul (d10 val, d10 mb, d10 *rs);
-extern bool divi (int32 ac, d10 mb, d10 *rs);
-extern bool io710 (int32 ac, a10 ea);
-extern bool io711 (int32 ac, a10 ea);
+extern bool divi (int32_t ac, d10 mb, d10 *rs);
+extern bool io710 (int32_t ac, a10 ea);
+extern bool io711 (int32_t ac, a10 ea);
 extern d10 io712 (a10 ea);
 extern void io713 (d10 val, a10 ea);
 extern void io714 (d10 val, a10 ea);
 extern void io715 (d10 val, a10 ea);
-extern bool io720 (int32 ac, a10 ea);
-extern bool io721 (int32 ac, a10 ea);
+extern bool io720 (int32_t ac, a10 ea);
+extern bool io721 (int32_t ac, a10 ea);
 extern d10 io722 (a10 ea);
 extern void io723 (d10 val, a10 ea);
 extern void io724 (d10 val, a10 ea);
 extern void io725 (d10 val, a10 ea);
-extern bool clrcsh (a10 ea, int32 prv);
-extern bool clrpt (a10 ea, int32 prv);
-extern bool wrubr (a10 ea, int32 prv);
-extern bool wrebr (a10 ea, int32 prv);
-extern bool wrhsb (a10 ea, int32 prv);
-extern bool wrspb (a10 ea, int32 prv);
-extern bool wrcsb (a10 ea, int32 prv);
-extern bool wrpur (a10 ea, int32 prv);
-extern bool wrcstm (a10 ea, int32 prv);
-extern bool ldbr1 (a10 ea, int32 prv);
-extern bool ldbr2 (a10 ea, int32 prv);
-extern bool ldbr3 (a10 ea, int32 prv);
-extern bool ldbr4 (a10 ea, int32 prv);
-extern bool rdubr (a10 ea, int32 prv);
-extern bool rdebr (a10 ea, int32 prv);
-extern bool rdhsb (a10 ea, int32 prv);
-extern bool rdspb (a10 ea, int32 prv);
-extern bool rdcsb (a10 ea, int32 prv);
-extern bool rdpur (a10 ea, int32 prv);
-extern bool rdcstm (a10 ea, int32 prv);
-extern bool sdbr1 (a10 ea, int32 prv);
-extern bool sdbr2 (a10 ea, int32 prv);
-extern bool sdbr3 (a10 ea, int32 prv);
-extern bool sdbr4 (a10 ea, int32 prv);
-extern bool rdtim (a10 ea, int32 prv);
-extern bool rdint (a10 ea, int32 prv);
-extern bool wrtim (a10 ea, int32 prv);
-extern bool wrint (a10 ea, int32 prv);
-extern bool rdpcst (a10 ea, int32 prv);
-extern bool wrpcst (a10 ea, int32 prv);
-extern bool spm (a10 ea, int32 prv);
-extern bool lpmr (a10 ea, int32 prv);
-extern int32 pi_ub_vec (int32 lvl, int32 *uba);
-extern t_stat tim_set_mod (UNIT *uptr, int32 val, const char *cptr, void *desc);
+extern bool clrcsh (a10 ea, int32_t prv);
+extern bool clrpt (a10 ea, int32_t prv);
+extern bool wrubr (a10 ea, int32_t prv);
+extern bool wrebr (a10 ea, int32_t prv);
+extern bool wrhsb (a10 ea, int32_t prv);
+extern bool wrspb (a10 ea, int32_t prv);
+extern bool wrcsb (a10 ea, int32_t prv);
+extern bool wrpur (a10 ea, int32_t prv);
+extern bool wrcstm (a10 ea, int32_t prv);
+extern bool ldbr1 (a10 ea, int32_t prv);
+extern bool ldbr2 (a10 ea, int32_t prv);
+extern bool ldbr3 (a10 ea, int32_t prv);
+extern bool ldbr4 (a10 ea, int32_t prv);
+extern bool rdubr (a10 ea, int32_t prv);
+extern bool rdebr (a10 ea, int32_t prv);
+extern bool rdhsb (a10 ea, int32_t prv);
+extern bool rdspb (a10 ea, int32_t prv);
+extern bool rdcsb (a10 ea, int32_t prv);
+extern bool rdpur (a10 ea, int32_t prv);
+extern bool rdcstm (a10 ea, int32_t prv);
+extern bool sdbr1 (a10 ea, int32_t prv);
+extern bool sdbr2 (a10 ea, int32_t prv);
+extern bool sdbr3 (a10 ea, int32_t prv);
+extern bool sdbr4 (a10 ea, int32_t prv);
+extern bool rdtim (a10 ea, int32_t prv);
+extern bool rdint (a10 ea, int32_t prv);
+extern bool wrtim (a10 ea, int32_t prv);
+extern bool wrint (a10 ea, int32_t prv);
+extern bool rdpcst (a10 ea, int32_t prv);
+extern bool wrpcst (a10 ea, int32_t prv);
+extern bool spm (a10 ea, int32_t prv);
+extern bool lpmr (a10 ea, int32_t prv);
+extern int32_t pi_ub_vec (int32_t lvl, int32_t *uba);
+extern t_stat tim_set_mod (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* CPU data structures
 
@@ -417,11 +418,11 @@ DEVICE cpu_dev = {
 
 /* Data arrays */
 
-const int32 pi_l2bit[8] = {
+const int32_t pi_l2bit[8] = {
  0, 0100, 0040, 0020, 0010, 0004, 0002, 0001
  };
 
-const int32 pi_m2lvl[128] = {
+const int32_t pi_m2lvl[128] = {
  0, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -448,24 +449,24 @@ const d10 bytemask[64] = { 0,
  ONES, ONES, ONES, ONES, ONES, ONES, ONES, ONES, ONES
  };
 
-static bool (*io700d[16])(a10, int32) = {
+static bool (*io700d[16])(a10, int32_t) = {
     &aprid, NULL, NULL, NULL, &wrapr, &rdapr, &czapr, &coapr,
     NULL, NULL, NULL, NULL, &wrpi, &rdpi, &czpi, &copi
     };
-static bool (*io701d[16])(a10, int32) = {
+static bool (*io701d[16])(a10, int32_t) = {
     NULL, &rdubr, &clrpt, &wrubr, &wrebr, &rdebr, NULL, NULL,
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     };
-static bool (*io702d[16])(a10, int32) = {
+static bool (*io702d[16])(a10, int32_t) = {
     &rdspb, &rdcsb, &rdpur, &rdcstm, &rdtim, &rdint, &rdhsb, NULL,
     &wrspb, &wrcsb, &wrpur, &wrcstm, &wrtim, &wrint, &wrhsb, NULL
     };
 #define io700i io700d
-static bool (*io701i[16])(a10, int32) = {
+static bool (*io701i[16])(a10, int32_t) = {
     &clrcsh, &rdubr, &clrpt, &wrubr, &wrebr, &rdebr, NULL, NULL,
     NULL, &rdpcst, NULL, &wrpcst, NULL, NULL, NULL, NULL
     };
-static bool (*io702i[16])(a10, int32) = {
+static bool (*io702i[16])(a10, int32_t) = {
     &sdbr1, &sdbr2, &sdbr3, &sdbr4, &rdtim, &rdint, &rdhsb, &spm,
     &ldbr1, &ldbr2, &ldbr3, &ldbr4, &wrtim, &wrint, &wrhsb, &lpmr
     };
@@ -703,10 +704,10 @@ else PC = pager_PC;                                     /* intr, restore PC */
 /* Main instruction fetch/decode loop: check clock queue, intr, trap, bkpt */
 
 for ( ;; ) {                                            /* loop until ABORT */
-int32 op, ac, i, st, xr, xct_cnt, its_2pr, pflgs;
+int32_t op, ac, i, st, xr, xct_cnt, its_2pr, pflgs;
 a10 ea;
 d10 inst, mb, indrct, rs[2];
-bool (*fptr)(int32, int32);
+bool (*fptr)(int32_t, int32_t);
 
 pager_PC = PC;                                          /* update pager PC */
 pager_tc = false;                                       /* not in trap cycle */
@@ -745,7 +746,7 @@ if (sim_interval <= 0) {                                /* check clock queue */
 */
 
 if (qintr) {
-    int32 vec, uba;
+    int32_t vec, uba;
     pager_pi = true;                                    /* flag in pi seq */
     if (fe_xct) {                                       /* Console forced execute? */
         qintr = 0;
@@ -861,7 +862,7 @@ for (indrct = inst, i = 0; ; i++) {                     /* calc eff addr */
         ea = (ea + ((a10) XR (xr, MM_EA))) & AMASK;
     if (TST_IND (indrct)) {                             /* indirect? */
         if (i != 0) {                                   /* not first cycle? */
-            int32 t = test_int ();                      /* test for intr */
+            int32_t t = test_int ();                    /* test for intr */
             if (t != 0)                                 /* err or intr? */
                 ABORT (t);
             if ((ind_max != 0) && (i >= ind_max))       /* limit exceeded? */
@@ -1076,7 +1077,7 @@ case 0255:  if (flags & (ac << 14)) {                   /* JFCL */
                 }
             break;
 case 0256:  if (xct_cnt++ != 0) {                       /* XCT: not first? */
-                int32 t = test_int ();                  /* test for intr */
+                int32_t t = test_int ();                /* test for intr */
                 if (t != 0)                             /* intr or err? */
                     ABORT (t);
                  if ((xct_max != 0) && (xct_cnt >= xct_max))
@@ -1439,7 +1440,7 @@ case 0725:  IOA; io725 (AC(ac), ea); break;             /* BCIOB, IOWRBQ */
 default:
 MUUO:
     if (T20PAG) {                                       /* TOPS20 paging? */
-        int32 tf = (op << (INST_V_OP - 18)) | (ac << (INST_V_AC - 18));
+        int32_t tf = (op << (INST_V_OP - 18)) | (ac << (INST_V_AC - 18));
         WriteP (upta + UPT_MUUO, XWD (                  /* store flags,,op+ac */
             flags & ~(F_T2 | F_T1), tf));               /* traps clear */
         WriteP (upta + UPT_MUPC, PC);                   /* store PC */
@@ -1623,7 +1624,7 @@ return r;
 
 d10 lsh (d10 val, a10 ea)
 {
-int32 sc = LIT8 (ea);
+int32_t sc = LIT8 (ea);
 
 if (sc > 35)
     return 0;
@@ -1636,7 +1637,7 @@ return ((val << sc) & DMASK);
 
 d10 rot (d10 val, a10 ea)
 {
-int32 sc = LIT8 (ea) % 36;
+int32_t sc = LIT8 (ea) % 36;
 
 if (sc == 0)
     return val;
@@ -1649,10 +1650,10 @@ return (((val << sc) | (val >> (36 - sc))) & DMASK);
 
 /* Double add - see case table for single add */
 
-void dadd (int32 ac, d10 *rs)
+void dadd (int32_t ac, d10 *rs)
 {
 d10 r;
-int32 p1 = ADDAC (ac, 1);
+int32_t p1 = ADDAC (ac, 1);
 
 AC(p1) = CLRS (AC(p1)) + CLRS (rs[1]);                  /* add lo */
 r = (AC(ac) + rs[0] + (TSTS (AC(p1))? 1: 0)) & DMASK;   /* add hi+cry */
@@ -1674,10 +1675,10 @@ return;
 
 /* Double subtract - see comments for single subtract */
 
-void dsub (int32 ac, d10 *rs)
+void dsub (int32_t ac, d10 *rs)
 {
 d10 r;
-int32 p1 = ADDAC (ac, 1);
+int32_t p1 = ADDAC (ac, 1);
 
 AC(p1) = CLRS (AC(p1)) - CLRS (rs[1]);                  /* sub lo */
 r = (AC(ac) - rs[0] - (TSTS (AC(p1))? 1: 0)) & DMASK;   /* sub hi,borrow */
@@ -1700,10 +1701,10 @@ return;
 
 /* Logical shift combined */
 
-void lshc (int32 ac, a10 ea)
+void lshc (int32_t ac, a10 ea)
 {
-int32 p1 = ADDAC (ac, 1);
-int32 sc = LIT8 (ea);
+int32_t p1 = ADDAC (ac, 1);
+int32_t sc = LIT8 (ea);
 
 if (sc > 71)
     AC(ac) = AC(p1) = 0;
@@ -1732,10 +1733,10 @@ return;
 
 /* Rotate combined */
 
-void rotc (int32 ac, a10 ea)
+void rotc (int32_t ac, a10 ea)
 {
-int32 p1 = ADDAC (ac, 1);
-int32 sc = LIT8 (ea) % 72;
+int32_t p1 = ADDAC (ac, 1);
+int32_t sc = LIT8 (ea) % 72;
 d10 t = AC(ac);
 
 if (sc == 0)
@@ -1757,7 +1758,7 @@ return;
 
 d10 ash (d10 val, a10 ea)
 {
-int32 sc = LIT8 (ea);
+int32_t sc = LIT8 (ea);
 d10 sign = TSTS (val);
 d10 fill = sign? ONES: 0;
 d10 so;
@@ -1774,10 +1775,10 @@ if (so != (sign? bytemask[sc + 1]: 0))
 return (sign | ((val << sc) & MMASK));
 }
 
-void ashc (int32 ac, a10 ea)
+void ashc (int32_t ac, a10 ea)
 {
-int32 sc = LIT8 (ea);
-int32 p1 = ADDAC (ac, 1);
+int32_t sc = LIT8 (ea);
+int32_t p1 = ADDAC (ac, 1);
 d10 sign = TSTS (AC(ac));
 d10 fill = sign? ONES: 0;
 d10 so;
@@ -1827,9 +1828,9 @@ return;
    the main loop.  prv is either EABP_PXCT or MM_CUR.
 */
 
-a10 calc_ea (d10 inst, int32 prv)
+a10 calc_ea (d10 inst, int32_t prv)
 {
-int32 i, ea, xr;
+int32_t i, ea, xr;
 d10 indrct;
 
 for (indrct = inst, i = 0; ; i++) {
@@ -1839,7 +1840,7 @@ for (indrct = inst, i = 0; ; i++) {
         ea = (ea + ((a10) XR (xr, prv))) & AMASK;
     if (TST_IND (indrct)) {                             /* indirect? */
         if (i != 0) {                                   /* not first cycle? */
-            int32 t = test_int ();                      /* test for intr */
+            int32_t t = test_int ();                    /* test for intr */
             if (t != 0)                                 /* intr or error? */
                 ABORT (t);
             if ((ind_max != 0) && (i >= ind_max))       /* limit exceeded? */
@@ -1860,9 +1861,9 @@ return ea;
                 entire word fetch (single level)
 */
 
-a10 calc_ioea (d10 inst, int32 pflgs)
+a10 calc_ioea (d10 inst, int32_t pflgs)
 {
-int32 xr;
+int32_t xr;
 a10 ea;
 
 xr = GET_XR (inst);
@@ -1884,9 +1885,9 @@ return ea;
    the left half of the effective address, to be the new flags.
 */
 
-d10 calc_jrstfea (d10 inst, int32 pflgs)
+d10 calc_jrstfea (d10 inst, int32_t pflgs)
 {
-int32 i, xr;
+int32_t i, xr;
 d10 mb;
 
 for (i = 0; ; i++) {
@@ -1896,7 +1897,7 @@ for (i = 0; ; i++) {
         mb = (mb & AMASK) + XR (xr, MM_EA);
     if (TST_IND (inst)) {                               /* indirect? */
         if (i != 0) {                                   /* not first cycle? */
-            int32 t = test_int ();                      /* test for intr */
+            int32_t t = test_int ();                    /* test for intr */
             if (t != 0)                                 /* intr or error? */
                 ABORT (t);
             if ((ind_max != 0) && (i >= ind_max))       /* limit exceeded? */
@@ -1913,9 +1914,9 @@ return (mb & DMASK);
 
 /* Increment byte pointer - checked against KS10 ucode */
 
-void ibp (a10 ea, int32 pflgs)
+void ibp (a10 ea, int32_t pflgs)
 {
-int32 p, s;
+int32_t p, s;
 d10 bp;
 
 bp = ReadM (ea, MM_OPND);                               /* get byte ptr */
@@ -1933,10 +1934,10 @@ return;
 
 /* Load byte */
 
-d10 ldb (a10 ea, int32 pflgs)
+d10 ldb (a10 ea, int32_t pflgs)
 {
 a10 ba;
-int32 p, s;
+int32_t p, s;
 d10 bp, wd;
 
 bp = Read (ea, MM_OPND);                                /* get byte ptr */
@@ -1951,10 +1952,10 @@ return wd;
 
 /* Deposit byte - must use read and write to get page fail correct */
 
-void dpb (d10 val, a10 ea, int32 pflgs)
+void dpb (d10 val, a10 ea, int32_t pflgs)
 {
 a10 ba;
-int32 p, s;
+int32_t p, s;
 d10 bp, wd, mask;
 
 bp = Read (ea, MM_OPND);                                /* get byte ptr */
@@ -1974,9 +1975,9 @@ return;
    formulation of the processor reference manual check.
 */
 
-void adjbp (int32 ac, a10 ea, int32 pflgs)
+void adjbp (int32_t ac, a10 ea, int32_t pflgs)
 {
-int32 p, s;
+int32_t p, s;
 d10 bp, newby, left, byadj, bywrd, val, wdadj;
 
 val = AC(ac);                                           /* get adjustment */
@@ -1997,7 +1998,7 @@ if (s) {
         byadj = byadj + bywrd;                          /* make adj positive */
         wdadj = wdadj - 1;
         }
-    p = (36 - ((int32) byadj) * s) - ((36 - p) % s);    /* new p */
+    p = (36 - ((int32_t) byadj) * s) - ((36 - p) % s);  /* new p */
     bp = (PUT_P (bp, p) & LMASK) | ((bp + wdadj) & RMASK);
     }
 AC(ac) = bp;
@@ -2011,13 +2012,13 @@ return;
    The clocking test guarantees forward progress under single step.
 */
 
-void blt (int32 ac, a10 ea, int32 pflgs)
+void blt (int32_t ac, a10 ea, int32_t pflgs)
 {
 a10 srca = (a10) LRZ (AC(ac));
 a10 dsta = (a10) RRZ (AC(ac));
 a10 lnt = ea - dsta + 1;
 d10 srcv;
-int32 flg, t;
+int32_t flg, t;
 
 AC(ac) = XWD (srca + lnt, dsta + lnt);
 for (flg = 0; dsta <= ea; flg++) {                      /* loop */
@@ -2049,13 +2050,13 @@ return;
 #define BYTE4           INT64_C(0000000007760)
 /* unused               0000000000017 */
 
-void bltu (int32 ac, a10 ea, int32 pflgs, int dir)
+void bltu (int32_t ac, a10 ea, int32_t pflgs, int dir)
 {
 a10 srca = (a10) LRZ (AC(ac));
 a10 dsta = (a10) RRZ (AC(ac));
 a10 lnt = ea - dsta + 1;
 d10 srcv, dstv;
-int32 flg, t;
+int32_t flg, t;
 
 AC(ac) = XWD (srca + lnt, dsta + lnt);
 for (flg = 0; dsta <= ea; flg++) {                      /* loop */
@@ -2085,9 +2086,9 @@ return;
 
 /* Utility routine to test for I/O event and interrupt */
 
-int32 test_int (void)
+int32_t test_int (void)
 {
-int32 t;
+int32_t t;
 
 if (sim_interval <= 0) {                                /* check queue */
     if ((t = sim_process_event ()))                     /* IO event? */
@@ -2125,14 +2126,14 @@ return (left | right);
    Takes advantage of 7 bit find first table for priority interrupts.
 */
 
-int32 jffo (d10 val)
+int32_t jffo (d10 val)
 {
-int32 i, by;
+int32_t i, by;
 
 if ((val & DMASK) == 0)
     return 0;
 for (i = 0; i <= 28; i = i + 7) {                       /* scan five bytes */
-    by = (int32) ((val >> (29 - i)) & 0177);
+    by = (int32_t) ((val >> (29 - i)) & 0177);
     if (by)
         return (pi_m2lvl[by] + i - 1);
     }
@@ -2145,11 +2146,11 @@ return 35;                                              /* must be bit 35 */
    No attempt is made to optimize this instruction.
 */
 
-void circ (int32 ac, int32 ea)
+void circ (int32_t ac, int32_t ea)
 {
-int32 sc = LIT8 (ea) % 72;
-int32 p1 = ADDAC (ac,1);
-int32 i;
+int32_t sc = LIT8 (ea) % 72;
+int32_t p1 = ADDAC (ac,1);
+int32_t i;
 d10 val;
 
 if (sc == 0)                                            /* any shift? */
@@ -2177,7 +2178,7 @@ return;
         (CONSZ APR)             test system flags
 */
 
-bool aprid (a10 ea, int32 prv)
+bool aprid (a10 ea, int32_t prv)
 {
 d10 value = (Q_ITS)? UC_AIDITS: UC_AIDDEC;
 
@@ -2192,13 +2193,13 @@ return false;
 
 /* Checked against KS10 ucode */
 
-bool wrapr (a10 ea, int32 prv)
+bool wrapr (a10 ea, int32_t prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
 (void) prv;
 
-int32 bits = APR_GETF (ea);
+int32_t bits = APR_GETF (ea);
 
 apr_lvl = ea & APR_M_LVL;
 if (ea & APR_SENB)                                      /* set enables? */
@@ -2218,13 +2219,13 @@ pi_eval ();                                             /* eval pi system */
 return false;
 }
 
-bool rdapr (a10 ea, int32 prv)
+bool rdapr (a10 ea, int32_t prv)
 {
 Write (ea, (d10) APRWORD, prv);
 return false;
 }
 
-bool czapr (a10 ea, int32 prv)
+bool czapr (a10 ea, int32_t prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
@@ -2233,7 +2234,7 @@ bool czapr (a10 ea, int32 prv)
 return ((APRHWORD & ea)? false: true);
 }
 
-bool coapr (a10 ea, int32 prv)
+bool coapr (a10 ea, int32_t prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
@@ -2249,7 +2250,7 @@ return ((APRHWORD & ea)? true: false);
 
 void set_newflags (d10 newf, bool jrst)
 {
-int32 fl = (int32) LRZ (newf);
+int32_t fl = (int32_t) LRZ (newf);
 
 if (jrst && TSTF (F_USR)) {                             /* if in user now */
     fl = fl | F_USR;                                    /* can't clear user */
@@ -2289,13 +2290,13 @@ return;
    Checked against KS10 ucode - KS10 UUO's if <18:21> are non-zero
 */
 
-bool wrpi (a10 ea, int32 prv)
+bool wrpi (a10 ea, int32_t prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
 (void) prv;
 
-int32 lvl = ea & PI_M_LVL;
+int32_t lvl = ea & PI_M_LVL;
 
 if (ea & PI_INIT)
     pi_on = pi_enb = pi_act = pi_prq = 0;
@@ -2315,13 +2316,13 @@ pi_eval ();                                             /* eval pi system */
 return false;
 }
 
-bool rdpi (a10 ea, int32 prv)
+bool rdpi (a10 ea, int32_t prv)
 {
 Write (ea, (d10) PIWORD, prv);
 return false;
 }
 
-bool czpi (a10 ea, int32 prv)
+bool czpi (a10 ea, int32_t prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
@@ -2330,7 +2331,7 @@ bool czpi (a10 ea, int32 prv)
 return ((PIHWORD & ea)? false: true);
 }
 
-bool copi (a10 ea, int32 prv)
+bool copi (a10 ea, int32_t prv)
 {
 /* Generic instruction handler signature.
    This implementation does not use every parameter. */
@@ -2349,10 +2350,10 @@ return ((PIHWORD & ea)? true: false);
    to be necessary for the TOPS20 console port to run correclty.
 */
 
-int32 pi_eval (void)
+int32_t pi_eval (void)
 {
-int32 reqlvl, actlvl;
-extern int32 pi_ub_eval (void);
+int32_t reqlvl, actlvl;
+extern int32_t pi_ub_eval (void);
 
 qintr = 0;
 if (pi_on) {
@@ -2437,9 +2438,9 @@ static t_addr returns[MAX_SUB_RETURN_SKIP+1] = {0};
 static bool caveats_displayed = false;
 a10 ea;
 d10 inst, indrct;
-int32 i, pflgs = 0;
+int32_t i, pflgs = 0;
 t_addr adn, max_returns = MAX_SUB_RETURN_SKIP;
-int32 xr;
+int32_t xr;
 
 if (!caveats_displayed) {
     caveats_displayed = true;
@@ -2480,7 +2481,7 @@ switch (GET_OP(inst))
 
 /* Memory examine */
 
-t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -2505,7 +2506,7 @@ return SCPE_OK;
 
 /* Memory deposit */
 
-t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -2543,7 +2544,7 @@ return;
 
 /* Set history */
 
-t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -2551,7 +2552,7 @@ t_stat cpu_set_hist (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 i, lnt;
+int32_t i, lnt;
 t_stat r;
 
 if (cptr == NULL) {
@@ -2560,7 +2561,7 @@ if (cptr == NULL) {
     hst_p = 0;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, HIST_MAX, &r);
+lnt = (int32_t) get_uint (cptr, 10, HIST_MAX, &r);
 if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
     return SCPE_ARG;
 hst_p = 0;
@@ -2580,14 +2581,14 @@ return SCPE_OK;
 
 /* Show history */
 
-t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 k, di, lnt;
+int32_t k, di, lnt;
 const char *cptr = (const char *) desc;
 t_stat r;
 InstHistory *h;
@@ -2595,7 +2596,7 @@ InstHistory *h;
 if (hst_lnt == 0)                                       /* enabled? */
     return SCPE_NOFNC;
 if (cptr) {
-    lnt = (int32) get_uint (cptr, 10, hst_lnt, &r);
+    lnt = (int32_t) get_uint (cptr, 10, hst_lnt, &r);
     if ((r != SCPE_OK) || (lnt == 0))
         return SCPE_ARG;
     }
@@ -2624,7 +2625,7 @@ return SCPE_OK;
 
 /* Set serial */
 
-t_stat cpu_set_serial (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_serial (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -2632,14 +2633,14 @@ t_stat cpu_set_serial (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 lnt;
+int32_t lnt;
 t_stat r;
 
 if (cptr == NULL) {
     apr_serial = -1;
     return SCPE_OK;
     }
-lnt = (int32) get_uint (cptr, 10, 077777, &r);
+lnt = (int32_t) get_uint (cptr, 10, 077777, &r);
 if ((r != SCPE_OK) || (lnt <= 0) || (!Q_ITS && lnt < 4096))
     return SCPE_ARG;
 apr_serial = lnt & 077777;
@@ -2648,7 +2649,7 @@ return SCPE_OK;
 
 /* Show serial */
 
-t_stat cpu_show_serial (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_serial (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

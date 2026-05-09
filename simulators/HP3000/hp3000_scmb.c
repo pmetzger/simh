@@ -194,6 +194,8 @@
 
 
 
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_io.h"
 
@@ -366,7 +368,7 @@ typedef struct {
     HP_WORD status_word;                        /* status word register */
     HP_WORD counter;                            /* counter/buffer register */
     HP_WORD flags;                              /* status flags */
-    uint32  saved_srn;                          /* saved SR number */
+    uint32_t saved_srn;                         /* saved SR number */
 
     FLIP_FLOP sio_busy;                         /* SIO busy flip-flop */
     FLIP_FLOP channel_sr;                       /* channel service request flip-flop */
@@ -387,7 +389,7 @@ static SCMB_STATE scmb [2];                     /* per-card state variables */
 static CNTLR_INTRF scmb_interface;
 static t_stat      scmb_service   (UNIT   *uptr);
 static t_stat      scmb_reset     (DEVICE *dptr);
-static t_stat      scmb_set_bus   (UNIT   *uptr, int32 value, const char *cptr, void *desc);
+static t_stat      scmb_set_bus   (UNIT   *uptr, int32_t value, const char *cptr, void *desc);
 
 
 /* SCMB local utility routines */
@@ -1139,7 +1141,7 @@ return SCPE_OK;
    multiplexer initialization won't pick it up by mistake.
 */
 
-static t_stat scmb_set_bus (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat scmb_set_bus (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

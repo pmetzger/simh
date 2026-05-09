@@ -24,6 +24,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7090_defs.h"
 #include "sim_card.h"
 #ifdef NUM_DEVS_CDP
@@ -47,7 +49,7 @@ t_stat              cdp_srv(UNIT *);
 t_stat              cdp_reset(DEVICE *);
 t_stat              cdp_attach(UNIT *, const char *);
 t_stat              cdp_detach(UNIT *);
-t_stat              cdp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              cdp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *cdp_description (DEVICE *dptr);
 
@@ -89,7 +91,7 @@ DEVICE              cdp_dev = {
 */
 
 
-uint32 cdp_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cdp_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -97,7 +99,7 @@ uint32 cdp_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
 
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdp_unit);
-    extern uint16   IC;
+    extern uint16_t IC;
 
     if ((uptr->flags & UNIT_ATT) != 0 && cmd == IO_WRS) {
         /* Start device */
@@ -126,11 +128,11 @@ t_stat cdp_srv(UNIT * uptr)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdp_unit);
-    uint16             *image = (uint16 *)(uptr->up7);
+    uint16_t           *image = (uint16_t *)(uptr->up7);
     int                 pos;
-    t_uint64            wd;
+    uint64_t            wd;
     int                 bit;
-    t_uint64            mask;
+    uint64_t            mask;
     int                 b;
     int                 col;
 
@@ -272,7 +274,7 @@ cdp_attach(UNIT * uptr, const char *file)
     if ((r = sim_card_attach(uptr, file)) != SCPE_OK)
         return r;
     if (uptr->up7 == 0) {
-        uptr->up7 = calloc(80, sizeof(uint16));
+        uptr->up7 = calloc(80, sizeof(uint16_t));
         uptr->u5 = CDPSTA_POSMASK;
     }
     return SCPE_OK;
@@ -288,7 +290,7 @@ cdp_detach(UNIT * uptr)
 }
 
 t_stat
-cdp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cdp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    const char *cpu = cpu_description(&cpu_dev);
 

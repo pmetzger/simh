@@ -14,6 +14,7 @@
 #include "sim_fio.h"
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
+#include "sim_types.h"
 #include "test_scp_fixture.h"
 #include "test_simh_personality.h"
 #include "test_support.h"
@@ -119,7 +120,7 @@ static void *sim_tape_dynstr_realloc_fail(void *ptr, size_t size)
     return NULL;
 }
 
-static void assert_show_output(t_stat (*show_fn)(FILE *, UNIT *, int32,
+static void assert_show_output(t_stat (*show_fn)(FILE *, UNIT *, int32_t,
                                                  const void *),
                                UNIT *uptr, const char *expected)
 {
@@ -138,8 +139,8 @@ static void assert_show_output(t_stat (*show_fn)(FILE *, UNIT *, int32,
     fclose(stream);
 }
 
-static void assert_tape_record_equals(const uint8 *actual, t_mtrlnt actual_len,
-                                      const uint8 *expected,
+static void assert_tape_record_equals(const uint8_t *actual, t_mtrlnt actual_len,
+                                      const uint8_t *expected,
                                       t_mtrlnt expected_len)
 {
     assert_int_equal(actual_len, expected_len);
@@ -147,7 +148,7 @@ static void assert_tape_record_equals(const uint8 *actual, t_mtrlnt actual_len,
 }
 
 /* Verify a counted tape image has matching leading and trailing lengths. */
-static void assert_counted_tape_metadata(const uint8 *actual,
+static void assert_counted_tape_metadata(const uint8_t *actual,
                                          size_t payload_len,
                                          t_mtrlnt expected_len)
 {
@@ -165,11 +166,11 @@ static void assert_counted_tape_metadata(const uint8 *actual,
 
 /* Verify a standard tape image stores a record with any required pad byte. */
 static void assert_standard_tape_file_padded_record(
-    struct sim_tape_fixture *fixture, const uint8 *expected,
+    struct sim_tape_fixture *fixture, const uint8_t *expected,
     size_t expected_len)
 {
     void *actual_data;
-    uint8 *actual;
+    uint8_t *actual;
     size_t actual_len;
     size_t header_len = sizeof(t_mtrlnt);
     size_t padded_len = (expected_len + 1) & ~(size_t)1;
@@ -190,11 +191,11 @@ static void assert_standard_tape_file_padded_record(
 /* Verify a counted tape image stores exactly the expected record bytes. */
 static void assert_counted_tape_file_payload(struct sim_tape_fixture *fixture,
                                              const char *path,
-                                             const uint8 *expected,
+                                             const uint8_t *expected,
                                              size_t expected_len)
 {
     void *actual_data;
-    uint8 *actual;
+    uint8_t *actual;
     size_t actual_len;
     size_t header_len = sizeof(t_mtrlnt);
 
@@ -209,7 +210,7 @@ static void assert_counted_tape_file_payload(struct sim_tape_fixture *fixture,
 
 /* Verify a tape image contains exactly the expected bytes. */
 static void assert_tape_file_bytes(struct sim_tape_fixture *fixture,
-                                   const uint8 *expected, size_t expected_len)
+                                   const uint8_t *expected, size_t expected_len)
 {
     void *actual_data;
     size_t actual_len;
@@ -224,7 +225,7 @@ static void assert_tape_file_bytes(struct sim_tape_fixture *fixture,
 }
 
 /* Read the next tape record into a caller-supplied buffer. */
-static t_mtrlnt read_next_tape_record(UNIT *unit, uint8 *record,
+static t_mtrlnt read_next_tape_record(UNIT *unit, uint8_t *record,
                                       size_t record_size)
 {
     t_mtrlnt record_length;
@@ -236,7 +237,7 @@ static t_mtrlnt read_next_tape_record(UNIT *unit, uint8 *record,
 }
 
 /* Verify a fixed-position field in a tape record. */
-static void assert_tape_record_field(const uint8 *record,
+static void assert_tape_record_field(const uint8_t *record,
                                      t_mtrlnt record_length, size_t offset,
                                      const char *expected)
 {
@@ -250,7 +251,7 @@ static void assert_tape_record_field(const uint8 *record,
 static void assert_next_tape_record_field(UNIT *unit, size_t offset,
                                           const char *expected)
 {
-    uint8 record[256] = {0};
+    uint8_t record[256] = {0};
     t_mtrlnt record_length;
 
     record_length = read_next_tape_record(unit, record, sizeof(record));
@@ -260,7 +261,7 @@ static void assert_next_tape_record_field(UNIT *unit, size_t offset,
 /* Write a binary file of a specific size without text line endings. */
 static void write_repeated_binary_file(const char *path, size_t size)
 {
-    uint8 *data;
+    uint8_t *data;
 
     data = malloc(size);
     assert_non_null(data);
@@ -416,7 +417,7 @@ static void test_sim_tape_set_and_show_capacity(void **state)
 static void test_sim_tape_density_helpers_validate_and_render(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    int32 valid_mask = MT_800_VALID | MT_1600_VALID | MT_6250_VALID;
+    int32_t valid_mask = MT_800_VALID | MT_1600_VALID | MT_6250_VALID;
     char density_list[64];
 
     assert_int_equal(
@@ -522,8 +523,8 @@ static void test_sim_tape_callback_wrappers_report_sync_status(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
     struct sim_tape_callback_state callback_state;
-    uint8 record[] = {0x61, 0x62, 0x63};
-    uint8 read_buffer[16] = {0};
+    uint8_t record[] = {0x61, 0x62, 0x63};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
 
     active_tape_callback_state = &callback_state;
@@ -562,9 +563,9 @@ static void test_sim_tape_async_spfilebyrecf_normalizes_check_leot(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
     struct sim_tape_callback_state callback_state;
-    uint8 first_record[] = {0x4A, 0x4B};
-    uint32 files_skipped = 99;
-    uint32 records_skipped = 99;
+    uint8_t first_record[] = {0x4A, 0x4B};
+    uint32_t files_skipped = 99;
+    uint32_t records_skipped = 99;
     t_stat queued_status;
 #if defined(SIM_ASYNCH_IO)
     bool saved_asynch_enabled = sim_asynch_enabled;
@@ -614,9 +615,9 @@ static void test_sim_tape_async_spfilebyrecf_normalizes_check_leot(void **state)
 static void test_sim_tape_standard_image_round_trip(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 first_record[] = {0x01, 0x02, 0x03};
-    uint8 second_record[] = {0xAA, 0xBB};
-    uint8 read_buffer[16] = {0};
+    uint8_t first_record[] = {0x01, 0x02, 0x03};
+    uint8_t second_record[] = {0xAA, 0xBB};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
@@ -664,8 +665,8 @@ static void
 test_sim_tape_standard_odd_record_uses_internal_padding(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 record[] = {0x61, 0x62, 0x63};
-    uint8 read_buffer[16] = {0};
+    uint8_t record[] = {0x61, 0x62, 0x63};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
@@ -689,8 +690,8 @@ static void test_sim_tape_unpadded_record_formats_use_exact_size(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
     char e11_path[1024];
-    uint8 e11_record[] = {0x41, 0x42, 0x43};
-    uint8 standard_record[] = {0x51, 0x52, 0x53, 0x54};
+    uint8_t e11_record[] = {0x41, 0x42, 0x43};
+    uint8_t standard_record[] = {0x51, 0x52, 0x53, 0x54};
 
     assert_int_equal(simh_test_join_path(e11_path, sizeof(e11_path),
                                          fixture->temp_dir, "sample.e11"),
@@ -719,8 +720,8 @@ static void test_sim_tape_unpadded_record_formats_use_exact_size(void **state)
 static void test_sim_tape_p7b_record_write_marks_record_bounds(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 record[] = {0x01, 0x02, 0x03};
-    uint8 expected[] = {P7B_SOR | 0x01, 0x02, 0x03, P7B_SOR | 0x01};
+    uint8_t record[] = {0x01, 0x02, 0x03};
+    uint8_t expected[] = {P7B_SOR | 0x01, 0x02, 0x03, P7B_SOR | 0x01};
 
     assert_int_equal(sim_tape_set_fmt(&fixture->unit, 0, "P7B", NULL),
                      SCPE_OK);
@@ -737,8 +738,8 @@ static void test_sim_tape_p7b_record_write_marks_record_bounds(void **state)
 static void test_sim_tape_p7b_tape_mark_writes_eof_record(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 expected[] = {P7B_SOR | P7B_EOF, P7B_SOR | P7B_EOF};
-    uint8 read_buffer[16] = {0};
+    uint8_t expected[] = {P7B_SOR | P7B_EOF, P7B_SOR | P7B_EOF};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
 
     assert_int_equal(sim_tape_set_fmt(&fixture->unit, 0, "P7B", NULL),
@@ -780,11 +781,11 @@ static void test_sim_tape_p7b_tape_mark_rejects_write_protect(void **state)
 static void test_sim_tape_spacing_and_reverse_reads_work(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 first_record[] = {0x10, 0x11, 0x12, 0x13};
-    uint8 second_record[] = {0x20, 0x21};
-    uint8 read_buffer[16] = {0};
+    uint8_t first_record[] = {0x10, 0x11, 0x12, 0x13};
+    uint8_t second_record[] = {0x20, 0x21};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
-    uint32 skipped;
+    uint32_t skipped;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
                      SCPE_OK);
@@ -835,8 +836,8 @@ static void test_sim_tape_spacing_and_reverse_reads_work(void **state)
 static void test_sim_tape_operational_error_paths(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 record[] = {0x33, 0x44, 0x55, 0x66};
-    uint8 short_buffer[2] = {0};
+    uint8_t record[] = {0x33, 0x44, 0x55, 0x66};
+    uint8_t short_buffer[2] = {0};
     t_mtrlnt record_length;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
@@ -929,7 +930,7 @@ static void test_sim_tape_ansi_vms_labels_format_metadata(void **state)
 {
     static const char text[] = "HELLO\n";
     struct sim_tape_fixture *fixture = *state;
-    uint8 record[256] = {0};
+    uint8_t record[256] = {0};
     t_mtrlnt record_length;
 
     assert_int_equal(simh_test_write_file(fixture->tape_path, text,
@@ -1002,7 +1003,7 @@ static void test_sim_tape_ansi_vms_binary_labels_large_block(void **state)
 {
     enum { BLOCK_SIZE = 65536 };
     struct sim_tape_fixture *fixture = *state;
-    uint8 record[256] = {0};
+    uint8_t record[256] = {0};
     t_mtrlnt record_length;
 
     write_repeated_binary_file(fixture->tape_path, BLOCK_SIZE);
@@ -1066,11 +1067,11 @@ static void test_sim_tape_ansi_vms_long_name_reports_stored_extra(void **state)
     char long_name[96];
     char long_path[1024];
     char expected_extra_name_used[3];
-    uint8 record[256] = {0};
+    uint8_t record[256] = {0};
     t_mtrlnt record_length;
 
     (void)snprintf(expected_extra_name_used, sizeof(expected_extra_name_used),
-                   "%02u", (unsigned int)sizeof(((ANSI_HDR4 *)0)->extra_name));
+                   "%02u", (uint_t)sizeof(((ANSI_HDR4 *)0)->extra_name));
     memset(long_name, 'a', sizeof(long_name));
     memcpy(&long_name[sizeof(long_name) - 5], ".txt", 5);
     assert_int_equal(simh_test_join_path(long_path, sizeof(long_path),
@@ -1100,7 +1101,7 @@ static void test_sim_tape_dos11_memory_tape_reads_file(void **state)
     static const char text[] = "HELLO\n";
     struct sim_tape_fixture *fixture = *state;
     char dos11_path[1024];
-    uint8 record[1024] = {0};
+    uint8_t record[1024] = {0};
     t_mtrlnt record_length;
 
     assert_int_equal(simh_test_join_path(dos11_path, sizeof(dos11_path),
@@ -1441,14 +1442,14 @@ static void test_sim_tape_dos11_attach_reports_path_alloc_failure(void **state)
 static void test_sim_tape_position_tracks_objects_and_files(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 first_record[] = {0x01, 0x03, 0x05};
-    uint8 second_record[] = {0x02, 0x04};
-    uint8 third_record[] = {0x06};
-    uint8 read_buffer[16] = {0};
+    uint8_t first_record[] = {0x01, 0x03, 0x05};
+    uint8_t second_record[] = {0x02, 0x04};
+    uint8_t third_record[] = {0x06};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
-    uint32 records_skipped;
-    uint32 files_skipped;
-    uint32 objects_skipped;
+    uint32_t records_skipped;
+    uint32_t files_skipped;
+    uint32_t objects_skipped;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
                      SCPE_OK);
@@ -1498,11 +1499,11 @@ static void test_sim_tape_position_tracks_objects_and_files(void **state)
 static void test_sim_tape_spfilebyrecf_reports_counts_and_leot(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 first_record[] = {0x0A, 0x0B};
-    uint8 read_buffer[16] = {0};
+    uint8_t first_record[] = {0x0A, 0x0B};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
-    uint32 files_skipped;
-    uint32 records_skipped;
+    uint32_t files_skipped;
+    uint32_t records_skipped;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
                      SCPE_OK);
@@ -1538,12 +1539,12 @@ static void test_sim_tape_spfilebyrecf_reports_counts_and_leot(void **state)
 static void test_sim_tape_spfilebyrecr_reports_counts(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 first_record[] = {0x31, 0x32};
-    uint8 second_record[] = {0x41, 0x42, 0x43};
-    uint8 read_buffer[16] = {0};
+    uint8_t first_record[] = {0x31, 0x32};
+    uint8_t second_record[] = {0x41, 0x42, 0x43};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
-    uint32 files_skipped;
-    uint32 records_skipped;
+    uint32_t files_skipped;
+    uint32_t records_skipped;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
                      SCPE_OK);
@@ -1574,8 +1575,8 @@ static void test_sim_tape_spfilebyrecr_reports_counts(void **state)
 static void test_sim_tape_wreomrw_writes_eom_and_rewinds(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 record[] = {0x11, 0x22, 0x33};
-    uint8 read_buffer[16] = {0};
+    uint8_t record[] = {0x11, 0x22, 0x33};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
@@ -1606,7 +1607,7 @@ static void test_sim_tape_wreomrw_writes_eom_and_rewinds(void **state)
 static void test_sim_tape_reset_clears_pnu_without_detaching(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 record[] = {0x09, 0x08, 0x07};
+    uint8_t record[] = {0x09, 0x08, 0x07};
     t_addr saved_pos;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
@@ -1627,9 +1628,9 @@ static void test_sim_tape_reset_clears_pnu_without_detaching(void **state)
 static void test_sim_tape_gap_and_erase_operations_modify_records(void **state)
 {
     struct sim_tape_fixture *fixture = *state;
-    uint8 first_record[] = {0x21, 0x22, 0x23};
-    uint8 second_record[] = {0x51, 0x52};
-    uint8 read_buffer[16] = {0};
+    uint8_t first_record[] = {0x21, 0x22, 0x23};
+    uint8_t second_record[] = {0x51, 0x52};
+    uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
 
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),

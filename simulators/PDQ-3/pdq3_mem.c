@@ -26,10 +26,12 @@
    20130920 hv initial version, moved some code from pdq3_cpu.c
 */
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdq3_defs.h"
 
 /* the memory */
-uint16 M[MAXMEMSIZE];
+uint16_t M[MAXMEMSIZE];
 
 /******************************************************************************
  * IO dispatcher
@@ -88,7 +90,7 @@ t_stat del_ioh(IOINFO* ioi) {
 /******************************************************************************
  * configuration
  *****************************************************************************/
-t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc) {
+t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc) {
   /* Generic show signature.
      This implementation does not use every parameter. */
   (void) val;
@@ -114,7 +116,7 @@ t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc) {
   return SCPE_OK;
 }
 
-t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc) {
+t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc) {
   /* Generic modifier signature.
      This implementation does not use every parameter. */
   (void) val;
@@ -135,7 +137,7 @@ t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc) {
   return rc;
 }
 
-t_stat set_iovec(UNIT *uptr, int32 val, const char *cptr, void *desc) {
+t_stat set_iovec(UNIT *uptr, int32_t val, const char *cptr, void *desc) {
   /* Generic modifier signature.
      This implementation does not use every parameter. */
   (void) val;
@@ -180,7 +182,7 @@ t_stat show_iovec(FILE *st, UNIT *uptr, int value, const void *desc) {
   return SCPE_OK;
 }
 
-t_stat set_ioprio(UNIT *uptr, int32 val, const char *cptr, void *desc) {
+t_stat set_ioprio(UNIT *uptr, int32_t val, const char *cptr, void *desc) {
   /* Generic modifier signature.
      This implementation does not use every parameter. */
   (void) val;
@@ -228,9 +230,9 @@ t_stat show_ioprio(FILE *st, UNIT *uptr, int value, const void *desc) {
 /******************************************************************************
  * central memory handling
  *****************************************************************************/
-t_stat Read(t_addr base, t_addr woffset, uint16 *data, uint32 dctrl) {
+t_stat Read(t_addr base, t_addr woffset, uint16_t *data, uint32_t dctrl) {
   t_stat rc;
-  uint16 ea = base + woffset;
+  uint16_t ea = base + woffset;
 
   /* Note: the PRIAM driver attempts to read the ready bit from FF25 (bit 9) which should be 1.
    * As long as we don't have a HDP device, the invalid value should be 0x0000 */
@@ -261,9 +263,9 @@ t_stat Read(t_addr base, t_addr woffset, uint16 *data, uint32 dctrl) {
 
 /* read routine that does not generate bus errors, for SIMH Examine
  * will read 0x0000 for unknown memory */
-t_stat ReadEx(t_addr base, t_addr woffset, uint16 *data) {
+t_stat ReadEx(t_addr base, t_addr woffset, uint16_t *data) {
   t_stat rc;
-  uint16 ea = base + woffset;
+  uint16_t ea = base + woffset;
   *data = 0x0000; /* preload invalid data value */
   if (ea < 0xf000) {
     *data = M[ea]; /* normal memory */
@@ -275,9 +277,9 @@ t_stat ReadEx(t_addr base, t_addr woffset, uint16 *data) {
   return rc;
 }
 
-t_stat Write(t_addr base, t_addr woffset, uint16 data, uint32 dctrl) {
+t_stat Write(t_addr base, t_addr woffset, uint16_t data, uint32_t dctrl) {
   t_stat rc;
-  uint16 ea = base + woffset;
+  uint16_t ea = base + woffset;
   if (ea < 0xf000) {
     M[ea] = data;
     rc = SCPE_OK;
@@ -299,7 +301,7 @@ printf("write buserror %x at %x:%x\n",ea,reg_segb,reg_ipc);
   return rc;
 }
 
-t_stat ReadB(t_addr base, t_addr boffset, uint16 *data, uint32 dctrl)
+t_stat ReadB(t_addr base, t_addr boffset, uint16_t *data, uint32_t dctrl)
 {
   t_stat rc;
   t_addr ea = base + boffset/2;
@@ -316,7 +318,7 @@ t_stat ReadB(t_addr base, t_addr boffset, uint16 *data, uint32 dctrl)
   return SCPE_OK;
 }
 
-t_stat ReadBEx(t_addr base, t_addr boffset, uint16 *data)
+t_stat ReadBEx(t_addr base, t_addr boffset, uint16_t *data)
 {
   t_stat rc;
   t_addr ea = base + boffset/2;
@@ -327,9 +329,9 @@ t_stat ReadBEx(t_addr base, t_addr boffset, uint16 *data)
   return SCPE_OK;
 }
 
-t_stat WriteB(t_addr base, t_addr boffset, uint16 data, uint32 dctrl)
+t_stat WriteB(t_addr base, t_addr boffset, uint16_t data, uint32_t dctrl)
 {
-  uint16 wdata;
+  uint16_t wdata;
   t_addr ea = base + boffset/2;
   if (ea < 0xfc00) {
     sim_debug(dctrl, &cpu_dev, DBG_PCFORMAT2 "Byte[%d] write %02x to $%04x\n",
@@ -347,14 +349,14 @@ t_stat WriteB(t_addr base, t_addr boffset, uint16 data, uint32 dctrl)
   return Write(ea, 0, wdata, 0);
 }
 
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic modifier signature.
      This implementation does not use every parameter. */
   (void) cptr;
   (void) desc;
 
-  int32 mc;
+  int32_t mc;
   t_addr i;
 
   if (val < 0 || val > 1)
@@ -374,13 +376,13 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
   return SCPE_OK;
 }
 
-t_stat rom_read(t_addr ea, uint16 *data)
+t_stat rom_read(t_addr ea, uint16_t *data)
 {
   *data = M[ea];
   return SCPE_OK;
 }
 
-t_stat rom_write(t_addr ea, uint16 data) {
+t_stat rom_write(t_addr ea, uint16_t data) {
   M[ea] = data;
   return SCPE_OK;
 }

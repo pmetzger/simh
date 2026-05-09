@@ -36,6 +36,8 @@
    These values were chosen so that 000 = continue chain, full sector.
 */
 
+#include <stdint.h>
+
 #include "sds_defs.h"
 
 #define DSK_PKTWD       16                              /* words/packet */
@@ -65,18 +67,18 @@
 #define DSK_GETPKT(x)   (4 - (((x) >> DSK_V_PKT) & DSK_M_PKT))
 #define DSK_ENDCHN(x)   ((x) & (1 << DSK_V_CHN))
 
-extern uint32 xfr_req;
-extern uint32 alert;
-extern int32 stop_invins, stop_invdev, stop_inviop;
-int32 dsk_da = 0;                                       /* disk addr */
-int32 dsk_op = 0;                                       /* operation */
-int32 dsk_err = 0;                                      /* error flag */
-uint32 dsk_buf[DSK_NUMWD];                              /* sector buf */
-int32 dsk_bptr = 0;                                     /* byte ptr */
-int32 dsk_blnt = 0;                                     /* byte lnt */
-int32 dsk_time = 5;                                     /* time per char */
-int32 dsk_stime = 200;                                  /* seek time */
-int32 dsk_stopioe = 1;
+extern uint32_t xfr_req;
+extern uint32_t alert;
+extern int32_t stop_invins, stop_invdev, stop_inviop;
+int32_t dsk_da = 0;                                     /* disk addr */
+int32_t dsk_op = 0;                                     /* operation */
+int32_t dsk_err = 0;                                    /* error flag */
+uint32_t dsk_buf[DSK_NUMWD];                            /* sector buf */
+int32_t dsk_bptr = 0;                                   /* byte ptr */
+int32_t dsk_blnt = 0;                                   /* byte lnt */
+int32_t dsk_time = 5;                                   /* time per char */
+int32_t dsk_stime = 200;                                /* seek time */
+int32_t dsk_stopioe = 1;
 DSPT dsk_tplt[] = {                                     /* template */
     { 1, 0 },
     { 1, DEV_OUT },
@@ -85,11 +87,11 @@ DSPT dsk_tplt[] = {                                     /* template */
 
 t_stat dsk_svc (UNIT *uptr);
 t_stat dsk_reset (DEVICE *dptr);
-t_stat dsk_fill (uint32 dev);
-t_stat dsk_read_buf (uint32 dev);
-t_stat dsk_write_buf (uint32 dev);
-void dsk_end_op (uint32 fl);
-t_stat dsk (uint32 fnc, uint32 inst, uint32 *dat);
+t_stat dsk_fill (uint32_t dev);
+t_stat dsk_read_buf (uint32_t dev);
+t_stat dsk_write_buf (uint32_t dev);
+void dsk_end_op (uint32_t fl);
+t_stat dsk (uint32_t fnc, uint32_t inst, uint32_t *dat);
 
 /* DSK data structures
 
@@ -145,9 +147,9 @@ DEVICE dsk_dev = {
    write -      inst = device number, dat = ptr to result
 */
 
-t_stat dsk (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat dsk (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-int32 i, t, new_ch, dsk_wptr, dsk_byte;
+int32_t i, t, new_ch, dsk_wptr, dsk_byte;
 t_stat r;
 
 switch (fnc) {                                          /* case on function */
@@ -233,7 +235,7 @@ return SCPE_OK;
 
 /* PIN routine - return disk address */
 
-t_stat pin_dsk (uint32 num, uint32 *dat)
+t_stat pin_dsk (uint32_t num, uint32_t *dat)
 {
 /* SDS PIN routine signature.
    This implementation does not use every parameter. */
@@ -245,13 +247,13 @@ return SCPE_OK;
 
 /* POT routine - start seek */
 
-t_stat pot_dsk (uint32 num, uint32 *dat)
+t_stat pot_dsk (uint32_t num, uint32_t *dat)
 {
 /* SDS POT routine signature.
    This implementation does not use every parameter. */
 (void) num;
 
-int32 st;
+int32_t st;
 
 if (sim_is_active (&dsk_unit))                          /* busy? wait */
     return STOP_IONRDY;
@@ -283,17 +285,17 @@ return SCPE_OK;
 
 /* Read sector */
 
-t_stat dsk_read_buf (uint32 dev)
+t_stat dsk_read_buf (uint32_t dev)
 {
-int32 da, pkts, awc;
+int32_t da, pkts, awc;
 
 if ((dsk_unit.flags & UNIT_ATT) == 0) {                 /* !attached? */
     dsk_end_op (CHF_ERR | CHF_EOR);                     /* disk error */
     CRETIOE (dsk_stopioe, SCPE_UNATT);
     }
-da = dsk_da * DSK_NUMWD * sizeof (uint32);
+da = dsk_da * DSK_NUMWD * sizeof (uint32_t);
 fseek (dsk_unit.fileref, da, SEEK_SET);                 /* locate sector */
-awc = fxread (dsk_buf, sizeof (uint32), DSK_NUMWD, dsk_unit.fileref);
+awc = fxread (dsk_buf, sizeof (uint32_t), DSK_NUMWD, dsk_unit.fileref);
 if (ferror (dsk_unit.fileref)) {                        /* error? */
     dsk_end_op (CHF_ERR | CHF_EOR);                     /* disk error */
     return SCPE_IOERR;
@@ -313,9 +315,9 @@ return SCPE_OK;
    the end of the chain.
 */
 
-t_stat dsk_write_buf (uint32 dev)
+t_stat dsk_write_buf (uint32_t dev)
 {
-int32 i, da;
+int32_t i, da;
 
 if ((dsk_unit.flags & UNIT_ATT) == 0) {                 /* !attached? */
     dsk_end_op (CHF_ERR | CHF_EOR);                     /* disk error */
@@ -325,9 +327,9 @@ if (dsk_unit.flags & UNIT_WPRT) {                       /* write prot? */
     dsk_end_op (CHF_ERR | CHF_EOR);                     /* disk error */
     return SCPE_OK;
     }
-da = dsk_da * DSK_NUMWD * sizeof (uint32);
+da = dsk_da * DSK_NUMWD * sizeof (uint32_t);
 fseek (dsk_unit.fileref, da, SEEK_SET);                 /* locate sector */
-fxwrite (dsk_buf, sizeof (uint32), DSK_NUMWD, dsk_unit.fileref);
+fxwrite (dsk_buf, sizeof (uint32_t), DSK_NUMWD, dsk_unit.fileref);
 if (ferror (dsk_unit.fileref)) {                        /* error? */
     dsk_end_op (CHF_ERR | CHF_EOR);                     /* disk error */
     return SCPE_IOERR;
@@ -343,17 +345,17 @@ return SCPE_OK;
    of packets and set the end of chain flag.
 */
 
-t_stat dsk_fill (uint32 dev)
+t_stat dsk_fill (uint32_t dev)
 {
-int32 nochn = (dsk_op & CHC_BIN)? 0: 1;                 /* chain? */
-int32 pktend = (dsk_bptr + ((DSK_PKTWD * 4) - 1)) &     /* end pkt */
+int32_t nochn = (dsk_op & CHC_BIN)? 0: 1;               /* chain? */
+int32_t pktend = (dsk_bptr + ((DSK_PKTWD * 4) - 1)) &   /* end pkt */
     ~((DSK_PKTWD * 4) - 1);
-int32 pkts = pktend / (DSK_PKTWD * 4);                  /* # packets */
+int32_t pkts = pktend / (DSK_PKTWD * 4);                /* # packets */
 
 if (dsk_bptr == 0)                                      /* no fill? */
     return SCPE_OK;
 for ( ; dsk_bptr < pktend; dsk_bptr++) {                /* fill packet */
-    int32 dsk_wptr = dsk_bptr >> 2;
+    int32_t dsk_wptr = dsk_bptr >> 2;
     dsk_buf[dsk_wptr] = (dsk_buf[dsk_wptr] << 6) & DMASK;
     }
 dsk_buf[0] = dsk_buf[0] | (nochn << DSK_V_CHN) |        /* insert chain, */
@@ -363,7 +365,7 @@ return dsk_write_buf (dev);                             /* write sec */
 
 /* Terminate DSK operation */
 
-void dsk_end_op (uint32 fl)
+void dsk_end_op (uint32_t fl)
 {
 if (fl)                                                 /* set flags */
     chan_set_flag (dsk_dib.chan, fl);
@@ -385,7 +387,7 @@ t_stat dsk_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 chan_disc (dsk_dib.chan);                               /* disconnect */
 dsk_da = 0;                                             /* clear state */

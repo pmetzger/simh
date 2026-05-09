@@ -57,6 +57,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
 #include "sim_fio.h"
@@ -82,35 +84,35 @@
 
 /* Declarations */
 
-extern int32 int_req[IPL_HLVL];
+extern int32_t int_req[IPL_HLVL];
 extern UNIT cpu_unit;
-extern uint16 *M;
+extern uint16_t *M;
 
-int32 uca_csr = 0;                                      /* DR11C #1 CSR */
-int32 uca_buf = 0;                                      /* DR11C #1 input buffer */
-int32 ucb_csr = 0;
-int32 ucb_buf = 0;
-int32 uc15_poll = 3;                                    /* polling interval */
+int32_t uca_csr = 0;                                    /* DR11C #1 CSR */
+int32_t uca_buf = 0;                                    /* DR11C #1 input buffer */
+int32_t ucb_csr = 0;
+int32_t ucb_buf = 0;
+int32_t uc15_poll = 3;                                  /* polling interval */
 SHMEM *uc15_shmem = NULL;                               /* shared state identifier */
-int32 *uc15_shstate = NULL;                             /* shared state base */
+int32_t *uc15_shstate = NULL;                           /* shared state base */
 SHMEM *pdp15_shmem = NULL;                              /* PDP15 mem identifier */
-int32 *pdp15_mem = NULL;
-uint32 uc15_memsize = 0;
+int32_t *pdp15_mem = NULL;
+uint32_t uc15_memsize = 0;
 
-t_stat uca_rd (int32 *data, int32 PA, int32 access);
-t_stat uca_wr (int32 data, int32 PA, int32 access);
-t_stat ucb_rd (int32 *data, int32 PA, int32 access);
-t_stat ucb_wr (int32 data, int32 PA, int32 access);
+t_stat uca_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat uca_wr (int32_t data, int32_t PA, int32_t access);
+t_stat ucb_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat ucb_wr (int32_t data, int32_t PA, int32_t access);
 t_stat uc15_reset (DEVICE *dptr);
 t_stat uc15_svc (UNIT *uptr);
-t_stat uc15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat uc15_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat uc15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat uc15_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat uc15_attach (UNIT *uptr, const char *cptr);
 t_stat uc15_detach (UNIT *uptr);
 
 void uc15_set_memsize (void);
-int32 uc15_get_uca_buf (void);
-t_stat uc15_api_req (int32 lvl, int32 vec);
+int32_t uc15_get_uca_buf (void);
+t_stat uc15_api_req (int32_t lvl, int32_t vec);
 
 /* UC15 data structures
 
@@ -182,7 +184,7 @@ DEVICE ucb_dev = {
 
 /* DR11 #1 */
 
-t_stat uca_rd (int32 *data, int32 PA, int32 access)
+t_stat uca_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Bus read dispatch signature.
    This implementation does not use every parameter. */
@@ -205,7 +207,7 @@ case 2:                                                 /* input buffer */
 return SCPE_NXM;
 }
 
-t_stat uca_wr (int32 data, int32 PA, int32 access)
+t_stat uca_wr (int32_t data, int32_t PA, int32_t access)
 {
 switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
 
@@ -236,7 +238,7 @@ case 2:
 return SCPE_NXM;
 }
 
-t_stat ucb_rd (int32 *data, int32 PA, int32 access)
+t_stat ucb_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Bus read dispatch signature.
    This implementation does not use every parameter. */
@@ -257,7 +259,7 @@ case 2:                                                 /* input buffer */
      CLR_INT (UCB);                                     /* clear int */
      UC15_ATOMIC_CAS (UC15_TCBP_RD, 0, 1);              /* send ACK */
      if (DEBUG_PRS (uca_dev)) {
-        uint32 apiv, apil, fnc, tsk, pa;
+        uint32_t apiv, apil, fnc, tsk, pa;
         bool spl;
 
         pa = ucb_buf + MEMSIZE;
@@ -277,7 +279,7 @@ case 2:                                                 /* input buffer */
 return SCPE_NXM;
 }
 
-t_stat ucb_wr (int32 data, int32 PA, int32 access)
+t_stat ucb_wr (int32_t data, int32_t PA, int32_t access)
 {
 switch ((PA >> 1) & 03) {                               /* case on PA<2:1> */
 
@@ -310,7 +312,7 @@ return SCPE_NXM;
 
 /* Request PDP15 to take an API interrupt */
 
-t_stat uc15_api_req (int32 lvl, int32 vec)
+t_stat uc15_api_req (int32_t lvl, int32_t vec)
 {
 UC15_SHARED_WR (UC15_API_VEC + (lvl * UC15_API_VEC_MUL), vec);
 UC15_ATOMIC_CAS (UC15_API_REQ + (lvl * UC15_API_VEC_MUL), 0, 1);
@@ -324,7 +326,7 @@ return SCPE_OK;
 
 t_stat uc15_svc (UNIT *uptr)
 {
-uint32 t;
+uint32_t t;
 
 t = UC15_SHARED_RD (UC15_TCBP_WR);                      /* TCBP written? */
 if ((t != 0) && UC15_ATOMIC_CAS (UC15_TCBP_WR, 1, 0)) { /* for real? */
@@ -348,10 +350,10 @@ return SCPE_OK;
   On the PDP-11, a "1" indicates request done (API inactive).
 */
 
-int32 uc15_get_uca_buf (void)
+int32_t uc15_get_uca_buf (void)
 {
-int32 i, t;
-static int32 ucab_api[4] =
+int32_t i, t;
+static int32_t ucab_api[4] =
     { UCAB_API0, UCAB_API1, UCAB_API2, UCAB_API3 };
 
 t = UC15_SHARED_RD (UC15_TCBP);                         /* get TCB ptr */
@@ -375,7 +377,7 @@ return uca_buf;
 
 void uc15_set_memsize (void)
 {
-uint32 t = UC15_SHARED_RD (UC15_PDP15MEM);              /* get PDP15 memory size */
+uint32_t t = UC15_SHARED_RD (UC15_PDP15MEM);            /* get PDP15 memory size */
 if (t == 0)                                             /* PDP15 not running? */
     t = PDP15_MAXMEM * 2;                               /* max mem in bytes */
 uc15_memsize = t + MEMSIZE;                             /* shared + local mem */
@@ -403,16 +405,16 @@ ucb_buf = 0;
 CLR_INT (UCA);
 CLR_INT (UCB);
 if (uc15_shmem == NULL) {                               /* allocate shared state */
-    r = sim_shmem_open ("UC15SharedState", UC15_STATE_SIZE * sizeof (int32), &uc15_shmem, &basead);
+    r = sim_shmem_open ("UC15SharedState", UC15_STATE_SIZE * sizeof (int32_t), &uc15_shmem, &basead);
     if (r != SCPE_OK)
         return r;
-    uc15_shstate = (int32 *) basead;
+    uc15_shstate = (int32_t *) basead;
     }
 if (pdp15_shmem == NULL) {                              /* allocate shared memory */
-    r = sim_shmem_open ("PDP15MainMemory", PDP15_MAXMEM * sizeof (int32), &pdp15_shmem, &basead);
+    r = sim_shmem_open ("PDP15MainMemory", PDP15_MAXMEM * sizeof (int32_t), &pdp15_shmem, &basead);
     if (r != SCPE_OK)
         return r;
-    pdp15_mem = (int32 *) basead;
+    pdp15_mem = (int32_t *) basead;
     }
 uc15_set_memsize ();
 sim_activate (dptr->units, uc15_poll);                  /* start polling */
@@ -421,7 +423,7 @@ return SCPE_OK;
 
 /* Shared state ex/mod routines for debug */
 
-t_stat uc15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat uc15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -431,11 +433,11 @@ t_stat uc15_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
 if (addr >= UC15_STATE_SIZE)
     return SCPE_NXM;
 if (vptr != NULL)
-    *vptr = UC15_SHARED_RD ((int32) addr);
+    *vptr = UC15_SHARED_RD ((int32_t) addr);
 return SCPE_OK;
 }
 
-t_stat uc15_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat uc15_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -444,7 +446,7 @@ t_stat uc15_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 
 if (addr >= UC15_STATE_SIZE)
     return SCPE_NXM;
-UC15_SHARED_WR ((int32) addr, (int32) val);
+UC15_SHARED_WR ((int32_t) addr, (int32_t) val);
 return SCPE_OK;
 }
 
@@ -483,9 +485,9 @@ return SCPE_OK;
    8b and 16b writes clear the upper 2b of PDP-15 memory
 */
 
-int32 uc15_RdMemW (int32 pa)
+int32_t uc15_RdMemW (int32_t pa)
 {
-if (((uint32) pa) < MEMSIZE)
+if (((uint32_t) pa) < MEMSIZE)
     return M[pa >> 1];
 else {
     pa = pa - MEMSIZE;
@@ -493,9 +495,9 @@ else {
     }
 }
 
-int32 uc15_RdMemB (int32 pa)
+int32_t uc15_RdMemB (int32_t pa)
 {
-if (((uint32) pa) < MEMSIZE)
+if (((uint32_t) pa) < MEMSIZE)
     return ((pa & 1)? (M[pa >> 1] >> 8): (M[pa >> 1] & 0377));
 else {
     pa = pa - MEMSIZE;
@@ -503,9 +505,9 @@ else {
     }
 }
 
-void uc15_WrMemW (int32 pa, int32 d)
+void uc15_WrMemW (int32_t pa, int32_t d)
 {
-if (((uint32) pa) < MEMSIZE)
+if (((uint32_t) pa) < MEMSIZE)
     M[pa >> 1] = d;
 else {
     pa = pa - MEMSIZE;
@@ -514,9 +516,9 @@ else {
 return;
 }
 
-void uc15_WrMemB (int32 pa, int32 d)
+void uc15_WrMemB (int32_t pa, int32_t d)
 {
-if (((uint32) pa) < MEMSIZE)
+if (((uint32_t) pa) < MEMSIZE)
     M[pa >> 1] = (pa & 1)?
          ((M[pa >> 1] & 0377) | ((d & 0377) << 8)): \
          ((M[pa >> 1] & ~0377) | (d & 0377));
@@ -531,9 +533,9 @@ return;
 
 /* 18b DMA routines - physical only */
 
-int32 Map_Read18 (uint32 ba, int32 bc, uint32 *buf)
+int32_t Map_Read18 (uint32_t ba, int32_t bc, uint32_t *buf)
 {
-uint32 alim, lim;
+uint32_t alim, lim;
 
 ba = (ba & UNIMASK) & ~01;                              /* trim, align addr */
 lim = ba + (bc & ~01);
@@ -550,9 +552,9 @@ for ( ; ba < alim; ba = ba + 2) {                       /* by 18b words */
 return (lim - alim);
 }
 
-int32 Map_Write18 (uint32 ba, int32 bc, uint32 *buf)
+int32_t Map_Write18 (uint32_t ba, int32_t bc, uint32_t *buf)
 {
-uint32 alim, lim;
+uint32_t alim, lim;
 
 ba = (ba & UNIMASK) & ~01;                              /* trim, align addr */
 lim = ba + (bc & ~01);

@@ -24,21 +24,23 @@
    in this Software without prior written authorization from the authors.
 */
 
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
-t_stat mb_rd(int32 *data, int32 PA, int32 access);
-t_stat mb_wr(int32 data, int32 PA, int32 access);
+t_stat mb_rd(int32_t *data, int32_t PA, int32_t access);
+t_stat mb_wr(int32_t data, int32_t PA, int32_t access);
 t_stat mb_reset(DEVICE *dptr);
 const char *mb_description (DEVICE *dptr);
 
-static uint16 MBCSR;
-static uint16 MBXHGH;
-static uint16 MBXLOW;
-static uint16 MBYHGH;
-static uint16 MBYLOW;
-static uint16 MBHHGH;
-static uint16 MBHLOW;
-static uint16 MBHCNT;
+static uint16_t MBCSR;
+static uint16_t MBXHGH;
+static uint16_t MBXLOW;
+static uint16_t MBYHGH;
+static uint16_t MBYLOW;
+static uint16_t MBHHGH;
+static uint16_t MBHLOW;
+static uint16_t MBHCNT;
 
 /*
  * TODO: Implement MB11 MAR history memory.  The MB11 includes a 64-entry
@@ -51,7 +53,7 @@ static uint16 MBHCNT;
  */
 #if 0
 #define HSIZE 64
-static uint32 history[HSIZE];
+static uint32_t history[HSIZE];
 #endif
 
 /* BITS IN MBCSR */
@@ -118,7 +120,7 @@ DEVICE mb_dev = {
 };
 
 t_stat
-mb_rd(int32 *data, int32 PA, int32 access)
+mb_rd(int32_t *data, int32_t PA, int32_t access)
 {
   /* Device I/O dispatch signature.
      This implementation does not use every parameter. */
@@ -156,7 +158,7 @@ mb_rd(int32 *data, int32 PA, int32 access)
 }
 
 t_stat
-mb_wr(int32 data, int32 PA, int32 access)
+mb_wr(int32_t data, int32_t PA, int32_t access)
 {
   /* Device I/O dispatch signature.
      This implementation does not use every parameter. */

@@ -26,7 +26,10 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
+#include <stdint.h>
+
 #include "besm6_defs.h"
+#include "sim_types.h"
 
 t_stat fs_event (UNIT *u);
 
@@ -60,7 +63,7 @@ char line[2][128];
 
 #define FS_RATE         1000*MSEC/1500
 
-unsigned char FS[2];
+uchar_t FS[2];
 
 REG fs_reg[] = {
     { REGDATA ( "Готов", READY, 2,  2, 14, 1, NULL, NULL, 0, 0, 0) },
@@ -150,7 +153,7 @@ t_stat fs_detach (UNIT *u)
 /*
  * Управление двигателем, лампой, протяжкой
  */
-void fs_control (int num, uint32 cmd)
+void fs_control (int num, uint32_t cmd)
 {
     UNIT *u = &fs_unit[num];
 
@@ -197,14 +200,14 @@ void fs_control (int num, uint32 cmd)
     }
 }
 
-unsigned char unicode_to_gost (unsigned short val);
+uchar_t unicode_to_gost (unsigned short val);
 
 /*
  * The UPP code is the GOST 10859 code with odd parity.
  * UPP stood for "unit for preparation of punchards".
  */
-static unsigned char unicode_to_upp (unsigned short ch) {
-    unsigned char ret;
+static uchar_t unicode_to_upp (unsigned short ch) {
+    uchar_t ret;
     ch = ret = unicode_to_gost (ch);
     ch = (ch & 0x55) + ((ch >> 1) & 0x55);
     ch = (ch & 0x33) + ((ch >> 2) & 0x33);
@@ -312,10 +315,10 @@ int fs_read(int num) {
  * source lines on a punchcard. To specify that character,
  * we use ASCII RS (record separator) symbol ctrl-^.
  */
-unsigned char
+uchar_t
 unicode_to_gost (unsigned short val)
 {
-    static const unsigned char tab0 [256] = {
+    static const uchar_t tab0 [256] = {
         /* 00 - 07 */   017,    017,    017,    017,    017,    017,    017,    017,
         /* 08 - 0f */   017,    017,    0214,   017,    017,    017,    017,    017,
         /* 10 - 17 */   017,    017,    017,    017,    017,    017,    017,    017,
@@ -353,7 +356,7 @@ unicode_to_gost (unsigned short val)
     case 0x00:
         return tab0 [val];
     case 0x04:
-        switch ((unsigned char) val) {
+        switch ((uchar_t) val) {
         case 0x10: return 0040;
         case 0x11: return 0041;
         case 0x12: return 0042;
@@ -421,7 +424,7 @@ unicode_to_gost (unsigned short val)
         }
         break;
     case 0x20:
-        switch ((unsigned char) val) {
+        switch ((uchar_t) val) {
         case 0x15: return 0131;
         case 0x18: return 0032;
         case 0x19: return 0033;
@@ -430,13 +433,13 @@ unicode_to_gost (unsigned short val)
         }
         break;
     case 0x21:
-        switch ((unsigned char) val) {
+        switch ((uchar_t) val) {
         case 0x2f: return 0020;
         case 0x91: return 0021;
         }
         break;
     case 0x22:
-        switch ((unsigned char) val) {
+        switch ((uchar_t) val) {
         case 0x27: return 0121;
         case 0x28: return 0120;
         case 0x60: return 0034;
@@ -447,12 +450,12 @@ unicode_to_gost (unsigned short val)
         }
         break;
     case 0x23:
-        switch ((unsigned char) val) {
+        switch ((uchar_t) val) {
         case 0xe8: return 0020;
         }
         break;
     case 0x25:
-        switch ((unsigned char) val) {
+        switch ((uchar_t) val) {
         case 0xc7: return 0127;
         case 0xca: return 0127;
         }

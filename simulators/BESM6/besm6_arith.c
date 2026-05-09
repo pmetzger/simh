@@ -27,12 +27,13 @@
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
 #include <math.h>
+#include <stdint.h>
 
 #include "besm6_arith_internal.h"
 #include "besm6_defs.h"
 
 typedef struct {
-    t_uint64 mantissa;
+    uint64_t mantissa;
     unsigned exponent;                  /* offset by 64 */
 } alureg_t;                             /* ALU register type */
 
@@ -88,11 +89,11 @@ int besm6_highest_bit (t_value val)
  * Результат помещается в регистры ACC и 40-1 разряды RMR.
  * 48-41 разряды RMR сохраняются.
  */
-static void normalize_and_round (alureg_t acc, t_uint64 mr, int rnd_rq)
+static void normalize_and_round (alureg_t acc, uint64_t mr, int rnd_rq)
 {
-    t_uint64 rr = 0;
+    uint64_t rr = 0;
     int i;
-    t_uint64 r;
+    uint64_t r;
 
     if (RAU & RAU_NORM_DISABLE)
         goto chk_rnd;
@@ -179,7 +180,7 @@ static void normalize_and_round (alureg_t acc, t_uint64 mr, int rnd_rq)
  */
 void besm6_add (t_value val, int negate_acc, int negate_val)
 {
-    t_uint64 mr;
+    uint64_t mr;
     alureg_t acc, word, a1, a2;
     int diff, neg, rnd_rq = 0;
 
@@ -263,7 +264,7 @@ void besm6_add (t_value val, int negate_acc, int negate_val)
 #define INT64(x) ((x) & BIT41 ? (0xFFFFFFFFFFFFFFFFLL << 40) | (x) : x)
 static alureg_t nrdiv (alureg_t n, alureg_t d)
 {
-    t_int64 nn, dd, q, res;
+    int64_t nn, dd, q, res;
     alureg_t quot;
 
     /* to compensate for potential normalization to the right  */
@@ -325,11 +326,11 @@ void besm6_divide (t_value val)
  */
 void besm6_multiply (t_value val)
 {
-    uint8           neg = 0;
+    uint8_t         neg = 0;
     alureg_t        acc, word, a, b;
-    t_uint64        mr, alo, blo, ahi, bhi;
+    uint64_t        mr, alo, blo, ahi, bhi;
 
-    t_uint64 l;
+    uint64_t l;
 
     if (! ACC || ! val) {
         /* multiplication by zero is zero */

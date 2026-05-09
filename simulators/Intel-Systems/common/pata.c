@@ -66,13 +66,15 @@
     16 Dec 12 - Modified to use isbc_80_10.cfg file to set base and size.
 */
 
+#include <stdint.h>
+
 #include "system_defs.h"
 
-extern int32 reg_dev(int32 (*routine)(int32, int32), int32 port);
+extern int32_t reg_dev(int32_t (*routine)(int32_t, int32_t), int32_t port);
 
 /* function prototypes */
 
-t_stat pata_reset (DEVICE *dptr, int32 base);
+t_stat pata_reset (DEVICE *dptr, int32_t base);
 
 /* i8255 Standard I/O Data Structures */
 
@@ -118,9 +120,9 @@ DEVICE pata_dev = {
     IN or OUT instruction is issued.
 */
 
-int32 patas(int32 io, int32 data)
+int32_t patas(int32_t io, int32_t data)
 {
-    int32 bit;
+    int32_t bit;
 
     if (io == 0) {                      /* read status port */
         return pata_unit[0].u3;
@@ -142,7 +144,7 @@ int32 patas(int32 io, int32 data)
     return 0;
 }
 
-int32 pataa(int32 io, int32 data)
+int32_t pataa(int32_t io, int32_t data)
 {
     if (io == 0) {                      /* read data port */
         return (pata_unit[0].u4);
@@ -153,7 +155,7 @@ int32 pataa(int32 io, int32 data)
     return 0;
 }
 
-int32 patab(int32 io, int32 data)
+int32_t patab(int32_t io, int32_t data)
 {
     if (io == 0) {                      /* read data port */
         return (pata_unit[0].u5);
@@ -164,7 +166,7 @@ int32 patab(int32 io, int32 data)
     return 0;
 }
 
-int32 patac(int32 io, int32 data)
+int32_t patac(int32_t io, int32_t data)
 {
     if (io == 0) {                      /* read data port */
         return (pata_unit[0].u6);
@@ -177,7 +179,7 @@ int32 patac(int32 io, int32 data)
 
 /* Reset routine */
 
-t_stat pata_reset (DEVICE *dptr, int32 base)
+t_stat pata_reset (DEVICE *dptr, int32_t base)
 {
     pata_unit[0].u3 = 0x9B;         /* control */
     pata_unit[0].u4 = 0xFF;         /* Port A */

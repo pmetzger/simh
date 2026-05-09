@@ -26,12 +26,14 @@
    17-Sept-25    LB      New simulator.
 */
 
+#include <stdint.h>
+
 #include "linc_defs.h"
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 char sim_name[] = "LINC";
 
-uint16 M[MEMSIZE];
+uint16_t M[MEMSIZE];
 REG *sim_PC = &cpu_reg[0];
 
 DEVICE *sim_devices[] = {
@@ -53,9 +55,9 @@ const char *sim_stop_messages[SCPE_BASE] = {
 };
 
 static t_stat
-get_binary_word(FILE *fileref, uint16 *x)
+get_binary_word(FILE *fileref, uint16_t *x)
 {
-  uint16 y;
+  uint16_t y;
   int c = Fgetc(fileref);
   if (c == EOF)
     return SCPE_EOF;
@@ -70,9 +72,9 @@ get_binary_word(FILE *fileref, uint16 *x)
 }
 
 static t_stat
-get_octal_word(FILE *fileref, uint16 *x)
+get_octal_word(FILE *fileref, uint16_t *x)
 {
-  uint16 y, i;
+  uint16_t y, i;
   int c;
   for (i = 0;;) {
     c = Fgetc(fileref);
@@ -107,10 +109,10 @@ sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
   (void)fnam;
   (void)flag;
 
-  t_stat (*get_word)(FILE *fileref, uint16 *x) = get_binary_word;
+  t_stat (*get_word)(FILE *fileref, uint16_t *x) = get_binary_word;
   t_addr addr, length = MEMSIZE, start = 0, end;
-  int16 forward_offset = 0, reverse_offset;
-  uint16 block_size;
+  int16_t forward_offset = 0, reverse_offset;
+  uint16_t block_size;
   long offset = 0;
   t_stat stat;
 
@@ -147,7 +149,7 @@ sim_load(FILE *fileref, const char *cptr, const char *fnam, int flag)
   sim_fseek(fileref, offset, SEEK_SET);
 
   for (addr = start; addr < end; addr++) {
-    uint16 x;
+    uint16_t x;
     t_stat stat = get_word(fileref, &x);
     if (stat == SCPE_EOF)
       return SCPE_OK;
@@ -171,7 +173,7 @@ t_stat build_dev_tab(void)
   return SCPE_OK;
 }
 
-static t_stat fprint_next(FILE *of, uint16 addr)
+static t_stat fprint_next(FILE *of, uint16_t addr)
 {
   fprintf(of, "\n");
   fprint_val(of, ++addr & XMASK, 8, 10, PV_LEFT);
@@ -179,7 +181,7 @@ static t_stat fprint_next(FILE *of, uint16 addr)
   return -1;
 }
 
-static void fprint_misc(FILE *of, uint16 insn)
+static void fprint_misc(FILE *of, uint16_t insn)
 {
   switch (insn) {
   case 00000:
@@ -215,7 +217,7 @@ static void fprint_misc(FILE *of, uint16 insn)
   }
 }
 
-static t_stat fprint_index(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_index(FILE *of, uint16_t insn, uint16_t addr)
 {
   if (insn & IMASK)
     fprintf(of, " i");
@@ -226,49 +228,49 @@ static t_stat fprint_index(FILE *of, uint16 insn, uint16 addr)
   return SCPE_OK;
 }
 
-static void fprint_set(FILE *of, uint16 insn, uint16 addr)
+static void fprint_set(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "SET");
   fprint_index(of, insn, addr);
   fprint_next(of, addr);
 }
 
-static void fprint_sam(FILE *of, uint16 insn)
+static void fprint_sam(FILE *of, uint16_t insn)
 {
   fprintf(of, "SAM%s %o", insn & IMASK ? " i" : "", insn & BMASK);
 }
 
-static t_stat fprint_dis(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_dis(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "DIS");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_xsk(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_xsk(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "XSK");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_rol(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_rol(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "ROL");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_ror(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_ror(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "ROR");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_scr(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_scr(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "SCR");
   return fprint_index(of, insn, addr);
 }
 
-static void fprint_skip(FILE *of, uint16 insn)
+static void fprint_skip(FILE *of, uint16_t insn)
 {
   char beta[3];
   switch (insn & 057) {
@@ -314,7 +316,7 @@ static void fprint_skip(FILE *of, uint16 insn)
   fprintf(of, " %s", beta);
 }
 
-static void fprint_opr(FILE *of, uint16 insn)
+static void fprint_opr(FILE *of, uint16_t insn)
 {
   switch (insn & 07757) {
   case 0500: case 0501: case 0502: case 0503: case 0504: case 0505: case 0506: case 0507:
@@ -338,7 +340,7 @@ static void fprint_opr(FILE *of, uint16 insn)
     fprintf(of, "i" );
 }
 
-static void fprint_lmb(FILE *of, uint16 insn)
+static void fprint_lmb(FILE *of, uint16_t insn)
 {
   /* Shared helper signature.
      This implementation does not use every parameter. */
@@ -347,7 +349,7 @@ static void fprint_lmb(FILE *of, uint16 insn)
   fprintf(of, "LMB ");
 }
 
-static void fprint_umb(FILE *of, uint16 insn)
+static void fprint_umb(FILE *of, uint16_t insn)
 {
   /* Shared helper signature.
      This implementation does not use every parameter. */
@@ -356,7 +358,7 @@ static void fprint_umb(FILE *of, uint16 insn)
   fprintf(of, "UMB ");
 }
 
-static void fprint_tape(FILE *of, uint16 insn, uint16 addr)
+static void fprint_tape(FILE *of, uint16_t insn, uint16_t addr)
 {
   switch (insn & 0707) {
   case 0700:
@@ -391,112 +393,112 @@ static void fprint_tape(FILE *of, uint16 insn, uint16 addr)
   fprint_next(of, addr);
 }
 
-static t_stat fprint_lda(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_lda(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "LDA");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_sta(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_sta(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "STA");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_ada(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_ada(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "ADA");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_adm(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_adm(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "ADM");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_lam(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_lam(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "LAM");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_mul(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_mul(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "MUL");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_ldh(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_ldh(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "LDH");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_sth(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_sth(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "STH");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_shd(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_shd(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "SHD");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_sae(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_sae(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "SAE");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_sro(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_sro(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "SRO");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_bcl(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_bcl(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "BCL");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_bse(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_bse(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "BSE");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_bco(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_bco(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "BCO");
   return fprint_index(of, insn, addr);
 }
 
-static t_stat fprint_dsc(FILE *of, uint16 insn, uint16 addr)
+static t_stat fprint_dsc(FILE *of, uint16_t insn, uint16_t addr)
 {
   fprintf(of, "DSC");
   return fprint_index(of, insn, addr);
 }
 
-static void fprint_add(FILE *of, uint16 insn)
+static void fprint_add(FILE *of, uint16_t insn)
 {
   fprintf(of, "ADD %04o", insn & XMASK);
 }
 
-static void fprint_stc(FILE *of, uint16 insn)
+static void fprint_stc(FILE *of, uint16_t insn)
 {
   fprintf(of, "STC %04o", insn & XMASK);
 }
 
-static void fprint_jmp(FILE *of, uint16 insn)
+static void fprint_jmp(FILE *of, uint16_t insn)
 {
   fprintf(of, "JMP %04o", insn & XMASK);
 }
 
-t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
   /* Generic symbolic output signature.
      This implementation does not use every parameter. */
@@ -608,7 +610,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 
 struct symbol {
   const char *name;
-  uint16 value;
+  uint16_t value;
 };
 
 static const struct symbol symbols[] = {
@@ -673,7 +675,7 @@ static const struct symbol symbols[] = {
 };
 
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr,
-                  t_value *val, int32 sw)
+                  t_value *val, int32_t sw)
 {
   char gbuf[CBUFSIZE];
   t_value val2;

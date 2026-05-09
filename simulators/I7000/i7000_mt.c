@@ -35,6 +35,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7000_defs.h"
 #include "sim_tape.h"
 
@@ -115,23 +117,23 @@
 #define GAP_LEN        ((uptr->flags & MTUF_LDN) ?LT_GAP_LEN:HT_GAP_LEN)
 
 /* Definitions */
-uint32              mt_cmd(UNIT *, uint16, uint16);
+uint32_t            mt_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              mt_srv(UNIT *);
-t_stat              mt_boot(int32, DEVICE *);
+t_stat              mt_boot(int32_t, DEVICE *);
 void                mt_ini(UNIT *, bool);
 t_stat              mt_reset(DEVICE *);
 t_stat              mt_attach(UNIT *, const char *);
 t_stat              mt_detach(UNIT *);
-t_stat              mt_rew(UNIT * uptr, int32 val, const char *cptr,
+t_stat              mt_rew(UNIT * uptr, int32_t val, const char *cptr,
                         void *desc);
-t_stat              mt_tape_density(UNIT * uptr, int32 val, const char *cptr,
+t_stat              mt_tape_density(UNIT * uptr, int32_t val, const char *cptr,
                         void *desc);
-t_stat              mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *mt_description (DEVICE *dptr);
-extern t_stat       chan_boot(int32, DEVICE *);
+extern t_stat       chan_boot(int32_t, DEVICE *);
 #ifdef I7010
-extern uint8        chan_io_status[NUM_CHAN];   /* Channel status */
+extern uint8_t      chan_io_status[NUM_CHAN];   /* Channel status */
 #endif
 
 #ifdef MT_CHANNEL_ZERO
@@ -141,10 +143,10 @@ extern uint8        chan_io_status[NUM_CHAN];   /* Channel status */
 #endif
 
 /* Channel level activity */
-uint8               mt_chan[NUM_CHAN];
+uint8_t             mt_chan[NUM_CHAN];
 
 /* One buffer per channel */
-uint8               mt_buffer[NUM_DEVS][BUFFSIZE];
+uint8_t             mt_buffer[NUM_DEVS][BUFFSIZE];
 
 UNIT                mta_unit[] = {
 /* Controller 1 */
@@ -342,7 +344,7 @@ DEVICE              mtf_dev = {
 #endif
 
 
-uint8               parity_table[64] = {
+uint8_t             parity_table[64] = {
     /* 0    1    2    3    4    5    6    7 */
     0000, 0100, 0100, 0000, 0100, 0000, 0000, 0100,
     0100, 0000, 0000, 0100, 0000, 0100, 0100, 0000,
@@ -356,7 +358,7 @@ uint8               parity_table[64] = {
 
 /* Rewind tape drive */
 t_stat
-mt_rew(UNIT * uptr, int32 val, const char *cptr, void *desc)
+mt_rew(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -374,7 +376,7 @@ mt_rew(UNIT * uptr, int32 val, const char *cptr, void *desc)
 }
 
 /* Start off a mag tape command */
-uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t mt_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     DEVICE             *dptr = find_dev_from_unit(uptr);
@@ -640,12 +642,12 @@ uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
 #if I7090 | I704 | I701
 /* Read a word from tape, used during boot read */
 static int
-mt_read_buff(UNIT * uptr, int cmd, DEVICE * dptr, t_uint64 *word)
+mt_read_buff(UNIT * uptr, int cmd, DEVICE * dptr, uint64_t *word)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 bufnum = GET_DEV_BUF(dptr->flags);
     int                 i;
-    uint8               ch;
+    uint8_t             ch;
     int                 mode = 0;
     int                 mark = 1;
     int                 parity = 0;
@@ -655,7 +657,7 @@ mt_read_buff(UNIT * uptr, int cmd, DEVICE * dptr, t_uint64 *word)
         mode = 0100;
 
     *word = 0;
-    for(i = CHARSPERWORD-1; i >= 0 && uptr->u6 < (int32)uptr->hwmark; i--) {
+    for(i = CHARSPERWORD-1; i >= 0 && uptr->u6 < (int32_t)uptr->hwmark; i--) {
         ch = mt_buffer[bufnum][uptr->u6++];
         /* Do BCD translation */
         if ((parity_table[ch & 077] ^ (ch & 0100) ^ mode) == 0) {
@@ -677,7 +679,7 @@ mt_read_buff(UNIT * uptr, int cmd, DEVICE * dptr, t_uint64 *word)
             }
         }
         if (i >= 0)
-            *word |= ((t_uint64) ch) << (6 * i);
+            *word |= ((uint64_t) ch) << (6 * i);
     }
 
     if (parity) {
@@ -739,10 +741,10 @@ t_stat mt_srv(UNIT * uptr)
     int                 bufnum = GET_DEV_BUF(dptr->flags);
     t_mtrlnt            reclen;
     t_stat              r = SCPE_ARG;   /* Force error if not set */
-    uint8               ch;
+    uint8_t             ch;
     int                 mode = 0;
 #ifdef I7010
-    extern uint8        astmode;
+    extern uint8_t      astmode;
 #endif
 
     /* Call channel proccess to make sure data is ready */
@@ -767,7 +769,7 @@ t_stat mt_srv(UNIT * uptr)
                         "Read flush unit=%d %s at %d Block %d chars\n",
                          unit, (cmd == MT_RDS) ? "BCD" : "Binary", uptr->u6, reclen);
             /* Keep moving until end of block */
-            if (uptr->u6 < (int32)reclen ) {
+            if (uptr->u6 < (int32_t)reclen ) {
                 reclen -= uptr->u6;
                 uptr->u3 += reclen;
                 uptr->u5 |= MT_SKIP|MT_IDLE;
@@ -860,7 +862,7 @@ t_stat mt_srv(UNIT * uptr)
             return mt_error(uptr, chan, MTSE_TMK, dptr);
         }
         /* If at end of record, fill buffer */
-        if (uptr->u6 == (int32)uptr->hwmark) {
+        if (uptr->u6 == (int32_t)uptr->hwmark) {
             sim_debug(DEBUG_DETAIL, dptr, "Read unit=%d ", unit);
             uptr->u3 += GAP_LEN;
             if ((r = sim_tape_rdrecf(uptr, &mt_buffer[bufnum][0], &reclen,
@@ -951,7 +953,7 @@ t_stat mt_srv(UNIT * uptr)
             sim_debug(DEBUG_DATA, dptr, "Read unit=%d EOR\n", unit);
             /* If not read whole record, skip till end */
             uptr->u5 |= MT_EOR;
-            if (uptr->u6 < (int32)uptr->hwmark) {
+            if (uptr->u6 < (int32_t)uptr->hwmark) {
                 sim_activate(uptr, (uptr->hwmark-uptr->u6) * T1_us);
                 uptr->u3 += (uptr->hwmark - uptr->u6);
                 uptr->u6 = uptr->hwmark;    /* Force read next record */
@@ -962,7 +964,7 @@ t_stat mt_srv(UNIT * uptr)
         case DATA_OK:
             sim_debug(DEBUG_DATA, dptr, "Read data unit=%d %d %02o\n",
                       unit, uptr->u6, ch);
-            if (uptr->u6 >= (int32)uptr->hwmark)  /* In IRG */
+            if (uptr->u6 >= (int32_t)uptr->hwmark) /* In IRG */
                 uptr->u5 |= MT_EOR;
             sim_activate(uptr, T1_us);
             break;
@@ -1059,7 +1061,7 @@ t_stat mt_srv(UNIT * uptr)
             return mt_error(uptr, chan, MTSE_TMK, dptr);
         }
         /* If at end of record, fill buffer */
-        if (uptr->u6 == (int32)uptr->hwmark) {
+        if (uptr->u6 == (int32_t)uptr->hwmark) {
             sim_debug(DEBUG_DETAIL, dptr, "Read unit=%d ", unit);
             if ((r = sim_tape_rdrecr(uptr, &mt_buffer[bufnum][0], &reclen,
                                 BUFFSIZE)) != MTSE_OK) {
@@ -1096,10 +1098,10 @@ t_stat mt_srv(UNIT * uptr)
 
         /* Convert one word. */
         switch (chan_write_char(chan, &ch,
-                            (uptr->u6 >= (int32)uptr->hwmark) ? DEV_REOR : 0)) {
+                            (uptr->u6 >= (int32_t)uptr->hwmark) ? DEV_REOR : 0)) {
         case END_RECORD:
             sim_debug(DEBUG_DATA, dptr, "Read unit=%d EOR\n", unit);
-            if (uptr->u6 >= (int32)uptr->hwmark) {
+            if (uptr->u6 >= (int32_t)uptr->hwmark) {
                 uptr->u5 &= ~MT_CMDMSK;
                 uptr->u5 |= MT_SKIP;
                 uptr->u3 -= (uptr->hwmark-uptr->u6);
@@ -1113,7 +1115,7 @@ t_stat mt_srv(UNIT * uptr)
         case DATA_OK:
             sim_debug(DEBUG_DATA, dptr, "Read data unit=%d %d %02o\n",
                       unit, uptr->u6, ch);
-            if (uptr->u6 >= (int32)uptr->hwmark) { /* In IRG */
+            if (uptr->u6 >= (int32_t)uptr->hwmark) { /* In IRG */
                 uptr->u3 -= (uptr->hwmark-uptr->u6);
                 sim_activate(uptr, T2_us);
             } else
@@ -1314,10 +1316,10 @@ t_stat mt_srv(UNIT * uptr)
 
 /* Boot from given device */
 t_stat
-mt_boot(int32 unit_num, DEVICE * dptr)
+mt_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
-    uint16              dev = unit_num + 020 + mt_dib.addr;
+    uint16_t            dev = unit_num + 020 + mt_dib.addr;
 #if I7090 | I704 | I701
     t_mtrlnt            reclen;
     t_stat              r;
@@ -1376,7 +1378,7 @@ mt_reset(DEVICE * dptr)
 }
 
 t_stat
-mt_tape_density(UNIT * uptr, int32 val, const char *cptr, void *desc)
+mt_tape_density(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -1410,7 +1412,7 @@ mt_detach(UNIT * uptr)
 }
 
 t_stat
-mt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+mt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    fprintf (st, "%s\n\n", mt_description(dptr));
    fprintf (st, "The magnetic tape controller assumes that all tapes are 7 track\n");

@@ -144,6 +144,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "system_defs.h"                /* system header in system dir */
 #include "isbc202_internal.h"
 #include "scp.h"
@@ -205,32 +207,32 @@
 
 /* external globals */
 
-extern uint16    PCX;
+extern uint16_t  PCX;
 
 /* external function prototypes */
 
-extern uint8 reg_dev(uint8 (*routine)(bool, uint8, uint8), uint16, uint16, uint8);
-extern uint8 unreg_dev(uint16);
-extern uint8 get_mbyte(uint16 addr);
-extern void put_mbyte(uint16 addr, uint8 val);
+extern uint8_t reg_dev(uint8_t (*routine)(bool, uint8_t, uint8_t), uint16_t, uint16_t, uint8_t);
+extern uint8_t unreg_dev(uint16_t);
+extern uint8_t get_mbyte(uint16_t addr);
+extern void put_mbyte(uint16_t addr, uint8_t val);
 
 /* function prototypes */
 
-t_stat isbc202_cfg(uint16 base, uint16 size, uint8 devnum);
+t_stat isbc202_cfg(uint16_t base, uint16_t size, uint8_t devnum);
 t_stat isbc202_clr(void);
-t_stat isbc202_set_port(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat isbc202_set_int(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat isbc202_set_verb(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat isbc202_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat isbc202_set_port(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat isbc202_set_int(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat isbc202_set_verb(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat isbc202_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat isbc202_reset(DEVICE *dptr);
 void isbc202_reset_dev(void);
 t_stat isbc202_attach (UNIT *uptr, const char *cptr);
-t_stat isbc202_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
-uint8 isbc202r0(bool io, uint8 data, uint8 devnum);   /* isbc202 0 */
-uint8 isbc202r1(bool io, uint8 data, uint8 devnum);   /* isbc202 1 */
-uint8 isbc202r2(bool io, uint8 data, uint8 devnum);   /* isbc202 2 */
-uint8 isbc202r3(bool io, uint8 data, uint8 devnum);   /* isbc202 3 */
-uint8 isbc202r7(bool io, uint8 data, uint8 devnum);   /* isbc202 7 */
+t_stat isbc202_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+uint8_t isbc202r0(bool io, uint8_t data, uint8_t devnum); /* isbc202 0 */
+uint8_t isbc202r1(bool io, uint8_t data, uint8_t devnum); /* isbc202 1 */
+uint8_t isbc202r2(bool io, uint8_t data, uint8_t devnum); /* isbc202 2 */
+uint8_t isbc202r3(bool io, uint8_t data, uint8_t devnum); /* isbc202 3 */
+uint8_t isbc202r7(bool io, uint8_t data, uint8_t devnum); /* isbc202 7 */
 void isbc202_diskio(void);      //do actual disk i/o
 
 /* globals */
@@ -254,7 +256,7 @@ FDCDEF    fdc202;                       //indexed by the isbc-202 instance numbe
  * TODO: Share this helper logic with the other Intel diskette controllers
  * after the warning-driven fixes are settled.
  */
-static bool isbc202_completion_interrupt_enabled(uint8 cw)
+static bool isbc202_completion_interrupt_enabled(uint8_t cw)
 {
     return (cw & CW_INT_CTL) != CW_INT_DIS;
 }
@@ -267,7 +269,7 @@ static bool isbc202_completion_interrupt_enabled(uint8 cw)
  * TODO: Share this helper logic with the other Intel diskette controllers
  * after the warning-driven fixes are settled.
  */
-static t_stat isbc202_parse_config_byte(const char *cptr, uint8 *value)
+static t_stat isbc202_parse_config_byte(const char *cptr, uint8_t *value)
 {
     t_stat status;
     t_value parsed;
@@ -279,7 +281,7 @@ static t_stat isbc202_parse_config_byte(const char *cptr, uint8 *value)
     if (status != SCPE_OK)
         return status;
 
-    *value = (uint8)parsed;
+    *value = (uint8_t)parsed;
     return SCPE_OK;
 }
 
@@ -358,7 +360,7 @@ DEVICE isbc202_dev = {
 
 // isbc 202 configuration
 
-t_stat isbc202_cfg(uint16 baseport, uint16 devnum, uint8 intnum)
+t_stat isbc202_cfg(uint16_t baseport, uint16_t devnum, uint8_t intnum)
 {
     /* Shared configuration signature.
        This implementation does not use every parameter. */
@@ -404,7 +406,7 @@ t_stat isbc202_clr(void)
 
 /* isbc202 set mode = Write protect */
 
-t_stat isbc202_set_mode(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat isbc202_set_mode(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -430,14 +432,14 @@ t_stat isbc202_set_mode(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 // set base port address parameter
 
-t_stat isbc202_set_port(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat isbc202_set_port(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) val;
     (void) desc;
 
-    uint8 size;
+    uint8_t size;
     t_stat status;
 
     if (uptr == NULL)
@@ -460,14 +462,14 @@ t_stat isbc202_set_port(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 // set interrupt parameter
 
-t_stat isbc202_set_int(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat isbc202_set_int(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) val;
     (void) desc;
 
-    uint8 size;
+    uint8_t size;
     t_stat status;
 
     if (uptr == NULL)
@@ -484,7 +486,7 @@ t_stat isbc202_set_int(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 // set verbose mode
 
-t_stat isbc202_set_verb(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat isbc202_set_verb(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -508,7 +510,7 @@ t_stat isbc202_set_verb(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 // show configuration parameters
 
-t_stat isbc202_show_param (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat isbc202_show_param (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -539,7 +541,7 @@ t_stat isbc202_reset(DEVICE *dptr)
 
 void isbc202_reset_dev(void)
 {
-    int32 i;
+    int32_t i;
     UNIT *uptr;
 
     fdc202.stat = 0;                    //clear status
@@ -577,7 +579,7 @@ void isbc202_reset_dev(void)
 t_stat isbc202_attach (UNIT *uptr, const char *cptr)
 {
     t_stat r;
-    uint8 fddnum;
+    uint8_t fddnum;
 
     fddnum = uptr->u6;
     if ((r = attach_unit (uptr, cptr)) != SCPE_OK) {
@@ -609,7 +611,7 @@ t_stat isbc202_attach (UNIT *uptr, const char *cptr)
 
 /* iSBC202 control port functions */
 
-uint8 isbc202r0(bool io, uint8 data, uint8 devnum)
+uint8_t isbc202r0(bool io, uint8_t data, uint8_t devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -622,7 +624,7 @@ uint8 isbc202r0(bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc202r1(bool io, uint8 data, uint8 devnum)
+uint8_t isbc202r1(bool io, uint8_t data, uint8_t devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -639,7 +641,7 @@ uint8 isbc202r1(bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc202r2(bool io, uint8 data, uint8 devnum)
+uint8_t isbc202r2(bool io, uint8_t data, uint8_t devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -656,7 +658,7 @@ uint8 isbc202r2(bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc202r3(bool io, uint8 data, uint8 devnum)
+uint8_t isbc202r3(bool io, uint8_t data, uint8_t devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -679,7 +681,7 @@ uint8 isbc202r3(bool io, uint8 data, uint8 devnum)
     return 0;
 }
 
-uint8 isbc202r7(bool io, uint8 data, uint8 devnum)
+uint8_t isbc202r7(bool io, uint8_t data, uint8_t devnum)
 {
     /* Generic I/O handler signature.
        This implementation does not use every parameter. */
@@ -698,13 +700,13 @@ uint8 isbc202r7(bool io, uint8 data, uint8 devnum)
 
 void isbc202_diskio(void)
 {
-    uint8 cw, di, nr, ta, sa, data, nrptr;
-    uint16 ba;
-    uint32 dskoff;
-    uint8 fddnum, fmtb;
-    uint32 i;
+    uint8_t cw, di, nr, ta, sa, data, nrptr;
+    uint16_t ba;
+    uint32_t dskoff;
+    uint8_t fddnum, fmtb;
+    uint32_t i;
     UNIT *uptr;
-    uint8 *fbuf;
+    uint8_t *fbuf;
     bool completion_interrupt;
 
     //parse the IOPB
@@ -718,7 +720,7 @@ void isbc202_diskio(void)
     ba |= (get_mbyte(fdc202.iopb + 6) << 8);
     fddnum = (di & 0x30) >> 4;
     uptr = isbc202_dev.units + fddnum;
-    fbuf = (uint8 *) uptr->filebuf;
+    fbuf = (uint8_t *) uptr->filebuf;
     if (fdc202.verb)
         sim_printf("\n   SBC202: FDD %d - nr=%02XH ta=%02XH sa=%02XH IOPB=%04XH PCX=%04XH",
             fddnum, nr, ta, sa, fdc202.iopb, PCX);
@@ -812,7 +814,7 @@ void isbc202_diskio(void)
             fmtb = get_mbyte(ba);       //get the format byte
             //calculate offset into disk image
             dskoff = ((ta * MAXSECDD) + (sa - 1)) * SECSIZ;
-            for(i=0; i<=((uint32)(MAXSECDD) * SECSIZ); i++) {
+            for(i=0; i<=((uint32_t)(MAXSECDD) * SECSIZ); i++) {
                 *(fbuf + (dskoff + i)) = fmtb;
             }
             fdc202.rtype = ROK;

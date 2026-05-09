@@ -5,6 +5,7 @@
 #include "test_cmocka.h"
 
 #include "sim_slirp.h"
+#include "sim_types.h"
 
 enum {
     max_fake_calls = 8,
@@ -51,13 +52,13 @@ struct fake_backend_state {
     sim_slirp_config open_config;
     struct fake_forward_call add_calls[max_fake_calls];
     struct fake_forward_call remove_calls[max_fake_calls];
-    uint8 last_input[1518];
+    uint8_t last_input[1518];
     int last_input_size;
 };
 
 struct callback_capture {
     int packet_count;
-    uint8 last_packet[1518];
+    uint8_t last_packet[1518];
     int last_packet_size;
 };
 
@@ -143,7 +144,7 @@ static int fake_remove_hostfwd(void *state, int is_udp,
     return 0;
 }
 
-static void fake_input(void *state, const uint8 *packet, int packet_size)
+static void fake_input(void *state, const uint8_t *packet, int packet_size)
 {
     assert_ptr_equal(state, &fake_backend_state);
     assert_true(packet_size <= (int)sizeof(fake_backend_state.last_input));
@@ -152,7 +153,7 @@ static void fake_input(void *state, const uint8 *packet, int packet_size)
     memcpy(fake_backend_state.last_input, packet, (size_t)packet_size);
 }
 
-static void fake_pollfds_fill(void *state, void *pollfds, uint32 *timeout)
+static void fake_pollfds_fill(void *state, void *pollfds, uint32_t *timeout)
 {
     (void)pollfds;
     assert_ptr_equal(state, &fake_backend_state);
@@ -179,7 +180,7 @@ static const sim_slirp_backend fake_backend = {
     fake_remove_hostfwd, fake_input,           fake_pollfds_fill,
     fake_pollfds_poll,   fake_connection_info, 0};
 
-static void capture_packet(void *opaque, const unsigned char *buf, int len)
+static void capture_packet(void *opaque, const uchar_t *buf, int len)
 {
     struct callback_capture *capture = (struct callback_capture *)opaque;
 
@@ -189,26 +190,26 @@ static void capture_packet(void *opaque, const unsigned char *buf, int len)
     memcpy(capture->last_packet, buf, (size_t)len);
 }
 
-static void put_be16(uint8 *ptr, uint16_t value)
+static void put_be16(uint8_t *ptr, uint16_t value)
 {
-    ptr[0] = (uint8)(value >> 8);
-    ptr[1] = (uint8)value;
+    ptr[0] = (uint8_t)(value >> 8);
+    ptr[1] = (uint8_t)value;
 }
 
-static void put_be32(uint8 *ptr, uint32_t value)
+static void put_be32(uint8_t *ptr, uint32_t value)
 {
-    ptr[0] = (uint8)(value >> 24);
-    ptr[1] = (uint8)(value >> 16);
-    ptr[2] = (uint8)(value >> 8);
-    ptr[3] = (uint8)value;
+    ptr[0] = (uint8_t)(value >> 24);
+    ptr[1] = (uint8_t)(value >> 16);
+    ptr[2] = (uint8_t)(value >> 8);
+    ptr[3] = (uint8_t)value;
 }
 
-static uint16_t get_be16(const uint8 *ptr)
+static uint16_t get_be16(const uint8_t *ptr)
 {
     return (uint16_t)((ptr[0] << 8) | ptr[1]);
 }
 
-static void put_ipv4(uint8 *ptr, const char *addr)
+static void put_ipv4(uint8_t *ptr, const char *addr)
 {
     struct in_addr parsed;
 
@@ -216,7 +217,7 @@ static void put_ipv4(uint8 *ptr, const char *addr)
     memcpy(ptr, &parsed.s_addr, sizeof(parsed.s_addr));
 }
 
-static void assert_ipv4_bytes_equal(const uint8 *actual, const char *expected)
+static void assert_ipv4_bytes_equal(const uint8_t *actual, const char *expected)
 {
     struct in_addr parsed;
 
@@ -224,17 +225,17 @@ static void assert_ipv4_bytes_equal(const uint8 *actual, const char *expected)
     assert_memory_equal(actual, &parsed.s_addr, sizeof(parsed.s_addr));
 }
 
-static void assert_ether_dest_is_guest_or_broadcast(const uint8 *packet,
-                                                    const uint8 *guest_mac)
+static void assert_ether_dest_is_guest_or_broadcast(const uint8_t *packet,
+                                                    const uint8_t *guest_mac)
 {
-    static const uint8 broadcast[ether_addr_len] = {0xff, 0xff, 0xff,
+    static const uint8_t broadcast[ether_addr_len] = {0xff, 0xff, 0xff,
                                                     0xff, 0xff, 0xff};
 
     assert_true((memcmp(packet, guest_mac, ether_addr_len) == 0) ||
                 (memcmp(packet, broadcast, ether_addr_len) == 0));
 }
 
-static uint16_t ipv4_header_checksum(const uint8 *header, size_t len)
+static uint16_t ipv4_header_checksum(const uint8_t *header, size_t len)
 {
     uint32_t sum = 0;
     size_t i;
@@ -247,7 +248,7 @@ static uint16_t ipv4_header_checksum(const uint8 *header, size_t len)
     return (uint16_t)~sum;
 }
 
-static uint16_t internet_checksum(const uint8 *buf, size_t len)
+static uint16_t internet_checksum(const uint8_t *buf, size_t len)
 {
     uint32_t sum = 0;
 
@@ -263,10 +264,10 @@ static uint16_t internet_checksum(const uint8 *buf, size_t len)
     return (uint16_t)~sum;
 }
 
-static void build_arp_request(uint8 *packet, const uint8 *guest_mac,
+static void build_arp_request(uint8_t *packet, const uint8_t *guest_mac,
                               const char *guest_addr, const char *target_addr)
 {
-    static const uint8 broadcast[ether_addr_len] = {0xff, 0xff, 0xff,
+    static const uint8_t broadcast[ether_addr_len] = {0xff, 0xff, 0xff,
                                                     0xff, 0xff, 0xff};
 
     memset(packet, 0, 42);
@@ -283,12 +284,12 @@ static void build_arp_request(uint8 *packet, const uint8 *guest_mac,
     put_ipv4(packet + 38, target_addr);
 }
 
-static size_t build_icmp_echo_request(uint8 *packet, const uint8 *guest_mac,
-                                      const uint8 *host_mac)
+static size_t build_icmp_echo_request(uint8_t *packet, const uint8_t *guest_mac,
+                                      const uint8_t *host_mac)
 {
-    static const uint8 payload[] = {'z', 'i', 'm', 'h'};
-    uint8 *ip = packet + 14;
-    uint8 *icmp = packet + 34;
+    static const uint8_t payload[] = {'z', 'i', 'm', 'h'};
+    uint8_t *ip = packet + 14;
+    uint8_t *icmp = packet + 34;
     size_t icmp_len = 8 + sizeof(payload);
     size_t ip_len = 20 + icmp_len;
 
@@ -313,15 +314,15 @@ static size_t build_icmp_echo_request(uint8 *packet, const uint8 *guest_mac,
     return 14 + ip_len;
 }
 
-static size_t build_dhcp_discover(uint8 *packet, const uint8 *guest_mac,
+static size_t build_dhcp_discover(uint8_t *packet, const uint8_t *guest_mac,
                                   uint32_t xid)
 {
-    static const uint8 broadcast[ether_addr_len] = {0xff, 0xff, 0xff,
+    static const uint8_t broadcast[ether_addr_len] = {0xff, 0xff, 0xff,
                                                     0xff, 0xff, 0xff};
-    uint8 *ip = packet + 14;
-    uint8 *udp = packet + 34;
-    uint8 *dhcp = packet + 42;
-    uint8 *option = dhcp + dhcp_fixed_len;
+    uint8_t *ip = packet + 14;
+    uint8_t *udp = packet + 34;
+    uint8_t *dhcp = packet + 42;
+    uint8_t *option = dhcp + dhcp_fixed_len;
     size_t dhcp_len;
     size_t udp_len;
     size_t ip_len;
@@ -373,11 +374,11 @@ static size_t build_dhcp_discover(uint8 *packet, const uint8 *guest_mac,
     return 14 + ip_len;
 }
 
-static const uint8 *find_dhcp_option(const uint8 *packet, size_t packet_size,
+static const uint8_t *find_dhcp_option(const uint8_t *packet, size_t packet_size,
                                      int option_code, size_t *option_len)
 {
-    const uint8 *ptr = packet + dhcp_options_offset;
-    const uint8 *end = packet + packet_size;
+    const uint8_t *ptr = packet + dhcp_options_offset;
+    const uint8_t *end = packet + packet_size;
 
     if (packet_size < dhcp_options_offset + 4)
         return NULL;
@@ -697,7 +698,7 @@ static void test_slirp_select_uses_backend_poll_fill(void **state)
 /* Verify dispatch passes queued guest packets to the backend. */
 static void test_slirp_dispatch_sends_queued_packets_to_backend(void **state)
 {
-    static const uint8 packet[] = {0x01, 0x02, 0x03, 0x04};
+    static const uint8_t packet[] = {0x01, 0x02, 0x03, 0x04};
     char errbuf[256];
     sim_slirp_handle *slirp;
 
@@ -724,7 +725,7 @@ static void test_slirp_dispatch_sends_queued_packets_to_backend(void **state)
 /* Verify backend output packets reach the simulator callback. */
 static void test_slirp_backend_output_reaches_packet_callback(void **state)
 {
-    static const uint8 packet[] = {0xaa, 0xbb, 0xcc};
+    static const uint8_t packet[] = {0xaa, 0xbb, 0xcc};
     struct callback_capture capture;
     char errbuf[256];
     sim_slirp_handle *slirp;
@@ -757,11 +758,11 @@ static void test_slirp_real_backend_callbacks_match_libslirp_abi(void **state)
 /* Verify libslirp answers ARP for the virtual gateway without host network. */
 static void test_slirp_real_backend_answers_local_arp(void **state)
 {
-    static const uint8 guest_mac[ether_addr_len] = {0x52, 0x54, 0x00,
+    static const uint8_t guest_mac[ether_addr_len] = {0x52, 0x54, 0x00,
                                                     0x12, 0x34, 0x56};
     const sim_slirp_backend *previous;
     struct callback_capture capture;
-    uint8 request[42];
+    uint8_t request[42];
     char errbuf[256];
     sim_slirp_handle *slirp;
     int previous_doorbell;
@@ -801,13 +802,13 @@ static void test_slirp_real_backend_answers_local_arp(void **state)
 /* Verify libslirp offers the configured DHCP lease and options. */
 static void test_slirp_real_backend_answers_dhcp_discover(void **state)
 {
-    static const uint8 guest_mac[ether_addr_len] = {0x52, 0x54, 0x00,
+    static const uint8_t guest_mac[ether_addr_len] = {0x52, 0x54, 0x00,
                                                     0xab, 0xcd, 0xef};
     const sim_slirp_backend *previous;
     const uint32_t xid = 0x12345678;
     struct callback_capture capture;
-    uint8 request[300];
-    const uint8 *option;
+    uint8_t request[300];
+    const uint8_t *option;
     size_t option_len;
     size_t request_len;
     char errbuf[256];
@@ -883,12 +884,12 @@ static void test_slirp_real_backend_answers_dhcp_discover(void **state)
 /* Verify libslirp answers ICMP echo to the virtual gateway locally. */
 static void test_slirp_real_backend_answers_gateway_ping(void **state)
 {
-    static const uint8 guest_mac[ether_addr_len] = {0x52, 0x54, 0x00,
+    static const uint8_t guest_mac[ether_addr_len] = {0x52, 0x54, 0x00,
                                                     0x65, 0x43, 0x21};
     const sim_slirp_backend *previous;
     struct callback_capture capture;
-    uint8 host_mac[ether_addr_len];
-    uint8 packet[128];
+    uint8_t host_mac[ether_addr_len];
+    uint8_t packet[128];
     size_t packet_len;
     char errbuf[256];
     sim_slirp_handle *slirp;

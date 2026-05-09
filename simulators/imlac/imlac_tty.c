@@ -24,8 +24,11 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <stdint.h>
+
 #include "imlac_defs.h"
 #include "sim_tmxr.h"
+#include "sim_types.h"
 
 /* Debug */
 #define DBG             0001
@@ -33,30 +36,30 @@
 #define TTY_FILE    1  /* Attached to a file. */
 #define TTY_PORT    2  /* Attached to a network port. */
 
-static uint16 RBUF, TBUF;
+static uint16_t RBUF, TBUF;
 static int tty_type = TTY_PORT;
 
 /* Function declaration. */
-static uint16 tty_iot (uint16, uint16);
+static uint16_t tty_iot (uint16_t, uint16_t);
 static t_stat tty_r_svc (UNIT *uptr);
 static t_stat tty_t_svc (UNIT *uptr);
-static t_stat tty_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat tty_show_type (FILE *st, UNIT *up, int32 v, const void *dp);
-static t_stat tty_boot (int32 u, DEVICE *dptr);
+static t_stat tty_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat tty_show_type (FILE *st, UNIT *up, int32_t v, const void *dp);
+static t_stat tty_boot (int32_t u, DEVICE *dptr);
 static t_stat tty_attach (UNIT *uptr, const char *cptr);
 static t_stat tty_detach (UNIT *uptr);
 
 static TMLN tty_ldsc = { 0 };
 static TMXR tty_desc = { 1, 0, 0, &tty_ldsc };
 
-static uint16 tty_rom[] = {
+static uint16_t tty_rom[] = {
   0060077, 0020010, 0104076, 0020020, 0001032, 0100011, 0002040, 0010046,
   0001031, 0074075, 0010044, 0002040, 0010053, 0001033, 0003003, 0003003,
   0003002, 0002040, 0010061, 0001033, 0120010, 0100011, 0030020, 0010053,
   0110076, 0000000, 0000000, 0000000, 0000000, 0000002, 0037700, 0037677,
 };
 
-static uint16 stty_rom[] = {
+static uint16_t stty_rom[] = {
   0001032, 0104101, 0020010, 0020020, 0104004, 0020021, 0100011, 0020022,
   0100011, 0002040, 0010051, 0001033, 0020023, 0044075, 0074076, 0010050,
   0060023, 0044077, 0024022, 0003003, 0003001, 0050022, 0020022, 0030021,
@@ -64,7 +67,7 @@ static uint16 stty_rom[] = {
 };
 
 #if 0 /* Unused so far. */
-static uint16 mtty_rom[] = {
+static uint16_t mtty_rom[] = {
   0060077, 0020010, 0104076, 0020020, 0001032, 0100011, 0002040, 0010046,
   0001031, 0074075, 0010044, 0002040, 0010053, 0001033, 0003003, 0003003,
   0003002, 0002040, 0010061, 0001033, 0120010, 0100011, 0030020, 0010053,
@@ -120,13 +123,13 @@ DEVICE tty_dev = {
 static t_stat
 tty_r_svc(UNIT *uptr)
 {
-  int32 ch;
+  int32_t ch;
 
   if ((uptr->flags & UNIT_ATT) == 0)
     return SCPE_OK;
 
   if (uptr->fileref != NULL) {
-    unsigned char buf;
+    uchar_t buf;
     if (sim_fread (&buf, 1, 1, uptr->fileref) == 1) {
       sim_debug (DBG, &tty_dev, "Received character %03o\n", buf);
       RBUF = buf;
@@ -144,7 +147,7 @@ tty_r_svc(UNIT *uptr)
       }
       sim_activate_after (uptr, 200);
     } else {
-      int32 ln = tmxr_poll_conn (&tty_desc);
+      int32_t ln = tmxr_poll_conn (&tty_desc);
       if (ln >= 0) {
         tty_ldsc.rcve = 1;
         sim_debug (DBG, &tty_dev, "Connect\n");
@@ -165,7 +168,7 @@ tty_t_svc(UNIT *uptr)
      This implementation does not use every parameter. */
   (void) uptr;
 
-  int32 ch;
+  int32_t ch;
 
   tmxr_poll_tx (&tty_desc);
 
@@ -184,8 +187,8 @@ tty_t_svc(UNIT *uptr)
   return SCPE_OK;
 }
 
-static uint16
-tty_iot (uint16 insn, uint16 AC)
+static uint16_t
+tty_iot (uint16_t insn, uint16_t AC)
 {
   if ((insn & 0771) == 0031) { /* RRB */
     sim_debug (DBG, &tty_dev, "Read character %03o\n", RBUF);
@@ -209,7 +212,7 @@ tty_iot (uint16 insn, uint16 AC)
 }
 
 static t_stat
-tty_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
+tty_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -228,7 +231,7 @@ tty_set_type (UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 static t_stat
-tty_show_type (FILE *st, UNIT *up, int32 v, const void *dp)
+tty_show_type (FILE *st, UNIT *up, int32_t v, const void *dp)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -260,14 +263,14 @@ void rom_stty (void)
   rom_data (stty_rom);
 }
 
-static t_stat tty_boot (int32 u, DEVICE *dptr)
+static t_stat tty_boot (int32_t u, DEVICE *dptr)
 {
   /* Generic boot signature.
      This implementation does not use every parameter. */
   (void) u;
   (void) dptr;
 
-  uint16 *PC = (uint16 *)sim_PC->loc;
+  uint16_t *PC = (uint16_t *)sim_PC->loc;
   if (sim_switches & SWMASK ('T'))
     set_cmd (0, "ROM TYPE=TTY");
   else if (sim_switches & SWMASK ('S'))

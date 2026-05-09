@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 
 #include "test_cmocka.h"
 
@@ -9,54 +10,54 @@
  * controlled ReadQb results and recording the exact Qbus read sequence.
  */
 
-int32 ReadIO(uint32 pa, int32 lnt);
-int32 ReadIOU(uint32 pa, int32 lnt);
-int32 va_mem_rd(int32 pa);
-void va_mem_wr(int32 pa, int32 val, int32 lnt);
+int32_t ReadIO(uint32_t pa, int32_t lnt);
+int32_t ReadIOU(uint32_t pa, int32_t lnt);
+int32_t va_mem_rd(int32_t pa);
+void va_mem_wr(int32_t pa, int32_t val, int32_t lnt);
 
-typedef int32 (*qbus_io_read_fn)(uint32 pa, int32 lnt);
+typedef int32_t (*qbus_io_read_fn)(uint32_t pa, int32_t lnt);
 
 typedef struct {
-    uint32 pa;
-    int32 val;
+    uint32_t pa;
+    int32_t val;
 } supplied_qbus_read;
 
 typedef struct {
     qbus_io_read_fn read;
-    uint32 pa;
-    int32 lnt;
+    uint32_t pa;
+    int32_t lnt;
     size_t supplied_count;
     supplied_qbus_read supplied[2];
-    int32 expected_result;
+    int32_t expected_result;
 } qbus_io_read_case;
 
 static supplied_qbus_read supplied_reads[2];
-static uint32 recorded_read_addresses[2];
+static uint32_t recorded_read_addresses[2];
 static size_t supplied_read_count;
 static size_t recorded_read_count;
 
-uint32 trpirq;
-uint32 *M;
-uint32 R[16];
-uint32 PSL;
-uint32 SISR;
-uint32 fault_PC;
-uint32 p1;
-uint32 p2;
-uint32 mchk_ref;
-uint32 *vc_buf;
-uint32 *va_buf;
-uint32 va_addr;
+uint32_t trpirq;
+uint32_t *M;
+uint32_t R[16];
+uint32_t PSL;
+uint32_t SISR;
+uint32_t fault_PC;
+uint32_t p1;
+uint32_t p2;
+uint32_t mchk_ref;
+uint32_t *vc_buf;
+uint32_t *va_buf;
+uint32_t va_addr;
 jmp_buf save_env;
-int32 hlt_pin;
-int32 mem_err;
-int32 crd_err;
-int32 sys_model;
-int32 ka_mser;
+int32_t hlt_pin;
+int32_t mem_err;
+int32_t crd_err;
+int32_t sys_model;
+int32_t ka_mser;
 DEVICE cpu_dev;
 UNIT cpu_unit;
 
-int32 ReadReg(uint32 pa, int32 lnt)
+int32_t ReadReg(uint32_t pa, int32_t lnt)
 {
     /* Stubbed register-space read for uncalled legacy helpers. */
     (void)pa;
@@ -65,7 +66,7 @@ int32 ReadReg(uint32 pa, int32 lnt)
     return 0;
 }
 
-void WriteReg(uint32 pa, int32 val, int32 lnt)
+void WriteReg(uint32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed register-space write for uncalled legacy helpers. */
     (void)pa;
@@ -73,7 +74,7 @@ void WriteReg(uint32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 vc_mem_rd(int32 pa)
+int32_t vc_mem_rd(int32_t pa)
 {
     /* Stubbed video memory read for uncalled legacy helpers. */
     (void)pa;
@@ -81,7 +82,7 @@ int32 vc_mem_rd(int32 pa)
     return 0;
 }
 
-void vc_mem_wr(int32 pa, int32 val, int32 lnt)
+void vc_mem_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed video memory write for uncalled legacy helpers. */
     (void)pa;
@@ -89,7 +90,7 @@ void vc_mem_wr(int32 pa, int32 val, int32 lnt)
     (void)lnt;
 }
 
-int32 va_mem_rd(int32 pa)
+int32_t va_mem_rd(int32_t pa)
 {
     /* Stubbed video memory read for uncalled legacy helpers. */
     (void)pa;
@@ -97,7 +98,7 @@ int32 va_mem_rd(int32 pa)
     return 0;
 }
 
-void va_mem_wr(int32 pa, int32 val, int32 lnt)
+void va_mem_wr(int32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed video memory write for uncalled legacy helpers. */
     (void)pa;
@@ -118,7 +119,7 @@ t_stat build_ubus_tab(DEVICE *dptr, DIB *dibp)
     return SCPE_OK;
 }
 
-t_stat set_autocon(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_autocon(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)uptr;
@@ -129,7 +130,7 @@ t_stat set_autocon(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_autocon(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_autocon(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)st;
@@ -140,7 +141,7 @@ t_stat show_autocon(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat show_iospace(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_iospace(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Stubbed modifier callback for static modifier tables. */
     (void)st;
@@ -151,8 +152,8 @@ t_stat show_iospace(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat show_bus_map(FILE *st, const char *cptr, uint32 *busmap,
-                    uint32 nmapregs, const char *busname, uint32 mapvalid)
+t_stat show_bus_map(FILE *st, const char *cptr, uint32_t *busmap,
+                    uint32_t nmapregs, const char *busname, uint32_t mapvalid)
 {
     /* Stubbed map display helper for uncalled show helpers. */
     (void)st;
@@ -165,7 +166,7 @@ t_stat show_bus_map(FILE *st, const char *cptr, uint32 *busmap,
     return SCPE_OK;
 }
 
-int32 vax_qbus_test_record_read(uint32 pa)
+int32_t vax_qbus_test_record_read(uint32_t pa)
 {
     assert_true(recorded_read_count < supplied_read_count);
     assert_true(recorded_read_count < sizeof(recorded_read_addresses) /
@@ -209,11 +210,11 @@ static void test_readio_records_legacy_sequences(void **state)
 {
     static const qbus_io_read_case cases[] = {
         {ReadIO, 0x1000, L_BYTE, 1, {{0x1000, 0xff00}},
-         (int32)0x0000ff00u},
+         (int32_t)0x0000ff00u},
         {ReadIO, 0x1002, L_WORD, 1, {{0x1002, 0xff00}},
-         (int32)0xff000000u},
+         (int32_t)0xff000000u},
         {ReadIO, 0x1000, L_LONG, 2, {{0x1000, 0x1234}, {0x1002, 0xff00}},
-         (int32)0xff001234u},
+         (int32_t)0xff001234u},
     };
 
     /* Cmocka test callback signature.
@@ -228,13 +229,13 @@ static void test_readiou_byte_records_legacy_sequences(void **state)
 {
     static const qbus_io_read_case cases[] = {
         {ReadIOU, 0x1000, L_BYTE, 1, {{0x1000, 0x12a5}},
-         (int32)0x000012a5u},
+         (int32_t)0x000012a5u},
         {ReadIOU, 0x1001, L_BYTE, 1, {{0x1001, 0x12a5}},
-         (int32)0x000012a5u},
+         (int32_t)0x000012a5u},
         {ReadIOU, 0x1002, L_BYTE, 1, {{0x1002, 0x80a5}},
-         (int32)0x80a50000u},
+         (int32_t)0x80a50000u},
         {ReadIOU, 0x1003, L_BYTE, 1, {{0x1003, 0x80a5}},
-         (int32)0x80a50000u},
+         (int32_t)0x80a50000u},
     };
 
     /* Cmocka test callback signature.
@@ -249,11 +250,11 @@ static void test_readiou_word_records_legacy_sequences(void **state)
 {
     static const qbus_io_read_case cases[] = {
         {ReadIOU, 0x1000, L_WORD, 1, {{0x1000, 0xff00}},
-         (int32)0x0000ff00u},
+         (int32_t)0x0000ff00u},
         {ReadIOU, 0x1001, L_WORD, 2, {{0x1001, 0x1234}, {0x1003, 0xff00}},
-         (int32)0xff001234u},
+         (int32_t)0xff001234u},
         {ReadIOU, 0x1002, L_WORD, 1, {{0x1002, 0xff00}},
-         (int32)0xff000000u},
+         (int32_t)0xff000000u},
     };
 
     /* Cmocka test callback signature.
@@ -268,9 +269,9 @@ static void test_readiou_tribyte_records_legacy_sequences(void **state)
 {
     static const qbus_io_read_case cases[] = {
         {ReadIOU, 0x1000, 3, 2, {{0x1000, 0x1234}, {0x1002, 0xff00}},
-         (int32)0xff001234u},
+         (int32_t)0xff001234u},
         {ReadIOU, 0x1001, 3, 2, {{0x1001, 0x1234}, {0x1003, 0xff00}},
-         (int32)0xff001234u},
+         (int32_t)0xff001234u},
     };
 
     /* Cmocka test callback signature.

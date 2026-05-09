@@ -181,8 +181,11 @@
 /* #define DBG_MSG */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_imd.h"
+#include "sim_types.h"
 
 #ifdef DBG_MSG
 #define DBG_PRINT(args) sim_printf args
@@ -190,14 +193,14 @@
 #define DBG_PRINT(args)
 #endif
 
-extern uint32 PCX;
-extern t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern int32 find_unit_index(UNIT *uptr);
+extern uint32_t PCX;
+extern t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern int32_t find_unit_index(UNIT *uptr);
 
 #define JADE_MAX_ADAPTERS       1
 #define JADE_MAX_DRIVES         4
@@ -233,21 +236,21 @@ extern int32 find_unit_index(UNIT *uptr);
 /*******( DRIVE TABLE AREA )**************************/
 
 typedef struct {
-    uint8 spt;          /* SECTORS PER TRACK       */
-    uint8 flg;          /* SIDE AND DENSITY FLAGS  */
+    uint8_t spt;        /* SECTORS PER TRACK       */
+    uint8_t flg;        /* SIDE AND DENSITY FLAGS  */
 } drvtbl_t;
 
 typedef struct {
-    uint32 mem_base;    /* Memory Base Address              */
-    uint32 mem_size;    /* Memory Address space requirement */
-    uint32 io_base;     /* I/O Base Address                 */
-    uint32 io_size;     /* I/O Address Space requirement    */
-    uint32 prom_base;   /* Memory Base Address              */
-    uint32 prom_size;   /* Memory Address space requirement */
-    uint8 pe;           /* PROM enable                      */
-    uint8 mem_bank;     /* 0 or 1                           */
-    uint8 mem_sys;      /* false=OUT or true=IN             */
-    uint8 curdrv;       /* Currently selected drive         */
+    uint32_t mem_base;  /* Memory Base Address              */
+    uint32_t mem_size;  /* Memory Address space requirement */
+    uint32_t io_base;   /* I/O Base Address                 */
+    uint32_t io_size;   /* I/O Address Space requirement    */
+    uint32_t prom_base; /* Memory Base Address              */
+    uint32_t prom_size; /* Memory Address space requirement */
+    uint8_t pe;         /* PROM enable                      */
+    uint8_t mem_bank;   /* 0 or 1                           */
+    uint8_t mem_sys;    /* false=OUT or true=IN             */
+    uint8_t curdrv;     /* Currently selected drive         */
     drvtbl_t dt[JADE_MAX_DRIVES];
     UNIT *uptr[JADE_MAX_DRIVES];
 } JADE_INFO;
@@ -265,7 +268,7 @@ static JADE_INFO jade_info_data =   {   JADE_BANK_BASE, JADE_BANK_SIZE,
 static JADE_INFO *jade_info = &jade_info_data;
 
 /* Jade DD BOOT PROM is 590 bytes and executes at F000 */
-static uint8 jade_prom[JADE_PROM_SIZE] = {
+static uint8_t jade_prom[JADE_PROM_SIZE] = {
     0xc3,0x12,0xf0,0xc3,0x3a,0xf0,0xc3,0xd7,0xf0,0xc3,0xf3,0xf0,0xc3,0x10,0xf1,0xc3,
     0x2f,0xf1,0x3e,0x03,0xd3,0x10,0x3e,0x15,0xd3,0x10,0x00,0x00,0x00,0x00,0x00,0x00,
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -348,13 +351,13 @@ static uint8 jade_prom[JADE_PROM_SIZE] = {
 /*
 ** 2 banks of 1K RAM on Jade DD
 */
-static uint8 jade_mem[JADE_MEM_SIZE];
-static uint8 *bank0=jade_mem;
-static uint8 *bank1=jade_mem + JADE_BANK_SIZE;
-static uint8 *sbuf=jade_mem+DD_BUF;
+static uint8_t jade_mem[JADE_MEM_SIZE];
+static uint8_t *bank0=jade_mem;
+static uint8_t *bank1=jade_mem + JADE_BANK_SIZE;
+static uint8_t *sbuf=jade_mem+DD_BUF;
 
 #define WORD(lsb,msb) (lsb + (msb << 8))
-#define MEM_BANK_OFFSET(a) ((int)((uint8 *) a - bank0))
+#define MEM_BANK_OFFSET(a) ((int)((uint8_t *) a - bank0))
 
 /* Double D - DCM Command Block */
 
@@ -369,7 +372,7 @@ static uint8 *sbuf=jade_mem+DD_BUF;
 #define CB_LAD 8           /* Load address (WORD) */
 #define CB_LNG 10          /* Load length  (WORD) */
 
-uint8 *cb = jade_mem + DD_CBT;
+uint8_t *cb = jade_mem + DD_CBT;
 
 #define ID_LBL  0                 /* ID SECTOR LABEL */
 #define ID_BLK  ID_LBL+0x20       /* ID BLOCK AREA   */
@@ -391,36 +394,36 @@ uint8 *cb = jade_mem + DD_CBT;
 #define FMT_LST 8          /* Sector List */
 #define FMT_SEC 12         /* Sectors     */
 
-uint8 *fmt = jade_mem + JADE_BANK_SIZE + DD_FBF;
+uint8_t *fmt = jade_mem + JADE_BANK_SIZE + DD_FBF;
 
 /* Local function prototypes */
 static t_stat jade_reset(DEVICE *jade_dev);
 static t_stat jade_svc(UNIT *uptr);
 static t_stat jade_attach(UNIT *uptr, const char *cptr);
 static t_stat jade_detach(UNIT *uptr);
-static t_stat jade_boot(int32 unitno, DEVICE *dptr);
-static t_stat jade_set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat jade_set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat jade_show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat jade_set_prom(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static uint32 calculate_jade_sec_offset(uint8 track, uint8 sector, uint8 flg);
-static void showsector(uint8 drive, uint8 isRead, uint8 *buf);
+static t_stat jade_boot(int32_t unitno, DEVICE *dptr);
+static t_stat jade_set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat jade_set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat jade_show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat jade_set_prom(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static uint32_t calculate_jade_sec_offset(uint8_t track, uint8_t sector, uint8_t flg);
+static void showsector(uint8_t drive, uint8_t isRead, uint8_t *buf);
 static void showcb(void);
-static uint8 JADE_In(uint32 Addr);
-static uint8 JADE_Out(uint32 Addr, int32 data);
-static uint8 PROM_Boot(JADE_INFO *info);
+static uint8_t JADE_In(uint32_t Addr);
+static uint8_t JADE_Out(uint32_t Addr, int32_t data);
+static uint8_t PROM_Boot(JADE_INFO *info);
 static void DCM_Init(void);
 static void DCM_DBSLdr(void);
-static uint8 DCM_Execute(void);
-static uint8 DCM_Logon(uint8 drive);
-static uint8 DCM_ReadSector(uint8 drive, uint8 track, uint8 sector, uint8 *buffer);
-static uint8 DCM_WriteSector(uint8 drive, uint8 track, uint8 sector, uint8 *buffer);
-static uint8 DCM_Format(uint8 drive, uint8 track);
+static uint8_t DCM_Execute(void);
+static uint8_t DCM_Logon(uint8_t drive);
+static uint8_t DCM_ReadSector(uint8_t drive, uint8_t track, uint8_t sector, uint8_t *buffer);
+static uint8_t DCM_WriteSector(uint8_t drive, uint8_t track, uint8_t sector, uint8_t *buffer);
+static uint8_t DCM_Format(uint8_t drive, uint8_t track);
 static const char* jade_description(DEVICE *dptr);
 
-static int32 jadedev(int32 Addr, int32 rw, int32 data);
-static int32 jadeprom(int32 Addr, int32 rw, int32 data);
-static int32 jademem(int32 Addr, int32 rw, int32 data);
+static int32_t jadedev(int32_t Addr, int32_t rw, int32_t data);
+static int32_t jadeprom(int32_t Addr, int32_t rw, int32_t data);
+static int32_t jademem(int32_t Addr, int32_t rw, int32_t data);
 
 static UNIT jade_unit[JADE_MAX_DRIVES] = {
     { UDATA (jade_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, JADE_CAPACITY), 10000 },
@@ -535,7 +538,7 @@ DEVICE jade_dev = {
 /* Reset routine */
 t_stat jade_reset(DEVICE *dptr)
 {
-    uint8 i;
+    uint8_t i;
     JADE_INFO *pInfo = (JADE_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) { /* Disconnect I/O Ports */
@@ -579,7 +582,7 @@ t_stat jade_attach(UNIT *uptr, const char *cptr)
 {
     char header[4];
     t_stat r;
-    unsigned int i = 0;
+    uint_t i = 0;
 
     r = attach_unit(uptr, cptr);    /* attach unit  */
 
@@ -636,7 +639,7 @@ t_stat jade_attach(UNIT *uptr, const char *cptr)
 t_stat jade_detach(UNIT *uptr)
 {
     t_stat r;
-    int8 i;
+    int8_t i;
 
     for (i = 0; i < JADE_MAX_DRIVES; i++) {
         if(jade_dev.units[i].fileref == uptr->fileref) {
@@ -669,9 +672,9 @@ t_stat jade_detach(UNIT *uptr)
 ** Verify that iobase is within valid range
 ** before calling set_iobase
 */
-static t_stat jade_set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat jade_set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL)
@@ -693,9 +696,9 @@ static t_stat jade_set_iobase(UNIT *uptr, int32 val, const char *cptr, void *des
 ** Verify that membase is within valid range
 ** before calling set_membase
 */
-static t_stat jade_set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat jade_set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-    uint32 newba;
+    uint32_t newba;
     t_stat r;
 
     if (cptr == NULL)
@@ -714,7 +717,7 @@ static t_stat jade_set_membase(UNIT *uptr, int32 val, const char *cptr, void *de
 }
 
 /* Show Base Address routine */
-t_stat jade_show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat jade_show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -740,7 +743,7 @@ t_stat jade_show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-static t_stat jade_set_prom(UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat jade_set_prom(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -749,7 +752,7 @@ static t_stat jade_set_prom(UNIT *uptr, int32 value, const char *cptr, void *des
 
     JADE_INFO *pInfo = (JADE_INFO *)uptr->dptr->ctxt;
 
-    jade_info->pe = (uint8) value;
+    jade_info->pe = (uint8_t) value;
 
     /*
     ** Map/Unmap PROM
@@ -763,7 +766,7 @@ static t_stat jade_set_prom(UNIT *uptr, int32 value, const char *cptr, void *des
     return SCPE_OK;
 }
 
-static t_stat jade_boot(int32 unitno, DEVICE *dptr)
+static t_stat jade_boot(int32_t unitno, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -775,7 +778,7 @@ static t_stat jade_boot(int32 unitno, DEVICE *dptr)
         sim_printf(JADE_SNAME ": Booting Controller at 0x%04x\n", pInfo->prom_base);
     }
 
-    *((int32 *) sim_PC->loc) = pInfo->prom_base;
+    *((int32_t *) sim_PC->loc) = pInfo->prom_base;
 
     return SCPE_OK;
 }
@@ -789,8 +792,8 @@ static t_stat jade_svc(UNIT *uptr)
     return SCPE_OK;
 }
 
-static void showsector(uint8 drive, uint8 isRead, uint8 *buf) {
-    int32 i;
+static void showsector(uint8_t drive, uint8_t isRead, uint8_t *buf) {
+    int32_t i;
 
     sim_debug(RD_DATA_DETAIL_MSG|WR_DATA_DETAIL_MSG, &jade_dev, JADE_SNAME "%d: %s sector:\n\t", drive, (isRead) ? "Read" : "Write");
     for (i=0; i < JADE_SECTOR_SIZE; i++) {
@@ -809,7 +812,7 @@ static void showcb(void)
         cb[CB_CMD], cb[CB_DRV], cb[CB_TRK], cb[CB_SEC], cb[CB_MOD], cb[CB_STS], cb[CB_LAD] + (cb[CB_LAD+1] << 8), cb[CB_LNG] + (cb[CB_LNG+1] << 8)));
 }
 
-static int32 jadedev(int32 Addr, int32 rw, int32 data)
+static int32_t jadedev(int32_t Addr, int32_t rw, int32_t data)
 {
     if (rw == 0) { /* Read */
         return(JADE_In(Addr));
@@ -837,9 +840,9 @@ static int32 jadedev(int32 Addr, int32 rw, int32 data)
 ** 33H                   ; 3740 flags
 **
 */
-static uint32 calculate_jade_sec_offset(uint8 track, uint8 sector, uint8 flg)
+static uint32_t calculate_jade_sec_offset(uint8_t track, uint8_t sector, uint8_t flg)
 {
-    uint32 offset;
+    uint32_t offset;
 
     /*
     ** Calculate track offset
@@ -882,9 +885,9 @@ static uint32 calculate_jade_sec_offset(uint8 track, uint8 sector, uint8 flg)
 **            001:F800-FBFF
 **            001:FC00-FEFF
 */
-static uint8 JADE_In(uint32 Addr)
+static uint8_t JADE_In(uint32_t Addr)
 {
-    uint8 cData;
+    uint8_t cData;
 
     cData = JADE_STAT_HALT;     /* Assume processor is in HALT* state */
     cData |= (jade_info->mem_base >> 9) & JADE_STAT_MEM_MSK;
@@ -894,7 +897,7 @@ static uint8 JADE_In(uint32 Addr)
     return (cData);
 }
 
-static uint8 JADE_Out(uint32 Addr, int32 Data)
+static uint8_t JADE_Out(uint32_t Addr, int32_t Data)
 {
     sim_debug(CMD_MSG, &jade_dev, JADE_SNAME ": OUT %02x Data %02x\n", Addr & 0xFF, Data & 0xFF);
 
@@ -946,12 +949,12 @@ static uint8 JADE_Out(uint32 Addr, int32 Data)
 ** than have the DCM available to the host through
 ** the DD's bank0 memory window.
 */
-static uint8 PROM_Boot(JADE_INFO *info)
+static uint8_t PROM_Boot(JADE_INFO *info)
 {
-    uint8 sec = DCM_SEC;
-    uint16 d = JADE_BANK_SIZE;
-    uint8 *h = bank1;
-    uint8 sts;
+    uint8_t sec = DCM_SEC;
+    uint16_t d = JADE_BANK_SIZE;
+    uint8_t *h = bank1;
+    uint8_t sts;
 
     while(d) {
         if ((sts = DCM_ReadSector(0, 0, sec, h)) != CS_NOE) {
@@ -1009,9 +1012,9 @@ static void DCM_Init(void)
 
 static void DCM_DBSLdr(void)
 {
-    uint8 sec = SEC_BG;
-    uint16 d = LNG_1K;
-    uint8 *h = bank1;
+    uint8_t sec = SEC_BG;
+    uint16_t d = LNG_1K;
+    uint8_t *h = bank1;
 
     while(d) {
         if (DCM_ReadSector(0, 0, sec, h) != CS_NOE) {
@@ -1044,9 +1047,9 @@ static void DCM_DBSLdr(void)
 * THIS FUNCTION HANDLES TO THE INDIVIDUAL COMMAND       *
 * ROUTINES.                                             *
 ********************************************************/
-static uint8 DCM_Execute(void)
+static uint8_t DCM_Execute(void)
 {
-    uint8 sts;
+    uint8_t sts;
 
     showcb();
 
@@ -1092,9 +1095,9 @@ static uint8 DCM_Execute(void)
 ; ALSO LEFT IN THE SECTOR BUFFER FOR BIOS TO FINISH   *
 ; THE LOG-ON OPERATION.                               *
 ;*****************************************************/
-static uint8 DCM_Logon(uint8 drive)
+static uint8_t DCM_Logon(uint8_t drive)
 {
-    uint8 sts;
+    uint8_t sts;
 
     sts = DCM_ReadSector(drive, 0, 1, sbuf);
 
@@ -1124,9 +1127,9 @@ static uint8 DCM_Logon(uint8 drive)
 ; WHEN FINISHED.  ERROR DETECTION IS IMPLEMENTED AND  *
 ; RETRIES ARE EXRCUTED IF DATA ERRORS ARE DETECTED.   *
 ;*****************************************************/
-static uint8 DCM_ReadSector(uint8 drive, uint8 track, uint8 sector, uint8 *buffer)
+static uint8_t DCM_ReadSector(uint8_t drive, uint8_t track, uint8_t sector, uint8_t *buffer)
 {
-    uint32 offset;
+    uint32_t offset;
 
     jade_info->curdrv = drive;
 
@@ -1167,9 +1170,9 @@ static uint8 DCM_ReadSector(uint8 drive, uint8 track, uint8 sector, uint8 *buffe
 ; CHIP, AND TERMINATES THE OPERATION. ERROR DETECTION *
 ; IS IMPLEMENTED.                                     *
 ;*****************************************************/
-static uint8 DCM_WriteSector(uint8 drive, uint8 track, uint8 sector, uint8 *buffer)
+static uint8_t DCM_WriteSector(uint8_t drive, uint8_t track, uint8_t sector, uint8_t *buffer)
 {
-    uint32 offset;
+    uint32_t offset;
 
     jade_info->curdrv = drive;
 
@@ -1213,11 +1216,11 @@ static uint8 DCM_WriteSector(uint8 drive, uint8 track, uint8 sector, uint8 *buff
 ; FORMATTING BYTE STREAM IS PROVIDED BY A PROGRAM     *
 ; WHICH MUST BE PRESENT IN THE FORMAT BUFFER.         *
 ;*****************************************************/
-static uint8 DCM_Format(uint8 drive, uint8 track)
+static uint8_t DCM_Format(uint8_t drive, uint8_t track)
 {
-    uint8 sbuf[JADE_SECTOR_SIZE];
-    uint8 sector;
-    uint8 sts = 0;
+    uint8_t sbuf[JADE_SECTOR_SIZE];
+    uint8_t sector;
+    uint8_t sts = 0;
 
     memset(sbuf, 0xe5, sizeof(sbuf));
 
@@ -1240,7 +1243,7 @@ static uint8 DCM_Format(uint8 drive, uint8 track)
     return(sts);
 }
 
-static int32 jadeprom(int32 Addr, int32 rw, int32 Data)
+static int32_t jadeprom(int32_t Addr, int32_t rw, int32_t Data)
 {
     /* Memory resource handler signature.
        This implementation does not use every parameter. */
@@ -1250,9 +1253,9 @@ static int32 jadeprom(int32 Addr, int32 rw, int32 Data)
     return(jade_prom[Addr & JADE_PROM_MASK]);
 }
 
-static int32 jademem(int32 Addr, int32 rw, int32 Data)
+static int32_t jademem(int32_t Addr, int32_t rw, int32_t Data)
 {
-    int32 offset = (Addr & JADE_BANK_MASK) + (jade_info->mem_bank * JADE_BANK_SIZE);
+    int32_t offset = (Addr & JADE_BANK_MASK) + (jade_info->mem_bank * JADE_BANK_SIZE);
 
     /*
     ** Need to select bank

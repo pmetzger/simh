@@ -4,6 +4,8 @@
 #define VAX_CPU1_INTERNAL_H_ 0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 #define CALL_DV 0x8000   /* DV set */
@@ -18,15 +20,15 @@
 #define CALL_GETSPA(x) (((x) >> CALL_V_SPA) & CALL_M_SPA)
 
 /* Build the saved stack-frame word for CALLG/CALLS. */
-static inline int32 vax_call_frame_word(uint32 sp, bool gs, int32 mask,
-                                        uint32 psl)
+static inline int32_t vax_call_frame_word(uint32_t sp, bool gs, int32_t mask,
+                                        uint32_t psl)
 {
-    uint32 word;
+    uint32_t word;
 
     word =
-        ((sp & (uint32)CALL_M_SPA) << CALL_V_SPA) | (gs ? (uint32)CALL_S : 0u) |
-        (((uint32)mask & (uint32)CALL_MASK) << CALL_V_MASK) | (psl & 0xFFE0u);
-    return (int32)word;
+        ((sp & (uint32_t)CALL_M_SPA) << CALL_V_SPA) | (gs ? (uint32_t)CALL_S : 0u) |
+        (((uint32_t)mask & (uint32_t)CALL_MASK) << CALL_V_MASK) | (psl & 0xFFE0u);
+    return (int32_t)word;
 }
 
 #endif

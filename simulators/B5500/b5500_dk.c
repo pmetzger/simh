@@ -21,6 +21,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "b5500_defs.h"
 
 #if (NUM_DEVS_DSK > 0)
@@ -63,19 +65,19 @@
 #define DFX             (1 << DFX_V)
 #define MODIB           (1 << MODIB_V)
 
-t_stat              dsk_cmd(uint16, uint16, uint8, uint16 *);
+t_stat              dsk_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 t_stat              dsk_srv(UNIT *);
-t_stat              dsk_boot(int32, DEVICE *);
-t_stat              dsk_help (FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              dsk_boot(int32_t, DEVICE *);
+t_stat              dsk_help (FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *dsk_description (DEVICE *);
 t_stat              esu_srv(UNIT *);
 t_stat              esu_attach(UNIT *, const char *);
 t_stat              esu_detach(UNIT *);
-t_stat              esu_help (FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              esu_help (FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *esu_description (DEVICE *);
 
-uint8               dsk_buffer[NUM_DEVS_DSK][DK_SEC_SIZE];
-t_stat              set_mod(UNIT *uptr, int32 val, const char *cptr,
+uint8_t             dsk_buffer[NUM_DEVS_DSK][DK_SEC_SIZE];
+t_stat              set_mod(UNIT *uptr, int32_t val, const char *cptr,
                         void *desc);
 
 #define ESU_TYPE        UDATA(&esu_srv, UNIT_ATTABLE+UNIT_DISABLE+ \
@@ -150,7 +152,7 @@ DEVICE              dsk_dev = {
 
 
 /* Start off a disk command */
-t_stat dsk_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc)
+t_stat dsk_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc)
 {
     UNIT        *uptr;
     int         u = (dev==DSK1_DEV)? 0: 1;
@@ -200,7 +202,7 @@ t_stat dsk_srv(UNIT * uptr)
     DEVICE              *dptr = find_dev_from_unit(uptr);
     int                 i;
     int                 addr;
-    uint8               abuf[8];        /* x-esu-disk-track-segment */
+    uint8_t             abuf[8];        /* x-esu-disk-track-segment */
     int                 u = uptr - dsk_unit;
     int                 esu;
     UNIT                *eptr;
@@ -446,7 +448,7 @@ t_stat esu_srv(UNIT * uptr)
 }
 
 t_stat
-set_mod(UNIT *uptr, int32 val, const char *cptr, void *desc) {
+set_mod(UNIT *uptr, int32_t val, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) cptr;
@@ -464,14 +466,14 @@ set_mod(UNIT *uptr, int32 val, const char *cptr, void *desc) {
 
 /* Boot from given device */
 t_stat
-dsk_boot(int32 unit_num, DEVICE * dptr)
+dsk_boot(int32_t unit_num, DEVICE * dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
     (void) dptr;
 
     int         dev = (unit_num)? DSK2_DEV:DSK1_DEV;
-    t_uint64    desc;
+    uint64_t    desc;
     int         i;
 
     for(i = 0; i < 20; i++) {
@@ -483,7 +485,7 @@ dsk_boot(int32 unit_num, DEVICE * dptr)
     sim_cancel(&dsk_unit[0]);
     sim_cancel(&dsk_unit[1]);
 
-    desc = (((t_uint64)dev)<<DEV_V)|DEV_IORD|DEV_OPT|020LL;
+    desc = (((uint64_t)dev)<<DEV_V)|DEV_IORD|DEV_OPT|020LL;
     return chan_boot(desc);
 }
 
@@ -543,7 +545,7 @@ esu_detach(UNIT * uptr)
 }
 
 t_stat
-dsk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+dsk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   /* Generic help signature.
      This implementation does not use every parameter. */
@@ -583,7 +585,7 @@ dsk_description (DEVICE *dptr)
 }
 
 t_stat
-esu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+esu_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   /* Generic help signature.
      This implementation does not use every parameter. */

@@ -23,6 +23,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i650_defs.h"
 
 #define UNIT_DSK       UNIT_ATTABLE | UNIT_DISABLE | UNIT_FIX
@@ -34,13 +36,13 @@
                                     // time pregress as drum wordcount progresses
 
 /* Definitions */
-uint32              dsk_cmd(int opcode, int32 addr, uint16 fast);
+uint32_t            dsk_cmd(int opcode, int32_t addr, uint16_t fast);
 t_stat              dsk_srv(UNIT *);
 void                dsk_ini(UNIT *, bool f);
 t_stat              dsk_reset(DEVICE *);
 t_stat              dsk_attach(UNIT *, const char *);
 t_stat              dsk_detach(UNIT *);
-t_stat              dsk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat              dsk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char          *dsk_description (DEVICE *dptr);
 
 UNIT                dsk_unit[4] = {
@@ -64,7 +66,7 @@ struct armrec {
     int current_disk, current_track;        // current disk plate/track where the arm is positioned
     int dest_disk, dest_track;              // destination position where the arm should go
     int cmd;                                // opcode being executed (OP_SDS, OP_RDS, OP_WDS)
-    t_int64 InitTime;                       // timestamp using global wordTime counter when operation starts
+    int64_t InitTime;                       // timestamp using global wordTime counter when operation starts
     struct armmov {
         int disk, track;                    // disk plate/track where the arm is positioned in this point of movement sequence
         int msec;                            // time in msec arm stay in this position
@@ -72,7 +74,7 @@ struct armrec {
 } Arm[4][3];
 
 
-static int dsk_read_numeric_word(char * buf, t_int64 * d, int * ZeroNeg)
+static int dsk_read_numeric_word(char * buf, int64_t * d, int * ZeroNeg)
 {
     int i, neg;
     char c;
@@ -93,7 +95,7 @@ static int dsk_read_numeric_word(char * buf, t_int64 * d, int * ZeroNeg)
 
 
 
-static void dsk_write_numeric_word(char * buf, t_int64 d, int ZeroNeg)
+static void dsk_write_numeric_word(char * buf, int64_t d, int ZeroNeg)
 {
     int i, neg;
     char c;
@@ -118,7 +120,7 @@ static t_stat dsk_operation(int cmd, int unit, int arm, int disk, int track)
     FILE *f;
     int flen, i, ic, ZeroNeg;
     char buf[DISK_SIZE+1];
-    t_int64 d;
+    int64_t d;
     char s[6];
                            // buf holds a full disk
 
@@ -289,7 +291,7 @@ static void dsk_set_mov_seq(int unit,int arm)
 }
 
 /* Start off a RAMAC command */
-uint32 dsk_cmd(int cmd, int32 addr, uint16 fast)
+uint32_t dsk_cmd(int cmd, int32_t addr, uint16_t fast)
 {
     DEVICE             *dptr;
     UNIT               *uptr;
@@ -356,7 +358,7 @@ t_stat dsk_srv(UNIT * uptr)
     DEVICE             *dptr = find_dev_from_unit(uptr);
     int                 unit = (uptr - dptr->units);
     int                 time, msec, arm, cmd, nseq;
-    t_int64                InitTime;
+    int64_t                InitTime;
     int                    bSequenceInProgress=0;
     int                    bFastMode;
     t_stat                r;
@@ -483,7 +485,7 @@ t_stat dsk_detach(UNIT * uptr)
 }
 
 t_stat
-dsk_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+dsk_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic help signature.
       This implementation does not use every parameter. */

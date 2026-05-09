@@ -59,7 +59,9 @@
 
  */
 
+#include <stdint.h>
 #include <sys/stat.h>
+
 #include "sigma_io_defs.h"
 #include "sim_card.h"
 
@@ -76,19 +78,19 @@
 #define UST             u3                              /* unit status */
 #define UCMD            u4                              /* unit command */
 
-uint32 cr_bptr;                                         /* buffer index */
-uint32 cr_blnt;                                         /* buffer length */
-uint32 cr_col;                                          /* current column */
-uint32 cr_hopper;                                       /* hopper count */
-uint32 *cr_stkptr;                                      /* selected stacker */
-uint32 cr_stacker = 0;                                  /* stacker count */
-uint32 cr_stacker1 = 0;                                 /* stacker 1 count */
-uint32 cr_stacker2 = 0;                                 /* stacker 2 count */
-uint16 cr_buffer[80];                                   /* 80 column data */
-uint32 cr_ebcdic_init = 0;                              /* translate initial flag */
-uint16 hol_to_ebcdic[4096];                             /* translation table */
+uint32_t cr_bptr;                                       /* buffer index */
+uint32_t cr_blnt;                                       /* buffer length */
+uint32_t cr_col;                                        /* current column */
+uint32_t cr_hopper;                                     /* hopper count */
+uint32_t *cr_stkptr;                                    /* selected stacker */
+uint32_t cr_stacker = 0;                                /* stacker count */
+uint32_t cr_stacker1 = 0;                               /* stacker 1 count */
+uint32_t cr_stacker2 = 0;                               /* stacker 2 count */
+uint16_t cr_buffer[80];                                 /* 80 column data */
+uint32_t cr_ebcdic_init = 0;                            /* translate initial flag */
+uint16_t hol_to_ebcdic[4096];                           /* translation table */
 
-uint8 cr_ord[] = {                                       /* valid order codes*/
+uint8_t cr_ord[] = {                                     /* valid order codes*/
     0, 0, 1, 0, 0, 0, 1, 0,
     0, 0, 1, 0, 0, 0, 1, 0,
     0, 0, 1, 0, 0, 0, 1, 0,
@@ -99,20 +101,20 @@ uint8 cr_ord[] = {                                       /* valid order codes*/
     0, 0, 1, 0, 0, 0, 1, 0
 };
 
-extern uint32 chan_ctl_time;
-extern uint16 ebcdic_to_hol[];
+extern uint32_t chan_ctl_time;
+extern uint16_t ebcdic_to_hol[];
 
 
-uint32 cr_disp (uint32 op, uint32 dva, uint32 *dvst);
+uint32_t cr_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
 t_stat cr_readrec (UNIT *uptr);
-uint32 cr_tio_status (void);
-uint32 cr_tdv_status (void);
-t_stat cr_chan_err (uint32 st);
+uint32_t cr_tio_status (void);
+uint32_t cr_tdv_status (void);
+t_stat cr_chan_err (uint32_t st);
 t_stat cr_svc (UNIT *uptr);
 t_stat cr_reset (DEVICE *dptr);
 t_stat cr_attach (UNIT *uptr, const char *cptr);
 t_stat cr_detach (UNIT *uptr);
-t_stat cr_show_cap (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat cr_show_cap (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 
 dib_t   cr_dib = { DVA_CR, cr_disp, 0, NULL };
@@ -148,7 +150,7 @@ DEVICE  cr_dev = {
 
 /* Card Reader : IO dispatch routine  */
 
-uint32 cr_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t cr_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
     /* Device I/O dispatch signature.
        This implementation does not use every parameter. */
@@ -199,7 +201,7 @@ uint32 cr_disp (uint32 op, uint32 dva, uint32 *dvst)
 
 t_stat cr_svc (UNIT *uptr)
 {
-    uint32 cmd = uptr->UCMD;
+    uint32_t cmd = uptr->UCMD;
     t_stat st;
     char   c;
 
@@ -310,7 +312,7 @@ t_stat cr_readrec (UNIT *uptr) {
     FILE   *fp = uptr->fileref;
 
     for (col = 0; col < 80; ) {
-        int16    i;
+        int16_t  i;
         int    c1, c2, c3;
 
         c1 = fgetc (fp);                            /* read 3 bytes */
@@ -336,9 +338,9 @@ t_stat cr_readrec (UNIT *uptr) {
 
 /* CR status routine */
 
-uint32 cr_tio_status (void)
+uint32_t cr_tio_status (void)
 {
-    uint32 st;
+    uint32_t st;
 
     st = (cr_unit.flags & UNIT_ATT) ? DVS_AUTO: 0;  /* AUTO : MANUAL */
     if (sim_is_active (&cr_unit))                   /* dev busy? */
@@ -346,9 +348,9 @@ uint32 cr_tio_status (void)
     return st;
 }
 
-uint32 cr_tdv_status (void)
+uint32_t cr_tdv_status (void)
 {
-    uint32 st;
+    uint32_t st;
 
     if (cr_unit.flags & UNIT_ATT &&
         (cr_hopper > 0))                            /* rdr att? */
@@ -360,7 +362,7 @@ uint32 cr_tdv_status (void)
 
 /* Channel error */
 
-t_stat cr_chan_err (uint32 st)
+t_stat cr_chan_err (uint32_t st)
 {
     chan_uen (cr_dib.dva);
     if (st < CHS_ERR)
@@ -381,7 +383,7 @@ t_stat cr_reset (DEVICE *dptr)
         for (i = 0; i < 4096; i++)
             hol_to_ebcdic[i] = 0x100;               /* a la sim_card */
         for (i = 0; i < 256; i++) {
-            uint16     temp = ebcdic_to_hol[i];
+            uint16_t   temp = ebcdic_to_hol[i];
             if (hol_to_ebcdic[temp] != 0x100) {
                 fprintf(stderr, "Translation error %02x is %03x and %03x\n",
                     i, temp, hol_to_ebcdic[temp]);
@@ -427,7 +429,7 @@ t_stat cr_detach (UNIT *uptr)
     return  detach_unit(uptr);
 }
 
-t_stat cr_show_cap (FILE *st, UNIT *uptr, int32 val, const void *desc) {
+t_stat cr_show_cap (FILE *st, UNIT *uptr, int32_t val, const void *desc) {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;

@@ -24,7 +24,7 @@ static struct timespec simh_test_clock_values[4] = {{0}};
 static size_t simh_test_clock_value_count = 0;
 static size_t simh_test_clock_value_index = 0;
 static uint64_t simh_test_clock_auto_msec = 0;
-static uint32 simh_test_clock_auto_step_msec = 0;
+static uint32_t simh_test_clock_auto_step_msec = 0;
 static int simh_test_clock_service_calls = 0;
 static int simh_test_target_service_calls = 0;
 
@@ -44,9 +44,9 @@ struct sim_timer_negative_delay_context {
 
 struct sim_timer_dynamic_throttle_case {
     const char *spec;
-    uint32 type;
-    uint32 val;
-    int32 wait;
+    uint32_t type;
+    uint32_t val;
+    int32_t wait;
 };
 
 /* Count clock service dispatches without otherwise changing timer state. */
@@ -209,7 +209,7 @@ static void sim_timer_reset_initialized_host_timing (void)
 }
 
 /* Run the currently queued throttle event as if its delay had expired. */
-static void sim_timer_process_due_throttle_event (int32 catchup)
+static void sim_timer_process_due_throttle_event (int32_t catchup)
 {
     assert_true (sim_is_active (&sim_throttle_unit));
     sim_interval = -catchup;
@@ -219,7 +219,7 @@ static void sim_timer_process_due_throttle_event (int32 catchup)
 /* Drive calibrated dynamic throttling through deferred startup into the
    throttling state using a deterministic final timing sample. */
 static void sim_timer_start_calibrated_dynamic_throttle (
-    const char *spec, uint32 final_clock_step_msec)
+    const char *spec, uint32_t final_clock_step_msec)
 {
     struct sim_timer_throttle_test_state throttle;
 
@@ -391,8 +391,8 @@ static void test_sim_timer_deadline_msec_reports_clock_failure(void **state)
    state without requiring timer startup. */
 static void test_sim_timer_idle_capable_reports_default_state(void **state)
 {
-    uint32 host_sleep_ms = 1234;
-    uint32 host_tick_ms = 5678;
+    uint32_t host_sleep_ms = 1234;
+    uint32_t host_tick_ms = 5678;
 
     (void)state;
 
@@ -405,8 +405,8 @@ static void test_sim_timer_idle_capable_reports_default_state(void **state)
    shared time hooks and records the measured host timing capability. */
 static void test_sim_timer_init_measures_host_timing_with_hooks (void **state)
 {
-    uint32 host_sleep_ms = 0;
-    uint32 host_tick_ms = 0;
+    uint32_t host_sleep_ms = 0;
+    uint32_t host_tick_ms = 0;
 
     (void)state;
 
@@ -458,8 +458,8 @@ static void test_sim_os_msec_handles_epoch_scale_seconds (void **state)
 {
     const time_t epoch_seconds = 1777949713;
     const long epoch_nsecs = 456000000L;
-    const uint32 expected =
-        (uint32)(((uint64_t)epoch_seconds * 1000u) +
+    const uint32_t expected =
+        (uint32_t)(((uint64_t)epoch_seconds * 1000u) +
                  ((uint64_t)epoch_nsecs / 1000000u));
 
     (void)state;
@@ -743,7 +743,7 @@ static void test_sim_rtcn_get_time_and_sim_get_time_use_clock_wrapper (
    caller-visible value. */
 static void test_sim_rom_read_with_delay_accepts_high_bit_words (void **state)
 {
-    const uint32 values[] = {
+    const uint32_t values[] = {
         0x80000000u,
         0x89abcdefu,
         0xffffffffu,
@@ -775,7 +775,7 @@ static void test_sim_timer_activate_after_handles_inactive_calibrated_tick (
 }
 
 /* Verify long wall-clock activations are bounded before converting the
-   instruction delay to the event queue's int32 representation. */
+   instruction delay to the event queue's int32_t representation. */
 static void test_sim_timer_activate_after_bounds_long_running_delay (
     void **state)
 {
@@ -832,8 +832,8 @@ static void test_sim_timer_activate_after_rejects_negative_delay (void **state)
     struct sim_timer_negative_delay_context context = {fixture, SCPE_OK};
     FILE *debug_stream;
     FILE *saved_deb = sim_deb;
-    int32 saved_deb_switches = sim_deb_switches;
-    uint32 saved_dctrl = sim_timer_dev.dctrl;
+    int32_t saved_deb_switches = sim_deb_switches;
+    uint32_t saved_dctrl = sim_timer_dev.dctrl;
     char *debug_text;
     char *text = NULL;
     size_t text_size = 0;

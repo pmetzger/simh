@@ -32,6 +32,7 @@
 
 */
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "multibus_defs.h"
@@ -44,10 +45,10 @@
 /* function prototypes */
 
 t_stat RAM_svc (UNIT *uptr);
-t_stat RAM_set_size (UNIT *uptr, int32 val, char *cptr, void *desc);
+t_stat RAM_set_size (UNIT *uptr, int32_t val, char *cptr, void *desc);
 t_stat RAM_reset (DEVICE *dptr);
-int32 RAM_get_mbyte(int32 addr);
-void RAM_put_mbyte(int32 addr, int32 val);
+int32_t RAM_get_mbyte(int32_t addr);
+void RAM_put_mbyte(int32_t addr, int32_t val);
 
 /* SIMH RAM Standard I/O Data Structures */
 
@@ -96,13 +97,13 @@ DEVICE RAM_dev = {
 
 /* global variables */
 
-uint8 *RAM_buf = NULL;                                  /* RAM buffer pointer */
+uint8_t *RAM_buf = NULL;                                /* RAM buffer pointer */
 
 /* RAM functions */
 
 /* RAM set size = none or 16KB */
 
-t_stat RAM_set_size (UNIT *uptr, int32 val, char *cptr, void *desc)
+t_stat RAM_set_size (UNIT *uptr, int32_t val, char *cptr, void *desc)
 {
     if (RAM_dev.dctrl & DEBUG_flow)
         sim_printf("RAM_set_size: val=%d\n", val);
@@ -161,9 +162,9 @@ t_stat RAM_reset (DEVICE *dptr)
 
 /*  get a byte from memory */
 
-int32 RAM_get_mbyte(int32 addr)
+int32_t RAM_get_mbyte(int32_t addr)
 {
-    int32 val, org, len;
+    int32_t val, org, len;
 
     org = RAM_unit.u3;
     len = RAM_unit.capac - 1;
@@ -182,9 +183,9 @@ int32 RAM_get_mbyte(int32 addr)
 
 /*  put a byte to memory */
 
-void RAM_put_mbyte(int32 addr, int32 val)
+void RAM_put_mbyte(int32_t addr, int32_t val)
 {
-    int32 org, len;
+    int32_t org, len;
 
     org = RAM_unit.u3;
     len = RAM_unit.capac - 1;

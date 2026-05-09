@@ -125,6 +125,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -225,7 +227,7 @@ typedef struct {
 
 static CARD_STATE tty;                          /* per-card state */
 
-static int32 fast_data_time = TTY_FAST_TIME;    /* fast receive/send time */
+static int32_t fast_data_time = TTY_FAST_TIME;  /* fast receive/send time */
 
 
 /* TTY I/O interface routine declarations */
@@ -235,12 +237,12 @@ static INTERFACE tty_interface;
 
 /* TTY local SCP support routine declarations */
 
-static t_stat set_filter (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat set_auto   (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat set_mode   (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat set_endis  (UNIT *uptr, int32 value, const char *cptr, void *desc);
+static t_stat set_filter (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat set_auto   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat set_mode   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat set_endis  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
-static t_stat show_mode (FILE *st, UNIT *uptr, int32 value, const void *desc);
+static t_stat show_mode (FILE *st, UNIT *uptr, int32_t value, const void *desc);
 
 static t_stat tty_reset (DEVICE *dptr);
 
@@ -249,7 +251,7 @@ static t_stat tty_reset (DEVICE *dptr);
 
 static t_stat keyboard_service    (UNIT *uptr);
 static t_stat print_punch_service (UNIT *uptr);
-static t_stat output              (int32 character);
+static t_stat output              (int32_t character);
 
 
 /* TTY SCP data declarations */
@@ -597,7 +599,7 @@ return outbound;                                        /* return the outbound s
    valid for the keyboard and is changed to mode 7B (7 bit) if specified.
 */
 
-static t_stat set_filter (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat set_filter (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -628,7 +630,7 @@ else {
    reverts to normal keyboard operation.
 */
 
-static t_stat set_auto (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat set_auto (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -652,7 +654,7 @@ else                                                    /* otherwise auto LF mod
    not used.
 */
 
-static t_stat set_mode (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat set_mode (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -685,7 +687,7 @@ return SCPE_OK;                                         /* mode changes always s
    poll, as appropriate.
 */
 
-static t_stat set_endis (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat set_endis (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -717,7 +719,7 @@ return tty_reset (&tty_dev);                            /* reset the TTY and res
    stream is passed in the "st" parameter, and the other parameters are ignored.
 */
 
-static t_stat show_mode (FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat show_mode (FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -852,11 +854,11 @@ else {                                                  /* otherwise */
         }
 
     else {                                              /* otherwise */
-        input = (char) sim_tt_inpcvt ((int32) status,   /*   convert the character using the input mode */
+        input = (char) sim_tt_inpcvt ((int32_t) status, /*   convert the character using the input mode */
                                       TT_GET_MODE (uptr->flags));
 
         tprintf (tty_dev, TRACE_XFER, "Character %s entered at keyboard\n",
-                 fmt_char ((uint32) input));
+                 fmt_char ((uint32_t) input));
         }
     }
 
@@ -872,7 +874,7 @@ if (tty.mode & CN_INPUT) {                              /* if the card is set fo
     io_assert (&tty_dev, ioa_ENF);                      /*   and the flag */
 
     if (tty.mode & (CN_PRINT | CN_PUNCH))               /* if the printer or punch is enabled */
-        status = output ((int32) input);                /*   then scho the received character */
+        status = output ((int32_t) input);              /*   then scho the received character */
     else                                                /* otherwise */
         status = SCPE_OK;                               /*    silently indicate success */
     }
@@ -907,7 +909,7 @@ t_stat status;
 
 tprintf (tty_dev, TRACE_SERV, "Printer and punch service entered\n");
 
-status = output ((int32) tty.io_data);                  /* output the character if enabled */
+status = output ((int32_t) tty.io_data);                /* output the character if enabled */
 
 if (status == SCPE_OK) {                                /* if the output succeeded */
     tty.io_data = tty.shift_in_data;                    /*   then shift the input line data into the buffer */
@@ -966,9 +968,9 @@ else {                                                  /* otherwise an error oc
    printed.  The simulator follows this behavior.
 */
 
-static t_stat output (int32 character)
+static t_stat output (int32_t character)
 {
-int32  print_char;
+int32_t print_char;
 t_stat status = SCPE_OK;
 
 if (tty.mode & CN_PUNCH                                             /* if punching is enabled */
@@ -985,7 +987,7 @@ if (tty.mode & CN_PUNCH                                             /* if punchi
         punch_unit.pos = ftell (punch_unit.fileref);    /*   so update the file position */
 
         tprintf (tty_dev, TRACE_XFER, "Data %03o character %s sent to punch\n",
-                 character, fmt_char ((uint32) character));
+                 character, fmt_char ((uint32_t) character));
         }
 
 if (tty.mode & CN_PRINT                                 /* if printing is enabled */
@@ -1001,13 +1003,13 @@ if (tty.mode & CN_PRINT                                 /* if printing is enable
             print_unit.pos = print_unit.pos + 1;        /*   then update the file position */
 
             tprintf (tty_dev, TRACE_XFER, "Character %s sent to printer\n",
-                     fmt_char ((uint32) print_char));
+                     fmt_char ((uint32_t) print_char));
             }
         }
 
     else                                                /* otherwise the character was filtered out */
         tprintf (tty_dev, TRACE_XFER, "Character %s discarded by output filter\n",
-                 fmt_char ((uint32) character));
+                 fmt_char ((uint32_t) character));
     }
 
 return status;                                          /* return the status of the operation */

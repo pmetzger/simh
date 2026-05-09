@@ -24,8 +24,9 @@
 #include "i7090_defs.h"
 #include "sim_card.h"
 #include <ctype.h>
+#include <stdint.h>
 
-t_stat  parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw);
+t_stat  parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw);
 
 /* SCP data structures and interface routines
 
@@ -41,7 +42,7 @@ char                sim_name[] = "IBM 701";
 
 REG                *sim_PC = &cpu_reg[0];
 
-int32               sim_emax = 1;
+int32_t             sim_emax = 1;
 
 DEVICE             *sim_devices[] = {
     &cpu_dev,
@@ -130,8 +131,8 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
     (void)cptr;
     (void)flag;
 
-    t_uint64            wd;
-    t_uint64            mask;
+    uint64_t            wd;
+    uint64_t            mask;
     int                 addr = 0;
     int                 dlen = 0;
     char               *p;
@@ -139,8 +140,8 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
 
     if (match_ext(fnam, "crd")) {
         int                 firstcard = 1;
-        uint16              cbuf[80];
-        t_uint64            lbuff[24];
+        uint16_t            cbuf[80];
+        uint64_t            lbuff[24];
         int                 i;
 
         while (sim_fread(cbuf, 2, 80, fileref) == 80) {
@@ -214,7 +215,7 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              opbase;
+    uint16_t            opbase;
     const char          *name;
 }
 t_opcode;
@@ -319,14 +320,14 @@ void sys_init(void) {
 */
 
 t_stat
-fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32 sw)
+fprint_sym(FILE * of, t_addr addr, t_value * val, UNIT * uptr, int32_t sw)
 {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
     (void)addr;
     (void)uptr;
 
-    t_uint64            inst = *val;
+    uint64_t            inst = *val;
 
 /* Print value in octal first */
     fputc(' ', of);
@@ -405,7 +406,7 @@ find_opcode(char *op, t_opcode * tab)
 */
 
 t_stat
-parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
+parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
 {
     /* Generic symbolic input signature.
        This implementation does not use every parameter. */
@@ -435,7 +436,7 @@ next:
         cptr = get_glyph(cptr, opcode, ',');
 
         if ((op = find_opcode(opcode, base_ops)) != 0) {
-            d |= (t_uint64) op->opbase << 12;
+            d |= (uint64_t) op->opbase << 12;
         } else {
             return STOP_UUO;
         }

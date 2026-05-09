@@ -29,6 +29,8 @@
    26-Dec-2012  MB      First Version
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 /* SBIA registers */
@@ -72,22 +74,22 @@
 
 #define SBIQC_MBZ       0xC0000007                      /* MBZ */
 
-extern uint32 nexus_req[NEXUS_HLVL];                    /* nexus int req */
-uint32 sbi_fs = 0;                                      /* SBI fault status */
-uint32 sbi_sc = 0;                                      /* SBI silo comparator */
-uint32 sbi_mt = 0;                                      /* SBI maintenance */
-uint32 sbi_er = 0;                                      /* SBI error status */
-uint32 sbi_tmo = 0;                                     /* SBI timeout addr */
-uint32 sbi_csr = 0;                                     /* SBI control/status */
+extern uint32_t nexus_req[NEXUS_HLVL];                  /* nexus int req */
+uint32_t sbi_fs = 0;                                    /* SBI fault status */
+uint32_t sbi_sc = 0;                                    /* SBI silo comparator */
+uint32_t sbi_mt = 0;                                    /* SBI maintenance */
+uint32_t sbi_er = 0;                                    /* SBI error status */
+uint32_t sbi_tmo = 0;                                   /* SBI timeout addr */
+uint32_t sbi_csr = 0;                                   /* SBI control/status */
 
 t_stat sbia_reset (DEVICE *dptr);
 const char *sbia_description (DEVICE *dptr);
-void sbi_set_tmo (int32 pa);
-t_stat (*nexusR[NEXUS_NUM])(int32 *dat, int32 ad, int32 md);
-t_stat (*nexusW[NEXUS_NUM])(int32 dat, int32 ad, int32 md);
+void sbi_set_tmo (int32_t pa);
+t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
+t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
 
-extern int32 intexc (int32 vec, int32 cc, int32 ipl, int ei);
-extern int32 eval_int (void);
+extern int32_t intexc (int32_t vec, int32_t cc, int32_t ipl, int ei);
+extern int32_t eval_int (void);
 
 /* SBIA data structures
 
@@ -121,13 +123,13 @@ DEVICE sbia_dev = {
     &sbia_description
     };
 
-int32 sbia_rd (int32 pa, int32 lnt)
+int32_t sbia_rd (int32_t pa, int32_t lnt)
 {
     /* Register dispatch signature.
        This implementation does not use every parameter. */
     (void) lnt;
 
-    int32 rg = (pa >> 2) & 0x1F;
+    int32_t rg = (pa >> 2) & 0x1F;
 
     switch (rg) {
     case 0:                                             /* SBICNF */
@@ -170,13 +172,13 @@ int32 sbia_rd (int32 pa, int32 lnt)
     }
 }
 
-void sbia_wr (int32 pa, int32 val, int32 lnt)
+void sbia_wr (int32_t pa, int32_t val, int32_t lnt)
 {
     /* Register dispatch signature.
        This implementation does not use every parameter. */
     (void) lnt;
 
-    int32 rg = (pa >> 2) & 0x1F;
+    int32_t rg = (pa >> 2) & 0x1F;
 
     switch (rg) {
     case 0:                                             /* SBICNF */
@@ -231,9 +233,9 @@ void sbia_wr (int32 pa, int32 val, int32 lnt)
 return;
 }
 
-t_stat sbi_rd (int32 pa, int32 *val, int32 lnt)
+t_stat sbi_rd (int32_t pa, int32_t *val, int32_t lnt)
 {
-int32 nexus;
+int32_t nexus;
 
 nexus = NEXUS_GETNEX (pa);                          /* get nexus */
 if ((sbi_csr & SBICSR_SCOEN) &&                     /* SBI en? */
@@ -246,9 +248,9 @@ else sbi_set_tmo (pa);                              /* timeout */
 return SCPE_NXM;
 }
 
-t_stat sbi_wr (int32 pa, int32 val, int32 lnt)
+t_stat sbi_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 nexus;
+int32_t nexus;
 
 nexus = NEXUS_GETNEX (pa);                          /* get nexus */
 if ((sbi_csr & SBICSR_SCOEN) &&                     /* SBI en? */
@@ -263,7 +265,7 @@ return SCPE_NXM;
 
 /* Set SBI timeout - machine checks only on reads */
 
-void sbi_set_tmo (int32 pa)
+void sbi_set_tmo (int32_t pa)
 {
 if ((sbi_er & SBIER_TMO) == 0) {                        /* not yet set? */
     sbi_tmo = pa >> 2;                                  /* save addr */
@@ -314,7 +316,7 @@ return "SBI adapter";
 
 /* Show nexus */
 
-t_stat show_nexus (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_nexus (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -329,7 +331,7 @@ return SCPE_OK;
 
 void init_nexus_tab (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NEXUS_NUM; i++) {
     nexusR[i] = NULL;
@@ -349,7 +351,7 @@ return;
 
 t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 
 if ((dptr == NULL) || (dibp == NULL))
     return SCPE_IERR;

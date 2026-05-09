@@ -34,8 +34,11 @@
    of junk.  File marks are represented by a byte count of 0.
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_tape.h"
+#include "sim_types.h"
 
 #ifndef NUM_DEVS_MTC
 #define NUM_DEVS_MTC 0
@@ -149,26 +152,26 @@
 #define CPOS            u5        /* Character position */
 #define BPOS            u6        /* Position in buffer */
 
-t_stat         mtc_devio(uint32 dev, uint64 *data);
+t_stat         mtc_devio(uint32_t dev, uint64 *data);
 void           mtc_checkirq(UNIT * uptr);
 t_stat         mtc_srv(UNIT *);
-t_stat         mtc_boot(int32, DEVICE *);
+t_stat         mtc_boot(int32_t, DEVICE *);
 t_stat         mtc_reset(DEVICE *);
-t_stat         mtc_set_dct (UNIT *, int32, const char *, void *);
-t_stat         mtc_show_dct (FILE *, UNIT *, int32, const void *);
+t_stat         mtc_set_dct (UNIT *, int32_t, const char *, void *);
+t_stat         mtc_show_dct (FILE *, UNIT *, int32_t, const void *);
 t_stat         mtc_attach(UNIT *, const char *);
 t_stat         mtc_detach(UNIT *);
-t_stat         mtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat         mtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                   const char *cptr);
 const char     *mtc_description (DEVICE *dptr);
 
-uint16          mtc_pia;
-uint8           mtc_sel_unit;
-uint32          mtc_hold_cmd;
-uint32          mtc_status;
+uint16_t        mtc_pia;
+uint8_t         mtc_sel_unit;
+uint32_t        mtc_hold_cmd;
+uint32_t        mtc_status;
 int             mtc_dct;  /* DCT Channel and unit */
 
-static uint8    parity_table[64] = {
+static uint8_t  parity_table[64] = {
     /* 0    1    2    3    4    5    6    7 */
     0000, 0100, 0100, 0000, 0100, 0000, 0000, 0100,
     0100, 0000, 0000, 0100, 0000, 0100, 0100, 0000,
@@ -182,7 +185,7 @@ static uint8    parity_table[64] = {
 
 
 /* One buffer per channel */
-uint8               mtc_buffer[BUFFSIZE];
+uint8_t             mtc_buffer[BUFFSIZE];
 
 #if !PDP6
 #define D DEV_DIS
@@ -232,7 +235,7 @@ DEVICE              mtc_dev = {
 };
 
 t_stat
-mtc_devio(uint32 dev, uint64 *data) {
+mtc_devio(uint32_t dev, uint64 *data) {
       uint64     res;
       DEVICE    *dptr = &mtc_dev;
       UNIT      *uptr;
@@ -250,7 +253,7 @@ mtc_devio(uint32 dev, uint64 *data) {
 
            case CONO:
               clr_interrupt(MTC_DEVCTL);
-              mtc_pia = (uint16)(*data) & (FLAG_PIA);
+              mtc_pia = (uint16_t)(*data) & (FLAG_PIA);
               mtc_hold_cmd = (*data & CMD_MASK);
               sim_debug(DEBUG_CONO, dptr, "MTC CONO %03o start %o %o%012llo PC=%06o\n",
                             dev, mtc_sel_unit, mtc_pia, *data, PC);
@@ -390,11 +393,11 @@ t_stat
 mtc_srv(UNIT * uptr)
 {
     DEVICE             *dptr = find_dev_from_unit(uptr);
-    unsigned int        unit = (uptr - dptr->units) & 7;
+    uint_t              unit = (uptr - dptr->units) & 7;
     int                 cmd = (uptr->CNTRL & FUNCTION) >> 8;
     t_mtrlnt            reclen;
     t_stat              r = SCPE_ARG;   /* Force error if not set */
-    uint8               ch;
+    uint8_t             ch;
     int                 cc;
     uint64              hold_reg;
     int                 cc_max;
@@ -418,7 +421,7 @@ mtc_srv(UNIT * uptr)
 
         /* Check if command pending */
         if ((mtc_hold_cmd & CMD_FULL) != 0) {
-            unsigned int u = (mtc_hold_cmd >> 4) & 07;
+            uint_t u = (mtc_hold_cmd >> 4) & 07;
             sim_debug(DEBUG_DETAIL, dptr, "MTC%o New command %o\n", unit, u);
             /* Is it for me? */
             if (u == unit) {
@@ -545,7 +548,7 @@ mtc_srv(UNIT * uptr)
                  else
                      hold_reg |= (uint64)(ch & 0xff) << cc;
              }
-             if ((uint32)uptr->BPOS == 0)
+             if ((uint32_t)uptr->BPOS == 0)
                  break;
              uptr->BPOS--;
          }
@@ -578,7 +581,7 @@ mtc_srv(UNIT * uptr)
          }
          hold_reg = 0;
          for (i = 0; i < cc_max; i++) {
-             if ((uint32)uptr->BPOS >= uptr->hwmark)
+             if ((uint32_t)uptr->BPOS >= uptr->hwmark)
                  break;
              ch = mtc_buffer[uptr->BPOS];
              if (uptr->flags & MTUF_7TRK) {
@@ -598,7 +601,7 @@ mtc_srv(UNIT * uptr)
              uptr->BPOS++;
          }
          sim_debug(DEBUG_DETAIL, dptr, "MTC%o read data %012llo\n", unit, hold_reg);
-         if (dct_write(mtc_dct, &hold_reg, i) == 0 ||(uint32)uptr->BPOS >= uptr->hwmark) {
+         if (dct_write(mtc_dct, &hold_reg, i) == 0 ||(uint32_t)uptr->BPOS >= uptr->hwmark) {
              uptr->CNTRL &= ~(MTC_BUSY);
              mtc_status |= EOR_FLAG;
              mtc_checkirq(uptr);
@@ -630,7 +633,7 @@ mtc_srv(UNIT * uptr)
              uptr->BPOS = 0;
              break;
          }
-         if (uptr->BPOS >= (int32)uptr->hwmark) {
+         if (uptr->BPOS >= (int32_t)uptr->hwmark) {
              uptr->CNTRL &= ~(MTC_BUSY);
          } else if (dct_read(mtc_dct, &hold_reg, cc_max)) {
              for(i = 0; i < cc_max; i++) {
@@ -814,7 +817,7 @@ mtc_read_word(UNIT *uptr) {
 
 /* Boot from given device */
 t_stat
-mtc_boot(int32 unit_num, DEVICE * dptr)
+mtc_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
     t_mtrlnt            reclen;
@@ -841,7 +844,7 @@ mtc_boot(int32 unit_num, DEVICE * dptr)
     while (wc != 0) {
         wc = (wc + 1) & RMASK;
         addr = (addr + 1) & RMASK;
-        if ((uint32)uptr->BPOS >= uptr->hwmark) {
+        if ((uint32_t)uptr->BPOS >= uptr->hwmark) {
             r = sim_tape_rdrecf(uptr, &mtc_buffer[0], &reclen, BUFFSIZE);
             if (r != SCPE_OK)
                 return r;
@@ -888,7 +891,7 @@ mtc_reset(DEVICE * dptr)
 
 /* set DCT channel and unit. */
 t_stat
-mtc_set_dct (UNIT *uptr, int32 val, const char *cptr, void *desc)
+mtc_set_dct (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -896,12 +899,12 @@ mtc_set_dct (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 dct;
+    int32_t dct;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    dct = (int32) get_uint (cptr, 8, 20, &r);
+    dct = (int32_t) get_uint (cptr, 8, 20, &r);
     if (r != SCPE_OK)
         return r;
     mtc_dct = dct;
@@ -909,7 +912,7 @@ mtc_set_dct (UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-mtc_show_dct (FILE *st, UNIT *uptr, int32 val, const void *desc)
+mtc_show_dct (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
    /* Generic show modifier signature.
       This implementation does not use every parameter. */
@@ -939,7 +942,7 @@ mtc_detach(UNIT * uptr)
 }
 
 t_stat
-mtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+mtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "Type 516 Magnetic Tape\n\n");
 fprint_set_help (st, dptr);

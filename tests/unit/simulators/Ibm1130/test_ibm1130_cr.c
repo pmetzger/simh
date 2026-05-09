@@ -21,51 +21,52 @@
 
 #include "ibm1130_defs.h"
 #include "ibm1130_fmt.h"
+#include "sim_types.h"
 
 UNIT cpu_unit = {0};
 bool cgi = false;
 bool cgiwritable = false;
 bool sim_gui = false;
-uint16 M[MAXMEMSIZE] = {0};
-uint16 ILSW[6] = {0};
-int32 IAR = 0;
-int32 prev_IAR = 0;
-int32 SAR = 0;
-int32 SBR = 0;
-int32 OP = 0;
-int32 TAG = 0;
-int32 CCC = 0;
-int32 CES = 0;
-int32 ACC = 0;
-int32 EXT = 0;
-int32 ARF = 0;
-int32 RUNMODE = 0;
-int32 ipl = 0;
-int32 iplpending = 0;
-int32 tbit = 0;
-int32 V = 0;
-int32 C = 0;
-int32 wait_state = 0;
-int32 wait_lamp = 0;
-int32 int_req = 0;
-int32 int_lamps = 0;
-int32 int_mask = 0;
-int32 mem_mask = MAXMEMSIZE - 1;
-int32 cpu_dsw = 0;
-int32 con_dsw = 0;
+uint16_t M[MAXMEMSIZE] = {0};
+uint16_t ILSW[6] = {0};
+int32_t IAR = 0;
+int32_t prev_IAR = 0;
+int32_t SAR = 0;
+int32_t SBR = 0;
+int32_t OP = 0;
+int32_t TAG = 0;
+int32_t CCC = 0;
+int32_t CES = 0;
+int32_t ACC = 0;
+int32_t EXT = 0;
+int32_t ARF = 0;
+int32_t RUNMODE = 0;
+int32_t ipl = 0;
+int32_t iplpending = 0;
+int32_t tbit = 0;
+int32_t V = 0;
+int32_t C = 0;
+int32_t wait_state = 0;
+int32_t wait_lamp = 0;
+int32_t int_req = 0;
+int32_t int_lamps = 0;
+int32_t int_mask = 0;
+int32_t mem_mask = MAXMEMSIZE - 1;
+int32_t cpu_dsw = 0;
+int32_t con_dsw = 0;
 bool running = false;
 bool power = false;
 t_stat reason = SCPE_OK;
 
 static t_stat test_break_reason = SCPE_OK;
 
-int32 ReadW(int32 a)
+int32_t ReadW(int32_t a)
 {
     (void)a;
     return 0;
 }
 
-void WriteW(int32 a, int32 d)
+void WriteW(int32_t a, int32_t d)
 {
     (void)a;
     (void)d;
@@ -105,11 +106,11 @@ const char *saywhere(int addr)
 int strnicmp(const char *a, const char *b, size_t n)
 {
     while (n-- != 0) {
-        unsigned char ca = (unsigned char)*a++;
-        unsigned char cb = (unsigned char)*b++;
+        uchar_t ca = (uchar_t)*a++;
+        uchar_t cb = (uchar_t)*b++;
 
-        ca = (unsigned char)tolower(ca);
-        cb = (unsigned char)tolower(cb);
+        ca = (uchar_t)tolower(ca);
+        cb = (uchar_t)tolower(cb);
         if (ca != cb)
             return ca - cb;
         if (ca == '\0')
@@ -124,7 +125,7 @@ char *upcase(char *str)
     char *p;
 
     for (p = str; *p != '\0'; p++)
-        *p = (char)toupper((unsigned char)*p);
+        *p = (char)toupper((uchar_t)*p);
 
     return str;
 }

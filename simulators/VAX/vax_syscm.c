@@ -31,6 +31,8 @@
    15-Sep-04    RMS     Cloned from pdp11_sys.c
 */
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 /* Symbol tables */
@@ -65,7 +67,7 @@
 #define I_CCS           (I_V_CCS << I_V_CL)
 #define I_SOPR          (I_V_SOPR << I_V_CL)
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
  0177777, 0177770, 0177700, 0177770,
  0177000, 0177400, 0177700, 0177000,
  0177400, 0170000, 0177777, 0177777,
@@ -127,7 +129,7 @@ static const char *cm_opcode[] = {
 NULL
 };
 
-static const int32 opc_val[] = {
+static const int32_t opc_val[] = {
 0000000+I_NPN, 0000001+I_NPN, 0000002+I_NPN, 0000003+I_NPN,
 0000004+I_NPN, 0000005+I_NPN, 0000006+I_NPN, 0000007+I_NPN,
 0000100+I_SOP, 0000200+I_REG, 0000230+I_3B,
@@ -201,11 +203,11 @@ static const char r50_to_asc[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ$._0123456789";
         count   =       -number of extra words retired
 */
 
-static int32 fprint_spec (FILE *of, t_addr addr, int32 spec, int32 nval)
+static int32_t fprint_spec (FILE *of, t_addr addr, int32_t spec, int32_t nval)
 {
-int32 reg, mode;
-static const int32 rgwd[8] = { 0, 0, 0, 0, 0, 0, -1, -1 };
-static const int32 pcwd[8] = { 0, 0, -1, -1, 0, 0, -1, -1 };
+int32_t reg, mode;
+static const int32_t rgwd[8] = { 0, 0, 0, 0, 0, 0, -1, -1 };
+static const int32_t pcwd[8] = { 0, 0, -1, -1, 0, 0, -1, -1 };
 
 reg = spec & 07;
 mode = ((spec >> 3) & 07);
@@ -242,13 +244,13 @@ switch (mode) {
     case 6:
         if (reg != 7)
             fprintf (of, "%-X(%s)", nval, rname[reg]);
-        else fprintf (of, "%-X", (int32)((nval + addr + 4) & 0177777));
+        else fprintf (of, "%-X", (int32_t)((nval + addr + 4) & 0177777));
         break;
 
     case 7:
         if (reg != 7)
             fprintf (of, "@%-X(%s)", nval, rname[reg]);
-        else fprintf (of, "@%-X", (int32)((nval + addr + 4) & 0177777));
+        else fprintf (of, "@%-X", (int32_t)((nval + addr + 4) & 0177777));
         break;
         }                                               /* end case */
 
@@ -268,14 +270,14 @@ return ((reg == 07)? pcwd[mode]: rgwd[mode]);
                         if < 0, number of extra words retired
 */
 
-t_stat fprint_sym_cm (FILE *of, t_addr addr, t_value *bytes, int32 sw)
+t_stat fprint_sym_cm (FILE *of, t_addr addr, t_value *bytes, int32_t sw)
 {
-int32 i, j, c1, c2, c3, inst, srcm, srcr, dstm, dstr;
-int32 l8b, brdisp, wd1;
-uint32 val[3];
+int32_t i, j, c1, c2, c3, inst, srcm, srcr, dstm, dstr;
+int32_t l8b, brdisp, wd1;
+uint32_t val[3];
 
 for (i = j = 0; i < 3; i++, j = j + 2)
-    val[i] = (int32) (bytes[j] | (bytes[j + 1] << 8));
+    val[i] = (int32_t) (bytes[j] | (bytes[j + 1] << 8));
 
 if (sw & SWMASK ('R')) {                                /* radix 50? */
     if (val[0] > 0174777)                               /* max value */
@@ -326,7 +328,7 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
             case I_V_BR:                                /* cond branch */
                 fprintf (of, "%s ", cm_opcode[i]);
                 brdisp = (l8b + l8b + ((l8b & 0200)? 0177002: 2)) & 0177777;
-                fprintf (of, "%-X", (int32)((addr + brdisp) & 0177777));
+                fprintf (of, "%-X", (int32_t)((addr + brdisp) & 0177777));
                 break;
 
             case I_V_8B:                                /* 8b */
@@ -336,7 +338,7 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
             case I_V_SOB:                               /* sob */
                 fprintf (of, "%s %s,", cm_opcode[i], rname[srcr]);
                 brdisp = (dstm * 2) - 2;
-                fprintf (of, "%-X", (int32)((addr - brdisp) & 0177777));
+                fprintf (of, "%-X", (int32_t)((addr - brdisp) & 0177777));
                 break;
 
             case I_V_RSOP:                              /* rsop */
@@ -383,9 +385,9 @@ return SCPE_ARG;                                        /* no match */
                         < 0 if error
 */
 
-static int32 get_reg (char *cptr, char mchar)
+static int32_t get_reg (char *cptr, char mchar)
 {
-int32 i;
+int32_t i;
 
 if (*(cptr + 2) != mchar)
     return -1;
@@ -409,9 +411,9 @@ return -1;
    Flags: 0 (no result), A_NUM (number), A_REL (relative)
 */
 
-static char *get_addr (char *cptr, int32 *dptr, int32 *pflag)
+static char *get_addr (char *cptr, int32_t *dptr, int32_t *pflag)
 {
-int32 val, minus;
+int32_t val, minus;
 char *tptr;
 
 minus = 0;
@@ -459,9 +461,9 @@ return tptr;
                         = +1 error
 */
 
-static t_stat get_spec (char *cptr, int32 addr, int32 n1, int32 *sptr, int32 *dptr)
+static t_stat get_spec (char *cptr, int32_t addr, int32_t n1, int32_t *sptr, int32_t *dptr)
 {
-int32 reg, indir, pflag, disp = 0;
+int32_t reg, indir, pflag, disp = 0;
 
 indir = 0;                                              /* no indirect */
 pflag = 0;
@@ -560,11 +562,11 @@ switch (pflag) {                                        /* case on syntax */
                         <= 0  -number of extra words
 */
 
-t_stat parse_sym_cm (const char *cptr, t_addr addr, t_value *bytes, int32 sw)
+t_stat parse_sym_cm (const char *cptr, t_addr addr, t_value *bytes, int32_t sw)
 {
-int32 d, i, j, reg, spec, n1, n2, disp, pflag;
-int32 val[3];
-int32 ad32 = (int32) addr;
+int32_t d, i, j, reg, spec, n1, n2, disp, pflag;
+int32_t val[3];
+int32_t ad32 = (int32_t) addr;
 t_stat r;
 char *tptr, gbuf[CBUFSIZE];
 
@@ -595,7 +597,7 @@ switch (j) {                                            /* case on class */
 
     case I_V_3B: case I_V_6B: case I_V_8B:              /* xb literal */
         cptr = get_glyph (cptr, gbuf, 0);               /* get literal */
-        d = (int32) get_uint (gbuf, 16, (1 << j) - 1, &r);
+        d = (int32_t) get_uint (gbuf, 16, (1 << j) - 1, &r);
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | d;                            /* put in place */

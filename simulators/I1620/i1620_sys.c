@@ -31,6 +31,7 @@
 #include "i1620_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define LINE_LNT        50
 
@@ -41,7 +42,7 @@ extern DEVICE cdr_dev, cdp_dev;
 extern DEVICE dp_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint8 M[MAXMEMSIZE];
+extern uint8_t M[MAXMEMSIZE];
 
 /* SCP data structures and interface routines
 
@@ -57,7 +58,7 @@ char sim_name[] = "IBM 1620";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = LINE_LNT;
+int32_t sim_emax = LINE_LNT;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -130,11 +131,11 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
    This implementation does not use every parameter. */
 (void) fnam;
 
-uint32 col, mask, cctbuf[CCT_LNT];
-int32 ptr, rpt;
+uint32_t col, mask, cctbuf[CCT_LNT];
+int32_t ptr, rpt;
 t_stat r;
-extern int32 cct_lnt, cct_ptr;
-extern uint32 cct[CCT_LNT];
+extern int32_t cct_lnt, cct_ptr;
+extern uint32_t cct[CCT_LNT];
 char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
 
 if ((*cptr != 0) || (flag != 0))
@@ -175,8 +176,8 @@ return SCPE_OK;
 
 struct opc {
     const char          *str;                           /* mnemonic */
-    uint32              opv;                            /* opcode & flags */
-    uint32              qv;                             /* q field */
+    uint32_t            opv;                            /* opcode & flags */
+    uint32_t            qv;                             /* q field */
     };
 
 #define I_V_FL          16                              /* flags */
@@ -285,9 +286,9 @@ struct opc opcode[] = {
 
 /* Print an address from five characters */
 
-static void fprint_addr (FILE *of, int32 spc, t_value *dig, bool flg)
+static void fprint_addr (FILE *of, int32_t spc, t_value *dig, bool flg)
 {
-int32 i, idx;
+int32_t i, idx;
 
 fputc (spc, of);                                        /* spacer */
 if (dig[ADDR_LEN - 1] & FLAG) {                         /* signed? */
@@ -319,9 +320,9 @@ return;
         *fl     =       opcode flags (optional)
 */
 
-const char *opc_lookup (uint32 op, uint32 qv, uint32 *fl)
+const char *opc_lookup (uint32_t op, uint32_t qv, uint32_t *fl)
 {
-uint32 i, opfl;
+uint32_t i, opfl;
 
 for (i = 0; opcode[i].str != NULL; i++) {               /* find opcode */
     opfl = opcode[i].opv & 0xFF0000;                    /* get flags */
@@ -352,10 +353,10 @@ return NULL;
 #define FMTASC(x) ((x) < 040)? "<%03o>": "%c", (x)
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 pmp, qmp, i, c, d, any;
-uint32 op, qv, opfl;
+int32_t pmp, qmp, i, c, d, any;
+uint32_t op, qv, opfl;
 const char *opstr;
 
 if (uptr == NULL)
@@ -454,10 +455,10 @@ return -(INST_LEN - 1);
 
 /* parse_addr - get sign + address + index */
 
-static t_stat parse_addr (char *cptr, t_value *val, int32 flg)
+static t_stat parse_addr (char *cptr, t_value *val, int32_t flg)
 {
-int32 i, sign = 0, addr, index;
-static int32 idx_tst[ADDR_LEN] = { 0, 4, 2, 1, 0 };
+int32_t i, sign = 0, addr, index;
+static int32_t idx_tst[ADDR_LEN] = { 0, 4, 2, 1, 0 };
 char *tptr;
 
 if (*cptr == '+')                                       /* +? skip */
@@ -506,11 +507,11 @@ return SCPE_OK;
                         <= 0  -number of extra words
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 i, qv, opfl, last;
+int32_t i, qv, opfl, last;
 char la, *fptr, gbuf[CBUFSIZE];
-int8 t;
+int8_t t;
 
 while (isspace (*cptr))                                 /* absorb spaces */
     cptr++;

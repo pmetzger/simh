@@ -97,6 +97,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp10_defs.h"
 #include "sim_tape.h"
 
@@ -302,33 +304,33 @@
                             break; \
                             }
 
-extern int32 ubmap[UBANUM][UMAP_MEMSIZE];               /* Unibus map */
-extern int32 ubcs[UBANUM];
+extern int32_t ubmap[UBANUM][UMAP_MEMSIZE];             /* Unibus map */
+extern int32_t ubcs[UBANUM];
 
-int32 tucs1 = 0;                                        /* control/status 1 */
-int32 tuwc = 0;                                         /* word count */
-int32 tuba = 0;                                         /* bus address */
-int32 tufc = 0;                                         /* frame count */
-int32 tucs2 = 0;                                        /* control/status 2 */
-int32 tufs = 0;                                         /* formatter status */
-int32 tuer = 0;                                         /* error status */
-int32 tucc = 0;                                         /* check character */
-int32 tudb = 0;                                         /* data buffer */
-int32 tumr = 0;                                         /* maint register */
-int32 tutc = 0;                                         /* tape control */
-int32 tuiff = 0;                                        /* INTR flip/flop */
-int32 tu_time = 10;                                     /* record latency */
-int32 tu_stopioe = 1;                                   /* stop on error */
-int32 tu_log = 0;                                       /* debug */
-int32 reg_in_fmtr[32] = {                               /* reg in formatter */
+int32_t tucs1 = 0;                                      /* control/status 1 */
+int32_t tuwc = 0;                                       /* word count */
+int32_t tuba = 0;                                       /* bus address */
+int32_t tufc = 0;                                       /* frame count */
+int32_t tucs2 = 0;                                      /* control/status 2 */
+int32_t tufs = 0;                                       /* formatter status */
+int32_t tuer = 0;                                       /* error status */
+int32_t tucc = 0;                                       /* check character */
+int32_t tudb = 0;                                       /* data buffer */
+int32_t tumr = 0;                                       /* maint register */
+int32_t tutc = 0;                                       /* tape control */
+int32_t tuiff = 0;                                      /* INTR flip/flop */
+int32_t tu_time = 10;                                   /* record latency */
+int32_t tu_stopioe = 1;                                 /* stop on error */
+int32_t tu_log = 0;                                     /* debug */
+int32_t reg_in_fmtr[32] = {                             /* reg in formatter */
     0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     };
-int32 reg_in_fmtr1[32] = {                              /* rmr if write + go */
+int32_t reg_in_fmtr1[32] = {                            /* rmr if write + go */
     0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     };
-int32 fmt_test[16] = {                                  /* fmt bytes/10 wd */
+int32_t fmt_test[16] = {                                /* fmt bytes/10 wd */
     5, 0, 5, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
 static const char *tu_fname[CS1_N_FNC] = {
@@ -337,19 +339,19 @@ static const char *tu_fname[CS1_N_FNC] = {
     "20", "21", "22", "23", "WRCHKF", "25", "26", "WRCHKR",
     "WRITE", "31", "32", "33", "READF", "35", "36", "READR"
     };
-static uint8 *xbuf = NULL;                              /* xfer buffer */
+static uint8_t *xbuf = NULL;                            /* xfer buffer */
 
-t_stat tu_rd (int32 *data, int32 PA, int32 access);
-t_stat tu_wr (int32 data, int32 PA, int32 access);
-int32 tu_inta (void);
+t_stat tu_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat tu_wr (int32_t data, int32_t PA, int32_t access);
+int32_t tu_inta (void);
 t_stat tu_svc (UNIT *uptr);
 t_stat tu_reset (DEVICE *dptr);
 t_stat tu_attach (UNIT *uptr, const char *cptr);
 t_stat tu_detach (UNIT *uptr);
-t_stat tu_boot (int32 unitno, DEVICE *dptr);
-void tu_go (int32 drv);
-void set_tuer (int32 flag);
-void update_tucs (int32 flag, int32 drv);
+t_stat tu_boot (int32_t unitno, DEVICE *dptr);
+void tu_go (int32_t drv);
+void set_tuer (int32_t flag);
+void update_tucs (int32_t flag, int32_t drv);
 t_stat tu_map_err (UNIT *uptr, t_stat st, bool qdt);
 
 /* TU data structures
@@ -427,9 +429,9 @@ DEVICE tu_dev = {
 
 /* I/O dispatch routine, I/O addresses 17772440 - 17772472 */
 
-t_stat tu_rd (int32 *data, int32 PA, int32 access)
+t_stat tu_rd (int32_t *data, int32_t PA, int32_t access)
 {
-int32 fmtr, drv, j;
+int32_t fmtr, drv, j;
 
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -516,9 +518,9 @@ switch (j) {                                            /* decode PA<4:1> */
 return SCPE_OK;
 }
 
-t_stat tu_wr (int32 data, int32 PA, int32 access)
+t_stat tu_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 cs1f, fmtr, drv, j;
+int32_t cs1f, fmtr, drv, j;
 
 cs1f = 0;                                               /* no int on cs1 upd */
 fmtr = GET_FMTR (tucs2);                                /* get formatter */
@@ -652,9 +654,9 @@ return SCPE_OK;
 
 /* New magtape command */
 
-void tu_go (int32 drv)
+void tu_go (int32_t drv)
 {
-int32 fnc, den;
+int32_t fnc, den;
 UNIT *uptr;
 
 fnc = GET_FNC (tucs1);                                  /* get function */
@@ -820,13 +822,13 @@ return;
 
 t_stat tu_svc (UNIT *uptr)
 {
-int32 fnc, fmt, i, j, k, wc10, ba10;
-int32 ba, fc, wc, drv, mpa10 = 0, vpn;
+int32_t fnc, fmt, i, j, k, wc10, ba10;
+int32_t ba, fc, wc, drv, mpa10 = 0, vpn;
 d10 val, v[4];
 t_mtrlnt tbc;
 t_stat st, r = SCPE_OK;
 
-drv = (int32) (uptr - tu_dev.units);                    /* get drive # */
+drv = (int32_t) (uptr - tu_dev.units);                  /* get drive # */
 
 /* Set MOL for a delayed attach */
 
@@ -923,7 +925,7 @@ switch (fnc) {                                          /* case on function */
             r = tu_map_err (uptr, st, 1);               /* map error */
             break;                                      /* done */
             }
-        for (i = j = 0; (i < wc10) && (j < ((int32) tbc)); i++) {
+        for (i = j = 0; (i < wc10) && (j < ((int32_t) tbc)); i++) {
             if ((i == 0) || NEWPAGE (ba10 + i, 0)) {    /* map new page */
                 MAPM (ba10 + i, mpa10, 0);
                 }
@@ -954,12 +956,12 @@ switch (fnc) {                                          /* case on function */
                 MAPM (ba10 + i, mpa10, 0);
                 }
             val = M[mpa10];
-            xbuf[j++] = (uint8) ((val >> 28) & 0377);
-            xbuf[j++] = (uint8) ((val >> 20) & 0377);
-            xbuf[j++] = (uint8) ((val >> 12) & 0377);
-            xbuf[j++] = (uint8) ((val >> 4) & 0377);
+            xbuf[j++] = (uint8_t) ((val >> 28) & 0377);
+            xbuf[j++] = (uint8_t) ((val >> 20) & 0377);
+            xbuf[j++] = (uint8_t) ((val >> 12) & 0377);
+            xbuf[j++] = (uint8_t) ((val >> 4) & 0377);
             if (fmt == TC_10C)
-                xbuf[j++] = (uint8) (val & 017);
+                xbuf[j++] = (uint8_t) (val & 017);
             mpa10 = mpa10 + 1;
             }                                           /* end for */
         if (j < fc)                                     /* short record? */
@@ -1023,7 +1025,7 @@ return SCPE_OK;
 
 /* Formatter error */
 
-void set_tuer (int32 flag)
+void set_tuer (int32_t flag)
 {
 tuer = tuer | flag;
 tufs = tufs | FS_ATA;
@@ -1039,9 +1041,9 @@ return;
    Update interrupt request
 */
 
-void update_tucs (int32 flag, int32 drv)
+void update_tucs (int32_t flag, int32_t drv)
 {
-int32 act = sim_activate_time (&tu_unit[drv]);
+int32_t act = sim_activate_time (&tu_unit[drv]);
 
 if ((flag & ~tucs1) & CS1_DONE)                         /* DONE 0 to 1? */
     tuiff = (tucs1 & CS1_IE)? 1: 0;                     /* CSTB INTR <- IE */
@@ -1085,7 +1087,7 @@ return;
 
 /* Interrupt acknowledge */
 
-int32 tu_inta (void)
+int32_t tu_inta (void)
 {
 tucs1 = tucs1 & ~CS1_IE;                                /* clear int enable */
 tuiff = 0;                                              /* clear CSTB INTR */
@@ -1165,7 +1167,7 @@ return SCPE_OK;
 
 t_stat tu_reset (DEVICE *dptr)
 {
-int32 u;
+int32_t u;
 UNIT *uptr;
 
 /* Generic callback signature.
@@ -1196,7 +1198,7 @@ for (u = 0; u < TU_NUMDR; u++) {                        /* loop thru units */
     uptr->USTAT = 0;
     }
 if (xbuf == NULL)
-    xbuf = (uint8 *) calloc (MT_MAXFR + 4, sizeof (uint8));
+    xbuf = (uint8_t *) calloc (MT_MAXFR + 4, sizeof (uint8_t));
 if (xbuf == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -1206,7 +1208,7 @@ return SCPE_OK;
 
 t_stat tu_attach (UNIT *uptr, const char *cptr)
 {
-int32 drv = uptr - tu_dev.units;
+int32_t drv = uptr - tu_dev.units;
 t_stat r;
 
 r = sim_tape_attach (uptr, cptr);
@@ -1235,7 +1237,7 @@ return r;
 
 t_stat tu_detach (UNIT* uptr)
 {
-int32 drv = uptr - tu_dev.units;
+int32_t drv = uptr - tu_dev.units;
 
 if (!(uptr->flags & UNIT_ATT))                          /* attached? */
     return SCPE_OK;
@@ -1388,7 +1390,7 @@ static const d10 boot_rom_its[] = {
     INT64_C(0254017000000),                 /*      jrst 0(17)      ; return */
     };
 
-t_stat tu_boot (int32 unitno, DEVICE *dptr)
+t_stat tu_boot (int32_t unitno, DEVICE *dptr)
 {
 size_t i;
 extern a10 saved_PC;

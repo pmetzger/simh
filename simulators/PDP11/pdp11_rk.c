@@ -79,20 +79,22 @@
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_disk.h"
 
 /* Constants */
 
 #if defined (UC15)
 
-#define RKCONTR         uint32                          /* container format */
+#define RKCONTR         uint32_t                        /* container format */
 #define RKWRDSZ         18                              /* word width */
 #define MAP_RDW(a,b,c)  Map_Read18 (a, b, c)
 #define MAP_WRW(a,b,c)  Map_Write18 (a, b, c)
 
 #else
 
-#define RKCONTR         uint16
+#define RKCONTR         uint16_t
 #define RKWRDSZ         16
 #define MAP_RDW(a,b,c)  Map_ReadW (a, b, c)
 #define MAP_WRW(a,b,c)  Map_WriteW (a, b, c)
@@ -115,10 +117,10 @@
 
 
 struct drvtyp {
-    int32       sect;                                   /* sectors */
-    int32       surf;                                   /* surfaces */
-    int32       cyl;                                    /* cylinders */
-    int32       size;                                   /* #blocks */
+    int32_t     sect;                                   /* sectors */
+    int32_t     surf;                                   /* surfaces */
+    int32_t     cyl;                                    /* cylinders */
+    int32_t     size;                                   /* #blocks */
     const char  *name;                                  /* device type name */
     };
 
@@ -309,21 +311,21 @@ BITFIELD *rk_reg_bits[] = {
 
 
 #define RK_MIN          10
-extern int32 int_req[IPL_HLVL];
+extern int32_t int_req[IPL_HLVL];
 
 RKCONTR *rkxb = NULL;                                   /* xfer buffer */
-int32 rkcs = 0;                                         /* control/status */
-int32 rkds = 0;                                         /* drive status */
-int32 rkba = 0;                                         /* memory address */
-int32 rkda = 0;                                         /* disk address */
-int32 rker = 0;                                         /* error status */
-int32 rkwc = 0;                                         /* word count */
-int32 rkintq = 0;                                       /* interrupt queue */
-int32 last_drv = 0;                                     /* last r/w drive */
-int32 rk_stopioe = 1;                                   /* stop on error */
-int32 rk_swait = 10;                                    /* seek time */
-int32 rk_rwait = 10;                                    /* rotate time */
-static int32 not_impl = 0;                              /* placeholder for unused regs */
+int32_t rkcs = 0;                                       /* control/status */
+int32_t rkds = 0;                                       /* drive status */
+int32_t rkba = 0;                                       /* memory address */
+int32_t rkda = 0;                                       /* disk address */
+int32_t rker = 0;                                       /* error status */
+int32_t rkwc = 0;                                       /* word count */
+int32_t rkintq = 0;                                     /* interrupt queue */
+int32_t last_drv = 0;                                   /* last r/w drive */
+int32_t rk_stopioe = 1;                                 /* stop on error */
+int32_t rk_swait = 10;                                  /* seek time */
+int32_t rk_rwait = 10;                                  /* rotate time */
+static int32_t not_impl = 0;                            /* placeholder for unused regs */
 
 const char *rk_regnames[] = {
     "RKDS",
@@ -336,7 +338,7 @@ const char *rk_regnames[] = {
     "RKDB"
     };
 
-int32 *rk_regs[] = {
+int32_t *rk_regs[] = {
     &rkds,
     &rker,
     &rkcs,
@@ -347,17 +349,17 @@ int32 *rk_regs[] = {
     &not_impl
     };
 
-t_stat rk_rd (int32 *data, int32 PA, int32 access);
-t_stat rk_wr (int32 data, int32 PA, int32 access);
-int32 rk_inta (void);
+t_stat rk_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat rk_wr (int32_t data, int32_t PA, int32_t access);
+int32_t rk_inta (void);
 t_stat rk_svc (UNIT *uptr);
 t_stat rk_reset (DEVICE *dptr);
 void rk_go (void);
-void rk_set_done (int32 error);
+void rk_set_done (int32_t error);
 void rk_clr_done (void);
-t_stat rk_boot (int32 unitno, DEVICE *dptr);
-t_stat rk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat rk_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat rk_boot (int32_t unitno, DEVICE *dptr);
+t_stat rk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat rk_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat rk_attach (UNIT *uptr, const char *cptr);
 t_stat rk_detach (UNIT *uptr);
 const char *rk_description (DEVICE *dptr);
@@ -471,7 +473,7 @@ DEVICE rk_dev = {
    17777416     RKDB    read only, unimplemented
 */
 
-t_stat rk_rd (int32 *data, int32 PA, int32 access)
+t_stat rk_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -533,9 +535,9 @@ sim_debug_bits (RKDEB_RRD, &rk_dev, rk_reg_bits[(PA >> 1) & 07], *data, *data, 1
 return SCPE_OK;
 }
 
-t_stat rk_wr (int32 data, int32 PA, int32 access)
+t_stat rk_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 old_val = *rk_regs[(PA >> 1) & 07];
+int32_t old_val = *rk_regs[(PA >> 1) & 07];
 
 switch ((PA >> 1) & 07) {                               /* decode PA<3:1> */
 
@@ -596,7 +598,7 @@ return SCPE_OK;
 
 void rk_go (void)
 {
-int32 i, sect, cyl, func;
+int32_t i, sect, cyl, func;
 UNIT *uptr;
 
 func = GET_FUNC (rkcs);                                 /* get function */
@@ -680,14 +682,14 @@ return;
 
 t_stat rk_svc (UNIT *uptr)
 {
-int32 i, drv, err, awc, wc, cma, cda, t;
+int32_t i, drv, err, awc, wc, cma, cda, t;
 t_seccnt sectsread;
-int32 da, cyl, track, sect;
-uint32 ma;
+int32_t da, cyl, track, sect;
+uint32_t ma;
 RKCONTR comp;
 DEVICE *dptr = find_dev_from_unit (uptr);
 
-drv = (int32) (uptr - rk_dev.units);                    /* get drv number */
+drv = (int32_t) (uptr - rk_dev.units);                  /* get drv number */
 if (uptr->FUNC == RKCS_SEEK) {                          /* seek */
     rkcs = rkcs | RKCS_SCP;                             /* set seek done */
     if (rkcs & CSR_IE) {                                /* ints enabled? */
@@ -722,8 +724,8 @@ if (cyl >= RK_NUMCY) {                                  /* bad cyl? */
 ma = ((rkcs & RKCS_MEX) << (16 - RKCS_V_MEX)) | rkba;   /* get mem addr */
 da = GET_DA (rkda) * RK_NUMWD;                          /* get disk addr */
 wc = 0200000 - rkwc;                                    /* get wd cnt */
-if ((da + wc) > (int32) uptr->capac) {                  /* overrun? */
-    wc = (int32)uptr->capac - da;                       /* trim transfer */
+if ((da + wc) > (int32_t) uptr->capac) {                /* overrun? */
+    wc = (int32_t)uptr->capac - da;                     /* trim transfer */
     rker = rker | RKER_OVR;                             /* set overrun err */
     }
 
@@ -734,18 +736,18 @@ if (wc && (err == 0)) {                                 /* seek ok? */
     case RKCS_READ:                                     /* read */
         if (rkcs & RKCS_FMT) {                          /* format? */
             for (i = 0, cda = da; i < wc; i++) {        /* fill buffer with cyl #s */
-                if (cda >= (int32) uptr->capac) {       /* overrun? */
+                if (cda >= (int32_t) uptr->capac) {     /* overrun? */
                     rker = rker | RKER_OVR;             /* set overrun err */
                     wc = i;                             /* trim transfer */
                     break;
                     }
-                rkxb[i] = (uint16)(((cda / RK_NUMWD) / (RK_NUMSF * RK_NUMSC)) << RKDA_V_CYL);
+                rkxb[i] = (uint16_t)(((cda / RK_NUMWD) / (RK_NUMSF * RK_NUMSC)) << RKDA_V_CYL);
                 cda = cda + RK_NUMWD;                   /* next sector */
                 }                                       /* end for wc */
             }                                           /* end if format */
         else {                                          /* normal read */
-            err = sim_disk_rdsect (uptr, da/RK_NUMWD, (uint8 *)rkxb, &sectsread, (wc + RK_NUMWD - 1)/RK_NUMWD);
-            sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
+            err = sim_disk_rdsect (uptr, da/RK_NUMWD, (uint8_t *)rkxb, &sectsread, (wc + RK_NUMWD - 1)/RK_NUMWD);
+            sim_disk_data_trace (uptr, (uint8_t *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
             }
         if (rkcs & RKCS_INH) {                          /* incr inhibit? */
             if ((t = MAP_WRW (ma, 2, &rkxb[wc - 1]))) { /* store last */
@@ -780,14 +782,14 @@ if (wc && (err == 0)) {                                 /* seek ok? */
             awc = (wc + (RK_NUMWD - 1)) & ~(RK_NUMWD - 1); /* clr to */
             for (i = wc; i < awc; i++)                  /* end of blk */
                 rkxb[i] = 0;
-            sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, awc*sizeof(*rkxb), "sim_disk_wrsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
-            err = sim_disk_wrsect (uptr, da/RK_NUMWD, (uint8 *)rkxb, NULL, awc/RK_NUMWD);
+            sim_disk_data_trace (uptr, (uint8_t *)rkxb, da/RK_NUMWD, awc*sizeof(*rkxb), "sim_disk_wrsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
+            err = sim_disk_wrsect (uptr, da/RK_NUMWD, (uint8_t *)rkxb, NULL, awc/RK_NUMWD);
             }
         break;                                          /* end write */
 
     case RKCS_WCHK:                                     /* write check */
-        err = sim_disk_rdsect (uptr, da/RK_NUMWD, (uint8 *)rkxb, &sectsread, (wc + RK_NUMWD - 1)/RK_NUMWD);
-        sim_disk_data_trace (uptr, (uint8 *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
+        err = sim_disk_rdsect (uptr, da/RK_NUMWD, (uint8_t *)rkxb, &sectsread, (wc + RK_NUMWD - 1)/RK_NUMWD);
+        sim_disk_data_trace (uptr, (uint8_t *)rkxb, da/RK_NUMWD, sectsread*RK_NUMWD*sizeof(*rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr->dctrl, RKDEB_OPS);
         if (err) {                                      /* read error? */
             wc = 0;                                     /* no transfer */
             break;
@@ -841,7 +843,7 @@ return SCPE_OK;
    rk_inta              acknowledge intererupt
 */
 
-void rk_set_done (int32 error)
+void rk_set_done (int32_t error)
 {
 rkcs = rkcs | CSR_DONE;                                 /* set done */
 if (error != 0) {
@@ -873,9 +875,9 @@ CLR_INT (RK);                                           /* clear int req */
 return;
 }
 
-int32 rk_inta (void)
+int32_t rk_inta (void)
 {
-int32 i;
+int32_t i;
 
 for (i = 0; i <= RK_NUMDR; i++) {                       /* loop thru intq */
     if (rkintq & (1u << i)) {                           /* bit i set? */
@@ -902,7 +904,7 @@ t_stat rk_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 rkcs = CSR_DONE;
@@ -929,8 +931,8 @@ return auto_config (0, 0);
 t_stat rk_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
-r = sim_disk_attach_ex2 (uptr, cptr, RK_NUMWD * sizeof (uint16),
-                         sizeof (uint16), true, 0,
+r = sim_disk_attach_ex2 (uptr, cptr, RK_NUMWD * sizeof (uint16_t),
+                         sizeof (uint16_t), true, 0,
                          "RK05", 0, 0, NULL, RK_RSRVSEC);
 if (r != SCPE_OK)                                       /* error? */
     return r;
@@ -945,7 +947,7 @@ return sim_disk_detach (uptr);
 
 /* Show unit type */
 
-t_stat rk_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat rk_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -961,7 +963,7 @@ return SCPE_OK;
 
 #if defined (UC15) || !defined (VM_PDP11)
 
-t_stat rk_boot (int32 unitno, DEVICE *dptr)
+t_stat rk_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -977,9 +979,9 @@ return SCPE_NOFNC;
 #define BOOT_ENTRY      (BOOT_START + 002)              /* entry */
 #define BOOT_UNIT       (BOOT_START + 010)              /* unit number */
 #define BOOT_CSR        (BOOT_START + 032)              /* CSR */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     0042113,                        /* "KD" */
     0012706, BOOT_START,            /* MOV #boot_start, SP */
     0012700, 0000000,               /* MOV #unit, R0        ; unit number */
@@ -1005,7 +1007,7 @@ static const uint16 boot_rom[] = {
     0005007                         /* CLR PC */
     };
 
-t_stat rk_boot (int32 unitno, DEVICE *dptr)
+t_stat rk_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1023,7 +1025,7 @@ return SCPE_OK;
 
 #endif
 
-t_stat rk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat rk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

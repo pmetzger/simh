@@ -30,6 +30,9 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "sim_types.h"
 #include "vax_defs.h"
 #include "vax4xx_stddev.h"
 #include "sim_ether.h"
@@ -42,7 +45,7 @@
 #endif /* DONT_USE_INTERNAL_ROM */
 
 
-t_stat vax43a_boot (int32 flag, const char *ptr);
+t_stat vax43a_boot (int32_t flag, const char *ptr);
 
 /* Special boot command, overrides regular boot */
 
@@ -82,60 +85,60 @@ CTAB vax43a_cmd[] = {
 
 #define TMR_INC         10000                           /* usec/interval */
 
-extern int32 tmr_int;
+extern int32_t tmr_int;
 extern UNIT clk_unit;
-extern int32 tmr_poll;
-extern uint32 vc_sel, vc_org;
+extern int32_t tmr_poll;
+extern uint32_t vc_sel, vc_org;
 extern DEVICE vc_dev, ve_dev, lk_dev, vs_dev;
-extern uint32 *rom;
+extern uint32_t *rom;
 
-uint32 *ddb = NULL;                                     /* 128k disk buffer */
-int32 conisp, conpc, conpsl;                            /* console reg */
-int32 ka_hltcod = 0;                                    /* KA43A halt code */
-int32 ka_mser = 0;                                      /* KA43A mem sys err */
-int32 ka_mear = 0;                                      /* KA43A memory err */
-int32 ka_cfgtst = 0;                                    /* KA43A config/test */
-int32 CADR = 0;                                         /* cache disable reg */
-int32 SESR = 0;                                         /* software error summary reg */
-int32 sys_model = 0;                                    /* MicroVAX or VAXstation */
-int32 int_req[IPL_HLVL] = { 0 };                        /* interrupt requests */
-int32 int_mask = 0;                                     /* interrupt mask */
-uint32 tmr_tir = 0;                                     /* curr interval */
+uint32_t *ddb = NULL;                                   /* 128k disk buffer */
+int32_t conisp, conpc, conpsl;                          /* console reg */
+int32_t ka_hltcod = 0;                                  /* KA43A halt code */
+int32_t ka_mser = 0;                                    /* KA43A mem sys err */
+int32_t ka_mear = 0;                                    /* KA43A memory err */
+int32_t ka_cfgtst = 0;                                  /* KA43A config/test */
+int32_t CADR = 0;                                       /* cache disable reg */
+int32_t SESR = 0;                                       /* software error summary reg */
+int32_t sys_model = 0;                                  /* MicroVAX or VAXstation */
+int32_t int_req[IPL_HLVL] = { 0 };                      /* interrupt requests */
+int32_t int_mask = 0;                                   /* interrupt mask */
+uint32_t tmr_tir = 0;                                   /* curr interval */
 bool tmr_inst = false;                                  /* wait instructions vs usecs */
-int32 cdg_dat[CDASIZE >> 2];                            /* cache data */
-int32 ctg_dat[CTGSIZE >> 2];                            /* cache tags */
+int32_t cdg_dat[CDASIZE >> 2];                          /* cache data */
+int32_t ctg_dat[CTGSIZE >> 2];                          /* cache tags */
 
 t_stat tmr_svc (UNIT *uptr);
 t_stat sysd_reset (DEVICE *dptr);
 const char *sysd_description (DEVICE *dptr);
-int32 ka_rd (int32 pa);
-void ka_wr (int32 pa, int32 val, int32 lnt);
-int32 con_halt (int32 code, int32 cc);
-int32 tmr_tir_rd (void);
+int32_t ka_rd (int32_t pa);
+void ka_wr (int32_t pa, int32_t val, int32_t lnt);
+int32_t con_halt (int32_t code, int32_t cc);
+int32_t tmr_tir_rd (void);
 void tmr_sched (void);
 
-extern int32 nar_rd (int32 pa);
-extern int32 dz_rd (int32 pa);
-extern int32 rd_rd (int32 pa);
-extern int32 xs_rd (int32 pa);
-extern int32 vc_mem_rd (int32 pa);
-extern int32 ve_rd (int32 pa);
-extern void dz_wr (int32 pa, int32 val, int32 lnt);
-extern void rd_wr (int32 pa, int32 val, int32 lnt);
-extern void xs_wr (int32 pa, int32 val, int32 lnt);
-extern void vc_wr (int32 pa, int32 val, int32 lnt);
-extern void vc_mem_wr (int32 pa, int32 val, int32 lnt);
-extern void ve_wr (int32 pa, int32 val, int32 lnt);
+extern int32_t nar_rd (int32_t pa);
+extern int32_t dz_rd (int32_t pa);
+extern int32_t rd_rd (int32_t pa);
+extern int32_t xs_rd (int32_t pa);
+extern int32_t vc_mem_rd (int32_t pa);
+extern int32_t ve_rd (int32_t pa);
+extern void dz_wr (int32_t pa, int32_t val, int32_t lnt);
+extern void rd_wr (int32_t pa, int32_t val, int32_t lnt);
+extern void xs_wr (int32_t pa, int32_t val, int32_t lnt);
+extern void vc_wr (int32_t pa, int32_t val, int32_t lnt);
+extern void vc_mem_wr (int32_t pa, int32_t val, int32_t lnt);
+extern void ve_wr (int32_t pa, int32_t val, int32_t lnt);
 
 /*
  * Compose the KA43 interrupt/video status register.  Each input is a
- * right-justified hardware field; the legacy ka_rd API returns int32, but the
+ * right-justified hardware field; the legacy ka_rd API returns int32_t, but the
  * register value is a 32-bit VAX machine word.
  */
-static inline uint32 compose_ka_status_register(uint32 interrupt_requests,
-                                                uint32 video_select,
-                                                uint32 video_origin,
-                                                uint32 interrupt_mask)
+static inline uint32_t compose_ka_status_register(uint32_t interrupt_requests,
+                                                uint32_t video_select,
+                                                uint32_t video_origin,
+                                                uint32_t interrupt_mask)
 {
     return u32_make_field(interrupt_requests, 24, 8) |
            u32_make_field(video_select, 16, 1) |
@@ -147,9 +150,9 @@ static inline uint32 compose_ka_status_register(uint32 interrupt_requests,
  * Return the KA43 timer register image.  The current interval is stored in the
  * high word of the 32-bit hardware register.
  */
-static inline uint32 compose_ka_timer_register(void)
+static inline uint32_t compose_ka_timer_register(void)
 {
-    return u32_make_field((uint32)tmr_tir_rd(), 16, 16);
+    return u32_make_field((uint32_t)tmr_tir_rd(), 16, 16);
 }
 
 /*
@@ -157,7 +160,7 @@ static inline uint32 compose_ka_timer_register(void)
  * interval field is architectural; legacy signed arithmetic could sign-extend
  * the internal storage without changing the effective timer value.
  */
-static inline uint32 ka_timer_register_interval(uint32 val)
+static inline uint32_t ka_timer_register_interval(uint32_t val)
 {
     return u32_high_u16(val);
 }
@@ -196,12 +199,12 @@ DEVICE sysd_dev = {
 
 /* Find highest priority outstanding interrupt */
 
-int32 eval_int (void)
+int32_t eval_int (void)
 {
-int32 ipl = PSL_GETIPL (PSL);
-int32 i, t;
+int32_t ipl = PSL_GETIPL (PSL);
+int32_t i, t;
 
-static const int32 sw_int_mask[IPL_SMAX] = {
+static const int32_t sw_int_mask[IPL_SMAX] = {
     0xFFFE, 0xFFFC, 0xFFF8, 0xFFF0,                     /* 0 - 3 */
     0xFFE0, 0xFFC0, 0xFF80, 0xFF00,                     /* 4 - 7 */
     0xFE00, 0xFC00, 0xF800, 0xF000,                     /* 8 - B */
@@ -229,10 +232,10 @@ return 0;
 
 /* Return vector for highest priority hardware interrupt at IPL lvl */
 
-int32 get_vector (int32 lvl)
+int32_t get_vector (int32_t lvl)
 {
-int32 i;
-int32 int_unmask = int_req[0] & int_mask;
+int32_t i;
+int32_t int_unmask = int_req[0] & int_mask;
 
 if (lvl == IPL_CLK) {                                   /* clock? */
     tmr_int = 0;                                        /* clear req */
@@ -258,11 +261,11 @@ return 0;
    Map_WriteW   -       store word buffer into memory
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf)
 {
-int32 i;
-uint32 ma = ba;
-uint32 dat;
+int32_t i;
+uint32_t ma = ba;
+uint32_t dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -283,11 +286,11 @@ else {
 return 0;
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf)
 {
-int32 i;
-uint32 ma = ba;
-uint32 dat;
+int32_t i;
+uint32_t ma = ba;
+uint32_t dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -308,11 +311,11 @@ else {
 return 0;
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_WriteB (uint32_t ba, int32_t bc, uint8_t *buf)
 {
-int32 i;
-uint32 ma = ba;
-uint32 dat;
+int32_t i;
+uint32_t ma = ba;
+uint32_t dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -322,10 +325,10 @@ if ((ba | bc) & 03) {                                   /* check alignment */
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                        /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);         /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);        /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);          /* merge hi 8b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -333,11 +336,11 @@ else {
 return 0;
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_WriteW (uint32_t ba, int32_t bc, uint16_t *buf)
 {
-int32 i;
-uint32 ma = ba;
-uint32 dat;
+int32_t i;
+uint32_t ma = ba;
+uint32_t dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -349,8 +352,8 @@ if ((ba | bc) & 03) {                                   /* check alignment */
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = dat | (((uint32) *buf) << 16);            /* merge hi 16b */
+        dat = (uint32_t) *buf++;                        /* get low 16b */
+        dat = dat | (((uint32_t) *buf) << 16);          /* merge hi 16b */
         WriteL (ma, dat);                               /* store lw */
         ma = ma + 4;
         }
@@ -358,57 +361,57 @@ else {
 return 0;
 }
 
-void ddb_WriteB (uint32 ba, uint32 bc, uint8 *buf)
+void ddb_WriteB (uint32_t ba, uint32_t bc, uint8_t *buf)
 {
-uint32 i, id, dat;
+uint32_t i, id, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
         id = (ba >> 2) & 0x7FFF;
-        ddb[id] = u32_put_addr_u8_le (ddb[id], (uint32) *buf, ba);
+        ddb[id] = u32_put_addr_u8_le (ddb[id], (uint32_t) *buf, ba);
         ba++;
         }
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
         id = (ba >> 2) & 0x7FFF;
-        dat = (uint32) *buf++;                          /* get low 8b */
-        dat = dat | (((uint32) *buf++) << 8);           /* merge next 8b */
-        dat = dat | (((uint32) *buf++) << 16);          /* merge next 8b */
-        dat = dat | (((uint32) *buf) << 24);            /* merge hi 8b */
+        dat = (uint32_t) *buf++;                        /* get low 8b */
+        dat = dat | (((uint32_t) *buf++) << 8);         /* merge next 8b */
+        dat = dat | (((uint32_t) *buf++) << 16);        /* merge next 8b */
+        dat = dat | (((uint32_t) *buf) << 24);          /* merge hi 8b */
         ddb[id] = dat;                                  /* store lw */
         ba = ba + 4;
         }
     }
 }
 
-void ddb_WriteW (uint32 ba, uint32 bc, uint16 *buf)
+void ddb_WriteW (uint32_t ba, uint32_t bc, uint16_t *buf)
 {
-uint32 i, id, dat;
+uint32_t i, id, dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i = i + 2, buf++) {             /* by words */
         id = (ba >> 2) & 0x7FFF;
-        ddb[id] = u32_put_addr_u16_le (ddb[id], (uint32) *buf, ba);
+        ddb[id] = u32_put_addr_u16_le (ddb[id], (uint32_t) *buf, ba);
         ba = ba + 2;
         }
     }
 else {
     for (i = 0; i < bc; i = i + 4, buf++) {             /* by longwords */
         id = (ba >> 2) & 0x7FFF;
-        dat = (uint32) *buf++;                          /* get low 16b */
-        dat = u32_from_u16_pair (dat, (uint32) *buf);   /* merge hi 16b */
+        dat = (uint32_t) *buf++;                        /* get low 16b */
+        dat = u32_from_u16_pair (dat, (uint32_t) *buf); /* merge hi 16b */
         ddb[id] = dat;                                  /* store lw */
         ba = ba + 4;
         }
     }
 }
 
-void ddb_ReadB (uint32 ba, uint32 bc, uint8 *buf)
+void ddb_ReadB (uint32_t ba, uint32_t bc, uint8_t *buf)
 {
-uint32 i, id, dat;
+uint32_t i, id, dat;
 
 if ((ba | bc) & 03) {                                   /* check alignment */
     for (i = 0; i < bc; i++, buf++) {                   /* by bytes */
@@ -430,9 +433,9 @@ else {
     }
 }
 
-void ddb_ReadW (uint32 ba, uint32 bc, uint16 *buf)
+void ddb_ReadW (uint32_t ba, uint32_t bc, uint16_t *buf)
 {
-uint32 i, id, dat;
+uint32_t i, id, dat;
 
 ba = ba & ~01;
 bc = bc & ~01;
@@ -454,28 +457,28 @@ else {
     }
 }
 
-static int32 ddb_rd (int32 pa)
+static int32_t ddb_rd (int32_t pa)
 {
-int32 rg = ((pa - D128BASE) >> 2);
+int32_t rg = ((pa - D128BASE) >> 2);
 rg = rg & 0x7FFF;
 return ddb[rg];
 }
 
-static void ddb_wr (int32 pa, int32 val, int32 lnt)
+static void ddb_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 rg = ((pa - D128BASE) >> 2);
+int32_t rg = ((pa - D128BASE) >> 2);
 rg = rg & 0x7FFF;
 if (lnt < L_LONG) {                                     /* byte or word? */
     if (lnt == L_WORD)
-        ddb[rg] = u32_put_addr_u16_le (ddb[rg], (uint32) val, (uint32) pa);
+        ddb[rg] = u32_put_addr_u16_le (ddb[rg], (uint32_t) val, (uint32_t) pa);
     else
-        ddb[rg] = u32_put_addr_u8_le (ddb[rg], (uint32) val, (uint32) pa);
+        ddb[rg] = u32_put_addr_u8_le (ddb[rg], (uint32_t) val, (uint32_t) pa);
     }
 else ddb[rg] = val;
 return;
 }
 
-static int32 sesr_rd (int32 pa)
+static int32_t sesr_rd (int32_t pa)
 {
 /* Register read signature.
    This implementation does not use every parameter. */
@@ -484,7 +487,7 @@ static int32 sesr_rd (int32 pa)
 return 0;
 }
 
-static void sesr_wr (int32 pa, int32 val, int32 lnt)
+static void sesr_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -495,29 +498,29 @@ static void sesr_wr (int32 pa, int32 val, int32 lnt)
 return;
 }
 
-static int32 cdg_rd (int32 pa)
+static int32_t cdg_rd (int32_t pa)
 {
-int32 row = CDG_GETROW (pa);
+int32_t row = CDG_GETROW (pa);
 
 return cdg_dat[row];
 }
 
-static void cdg_wr (int32 pa, int32 val, int32 lnt)
+static void cdg_wr (int32_t pa, int32_t val, int32_t lnt)
 {
-int32 row = CDG_GETROW (pa);
+int32_t row = CDG_GETROW (pa);
 
 if (lnt < L_LONG) {                                     /* byte or word? */
     if (lnt == L_WORD)
-        val = (int32) u32_put_addr_u16_le ((uint32) cdg_dat[row],
-                                           (uint32) val, (uint32) pa);
+        val = (int32_t) u32_put_addr_u16_le ((uint32_t) cdg_dat[row],
+                                           (uint32_t) val, (uint32_t) pa);
     else
-        val = (int32) u32_put_addr_u8_le ((uint32) cdg_dat[row],
-                                          (uint32) val, (uint32) pa);
+        val = (int32_t) u32_put_addr_u8_le ((uint32_t) cdg_dat[row],
+                                          (uint32_t) val, (uint32_t) pa);
     }
 cdg_dat[row] = val;                                     /* store data */
 }
 
-static int32 ctg_rd (int32 pa)
+static int32_t ctg_rd (int32_t pa)
 {
 /* Register read signature.
    This implementation does not use every parameter. */
@@ -526,7 +529,7 @@ static int32 ctg_rd (int32 pa)
 return 0;
 }
 
-static void ctg_wr (int32 pa, int32 val, int32 lnt)
+static void ctg_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -537,12 +540,12 @@ static void ctg_wr (int32 pa, int32 val, int32 lnt)
 return;
 }
 
-static int32 diag_rd (int32 pa)
+static int32_t diag_rd (int32_t pa)
 {
 return ReadL (pa & 0xFFFFFF);
 }
 
-static void diag_wr (int32 pa, int32 val, int32 lnt)
+static void diag_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 if (lnt >= L_LONG)                                      /* long, quad? */
     WriteL (pa & 0xFFFFFF, val);
@@ -552,15 +555,15 @@ else WriteB (pa & 0xFFFFFF, val);                       /* byte */
 return;
 }
 
-static int32 cfg_rd (int32 pa)
+static int32_t cfg_rd (int32_t pa)
 {
 /* Register read signature.
    This implementation does not use every parameter. */
 (void) pa;
 
-int32 val = ka_cfgtst | (CFGT_M_SIM << CFGT_V_SIM);
+int32_t val = ka_cfgtst | (CFGT_M_SIM << CFGT_V_SIM);
 t_addr mem = MEMSIZE;
-uint32 sc;
+uint32_t sc;
 
 for (sc = CFGT_V_SIM; mem > 0; sc++) {
     val &= ~(0x1 << sc);                               /* add 4MB SIMM */
@@ -569,7 +572,7 @@ for (sc = CFGT_V_SIM; mem > 0; sc++) {
 return val;
 }
 
-static void ioreset_wr (int32 pa, int32 val, int32 lnt)
+static void ioreset_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -582,9 +585,9 @@ reset_all (7);
 
 /* Read KA43A specific IPR's */
 
-int32 ReadIPR (int32 rg)
+int32_t ReadIPR (int32_t rg)
 {
-int32 val;
+int32_t val;
 
 switch (rg) {
 
@@ -661,7 +664,7 @@ return val;
 
 /* Write KA43A specific IPR's */
 
-void WriteIPR (int32 rg, int32 val)
+void WriteIPR (int32_t rg, int32_t val)
 {
 switch (rg) {
 
@@ -730,10 +733,10 @@ return;
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
-    int32       (*read)(int32 pa);                      /* read routine */
-    void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
+    uint32_t    low;                                    /* low addr */
+    uint32_t    high;                                   /* high addr */
+    int32_t     (*read)(int32_t pa);                    /* read routine */
+    void        (*write)(int32_t pa, int32_t val, int32_t lnt); /* write routine */
     };
 
 struct reglink regtable[] = {
@@ -767,7 +770,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32_t ReadReg (uint32_t pa, int32_t lnt)
 {
 /* Register read signature.
    This implementation does not use every parameter. */
@@ -791,7 +794,7 @@ return 0xFFFFFFFF;
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32_t ReadRegU (uint32_t pa, int32_t lnt)
 {
 /* Unaligned register read signature.
    This implementation does not use every parameter. */
@@ -810,7 +813,7 @@ return ReadReg (pa & ~03, L_LONG);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32_t val, int32_t lnt)
 {
 struct reglink *p;
 
@@ -833,11 +836,11 @@ return;
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32_t val, int32_t lnt)
 {
-int32 dat = ReadReg (pa & ~03, L_LONG);
+int32_t dat = ReadReg (pa & ~03, L_LONG);
 
-dat = (int32) u32_put_addr_u8_count_le ((uint32) dat, (uint32) val, pa,
+dat = (int32_t) u32_put_addr_u8_count_le ((uint32_t) dat, (uint32_t) val, pa,
                                         (uint_t) lnt);
 WriteReg (pa & ~03, dat, L_LONG);
 return;
@@ -845,9 +848,9 @@ return;
 
 /* KA43A registers */
 
-int32 ka_rd (int32 pa)
+int32_t ka_rd (int32_t pa)
 {
-int32 rg = (pa - KABASE) >> 2;
+int32_t rg = (pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -861,24 +864,24 @@ switch (rg) {
         return ka_mear & MEAR_RD;
 
     case 3:                                             /* INT_REQ, VDC_SEL, VDC_ORG, INT_MSK */
-        return (int32) compose_ka_status_register ((uint32) int_req[0],
+        return (int32_t) compose_ka_status_register ((uint32_t) int_req[0],
                                                    vc_sel, vc_org,
-                                                   (uint32) int_mask);
+                                                   (uint32_t) int_mask);
 
     case 7:                                             /* timer */
-        return (int32) compose_ka_timer_register ();
+        return (int32_t) compose_ka_timer_register ();
         }
 
 return 0;
 }
 
-void ka_wr (int32 pa, int32 val, int32 lnt)
+void ka_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - KABASE) >> 2;
+int32_t rg = (pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -920,21 +923,21 @@ switch (rg) {
         break;
 
     case 7:                                             /* timer */
-        tmr_tir = ka_timer_register_interval ((uint32) val);
+        tmr_tir = ka_timer_register_interval ((uint32_t) val);
         break;
         }
 return;
 }
 
-int32 tmr_tir_rd (void)
+int32_t tmr_tir_rd (void)
 {
-uint32 usecs_remaining, cur_tir;
+uint32_t usecs_remaining, cur_tir;
 
 if ((ADDR_IS_ROM(fault_PC)) &&                          /* running from ROM and */
     (tmr_inst))                                         /* waiting instructions? */
     usecs_remaining = sim_activate_time (&sysd_unit) - 1;
 else
-    usecs_remaining = (uint32)sim_activate_time_usecs (&sysd_unit);
+    usecs_remaining = (uint32_t)sim_activate_time_usecs (&sysd_unit);
 cur_tir = (~usecs_remaining + 1) & 0xFFFF;
 return cur_tir;
 }
@@ -955,7 +958,7 @@ return SCPE_OK;
 
 void tmr_sched (void)
 {
-uint32 usecs_sched = tmr_tir ? (~tmr_tir + 1) : 0xFFFF;
+uint32_t usecs_sched = tmr_tir ? (~tmr_tir + 1) : 0xFFFF;
 tmr_tir = 0;
 
 if ((ADDR_IS_ROM(fault_PC)) &&                      /* running from ROM and */
@@ -971,14 +974,14 @@ else {
 
 /* Machine check */
 
-int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
+int32_t machine_check (int32_t p1, int32_t opc, int32_t cc, int32_t delta)
 {
 /* VAX machine-check handler signature.
    This implementation does not use every parameter. */
 (void) opc;
 (void) delta;
 
-int32 p2, acc;
+int32_t p2, acc;
 
 if (in_ie) {
     in_ie = 0;
@@ -1004,9 +1007,9 @@ return cc;
 
 /* Console entry */
 
-int32 con_halt (int32 code, int32 cc)
+int32_t con_halt (int32_t code, int32_t cc)
 {
-int32 temp;
+int32_t temp;
 
 conisp = IS;                                            /* save ISP */
 conpc = PC;                                             /* save PC */
@@ -1031,7 +1034,7 @@ return 0;                                               /* new cc = 0 */
 
 */
 
-t_stat vax43a_boot (int32 flag, const char *ptr)
+t_stat vax43a_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -1044,7 +1047,7 @@ return run_cmd (flag, "CPU");
 
 /* Bootstrap */
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1053,7 +1056,7 @@ t_stat cpu_boot (int32 unitno, DEVICE *dptr)
 
 t_stat r;
 DEVICE *cdptr;
-int32 i;
+int32_t i;
 
 PC = ROMBASE;
 PSL = PSL_IS | PSL_IPL1F;
@@ -1102,7 +1105,7 @@ tmr_inst = false;
 tmr_sched ();                                           /* activate */
 
 if (ddb == NULL)
-    ddb = (uint32 *) calloc (D128SIZE >> 2, sizeof (uint32));
+    ddb = (uint32_t *) calloc (D128SIZE >> 2, sizeof (uint32_t));
 if (ddb == NULL)
     return SCPE_MEM;
 
@@ -1121,7 +1124,7 @@ const char *sysd_description (DEVICE *dptr)
 return "system devices";
 }
 
-t_stat auto_config (const char *name, int32 nctrl)
+t_stat auto_config (const char *name, int32_t nctrl)
 {
 /* Generic autoconfiguration signature.
    This implementation does not use every parameter. */
@@ -1136,7 +1139,7 @@ t_stat build_dib_tab (void)
 return SCPE_OK;
 }
 
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1198,7 +1201,7 @@ fprintf (st, "%s", sim_name);
 return SCPE_OK;
 }
 
-t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */

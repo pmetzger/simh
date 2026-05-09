@@ -1,4 +1,5 @@
 #include <setjmp.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "test_cmocka.h"
@@ -13,22 +14,22 @@
 #define LINC_HLT 00000
 #define LINC_OPR_I_6 00526
 
-uint16 M[MEMSIZE];
+uint16_t M[MEMSIZE];
 DEVICE crt_dev;
 REG *sim_PC = &cpu_reg[REG_P];
 DEVICE *sim_devices[] = {&cpu_dev, &crt_dev, NULL};
 char sim_name[] = "LINC";
 const char *sim_stop_messages[SCPE_BASE];
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 static int restart_event_seen;
 static UNIT restart_unit;
 static int unexpected_pause_event_seen;
 static UNIT unexpected_pause_unit;
 
-static uint16 *reg_u16(size_t index)
+static uint16_t *reg_u16(size_t index)
 {
-    return (uint16 *)cpu_reg[index].loc;
+    return (uint16_t *)cpu_reg[index].loc;
 }
 
 static int *reg_int(size_t index)
@@ -36,9 +37,9 @@ static int *reg_int(size_t index)
     return (int *)cpu_reg[index].loc;
 }
 
-static uint16 *reg_array(size_t index)
+static uint16_t *reg_array(size_t index)
 {
-    return (uint16 *)cpu_reg[index].loc;
+    return (uint16_t *)cpu_reg[index].loc;
 }
 
 t_stat build_dev_tab(void)
@@ -46,7 +47,7 @@ t_stat build_dev_tab(void)
     return SCPE_OK;
 }
 
-uint16 kbd_key(uint16 wait)
+uint16_t kbd_key(uint16_t wait)
 {
     (void)wait;
     return 0;
@@ -61,7 +62,7 @@ void tape_op(void) {}
 
 void crt_toggle_fullscreen(void) {}
 
-void dpy_dis(uint16 h, uint16 x, uint16 y)
+void dpy_dis(uint16_t h, uint16_t x, uint16_t y)
 {
     (void)h;
     (void)x;
@@ -77,7 +78,7 @@ t_stat sim_load(FILE *ptr, const char *cptr, const char *fnam, int flag)
     return SCPE_OK;
 }
 
-t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
     (void)ofile;
     (void)addr;
@@ -88,7 +89,7 @@ t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 }
 
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
-                 int32 sw)
+                 int32_t sw)
 {
     (void)cptr;
     (void)addr;
@@ -100,7 +101,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
 
 static t_stat restart_opr_pause(UNIT *uptr)
 {
-    uint16 *xl;
+    uint16_t *xl;
 
     (void)uptr;
 
@@ -123,7 +124,7 @@ static t_stat unexpected_opr_pause(UNIT *uptr)
 
 static void reset_cpu_fixture(void)
 {
-    uint16 *xl;
+    uint16_t *xl;
 
     memset(M, 0, sizeof(M));
     *reg_u16(REG_P) = 0;
@@ -160,7 +161,7 @@ static void test_opr_i_pauses_until_external_level(void **state)
 static void test_opr_i_does_not_pause_if_external_level_set(void **state)
 {
     t_stat stat;
-    uint16 *xl;
+    uint16_t *xl;
 
     (void)state;
 

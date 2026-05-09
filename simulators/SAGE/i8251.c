@@ -27,6 +27,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "m68k_cpu.h"
 #include "chip_defs.h"
@@ -41,7 +43,7 @@ DEBTAB i8251_dt[] = {
     { NULL, 0 }
 };
 
-t_stat i8251_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
+t_stat i8251_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask)
 {
     /* Shared I/O handler signature.
        This implementation does not use every parameter. */
@@ -56,7 +58,7 @@ t_stat i8251_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
     }
 }
 
-t_stat i8251_write(I8251* chip,int port,uint32 value)
+t_stat i8251_write(I8251* chip,int port,uint32_t value)
 {
     int bits;
 
@@ -128,7 +130,7 @@ t_stat i8251_write(I8251* chip,int port,uint32 value)
     }
 }
 
-t_stat i8251_read(I8251* chip,int port,uint32* value)
+t_stat i8251_read(I8251* chip,int port,uint32_t* value)
 {
     if (port==0) { /* data read */
         *value = chip->ibuf;

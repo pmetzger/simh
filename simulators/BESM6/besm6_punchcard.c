@@ -26,7 +26,10 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
+#include <stdint.h>
+
 #include "besm6_defs.h"
+#include "sim_types.h"
 
 t_stat pi_event (UNIT *u);      /* punched card writer */
 UNIT pi_unit [] = {
@@ -56,7 +59,7 @@ typedef struct {
      * A 3-card long tract, with 12 lines per card,
      * represented as 4 20-bit registers each.
      */
-    uint32 image[3][12][4];
+    uint32_t image[3][12][4];
     int cur;                    /* FIFO position */
     int running;                /* continue with the next card */
     pi_state_t state;
@@ -95,10 +98,10 @@ pi_t PI[2];
  */
 #define PI_RATE         (20*MSEC)
 
-const uint32 pi_punch_mask[2] = { PRP_PCARD1_PUNCH, PRP_PCARD2_PUNCH };
-const uint32 pi_check_mask[2] = { PRP_PCARD1_CHECK, PRP_PCARD2_CHECK };
-const uint32 pi_ready_mask[2] = { PI1_READY, PI2_READY };
-const uint32 pi_start_mask[2] = { PI1_START, PI2_START };
+const uint32_t pi_punch_mask[2] = { PRP_PCARD1_PUNCH, PRP_PCARD2_PUNCH };
+const uint32_t pi_check_mask[2] = { PRP_PCARD1_CHECK, PRP_PCARD2_CHECK };
+const uint32_t pi_ready_mask[2] = { PI1_READY, PI2_READY };
+const uint32_t pi_start_mask[2] = { PI1_START, PI2_START };
 
 REG pi_reg[] = {
     { REGDATA ( "READY", READY2, 2, 4, 12, 1, NULL, NULL, 0, 0, 0) },
@@ -137,7 +140,7 @@ static void pi_punch_dots(int unit, int card) {
     putc('\n', f);
 }
 
-static void pi_to_bytes(int unit, int card, unsigned char buf[120]) {
+static void pi_to_bytes(int unit, int card, uchar_t buf[120]) {
     int byte = 0;
     int cnt = 0;
     int l, p, c;
@@ -162,7 +165,7 @@ static void pi_to_bytes(int unit, int card, unsigned char buf[120]) {
 static void pi_punch_binary(int unit, int card) {
     UNIT *u = &pi_unit[unit];
     FILE * f = u->fileref;
-    static unsigned char buf[120];
+    static uchar_t buf[120];
     pi_to_bytes(unit, card, buf);
     fwrite(buf, 120, 1, f);
 }
@@ -175,7 +178,7 @@ static void pi_punch_visual(int unit, int card) {
     UNIT *u = &pi_unit[unit];
     FILE * f = u->fileref;
     // Print 3 lines of 40 Braille characters per line representing a punchcard.
-    unsigned char bytes[3][40];
+    uchar_t bytes[3][40];
     int line, col, p, c;
     memset(bytes, 0, 120);
     for (line = 0; line < 12; ++line) {
@@ -215,7 +218,7 @@ static void pi_punch_visual(int unit, int card) {
 static void pi_punch_gost(int unit, int card) {
     UNIT *u = &pi_unit[unit];
     FILE * f = u->fileref;
-    static unsigned char buf[120];
+    static uchar_t buf[120];
     int len;
     int cur;
     int zero_expected = 0;
@@ -351,7 +354,7 @@ t_stat pi_detach (UNIT *u)
     return detach_unit (u);
 }
 
-void pi_control (int num, uint32 cmd)
+void pi_control (int num, uint32_t cmd)
 {
     UNIT *u = &pi_unit[num];
     if (pi_dev.dctrl)
@@ -457,7 +460,7 @@ t_stat pi_event (UNIT *u)
 /*
  * Writing to the register punches the current card.
  */
-void pi_write (int num, uint32 val)
+void pi_write (int num, uint32_t val)
 {
     int unit = num >> 2;
     int card = PI[unit].cur;

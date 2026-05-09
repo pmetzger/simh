@@ -30,19 +30,21 @@
    tsc          TSC8-75 option board
 */
 
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
-extern int32 int_req;
-extern int32 SF;
-extern int32 tsc_ir;                                    /* "ERIOT" */
-extern int32 tsc_pc;                                    /* "ERTB" */
-extern int32 tsc_cdf;                                   /* "ECDF" */
-extern int32 tsc_enb;                                   /* enable */
+extern int32_t int_req;
+extern int32_t SF;
+extern int32_t tsc_ir;                                  /* "ERIOT" */
+extern int32_t tsc_pc;                                  /* "ERTB" */
+extern int32_t tsc_cdf;                                 /* "ECDF" */
+extern int32_t tsc_enb;                                 /* enable */
 
 #define UNIT_V_SN699    (UNIT_V_UF + 0)                 /* SN 699 or above */
 #define UNIT_SN699      (1 << UNIT_V_SN699)
 
-int32 tsc (int32 IR, int32 AC);
+int32_t tsc (int32_t IR, int32_t AC);
 t_stat tsc_reset (DEVICE *dptr);
 const char *tsc_description (DEVICE *dptr);
 
@@ -84,7 +86,7 @@ DEVICE tsc_dev = {
 
 /* IOT routine */
 
-int32 tsc (int32 IR, int32 AC)
+int32_t tsc (int32_t IR, int32_t AC)
 {
 switch (IR & 07) {                                      /* decode IR<9:11> */
 

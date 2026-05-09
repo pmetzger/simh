@@ -44,6 +44,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp18b_defs.h"
 #include "sim_tmxr.h"
 
@@ -55,35 +57,35 @@
 #define TTX_MAXL        1
 #endif
 
-uint32 ttix_done = 0;                                   /* input flags */
-uint32 ttox_done = 0;                                   /* output flags */
-uint8 ttix_buf[TTX_MAXL] = { 0 };                       /* input buffers */
-uint8 ttox_buf[TTX_MAXL] = { 0 };                       /* output buffers */
+uint32_t ttix_done = 0;                                 /* input flags */
+uint32_t ttox_done = 0;                                 /* output flags */
+uint8_t ttix_buf[TTX_MAXL] = { 0 };                     /* input buffers */
+uint8_t ttox_buf[TTX_MAXL] = { 0 };                     /* output buffers */
 TMLN ttx_ldsc[TTX_MAXL] = { {0} };                      /* line descriptors */
 TMXR ttx_desc = { 1, 0, 0, ttx_ldsc };                  /* mux descriptor */
 #define ttx_lines ttx_desc.lines                        /* current number of lines */
 
-extern int32 int_hwre[API_HLVL+1];
-extern int32 api_vec[API_HLVL][32];
-extern int32 tmxr_poll;
+extern int32_t int_hwre[API_HLVL+1];
+extern int32_t api_vec[API_HLVL][32];
+extern int32_t tmxr_poll;
 
 DEVICE ttix_dev, ttox_dev;
-int32 ttix (int32 dev, int32 pulse, int32 dat);
-int32 ttox (int32 dev, int32 pulse, int32 dat);
+int32_t ttix (int32_t dev, int32_t pulse, int32_t dat);
+int32_t ttox (int32_t dev, int32_t pulse, int32_t dat);
 t_stat ttix_svc (UNIT *uptr);
-bool ttix_test_done (int32 ln);
-void ttix_set_done (int32 ln);
-void ttix_clr_done (int32 ln);
+bool ttix_test_done (int32_t ln);
+void ttix_set_done (int32_t ln);
+void ttix_clr_done (int32_t ln);
 t_stat ttox_svc (UNIT *uptr);
-bool ttox_test_done (int32 ln);
-void ttox_set_done (int32 ln);
-void ttox_clr_done (int32 ln);
-int32 ttx_getln (int32 dev, int32 pulse);
+bool ttox_test_done (int32_t ln);
+void ttox_set_done (int32_t ln);
+void ttox_clr_done (int32_t ln);
+int32_t ttx_getln (int32_t dev, int32_t pulse);
 t_stat ttx_attach (UNIT *uptr, const char *cptr);
 t_stat ttx_detach (UNIT *uptr);
 t_stat ttx_reset (DEVICE *dptr);
-void ttx_reset_ln (int32 i);
-t_stat ttx_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc);
+void ttx_reset_ln (int32_t i);
+t_stat ttx_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* TTIx data structures
 
@@ -199,9 +201,9 @@ DEVICE tto1_dev = {
 
 /* Terminal input: IOT routine */
 
-int32 ttix (int32 dev, int32 pulse, int32 dat)
+int32_t ttix (int32_t dev, int32_t pulse, int32_t dat)
 {
-int32 ln = ttx_getln (dev, pulse);                      /* line # */
+int32_t ln = ttx_getln (dev, pulse);                    /* line # */
 
 if (ln > ttx_lines)
     return dat;
@@ -220,7 +222,7 @@ return dat;
 
 t_stat ttix_svc (UNIT *uptr)
 {
-int32 ln, c, temp;
+int32_t ln, c, temp;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* attached? */
     return SCPE_OK;
@@ -244,21 +246,21 @@ return SCPE_OK;
 
 /* Interrupt handling routines */
 
-bool ttix_test_done (int32 ln)
+bool ttix_test_done (int32_t ln)
 {
 if (ttix_done & (1 << ln))
     return true;
 return false;
 }
 
-void ttix_set_done (int32 ln)
+void ttix_set_done (int32_t ln)
 {
 ttix_done = ttix_done | (1 << ln);
 SET_INT (TTI1);
 return;
 }
 
-void ttix_clr_done (int32 ln)
+void ttix_clr_done (int32_t ln)
 {
 ttix_done = ttix_done & ~(1 << ln);
 if (ttix_done) {
@@ -272,9 +274,9 @@ return;
 
 /* Terminal output: IOT routine */
 
-int32 ttox (int32 dev, int32 pulse, int32 dat)
+int32_t ttox (int32_t dev, int32_t pulse, int32_t dat)
 {
-int32 ln = ttx_getln (dev, pulse);                      /* line # */
+int32_t ln = ttx_getln (dev, pulse);                    /* line # */
 
 if (ln > ttx_lines)
     return dat;
@@ -295,7 +297,7 @@ return dat;
 
 t_stat ttox_svc (UNIT *uptr)
 {
-int32 c, ln = uptr - ttox_unit;                         /* line # */
+int32_t c, ln = uptr - ttox_unit;                       /* line # */
 
 if (ttx_ldsc[ln].conn) {                                /* connected? */
     if (ttx_ldsc[ln].xmte) {                            /* tx enabled? */
@@ -317,21 +319,21 @@ return SCPE_OK;
 
 /* Interrupt handling routines */
 
-bool ttox_test_done (int32 ln)
+bool ttox_test_done (int32_t ln)
 {
 if (ttox_done & (1 << ln))
     return true;
 return false;
 }
 
-void ttox_set_done (int32 ln)
+void ttox_set_done (int32_t ln)
 {
 ttox_done = ttox_done | (1 << ln);
 SET_INT (TTO1);
 return;
 }
 
-void ttox_clr_done (int32 ln)
+void ttox_clr_done (int32_t ln)
 {
 ttox_done = ttox_done & ~(1 << ln);
 if (ttox_done) {
@@ -349,7 +351,7 @@ return;
    LT19's.  Rather, line numbers follow a simple progression based on
    the relative IOT number and the subdevice select */
 
-int32 ttx_getln (int32 dev, int32 pulse)
+int32_t ttx_getln (int32_t dev, int32_t pulse)
 {
 #if !defined (PDP15)
 /* Shared helper signature.
@@ -357,10 +359,10 @@ int32 ttx_getln (int32 dev, int32 pulse)
 (void) pulse;
 #endif
 
-int32 rdno = ((dev - ttix_dib.dev) >> 1) & 3;
+int32_t rdno = ((dev - ttix_dib.dev) >> 1) & 3;
 
 #if defined (PDP15)                                     /* PDP-15? */
-int32 sub = (pulse >> 4) & 3;
+int32_t sub = (pulse >> 4) & 3;
 return (rdno * 4) + sub;                                /* use dev, subdev */
 #else                                                   /* others */
 return rdno;                                            /* use dev only */
@@ -371,7 +373,7 @@ return rdno;                                            /* use dev only */
 
 t_stat ttx_reset (DEVICE *dptr)
 {
-int32 ln;
+int32_t ln;
 
 if (dptr->flags & DEV_DIS) {                            /* sync enables */
     ttix_dev.flags = ttix_dev.flags | DEV_DIS;
@@ -391,7 +393,7 @@ return SCPE_OK;
 
 /* Reset line n */
 
-void ttx_reset_ln (int32 ln)
+void ttx_reset_ln (int32_t ln)
 {
 ttix_buf[ln] = 0;                                       /* clear buf, */
 ttox_buf[ln] = 0;
@@ -418,7 +420,7 @@ return SCPE_OK;
 
 t_stat ttx_detach (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 r = tmxr_detach (&ttx_desc, uptr);                      /* detach */
@@ -430,7 +432,7 @@ return r;
 
 /* Change number of lines */
 
-t_stat ttx_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttx_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -438,7 +440,7 @@ t_stat ttx_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)

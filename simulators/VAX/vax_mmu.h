@@ -51,42 +51,43 @@
 #include "vax_defs.h"
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct {
-    uint32      tag;                                    /* tag */
-    uint32      pte;                                    /* pte */
+    uint32_t    tag;                                    /* tag */
+    uint32_t    pte;                                    /* pte */
     } TLBENT;
 
-extern uint32 *M;
+extern uint32_t *M;
 extern UNIT cpu_unit;
 extern DEVICE cpu_dev;
-extern int32 mapen;                                     /* map enable */
+extern int32_t mapen;                                   /* map enable */
 
-extern uint32 mchk_va, mchk_ref;                        /* for mcheck */
+extern uint32_t mchk_va, mchk_ref;                      /* for mcheck */
 extern TLBENT stlb[VA_TBSIZE], ptlb[VA_TBSIZE];
 
-static const uint32 insert[4] = {
+static const uint32_t insert[4] = {
     0x00000000, 0x000000FF, 0x0000FFFF, 0x00FFFFFF
     };
 
 extern void zap_tb (int stb);
-extern void zap_tb_ent (uint32 va);
-extern bool chk_tb_ent (uint32 va);
+extern void zap_tb_ent (uint32_t va);
+extern bool chk_tb_ent (uint32_t va);
 extern void set_map_reg (void);
-extern int32 ReadIO (uint32 pa, int32 lnt);
-extern void WriteIO (uint32 pa, int32 val, int32 lnt);
-extern int32 ReadReg (uint32 pa, int32 lnt);
-extern void WriteReg (uint32 pa, int32 val, int32 lnt);
-extern TLBENT fill (uint32 va, int32 lnt, int32 acc, int32 *stat);
-static inline int32 ReadU (uint32 pa, int32 lnt);
-static inline void WriteU (uint32 pa, int32 val, int32 lnt);
-static inline int32 ReadB (uint32 pa);
-static inline int32 ReadW (uint32 pa);
-static inline int32 ReadL (uint32 pa);
-static inline int32 ReadLP (uint32 pa);
-static inline void WriteB (uint32 pa, int32 val);
-static inline void WriteW (uint32 pa, int32 val);
-static inline void WriteL (uint32 pa, int32 val);
+extern int32_t ReadIO (uint32_t pa, int32_t lnt);
+extern void WriteIO (uint32_t pa, int32_t val, int32_t lnt);
+extern int32_t ReadReg (uint32_t pa, int32_t lnt);
+extern void WriteReg (uint32_t pa, int32_t val, int32_t lnt);
+extern TLBENT fill (uint32_t va, int32_t lnt, int32_t acc, int32_t *stat);
+static inline int32_t ReadU (uint32_t pa, int32_t lnt);
+static inline void WriteU (uint32_t pa, int32_t val, int32_t lnt);
+static inline int32_t ReadB (uint32_t pa);
+static inline int32_t ReadW (uint32_t pa);
+static inline int32_t ReadL (uint32_t pa);
+static inline int32_t ReadLP (uint32_t pa);
+static inline void WriteB (uint32_t pa, int32_t val);
+static inline void WriteW (uint32_t pa, int32_t val);
+static inline void WriteL (uint32_t pa, int32_t val);
 
 /* Read and write virtual
 
@@ -117,10 +118,10 @@ static inline void WriteL (uint32 pa, int32 val);
         returned data, right justified in 32b longword
 */
 
-static inline int32 Read (uint32 va, int32 lnt, int32 acc)
+static inline int32_t Read (uint32_t va, int32_t lnt, int32_t acc)
 {
-uint32 vpn, off, tbi, pa;
-uint32 pa1, bo, sc, wl, wh;
+uint32_t vpn, off, tbi, pa;
+uint32_t pa1, bo, sc, wl, wh;
 TLBENT xpte;
 
 mchk_va = va;
@@ -145,7 +146,7 @@ if ((pa & (lnt - 1)) == 0) {                            /* aligned? */
         return ReadW (pa);
     return ReadB (pa);                                  /* byte */
     }
-if (mapen && ((uint32)(off + lnt) > VA_PAGSIZE)) {      /* cross page? */
+if (mapen && ((uint32_t)(off + lnt) > VA_PAGSIZE)) {    /* cross page? */
     vpn = VA_GETVPN (va + lnt);                         /* vpn 2nd page */
     tbi = VA_GETTBI (vpn);
     xpte = (va & VA_S0)? stlb[tbi]: ptlb[tbi];          /* access tlb */
@@ -183,10 +184,10 @@ else {
         none
 */
 
-static inline void Write (uint32 va, int32 val, int32 lnt, int32 acc)
+static inline void Write (uint32_t va, int32_t val, int32_t lnt, int32_t acc)
 {
-uint32 vpn, off, tbi, pa;
-uint32 pa1, bo, sc;
+uint32_t vpn, off, tbi, pa;
+uint32_t pa1, bo, sc;
 TLBENT xpte;
 
 mchk_va = va;
@@ -215,7 +216,7 @@ if ((pa & (lnt - 1)) == 0) {                            /* aligned? */
         }
     return;
     }
-if (mapen && ((uint32)(off + lnt) > VA_PAGSIZE)) {
+if (mapen && ((uint32_t)(off + lnt) > VA_PAGSIZE)) {
     vpn = VA_GETVPN (va + 4);
     tbi = VA_GETTBI (vpn);
     xpte = (va & VA_S0)? stlb[tbi]: ptlb[tbi];          /* access tlb */
@@ -243,9 +244,9 @@ return;
 
 /* Test access to a byte (VAX PROBEx) */
 
-static inline int32 Test (uint32 va, int32 acc, int32 *status)
+static inline int32_t Test (uint32_t va, int32_t acc, int32_t *status)
 {
-uint32 vpn, off, tbi;
+uint32_t vpn, off, tbi;
 TLBENT xpte;
 
 *status = PR_OK;                                        /* assume ok */
@@ -273,9 +274,9 @@ return va & PAMASK;                                     /* ret phys addr */
         returned data, right justified in 32b longword
 */
 
-static inline int32 ReadB (uint32 pa)
+static inline int32_t ReadB (uint32_t pa)
 {
-int32 dat;
+int32_t dat;
 
 if (ADDR_IS_MEM (pa))
     dat = M[pa >> 2];
@@ -289,9 +290,9 @@ else {
 return ((dat >> ((pa & 3) << 3)) & BMASK);
 }
 
-static inline int32 ReadW (uint32 pa)
+static inline int32_t ReadW (uint32_t pa)
 {
-int32 dat;
+int32_t dat;
 
 if (ADDR_IS_MEM (pa))
     dat = M[pa >> 2];
@@ -305,7 +306,7 @@ else {
 return ((dat >> ((pa & 2)? 16: 0)) & WMASK);
 }
 
-static inline int32 ReadL (uint32 pa)
+static inline int32_t ReadL (uint32_t pa)
 {
 if (ADDR_IS_MEM (pa))
     return M[pa >> 2];
@@ -315,7 +316,7 @@ if (ADDR_IS_IO (pa))
 return ReadReg (pa, L_LONG);
 }
 
-static inline int32 ReadLP (uint32 pa)
+static inline int32_t ReadLP (uint32_t pa)
 {
 if (ADDR_IS_MEM (pa))
     return M[pa >> 2];
@@ -335,10 +336,10 @@ return ReadReg (pa, L_LONG);
         returned data
 */
 
-static inline int32 ReadU (uint32 pa, int32 lnt)
+static inline int32_t ReadU (uint32_t pa, int32_t lnt)
 {
-int32 dat;
-int32 sc = (pa & 3) << 3;
+int32_t dat;
+int32_t sc = (pa & 3) << 3;
 if (ADDR_IS_MEM (pa))
     dat = M[pa >> 2];
 else {
@@ -360,13 +361,13 @@ return ((dat >> sc) & insert[lnt]);
         none
 */
 
-static inline void WriteB (uint32 pa, int32 val)
+static inline void WriteB (uint32_t pa, int32_t val)
 {
 if (ADDR_IS_MEM (pa)) {
-    uint32 id = pa >> 2;
-    uint32 sc = (pa & 3) << 3;
-    uint32 mask = 0xFFu << sc;
-    M[id] = (M[id] & ~mask) | (((uint32) val << sc) & mask);
+    uint32_t id = pa >> 2;
+    uint32_t sc = (pa & 3) << 3;
+    uint32_t mask = 0xFFu << sc;
+    M[id] = (M[id] & ~mask) | (((uint32_t) val << sc) & mask);
     }
 else {
     mchk_ref = REF_V;
@@ -378,11 +379,11 @@ else {
 return;
 }
 
-static inline void WriteW (uint32 pa, int32 val)
+static inline void WriteW (uint32_t pa, int32_t val)
 {
 if (ADDR_IS_MEM (pa)) {
-    uint32 id = pa >> 2;
-    uint32 uval = (uint32) val;
+    uint32_t id = pa >> 2;
+    uint32_t uval = (uint32_t) val;
     M[id] = (pa & 2)? (M[id] & 0xFFFFu) | ((uval & WMASK) << 16):
         (M[id] & ~0xFFFFu) | (uval & WMASK);
     }
@@ -396,7 +397,7 @@ else {
 return;
 }
 
-static inline void WriteL (uint32 pa, int32 val)
+static inline void WriteL (uint32_t pa, int32_t val)
 {
 if (ADDR_IS_MEM (pa))
     M[pa >> 2] = val;
@@ -410,7 +411,7 @@ else {
 return;
 }
 
-static inline void WriteLP (uint32 pa, int32 val)
+static inline void WriteLP (uint32_t pa, int32_t val)
 {
 if (ADDR_IS_MEM (pa))
     M[pa >> 2] = val;
@@ -435,14 +436,14 @@ return;
         none
 */
 
-static inline void WriteU (uint32 pa, int32 val, int32 lnt)
+static inline void WriteU (uint32_t pa, int32_t val, int32_t lnt)
 {
 if (ADDR_IS_MEM (pa)) {
-    uint32 bo = pa & 3;
-    uint32 sc = bo << 3;
-    uint32 mask = insert[lnt] << sc;
+    uint32_t bo = pa & 3;
+    uint32_t sc = bo << 3;
+    uint32_t mask = insert[lnt] << sc;
     M[pa >> 2] = (M[pa >> 2] & ~mask) |
-        ((((uint32) val) & insert[lnt]) << sc);
+        ((((uint32_t) val) & insert[lnt]) << sc);
     }
 else {
     mchk_ref = REF_V;

@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -83,17 +85,17 @@
 
 struct boot_dev {
     const char          *name;
-    int32               code;
-    int32               let;
+    int32_t             code;
+    int32_t             let;
     };
 
-uint32 nexus_req[NEXUS_HLVL];                           /* nexus int req */
-uint32 pamloc = 0;
-uint32 pamm[1024];                                      /* Contents of physical memory space */
-uint32 cswp = 0;
-uint32 ehsr = 0;
-uint32 mdctl = 0;
-int32 sys_model = 0;
+uint32_t nexus_req[NEXUS_HLVL];                         /* nexus int req */
+uint32_t pamloc = 0;
+uint32_t pamm[1024];                                    /* Contents of physical memory space */
+uint32_t cswp = 0;
+uint32_t ehsr = 0;
+uint32_t mdctl = 0;
+int32_t sys_model = 0;
 char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
 
 static struct boot_dev boot_tab[] = {
@@ -108,46 +110,46 @@ static struct boot_dev boot_tab[] = {
     { NULL }
     };
 
-extern int32 tmr_int, tti_int, tto_int, csi_int;
-extern uint32 sbi_er;
+extern int32_t tmr_int, tti_int, tto_int, csi_int;
+extern uint32_t sbi_er;
 
 void uba_eval_int (void);
 t_stat abus_reset (DEVICE *dptr);
 const char *abus_description (DEVICE *dptr);
-t_stat vax860_boot (int32 flag, const char *ptr);
-t_stat vax860_boot_parse (int32 flag, const char *ptr);
+t_stat vax860_boot (int32_t flag, const char *ptr);
+t_stat vax860_boot_parse (int32_t flag, const char *ptr);
 void init_pamm (void);
 
-extern t_stat (*nexusR[NEXUS_NUM])(int32 *dat, int32 ad, int32 md);
-extern t_stat (*nexusW[NEXUS_NUM])(int32 dat, int32 ad, int32 md);
-extern int32 iccs_rd (void);
-extern int32 nicr_rd (void);
-extern int32 icr_rd (void);
-extern int32 todr_rd (void);
-extern int32 rxcs_rd (void);
-extern int32 rxdb_rd (void);
-extern int32 txcs_rd (void);
-extern int32 stxcs_rd (void);
-extern int32 stxdb_rd (void);
-extern void iccs_wr (int32 dat);
-extern void nicr_wr (int32 dat);
-extern void todr_wr (int32 dat);
-extern void rxcs_wr (int32 dat);
-extern void txcs_wr (int32 dat);
-extern void txdb_wr (int32 dat);
-extern void stxcs_wr (int32 data);
-extern void stxdb_wr (int32 data);
+extern t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
+extern t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
+extern int32_t iccs_rd (void);
+extern int32_t nicr_rd (void);
+extern int32_t icr_rd (void);
+extern int32_t todr_rd (void);
+extern int32_t rxcs_rd (void);
+extern int32_t rxdb_rd (void);
+extern int32_t txcs_rd (void);
+extern int32_t stxcs_rd (void);
+extern int32_t stxdb_rd (void);
+extern void iccs_wr (int32_t dat);
+extern void nicr_wr (int32_t dat);
+extern void todr_wr (int32_t dat);
+extern void rxcs_wr (int32_t dat);
+extern void txcs_wr (int32_t dat);
+extern void txdb_wr (int32_t dat);
+extern void stxcs_wr (int32_t data);
+extern void stxdb_wr (int32_t data);
 extern void init_mbus_tab (void);
 extern void init_ubus_tab (void);
 extern void init_nexus_tab (void);
 extern t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp);
 extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
 extern t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp);
-extern void sbi_set_tmo (int32 pa);
-extern int32 sbia_rd (int32 pa, int32 lnt);
-extern void sbia_wr (int32 pa, int32 val, int32 lnt);
-extern t_stat sbi_rd (int32 pa, int32 *val, int32 lnt);
-extern t_stat sbi_wr (int32 pa, int32 val, int32 lnt);
+extern void sbi_set_tmo (int32_t pa);
+extern int32_t sbia_rd (int32_t pa, int32_t lnt);
+extern void sbia_wr (int32_t pa, int32_t val, int32_t lnt);
+extern t_stat sbi_rd (int32_t pa, int32_t *val, int32_t lnt);
+extern t_stat sbi_wr (int32_t pa, int32_t val, int32_t lnt);
 
 /* ABUS data structures
 
@@ -203,12 +205,12 @@ the total system memory size.
 
 void init_pamm(void)
 {
-int32 addr = 0;
-int32 mem = (int32)(MEMSIZE >> 20);
-int32 slot = 0;
-int32 slots_remaining = 8;
-int32 size = 4;
-int32 i;
+int32_t addr = 0;
+int32_t mem = (int32_t)(MEMSIZE >> 20);
+int32_t slot = 0;
+int32_t slots_remaining = 8;
+int32_t size = 4;
+int32_t i;
 
 for (i=0; i<1024; i++)
     pamm[i] = PAMM_NXM;
@@ -234,7 +236,7 @@ for (i=0; i<32; i++)
     pamm[512+i] = PAMM_IOA0;
 }
 
-t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -242,8 +244,8 @@ t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc)
 (void) val;
 (void) desc;
 
-int32 slot[32];
-int32 base[32];
+int32_t slot[32];
+int32_t base[32];
 struct {
     int capacity;
     const char *option;
@@ -253,7 +255,7 @@ struct {
         { 64, "MS86-D"},
         {256, "MS86-E (board never existed)"},  /* Fake 256MB board */
         {  0, NULL}};
-int32 i, j;
+int32_t i, j;
 
 for (i=0; i<32; i++)
     slot[i] = base[i] = 0;
@@ -318,12 +320,12 @@ CTAB vax860_cmd[] = {
 
 /* Find highest priority vectorable interrupt */
 
-int32 eval_int (void)
+int32_t eval_int (void)
 {
-int32 ipl = PSL_GETIPL (PSL);
-int32 i, t;
+int32_t ipl = PSL_GETIPL (PSL);
+int32_t i, t;
 
-static const int32 sw_int_mask[IPL_SMAX] = {
+static const int32_t sw_int_mask[IPL_SMAX] = {
     0xFFFE, 0xFFFC, 0xFFF8, 0xFFF0,                     /* 0 - 3 */
     0xFFE0, 0xFFC0, 0xFF80, 0xFF00,                     /* 4 - 7 */
     0xFE00, 0xFC00, 0xF800, 0xF000,                     /* 8 - B */
@@ -360,9 +362,9 @@ return 0;
 
 /* Return vector for highest priority hardware interrupt at IPL lvl */
 
-int32 get_vector (int32 lvl)
+int32_t get_vector (int32_t lvl)
 {
-int32 i, l;
+int32_t i, l;
 
 if (lvl == IPL_MEMERR) {                                /* mem error? */
     mem_err = 0;
@@ -407,7 +409,7 @@ return 0;
 
 /* Used by CPU */
 
-void rom_wr_B (int32 pa, int32 val)
+void rom_wr_B (int32_t pa, int32_t val)
 {
 /* CPU ROM write signature.
    This implementation does not use every parameter. */
@@ -419,9 +421,9 @@ return;
 
 /* Read 8600 specific IPR's */
 
-int32 ReadIPR (int32 rg)
+int32_t ReadIPR (int32_t rg)
 {
-int32 val;
+int32_t val;
 
 switch (rg) {
 
@@ -506,7 +508,7 @@ return val;
 
 /* Write 8600 specific IPR's */
 
-void WriteIPR (int32 rg, int32 val)
+void WriteIPR (int32_t rg, int32_t val)
 {
 switch (rg) {
 
@@ -586,9 +588,9 @@ return;
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32_t ReadReg (uint32_t pa, int32_t lnt)
 {
-int32 val;
+int32_t val;
 
 if (ADDR_IS_SBIA (pa)) return sbia_rd (pa, lnt);        /* SBI adapter space? */
 if (ADDR_IS_REG (pa)) {                                 /* reg space? */
@@ -609,7 +611,7 @@ return 0;
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32_t val, int32_t lnt)
 {
 if (ADDR_IS_SBIA (pa)) {                                /* SBI adapter space? */
     sbia_wr (pa, val, lnt);
@@ -627,7 +629,7 @@ return;
 
 /* Machine check */
 
-int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
+int32_t machine_check (int32_t p1, int32_t opc, int32_t cc, int32_t delta)
 {
 /* Shared machine-check signature.
    This implementation does not use every parameter. */
@@ -635,8 +637,8 @@ int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
 (void) opc;
 (void) delta;
 
-int32 acc;
-int32 mstat1, mstat2, mear, ebcs, merg, ehmsts;
+int32_t acc;
+int32_t mstat1, mstat2, mear, ebcs, merg, ehmsts;
 
 if (in_ie)                                              /* in exc? panic */
     ABORT (STOP_INIE);
@@ -682,7 +684,7 @@ return cc;
 
 /* Console entry */
 
-int32 con_halt (int32 code, int32 cc)
+int32_t con_halt (int32_t code, int32_t cc)
 {
 /* Shared console halt signature.
    This implementation does not use every parameter. */
@@ -704,7 +706,7 @@ return cc;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax860_boot (int32 flag, const char *ptr)
+t_stat vax860_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -724,16 +726,16 @@ return run_cmd (flag, "CPU");
 
 /* Parse boot command, set up registers - also used on reset */
 
-t_stat vax860_boot_parse (int32 flag, const char *ptr)
+t_stat vax860_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 char *slptr;
 const char *regptr;
-int32 i, r5v, unitno;
+int32_t i, r5v, unitno;
 DEVICE *dptr;
 UNIT *uptr;
 DIB *dibp;
-uint32 ba;
+uint32_t ba;
 t_stat r;
 
 if (!ptr || !*ptr)
@@ -751,20 +753,20 @@ if (dibp == NULL)
     ba = 0;
 else
     ba = dibp->ba;
-unitno = (int32) (uptr - dptr->units);
+unitno = (int32_t) (uptr - dptr->units);
 r5v = 0;
 /* coverity[NULL_RETURNS] */
 if ((strncmp (regptr, "/R5:", 4) == 0) ||
     (strncmp (regptr, "/R5=", 4) == 0) ||
     (strncmp (regptr, "/r5:", 4) == 0) ||
     (strncmp (regptr, "/r5=", 4) == 0)) {
-    r5v = (int32) get_uint (regptr + 4, 16, LMASK, &r);
+    r5v = (int32_t) get_uint (regptr + 4, 16, LMASK, &r);
     if (r != SCPE_OK)
         return r;
     }
 else
     if (*regptr == '/') {
-        r5v = (int32) get_uint (regptr + 1, 16, LMASK, &r);
+        r5v = (int32_t) get_uint (regptr + 1, 16, LMASK, &r);
         if (r != SCPE_OK)
             return r;
         }
@@ -794,7 +796,7 @@ return SCPE_NOFNC;
 
 /* Bootstrap - finish up bootstrap process */
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -837,7 +839,7 @@ return "bus controller";
 
 t_stat build_dib_tab (void)
 {
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;
@@ -865,7 +867,7 @@ for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* loop thru dev */
 return SCPE_OK;
 }
 
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -893,7 +895,7 @@ fprintf (st, "VAX %s", (sys_model ? "8650" : "8600"));
 return SCPE_OK;
 }
 
-t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

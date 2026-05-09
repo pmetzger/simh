@@ -32,6 +32,8 @@
 #define __3B2_ID_H__
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_defs.h"
 
 #define ID0             0
@@ -154,13 +156,13 @@
 #define CMD_NUM       ((id_cmd >> 4) & 0xf)
 
 struct id_state {
-    uint16 cyl;       /* Cylinder the drive is positioned on   */
-    uint8  phn;       /* Physical head number                  */
-    uint8  lhn;       /* Logical head number                   */
-    uint8  lsn;       /* Logical sector number                 */
-    uint8  scnt;      /* Sector count                          */
-    uint8  lcnh;      /* Logical Cylinder Number, high byte    */
-    uint8  lcnl;      /* Logical Cylinder Number, low byte     */
+    uint16_t cyl;     /* Cylinder the drive is positioned on   */
+    uint8_t phn;      /* Physical head number                  */
+    uint8_t lhn;      /* Logical head number                   */
+    uint8_t lsn;      /* Logical sector number                 */
+    uint8_t scnt;     /* Sector count                          */
+    uint8_t lcnh;     /* Logical Cylinder Number, high byte    */
+    uint8_t lcnl;     /* Logical Cylinder Number, low byte     */
 };
 
 /* Function prototypes */
@@ -168,17 +170,17 @@ struct id_state {
 t_stat id_ctlr_svc(UNIT *uptr);
 t_stat id_unit_svc(UNIT *uptr);
 t_stat id_reset(DEVICE *dptr);
-t_stat id_set_large(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat id_set_type(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat id_show_type (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat id_set_large(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat id_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat id_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat id_attach(UNIT *uptr, const char *cptr);
 t_stat id_detach(UNIT *uptr);
-uint32 id_read(uint32 pa, size_t size);
-void id_write(uint32 pa, uint32 val, size_t size);
+uint32_t id_read(uint32_t pa, size_t size);
+void id_write(uint32_t pa, uint32_t val, size_t size);
 const char *id_description(DEVICE *dptr);
-t_stat id_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-void id_handle_data(uint8 val);
-void id_handle_command(uint8 val);
+t_stat id_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+void id_handle_data(uint8_t val);
+void id_handle_command(uint8_t val);
 void id_after_dma(void);
 
 extern bool id_drq;

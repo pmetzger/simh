@@ -21,6 +21,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "b5500_defs.h"
 
 #if (NUM_DEVS_DR > 0)
@@ -42,14 +44,14 @@
 #define AUXMEM          (1 << UNIT_V_UF)
 
 t_stat              drm_srv(UNIT *);
-t_stat              drm_boot(int32, DEVICE *);
+t_stat              drm_boot(int32_t, DEVICE *);
 t_stat              drm_attach(UNIT *, const char *);
 t_stat              drm_detach(UNIT *);
-t_stat              set_drum(UNIT * uptr, int32 val, const char *cptr,
+t_stat              set_drum(UNIT * uptr, int32_t val, const char *cptr,
                              void *desc);
-t_stat              set_auxmem(UNIT * uptr, int32 val, const char *cptr,
+t_stat              set_auxmem(UNIT * uptr, int32_t val, const char *cptr,
                              void *desc);
-t_stat              drm_help (FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              drm_help (FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *drm_description (DEVICE *);
 
 
@@ -78,7 +80,7 @@ DEVICE              drm_dev = {
 
 
 /* Start off a disk command */
-t_stat drm_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc, uint8 rd_flg)
+t_stat drm_cmd(uint16_t cmd, uint16_t dev, uint8_t chan, uint16_t *wc, uint8_t rd_flg)
 {
     /* Shared device command signature.
        This implementation does not use every parameter. */
@@ -120,7 +122,7 @@ t_stat drm_cmd(uint16 cmd, uint16 dev, uint8 chan, uint16 *wc, uint8 rd_flg)
 t_stat drm_srv(UNIT * uptr)
 {
     int                 chan = uptr->CMD & DR_CHAN;
-    uint8               *ch = &(((uint8 *)uptr->filebuf)[uptr->ADDR]);
+    uint8_t             *ch = &(((uint8_t *)uptr->filebuf)[uptr->ADDR]);
 
 
     /* Process for each unit */
@@ -132,7 +134,7 @@ t_stat drm_srv(UNIT * uptr)
                 return SCPE_OK;
         }
         uptr->ADDR++;
-        if (uptr->ADDR > ((int32)uptr->capac << 3)) {
+        if (uptr->ADDR > ((int32_t)uptr->capac << 3)) {
                 sim_debug(DEBUG_CMD, &drm_dev, "Drum overrun\n");
                 uptr->CMD = DR_RDY;
                 chan_set_error(chan);
@@ -151,7 +153,7 @@ t_stat drm_srv(UNIT * uptr)
                 return SCPE_OK;
         }
         uptr->ADDR++;
-        if (uptr->ADDR > ((int32)uptr->capac << 3)) {
+        if (uptr->ADDR > ((int32_t)uptr->capac << 3)) {
                 sim_debug(DEBUG_CMD, &drm_dev, "Drum overrun\n");
                 uptr->CMD = DR_RDY;
                 chan_set_error(chan);
@@ -166,16 +168,16 @@ t_stat drm_srv(UNIT * uptr)
 
 /* Boot from given device */
 t_stat
-drm_boot(int32 unit_num, DEVICE * dptr)
+drm_boot(int32_t unit_num, DEVICE * dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
     (void) dptr;
 
     int         dev = (unit_num)? DRUM2_DEV:DRUM1_DEV;
-    t_uint64    desc;
+    uint64_t    desc;
 
-    desc = (((t_uint64)dev)<<DEV_V)|DEV_IORD|DEV_OPT|020LL;
+    desc = (((uint64_t)dev)<<DEV_V)|DEV_IORD|DEV_OPT|020LL;
     return chan_boot(desc);
 }
 
@@ -214,7 +216,7 @@ drm_detach(UNIT * uptr)
 }
 
 t_stat
-set_drum(UNIT * uptr, int32 val, const char *cptr, void *desc) {
+set_drum(UNIT * uptr, int32_t val, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) val;
@@ -230,7 +232,7 @@ set_drum(UNIT * uptr, int32 val, const char *cptr, void *desc) {
 }
 
 t_stat
-set_auxmem(UNIT * uptr, int32 val, const char *cptr, void *desc) {
+set_auxmem(UNIT * uptr, int32_t val, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) val;
@@ -258,7 +260,7 @@ set_auxmem(UNIT * uptr, int32 val, const char *cptr, void *desc) {
 }
 
 t_stat
-drm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+drm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   /* Generic help signature.
      This implementation does not use every parameter. */

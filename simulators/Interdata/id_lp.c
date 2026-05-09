@@ -33,6 +33,7 @@
 
 #include "id_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 /* Device definitions */
 
@@ -54,27 +55,27 @@
 #define STA_PAPE        0x40                            /* *paper empty */
 #define STA_MASK        (STA_BSY)                       /* static status */
 
-uint32 lpt_sta = STA_BSY;                               /* status */
+uint32_t lpt_sta = STA_BSY;                             /* status */
 char lpxb[LPT_WIDTH + 1];                               /* line buffer */
-uint32 lpt_bptr = 0;                                    /* buf ptr */
-uint32 lpt_spnd = 0;                                    /* space pending */
-uint32 lpt_vfup = 0;                                    /* VFU ptr */
-uint32 lpt_vful = 1;                                    /* VFU lnt */
-uint8 lpt_vfut[VFU_LNT] = { 0xFF };                     /* VFU tape */
-uint32 lpt_arm = 0;                                     /* int armed */
-int32 lpt_ctime = 10;                                   /* char time */
-int32 lpt_stime = 1000;                                 /* space time */
-int32 lpt_stopioe = 0;                                  /* stop on err */
+uint32_t lpt_bptr = 0;                                  /* buf ptr */
+uint32_t lpt_spnd = 0;                                  /* space pending */
+uint32_t lpt_vfup = 0;                                  /* VFU ptr */
+uint32_t lpt_vful = 1;                                  /* VFU lnt */
+uint8_t lpt_vfut[VFU_LNT] = { 0xFF };                   /* VFU tape */
+uint32_t lpt_arm = 0;                                   /* int armed */
+int32_t lpt_ctime = 10;                                 /* char time */
+int32_t lpt_stime = 1000;                               /* space time */
+int32_t lpt_stopioe = 0;                                /* stop on err */
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 
-uint32 lpt (uint32 dev, uint32 op, uint32 dat);
+uint32_t lpt (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *cptr);
 t_stat lpt_bufout (UNIT *uptr);
-int32 lpt_vfu (UNIT *uptr, int32 ch);
-int32 lpt_spc (UNIT *uptr, int32 cnt);
+int32_t lpt_vfu (UNIT *uptr, int32_t ch);
+int32_t lpt_spc (UNIT *uptr, int32_t cnt);
 
 /* LPT data structures
 
@@ -124,13 +125,13 @@ DEVICE lpt_dev = {
 
 /* Line printer: IO routine */
 
-uint32 lpt (uint32 dev, uint32 op, uint32 dat)
+uint32_t lpt (uint32_t dev, uint32_t op, uint32_t dat)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 t;
+int32_t t;
 
 switch (op) {                                           /* case IO op */
 
@@ -163,7 +164,7 @@ return 0;
 
 t_stat lpt_svc (UNIT *uptr)
 {
-int32 t, cc;
+int32_t t, cc;
 
 lpt_sta = 0;                                            /* clear busy */
 if (lpt_arm)                                            /* armed? intr */
@@ -215,7 +216,7 @@ return SCPE_OK;
 
 t_stat lpt_bufout (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r = SCPE_OK;
 
 if (lpt_bptr == 0) return SCPE_OK;                      /* any char in buf? */
@@ -237,9 +238,9 @@ lpxb[LPT_WIDTH] = 0;
 return r;
 }
 
-t_stat lpt_vfu (UNIT *uptr, int32 ch)
+t_stat lpt_vfu (UNIT *uptr, int32_t ch)
 {
-uint32 i, j;
+uint32_t i, j;
 
 if ((ch == (FF_VFU - 1)) && VFUP (ch, lpt_vfut[0])) {   /* top of form? */
     fputs ("\n\f", uptr->fileref);                      /* nl + ff */
@@ -257,9 +258,9 @@ for (i = 1; i < lpt_vful + 1; i++) {                    /* sweep thru cct */
 return STOP_VFU;                                        /* runaway channel */
 }
 
-t_stat lpt_spc (UNIT *uptr, int32 cnt)
+t_stat lpt_spc (UNIT *uptr, int32_t cnt)
 {
-int32 i;
+int32_t i;
 
 if (cnt == 0)
      fputc ('\r', uptr->fileref);
@@ -279,7 +280,7 @@ t_stat lpt_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 sim_cancel (&lpt_unit);                                 /* deactivate */
 lpt_sta = 0;                                            /* clr busy */
@@ -310,8 +311,8 @@ t_stat lp_load (FILE *fileref, const char *cptr, const char *fnam)
    This implementation does not use every parameter. */
 (void) fnam;
 
-int32 col, ptr, mask, vfubuf[VFU_LNT];
-uint32 rpt;
+int32_t col, ptr, mask, vfubuf[VFU_LNT];
+uint32_t rpt;
 t_stat r;
 char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
 

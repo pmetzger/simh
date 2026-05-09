@@ -31,6 +31,8 @@
    25-Apr-03    RMS     Revised for extended file support
 */
 
+#include <stdint.h>
+
 #include "sds_defs.h"
 
 #define LPT_V_LN        9
@@ -41,19 +43,19 @@
 #define SET_EOR         2                               /* print, set eor */
 #define SET_SPC         4                               /* space */
 
-extern uint32 xfr_req;
-extern int32 stop_invins, stop_invdev, stop_inviop;
-int32 lpt_spc = 0;                                      /* space instr */
-int32 lpt_sta = 0;                                      /* timeout state */
-int32 lpt_bptr = 0;                                     /* line buf ptr */
-int32 lpt_err = 0;                                      /* error */
-int32 lpt_ccl = 1, lpt_ccp = 0;                         /* cctl lnt, ptr */
-int32 lpt_ctime = 10;                                   /* char time */
-int32 lpt_ptime = 1000;                                 /* print time */
-int32 lpt_stime = 10000;                                /* space time */
-int32 lpt_stopioe = 1;                                  /* stop on err */
+extern uint32_t xfr_req;
+extern int32_t stop_invins, stop_invdev, stop_inviop;
+int32_t lpt_spc = 0;                                    /* space instr */
+int32_t lpt_sta = 0;                                    /* timeout state */
+int32_t lpt_bptr = 0;                                   /* line buf ptr */
+int32_t lpt_err = 0;                                    /* error */
+int32_t lpt_ccl = 1, lpt_ccp = 0;                       /* cctl lnt, ptr */
+int32_t lpt_ctime = 10;                                 /* char time */
+int32_t lpt_ptime = 1000;                               /* print time */
+int32_t lpt_stime = 10000;                              /* space time */
+int32_t lpt_stopioe = 1;                                /* stop on err */
 char lpt_buf[LPT_WIDTH + 1] = { 0 };                    /* line buffer */
-uint8 lpt_cct[CCT_LNT] = { 0377 };                      /* car ctl tape */
+uint8_t lpt_cct[CCT_LNT] = { 0377 };                    /* car ctl tape */
 DSPT lpt_tplt[] = {                                     /* template */
     { 1, 0 },
     { 0, 0 }
@@ -62,12 +64,12 @@ DSPT lpt_tplt[] = {                                     /* template */
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *cptr);
-int32 lpt_crctl (UNIT *uptr, int32 ch);
-int32 lpt_space (UNIT *uptr, int32 cnt);
-t_stat lpt_status (UNIT *uptr, int32 cnt);
+int32_t lpt_crctl (UNIT *uptr, int32_t ch);
+int32_t lpt_space (UNIT *uptr, int32_t cnt);
+t_stat lpt_status (UNIT *uptr, int32_t cnt);
 t_stat lpt_bufout (UNIT *uptr);
-void lpt_end_op (int32 fl);
-t_stat lpt (uint32 fnc, uint32 inst, uint32 *dat);
+void lpt_end_op (int32_t fl);
+t_stat lpt (uint32_t fnc, uint32_t inst, uint32_t *dat);
 
 /* LPT data structures
 
@@ -128,9 +130,9 @@ DEVICE lpt_dev = {
    can never set the channel rate error flag.
 */
 
-t_stat lpt (uint32 fnc, uint32 inst, uint32 *dat)
+t_stat lpt (uint32_t fnc, uint32_t inst, uint32_t *dat)
 {
-int32 i, t, new_ch;
+int32_t i, t, new_ch;
 char asc;
 
 switch (fnc) {                                          /* case function */
@@ -201,7 +203,7 @@ return SCPE_OK;
 t_stat lpt_svc (UNIT *uptr)
 {
 t_stat r = SCPE_OK;
-int32 cc = 0;
+int32_t cc = 0;
 
 if (lpt_sta & SET_XFR)                                  /* need lpt xfr? */
     chan_set_ordy (lpt_dib.chan);
@@ -211,7 +213,7 @@ if (lpt_sta & SET_EOR) {                                /* printing? */
     }
 if (lpt_sta & SET_SPC) {                                /* spacing? */
     if (uptr->flags & UNIT_ATT) {                       /* attached? */
-        int32 ln = LPT_GETLN (lpt_spc);                 /* get lines, ch */
+        int32_t ln = LPT_GETLN (lpt_spc);               /* get lines, ch */
         if (lpt_spc & 0200)                             /* n lines? */
             cc = lpt_space (uptr, ln);                  /* upspace */
         else {
@@ -230,8 +232,8 @@ return r;
 
 t_stat lpt_bufout (UNIT *uptr)
 {
-int32 i;
-int32 cc = 0;
+int32_t i;
+int32_t cc = 0;
 
 if ((uptr->flags & UNIT_ATT) && lpt_bptr) {             /* attached? */
     for (i = LPT_WIDTH - 1; (i >= 0) && (lpt_buf[i] == ' '); i--)
@@ -245,7 +247,7 @@ return lpt_status (uptr, cc);                           /* return status */
 
 /* Status update after I/O */
 
-t_stat lpt_status (UNIT *uptr, int32 cnt)
+t_stat lpt_status (UNIT *uptr, int32_t cnt)
 {
 if (uptr->flags & UNIT_ATT) {                           /* attached? */
     if (ferror (uptr->fileref)) {                       /* I/O error? */
@@ -265,7 +267,7 @@ return SCPE_OK;
 
 /* Terminate LPT operation */
 
-void lpt_end_op (int32 fl)
+void lpt_end_op (int32_t fl)
 {
 if (fl)                                                 /* set flags */
     chan_set_flag (lpt_dib.chan, fl);
@@ -280,9 +282,9 @@ return;
 
 /* Carriage control */
 
-int32 lpt_crctl (UNIT *uptr, int32 ch)
+int32_t lpt_crctl (UNIT *uptr, int32_t ch)
 {
-int32 i, j;
+int32_t i, j;
 
 if ((ch == 1) && CHP (ch, lpt_cct[0])) {                /* top of form? */
     fputs ("\f\n", uptr->fileref);                      /* ff + nl */
@@ -302,9 +304,9 @@ return -1;                                              /* runaway channel */
 
 /* Spacing */
 
-int32 lpt_space (UNIT *uptr, int32 cnt)
+int32_t lpt_space (UNIT *uptr, int32_t cnt)
 {
-int32 i;
+int32_t i;
 
 if (cnt == 0) {                                         /* overprint */
      fputc ('\r', uptr->fileref);

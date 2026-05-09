@@ -47,6 +47,7 @@
 #include <string.h>
 #include "ws.h"
 #include "display.h"
+#include "sim_types.h"
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -262,7 +263,7 @@ ws_init(const char *crtname,    /* crt type name */
 {
     Arg arg[25];
     XGCValues gcvalues;
-    unsigned int n;
+    uint_t n;
     int argc;
     char *argv[1];
     int height, width;

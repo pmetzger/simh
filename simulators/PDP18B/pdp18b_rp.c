@@ -42,6 +42,8 @@
    29-Jun-96    RMS     Added unit enable/disable support
 */
 
+#include <stdint.h>
+
 #include "pdp18b_defs.h"
 
 /* Constants */
@@ -144,27 +146,27 @@
 #define CCYL_RP03       0400000                         /* RP03 flag */
 
 #define RP_MIN 2
-extern int32 *M;
-extern int32 int_hwre[API_HLVL+1], nexm;
-extern int32 api_vec[API_HLVL][32];
+extern int32_t *M;
+extern int32_t int_hwre[API_HLVL+1], nexm;
+extern int32_t api_vec[API_HLVL][32];
 extern UNIT cpu_unit;
 
-int32 rp_sta = 0;                                       /* status A */
-int32 rp_stb = 0;                                       /* status B */
-int32 rp_ma = 0;                                        /* memory address */
-int32 rp_da = 0;                                        /* disk address */
-int32 rp_wc = 0;                                        /* word count */
-int32 rp_busy = 0;                                      /* busy */
-int32 rp_stopioe = 1;                                   /* stop on error */
-int32 rp_swait = 10;                                    /* seek time */
-int32 rp_rwait = 10;                                    /* rotate time */
+int32_t rp_sta = 0;                                     /* status A */
+int32_t rp_stb = 0;                                     /* status B */
+int32_t rp_ma = 0;                                      /* memory address */
+int32_t rp_da = 0;                                      /* disk address */
+int32_t rp_wc = 0;                                      /* word count */
+int32_t rp_busy = 0;                                    /* busy */
+int32_t rp_stopioe = 1;                                 /* stop on error */
+int32_t rp_swait = 10;                                  /* seek time */
+int32_t rp_rwait = 10;                                  /* rotate time */
 
-int32 rp63 (int32 dev, int32 pulse, int32 dat);
-int32 rp64 (int32 dev, int32 pulse, int32 dat);
-int32 rp_iors (void);
+int32_t rp63 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t rp64 (int32_t dev, int32_t pulse, int32_t dat);
+int32_t rp_iors (void);
 t_stat rp_svc (UNIT *uptr);
-void rp_updsta (int32 newa, int32 newb);
-t_stat rp_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+void rp_updsta (int32_t newa, int32_t newb);
+t_stat rp_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat rp_reset (DEVICE *dptr);
 t_stat rp_attach (UNIT *uptr, const char *cptr);
 t_stat rp_detach (UNIT *uptr);
@@ -227,13 +229,13 @@ DEVICE rp_dev = {
 
 /* IOT routines */
 
-int32 rp63 (int32 dev, int32 pulse, int32 dat)
+int32_t rp63 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 sb = pulse & 060;                                 /* subopcode */
+int32_t sb = pulse & 060;                               /* subopcode */
 
 rp_updsta (0, 0);
 if (pulse & 01) {
@@ -259,7 +261,7 @@ if (pulse & 04) {
         return dat;
         }
     else if (sb == 000) {                               /* DPLA */
-        int32 u = GET_UNIT (rp_sta);
+        int32_t u = GET_UNIT (rp_sta);
         rp_da = dat & DMASK;
         if (GET_SECT (rp_da) >= RP_NUMSC)
             rp_updsta (STA_NXS, 0);
@@ -285,13 +287,13 @@ return dat;
 
 /* IOT 64 */
 
-int32 rp64 (int32 dev, int32 pulse, int32 dat)
+int32_t rp64 (int32_t dev, int32_t pulse, int32_t dat)
 {
 /* IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 u, f, c, sb;
+int32_t u, f, c, sb;
 UNIT *uptr;
 
 sb = pulse & 060;
@@ -363,13 +365,13 @@ return dat;
    the current command.
 */
 
-static int32 fill[RP_NUMWD] = { 0 };
+static int32_t fill[RP_NUMWD] = { 0 };
 t_stat rp_svc (UNIT *uptr)
 {
-int32 f, u, comp, cyl, sect, surf;
-int32 err, pa, da, wc, awc, i;
+int32_t f, u, comp, cyl, sect, surf;
+int32_t err, pa, da, wc, awc, i;
 
-u = (int32) (uptr - rp_dev.units);                      /* get drv number */
+u = (int32_t) (uptr - rp_dev.units);                    /* get drv number */
 f = uptr->FUNC;                                         /* get function */
 if (f == FN_IDLE) {                                     /* idle? */
     rp_busy = 0;                                        /* clear busy */
@@ -416,7 +418,7 @@ uptr->CYL = GET_CYL (rp_da, uptr->flags);               /* on cylinder */
 pa = rp_ma & AMASK;                                     /* get mem addr */
 da = GET_DA (rp_da, uptr->flags) * RP_NUMWD;            /* get disk addr */
 wc = 01000000 - rp_wc;                                  /* get true wc */
-if (((uint32) (pa + wc)) > MEMSIZE) {                   /* memory overrun? */
+if (((uint32_t) (pa + wc)) > MEMSIZE) {                 /* memory overrun? */
     nexm = 1;                                           /* set nexm flag */
     wc = MEMSIZE - pa;                                  /* limit xfer */
     }
@@ -425,27 +427,27 @@ if ((da + wc) > RP_QSIZE (uptr->flags)) {               /* disk overrun? */
     wc = RP_QSIZE (uptr->flags) - da;                   /* limit xfer */
     }
 
-err = fseek (uptr->fileref, da * sizeof (int32), SEEK_SET);
+err = fseek (uptr->fileref, da * sizeof (int32_t), SEEK_SET);
 
 if ((f == FN_READ) && (err == 0)) {                     /* read? */
-    awc = fxread (&M[pa], sizeof (int32), wc, uptr->fileref);
+    awc = fxread (&M[pa], sizeof (int32_t), wc, uptr->fileref);
     for ( ; awc < wc; awc++)
         M[pa + awc] = 0;
     err = ferror (uptr->fileref);
     }
 
 if ((f == FN_WRITE) && (err == 0)) {                    /* write? */
-    fxwrite (&M[pa], sizeof (int32), wc, uptr->fileref);
+    fxwrite (&M[pa], sizeof (int32_t), wc, uptr->fileref);
     err = ferror (uptr->fileref);
     if ((err == 0) && (i = (wc & (RP_NUMWD - 1)))) {
-        fxwrite (fill, sizeof (int32), i, uptr->fileref);
+        fxwrite (fill, sizeof (int32_t), i, uptr->fileref);
         err = ferror (uptr->fileref);
         }
     }
 
 if ((f == FN_WRCHK) && (err == 0)) {                    /* write check? */
     for (i = 0; (err == 0) && (i < wc); i++)  {
-        awc = fxread (&comp, sizeof (int32), 1, uptr->fileref);
+        awc = fxread (&comp, sizeof (int32_t), 1, uptr->fileref);
         if (awc == 0)
             comp = 0;
         if (comp != M[pa + i])
@@ -478,9 +480,9 @@ return SCPE_OK;
 
 /* Update status */
 
-void rp_updsta (int32 newa, int32 newb)
+void rp_updsta (int32_t newa, int32_t newb)
 {
-int32 f;
+int32_t f;
 UNIT *uptr;
 
 uptr = rp_dev.units + GET_UNIT (rp_sta);
@@ -514,7 +516,7 @@ t_stat rp_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 rp_sta = rp_stb = rp_da = rp_wc = rp_ma = rp_busy = 0;
@@ -529,7 +531,7 @@ return SCPE_OK;
 
 /* IORS routine */
 
-int32 rp_iors (void)
+int32_t rp_iors (void)
 {
 return ((rp_sta & (STA_ERR | STA_DON)) ||  (rp_stb & STB_ATTN))? IOS_RP: 0;
 }
@@ -559,7 +561,7 @@ return reason;
 
 /* Set size routine */
 
-t_stat rp_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rp_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

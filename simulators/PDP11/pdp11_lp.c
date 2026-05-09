@@ -39,6 +39,8 @@
    30-Oct-00    RMS     Standardized register naming
 */
 
+#include <stdint.h>
+
 #if defined (VM_PDP10)                                  /* PDP10 version */
 #error "LP11 is not supported on the PDP-10!"
 
@@ -52,16 +54,16 @@
 #define LPTCSR_IMP      (CSR_ERR + CSR_DONE + CSR_IE)   /* implemented */
 #define LPTCSR_RW       (CSR_IE)                        /* read/write */
 
-int32 lpt_csr = 0;                                      /* control/status */
-int32 lpt_stopioe = 0;                                  /* stop on error */
+int32_t lpt_csr = 0;                                    /* control/status */
+int32_t lpt_stopioe = 0;                                /* stop on error */
 
-t_stat lpt_rd (int32 *data, int32 PA, int32 access);
-t_stat lpt_wr (int32 data, int32 PA, int32 access);
+t_stat lpt_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat lpt_wr (int32_t data, int32_t PA, int32_t access);
 t_stat lpt_svc (UNIT *uptr);
 t_stat lpt_reset (DEVICE *dptr);
 t_stat lpt_attach (UNIT *uptr, const char *ptr);
 t_stat lpt_detach (UNIT *uptr);
-t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *lpt_description (DEVICE *dptr);
 
 /* LPT data structures
@@ -125,7 +127,7 @@ DEVICE lpt_dev = {
    lpt_detach   process detach
 */
 
-t_stat lpt_rd (int32 *data, int32 PA, int32 access)
+t_stat lpt_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -137,7 +139,7 @@ else *data = lpt_unit.buf;                              /* buffer */
 return SCPE_OK;
 }
 
-t_stat lpt_wr (int32 data, int32 PA, int32 access)
+t_stat lpt_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -215,7 +217,7 @@ lpt_csr = lpt_csr | CSR_ERR;
 return detach_unit (uptr);
 }
 
-t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

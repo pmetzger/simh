@@ -14,6 +14,7 @@
 
 #include "nasm.h"
 #include "insns.h"
+#include "sim_types.h"
 
 /* names.c   included source file defining instruction and register
  *           names for the Netwide [Dis]Assembler
@@ -696,7 +697,7 @@ static int ico[] = {
 };
 
 #define INSN_MAX 32 /* one instruction can't be longer than this */
-long disasm (unsigned char *data, char *output, int segsize, long offset);
+long disasm (uchar_t *data, char *output, int segsize, long offset);
 extern struct itemplate **itable[];
 
 /*
@@ -795,7 +796,7 @@ static const char *whichcond(int condval)
 /*
  * Process an effective address (ModRM) specification.
  */
-static unsigned char *do_ea (unsigned char *data, int modrm, int asize,
+static uchar_t *do_ea (uchar_t *data, int modrm, int asize,
                  int segsize, operand *op)
 {
     int mod, rm, scale, index, base;
@@ -935,11 +936,11 @@ static unsigned char *do_ea (unsigned char *data, int modrm, int asize,
  * Determine whether the instruction template in t corresponds to the data
  * stream in data. Return the number of bytes matched if so.
  */
-static int matches (struct itemplate *t, unsigned char *data, int asize,
+static int matches (struct itemplate *t, uchar_t *data, int asize,
             int osize, int segsize, int rep, insn *ins)
 {
-    unsigned char * r = (unsigned char *)(t->code);
-    unsigned char * origdata = data;
+    uchar_t * r = (uchar_t *)(t->code);
+    uchar_t * origdata = data;
     int           a_used = false, o_used = false;
     int           drep = 0;
 
@@ -1173,13 +1174,13 @@ static int matches (struct itemplate *t, unsigned char *data, int asize,
     return data - origdata;
 }
 
-long disasm (unsigned char *data, char *output, int segsize, long offset)
+long disasm (uchar_t *data, char *output, int segsize, long offset)
 {
     struct itemplate **p, **best_p;
     int length, best_length = 0;
     const char *segover;
     int rep, lock, asize, osize, i, slen, colon;
-    unsigned char *origdata;
+    uchar_t *origdata;
     int works;
     insn tmp_ins = { NULL }, ins;
     unsigned long goodness, best;

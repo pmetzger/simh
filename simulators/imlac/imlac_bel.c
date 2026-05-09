@@ -24,6 +24,8 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <stdint.h>
+
 #include "imlac_defs.h"
 #include "sim_video.h"
 
@@ -31,7 +33,7 @@
 #define DBG             0001
 
 /* Function declaration. */
-static uint16 bel_iot (uint16, uint16);
+static uint16_t bel_iot (uint16_t, uint16_t);
 
 static IMDEV bel_imdev = {
   1,
@@ -52,8 +54,8 @@ DEVICE bel_dev = {
   NULL, NULL, NULL, NULL, NULL, NULL
 };
 
-static uint16
-bel_iot (uint16 insn, uint16 AC)
+static uint16_t
+bel_iot (uint16_t insn, uint16_t AC)
 {
   sim_debug (DBG, &bel_dev, "IOT\n");
   if ((insn & 0771) == 0711) { /* BEL */

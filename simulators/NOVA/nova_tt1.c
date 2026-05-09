@@ -42,6 +42,8 @@
    26-Apr-01    RMS     Added device enable/disable support
 */
 
+#include <stdint.h>
+
 #include "nova_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -49,21 +51,21 @@
 #define UNIT_V_DASHER   (UNIT_V_UF + 0)                 /* Dasher mode */
 #define UNIT_DASHER     (1 << UNIT_V_DASHER)
 
-extern int32 int_req, dev_busy, dev_done, dev_disable;
-extern int32 tmxr_poll;                                 /* calibrated poll */
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
+extern int32_t tmxr_poll;                               /* calibrated poll */
 TMLN tt1_ldsc = { 0 };                                  /* line descriptors */
 TMXR tt_desc = { 1, 0, 0, &tt1_ldsc };                  /* mux descriptor */
 
-int32 tti1 (int32 pulse, int32 code, int32 AC);
-int32 tto1 (int32 pulse, int32 code, int32 AC);
+int32_t tti1 (int32_t pulse, int32_t code, int32_t AC);
+int32_t tto1 (int32_t pulse, int32_t code, int32_t AC);
 t_stat tti1_svc (UNIT *uptr);
 t_stat tto1_svc (UNIT *uptr);
 t_stat tti1_reset (DEVICE *dptr);
 t_stat tto1_reset (DEVICE *dptr);
-t_stat ttx1_setmod (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat ttx1_setmod (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat tti1_attach (UNIT *uptr, const char *cptr);
 t_stat tti1_detach (UNIT *uptr);
-void ttx1_enbdis (int32 dis);
+void ttx1_enbdis (int32_t dis);
 
 /* TTI1 data structures
 
@@ -152,13 +154,13 @@ DEVICE tto1_dev = {
 
 /* Terminal input: IOT routine */
 
-int32 tti1 (int32 pulse, int32 code, int32 AC)
+int32_t tti1 (int32_t pulse, int32_t code, int32_t AC)
 {
 /* I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) AC;
 
-int32 iodata;
+int32_t iodata;
 
 iodata = (code == ioDIA)? tti1_unit.buf & 0377: 0;
 switch (pulse) {                                        /* decode IR<8:9> */
@@ -183,7 +185,7 @@ return iodata;
 
 t_stat tti1_svc (UNIT *uptr)
 {
-int32 temp, newln;
+int32_t temp, newln;
 
 if (tt1_ldsc.conn) {                                    /* connected? */
     tmxr_poll_rx (&tt_desc);                            /* poll for input */
@@ -230,7 +232,7 @@ return SCPE_OK;
 
 /* Terminal output: IOT routine */
 
-int32 tto1 (int32 pulse, int32 code, int32 AC)
+int32_t tto1 (int32_t pulse, int32_t code, int32_t AC)
 {
 if (code == ioDOA)
     tto1_unit.buf = AC & 0377;
@@ -262,7 +264,7 @@ t_stat tto1_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 c;
+int32_t c;
 
 dev_busy = dev_busy & ~INT_TTO1;                        /* clear busy */
 dev_done = dev_done | INT_TTO1;                         /* set done */
@@ -296,7 +298,7 @@ sim_cancel (&tto1_unit);                                /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat ttx1_setmod (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat ttx1_setmod (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -336,7 +338,7 @@ return r;
 
 /* Enable/disable device */
 
-void ttx1_enbdis (int32 dis)
+void ttx1_enbdis (int32_t dis)
 {
 if (dis) {
     tti1_dev.flags = tti1_dev.flags | DEV_DIS;

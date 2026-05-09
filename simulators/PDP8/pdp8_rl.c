@@ -48,6 +48,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp8_defs.h"
 
 /* Constants */
@@ -153,34 +155,34 @@
 
 #define RLSI_V_TRK      6                               /* track */
 
-extern uint16 M[];
-extern int32 int_req;
+extern uint16_t M[];
+extern int32_t int_req;
 extern UNIT cpu_unit;
 
-uint8 *rlxb = NULL;                                     /* xfer buffer */
-int32 rlcsa = 0;                                        /* control/status A */
-int32 rlcsb = 0;                                        /* control/status B */
-int32 rlma = 0;                                         /* memory address */
-int32 rlwc = 0;                                         /* word count */
-int32 rlsa = 0;                                         /* sector address */
-int32 rler = 0;                                         /* error register */
-int32 rlsi = 0, rlsi1 = 0, rlsi2 = 0;                   /* silo queue */
-int32 rl_lft = 0;                                       /* silo left/right */
-int32 rl_done = 0;                                      /* done flag */
-int32 rl_erf = 0;                                       /* error flag */
-int32 rl_swait = 10;                                    /* seek wait */
-int32 rl_rwait = 10;                                    /* rotate wait */
-int32 rl_stopioe = 1;                                   /* stop on error */
+uint8_t *rlxb = NULL;                                   /* xfer buffer */
+int32_t rlcsa = 0;                                      /* control/status A */
+int32_t rlcsb = 0;                                      /* control/status B */
+int32_t rlma = 0;                                       /* memory address */
+int32_t rlwc = 0;                                       /* word count */
+int32_t rlsa = 0;                                       /* sector address */
+int32_t rler = 0;                                       /* error register */
+int32_t rlsi = 0, rlsi1 = 0, rlsi2 = 0;                 /* silo queue */
+int32_t rl_lft = 0;                                     /* silo left/right */
+int32_t rl_done = 0;                                    /* done flag */
+int32_t rl_erf = 0;                                     /* error flag */
+int32_t rl_swait = 10;                                  /* seek wait */
+int32_t rl_rwait = 10;                                  /* rotate wait */
+int32_t rl_stopioe = 1;                                 /* stop on error */
 
-int32 rl60 (int32 IR, int32 AC);
-int32 rl61 (int32 IR, int32 AC);
+int32_t rl60 (int32_t IR, int32_t AC);
+int32_t rl61 (int32_t IR, int32_t AC);
 t_stat rl_svc (UNIT *uptr);
 t_stat rl_reset (DEVICE *dptr);
-void rl_set_done (int32 error);
-t_stat rl_boot (int32 unitno, DEVICE *dptr);
+void rl_set_done (int32_t error);
+t_stat rl_boot (int32_t unitno, DEVICE *dptr);
 t_stat rl_attach (UNIT *uptr, const char *cptr);
-t_stat rl_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat rl_set_bad (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat rl_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat rl_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 const char *rl_description (DEVICE *dptr);
 
 /* RL8A data structures
@@ -259,9 +261,9 @@ DEVICE rl_dev = {
 
 /* IOT routines */
 
-int32 rl60 (int32 IR, int32 AC)
+int32_t rl60 (int32_t IR, int32_t AC)
 {
-int32 curr, offs, newc, maxc;
+int32_t curr, offs, newc, maxc;
 UNIT *uptr;
 
 switch (IR & 07) {                                      /* case IR<9:11> */
@@ -339,9 +341,9 @@ switch (IR & 07) {                                      /* case IR<9:11> */
 return 0;                                               /* clear AC */
 }
 
-int32 rl61 (int32 IR, int32 AC)
+int32_t rl61 (int32_t IR, int32_t AC)
 {
-int32 dat;
+int32_t dat;
 UNIT *uptr;
 
 switch (IR & 07) {                                      /* case IR<9:11> */
@@ -406,9 +408,9 @@ return dat;
 
 t_stat rl_svc (UNIT *uptr)
 {
-int32 err, wc, maxc;
-int32 i, j, func, da, bc, wbc;
-uint32 ma;
+int32_t err, wc, maxc;
+int32_t i, j, func, da, bc, wbc;
+uint32_t ma;
 
 func = GET_FUNC (rlcsb);                                /* get function */
 if (func == RLCSB_GSTA) {                               /* get status? */
@@ -475,7 +477,7 @@ err = fseek (uptr->fileref, da, SEEK_SET);
 
 if ((func >= RLCSB_READ) && (err == 0) &&               /* read (no hdr)? */
     MEM_ADDR_OK (ma)) {                                 /* valid bank? */
-    i = fxread (rlxb, sizeof (int8), bc, uptr->fileref);
+    i = fxread (rlxb, sizeof (int8_t), bc, uptr->fileref);
     err = ferror (uptr->fileref);
     for ( ; i < bc; i++)                                /* fill buffer */
         rlxb[i] = 0;
@@ -484,11 +486,11 @@ if ((func >= RLCSB_READ) && (err == 0) &&               /* read (no hdr)? */
             M[ma] = rlxb[i] & 0377;                     /* store */
         else if (i & 1) {                               /* odd wd 12b? */
             M[ma] = ((rlxb[j + 1] >> 4) & 017) |
-                (((uint16) rlxb[j + 2]) << 4);
+                (((uint16_t) rlxb[j + 2]) << 4);
             j = j + 3;
             }
         else M[ma] = rlxb[j] |                          /* even wd 12b */
-            ((((uint16) rlxb[j + 1]) & 017) << 8);
+            ((((uint16_t) rlxb[j + 1]) & 017) << 8);
         ma = (ma & 070000) + ((ma + 1) & 07777);
         }                                               /* end for */
     }                                                   /* end if wr */
@@ -511,7 +513,7 @@ if ((func == RLCSB_WRITE) && (err == 0)) {              /* write? */
     wbc = (bc + (RL_NUMBY - 1)) & ~(RL_NUMBY - 1);      /* clr to */
     for (i = bc; i < wbc; i++)                          /* end of blk */
         rlxb[i] = 0;
-    fxwrite (rlxb, sizeof (int8), wbc, uptr->fileref);
+    fxwrite (rlxb, sizeof (int8_t), wbc, uptr->fileref);
     err = ferror (uptr->fileref);
     }                                                   /* end write */
 
@@ -532,7 +534,7 @@ return SCPE_OK;
 
 /* Set done and possibly errors */
 
-void rl_set_done (int32 status)
+void rl_set_done (int32_t status)
 {
 rl_done = 1;
 rler = rler | status;
@@ -555,7 +557,7 @@ t_stat rl_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 UNIT *uptr;
 
 rlcsa = rlcsb = rlsa = rler = 0;
@@ -571,7 +573,7 @@ for (i = 0; i < RL_NUMDR; i++) {
     uptr->STAT = 0;
     }
 if (rlxb == NULL)
-    rlxb = (uint8 *) calloc (RL_MAXFR, sizeof (uint8));
+    rlxb = (uint8_t *) calloc (RL_MAXFR, sizeof (uint8_t));
 if (rlxb == NULL)
     return SCPE_MEM;
 return SCPE_OK;
@@ -581,7 +583,7 @@ return SCPE_OK;
 
 t_stat rl_attach (UNIT *uptr, const char *cptr)
 {
-uint32 p;
+uint32_t p;
 t_stat r;
 
 uptr->capac = (uptr->flags & UNIT_RL02)? RL02_SIZE: RL01_SIZE;
@@ -597,7 +599,7 @@ if ((p = sim_fsize (uptr->fileref)) == 0) {             /* new disk image? */
     }
 if ((uptr->flags & UNIT_AUTO) == 0)                     /* autosize? */
     return r;
-if (p > (RL01_SIZE * sizeof (int16))) {
+if (p > (RL01_SIZE * sizeof (int16_t))) {
     uptr->flags = uptr->flags | UNIT_RL02;
     uptr->capac = RL02_SIZE;
     }
@@ -610,7 +612,7 @@ return SCPE_OK;
 
 /* Set size routine */
 
-t_stat rl_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rl_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -639,7 +641,7 @@ return SCPE_OK;
         sta     =       status code
 */
 
-t_stat rl_set_bad (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat rl_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -647,7 +649,7 @@ t_stat rl_set_bad (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 i, da = RL_BBMAP * RL_NUMBY;
+int32_t i, da = RL_BBMAP * RL_NUMBY;
 
 if ((uptr->flags & UNIT_ATT) == 0)
     return SCPE_UNATT;
@@ -660,7 +662,7 @@ if (fseek (uptr->fileref, da, SEEK_SET))
 rlxb[0] = RL_BBID;
 for (i = 1; i < RL_NUMBY; i++)
     rlxb[i] = 0;
-fxwrite (rlxb, sizeof (uint8), RL_NUMBY, uptr->fileref);
+fxwrite (rlxb, sizeof (uint8_t), RL_NUMBY, uptr->fileref);
 if (ferror (uptr->fileref))
     return SCPE_IOERR;
 return SCPE_OK;
@@ -670,9 +672,9 @@ return SCPE_OK;
 
 #define BOOT_START 1                                    /* start */
 #define BOOT_UNIT 02006                                 /* unit number */
-#define BOOT_LEN (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN (sizeof (boot_rom) / sizeof (int16_t))
 
-static const uint16 boot_rom[] = {
+static const uint16_t boot_rom[] = {
     06600,                      /* BT, RLDC             ; reset */
     07201,                      /* 02, CLA IAC          ; clr drv = 1 */
     04027,                      /* 03, JMS GO           ; do io */
@@ -705,7 +707,7 @@ static const uint16 boot_rom[] = {
     };
 
 
-t_stat rl_boot (int32 unitno, DEVICE *dptr)
+t_stat rl_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */

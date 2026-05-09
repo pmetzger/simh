@@ -43,6 +43,8 @@
    to work correctly!
 */
 
+#include <stdint.h>
+
 #include "tx0_defs.h"
 #include "sim_tmxr.h"
 
@@ -62,21 +64,21 @@
                                             printf args;          \
                                         }
 
-int32 petr_state = 0;
-int32 petr_wait = 0;
-int32 petr_stopioe = 0;
-int32 petr_uc = 0;                                       /* upper/lower case */
-int32 petr_hold = 0;                                     /* holding buffer */
-int32 petr_leader = PETR_LEADER;                          /* leader count */
-int32 ptp_stopioe = 0;
-int32 tti_hold = 0;                                     /* tti hold buf */
-int32 tty_buf = 0;                                      /* tty buffer */
-int32 tty_uc = 0;                                       /* tty uc/lc */
-int32 tto_sbs = 0;
+int32_t petr_state = 0;
+int32_t petr_wait = 0;
+int32_t petr_stopioe = 0;
+int32_t petr_uc = 0;                                     /* upper/lower case */
+int32_t petr_hold = 0;                                   /* holding buffer */
+int32_t petr_leader = PETR_LEADER;                        /* leader count */
+int32_t ptp_stopioe = 0;
+int32_t tti_hold = 0;                                   /* tti hold buf */
+int32_t tty_buf = 0;                                    /* tty buffer */
+int32_t tty_uc = 0;                                     /* tty uc/lc */
+int32_t tto_sbs = 0;
 
-extern int32 ios, iosta;
-extern int32 PF, IR, PC, TA;
-extern int32 M[];
+extern int32_t ios, iosta;
+extern int32_t PF, IR, PC, TA;
+extern int32_t M[];
 
 t_stat petr_svc (UNIT *uptr);
 t_stat ptp_svc (UNIT *uptr);
@@ -85,12 +87,12 @@ t_stat tto_svc (UNIT *uptr);
 t_stat petr_reset (DEVICE *dptr);
 t_stat ptp_reset (DEVICE *dptr);
 t_stat tty_reset (DEVICE *dptr);
-t_stat petr_boot (int32 unitno, DEVICE *dptr);
+t_stat petr_boot (int32_t unitno, DEVICE *dptr);
 t_stat petr_attach (UNIT *uptr, const char *cptr);
 
 /* Character translation tables */
 
-int32 flexo_to_ascii[128] = {
+int32_t flexo_to_ascii[128] = {
 /*00*/    0,   0,   'e', '8', 0,   '|', 'a', '3',             /* lower case */
 /*10*/    ' ', '=', 's', '4', 'i', '+', 'u', '2',
 /*20*/    0,   '.', 'd', '5', 'r', '1', 'j', '7',
@@ -109,7 +111,7 @@ int32 flexo_to_ascii[128] = {
 /*70*/    'M', 0,   'X', 0,   'V', 0,   '0', 0,
     };
 
-int32 ascii_to_flexo[128] = {
+int32_t ascii_to_flexo[128] = {
 /*00*/    0, 0, 0, BOTH+061, 0, 0, 0, 0,    /* STOP mapped to ^C */
 /*10*/    BOTH+043, BOTH+045, 0, 0, 0, BOTH+051, 0, 0,
 /*20*/    0, 0, 0, 0, 0, 0, 0, 0,
@@ -305,14 +307,14 @@ The PETR supports the BOOT command.  BOOT PETR switches the CPU to Read-In
 mode, and starts the processor running.
 */
 
-int32 petr (int32 inst, int32 dev, int32 dat)
+int32_t petr (int32_t inst, int32_t dev, int32_t dat)
 {
     /* TX-0 I/O instruction signature.
        This implementation does not use every parameter. */
     (void) dev;
     (void) dat;
 
-    int32 tmpAC = 0;
+    int32_t tmpAC = 0;
     int i = 0;
     t_stat result;
     ios = 1;
@@ -334,7 +336,7 @@ int32 petr (int32 inst, int32 dev, int32 dat)
         tmpAC |= ((petr_unit.buf & 040) >> 5) << 2;     /* bit 15 */
 
         if (i < (inst-1)) {
-            uint32 bit0 = (tmpAC & 1) << 17;
+            uint32_t bit0 = (tmpAC & 1) << 17;
             TRACE_PRINT(petr_dev, TRACE_MSG, ("PETR read [%04x=0x%02x] %03o\n", petr_unit.pos-1, petr_unit.buf, petr_unit.buf));
             tmpAC >>= 1;
             tmpAC |= bit0;
@@ -352,7 +354,7 @@ int32 petr (int32 inst, int32 dev, int32 dat)
 
 t_stat petr_svc (UNIT *uptr)
 {
-int32 temp;
+int32_t temp;
 
 if ((uptr->flags & UNIT_ATT) == 0) {                    /* attached? */
     ios = 0;
@@ -407,13 +409,13 @@ t_stat petr_attach (UNIT *uptr, const char *cptr)
 }
 
 /* Bootstrap routine */
-extern t_stat cpu_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
+extern t_stat cpu_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 extern UNIT cpu_unit;
 
 //#define SANITY_CHECK_TAPE
 
 /* Switches the CPU to READIN mode and starts execution. */
-t_stat petr_boot (int32 unitno, DEVICE *dptr)
+t_stat petr_boot (int32_t unitno, DEVICE *dptr)
 {
     /* Generic bootstrap signature.
        This implementation does not use every parameter. */
@@ -423,9 +425,9 @@ t_stat petr_boot (int32 unitno, DEVICE *dptr)
     t_stat reason = SCPE_OK;
 
 #ifdef SANITY_CHECK_TAPE
-    int32 AC, MBR, MAR, IR = 0;
-    int32 blkcnt, chksum = 0, fa, la;
-    int32 addr, tdata;
+    int32_t AC, MBR, MAR, IR = 0;
+    int32_t blkcnt, chksum = 0, fa, la;
+    int32_t addr, tdata;
 #endif /* SANITY_CHECK_TAPE */
 
     if ((petr_unit.flags & UNIT_ATT) == 0)
@@ -528,7 +530,7 @@ t_stat petr_boot (int32 unitno, DEVICE *dptr)
 
 /* Paper tape punch: punches standard seven-hole Flexowriter tape. */
 
-int32 ptp (int32 inst, int32 dev, int32 dat)
+int32_t ptp (int32_t inst, int32_t dev, int32_t dat)
 {
     /* TX-0 I/O instruction signature.
        This implementation does not use every parameter. */
@@ -574,7 +576,7 @@ t_stat ptp_reset (DEVICE *dptr)
 
 /* Typewriter IOT routines */
 
-int32 tti (int32 inst, int32 dev, int32 dat)
+int32_t tti (int32_t inst, int32_t dev, int32_t dat)
 {
     /* TX-0 I/O instruction signature.
        This implementation does not use every parameter. */
@@ -586,7 +588,7 @@ int32 tti (int32 inst, int32 dev, int32 dat)
     return tty_buf & 077;
 }
 
-int32 tto (int32 inst, int32 dev, int32 dat)
+int32_t tto (int32_t inst, int32_t dev, int32_t dat)
 {
     /* TX-0 I/O instruction signature.
        This implementation does not use every parameter. */
@@ -604,7 +606,7 @@ int32 tto (int32 inst, int32 dev, int32 dat)
 
 t_stat tti_svc (UNIT *uptr)
 {
-    int32 in = 0, temp = 0;
+    int32_t in = 0, temp = 0;
 
     sim_activate (uptr, uptr->wait);                        /* continue poll */
     if (tti_hold & CW) {                                    /* char waiting? */
@@ -636,7 +638,7 @@ t_stat tti_svc (UNIT *uptr)
 
 t_stat tto_svc (UNIT *uptr)
 {
-    int32 c = 0;
+    int32_t c = 0;
     t_stat r;
 
     if (tty_buf == FLEXO_UC) tty_uc = UC;                  /* upper case? */

@@ -23,6 +23,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 #include "nd100_defs.h"
@@ -31,7 +33,7 @@ char sim_name[] = "ND100";
 
 extern REG cpu_reg[];
 REG *sim_PC = &cpu_reg[8];
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
         &cpu_dev,
@@ -104,7 +106,7 @@ sim_load(FILE *f, const char *buf, const char *fnam, int flag)
 
         int B, C, E, F, H, I;
         int w, i, rv;
-        uint16 s;
+        uint16_t s;
 
         rv = SCPE_OK;
         if (sim_switches & SWMASK('D')) {       /* read file from disk */
@@ -192,7 +194,7 @@ static char *mitab[] = {
 };
 
 t_stat
-fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
         /* Generic symbolic output signature.
            This implementation does not use every parameter. */
@@ -362,7 +364,7 @@ fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 }
 
 t_stat
-parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
         /* Generic symbolic input signature.
            This implementation does not use every parameter. */

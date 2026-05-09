@@ -9,6 +9,7 @@
 #include "sim_defs.h"
 #include "scp.h"
 #include "sim_card.h"
+#include "sim_types.h"
 #include "test_simh_personality.h"
 #include "test_support.h"
 
@@ -20,7 +21,7 @@ struct sim_card_fixture {
     UNIT punch_unit;
     DEVICE reader_dev;
     DEVICE punch_dev;
-    int32 saved_sim_switches;
+    int32_t saved_sim_switches;
 };
 
 static int setup_sim_card_fixture(void **state)
@@ -103,7 +104,7 @@ static void test_sim_card_text_deck_handles_crlf_and_tabs(void **state)
     static const char deck_text[] = "A\tB\r\nWORLD\n~\n";
     static const char expected_output[] = "A       B\nWORLD\n";
     struct sim_card_fixture *fixture = *state;
-    uint16 image[80];
+    uint16_t image[80];
 
     assert_int_equal(simh_test_write_file(fixture->input_path, deck_text,
                                           sizeof(deck_text) - 1),
@@ -133,9 +134,9 @@ static void test_sim_card_text_deck_handles_crlf_and_tabs(void **state)
 /* Verify bad text-card bytes are reported as conversion errors. */
 static void test_sim_card_reports_text_conversion_errors(void **state)
 {
-    static const unsigned char deck_bytes[] = {'A', 0x01, 'B', '\n', '~', '\n'};
+    static const uchar_t deck_bytes[] = {'A', 0x01, 'B', '\n', '~', '\n'};
     struct sim_card_fixture *fixture = *state;
-    uint16 image[80];
+    uint16_t image[80];
 
     assert_int_equal(simh_test_write_file(fixture->input_path, deck_bytes,
                                           sizeof(deck_bytes)),
@@ -153,7 +154,7 @@ static void test_sim_card_reports_text_conversion_errors(void **state)
 static void test_sim_card_unattached_reader_queries_are_empty(void **state)
 {
     struct sim_card_fixture *fixture = *state;
-    uint16 image[80];
+    uint16_t image[80];
 
     assert_int_equal(sim_hopper_size(&fixture->reader_unit), 0);
     assert_int_equal(sim_card_input_hopper_count(&fixture->reader_unit), 0);
@@ -170,7 +171,7 @@ static void test_sim_card_append_deck_preserves_read_order(void **state)
     struct sim_card_fixture *fixture = *state;
     char second_path[1024];
     char append_arg[1200];
-    uint16 image[80];
+    uint16_t image[80];
 
     assert_int_equal(simh_test_join_path(second_path, sizeof(second_path),
                                          fixture->temp_dir, "second.deck"),
@@ -214,7 +215,7 @@ static void test_sim_card_replace_deck_discards_previous_hopper(void **state)
     static const char expected_output[] = "NEW\n";
     struct sim_card_fixture *fixture = *state;
     char new_path[1024];
-    uint16 image[80];
+    uint16_t image[80];
 
     assert_int_equal(simh_test_join_path(new_path, sizeof(new_path),
                                          fixture->temp_dir, "new.deck"),

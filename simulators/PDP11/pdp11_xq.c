@@ -248,17 +248,20 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_xq.h"
 #include "pdp11_xq_bootrom.h"
+#include "sim_types.h"
 #include "uint_bits.h"
 
-extern int32 tmxr_poll;
-extern int32 tmr_poll, clk_tps;
-extern char* read_line (char *ptr, int32 size, FILE *stream);
+extern int32_t tmxr_poll;
+extern int32_t tmr_poll, clk_tps;
+extern char* read_line (char *ptr, int32_t size, FILE *stream);
 
 /* forward declarations */
-t_stat xq_rd(int32* data, int32 PA, int32 access);
-t_stat xq_wr(int32  data, int32 PA, int32 access);
+t_stat xq_rd(int32_t* data, int32_t PA, int32_t access);
+t_stat xq_wr(int32_t data, int32_t PA, int32_t access);
 t_stat xq_svc(UNIT * uptr);
 t_stat xq_tmrsvc(UNIT * uptr);
 t_stat xq_startsvc(UNIT * uptr);
@@ -267,22 +270,22 @@ t_stat xq_srqrsvc(UNIT * uptr);
 t_stat xq_reset (DEVICE * dptr);
 t_stat xq_attach (UNIT * uptr, const char * cptr);
 t_stat xq_detach (UNIT * uptr);
-t_stat xq_showmac (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xq_setmac  (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xq_show_filters (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xq_show_stats (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xq_set_stats  (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xq_show_type (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xq_set_type (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xq_show_sanity (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xq_set_sanity (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xq_show_throttle (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xq_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xq_show_lockmode (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xq_set_lockmode (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xq_show_poll (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat xq_set_poll (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat xq_show_leds (FILE* st, UNIT* uptr, int32 val, const void* desc);
+t_stat xq_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xq_setmac  (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xq_show_filters (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xq_show_stats (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xq_set_stats  (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xq_show_type (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xq_set_type (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xq_show_sanity (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xq_set_sanity (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xq_show_throttle (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xq_set_throttle (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xq_show_lockmode (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xq_set_lockmode (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xq_show_poll (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat xq_set_poll (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat xq_show_leds (FILE* st, UNIT* uptr, int32_t val, const void* desc);
 t_stat xq_process_xbdl(CTLR* xq);
 t_stat xq_dispatch_xbdl(CTLR* xq);
 t_stat xq_process_turbo_rbdl(CTLR* xq);
@@ -290,22 +293,22 @@ t_stat xq_process_turbo_xbdl(CTLR* xq);
 void xq_start_receiver(CTLR* xq);
 void xq_stop_receiver(CTLR* xq);
 void xq_sw_reset(CTLR* xq);
-t_stat xq_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat xq_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat xq_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat xq_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 void xq_reset_santmr(CTLR* xq);
 t_stat xq_boot_host(CTLR* xq);
-t_stat xq_system_id(CTLR* xq, const ETH_MAC dst, uint16 receipt_id);
+t_stat xq_system_id(CTLR* xq, const ETH_MAC dst, uint16_t receipt_id);
 void xqa_read_callback(int status);
 void xqb_read_callback(int status);
 void xqa_write_callback(int status);
 void xqb_write_callback(int status);
 void xq_setint (CTLR* xq);
 void xq_clrint (CTLR* xq);
-int32 xq_int (void);
-void xq_csr_set_clr(CTLR* xq, uint16 set_bits, uint16 clear_bits);
-void xq_show_debug_bdl(CTLR* xq, uint32 bdl_ba);
-t_stat xq_boot (int32 unitno, DEVICE *dptr);
-t_stat xq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+int32_t xq_int (void);
+void xq_csr_set_clr(CTLR* xq, uint16_t set_bits, uint16_t clear_bits);
+void xq_show_debug_bdl(CTLR* xq, uint32_t bdl_ba);
+t_stat xq_boot (int32_t unitno, DEVICE *dptr);
+t_stat xq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *xq_description (DEVICE *dptr);
 
 struct xq_device    xqa = {
@@ -590,7 +593,7 @@ void xq_debug_turbo_setup(CTLR* xq);
 
 static CTLR* xq_unit2ctlr(UNIT* uptr)
 {
-  unsigned int i,j;
+  uint_t i,j;
   for (i=0; i<XQ_MAX_CONTROLLERS; i++)
     for (j=0; j<xq_ctrl[i].dev->numunits; j++)
       if (&xq_ctrl[i].unit[j] == uptr)
@@ -609,7 +612,7 @@ static CTLR* xq_dev2ctlr(DEVICE* dptr)
   return 0;
 }
 
-static CTLR* xq_pa2ctlr(uint32 PA)
+static CTLR* xq_pa2ctlr(uint32_t PA)
 {
   int i;
   for (i=0; i<XQ_MAX_CONTROLLERS; i++)
@@ -622,7 +625,7 @@ static CTLR* xq_pa2ctlr(uint32 PA)
 /*============================================================================*/
 
 /* stop simh from reading non-existant unit data stream */
-t_stat xq_ex (t_value* vptr, t_addr addr, UNIT* uptr, int32 sw)
+t_stat xq_ex (t_value* vptr, t_addr addr, UNIT* uptr, int32_t sw)
 {
   /* Generic examine signature.
      This implementation does not use every parameter. */
@@ -630,7 +633,7 @@ t_stat xq_ex (t_value* vptr, t_addr addr, UNIT* uptr, int32 sw)
 
   /* on PDP-11, allow EX command to look at bootrom */
   CTLR* xq = xq_unit2ctlr(uptr);
-  uint16 *bootrom = NULL;
+  uint16_t *bootrom = NULL;
 
   if (xq->var->type == XQ_T_DEQNA)
     bootrom = xq_bootrom_deqna;
@@ -648,7 +651,7 @@ t_stat xq_ex (t_value* vptr, t_addr addr, UNIT* uptr, int32 sw)
 }
 
 /* stop simh from writing non-existant unit data stream */
-t_stat xq_dep (t_value val, t_addr addr, UNIT* uptr, int32 sw)
+t_stat xq_dep (t_value val, t_addr addr, UNIT* uptr, int32_t sw)
 {
   /* Generic deposit signature.
      This implementation does not use every parameter. */
@@ -660,7 +663,7 @@ t_stat xq_dep (t_value val, t_addr addr, UNIT* uptr, int32 sw)
   return SCPE_NOFNC;
 }
 
-t_stat xq_showmac (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -678,8 +681,8 @@ t_stat xq_showmac (FILE* st, UNIT* uptr, int32 val, const void* desc)
 static void xq_make_checksum(CTLR* xq)
 {
   /* checksum calculation routine detailed in vaxboot.zip/xqbtdrivr.mar */
-  uint32  checksum = 0;
-  const uint32 wmask = 0xFFFF;
+  uint32_t checksum = 0;
+  const uint32_t wmask = 0xFFFF;
   size_t i;
 
   for (i = 0; i < sizeof(ETH_MAC); i += 2) {
@@ -694,11 +697,11 @@ static void xq_make_checksum(CTLR* xq)
     checksum = 0;
 
   /* set checksum bytes */
-  xq->var->mac_checksum[0] = (uint8)(checksum);
-  xq->var->mac_checksum[1] = (uint8)(checksum >> 8);
+  xq->var->mac_checksum[0] = (uint8_t)(checksum);
+  xq->var->mac_checksum[1] = (uint8_t)(checksum >> 8);
 }
 
-t_stat xq_setmac (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xq_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -719,7 +722,7 @@ t_stat xq_setmac (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_set_stats (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xq_set_stats (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -749,7 +752,7 @@ static void xq_fprint_stat (FILE* st, const char* label, int value)
   fprintf(st, "  %-15s%d\n", label, value);
 }
 
-t_stat xq_show_stats (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_show_stats (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -776,7 +779,7 @@ t_stat xq_show_stats (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_show_filters (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_show_filters (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -816,7 +819,7 @@ t_stat xq_show_filters (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_show_type (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_show_type (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -841,7 +844,7 @@ t_stat xq_show_type (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_set_type (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xq_set_type (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -864,7 +867,7 @@ t_stat xq_set_type (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_show_poll (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_show_poll (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -882,7 +885,7 @@ t_stat xq_show_poll (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_set_poll (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xq_set_poll (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -920,7 +923,7 @@ t_stat xq_set_poll (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_show_sanity (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_show_sanity (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -933,7 +936,7 @@ t_stat xq_show_sanity (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_set_sanity (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xq_set_sanity (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -952,7 +955,7 @@ t_stat xq_set_sanity (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_show_throttle (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_show_throttle (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -968,7 +971,7 @@ t_stat xq_show_throttle (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xq_set_throttle (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -978,10 +981,10 @@ t_stat xq_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc)
   CTLR* xq = xq_unit2ctlr(uptr);
   char tbuf[CBUFSIZE], gbuf[CBUFSIZE];
   const char *tptr = cptr;
-  uint32 newval;
-  uint32 set_time = xq->var->throttle_time;
-  uint32 set_burst = xq->var->throttle_burst;
-  uint32 set_delay = xq->var->throttle_delay;
+  uint32_t newval;
+  uint32_t set_time = xq->var->throttle_time;
+  uint32_t set_burst = xq->var->throttle_burst;
+  uint32_t set_delay = xq->var->throttle_delay;
   t_stat r = SCPE_OK;
 
   if (!cptr) {
@@ -1007,7 +1010,7 @@ t_stat xq_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc)
         cptr = get_glyph (cptr, gbuf, '=');
         if ((NULL == cptr) || ('\0' == *cptr))
           return SCPE_ARG;
-        newval = (uint32)get_uint (cptr, 10, 100, &r);
+        newval = (uint32_t)get_uint (cptr, 10, 100, &r);
         if (r != SCPE_OK)
           return SCPE_ARG;
         if (!MATCH_CMD(gbuf, "TIME")) {
@@ -1034,7 +1037,7 @@ t_stat xq_set_throttle (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_show_lockmode (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_show_lockmode (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -1048,7 +1051,7 @@ t_stat xq_show_lockmode (FILE* st, UNIT* uptr, int32 val, const void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_set_lockmode (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat xq_set_lockmode (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -1069,7 +1072,7 @@ t_stat xq_set_lockmode (UNIT* uptr, int32 val, const char* cptr, void* desc)
   return SCPE_OK;
 }
 
-t_stat xq_show_leds (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat xq_show_leds (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */
@@ -1088,7 +1091,7 @@ t_stat xq_show_leds (FILE* st, UNIT* uptr, int32 val, const void* desc)
 
 static t_stat xq_nxm_error(CTLR* xq)
 {
-  const uint16 set_bits = XQ_CSR_NI | XQ_CSR_XI | XQ_CSR_XL | XQ_CSR_RL;
+  const uint16_t set_bits = XQ_CSR_NI | XQ_CSR_XI | XQ_CSR_XL | XQ_CSR_RL;
   sim_debug(DBG_WRN, xq->dev, "Non Existent Memory Error!\n");
 
   if (xq->var->mode == XQ_T_DELQA_PLUS) {
@@ -1106,10 +1109,10 @@ static t_stat xq_nxm_error(CTLR* xq)
 */
 static void xq_write_callback (CTLR* xq, int status)
 {
-  int32 wstatus;
-  const uint16 TDR = (uint16)(100 + xq->var->write_buffer.len * 8); /* arbitrary value */
-  uint16 write_success[2] = {0};
-  uint16 write_failure[2] = {XQ_DSC_C};
+  int32_t wstatus;
+  const uint16_t TDR = (uint16_t)(100 + xq->var->write_buffer.len * 8); /* arbitrary value */
+  uint16_t write_success[2] = {0};
+  uint16_t write_failure[2] = {XQ_DSC_C};
   write_success[1] = TDR & 0x03FF; /* Does TDR get set on successful packets ?? */
   write_failure[1] = TDR & 0x03FF; /* TSW2<09:00> */
 
@@ -1151,7 +1154,7 @@ void xqb_write_callback (int status)
 }
 
 /* read registers: */
-t_stat xq_rd(int32* data, int32 PA, int32 access)
+t_stat xq_rd(int32_t* data, int32_t PA, int32_t access)
 {
   CTLR* xq = xq_pa2ctlr(PA);
   int index = (PA >> 1) & 07;   /* word index */
@@ -1198,12 +1201,12 @@ t_stat xq_rd(int32* data, int32 PA, int32 access)
 
 static t_stat xq_process_rbdl(CTLR* xq)
 {
-  int32 rstatus, wstatus;
-  uint16 b_length, w_length, rbl;
-  uint32 address, start_rbdl_ba;
+  int32_t rstatus, wstatus;
+  uint16_t b_length, w_length, rbl;
+  uint32_t address, start_rbdl_ba;
   int dcount;
   ETH_ITEM* item;
-  uint8* rbuf;
+  uint8_t* rbuf;
 
   if (xq->var->mode == XQ_T_DELQA_PLUS)
     return xq_process_turbo_rbdl(xq);
@@ -1285,14 +1288,14 @@ static t_stat xq_process_rbdl(CTLR* xq)
       }
 
     item = &xq->var->ReadQ.item[xq->var->ReadQ.head];
-    rbl = (uint16)item->packet.len;
+    rbl = (uint16_t)item->packet.len;
     rbuf = item->packet.msg;
     if (item->packet.oversize)
       rbuf = item->packet.oversize;
 
     /* see if packet must be size-adjusted or is splitting */
     if (item->packet.used) {
-      uint16 used = (uint16)item->packet.used;
+      uint16_t used = (uint16_t)item->packet.used;
       rbl -= used;
       rbuf = &rbuf[used];
       } else {
@@ -1339,7 +1342,7 @@ static t_stat xq_process_rbdl(CTLR* xq)
         xq->var->stats.setup += 1;
         xq->var->rbdl_buf[4] = 0x2700;      /* set esetup and RBL 10:8 */
         if (xq->var->type == XQ_T_DEQNA) {  /* Strange DEQNA behavior */
-          uint16 qdtc_chip_extra = 0xC000;
+          uint16_t qdtc_chip_extra = 0xC000;
 
           if (b_length <= rbl + 2) {
             wstatus = Map_WriteW(address + rbl, 2, &qdtc_chip_extra);
@@ -1374,7 +1377,7 @@ static t_stat xq_process_rbdl(CTLR* xq)
       xq->var->ReadQ.loss = 0;                  /* reset loss counter */
       }
     if (((~xq->var->csr & XQ_CSR_EL) &&
-         (((uint16)((rbl + ((item->type == ETH_ITM_NORMAL) ? 60 : 0)))) > ETH_MAX_PACKET)) ||
+         (((uint16_t)((rbl + ((item->type == ETH_ITM_NORMAL) ? 60 : 0)))) > ETH_MAX_PACKET)) ||
         ((xq->var->csr & XQ_CSR_EL) && (item->type == ETH_ITM_LOOPBACK) &&
          (rbl >= XQ_LONG_PACKET)))
       xq->var->rbdl_buf[4] |= XQ_RST_LASTERR;   /* set Error bit (LONG) */
@@ -1384,7 +1387,7 @@ static t_stat xq_process_rbdl(CTLR* xq)
     if (wstatus) return xq_nxm_error(xq);
 
     sim_debug(DBG_TRC, xq->dev, "xq_process_rbdl(bd=0x%X, addr=0x%X, size=0x%X, len=0x%X, st1=0x%04X, st2=0x%04X)\n",
-        xq->var->rbdl_ba, address, b_length, (int)((uint16)(rbl + ((item->type == ETH_ITM_NORMAL) ? 60 : 0))), xq->var->rbdl_buf[4], xq->var->rbdl_buf[5]);
+        xq->var->rbdl_ba, address, b_length, (int)((uint16_t)(rbl + ((item->type == ETH_ITM_NORMAL) ? 60 : 0))), xq->var->rbdl_buf[4], xq->var->rbdl_buf[5]);
 
     /* remove packet from queue */
     if (item->packet.used >= item->packet.len) {
@@ -1404,8 +1407,8 @@ static t_stat xq_process_rbdl(CTLR* xq)
 
 static t_stat xq_process_mop(CTLR* xq)
 {
-  uint32 address;
-  int32 wstatus;
+  uint32_t address;
+  int32_t wstatus;
   struct xq_meb* meb = (struct xq_meb*) &xq->var->write_buffer.msg[0200];
   const struct xq_meb* limit = (struct xq_meb*) &xq->var->write_buffer.msg[0400];
 
@@ -1423,7 +1426,7 @@ static t_stat xq_process_mop(CTLR* xq)
       case 0:   /* MOP Termination */
         break;
       case 1:   /* MOP Read Ethernet Address */
-        wstatus = Map_WriteB(address, sizeof(ETH_MAC), (uint8*) &xq->var->setup.macs[0]);
+        wstatus = Map_WriteB(address, sizeof(ETH_MAC), (uint8_t*) &xq->var->setup.macs[0]);
         if (wstatus) return xq_nxm_error(xq);
         break;
       case 2:   /* MOP Reset System ID */
@@ -1444,8 +1447,8 @@ static t_stat xq_process_mop(CTLR* xq)
         break;
       case 10:  /* DELQA-PLUS Board ROM Version */
         if (xq->var->type == XQ_T_DELQA_PLUS) {
-          uint16 Delqa_Plus_ROM_Version[3] = {2, 0, 0}; /* 2.0.0 */
-          wstatus = Map_WriteB(address, sizeof(Delqa_Plus_ROM_Version), (uint8*) Delqa_Plus_ROM_Version);
+          uint16_t Delqa_Plus_ROM_Version[3] = {2, 0, 0}; /* 2.0.0 */
+          wstatus = Map_WriteB(address, sizeof(Delqa_Plus_ROM_Version), (uint8_t*) Delqa_Plus_ROM_Version);
           if (wstatus) return xq_nxm_error(xq);
         }
         break;
@@ -1463,7 +1466,7 @@ static t_stat xq_process_setup(CTLR* xq)
   int i,j;
   int count = 0;
   float secs = 0;
-  uint32 saved_debug = xq->dev->dctrl;
+  uint32_t saved_debug = xq->dev->dctrl;
   ETH_MAC filters[XQ_FILTER_MAX + 1];
 
   sim_debug(DBG_TRC, xq->dev, "xq_process_setup()\n");
@@ -1476,10 +1479,10 @@ static t_stat xq_process_setup(CTLR* xq)
   memset(xq->var->setup.macs, '\0', sizeof(xq->var->setup.macs));
   for (i = 0; i < 7; i++)
     for (j = 0; j < 6; j++) {
-      if ((uint32)((i +   01) + (j * 8)) >= xq->var->write_buffer.len)
+      if ((uint32_t)((i +   01) + (j * 8)) >= xq->var->write_buffer.len)
         continue;
       xq->var->setup.macs[i]  [j] = xq->var->write_buffer.msg[(i +   01) + (j * 8)];
-      if ((uint32)((i + 0101) + (j * 8)) >= xq->var->write_buffer.len)
+      if ((uint32_t)((i + 0101) + (j * 8)) >= xq->var->write_buffer.len)
         continue;
       xq->var->setup.macs[i+7][j] = xq->var->write_buffer.msg[(i + 0101) + (j * 8)];
     }
@@ -1515,8 +1518,8 @@ static t_stat xq_process_setup(CTLR* xq)
   xq->var->setup.promiscuous = 0;
   /* process high byte count */
   if (xq->var->write_buffer.len > 128) {
-    uint16 len = (uint16)xq->var->write_buffer.len;
-    uint16 led, san;
+    uint16_t len = (uint16_t)xq->var->write_buffer.len;
+    uint16_t led, san;
 
     xq->var->setup.multicast = (0 != (len & XQ_SETUP_MC));
     xq->var->setup.promiscuous = (0 != (len & XQ_SETUP_PM));
@@ -1585,11 +1588,11 @@ static t_stat xq_process_setup(CTLR* xq)
 */
 t_stat xq_process_xbdl(CTLR* xq)
 {
-  const uint16  implicit_chain_status[2] = {XQ_DSC_V | XQ_DSC_C, 1};
-  uint16  write_success[2] = {0x2000 /* Bit 13 Always Set */, 1 /*Non-Zero TDR*/};
-  uint16 b_length, w_length;
-  int32 rstatus, wstatus;
-  uint32 address;
+  const uint16_t implicit_chain_status[2] = {XQ_DSC_V | XQ_DSC_C, 1};
+  uint16_t write_success[2] = {0x2000 /* Bit 13 Always Set */, 1 /*Non-Zero TDR*/};
+  uint16_t b_length, w_length;
+  int32_t rstatus, wstatus;
+  uint32_t address;
   t_stat status;
 
   sim_debug(DBG_TRC, xq->dev, "xq_process_xbdl()\n");
@@ -1636,7 +1639,7 @@ t_stat xq_process_xbdl(CTLR* xq)
 
     /* add to transmit buffer, making sure it's not too big */
     if ((xq->var->write_buffer.len + b_length) > sizeof(xq->var->write_buffer.msg)) {
-      xq->var->write_buffer.oversize = (uint8*)realloc (xq->var->write_buffer.oversize, xq->var->write_buffer.len + b_length);
+      xq->var->write_buffer.oversize = (uint8_t*)realloc (xq->var->write_buffer.oversize, xq->var->write_buffer.len + b_length);
       if (xq->var->write_buffer.len <= sizeof(xq->var->write_buffer.msg))
         memcpy (xq->var->write_buffer.oversize, xq->var->write_buffer.msg, xq->var->write_buffer.len);
       }
@@ -1668,7 +1671,7 @@ t_stat xq_process_xbdl(CTLR* xq)
         }
 
         /* update write status */
-        wstatus = Map_WriteW(xq->var->xbdl_ba + 8, 4, (uint16*) write_success);
+        wstatus = Map_WriteW(xq->var->xbdl_ba + 8, 4, (uint16_t*) write_success);
         if (wstatus) return xq_nxm_error(xq);
 
         /* clear write buffer */
@@ -1713,12 +1716,12 @@ t_stat xq_process_xbdl(CTLR* xq)
   } /* while */
 }
 
-void xq_show_debug_bdl(CTLR* xq, uint32 bdl_ba)
+void xq_show_debug_bdl(CTLR* xq, uint32_t bdl_ba)
 {
-  uint16 bdl_buf[6];
-  uint16 b_length, w_length;
-  uint32 address, initial_bdl_ba = bdl_ba;
-  int32 rstatus;
+  uint16_t bdl_buf[6];
+  uint16_t b_length, w_length;
+  uint32_t address, initial_bdl_ba = bdl_ba;
+  int32_t rstatus;
 
   if ((!sim_deb) || (!(xq->dev->dctrl & DBG_TRC)))/* Do nothing if not debugging */
       return;
@@ -1829,7 +1832,7 @@ t_stat xq_process_turbo_rbdl(CTLR* xq)
   int i;
   t_stat status;
   int descriptors_consumed = 0;
-  uint32 rdra = (xq->var->init.rdra_h << 16) | xq->var->init.rdra_l;
+  uint32_t rdra = (xq->var->init.rdra_h << 16) | xq->var->init.rdra_l;
 
   sim_debug(DBG_TRC, xq->dev, "xq_process_turbo_rbdl()\n");
 
@@ -1838,10 +1841,10 @@ t_stat xq_process_turbo_rbdl(CTLR* xq)
 
   /* Process descriptors in the receive ring while the're available and we have packets */
   do {
-    uint32 address;
-    uint16 b_length, rbl;
+    uint32_t address;
+    uint16_t b_length, rbl;
     ETH_ITEM* item;
-    uint8* rbuf;
+    uint8_t* rbuf;
 
     /* stop processing when nothing in read queue */
     if (!xq->var->ReadQ.count)
@@ -1850,7 +1853,7 @@ t_stat xq_process_turbo_rbdl(CTLR* xq)
     i = xq->var->rbindx;
 
     /* Get receive descriptor from memory */
-    status = Map_ReadW (rdra+i*sizeof(xq->var->rring[i]), sizeof(xq->var->rring[i]), (uint16 *)&xq->var->rring[i]);
+    status = Map_ReadW (rdra+i*sizeof(xq->var->rring[i]), sizeof(xq->var->rring[i]), (uint16_t *)&xq->var->rring[i]);
     if (status != SCPE_OK)
         return xq_nxm_error(xq);
 
@@ -1867,12 +1870,12 @@ t_stat xq_process_turbo_rbdl(CTLR* xq)
     b_length = ETH_FRAME_SIZE;
 
     item = &xq->var->ReadQ.item[xq->var->ReadQ.head];
-    rbl = (uint16)(item->packet.len + ETH_CRC_SIZE);
+    rbl = (uint16_t)(item->packet.len + ETH_CRC_SIZE);
     rbuf = item->packet.msg;
 
     /* see if packet must be size-adjusted or is splitting */
     if (item->packet.used) {
-      uint16 used = (uint16)item->packet.used;
+      uint16_t used = (uint16_t)item->packet.used;
       rbl -= used;
       rbuf = &item->packet.msg[used];
     } else {
@@ -1923,7 +1926,7 @@ t_stat xq_process_turbo_rbdl(CTLR* xq)
       xq->var->ReadQ.loss = 0;          /* reset loss counter */
     }
 
-    status = Map_ReadW (rdra+(uint32)(((char *)(&xq->var->rring[xq->var->rbindx].rmd3))-((char *)&xq->var->rring)), sizeof(xq->var->rring[xq->var->rbindx].rmd3), (uint16 *)&xq->var->rring[xq->var->rbindx].rmd3);
+    status = Map_ReadW (rdra+(uint32_t)(((char *)(&xq->var->rring[xq->var->rbindx].rmd3))-((char *)&xq->var->rring)), sizeof(xq->var->rring[xq->var->rbindx].rmd3), (uint16_t *)&xq->var->rring[xq->var->rbindx].rmd3);
     if (status != SCPE_OK)
       return xq_nxm_error(xq);
     if (xq->var->rring[xq->var->rbindx].rmd3 & XQ_RMD3_OWN)
@@ -1934,7 +1937,7 @@ t_stat xq_process_turbo_rbdl(CTLR* xq)
     /*       AND the driver will be allowed to change once the changed tmd3 (ownership) */
     /*       is noted so we avoid walking on its changes */
     xq->var->rring[i].rmd3 |= XQ_TMD3_OWN; /* Return Descriptor to Driver */
-    status = Map_WriteW (rdra+i*sizeof(xq->var->rring[i]), sizeof(xq->var->rring[i])-8, (uint16 *)&xq->var->rring[i]);
+    status = Map_WriteW (rdra+i*sizeof(xq->var->rring[i]), sizeof(xq->var->rring[i])-8, (uint16_t *)&xq->var->rring[i]);
     if (status != SCPE_OK)
       return xq_nxm_error(xq);
 
@@ -1959,7 +1962,7 @@ t_stat xq_process_turbo_xbdl(CTLR* xq)
   int i;
   t_stat status;
   int descriptors_consumed  = 0;
-  uint32 tdra = (xq->var->init.tdra_h << 16) | xq->var->init.tdra_l;
+  uint32_t tdra = (xq->var->init.tdra_h << 16) | xq->var->init.tdra_l;
 
   sim_debug(DBG_TRC, xq->dev, "xq_process_turbo_xbdl()\n");
 
@@ -1973,13 +1976,13 @@ t_stat xq_process_turbo_xbdl(CTLR* xq)
 
   /* Process each descriptor in the transmit ring */
   do {
-    uint32 address;
-    uint16 b_length;
+    uint32_t address;
+    uint16_t b_length;
 
     i = xq->var->tbindx;
 
     /* Get transmit descriptor from memory */
-    status = Map_ReadW (tdra+i*sizeof(xq->var->xring[i]), sizeof(xq->var->xring[i]), (uint16 *)&xq->var->xring[i]);
+    status = Map_ReadW (tdra+i*sizeof(xq->var->xring[i]), sizeof(xq->var->xring[i]), (uint16_t *)&xq->var->xring[i]);
     if (status != SCPE_OK)
       return xq_nxm_error(xq);
 
@@ -1995,7 +1998,7 @@ t_stat xq_process_turbo_xbdl(CTLR* xq)
 
     /* add to transmit buffer, accomodating it if it is too big */
     if ((xq->var->write_buffer.len + b_length) > sizeof(xq->var->write_buffer.msg)) {
-      xq->var->write_buffer.oversize = (uint8*)realloc (xq->var->write_buffer.oversize, xq->var->write_buffer.len + b_length);
+      xq->var->write_buffer.oversize = (uint8_t*)realloc (xq->var->write_buffer.oversize, xq->var->write_buffer.len + b_length);
       if (xq->var->write_buffer.len <= sizeof(xq->var->write_buffer.msg))
         memcpy (xq->var->write_buffer.oversize, xq->var->write_buffer.msg, xq->var->write_buffer.len);
       }
@@ -2023,13 +2026,13 @@ t_stat xq_process_turbo_xbdl(CTLR* xq)
         sim_debug(DBG_WRN, xq->dev, "Packet Write Error!\n");
         xq->var->stats.fail += 1;
         xq->var->xring[i].tmd0 = XQ_TMD0_ERR1;
-        xq->var->xring[i].tmd1 = (uint16)(100 + xq->var->write_buffer.len * 8); /* arbitrary value */
+        xq->var->xring[i].tmd1 = (uint16_t)(100 + xq->var->write_buffer.len * 8); /* arbitrary value */
         xq->var->xring[i].tmd1 |= XQ_TMD1_LCA;
       } else {
         if (DBG_PCK & xq->dev->dctrl)
           eth_packet_trace_ex(xq->var->etherface, xq->var->write_buffer.msg, xq->var->write_buffer.len, "xq-write", DBG_DAT & xq->dev->dctrl, DBG_PCK);
         xq->var->xring[i].tmd0 = 0;
-        xq->var->xring[i].tmd1 = (uint16)(100 + xq->var->write_buffer.len * 8); /* arbitrary value */
+        xq->var->xring[i].tmd1 = (uint16_t)(100 + xq->var->write_buffer.len * 8); /* arbitrary value */
       }
       sim_debug(DBG_XBL, xq->dev, "completed processing write\n");
       /* clear transmit buffer */
@@ -2037,7 +2040,7 @@ t_stat xq_process_turbo_xbdl(CTLR* xq)
       xq->var->xring[i].tmd2 = XQ_TMD2_RON | XQ_TMD2_TON;
     }
 
-    status = Map_ReadW (tdra+(uint32)(((char *)(&xq->var->xring[xq->var->tbindx].tmd3))-((char *)&xq->var->xring)), sizeof(xq->var->xring[xq->var->tbindx].tmd3), (uint16 *)&xq->var->xring[xq->var->tbindx].tmd3);
+    status = Map_ReadW (tdra+(uint32_t)(((char *)(&xq->var->xring[xq->var->tbindx].tmd3))-((char *)&xq->var->xring)), sizeof(xq->var->xring[xq->var->tbindx].tmd3), (uint16_t *)&xq->var->xring[xq->var->tbindx].tmd3);
     if (status != SCPE_OK)
       return xq_nxm_error(xq);
     if (xq->var->xring[xq->var->tbindx].tmd3 & XQ_TMD3_OWN)
@@ -2048,7 +2051,7 @@ t_stat xq_process_turbo_xbdl(CTLR* xq)
     /*       AND the driver will be allowed to change once the changed tmd3 (ownership) */
     /*       is noted so we avoid walking on its changes */
     xq->var->xring[i].tmd3 |= XQ_TMD3_OWN; /* Return Descriptor to Driver */
-    status = Map_WriteW (tdra+i*sizeof(xq->var->xring[i]), sizeof(xq->var->xring[i])-8, (uint16 *)&xq->var->xring[i]);
+    status = Map_WriteW (tdra+i*sizeof(xq->var->xring[i]), sizeof(xq->var->xring[i])-8, (uint16_t *)&xq->var->xring[i]);
     if (status != SCPE_OK)
       return xq_nxm_error(xq);
 
@@ -2132,7 +2135,7 @@ static t_stat xq_process_remote_console (CTLR* xq, ETH_PACK* pack)
 {
   t_stat status;
   ETH_MAC source;
-  uint16 receipt;
+  uint16_t receipt;
   int code = pack->msg[16];
 
   sim_debug(DBG_TRC, xq->dev, "xq_process_remote_console()\n");
@@ -2230,7 +2233,7 @@ void xqb_read_callback(int status)
 
 void xq_sw_reset(CTLR* xq)
 {
-  uint16 set_bits = XQ_CSR_XL | XQ_CSR_RL;
+  uint16_t set_bits = XQ_CSR_XL | XQ_CSR_RL;
   int i;
 
   sim_debug(DBG_TRC, xq->dev, "xq_sw_reset()\n");
@@ -2249,7 +2252,7 @@ void xq_sw_reset(CTLR* xq)
     set_bits |= XQ_CSR_IE;
 
   /* reset csr bits */
-  xq_csr_set_clr(xq, set_bits, (uint16) ~set_bits);
+  xq_csr_set_clr(xq, set_bits, (uint16_t) ~set_bits);
 
   if (xq->var->etherface)
     xq_csr_set_clr(xq, XQ_CSR_OK, 0);
@@ -2282,9 +2285,9 @@ void xq_sw_reset(CTLR* xq)
 
 /* write registers: */
 
-static t_stat xq_wr_var(CTLR* xq, int32 data)
+static t_stat xq_wr_var(CTLR* xq, int32_t data)
 {
-  uint16 save_var = xq->var->var;
+  uint16_t save_var = xq->var->var;
   sim_debug(DBG_REG, xq->dev, "xq_wr_var(data=0x%04X)\n", data);
 
   switch (xq->var->type) {
@@ -2346,7 +2349,7 @@ static t_stat xq_process_bootrom (CTLR* xq)
   */
 
   ETH_PACK pack;
-  uint8*  bootrom_b = NULL;
+  uint8_t*  bootrom_b = NULL;
   size_t bootrom_size = 0;
 
   sim_debug(DBG_TRC, xq->dev, "xq_process_bootrom()\n");
@@ -2360,15 +2363,15 @@ static t_stat xq_process_bootrom (CTLR* xq)
   xq_reset_santmr(xq);
 
   if (xq->var->type == XQ_T_DEQNA) {
-    bootrom_b = (uint8*)xq_bootrom_deqna;
+    bootrom_b = (uint8_t*)xq_bootrom_deqna;
     bootrom_size = sizeof(xq_bootrom_deqna);
   } else {
     if (xq->var->type == XQ_T_DELQA) {
-      bootrom_b = (uint8*)xq_bootrom_delqa;
+      bootrom_b = (uint8_t*)xq_bootrom_delqa;
       bootrom_size = sizeof(xq_bootrom_delqa);
     } else {
       if (xq->var->type == XQ_T_DELQA_PLUS) {
-        bootrom_b = (uint8*)xq_bootrom_delqat;
+        bootrom_b = (uint8_t*)xq_bootrom_delqat;
         bootrom_size = sizeof(xq_bootrom_delqat);
       }
     }
@@ -2389,10 +2392,10 @@ static t_stat xq_process_bootrom (CTLR* xq)
   return SCPE_OK;
 }
 
-static t_stat xq_wr_csr(CTLR* xq, int32 data)
+static t_stat xq_wr_csr(CTLR* xq, int32_t data)
 {
-  uint16 set_bits = data & XQ_CSR_RW;                      /* set RW set bits */
-  uint16 clr_bits = ((data ^ XQ_CSR_RW) & XQ_CSR_RW)       /* clear RW cleared bits */
+  uint16_t set_bits = data & XQ_CSR_RW;                    /* set RW set bits */
+  uint16_t clr_bits = ((data ^ XQ_CSR_RW) & XQ_CSR_RW)     /* clear RW cleared bits */
                   |  (data & XQ_CSR_W1)                    /* write 1 to clear bits */
                   | ((data & XQ_CSR_XI) ? XQ_CSR_NI : 0);  /* clearing XI clears NI */
 
@@ -2465,9 +2468,9 @@ void xq_stop_receiver(CTLR* xq)
     eth_clr_async(xq->var->etherface);
 }
 
-static t_stat xq_wr_srqr_set(CTLR* xq, int32 data)
+static t_stat xq_wr_srqr_set(CTLR* xq, int32_t data)
 {
-  uint16 set_bits = data & XQ_SRQR_RW;                     /* set RW set bits */
+  uint16_t set_bits = data & XQ_SRQR_RW;                   /* set RW set bits */
 
   sim_debug(DBG_REG, xq->dev, "xq_wr_srqr(data=0x%04X)\n", data);
 
@@ -2486,16 +2489,16 @@ static t_stat xq_wr_srqr_action(CTLR* xq)
 
       xq->var->stats.setup += 1;
       /* Get init block from memory */
-      status = Map_ReadW (xq->var->iba, sizeof(xq->var->init), (uint16 *)&xq->var->init);
+      status = Map_ReadW (xq->var->iba, sizeof(xq->var->init), (uint16_t *)&xq->var->init);
       if (SCPE_OK != status) {
         xq_nxm_error (xq);
       } else {
-        uint32 saved_debug = xq->dev->dctrl;
+        uint32_t saved_debug = xq->dev->dctrl;
 
         /* Correct byte ordering of non word fields for Big Endian platforms */
-        sim_buf_swap_data (xq->var->init.phys,         sizeof(uint16), sizeof(xq->var->init.phys)/sizeof(uint16));
-        sim_buf_swap_data (xq->var->init.hash_filter,  sizeof(uint16), sizeof(xq->var->init.hash_filter)/sizeof(uint16));
-        sim_buf_swap_data (xq->var->init.bootpassword, sizeof(uint16), sizeof(xq->var->init.bootpassword)/sizeof(uint16));
+        sim_buf_swap_data (xq->var->init.phys,         sizeof(uint16_t), sizeof(xq->var->init.phys)/sizeof(uint16_t));
+        sim_buf_swap_data (xq->var->init.hash_filter,  sizeof(uint16_t), sizeof(xq->var->init.hash_filter)/sizeof(uint16_t));
+        sim_buf_swap_data (xq->var->init.bootpassword, sizeof(uint16_t), sizeof(xq->var->init.bootpassword)/sizeof(uint16_t));
 
         /* temporarily turn on Ethernet debugging if setup debugging is enabled */
         if (xq->dev->dctrl & DBG_SET)
@@ -2532,7 +2535,7 @@ static t_stat xq_wr_srqr_action(CTLR* xq)
   return SCPE_OK;
 }
 
-static t_stat xq_wr_arqr(CTLR* xq, int32 data)
+static t_stat xq_wr_arqr(CTLR* xq, int32_t data)
 {
   sim_debug(DBG_REG, xq->dev, "xq_wr_arqr(data=0x%04X)\n", data);
 
@@ -2556,9 +2559,9 @@ static t_stat xq_wr_arqr(CTLR* xq, int32 data)
   return SCPE_OK;
 }
 
-static t_stat xq_wr_icr(CTLR* xq, int32 data)
+static t_stat xq_wr_icr(CTLR* xq, int32_t data)
 {
-  uint16 old_icr = xq->var->icr;
+  uint16_t old_icr = xq->var->icr;
 
   sim_debug(DBG_REG, xq->dev, "xq_wr_icr(data=0x%04X)\n", data);
 
@@ -2570,11 +2573,11 @@ static t_stat xq_wr_icr(CTLR* xq, int32 data)
   return SCPE_OK;
 }
 
-t_stat xq_wr(int32 ldata, int32 PA, int32 access)
+t_stat xq_wr(int32_t ldata, int32_t PA, int32_t access)
 {
   CTLR* xq = xq_pa2ctlr(PA);
   int index = (PA >> 1) & 07;   /* word index */
-  uint16 data = (uint16)ldata;
+  uint16_t data = (uint16_t)ldata;
 
   sim_debug(DBG_REG, xq->dev, "xq_wr(data=0x%04X, PA=0x%08X[%s], access=%d)\n", data, PA, ((xq->var->mode == XQ_T_DELQA_PLUS) ? xqt_xmit_regnames[index] : xq_xmit_regnames[index]), access);
 
@@ -2654,7 +2657,7 @@ t_stat xq_reset(DEVICE* dptr)
 {
   t_stat status;
   CTLR* xq = xq_dev2ctlr(dptr);
-  const uint16 set_bits = XQ_CSR_RL | XQ_CSR_XL;
+  const uint16_t set_bits = XQ_CSR_RL | XQ_CSR_XL;
 
   sim_debug(DBG_TRC, xq->dev, "xq_reset()\n");
 
@@ -2694,7 +2697,7 @@ t_stat xq_reset(DEVICE* dptr)
   xq->dib->vec = 0;
 
   /* init control status register */
-  xq_csr_set_clr(xq, set_bits, (uint16) ~set_bits);
+  xq_csr_set_clr(xq, set_bits, (uint16_t) ~set_bits);
 
   /* clear interrupts unconditionally */
   xq_clrint(xq);
@@ -2764,11 +2767,11 @@ t_stat xq_boot_host(CTLR* xq)
   return STOP_SANITY;
 }
 
-t_stat xq_system_id (CTLR* xq, const ETH_MAC dest, uint16 receipt_id)
+t_stat xq_system_id (CTLR* xq, const ETH_MAC dest, uint16_t receipt_id)
 {
-  static uint16 receipt = 0;
+  static uint16_t receipt = 0;
   ETH_PACK system_id;
-  uint8* const msg = &system_id.msg[0];
+  uint8_t* const msg = &system_id.msg[0];
   t_stat status;
 
   sim_debug(DBG_TRC, xq->dev, "xq_system_id()\n");
@@ -3106,7 +3109,7 @@ void xq_clrint(CTLR* xq)
   return;
 }
 
-int32 xq_int (void)
+int32_t xq_int (void)
 {
   int i;
   for (i=0; i<XQ_MAX_CONTROLLERS; i++) {
@@ -3119,9 +3122,9 @@ int32 xq_int (void)
   return 0;                                       /* no interrupt request active */
 }
 
-void xq_csr_set_clr (CTLR* xq, uint16 set_bits, uint16 clear_bits)
+void xq_csr_set_clr (CTLR* xq, uint16_t set_bits, uint16_t clear_bits)
 {
-  uint16 saved_csr = xq->var->csr;
+  uint16_t saved_csr = xq->var->csr;
 
   /* set the bits in the csr */
   xq->var->csr = (xq->var->csr | set_bits) & ~clear_bits;
@@ -3190,7 +3193,7 @@ void xq_debug_setup(CTLR* xq)
 
   if (xq->var->write_buffer.len > 128) {
     char buffer[20] = {0};
-    uint16 len = (uint16)xq->var->write_buffer.len;
+    uint16_t len = (uint16_t)xq->var->write_buffer.len;
     if (len & XQ_SETUP_MC) strcat(buffer, "MC ");
     if (len & XQ_SETUP_PM) strcat(buffer, "PM ");
     if (len & XQ_SETUP_LD) strcat(buffer, "LD ");
@@ -3248,7 +3251,7 @@ void xq_debug_turbo_setup(CTLR* xq)
             xq->dev->name, xq->var->init.tdra_h, xq->var->init.tdra_l);
 }
 
-t_stat xq_boot (int32 unitno, DEVICE *dptr)
+t_stat xq_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic simulator boot signature.
    This implementation does not use every parameter. */
@@ -3257,7 +3260,7 @@ t_stat xq_boot (int32 unitno, DEVICE *dptr)
 
 #ifdef VM_PDP11
 size_t i;
-extern int32 REGFILE[6][2];                 /* R0-R5, two sets */
+extern int32_t REGFILE[6][2];               /* R0-R5, two sets */
 
 for (i = 0; i < BOOT_LEN; i++)
     WrMemW (BOOT_START + (2 * i), boot_rom[i]);
@@ -3269,7 +3272,7 @@ return SCPE_NOFNC;
 #endif
 }
 
-t_stat xq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat xq_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char helpString[] =
  /* The '*'s in the next line represent the standard text width of a help line */

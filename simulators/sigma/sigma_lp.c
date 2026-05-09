@@ -33,6 +33,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sigma_io_defs.h"
 
 /* Device definitions */
@@ -80,18 +82,18 @@
 
 #define CHP(ch,val)     ((val) & (1 << (ch)))
 
-uint32 lp_cmd = 0;
-uint32 lp_stopioe = 1;
-uint32 lp_cctp = 0;                                     /* CCT position */
-uint32 lp_cctl = 1;                                     /* CCT length */
-uint32 lp_lastcmd = 0;                                  /* last command */
-uint32 lp_pass = 0;                                     /* 7450 print pass */
-uint32 lp_inh = 0;                                      /* space inhibit */
-uint32 lp_run = 0;                                      /* CCT runaway */
-uint32 lp_model = LP_7440;
-uint8 lp_buf[BUF_LNT4];                                 /* print buffer */
-uint8 lp_cct[CCT_LNT] = { 0xFF };                       /* carriage ctl tape */
-uint8 lp_to_ascii[64] = {
+uint32_t lp_cmd = 0;
+uint32_t lp_stopioe = 1;
+uint32_t lp_cctp = 0;                                   /* CCT position */
+uint32_t lp_cctl = 1;                                   /* CCT length */
+uint32_t lp_lastcmd = 0;                                /* last command */
+uint32_t lp_pass = 0;                                   /* 7450 print pass */
+uint32_t lp_inh = 0;                                    /* space inhibit */
+uint32_t lp_run = 0;                                    /* CCT runaway */
+uint32_t lp_model = LP_7440;
+uint8_t lp_buf[BUF_LNT4];                               /* print buffer */
+uint8_t lp_cct[CCT_LNT] = { 0xFF };                     /* carriage ctl tape */
+uint8_t lp_to_ascii[64] = {
     ' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
     'H', 'I', '`', '.', '<', '(', '+', '|',
     '&', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
@@ -101,7 +103,7 @@ uint8 lp_to_ascii[64] = {
     '0', '1', '2', '3', '4', '5', '6', '7',
     '8', '9', ':', '#', '@', '\'', '=', '"'
     };
-static uint8 lp_valid_cmd[256] = {
+static uint8_t lp_valid_cmd[256] = {
     0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     /* 0x0n */
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -120,23 +122,23 @@ static uint8 lp_valid_cmd[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
 
-extern uint32 chan_ctl_time;
+extern uint32_t chan_ctl_time;
 
-uint32 lp_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 lp_tio_status (void);
-uint32 lp_tdv_status (void);
-t_stat lp_chan_err (uint32 st);
+uint32_t lp_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t lp_tio_status (void);
+uint32_t lp_tdv_status (void);
+t_stat lp_chan_err (uint32_t st);
 t_stat lp_svc (UNIT *uptr);
 t_stat lp_reset (DEVICE *dptr);
 t_stat lp_attach (UNIT *uptr, const char *cptr);
-t_stat lp_settype (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat lp_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat lp_load_cct (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat lp_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat lp_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat lp_load_cct (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat lp_read_cct (FILE *cfile);
-uint32 lp_fmt (UNIT *uptr);
-uint32 lp_skip (UNIT *uptr, uint32 ch);
-uint32 lp_space (UNIT *uptr, uint32 lines, bool skp);
-uint32 lp_print (UNIT *uptr);
+uint32_t lp_fmt (UNIT *uptr);
+uint32_t lp_skip (UNIT *uptr, uint32_t ch);
+uint32_t lp_space (UNIT *uptr, uint32_t lines, bool skp);
+uint32_t lp_print (UNIT *uptr);
 
 /* LP data structures
 
@@ -196,7 +198,7 @@ DEVICE lp_dev = {
 
 /* Line printer: IO dispatch routine */
 
-uint32 lp_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t lp_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
 switch (op) {                                           /* case on op */
 
@@ -245,8 +247,8 @@ return 0;
 
 t_stat lp_svc (UNIT *uptr)
 {
-uint32 cmd;
-uint32 st;
+uint32_t cmd;
+uint32_t st;
 
 switch (lp_cmd) {                                       /* case on state */
 
@@ -331,10 +333,10 @@ return SCPE_OK;
 
 /* Format routine - uses skip or space */
 
-uint32 lp_fmt (UNIT *uptr)
+uint32_t lp_fmt (UNIT *uptr)
 {
-uint32 c, i;
-uint32 st;
+uint32_t c, i;
+uint32_t st;
 
 st = chan_RdMemB (lp_dib.dva, &c);                      /* get char */
 if (CHS_IFERR (st))                                     /* channel error? */
@@ -358,9 +360,9 @@ return 0;
 
 /* Skip to channel - uses space */
 
-uint32 lp_skip (UNIT *uptr, uint32 ch)
+uint32_t lp_skip (UNIT *uptr, uint32_t ch)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 1; i < (lp_cctl + 1); i++) {                   /* sweep thru CCT */
     if (CHP (ch, lp_cct[(lp_cctp + i) % lp_cctl]))      /* channel punched? */
@@ -372,9 +374,9 @@ return lp_space (uptr, lp_cctl, true);                  /* space max */
 
 /* Space routine */
 
-uint32 lp_space (UNIT *uptr, uint32 cnt, bool skp)
+uint32_t lp_space (UNIT *uptr, uint32_t cnt, bool skp)
 {
-uint32 i, cc;
+uint32_t i, cc;
 
 lp_cctp = (lp_cctp + cnt) % lp_cctl;                    /* adv cct, mod lnt */
 if (skp && CHP (CH_TOF, lp_cct[lp_cctp])) {             /* skip, TOF? */
@@ -398,11 +400,11 @@ return 0;
 
 /* Print routine */
 
-uint32 lp_print (UNIT *uptr)
+uint32_t lp_print (UNIT *uptr)
 {
-uint32 i, bp, c;
-uint32 max = (lp_model == LP_7440)? BUF_LNT4: BUF_LNT5;
-uint32 st;
+uint32_t i, bp, c;
+uint32_t max = (lp_model == LP_7440)? BUF_LNT4: BUF_LNT5;
+uint32_t st;
 
 if (lp_pass == 0) {                                     /* pass 1? clr buf */
     for (i = 0; i < BUF_LNT4; i++) lp_buf[i] = ' ';
@@ -440,9 +442,9 @@ return 0;
 
 /* LP status routine */
 
-uint32 lp_tio_status (void)
+uint32_t lp_tio_status (void)
 {
-uint32 st;
+uint32_t st;
 
 st = (lp_unit.flags & UNIT_ATT)? DVS_AUTO: 0;           /* auto? */
 if (sim_is_active (&lp_unit))                           /* busy? */
@@ -450,9 +452,9 @@ if (sim_is_active (&lp_unit))                           /* busy? */
 return st;
 }
 
-uint32 lp_tdv_status (void)
+uint32_t lp_tdv_status (void)
 {
-uint32 st;
+uint32_t st;
 
 st = lp_run;                                            /* runaway flag */
 if ((lp_unit.flags & UNIT_ATT) == 0)                    /* fault? */
@@ -469,7 +471,7 @@ return st;
 
 /* Channel error */
 
-t_stat lp_chan_err (uint32 st)
+t_stat lp_chan_err (uint32_t st)
 {
 sim_cancel (&lp_unit);                                  /* stop dev thread */
 chan_uen (lp_dib.dva);                                  /* uend */
@@ -507,7 +509,7 @@ return attach_unit (uptr, cptr);
 
 /* Set handler for carriage control tape */
 
-t_stat lp_load_cct (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat lp_load_cct (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -531,8 +533,8 @@ return r;
 
 t_stat lp_read_cct (FILE *cfile)
 {
-uint32 col, rpt, ptr, mask;
-uint8 cctbuf[CCT_LNT];
+uint32_t col, rpt, ptr, mask;
+uint8_t cctbuf[CCT_LNT];
 const char *cptr;
 t_stat r;
 char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
@@ -571,7 +573,7 @@ return SCPE_OK;
 
 /* Set controller type */
 
-t_stat lp_settype (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat lp_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -586,7 +588,7 @@ return SCPE_OK;
 
 /* Show controller type */
 
-t_stat lp_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat lp_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

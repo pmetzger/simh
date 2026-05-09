@@ -36,6 +36,7 @@
 #if !defined(VAX_620)
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "vax_vs.h"
 
@@ -52,28 +53,28 @@
 #define VS_BUF_LEN        100
 
 typedef struct {
-    int32 head;
-    int32 tail;
-    int32 count;
-    uint8 buf[VS_BUF_LEN];
+    int32_t head;
+    int32_t tail;
+    int32_t count;
+    uint8_t buf[VS_BUF_LEN];
 } VS_FIFO;
 
-int32 vs_mode = VSXXX_PROMPT;
-int32 vs_x = 0;                                         /* X-axis motion */
-int32 vs_y = 0;                                         /* Y-axis motion */
+int32_t vs_mode = VSXXX_PROMPT;
+int32_t vs_x = 0;                                       /* X-axis motion */
+int32_t vs_y = 0;                                       /* Y-axis motion */
 bool vs_l = false;                                      /* Left button state */
 bool vs_m = false;                                      /* Middle button state */
 bool vs_r = false;                                      /* Right button state */
 VS_FIFO vs_sndf;                                        /* send FIFO */
 
-t_stat vs_wr (uint8 c);
-t_stat vs_rd (uint8 *c);
+t_stat vs_wr (uint8_t c);
+t_stat vs_rd (uint8_t *c);
 t_stat vs_reset (DEVICE *dptr);
-void vs_cmd (int32 c);
+void vs_cmd (int32_t c);
 void vs_sendupd (void);
 const char *vs_description (DEVICE *dptr);
-t_stat vs_put_fifo (VS_FIFO *fifo, uint8 data);
-t_stat vs_get_fifo (VS_FIFO *fifo, uint8 *data);
+t_stat vs_put_fifo (VS_FIFO *fifo, uint8_t data);
+t_stat vs_get_fifo (VS_FIFO *fifo, uint8_t *data);
 void vs_clear_fifo (VS_FIFO *fifo);
 
 
@@ -113,14 +114,14 @@ DEVICE vs_dev = {
     };
 
 
-t_stat vs_wr (uint8 c)
+t_stat vs_wr (uint8_t c)
 {
 vs_clear_fifo (&vs_sndf);
 vs_cmd (c);
 return SCPE_OK;
 }
 
-t_stat vs_rd (uint8 *c)
+t_stat vs_rd (uint8_t *c)
 {
 t_stat r;
 
@@ -130,7 +131,7 @@ if (r == SCPE_OK)
 return r;
 }
 
-t_stat vs_put_fifo (VS_FIFO *fifo, uint8 data)
+t_stat vs_put_fifo (VS_FIFO *fifo, uint8_t data)
 {
 if (fifo->count < VS_BUF_LEN) {
     fifo->buf[fifo->head++] = data;
@@ -143,7 +144,7 @@ else
     return SCPE_EOF;
 }
 
-t_stat vs_get_fifo (VS_FIFO *fifo, uint8 *data)
+t_stat vs_get_fifo (VS_FIFO *fifo, uint8_t *data)
 {
 if (fifo->count > 0) {
     *data = fifo->buf[fifo->tail++];
@@ -163,9 +164,9 @@ fifo->tail = 0;
 fifo->count = 0;
 }
 
-void vs_cmd (int32 c)
+void vs_cmd (int32_t c)
 {
-uint8 data;
+uint8_t data;
 
 sim_debug (DBG_SERIAL, &vs_dev, "vax -> mouse: %c\n", c);
 switch (c) {
@@ -219,7 +220,7 @@ return SCPE_OK;
 
 void vs_sendupd (void)
 {
-uint8 b0, b1, b2;
+uint8_t b0, b1, b2;
 
 do {
     if (vs_sndf.count == VS_BUF_LEN)                    /* fifo full? */

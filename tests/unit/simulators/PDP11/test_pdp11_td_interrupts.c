@@ -8,20 +8,20 @@
 
 #include "pdp11_defs.h"
 
-int32 int_req[IPL_HLVL];
-uint32 cpu_opt;
-uint32 cpu_type;
-uint16 *M;
+int32_t int_req[IPL_HLVL];
+uint32_t cpu_opt;
+uint32_t cpu_type;
+uint16_t *M;
 jmp_buf save_env;
 
-t_stat auto_config(const char *name, int32 nctrl)
+t_stat auto_config(const char *name, int32_t nctrl)
 {
     (void)name;
     (void)nctrl;
     return SCPE_OK;
 }
 
-t_stat set_addr(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_addr(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -30,7 +30,7 @@ t_stat set_addr(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -39,7 +39,7 @@ t_stat show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat set_vec(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat set_vec(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -48,7 +48,7 @@ t_stat set_vec(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat show_vec(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_vec(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -57,7 +57,7 @@ t_stat show_vec(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-void cpu_set_boot(int32 pc)
+void cpu_set_boot(int32_t pc)
 {
     (void)pc;
 }
@@ -70,12 +70,12 @@ void cpu_set_boot(int32 pc)
 
 static bool td_rx_cpu_interrupt_is_set(void)
 {
-    return ((int_req[IPL_TDRX] & (int32)INT_TDRX) != 0);
+    return ((int_req[IPL_TDRX] & (int32_t)INT_TDRX) != 0);
 }
 
 static bool td_tx_cpu_interrupt_is_set(void)
 {
-    return ((int_req[IPL_TDTX] & (int32)INT_TDTX) != 0);
+    return ((int_req[IPL_TDTX] & (int32_t)INT_TDTX) != 0);
 }
 
 static void reset_td_interrupts(void)

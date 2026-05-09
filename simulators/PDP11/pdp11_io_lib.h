@@ -27,19 +27,21 @@
 #ifndef PDP11_IO_LIB_H_
 #define PDP11_IO_LIB_H_    0
 
-t_stat set_autocon (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_autocon (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat set_addr (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_addr (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat show_mapped_addr (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat set_addr_flt (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat set_vec (UNIT *uptr, int32 arg, const char *cptr, void *desc);
-t_stat show_vec (FILE *st, UNIT *uptr, int32 arg, const void *desc);
-t_stat show_vec_mux (FILE *st, UNIT *uptr, int32 arg, const void *desc);
-t_stat show_iospace (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat show_bus_map (FILE *st, const char *cptr, uint32 *busmap, uint32 nmapregs, const char *busname, uint32 mapvalid);
-t_stat auto_config (const char *name, int32 nctrl);
-t_stat pdp11_bad_block (UNIT *uptr, int32 sec, int32 wds);
+#include <stdint.h>
+
+t_stat set_autocon (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_autocon (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat set_addr (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_addr (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat show_mapped_addr (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat set_addr_flt (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat set_vec (UNIT *uptr, int32_t arg, const char *cptr, void *desc);
+t_stat show_vec (FILE *st, UNIT *uptr, int32_t arg, const void *desc);
+t_stat show_vec_mux (FILE *st, UNIT *uptr, int32_t arg, const void *desc);
+t_stat show_iospace (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat show_bus_map (FILE *st, const char *cptr, uint32_t *busmap, uint32_t nmapregs, const char *busname, uint32_t mapvalid);
+t_stat auto_config (const char *name, int32_t nctrl);
+t_stat pdp11_bad_block (UNIT *uptr, int32_t sec, int32_t wds);
 void init_ubus_tab (void);
 t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
 

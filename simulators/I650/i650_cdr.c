@@ -29,6 +29,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "i650_defs.h"
 #include "sim_card.h"
 
@@ -43,13 +45,13 @@
    cdr_mod      Card Reader modifiers list
 */
 
-uint32              cdr_cmd(UNIT *, uint16, uint16);
+uint32_t            cdr_cmd(UNIT *, uint16_t, uint16_t);
 static t_stat       cdr_srv(UNIT *);
 static t_stat       cdr_attach(UNIT *, const char *);
-static t_stat       cdr_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+static t_stat       cdr_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 static const char  *cdr_description(DEVICE *dptr);
-static t_stat       cdr_set_wiring (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat       cdr_show_wiring (FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat       cdr_set_wiring (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat       cdr_show_wiring (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 UNIT                cdr_unit[4] = {
    {UDATA(cdr_srv, UNIT_CDR, 0), 300},  // Unit 0 used internally for carddeck operations simulator specific command
@@ -74,12 +76,12 @@ DEVICE              cdr_dev = {
 
 // buffer to hold read cards in take hopper of each unit
 // to be printed by carddeck command
-uint16 ReadStaker[3 * MAX_CARDS_IN_READ_STAKER_HOPPER * 80];
+uint16_t ReadStaker[3 * MAX_CARDS_IN_READ_STAKER_HOPPER * 80];
 int    ReadStakerLast[3];
 
 // get 10 digits word with sign from card buf (the data struct).
 // return the first column where HiPunch set (first column is 1; 0 is no HiPunch set)
-static int decode_8word_wiring(uint16 image[80], int bCheckForHiPunch)
+static int decode_8word_wiring(uint16_t image[80], int bCheckForHiPunch)
 {
     // decode up to 8 numerical words per card
     // input card
@@ -88,10 +90,10 @@ static int decode_8word_wiring(uint16 image[80], int bCheckForHiPunch)
     //       If N is non numeric, a 0 is assumed
     // put the decoded data in IO Sync buffer (if bCheckForHiPunch = 1 -> do not store in IO Sync Buffer)
     // return first colum with Y(12) hi-punch set (1 to 80)
-    uint16 c1,c2;
+    uint16_t c1,c2;
     int wn,iCol,iDigit;
     int HiPunch, NegPunch, NegZero;
-    t_int64 d;
+    int64_t d;
 
     NegZero = 0;                                    // flag set if negative zero is read
     HiPunch = 0;                                    // set if Y(12) high punch found
@@ -140,12 +142,12 @@ static int decode_8word_wiring(uint16 image[80], int bCheckForHiPunch)
 
 // load soap symbolic info, This is a facility to help debugging of soap programs into SimH
 // does not exist in real hw
-static void decode_soap_symb_info(uint16 image[80])
+static void decode_soap_symb_info(uint16_t image[80])
 {
-    t_int64 d;
+    int64_t d;
     int op,da,ia,i,i2;
     char buf[81];
-    uint16 c1,c2;
+    uint16_t c1,c2;
     char *Symbolic_Buffer;
 
     // check soap 1-word load card initial word
@@ -184,9 +186,9 @@ static void decode_soap_symb_info(uint16 image[80])
     strlcpy(Symbolic_Buffer, buf, i2);
 }
 
-static t_int64 decode_num_word(char * buf, int nDigits, int bSpaceIsZero)
+static int64_t decode_num_word(char * buf, int nDigits, int bSpaceIsZero)
 {
-    t_int64 d;
+    int64_t d;
     int i,c;
 
     d = 0;
@@ -207,9 +209,9 @@ static t_int64 decode_num_word(char * buf, int nDigits, int bSpaceIsZero)
     return d;
 }
 
-static t_int64 decode_alpha_word(char * buf, int n)
+static int64_t decode_alpha_word(char * buf, int n)
 {
-    t_int64 d;
+    int64_t d;
     int i;
 
     d = 0;
@@ -220,7 +222,7 @@ static t_int64 decode_alpha_word(char * buf, int n)
 }
 
 
-static void decode_soap_wiring(uint16 image[80], int bMultiPass)
+static void decode_soap_wiring(uint16_t image[80], int bMultiPass)
 {
     // decode soap card simulating soap control panel wiring for 533
     // from SOAP II manual at http://www.bitsavers.org/pdf/ibm/650/24-4000-0_SOAPII.pdf
@@ -259,7 +261,7 @@ static void decode_soap_wiring(uint16 image[80], int bMultiPass)
     int ty,neg,col80;
     char buf[81];
     int i;
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 026 fortran charset
@@ -294,13 +296,13 @@ static void decode_soap_wiring(uint16 image[80], int bMultiPass)
                 (ty ? 80:0) +
                  neg;                // |T b n| T=Type (0 if Blank), b=0/8 (for non blank type), n=0/8 (for negative)
     if (bMultiPass) {
-        IOSync[9] += 9 * ((t_int64) D8      ) +      // Loc addr    digit 9
-                     9 * ((t_int64) D8 / 10 ) +      // Data addr   digit 8
-                     9 * ((t_int64) D8 / 100) ;      // Instr addr  digit 7
+        IOSync[9] += 9 * ((int64_t) D8      ) +      // Loc addr    digit 9
+                     9 * ((int64_t) D8 / 10 ) +      // Data addr   digit 8
+                     9 * ((int64_t) D8 / 100) ;      // Instr addr  digit 7
     }
 }
 
-static void decode_supersoap_wiring(uint16 image[80])
+static void decode_supersoap_wiring(uint16_t image[80])
 {
     // decode supersoap card simulating soap control panel wiring for 533
     // educated guess based on supersoap program listing at http://archive.computerhistory.org/resources/access/text/2018/07/102784987-05-01-acc.pdf
@@ -340,7 +342,7 @@ static void decode_supersoap_wiring(uint16 image[80])
     int ty,neg,col80;
     char buf[81];
     int i;
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 026 fortran charset
@@ -396,7 +398,7 @@ static int sformat(char * buf, const char * match)
     return 1; // end of match string -> return 1 -> buf matches
 }
 
-static void decode_is_wiring(uint16 image[80])
+static void decode_is_wiring(uint16_t image[80])
 {
     // decode Floationg Decimal Interpretive System (IS) card simulating control panel wiring for 533 as described
     // in manual at http://www.bitsavers.org/pdf/ibm/650/28-4024_FltDecIntrpSys.pdf
@@ -446,9 +448,9 @@ static void decode_is_wiring(uint16 image[80])
 
     int wc,neg,i;
     int NegZero;
-    t_int64 d;
+    int64_t d;
     char buf[81];
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 0..9,+,-,<space>, replace anything else by <space>
@@ -530,7 +532,7 @@ static void decode_is_wiring(uint16 image[80])
     }
 }
 
-static void decode_it_wiring(uint16 image[80])
+static void decode_it_wiring(uint16_t image[80])
 {
     // decode IT compiler card simulating control panel wiring for 533
     // from IT manual at http://www.bitsavers.org/pdf/ibm/650/CarnegieInternalTranslator.pdf
@@ -574,7 +576,7 @@ static void decode_it_wiring(uint16 image[80])
 
     char buf[81];
     int i;
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 026 fortran charset
@@ -607,10 +609,10 @@ static void decode_it_wiring(uint16 image[80])
 // convert RrNNNN to word
 // R can be A to I (equivalent to 1 to 9). r and N can be 0 to 9
 // any other char assumed to be zero
-static t_int64 decode_regional_addr(char * buf, char * nbuf)
+static int64_t decode_regional_addr(char * buf, char * nbuf)
 {
    int c;
-   t_int64 w;
+   int64_t w;
 
    c = *buf++;
    if ((c >= 'A') && (c <= 'I')) {
@@ -628,7 +630,7 @@ static t_int64 decode_regional_addr(char * buf, char * nbuf)
    return w * 10000 + decode_num_word(nbuf, 4, 1);
 }
 
-static int decode_ra_wiring(uint16 image[80], int HiPunch)
+static int decode_ra_wiring(uint16_t image[80], int HiPunch)
 {
     // decode REGIONAL ASSEMBLY card simulating control panel wiring for 533
     // return 1 if it is a load card that makes RD inst continue to DA addr instead of IA addr
@@ -719,8 +721,8 @@ static int decode_ra_wiring(uint16 image[80], int HiPunch)
 
     int wsgn[5]; // store sgn of words
     int i, IsLoadCard, IsNeg, NegPunch;
-    uint16 c1,c2;
-    t_int64 A,I;
+    uint16_t c1,c2;
+    int64_t A,I;
 
     IsLoadCard = NegPunch = 0;
     // init sgn to positive
@@ -779,27 +781,27 @@ static int decode_ra_wiring(uint16 image[80], int HiPunch)
        //
        A = decode_num_word(&buf[10], 4, 1);
        I = (hbuf[13]) ? A : 1903; // if HiPunch on (A1) last digit, replace 1903 with (A1) value
-       IOSync[0] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[0] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[1] = decode_num_word(&buf[14], 10, 1) * wsgn[0];
 
        A = decode_num_word(&buf[24], 4, 1);
        I = (hbuf[27]) ? A : 1904; // if HiPunch on (A2) last digit, replace 1904 with (A1) value
-       IOSync[2] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[2] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[3] = decode_num_word(&buf[28], 10, 1) * wsgn[1];
 
        A = decode_num_word(&buf[38], 4, 1);
        I = (hbuf[41]) ? A : 1905; // if HiPunch on (A3) last digit, replace 1905 with (A3) value
-       IOSync[4] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[4] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[5] = decode_num_word(&buf[42], 10, 1) * wsgn[2];
 
        A = decode_num_word(&buf[52], 4, 1);
        I = (hbuf[55]) ? A : 1906; // if HiPunch on (A4) last digit, replace 1906 with (A4) value
-       IOSync[6] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[6] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[7] = decode_num_word(&buf[56], 10, 1) * wsgn[3];
 
        A = decode_num_word(&buf[66], 4, 1);
        I = (hbuf[69]) ? A : 1901; // if HiPunch on (A5) last digit, replace 1901 with (A5) value
-       IOSync[8] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[8] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[9] = decode_num_word(&buf[70], 10, 1) * wsgn[4];
     } else {
        decode_8word_wiring(image, 0);
@@ -808,7 +810,7 @@ static int decode_ra_wiring(uint16 image[80], int HiPunch)
     return IsLoadCard;
 }
 
-static int decode_fds_wiring(uint16 image[80], int HiPunch)
+static int decode_fds_wiring(uint16_t image[80], int HiPunch)
 {
     // decode Interpretive Floating Decimal System card
     // return 1 if it is a load card that makes RD inst continue to DA addr instead of IA addr
@@ -876,8 +878,8 @@ static int decode_fds_wiring(uint16 image[80], int HiPunch)
     char buf[81];
 
     int i, IsLoadCard, IsNeg, NegPunch, IsGo, IsSgn;
-    uint16 c1,c2;
-    t_int64 A,I;
+    uint16_t c1,c2;
+    int64_t A,I;
 
     IsLoadCard = NegPunch = IsGo = IsSgn = 0;
     // init sgn to positive
@@ -917,27 +919,27 @@ static int decode_fds_wiring(uint16 image[80], int HiPunch)
        //
        A = decode_num_word(&buf[2], 4, 1);
        I = 1903;
-       IOSync[0] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[0] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[1] = decode_num_word(&buf[6], 10, 1);
 
        A = decode_num_word(&buf[18], 4, 1);
        I = 1904;
-       IOSync[2] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[2] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[3] = decode_num_word(&buf[22], 10, 1);
 
        A = decode_num_word(&buf[34], 4, 1);
        I = 1905;
-       IOSync[4] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[4] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[5] = decode_num_word(&buf[38], 10, 1);
 
        A = decode_num_word(&buf[50], 4, 1);
        I = 1906;
-       IOSync[6] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[6] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[7] = decode_num_word(&buf[54], 10, 1);
 
        A = decode_num_word(&buf[66], 4, 1);
        I = 1901;
-       IOSync[8] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[8] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[9] = decode_num_word(&buf[70], 10, 1);
 
     } else if (HiPunch==2) {
@@ -946,7 +948,7 @@ static int decode_fds_wiring(uint16 image[80], int HiPunch)
        //                    |   (A1)  |     |  (O1) |    |  (D1)    |    |  (I1)   |       |
        A = decode_num_word(&buf[3], 4, 1);
        I = 1903;
-       IOSync[0] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[0] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        if (IsGo) IOSync[0] = A;
        IOSync[1] = decode_num_word(&buf[ 9], 2, 1) * 10000 * 10000 +
                    decode_num_word(&buf[12], 4, 1) * 10000 +
@@ -954,19 +956,19 @@ static int decode_fds_wiring(uint16 image[80], int HiPunch)
        if (IsSgn) IOSync[1] = -IOSync[1];
 
        A = 0; I = 1904;
-       IOSync[2] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[2] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[3] = 0;
 
        A = 0; I = 1905;
-       IOSync[4] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[4] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[5] = 0;
 
        A = 0; I = 1906;
-       IOSync[6] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[6] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[7] = 0;
 
        A = 0; I = 1901;
-       IOSync[8] = (t_int64) 24 * 10000 * 10000 + A * 10000  + I;
+       IOSync[8] = (int64_t) 24 * 10000 * 10000 + A * 10000  + I;
        IOSync[9] = 0;
     } else {
        decode_8word_wiring(image, 0);
@@ -975,7 +977,7 @@ static int decode_fds_wiring(uint16 image[80], int HiPunch)
     return IsLoadCard;
 }
 
-static void decode_fortransit_wiring(uint16 image[80])
+static void decode_fortransit_wiring(uint16_t image[80])
 {
     // decode FORTRANSIT translator card simulating control panel wiring for 533
     // from FORTRANSIT manual at http://bitsavers.org/pdf/ibm/650/28-4028_FOR_TRANSIT.pdf
@@ -1055,7 +1057,7 @@ static void decode_fortransit_wiring(uint16 image[80])
     //
     char buf[81];
     int i;
-    uint16 c1,c2;
+    uint16_t c1,c2;
 
     // convert card image punches to ascii buf for processing
     // keep 026 fortran charset
@@ -1093,8 +1095,8 @@ static void decode_fortransit_wiring(uint16 image[80])
         IOSync[4] = decode_alpha_word(&buf[26], 5);            // Statement (5 chars)
         IOSync[5] = decode_alpha_word(&buf[31], 5);            // Statement (5 chars)
 
-        IOSync[9] = (  (buf[0] == 'C')                    ? (t_int64) 80 * D8 : 0  ) +  // is a comment card
-                    (  ((buf[5] != ' ') && (buf[5] != 0)) ? (t_int64)  8 * D8 : 0  ) +  // continuation line
+        IOSync[9] = (  (buf[0] == 'C')                    ? (int64_t) 80 * D8 : 0  ) +  // is a comment card
+                    (  ((buf[5] != ' ') && (buf[5] != 0)) ? (int64_t)  8 * D8 : 0  ) +  // continuation line
                     (  decode_num_word(&buf[1], 4, 1)                              );   // statement number
     }
 }
@@ -1103,10 +1105,10 @@ static void decode_fortransit_wiring(uint16 image[80])
 /*
  * Device entry points for card reader.
  */
-uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 addr)
+uint32_t cdr_cmd(UNIT * uptr, uint16_t cmd, uint16_t addr)
 {
-    uint32              wiring;
-    uint16 image[80];
+    uint32_t            wiring;
+    uint16_t image[80];
     int i, HiPunch;
     char cbuf[81];
     int ncdr, ic;
@@ -1176,7 +1178,7 @@ uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 addr)
         }
     }
 
-    // uint16 data->image[] array that holds the actual punched rows on card
+    // uint16_t data->image[] array that holds the actual punched rows on card
     // using this codification:
     //
     //  Row Name    value in image[]    comments
@@ -1270,7 +1272,7 @@ cdr_srv(UNIT *uptr) {
 }
 
 /* Set card read/punch control panel wiring */
-static t_stat cdr_set_wiring (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat cdr_set_wiring (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     int f;
 
@@ -1291,7 +1293,7 @@ static t_stat cdr_set_wiring (UNIT *uptr, int32 val, const char *cptr, void *des
 }
 
 /* Show card read/punch control panel wiring */
-static t_stat cdr_show_wiring (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat cdr_show_wiring (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     int f;
 
@@ -1344,7 +1346,7 @@ cdr_attach(UNIT * uptr, const char *file)
 }
 
 static t_stat
-cdr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cdr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    fprintf (st, "%s\r\n\r\n", cdr_description(dptr));
    fprintf (st, "The 533 Card Read-punch supported a load mode, and\r\n");

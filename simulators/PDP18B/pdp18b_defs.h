@@ -57,6 +57,8 @@
 #ifndef PDP18B_DEFS_H_
 #define PDP18B_DEFS_H_ 0
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -184,7 +186,7 @@
 #define BLKMASK         (AMASK & (~IAMASK))             /* block mask */
 #define MAXMEMSIZE      (1 << ADDRSIZE)                 /* max memory size */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Instructions */
 
@@ -275,10 +277,10 @@
 #define DEV_MAX         64                              /* total devices */
 
 typedef struct {
-    uint32              dev;                            /* base dev number */
-    uint32              num;                            /* number of slots */
-    int32               (*iors)(void);                  /* IORS responder */
-    int32               (*dsp[DEV_MAXBLK])(int32 dev, int32 pulse, int32 dat);
+    uint32_t            dev;                            /* base dev number */
+    uint32_t            num;                            /* number of slots */
+    int32_t             (*iors)(void);                  /* IORS responder */
+    int32_t             (*dsp[DEV_MAXBLK])(int32_t dev, int32_t pulse, int32_t dat);
     } DIB;
 
 /* Standard device numbers */
@@ -560,15 +562,15 @@ typedef struct {
 
 /* Function prototypes */
 
-t_stat set_devno (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_devno (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat set_3cyc_reg (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_3cyc_reg (FILE *st, UNIT *uptr, int32 val, const void *desc);
-int32 clk (int32 dev, int32 pulse, int32 dat);
-t_stat fp15 (int32 ir);
+t_stat set_devno (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_devno (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat set_3cyc_reg (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_3cyc_reg (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+int32_t clk (int32_t dev, int32_t pulse, int32_t dat);
+t_stat fp15 (int32_t ir);
 
 /* Translation tables */
-extern const int32 asc_to_baud[128];
+extern const int32_t asc_to_baud[128];
 extern const char baud_to_asc[64];
 extern const char fio_to_asc[64];
 

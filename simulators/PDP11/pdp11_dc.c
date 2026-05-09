@@ -46,6 +46,8 @@
 #include "pdp11_defs.h"
 #endif
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
@@ -79,18 +81,18 @@
 #define DCOCSR_CTS      0000002                         /* clr to send (RO) */
 #define DCOCSR_MNT      0000004                         /* maint (RWNI) */
 
-extern int32 tmxr_poll;
+extern int32_t tmxr_poll;
 
-uint16 dci_csr[DCX_LINES] = { 0 };                      /* control/status */
-uint8 dci_buf[DCX_LINES] = { 0 };
-uint32 dci_ireq = 0;
-uint16 dco_csr[DCX_LINES] = { 0 };                      /* control/status */
-uint8 dco_buf[DCX_LINES] = { 0 };
-uint32 dco_ireq = 0;
+uint16_t dci_csr[DCX_LINES] = { 0 };                    /* control/status */
+uint8_t dci_buf[DCX_LINES] = { 0 };
+uint32_t dci_ireq = 0;
+uint16_t dco_csr[DCX_LINES] = { 0 };                    /* control/status */
+uint8_t dco_buf[DCX_LINES] = { 0 };
+uint32_t dco_ireq = 0;
 TMLN dcx_ldsc[DCX_LINES] = { {0} };                     /* line descriptors */
 TMXR dcx_desc = { DCX_LINES, 0, 0, dcx_ldsc };          /* mux descriptor */
 
-static const uint8 odd_par[] = {
+static const uint8_t odd_par[] = {
     0x80, 0, 0, 0x80, 0, 0x80, 0x80, 0,                 /* 00 */
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80,
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80,                 /* 10 */
@@ -125,23 +127,23 @@ static const uint8 odd_par[] = {
     0, 0x80, 0x80, 0, 0x80, 0, 0, 0x80
     };
 
-t_stat dcx_rd (int32 *data, int32 PA, int32 access);
-t_stat dcx_wr (int32 data, int32 PA, int32 access);
+t_stat dcx_rd (int32_t *data, int32_t PA, int32_t access);
+t_stat dcx_wr (int32_t data, int32_t PA, int32_t access);
 t_stat dcx_reset (DEVICE *dptr);
 t_stat dci_svc (UNIT *uptr);
 t_stat dco_svc (UNIT *uptr);
 t_stat dcx_attach (UNIT *uptr, const char *cptr);
 t_stat dcx_detach (UNIT *uptr);
-t_stat dcx_set_lines (UNIT *uptr, int32 val, const char *cptr, void *desc);
-void dcx_enbdis (int32 dis);
-void dci_clr_int (int32 ln);
-void dci_set_int (int32 ln);
-int32 dci_iack (void);
-void dco_clr_int (int32 ln);
-void dco_set_int (int32 ln);
-int32 dco_iack (void);
-void dcx_reset_ln (int32 ln);
-t_stat dcx_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat dcx_set_lines (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void dcx_enbdis (int32_t dis);
+void dci_clr_int (int32_t ln);
+void dci_set_int (int32_t ln);
+int32_t dci_iack (void);
+void dco_clr_int (int32_t ln);
+void dco_set_int (int32_t ln);
+int32_t dco_iack (void);
+void dcx_reset_ln (int32_t ln);
+t_stat dcx_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *dcx_description (DEVICE *dptr);
 
 /* DCI data structures
@@ -270,13 +272,13 @@ DEVICE dco_dev = {
 
 /* Terminal input routines */
 
-t_stat dcx_rd (int32 *data, int32 PA, int32 access)
+t_stat dcx_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-int32 ln = ((PA - dci_dib.ba) >> 3);
+int32_t ln = ((PA - dci_dib.ba) >> 3);
 
 if (ln > DCX_MAXMUX)                                    /* validate line number */
     return SCPE_IERR;
@@ -311,9 +313,9 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
 return SCPE_NXM;
 }
 
-t_stat dcx_wr (int32 data, int32 PA, int32 access)
+t_stat dcx_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 ln = ((PA - dci_dib.ba) >> 3);
+int32_t ln = ((PA - dci_dib.ba) >> 3);
 TMLN *lp = &dcx_ldsc[ln];
 
 if (ln > DCX_MAXMUX)                                    /* validate line number */
@@ -355,7 +357,7 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
                  dco_csr[ln] &= ~DCOCSR_CTS;            /* clr CDT,RNG,CTS */
                  }                                      /* end DTR 1->0 */
             }                                           /* end DTR chg+modem */
-        dci_csr[ln] = (uint16) ((dci_csr[ln] & ~DCICSR_WR) | (data & DCICSR_WR));
+        dci_csr[ln] = (uint16_t) ((dci_csr[ln] & ~DCICSR_WR) | (data & DCICSR_WR));
         return SCPE_OK;
 
     case 01:                                            /* dci buf */
@@ -370,7 +372,7 @@ switch ((PA >> 1) & 03) {                               /* decode PA<2:1> */
             dco_clr_int (ln);                           /* clr int req */
         else if ((dco_csr[ln] & (CSR_DONE + CSR_IE)) == CSR_DONE)
             dco_set_int (ln);
-        dco_csr[ln] = (uint16) ((dco_csr[ln] & ~DCOCSR_WR) | (data & DCOCSR_WR));
+        dco_csr[ln] = (uint16_t) ((dco_csr[ln] & ~DCOCSR_WR) | (data & DCOCSR_WR));
         return SCPE_OK;
 
     case 03:                                            /* dco buf */
@@ -389,7 +391,7 @@ return SCPE_NXM;
 
 t_stat dci_svc (UNIT *uptr)
 {
-int32 ln, c, temp;
+int32_t ln, c, temp;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* attached? */
     return SCPE_OK;
@@ -420,7 +422,7 @@ for (ln = 0; ln < DCX_LINES; ln++) {                    /* loop thru lines */
                 c = (c & 0177) | odd_par[c & 0177];
             else if (dco_unit[ln].flags & DCX_EPAR)     /* even parity */
                 c = (c & 0177) | (odd_par[c & 0177] ^ 0200);
-            dci_buf[ln] = (uint8)c;
+            dci_buf[ln] = (uint8_t)c;
             if ((c & 0200) == odd_par[c & 0177])        /* odd par? */
                 dci_csr[ln] |= DCICSR_PAR;
             else dci_csr[ln] &= ~DCICSR_PAR;
@@ -444,8 +446,8 @@ return sim_clock_coschedule (uptr, tmxr_poll);          /* continue poll */
 
 t_stat dco_svc (UNIT *uptr)
 {
-int32 c;
-int32 ln = uptr - dco_unit;                             /* line # */
+int32_t c;
+int32_t ln = uptr - dco_unit;                           /* line # */
 
 if (dcx_ldsc[ln].conn) {                                /* connected? */
     if (dcx_ldsc[ln].xmte) {                            /* tx enabled? */
@@ -469,7 +471,7 @@ return SCPE_OK;
 
 /* Interrupt routines */
 
-void dci_clr_int (int32 ln)
+void dci_clr_int (int32_t ln)
 {
 dci_ireq &= ~(1 << ln);                                 /* clr mux rcv int */
 if (dci_ireq == 0)                                      /* all clr? */
@@ -478,16 +480,16 @@ else SET_INT (DCI);                                     /* no, set intr */
 return;
 }
 
-void dci_set_int (int32 ln)
+void dci_set_int (int32_t ln)
 {
 dci_ireq |= (1 << ln);                                  /* clr mux rcv int */
 SET_INT (DCI);                                          /* set master intr */
 return;
 }
 
-int32 dci_iack (void)
+int32_t dci_iack (void)
 {
-int32 ln;
+int32_t ln;
 
 for (ln = 0; ln < DCX_LINES; ln++) {                    /* find 1st line */
     if (dci_ireq & (1 << ln)) {
@@ -498,7 +500,7 @@ for (ln = 0; ln < DCX_LINES; ln++) {                    /* find 1st line */
 return 0;
 }
 
-void dco_clr_int (int32 ln)
+void dco_clr_int (int32_t ln)
 {
 dco_ireq &= ~(1 << ln);                                 /* clr mux rcv int */
 if (dco_ireq == 0)                                      /* all clr? */
@@ -507,16 +509,16 @@ else SET_INT (DCO);                                     /* no, set intr */
 return;
 }
 
-void dco_set_int (int32 ln)
+void dco_set_int (int32_t ln)
 {
 dco_ireq |= (1 << ln);                                  /* clr mux rcv int */
 SET_INT (DCO);                                          /* set master intr */
 return;
 }
 
-int32 dco_iack (void)
+int32_t dco_iack (void)
 {
-int32 ln;
+int32_t ln;
 
 for (ln = 0; ln < DCX_LINES; ln++) {                    /* find 1st line */
     if (dco_ireq & (1 << ln)) {
@@ -531,7 +533,7 @@ return 0;
 
 t_stat dcx_reset (DEVICE *dptr)
 {
-int32 ln;
+int32_t ln;
 
 dcx_enbdis (dptr->flags & DEV_DIS);                     /* sync enables */
 sim_cancel (&dci_unit);                                 /* assume stop */
@@ -544,7 +546,7 @@ return auto_config (dci_dev.name, dcx_desc.lines);      /* auto config */
 
 /* Reset individual line */
 
-void dcx_reset_ln (int32 ln)
+void dcx_reset_ln (int32_t ln)
 {
 dci_buf[ln] = 0;                                        /* clear buf */
 dci_csr[ln] = 0;
@@ -573,7 +575,7 @@ return SCPE_OK;
 
 t_stat dcx_detach (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 r = tmxr_detach (&dcx_desc, uptr);                      /* detach */
@@ -585,7 +587,7 @@ return r;
 
 /* Enable/disable device */
 
-void dcx_enbdis (int32 dis)
+void dcx_enbdis (int32_t dis)
 {
 if (dis) {
     dci_dev.flags = dci_dev.flags | DEV_DIS;
@@ -600,7 +602,7 @@ return;
 
 /* Change number of lines */
 
-t_stat dcx_set_lines (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dcx_set_lines (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -608,7 +610,7 @@ t_stat dcx_set_lines (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)
@@ -643,7 +645,7 @@ dci_dib.lnt = newln * 010;                             /* upd IO page lnt */
 return auto_config (dci_dev.name, newln);              /* auto config */
 }
 
-t_stat dcx_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dcx_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "DC11 Additional Terminal Interfaces (DCI/DCO)\n\n");
 fprintf (st, "For very early system programs, the PDP-11 simulator supports up to sixteen\n");

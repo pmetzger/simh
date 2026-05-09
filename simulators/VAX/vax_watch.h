@@ -33,15 +33,17 @@
 #ifndef _VAX_WATCH_H_
 #define _VAX_WATCH_H_ 1
 
+#include <stdint.h>
+
 #include "vax_defs.h"
 
-extern t_stat wtc_set (UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat wtc_show (FILE *st, UNIT *uptr, int32 val, const void *desc);
+extern t_stat wtc_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat wtc_show (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 extern void wtc_set_valid (void);
 extern void wtc_set_invalid (void);
-extern int32 wtc_rd (int32 rg);
-extern int32 wtc_rd_pa (int32 pa);
-extern void wtc_wr (int32 rg, int32 val);
-extern void wtc_wr_pa (int32 pa, int32 val, int32 lnt);
+extern int32_t wtc_rd (int32_t rg);
+extern int32_t wtc_rd_pa (int32_t pa);
+extern void wtc_wr (int32_t rg, int32_t val);
+extern void wtc_wr_pa (int32_t pa, int32_t val, int32_t lnt);
 
 #endif

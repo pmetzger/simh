@@ -42,18 +42,20 @@
         call to BOOTROM_attach will load the buffer with the EPROM image.
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "swtp_defs.h"
 
 #define I2716_NUM       4               /* number of 2716 EPROMS */
 
-extern  int32 get_base(void);
+extern  int32_t get_base(void);
 
 /* function prototypes */
 
 t_stat i2716_attach (UNIT *uptr, const char *cptr);
 t_stat i2716_reset (DEVICE *dptr);
-int32 i2716_get_mbyte(int32 offset);
+int32_t i2716_get_mbyte(int32_t offset);
 
 /* SIMH EPROM Standard I/O Data Structures */
 
@@ -108,7 +110,7 @@ DEVICE i2716_dev = {
 
 t_stat i2716_attach (UNIT *uptr, const char *cptr)
 {
-    int32 j, c;
+    int32_t j, c;
     t_stat r;
     FILE *fp;
 
@@ -124,7 +126,7 @@ t_stat i2716_attach (UNIT *uptr, const char *cptr)
     j = 0;                              /* load EPROM file */
     c = fgetc(fp);
     while (c != EOF) {
-        *((uint8 *)(uptr->filebuf) + j++) = c & 0xFF;
+        *((uint8_t *)(uptr->filebuf) + j++) = c & 0xFF;
         c = fgetc(fp);
         if (j > 2048) {
             printf("\tImage is too large - Load truncated!!!\n");
@@ -143,7 +145,7 @@ t_stat i2716_reset (DEVICE *dptr)
        This implementation does not use every parameter. */
     (void) dptr;
 
-    int32 i, base;
+    int32_t i, base;
     UNIT *uptr;
 
     for (i = 0; i < I2716_NUM; i++) {   /* init all units */
@@ -152,7 +154,7 @@ t_stat i2716_reset (DEVICE *dptr)
         uptr->u3 = 2048 * i;
         base = get_base();
         if (uptr->filebuf == NULL) {    /* no buffer allocated */
-            uptr->filebuf = calloc(2048, sizeof(uint8)); /* allocate EPROM buffer */
+            uptr->filebuf = calloc(2048, sizeof(uint8_t)); /* allocate EPROM buffer */
             if (uptr->filebuf == NULL) {
                 return SCPE_MEM;
             }
@@ -170,9 +172,9 @@ t_stat i2716_reset (DEVICE *dptr)
 
 /*  get a byte from memory */
 
-int32 i2716_get_mbyte(int32 offset)
+int32_t i2716_get_mbyte(int32_t offset)
 {
-    int32 i, val, org, len;
+    int32_t i, val, org, len;
     UNIT *uptr;
 
     for (i = 0; i < I2716_NUM; i++) {   /* find addressed unit */
@@ -183,7 +185,7 @@ int32 i2716_get_mbyte(int32 offset)
             if (uptr->filebuf == NULL) {
                 return 0xFF;
             } else {
-                val = *((uint8 *)(uptr->filebuf) + (offset - org));
+                val = *((uint8_t *)(uptr->filebuf) + (offset - org));
                 return (val & 0xFF);
             }
         }

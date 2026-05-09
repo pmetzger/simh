@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,8 +18,8 @@
 #include "sim_tape_internal.h"
 
 static bool p7b_parity_inited = false;
-static uint8 p7b_odd_parity[64];
-static uint8 p7b_even_parity[64];
+static uint8_t p7b_odd_parity[64];
+static uint8_t p7b_even_parity[64];
 
 /* Build one allocated TESTLIB tape file name; caller frees result. */
 static char *sim_tape_test_file_name(const char *filename, const char *suffix)
@@ -171,10 +172,10 @@ static t_stat sim_tape_test_create_tape_files(UNIT *uptr, const char *filename,
     t_awslnt awslnt_last = 0;
     t_awslnt awsrec_typ = AWS_REC;
     t_stat stat = SCPE_OPENERR;
-    uint8 *buf = NULL, zpad = 0;
+    uint8_t *buf = NULL, zpad = 0;
     t_stat aws_stat = MTSE_UNATT;
     char *aws_args = NULL;
-    int32 saved_switches = sim_switches;
+    int32_t saved_switches = sim_switches;
 
     const char hello_world[] = "      WRITE (6,7)                              "
                                "                         HELLO001\r\n"
@@ -201,7 +202,7 @@ static t_stat sim_tape_test_create_tape_files(UNIT *uptr, const char *filename,
         }
         p7b_parity_inited = true;
     }
-    buf = (uint8 *)malloc(65536);
+    buf = (uint8_t *)malloc(65536);
     if (buf == NULL)
         return SCPE_MEM;
     stat = sim_tape_test_open_files(
@@ -406,7 +407,7 @@ static t_stat sim_tape_test_process_tape_file(UNIT *uptr, const char *filename,
                                               t_awslnt recsize)
 {
     char *args;
-    int32 saved_switches = sim_switches;
+    int32_t saved_switches = sim_switches;
     t_stat stat;
 
     if (recsize != 0)
@@ -451,7 +452,7 @@ static t_stat sim_tape_test_remove_tape_files(const char *filename)
 static t_stat sim_tape_test_density_string(void)
 {
     char buf[128];
-    int32 valid_bits = 0;
+    int32_t valid_bits = 0;
     t_stat stat;
 
     if ((SCPE_ARG !=
@@ -640,7 +641,7 @@ t_stat sim_tape_test(DEVICE *dptr, const char *cptr)
         {"TapeTestFile1", "e11", 0},
         {"TapeTestFile1", "simh", 0},
     };
-    int32 saved_switches = sim_switches;
+    int32_t saved_switches = sim_switches;
     size_t i;
     SIM_TEST_INIT;
 

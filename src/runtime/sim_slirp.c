@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #if !defined(_WIN32)
@@ -25,6 +26,7 @@
 #include "sim_slirp.h"
 #include "sim_sock.h"
 #include "sim_timer.h"
+#include "sim_types.h"
 
 #if !defined(USE_READER_THREAD)
 #undef pthread_mutex_init
@@ -113,7 +115,7 @@ struct sim_slirp {
     void *opaque;             /* opaque value passed during packet delivery */
     packet_callback callback; /* backend-to-simulator packet callback */
     DEVICE *dptr;             /* device used for debug output */
-    uint32 dbit;              /* debug bit used for debug output */
+    uint32_t dbit;            /* debug bit used for debug output */
 };
 
 /* Return a malloc-owned copy of text. */
@@ -582,7 +584,7 @@ static sim_slirp_packet_result libslirp_send_packet(const void *buf,
 
     if ((slirp == NULL) || (slirp->callback == NULL))
         return (sim_slirp_packet_result)len;
-    slirp->callback(slirp->opaque, (const unsigned char *)buf, (int)len);
+    slirp->callback(slirp->opaque, (const uchar_t *)buf, (int)len);
     return (sim_slirp_packet_result)len;
 }
 
@@ -701,19 +703,19 @@ static void run_due_timers(sim_slirp_handle *slirp)
 }
 
 /* Shorten the caller's select timeout to the next libslirp timer deadline. */
-static void apply_timer_timeout(sim_slirp_handle *slirp, uint32 *timeout)
+static void apply_timer_timeout(sim_slirp_handle *slirp, uint32_t *timeout)
 {
     sim_slirp_timer *timer;
     int64_t now = (int64_t)sim_os_msec();
 
     for (timer = slirp->timers; timer != NULL; timer = timer->next) {
         if (timer->active) {
-            uint32 delay = 0;
+            uint32_t delay = 0;
 
             if (timer->expire_time_ms > now) {
                 int64_t delta = timer->expire_time_ms - now;
 
-                delay = (delta > UINT32_MAX) ? UINT32_MAX : (uint32)delta;
+                delay = (delta > UINT32_MAX) ? UINT32_MAX : (uint32_t)delta;
             }
             if (delay < *timeout)
                 *timeout = delay;
@@ -789,7 +791,7 @@ static int real_backend_remove_hostfwd(void *state, int is_udp,
 }
 
 /* Pass a guest Ethernet frame into upstream libslirp. */
-static void real_backend_input(void *state, const uint8 *packet,
+static void real_backend_input(void *state, const uint8_t *packet,
                                int packet_size)
 {
     slirp_input((Slirp *)state, packet, packet_size);
@@ -853,7 +855,7 @@ static int get_revents(int idx, void *opaque)
 
 /* Ask upstream libslirp which host sockets and timers need attention. */
 static void real_backend_pollfds_fill(void *state, void *pollfds,
-                                      uint32 *timeout)
+                                      uint32_t *timeout)
 {
     sim_slirp_handle *slirp = (sim_slirp_handle *)pollfds;
 
@@ -924,7 +926,7 @@ int sim_slirp_set_doorbell_enabled_for_test(int enabled)
 
 /* Inject an outgoing backend packet into the simulator callback for tests. */
 void sim_slirp_deliver_packet_for_test(sim_slirp_handle *slirp,
-                                       const uint8 *packet, int packet_size)
+                                       const uint8_t *packet, int packet_size)
 {
     if ((slirp != NULL) && (slirp->callback != NULL))
         slirp->callback(slirp->opaque, packet, packet_size);
@@ -982,7 +984,7 @@ static int apply_forward_rules(sim_slirp_handle *slirp,
 /* Open and configure a SLIRP NAT adapter instance. */
 sim_slirp_handle *sim_slirp_open(const char *args, void *opaque,
                                  packet_callback callback, DEVICE *dptr,
-                                 uint32 dbit, char *errbuf, size_t errbuf_size)
+                                 uint32_t dbit, char *errbuf, size_t errbuf_size)
 {
     sim_slirp_handle *slirp = (sim_slirp_handle *)calloc(1, sizeof(*slirp));
 
@@ -1092,7 +1094,7 @@ void sim_slirp_close(sim_slirp_handle *slirp)
 }
 
 /* Print simulator help for supported NAT options. */
-t_stat sim_slirp_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat sim_slirp_attach_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                              const char *cptr)
 {
     (void)dptr;
@@ -1302,7 +1304,7 @@ static void collect_select_revents(sim_slirp_handle *slirp, fd_set *rfds,
 int sim_slirp_select(sim_slirp_handle *slirp, int ms_timeout)
 {
     int select_ret;
-    uint32 slirp_timeout = (uint32)ms_timeout;
+    uint32_t slirp_timeout = (uint32_t)ms_timeout;
     struct timeval timeout;
     fd_set rfds, wfds, xfds;
     int nfds;
@@ -1352,7 +1354,7 @@ void sim_slirp_dispatch(sim_slirp_handle *slirp)
         slirp->write_requests = request->next;
         pthread_mutex_unlock(&slirp->write_buffer_lock);
 
-        slirp->backend->input(slirp->backend_state, (const uint8 *)request->msg,
+        slirp->backend->input(slirp->backend_state, (const uint8_t *)request->msg,
                               (int)request->len);
 
         pthread_mutex_lock(&slirp->write_buffer_lock);

@@ -40,6 +40,8 @@
    SENSE<0:16>          Additional flags for 7907 channels.
 */
 
+#include <stdint.h>
+
 #include "i7070_defs.h"
 
 extern UNIT         cpu_unit;
@@ -48,7 +50,7 @@ extern UNIT         cpu_unit;
 
 t_stat              chan_reset(DEVICE * dptr);
 void                chan_fetch(int chan);
-t_stat              chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *chan_description (DEVICE *dptr);
 
@@ -61,17 +63,17 @@ const char          *chan_description (DEVICE *dptr);
    chan_mod     Channel modifiers list
 */
 
-uint32              location[NUM_CHAN];         /* Location of RDW instruction*/
-uint32              caddr[NUM_CHAN];            /* Channel memory address */
-uint8               bcnt[NUM_CHAN];             /* Channel character count */
-uint8               cmd[NUM_CHAN];              /* Current command */
-uint8               op[NUM_CHAN];               /* Operators for 7907 channel */
-uint32              limit[NUM_CHAN];            /* Word count */
-t_uint64            assembly[NUM_CHAN];         /* Assembly register */
-uint32              chan_flags[NUM_CHAN];       /* Unit status */
-uint32              chan_info[NUM_CHAN];        /* Private channel info */
-uint8               chan_irq[NUM_CHAN];         /* Channel has a irq pending */
-extern uint16       pri_latchs[10];
+uint32_t            location[NUM_CHAN];         /* Location of RDW instruction*/
+uint32_t            caddr[NUM_CHAN];            /* Channel memory address */
+uint8_t             bcnt[NUM_CHAN];             /* Channel character count */
+uint8_t             cmd[NUM_CHAN];              /* Current command */
+uint8_t             op[NUM_CHAN];               /* Operators for 7907 channel */
+uint32_t            limit[NUM_CHAN];            /* Word count */
+uint64_t            assembly[NUM_CHAN];         /* Assembly register */
+uint32_t            chan_flags[NUM_CHAN];       /* Unit status */
+uint32_t            chan_info[NUM_CHAN];        /* Private channel info */
+uint8_t             chan_irq[NUM_CHAN];         /* Channel has a irq pending */
+extern uint16_t     pri_latchs[10];
 
 #define CHAN_OUTDEV     0x010000        /* Type out device */
 #define CHAN_PRIO       0x008000        /* Channel has priority pending */
@@ -155,7 +157,7 @@ DEVICE              chan_dev = {
 #define RM_CHAR                 0x80
 
 /* Translation tables */
-uint8   bcd_mem[64] = {
+uint8_t bcd_mem[64] = {
         /*  ?     1     2     3     4     5     6     7 */
 /* 00 */ 0x00, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97,
         /*  8     9     0   =/#   !/@     ?     ?    tm */
@@ -174,7 +176,7 @@ uint8   bcd_mem[64] = {
 /* 70 */ 0x68, 0x69, 0x60, 0x15, 0x16, 0x17, 0x18, 0x19
 };
 
-uint8   mem_bcd[256] = {
+uint8_t mem_bcd[256] = {
         /* sp                                      */
 /* 00 */  020, 000, 000, 000, 000, 000, 000, 000,
         /*                                         */
@@ -239,7 +241,7 @@ chan_reset(DEVICE * dptr)
 
 /* Boot from given device */
 t_stat
-chan_boot(int32 unit_num, DEVICE * dptr)
+chan_boot(int32_t unit_num, DEVICE * dptr)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -250,10 +252,10 @@ chan_boot(int32 unit_num, DEVICE * dptr)
 }
 
 static t_stat
-chan_issue_cmd(uint16 chan, uint16 dcmd, uint16 dev) {
+chan_issue_cmd(uint16_t chan, uint16_t dcmd, uint16_t dev) {
     DEVICE            **dptr;
     DIB                *dibp;
-    uint32              j;
+    uint32_t            j;
     UNIT               *uptr;
 
     for (dptr = sim_devices; *dptr != NULL; dptr++) {
@@ -336,7 +338,7 @@ chan_proc(void)
             /* If no select, stop channel */
             if ((chan_flags[chan] & DEV_SEL) == 0
                 && (chan_flags[chan] & STA_TWAIT)) {
-                t_uint64        temp;
+                uint64_t        temp;
                 int             adr;
 chan_trap:
                 if (chan != 0) {
@@ -557,7 +559,7 @@ chan_trap:
                     if (cmd[chan] & CHN_SEGMENT) {
                         if ((chan_info[chan] & CHAN_FIRST) == 0 &&
                            bcnt[chan] == 8 &&
-                          assembly[chan] == (ASIGN|(((t_uint64)SM_MEM) << 32))){
+                          assembly[chan] == (ASIGN|(((uint64_t)SM_MEM) << 32))){
                             if (chan_dev.dctrl & cmask)
                                 sim_debug(DEBUG_DETAIL, &chan_dev,
                                  "chk segment %d %d data = %012llx found\n\r",
@@ -715,7 +717,7 @@ chan_trap:
             /* If no select, stop channel */
             if ((chan_flags[chan] & DEV_SEL) == 0
                 && (chan_flags[chan] & STA_TWAIT)) {
-                t_uint64        temp;
+                uint64_t        temp;
 
                 temp = 2;
                 if (chan_info[chan] & CHAN_TWE)
@@ -749,7 +751,7 @@ chan_trap:
             /* Check if device raised attention */
             if ((chan_flags[chan] & (STA_ACTIVE|DEV_SEL|STA_TWAIT)) == 0 &&
                 (chan_flags[chan] & (SNS_ATTN1|SNS_ATTN2))) {
-                t_uint64        temp;
+                uint64_t        temp;
 
                 if (chan_dev.dctrl & cmask)
                     sim_debug(DEBUG_TRAP, &chan_dev, "chan %d Attn Trap\n",
@@ -770,7 +772,7 @@ chan_trap:
 
             /* Nothing more to do if not active. */
             if (chan_flags[chan] & STA_ACTIVE) {
-                t_uint64        temp;
+                uint64_t        temp;
 
                 /* Execute the next command */
                 switch (op[chan]) {
@@ -1170,8 +1172,8 @@ chan_trap:
 void
 chan_fetch(int chan)
 {
-    uint32              loc = location[chan];
-    t_uint64            temp;
+    uint32_t            loc = location[chan];
+    uint64_t            temp;
 
     sim_interval--;
     chan_info[chan] &= ~CHAN_START;
@@ -1225,9 +1227,9 @@ void chan_clear_attn_inq(int chan) {
 
 /* Issue a command to a channel */
 int
-chan_cmd(uint16 dev, uint16 dcmd, uint16 addr)
+chan_cmd(uint16_t dev, uint16_t dcmd, uint16_t addr)
 {
-    uint32              chan;
+    uint32_t            chan;
     int                 prio;
     t_stat              r;
 
@@ -1275,7 +1277,7 @@ chan_cmd(uint16 dev, uint16 dcmd, uint16 addr)
         /* No device, kill active */
         chan_flags[chan] &= ~(STA_ACTIVE);
     } else {
-        extern uint32   IC;
+        extern uint32_t IC;
         /* If transfering data, activate channel */
         if (chan_flags[chan] & DEV_SEL)
                 chan_flags[chan] |= STA_ACTIVE;
@@ -1291,7 +1293,7 @@ chan_cmd(uint16 dev, uint16 dcmd, uint16 addr)
  * Write a word to the assembly register.
  */
 int
-chan_write(int chan, t_uint64 * data, int flags)
+chan_write(int chan, uint64_t * data, int flags)
 {
     /* Shared helper signature.
        This build variant does not use every parameter. */
@@ -1306,7 +1308,7 @@ chan_write(int chan, t_uint64 * data, int flags)
  * Read next word from assembly register.
  */
 int
-chan_read(int chan, t_uint64 * data, int flags)
+chan_read(int chan, uint64_t * data, int flags)
 {
     /* Shared helper signature.
        This build variant does not use every parameter. */
@@ -1321,9 +1323,9 @@ chan_read(int chan, t_uint64 * data, int flags)
  * Write a char to the assembly register.
  */
 int
-chan_write_char(int chan, uint8 * data, int flags)
+chan_write_char(int chan, uint8_t * data, int flags)
 {
-    uint8       ch = *data;
+    uint8_t     ch = *data;
     /* Check if last data still not taken */
     if (chan_flags[chan] & DEV_FULL) {
         /* Nope, see if we are waiting for end of record. */
@@ -1346,7 +1348,7 @@ chan_write_char(int chan, uint8 * data, int flags)
     if (flags & DEV_REOR && (chan_info[chan] & CHAN_FIRST) == 0) {
         if (ch == SM_CHAR)
             chan_info[chan] |= CHAN_SEOS;
-        assembly[chan] |= ASIGN|(((t_uint64)bcd_mem[ch]) << 32);
+        assembly[chan] |= ASIGN|(((uint64_t)bcd_mem[ch]) << 32);
         if (cmd[chan] & CHN_ALPHA)
             chan_flags[chan] |= DEV_FULL|DEV_REOR;
         else
@@ -1381,7 +1383,7 @@ chan_write_char(int chan, uint8 * data, int flags)
                 ch ^= 0x24;     /* Bit move */
             ch |= 0x44;
             bcnt[chan]-=2;
-            assembly[chan] |= ((t_uint64)ch) << (4 * bcnt[chan]);
+            assembly[chan] |= ((uint64_t)ch) << (4 * bcnt[chan]);
         } else if (cmd[chan] & CHN_NUM_MODE) {
             ch &= 0xf;
             if (ch == 0 || ch > 10)
@@ -1389,7 +1391,7 @@ chan_write_char(int chan, uint8 * data, int flags)
             else if (ch == 10)
                 ch = 0;
             bcnt[chan]--;
-            assembly[chan] |= ((t_uint64)ch) << (4 * bcnt[chan])|PSIGN;
+            assembly[chan] |= ((uint64_t)ch) << (4 * bcnt[chan])|PSIGN;
             /* Check for sign digit */
             switch(*data & 060) {
             case 0:     /* Normal digit */
@@ -1430,7 +1432,7 @@ chan_write_char(int chan, uint8 * data, int flags)
                 ch = 0;
             }
             bcnt[chan] -= 2;
-            assembly[chan] |= ((t_uint64)ch) << (8 * (bcnt[chan] / 2));
+            assembly[chan] |= ((uint64_t)ch) << (8 * (bcnt[chan] / 2));
             assembly[chan] |= (chan_info[chan] & CHAN_OCTAL)?PSIGN:ASIGN;
         }
     }
@@ -1463,9 +1465,9 @@ chan_write_char(int chan, uint8 * data, int flags)
  * Read next char from assembly register.
  */
 int
-chan_read_char(int chan, uint8 * data, int flags)
+chan_read_char(int chan, uint8_t * data, int flags)
 {
-    uint8       ch;
+    uint8_t     ch;
     /* Return END_RECORD if requested */
     if (flags & DEV_WEOR) {
         chan_flags[chan] &= ~(DEV_WEOR /*| STA_WAIT*/);
@@ -1592,7 +1594,7 @@ chan_set_load_mode(int chan)
 }
 
 void
-chan9_set_error(int chan, uint32 mask)
+chan9_set_error(int chan, uint32_t mask)
 {
     if (chan_flags[chan] & mask)
         return;
@@ -1600,7 +1602,7 @@ chan9_set_error(int chan, uint32 mask)
 }
 
 t_stat
-chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic callback signature.
       This implementation does not use every parameter. */

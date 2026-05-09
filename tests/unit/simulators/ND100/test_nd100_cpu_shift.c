@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <string.h>
 
 #include "test_cmocka.h"
@@ -12,19 +13,19 @@ extern int ins_mis(int IR, int off);
 extern int ins_skip_ext(int IR);
 extern int ins_sht(int IR, int off);
 extern REG cpu_reg[];
-extern uint16 RBLK[16][8];
+extern uint16_t RBLK[16][8];
 
-uint16 PM[65536];
-uint16 M[65536];
+uint16_t PM[65536];
+uint16_t M[65536];
 REG *sim_PC = &cpu_reg[0];
 DEVICE *sim_devices[] = {&cpu_dev, NULL};
 char sim_name[] = "ND100";
 const char *sim_stop_messages[SCPE_BASE];
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 static int last_prdmem_addr;
 static int last_prdmem_how;
-static uint16 prdmem_result;
+static uint16_t prdmem_result;
 static int last_pwrmem_addr;
 static int last_pwrmem_val;
 static int last_pwrmem_how;
@@ -99,7 +100,7 @@ static void test_mis_exam_uses_full_ad_address_bits(void **state)
 
     assert_int_equal(ins_mis(ND_MIS_EXAM, 0), SCPE_OK);
 
-    assert_int_equal((uint32)last_prdmem_addr, 0x80012345u);
+    assert_int_equal((uint32_t)last_prdmem_addr, 0x80012345u);
     assert_int_equal(last_prdmem_how, M_FETCH);
     assert_int_equal(regT, prdmem_result);
 }
@@ -115,12 +116,12 @@ static void test_mis_depo_uses_full_ad_address_bits(void **state)
 
     assert_int_equal(ins_mis(ND_MIS_DEPO, 0), SCPE_OK);
 
-    assert_int_equal((uint32)last_pwrmem_addr, 0x80012345u);
+    assert_int_equal((uint32_t)last_pwrmem_addr, 0x80012345u);
     assert_int_equal(last_pwrmem_val, regT);
     assert_int_equal(last_pwrmem_how, M_FETCH);
 }
 
-uint16 prdmem(int addr, int how)
+uint16_t prdmem(int addr, int how)
 {
     last_prdmem_addr = addr;
     last_prdmem_how = how;
@@ -134,7 +135,7 @@ void pwrmem(int addr, int val, int how)
     last_pwrmem_how = how;
 }
 
-uint16 rdmem(int addr, int how)
+uint16_t rdmem(int addr, int how)
 {
     (void)addr;
     (void)how;
@@ -148,7 +149,7 @@ void wrmem(int addr, int val, int how)
     (void)how;
 }
 
-uint8 rdbyte(int vaddr, int lr, int how)
+uint8_t rdbyte(int vaddr, int lr, int how)
 {
     (void)vaddr;
     (void)lr;
@@ -201,7 +202,7 @@ t_stat sim_load(FILE *ptr, const char *cptr, const char *fnam, int flag)
     return SCPE_OK;
 }
 
-t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
     (void)ofile;
     (void)addr;
@@ -212,7 +213,7 @@ t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
 }
 
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
-                 int32 sw)
+                 int32_t sw)
 {
     (void)cptr;
     (void)addr;

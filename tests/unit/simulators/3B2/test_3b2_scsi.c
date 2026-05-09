@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "test_cmocka.h"
 
 #include "3b2_scsi_internal.h"
@@ -9,8 +11,8 @@
  */
 static void test_subdev_target_rejects_unmapped_subdevice(void **state)
 {
-    int8 subdev_tab[8] = {-1, 1, -1, -1, -1, -1, -1, -1};
-    uint8 target = 42;
+    int8_t subdev_tab[8] = {-1, 1, -1, -1, -1, -1, -1, -1};
+    uint8_t target = 42;
 
     (void)state;
 
@@ -24,8 +26,8 @@ static void test_subdev_target_rejects_unmapped_subdevice(void **state)
  */
 static void test_subdev_target_accepts_attached_subdevice(void **state)
 {
-    int8 subdev_tab[8] = {-1, 1, -1, -1, -1, -1, -1, -1};
-    uint8 target = 0xff;
+    int8_t subdev_tab[8] = {-1, 1, -1, -1, -1, -1, -1, -1};
+    uint8_t target = 0xff;
 
     (void)state;
 
@@ -39,8 +41,8 @@ static void test_subdev_target_accepts_attached_subdevice(void **state)
  */
 static void test_subdev_target_uses_three_bit_subdevice_index(void **state)
 {
-    int8 subdev_tab[8] = {-1, 1, -1, -1, -1, -1, -1, 7};
-    uint8 target = 0xff;
+    int8_t subdev_tab[8] = {-1, 1, -1, -1, -1, -1, -1, 7};
+    uint8_t target = 0xff;
 
     (void)state;
 
@@ -55,8 +57,8 @@ static void test_subdev_target_uses_three_bit_subdevice_index(void **state)
  */
 static void test_subdev_commands_reject_unmapped_subdevice(void **state)
 {
-    int8 subdev_tab[8] = {-1, 1, -1, -1, -1, -1, -1, -1};
-    uint8 target = 42;
+    int8_t subdev_tab[8] = {-1, 1, -1, -1, -1, -1, -1, -1};
+    uint8_t target = 42;
 
     (void)state;
 
@@ -79,8 +81,8 @@ static void test_subdev_commands_reject_unmapped_subdevice(void **state)
  */
 static void test_subdev_commands_accept_mapped_subdevice(void **state)
 {
-    int8 subdev_tab[8] = {-1, 3, -1, -1, -1, -1, -1, -1};
-    uint8 target = 0xff;
+    int8_t subdev_tab[8] = {-1, 3, -1, -1, -1, -1, -1, -1};
+    uint8_t target = 0xff;
 
     (void)state;
 
@@ -104,8 +106,8 @@ static void test_subdev_commands_accept_mapped_subdevice(void **state)
  */
 static void test_subdev_command_target_rejects_unhandled_opcode(void **state)
 {
-    int8 subdev_tab[8] = {-1, 3, -1, -1, -1, -1, -1, -1};
-    uint8 target = 42;
+    int8_t subdev_tab[8] = {-1, 3, -1, -1, -1, -1, -1, -1};
+    uint8_t target = 42;
 
     (void)state;
 

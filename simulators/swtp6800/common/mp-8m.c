@@ -35,7 +35,9 @@
         the RAM for the system.
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "swtp_defs.h"
 
 #define MP_8M_NUM 6                     /* number of MP-8M boards */
@@ -43,10 +45,10 @@
 /* prototypes */
 
 t_stat mp_8m_reset (DEVICE *dptr);
-int32 mp_8m_get_mbyte(int32 addr);
-int32 mp_8m_get_mword(int32 addr);
-void mp_8m_put_mbyte(int32 addr, int32 val);
-void mp_8m_put_mword(int32 addr, int32 val);
+int32_t mp_8m_get_mbyte(int32_t addr);
+int32_t mp_8m_get_mword(int32_t addr);
+void mp_8m_put_mbyte(int32_t addr, int32_t val);
+void mp_8m_put_mword(int32_t addr, int32_t val);
 
 /* isbc064 Standard I/O Data Structures */
 
@@ -104,7 +106,7 @@ t_stat mp_8m_reset (DEVICE *dptr)
        This implementation does not use every parameter. */
     (void) dptr;
 
-    int32 i;
+    int32_t i;
     UNIT *uptr;
 
     for (i = 0; i < MP_8M_NUM; i++) {   /* init all units */
@@ -115,7 +117,7 @@ t_stat mp_8m_reset (DEVICE *dptr)
         else
             uptr->u3 = 0x2000 * (i + 1);
         if (uptr->filebuf == NULL) {
-            uptr->filebuf = calloc(0x2000, sizeof(uint8));
+            uptr->filebuf = calloc(0x2000, sizeof(uint8_t));
             if (uptr->filebuf == NULL) {
                 printf("mp_8m_reset: Calloc error\n");
                 return SCPE_MEM;
@@ -131,10 +133,10 @@ t_stat mp_8m_reset (DEVICE *dptr)
 
 /*  get a byte from memory */
 
-int32 mp_8m_get_mbyte(int32 addr)
+int32_t mp_8m_get_mbyte(int32_t addr)
 {
-    int32 val, org, len;
-    int32 i;
+    int32_t val, org, len;
+    int32_t i;
     UNIT *uptr;
 
     for (i = 0; i < MP_8M_NUM; i++) { /* find addressed unit */
@@ -142,7 +144,7 @@ int32 mp_8m_get_mbyte(int32 addr)
         org = uptr->u3;
         len = uptr->capac - 1;
         if ((addr >= org) && (addr <= org + len)) {
-            val = *((uint8 *)(uptr->filebuf) + (addr - org));
+            val = *((uint8_t *)(uptr->filebuf) + (addr - org));
             return (val & BYTEMASK);
         }
     }
@@ -151,9 +153,9 @@ int32 mp_8m_get_mbyte(int32 addr)
 
 /*  get a word from memory */
 
-int32 mp_8m_get_mword(int32 addr)
+int32_t mp_8m_get_mword(int32_t addr)
 {
-    int32 val;
+    int32_t val;
 
     val = (mp_8m_get_mbyte(addr) << 8);
     val |= mp_8m_get_mbyte(addr+1);
@@ -162,10 +164,10 @@ int32 mp_8m_get_mword(int32 addr)
 
 /*  put a byte into memory */
 
-void mp_8m_put_mbyte(int32 addr, int32 val)
+void mp_8m_put_mbyte(int32_t addr, int32_t val)
 {
-    int32 org, len;
-    int32 i;
+    int32_t org, len;
+    int32_t i;
     UNIT *uptr;
 
     for (i = 0; i < MP_8M_NUM; i++) { /* find addressed unit */
@@ -173,7 +175,7 @@ void mp_8m_put_mbyte(int32 addr, int32 val)
         org = uptr->u3;
         len = uptr->capac - 1;
         if ((addr >= org) && (addr <= org + len)) {
-            *((uint8 *)(uptr->filebuf) + (addr - org)) = val & BYTEMASK;
+            *((uint8_t *)(uptr->filebuf) + (addr - org)) = val & BYTEMASK;
             return;
         }
     }
@@ -181,7 +183,7 @@ void mp_8m_put_mbyte(int32 addr, int32 val)
 
 /*  put a word into memory */
 
-void mp_8m_put_mword(int32 addr, int32 val)
+void mp_8m_put_mword(int32_t addr, int32_t val)
 {
     mp_8m_put_mbyte(addr, val >> 8);
     mp_8m_put_mbyte(addr+1, val);

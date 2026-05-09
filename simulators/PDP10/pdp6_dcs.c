@@ -26,6 +26,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -60,22 +62,22 @@ int      dcs_tx_scan = 0;                        /* Scan counter */
 int      dcs_send_line = 0;                      /* Send line number */
 TMLN     dcs_ldsc[DCS_LINES] = { 0 };            /* Line descriptors */
 TMXR     dcs_desc = { DCS_LINES, 0, 0, dcs_ldsc };
-uint32   dcs_tx_enable, dcs_rx_rdy;              /* Flags */
-uint32   dcs_enable;                             /* Enable line */
-uint32   dcs_rx_conn;                            /* Connection flags */
-extern int32 tmxr_poll;
+uint32_t dcs_tx_enable, dcs_rx_rdy;              /* Flags */
+uint32_t dcs_enable;                             /* Enable line */
+uint32_t dcs_rx_conn;                            /* Connection flags */
+extern int32_t tmxr_poll;
 
-t_stat dcs_devio(uint32 dev, uint64 *data);
+t_stat dcs_devio(uint32_t dev, uint64 *data);
 t_stat dcs_svc (UNIT *uptr);
 t_stat dcs_doscan (UNIT *uptr);
 t_stat dcs_reset (DEVICE *dptr);
-t_stat dcs_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dcs_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dcs_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dcs_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat dcs_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dcs_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dcs_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dcs_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat dcs_attach (UNIT *uptr, const char *cptr);
 t_stat dcs_detach (UNIT *uptr);
-t_stat dcs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat dcs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
         const char *cptr);
 const char *dcs_description (DEVICE *dptr);
 
@@ -140,7 +142,7 @@ DEVICE dcs_dev = {
 
 
 /* IOT routine */
-t_stat dcs_devio(uint32 dev, uint64 *data) {
+t_stat dcs_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &dcs_unit;
     TMLN *lp;
     int   ln;
@@ -156,7 +158,7 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
          if ((uptr->STATUS & (XSCN_ACT)) == 0)
             *data |= 01000LL;
          sim_debug(DEBUG_CONI, &dcs_dev, "DCS %03o CONI %06o PC=%o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          break;
 
     case CONO:
@@ -173,7 +175,7 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
          }
 
          sim_debug(DEBUG_CONO, &dcs_dev, "DCS %03o CONO %06o PC=%06o\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          dcs_doscan(uptr);
          break;
 
@@ -183,7 +185,7 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
          if (ln < dcs_desc.lines) {
              lp = &dcs_ldsc[ln];
              if (lp->conn) {
-                int32 ch = *data & DATA;
+                int32_t ch = *data & DATA;
                 ch = sim_tt_outcvt(ch, TT_GET_MODE (dcs_unit.flags) | TTUF_KSR);
                 tmxr_putc_ln (lp, ch);
                 dcs_tx_enable |= (1 << ln);
@@ -204,7 +206,7 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
              /* Nothing happens if no recieve data, which is transmit ready */
              lp = &dcs_ldsc[ln];
              if (tmxr_rqln (lp) > 0) {
-                int32 ch = tmxr_getc_ln (lp);
+                int32_t ch = tmxr_getc_ln (lp);
                 if (ch & SCPE_BREAK)                      /* break? */
                     ch = 0;
                 else
@@ -228,14 +230,14 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
          else
              *data = (uint64)(dcs_rx_scan) + 2;
          sim_debug(DEBUG_CONI, &dcs_dev, "DCS %03o CONI %06o PC=%o recieve line\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          break;
 
     case CONO|4:
          /* Output buffer pointer */
          dcs_send_line = (int)(*data & 077) - 2;
          sim_debug(DEBUG_CONO, &dcs_dev, "DCS %03o CONO %06o PC=%06o send line\n",
-               dev, (uint32)*data, PC);
+               dev, (uint32_t)*data, PC);
          break;
     }
     return SCPE_OK;
@@ -246,7 +248,7 @@ t_stat dcs_devio(uint32 dev, uint64 *data) {
 
 t_stat dcs_svc (UNIT *uptr)
 {
-int32 ln;
+int32_t ln;
 
     if ((uptr->flags & UNIT_ATT) == 0)                  /* attached? */
         return SCPE_OK;
@@ -335,7 +337,7 @@ t_stat dcs_reset (DEVICE *dptr)
 
 /* SET LINES processor */
 
-t_stat dcs_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dcs_setnl (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -343,12 +345,12 @@ t_stat dcs_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 newln, i, t;
+    int32_t newln, i, t;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    newln = (int32) get_uint (cptr, 10, DCS_LINES, &r);
+    newln = (int32_t) get_uint (cptr, 10, DCS_LINES, &r);
     if ((r != SCPE_OK) || (newln == dcs_desc.lines))
         return r;
     if ((newln == 0) || (newln >= DCS_LINES) || (newln % 8) != 0)
@@ -374,7 +376,7 @@ t_stat dcs_setnl (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SET LOG processor */
 
-t_stat dcs_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dcs_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -383,14 +385,14 @@ t_stat dcs_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     t_stat r;
     char gbuf[CBUFSIZE];
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
     cptr = get_glyph (cptr, gbuf, '=');
     if ((cptr == NULL) || (*cptr == 0) || (gbuf[0] == 0))
         return SCPE_ARG;
-    ln = (int32) get_uint (gbuf, 10, dcs_desc.lines, &r);
+    ln = (int32_t) get_uint (gbuf, 10, dcs_desc.lines, &r);
     if ((r != SCPE_OK) || (ln >= dcs_desc.lines))
         return SCPE_ARG;
     return tmxr_set_log (NULL, ln, cptr, desc);
@@ -398,7 +400,7 @@ t_stat dcs_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SET NOLOG processor */
 
-t_stat dcs_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dcs_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -406,11 +408,11 @@ t_stat dcs_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
 
     t_stat r;
-    int32 ln;
+    int32_t ln;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    ln = (int32) get_uint (cptr, 10, dcs_desc.lines, &r);
+    ln = (int32_t) get_uint (cptr, 10, dcs_desc.lines, &r);
     if ((r != SCPE_OK) || (ln >= dcs_desc.lines))
         return SCPE_ARG;
     return tmxr_set_nolog (NULL, ln, NULL, desc);
@@ -418,14 +420,14 @@ t_stat dcs_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* SHOW LOG processor */
 
-t_stat dcs_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dcs_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
     (void) val;
 
-    int32 i;
+    int32_t i;
 
     for (i = 0; i < dcs_desc.lines; i++) {
         fprintf (st, "line %d: ", i);
@@ -453,7 +455,7 @@ return SCPE_OK;
 
 t_stat dcs_detach (UNIT *uptr)
 {
-  int32  i;
+  int32_t i;
   t_stat reason;
 reason = tmxr_detach (&dcs_desc, uptr);
 for (i = 0; i < dcs_desc.lines; i++)
@@ -462,7 +464,7 @@ sim_cancel (uptr);
 return reason;
 }
 
-t_stat dcs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dcs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "Type 630 Terminal Interfaces\n\n");
 fprintf (st, "The Type 630 supported up to 8 blocks of 8 lines. Modem control was on a seperate\n");

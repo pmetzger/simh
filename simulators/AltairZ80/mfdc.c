@@ -42,8 +42,11 @@
 #define USE_VGI     /* Use 275-byte VGI-format sectors (includes all metadata) */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_imd.h"
+#include "sim_types.h"
 
 #ifdef DBG_MSG
 #define DBG_PRINT(args) sim_printf args
@@ -59,14 +62,14 @@
 #define WR_DATA_MSG (1 << 4)
 #define VERBOSE_MSG (1 << 5)
 
-extern uint32 PCX;
-extern t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern int32 find_unit_index(UNIT *uptr);
+extern uint32_t PCX;
+extern t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern int32_t find_unit_index(UNIT *uptr);
 
-static void MFDC_Command(uint8 cData);
+static void MFDC_Command(uint8_t cData);
 static const char* mfdc_description(DEVICE *dptr);
 
 #define MFDC_MAX_DRIVES 4
@@ -77,39 +80,39 @@ static const char* mfdc_description(DEVICE *dptr);
 
 typedef union {
     struct {
-        uint8 sync;
-        uint8 header[2];
-        uint8 unused[10];
-        uint8 data[256];
-        uint8 checksum;
-        uint8 ecc[4];
-        uint8 ecc_valid;    /* Not used for Micropolis FDC, but is used by FDHD. */
+        uint8_t sync;
+        uint8_t header[2];
+        uint8_t unused[10];
+        uint8_t data[256];
+        uint8_t checksum;
+        uint8_t ecc[4];
+        uint8_t ecc_valid;  /* Not used for Micropolis FDC, but is used by FDHD. */
     } u;
-    uint8 raw[MFDC_SECTOR_LEN];
+    uint8_t raw[MFDC_SECTOR_LEN];
 
 } SECTOR_FORMAT;
 
 typedef struct {
     UNIT *uptr;
     DISK_INFO *imd;
-    uint8 track;
-    uint8 wp;       /* Disk write protected */
-    uint8 ready;    /* Drive is ready */
-    uint8 sector;   /* Current Sector number */
-    uint32 sector_wait_count;
+    uint8_t track;
+    uint8_t wp;     /* Disk write protected */
+    uint8_t ready;  /* Drive is ready */
+    uint8_t sector; /* Current Sector number */
+    uint32_t sector_wait_count;
 } MFDC_DRIVE_INFO;
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint8 xfr_flag;     /* Indicates controller is ready to send/receive data */
-    uint8 sel_drive;    /* Currently selected drive */
-    uint8 selected;     /* 1 if drive is selected */
-    uint8 track0;       /* Set it selected drive is on track 0 */
-    uint8 head;         /* Currently selected head */
-    uint8 wr_latch;     /* Write enable latch */
-    uint8 int_enable;   /* Interrupt Enable */
-    uint32 datacount;   /* Number of data bytes transferred from controller for current sector */
-    uint8 read_in_progress; /* true if a read is in progress */
+    uint8_t xfr_flag;   /* Indicates controller is ready to send/receive data */
+    uint8_t sel_drive;  /* Currently selected drive */
+    uint8_t selected;   /* 1 if drive is selected */
+    uint8_t track0;     /* Set it selected drive is on track 0 */
+    uint8_t head;       /* Currently selected head */
+    uint8_t wr_latch;   /* Write enable latch */
+    uint8_t int_enable; /* Interrupt Enable */
+    uint32_t datacount; /* Number of data bytes transferred from controller for current sector */
+    uint8_t read_in_progress; /* true if a read is in progress */
     MFDC_DRIVE_INFO drive[MFDC_MAX_DRIVES];
 } MFDC_INFO;
 
@@ -127,10 +130,10 @@ static SECTOR_FORMAT sdata;
 static t_stat mfdc_reset(DEVICE *mfdc_dev);
 static t_stat mfdc_attach(UNIT *uptr, const char *cptr);
 static t_stat mfdc_detach(UNIT *uptr);
-static uint8 MFDC_Read(const uint32 Addr);
-static uint8 MFDC_Write(const uint32 Addr, uint8 cData);
+static uint8_t MFDC_Read(const uint32_t Addr);
+static uint8_t MFDC_Write(const uint32_t Addr, uint8_t cData);
 
-static int32 mdskdev(const int32 Addr, const int32 rw, const int32 data);
+static int32_t mdskdev(const int32_t Addr, const int32_t rw, const int32_t data);
 
 static UNIT mfdc_unit[] = {
     { UDATA (NULL, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE, MFDC_CAPACITY) },
@@ -193,7 +196,7 @@ DEVICE mfdc_dev = {
  * This ROM code is runtime-relocatable.  See Appendix F of the "Vector Using MDOS Revision 8.4"
  * manual at www.hartetechnologies.com/manuals in the Vector Graphic section.
  */
-static uint8 mfdc_rom[256] = {
+static uint8_t mfdc_rom[256] = {
     0xF3, 0x21, 0xA2, 0x00, 0xF9, 0x36, 0xC9, 0xCD, 0xA2, 0x00, 0xEB, 0x2A, 0xA0, 0x00, 0x2E, 0x00, /* 0x00 */
     0xE5, 0x01, 0x1D, 0x00, 0x09, 0xE5, 0xE1, 0x0E, 0x1A, 0x09, 0x06, 0xBD, 0xEB, 0x3B, 0x3B, 0x1A, /* 0x10 */
     0x77, 0xBE, 0xC0, 0x23, 0x13, 0x05, 0xC0, 0xE1, 0x2A, 0xA0, 0x00, 0x11, 0x00, 0x02, 0x19, 0x22, /* 0x20 */
@@ -215,7 +218,7 @@ static uint8 mfdc_rom[256] = {
 /* Reset routine */
 static t_stat mfdc_reset(DEVICE *dptr)
 {
-    uint8 i;
+    uint8_t i;
     PNP_INFO *pnp = (PNP_INFO *)dptr->ctxt;
 
     if(dptr->flags & DEV_DIS) {
@@ -238,7 +241,7 @@ static t_stat mfdc_reset(DEVICE *dptr)
 static t_stat mfdc_attach(UNIT *uptr, const char *cptr)
 {
     t_stat r;
-    int32 i = 0;
+    int32_t i = 0;
 
     r = attach_unit(uptr, cptr);    /* attach unit  */
     if (r != SCPE_OK)               /* error?       */
@@ -296,7 +299,7 @@ static t_stat mfdc_attach(UNIT *uptr, const char *cptr)
 /* Detach routine */
 static t_stat mfdc_detach(UNIT *uptr)
 {
-    int8 i;
+    int8_t i;
 
     for(i = 0; i < MFDC_MAX_DRIVES; i++) {
         if(mfdc_dev.units[i].fileref == uptr->fileref) {
@@ -317,10 +320,10 @@ static t_stat mfdc_detach(UNIT *uptr)
 
 
 
-static uint8 cy;
-static uint8 adc(uint8 sum, uint8 a1)
+static uint8_t cy;
+static uint8_t adc(uint8_t sum, uint8_t a1)
 {
-    uint32 total;
+    uint32_t total;
 
     total = sum + a1 + cy;
 
@@ -346,7 +349,7 @@ static uint8 adc(uint8 sum, uint8 a1)
  * The controller can be relocated on any 1K boundary in the memory map, and since the
  * boot ROM code is runtime relocatable, it moves with the controller registers.
  */
-static int32 mdskdev(const int32 Addr, const int32 rw, const int32 data)
+static int32_t mdskdev(const int32_t Addr, const int32_t rw, const int32_t data)
 {
     switch(Addr & 0x300) {
         case 0x000:         /* Boot ROM */
@@ -374,11 +377,11 @@ static int32 mdskdev(const int32 Addr, const int32 rw, const int32 data)
 }
 
 
-static uint8 MFDC_Read(const uint32 Addr)
+static uint8_t MFDC_Read(const uint32_t Addr)
 {
-    uint8 cData;
+    uint8_t cData;
     MFDC_DRIVE_INFO *pDrive;
-    int32 rtn;
+    int32_t rtn;
 
     cData = 0x00;
 
@@ -421,10 +424,10 @@ static uint8 MFDC_Read(const uint32 Addr)
         case 2:
         case 3:
             if(mfdc_info->datacount == 0) {
-                unsigned int i, checksum;
+                uint_t i, checksum;
                 unsigned long sec_offset;
-                uint32 flags;
-                uint32 readlen;
+                uint32_t flags;
+                uint32_t readlen;
 
                 /* Clear out unused portion of sector. */
                 memset(&sdata.u.unused[0], 0x00, 10);
@@ -527,11 +530,11 @@ static uint8 MFDC_Read(const uint32 Addr)
     return (cData);
 }
 
-static uint8 MFDC_Write(const uint32 Addr, uint8 cData)
+static uint8_t MFDC_Write(const uint32_t Addr, uint8_t cData)
 {
-    unsigned int sec_offset;
-    uint32 flags = 0;
-    uint32 writelen;
+    uint_t sec_offset;
+    uint32_t flags = 0;
+    uint32_t writelen;
     MFDC_DRIVE_INFO *pDrive;
 
     pDrive = &mfdc_info->drive[mfdc_info->sel_drive];
@@ -631,10 +634,10 @@ static uint8 MFDC_Write(const uint32 Addr, uint8 cData)
 #define MFDC_CMD_SET_WRITE  4
 #define MFDC_CMD_RESET      5
 
-static void MFDC_Command(uint8 cData)
+static void MFDC_Command(uint8_t cData)
 {
-    uint8 cCommand;
-    uint8 cModifier;
+    uint8_t cCommand;
+    uint8_t cModifier;
     MFDC_DRIVE_INFO *pDrive;
 
     pDrive = &mfdc_info->drive[mfdc_info->sel_drive];

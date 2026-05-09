@@ -37,6 +37,7 @@
 #include "id_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Device definitions */
 
@@ -53,39 +54,39 @@
 #define GET_CTR(x)      ((x) & PIC_CTR)
 #define PIC_TPS         1000
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 
-int32 pic_db = 0;                                       /* output buf */
-int32 pic_ric = 0;                                      /* reset count */
-int32 pic_cic = 0;                                      /* current count */
-uint32 pic_save = 0;                                    /* saved time */
-uint32 pic_ovf = 0;                                     /* overflow */
-uint32 pic_rdp = 0;
-uint32 pic_wdp = 0;
-uint32 pic_cnti = 0;                                    /* instr/timer */
-uint32 pic_arm = 0;                                     /* int arm */
-uint32 pic_decr = 1;                                    /* decrement */
-uint16 pic_time[4] = { 1, 10, 100, 1000 };              /* delays */
-uint16 pic_usec[4] = { 1, 10, 100, 1000 };              /* usec per tick */
-static int32 pic_map[16] = {                            /* map rate to delay */
+int32_t pic_db = 0;                                     /* output buf */
+int32_t pic_ric = 0;                                    /* reset count */
+int32_t pic_cic = 0;                                    /* current count */
+uint32_t pic_save = 0;                                  /* saved time */
+uint32_t pic_ovf = 0;                                   /* overflow */
+uint32_t pic_rdp = 0;
+uint32_t pic_wdp = 0;
+uint32_t pic_cnti = 0;                                  /* instr/timer */
+uint32_t pic_arm = 0;                                   /* int arm */
+uint32_t pic_decr = 1;                                  /* decrement */
+uint16_t pic_time[4] = { 1, 10, 100, 1000 };            /* delays */
+uint16_t pic_usec[4] = { 1, 10, 100, 1000 };            /* usec per tick */
+static int32_t pic_map[16] = {                          /* map rate to delay */
     0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
     };
 
-uint32 pic (uint32 dev, uint32 op, uint32 dat);
+uint32_t pic (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat pic_svc (UNIT *uptr);
 t_stat pic_reset (DEVICE *dptr);
 void pic_sched (bool strt);
-uint32 pic_rd_cic (void);
+uint32_t pic_rd_cic (void);
 
-int32 lfc_tps = 120;                                    /* ticks per */
-int32 lfc_poll = 8000;
-uint32 lfc_arm = 0;                                     /* int arm */
+int32_t lfc_tps = 120;                                  /* ticks per */
+int32_t lfc_poll = 8000;
+uint32_t lfc_arm = 0;                                   /* int arm */
 
-uint32 lfc (uint32 dev, uint32 op, uint32 dat);
+uint32_t lfc (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat lfc_svc (UNIT *uptr);
 t_stat lfc_reset (DEVICE *dptr);
-t_stat lfc_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat lfc_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat lfc_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat lfc_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* PIC data structures
 
@@ -175,13 +176,13 @@ DEVICE lfc_dev = {
 
 /* Precision clock: IO routine */
 
-uint32 pic (uint32 dev, uint32 op, uint32 dat)
+uint32_t pic (uint32_t dev, uint32_t op, uint32_t dat)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) dev;
 
-int32 t;
+int32_t t;
 
 switch (op) {                                           /* case IO op */
 
@@ -274,7 +275,7 @@ return SCPE_OK;
 
 void pic_sched (bool strt)
 {
-int32 r, t, intv, intv_usec;
+int32_t r, t, intv, intv_usec;
 
 pic_save = sim_grtime ();                               /* save start */
 r = pic_map[GET_RATE (pic_ric)];                        /* get mapped rate */
@@ -301,13 +302,13 @@ return;
 
 /* Read (interpolated) current interval */
 
-uint32 pic_rd_cic (void)
+uint32_t pic_rd_cic (void)
 {
 if (sim_is_active (&pic_unit) && pic_cnti) {            /* running, one shot? */
-    uint32 delta = sim_grtime () - pic_save;            /* interval */
-    uint32 tm = pic_time[pic_map[GET_RATE (pic_ric)]];  /* ticks/intv */
+    uint32_t delta = sim_grtime () - pic_save;          /* interval */
+    uint32_t tm = pic_time[pic_map[GET_RATE (pic_ric)]]; /* ticks/intv */
     delta = delta / tm;                                 /* ticks elapsed */
-    if (delta >= ((uint32) pic_cic))                    /* cap value */
+    if (delta >= ((uint32_t) pic_cic))                  /* cap value */
         return 0;
     return pic_cic - delta;
     }
@@ -337,7 +338,7 @@ return SCPE_OK;
 
 /* Line clock: IO routine */
 
-uint32 lfc (uint32 dev, uint32 op, uint32 dat)
+uint32_t lfc (uint32_t dev, uint32_t op, uint32_t dat)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -369,9 +370,9 @@ return SCPE_OK;
 
 /* Clock coscheduling routine */
 
-int32 lfc_cosched (int32 wait)
+int32_t lfc_cosched (int32_t wait)
 {
-int32 t;
+int32_t t;
 
 t = sim_activate_time (&lfc_unit);
 return (t? t - 1: wait);
@@ -395,7 +396,7 @@ return SCPE_OK;
 
 /* Set frequency */
 
-t_stat lfc_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat lfc_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -412,7 +413,7 @@ return SCPE_OK;
 
 /* Show frequency */
 
-t_stat lfc_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat lfc_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

@@ -17,6 +17,7 @@
 
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifndef _WIN32
@@ -40,28 +41,28 @@
 
 extern bool sim_gui;
 
-extern uint16 M[];                          /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
-extern uint16 ILSW[];                       /* interrupt level status words */
-extern int32  IAR;                          /* instruction address register */
-extern int32  prev_IAR;                     /* instruction address register at start of current instruction */
-extern int32  SAR, SBR;                     /* storage address/buffer registers */
-extern int32  OP, TAG, CCC;                 /* instruction decoded pieces */
-extern int32  CES;                          /* console entry switches */
-extern int32  ACC, EXT;                     /* accumulator and extension */
-extern int32  ARF;                          /* arithmetic factor register, a nonaddressable internal CPU register */
-extern int32  RUNMODE;                      /* processor run/step mode */
-extern int32  ipl;                          /* current interrupt level (-1 = not handling irq) */
-extern int32  iplpending;                   /* interrupted IPL's */
-extern int32  tbit;                         /* trace flag (causes level 5 IRQ after each instr) */
-extern int32  V, C;                         /* condition codes */
-extern int32  wait_state;                   /* wait state (waiting for an IRQ) */
-extern int32  wait_lamp;                    /* alternate indicator to light the wait lamp on the GUI */
-extern int32  int_req;                      /* sum of interrupt request levels active */
-extern int32  int_lamps;                    /* accumulated version of int_req - gives lamp persistence */
-extern int32  int_mask;                     /* current active interrupt mask (ipl sensitive) */
-extern int32  mem_mask;
-extern int32  cpu_dsw;                      /* CPU device status word */
-extern int32  con_dsw;                      /* has program stop and int run bits */
+extern uint16_t M[];                        /* core memory, up to 32Kwords (note: don't even think about trying 64K) */
+extern uint16_t ILSW[];                     /* interrupt level status words */
+extern int32_t IAR;                         /* instruction address register */
+extern int32_t prev_IAR;                    /* instruction address register at start of current instruction */
+extern int32_t SAR, SBR;                    /* storage address/buffer registers */
+extern int32_t OP, TAG, CCC;                /* instruction decoded pieces */
+extern int32_t CES;                         /* console entry switches */
+extern int32_t ACC, EXT;                    /* accumulator and extension */
+extern int32_t ARF;                         /* arithmetic factor register, a nonaddressable internal CPU register */
+extern int32_t RUNMODE;                     /* processor run/step mode */
+extern int32_t ipl;                         /* current interrupt level (-1 = not handling irq) */
+extern int32_t iplpending;                  /* interrupted IPL's */
+extern int32_t tbit;                        /* trace flag (causes level 5 IRQ after each instr) */
+extern int32_t V, C;                        /* condition codes */
+extern int32_t wait_state;                  /* wait state (waiting for an IRQ) */
+extern int32_t wait_lamp;                   /* alternate indicator to light the wait lamp on the GUI */
+extern int32_t int_req;                     /* sum of interrupt request levels active */
+extern int32_t int_lamps;                   /* accumulated version of int_req - gives lamp persistence */
+extern int32_t int_mask;                    /* current active interrupt mask (ipl sensitive) */
+extern int32_t mem_mask;
+extern int32_t cpu_dsw;                     /* CPU device status word */
+extern int32_t con_dsw;                     /* has program stop and int run bits */
 extern bool running;
 extern bool power;
 extern bool cgi;                            /* true if we are running as a CGI program */
@@ -99,14 +100,14 @@ extern t_stat reason;                       /* CPU execution loop control */
 void debug_print(const char *fmt, ...) PRINTF_FMT(1, 2);
 void void_backtrace (int afrom, int ato);
 const char *saywhere (int addr);
-t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw);
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw);
+t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw);
 
 /* ------------------------------------------------------------------------ */
 /* memory IO routines */
 
-int32 ReadW  (int32 a);
-void  WriteW (int32 a, int32 d);
+int32_t ReadW  (int32_t a);
+void  WriteW (int32_t a, int32_t d);
 
 /* ------------------------------------------------------------------------ */
 /* handy macros */
@@ -246,25 +247,25 @@ void  WriteW (int32 a, int32 d);
 
 /* prototypes: xio handlers */
 
-void xio_1131_console   (int32 addr, int32 func, int32 modify);             /* console keyboard and printer */
-void xio_1442_card      (int32 addr, int32 func, int32 modify);             /* standard card reader/punch */
-void xio_1134_papertape (int32 addr, int32 func, int32 modify);             /* paper tape reader/punch */
-void xio_disk           (int32 addr, int32 func, int32 modify, int drv);    /* internal CPU disk */
-void xio_1627_plotter   (int32 addr, int32 func, int32 modify);             /* XY plotter */
-void xio_1132_printer   (int32 addr, int32 func, int32 modify);             /* standard line printer */
-void xio_1131_switches  (int32 addr, int32 func, int32 modify);             /* console buttons & switches */
-void xio_1231_optical   (int32 addr, int32 func, int32 modify);             /* optical mark page reader */
-void xio_2501_card      (int32 addr, int32 func, int32 modify);             /* alternate high-speed card reader */
-void xio_sca            (int32 addr, int32 func, int32 modify);             /* synchronous communications adapter */
-void xio_system7        (int32 addr, int32 func, int32 modify);             /* system/7 interprocessor IO link */
-void xio_1403_printer   (int32 addr, int32 func, int32 modify);             /* alternate high-speed printer */
-void xio_2250_display   (int32 addr, int32 func, int32 modify);             /* vector display processor */
-void xio_t2741_terminal (int32 addr, int32 func, int32 modify);             /* IO selectric via nonstandard serial interface for APL */
+void xio_1131_console   (int32_t addr, int32_t func, int32_t modify);       /* console keyboard and printer */
+void xio_1442_card      (int32_t addr, int32_t func, int32_t modify);       /* standard card reader/punch */
+void xio_1134_papertape (int32_t addr, int32_t func, int32_t modify);       /* paper tape reader/punch */
+void xio_disk           (int32_t addr, int32_t func, int32_t modify, int drv); /* internal CPU disk */
+void xio_1627_plotter   (int32_t addr, int32_t func, int32_t modify);       /* XY plotter */
+void xio_1132_printer   (int32_t addr, int32_t func, int32_t modify);       /* standard line printer */
+void xio_1131_switches  (int32_t addr, int32_t func, int32_t modify);       /* console buttons & switches */
+void xio_1231_optical   (int32_t addr, int32_t func, int32_t modify);       /* optical mark page reader */
+void xio_2501_card      (int32_t addr, int32_t func, int32_t modify);       /* alternate high-speed card reader */
+void xio_sca            (int32_t addr, int32_t func, int32_t modify);       /* synchronous communications adapter */
+void xio_system7        (int32_t addr, int32_t func, int32_t modify);       /* system/7 interprocessor IO link */
+void xio_1403_printer   (int32_t addr, int32_t func, int32_t modify);       /* alternate high-speed printer */
+void xio_2250_display   (int32_t addr, int32_t func, int32_t modify);       /* vector display processor */
+void xio_t2741_terminal (int32_t addr, int32_t func, int32_t modify);       /* IO selectric via nonstandard serial interface for APL */
 void xio_error          (const char *msg);
 
 void   bail (const char *msg);
-t_stat load_cr_boot (int32 drv, int switches);
-t_stat cr_boot (int32 unitno, DEVICE *dptr);
+t_stat load_cr_boot (int32_t drv, int switches);
+t_stat cr_boot (int32_t unitno, DEVICE *dptr);
 t_stat cr_rewind (void);
 t_stat cr_detach (UNIT *uptr);
 void   calc_ints (void);                            /* recalculate interrupt bitmask */
@@ -273,14 +274,14 @@ void   trace_both (const char *fmt, ...) PRINTF_FMT(1, 2);   /* debugging printo
 void   scp_panic (const char *msg);                 /* bail out of simulator */
 char  *upcase(char *str);
 void   break_simulation (t_stat reason);            /* let a device halt the simulation */
-char   hollerith_to_ascii (uint16 hol);             /* for debugging use only */
+char   hollerith_to_ascii (uint16_t hol);           /* for debugging use only */
 bool gdu_active (void);
 void   remark_cmd (char *remark);
 long   stuff_cmd (char *cmd);
 bool stuff_and_wait (char *cmd, int timeout, int delay);
 void   update_gui (bool force);
 void   sim_init (void);
-t_stat register_cmd (const char *name, t_stat (*action)(int32 flag, const char *ptr), int arg, const char *help);
+t_stat register_cmd (const char *name, t_stat (*action)(int32_t flag, const char *ptr), int arg, const char *help);
 t_stat basic_attach (UNIT *uptr, const char *cptr);
 const char * quotefix (const char *cptr, char * buf);
 

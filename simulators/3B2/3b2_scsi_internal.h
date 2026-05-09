@@ -4,6 +4,8 @@
 #define _3B2_SCSI_INTERNAL_H_
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "3b2_scsi.h"
 
 /*
@@ -11,16 +13,16 @@
  * number. The host adapter keeps a compact table of attached devices; table
  * entries set to -1 mean that the requested subdevice does not exist.
  */
-static inline bool ha_subdev_target(const int8 subdev_tab[8],
-                                      uint8 subdev, uint8 *target)
+static inline bool ha_subdev_target(const int8_t subdev_tab[8],
+                                      uint8_t subdev, uint8_t *target)
 {
-    int8 mapped = subdev_tab[subdev & 7];
+    int8_t mapped = subdev_tab[subdev & 7];
 
     if (mapped < 0) {
         return false;
     }
 
-    *target = (uint8)mapped;
+    *target = (uint8_t)mapped;
     return true;
 }
 
@@ -30,9 +32,9 @@ static inline bool ha_subdev_target(const int8 subdev_tab[8],
  * commands must reject missing subdevices before the dispatcher indexes the
  * per-target state table.
  */
-static inline bool ha_subdev_command_target(const int8 subdev_tab[8],
-                                              uint8 op, uint8 subdev,
-                                              uint8 *target)
+static inline bool ha_subdev_command_target(const int8_t subdev_tab[8],
+                                              uint8_t op, uint8_t subdev,
+                                              uint8_t *target)
 {
     switch (op) {
     case HA_BOOT:

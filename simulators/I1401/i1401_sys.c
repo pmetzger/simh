@@ -43,6 +43,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "i1401_defs.h"
 #include "i1401_bool_internal.h"
@@ -53,10 +54,10 @@ extern DEVICE cdr_dev, cdp_dev, stack_dev;
 extern DEVICE dp_dev, mt_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern uint8 M[];
-extern int32 store_addr_h (int32 addr);
-extern int32 store_addr_t (int32 addr);
-extern int32 store_addr_u (int32 addr);
+extern uint8_t M[];
+extern int32_t store_addr_h (int32_t addr);
+extern int32_t store_addr_t (int32_t addr);
+extern int32_t store_addr_u (int32_t addr);
 
 /* SCP data structures and interface routines
 
@@ -72,7 +73,7 @@ char sim_name[] = "IBM 1401";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = LINE_LNT;
+int32_t sim_emax = LINE_LNT;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -133,9 +134,9 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
    This implementation does not use every parameter. */
 (void)fnam;
 
-int32 col, rpt, ptr, mask, cctbuf[CCT_LNT];
+int32_t col, rpt, ptr, mask, cctbuf[CCT_LNT];
 t_stat r;
-extern int32 cctlnt, cctptr, cct[CCT_LNT];
+extern int32_t cctlnt, cctptr, cct[CCT_LNT];
 char cbuf[CBUFSIZE], gbuf[CBUFSIZE];
 
 if ((*cptr != 0) || (flag != 0))
@@ -189,7 +190,7 @@ const char *opcode[64] = {
 
 static void fprint_addr (FILE *of, t_value *dig)
 {
-int32 addr, xa;
+int32_t addr, xa;
 
 addr = hun_table[dig[0] & CHAR] + ten_table[dig[1]] + one_table[dig[2]];
 xa = (addr >> V_INDEX) & M_INDEX;
@@ -203,9 +204,9 @@ return;
 
 /* Print unknown opcode as data */
 
-static t_stat dcw (FILE *of, int32 op, t_value *val, int32 sw)
+static t_stat dcw (FILE *of, int32_t op, t_value *val, int32_t sw)
 {
-int32 i;
+int32_t i;
 bool use_h = i1401_fortran_conversion_switch_requested(sw);
 
 fprintf (of, "DCW @%c", bcd2ascii (op, use_h));         /* assume it's data */
@@ -234,14 +235,14 @@ return -(i - 1);                                        /* return # chars */
 #define FMTASC(x) ((x) < 040)? "<%03o>": "%c", (x)
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
 (void)addr;
 
-int32 op, flags, ilnt, i, t;
-int32 wmch = conv_old? '~': '`';
+int32_t op, flags, ilnt, i, t;
+int32_t wmch = conv_old? '~': '`';
 bool use_h = i1401_fortran_conversion_switch_requested(sw);
 
 if (sw & SWMASK ('C')) {                                /* character? */
@@ -318,7 +319,7 @@ return -(ilnt - 1);                                     /* return # chars */
 
 static t_stat get_addr (const char *cptr, t_value *val)
 {
-int32 addr, index;
+int32_t addr, index;
 t_stat r;
 char gbuf[CBUFSIZE];
 
@@ -367,14 +368,14 @@ return SCPE_OK;
                         <= 0  -number of extra words
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */
 (void)addr;
 
-int32 i, op, ilnt, t, cflag, wm_seen;
-int32 wmch = conv_old? '~': '`';
+int32_t i, op, ilnt, t, cflag, wm_seen;
+int32_t wmch = conv_old? '~': '`';
 char gbuf[CBUFSIZE];
 
 if (uptr == NULL)
@@ -439,7 +440,7 @@ return -(ilnt - 1);
 
 /* Convert BCD to ASCII */
 
-int32 bcd2ascii (int32 c, bool use_h)
+int32_t bcd2ascii (int32_t c, bool use_h)
 {
 if (conv_old)
     return bcd_to_ascii_old[c];
@@ -450,7 +451,7 @@ else return bcd_to_ascii_a[c];
 
 /* Convert ASCII to BCD */
 
-int32 ascii2bcd (int32 c)
+int32_t ascii2bcd (int32_t c)
 {
 if (conv_old)
     return ascii_to_bcd_old[c];

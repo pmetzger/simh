@@ -22,6 +22,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_DDC
@@ -107,13 +109,13 @@ uint64          ddc_cmd[16];
 int             ddc_cmdptr;
 int             ddc_putptr;
 
-t_stat          ddc_devio(uint32 dev, uint64 *data);
+t_stat          ddc_devio(uint32_t dev, uint64 *data);
 t_stat          ddc_svc(UNIT *);
 void            ddc_ini(UNIT *, bool);
 t_stat          ddc_reset(DEVICE *);
 t_stat          ddc_attach(UNIT *, const char *);
 t_stat          ddc_detach(UNIT *);
-t_stat          ddc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat          ddc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                      const char *cptr);
 const char      *ddc_description (DEVICE *dptr);
 
@@ -154,7 +156,7 @@ DEVICE              ddc_dev = {
 };
 
 
-t_stat ddc_devio(uint32 dev, uint64 *data) {
+t_stat ddc_devio(uint32_t dev, uint64 *data) {
      UNIT        *uptr;
      DEVICE      *dptr;
 
@@ -163,7 +165,7 @@ t_stat ddc_devio(uint32 dev, uint64 *data) {
      switch(dev & 3) {
      case CONI:
         sim_debug(DEBUG_CONI, dptr, "DDC %03o CONI %06o PC=%o\n", dev,
-                          (uint32)*data, PC);
+                          (uint32_t)*data, PC);
         *data = uptr->STATUS;
         if (ddc_cmdptr != ((ddc_putptr + 2) & 0xf)) {
             *data |= DDC_RDY;
@@ -171,7 +173,7 @@ t_stat ddc_devio(uint32 dev, uint64 *data) {
         if (ddc_cmdptr == ddc_putptr) {
             *data |= DDC_BSY;
         }
-        *data |= ((t_uint64)uptr->UFLAGS) << 25;
+        *data |= ((uint64_t)uptr->UFLAGS) << 25;
         break;
      case CONO:
         if (*data & DDC_CLR) {  /* Clear irq */
@@ -192,10 +194,10 @@ t_stat ddc_devio(uint32 dev, uint64 *data) {
         }
 
          sim_debug(DEBUG_CONO, dptr, "DDC %03o CONO %06o PC=%o\n", dev,
-                   (uint32)*data, PC);
+                   (uint32_t)*data, PC);
          break;
      case DATAI:
-         *data = (t_uint64)(uptr->SEC++);
+         *data = (uint64_t)(uptr->SEC++);
          uptr->SEC &= 0177;
          if (uptr->SEC > (13 << 2))
             uptr->SEC = 0;
@@ -381,7 +383,7 @@ t_stat ddc_detach (UNIT *uptr)
     return detach_unit (uptr);
 }
 
-t_stat ddc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ddc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

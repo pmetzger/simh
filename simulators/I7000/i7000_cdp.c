@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7000_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -57,17 +59,17 @@
    cdp_mod      Card Punch modifiers list
 */
 
-uint32              cdp_cmd(UNIT *, uint16, uint16);
+uint32_t            cdp_cmd(UNIT *, uint16_t, uint16_t);
 void                cdp_ini(UNIT *, bool);
 t_stat              cdp_srv(UNIT *);
 t_stat              cdp_reset(DEVICE *);
 t_stat              cdp_attach(UNIT *, const char *);
 t_stat              cdp_detach(UNIT *);
-t_stat              cdp_get_input(FILE *, UNIT *, int32, const void *);
-t_stat              cdp_set_input(UNIT *, int32, const char *, void *);
-t_stat              cdp_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              cdp_get_input(FILE *, UNIT *, int32_t, const void *);
+t_stat              cdp_set_input(UNIT *, int32_t, const char *, void *);
+t_stat              cdp_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *cdp_description(DEVICE *dptr);
-t_stat              stk_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              stk_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *stk_description(DEVICE *dptr);
 
 UNIT                cdp_unit[] = {
@@ -161,13 +163,13 @@ DEVICE stack_dev = {
 */
 
 
-uint32 cdp_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cdp_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdp_unit);
     int                 stk = dev & 017;
     UNIT               *iuptr = &cdp_input_unit[u];
-    uint16             *image = (uint16 *)(uptr->up7);
+    uint16_t           *image = (uint16_t *)(uptr->up7);
     int                 i;
 
     /* Are we currently tranfering? */
@@ -250,7 +252,7 @@ t_stat
 cdp_srv(UNIT *uptr) {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdp_unit);
-    uint16              *image = (uint16 *)(uptr->up7);
+    uint16_t            *image = (uint16_t *)(uptr->up7);
 
     /* Waiting for disconnect */
     if (uptr->u5 & URCSTA_WDISCO) {
@@ -305,7 +307,7 @@ cdp_srv(UNIT *uptr) {
 
     /* Copy next column over */
     if (uptr->u5 & URCSTA_WRITE && uptr->u4 < 80) {
-        uint8               ch = 0;
+        uint8_t             ch = 0;
 
         switch(chan_read_char(chan, &ch, 0)) {
         case TIME_ERROR:
@@ -362,7 +364,7 @@ cdp_attach(UNIT * uptr, const char *file)
     if ((r = sim_card_attach(uptr, file)) != SCPE_OK)
         return r;
     if (uptr->up7 == 0) {
-        uptr->up7 = calloc(80, sizeof(uint16));
+        uptr->up7 = calloc(80, sizeof(uint16_t));
         uptr->u5 = 0;
     }
     return SCPE_OK;
@@ -371,7 +373,7 @@ cdp_attach(UNIT * uptr, const char *file)
 t_stat
 cdp_detach(UNIT * uptr)
 {
-    uint16        *image = (uint16 *)(uptr->up7);
+    uint16_t      *image = (uint16_t *)(uptr->up7);
 
     if (uptr->u5 & URCSTA_FULL) {
 #ifdef STACK_DEV
@@ -390,7 +392,7 @@ cdp_detach(UNIT * uptr)
 }
 
 t_stat
-cdp_set_input(UNIT *uptr, int32 val, const char *cptr, void *desc)
+cdp_set_input(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -453,7 +455,7 @@ cdp_set_input(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     /* If deck attach it to input */
     if (sim_strcasecmp(gbuf, "DECK") == 0) {
-       int32     saved_switches = sim_switches;
+       int32_t   saved_switches = sim_switches;
 
        sim_switches = SWMASK('E') | SWMASK('R');
        if ((saved_switches & SWMASK('F')) != 0) {
@@ -472,7 +474,7 @@ cdp_set_input(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-cdp_get_input(FILE *st, UNIT *uptr, int32 v, const void *desc)
+cdp_get_input(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -506,7 +508,7 @@ cdp_get_input(FILE *st, UNIT *uptr, int32 v, const void *desc)
 
 #ifdef STACK_DEV
 t_stat
-stk_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+stk_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    fprintf (st, "%s\n\n", stk_description(dptr));
    fprintf (st, "Allows stack control functions to direct cards to specific ");
@@ -532,7 +534,7 @@ stk_description(DEVICE *dptr)
 #endif
 
 t_stat
-cdp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cdp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    fprintf (st, "%s\n\n", cdp_description(dptr));
 #ifdef STACK_DEV

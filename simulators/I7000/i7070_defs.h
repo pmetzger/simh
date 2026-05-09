@@ -21,6 +21,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 #include "i7000_defs.h"
@@ -46,8 +48,8 @@
 
 /* Memory */
 
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
-extern t_uint64         M[MAXMEMSIZE];
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
+extern uint64_t         M[MAXMEMSIZE];
 
 /* Arithmetic */
 
@@ -87,20 +89,20 @@ extern t_uint64         M[MAXMEMSIZE];
 /* 7070 channel specific functions */
 
 /* Issue a command to a channel */
-int chan_cmd(uint16 dev, uint16 cmd, uint16 addr);
+int chan_cmd(uint16_t dev, uint16_t cmd, uint16_t addr);
 
 /* Decimal helper functions */
-int                 dec_add(t_uint64 *a, t_uint64 b);
-void                dec_add_noov(t_uint64 *a, t_uint64 b);
-void                dec_comp(t_uint64 *a);
-int                 dec_cmp(t_uint64 a, t_uint64 b);
-void                mul_step(t_uint64 *a, t_uint64 b, int c);
-void                div_step(t_uint64 b);
-void                bin_dec(t_uint64 *a, uint32 b, int s, int l);
-uint32              dec_bin_idx(t_uint64 a);
-uint32              dec_bin_lim(t_uint64 a, uint32 b);
-int                 get_rdw(t_uint64 a, uint32 *base, uint32 *limit);
-void                upd_idx(t_uint64 *a, uint32 b);
+int                 dec_add(uint64_t *a, uint64_t b);
+void                dec_add_noov(uint64_t *a, uint64_t b);
+void                dec_comp(uint64_t *a);
+int                 dec_cmp(uint64_t a, uint64_t b);
+void                mul_step(uint64_t *a, uint64_t b, int c);
+void                div_step(uint64_t b);
+void                bin_dec(uint64_t *a, uint32_t b, int s, int l);
+uint32_t            dec_bin_idx(uint64_t a);
+uint32_t            dec_bin_lim(uint64_t a, uint32_t b);
+int                 get_rdw(uint64_t a, uint32_t *base, uint32_t *limit);
+void                upd_idx(uint64_t *a, uint32_t b);
 int                 scan_irq(void);
 
 /* Opcodes */

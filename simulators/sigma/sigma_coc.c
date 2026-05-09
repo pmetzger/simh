@@ -37,6 +37,7 @@
 #include "sim_tmxr.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Constants */
 
@@ -79,38 +80,38 @@
 #define MUXDAT_GETLIN(x) (((x) >> MUXDAT_V_LIN) & MUXDAT_M_LIN)
 #define MUXDAT_GETCHR(x) (((x) >> MUXDAT_V_CHR) & MUXDAT_M_CHR)
 
-uint8 mux_rbuf[MUX_LINES];                              /* rcv buf */
-uint8 mux_xbuf[MUX_LINES];                              /* xmt buf */
-uint8 mux_sta[MUX_LINES];                               /* status */
-uint32 mux_tps = RTC_HZ_50;                             /* polls/second */
-uint32 mux_scan = 0;                                    /* scanner */
-uint32 mux_slck = 0;                                    /* scanner locked */
-uint32 muxc_cmd = MUXC_IDLE;                            /* channel state */
-uint32 mux_rint = INTV (INTG_E2, 0);
-uint32 mux_xint = INTV (INTG_E2, 1);
+uint8_t mux_rbuf[MUX_LINES];                            /* rcv buf */
+uint8_t mux_xbuf[MUX_LINES];                            /* xmt buf */
+uint8_t mux_sta[MUX_LINES];                             /* status */
+uint32_t mux_tps = RTC_HZ_50;                           /* polls/second */
+uint32_t mux_scan = 0;                                  /* scanner */
+uint32_t mux_slck = 0;                                  /* scanner locked */
+uint32_t muxc_cmd = MUXC_IDLE;                          /* channel state */
+uint32_t mux_rint = INTV (INTG_E2, 0);
+uint32_t mux_xint = INTV (INTG_E2, 1);
 
-static int32 mux_order[MUX_LINES] = { -1 };             /* line connection order */
+static int32_t mux_order[MUX_LINES] = { -1 };           /* line connection order */
 TMLN mux_ldsc[MUX_LINES] = { 0 };                       /* line descrs */
 TMXR mux_desc = { MUX_LINES_DFLT, 0, 0, mux_ldsc, mux_order }; /* mux descr */
 
-extern uint32 chan_ctl_time;
-extern uint32 CC;
-extern uint32 *R;
+extern uint32_t chan_ctl_time;
+extern uint32_t CC;
+extern uint32_t *R;
 
-uint32 mux_disp (uint32 op, uint32 dva, uint32 *dvst);
-uint32 mux_dio (uint32 op, uint32 rn, uint32 ad);
-uint32 mux_tio_status (void);
-t_stat mux_chan_err (uint32 st);
+uint32_t mux_disp (uint32_t op, uint32_t dva, uint32_t *dvst);
+uint32_t mux_dio (uint32_t op, uint32_t rn, uint32_t ad);
+uint32_t mux_tio_status (void);
+t_stat mux_chan_err (uint32_t st);
 t_stat muxc_svc (UNIT *uptr);
 t_stat muxo_svc (UNIT *uptr);
 t_stat muxi_rtc_svc (UNIT *uptr);
 t_stat mux_reset (DEVICE *dptr);
 t_stat mux_attach (UNIT *uptr, const char *cptr);
 t_stat mux_detach (UNIT *uptr);
-t_stat mux_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc);
-void mux_reset_ln (int32 ln);
+t_stat mux_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void mux_reset_ln (int32_t ln);
 void mux_scan_next (bool clr);
-t_stat muxi_put_char (uint32 c, uint32 ln);
+t_stat muxi_put_char (uint32_t c, uint32_t ln);
 
 /* MUX data structures
 
@@ -275,7 +276,7 @@ DEVICE muxl_dev = {
 
 /* MUX: IO dispatch routine */
 
-uint32 mux_disp (uint32 op, uint32 dva, uint32 *dvst)
+uint32_t mux_disp (uint32_t op, uint32_t dva, uint32_t *dvst)
 {
 switch (op) {                                           /* case on op */
 
@@ -340,11 +341,11 @@ return 0;
    1111         unused
 */
 
-uint32 mux_dio (uint32 op, uint32 rn, uint32 ad)
+uint32_t mux_dio (uint32_t op, uint32_t rn, uint32_t ad)
 {
-int32 ln;
-uint32 fnc = MUXDIO_GETFNC (ad);
-uint32 coc = MUXDIO_GETCOC (ad);
+int32_t ln;
+uint32_t fnc = MUXDIO_GETFNC (ad);
+uint32_t coc = MUXDIO_GETCOC (ad);
 
 if (op == OP_RD) {                                      /* read direct */
     if (coc != 0)                                       /* nx COC? */
@@ -419,8 +420,8 @@ return 0;
 
 t_stat muxc_svc (UNIT *uptr)
 {
-uint32 st;
-uint32 cmd;
+uint32_t st;
+uint32_t cmd;
 
 if (muxc_cmd == MUXC_INIT) {                            /* init state? */
     st = chan_get_cmd (mux_dib.dva, &cmd);              /* get command */
@@ -458,7 +459,7 @@ t_stat muxi_rtc_svc (UNIT *uptr)
 (void) uptr;
 
 t_stat r;
-int32 newln, ln, c;
+int32_t newln, ln, c;
 
 if ((mux_unit[MUXC].flags & UNIT_ATT) == 0)             /* attached? */
     return SCPE_OK;
@@ -493,9 +494,9 @@ return SCPE_OK;
 
 /* Put character and line number in memory via channel */
 
-t_stat muxi_put_char (uint32 c, uint32 ln)
+t_stat muxi_put_char (uint32_t c, uint32_t ln)
 {
-uint32 st;
+uint32_t st;
 
 st = chan_WrMemB (mux_dib.dva, c);                      /* write char */
 if (CHS_IFERR (st))                                     /* channel error? */
@@ -513,7 +514,7 @@ return SCPE_OK;
 
 /* Channel error */
 
-t_stat mux_chan_err (uint32 st)
+t_stat mux_chan_err (uint32_t st)
 {
 chan_uen (mux_dib.dva);                                 /* uend */
 muxc_cmd = MUXC_IDLE;                                   /* go idle */
@@ -526,8 +527,8 @@ return 0;
 
 t_stat muxo_svc (UNIT *uptr)
 {
-int32 c;
-uint32 ln = uptr - muxl_unit;                           /* line # */
+int32_t c;
+uint32_t ln = uptr - muxl_unit;                         /* line # */
 
 if (mux_ldsc[ln].conn) {                                /* connected? */
     if (mux_ldsc[ln].xmte) {                            /* xmt enabled? */
@@ -551,7 +552,7 @@ return SCPE_OK;
 
 /* MUX status routine */
 
-uint32 mux_tio_status (void)
+uint32_t mux_tio_status (void)
 {
 if (muxc_cmd == MUXC_IDLE)                              /* idle? */
     return DVS_AUTO;
@@ -562,7 +563,7 @@ else return (DVS_AUTO|DVS_CBUSY|DVS_DBUSY|(CC2 << DVT_V_CC));
 
 void mux_scan_next (bool clr)
 {
-int32 i;
+int32_t i;
 
 if (clr)                                                /* unlock? */
     mux_slck = 0;
@@ -570,7 +571,7 @@ else if (mux_slck)                                      /* locked? */
     return;
 for (i = 0; i < MUX_NUMLIN; i++) {                      /* scan lines */
     mux_scan = mux_scan + 1;                            /* next line */
-    if (mux_scan >= (uint32) MUX_NUMLIN)
+    if (mux_scan >= (uint32_t) MUX_NUMLIN)
         mux_scan = 0;
     if (mux_sta[mux_scan] & MUXL_XIR) {                 /* flag set? */
         mux_slck = 1;                                   /* lock scanner */
@@ -589,7 +590,7 @@ t_stat mux_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 if (mux_dev.flags & DEV_DIS)                            /* master disabled? */
     muxl_dev.flags = muxl_dev.flags | DEV_DIS;          /* disable lines */
@@ -619,7 +620,7 @@ return SCPE_OK;
 
 t_stat mux_detach (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 r = tmxr_detach (&mux_desc, uptr);                      /* detach */
@@ -632,7 +633,7 @@ return r;
 
 /* Change number of lines */
 
-t_stat mux_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat mux_vlines (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -640,7 +641,7 @@ t_stat mux_vlines (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i, t;
+int32_t newln, i, t;
 t_stat r;
 
 if (cptr == NULL)
@@ -674,7 +675,7 @@ return SCPE_OK;
 
 /* Reset an individual line */
 
-void mux_reset_ln (int32 ln)
+void mux_reset_ln (int32_t ln)
 {
 sim_cancel (&muxl_unit[ln]);
 mux_sta[ln] = 0;

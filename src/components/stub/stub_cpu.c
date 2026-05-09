@@ -27,16 +27,17 @@
 #include "stub_defs.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Debug */
 #define DBG_CPU         0001
 
 /* CPU state. */
-static uint16 PC;
+static uint16_t PC;
 
 /* Function declaration. */
-static t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32 sw);
-static t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32 sw);
+static t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32_t sw);
+static t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32_t sw);
 static t_stat cpu_reset (DEVICE *dptr);
 
 static UNIT cpu_unit = { UDATA (NULL, UNIT_FIX + UNIT_BINK, 020000) };
@@ -89,7 +90,7 @@ t_stat sim_instr (void)
   return SCPE_OK;
 }
 
-static t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32 sw)
+static t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32_t sw)
 {
   /* Generic examine callback signature.
      This implementation does not use every parameter. */
@@ -104,7 +105,7 @@ static t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32 sw)
   return SCPE_OK;
 }
 
-static t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32 sw)
+static t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32_t sw)
 {
   /* Generic deposit callback signature.
      This implementation does not use every parameter. */

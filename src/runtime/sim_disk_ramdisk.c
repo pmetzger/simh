@@ -19,7 +19,7 @@
 
 struct sim_disk_ramdisk {
     t_offset size;
-    uint8 *buffer;
+    uint8_t *buffer;
     char *save_path;
     bool save_null;
 };
@@ -252,7 +252,7 @@ static t_stat seed_from_file(UNIT *uptr, sim_disk_ramdisk *ramdisk,
     FILE *source;
     t_offset source_size;
     size_t remaining;
-    uint8 *cursor;
+    uint8_t *cursor;
 
     source = sim_fopen(path, "rb");
     if (source == NULL)
@@ -302,7 +302,7 @@ static t_stat seed_from_file(UNIT *uptr, sim_disk_ramdisk *ramdisk,
 
 /* Create the memory buffer and FILE stream for a RAMDISK: attachment. */
 t_stat sim_disk_ramdisk_create(UNIT *uptr, const sim_disk_ramdisk_spec *spec,
-                               t_offset default_size, uint32 sector_size,
+                               t_offset default_size, uint32_t sector_size,
                                bool restoring, const char *mode, FILE **fileref,
                                sim_disk_ramdisk **ramdisk)
 {

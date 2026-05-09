@@ -36,6 +36,7 @@
 #include "sim_defs.h"
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define INLINE
 
@@ -69,7 +70,7 @@
 #define W_SIGN          0x8000
 #define L_SIGN          0x80000000
 #define Q_SIGN          0x8000000000000000
-#define Q_GETSIGN(x)    (((uint32) ((x) >> 63)) & 1)
+#define Q_GETSIGN(x)    (((uint32_t) ((x) >> 63)) & 1)
 
 /* Architectural variants */
 
@@ -159,7 +160,7 @@
 #define F_BIAS          0x80
 #define F_EXP           (F_M_EXP << F_V_EXP)
 #define F_V_FRAC        29
-#define F_GETEXP(x)     ((uint32) (((x) >> F_V_EXP) & F_M_EXP))
+#define F_GETEXP(x)     ((uint32_t) (((x) >> F_V_EXP) & F_M_EXP))
 #define SWAP_VAXF(x)    ((((x) >> 16) & 0xFFFF) | (((x) & 0xFFFF) << 16))
 
 /* Floating point memory format (VAX G) */
@@ -170,7 +171,7 @@
 #define G_M_EXP         0x7FF
 #define G_BIAS          0x400
 #define G_EXP           (G_M_EXP << G_V_EXP)
-#define G_GETEXP(x)     ((uint32) (((x) >> G_V_EXP) & G_M_EXP))
+#define G_GETEXP(x)     ((uint32_t) (((x) >> G_V_EXP) & G_M_EXP))
 #define SWAP_VAXG(x)    ((((x) & 0x000000000000FFFF) << 48) | \
                         (((x) & 0x00000000FFFF0000) << 16) | \
                         (((x) >> 16) & 0x00000000FFFF0000) | \
@@ -186,7 +187,7 @@
 #define S_NAN           0xFF
 #define S_EXP           (S_M_EXP << S_V_EXP)
 #define S_V_FRAC        29
-#define S_GETEXP(x)     ((uint32) (((x) >> S_V_EXP) & S_M_EXP))
+#define S_GETEXP(x)     ((uint32_t) (((x) >> S_V_EXP) & S_M_EXP))
 
 /* Floating point memory format (IEEE T) */
 
@@ -198,7 +199,7 @@
 #define T_NAN           0x7FF
 #define T_EXP           0x7FF0000000000000
 #define T_FRAC          0x000FFFFFFFFFFFFF
-#define T_GETEXP(x)     ((uint32) (((uint32) ((x) >> T_V_EXP)) & T_M_EXP))
+#define T_GETEXP(x)     ((uint32_t) (((uint32_t) ((x) >> T_V_EXP)) & T_M_EXP))
 
 /* Floating point register format (all except VAX D) */
 
@@ -211,8 +212,8 @@
 #define FPR_HB          0x0010000000000000
 #define FPR_FRAC        0x000FFFFFFFFFFFFF
 #define FPR_GUARD       (UF_V_NM - FPR_V_EXP)
-#define FPR_GETSIGN(x)  (((uint32) ((x) >> FPR_V_SIGN)) & 1)
-#define FPR_GETEXP(x)   (((uint32) ((x) >> FPR_V_EXP)) & FPR_M_EXP)
+#define FPR_GETSIGN(x)  (((uint32_t) ((x) >> FPR_V_SIGN)) & 1)
+#define FPR_GETEXP(x)   (((uint32_t) ((x) >> FPR_V_EXP)) & FPR_M_EXP)
 #define FPR_GETFRAC(x)  ((x) & FPR_FRAC)
 
 #define FP_TRUE         0x4000000000000000              /* 0.5/2.0 in reg */
@@ -227,8 +228,8 @@
 #define FDR_HB          0x0080000000000000
 #define FDR_FRAC        0x007FFFFFFFFFFFFF
 #define FDR_GUARD       (UF_V_NM - FDR_V_EXP)
-#define FDR_GETSIGN(x)  (((uint32) ((x) >> FDR_V_SIGN)) & 1)
-#define FDR_GETEXP(x)   (((uint32) ((x) >> FDR_V_EXP)) & FDR_M_EXP)
+#define FDR_GETSIGN(x)  (((uint32_t) ((x) >> FDR_V_SIGN)) & 1)
+#define FDR_GETEXP(x)   (((uint32_t) ((x) >> FDR_V_EXP)) & FDR_M_EXP)
 #define FDR_GETFRAC(x)  ((x) & FDR_FRAC)
 
 #define D_BIAS          0x80
@@ -236,9 +237,9 @@
 /* Unpacked floating point number */
 
 typedef struct {
-    uint32              sign;
-    int32               exp;
-    t_uint64            frac;
+    uint32_t            sign;
+    int32_t             exp;
+    uint64_t            frac;
     } UFP;
 
 #define UF_V_NM         63
@@ -301,7 +302,7 @@ typedef struct {
 #define PTE_FOR         (1u << PTE_V_FOR)
 #define PTE_V           (1u << PTE_V_V)
 #define PTE_MASK        0xFF7F
-#define PTE_GETGH(x)    ((((uint32) (x)) >> PTE_V_GH) & PTE_M_GH)
+#define PTE_GETGH(x)    ((((uint32_t) (x)) >> PTE_V_GH) & PTE_M_GH)
 #define VPN_GETLVL1(x)  (((x) >> ((2 * VA_N_LVL) - 3)) & (VA_M_LVL << 3))
 #define VPN_GETLVL2(x)  (((x) >> (VA_N_LVL - 3)) & (VA_M_LVL << 3))
 #define VPN_GETLVL3(x)  (((x) << 3) & (VA_M_LVL << 3))
@@ -373,11 +374,11 @@ typedef struct {
 /* Device information block */
 
 typedef struct {                                        /* device info block */
-    t_uint64            low;                            /* low addr */
-    t_uint64            high;                           /* high addr */
-    bool                (*read)(t_uint64 pa, t_uint64 *val, uint32 lnt);
-    bool                (*write)(t_uint64 pa, t_uint64 val, uint32 lnt);
-    uint32              ipl;
+    uint64_t            low;                            /* low addr */
+    uint64_t            high;                           /* high addr */
+    bool                (*read)(uint64_t pa, uint64_t *val, uint32_t lnt);
+    bool                (*write)(uint64_t pa, uint64_t val, uint32_t lnt);
+    uint32_t            ipl;
     } DIB;
 
 /* Interrupt system - 6 levels in EV4 and EV6, 4 in EV5 - software expects 4 */
@@ -393,18 +394,18 @@ typedef struct {                                        /* device info block */
 #define PCQ_MASK        (PCQ_SIZE - 1)
 #define PCQ_ENTRY       pcq[pcq_p = (pcq_p - 1) & PCQ_MASK] = (PC - 4) & M64
 
-#define SEXT_B_Q(x)     (((x) & B_SIGN)? ((x) | ~((t_uint64) M8)): ((x) & M8))
-#define SEXT_W_Q(x)     (((x) & W_SIGN)? ((x) | ~((t_uint64) M16)): ((x) & M16))
-#define SEXT_L_Q(x)     (((x) & L_SIGN)? ((x) | ~((t_uint64) M32)): ((x) & M32))
+#define SEXT_B_Q(x)     (((x) & B_SIGN)? ((x) | ~((uint64_t) M8)): ((x) & M8))
+#define SEXT_W_Q(x)     (((x) & W_SIGN)? ((x) | ~((uint64_t) M16)): ((x) & M16))
+#define SEXT_L_Q(x)     (((x) & L_SIGN)? ((x) | ~((uint64_t) M32)): ((x) & M32))
 #define NEG_Q(x)        ((~(x) + 1) & M64)
 #define ABS_Q(x)        (((x) & Q_SIGN)? NEG_Q (x): (x))
 
 #define SIGN_BDSP       0x100000
 #define SIGN_MDSP       0x008000
 #define SEXT_MDSP(x)    (((x) & SIGN_MDSP)? \
-                        ((x) | ~((t_uint64) I_M_MDSP)): ((x) & I_M_MDSP))
+                        ((x) | ~((uint64_t) I_M_MDSP)): ((x) & I_M_MDSP))
 #define SEXT_BDSP(x)    (((x) & SIGN_BDSP)? \
-                        ((x) | ~((t_uint64) I_M_BDSP)): ((x) & I_M_BDSP))
+                        ((x) | ~((uint64_t) I_M_BDSP)): ((x) & I_M_BDSP))
 
 /* Opcodes */
 
@@ -429,60 +430,60 @@ enum opcodes {
 
 /* Function prototypes */
 
-uint32 ReadI (t_uint64 va);
-t_uint64 ReadB (t_uint64 va);
-t_uint64 ReadW (t_uint64 va);
-t_uint64 ReadL (t_uint64 va);
-t_uint64 ReadQ (t_uint64 va);
-t_uint64 ReadAccL (t_uint64 va, uint32 acc);
-t_uint64 ReadAccQ (t_uint64 va, uint32 acc);
-INLINE t_uint64 ReadPB (t_uint64 pa);
-INLINE t_uint64 ReadPW (t_uint64 pa);
-INLINE t_uint64 ReadPL (t_uint64 pa);
-INLINE t_uint64 ReadPQ (t_uint64 pa);
-bool ReadIO (t_uint64 pa, t_uint64 *val, uint32 lnt);
-void WriteB (t_uint64 va, t_uint64 dat);
-void WriteW (t_uint64 va, t_uint64 dat);
-void WriteL (t_uint64 va, t_uint64 dat);
-void WriteQ (t_uint64 va, t_uint64 dat);
-void WriteAccL (t_uint64 va, t_uint64 dat, uint32 acc);
-void WriteAccQ (t_uint64 va, t_uint64 dat, uint32 acc);
-INLINE void WritePB (t_uint64 pa, t_uint64 dat);
-INLINE void WritePW (t_uint64 pa, t_uint64 dat);
-INLINE void WritePL (t_uint64 pa, t_uint64 dat);
-INLINE void WritePQ (t_uint64 pa, t_uint64 dat);
-bool WriteIO (t_uint64 pa, t_uint64 val, uint32 lnt);
-t_uint64 trans_i (t_uint64 va);
-t_uint64 trans_d (t_uint64 va, uint32 acc);
-t_uint64 trans_c (t_uint64 va);
-t_uint64 op_ldf (t_uint64 op);
-t_uint64 op_ldg (t_uint64 op);
-t_uint64 op_lds (t_uint64 op);
-t_uint64 op_stf (t_uint64 op);
-t_uint64 op_stg (t_uint64 op);
-t_uint64 op_sts (t_uint64 op);
-t_uint64 ufdiv64 (t_uint64 dvd, t_uint64 dvr, uint32 prec, uint32 *sticky);
-t_uint64 vax_sqrt (uint32 ir, uint32 dp);
-t_uint64 ieee_sqrt (uint32 ir, uint32 dp);
-void vax_fop (uint32 ir);
-void ieee_fop (uint32 ir);
-uint32 mmu_set_cm (uint32 mode);
-uint32 tlb_set_cm (int32 cm);
-void mmu_set_icm (uint32 mode);
-void mmu_set_dcm (uint32 mode);
-void arith_trap (uint32 trap, uint32 ir);
-t_stat cpu_show_tlb (FILE *of, UNIT *uptr, int32 val, const void *desc);
-uint32 pal_eval_intr (uint32 flag);
-t_stat pal_proc_intr (uint32 type);
-t_stat pal_proc_trap (uint32 type);
-t_stat pal_proc_excp (uint32 type);
-t_stat pal_proc_inst (uint32 fnc);
-t_stat pal_19 (uint32 ir);
-t_stat pal_1b (uint32 ir);
-t_stat pal_1d (uint32 ir);
-t_stat pal_1e (uint32 ir);
-t_stat pal_1f (uint32 ir);
-t_stat fprint_pal_hwre (FILE *of, uint32 inst);
+uint32_t ReadI (uint64_t va);
+uint64_t ReadB (uint64_t va);
+uint64_t ReadW (uint64_t va);
+uint64_t ReadL (uint64_t va);
+uint64_t ReadQ (uint64_t va);
+uint64_t ReadAccL (uint64_t va, uint32_t acc);
+uint64_t ReadAccQ (uint64_t va, uint32_t acc);
+INLINE uint64_t ReadPB (uint64_t pa);
+INLINE uint64_t ReadPW (uint64_t pa);
+INLINE uint64_t ReadPL (uint64_t pa);
+INLINE uint64_t ReadPQ (uint64_t pa);
+bool ReadIO (uint64_t pa, uint64_t *val, uint32_t lnt);
+void WriteB (uint64_t va, uint64_t dat);
+void WriteW (uint64_t va, uint64_t dat);
+void WriteL (uint64_t va, uint64_t dat);
+void WriteQ (uint64_t va, uint64_t dat);
+void WriteAccL (uint64_t va, uint64_t dat, uint32_t acc);
+void WriteAccQ (uint64_t va, uint64_t dat, uint32_t acc);
+INLINE void WritePB (uint64_t pa, uint64_t dat);
+INLINE void WritePW (uint64_t pa, uint64_t dat);
+INLINE void WritePL (uint64_t pa, uint64_t dat);
+INLINE void WritePQ (uint64_t pa, uint64_t dat);
+bool WriteIO (uint64_t pa, uint64_t val, uint32_t lnt);
+uint64_t trans_i (uint64_t va);
+uint64_t trans_d (uint64_t va, uint32_t acc);
+uint64_t trans_c (uint64_t va);
+uint64_t op_ldf (uint64_t op);
+uint64_t op_ldg (uint64_t op);
+uint64_t op_lds (uint64_t op);
+uint64_t op_stf (uint64_t op);
+uint64_t op_stg (uint64_t op);
+uint64_t op_sts (uint64_t op);
+uint64_t ufdiv64 (uint64_t dvd, uint64_t dvr, uint32_t prec, uint32_t *sticky);
+uint64_t vax_sqrt (uint32_t ir, uint32_t dp);
+uint64_t ieee_sqrt (uint32_t ir, uint32_t dp);
+void vax_fop (uint32_t ir);
+void ieee_fop (uint32_t ir);
+uint32_t mmu_set_cm (uint32_t mode);
+uint32_t tlb_set_cm (int32_t cm);
+void mmu_set_icm (uint32_t mode);
+void mmu_set_dcm (uint32_t mode);
+void arith_trap (uint32_t trap, uint32_t ir);
+t_stat cpu_show_tlb (FILE *of, UNIT *uptr, int32_t val, const void *desc);
+uint32_t pal_eval_intr (uint32_t flag);
+t_stat pal_proc_intr (uint32_t type);
+t_stat pal_proc_trap (uint32_t type);
+t_stat pal_proc_excp (uint32_t type);
+t_stat pal_proc_inst (uint32_t fnc);
+t_stat pal_19 (uint32_t ir);
+t_stat pal_1b (uint32_t ir);
+t_stat pal_1d (uint32_t ir);
+t_stat pal_1e (uint32_t ir);
+t_stat pal_1f (uint32_t ir);
+t_stat fprint_pal_hwre (FILE *of, uint32_t inst);
 t_stat parse_pal_hwre (const char *cptr, t_value *inst);
 
 #endif

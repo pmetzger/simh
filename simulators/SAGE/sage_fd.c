@@ -26,10 +26,12 @@
    04-Oct-09    HV      Initial version
 */
 
+#include <stdint.h>
+
 #include "sage_defs.h"
 
 static t_stat sagefd_reset(DEVICE* dptr);
-static t_stat sagefd_boot(int32 unit_num,DEVICE* dptr);
+static t_stat sagefd_boot(int32_t unit_num,DEVICE* dptr);
 static void   sagefd_seldrv(I8272* chip,int drvnum);
 static void sagefd_interrupt(I8272* chip,int delay);
 extern DEVICE sagefd_dev;
@@ -121,7 +123,7 @@ static t_stat fdcint_svc(UNIT* unit)
 }
 
 
-static t_stat sagefd_boot(int32 unit_num,DEVICE* dptr)
+static t_stat sagefd_boot(int32_t unit_num,DEVICE* dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -139,11 +141,11 @@ static void sagefd_interrupt(I8272* chip,int delay)
 }
 
 /* dummy routines for i8272 - sage does not use DMA */
-void PutByteDMA(uint32 addr, uint8 data)
+void PutByteDMA(uint32_t addr, uint8_t data)
 {
 }
 
-uint8 GetByteDMA(uint32 addr)
+uint8_t GetByteDMA(uint32_t addr)
 {
     return 0;
 }

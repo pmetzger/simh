@@ -32,6 +32,8 @@
 #define SDS_DEFS_H_    0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 #if defined(USE_INT64) || defined(USE_ADDR64)
@@ -80,9 +82,9 @@
 #define DMASK           077777777                       /* data mask */
 #define EXPS            0400                            /* exp sign */
 #define EXPMASK         0777                            /* exp mask */
-#define SXT(x)          ((int32) (((x) & SIGN)? ((x) | ~DMASK): \
+#define SXT(x)          ((int32_t) (((x) & SIGN)? ((x) | ~DMASK): \
                         ((x) & DMASK)))
-#define SXT_EXP(x)      ((int32) (((x) & EXPS)? ((x) | ~EXPMASK): \
+#define SXT_EXP(x)      ((int32_t) (((x) & EXPS)? ((x) | ~EXPMASK): \
                         ((x) & EXPMASK)))
 
 /* CPU modes */
@@ -97,7 +99,7 @@
 #define MAXMEMSIZE      (1 << 16)                       /* max memory size */
 #define PAMASK          (MAXMEMSIZE - 1)                /* physical addr mask */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 #define ReadP(x)        M[x]
 #define WriteP(x,y)     if (MEM_ADDR_OK (x)) M[x] = y
 
@@ -115,7 +117,7 @@
 /* Arithmetic */
 
 #define TSTS(x)         ((x) & SIGN)
-#define NEG(x)          (-((int32) (x)) & DMASK)
+#define NEG(x)          (-((int32_t) (x)) & DMASK)
 #define ABS(x)          (TSTS (x)? NEG(x): (x))
 
 /* Memory map */
@@ -183,8 +185,8 @@
 /* Dispatch template */
 
 struct sdsdspt {
-    uint32      num;                                    /* # entries */
-    uint32      off;                                    /* offset from base */
+    uint32_t    num;                                    /* # entries */
+    uint32_t    off;                                    /* offset from base */
     };
 
 typedef struct sdsdspt DSPT;
@@ -192,11 +194,11 @@ typedef struct sdsdspt DSPT;
 /* Device information block */
 
 struct sdsdib {
-    int32       chan;                                   /* channel */
-    int32       dev;                                    /* base dev no */
-    int32       xfr;                                    /* xfer flag */
+    int32_t     chan;                                   /* channel */
+    int32_t     dev;                                    /* base dev no */
+    int32_t     xfr;                                    /* xfer flag */
     DSPT        *tplt;                                  /* dispatch templates */
-    t_stat      (*iop) (uint32 fnc, uint32 dev, uint32 *dat);
+    t_stat      (*iop) (uint32_t fnc, uint32_t dev, uint32_t *dat);
     };
 
 typedef struct sdsdib DIB;
@@ -204,21 +206,21 @@ typedef struct sdsdib DIB;
 /* I/O support */
 
 bool io_init (void);
-t_stat op_wyim (uint32 inst, uint32 *dat);
-t_stat op_miwy (uint32 inst, uint32 dat);
-t_stat op_pin (uint32 *dat);
-t_stat op_pot (uint32 dat);
-t_stat op_eomd (uint32 inst);
-t_stat op_sks (uint32 inst, uint32 *skp);
-t_stat pot_RL1 (uint32 num, uint32 *dat);
-t_stat pot_RL2 (uint32 num, uint32 *dat);
-t_stat pot_RL4 (uint32 num, uint32 *dat);
-t_stat pin_rads (uint32 num, uint32 *dat);
-t_stat pot_rada (uint32 num, uint32 *dat);
-t_stat pin_dsk (uint32 num, uint32 *dat);
-t_stat pot_dsk (uint32 num, uint32 *dat);
-t_stat pin_mux (uint32 num, uint32 *dat);
-t_stat pot_mux (uint32 num, uint32 *dat);
+t_stat op_wyim (uint32_t inst, uint32_t *dat);
+t_stat op_miwy (uint32_t inst, uint32_t dat);
+t_stat op_pin (uint32_t *dat);
+t_stat op_pot (uint32_t dat);
+t_stat op_eomd (uint32_t inst);
+t_stat op_sks (uint32_t inst, uint32_t *skp);
+t_stat pot_RL1 (uint32_t num, uint32_t *dat);
+t_stat pot_RL2 (uint32_t num, uint32_t *dat);
+t_stat pot_RL4 (uint32_t num, uint32_t *dat);
+t_stat pin_rads (uint32_t num, uint32_t *dat);
+t_stat pot_rada (uint32_t num, uint32_t *dat);
+t_stat pin_dsk (uint32_t num, uint32_t *dat);
+t_stat pot_dsk (uint32_t num, uint32_t *dat);
+t_stat pin_mux (uint32_t num, uint32_t *dat);
+t_stat pot_mux (uint32_t num, uint32_t *dat);
 
 /* Channels */
 
@@ -441,22 +443,22 @@ enum opcodes {
 
 /* Channel function prototypes */
 
-void chan_set_flag (int32 ch, uint32 fl);
-void chan_set_ordy (int32 ch);
-void chan_disc (int32 ch);
-void chan_set_uar (int32 ch, uint32 dev);
-t_stat set_chan (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat show_chan (FILE *st, UNIT *uptr, int32 val, const void *desc);
+void chan_set_flag (int32_t ch, uint32_t fl);
+void chan_set_ordy (int32_t ch);
+void chan_disc (int32_t ch);
+void chan_set_uar (int32_t ch, uint32_t dev);
+t_stat set_chan (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_chan (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 t_stat chan_process (void);
 bool chan_testact (void);
 
 /* Character conversion function prototypes */
 
-int8 sds_to_ascii (int8 c);
-int8 ascii_to_sds (int8 ch);
+int8_t sds_to_ascii (int8_t c);
+int8_t ascii_to_sds (int8_t ch);
 
 /* Translation tables */
-extern const int8 odd_par[64];
+extern const int8_t odd_par[64];
 
 
 #endif

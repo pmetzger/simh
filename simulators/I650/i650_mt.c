@@ -35,6 +35,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i650_defs.h"
 #include "sim_tape.h"
 
@@ -51,23 +53,23 @@
 
 
 /* Definitions */
-uint32              mt_cmd(UNIT *, uint16, uint16);
+uint32_t            mt_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              mt_srv(UNIT *);
 void                mt_ini(UNIT *, bool);
 t_stat              mt_reset(DEVICE *);
 t_stat              mt_attach(UNIT *, const char *);
 t_stat              mt_detach(UNIT *);
-t_stat              mt_rew(UNIT * uptr, int32 val, const char *cptr,void *desc);
-t_stat              mt_set_len (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat              mt_show_len (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat              mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat              mt_rew(UNIT * uptr, int32_t val, const char *cptr,void *desc);
+t_stat              mt_set_len (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat              mt_show_len (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat              mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char          *mt_description (DEVICE *dptr);
-static int          mt_read_numeric_word(uint8 *buf, t_int64 *d, int *ZeroNeg);
-static int          mt_read_alpha_word(uint8 *buf, t_int64 *d);
-static int          mt_transfer_tape_rec_to_IAS(uint8 *buf, t_mtrlnt reclen, char mode);
-static void         mt_write_numeric_word(uint8 *buf, t_int64 d, int ZeroNeg);
-static void         mt_write_alpha_word(uint8 *buf, t_int64 d);
-static void         mt_transfer_IAS_to_tape_rec(uint8 *buf, t_mtrlnt *reclen, char mode);
+static int          mt_read_numeric_word(uint8_t *buf, int64_t *d, int *ZeroNeg);
+static int          mt_read_alpha_word(uint8_t *buf, int64_t *d);
+static int          mt_transfer_tape_rec_to_IAS(uint8_t *buf, t_mtrlnt reclen, char mode);
+static void         mt_write_numeric_word(uint8_t *buf, int64_t d, int ZeroNeg);
+static void         mt_write_alpha_word(uint8_t *buf, int64_t d);
+static void         mt_transfer_IAS_to_tape_rec(uint8_t *buf, t_mtrlnt *reclen, char mode);
 
 UNIT                mt_unit[6] = {
     {UDATA(&mt_srv, UNIT_MT, 0), 0}, /* 0 */
@@ -123,7 +125,7 @@ int mt_ready(int n)
 }
 
 /* Rewind tape drive */
-t_stat mt_rew(UNIT * uptr, int32 val, const char *cptr, void *desc)
+t_stat mt_rew(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -139,7 +141,7 @@ t_stat mt_rew(UNIT * uptr, int32 val, const char *cptr, void *desc)
     return sim_tape_rewind(uptr);
 }
 
-static int mt_read_numeric_word(uint8 * buf, t_int64 * d, int * ZeroNeg)
+static int mt_read_numeric_word(uint8_t * buf, int64_t * d, int * ZeroNeg)
 {
     int i, neg;
     char c;
@@ -164,7 +166,7 @@ static int mt_read_numeric_word(uint8 * buf, t_int64 * d, int * ZeroNeg)
     return 0;
 }
 
-static int mt_read_alpha_word(uint8 * buf, t_int64 * d)
+static int mt_read_alpha_word(uint8_t * buf, int64_t * d)
 {
     int i, n;
     char c;
@@ -179,11 +181,11 @@ static int mt_read_alpha_word(uint8 * buf, t_int64 * d)
     return 0;
 }
 
-static int mt_transfer_tape_rec_to_IAS(uint8 * buf, t_mtrlnt reclen, char mode)
+static int mt_transfer_tape_rec_to_IAS(uint8_t * buf, t_mtrlnt reclen, char mode)
 {
     int n, r, ZeroNeg;
     t_mtrlnt ic;
-    t_int64 d, CtrlWord;
+    int64_t d, CtrlWord;
     char s[6];
     t_mtrlnt expected_reclen;
 
@@ -264,7 +266,7 @@ static int mt_transfer_tape_rec_to_IAS(uint8 * buf, t_mtrlnt reclen, char mode)
     return 0;
 }
 
-static void mt_write_numeric_word(uint8 * buf, t_int64 d, int ZeroNeg)
+static void mt_write_numeric_word(uint8_t * buf, int64_t d, int ZeroNeg)
 {
     int i, neg;
     char c;
@@ -287,7 +289,7 @@ static void mt_write_numeric_word(uint8 * buf, t_int64 d, int ZeroNeg)
     }
 }
 
-static void mt_write_alpha_word(uint8 * buf, t_int64 d)
+static void mt_write_alpha_word(uint8_t * buf, int64_t d)
 {
     int i, n;
     char c;
@@ -299,10 +301,10 @@ static void mt_write_alpha_word(uint8 * buf, t_int64 d)
     }
 }
 
-static void mt_transfer_IAS_to_tape_rec(uint8 * buf, t_mtrlnt * reclen, char mode)
+static void mt_transfer_IAS_to_tape_rec(uint8_t * buf, t_mtrlnt * reclen, char mode)
 {
     int n,ic,ZeroNeg;
-    t_int64 d, CtrlWord;
+    int64_t d, CtrlWord;
     char s[6];
 
     if (mode == 'N') {
@@ -361,14 +363,14 @@ static void mt_transfer_IAS_to_tape_rec(uint8 * buf, t_mtrlnt * reclen, char mod
 }
 
 /* Start off a mag tape command */
-uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 fast)
+uint32_t mt_cmd(UNIT * uptr, uint16_t cmd, uint16_t fast)
 {
     DEVICE             *dptr = find_dev_from_unit(uptr);
     int                 unit = uptr - &mt_unit[0];
     int                 i, time;
     t_mtrlnt            ic;
     t_stat              r;
-    uint8               buf[1024];
+    uint8_t             buf[1024];
     char                cbuf[100];
     t_mtrlnt            reclen;
 
@@ -408,7 +410,7 @@ uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 fast)
         // calc tape pos:
         // each char uses 0,005 inches. at the end of record the IRG (inter gap record) uses 3/4 inchs (0.75)
         // scaled x1000 to use integer values
-        uptr->u3 += (int32) ((reclen * 0.005 + 0.75) * 1000);
+        uptr->u3 += (int32_t) ((reclen * 0.005 + 0.75) * 1000);
         // process result conditions
         if (r == MTSE_TMK) {
             sim_debug(DEBUG_EXP, dptr, "Tape unit %d: tape mark sensed\n", unit);
@@ -457,7 +459,7 @@ uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 fast)
         if (cmd == OP_WTM) {
             r = sim_tape_wrtmk(uptr);
             // calc tape pos:
-            uptr->u3 += (int32) ((1 * 0.005 + 0.75) * 1000); // Tape Mark is 1 word long
+            uptr->u3 += (int32_t) ((1 * 0.005 + 0.75) * 1000); // Tape Mark is 1 word long
             reclen=1;
             sim_debug(DEBUG_DETAIL, dptr, "Write Tape Mark\n");
         } else {
@@ -466,7 +468,7 @@ uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 fast)
             // actual simulated tape write
             r = sim_tape_wrrecf(uptr, buf, reclen);
             // calc tape pos:
-            uptr->u3 += (int32) ((reclen * 0.005 + 0.75) * 1000);
+            uptr->u3 += (int32_t) ((reclen * 0.005 + 0.75) * 1000);
             // debug output: display buf as 50 chars per line
             sim_debug(DEBUG_DETAIL, dptr, "Write record (%d chars) to tape:\n", (int) reclen);
             ic = 0;
@@ -516,7 +518,7 @@ uint32 mt_cmd(UNIT * uptr, uint16 cmd, uint16 fast)
             if ((r != MTSE_OK) && (r != MTSE_TMK)) {
                 return r;
             }
-            uptr->u3 -= (int32) ((reclen * 0.005 + 0.75) * 1000);
+            uptr->u3 -= (int32_t) ((reclen * 0.005 + 0.75) * 1000);
             time = msec_to_wordtime(38.5 + reclen * 0.068); // time to remove Tape Control interlock
         }
         break;
@@ -645,7 +647,7 @@ t_stat mt_detach(UNIT * uptr)
 
 /* Set tape length */
 
-t_stat mt_set_len (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat mt_set_len (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -665,7 +667,7 @@ t_stat mt_set_len (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 /* Show tape length */
 
-t_stat mt_show_len (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat mt_show_len (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -678,7 +680,7 @@ t_stat mt_show_len (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 
 t_stat
-mt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+mt_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    fprintf (st, "%s\n\n", mt_description(dptr));
    fprintf (st, "The magnetic tape assumes that all tapes are 7 track\n");

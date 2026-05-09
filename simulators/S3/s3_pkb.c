@@ -30,13 +30,15 @@
 */
 
 #include "s3_defs.h"
+#include "sim_types.h"
 #include <ctype.h>
+#include <stdint.h>
 
-extern int32 int_req, dev_busy, dev_done, dev_disable;
+extern int32_t int_req, dev_busy, dev_done, dev_disable;
 t_stat pkb_svc (UNIT *uptr);
 t_stat pkb_reset (DEVICE *dptr);
-extern int32 IAR[], level;
-extern int32 debug_reg;
+extern int32_t IAR[], level;
+extern int32_t debug_reg;
 
 /* 5471 data structures
 
@@ -60,10 +62,10 @@ extern int32 debug_reg;
 
 /* Keys mapped to 5471 functions */
 
-int32 key_req = 0x01;                                   /* Request key: ^A */
-int32 key_rtn = 0x12;                                   /* Return key: ^R */
-int32 key_can = 0x1B;                                   /* Cancel key: ESC */
-int32 key_end = 0x0d;                                   /* End key - CR */
+int32_t key_req = 0x01;                                 /* Request key: ^A */
+int32_t key_rtn = 0x12;                                 /* Return key: ^R */
+int32_t key_can = 0x1B;                                 /* Cancel key: ESC */
+int32_t key_end = 0x0d;                                 /* End key - CR */
 
 UNIT pkb_unit = { UDATA (&pkb_svc, 0, 0), KBD_POLL_WAIT };
 
@@ -95,7 +97,7 @@ DEVICE pkb_dev = {
 /*-------------------------------------------------------------------*/
 /* EBCDIC to ASCII translate table                                   */
 /*-------------------------------------------------------------------*/
-unsigned char ebcdic_to_ascii[] = {
+uchar_t ebcdic_to_ascii[] = {
 "\x00\x01\x02\x03\xA6\x09\xA7\x7F\xA9\xB0\xB1\x0B\x0C\x0D\x0E\x0F"
 "\x10\x11\x12\x13\xB2\xB4\x08\xB7\x18\x19\x1A\xB8\xBA\x1D\xBB\x1F"
 "\xBD\xC0\x1C\xC1\xC2\x0A\x17\x1B\xC3\xC4\xC5\xC6\xC7\x05\x06\x07"
@@ -117,7 +119,7 @@ unsigned char ebcdic_to_ascii[] = {
 /*-------------------------------------------------------------------*/
 /* ASCII to EBCDIC translate table                                   */
 /*-------------------------------------------------------------------*/
-unsigned char ascii_to_ebcdic[] = {
+uchar_t ascii_to_ebcdic[] = {
 "\x00\x01\x02\x03\x37\x2D\x2E\x2F\x16\x05\x25\x0B\x0C\x0D\x0E\x0F"
 "\x10\x11\x12\x13\x3C\x3D\x32\x26\x18\x19\x1A\x27\x22\x1D\x35\x1F"
 "\x40\x5A\x7F\x7B\x5B\x6C\x50\x7D\x4D\x5D\x5C\x4E\x6B\x60\x4B\x61"
@@ -140,9 +142,9 @@ unsigned char ascii_to_ebcdic[] = {
 
 /* Console Input: master routine */
 
-int32 pkb (int32 op, int32 m, int32 n, int32 data)
+int32_t pkb (int32_t op, int32_t m, int32_t n, int32_t data)
 {
-    int32 iodata= 0, ec, ac;
+    int32_t iodata= 0, ec, ac;
     switch (op) {
         case 0:                                         /* SIO 5471 */
             if (n != 0)
@@ -243,7 +245,7 @@ t_stat pkb_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp, ac, ec;
+int32_t temp, ac, ec;
 
 sim_activate (&pkb_unit, pkb_unit.wait);                /* continue poll */
 
@@ -314,7 +316,7 @@ sim_activate (&pkb_unit, pkb_unit.wait);                /* activate unit */
 return SCPE_OK;
 }
 
-t_stat pkb_setmod (UNIT *uptr, int32 value)
+t_stat pkb_setmod (UNIT *uptr, int32_t value)
 {
 return SCPE_OK;
 }

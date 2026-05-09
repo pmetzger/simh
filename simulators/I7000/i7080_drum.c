@@ -34,6 +34,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7080_defs.h"
 
 #ifdef NUM_DEVS_DR
@@ -48,14 +50,14 @@
 #define DRMWORDTIME         20  /* Number of cycles per drum word */
 #define DRMCHARTRK         200  /* Characters per track */
 
-uint32              drm_cmd(UNIT *, uint16, uint16);
+uint32_t            drm_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              drm_srv(UNIT *);
-t_stat              drm_boot(int32, DEVICE *);
+t_stat              drm_boot(int32_t, DEVICE *);
 void                drm_ini(UNIT *, bool);
-t_stat              drm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              drm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *drm_description (DEVICE *dptr);
-extern t_stat       chan_boot(int32, DEVICE *);
+extern t_stat       chan_boot(int32_t, DEVICE *);
 
 UNIT                drm_unit[] = {
      {UDATA(&drm_srv, UNIT_S_CHAN(0) | UNIT_DRM, DRMCHARTRK * 1000), 0, 0},
@@ -69,13 +71,13 @@ DEVICE              drm_dev = {
     NULL, NULL, &drm_help, NULL, NULL, &drm_description
 };
 
-uint32 drm_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t drm_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 addr = dev;
 
     addr -= drm_dib.addr * DRMCHARTRK;
-    if (addr > (int32)uptr->capac)
+    if (addr > (int32_t)uptr->capac)
         return SCPE_NODEV;
     if ((uptr->flags & UNIT_ATT) != 0) {
         switch (cmd) {
@@ -108,7 +110,7 @@ uint32 drm_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
 t_stat drm_srv(UNIT * uptr)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
-    uint8               *buf = (uint8 *)uptr->filebuf;
+    uint8_t             *buf = (uint8_t *)uptr->filebuf;
     t_stat              r;
 
     /* Channel has disconnected, abort current read. */
@@ -122,7 +124,7 @@ t_stat drm_srv(UNIT * uptr)
     /* Check if we have a address match */
     if ((chan_flags[chan] & (STA_ACTIVE | DEV_SEL)) == (STA_ACTIVE | DEV_SEL)
          && (uptr->u5 & (DRMSTA_READ | DRMSTA_WRITE))) {
-        if (uptr->u6 > (int32)uptr->capac) {
+        if (uptr->u6 > (int32_t)uptr->capac) {
             uptr->u5 = DRMSTA_CMD;
             chan_set(chan, CHS_ATTN);
             sim_activate(uptr, DRMWORDTIME);
@@ -131,7 +133,7 @@ t_stat drm_srv(UNIT * uptr)
 
         /* Try and transfer a word of data */
         if (uptr->u5 & DRMSTA_READ) {
-            uint8       ch = buf[uptr->u6++];
+            uint8_t     ch = buf[uptr->u6++];
             r = chan_write_char(chan, &ch, (buf[uptr->u6] == 0)? DEV_REOR:0);
         } else {
             r = chan_read_char(chan, &buf[uptr->u6], 0);
@@ -159,7 +161,7 @@ t_stat drm_srv(UNIT * uptr)
 
 /* Boot from given device */
 t_stat
-drm_boot(int32 unit_num, DEVICE * dptr)
+drm_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
 
@@ -181,7 +183,7 @@ drm_ini(UNIT *uptr, bool f) {
 }
 
 t_stat
-drm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr) {
+drm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr) {
    /* Generic callback signature.
       This implementation does not use every parameter. */
    (void)cptr;

@@ -150,6 +150,7 @@
 #ifndef _WIN32
 #include <unistd.h>
 #endif
+#include "sim_types.h"
 #include "util_io.h"
 
 /********************************************************************************************
@@ -2225,7 +2226,7 @@ void convert_double_to_extended (double d, unsigned short *wd)
 {
     int neg, exp;
     unsigned long mantissa;
-    unsigned char *byte = (unsigned char *) &d;
+    uchar_t *byte = (uchar_t *) &d;
 
     if (d == 0.) {
         wd[0] = wd[1] = wd[2] = 0;
@@ -2268,7 +2269,7 @@ void convert_double_to_standard (double d, unsigned short *wd)
 {
     int neg, exp;
     unsigned long mantissa;
-    unsigned char *byte = (unsigned char *) &d;
+    uchar_t *byte = (uchar_t *) &d;
 
     if (d == 0.) {
         wd[0] = wd[1] = 0;
@@ -2316,7 +2317,7 @@ void convert_double_to_fixed (double d, unsigned short *wd, int bexp)
 {
     int neg, exp, rshift;
     unsigned long mantissa;
-    unsigned char *byte = (unsigned char *) &d;
+    uchar_t *byte = (uchar_t *) &d;
 
     if (d == 0.) {
         wd[0] = wd[1] = 0;

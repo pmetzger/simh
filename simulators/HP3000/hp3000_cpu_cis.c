@@ -456,6 +456,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp3000_defs.h"
 #include "hp3000_cpu.h"
 #include "hp3000_mem.h"
@@ -501,7 +503,7 @@ typedef enum {                                  /* numeric sign values */
     Positive
     } NUMERIC_SIGN;
 
-static uint8 overpunch [3] [10] = {                         /* sign overpunches, indexed by NUMERIC_SIGN */
+static uint8_t overpunch [3] [10] = {                       /* sign overpunches, indexed by NUMERIC_SIGN */
     { '}', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R' },   /*   Negative */
     { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' },   /*   Unsigned */
     { '{', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' }    /*   Positive */
@@ -510,17 +512,17 @@ static uint8 overpunch [3] [10] = {                         /* sign overpunches,
 
 /* Operand printer function */
 
-typedef char * (*OP_PRINT) (uint32 byte_address, uint32 byte_length);
+typedef char * (*OP_PRINT) (uint32_t byte_address, uint32_t byte_length);
 
 
 /* CIS local utility routine declarations */
 
 static void   branch_external            (HP_WORD segment, HP_WORD offset);
-static uint32 strip_overpunch            (uint8 *byte, NUMERIC_SIGN *sign);
-static uint32 convert                    (HP_WORD sba, HP_WORD tba, HP_WORD count, DISPLAY_MODE mode);
-static bool edit                       (t_stat *status, uint32 *trap);
+static uint32_t strip_overpunch            (uint8_t *byte, NUMERIC_SIGN *sign);
+static uint32_t convert                    (HP_WORD sba, HP_WORD tba, HP_WORD count, DISPLAY_MODE mode);
+static bool edit                       (t_stat *status, uint32_t *trap);
 static bool compare                    (BYTE_ACCESS *source, BYTE_ACCESS *target, BYTE_ACCESS *table, t_stat *status);
-static void   fprint_operands            (BYTE_ACCESS *source, BYTE_ACCESS *target, uint32 trap);
+static void   fprint_operands            (BYTE_ACCESS *source, BYTE_ACCESS *target, uint32_t trap);
 static void   fprint_translated_operands (BYTE_ACCESS *source, BYTE_ACCESS *target, BYTE_ACCESS *table);
 static void   fprint_operand             (BYTE_ACCESS *op, char *label, OP_PRINT operand_printer);
 
@@ -606,12 +608,12 @@ NUMERIC_SIGN sign;
 HP_WORD      segment, offset, sign_cntl;
 HP_WORD      source_rba, table_rba;
 char         label [64];
-uint8        byte;
-uint8        source_length, source_lead, source_fraction;
-uint8        target_length, target_lead, target_fraction;
-uint32       opcode;
+uint8_t      byte;
+uint8_t      source_length, source_lead, source_fraction;
+uint8_t      target_length, target_lead, target_fraction;
+uint32_t     opcode;
 bool         store, zero_fill;
-uint32       trap   = trap_None;
+uint32_t     trap   = trap_None;
 t_stat       status = SCPE_OK;
 
 opcode = FMEXSUBOP (CIR);                               /* get the opcode from the instruction */
@@ -1124,7 +1126,7 @@ return;                                                 /* return with the branc
        reverse overpunch lookup, but the gain is not significant.
 */
 
-static uint32 strip_overpunch (uint8 *byte, NUMERIC_SIGN *sign)
+static uint32_t strip_overpunch (uint8_t *byte, NUMERIC_SIGN *sign)
 {
 if (*byte == '{') {                                     /* if the digit is a zero with positive overpunch */
     *byte = '0';                                        /*   then strip the overpunch */
@@ -1194,13 +1196,13 @@ return trap_None;                                       /* return no trap for su
        Therefore, it is set (redundantly) before the conversion loop entry.
 */
 
-static uint32 convert (HP_WORD sba, HP_WORD tba, HP_WORD count, DISPLAY_MODE mode)
+static uint32_t convert (HP_WORD sba, HP_WORD tba, HP_WORD count, DISPLAY_MODE mode)
 {
 BYTE_ACCESS  source, target;
 NUMERIC_SIGN sign;
 HP_WORD      separate_index, overpunch_index;
-uint8        byte, last_digit;
-uint32       trap = trap_None;
+uint8_t      byte, last_digit;
+uint32_t     trap = trap_None;
 bool         zero_fill = true;
 bool         bare_sign = false;
 
@@ -1399,14 +1401,14 @@ return trap;                                            /* return the trap condi
        replacement.
 */
 
-static bool edit (t_stat *status, uint32 *trap)
+static bool edit (t_stat *status, uint32_t *trap)
 {
 BYTE_ACCESS  source, target, prog;
 ACCESS_CLASS class;
 HP_WORD      bank;
 char         fill_char, float_char;
-uint8        byte, opcode, operand, count;
-uint32       loop_count;
+uint8_t      byte, opcode, operand, count;
+uint32_t     loop_count;
 bool         filling = true;                            /* true if zero-filling is enabled */
 bool         terminate = false;                         /* true if the operation loop is ending */
 
@@ -1841,7 +1843,7 @@ return true;                                            /* return with completio
 
 static bool compare (BYTE_ACCESS *source, BYTE_ACCESS *target, BYTE_ACCESS *table, t_stat *status)
 {
-uint8 source_byte, target_byte;
+uint8_t source_byte, target_byte;
 
 *status = SCPE_OK;                                      /* initialize the return status */
 
@@ -1895,7 +1897,7 @@ return true;                                            /* return comparison com
    must be enabled when the routine is called.
 */
 
-static void fprint_operands (BYTE_ACCESS *source, BYTE_ACCESS *target, uint32 trap)
+static void fprint_operands (BYTE_ACCESS *source, BYTE_ACCESS *target, uint32_t trap)
 {
 fprint_operand (source, "source", &fmt_byte_operand);
 

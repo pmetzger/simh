@@ -52,6 +52,7 @@
 
 #include "pdp8_defs.h"
 #include <math.h>
+#include <stdint.h>
 
 #define UNIT_V_AUTO     (UNIT_V_UF + 0)                 /* autosize */
 #define UNIT_V_PLAT     (UNIT_V_UF + 1)                 /* #platters - 1 */
@@ -97,27 +98,27 @@
 #define UPDATE_PCELL    if (GET_POS (df_time) < 6) df_sta = df_sta | DFS_PCA; \
                         else df_sta = df_sta & ~DFS_PCA
 
-extern uint16 M[];
-extern int32 int_req, stop_inst;
+extern uint16_t M[];
+extern int32_t int_req, stop_inst;
 extern UNIT cpu_unit;
 
-int32 df_sta = 0;                                       /* status register */
-int32 df_da = 0;                                        /* disk address */
-int32 df_done = 0;                                      /* done flag */
-int32 df_wlk = 0;                                       /* write lock */
-int32 df_time = 10;                                     /* inter-word time */
-int32 df_burst = 1;                                     /* burst mode flag */
-int32 df_stopioe = 1;                                   /* stop on error */
+int32_t df_sta = 0;                                     /* status register */
+int32_t df_da = 0;                                      /* disk address */
+int32_t df_done = 0;                                    /* done flag */
+int32_t df_wlk = 0;                                     /* write lock */
+int32_t df_time = 10;                                   /* inter-word time */
+int32_t df_burst = 1;                                   /* burst mode flag */
+int32_t df_stopioe = 1;                                 /* stop on error */
 
-int32 df60 (int32 IR, int32 AC);
-int32 df61 (int32 IR, int32 AC);
-int32 df62 (int32 IR, int32 AC);
+int32_t df60 (int32_t IR, int32_t AC);
+int32_t df61 (int32_t IR, int32_t AC);
+int32_t df62 (int32_t IR, int32_t AC);
 t_stat df_svc (UNIT *uptr);
 t_stat pcell_svc (UNIT *uptr);
 t_stat df_reset (DEVICE *dptr);
-t_stat df_boot (int32 unitno, DEVICE *dptr);
+t_stat df_boot (int32_t unitno, DEVICE *dptr);
 t_stat df_attach (UNIT *uptr, const char *cptr);
-t_stat df_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat df_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 const char *df_description (DEVICE *dptr);
 
 /* DF32 data structures
@@ -173,10 +174,10 @@ DEVICE df_dev = {
 
 /* IOT routines */
 
-int32 df60 (int32 IR, int32 AC)
+int32_t df60 (int32_t IR, int32_t AC)
 {
-int32 t;
-int32 pulse = IR & 07;
+int32_t t;
+int32_t pulse = IR & 07;
 
 UPDATE_PCELL;                                           /* update photocell */
 if (pulse & 1) {                                        /* DCMA */
@@ -207,10 +208,10 @@ return AC;
                           AC = AC | old_df_sta
 */
 
-int32 df61 (int32 IR, int32 AC)
+int32_t df61 (int32_t IR, int32_t AC)
 {
-int32 old_df_sta = df_sta;
-int32 pulse = IR & 07;
+int32_t old_df_sta = df_sta;
+int32_t pulse = IR & 07;
 
 UPDATE_PCELL;                                           /* update photocell */
 if (pulse & 1)                                          /* DCEA */
@@ -224,9 +225,9 @@ if (pulse & 4) {
 return AC;
 }
 
-int32 df62 (int32 IR, int32 AC)
+int32_t df62 (int32_t IR, int32_t AC)
 {
-int32 pulse = IR & 07;
+int32_t pulse = IR & 07;
 
 UPDATE_PCELL;                                           /* update photocell */
 if (pulse & 1) {                                        /* DFSE */
@@ -252,10 +253,10 @@ return AC;
 
 t_stat df_svc (UNIT *uptr)
 {
-int32 pa, t, mex;
-uint32 da;
-int16 *fbuf = (int16 *) uptr->filebuf;
-uint16 wc = 0;
+int32_t pa, t, mex;
+uint32_t da;
+int16_t *fbuf = (int16_t *) uptr->filebuf;
+uint16_t wc = 0;
 
 UPDATE_PCELL;                                           /* update photocell */
 if ((uptr->flags & UNIT_BUF) == 0) {                    /* not buf? abort */
@@ -321,11 +322,11 @@ return SCPE_OK;
 /* Bootstrap routine */
 
 #define OS8_START       07750
-#define OS8_LEN         (sizeof (os8_rom) / sizeof (int16))
+#define OS8_LEN         (sizeof (os8_rom) / sizeof (int16_t))
 #define DM4_START       00200
-#define DM4_LEN         (sizeof (dm4_rom) / sizeof (int16))
+#define DM4_LEN         (sizeof (dm4_rom) / sizeof (int16_t))
 
-static const uint16 os8_rom[] = {
+static const uint16_t os8_rom[] = {
     07600,                      /* 7750, CLA CLL        ; also word count */
     06603,                      /* 7751, DMAR           ; also address */
     06622,                      /* 7752, DFSC           ; done? */
@@ -333,7 +334,7 @@ static const uint16 os8_rom[] = {
     05752                       /* 7754, JMP @.-2       ; enter boot */
     };
 
-static const uint16 dm4_rom[] = {
+static const uint16_t dm4_rom[] = {
     00200, 07600,               /* 0200, CLA CLL */
     00201, 06603,               /* 0201, DMAR           ; read */
     00202, 06622,               /* 0202, DFSC           ; done? */
@@ -343,7 +344,7 @@ static const uint16 dm4_rom[] = {
     07751, 07576                /* 7751, 7576           ; address */
     };
 
-t_stat df_boot (int32 unitno, DEVICE *dptr)
+t_stat df_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -369,8 +370,8 @@ return SCPE_OK;
 
 t_stat df_attach (UNIT *uptr, const char *cptr)
 {
-uint32 p, sz;
-uint32 ds_bytes = DF_DKSIZE * sizeof (int16);
+uint32_t p, sz;
+uint32_t ds_bytes = DF_DKSIZE * sizeof (int16_t);
 
 if ((uptr->flags & UNIT_AUTO) && (sz = sim_fsize_name (cptr))) {
     p = (sz + ds_bytes - 1) / ds_bytes;
@@ -385,7 +386,7 @@ return attach_unit (uptr, cptr);
 
 /* Change disk size */
 
-t_stat df_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat df_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

@@ -40,7 +40,10 @@
 /*#define DBG_MSG */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
+#include "sim_types.h"
 #include "wd179x.h"
 
 #ifdef DBG_MSG
@@ -63,13 +66,13 @@
 
 typedef struct {
     PNP_INFO    pnp;    /* Plug and Play */
-    uint32 dma_addr;    /* DMA Transfer Address */
-    uint8 rom_disabled; /* true if ROM has been disabled */
-    uint8 motor_on;
-    uint8 autowait;
-    uint8 rtc;
-    uint8 imask;        /* Interrupt Mask Register */
-    uint8 ipend;        /* Interrupt Pending Register */
+    uint32_t dma_addr;  /* DMA Transfer Address */
+    uint8_t rom_disabled; /* true if ROM has been disabled */
+    uint8_t motor_on;
+    uint8_t autowait;
+    uint8_t rtc;
+    uint8_t imask;      /* Interrupt Mask Register */
+    uint8_t ipend;      /* Interrupt Pending Register */
 } CROMFDC_INFO;
 
 extern WD179X_INFO_PUB *wd179x_infop;
@@ -77,16 +80,16 @@ extern WD179X_INFO_PUB *wd179x_infop;
 static CROMFDC_INFO cromfdc_info_data = { { 0xC000, CROMFDC_ROM_SIZE, 0x3, 2 } };
 static CROMFDC_INFO *cromfdc_info = &cromfdc_info_data;
 
-extern t_stat set_membase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_membase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern t_stat set_membase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_membase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
 static t_stat cromfdc_svc (UNIT *uptr);
 
-extern uint32 PCX;      /* external view of PC  */
+extern uint32_t PCX;    /* external view of PC  */
 
 #define UNIT_V_CROMFDC_ROM      (UNIT_V_UF + 2) /* boot ROM enabled                         */
 #define UNIT_CROMFDC_ROM        (1 << UNIT_V_CROMFDC_ROM)
@@ -95,21 +98,21 @@ extern uint32 PCX;      /* external view of PC  */
 #define MOTOR_TO_LIMIT          128
 
 static t_stat cromfdc_reset(DEVICE *cromfdc_dev);
-static t_stat cromfdc_boot(int32 unitno, DEVICE *dptr);
+static t_stat cromfdc_boot(int32_t unitno, DEVICE *dptr);
 
-static int32 cromfdc_ext(const int32 port, const int32 io, const int32 data);
-static int32 cromfdc_timer(const int32 port, const int32 io, const int32 data);
-static int32 cromfdc_control(const int32 port, const int32 io, const int32 data);
-static int32 cromfdc_banksel(const int32 port, const int32 io, const int32 data);
-static int32 cromfdcrom(const int32 port, const int32 io, const int32 data);
-static int32 ccs2810_uart_status(const int32 port, const int32 io, const int32 data);
+static int32_t cromfdc_ext(const int32_t port, const int32_t io, const int32_t data);
+static int32_t cromfdc_timer(const int32_t port, const int32_t io, const int32_t data);
+static int32_t cromfdc_control(const int32_t port, const int32_t io, const int32_t data);
+static int32_t cromfdc_banksel(const int32_t port, const int32_t io, const int32_t data);
+static int32_t cromfdcrom(const int32_t port, const int32_t io, const int32_t data);
+static int32_t ccs2810_uart_status(const int32_t port, const int32_t io, const int32_t data);
 static const char* cromfdc_description(DEVICE *dptr);
 
-static int32 dipswitch          = 0;    /* 5-position DIP switch on 64FDC card */
-static int32 bootstrap          = 0;    /* 0 for RDOS 2.52, 1 for RDOS 3.12. */
-static int32 crofdc_type        = 64;   /* controller type, either 4, 16, or 64 for Cromemco, 50 for CCS-2422. */
-static int32 crofdc_boot        = 1;    /* BOOT jumper setting, default is auto-boot */
-static int32 crofdc_inh_init    = 0;    /* Inhibit Init (Format) switch, default is not inhibited */
+static int32_t dipswitch          = 0;  /* 5-position DIP switch on 64FDC card */
+static int32_t bootstrap          = 0;  /* 0 for RDOS 2.52, 1 for RDOS 3.12. */
+static int32_t crofdc_type        = 64; /* controller type, either 4, 16, or 64 for Cromemco, 50 for CCS-2422. */
+static int32_t crofdc_boot        = 1;  /* BOOT jumper setting, default is auto-boot */
+static int32_t crofdc_inh_init    = 0;  /* Inhibit Init (Format) switch, default is not inhibited */
 
 /* Disk Control/Flags Register, 0x34 (IN) / CCS Status Register 1 */
 #define CROMFDC_FLAG_DRQ        (1 << 7)    /* DRQ (All controllers) */
@@ -165,7 +168,7 @@ static int32 crofdc_inh_init    = 0;    /* Inhibit Init (Format) switch, default
 
 #define RST_OPCODE_TO_VECTOR(x) (x & 0x38)
 
-static unsigned char cromfdc_irq_table[8] = {
+static uchar_t cromfdc_irq_table[8] = {
     CROMFDC_TIMER1_RST,
     CROMFDC_TIMER2_RST,
     CROMFDC_EOJ_RST,
@@ -175,10 +178,10 @@ static unsigned char cromfdc_irq_table[8] = {
     CROMFDC_TIMER4_RST,
     CROMFDC_TIMER5_RST };
 
-static uint8 ipend_to_rst_opcode(uint8 ipend)
+static uint8_t ipend_to_rst_opcode(uint8_t ipend)
 {
-    uint8 active_intr;
-    uint8 i,j = 0;
+    uint8_t active_intr;
+    uint8_t i,j = 0;
 
     active_intr = cromfdc_info->imask & cromfdc_info->ipend;
 
@@ -198,7 +201,7 @@ static uint8 ipend_to_rst_opcode(uint8 ipend)
  * SIMH/AltairZ80 Resource Mapping Scheme, rather than Map and Unmap the ROM, simply implement our
  * own RAM that can be swapped in when the CROMFDC Boot ROM is disabled.
  */
-static uint8 cromfdcram[CROMFDC_ROM_SIZE];
+static uint8_t cromfdcram[CROMFDC_ROM_SIZE];
 
 static UNIT cromfdc_unit[] = {
     { UDATA (&cromfdc_svc, UNIT_FIX + UNIT_ATTABLE + UNIT_DISABLE + UNIT_ROABLE + UNIT_CROMFDC_ROM, CROMFDC_CAPACITY), 1024 },
@@ -269,7 +272,7 @@ DEVICE cromfdc_dev = {
  * RDOS 2.52 is the default, but RDOS 3.12 can be
  * selected with 'd cromfdc bootstrap <n>' at the SIMH SCP Prompt.
  */
-static uint8 cromfdc_rom[2][CROMFDC_ROM_SIZE] = {
+static uint8_t cromfdc_rom[2][CROMFDC_ROM_SIZE] = {
 {   /* RDOS 2.52 */
     0xF3, 0x18, 0x3C, 0xC3, 0x30, 0xC0, 0xC3, 0x04, 0xC5, 0xC3, 0x37, 0xC0, 0xC3, 0x3B, 0xC0, 0xC3,
     0x9E, 0xCB, 0xC3, 0x37, 0xCD, 0xC3, 0xD4, 0xC4, 0xC3, 0x52, 0xCD, 0xC3, 0xAB, 0xC5, 0xC3, 0x4B,
@@ -1300,7 +1303,7 @@ static uint8 cromfdc_rom[2][CROMFDC_ROM_SIZE] = {
 }
 };
 
-unsigned char ccs2422_rom[2048] = {
+uchar_t ccs2422_rom[2048] = {
     0xC3, 0x5B, 0xF0, 0xC3, 0x46, 0xF6, 0xC3, 0x56, 0xF6, 0xC3, 0x00, 0xF6, 0xC3, 0x7C, 0xF6, 0xC3,
     0x10, 0xF6, 0xC3, 0x23, 0xF6, 0xC3, 0x6A, 0xF1, 0xC3, 0x65, 0xF1, 0xC3, 0x8A, 0xF0, 0xC3, 0x94,
     0xF6, 0xC3, 0x94, 0xF6, 0xC3, 0xCF, 0xF3, 0xF8, 0xF0, 0x5E, 0xF5, 0x09, 0xF1, 0xAC, 0xF1, 0x09,
@@ -1432,16 +1435,16 @@ unsigned char ccs2422_rom[2048] = {
 };
 
 /* returns true iff there exists a disk with 'property' */
-static int32 cromfdc_hasProperty(uint32 property)
+static int32_t cromfdc_hasProperty(uint32_t property)
 {
-    int32 i;
+    int32_t i;
     for (i = 0; i < CROMFDC_MAX_DRIVES; i++)
         if (cromfdc_dev.units[i].flags & property)
             return true;
     return false;
 }
 
-static uint8 motor_timeout = 0;
+static uint8_t motor_timeout = 0;
 
 /* Unit service routine */
 static t_stat cromfdc_svc (UNIT *uptr)
@@ -1535,7 +1538,7 @@ static t_stat cromfdc_reset(DEVICE *dptr)
     return SCPE_OK;
 }
 
-static t_stat cromfdc_boot(int32 unitno, DEVICE *dptr)
+static t_stat cromfdc_boot(int32_t unitno, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -1554,11 +1557,11 @@ static t_stat cromfdc_boot(int32 unitno, DEVICE *dptr)
     cromfdc_info->rom_disabled = false;
 
     /* Set the PC to C000, and go. */
-    *((int32 *) sim_PC->loc) = 0xC000;
+    *((int32_t *) sim_PC->loc) = 0xC000;
     return SCPE_OK;
 }
 
-static int32 cromfdcrom(const int32 Addr, const int32 write, const int32 data)
+static int32_t cromfdcrom(const int32_t Addr, const int32_t write, const int32_t data)
 {
 /*  DBG_PRINT(("CROMFDC: ROM %s, Addr %04x\n", write ? "WR" : "RD", Addr)); */
     if(write) {
@@ -1574,9 +1577,9 @@ static int32 cromfdcrom(const int32 Addr, const int32 write, const int32 data)
 }
 
 /* Disk Control/Flags Register, 0x34 / CCS2422 Control1/Status1 */
-static int32 cromfdc_control(const int32 port, const int32 io, const int32 data)
+static int32_t cromfdc_control(const int32_t port, const int32_t io, const int32_t data)
 {
-    int32 result = 0;
+    int32_t result = 0;
     if(io) { /* I/O Write */
         switch(data & 0x0F) {
         case 0:
@@ -1669,9 +1672,9 @@ static int32 cromfdc_control(const int32 port, const int32 io, const int32 data)
  * 64FDC Interrupt and Auxiliary Disk Status 0x03-04
  * For CCS2422, this is the Control2/Status2 Register (0x04 only)
  */
-static int32 cromfdc_ext(const int32 port, const int32 io, const int32 data)
+static int32_t cromfdc_ext(const int32_t port, const int32_t io, const int32_t data)
 {
-    int32 result;
+    int32_t result;
     if(io) { /* I/O Write */
         if(port == 0x4) {
             if(crofdc_type != 50) { /* Cromemco Controller */
@@ -1740,9 +1743,9 @@ static int32 cromfdc_ext(const int32 port, const int32 io, const int32 data)
 }
 
 /* 64FDC Timer registers */
-static int32 cromfdc_timer(const int32 port, const int32 io, const int32 data)
+static int32_t cromfdc_timer(const int32_t port, const int32_t io, const int32_t data)
 {
-    static int32 result = 0;
+    static int32_t result = 0;
     if(io) {
         sim_debug(VERBOSE_MSG, &cromfdc_dev, "CROMFDC: " ADDRESS_FORMAT
                   " TIMER%d OUT, Port 0x%02x Data 0x%02x\n", PCX, (port-4), port, data);
@@ -1757,9 +1760,9 @@ static int32 cromfdc_timer(const int32 port, const int32 io, const int32 data)
 }
 
 /* 64FDC Bank Select (Write Disables boot ROM) */
-static int32 cromfdc_banksel(const int32 port, const int32 io, const int32 data)
+static int32_t cromfdc_banksel(const int32_t port, const int32_t io, const int32_t data)
 {
-    int32 result;
+    int32_t result;
     if(io) {
         sim_debug(VERBOSE_MSG, &cromfdc_dev, "CROMFDC: " ADDRESS_FORMAT
                   " BANKSEL OUT, Port 0x%02x Data 0x%02x\n", PCX, port, data);
@@ -1774,10 +1777,10 @@ static int32 cromfdc_banksel(const int32 port, const int32 io, const int32 data)
     return result;
 }
 
-static uint8 ccs2810_uart_status_reg = 0x00;
+static uint8_t ccs2810_uart_status_reg = 0x00;
 
 /* CCS 2810 UART Status Register, needed by MOSS 2.2 Monitor */
-static int32 ccs2810_uart_status(const int32 port, const int32 io, const int32 data)
+static int32_t ccs2810_uart_status(const int32_t port, const int32_t io, const int32_t data)
 {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */

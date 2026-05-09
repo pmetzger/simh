@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "sim_types.h"
+
 /* ka10_dd_font.c: Font data for Data Disc 6600 Television Display System.
 
    Copyright (c) 2022-2023, Lars Brinkhoff
@@ -30,7 +32,7 @@
 */
 
 /* Font from http://www.bitsavers.org/pdf/dataDisc/Television_Display_System_Reference_Manual_Jul69.pdf */
-static unsigned int tds_font[128][12] = {
+static uint_t tds_font[128][12] = {
   { 0b00000,
     0b00000,
     0b00000,
@@ -1570,7 +1572,7 @@ static unsigned int tds_font[128][12] = {
 };
 
 /* Font from Knight TV. */
-static unsigned int knight_font[128][12] = {
+static uint_t knight_font[128][12] = {
   { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
   { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
   { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 },
@@ -1702,7 +1704,7 @@ static unsigned int knight_font[128][12] = {
 };
 
 /* SAIL7 font. */
-static unsigned int sail7_font[128][12] = {
+static uint_t sail7_font[128][12] = {
   { 0, 0x00, 0x1F, 0x11, 0x15, 0x11, 0x1F, 0x00, 0x00, 0, 0, 0 }, // 000
   { 0, 0x04, 0x04, 0x04, 0x15, 0x0E, 0x04, 0x00, 0x00, 0, 0, 0 }, // 001 down arrow
   { 0, 0x00, 0x00, 0x0D, 0x12, 0x12, 0x0D, 0x00, 0x00, 0, 0, 0 }, // 002 alpha
@@ -1835,14 +1837,14 @@ static unsigned int sail7_font[128][12] = {
 
 int main (void)
 {
-  unsigned int *font;
-  unsigned int i;
+  uint_t *font;
+  uint_t i;
 
   FILE *f = fopen ("ka10_dd_font.h", "w");
   if (f == NULL)
     return 1;
 
-  fprintf (f, "static uint8 font[128][12] = {\n");
+  fprintf (f, "static uint8_t font[128][12] = {\n");
 
   for (i = 0; i < 128; i++) {
     font = sail7_font[i];

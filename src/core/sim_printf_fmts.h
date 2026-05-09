@@ -26,8 +26,8 @@
  * LL_FMT: long long format modifier, e.g. "%016" LL_FMT "x"
  * SIZE_T: size_t format modifier, e.g., "%" SIZE_T_FMT "u" (can use "d", but you will
  *         probably get a warning.)
- * T_UINT64_FMT: t_uint64 format modifier, e.g. "%016" T_UINT64_FMT "x"
- * T_INT64_FMT: t_int64 format modifier, e.g., "%" T_INT64_FMT "d"
+ * T_UINT64_FMT: uint64_t format modifier, e.g. "%016" T_UINT64_FMT "x"
+ * T_INT64_FMT: int64_t format modifier, e.g., "%" T_INT64_FMT "d"
  * POINTER_FMT: Format modifier for pointers, e.g. "%08" POINTER_FMT "X"
 */
 

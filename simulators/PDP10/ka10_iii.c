@@ -25,6 +25,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #ifndef NUM_DEVS_III
 #define NUM_DEVS_III 0
@@ -113,7 +115,7 @@
 #define M(x,y)   (x << 4)|y|0000
 #define V(x,y)   (x << 4)|y|0200
 
-uint8 map[128][18] = {
+uint8_t map[128][18] = {
    /* Blank */    { 0 },
    /* Down */     { M(0,9), V(3,6), V(3,14), M(3,6), V(6,9) },
    /* Alpha */    { M(6,6), V(3,9), V(1,9), V(0,8), V(0,7), V(1,6), V(3,6), V(6,9) },
@@ -301,12 +303,12 @@ float scale[] = { 1.0F,
 uint64         iii_instr;       /* Currently executing instruction */
 int            iii_sel;         /* Select mask */
 
-t_stat iii_devio(uint32 dev, uint64 *data);
+t_stat iii_devio(uint32_t dev, uint64 *data);
 t_stat iii_svc(UNIT *uptr);
 t_stat iii_reset(DEVICE *dptr);
 static void draw_point(int x, int y, int b, UNIT *uptr);
 static void draw_line(int x1, int y1, int x2, int y2, int b, UNIT *uptr);
-t_stat iii_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat iii_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *iii_description (DEVICE *dptr);
 
 DIB iii_dib = { III_DEVNUM, 1, iii_devio, NULL};
@@ -329,7 +331,7 @@ DEVICE iii_dev = {
     NULL, NULL, &iii_help, NULL, NULL, &iii_description
     };
 
-t_stat iii_devio(uint32 dev, uint64 *data) {
+t_stat iii_devio(uint32_t dev, uint64 *data) {
      UNIT       *uptr = &iii_unit[0];
      switch(dev & 3) {
      case CONI:
@@ -351,7 +353,7 @@ t_stat iii_devio(uint32 dev, uint64 *data) {
             *data |= EDGE_FLG;
         if (uptr->STATUS & LIT_FBIT)
             *data |= LIGHT_FLG;
-        sim_debug(DEBUG_CONI, &iii_dev, "III %03o CONI %06o %06o\n", dev, (uint32)*data,
+        sim_debug(DEBUG_CONI, &iii_dev, "III %03o CONI %06o %06o\n", dev, (uint32_t)*data,
                PC);
         break;
      case CONO:
@@ -374,10 +376,10 @@ t_stat iii_devio(uint32 dev, uint64 *data) {
          if (uptr->STATUS & HLT_MSK)
             set_interrupt(III_DEVNUM, uptr->PIA);
          sim_debug(DEBUG_CONO, &iii_dev, "III %03o CONO %06o %06o\n", dev,
-                     (uint32)*data, PC);
+                     (uint32_t)*data, PC);
          break;
      case DATAI:
-         sim_debug(DEBUG_DATAIO, &iii_dev, "III %03o DATAI %06o\n", dev, (uint32)*data);
+         sim_debug(DEBUG_DATAIO, &iii_dev, "III %03o DATAI %06o\n", dev, (uint32_t)*data);
          break;
     case DATAO:
          if (uptr->STATUS & RUN_FLG)
@@ -387,7 +389,7 @@ t_stat iii_devio(uint32 dev, uint64 *data) {
              /* Process instruction right away to ensure MAR is updated. */
              iii_svc(iii_unit);
          }
-         sim_debug(DEBUG_DATAIO, &iii_dev, "III %03o DATAO %06o\n", dev, (uint32)*data);
+         sim_debug(DEBUG_DATAIO, &iii_dev, "III %03o DATAO %06o\n", dev, (uint32_t)*data);
          break;
     }
     return SCPE_OK;
@@ -463,7 +465,7 @@ iii_svc (UNIT *uptr)
                    /* Scan map and draw lines as needed */
                    if ((iii_sel & 04000) != 0) {
                        for(j = 0; j < 18; j++) {
-                          uint8 v = map[ch][j];
+                          uint8_t v = map[ch][j];
                           if (v == 0)
                              break;
                           cx = (int)((float)((v >> 4) & 07) * ch_sz);
@@ -588,7 +590,7 @@ iii_svc (UNIT *uptr)
                goto skip_up;
 
      case 012: /* Test instruction */
-               A = (uptr->STATUS & (int32)(iii_instr >> 12) & 0377) != 0;
+               A = (uptr->STATUS & (int32_t)(iii_instr >> 12) & 0377) != 0;
                j = (int)((iii_instr >> 20) & 0377);    /* set mask */
                i = (int)((iii_instr >> 28) & 0377);    /* Reset */
                uptr->STATUS &= ~(i ^ j);
@@ -635,7 +637,7 @@ skip_up:
      return SCPE_OK;
 }
 
-uint32 iii_keyboard_line (void *p)
+uint32_t iii_keyboard_line (void *p)
 {
     /* III keyboards are 0 to 5, but only one is supported now. */
     return 0;
@@ -674,7 +676,7 @@ draw_line(int x1, int y1, int x2, int y2, int b, UNIT *uptr)
     display_line(x1 - MIN_X, y1 - MIN_Y, x2 - MIN_X, y2 - MIN_Y, b);
 }
 
-t_stat iii_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat iii_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 return SCPE_OK;
 }

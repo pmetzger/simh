@@ -66,6 +66,8 @@
 
 
 
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -149,12 +151,12 @@ static const OP_PAT op_dms[32] = {
   OP_A,    OP_A,    OP_A,    OP_A                       /* SJP    SJS    UJP    UJS   */
   };
 
-t_stat cpu_dms (uint32 intrq)
+t_stat cpu_dms (uint32_t intrq)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint8 byte;
-uint32 entry, absel, i;
+uint8_t byte;
+uint32_t entry, absel, i;
 HP_WORD t;
 MEU_STATE operation;
 MEU_MAP_SELECTOR mapi, mapj;
@@ -525,14 +527,14 @@ static const OP_PAT op_eig[32] = {
   OP_KA,   OP_KK,   OP_KV,   OP_KV                      /* CBS    TBS    CMW    MVW   */
   };
 
-t_stat cpu_eig (HP_WORD IR, uint32 intrq)
+t_stat cpu_eig (HP_WORD IR, uint32_t intrq)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint8 byte, b1, b2;
-uint32 entry, absel, sum;
+uint8_t byte, b1, b2;
+uint32_t entry, absel, sum;
 HP_WORD t, v1, v2, wc;
-int32 sop1, sop2;
+int32_t sop1, sop2;
 
 absel = AB_SELECT (IR);                                 /* get the A/B register selector */
 entry = IR & 037;                                       /* mask to entry point */

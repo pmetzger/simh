@@ -26,8 +26,9 @@
         11 Jul 16 - Original file.
 */
 
-#include <stdio.h>
 #include <ctype.h>
+#include <stdint.h>
+#include <stdio.h>
 #include "sim_defs.h"                   /* simulator defns */
 
 /* set the base I/O address and device count for the 8237 */
@@ -87,7 +88,7 @@
 
 #define MEMSIZE         (i8088_unit.capac) /* 8088 actual memory size */
 #define ADDRMASK        (MAXMEMSIZE - 1) /* 8088 address mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* debug definitions */
 

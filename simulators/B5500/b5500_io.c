@@ -21,6 +21,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "b5500_defs.h"
 
 #define EOR             1
@@ -36,14 +38,14 @@ t_stat              chan_reset(DEVICE * dptr);
    chan_mod     Channel modifiers list
 */
 
-t_uint64            D[NUM_CHAN];                /* Current I/O instruction */
-uint8               CC[NUM_CHAN];               /* Channel character count */
-t_uint64            W[NUM_CHAN];                /* Assembly register */
-uint8               status[NUM_CHAN];           /* Channel status */
-uint8               cstatus;                    /* Active status */
+uint64_t            D[NUM_CHAN];                /* Current I/O instruction */
+uint8_t             CC[NUM_CHAN];               /* Channel character count */
+uint64_t            W[NUM_CHAN];                /* Assembly register */
+uint8_t             status[NUM_CHAN];           /* Channel status */
+uint8_t             cstatus;                    /* Active status */
 
-#define WC(x)       (uint16)(((x) & DEV_WC) >> DEV_WC_V)
-#define toWC(x)     (((t_uint64)(x) << DEV_WC_V) & DEV_WC)
+#define WC(x)       (uint16_t)(((x) & DEV_WC) >> DEV_WC_V)
+#define toWC(x)     (((uint64_t)(x) << DEV_WC_V) & DEV_WC)
 
 
 UNIT                chan_unit[] = {
@@ -111,7 +113,7 @@ chan_reset(DEVICE * dptr)
 
 /* Boot from given device */
 t_stat
-chan_boot(t_uint64 desc)
+chan_boot(uint64_t desc)
 {
     M[020] = desc;
     M[010] = 020;
@@ -145,10 +147,10 @@ chan_release(int chan) {
 
 static int
 chan_advance(int chan) {
-    uint16      addr = (uint16)(D[chan] & CORE);
+    uint16_t    addr = (uint16_t)(D[chan] & CORE);
 
     if (D[chan] & DEV_WCFLG) {
-        uint16   wc = WC(D[chan]);
+        uint16_t wc = WC(D[chan]);
         if (wc == 0) {
             status[chan] |= EOR;
             return 1;
@@ -164,9 +166,9 @@ chan_advance(int chan) {
     W[chan] = M[addr];
     D[chan] &= ~CORE;
     if (D[chan] & DEV_BACK)
-         D[chan] |= (t_uint64)((addr - 1) & CORE);
+         D[chan] |= (uint64_t)((addr - 1) & CORE);
     else
-         D[chan] |= (t_uint64)((addr + 1) & CORE);
+         D[chan] |= (uint64_t)((addr + 1) & CORE);
     CC[chan] = 0;
     return 0;
 }
@@ -176,9 +178,9 @@ start_io(void) {
      int                i;
      int                chan;
      t_stat             r;
-     uint16             dev;
-     uint16             cmd;
-     uint16             wc;
+     uint16_t           dev;
+     uint16_t           cmd;
+     uint16_t           wc;
      int                addr;
 
      chan = find_chan();
@@ -195,8 +197,8 @@ start_io(void) {
      D[chan] = M[addr] & D_MASK;
      CC[chan] = 0;
      W[chan] = 0;
-     dev = (uint16)((D[chan] & DEVMASK) >> DEV_V);
-     cmd = (uint16)((D[chan] & DEV_CMD) >> DEV_CMD_V);
+     dev = (uint16_t)((D[chan] & DEVMASK) >> DEV_V);
+     cmd = (uint16_t)((D[chan] & DEV_CMD) >> DEV_CMD_V);
      wc = WC(D[chan]);
      D[chan] &= ~DEV_RESULT;
      status[chan] = 0;
@@ -212,7 +214,7 @@ start_io(void) {
 #if (NUM_DEVS_DR > 0)
         case DRUM1_DEV:
         case DRUM2_DEV:
-             r = drm_cmd(cmd, dev, chan, &wc, (uint8)((M[addr] & PRESENT)!=0));
+             r = drm_cmd(cmd, dev, chan, &wc, (uint8_t)((M[addr] & PRESENT)!=0));
              break;
 #endif
 
@@ -290,17 +292,17 @@ start_io(void) {
 
 void
 chan_set_end(int chan) {
-     uint16   dev;
-     dev = (uint16)((D[chan] & DEVMASK) >> DEV_V);
+     uint16_t dev;
+     dev = (uint16_t)((D[chan] & DEVMASK) >> DEV_V);
      /* Set character count if reading and tape */
      if ((dev & 1) && (D[chan] & DEV_IORD)) {
         D[chan] &= ~((7LL)<<DEV_WC_V);
         /* If not data transfered, return zero code */
         if ((D[chan] & DEV_BACK) != 0 &&
                 (status[chan] & EOR) != 0)
-            D[chan] |= ((t_uint64)((7-CC[chan]) & 07)) << DEV_WC_V;
+            D[chan] |= ((uint64_t)((7-CC[chan]) & 07)) << DEV_WC_V;
         else
-            D[chan] |= ((t_uint64)(CC[chan] & 07)) << DEV_WC_V;
+            D[chan] |= ((uint64_t)(CC[chan] & 07)) << DEV_WC_V;
      }
 
      M[014+chan] = D[chan];
@@ -371,7 +373,7 @@ chan_set_wrp(int chan) {
 }
 
 void
-chan_set_wc(int chan, uint16 wc) {
+chan_set_wc(int chan, uint16_t wc) {
     D[chan] &= ~DEV_WC;
     D[chan] |= toWC(wc);
 }
@@ -448,8 +450,8 @@ chan_set_wc(int chan, uint16 wc) {
    A return of 1 indicates that the character was not
    processed.
 */
-int chan_write_char(int chan, uint8 *ch, int flags) {
-        uint8   c;
+int chan_write_char(int chan, uint8_t *ch, int flags) {
+        uint8_t c;
 
         if (status[chan] & EOR)
            return 1;
@@ -461,7 +463,7 @@ int chan_write_char(int chan, uint8 *ch, int flags) {
 
         /* Check if first word */
         if (CC[chan] == 0) {
-            uint16      wc = WC(D[chan]);
+            uint16_t    wc = WC(D[chan]);
 
             if (D[chan] & DEV_WCFLG && wc == 0) {
                     sim_debug(DEBUG_DATA, &chan_dev, "zerowc(%d)\n", chan);
@@ -474,7 +476,7 @@ int chan_write_char(int chan, uint8 *ch, int flags) {
         c = *ch & 077;
         if ((D[chan] & DEV_BIN) == 0) {
                 /* Translate BCL to BCD */
-                uint8   cx = c & 060;
+                uint8_t cx = c & 060;
 
                 c &= 017;
                 switch(c) {
@@ -520,13 +522,13 @@ int chan_write_char(int chan, uint8 *ch, int flags) {
         }
 
         if (D[chan] & DEV_BACK)
-            W[chan] |= ((t_uint64)c) << ((CC[chan]) * 6);
+            W[chan] |= ((uint64_t)c) << ((CC[chan]) * 6);
         else
-            W[chan] |= ((t_uint64)c) << ((7 - CC[chan]) * 6);
+            W[chan] |= ((uint64_t)c) << ((7 - CC[chan]) * 6);
         CC[chan]++;
 
         if (CC[chan] == 8) {
-            uint16      addr = (uint16)(D[chan] & CORE);
+            uint16_t    addr = (uint16_t)(D[chan] & CORE);
 
             M[addr] = W[chan];
             sim_debug(DEBUG_DATA, &chan_dev, "write(%d, %05o, %016llo)\n",
@@ -541,10 +543,10 @@ int chan_write_char(int chan, uint8 *ch, int flags) {
                  /* Insert group mark */
                  if (D[chan] & DEV_BACK) {
                      int i = CC[chan];
-                     W[chan] |= (t_uint64)037LL << ((CC[chan]) * 6);
+                     W[chan] |= (uint64_t)037LL << ((CC[chan]) * 6);
 
                       while(i < 8) {
-                          W[chan] |= (t_uint64)014LL << (i * 6);
+                          W[chan] |= (uint64_t)014LL << (i * 6);
                           i++;
                       }
                  } else {
@@ -555,7 +557,7 @@ int chan_write_char(int chan, uint8 *ch, int flags) {
 
             /* Flush last word */
             if (CC[chan] != 0) {
-                uint16      addr = (uint16)(D[chan] & CORE);
+                uint16_t    addr = (uint16_t)(D[chan] & CORE);
 
                 M[addr] = W[chan];
                 sim_debug(DEBUG_DATA, &chan_dev, "writef(%d, %05o, %016llo)\n",
@@ -574,8 +576,8 @@ int chan_write_char(int chan, uint8 *ch, int flags) {
    character in ch is not valid. If flag is set to 1, then
    this is the last character the device will request.
 */
-int chan_read_char(int chan, uint8 *ch, int flags) {
-        uint8   c;
+int chan_read_char(int chan, uint8_t *ch, int flags) {
+        uint8_t c;
         int     gm;
 
         if (status[chan] & EOR)
@@ -587,7 +589,7 @@ int chan_read_char(int chan, uint8 *ch, int flags) {
         }
 
         if (CC[chan] == 0) {
-            uint16      addr = (uint16)(D[chan] & CORE);
+            uint16_t    addr = (uint16_t)(D[chan] & CORE);
             if (chan_advance(chan))
                 return 1;
             sim_debug(DEBUG_DATA, &chan_dev, "read(%d, %05o, %016llo)\n", chan,
@@ -605,7 +607,7 @@ int chan_read_char(int chan, uint8 *ch, int flags) {
         }
         if ((D[chan] & DEV_BIN) == 0) {
                 /* Translate BCD to BCL */
-                uint8   cx = c & 060;
+                uint8_t cx = c & 060;
                 c &= 017;
                 switch(c) {
                 case 0:
@@ -654,15 +656,15 @@ int chan_read_char(int chan, uint8 *ch, int flags) {
 /* Same as chan_read_char, however we do not check word count
    nor do we advance it.
 */
-int chan_read_disk(int chan, uint8 *ch, int flags) {
+int chan_read_disk(int chan, uint8_t *ch, int flags) {
         /* Shared channel read signature.
            This implementation does not use every parameter. */
         (void) flags;
 
-        uint8   c;
+        uint8_t c;
 
         if (CC[chan] == 0) {
-            uint16      addr = (uint16)(D[chan] & CORE);
+            uint16_t    addr = (uint16_t)(D[chan] & CORE);
             if (addr > MEMSIZE) {
                 D[chan] |= DEV_MEMERR;
                 return 1;
@@ -685,8 +687,8 @@ int chan_read_disk(int chan, uint8 *ch, int flags) {
 
 static int
 chan_advance_drum(int chan) {
-    uint16      addr = (uint16)(D[chan] & CORE);
-    uint16      wc = WC(D[chan]);
+    uint16_t    addr = (uint16_t)(D[chan] & CORE);
+    uint16_t    wc = WC(D[chan]);
     if (wc == 0) {
         status[chan] |= EOR;
         return 1;
@@ -710,15 +712,15 @@ chan_advance_drum(int chan) {
    A return of 1 indicates that the character was not
    processed.
 */
-int chan_write_drum(int chan, uint8 *ch, int flags) {
-        uint8   c;
+int chan_write_drum(int chan, uint8_t *ch, int flags) {
+        uint8_t c;
 
         if (status[chan] & EOR)
            return 1;
 
         /* Check if first word */
         if (CC[chan] == 0) {
-            uint16      wc = WC(D[chan]);
+            uint16_t    wc = WC(D[chan]);
 
             if (wc == 0) {
                     status[chan] |= EOR;
@@ -730,11 +732,11 @@ int chan_write_drum(int chan, uint8 *ch, int flags) {
         c = *ch;
         c &= 077;
 
-        W[chan] |= (t_uint64)c << ((7 - CC[chan]) * 6);
+        W[chan] |= (uint64_t)c << ((7 - CC[chan]) * 6);
         CC[chan]++;
 
         if (CC[chan] == 8) {
-            uint16      addr = (uint16)(D[chan] & CORE);
+            uint16_t    addr = (uint16_t)(D[chan] & CORE);
 
             M[addr] = W[chan];
             if (chan_advance_drum(chan))
@@ -743,7 +745,7 @@ int chan_write_drum(int chan, uint8 *ch, int flags) {
         if (flags) {
             /* Flush last word */
             if (CC[chan] != 0) {
-                uint16      addr = (uint16)(D[chan] & CORE);
+                uint16_t    addr = (uint16_t)(D[chan] & CORE);
 
                 M[addr] = W[chan];
                 (void)chan_advance_drum(chan);
@@ -759,8 +761,8 @@ int chan_write_drum(int chan, uint8 *ch, int flags) {
    character in ch is not valid. If flag is set to 1, then
    this is the last character the device will request.
 */
-int chan_read_drum(int chan, uint8 *ch, int flags) {
-        uint8   c;
+int chan_read_drum(int chan, uint8_t *ch, int flags) {
+        uint8_t c;
 
         if (status[chan] & EOR)
            return 1;

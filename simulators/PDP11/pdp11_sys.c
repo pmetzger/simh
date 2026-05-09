@@ -73,6 +73,7 @@
 #include "pdp11_defs.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev;
 extern DEVICE sys_dev;
@@ -131,7 +132,7 @@ extern DEVICE tv_dev;
 #endif
 extern DEVICE mb_dev;
 extern REG cpu_reg[];
-extern int32 saved_PC;
+extern int32_t saved_PC;
 
 /* SCP data structures and interface routines
 
@@ -151,7 +152,7 @@ char sim_name[] = "UC-15";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -284,8 +285,8 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
    This implementation does not use every parameter. */
 (void)fnam;
 
-int32 c[6], d, i, cnt, csum;
-uint32 org;
+int32_t c[6], d, i, cnt, csum;
+uint32_t org;
 
 if (*cptr != 0)
     return SCPE_ARG;
@@ -314,7 +315,7 @@ do {                                                    /* block loop */
         csum = csum + d;                                /* add into csum */
         if (!ADDR_IS_MEM (org))                         /* invalid addr? */
             return SCPE_NXM;
-        WrMemB (org, ((uint16) d));
+        WrMemB (org, ((uint16_t) d));
         org = (org + 1) & 0177777;                      /* inc origin */
         }
     if ((d = Fgetc (fileref)) == EOF)                    /* get csum */
@@ -376,7 +377,7 @@ return SCPE_CSUM;
 #define I_SOPA          (I_V_SOPA << I_V_CL)
 #define I_SMDA          (I_V_SMDA << I_V_CL)
 
-static const int32 masks[] = {
+static const int32_t masks[] = {
 0177777, 0177770, 0177700, 0177770,
 0177700+I_D, 0177400+I_D, 0177700, 0177400,
 0177400, 0177000, 0177000, 0177400,
@@ -453,7 +454,7 @@ static const char *opcode[] = {
 NULL
 };
 
-static const int32 opc_val[] = {
+static const int32_t opc_val[] = {
 0000000+I_NPN, 0000001+I_NPN, 0000002+I_NPN, 0000003+I_NPN,
 0000004+I_NPN, 0000005+I_NPN, 0000006+I_NPN, 0000007+I_NPN,
 0000100+I_SOP, 0000200+I_REG, 0000230+I_3B,
@@ -545,12 +546,12 @@ static const char r50_to_asc[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ$._0123456789";
         count   =       -number of extra words retired
 */
 
-static int32 fprint_spec (FILE *of, t_addr addr, int32 spec, t_value nval,
-    int32 flag, int32 iflag)
+static int32_t fprint_spec (FILE *of, t_addr addr, int32_t spec, t_value nval,
+    int32_t flag, int32_t iflag)
 {
-int32 reg, mode;
-static const int32 rgwd[8] = { 0, 0, 0, 0, 0, 0, -1, -1 };
-static const int32 pcwd[8] = { 0, 0, -1, -1, 0, 0, -1, -1 };
+int32_t reg, mode;
+static const int32_t rgwd[8] = { 0, 0, 0, 0, 0, 0, -1, -1 };
+static const int32_t pcwd[8] = { 0, 0, -1, -1, 0, 0, -1, -1 };
 
 reg = spec & 07;
 mode = ((spec >> 3) & 07);
@@ -616,11 +617,11 @@ return ((reg == 07)? pcwd[mode]: rgwd[mode]);
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 cflag, i, j, c1, c2, c3, inst, fac, srcm, srcr, dstm, dstr;
-int32 bflag, l8b, brdisp, wd1, wd2;
-extern int32 FPS;
+int32_t cflag, i, j, c1, c2, c3, inst, fac, srcm, srcr, dstm, dstr;
+int32_t bflag, l8b, brdisp, wd1, wd2;
+extern int32_t FPS;
 
 bflag = 0;                                              /* assume 16b */
 cflag = (uptr == NULL) || (uptr == &cpu_unit);          /* cpu? */
@@ -799,9 +800,9 @@ return SCPE_ARG;                                        /* no match */
                         < 0 if error
 */
 
-static int32 get_reg (char *cptr, const char *strings[], char mchar)
+static int32_t get_reg (char *cptr, const char *strings[], char mchar)
 {
-int32 i;
+int32_t i;
 
 if (*(cptr + 2) != mchar)
     return -1;
@@ -825,9 +826,9 @@ return -1;
    Flags: 0 (no result), A_NUM (number), A_REL (relative)
 */
 
-static char *get_addr (char *cptr, int32 *dptr, int32 *pflag)
+static char *get_addr (char *cptr, int32_t *dptr, int32_t *pflag)
 {
-int32 val, minus;
+int32_t val, minus;
 char *tptr;
 
 minus = 0;
@@ -877,10 +878,10 @@ return tptr;
                         = +1 error
 */
 
-static t_stat get_spec (char *cptr, t_addr addr, int32 n1, int32 *sptr, t_value *dptr,
-    int32 cflag, int32 iflag)
+static t_stat get_spec (char *cptr, t_addr addr, int32_t n1, int32_t *sptr, t_value *dptr,
+    int32_t cflag, int32_t iflag)
 {
-int32 reg, indir, pflag, disp = 0;
+int32_t reg, indir, pflag, disp = 0;
 
 indir = 0;                                              /* no indirect */
 pflag = 0;
@@ -987,9 +988,9 @@ switch (pflag) {                                        /* case on syntax */
                         <= 0  -number of extra words
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 bflag, cflag, d, i, j, reg, spec, n1, n2, disp, pflag;
+int32_t bflag, cflag, d, i, j, reg, spec, n1, n2, disp, pflag;
 t_value by;
 t_stat r;
 char *tptr, gbuf[CBUFSIZE];

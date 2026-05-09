@@ -44,7 +44,9 @@
 
 */
 
+#include <stdint.h>
 #include <stdio.h>
+
 #include "swtp_defs.h"
 
 
@@ -64,10 +66,10 @@
 /* function prototypes */
 
 t_stat  BOOTROM_svc (UNIT *uptr);
-t_stat  BOOTROM_config (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat  BOOTROM_config (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat  BOOTROM_attach (UNIT *uptr, const char *cptr);
 t_stat  BOOTROM_reset (DEVICE *dptr);
-int32   BOOTROM_get_mbyte(int32 offset);
+int32_t BOOTROM_get_mbyte(int32_t offset);
 
 /* SIMH Standard I/O Data Structures */
 
@@ -151,7 +153,7 @@ t_stat BOOTROM_attach (UNIT *uptr, const char *cptr)
 
 /* BOOTROM_config = None, 2704, 2708, 2716, 2732 or 2764 */
 
-t_stat BOOTROM_config (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat BOOTROM_config (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -212,7 +214,7 @@ t_stat BOOTROM_reset (DEVICE *dptr)
     j = 0;                              /* load EPROM file */
     c = fgetc(fp);
     while (c != EOF) {
-        *((uint8 *)(BOOTROM_unit.filebuf) + j++) = c & BYTEMASK;
+        *((uint8_t *)(BOOTROM_unit.filebuf) + j++) = c & BYTEMASK;
         c = fgetc(fp);
         if (j > BOOTROM_unit.capac) {
             printf("Bootrom: Image is too large - Load truncated!!!\n");
@@ -226,9 +228,9 @@ t_stat BOOTROM_reset (DEVICE *dptr)
 
 /*  get a byte from memory - byte offset of image */
 
-int32 BOOTROM_get_mbyte(int32 offset)
+int32_t BOOTROM_get_mbyte(int32_t offset)
 {
-    int32 val;
+    int32_t val;
 
     if (BOOTROM_unit.filebuf == NULL) {
         return 0xFF;
@@ -236,7 +238,7 @@ int32 BOOTROM_get_mbyte(int32 offset)
     if ((t_addr)offset > BOOTROM_unit.capac) {
         return 0xFF;
     }
-    val = *((uint8 *)(BOOTROM_unit.filebuf) + offset) & BYTEMASK;
+    val = *((uint8_t *)(BOOTROM_unit.filebuf) + offset) & BYTEMASK;
     return val;
 }
 

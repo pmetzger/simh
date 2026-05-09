@@ -24,6 +24,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7090_defs.h"
 
 #ifdef NUM_DEVS_HD
@@ -38,16 +40,16 @@
 #define DRMSTA_UNIT     000700  /* Unitmask */
 #define DRMSTA_SHFT     6
 
-uint32              hsdrm_cmd(UNIT *, uint16, uint16);
+uint32_t            hsdrm_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              hsdrm_srv(UNIT *);
 void                hsdrm_ini(UNIT *, bool);
 t_stat              hsdrm_reset(DEVICE *);
-t_uint64            hsdrm_addr; /* Read/write drum address */
-t_stat              set_hunits(UNIT * uptr, int32 val, const char *cptr, void *desc);
-t_stat              get_hunits(FILE * st, UNIT * uptr, int32 v, const void *desc);
+uint64_t            hsdrm_addr; /* Read/write drum address */
+t_stat              set_hunits(UNIT * uptr, int32_t val, const char *cptr, void *desc);
+t_stat              get_hunits(FILE * st, UNIT * uptr, int32_t v, const void *desc);
 t_stat              hsdrm_attach(UNIT * uptr, const char *file);
 t_stat              hsdrm_detach(UNIT * uptr);
-t_stat              hsdrm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              hsdrm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *hsdrm_description (DEVICE *dptr);
 
@@ -73,7 +75,7 @@ DEVICE              hsdrm_dev = {
     NULL, NULL, &hsdrm_help, NULL, NULL, &hsdrm_description
 };
 
-uint32 hsdrm_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t hsdrm_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
 
@@ -112,7 +114,7 @@ uint32 hsdrm_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
 t_stat hsdrm_srv(UNIT * uptr)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
-    t_uint64           *buf = (t_uint64 *)uptr->filebuf;
+    uint64_t           *buf = (uint64_t *)uptr->filebuf;
     t_stat              r;
 
     /* Channel has disconnected, abort current read. */
@@ -129,7 +131,7 @@ t_stat hsdrm_srv(UNIT * uptr)
     /* Check if we have a address match */
     if ((chan_flags[chan] & (STA_ACTIVE | DEV_SEL)) == (STA_ACTIVE | DEV_SEL)
         && uptr->u5 & (DRMSTA_READ | DRMSTA_WRITE)
-        && (uint32)uptr->u6 == (hsdrm_addr & 007777)) {
+        && (uint32_t)uptr->u6 == (hsdrm_addr & 007777)) {
             int                 addr =
                 ((hsdrm_addr >> 12) & 07000000) |
                   ((hsdrm_addr >> 3) & 0700000) |
@@ -189,7 +191,7 @@ hsdrm_reset(DEVICE * dptr)
 
 /* Sets the number of drum units */
 t_stat
-set_hunits(UNIT * uptr, int32 val, const char *cptr, void *desc)
+set_hunits(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -218,7 +220,7 @@ set_hunits(UNIT * uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-get_hunits(FILE * st, UNIT * uptr, int32 v, const void *desc)
+get_hunits(FILE * st, UNIT * uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -250,7 +252,7 @@ hsdrm_detach(UNIT * uptr)
 }
 
 t_stat
-hsdrm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+hsdrm_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic callback signature.
       This implementation does not use every parameter. */

@@ -35,17 +35,19 @@
    SENSE<0:16>          Additional flags for 7907 channels.
 */
 
+#include <stdint.h>
+
 #include "i7010_defs.h"
 
 extern UNIT         cpu_unit;
-extern uint8        chan_seek_done[NUM_CHAN];   /* Channel seek finished */
+extern uint8_t      chan_seek_done[NUM_CHAN];   /* Channel seek finished */
 
 #define CHAN_DEF        UNIT_DISABLE|CHAN_SET
 
-t_stat              set_urec(UNIT * uptr, int32 val, const char *cptr, void *desc);
-t_stat              get_urec(FILE * st, UNIT * uptr, int32 v, const void *desc);
+t_stat              set_urec(UNIT * uptr, int32_t val, const char *cptr, void *desc);
+t_stat              get_urec(FILE * st, UNIT * uptr, int32_t v, const void *desc);
 t_stat              chan_reset(DEVICE * dptr);
-t_stat              chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *chan_description (DEVICE *dptr);
 
@@ -58,17 +60,17 @@ const char          *chan_description (DEVICE *dptr);
    chan_mod     Channel modifiers list
 */
 
-uint32              caddr[NUM_CHAN];            /* Channel memory address */
-uint8               bcnt[NUM_CHAN];             /* Channel character count */
-uint8               cmd[NUM_CHAN];              /* Current command */
-uint16              irqdev[NUM_CHAN];           /* Device to generate interupts
+uint32_t            caddr[NUM_CHAN];            /* Channel memory address */
+uint8_t             bcnt[NUM_CHAN];             /* Channel character count */
+uint8_t             cmd[NUM_CHAN];              /* Current command */
+uint16_t            irqdev[NUM_CHAN];           /* Device to generate interupts
                                                    for channel */
-uint32              chunit[NUM_CHAN];           /* Channel unit */
-uint8               assembly[NUM_CHAN];         /* Assembly register */
-uint32              chan_flags[NUM_CHAN];       /* Unit status */
-extern uint8        chan_io_status[NUM_CHAN];
-extern uint8        inquiry;
-extern uint8        urec_irq[NUM_CHAN];
+uint32_t            chunit[NUM_CHAN];           /* Channel unit */
+uint8_t             assembly[NUM_CHAN];         /* Assembly register */
+uint32_t            chan_flags[NUM_CHAN];       /* Unit status */
+extern uint8_t      chan_io_status[NUM_CHAN];
+extern uint8_t      inquiry;
+extern uint8_t      urec_irq[NUM_CHAN];
 
 #define CHAN_LOAD       0001            /* Channel in load mode */
 #define CHAN_NOREC      0002            /* Don't stop at record */
@@ -85,7 +87,7 @@ const char     *chan_type_name[] = {
 
 /* Map commands to channel commands */
 /* Commands are reversed to be way they are sent out */
-uint8 disk_cmdmap[16] = { 0xff, 0x82, 0x84, 0x86, 0x00, 0x89, 0x88, 0x83,
+uint8_t disk_cmdmap[16] = { 0xff, 0x82, 0x84, 0x86, 0x00, 0x89, 0x88, 0x83,
                           0x87, 0x04, 0x80, 0xff, 0x85, 0xff, 0xff, 0xff};
 
 UNIT                chan_unit[] = {
@@ -136,7 +138,7 @@ DEVICE              chan_dev = {
 };
 
 struct urec_t {
-    uint16      addr;
+    uint16_t    addr;
     const char  *name;
 } urec_devs[] = {
         {0100,  "CR"},
@@ -149,7 +151,7 @@ struct urec_t {
 
 /* Sets the device that will interrupt on the channel. */
 t_stat
-set_urec(UNIT * uptr, int32 val, const char *cptr, void *desc)
+set_urec(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -176,7 +178,7 @@ set_urec(UNIT * uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-get_urec(FILE * st, UNIT * uptr, int32 v, const void *desc)
+get_urec(FILE * st, UNIT * uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -220,11 +222,11 @@ chan_reset(DEVICE * dptr)
 }
 
 /* Channel selector characters */
-uint8 chan_char[NUM_CHAN] = {0, CHR_RPARN, CHR_LPARN, CHR_QUEST, CHR_EXPL};
+uint8_t chan_char[NUM_CHAN] = {0, CHR_RPARN, CHR_LPARN, CHR_QUEST, CHR_EXPL};
 
 /* Boot from given device */
 t_stat
-chan_boot(int32 unit_num, DEVICE * dptr)
+chan_boot(int32_t unit_num, DEVICE * dptr)
 {
     /* Set IAR = 1 (done by reset), channel to read one
         record to location 1 */
@@ -243,10 +245,10 @@ chan_boot(int32 unit_num, DEVICE * dptr)
 }
 
 static t_stat
-chan_issue_cmd(uint16 chan, uint16 dcmd, uint16 dev) {
+chan_issue_cmd(uint16_t chan, uint16_t dcmd, uint16_t dev) {
     DEVICE            **dptr;
     DIB                *dibp;
-    uint32              j;
+    uint32_t            j;
     UNIT               *uptr;
 
     for (dptr = sim_devices; *dptr != NULL; dptr++) {
@@ -391,7 +393,7 @@ chan_proc(void)
                  if ((cmd[chan] & CHAN_NOREC) == 0 &&
                      (chan_flags[chan] & STA_WAIT) == 0) {
                      if (MEM_ADDR_OK(caddr[chan])) {
-                         uint8 ch = M[caddr[chan]++];
+                         uint8_t ch = M[caddr[chan]++];
                          if (ch != (WM|077)) {
                              sim_debug(DEBUG_DETAIL, &chan_dev, "chan %d WRL\n", chan);
                              chan_io_status[chan] |= IO_CHS_WRL;
@@ -438,7 +440,7 @@ chan_proc(void)
     }
 }
 
-void chan_set_attn_urec(int chan, uint16 addr) {
+void chan_set_attn_urec(int chan, uint16_t addr) {
     if (irqdev[chan] == addr)
         urec_irq[chan] = 1;
 }
@@ -462,9 +464,9 @@ void chan_clear_attn_inq(int chan) {
 
 /* Issue a command to a channel */
 int
-chan_cmd(uint16 dev, uint16 dcmd, uint32 addr)
+chan_cmd(uint16_t dev, uint16_t dcmd, uint32_t addr)
 {
-    uint32              chan;
+    uint32_t            chan;
     t_stat              r;
 
     /* Find device on given channel and give it the command */
@@ -492,7 +494,7 @@ chan_cmd(uint16 dev, uint16 dcmd, uint32 addr)
                          |CTL_SNS|STA_PEND);
     /* Handle disk device special */
     if ((dsk_dib.mask & dev) == (dsk_dib.addr & dsk_dib.mask)) {
-        uint16  dsk_cmd = 0;
+        uint16_t dsk_cmd = 0;
         dsk_cmd = disk_cmdmap[dev&017];
         /* Set up channel if command ok */
         if (dsk_cmd == 0xFF || dev & 060) {
@@ -559,7 +561,7 @@ chan_cmd(uint16 dev, uint16 dcmd, uint32 addr)
  * Write a word to the assembly register.
  */
 int
-chan_write(int chan, t_uint64 * data, int flags)
+chan_write(int chan, uint64_t * data, int flags)
 {
     /* Shared helper signature.
        This build variant does not use every parameter. */
@@ -575,7 +577,7 @@ chan_write(int chan, t_uint64 * data, int flags)
  * Read next word from assembly register.
  */
 int
-chan_read(int chan, t_uint64 * data, int flags)
+chan_read(int chan, uint64_t * data, int flags)
 {
     /* Shared helper signature.
        This build variant does not use every parameter. */
@@ -591,9 +593,9 @@ chan_read(int chan, t_uint64 * data, int flags)
  * Write a char to the assembly register.
  */
 int
-chan_write_char(int chan, uint8 * data, int flags)
+chan_write_char(int chan, uint8_t * data, int flags)
 {
-    uint8       ch = *data;
+    uint8_t     ch = *data;
 
     sim_debug(DEBUG_DATA, &chan_dev, "write chan %d char %o %d %o %o %o\n", chan,
                *data, caddr[chan], M[caddr[chan]], chan_io_status[chan], flags);
@@ -661,7 +663,7 @@ chan_write_char(int chan, uint8 * data, int flags)
  * Read next char from assembly register.
  */
 int
-chan_read_char(int chan, uint8 * data, int flags)
+chan_read_char(int chan, uint8_t * data, int flags)
 {
 
     sim_debug(DEBUG_DATA, &chan_dev, "read chan %d char %o %d %o %o\n", chan,
@@ -737,7 +739,7 @@ chan_read_char(int chan, uint8 * data, int flags)
 
 
 void
-chan9_set_error(int chan, uint32 mask)
+chan9_set_error(int chan, uint32_t mask)
 {
     if (chan_flags[chan] & mask)
         return;
@@ -745,7 +747,7 @@ chan9_set_error(int chan, uint32 mask)
 }
 
 t_stat
-chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+chan_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */

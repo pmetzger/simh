@@ -101,6 +101,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -132,8 +134,8 @@ static INTERFACE pif_interface;
 /* Interface local SCP support routines */
 
 static t_stat pif_reset     (DEVICE *dptr);
-static t_stat pif_set_card  (UNIT   *uptr, int32  val,  const char *cptr, void *desc);
-static t_stat pif_show_card (FILE   *st,   UNIT  *uptr, int32 val,        const void *desc);
+static t_stat pif_set_card  (UNIT   *uptr, int32_t val,  const char *cptr, void *desc);
+static t_stat pif_show_card (FILE   *st,   UNIT  *uptr, int32_t val,        const void *desc);
 
 
 /* Interface SCP data structures */
@@ -418,7 +420,7 @@ return SCPE_OK;
    val == 1 --> set to 12620A (RTE PIF)
 */
 
-static t_stat pif_set_card (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat pif_set_card (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -439,7 +441,7 @@ return SCPE_OK;
 
 /* Show card type */
 
-static t_stat pif_show_card (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat pif_show_card (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

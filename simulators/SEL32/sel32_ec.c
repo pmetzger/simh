@@ -22,6 +22,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sel32_defs.h"
 
 #if NUM_DEVS_ETHER > 0
@@ -78,7 +80,7 @@
 /* Sense byte 2 & 3 */
 #define SNS_XFR_MASK    0x0000FFFF  /* Previous frame count */
 
-typedef uint32 in_addr_T;
+typedef uint32_t in_addr_T;
 
 #define ETHTYPE_ARP 0x0806
 #define ETHTYPE_IP  0x0800
@@ -99,7 +101,7 @@ PACKED_BEGIN
 struct ec_eth_hdr {
     ETH_MAC    dest;
     ETH_MAC    src;
-    uint16     type;
+    uint16_t   type;
 } PACKED_END;
 
 /*
@@ -107,17 +109,17 @@ struct ec_eth_hdr {
  */
 PACKED_BEGIN
 struct ip {
-    uint8           ip_v_hl;        /* version,header length */
-    uint8           ip_tos;         /* type of service */
-    uint16          ip_len;         /* total length */
-    uint16          ip_id;          /* identification */
-    uint16          ip_off;         /* fragment offset field */
+    uint8_t         ip_v_hl;        /* version,header length */
+    uint8_t         ip_tos;         /* type of service */
+    uint16_t        ip_len;         /* total length */
+    uint16_t        ip_id;          /* identification */
+    uint16_t        ip_off;         /* fragment offset field */
 #define IP_DF 0x4000                /* don't fragment flag */
 #define IP_MF 0x2000                /* more fragments flag */
 #define IP_OFFMASK 0x1fff           /* mask for fragmenting bits */
-    uint8           ip_ttl;         /* time to live */
-    uint8           ip_p;           /* protocol */
-    uint16          ip_sum;         /* checksum */
+    uint8_t         ip_ttl;         /* time to live */
+    uint8_t         ip_p;           /* protocol */
+    uint16_t        ip_sum;         /* checksum */
     in_addr_T       ip_src;
     in_addr_T       ip_dst;         /* source and dest address */
 } PACKED_END;
@@ -125,46 +127,46 @@ struct ip {
 #define TCP_PROTO  6
 PACKED_BEGIN
 struct tcp {
-    uint16          tcp_sport;      /* Source port */
-    uint16          tcp_dport;      /* Destination port */
-    uint32          seq;            /* Sequence number */
-    uint32          ack;            /* Ack number */
-    uint16          flags;          /* Flags */
+    uint16_t        tcp_sport;      /* Source port */
+    uint16_t        tcp_dport;      /* Destination port */
+    uint32_t        seq;            /* Sequence number */
+    uint32_t        ack;            /* Ack number */
+    uint16_t        flags;          /* Flags */
 #define TCP_FL_FIN  0x01
 #define TCP_FL_SYN  0x02
 #define TCP_FL_RST  0x04
 #define TCP_FL_PSH  0x08
 #define TCP_FL_ACK  0x10
 #define TCP_FL_URG  0x20
-    uint16          window;         /* Window size */
-    uint16          chksum;         /* packet checksum */
-    uint16          urgent;         /* Urgent pointer */
+    uint16_t        window;         /* Window size */
+    uint16_t        chksum;         /* packet checksum */
+    uint16_t        urgent;         /* Urgent pointer */
 } PACKED_END;
 
 #define UDP_PROTO 17
 PACKED_BEGIN
 struct udp {
-    uint16          udp_sport;      /* Source port */
-    uint16          udp_dport;      /* Destination port */
-    uint16          len;            /* Length */
-    uint16          chksum;         /* packet checksum */
+    uint16_t        udp_sport;      /* Source port */
+    uint16_t        udp_dport;      /* Destination port */
+    uint16_t        len;            /* Length */
+    uint16_t        chksum;         /* packet checksum */
 } PACKED_END;
 
 PACKED_BEGIN
 struct udp_hdr {
     in_addr_T       ip_src;
     in_addr_T       ip_dst;         /* source and dest address */
-    uint8           zero;
-    uint8           proto;          /* Protocol */
-    uint16          hlen;           /* Length of header and data */
+    uint8_t         zero;
+    uint8_t         proto;          /* Protocol */
+    uint16_t        hlen;           /* Length of header and data */
 } PACKED_END;
 
 #define ICMP_PROTO 1
 PACKED_BEGIN
 struct icmp {
-    uint8           type;           /* Type of packet */
-    uint8           code;           /* Code */
-    uint16          chksum;         /* packet checksum */
+    uint8_t         type;           /* Type of packet */
+    uint8_t         code;           /* Code */
+    uint16_t        chksum;         /* packet checksum */
 } PACKED_END;
 
 PACKED_BEGIN
@@ -180,16 +182,16 @@ struct ip_hdr {
 PACKED_BEGIN
 struct arp_hdr {
     struct ec_eth_hdr  ethhdr;
-    uint16             hwtype;
-    int16              protocol;
-    uint8              hwlen;
-    uint8              protolen;
-    uint16             opcode;
+    uint16_t           hwtype;
+    int16_t            protocol;
+    uint8_t            hwlen;
+    uint8_t            protolen;
+    uint16_t           opcode;
     ETH_MAC            shwaddr;
     in_addr_T          sipaddr;
     ETH_MAC            dhwaddr;
     in_addr_T          dipaddr;
-    uint8              padding[18];
+    uint8_t            padding[18];
 } PACKED_END;
 
 struct ec_device {
@@ -203,21 +205,21 @@ struct ec_device {
     int               macs_n;       /* Number of multi-cast addresses */
     ETH_MAC           macs[67];     /* Watched Multi-cast addresses */
     int               amc;          /* Recieve all multicast packets */
-    uint32            rx_count;     /* Packets received */
-    uint32            tx_count;     /* Packets sent */
+    uint32_t          rx_count;     /* Packets received */
+    uint32_t          tx_count;     /* Packets sent */
     t_stat            drop_cnt;     /* Packets dropped */
     int               r_pkt;        /* Packet pending */
     int               poll;         /* Need to poll receiver */
     int               lp_rdy;       /* Loop back packet ready */
     int               rec_ptr;      /* Receive pointer */
     int               xtr_ptr;      /* Extract pointer */
-    uint8             conf[12];     /* user specified configuration */
+    uint8_t           conf[12];     /* user specified configuration */
 } ec_data;
 
 #define LOOP_MSK 0x3ff
 
-extern  int32 tmxr_poll;
-extern  uint32  cont_chan(uint16 chsa);
+extern  int32_t tmxr_poll;
+extern  uint32_t cont_chan(uint16_t chsa);
 
 static const ETH_MAC broadcast_ethaddr = {0xff,0xff,0xff,0xff,0xff,0xff};
 
@@ -225,24 +227,24 @@ static const ETH_MAC broadcast_ethaddr = {0xff,0xff,0xff,0xff,0xff,0xff};
 CHANP       ec_chp[NUM_UNITS_ETHER] = {0};
 
 /* forward definitions */
-t_stat      ec_preio(UNIT *uptr, uint16 chan);
-t_stat      ec_startcmd(UNIT *uptr, uint16 chan, uint8 cmd);
+t_stat      ec_preio(UNIT *uptr, uint16_t chan);
+t_stat      ec_startcmd(UNIT *uptr, uint16_t chan, uint8_t cmd);
 t_stat      ec_rec_srv(UNIT *uptr);
 t_stat      ec_srv(UNIT *uptr);
 t_stat      ec_haltio(UNIT *uptr);
-t_stat      ec_iocl(CHANP *chp, int32 tic_ok);
+t_stat      ec_iocl(CHANP *chp, int32_t tic_ok);
 void        ec_packet_debug(const char *action, ETH_PACK *packet);
 t_stat      ec_reset (DEVICE *dptr);
 void        ec_ini(UNIT *, bool);
 t_stat      ec_rsctrl(UNIT *uptr);
 t_stat      ec_rschnlio(UNIT *uptr);
-t_stat      ec_show_mac (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat      ec_set_mac (UNIT* uptr, int32 val, const char* cptr, void* desc);
-t_stat      ec_show_mode (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat      ec_set_mode (UNIT* uptr, int32 val, const char* cptr, void* desc);
+t_stat      ec_show_mac (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat      ec_set_mac (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+t_stat      ec_show_mode (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat      ec_set_mode (UNIT* uptr, int32_t val, const char* cptr, void* desc);
 t_stat      ec_attach (UNIT * uptr, const char * cptr);
 t_stat      ec_detach (UNIT * uptr);
-t_stat      ec_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat      ec_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char  *ec_description (DEVICE *dptr);
 
 #define ec_master_uptr (&ec_unit[0])    /* Unit doing receive digestion */
@@ -267,14 +269,14 @@ UNIT ec_unit[] = {
 };
 
 DIB             ec_dib = {
-    ec_preio,       /* t_stat (*pre_io)(UNIT *uptr, uint16 chan)*/  /* Pre Start I/O */
-    ec_startcmd,    /* t_stat (*start_cmd)(UNIT *uptr, uint16 chan, uint8 cmd)*/ /* Start command */
+    ec_preio,       /* t_stat (*pre_io)(UNIT *uptr, uint16_t chan)*/  /* Pre Start I/O */
+    ec_startcmd,    /* t_stat (*start_cmd)(UNIT *uptr, uint16_t chan, uint8_t cmd)*/ /* Start command */
     ec_haltio,      /* t_stat (*halt_io)(UNIT *uptr) */     /* Halt I/O */
     NULL,           /* t_stat (*stop_io)(UNIT *uptr) */     /* Stop I/O */
     NULL,           /* t_stat (*test_io)(UNIT *uptr) */     /* Test I/O */
     ec_rsctrl,      /* t_stat (*rsctl_io)(UNIT *uptr) */    /* Reset Controller */
     ec_rschnlio,    /* t_stat (*rschnl_io)(UNIT *uptr) */   /* Reset Channel */
-    ec_iocl,        /* t_stat (*iocl_io)(CHANP *chp, int32 tic_ok)) */  /* Process IOCL */
+    ec_iocl,        /* t_stat (*iocl_io)(CHANP *chp, int32_t tic_ok)) */  /* Process IOCL */
     ec_ini,         /* void (*dev_ini)(UNIT *uptr) */       /* init function */
     ec_unit,        /* UNIT *units */           /* Pointer to units structure */
     ec_chp,         /* CHANP *chan_prg */       /* Pointer to chan_prg structure */
@@ -331,15 +333,15 @@ DEVICE ec_dev = {
 /* load in the IOCD and process the commands */
 /* return = 0 OK */
 /* return = 1 error, chan_status will have reason */
-t_stat  ec_iocl(CHANP *chp, int32 tic_ok)
+t_stat  ec_iocl(CHANP *chp, int32_t tic_ok)
 {
-    uint32      word1 = 0;
-    uint32      word2 = 0;
-    int32       docmd = 0;
+    uint32_t    word1 = 0;
+    uint32_t    word2 = 0;
+    int32_t     docmd = 0;
     UNIT        *uptr = chp->unitptr;           /* get the unit ptr */
-    uint16      chan = get_chan(chp->chan_dev); /* our channel */
-    uint16      chsa = chp->chan_dev;
-    uint16      devstat = 0;
+    uint16_t    chan = get_chan(chp->chan_dev); /* our channel */
+    uint16_t    chsa = chp->chan_dev;
+    uint16_t    devstat = 0;
     DEVICE      *dptr = get_dev(uptr);
 
     /* check for valid iocd address if 1st iocd */
@@ -626,7 +628,7 @@ loop:
         /* see if command completed */
         /* we have good status */
         if (chp->chan_status & (STATUS_DEND|STATUS_CEND)) {
-            uint16  chsa = GET_UADDR(uptr->u3); /* get channel & sub address */
+            uint16_t chsa = GET_UADDR(uptr->u3); /* get channel & sub address */
             chan_end(chsa, SNS_CHNEND|SNS_DEVEND);  /* show I/O complete */
             sim_debug(DEBUG_XIO, dptr,
                 "ec_iocl @%06x FIFO #%1x cmd complete chan %04x status %04x count %04x\n",
@@ -642,14 +644,14 @@ loop:
 }
 
 /* start an ethernet operation */
-t_stat ec_preio(UNIT *uptr, uint16 chan) {
+t_stat ec_preio(UNIT *uptr, uint16_t chan) {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void) chan;
 
     DEVICE      *dptr = get_dev(uptr);
     int         unit = (uptr - dptr->units);
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
 
     sim_debug(DEBUG_CMD, dptr, "ec_preio CMD %08x unit %02x chsa %04x\n",
         uptr->CMD, unit, chsa);
@@ -665,14 +667,14 @@ t_stat ec_preio(UNIT *uptr, uint16 chan) {
 }
 
 /* Start ethernet command */
-t_stat ec_startcmd(UNIT *uptr, uint16 chan,  uint8 cmd)
+t_stat ec_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void) chan;
 
     DEVICE      *dptr = get_dev(uptr);
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
 
     sim_debug(DEBUG_CMD, dptr,
@@ -759,17 +761,17 @@ t_stat ec_rec_srv(UNIT *uptr)
 /* Handle processing of ethernet requests. */
 t_stat ec_srv(UNIT *uptr)
 {
-    uint16          chsa = GET_UADDR(uptr->CMD);
+    uint16_t        chsa = GET_UADDR(uptr->CMD);
     DEVICE          *dptr = get_dev(uptr);
     CHANP           *chp = find_chanp_ptr(chsa);    /* get channel prog pointer */
     int             cmd = uptr->CMD & EC_CMDMSK;
-    uint32          mema;
+    uint32_t        mema;
     int             i, pktlen;
     int             n, len;
     int             pirq, cnt, dcnt;
-    uint8           ch;
-    uint8           buf[1520];
-    uint8           *pck;
+    uint8_t         ch;
+    uint8_t         buf[1520];
+    uint8_t         *pck;
     struct ec_eth_hdr *hdr;
     DIB             *pdibp = dib_chan[get_chan(chsa)];   /* channel DIB */
     CHANP           *pchp = pdibp->chan_prg;    /* get channel chp */
@@ -884,7 +886,7 @@ t_stat ec_srv(UNIT *uptr)
         sim_debug(DEBUG_DETAIL, dptr, "ec_srv START %04x mode %d write %d %d conf=%d cnt 0x%x q %d\n",
             chsa, i, ec_data.xtr_ptr, ec_data.rec_ptr, ec_data.conf[9], chp->ccw_count, n);
         hdr = (struct ec_eth_hdr *)(&ec_data.snd_buff.msg[0]);
-        pck = (uint8 *)(&ec_data.snd_buff.msg[0]);
+        pck = (uint8_t *)(&ec_data.snd_buff.msg[0]);
         uptr->SNS &= LMASK;                     /* remove old count */
         pktlen = 0;
 
@@ -1043,7 +1045,7 @@ t_stat ec_srv(UNIT *uptr)
 
             /* set transfer count of user bytes supplied */
             uptr->SNS |= ((sizeof(struct ec_eth_hdr) -
-                sizeof(ETH_MAC) - sizeof(int16)) & 0xffff);
+                sizeof(ETH_MAC) - sizeof(int16_t)) & 0xffff);
 
             /* copy in user supplied packet data */
             /* make min cnt 60 and max 1514 */
@@ -1227,7 +1229,7 @@ wr_end:
         uptr->SNS &= LMASK;                     /* remove old count */
         ec_master_uptr->SNS |= SNS_RCV_RDY;
         ec_packet_debug("recv", &ec_data.rec_buff[ec_data.xtr_ptr]);
-        pck = (uint8 *)(&ec_data.rec_buff[ec_data.xtr_ptr].msg[0]);
+        pck = (uint8_t *)(&ec_data.rec_buff[ec_data.xtr_ptr].msg[0]);
         len = (int)(ec_data.rec_buff[ec_data.xtr_ptr].len);
         n = sizeof(struct ec_eth_hdr);
         cnt = len - n;                          /* number of data bytes */
@@ -1513,7 +1515,7 @@ wr_end:
 
 /* Handle haltio transfers for ethernet */
 t_stat  ec_haltio(UNIT *uptr) {
-    uint16      chsa = GET_UADDR(uptr->CMD);
+    uint16_t    chsa = GET_UADDR(uptr->CMD);
     DEVICE      *dptr = get_dev(uptr);
     int         cmd = uptr->CMD & EC_CMDMSK;
     CHANP       *chp = find_chanp_ptr(chsa);    /* find the chanp pointer */
@@ -1583,7 +1585,7 @@ void ec_ini(UNIT *uptr, bool f)
 /* handle reset controller cmds for Ethernet */
 t_stat      ec_rsctrl(UNIT *uptr) {
     DEVICE  *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & EC_CMDMSK;
 
 /*JCB*/    uptr->CMD &= LMASK;                  /* remove old status bits & cmd */
@@ -1603,7 +1605,7 @@ t_stat      ec_rsctrl(UNIT *uptr) {
 /* handle reset channel cmds for Ethernet */
 t_stat  ec_rschnlio(UNIT *uptr) {
     DEVICE  *dptr = get_dev(uptr);
-    uint16  chsa = GET_UADDR(uptr->CMD);
+    uint16_t chsa = GET_UADDR(uptr->CMD);
     int     cmd = uptr->CMD & EC_CMDMSK;
 
     sim_debug(DEBUG_EXP, dptr,
@@ -1641,7 +1643,7 @@ void ec_packet_debug(const char *action, ETH_PACK *packet) {
     struct udp         *udp;
     struct tcp         *tcp;
     struct icmp        *icmp;
-    uint8              *payload;
+    uint8_t            *payload;
     struct in_addr     ipaddr;
     size_t             len;
     int                flag;
@@ -1652,7 +1654,7 @@ void ec_packet_debug(const char *action, ETH_PACK *packet) {
     char               flags[64];
     static struct tcp_flag_bits {
         const char *name;
-        uint16      bitmask;
+        uint16_t    bitmask;
         } bits[] = {
             {"FIN", TCP_FL_FIN},
             {"SYN", TCP_FL_SYN},
@@ -1733,7 +1735,7 @@ void ec_packet_debug(const char *action, ETH_PACK *packet) {
         return;
     }
     /* always dump packet */
-    payload = (uint8 *)&packet->msg[0];
+    payload = (uint8_t *)&packet->msg[0];
     len = packet->len & 0xffff;     /* JCB */
     sim_data_trace(&ec_dev, ec_unit, payload, "", len, "", DEBUG_DATA);
     if (ntohs(eth->type) != ETHTYPE_IP) {
@@ -1745,7 +1747,7 @@ void ec_packet_debug(const char *action, ETH_PACK *packet) {
     strlcpy(src_ip, ipv4_inet_ntoa(ipaddr), sizeof(src_ip));
     memcpy(&ipaddr, &ip->ip_dst, sizeof(ipaddr));
     strlcpy(dst_ip, ipv4_inet_ntoa(ipaddr), sizeof(dst_ip));
-    payload = (uint8 *)&packet->msg[sizeof(struct ec_eth_hdr) + (ip->ip_v_hl & 0xf) * 4];
+    payload = (uint8_t *)&packet->msg[sizeof(struct ec_eth_hdr) + (ip->ip_v_hl & 0xf) * 4];
     switch (ip->ip_p) {
         case UDP_PROTO:
             udp = (struct udp *)payload;
@@ -1789,7 +1791,7 @@ void ec_packet_debug(const char *action, ETH_PACK *packet) {
     }
 }
 
-t_stat ec_show_mode (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat ec_show_mode (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -1800,7 +1802,7 @@ t_stat ec_show_mode (FILE* st, UNIT* uptr, int32 val, const void* desc)
     return SCPE_OK;
 }
 
-t_stat ec_set_mode (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat ec_set_mode (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -1826,7 +1828,7 @@ t_stat ec_set_mode (UNIT* uptr, int32 val, const char* cptr, void* desc)
 }
 
 
-t_stat ec_show_mac (FILE* st, UNIT* uptr, int32 val, const void* desc)
+t_stat ec_show_mac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -1840,7 +1842,7 @@ t_stat ec_show_mac (FILE* st, UNIT* uptr, int32 val, const void* desc)
     return SCPE_OK;
 }
 
-t_stat ec_set_mac (UNIT* uptr, int32 val, const char* cptr, void* desc)
+t_stat ec_set_mac (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -1954,7 +1956,7 @@ t_stat ec_detach(UNIT* uptr)
     return SCPE_OK;
 }
 
-t_stat ec_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ec_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     fprintf(st, "Ethernet interface\n\n");
     fprintf(st, "The ethernet interfaces to the network. Setting MAC defines default MAC address\n");

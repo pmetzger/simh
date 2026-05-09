@@ -24,8 +24,10 @@
  */
 
 #include <setjmp.h>
+#include <stdint.h>
 
 #include "sim_defs.h"
+#include "sim_types.h"
 
 #include "nd100_defs.h"
 
@@ -33,27 +35,27 @@
 
 typedef struct {
         int     ir;
-        int16   sts;
-        int16   d;
-        int16   p;
-        int16   b;
-        int16   l;
-        int16   a;
-        int16   t;
-        int16   x;
+        int16_t sts;
+        int16_t d;
+        int16_t p;
+        int16_t b;
+        int16_t l;
+        int16_t a;
+        int16_t t;
+        int16_t x;
 } Hist_entry ;
 
 #define HIST_IR_INVALID -1
 #define HIST_MIN        0
 #define HIST_MAX        1000000
 
-static  int32   hist_p = 0;
-static  int32   hist_cnt = 0;
+static  int32_t hist_p = 0;
+static  int32_t hist_cnt = 0;
 static  Hist_entry *hist = NULL;
 static  struct intr *ilnk[4];   /* level 10-13 */
 jmp_buf env;
 
-uint16 R[8], RBLK[16][8], regSTH, oregP;
+uint16_t R[8], RBLK[16][8], regSTH, oregP;
 int curlvl;             /* current interrupt level */
 int iic, iie, iid;      /* IIC/IIE/IID register */
 int pid, pie;           /* PID/PIE register */
@@ -66,10 +68,10 @@ int ald, eccr, pvl, lmp, opr;
  * quantity.  Cast A before shifting so the high bit is handled as part of
  * the simulated word rather than as a signed host integer promotion.
  */
-static inline uint32
+static inline uint32_t
 nd100_ad_u32(void)
 {
-    return ((uint32)regA << 16) | (uint32)regD;
+    return ((uint32_t)regA << 16) | (uint32_t)regD;
 }
 
 #define SETC()          (regSTL |= STS_C)
@@ -79,12 +81,12 @@ nd100_ad_u32(void)
 #define SETO()          (regSTL |= STS_O)
 #define CLRO()          (regSTL &= ~STS_O)
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
 
-t_stat hist_set(UNIT * uptr, int32 val, const char * cptr, void * desc);
-t_stat hist_show(FILE * st, UNIT * uptr, int32 val, const void * desc);
+t_stat hist_set(UNIT * uptr, int32_t val, const char * cptr, void * desc);
+t_stat hist_show(FILE * st, UNIT * uptr, int32_t val, const void * desc);
 static void hist_fprintf(FILE *fp, int itemNum, Hist_entry *hptr);
 static void hist_save(int ir);
 
@@ -96,7 +98,7 @@ static int nd_mcl(int reg);
 static int nd_mst(int reg);
 static int highest_level(void);
 static void identrm(int);
-static uint16 add3(uint16 a, uint16 d, uint16 c);
+static uint16_t add3(uint16_t a, uint16_t d, uint16_t c);
 int fls(int);
 
 int ins_store(int ir, int addr);
@@ -181,7 +183,7 @@ sim_instr(void)
         int reason;
         int n, i;
         int first = 1;
-        uint16 off;
+        uint16_t off;
 
         (void)setjmp(env);
         reason = 0;
@@ -264,7 +266,7 @@ cpu_reset(DEVICE *dptr)
 }
 
 t_stat
-cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
         /* Generic examine signature.
            This implementation does not use every parameter. */
@@ -280,7 +282,7 @@ cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
 /* Memory deposit */
 
 t_stat
-cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw)
+cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
         /* Generic deposit signature.
            This implementation does not use every parameter. */
@@ -349,7 +351,7 @@ ins_load(int IR, int off)
 int
 ins_min(int IR, int off)
 {
-        uint16 s;
+        uint16_t s;
         int pt = SELPT2(IR);
 
         wrmem(off, s = rdmem(off, pt) + 1, pt);
@@ -364,7 +366,7 @@ ins_min(int IR, int off)
 int
 ins_add(int IR, int off)
 {
-        uint16 d = rdmem(off, SELPT2(IR));
+        uint16_t d = rdmem(off, SELPT2(IR));
         int n = 0;
 
         if (ID(IR) == ID(ND_SUB))
@@ -379,7 +381,7 @@ ins_add(int IR, int off)
 int
 ins_andor(int IR, int off)
 {
-        uint16 s = rdmem(off, SELPT2(IR));
+        uint16_t s = rdmem(off, SELPT2(IR));
 
         regA = BIT11(IR) ? (regA | s) : (regA & s);
         return SCPE_OK;
@@ -467,7 +469,7 @@ ins_movb(void)
 
         if (regX > regA) {      /* copy bottom-top */
                 for (i = BYTELN(regD); i < BYTELN(regT); i++, regD++) {
-                        int8 w = rdbyte(regA, BIT15(regD), M_APT);
+                        int8_t w = rdbyte(regA, BIT15(regD), M_APT);
                         wrbyte(regX, w, BIT15(regT), M_APT);
                         regD ^= 0100000;
                         if (BIT15(regD) == 0) regA++;
@@ -519,7 +521,7 @@ ins_movbf(void)
         }
 
         for (i = BYTELN(regD); i < BYTELN(regT); i++, regD++) {
-                int8 w = rdbyte(regA, BIT15(regD), M_APT);
+                int8_t w = rdbyte(regA, BIT15(regD), M_APT);
                 wrbyte(regX, w, BIT15(regT), M_APT);
                 regD ^= 0100000;
                 if (BIT15(regD) == 0) regA++;
@@ -537,9 +539,9 @@ ins_movbf(void)
 int
 ins_skip_ext(int IR)
 {
-        uint16 d;
-        int16 ss, sd;
-        int32 shc;
+        uint16_t d;
+        int16_t ss, sd;
+        int32_t shc;
         int paddr, reason = 0;
 
         if ((IR & 0177707) == ND_SKP_CLEPT) {
@@ -547,7 +549,7 @@ ins_skip_ext(int IR)
         } else if ((IR & 0177700) == ND_SKP_LDATX) {
                 /* Special physmem instructions */
                 d = regX + ((IR & 070) >> 3);
-                paddr = ((unsigned int)regT << 16) | (unsigned int)d;
+                paddr = ((uint_t)regT << 16) | (uint_t)d;
                 switch (IR & ~070) {
                 case ND_SKP_LDATX:
                         regA = prdmem(paddr, PM_CPU);
@@ -620,7 +622,7 @@ ins_skip_ext(int IR)
                 regA = shc >> 16;
         } else if ((IR & 0177700) == ND_SKP_RDIV) {
                 ss = R[(IR & 070) >> 3];
-                shc = (int32)nd100_ad_u32();
+                shc = (int32_t)nd100_ad_u32();
                 regA = shc / ss;
                 regD = shc % ss;
         } else if (IR == 0142700 || IR == 0143700) {
@@ -806,7 +808,7 @@ ins_sht(int IR, int off)
 {
         char sht_reg[] = { rnT, rnD, rnA, 0 };
         int m, n, rs, i;
-        uint32 ushc;
+        uint32_t ushc;
 
         /* Instruction dispatch table signature.
            This instruction does not use every parameter. */
@@ -1012,15 +1014,15 @@ ins_bop(int IR, int addr)
 struct fp {
         int s;
         int e;
-        t_uint64 m;
+        uint64_t m;
 };
 
 static void
-mkfp48(struct fp *fp, uint16 w1, uint16 w2, uint16 w3)
+mkfp48(struct fp *fp, uint16_t w1, uint16_t w2, uint16_t w3)
 {
         fp->s = BIT15(w1);
         fp->e = (w1 & 077777) - 16384;
-        fp->m = ((t_uint64)w2 << 16) + (t_uint64)w3;
+        fp->m = ((uint64_t)w2 << 16) + (uint64_t)w3;
 }
 
 /*
@@ -1046,7 +1048,7 @@ mkfp48(struct fp *fp, uint16 w1, uint16 w2, uint16 w3)
 void
 ins_dnz(int ins)
 {
-        int32 val = 0; /* XXX remove warnings */
+        int32_t val = 0; /* XXX remove warnings */
         int sh;
 
         sh = (regT & 077777) - 16384 + SEXT8(ins);
@@ -1063,7 +1065,7 @@ ins_dnz(int ins)
         if (regT & 0100000)
                 val = -val;
         regT = regD = 0;
-        regA = (uint16)val;
+        regA = (uint16_t)val;
 }
 
 /*
@@ -1089,7 +1091,7 @@ ins_nlz(int ins)
                 return;
         }
 
-        val = (int)(int16)regA;
+        val = (int)(int16_t)regA;
         sh = 16384 + SEXT8(ins);
         if (val < 0)
                 val = -val, s = 0100000;
@@ -1117,7 +1119,7 @@ ins_fmu(int IR, int addr)
 {
         struct fp f1, f2;
         int s3, e3, pt = SELPT2(IR);
-        t_uint64 m3;
+        uint64_t m3;
 
         /* Fetch from memory */
         mkfp48(&f1, rdmem(addr, pt), rdmem(addr+1, pt), rdmem(addr+2, pt));
@@ -1137,8 +1139,8 @@ ins_fmu(int IR, int addr)
         }
 
         /* restore regs */
-        regA = (uint16)(m3 >> 48);
-        regD = (uint16)(m3 >> 32);
+        regA = (uint16_t)(m3 >> 48);
+        regD = (uint16_t)(m3 >> 32);
         regT = (e3 + 16384) | (s3 << 15);
         if (m3 == 0 || e3 < -16383)
                 regT = regA = regD = 0;
@@ -1161,7 +1163,7 @@ ins_fdv(int IR, int addr)
 {
         struct fp f1, f2;
         int s3, e3, pt;
-        t_uint64 m3;
+        uint64_t m3;
 
         /* Fetch from memory */
         pt = SELPT2(IR);
@@ -1194,8 +1196,8 @@ ins_fdv(int IR, int addr)
         }
 
         /* restore regs */
-        regA = (uint16)(m3 >> 16);
-        regD = (uint16)m3;
+        regA = (uint16_t)(m3 >> 16);
+        regD = (uint16_t)m3;
         regT = (e3 + 16384) | (s3 << 15);
         if (f2.m == 0 || e3 < -16383)
                 regT = regA = regD = 0;
@@ -1215,7 +1217,7 @@ static void
 add48(struct fp *f1, struct fp *f2)
 {
         struct fp *ft;
-        t_uint64 m3;
+        uint64_t m3;
         int scale, gbit;
 
         /* Ensure f1 is larger */
@@ -1237,8 +1239,8 @@ add48(struct fp *f1, struct fp *f2)
         }
 
 done:   regT = (f1->e + 16384) | (f1->s << 15);
-        regA = (uint16)(m3 >> 16);
-        regD = (uint16)m3;
+        regA = (uint16_t)(m3 >> 16);
+        regD = (uint16_t)m3;
 }
 
 /*
@@ -1255,7 +1257,7 @@ static void
 sub48(struct fp *f1, struct fp *f2)
 {
         struct fp *ft;
-        t_uint64 m3;
+        uint64_t m3;
         int scale, gbit;
 
         /* Ensure f1 is bigger */
@@ -1286,8 +1288,8 @@ sub48(struct fp *f1, struct fp *f2)
         }
 
 done:   regT = (f1->e + 16384) | (f1->s << 15);
-        regA = (uint16)(m3 >> 16);
-        regD = (uint16)m3;
+        regA = (uint16_t)(m3 >> 16);
+        regD = (uint16_t)m3;
 }
 
 int
@@ -1327,10 +1329,10 @@ ins_fsb(int IR, int addr)
 /*
  * Add three numbers, setting overflow and carry as needed.
  */
-uint16
-add3(uint16 a, uint16 d, uint16 c)
+uint16_t
+add3(uint16_t a, uint16_t d, uint16_t c)
 {
-        int32 res;
+        int32_t res;
 
         CLRC();
         CLRQ();
@@ -1352,7 +1354,7 @@ add3(uint16 a, uint16 d, uint16 c)
 int
 ins_mpy(int IR, int off)
 {
-        int res = (int)(int16)regA * (int)(int16)rdmem(off, SELPT2(IR));
+        int res = (int)(int16_t)regA * (int)(int16_t)rdmem(off, SELPT2(IR));
         regA = res;
         regSTL &= ~STS_Q;
         if (res > 32767)
@@ -1380,7 +1382,7 @@ ins_cjp(int IR, int off)
 {
         char cjpmsk[] = { 01, 01, 02, 02, 05, 05, 02, 01 };
         int n, i;
-        uint16 s;
+        uint16_t s;
 
         /* Instruction dispatch table signature.
            This instruction does not use every parameter. */
@@ -1405,7 +1407,7 @@ int
 ins_skp(int IR, int off)
 {
         int c_o, shc, n, rv = SCPE_OK;
-        uint16 s, d;
+        uint16_t s, d;
 
         /* Instruction dispatch table signature.
            This instruction does not use every parameter. */
@@ -1435,7 +1437,7 @@ int
 ins_rop(int IR, int off)
 {
         int n, rs, rd;
-        uint16 s, d;
+        uint16_t s, d;
 
         /* Instruction dispatch table signature.
            This instruction does not use every parameter. */
@@ -1753,9 +1755,9 @@ hist_save(int ir)
 }
 
 t_stat
-hist_set(UNIT *uptr, int32 val, const char *cptr, void *desc)
+hist_set(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
-        int32 i, lnt;
+        int32_t i, lnt;
         t_stat r;
 
         /* Generic set modifier signature.
@@ -1771,7 +1773,7 @@ hist_set(UNIT *uptr, int32 val, const char *cptr, void *desc)
                 return SCPE_OK;
         }
 
-        lnt = (int32) get_uint(cptr, 10, HIST_MAX, &r);
+        lnt = (int32_t) get_uint(cptr, 10, HIST_MAX, &r);
         if ((r != SCPE_OK) || (lnt && (lnt < HIST_MIN)))
                 return SCPE_ARG;
 
@@ -1819,9 +1821,9 @@ ioxprint(FILE *fp, Hist_entry *hptr, int ioaddr)
 }
 
 t_stat
-hist_show(FILE *st, UNIT *uptr, int32 val, const void *desc)
+hist_show(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
-        int32 k, di, lnt;
+        int32_t k, di, lnt;
         const char *cptr = (const char *) desc;
         t_stat r;
         Hist_entry *hptr;
@@ -1835,7 +1837,7 @@ hist_show(FILE *st, UNIT *uptr, int32 val, const void *desc)
                 return SCPE_NOFNC;
 
         if (cptr) { /*  number of entries specified  */
-                lnt = (int32)get_uint(cptr, 10, hist_cnt, &r);
+                lnt = (int32_t)get_uint(cptr, 10, hist_cnt, &r);
                 if ((r != SCPE_OK) || (lnt == 0))
                         return SCPE_ARG;
         } else

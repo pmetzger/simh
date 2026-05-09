@@ -10,7 +10,7 @@
 #include "test_simh_personality.h"
 #include "test_support.h"
 
-t_stat set_dev_enbdis(DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat set_dev_enbdis(DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 
 struct scp_unit_fixture {
     char temp_dir[1024];

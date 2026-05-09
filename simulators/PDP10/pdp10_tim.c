@@ -42,6 +42,7 @@
 #include "pdp10_defs.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* The KS timer works off a 4.100 MHz (243.9024 nsec) oscillator that
  * is independent of all other system timing.
@@ -129,27 +130,27 @@ static d10 tim_base[2] = { 0, 0 };                      /* 71b timebase */
 static d10 tim_interval = 0;                            /* value programmed into the clock */
 static d10 tim_period = 0;                              /* period in HW ticks adjusted for non-zero LSBs */
 static d10 tim_new_period = 0;                          /* period for the next interval */
-static int32 tim_mult;                                  /* Multiple of interval timer period at which tmxr is polled */
+static int32_t tim_mult;                                /* Multiple of interval timer period at which tmxr is polled */
 
 d10 quant = 0;                                          /* ITS quantum */
 
 /* Exported variables - initialized by set CPU model and reset */
 
-int32 clk_tps;                                          /* Interval clock ticks/sec */
-int32 tick_in_usecs;                                    /* Interval tick size in usecs */
-int32 tmr_poll;                                         /* SimH instructions/clock service */
-int32 tmxr_poll;                                        /* SimH instructions/term mux poll */
+int32_t clk_tps;                                        /* Interval clock ticks/sec */
+int32_t tick_in_usecs;                                  /* Interval tick size in usecs */
+int32_t tmr_poll;                                       /* SimH instructions/clock service */
+int32_t tmxr_poll;                                      /* SimH instructions/term mux poll */
 
-extern int32 apr_flg, pi_act;
+extern int32_t apr_flg, pi_act;
 extern d10 pcst;
 
-static t_stat tcu_rd (int32 *data, int32 PA, int32 access);
+static t_stat tcu_rd (int32_t *data, int32_t PA, int32_t access);
 static t_stat tim_svc (UNIT *uptr);
 static t_stat tim_reset (DEVICE *dptr);
 static bool update_interval (d10 new_interval);
 static void tim_incr_base (d10 *base, d10 incr);
 
-extern t_stat wr_nop (int32 data, int32 PA, int32 access);
+extern t_stat wr_nop (int32_t data, int32_t PA, int32_t access);
 
 /* TIM data structures
 
@@ -220,7 +221,7 @@ DEVICE tim_dev = {
  * E,E+1.
  */
 
-bool rdtim (a10 ea, int32 prv)
+bool rdtim (a10 ea, int32_t prv)
 {
 d10 tempbase[2];                  /* Local copy of tempbase to interpolate */
 d10 incr;                         /* Interpolated increment for timebase   */
@@ -268,7 +269,7 @@ return false;
  * order word read (the part corresponding to the hardware millisecond
  * counter), and place the result in the time base registers in the workspace.
  */
-bool wrtim (a10 ea, int32 prv)
+bool wrtim (a10 ea, int32_t prv)
 {
 tim_base[0] = Read (ea, prv);
 tim_base[1] = CLRS (Read (INCA (ea), prv) & ~((d10) TIM_HWRE_MASK));
@@ -280,7 +281,7 @@ return false;
  * Read the contents of the interval register into location E. The period read is
  * the same as that supplied by WRINT.
  */
-bool rdint (a10 ea, int32 prv)
+bool rdint (a10 ea, int32_t prv)
 {
 Write (ea, tim_interval, prv);
 sim_debug (DEB_RRD, &tim_dev, "rdint() = %012" LL_FMT "o\n", tim_interval);
@@ -296,7 +297,7 @@ return false;
  * the workspace.
  */
 
-bool wrint (a10 ea, int32 prv)
+bool wrint (a10 ea, int32_t prv)
 {
 tim_interval = CLRS (Read (ea, prv));
 sim_debug (DEB_RWR, &tim_dev, "wrint(%012" LL_FMT "o)\n", tim_interval);
@@ -305,8 +306,8 @@ return update_interval (tim_interval);
 
 static bool update_interval (d10 new_interval)
 {
-int32 old_clk_tps = clk_tps;
-int32 old_tick_in_usecs = tick_in_usecs;
+int32_t old_clk_tps = clk_tps;
+int32_t old_tick_in_usecs = tick_in_usecs;
 
 /*
  * The value provided is in hardware clicks. For a frequency of 4.1
@@ -354,11 +355,11 @@ if (tim_new_period == 0) {
     sim_debug (DEB_TPS, &tim_dev, "update_interval() - ignoring 0 value interval\n");
     return false;
     }
-tick_in_usecs = (int32)(((double)new_interval)/(((double)TIM_HW_FREQ)/1000000.0));
+tick_in_usecs = (int32_t)(((double)new_interval)/(((double)TIM_HW_FREQ)/1000000.0));
 if (tick_in_usecs != old_tick_in_usecs)
     sim_debug (DEB_TPS, &tim_dev, "update_interval() - tick_in_usecs changed from %d to %d\n", old_tick_in_usecs, tick_in_usecs);
 /* clk_tps is the new number of clocks ticks per second */
-clk_tps = (int32) ceil(((double)TIM_HW_FREQ /(double)tim_new_period) - 0.5);
+clk_tps = (int32_t) ceil(((double)TIM_HW_FREQ /(double)tim_new_period) - 0.5);
 if (clk_tps != old_clk_tps)
     sim_debug (DEB_TPS, &tim_dev, "update_interval() - clk_tps changed from %d to %d\n", old_clk_tps, clk_tps);
 
@@ -395,7 +396,7 @@ else {
 /* tmxr is polled every tim_mult clks.  Compute the divisor matching the target. */
 tim_mult = (clk_tps <= TIM_TMXR_FREQ) ? 1 : (clk_tps / TIM_TMXR_FREQ) ;
 
-tmxr_poll = tim_mult * (int32)(sim_timer_inst_per_sec () / clk_tps);/* set mux poll */
+tmxr_poll = tim_mult * (int32_t)(sim_timer_inst_per_sec () / clk_tps);/* set mux poll */
 tim_incr_base (tim_base, tim_period);                   /* incr time base based on period of expired interval */
 tim_period = tim_new_period;                            /* If interval has changed, update period */
 apr_flg = apr_flg | APRF_TIM;                           /* request interrupt */
@@ -446,7 +447,7 @@ tim_interval = 0;
 clk_tps = 60;
 sim_debug (DEB_TPS, &tim_dev, "tim_reset() - clk_tps set to %d\n", clk_tps);
 update_interval(17*4096);
-tmr_poll = (int32)(20000 * ((double)sim_rand () / (double)RAND_MAX));
+tmr_poll = (int32_t)(20000 * ((double)sim_rand () / (double)RAND_MAX));
 
 apr_flg = apr_flg & ~APRF_TIM;                          /* clear interrupt */
 
@@ -457,7 +458,7 @@ return SCPE_OK;
 
 /* Set timer parameters from CPU model */
 
-t_stat tim_set_mod (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tim_set_mod (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -491,7 +492,7 @@ return SCPE_OK;
  * http://bitsavers.trailing-edge.com/pdf/digitalPathways/tcu-150.pdf
  */
 
-static t_stat tcu_rd (int32 *data, int32 PA, int32 access)
+static t_stat tcu_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Unibus read dispatch signature.
    This implementation does not use every parameter. */

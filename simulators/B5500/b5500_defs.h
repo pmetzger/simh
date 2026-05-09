@@ -24,6 +24,8 @@
 #ifndef _B5500_H_
 #define _B5500_H_
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Definitions for each supported CPU */
@@ -40,10 +42,10 @@
 #define MAXMEMSIZE      32768
 #define CHARSPERWORD    8
 
-extern t_uint64         M[];                            /* Main Memory */
-extern uint16           IAR;                            /* Interrupt pending register */
-extern uint32           iostatus;                       /* Active device status register */
-extern uint8            loading;                        /* System booting flag */
+extern uint64_t         M[];                            /* Main Memory */
+extern uint16_t         IAR;                            /* Interrupt pending register */
+extern uint32_t         iostatus;                       /* Active device status register */
+extern uint8_t          loading;                        /* System booting flag */
 
 /* Memory */
 #define MEMSIZE         (cpu_unit[0].capac)             /* actual memory size */
@@ -66,16 +68,16 @@ extern DEBTAB dev_debug[];
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              op;
-    uint8               type;
+    uint16_t            op;
+    uint8_t             type;
     const char          *name;
 }
 t_opcode;
 
-void print_opcode(FILE * ofile, uint16 val, int chr_mode);
+void print_opcode(FILE * ofile, uint16_t val, int chr_mode);
 
 t_stat chan_reset(DEVICE *);
-t_stat chan_boot(t_uint64);
+t_stat chan_boot(uint64_t);
 int find_chan(void);
 void chan_release(int);
 void start_io(void);
@@ -91,19 +93,19 @@ void chan_set_bot(int) ;
 void chan_set_eot(int) ;
 void chan_set_wrp(int) ;
 void chan_set_blank(int) ;
-void chan_set_wc(int, uint16);
-int chan_write_char(int, uint8 *, int) ;
-int chan_read_char(int, uint8 *, int) ;
-int chan_read_disk(int, uint8 *, int) ;
-int chan_write_drum(int, uint8 *, int) ;
-int chan_read_drum(int, uint8 *, int) ;
+void chan_set_wc(int, uint16_t);
+int chan_write_char(int, uint8_t *, int) ;
+int chan_read_char(int, uint8_t *, int) ;
+int chan_read_disk(int, uint8_t *, int) ;
+int chan_write_drum(int, uint8_t *, int) ;
+int chan_read_drum(int, uint8_t *, int) ;
 
-extern uint8       parity_table[64];
-extern uint8       mem_to_ascii[64];
+extern uint8_t     parity_table[64];
+extern uint8_t     mem_to_ascii[64];
 extern const char  con_to_ascii[64];
 extern const char  ascii_to_con[128];
-extern t_stat      fprint_sym(FILE *, t_addr, t_value *, UNIT *, int32);
-extern int32       tmxr_poll;
+extern t_stat      fprint_sym(FILE *, t_addr, t_value *, UNIT *, int32_t);
+extern int32_t     tmxr_poll;
 
 /* Generic devices common to all */
 extern DEVICE      cpu_dev;
@@ -114,7 +116,7 @@ extern DEVICE      chan_dev;
 /* Global device definitions */
 #if (NUM_DEVS_CDR > 0) | (NUM_DEVS_CDP > 0)
 extern DEVICE       cdr_dev;
-extern t_stat       card_cmd(uint16, uint16, uint8, uint16 *);
+extern t_stat       card_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif
 
 #if (NUM_DEVS_CDP > 0)
@@ -123,33 +125,33 @@ extern DEVICE       cdp_dev;
 
 #if (NUM_DEVS_LPR > 0)
 extern DEVICE       lpr_dev;
-extern t_stat       lpr_cmd(uint16, uint16, uint8, uint16 *);
+extern t_stat       lpr_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif
 
 #if (NUM_DEVS_CON > 0)
 extern DEVICE       con_dev;
-extern t_stat       con_cmd(uint16, uint16, uint8, uint16 *);
+extern t_stat       con_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif
 
 #if (NUM_DEVS_DTC > 0)
 extern DEVICE      dtc_dev;
-extern t_stat      dtc_cmd(uint16, uint16, uint8, uint16 *);
+extern t_stat      dtc_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif
 
 #if (NUM_DEVS_DR > 0)
 extern DEVICE      drm_dev;
-extern t_stat      drm_cmd(uint16, uint16, uint8, uint16 *, uint8);
+extern t_stat      drm_cmd(uint16_t, uint16_t, uint8_t, uint16_t *, uint8_t);
 #endif
 
 #if (NUM_DEVS_DSK > 0)
 extern DEVICE      dsk_dev;
-extern t_stat      dsk_cmd(uint16, uint16, uint8, uint16 *);
+extern t_stat      dsk_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 extern DEVICE      esu_dev;
 #endif
 
 #if (NUM_DEVS_MT > 0)
 extern DEVICE      mt_dev;
-extern t_stat      mt_cmd(uint16, uint16, uint8, uint16 *);
+extern t_stat      mt_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif  /* NUM_DEVS_MT */
 
 /* Character codes */

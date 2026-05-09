@@ -23,10 +23,12 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "sim_defs.h"
+#include "sim_types.h"
 
 #include "nd100_defs.h"
 
@@ -50,7 +52,7 @@
 
 t_stat floppy_svc(UNIT *uptr);
 t_stat floppy_reset (DEVICE *dptr);
-t_stat floppy_boot (int32 unitno, DEVICE *dptr);
+t_stat floppy_boot (int32_t unitno, DEVICE *dptr);
 t_stat floppy_attach (UNIT *uptr, const char *cptr);
 static int floppy_excmd(void);
 static int floppy_test(UNIT *up);
@@ -368,7 +370,7 @@ getmval(void)
 static int
 dtomem(FILE *fp, int daddr, int maddr, int wcnt, int how)
 {
-        unsigned char *wp;
+        uchar_t *wp;
         int bcnt = wcnt *2;
         int i;
 
@@ -390,7 +392,7 @@ dtomem(FILE *fp, int daddr, int maddr, int wcnt, int how)
 }
 
 t_stat
-floppy_boot(int32 unitno, DEVICE *dptr)
+floppy_boot(int32_t unitno, DEVICE *dptr)
 {
         /* Generic callback signature.
            This implementation does not use every parameter. */

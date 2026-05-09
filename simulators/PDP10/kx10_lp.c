@@ -27,6 +27,7 @@
 
 #include "kx10_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #ifndef NUM_DEVS_LP
 #define NUM_DEVS_LP 0
@@ -68,21 +69,21 @@
 
 
 
-t_stat          lpt_devio(uint32 dev, uint64 *data);
+t_stat          lpt_devio(uint32_t dev, uint64 *data);
 t_stat          lpt_svc (UNIT *uptr);
 t_stat          lpt_reset (DEVICE *dptr);
 t_stat          lpt_attach (UNIT *uptr, const char *cptr);
 t_stat          lpt_detach (UNIT *uptr);
-t_stat          lpt_setlpp(UNIT *, int32, const char *, void *);
-t_stat          lpt_getlpp(FILE *, UNIT *, int32, const void *);
-t_stat          lpt_setdev(UNIT *, int32, const char *, void *);
-t_stat          lpt_getdev(FILE *, UNIT *, int32, const void *);
-t_stat          lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat          lpt_setlpp(UNIT *, int32_t, const char *, void *);
+t_stat          lpt_getlpp(FILE *, UNIT *, int32_t, const void *);
+t_stat          lpt_setdev(UNIT *, int32_t, const char *, void *);
+t_stat          lpt_getdev(FILE *, UNIT *, int32_t, const void *);
+t_stat          lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                          const char *cptr);
 const char     *lpt_description (DEVICE *dptr);
 
 char            lpt_buffer[134 * 3];
-uint8           lpt_chbuf[5];             /* Read in Character buffers */
+uint8_t         lpt_chbuf[5];             /* Read in Character buffers */
 
 /* LPT data structures
 
@@ -128,7 +129,7 @@ DEVICE lpt_dev = {
 
 /* IOT routine */
 
-t_stat lpt_devio(uint32 dev, uint64 *data) {
+t_stat lpt_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &lpt_unit;
     switch(dev & 3) {
     case CONI:
@@ -164,7 +165,7 @@ t_stat lpt_devio(uint32 dev, uint64 *data) {
          if ((uptr->STATUS & DONE_FLG) != 0) {
              int i, j;
              for (j = 0, i = 29; i > 0; i-=7)
-                 lpt_chbuf[j++] = ((uint8)(*data >> i)) & 0x7f;
+                 lpt_chbuf[j++] = ((uint8_t)(*data >> i)) & 0x7f;
              uptr->STATUS &= ~DONE_FLG;
              uptr->STATUS |= BUSY_FLG;
              clr_interrupt(dev);
@@ -198,10 +199,10 @@ lpt_printline(UNIT *uptr, int nl) {
         lpt_buffer[uptr->POS++] = '\n';
         uptr->LINE++;
     }
-    if (nl > 0 && uptr->LINE >= ((int32)uptr->capac - MARGIN)) {
+    if (nl > 0 && uptr->LINE >= ((int32_t)uptr->capac - MARGIN)) {
         lpt_buffer[uptr->POS++] = '\f';
         uptr->LINE = 0;
-    } else if (nl < 0 && uptr->LINE >= (int32)uptr->capac) {
+    } else if (nl < 0 && uptr->LINE >= (int32_t)uptr->capac) {
         uptr->LINE = 0;
     }
 
@@ -219,7 +220,7 @@ lpt_printline(UNIT *uptr, int nl) {
     return;
 }
 
-uint16 utf_code[32] = {
+uint16_t utf_code[32] = {
       0x00b7,           /* 000 - Dot */
       0x2193,           /* 001 - Down arrow */
       0x03b1,           /* 002 - Alpha */
@@ -254,7 +255,7 @@ uint16 utf_code[32] = {
       0x2228            /* 037 - Logical or */
  };
 
-uint16 waits_code[32] = {
+uint16_t waits_code[32] = {
       0x00b7,           /* 000 - Dot */
       0x2193,           /* 001 - Down arrow */
       0x03b1,           /* 002 - Alpha */
@@ -300,7 +301,7 @@ lpt_output(UNIT *uptr, char c) {
     if (((uptr->flags & UNIT_CT) == UNIT_UC) && (c & 0140) == 0140)
         c &= 0137;
     if (((uptr->flags & UNIT_CT) == UNIT_UTF8) && c < 040) {
-        uint16 u = utf_code[c & 0x1f];
+        uint16_t u = utf_code[c & 0x1f];
         if (u > 0x7ff) {
             lpt_buffer[uptr->POS++] = 0xe0 + ((u >> 12) & 0xf);
             lpt_buffer[uptr->POS++] = 0x80 + ((u >> 6) & 0x3f);
@@ -313,7 +314,7 @@ lpt_output(UNIT *uptr, char c) {
         }
         uptr->COL++;
     } else if ((uptr->flags & UNIT_CT) == UNIT_WA) {
-        uint16 u = c & 0x7f;
+        uint16_t u = c & 0x7f;
         if (c < 040)
              u = waits_code[c & 0x1f];
         else if (c == 0136) /* up arrow */
@@ -484,7 +485,7 @@ t_stat lpt_detach (UNIT *uptr)
  */
 
 t_stat
-lpt_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
+lpt_setlpp(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -507,7 +508,7 @@ lpt_setlpp(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-lpt_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
+lpt_getlpp(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -521,7 +522,7 @@ lpt_getlpp(FILE *st, UNIT *uptr, int32 v, const void *desc)
 }
 
 t_stat
-lpt_setdev(UNIT *uptr, int32 val, const char *cptr, void *desc)
+lpt_setdev(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -545,7 +546,7 @@ lpt_setdev(UNIT *uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-lpt_getdev(FILE *st, UNIT *uptr, int32 v, const void *desc)
+lpt_getdev(FILE *st, UNIT *uptr, int32_t v, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -558,7 +559,7 @@ lpt_getdev(FILE *st, UNIT *uptr, int32 v, const void *desc)
     return SCPE_OK;
 }
 
-t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat lpt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

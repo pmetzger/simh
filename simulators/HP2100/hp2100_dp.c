@@ -231,6 +231,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -366,26 +368,26 @@ typedef enum {
     } CNTLR_TYPE;
 
 static CNTLR_TYPE dp_ctype = A13210;            /* ctrl type */
-static int32 dpc_busy = 0;                      /* cch unit */
-static int32 dpc_poll = 0;                      /* cch poll enable */
-static int32 dpc_cnt = 0;                       /* check count */
-static int32 dpc_eoc = 0;                       /* end of cyl */
-static int32 dpc_stime = 100;                   /* seek time */
-static int32 dpc_ctime = 100;                   /* command time */
-static int32 dpc_xtime = 5;                     /* xfer time */
-static int32 dpc_dtime = 2;                     /* dch time */
-static int32 dpd_obuf = 0, dpd_ibuf = 0;        /* dch buffers */
-static int32 dpc_obuf = 0;                      /* cch buffers */
+static int32_t dpc_busy = 0;                    /* cch unit */
+static int32_t dpc_poll = 0;                    /* cch poll enable */
+static int32_t dpc_cnt = 0;                     /* check count */
+static int32_t dpc_eoc = 0;                     /* end of cyl */
+static int32_t dpc_stime = 100;                 /* seek time */
+static int32_t dpc_ctime = 100;                 /* command time */
+static int32_t dpc_xtime = 5;                   /* xfer time */
+static int32_t dpc_dtime = 2;                   /* dch time */
+static int32_t dpd_obuf = 0, dpd_ibuf = 0;      /* dch buffers */
+static int32_t dpc_obuf = 0;                    /* cch buffers */
 
-static int32 dpd_xfer = 0;                      /* xfer in prog */
-static int32 dpd_wval = 0;                      /* write data valid */
-static int32 dp_ptr = 0;                        /* buffer ptr */
-static uint8 dpc_rarc = 0;                      /* RAR cylinder */
-static uint8 dpc_rarh = 0;                      /* RAR head */
-static uint8 dpc_rars = 0;                      /* RAR sector */
-static uint8 dpc_ucyl[DP_NUMDRV] = { 0 };       /* unit cylinder */
-static uint16 dpc_sta[DP_NUMDRV] = { 0 };       /* status regs */
-static uint16 dpxb[DP_NUMWD];                   /* sector buffer */
+static int32_t dpd_xfer = 0;                    /* xfer in prog */
+static int32_t dpd_wval = 0;                    /* write data valid */
+static int32_t dp_ptr = 0;                      /* buffer ptr */
+static uint8_t dpc_rarc = 0;                    /* RAR cylinder */
+static uint8_t dpc_rarh = 0;                    /* RAR head */
+static uint8_t dpc_rars = 0;                    /* RAR sector */
+static uint8_t dpc_ucyl[DP_NUMDRV] = { 0 };     /* unit cylinder */
+static uint16_t dpc_sta[DP_NUMDRV] = { 0 };     /* status regs */
+static uint16_t dpxb[DP_NUMWD];                 /* sector buffer */
 
 
 /* Interface local SCP support routines */
@@ -401,12 +403,12 @@ static t_stat dpd_svc (UNIT *uptr);
 static t_stat dpc_reset (DEVICE *dptr);
 static t_stat dpc_attach (UNIT *uptr, const char *cptr);
 static t_stat dpc_detach (UNIT* uptr);
-static t_stat dpc_boot (int32 unitno, DEVICE *dptr);
-static void dp_god (int32 fnc, int32 drv, int32 time);
-static void dp_goc (int32 fnc, int32 drv, int32 time);
-static t_stat dpc_load_unload (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat dp_settype (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat dp_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat dpc_boot (int32_t unitno, DEVICE *dptr);
+static void dp_god (int32_t fnc, int32_t drv, int32_t time);
+static void dp_goc (int32_t fnc, int32_t drv, int32_t time);
+static t_stat dpc_load_unload (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat dp_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat dp_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 
 /* Device information blocks */
@@ -823,7 +825,7 @@ static SIGNALS_VALUE dpc_interface (const DIB *dibptr, INBOUND_SET inbound_signa
    This implementation does not use every parameter. */
 (void) dibptr;
 
-int32          i, fnc, drv;
+int32_t        i, fnc, drv;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
@@ -1008,7 +1010,7 @@ return outbound;                                        /* return the outbound s
 
 /* Start data channel operation */
 
-void dp_god (int32 fnc, int32 drv, int32 time)
+void dp_god (int32_t fnc, int32_t drv, int32_t time)
 {
 dpd_unit.DRV = drv;                                     /* save unit */
 dpd_unit.FNC = fnc;                                     /* save function */
@@ -1019,9 +1021,9 @@ return;
 
 /* Start controller operation */
 
-void dp_goc (int32 fnc, int32 drv, int32 time)
+void dp_goc (int32_t fnc, int32_t drv, int32_t time)
 {
-int32 t;
+int32_t t;
 
 t = sim_activate_time (&dpc_unit[drv]);
 if (t) {                                                /* still seeking? */
@@ -1063,7 +1065,7 @@ return;
 
 t_stat dpd_svc (UNIT *uptr)
 {
-int32 i, drv, st;
+int32_t i, drv, st;
 
 drv = uptr->DRV;                                        /* get drive no */
 switch (uptr->FNC) {                                    /* case function */
@@ -1197,7 +1199,7 @@ return SCPE_OK;
 
 t_stat dpc_svc (UNIT *uptr)
 {
-int32 da, drv, err;
+int32_t da, drv, err;
 
 err = 0;                                                /* assume no err */
 drv = uptr - dpc_unit;                                  /* get drive no */
@@ -1252,10 +1254,10 @@ switch (uptr->FNC) {                                    /* case function */
                 dpc_rarh = dpc_rarh ^ 1;                /* incr head */
                 dpc_eoc = ((dpc_rarh & 1) == 0);        /* calc eoc */
                 }
-            err = fseek (uptr->fileref, da * sizeof (int16), SEEK_SET);
+            err = fseek (uptr->fileref, da * sizeof (int16_t), SEEK_SET);
             if (err)                                    /* error? */
                  break;
-            fxread (dpxb, sizeof (int16), DP_NUMWD, uptr->fileref);
+            fxread (dpxb, sizeof (int16_t), DP_NUMWD, uptr->fileref);
             err = ferror (uptr->fileref);
             if (err)                                    /* error? */
                  break;
@@ -1295,7 +1297,7 @@ switch (uptr->FNC) {                                    /* case function */
                 break;                                  /* done */
                 }
             }
-        dpxb[dp_ptr++] = dpd_wval ? (uint16) dpd_obuf : 0;  /* store word/fill */
+        dpxb[dp_ptr++] = dpd_wval ? (uint16_t) dpd_obuf : 0; /* store word/fill */
         dpd_wval = 0;                                   /* clr data valid */
         if (dp_ptr >= DP_NUMWD) {                       /* buffer full? */
             da = GETDA (dpc_rarc, dpc_rarh, dpc_rars);  /* calc disk addr */
@@ -1304,10 +1306,10 @@ switch (uptr->FNC) {                                    /* case function */
                 dpc_rarh = dpc_rarh ^ 1;                /* incr head */
                 dpc_eoc = ((dpc_rarh & 1) == 0);        /* calc eoc */
                 }
-            err = fseek (uptr->fileref, da * sizeof (int16), SEEK_SET);
+            err = fseek (uptr->fileref, da * sizeof (int16_t), SEEK_SET);
             if (err)                                    /* error? */
                  break;
-            fxwrite (dpxb, sizeof (int16), DP_NUMWD, uptr->fileref);
+            fxwrite (dpxb, sizeof (int16_t), DP_NUMWD, uptr->fileref);
             err = ferror (uptr->fileref);
             if (err)                                    /* error? */
                  break;
@@ -1350,7 +1352,7 @@ return SCPE_OK;
 
 t_stat dpc_reset (DEVICE *dptr)
 {
-int32 drv;
+int32_t drv;
 
 hp_enbdis_pair (dptr,                                   /* make pair cons */
     (dptr == &dpd_dev) ? &dpc_dev : &dpd_dev);
@@ -1404,7 +1406,7 @@ t_stat dpc_attach (UNIT *uptr, const char *cptr)
 {
 t_stat      result;
 t_addr      offset;
-const uint8 zero = 0;
+const uint8_t zero = 0;
 
 result = attach_unit (uptr, cptr);                      /* attach the drive */
 
@@ -1413,7 +1415,7 @@ if (result == SCPE_OK) {                                /* if the attach was suc
 
     if (sim_switches & SWMASK ('N')) {                  /* if this is a new disc image */
         offset = (t_addr)                               /*   then determine the offset of */
-          (uptr->capac * sizeof (int16) - sizeof zero); /*     the last byte in a full-sized file */
+          (uptr->capac * sizeof (int16_t) - sizeof zero); /*     the last byte in a full-sized file */
 
         if (sim_fseek (uptr->fileref, offset, SEEK_SET) != 0    /* seek to the last byte */
           || fwrite (&zero, sizeof zero, 1, uptr->fileref) == 0 /*   and write a zero to fill */
@@ -1437,14 +1439,14 @@ return detach_unit (uptr);                              /* detach unit */
 
 /* Load and unload heads */
 
-t_stat dpc_load_unload (UNIT *uptr, int32 value, const char *cptr, void *desc)
+t_stat dpc_load_unload (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-int32 drv;
+int32_t drv;
 
 if ((uptr->flags & UNIT_ATT) == 0) return SCPE_UNATT;   /* must be attached to load */
 
@@ -1465,14 +1467,14 @@ return SCPE_OK;
 
 /* Set controller type */
 
-t_stat dp_settype (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dp_settype (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) desc;
 
-int32 i;
+int32_t i;
 
 if ((val < 0) || (val > 1) || (cptr != NULL))
     return SCPE_ARG;
@@ -1492,7 +1494,7 @@ return SCPE_OK;
 
 /* Show controller type */
 
-t_stat dp_showtype (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dp_showtype (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1761,11 +1763,11 @@ static const LOADER_ARRAY dp_loaders = {
        word in memory is changed from 0 to 2.
 */
 
-t_stat dpc_boot (int32 unitno, DEVICE *dptr)
+t_stat dpc_boot (int32_t unitno, DEVICE *dptr)
 {
 static const HP_WORD dp_preserved = 0000070u;                   /* S-register bits 5-3 are preserved */
-const uint32 subchannel = sim_switches & SWMASK ('R') ? 1 : 0;  /* the selected boot subchannel */
-uint32 start;
+const uint32_t subchannel = sim_switches & SWMASK ('R') ? 1 : 0; /* the selected boot subchannel */
+uint32_t start;
 
 if (dptr == NULL)                                           /* if we are being called for a BOOT/LOAD CPU */
     start = cpu_copy_loader (dp_loaders, unitno,            /*   then copy the boot loader to memory */

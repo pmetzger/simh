@@ -23,6 +23,8 @@
    AI lab PDP-10.
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_video.h"
 
@@ -51,16 +53,16 @@
 #define JOY_MAX_AXES      4
 #define JOY_NO_CHAN       (IMX_CHANNEL + 1)
 
-t_stat      imx_devio(uint32 dev, uint64 *data);
+t_stat      imx_devio(uint32_t dev, uint64 *data);
 t_stat      imx_svc (UNIT *uptr);
 t_stat      imx_reset (DEVICE *dptr);
 const char *imx_description (DEVICE *dptr);
 #if MPX_DEV
-t_stat      imx_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc) ;
-t_stat      imx_show_mpx (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat      imx_set_mpx (UNIT *uptr, int32_t val, const char *cptr, void *desc) ;
+t_stat      imx_show_mpx (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 #endif
-t_stat      imx_show_channel (FILE* st, UNIT* uptr, int32 val, const void* desc);
-t_stat      imx_set_channel (UNIT* uptr, int32 val, const char* cptr, void* desc);
+t_stat      imx_show_channel (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat      imx_set_channel (UNIT* uptr, int32_t val, const char* cptr, void* desc);
 
 static uint64 status = IMX_ASSIGNED;
 static uint64 imx_data;
@@ -168,7 +170,7 @@ t_stat imx_reset (DEVICE *dptr)
     return SCPE_OK;
 }
 
-t_stat imx_devio(uint32 dev, uint64 *data)
+t_stat imx_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 07) {
     case CONO|4:
@@ -239,7 +241,7 @@ t_stat imx_svc (UNIT *uptr)
 
 #if MPX_DEV
 /* set MPX level number */
-t_stat imx_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat imx_set_mpx (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -247,19 +249,19 @@ t_stat imx_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 mpx;
+    int32_t mpx;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    mpx = (int32) get_uint (cptr, 8, 8, &r);
+    mpx = (int32_t) get_uint (cptr, 8, 8, &r);
     if (r != SCPE_OK)
         return r;
     imx_mpx_lvl = mpx;
     return SCPE_OK;
 }
 
-t_stat imx_show_mpx (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat imx_show_mpx (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
    /* Generic show modifier signature.
       This implementation does not use every parameter. */
@@ -274,7 +276,7 @@ t_stat imx_show_mpx (FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 #endif
 
-t_stat imx_set_channel (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat imx_set_channel (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   /* Generic set modifier signature.
      This implementation does not use every parameter. */
@@ -324,7 +326,7 @@ t_stat imx_set_channel (UNIT *uptr, int32 val, const char *cptr, void *desc)
   return SCPE_OK;
 }
 
-t_stat imx_show_channel (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat imx_show_channel (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
   /* Generic show modifier signature.
      This implementation does not use every parameter. */

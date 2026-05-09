@@ -154,9 +154,9 @@ read (often required for memory protection):
 #define RD 2 /* data read */
 #define WR 3 /* data write */
 
-t_stat Read (uint32 addr, uint32 *dat, uint32 acctyp)
+t_stat Read (uint32_t addr, uint32_t *dat, uint32_t acctyp)
 {
-    static uint32 bkpt_type[4] = {
+    static uint32_t bkpt_type[4] = {
         SWMASK ('E'), SWMASK ('N'),
         SWMASK ('R'), SWMASK ('W')
     };

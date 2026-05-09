@@ -4,6 +4,8 @@
  ***************************************************************************************/
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "ibm1130_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -45,16 +47,16 @@ static t_stat t2741_svc      (UNIT *uptr);
 static t_stat t2741_reset    (DEVICE *dptr);
 static t_stat t2741_attach   (UNIT *uptr, const char *cptr);
 static t_stat t2741_detach   (UNIT *uptr);
-static uint16 ascii_to_t2741 (int ascii);
-static const char * t2741_to_ascii (uint16 code);
+static uint16_t ascii_to_t2741 (int ascii);
+static const char * t2741_to_ascii (uint16_t code);
 static void set_transmit_notready (void);
 
-static uint16 t2741_dsw    = T2741_DSW_TRANSMIT_NOT_READY;  /* device status word      */
-static uint32 t2741_swait  = 200;                           /* character send wait     */
-static uint32 t2741_rwait  = 2000;                          /* character receive wait  */
-static uint16 t2741_char   = 0;                             /* last character received */
+static uint16_t t2741_dsw    = T2741_DSW_TRANSMIT_NOT_READY; /* device status word      */
+static uint32_t t2741_swait  = 200;                         /* character send wait     */
+static uint32_t t2741_rwait  = 2000;                        /* character receive wait  */
+static uint16_t t2741_char   = 0;                           /* last character received */
 static int    overrun      = false;
-static uint32 t2741_socket = 1130;
+static uint32_t t2741_socket = 1130;
 
 UNIT t2741_unit[1] = {
     { UDATA (&t2741_svc, UNIT_ATTABLE, 0) },
@@ -76,10 +78,10 @@ DEVICE t2741_dev = {
 
 /* xio_t2741_terminal - XIO command interpreter for the terminal adapter */
 
-void xio_t2741_terminal (int32 iocc_addr, int32 iocc_func, int32 iocc_mod)
+void xio_t2741_terminal (int32_t iocc_addr, int32_t iocc_func, int32_t iocc_mod)
 {
     char msg[80];
-    uint16 code;
+    uint16_t code;
 
     switch (iocc_func) {
         case XIO_READ:                                          /* read: return last character read */
@@ -146,7 +148,7 @@ static void set_transmit_notready (void)
 static t_stat t2741_svc (UNIT *uptr)
 {
     int ch = EOF;
-    uint16 code;
+    uint16_t code;
 
     if (uptr->flags & UNIT_SENDING) {                       /* xmit: no interrupt, as far as I know. just clr busy bit */
         CLRBIT(uptr->flags, UNIT_SENDING);
@@ -326,10 +328,10 @@ static struct tag_t2741_map {
     {0x0001, '\027', 0,  false},
 };
 
-static uint16 ascii_to_t2741 (int ascii)
+static uint16_t ascii_to_t2741 (int ascii)
 {
     int i;
-    uint16 rval = 0;
+    uint16_t rval = 0;
 
     ascii &= 0xFF;
 
@@ -362,7 +364,7 @@ static uint16 ascii_to_t2741 (int ascii)
     return CODE_UNKNOWN;
 }
 
-static const char * t2741_to_ascii (uint16 code)
+static const char * t2741_to_ascii (uint16_t code)
 {
     int i;
     static char string[2] = {'?', '\0'};

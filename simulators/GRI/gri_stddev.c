@@ -43,24 +43,25 @@
 #include "gri_defs.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <stdint.h>
 
-uint32 hsr_stopioe = 1, hsp_stopioe = 1;
+uint32_t hsr_stopioe = 1, hsp_stopioe = 1;
 
-extern uint16 M[];
-extern uint32 dev_done, ISR;
+extern uint16_t M[];
+extern uint32_t dev_done, ISR;
 
 t_stat tti_svc (UNIT *uhsr);
 t_stat tto_svc (UNIT *uhsr);
 t_stat tti_reset (DEVICE *dhsr);
 t_stat tto_reset (DEVICE *dhsr);
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat hsr_svc (UNIT *uhsr);
 t_stat hsp_svc (UNIT *uhsr);
 t_stat hsr_reset (DEVICE *dhsr);
 t_stat hsp_reset (DEVICE *dhsr);
 t_stat rtc_svc (UNIT *uhsr);
 t_stat rtc_reset (DEVICE *dhsr);
-int32 rtc_tps = 1000;
+int32_t rtc_tps = 1000;
 
 /* TTI data structures
 
@@ -212,7 +213,7 @@ DEVICE rtc_dev = {
 
 /* Console terminal function processors */
 
-uint32 tty_rd (uint32 src)
+uint32_t tty_rd (uint32_t src)
 {
 /* Device dispatch signature.
    This implementation does not use every parameter. */
@@ -221,7 +222,7 @@ uint32 tty_rd (uint32 src)
 return tti_unit.buf;                                    /* return data */
 }
 
-t_stat tty_wr (uint32 dst, uint32 val)
+t_stat tty_wr (uint32_t dst, uint32_t val)
 {
 /* Device dispatch signature.
    This implementation does not use every parameter. */
@@ -233,7 +234,7 @@ sim_activate (&tto_unit, tto_unit.wait);                /* activate unit */
 return SCPE_OK;
 }
 
-t_stat tty_fo (uint32 op)
+t_stat tty_fo (uint32_t op)
 {
 if (op & TTY_IRDY)
     dev_done = dev_done & ~INT_TTI;
@@ -242,7 +243,7 @@ if (op & TTY_ORDY)
 return SCPE_OK;
 }
 
-uint32 tty_sf (uint32 op)
+uint32_t tty_sf (uint32_t op)
 {
 if (((op & TTY_IRDY) && (dev_done & INT_TTI)) ||
     ((op & TTY_ORDY) && (dev_done & INT_TTO)))
@@ -254,7 +255,7 @@ return 0;
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 
 sim_activate (uptr, uptr->wait);                        /* continue poll */
 if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or error? */
@@ -269,7 +270,7 @@ return SCPE_OK;
 
 t_stat tto_svc (UNIT *uptr)
 {
-int32 c;
+int32_t c;
 t_stat r;
 
 c = sim_tt_outcvt (uptr->buf, TT_GET_MODE (uptr->flags) | TTUF_KSR);
@@ -311,7 +312,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat tty_set_mode (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tty_set_mode (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -326,7 +327,7 @@ return SCPE_OK;
 
 /* High speed paper tape function processors */
 
-uint32 hsrp_rd (uint32 src)
+uint32_t hsrp_rd (uint32_t src)
 {
 /* Device dispatch signature.
    This implementation does not use every parameter. */
@@ -335,7 +336,7 @@ uint32 hsrp_rd (uint32 src)
 return hsr_unit.buf;                                    /* return data */
 }
 
-t_stat hsrp_wr (uint32 dst, uint32 val)
+t_stat hsrp_wr (uint32_t dst, uint32_t val)
 {
 /* Device dispatch signature.
    This implementation does not use every parameter. */
@@ -347,7 +348,7 @@ sim_activate (&hsp_unit, hsp_unit.wait);                /* activate unit */
 return SCPE_OK;
 }
 
-t_stat hsrp_fo (uint32 op)
+t_stat hsrp_fo (uint32_t op)
 {
 if (op & PT_IRDY)
     dev_done = dev_done & ~INT_HSR;
@@ -358,7 +359,7 @@ if (op & PT_STRT)
 return SCPE_OK;
 }
 
-uint32 hsrp_sf (uint32 op)
+uint32_t hsrp_sf (uint32_t op)
 {
 if (((op & PT_IRDY) && (dev_done & INT_HSR)) ||
     ((op & PT_ORDY) && (dev_done & INT_HSP)))
@@ -372,7 +373,7 @@ t_stat hsr_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp;
+int32_t temp;
 
 if ((hsr_unit.flags & UNIT_ATT) == 0)                   /* attached? */
     return IORETURN (hsr_stopioe, SCPE_UNATT);
@@ -438,7 +439,7 @@ return SCPE_OK;
 
 /* Clock function processors */
 
-t_stat rtc_fo (uint32 op)
+t_stat rtc_fo (uint32_t op)
 {
 if (op & RTC_OFF)                                       /* clock off? */
     sim_cancel (&rtc_unit);
@@ -449,7 +450,7 @@ if (op & RTC_OV)                                        /* clr ovflo? */
 return SCPE_OK;
 }
 
-uint32 rtc_sf (uint32 op)
+uint32_t rtc_sf (uint32_t op)
 {
 if ((op & RTC_OV) && (dev_done & INT_RTC))
     return 1;

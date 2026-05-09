@@ -88,6 +88,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_tmxr.h"
 
@@ -144,52 +146,52 @@
 
 typedef struct {
     PNP_INFO pnp;        /* Must be first    */
-    int32 port;          /* Port 0 or 1      */
+    int32_t port;        /* Port 0 or 1      */
     bool conn;           /* Connected Status */
     TMLN *tmln;          /* TMLN pointer     */
     TMXR *tmxr;          /* TMXR pointer     */
-    int32 baud;          /* Baud rate        */
-    int32 rts;           /* RTS Status       */
-    int32 rxb;           /* Receive Buffer   */
-    int32 txb;           /* Transmit Buffer  */
+    int32_t baud;        /* Baud rate        */
+    int32_t rts;         /* RTS Status       */
+    int32_t rxb;         /* Receive Buffer   */
+    int32_t txb;         /* Transmit Buffer  */
     bool txp;            /* Transmit Pending */
-    int32 stb;           /* Status Buffer    */
-    int32 ctb;           /* Control Buffer   */
+    int32_t stb;         /* Status Buffer    */
+    int32_t ctb;         /* Control Buffer   */
     bool rie;            /* Rx Int Enable    */
     bool tie;            /* Tx Int Enable    */
     bool dcdl;           /* DCD latch        */
-    uint8 intenable;     /* Interrupt Enable */
-    uint8 intvector;     /* Interrupt Vector */
-    uint8 databus;       /* Data Bus Value   */
+    uint8_t intenable;   /* Interrupt Enable */
+    uint8_t intvector;   /* Interrupt Vector */
+    uint8_t databus;     /* Data Bus Value   */
 } M2SIO_CTX;
 
-extern uint32 getClockFrequency(void);
-extern t_stat set_iobase(UNIT *uptr, int32 val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32 val, const void *desc);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern uint32_t getClockFrequency(void);
+extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 
 
 static const char* m2sio_description(DEVICE *dptr);
 static t_stat m2sio_svc(UNIT *uptr);
-static t_stat m2sio_reset(DEVICE *dptr, int32 (*routine)(const int32, const int32, const int32));
+static t_stat m2sio_reset(DEVICE *dptr, int32_t (*routine)(const int32_t, const int32_t, const int32_t));
 static t_stat m2sio0_reset(DEVICE *dptr);
 static t_stat m2sio1_reset(DEVICE *dptr);
 static t_stat m2sio_attach(UNIT *uptr, const char *cptr);
 static t_stat m2sio_detach(UNIT *uptr);
-static t_stat m2sio_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat m2sio_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc);
+static t_stat m2sio_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat m2sio_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc);
 static t_stat m2sio_config_line(UNIT *uptr);
 static t_stat m2sio_config_rts(DEVICE *dptr, char rts);
-static int32 m2sio0_io(int32 addr, int32 io, int32 data);
-static int32 m2sio1_io(int32 addr, int32 io, int32 data);
-static int32 m2sio_io(DEVICE *dptr, int32 addr, int32 io, int32 data);
-static int32 m2sio_stat(DEVICE *dptr, int32 io, int32 data);
-static int32 m2sio_data(DEVICE *dptr, int32 io, int32 data);
+static int32_t m2sio0_io(int32_t addr, int32_t io, int32_t data);
+static int32_t m2sio1_io(int32_t addr, int32_t io, int32_t data);
+static int32_t m2sio_io(DEVICE *dptr, int32_t addr, int32_t io, int32_t data);
+static int32_t m2sio_stat(DEVICE *dptr, int32_t io, int32_t data);
+static int32_t m2sio_data(DEVICE *dptr, int32_t io, int32_t data);
 static void m2sio_int(UNIT *uptr);
 
-extern uint32 vectorInterrupt;          /* Vector Interrupt bits */
-extern uint8 dataBus[MAX_INT_VECTORS];  /* Data bus value        */
+extern uint32_t vectorInterrupt;        /* Vector Interrupt bits */
+extern uint8_t dataBus[MAX_INT_VECTORS]; /* Data bus value        */
 
 /* Debug Flags */
 static DEBTAB m2sio_dt[] = {
@@ -394,10 +396,10 @@ static t_stat m2sio1_reset(DEVICE *dptr)
     return(m2sio_reset(dptr, &m2sio1_io));
 }
 
-static t_stat m2sio_reset(DEVICE *dptr, int32 (*routine)(const int32, const int32, const int32))
+static t_stat m2sio_reset(DEVICE *dptr, int32_t (*routine)(const int32_t, const int32_t, const int32_t))
 {
     M2SIO_CTX *xptr;
-    int32 c;
+    int32_t c;
 
     xptr = (M2SIO_CTX *) dptr->ctxt;
 
@@ -438,7 +440,7 @@ static t_stat m2sio_reset(DEVICE *dptr, int32 (*routine)(const int32, const int3
 static t_stat m2sio_svc(UNIT *uptr)
 {
     M2SIO_CTX *xptr;
-    int32 c,s,stb;
+    int32_t c,s,stb;
     t_stat r;
 
     xptr = (M2SIO_CTX *) uptr->dptr->ctxt;
@@ -593,7 +595,7 @@ static t_stat m2sio_detach(UNIT *uptr)
     return SCPE_UNATT;
 }
 
-static t_stat m2sio_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat m2sio_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -601,7 +603,7 @@ static t_stat m2sio_set_baud(UNIT *uptr, int32 value, const char *cptr, void *de
     (void) desc;
 
     M2SIO_CTX *xptr;
-    int32 baud;
+    int32_t baud;
     t_stat r = SCPE_ARG;
 
     xptr = (M2SIO_CTX *) uptr->dptr->ctxt;
@@ -636,7 +638,7 @@ static t_stat m2sio_set_baud(UNIT *uptr, int32 value, const char *cptr, void *de
     return r;
 }
 
-static t_stat m2sio_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat m2sio_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -729,7 +731,7 @@ static t_stat m2sio_config_rts(DEVICE *dptr, char rts)
 {
     M2SIO_CTX *xptr;
     t_stat r = SCPE_OK;
-    int32 s;
+    int32_t s;
 
     xptr = (M2SIO_CTX *) dptr->ctxt;
 
@@ -758,7 +760,7 @@ static t_stat m2sio_config_rts(DEVICE *dptr, char rts)
     return r;
 }
 
-static int32 m2sio0_io(int32 addr, int32 io, int32 data)
+static int32_t m2sio0_io(int32_t addr, int32_t io, int32_t data)
 {
     DEVICE *dptr;
 
@@ -767,7 +769,7 @@ static int32 m2sio0_io(int32 addr, int32 io, int32 data)
     return(m2sio_io(dptr, addr, io, data));
 }
 
-static int32 m2sio1_io(int32 addr, int32 io, int32 data)
+static int32_t m2sio1_io(int32_t addr, int32_t io, int32_t data)
 {
     DEVICE *dptr;
 
@@ -776,9 +778,9 @@ static int32 m2sio1_io(int32 addr, int32 io, int32 data)
     return(m2sio_io(dptr, addr, io, data));
 }
 
-static int32 m2sio_io(DEVICE *dptr, int32 addr, int32 io, int32 data)
+static int32_t m2sio_io(DEVICE *dptr, int32_t addr, int32_t io, int32_t data)
 {
-    int32 r;
+    int32_t r;
 
     if (addr & 0x01) {
         r = m2sio_data(dptr, io, data);
@@ -789,10 +791,10 @@ static int32 m2sio_io(DEVICE *dptr, int32 addr, int32 io, int32 data)
     return(r);
 }
 
-static int32 m2sio_stat(DEVICE *dptr, int32 io, int32 data)
+static int32_t m2sio_stat(DEVICE *dptr, int32_t io, int32_t data)
 {
     M2SIO_CTX *xptr;
-    int32 r;
+    int32_t r;
 
     xptr = (M2SIO_CTX *) dptr->ctxt;
 
@@ -840,10 +842,10 @@ static int32 m2sio_stat(DEVICE *dptr, int32 io, int32 data)
     return(r);
 }
 
-static int32 m2sio_data(DEVICE *dptr, int32 io, int32 data)
+static int32_t m2sio_data(DEVICE *dptr, int32_t io, int32_t data)
 {
     M2SIO_CTX *xptr;
-    int32 r;
+    int32_t r;
 
     xptr = (M2SIO_CTX *) dptr->ctxt;
 

@@ -1,4 +1,6 @@
 #ifdef USE_DISPLAY
+#include <stdint.h>
+
 /* pdp11_daz.c: Control box
 
    Copyright (c) 2018, Lars Brinkhoff
@@ -38,15 +40,15 @@
 #define PASS        0100
 #define FIRE        0200
 
-t_stat daz_rd(int32 *data, int32 PA, int32 access);
-t_stat daz_wr(int32 data, int32 PA, int32 access);
+t_stat daz_rd(int32_t *data, int32_t PA, int32_t access);
+t_stat daz_wr(int32_t data, int32_t PA, int32_t access);
 t_stat daz_reset(DEVICE *dptr);
-t_stat daz_boot(int32 unit, DEVICE *dptr);
-t_stat daz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat daz_boot(int32_t unit, DEVICE *dptr);
+t_stat daz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *daz_description (DEVICE *dptr);
 
-static uint16 devadd = 0;
-static uint16 buttons[4] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
+static uint16_t devadd = 0;
+static uint16_t buttons[4] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
 
 #define IOLN_DAZ  4
 DIB daz_dib = {
@@ -88,7 +90,7 @@ const char *daz_regnam[] = {
 };
 
 t_stat
-daz_rd(int32 *data, int32 PA, int32 access)
+daz_rd(int32_t *data, int32_t PA, int32_t access)
 {
   switch (PA & 002) {
   case 000:
@@ -104,7 +106,7 @@ daz_rd(int32 *data, int32 PA, int32 access)
 }
 
 t_stat
-daz_wr(int32 data, int32 PA, int32 access)
+daz_wr(int32_t data, int32_t PA, int32_t access)
 {
   switch (PA & 002) {
   case 000:
@@ -118,7 +120,7 @@ daz_wr(int32 data, int32 PA, int32 access)
 
 int daz_keyboard (SIM_KEY_EVENT *kev)
 {
-  uint32 mask;
+  uint32_t mask;
   int n;
 
   switch (kev->key) {
@@ -246,7 +248,7 @@ daz_reset(DEVICE *dptr)
 
 /* Apologies to Wolfgang Petersen. */
 t_stat
-daz_boot(int32 unit, DEVICE *dptr)
+daz_boot(int32_t unit, DEVICE *dptr)
 {
     t_stat r;
 
@@ -266,7 +268,7 @@ const char *daz_description (DEVICE *dptr)
   return "Input buttons for Dazzle Dart";
 }
 
-t_stat daz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat daz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
  /* The '*'s in the next line represent the standard text width of a help line */
               /****************************************************************************/

@@ -94,6 +94,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -152,18 +154,18 @@ static INTERFACE mtd_interface;
 static INTERFACE mtc_interface;
 
 
-static int32 mtc_fnc = 0;                       /* function */
-static int32 mtc_sta = 0;                       /* status register */
-static int32 mtc_dtf = 0;                       /* data xfer flop */
-static int32 mtc_1st = 0;                       /* first svc flop */
-static int32 mtc_ctime = 40;                    /* command wait */
-static int32 mtc_gtime = 1000;                  /* gap stop time */
-static int32 mtc_xtime = 15;                    /* data xfer time */
-static uint8 mtxb[DBSIZE] = { 0 };              /* data buffer */
+static int32_t mtc_fnc = 0;                     /* function */
+static int32_t mtc_sta = 0;                     /* status register */
+static int32_t mtc_dtf = 0;                     /* data xfer flop */
+static int32_t mtc_1st = 0;                     /* first svc flop */
+static int32_t mtc_ctime = 40;                  /* command wait */
+static int32_t mtc_gtime = 1000;                /* gap stop time */
+static int32_t mtc_xtime = 15;                  /* data xfer time */
+static uint8_t mtxb[DBSIZE] = { 0 };            /* data buffer */
 static t_mtrlnt mt_ptr = 0, mt_max = 0;         /* buffer ptrs */
-static const uint32 mtc_cmd[] = {
+static const uint32_t mtc_cmd[] = {
     FNC_WC, FNC_RC, FNC_GAP, FNC_FSR, FNC_BSR, FNC_REW, FNC_RWS, FNC_WFM };
-static const uint32 mtc_cmd_count = sizeof (mtc_cmd) / sizeof (mtc_cmd[0]);
+static const uint32_t mtc_cmd_count = sizeof (mtc_cmd) / sizeof (mtc_cmd[0]);
 
 static t_stat mtc_svc (UNIT *uptr);
 static t_stat mt_reset (DEVICE *dptr);
@@ -511,8 +513,8 @@ static SIGNALS_VALUE mtc_interface (const DIB *dibptr, INBOUND_SET inbound_signa
    This implementation does not use every parameter. */
 (void) dibptr;
 
-uint32         i, data;
-int32          valid;
+uint32_t       i, data;
+int32_t        valid;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
@@ -765,7 +767,7 @@ switch (mtc_fnc) {                                      /* case on function */
         if (mtc_1st) mtc_1st = 0;                       /* no xfr on first */
         else {
             if (mt_ptr < DBSIZE) {                      /* room in buffer? */
-                mtxb[mt_ptr++] = (uint8) mtc_unit [0].buf;
+                mtxb[mt_ptr++] = (uint8_t) mtc_unit [0].buf;
                 mtc_sta = mtc_sta & ~STA_BOT;           /* clear BOT */
                 }
             else mtc_sta = mtc_sta | STA_PAR;

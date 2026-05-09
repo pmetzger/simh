@@ -36,6 +36,8 @@
 #ifndef TX0_DEFS_H_
 #define TX0_DEFS_H_   0
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
@@ -52,7 +54,7 @@
 #define MAXMEMSIZE      (1u << ASIZE)                   /* max mem size */
 #define AMASK           (MAXMEMSIZE - 1)                /* address mask */
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Architectural constants */
 #define SIGN            0400000                         /* sign */
@@ -89,11 +91,11 @@
 #define UNIT_MODE_READIN       (3 << UNIT_V_MODE)
 #define UNIT_MODE_TEST  (1 << UNIT_V_MODE)
 
-extern int32 petr (int32 inst, int32 dev, int32 dat);
-extern int32 ptp (int32 inst, int32 dev, int32 dat);
-extern int32 tti (int32 inst, int32 dev, int32 dat);
-extern int32 tto (int32 inst, int32 dev, int32 dat);
+extern int32_t petr (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t ptp (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t tti (int32_t inst, int32_t dev, int32_t dat);
+extern int32_t tto (int32_t inst, int32_t dev, int32_t dat);
 extern t_stat fprint_sym_orig (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw);
+    UNIT *uptr, int32_t sw);
 
 #endif  /* TX0_DEFS_H_ */

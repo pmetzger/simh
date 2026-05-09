@@ -28,6 +28,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
@@ -191,22 +193,22 @@ BITFIELD dz_tdr_bits[] = {
     ENDBITS
     };
 
-extern int32 tmxr_poll;                                 /* calibrated delay */
+extern int32_t tmxr_poll;                               /* calibrated delay */
 
-uint16 dz_csr = 0;                                      /* csr */
-uint16 dz_rbuf = 0;                                     /* rcv buffer */
-uint16 dz_lpr = 0;                                      /* line param */
-uint16 dz_tcr = 0;                                      /* xmit control */
-uint16 dz_msr = 0;                                      /* modem status */
-uint16 dz_tdr = 0;                                      /* xmit data */
-uint16 dz_silo[DZ_SILO_ALM] = { 0 };                    /* silo */
-uint16 dz_scnt = 0;                                     /* silo used */
-uint8 dz_sae = 0;                                       /* silo alarm enabled */
-int32 dz_mctl = 0;                                      /* modem ctrl enabled */
-int32 dz_auto = 0;                                      /* autodiscon enabled */
-uint32 dz_func[DZ_LINES] = { DZ_TMXR };                 /* line function */
-uint32 dz_char[DZ_LINES] = { 0 };                       /* character buffer */
-int32 dz_lnorder[DZ_LINES] = { 0 };                     /* line order */
+uint16_t dz_csr = 0;                                    /* csr */
+uint16_t dz_rbuf = 0;                                   /* rcv buffer */
+uint16_t dz_lpr = 0;                                    /* line param */
+uint16_t dz_tcr = 0;                                    /* xmit control */
+uint16_t dz_msr = 0;                                    /* modem status */
+uint16_t dz_tdr = 0;                                    /* xmit data */
+uint16_t dz_silo[DZ_SILO_ALM] = { 0 };                  /* silo */
+uint16_t dz_scnt = 0;                                   /* silo used */
+uint8_t dz_sae = 0;                                     /* silo alarm enabled */
+int32_t dz_mctl = 0;                                    /* modem ctrl enabled */
+int32_t dz_auto = 0;                                    /* autodiscon enabled */
+uint32_t dz_func[DZ_LINES] = { DZ_TMXR };               /* line function */
+uint32_t dz_char[DZ_LINES] = { 0 };                     /* character buffer */
+int32_t dz_lnorder[DZ_LINES] = { 0 };                   /* line order */
 TMLN *dz_ldsc = NULL;                                   /* line descriptors */
 TMXR dz_desc = { DZ_LINES, 0, 0, NULL, dz_lnorder };    /* mux descriptor */
 
@@ -240,15 +242,15 @@ t_stat dz_reset (DEVICE *dptr);
 t_stat dz_attach (UNIT *uptr, const char *cptr);
 t_stat dz_detach (UNIT *uptr);
 t_stat dz_clear (bool flag);
-uint16 dz_getc (void);
-t_stat dz_putc (int32 line, uint16 data);
+uint16_t dz_getc (void);
+t_stat dz_putc (int32_t line, uint16_t data);
 void dz_update_rcvi (void);
 void dz_update_xmti (void);
-t_stat dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat dz_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc);
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 const char *dz_description (DEVICE *dptr);
 
 /* DZ data structures
@@ -323,9 +325,9 @@ static const char *dz_wr_regs[] =
 
 /* IO dispatch routines */
 
-int32 dz_rd (int32 pa)
+int32_t dz_rd (int32_t pa)
 {
-int32 data = 0;
+int32_t data = 0;
 
 switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
 
@@ -361,7 +363,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
 
     case 03:                                            /* MSR */
         if (dz_mctl) {
-            int32 modem_bits;
+            int32_t modem_bits;
             TMLN *lp;
 
             lp = &dz_ldsc[2];                           /* get line desc */
@@ -381,9 +383,9 @@ SET_IRQL;
 return data;
 }
 
-void dz_wr (int32 pa, int32 data, int32 access)
+void dz_wr (int32_t pa, int32_t data, int32_t access)
 {
-int32 line;
+int32_t line;
 char lineconfig[16];
 TMLN *lp;
 
@@ -426,7 +428,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
             (dz_tcr & BMASK) | (data << 8):
             (dz_tcr & ~BMASK) | data;
         if (dz_mctl) {                                  /* modem ctl? */
-            int32 changed = data ^ dz_tcr;
+            int32_t changed = data ^ dz_tcr;
 
             for (line = 0; line < DZ_LINES; line++) {
                 if (0 == (changed & (1 << (TCR_V_DTR2 + line))))
@@ -482,7 +484,7 @@ SET_IRQL;
 
 t_stat dz_svc (UNIT *uptr)
 {
-int32 newln, muxln;
+int32_t newln, muxln;
 
 if (dz_csr & CSR_MSE) {                                 /* enabled? */
     newln = tmxr_poll_conn (&dz_desc);                  /* poll connect */
@@ -506,7 +508,7 @@ return SCPE_OK;
 
 t_stat dz_xmt_svc (UNIT *uptr)
 {
-int32 line;
+int32_t line;
 
 line = CSR_GETTL (dz_csr);
 if (SCPE_STALL != dz_putc (line, dz_tdr)) {             /* sent ok? */
@@ -520,10 +522,10 @@ return SCPE_OK;
 
 /* Put a character to the specified line */
 
-t_stat dz_putc (int32 line, uint16 data)
+t_stat dz_putc (int32_t line, uint16_t data)
 {
 t_stat r = SCPE_OK;
-int32 c;
+int32_t c;
 TMLN *lp;
 
 switch (dz_func[line]) {
@@ -541,11 +543,11 @@ switch (dz_func[line]) {
         break;
 
     case DZ_KEYBOARD:
-        lk_wr ((uint8)data);                            /* send to keyboard */
+        lk_wr ((uint8_t)data);                          /* send to keyboard */
         break;
 
     case DZ_MOUSE:
-        vs_wr ((uint8)data);                            /* send to mouse */
+        vs_wr ((uint8_t)data);                          /* send to mouse */
         break;
         }
 return r;
@@ -553,10 +555,10 @@ return r;
 
 /* Get first available character for mux, if any */
 
-uint16 dz_getc (void)
+uint16_t dz_getc (void)
 {
-uint16 ret;
-uint32 i;
+uint16_t ret;
+uint32_t i;
 
 if (!dz_scnt)
     return 0;
@@ -572,9 +574,9 @@ return ret;
 
 void dz_update_rcvi (void)
 {
-int32 line, c;
-uint16 old_signal;
-uint16 new_signal;
+int32_t line, c;
+uint16_t old_signal;
+uint16_t new_signal;
 TMLN *lp;
 
 old_signal = (dz_csr & CSR_SAE) ? (dz_csr & CSR_SA) : (dz_csr & CSR_RDONE);
@@ -596,12 +598,12 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
         else {
             switch (dz_func[line]) {
                 case DZ_KEYBOARD:
-                    if (lk_rd ((uint8*)&c) == SCPE_OK)  /* test for input */
+                    if (lk_rd ((uint8_t*)&c) == SCPE_OK) /* test for input */
                         c |= RBUF_VALID;
                     break;
 
                 case DZ_MOUSE:
-                    if (vs_rd ((uint8*)&c) == SCPE_OK)  /* test for input */
+                    if (vs_rd ((uint8_t*)&c) == SCPE_OK) /* test for input */
                         c |= RBUF_VALID;
                     break;
 
@@ -627,7 +629,7 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
         if (c) {                                        /* save in silo */
             c = (c & (RBUF_CHAR | RBUF_FRME)) | RBUF_VALID;;
             RBUF_PUTRL (c, line);                       /* add line # */
-            dz_silo[dz_scnt] = (uint16)c;
+            dz_silo[dz_scnt] = (uint16_t)c;
             ++dz_scnt;
             }
 
@@ -652,8 +654,8 @@ return;
 
 void dz_update_xmti (void)
 {
-int32 linemask, i, line;
-uint16 old_csr;
+int32_t linemask, i, line;
+uint16_t old_csr;
 
 old_csr = dz_csr;
 linemask = dz_tcr & DZ_LMASK;                           /* enabled lines */
@@ -678,7 +680,7 @@ return;
 
 t_stat dz_clear (bool flag)
 {
-int32 i;
+int32_t i;
 
 dz_csr = 0;                                             /* clear CSR */
 dz_rbuf = 0;                                            /* silo empty */
@@ -707,7 +709,7 @@ t_stat dz_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-int32 i;
+int32_t i;
 
 if (sys_model) {                                        /* VAXstation? */
     dz_func[0] = DZ_KEYBOARD;
@@ -765,7 +767,7 @@ return SCPE_OK;
 
 t_stat dz_attach (UNIT *uptr, const char *cptr)
 {
-int32 muxln;
+int32_t muxln;
 t_stat r;
 
 if (sim_switches & SWMASK ('M'))                        /* modem control? */
@@ -806,7 +808,7 @@ return tmxr_detach (&dz_desc, uptr);
 
 /* SET LOG processor */
 
-t_stat dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -815,14 +817,14 @@ t_stat dz_set_log (UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 t_stat r;
 char gbuf[CBUFSIZE];
-int32 ln;
+int32_t ln;
 
 if (cptr == NULL)
     return SCPE_ARG;
 cptr = get_glyph (cptr, gbuf, '=');
 if ((cptr == NULL) || (*cptr == 0) || (gbuf[0] == 0))
     return SCPE_ARG;
-ln = (int32) get_uint (gbuf, 10, dz_desc.lines, &r);
+ln = (int32_t) get_uint (gbuf, 10, dz_desc.lines, &r);
 if ((r != SCPE_OK) || (ln >= dz_desc.lines))
     return SCPE_ARG;
 return tmxr_set_log (NULL, ln, cptr, desc);
@@ -830,7 +832,7 @@ return tmxr_set_log (NULL, ln, cptr, desc);
 
 /* SET NOLOG processor */
 
-t_stat dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -838,11 +840,11 @@ t_stat dz_set_nolog (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 
 t_stat r;
-int32 ln;
+int32_t ln;
 
 if (cptr == NULL)
     return SCPE_ARG;
-ln = (int32) get_uint (cptr, 10, dz_desc.lines, &r);
+ln = (int32_t) get_uint (cptr, 10, dz_desc.lines, &r);
 if ((r != SCPE_OK) || (ln >= dz_desc.lines))
     return SCPE_ARG;
 return tmxr_set_nolog (NULL, ln, NULL, desc);
@@ -850,14 +852,14 @@ return tmxr_set_nolog (NULL, ln, NULL, desc);
 
 /* SHOW LOG processor */
 
-t_stat dz_show_log (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) val;
 
-int32 i;
+int32_t i;
 
 for (i = 0; i < dz_desc.lines; i++) {
     fprintf (st, "line %d: ", i);
@@ -867,7 +869,7 @@ for (i = 0; i < dz_desc.lines; i++) {
 return SCPE_OK;
 }
 
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -910,7 +912,7 @@ fprintf (st, "detached.\n");
 return SCPE_OK;
 }
 
-t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 tmxr_attach_help (st, dptr, uptr, flag, cptr);
 fprintf (st, "The terminal lines perform input and output through Telnet sessions connected\n");

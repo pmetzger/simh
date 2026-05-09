@@ -26,8 +26,9 @@
     28 Oct 17 - Original file.
 */
 
-#include <stdio.h>
 #include <ctype.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include "sim_defs.h"                   /* simulator defns */
 
@@ -138,7 +139,7 @@
 #define MEMSIZE             (i8080_unit.capac)  /* 8080 actual memory size */
 #define ADDRMASK            (MAXMEMSIZE)        /* 8080 address mask */
 #define BYTEMASK            0xff                //byte mask
-#define MEM_ADDR_OK(x)      (((uint16) (x)) <= MEMSIZE)
+#define MEM_ADDR_OK(x)      (((uint16_t) (x)) <= MEMSIZE)
 
 /* debug definitions */
 

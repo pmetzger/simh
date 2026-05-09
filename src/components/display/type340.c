@@ -63,6 +63,7 @@
  */
 
 #include "display.h"                 /* XY plot interface */
+#include "sim_types.h"
 #include "type340.h"                 /* interface definitions */
 #include "type340cmd.h"              /* 340 command definitions */
 
@@ -121,17 +122,17 @@ static struct type340 {
     char initialized;           /* 0 before display_init */
     /* only using (evil) bitfield syntax to limit enum size */
     enum mode mode : 8;         /* 3 bits */
-    unsigned char lp_ena;       /* 1 bit */
-    unsigned char scale;        /* multiplier: 1,2,4,8 */
-    unsigned char intensity;    /* 3 bits */
+    uchar_t lp_ena;             /* 1 bit */
+    uchar_t scale;              /* multiplier: 1,2,4,8 */
+    uchar_t intensity;          /* 3 bits */
 #if TYPE342
-    unsigned char shift;        /* 1 bit */
-    unsigned char width;        /* character grid width */
-    unsigned char height;       /* character grid height */
+    uchar_t shift;              /* 1 bit */
+    uchar_t width;              /* character grid width */
+    uchar_t height;             /* character grid height */
 #endif
 #if TYPE347
     ty340word ASR;              /* Address Save Register */
-    unsigned char SAVE_FF;      /* "save" flip-flop */
+    uchar_t SAVE_FF;            /* "save" flip-flop */
 #endif
 } u340[TY340_UNITS];
 
@@ -568,7 +569,7 @@ vector(int i, int sy, int dy, int sx, int dx)
  * byte is 4 bits
  */
 int
-ipoint(int i, int n, unsigned char byte)
+ipoint(int i, int n, uchar_t byte)
 {
     struct type340 *u = UNIT(0);
     DEBUGF(("type340 ipoint i%d n%d %#o\r\n", i, n, byte));
@@ -622,7 +623,7 @@ ipoint(int i, int n, unsigned char byte)
  * highest bit is top, lowest bit is unused (what was I drinking? -PLB)
  * first char is leftmost
  */
-static const unsigned char chars[128][6] = {
+static const uchar_t chars[128][6] = {
     { 0070, 0124, 0154, 0124, 0070, 0 },   /* 00 blob */
     { 0176, 0220, 0220, 0220, 0176, 0 },   /* 01 A */
     { 0376, 0222, 0222, 0222, 0154, 0 },   /* 02 B */
@@ -775,12 +776,12 @@ ty342_set_grid(int w, int h)
  * return true if ESCaped
  */
 int
-character(int n, unsigned char c)
+character(int n, uchar_t c)
 {
     struct type340 *u = UNIT(0);
     int x, y;
-    unsigned char s = u->scale;
-    unsigned char flags;
+    uchar_t s = u->scale;
+    uchar_t flags;
 
     c |= u->shift;
     flags = chars[c][5];

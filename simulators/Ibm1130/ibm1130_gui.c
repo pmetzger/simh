@@ -31,6 +31,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "ibm1130_defs.h"
 #include "ibm1130res.h"
@@ -460,10 +461,10 @@ void update_gui (bool force)
     int i;
     BOOL state;
     static int in_here = false;
-    static int32 displayed = 0;
+    static int32_t displayed = 0;
     RECT xin;
 
-    if ((int32)(console_unit.flags & UNIT_DISPLAY) != displayed) {      /* setting has changed */
+    if ((int32_t)(console_unit.flags & UNIT_DISPLAY) != displayed) {    /* setting has changed */
         displayed = console_unit.flags & UNIT_DISPLAY;
         if (displayed)
             init_console_window();

@@ -139,6 +139,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
 
@@ -181,11 +183,11 @@ static struct {
     FLIP_FLOP flag_buffer;                      /* flag buffer flip-flop */
     } lps = { CLEAR, CLEAR, CLEAR };
 
-static int32  lps_ccnt = 0;                     /* character count */
-static int32  lps_lcnt = 0;                     /* line count */
-static int32  lps_sta = 0;                      /* printer status */
+static int32_t lps_ccnt = 0;                    /* character count */
+static int32_t lps_lcnt = 0;                    /* line count */
+static int32_t lps_sta = 0;                     /* printer status */
 static bool lps_fast_timing = true;             /* timing type */
-static uint32 lps_power = LPS_ON;               /* power state */
+static uint32_t lps_power = LPS_ON;             /* power state */
 
 /* Hardware timing:
    (based on 1580 instr/msec)             instr   msec   calc msec
@@ -207,14 +209,14 @@ static uint32 lps_power = LPS_ON;               /* power state */
   three-fourths when not executing on an E/F.
 */
 
-static int32 lps_ctime = 0;                     /* char xfer time */
-static int32 lps_ptime = 0;                     /* zone printing time */
-static int32 lps_stime = 0;                     /* paper slew time */
-static int32 lps_rtime = 0;                     /* power-on ready time */
+static int32_t lps_ctime = 0;                   /* char xfer time */
+static int32_t lps_ptime = 0;                   /* zone printing time */
+static int32_t lps_stime = 0;                   /* paper slew time */
+static int32_t lps_rtime = 0;                   /* power-on ready time */
 
-typedef int32 TIMESET[4];                       /* set of controller times */
+typedef int32_t TIMESET[4];                     /* set of controller times */
 
-static int32 * const lps_timers[] = { &lps_ctime, &lps_ptime, &lps_stime, &lps_rtime };
+static int32_t * const lps_timers[] = { &lps_ctime, &lps_ptime, &lps_stime, &lps_rtime };
 
 static const TIMESET lps_times[2] = {
     { 2, 55300, 17380, 158000 },                /* REALTIME */
@@ -225,12 +227,12 @@ static INTERFACE lps_interface;
 
 static t_stat lps_svc (UNIT *uptr);
 static t_stat lps_reset (DEVICE *dptr);
-static t_stat lps_restart (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lps_poweroff (UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat lps_poweron (UNIT *uptr, int32 value, const char *cptr, void *desc);
+static t_stat lps_restart (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lps_poweroff (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat lps_poweron (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 static t_stat lps_attach (UNIT *uptr, const char *cptr);
-static t_stat lps_set_timing (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat lps_show_timing (FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat lps_set_timing (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat lps_show_timing (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* LPS data structures
 
@@ -344,7 +346,7 @@ INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
 bool           irq_enabled = false;
-int32          current_line, current_char;
+int32_t        current_line, current_char;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -533,7 +535,7 @@ return outbound;                                        /* return the outbound s
 
 static t_stat lps_svc (UNIT *uptr)
 {
-int32 c = uptr->buf & DATA_MASK;
+int32_t c = uptr->buf & DATA_MASK;
 
 if (lps_power == LPS_TURNING_ON) {                      /* printer warmed up? */
     lps_power = LPS_ON;                                 /* change state */
@@ -627,7 +629,7 @@ return SCPE_OK;
    original I/O request.
  */
 
-static t_stat lps_restart (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lps_restart (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -642,7 +644,7 @@ return SCPE_OK;
 
 /* Printer power off */
 
-static t_stat lps_poweroff (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lps_poweroff (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -658,7 +660,7 @@ return SCPE_OK;
 
 /* Printer power on */
 
-static t_stat lps_poweron (UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat lps_poweron (UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -728,7 +730,7 @@ return result;
    E or F series machine.
 */
 
-static t_stat lps_set_timing (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat lps_set_timing (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -736,7 +738,7 @@ static t_stat lps_set_timing (UNIT *uptr, int32 val, const char *cptr, void *des
 (void) cptr;
 (void) desc;
 
-uint32 i, factor;
+uint32_t i, factor;
 
 lps_fast_timing = (val != 0);                           /* determine choice */
 
@@ -753,7 +755,7 @@ return SCPE_OK;
 
 /* Show printer timing */
 
-static t_stat lps_show_timing (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat lps_show_timing (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

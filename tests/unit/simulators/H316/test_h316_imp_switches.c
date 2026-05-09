@@ -14,7 +14,7 @@ static void test_physical_port_switch_is_false_when_absent(void **state)
 
 static void test_physical_port_switch_returns_predicate(void **state)
 {
-    int32 switches = SWMASK('P') | SWMASK('X');
+    int32_t switches = SWMASK('P') | SWMASK('X');
 
     (void)state;
 

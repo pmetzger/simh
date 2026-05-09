@@ -128,6 +128,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
 #include "hp2100_cpu_dmm.h"
@@ -188,7 +190,7 @@
        user microcode dispatcher.
 */
 
-t_stat cpu_uig_0 (uint32 intrq, bool int_ack)
+t_stat cpu_uig_0 (uint32_t intrq, bool int_ack)
 {
 const CPU_OPTION_SET cpu_2100_iop = CPU_2100 | CPU_IOP;
 
@@ -328,7 +330,7 @@ return cpu_user ();                                     /* try user microcode */
        user microcode dispatcher.
 */
 
-t_stat cpu_uig_1 (uint32 intrq)
+t_stat cpu_uig_1 (uint32_t intrq)
 {
 if (!(cpu_configuration & CPU_1000))                    /* if the CPU is not a 1000 */
     return STOP (cpu_ss_unimpl);                        /*   the the instruction is unimplemented */
@@ -445,7 +447,7 @@ t_stat cpu_ds (void)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint32 entry;
+uint32_t entry;
 
 entry = IR & 017;                                       /* mask to entry point */
 
@@ -556,7 +558,7 @@ static t_stat cpu_user_20 (void)
 {
 t_stat reason = SCPE_OK;
 OPS op;
-uint32 entry;
+uint32_t entry;
 
 entry = IR & 017;                                       /* mask to entry point */
 
@@ -590,7 +592,7 @@ return reason;
 OP ReadOp (HP_WORD va, OPSIZE precision)
 {
 OP operand;
-uint32 i;
+uint32_t i;
 
 if (precision == in_s)
     operand.word = ReadW (va);                          /* read single integer */
@@ -600,7 +602,7 @@ else if (precision == in_d)
                     ReadW ((va + 1) & LA_MASK);         /* merge high and low words */
 
 else
-    for (i = 0; i < (uint32) precision; i++) {          /* read fp 2 to 5 words */
+    for (i = 0; i < (uint32_t) precision; i++) {        /* read fp 2 to 5 words */
         operand.fpk[i] = ReadW (va);
         va = (va + 1) & LA_MASK;
         }
@@ -611,7 +613,7 @@ return operand;
 
 void WriteOp (HP_WORD va, OP operand, OPSIZE precision)
 {
-uint32 i;
+uint32_t i;
 
 if (precision == in_s)
     WriteW (va, operand.word);                          /* write single integer */
@@ -622,7 +624,7 @@ else if (precision == in_d) {
     }
 
 else
-    for (i = 0; i < (uint32) precision; i++) {          /* write fp 2 to 5 words */
+    for (i = 0; i < (uint32_t) precision; i++) {        /* write fp 2 to 5 words */
         WriteW (va, operand.fpk[i]);
         va = (va + 1) & LA_MASK;
         }
@@ -722,7 +724,7 @@ return;
 t_stat cpu_ops (OP_PAT pattern, OPS op)
 {
 OP_PAT  flags;
-uint32  i;
+uint32_t i;
 t_stat  reason = SCPE_OK;
 
 for (i = 0; i < OP_N_F; i++) {

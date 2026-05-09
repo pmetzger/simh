@@ -49,6 +49,8 @@
 #ifndef NOVA_DEFS_H_
 #define NOVA_DEFS_H_   0
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 /* Rename of global SP variable to avoid namespace conflicts on some platforms */
@@ -76,7 +78,7 @@
 
 #define MAXMEMSIZE      1048576                         /* max memory size in 16-bit words */
 #define PAMASK          (MAXMEMSIZE - 1)                /* physical addr mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < (uint32) MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < (uint32_t) MEMSIZE)
 
 #else
                                 /*----------------------*/
@@ -86,7 +88,7 @@
 #define MAXMEMSIZE      65536                           /* max memory size in 16-bit words: 32KW = DG max, */
                                                         /* 64 KW = 3rd-party extended memory feature  */
 #define DFTMEMSIZE      32768                           /* default/initial mem size  */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < (uint32) MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < (uint32_t) MEMSIZE)
 
 #endif
 
@@ -230,16 +232,16 @@
 */
 
 struct ndev {
-    int32       mask;                                   /* done/busy mask */
-    int32       pi;                                     /* assigned pi bit */
-    int32       (*routine)(int32, int32, int32);        /* dispatch routine */
+    int32_t     mask;                                   /* done/busy mask */
+    int32_t     pi;                                     /* assigned pi bit */
+    int32_t     (*routine)(int32_t, int32_t, int32_t);  /* dispatch routine */
     };
 
 typedef struct {
-    int32       dnum;                                   /* device number */
-    int32       mask;                                   /* done/busy mask */
-    int32       pi;                                     /* assigned pi bit */
-    int32       (*routine)(int32, int32, int32);        /* dispatch routine */
+    int32_t     dnum;                                   /* device number */
+    int32_t     mask;                                   /* done/busy mask */
+    int32_t     pi;                                     /* assigned pi bit */
+    int32_t     (*routine)(int32_t, int32_t, int32_t);  /* dispatch routine */
     } DIB;
 
 /* Device flags (simulator representation)
@@ -325,8 +327,8 @@ typedef struct {
 
 /* Function prototypes */
 
-int32 MapAddr (int32 map, int32 addr);
-t_stat set_enb (UNIT *uptr, int32 val, char *cptr, void *desc);
-t_stat set_dsb (UNIT *uptr, int32 val, char *cptr, void *desc);
+int32_t MapAddr (int32_t map, int32_t addr);
+t_stat set_enb (UNIT *uptr, int32_t val, char *cptr, void *desc);
+t_stat set_dsb (UNIT *uptr, int32_t val, char *cptr, void *desc);
 
 #endif

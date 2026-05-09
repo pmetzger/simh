@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i7000_defs.h"
 #include "sim_card.h"
 #include "sim_defs.h"
@@ -49,15 +51,15 @@
 
 struct _con_data
 {
-    uint8               ibuff[145];     /* Input line buffer */
-    uint8               inptr;
+    uint8_t             ibuff[145];     /* Input line buffer */
+    uint8_t             inptr;
 }
 con_data[NUM_DEVS_CON];
 
-uint32              con_cmd(UNIT *, uint16, uint16);
+uint32_t            con_cmd(UNIT *, uint16_t, uint16_t);
 void                con_ini(UNIT *, bool);
 t_stat              con_srv(UNIT *);
-t_stat              con_help(FILE *, DEVICE *, UNIT *, int32, const char *);
+t_stat              con_help(FILE *, DEVICE *, UNIT *, int32_t, const char *);
 const char         *con_description(DEVICE *dptr);
 
 extern char         ascii_to_six[128];
@@ -91,8 +93,8 @@ con_ini(UNIT *uptr, bool f) {
      sim_activate(uptr, 1000);
 }
 
-uint32
-con_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t
+con_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -145,7 +147,7 @@ con_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
 t_stat
 con_srv(UNIT *uptr) {
     int                 chan = UNIT_G_CHAN(uptr->flags);
-    uint8               ch;
+    uint8_t             ch;
     int                 u = (uptr - con_unit);
     t_stat              r;
 
@@ -265,7 +267,7 @@ con_srv(UNIT *uptr) {
 }
 
 t_stat
-con_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+con_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    /* Generic callback signature.
       This implementation does not use every parameter. */

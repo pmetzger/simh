@@ -30,6 +30,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -56,23 +58,23 @@
 
 struct boot_dev {
     const char          *name;
-    int32               code;
-    int32               let;
+    int32_t             code;
+    int32_t             let;
     };
 
-uint32 wcs_addr = 0;
-uint32 wcs_data = 0;
-uint32 nexus_req[NEXUS_HLVL];                           /* nexus int req */
-int32 ipr_int = 0;
-int32 rxcd_int = 0;
-int32 ipir = 0;
-int32 accs = 0;
-int32 sys_model = 0;
-int32 mchk_flag[KA_NUM] = { 0 };
+uint32_t wcs_addr = 0;
+uint32_t wcs_data = 0;
+uint32_t nexus_req[NEXUS_HLVL];                         /* nexus int req */
+int32_t ipr_int = 0;
+int32_t rxcd_int = 0;
+int32_t ipir = 0;
+int32_t accs = 0;
+int32_t sys_model = 0;
+int32_t mchk_flag[KA_NUM] = { 0 };
 char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
 
-static t_stat (*nexusR[NEXUS_NUM])(int32 *dat, int32 ad, int32 md);
-static t_stat (*nexusW[NEXUS_NUM])(int32 dat, int32 ad, int32 md);
+static t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
+static t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
 
 static struct boot_dev boot_tab[] = {
     { "HK", BOOT_HK, 0 },
@@ -85,35 +87,35 @@ static struct boot_dev boot_tab[] = {
     { NULL }
     };
 
-extern int32 tmr_int, tti_int, tto_int, fl_int;
-extern int32 cur_cpu;
+extern int32_t tmr_int, tti_int, tto_int, fl_int;
+extern int32_t cur_cpu;
 
 t_stat bi_reset (DEVICE *dptr);
-t_stat vax820_boot (int32 flag, const char *ptr);
-t_stat vax820_boot_parse (int32 flag, const char *ptr);
-t_stat cpu_boot (int32 unitno, DEVICE *dptr);
+t_stat vax820_boot (int32_t flag, const char *ptr);
+t_stat vax820_boot_parse (int32_t flag, const char *ptr);
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr);
 
 extern void uba_eval_int (void);
-extern int32 uba_get_ubvector (int32 lvl);
-extern int32 iccs_rd (void);
-extern int32 nicr_rd (void);
-extern int32 icr_rd (void);
-extern int32 todr_rd (void);
-extern int32 rxcs_rd (void);
-extern int32 rxdb_rd (void);
-extern int32 txcs_rd (void);
-extern int32 rxcd_rd (void);
-extern int32 pcsr_rd (int32 pa);
-extern int32 fl_rd (int32 pa);
-extern void iccs_wr (int32 dat);
-extern void nicr_wr (int32 dat);
-extern void todr_wr (int32 dat);
-extern void rxcs_wr (int32 dat);
-extern void txcs_wr (int32 dat);
-extern void txdb_wr (int32 dat);
-extern void rxcd_wr (int32 val);
-extern void pcsr_wr (int32 pa, int32 val, int32 lnt);
-extern void fl_wr (int32 pa, int32 val, int32 lnt);
+extern int32_t uba_get_ubvector (int32_t lvl);
+extern int32_t iccs_rd (void);
+extern int32_t nicr_rd (void);
+extern int32_t icr_rd (void);
+extern int32_t todr_rd (void);
+extern int32_t rxcs_rd (void);
+extern int32_t rxdb_rd (void);
+extern int32_t txcs_rd (void);
+extern int32_t rxcd_rd (void);
+extern int32_t pcsr_rd (int32_t pa);
+extern int32_t fl_rd (int32_t pa);
+extern void iccs_wr (int32_t dat);
+extern void nicr_wr (int32_t dat);
+extern void todr_wr (int32_t dat);
+extern void rxcs_wr (int32_t dat);
+extern void txcs_wr (int32_t dat);
+extern void txdb_wr (int32_t dat);
+extern void rxcd_wr (int32_t val);
+extern void pcsr_wr (int32_t pa, int32_t val, int32_t lnt);
+extern void fl_wr (int32_t pa, int32_t val, int32_t lnt);
 extern void init_ubus_tab (void);
 extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
 
@@ -171,13 +173,13 @@ CTAB vax820_cmd[] = {
 */
 /* Find highest priority vectorable interrupt */
 
-int32 eval_int (void)
+int32_t eval_int (void)
 {
-int32 ipl = PSL_GETIPL (PSL);
-int32 cpu_msk = (1u << cur_cpu);
-int32 i, t;
+int32_t ipl = PSL_GETIPL (PSL);
+int32_t cpu_msk = (1u << cur_cpu);
+int32_t i, t;
 
-static const int32 sw_int_mask[IPL_SMAX] = {
+static const int32_t sw_int_mask[IPL_SMAX] = {
     0xFFFE, 0xFFFC, 0xFFF8, 0xFFF0,                     /* 0 - 3 */
     0xFFE0, 0xFFC0, 0xFF80, 0xFF00,                     /* 4 - 7 */
     0xFE00, 0xFC00, 0xF800, 0xF000,                     /* 8 - B */
@@ -220,11 +222,11 @@ return 0;
 
 /* Return vector for highest priority hardware interrupt at IPL lvl */
 
-int32 get_vector (int32 lvl)
+int32_t get_vector (int32_t lvl)
 {
-int32 i, l;
-int32 vec;
-int32 cpu_msk = (1u << cur_cpu);
+int32_t i, l;
+int32_t vec;
+int32_t cpu_msk = (1u << cur_cpu);
 
 if (lvl == IPL_CRDERR) {                                /* CRD error? */
     crd_err = 0;
@@ -285,9 +287,9 @@ return 0;
 
 /* Read 8200-specific IPR's */
 
-int32 ReadIPR (int32 rg)
+int32_t ReadIPR (int32_t rg)
 {
-int32 val;
+int32_t val;
 
 switch (rg) {
 
@@ -405,7 +407,7 @@ return val;
 
 /* Write 8200-specific IPR's */
 
-void WriteIPR (int32 rg, int32 val)
+void WriteIPR (int32_t rg, int32_t val)
 {
 switch (rg) {
 
@@ -485,10 +487,10 @@ return;
 }
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
-    int32       (*read)(int32 pa);                      /* read routine */
-    void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
+    uint32_t    low;                                    /* low addr */
+    uint32_t    high;                                   /* high addr */
+    int32_t     (*read)(int32_t pa);                    /* read routine */
+    void        (*write)(int32_t pa, int32_t val, int32_t lnt); /* write routine */
     };
 
 struct reglink regtable[] = {
@@ -507,9 +509,9 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32_t ReadReg (uint32_t pa, int32_t lnt)
 {
-int32 nexus, val;
+int32_t nexus, val;
 struct reglink *p;
 
 if (ADDR_IS_REG (pa)) {                                 /* reg space? */
@@ -540,9 +542,9 @@ return 0;
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32_t val, int32_t lnt)
 {
-int32 nexus;
+int32_t nexus;
 struct reglink *p;
 
 if (ADDR_IS_REG (pa)) {                                 /* reg space? */
@@ -571,14 +573,14 @@ return;
    Rest will be zero
 */
 
-int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
+int32_t machine_check (int32_t p1, int32_t opc, int32_t cc, int32_t delta)
 {
 /* System-specific machine-check hook.
    This implementation does not use every parameter. */
 (void) opc;
 (void) delta;
 
-int32 acc;
+int32_t acc;
 
 if (mchk_flag[cur_cpu])                                 /* double error? */
     ABORT (STOP_INIE);                                  /* halt */
@@ -604,7 +606,7 @@ return cc;
 
 /* Console entry - only reached if CONHALT is set (AUTORESTART is set */
 
-int32 con_halt (int32 code, int32 cc)
+int32_t con_halt (int32_t code, int32_t cc)
 {
 /* System-specific console halt hook.
    This implementation does not use every parameter. */
@@ -626,7 +628,7 @@ return cc;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax820_boot (int32 flag, const char *ptr)
+t_stat vax820_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -642,12 +644,12 @@ strncpy (cpu_boot_cmd, ptr, CBUFSIZE-1);                /* save for reboot */
 return run_cmd (flag, "CPU");
 }
 
-t_stat vax820_boot_parse (int32 flag, const char *ptr)
+t_stat vax820_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 char *slptr;
 const char *regptr;
-int32 i, r5v, unitno;
+int32_t i, r5v, unitno;
 DEVICE *dptr;
 UNIT *uptr;
 DIB *dibp;
@@ -668,14 +670,14 @@ if ((dptr == NULL) || (uptr == NULL))
 dibp = (DIB *) dptr->ctxt;                              /* get DIB */
 if (dibp == NULL)
     return SCPE_ARG;
-unitno = (int32) (uptr - dptr->units);
+unitno = (int32_t) (uptr - dptr->units);
 r5v = 0;
 /* coverity[NULL_RETURNS] */
 if ((strncmp (regptr, "/R5:", 4) == 0) ||
     (strncmp (regptr, "/R5=", 4) == 0) ||
     (strncmp (regptr, "/r5:", 4) == 0) ||
     (strncmp (regptr, "/r5=", 4) == 0)) {
-    r5v = (int32) get_uint (regptr + 4, 16, LMASK, &r);
+    r5v = (int32_t) get_uint (regptr + 4, 16, LMASK, &r);
     if (r != SCPE_OK)
         return r;
     }
@@ -697,7 +699,7 @@ return SCPE_NOFNC;
 
 /* Bootstrap - finish up bootstrap process */
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic device boot signature.
    This implementation does not use every parameter. */
@@ -733,7 +735,7 @@ return SCPE_OK;
 
 /* Show nexus */
 
-t_stat show_nexus (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_nexus (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -748,7 +750,7 @@ return SCPE_OK;
 
 void init_nexus_tab (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NEXUS_NUM; i++) {
     nexusR[i] = NULL;
@@ -768,7 +770,7 @@ return;
 
 t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 
 if ((dptr == NULL) || (dibp == NULL))
     return SCPE_IERR;
@@ -793,7 +795,7 @@ return SCPE_OK;
 
 t_stat build_dib_tab (void)
 {
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;
@@ -816,7 +818,7 @@ for (i = 0; (dptr = sim_devices[i]) != NULL; i++) {     /* loop thru dev */
 return SCPE_OK;
 }
 
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -845,7 +847,7 @@ fprintf (st, "VAX %s", (sys_model ? "8250" : "8200"));
 return SCPE_OK;
 }
 
-t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

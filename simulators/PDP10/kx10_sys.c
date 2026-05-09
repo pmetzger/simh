@@ -29,8 +29,10 @@
 
 #include "kx10_defs.h"
 #include "sim_card.h"
+#include "sim_types.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 
 /* SCP data structures and interface routines
@@ -62,7 +64,7 @@ char sim_name[] = "PDP6";
 extern REG cpu_reg[];
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -311,9 +313,9 @@ static t_stat load_dmp (FILE *fileref)
 {
    char    buffer[100];
    char    *p;
-   uint32  addr = 074;
+   uint32_t addr = 074;
    uint64  data;
-   uint32  high = 0;
+   uint32_t high = 0;
 
    while (fgets(&buffer[0], 80, fileref) != 0) {
       data = 0;
@@ -322,7 +324,7 @@ static t_stat load_dmp (FILE *fileref)
           for (; *p >= '0' && *p <= '7'; p++)
               data = (data << 3) + *p - '0';
           if (addr == 0135 && data != 0)
-             high = (uint32)(data & RMASK);
+             high = (uint32_t)(data & RMASK);
           if (high != 0 && high == addr) {
              addr = 0400000;
              high = 0;
@@ -338,8 +340,8 @@ static int get_evac(FILE *fileref, uint64 *word)
 {
     static uint64 data = 0;
     static int bits = 0;
-    unsigned char buf[4];
-    unsigned char octet;
+    uchar_t buf[4];
+    uchar_t octet;
 
     while (bits < 36) {
         if (sim_fread(&octet, 1, 1, fileref) != 1)
@@ -491,7 +493,7 @@ static t_stat load_sblk (FILE *fileref)
 #define RIM_EOF 0xFFFFFFFFFFFFFFFFLL
 static uint64 getrimw (FILE *fileref)
 {
-    int32 i, tmp;
+    int32_t i, tmp;
     uint64 word;
 
     word = 0;
@@ -511,13 +513,13 @@ static t_stat load_rim (FILE *fileref)
 {
     uint64        count, cksm, data;
     bool          its_rim;
-    uint32        pa;
-    int32         op, i, ldrc;
+    uint32_t      pa;
+    int32_t       op, i, ldrc;
 
     data = getrimw (fileref);                           /* get first word */
     if ((data & AMASK) != 0)                            /* error? SA != 0? */
         return SCPE_FMT;
-    ldrc = 1 + (RMASK ^ ((int32) ((data >> 18) & RMASK))); /* get loader count */
+    ldrc = 1 + (RMASK ^ ((int32_t) ((data >> 18) & RMASK))); /* get loader count */
     if (ldrc == 016)                                    /* 16? RIM10B */
         its_rim = false;
     else if (ldrc == 017)                               /* 17? ITS RIM */
@@ -542,10 +544,10 @@ static t_stat load_rim (FILE *fileref)
                 if (its_rim) {                          /* ITS RIM? */
                     cksm = (((cksm << 1) | (cksm >> 35))) & FMASK;
                                                         /* add to rotated cksm */
-                    pa = ((uint32) count) & RMASK;      /* store */
+                    pa = ((uint32_t) count) & RMASK;    /* store */
                 }
                 else {                                  /* RIM10B */
-                    pa = ((uint32) count + 1) & RMASK;  /* store */
+                    pa = ((uint32_t) count + 1) & RMASK; /* store */
                 }
                 cksm = (cksm + data) & FMASK;           /* add to cksm */
                 M[pa] = data;
@@ -560,7 +562,7 @@ static t_stat load_rim (FILE *fileref)
             op = GET_OP (count);                        /* not IOWD */
             if (op != OP_JRST)                          /* JRST? */
                 return SCPE_FMT;
-            PC = (uint32) count & RMASK;                /* set PC */
+            PC = (uint32_t) count & RMASK;              /* set PC */
             break;
         }                                               /* end else */
     }                                                   /* end for */
@@ -608,14 +610,14 @@ static int get_word(FILE *fileref, uint64 *word, int ftype)
 static t_stat load_sav (FILE *fileref, int ftype)
 {
     uint64 data;
-    uint32 pa;
-    int32 wc;
+    uint32_t pa;
+    int32_t wc;
 
     for ( ;; ) {                                        /* loop */
         if (get_word(fileref, &data, ftype))
             return SCPE_OK;
-        wc = (int32)(data >> 18);
-        pa = (uint32) (data & RMASK);
+        wc = (int32_t)(data >> 18);
+        pa = (uint32_t) (data & RMASK);
         if (wc == (OP_JRST << 9)) {
             sim_printf("Start addr=%06o\n", pa);
             PC = pa;
@@ -664,9 +666,9 @@ static t_stat load_sav (FILE *fileref, int ftype)
 static t_stat load_exe (FILE *fileref, int ftype)
 {
     uint64 data, dirbuf[DIRSIZ], pagbuf[PAG_SIZE], entbuf[2];
-    int32 ndir, entvec, i, j, k, cont, bsz, bty, rpt, wc;
-    int32 fpage, mpage;
-    uint32 ma;
+    int32_t ndir, entvec, i, j, k, cont, bsz, bty, rpt, wc;
+    int32_t fpage, mpage;
+    uint32_t ma;
 
     ndir = entvec = 0;                                  /* no dir, entvec */
     cont = 1;
@@ -675,10 +677,10 @@ static t_stat load_exe (FILE *fileref, int ftype)
         wc = get_word(fileref, &data, ftype);
         if (wc != 0)                                    /* error? */
             return SCPE_FMT;
-        bsz = (int32) ((data & RMASK) - 1);             /* get count */
+        bsz = (int32_t) ((data & RMASK) - 1);           /* get count */
         if (bsz < 0)                                    /* zero? */
             return SCPE_FMT;
-        bty = (int32) LRZ (data);                       /* get type */
+        bty = (int32_t) LRZ (data);                     /* get type */
         switch (bty) {                                  /* case type */
 
         case EXE_DIR:                                   /* directory */
@@ -718,9 +720,9 @@ static t_stat load_exe (FILE *fileref, int ftype)
     } while (cont);                                     /* end do */
 
     for (i = 0; i < ndir; i = i + 2) {                  /* loop thru dir */
-        fpage = (int32) (dirbuf[i] & RMASK);            /* file page */
-        mpage = (int32) (dirbuf[i + 1] & RMASK);        /* memory page */
-        rpt = ((int32) ((dirbuf[i + 1] >> 27) + 1)) & 0777; /* repeat count */
+        fpage = (int32_t) (dirbuf[i] & RMASK);          /* file page */
+        mpage = (int32_t) (dirbuf[i + 1] & RMASK);      /* memory page */
+        rpt = ((int32_t) ((dirbuf[i + 1] >> 27) + 1)) & 0777; /* repeat count */
         for (j = 0; j < rpt; j++, mpage++) {            /* loop thru rpts */
             if (fpage) {                                /* file pages? */
                 (void)sim_fseek (fileref, (fpage << PAG_V_PN) * 5, SEEK_SET);
@@ -743,9 +745,9 @@ static t_stat load_exe (FILE *fileref, int ftype)
         }                                               /* end rpt */
     }                                                   /* end directory */
     if (entvec && entbuf[1])
-        PC = (int32) (entbuf[1] & RMASK);               /* start addr */
+        PC = (int32_t) (entbuf[1] & RMASK);             /* start addr */
     else if (entvec == 0)
-        PC = (int32) (M[0120] & RMASK);
+        PC = (int32_t) (M[0120] & RMASK);
     return SCPE_OK;
 }
 
@@ -843,9 +845,9 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
     (void)flag;
 
     uint64 data;
-    int32 wc, fmt;
+    int32_t wc, fmt;
     int ftype;
-    extern int32 sim_switches;
+    extern int32_t sim_switches;
 
     fmt = 0;                                            /* no fmt */
     ftype = 0;
@@ -1026,7 +1028,7 @@ static const char *opcode[] = {
 NULL
 };
 
-static const t_int64 opc_val[] = {
+static const int64_t opc_val[] = {
  0254040000000+I_OP, 0254100000000+I_OP,
  0254200000000+I_OP, 0254240000000+I_OP, 0254300000000+I_OP, 0254340000000+I_OP,
  0254500000000+I_OP, 0254600000000+I_OP, 0254640000000+I_OP, 0133000000000+I_OP,
@@ -1193,33 +1195,33 @@ static const char *devnam[NUMDEV] = {
 #define SIXTOASC(x) ((x) + 040)
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
     (void)addr;
     (void)uptr;
 
-    int32 i, j, c, ac, xr, y, dev;
+    int32_t i, j, c, ac, xr, y, dev;
     uint64 inst;
 
     inst = val[0];
     if (sw & SWMASK ('A')) {                            /* ASCII? */
         if (inst > 0377)
             return SCPE_ARG;
-        fprintf (of, FMTASC ((int32) (inst & 0177)));
+        fprintf (of, FMTASC ((int32_t) (inst & 0177)));
         return SCPE_OK;
     }
     if (sw & SWMASK ('C')) {                            /* character? */
         for (i = 30; i >= 0; i = i - 6) {
-            c = (int32) ((inst >> i) & 077);
+            c = (int32_t) ((inst >> i) & 077);
             fprintf (of, "%c", SIXTOASC (c));
         }
         return SCPE_OK;
     }
     if (sw & SWMASK ('P')) {                            /* packed? */
         for (i = 29; i >= 0; i = i - 7) {
-            c = (int32) ((inst >> i) & 0177);
+            c = (int32_t) ((inst >> i) & 0177);
             fprintf (of, FMTASC (c));
         }
         return SCPE_OK;
@@ -1234,7 +1236,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     y = GET_ADDR (inst);
     dev = GET_DEV (inst);
     for (i = 0; opc_val[i] >= 0; i++) {                 /* loop thru ops */
-        j = (int32) ((opc_val[i] >> I_V_FL) & I_M_FL);  /* get class */
+        j = (int32_t) ((opc_val[i] >> I_V_FL) & I_M_FL); /* get class */
         if (((opc_val[i] & FMASK) == (inst & masks[j]))) { /* match? */
             fprintf (of, "%s ", opcode[i]);             /* opcode */
             switch (j) {                                /* case on class */
@@ -1279,7 +1281,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
 
 static t_value get_opnd (const char *cptr, t_stat *status)
 {
-    int32 sign = 0;
+    int32_t sign = 0;
     t_value val, xr = 0, ind = 0;
     const char *tptr;
 
@@ -1325,14 +1327,14 @@ static t_value get_opnd (const char *cptr, t_stat *status)
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
     /* Generic symbolic input signature.
        This implementation does not use every parameter. */
     (void)addr;
     (void)uptr;
 
-    int32 i, j;
+    int32_t i, j;
     t_value ac, dev;
     t_stat r;
     char gbuf[CBUFSIZE], cbuf[2*CBUFSIZE];
@@ -1373,7 +1375,7 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
     if (opcode[i] == NULL)
         return SCPE_ARG;
     val[0] = opc_val[i] & FMASK;                        /* get value */
-    j = (int32) ((opc_val[i] >> I_V_FL) & I_M_FL);      /* get class */
+    j = (int32_t) ((opc_val[i] >> I_V_FL) & I_M_FL);    /* get class */
     switch (j) {                                        /* case on class */
 
         case I_V_AC:                                    /* AC + operand */

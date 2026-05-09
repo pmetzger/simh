@@ -26,7 +26,10 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
+#include <stdint.h>
+
 #include "besm6_defs.h"
+#include "sim_types.h"
 
 t_stat pl_event (UNIT *u);
 
@@ -45,7 +48,7 @@ UNIT pl_unit [] = {
 
 #define PL_RATE         (int)(12.5*MSEC)
 
-unsigned char PL[2];
+uchar_t PL[2];
 
 t_stat pl_reset (DEVICE *dptr);
 t_stat pl_attach (UNIT *uptr, const char *cptr);
@@ -100,7 +103,7 @@ t_stat pl_detach (UNIT *u)
     return detach_unit (u);
 }
 
-void pl_control (int num, uint32 cmd)
+void pl_control (int num, uint32_t cmd)
 {
     UNIT *u = &pl_unit[num];
     FILE *f = u->fileref;
@@ -120,14 +123,14 @@ void pl_control (int num, uint32 cmd)
     }
 }
 
-unsigned char unicode_to_gost (unsigned short val);
+uchar_t unicode_to_gost (unsigned short val);
 
 /*
  * The UPP code is the GOST 10859 code with odd parity.
  * UPP stood for "unit for preparation of punchards".
  */
-static unsigned char unicode_to_upp (unsigned short ch) {
-    unsigned char ret;
+static uchar_t unicode_to_upp (unsigned short ch) {
+    uchar_t ret;
     ch = ret = unicode_to_gost (ch);
     ch = (ch & 0x55) + ((ch >> 1) & 0x55);
     ch = (ch & 0x33) + ((ch >> 2) & 0x33);

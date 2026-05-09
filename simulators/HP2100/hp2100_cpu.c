@@ -936,6 +936,7 @@
 
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "hp2100_defs.h"
 #include "hp2100_cpu.h"
@@ -1098,8 +1099,8 @@ HP_WORD TR  = 0;                                /* T register */
 HP_WORD XR  = 0;                                /* X register */
 HP_WORD YR  = 0;                                /* Y register */
 
-uint32  E   = 0;                                /* E register */
-uint32  O   = 0;                                /* O register */
+uint32_t E   = 0;                               /* E register */
+uint32_t O   = 0;                               /* O register */
 
 HP_WORD IR  = 0;                                /* Instruction Register */
 HP_WORD CIR = 0;                                /* Central Interrupt Register */
@@ -1109,7 +1110,7 @@ HP_WORD SPR = 0;                                /* 1000 Stack Pointer Register /
 /* CPU global state */
 
 FLIP_FLOP      cpu_interrupt_enable  = SET;     /* interrupt enable flip-flop */
-uint32         cpu_pending_interrupt = 0;       /* pending interrupt select code or zero if none */
+uint32_t       cpu_pending_interrupt = 0;       /* pending interrupt select code or zero if none */
 
 t_stat         cpu_ss_unimpl   = SCPE_OK;       /* status return for unimplemented instruction execution */
 t_stat         cpu_ss_undef    = SCPE_OK;       /* status return for undefined instruction execution */
@@ -1119,12 +1120,12 @@ t_stat         cpu_ss_inhibit  = SCPE_OK;       /* CPU stop inhibition mask */
 UNIT           *cpu_ioerr_uptr = NULL;          /* pointer to a unit with an unreported I/O error */
 
 HP_WORD        err_PR         = 0;              /* error PC */
-uint16         pcq [PCQ_SIZE] = { 0 };          /* PC queue (must be 16-bits wide for REG array entry) */
-uint32         pcq_p          = 0;              /* PC queue pointer */
+uint16_t       pcq [PCQ_SIZE] = { 0 };          /* PC queue (must be 16-bits wide for REG array entry) */
+uint32_t       pcq_p          = 0;              /* PC queue pointer */
 REG            *pcq_r         = NULL;           /* PC queue register pointer */
 
 CPU_OPTION_SET cpu_configuration;               /* the current CPU option set and model */
-uint32         cpu_speed = 1;                   /* the CPU speed, expressed as a multiplier of a real machine */
+uint32_t       cpu_speed = 1;                   /* the CPU speed, expressed as a multiplier of a real machine */
 
 
 /* CPU local state.
@@ -1142,18 +1143,18 @@ uint32         cpu_speed = 1;                   /* the CPU speed, expressed as a
 static jmp_buf   abort_environment;             /* microcode abort environment */
 
 static FLIP_FLOP interrupt_system  = CLEAR;     /* interrupt system */
-static uint32    interrupt_request = 0;         /* the currently interrupting select code or zero if none */
+static uint32_t  interrupt_request = 0;         /* the currently interrupting select code or zero if none */
 
-static uint32    interrupt_request_set [2] = { 0, 0 };  /* device interrupt request bit vector */
-static uint32    priority_holdoff_set  [2] = { 0, 0 };  /* device priority holdoff bit vector */
+static uint32_t  interrupt_request_set [2] = { 0, 0 };  /* device interrupt request bit vector */
+static uint32_t  priority_holdoff_set  [2] = { 0, 0 };  /* device priority holdoff bit vector */
 
-static uint32    exec_mask        = 0;          /* the current instruction execution trace mask */
-static uint32    exec_match       = D16_UMAX;   /* the current instruction execution trace matching value */
-static uint32    indirect_limit   = 16;         /* the indirect chain length limit */
+static uint32_t  exec_mask        = 0;          /* the current instruction execution trace mask */
+static uint32_t  exec_match       = D16_UMAX;   /* the current instruction execution trace matching value */
+static uint32_t  indirect_limit   = 16;         /* the indirect chain length limit */
 
 static bool      is_1000          = false;      /* true if the CPU is a 1000 M/E/F-Series */
 static bool      mp_is_present    = false;      /* true if Memory Protect is present */
-static uint32    last_select_code = 0;          /* the last select code sent over the I/O backplane */
+static uint32_t  last_select_code = 0;          /* the last select code sent over the I/O backplane */
 static HP_WORD   saved_MR         = 0;          /* the M-register value between SCP commands */
 
 static DEVICE    *loader_rom [4]  = { NULL };   /* the four boot loader ROM sockets in a 1000 CPU */
@@ -1173,9 +1174,9 @@ static DEVICE    *loader_rom [4]  = { NULL };   /* the four boot loader ROM sock
 */
 
 typedef struct {                                /* CPU model feature table */
-    uint32      typ;                            /*   standard features plus typically configured options */
-    uint32      opt;                            /*   complete list of optional features */
-    uint32      maxmem;                         /*   maximum configurable memory in 16-bit words */
+    uint32_t    typ;                            /*   standard features plus typically configured options */
+    uint32_t    opt;                            /*   complete list of optional features */
+    uint32_t    maxmem;                         /*   maximum configurable memory in 16-bit words */
     } FEATURE_TABLE;
 
 static const FEATURE_TABLE cpu_features [] = {          /* CPU features indexed by OPTION_ID */
@@ -1226,34 +1227,34 @@ static INTERFACE cpu_interface;
 static INTERFACE ovf_interface;
 static INTERFACE pwr_interface;
 
-static t_stat cpu_examine (t_value *eval, t_addr address, UNIT *uptr, int32 switches);
-static t_stat cpu_deposit (t_value value, t_addr address, UNIT *uptr, int32 switches);
+static t_stat cpu_examine (t_value *eval, t_addr address, UNIT *uptr, int32_t switches);
+static t_stat cpu_deposit (t_value value, t_addr address, UNIT *uptr, int32_t switches);
 
 static t_stat cpu_reset (DEVICE *dptr);
-static t_stat cpu_boot  (int32  unitno, DEVICE *dptr);
+static t_stat cpu_boot  (int32_t unitno, DEVICE *dptr);
 
-static t_stat set_stops    (UNIT *uptr, int32 option,    const char *cptr, void *desc);
-static t_stat set_size     (UNIT *uptr, int32 new_size,  const char *cptr, void *desc);
-static t_stat set_model    (UNIT *uptr, int32 new_model, const char *cptr, void *desc);
-static t_stat set_option   (UNIT *uptr, int32 option,    const char *cptr, void *desc);
-static t_stat clear_option (UNIT *uptr, int32 option,    const char *cptr, void *desc);
-static t_stat set_loader   (UNIT *uptr, int32 enable,    const char *cptr, void *desc);
-static t_stat set_roms     (UNIT *uptr, int32 option,    const char *cptr, void *desc);
-static t_stat set_exec     (UNIT *uptr, int32 option,    const char *cptr, void *desc);
+static t_stat set_stops    (UNIT *uptr, int32_t option,    const char *cptr, void *desc);
+static t_stat set_size     (UNIT *uptr, int32_t new_size,  const char *cptr, void *desc);
+static t_stat set_model    (UNIT *uptr, int32_t new_model, const char *cptr, void *desc);
+static t_stat set_option   (UNIT *uptr, int32_t option,    const char *cptr, void *desc);
+static t_stat clear_option (UNIT *uptr, int32_t option,    const char *cptr, void *desc);
+static t_stat set_loader   (UNIT *uptr, int32_t enable,    const char *cptr, void *desc);
+static t_stat set_roms     (UNIT *uptr, int32_t option,    const char *cptr, void *desc);
+static t_stat set_exec     (UNIT *uptr, int32_t option,    const char *cptr, void *desc);
 
-static t_stat show_stops (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat show_model (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat show_roms  (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat show_cage  (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat show_exec  (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat show_speed (FILE *st, UNIT *uptr, int32 val, const void *desc);
+static t_stat show_stops (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat show_model (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat show_roms  (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat show_cage  (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat show_exec  (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat show_speed (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 
 /* CPU local utility routine declarations */
 
 static t_stat  mrg_address         (void);
 static HP_WORD srg_uop             (HP_WORD value, HP_WORD operation);
-static t_stat  machine_instruction (bool int_ack, uint32 *idle_save);
+static t_stat  machine_instruction (bool int_ack, uint32_t *idle_save);
 static bool    reenable_interrupts (void);
 
 
@@ -1732,7 +1733,7 @@ static const bool enable_map [2] [18] = {               /* interrupt enable tabl
 typedef struct {                            /* I/O access table entry */
     DEVICE *devptr;                         /*   a pointer to the DEVICE structure */
     DIB    *dibptr;                         /*   a pointer to the DIB structure */
-    uint32 references;                      /*   a count of the references to this select code */
+    uint32_t references;                    /*   a count of the references to this select code */
     } IO_TABLE;
 
 static IO_TABLE iot [SC_MAX + 1] = {         /* index by select code for I/O instruction dispatch */
@@ -1988,8 +1989,8 @@ static bool initialize_io (bool is_executing);
 
 t_stat sim_instr (void)
 {
-static uint32 exec_save;                                /* the trace flag settings saved by an EXEC match */
-static uint32 idle_save;                                /* the trace flag settings saved by an idle match */
+static uint32_t exec_save;                              /* the trace flag settings saved by an EXEC match */
+static uint32_t idle_save;                              /* the trace flag settings saved by an idle match */
 MICRO_ABORT abort_reason;
 bool        exec_test;                                  /* set after setjmp */
 bool        interrupt_acknowledge;                      /* set after setjmp */
@@ -2278,8 +2279,8 @@ return;
 
 t_stat cpu_iog (HP_WORD instruction)
 {
-const uint32 select_code = instruction & SC_MASK;       /* device select code */
-const uint32 ab_selector = AB_SELECT (instruction);     /* A/B register selector */
+const uint32_t select_code = instruction & SC_MASK;     /* device select code */
+const uint32_t ab_selector = AB_SELECT (instruction);   /* A/B register selector */
 IO_GROUP_OP  micro_op;
 HP_WORD      inbound_value;
 INBOUND_SET  inbound_signals;
@@ -2428,7 +2429,7 @@ else                                                    /* otherwise */
 
 t_stat cpu_resolve_indirects (bool interruptible)
 {
-uint32 level;
+uint32_t level;
 bool pending;
 
 if (MR & IR_IND) {                                      /* if the address is indirect */
@@ -2568,9 +2569,9 @@ longjmp (abort_environment, (int) abort_reason);        /* jump back to the inst
        routine to accommodate select code reassignment by the user.
 */
 
-uint32 cpu_copy_loader (const LOADER_ARRAY boot, uint32 sc, HP_WORD sr_clear, HP_WORD sr_set)
+uint32_t cpu_copy_loader (const LOADER_ARRAY boot, uint32_t sc, HP_WORD sr_clear, HP_WORD sr_set)
 {
-uint32      index, loader_start, ptr_sc;
+uint32_t    index, loader_start, ptr_sc;
 MEMORY_WORD loader [IBL_SIZE];
 MEMORY_WORD word;
 DEVICE      *ptr_dptr;
@@ -2769,11 +2770,11 @@ else                                                    /* otherwise */
        in response to an IOO signal.
 */
 
-SKPF_DATA io_dispatch (uint32 select_code, INBOUND_SET inbound_signals, HP_WORD inbound_value)
+SKPF_DATA io_dispatch (uint32_t select_code, INBOUND_SET inbound_signals, HP_WORD inbound_value)
 {
 SKPF_DATA     result;
 SIGNALS_VALUE outbound;
-uint32        sc_rank, sc_bit, previous_holdoff;
+uint32_t      sc_rank, sc_bit, previous_holdoff;
 
 if (iot [select_code].dibptr == NULL) {                 /* if the I/O slot is empty */
     result.skip = false;                                /*   then SKF cannot be asserted */
@@ -2859,7 +2860,7 @@ return result;                                          /* return the result of 
    to the interface indicated by the supplied select code.
 */
 
-bool io_control (uint32 select_code, IO_GROUP_OP micro_op)
+bool io_control (uint32_t select_code, IO_GROUP_OP micro_op)
 {
 SKPF_DATA result;
 
@@ -2893,7 +2894,7 @@ return result.skip;                                     /* return true if the in
 void io_assert (DEVICE *dptr, IO_ASSERTION assertion)
 {
 DIB    *dibptr;
-uint32 select_code;
+uint32_t select_code;
 
 if (dptr != NULL && dptr->ctxt != NULL) {               /* if the device points to a valid DIB */
     dibptr = (DIB *) dptr->ctxt;                        /*   then get the DIB pointer */
@@ -3025,10 +3026,10 @@ return;
        set(s).
 */
 
-uint32 io_poll_interrupts (FLIP_FLOP interrupt_system)
+uint32_t io_poll_interrupts (FLIP_FLOP interrupt_system)
 {
-const uint32 unmaskable = 1u << PWR | 1u << MPPE;       /* these interrupts are not inhibited by INTSYS clear */
-uint32 sc, rank, priority_mask, request_granted;
+const uint32_t unmaskable = 1u << PWR | 1u << MPPE;     /* these interrupts are not inhibited by INTSYS clear */
+uint32_t sc, rank, priority_mask, request_granted;
 
 if (interrupt_request_set [0]) {                                    /* if a lower pending interrupt exists */
     priority_mask = IOPRIORITY (priority_holdoff_set [0]);          /*   then calculate the first priority mask */
@@ -3129,7 +3130,7 @@ static INBOUND_SET last_signal_set = ioNONE;            /* the last set of I/O s
 INBOUND_SIGNAL     signal;
 INBOUND_SET        working_set = inbound_signals;
 SIGNALS_VALUE      outbound    = { ioNONE, 0 };
-uint32             sc;
+uint32_t           sc;
 
 while (working_set) {                                   /* while signals remain */
     signal = IONEXTSIG (working_set);                   /*   isolate the next signal */
@@ -3420,13 +3421,13 @@ return outbound;                                        /* return the outbound s
    in the first word of "eval_array."
 */
 
-static t_stat cpu_examine (t_value *eval_array, t_addr address, UNIT *uptr, int32 switches)
+static t_stat cpu_examine (t_value *eval_array, t_addr address, UNIT *uptr, int32_t switches)
 {
 /* Generic memory access signature.
    This implementation does not use every parameter. */
 (void) uptr;
 
-uint32 index;
+uint32_t index;
 
 index = meu_map_address ((HP_WORD) address, switches);  /* map the supplied address as directed by the switches */
 
@@ -3468,13 +3469,13 @@ return SCPE_OK;                                         /* return success status
    Otherwise, the value is stored into memory or the A/B register.
 */
 
-static t_stat cpu_deposit (t_value value, t_addr address, UNIT *uptr, int32 switches)
+static t_stat cpu_deposit (t_value value, t_addr address, UNIT *uptr, int32_t switches)
 {
 /* Generic memory access signature.
    This implementation does not use every parameter. */
 (void) uptr;
 
-uint32 index;
+uint32_t index;
 
 index = meu_map_address ((HP_WORD) address, switches);  /* map the supplied address as directed by the switches */
 
@@ -3617,15 +3618,15 @@ return SCPE_OK;
        with "Non-existent device."
 */
 
-static t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+static t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic device boot signature.
    This implementation does not use every parameter. */
 (void) unitno;
 (void) dptr;
 
-const int32 select_code = IBL_SC  (SR);                 /* the select code from S register bits 11-6 */
-const int32 rom_socket  = IBL_ROM (SR);                 /* the ROM socket number from S register bits 15-14 */
+const int32_t select_code = IBL_SC  (SR);               /* the select code from S register bits 11-6 */
+const int32_t rom_socket  = IBL_ROM (SR);               /* the ROM socket number from S register bits 15-14 */
 
 if (cpu_configuration & CPU_1000)                       /* if this is a 1000-series CPU */
     if (select_code < SC_VAR) {                         /*   then if the select code is invalid */
@@ -3672,7 +3673,7 @@ else                                                    /* otherwise this is a 2
        exceed the logical memory size without being in a loop.
 */
 
-static t_stat set_stops (UNIT *uptr, int32 option, const char *cptr, void *desc)
+static t_stat set_stops (UNIT *uptr, int32_t option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3681,7 +3682,7 @@ static t_stat set_stops (UNIT *uptr, int32 option, const char *cptr, void *desc)
 
 char gbuf [CBUFSIZE];
 t_stat status;
-uint32 stop;
+uint32_t stop;
 
 if (cptr == NULL)                                               /* if there are no arguments */
     if (option == 0)                                            /*   then if we're clearing the stops */
@@ -3699,7 +3700,7 @@ else if (*cptr == '\0')                                 /* otherwise if the argu
     return SCPE_MISVAL;                                 /*   then report the missing value */
 
 else if (option == 2) {                                         /* otherwise if we're setting the indirect limit */
-    stop = (uint32) get_uint (cptr, 10, LA_MAX + 1, &status);   /*   then parse the limit value */
+    stop = (uint32_t) get_uint (cptr, 10, LA_MAX + 1, &status); /*   then parse the limit value */
 
     if (status != SCPE_OK)                              /* if a parsing error occurred */
         return status;                                  /*   then return the error status */
@@ -3770,7 +3771,7 @@ return SCPE_OK;                                         /* the stops were succes
        memory size by 64 words.
 */
 
-static t_stat set_size (UNIT *uptr, int32 new_size, const char *cptr, void *desc)
+static t_stat set_size (UNIT *uptr, int32_t new_size, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3778,10 +3779,10 @@ static t_stat set_size (UNIT *uptr, int32 new_size, const char *cptr, void *desc
 (void) desc;
 
 static const char confirm [] = "Really truncate memory [N]?";
-const uint32 model = UNIT_MODEL (cpu_unit [0].flags);   /* the current CPU model index */
-int32 old_size = (int32) mem_size;                      /* current memory size */
+const uint32_t model = UNIT_MODEL (cpu_unit [0].flags); /* the current CPU model index */
+int32_t old_size = (int32_t) mem_size;                  /* current memory size */
 
-if ((uint32) new_size > cpu_features [model].maxmem)    /* if the new memory size is not supported on current model */
+if ((uint32_t) new_size > cpu_features [model].maxmem)  /* if the new memory size is not supported on current model */
     return SCPE_NOFNC;                                  /*   then report the error */
 
 if (!(sim_switches & SWMASK ('F'))                      /* if truncation is not explicitly forced */
@@ -3847,7 +3848,7 @@ return SCPE_OK;
        one of the three 1000 model flags.
 */
 
-static t_stat set_model (UNIT *uptr, int32 new_model, const char *cptr, void *desc)
+static t_stat set_model (UNIT *uptr, int32_t new_model, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -3855,7 +3856,7 @@ static t_stat set_model (UNIT *uptr, int32 new_model, const char *cptr, void *de
 (void) desc;
 
 const FEATURE_TABLE new_cpu = cpu_features [UNIT_MODEL (new_model)];    /* get the features describing the new model */
-uint32 new_memsize;
+uint32_t new_memsize;
 t_stat result;
 
 if (mem_size > new_cpu.maxmem)                          /* if the current memory size is too large for the new model */
@@ -3924,14 +3925,14 @@ return result;
        otherwise be required.
 */
 
-static t_stat set_option (UNIT *uptr, int32 option, const char *cptr, void *desc)
+static t_stat set_option (UNIT *uptr, int32_t option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-const uint32 model = UNIT_MODEL (uptr->flags);          /* the current CPU model index */
+const uint32_t model = UNIT_MODEL (uptr->flags);        /* the current CPU model index */
 
 if ((cpu_features [model].opt & option) == 0)           /* if the option is not available for the current CPU */
     return SCPE_NOFNC;                                  /*   then reject the request */
@@ -3977,14 +3978,14 @@ return SCPE_OK;
    rejected.
 */
 
-static t_stat clear_option (UNIT *uptr, int32 option, const char *cptr, void *desc)
+static t_stat clear_option (UNIT *uptr, int32_t option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-const uint32 model = UNIT_MODEL (uptr->flags);          /* the current CPU model index */
+const uint32_t model = UNIT_MODEL (uptr->flags);        /* the current CPU model index */
 
 if ((cpu_features [model].opt & option) == 0)           /* if the option is not available for the current CPU */
     return SCPE_NOFNC;                                  /*   then reject the request */
@@ -4043,7 +4044,7 @@ return SCPE_OK;
        when the loader is disabled.
 */
 
-static t_stat set_loader (UNIT *uptr, int32 enable, const char *cptr, void *desc)
+static t_stat set_loader (UNIT *uptr, int32_t enable, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -4111,7 +4112,7 @@ return SCPE_OK;
        when "SHOW CPU ROMS" was intended.
 */
 
-static t_stat set_roms (UNIT *uptr, int32 option, const char *cptr, void *desc)
+static t_stat set_roms (UNIT *uptr, int32_t option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -4121,7 +4122,7 @@ static t_stat set_roms (UNIT *uptr, int32 option, const char *cptr, void *desc)
 
 DEVICE *dptr;
 char   gbuf [CBUFSIZE];
-uint32 socket = 0;
+uint32_t socket = 0;
 DEVICE *rom [4] = { NULL };
 
 if (!(cpu_configuration & CPU_1000))                    /* if the CPU is not a 1000-series unit */
@@ -4188,7 +4189,7 @@ return SCPE_OK;                                         /* report that the comma
    unless an override switch is present on the command line.
 */
 
-static t_stat set_exec (UNIT *uptr, int32 option, const char *cptr, void *desc)
+static t_stat set_exec (UNIT *uptr, int32_t option, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -4196,7 +4197,7 @@ static t_stat set_exec (UNIT *uptr, int32 option, const char *cptr, void *desc)
 (void) desc;
 
 char   gbuf [CBUFSIZE];
-uint32 match, mask, radix;
+uint32_t match, mask, radix;
 t_stat status;
 
 if (option == 0)                                        /* if this is a NOEXEC request */
@@ -4224,7 +4225,7 @@ else {                                                  /* otherwise at least on
     else                                                /* otherwise */
         radix = cpu_dev.dradix;                         /*   use the current CPU data radix */
 
-    match = (uint32) get_uint (gbuf, radix, D16_UMAX, &status); /* parse the match value */
+    match = (uint32_t) get_uint (gbuf, radix, D16_UMAX, &status); /* parse the match value */
 
     if (status != SCPE_OK)                              /* if a parsing error occurred */
         return status;                                  /*   then return the error status */
@@ -4238,7 +4239,7 @@ else {                                                  /* otherwise at least on
     else {                                              /* otherwise another argument is present */
         cptr = get_glyph (cptr, gbuf, ';');             /*   so get the mask argument */
 
-        mask = (uint32) get_uint (gbuf, radix, D16_UMAX, &status);  /* parse the mask value */
+        mask = (uint32_t) get_uint (gbuf, radix, D16_UMAX, &status); /* parse the mask value */
 
         if (status != SCPE_OK)                          /* if a parsing error occurred */
             return status;                              /*   then return the error status */
@@ -4276,14 +4277,14 @@ else {                                                  /* otherwise at least on
    newline to the output before returning.
 */
 
-static t_stat show_stops (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_stops (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
 (void) uptr;
 (void) desc;
 
-uint32 stop;
+uint32_t stop;
 bool need_spacer = false;
 
 if (val == 2)                                           /* if the indirect limit is requested */
@@ -4317,7 +4318,7 @@ return SCPE_OK;                                         /* report the success of
    Loader status is displayed for 21xx models and suppressed for 1000 models.
 */
 
-static t_stat show_model (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_model (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -4370,7 +4371,7 @@ return SCPE_OK;
        we pick up assigned logical device names.
 */
 
-static t_stat show_roms (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_roms (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -4380,7 +4381,7 @@ static t_stat show_roms (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 const char *cname, *dname;
 DIB    *dibptr;
-uint32 socket;
+uint32_t socket;
 
 if (!(cpu_configuration & CPU_1000)) {                  /* if the CPU is not a 1000-series unit */
     fputs (sim_error_text (SCPE_NOFNC), st);            /*   then print the rejection message */
@@ -4458,7 +4459,7 @@ return SCPE_OK;                                         /* return success status
    newline to the output before returning.
 */
 
-static t_stat show_cage (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_cage (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -4467,7 +4468,7 @@ static t_stat show_cage (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) desc;
 
 const char *cname, *dname;
-uint32 sc, last_sc;
+uint32_t sc, last_sc;
 
 fputc ('\n', st);                                       /* skip a line */
 
@@ -4514,7 +4515,7 @@ return SCPE_OK;                                         /* return success status
    newline to the output before returning.
 */
 
-static t_stat show_exec (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_exec (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -4522,7 +4523,7 @@ static t_stat show_exec (FILE *st, UNIT *uptr, int32 val, const void *desc)
 (void) val;
 (void) desc;
 
-uint32 radix;
+uint32_t radix;
 
 if (exec_mask == 0)                                     /* if the instruction is entirely masked */
     fputs ("Execution trace disabled\n", st);           /*   then report that matching is disabled */
@@ -4560,7 +4561,7 @@ return SCPE_OK;                                         /* report the success of
    is not idling.
 */
 
-static t_stat show_speed (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat show_speed (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -4674,9 +4675,9 @@ return SCPE_OK;                                         /*   and report success 
        and SZA,RSS/SZB,RSS) are independent.
 */
 
-static t_stat machine_instruction (bool int_ack, uint32 *idle_save)
+static t_stat machine_instruction (bool int_ack, uint32_t *idle_save)
 {
-uint32  ab_selector, result, skip;
+uint32_t ab_selector, result, skip;
 HP_WORD data;
 bool    rss;
 t_stat  status = SCPE_OK;
@@ -5078,7 +5079,7 @@ else                                                    /* otherwise */
 
 static HP_WORD srg_uop (HP_WORD value, HP_WORD operation)
 {
-uint32 extend;
+uint32_t extend;
 
 switch (operation) {                                        /* dispatch on the micro operation */
 
@@ -5249,7 +5250,7 @@ static bool initialize_io (bool is_executing)
 DEVICE       *dptr;
 DIB          *dibptr;
 const DEBTAB *tptr;
-uint32       dev, sc, count;
+uint32_t     dev, sc, count;
 size_t       device_length, flag_length, device_size, flag_size;
 bool         is_conflict = false;
 

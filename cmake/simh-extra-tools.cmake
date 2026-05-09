@@ -28,6 +28,7 @@ add_executable(frontpaneltest
 target_include_directories(frontpaneltest PUBLIC
     "${SIMH_COMPAT_ROOT}"
     "${SIMH_CORE_ROOT}"
+    "${SIMH_INCLUDE_ROOT}"
     "${SIMH_RUNTIME_ROOT}"
     "${SIMH_COMPONENTS_ROOT}")
 target_link_libraries(frontpaneltest PUBLIC os_features thread_lib)

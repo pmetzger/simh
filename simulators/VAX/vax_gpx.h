@@ -28,6 +28,8 @@
 #define VAX_GPX_H     0
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 /* FIXME - Some or all of these should be dynamic */
@@ -177,26 +179,26 @@
 
 /* Internal functions/data - implemented by vax_gpx.c */
 
-int32 va_adp_rd (int32 rg);
-void va_adp_wr (int32 rg, int32 val);
+int32_t va_adp_rd (int32_t rg);
+void va_adp_wr (int32_t rg, int32_t val);
 t_stat va_adp_reset (DEVICE *dptr);
 t_stat va_adp_svc (UNIT *uptr);
 t_stat va_vdp_reset (DEVICE *dptr);
 
 t_stat va_btp (UNIT *uptr, bool zmode);
 t_stat va_ptb (UNIT *uptr, bool zmode);
-void va_fifo_wr (uint32 val);
-uint32 va_fifo_rd (void);
-void va_adpstat (uint32 set, uint32 clr);
+void va_fifo_wr (uint32_t val);
+uint32_t va_fifo_rd (void);
+void va_adpstat (uint32_t set, uint32_t clr);
 
-extern int32 va_adp[ADP_NUMREG];                        /* Address processor registers */
+extern int32_t va_adp[ADP_NUMREG];                      /* Address processor registers */
 
 /* External functions/data - implemented by machine specific device */
 
-extern void va_setint (int32 src);
-extern void va_clrint (int32 src);
+extern void va_setint (int32_t src);
+extern void va_clrint (int32_t src);
 
-extern uint32 *va_buf;                                  /* Video memory */
+extern uint32_t *va_buf;                                /* Video memory */
 extern bool va_updated[VA_BYSIZE];
 extern UNIT va_unit[];
 

@@ -33,6 +33,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -44,18 +46,18 @@
 #endif /* DONT_USE_INTERNAL_ROM */
 
 static char cpu_boot_cmd[CBUFSIZE]  = { 0 };            /* boot command */
-int32 sys_model = 0;
+int32_t sys_model = 0;
 
 /* VAX-11/730 boot device definitions */
 
 struct boot_dev {
     const char          *name;
-    int32               code;
-    int32               let;
+    int32_t             code;
+    int32_t             let;
     };
 
-static t_stat (*nexusR[NEXUS_NUM])(int32 *dat, int32 ad, int32 md);
-static t_stat (*nexusW[NEXUS_NUM])(int32 dat, int32 ad, int32 md);
+static t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
+static t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
 
 static struct boot_dev boot_tab[] = {
     { "HK", BOOT_HK, 0 },
@@ -69,38 +71,38 @@ static struct boot_dev boot_tab[] = {
     { NULL }
     };
 
-extern int32 tmr_int, tti_int, tto_int, csi_int, cso_int;
+extern int32_t tmr_int, tti_int, tto_int, csi_int, cso_int;
 
 t_stat sysb_reset (DEVICE *dptr);
 const char *sysb_description (DEVICE *dptr);
-t_stat vax730_boot (int32 flag, const char *ptr);
-t_stat vax730_boot_parse (int32 flag, const char *ptr);
+t_stat vax730_boot (int32_t flag, const char *ptr);
+t_stat vax730_boot_parse (int32_t flag, const char *ptr);
 
-extern int32 iccs_rd (void);
-extern int32 nicr_rd (void);
-extern int32 icr_rd (void);
-extern int32 todr_rd (void);
-extern int32 rxcs_rd (void);
-extern int32 rxdb_rd (void);
-extern int32 txcs_rd (void);
-extern int32 csrs_rd (void);
-extern int32 csrd_rd (void);
-extern int32 csts_rd (void);
-extern void iccs_wr (int32 dat);
-extern void nicr_wr (int32 dat);
-extern void todr_wr (int32 dat);
-extern void rxcs_wr (int32 dat);
-extern void txcs_wr (int32 dat);
-extern void txdb_wr (int32 dat);
-extern void csrs_wr (int32 dat);
-extern void csts_wr (int32 dat);
-extern void cstd_wr (int32 dat);
+extern int32_t iccs_rd (void);
+extern int32_t nicr_rd (void);
+extern int32_t icr_rd (void);
+extern int32_t todr_rd (void);
+extern int32_t rxcs_rd (void);
+extern int32_t rxdb_rd (void);
+extern int32_t txcs_rd (void);
+extern int32_t csrs_rd (void);
+extern int32_t csrd_rd (void);
+extern int32_t csts_rd (void);
+extern void iccs_wr (int32_t dat);
+extern void nicr_wr (int32_t dat);
+extern void todr_wr (int32_t dat);
+extern void rxcs_wr (int32_t dat);
+extern void txcs_wr (int32_t dat);
+extern void txdb_wr (int32_t dat);
+extern void csrs_wr (int32_t dat);
+extern void csts_wr (int32_t dat);
+extern void cstd_wr (int32_t dat);
 extern void init_ubus_tab (void);
 extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
-extern int32 ubamap_rd (int32 pa);
-extern void ubamap_wr (int32 pa, int32 val, int32 lnt);
-extern bool uba_eval_int (int32 lvl);
-extern int32 uba_get_ubvector (int32 lvl);
+extern int32_t ubamap_rd (int32_t pa);
+extern void ubamap_wr (int32_t pa, int32_t val, int32_t lnt);
+extern bool uba_eval_int (int32_t lvl);
+extern int32_t uba_get_ubvector (int32_t lvl);
 
 /* SYSB data structures
 
@@ -141,12 +143,12 @@ CTAB vax730_cmd[] = {
 
    Find highest priority vectorable interrupt */
 
-int32 eval_int (void)
+int32_t eval_int (void)
 {
-int32 ipl = PSL_GETIPL (PSL);
-int32 i, t;
+int32_t ipl = PSL_GETIPL (PSL);
+int32_t i, t;
 
-static const int32 sw_int_mask[IPL_SMAX] = {
+static const int32_t sw_int_mask[IPL_SMAX] = {
     0xFFFE, 0xFFFC, 0xFFF8, 0xFFF0,                     /* 0 - 3 */
     0xFFE0, 0xFFC0, 0xFF80, 0xFF00,                     /* 4 - 7 */
     0xFE00, 0xFC00, 0xF800, 0xF000,                     /* 8 - B */
@@ -180,9 +182,9 @@ return 0;
 
 /* Return vector for highest priority hardware interrupt at IPL lvl */
 
-int32 get_vector (int32 lvl)
+int32_t get_vector (int32_t lvl)
 {
-int32 l;
+int32_t l;
 
 if (lvl == IPL_CLKINT) {                                /* clock? */
     tmr_int = 0;                                        /* clear req */
@@ -221,9 +223,9 @@ return 0;
 
 /* Read 730-specific IPR's */
 
-int32 ReadIPR (int32 rg)
+int32_t ReadIPR (int32_t rg)
 {
-int32 val;
+int32_t val;
 
 switch (rg) {
 
@@ -298,7 +300,7 @@ return val;
 
 /* Write 730-specific IPR's */
 
-void WriteIPR (int32 rg, int32 val)
+void WriteIPR (int32_t rg, int32_t val)
 {
 switch (rg) {
 
@@ -371,9 +373,9 @@ return;
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32_t ReadReg (uint32_t pa, int32_t lnt)
 {
-int32 nexus, val;
+int32_t nexus, val;
 
 if (ADDR_IS_REG (pa)) {                                 /* reg space? */
     nexus = NEXUS_GETNEX (pa);                          /* get nexus */
@@ -397,9 +399,9 @@ return 0;
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32_t val, int32_t lnt)
 {
-int32 nexus;
+int32_t nexus;
 
 if (ADDR_IS_REG (pa)) {                                 /* reg space? */
     nexus = NEXUS_GETNEX (pa);                          /* get nexus */
@@ -422,14 +424,14 @@ return;
    Rest will be zero
 */
 
-int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
+int32_t machine_check (int32_t p1, int32_t opc, int32_t cc, int32_t delta)
 {
 /* Model-dependent machine check signature.
    This implementation does not use every parameter. */
 (void) opc;
 (void) delta;
 
-int32 acc, nxm;
+int32_t acc, nxm;
 
 if (in_ie)                                              /* in exc? panic */
     ABORT (STOP_INIE);
@@ -454,7 +456,7 @@ return cc;
 
 /* Console entry - only reached if CONHALT is set (AUTORESTART is set */
 
-int32 con_halt (int32 code, int32 cc)
+int32_t con_halt (int32_t code, int32_t cc)
 {
 /* Model-dependent console halt signature.
    This implementation does not use every parameter. */
@@ -476,7 +478,7 @@ return cc;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax730_boot (int32 flag, const char *ptr)
+t_stat vax730_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -496,16 +498,16 @@ return run_cmd (flag, "CPU");
 
 /* Parse boot command, set up registers - also used on reset */
 
-t_stat vax730_boot_parse (int32 flag, const char *ptr)
+t_stat vax730_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 char *slptr;
 const char *regptr;
-int32 i, r5v, unitno;
+int32_t i, r5v, unitno;
 DEVICE *dptr;
 UNIT *uptr;
 DIB *dibp;
-uint32 ba;
+uint32_t ba;
 t_stat r;
 
 if (!ptr || !*ptr)
@@ -523,20 +525,20 @@ if (dibp == NULL)
     ba = 0;
 else
     ba = dibp->ba;
-unitno = (int32) (uptr - dptr->units);
+unitno = (int32_t) (uptr - dptr->units);
 r5v = 0;
 /* coverity[NULL_RETURNS] */
 if ((strncmp (regptr, "/R5:", 4) == 0) ||
     (strncmp (regptr, "/R5=", 4) == 0) ||
     (strncmp (regptr, "/r5:", 4) == 0) ||
     (strncmp (regptr, "/r5=", 4) == 0)) {
-    r5v = (int32) get_uint (regptr + 4, 16, LMASK, &r);
+    r5v = (int32_t) get_uint (regptr + 4, 16, LMASK, &r);
     if (r != SCPE_OK)
         return r;
     }
 else
     if (*regptr == '/') {
-        r5v = (int32) get_uint (regptr + 1, 16, LMASK, &r);
+        r5v = (int32_t) get_uint (regptr + 1, 16, LMASK, &r);
         if (r != SCPE_OK)
             return r;
         }
@@ -564,7 +566,7 @@ return SCPE_NOFNC;
 
 /* Bootstrap - finish up bootstrap process */
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic CPU boot signature.
    This implementation does not use every parameter. */
@@ -604,7 +606,7 @@ return "system bus controller";
 
 /* Show nexus */
 
-t_stat show_nexus (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_nexus (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -619,7 +621,7 @@ return SCPE_OK;
 
 static void init_nexus_tab (void)
 {
-uint32 i;
+uint32_t i;
 
 for (i = 0; i < NEXUS_NUM; i++) {
     nexusR[i] = NULL;
@@ -640,7 +642,7 @@ return;
 
 static t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp)
 {
-uint32 idx;
+uint32_t idx;
 
 if ((dptr == NULL) || (dibp == NULL))
     return SCPE_IERR;
@@ -665,7 +667,7 @@ return SCPE_OK;
 
 t_stat build_dib_tab (void)
 {
-uint32 i;
+uint32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;
@@ -694,7 +696,7 @@ fprintf (st, "VAX 11/730");
 return SCPE_OK;
 }
 
-t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

@@ -23,6 +23,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "i7090_defs.h"
 #include "sim_card.h"
 
@@ -46,11 +48,11 @@
 
 
 t_stat              cdr_srv(UNIT *);
-t_stat              cdr_boot(int32, DEVICE *);
+t_stat              cdr_boot(int32_t, DEVICE *);
 t_stat              cdr_reset(DEVICE *);
 t_stat              cdr_attach(UNIT *, const char *);
 t_stat              cdr_detach(UNIT *);
-t_stat              cdr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat              cdr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *cptr);
 const char          *cdr_description (DEVICE *dptr);
 
@@ -86,7 +88,7 @@ DEVICE              cdr_dev = {
 };
 
 
-uint32 cdr_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t cdr_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -126,9 +128,9 @@ t_stat cdr_srv(UNIT * uptr)
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 u = (uptr - cdr_unit);
     int                 pos, col, b;
-    uint16              *image = (uint16 *)(uptr->up7);
-    uint16              bit;
-    t_uint64            mask, wd;
+    uint16_t            *image = (uint16_t *)(uptr->up7);
+    uint16_t            bit;
+    uint64_t            mask, wd;
 
     /* Channel has disconnected, abort current read. */
     if (uptr->u5 & URCSTA_CMD && chan_stat(chan, DEV_DISCO)) {
@@ -247,13 +249,13 @@ t_stat cdr_srv(UNIT * uptr)
 
 /* Boot from given device */
 t_stat
-cdr_boot(int32 unit_num, DEVICE * dptr)
+cdr_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
     int                 chan = UNIT_G_CHAN(uptr->flags);
     t_stat              r;
     int                 pos;
-    uint16             *image = (uint16 *)(uptr->up7);
+    uint16_t           *image = (uint16_t *)(uptr->up7);
 
     if ((uptr->flags & UNIT_ATT) == 0)
         return SCPE_UNATT;      /* attached? */
@@ -268,8 +270,8 @@ cdr_boot(int32 unit_num, DEVICE * dptr)
 /* Copy first three records. */
     uptr->u5 &= ~CDRPOSMASK;
     for(pos = 0; pos <3; pos++) {
-        uint16          bit = 1 << (pos / 2);
-        t_uint64        mask = 1;
+        uint16_t        bit = 1 << (pos / 2);
+        uint64_t        mask = 1;
         int             b = (pos & 1)?36:0;
         int             col;
 
@@ -306,7 +308,7 @@ cdr_attach(UNIT * uptr, const char *file)
     if ((r = sim_card_attach(uptr, file)) != SCPE_OK)
         return r;
     if (uptr->up7 == 0) {
-        uptr->up7 = malloc(sizeof(uint16)*80);
+        uptr->up7 = malloc(sizeof(uint16_t)*80);
         uptr->u5 = 0;
         uptr->u4 = 0;
     }
@@ -323,7 +325,7 @@ cdr_detach(UNIT * uptr)
 }
 
 t_stat
-cdr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+cdr_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
    const char *cpu = cpu_description(&cpu_dev);
 

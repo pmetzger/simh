@@ -35,6 +35,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "id_defs.h"
 
 #define IDC_NUMBY       256                             /* bytes/sector */
@@ -179,10 +181,10 @@
 
 
 struct drvtyp {
-    uint32      surf;                                   /* surfaces */
-    uint32      cyl;                                    /* cylinders */
-    uint32      size;                                   /* #blocks */
-    uint32      msmf;                                   /* MSM drive */
+    uint32_t    surf;                                   /* surfaces */
+    uint32_t    cyl;                                    /* cylinders */
+    uint32_t    size;                                   /* #blocks */
+    uint32_t    msmf;                                   /* MSM drive */
     };
 
 static struct drvtyp drv_tab[] = {
@@ -195,40 +197,40 @@ static struct drvtyp drv_tab[] = {
     { 0 }
     };
 
-extern uint32 int_req[INTSZ], int_enb[INTSZ];
+extern uint32_t int_req[INTSZ], int_enb[INTSZ];
 
-uint8 idcxb[IDC_NUMBY * 3];                             /* xfer buffer */
-uint32 idc_bptr = 0;                                    /* buffer ptr */
-uint32 idc_wdptr = 0;                                   /* ctrl write data ptr */
-uint32 idc_db = 0;                                      /* ctrl buffer */
-uint32 idc_sta = 0;                                     /* ctrl status */
-uint32 idc_sec = 0;                                     /* sector */
-uint32 idc_hcyl = 0;                                    /* head/cyl */
-uint32 idc_svun = 0;                                    /* most recent unit */
-uint32 idc_1st = 0;                                     /* first byte */
-uint32 idc_arm = 0;                                     /* ctrl armed */
-uint32 idd_db = 0;                                      /* drive buffer */
-uint32 idd_wdptr = 0;                                   /* drive write data ptr */
-uint32 idd_arm[ID_NUMDR] = { 0 };                       /* drives armed */
-uint16 idd_dcy[ID_NUMDR] = { 0 };                       /* desired cyl */
-uint32 idd_sirq = 0;                                    /* drive saved irq */
-int32 idc_stime = 100;                                  /* seek latency */
-int32 idc_rtime = 100;                                  /* rotate latency */
-int32 idc_ctime = 5;                                    /* command latency */
-uint8 idc_tplte[] = { 0, 1, 2, 3, 4, TPL_END };         /* ctrl + drive */
+uint8_t idcxb[IDC_NUMBY * 3];                           /* xfer buffer */
+uint32_t idc_bptr = 0;                                  /* buffer ptr */
+uint32_t idc_wdptr = 0;                                 /* ctrl write data ptr */
+uint32_t idc_db = 0;                                    /* ctrl buffer */
+uint32_t idc_sta = 0;                                   /* ctrl status */
+uint32_t idc_sec = 0;                                   /* sector */
+uint32_t idc_hcyl = 0;                                  /* head/cyl */
+uint32_t idc_svun = 0;                                  /* most recent unit */
+uint32_t idc_1st = 0;                                   /* first byte */
+uint32_t idc_arm = 0;                                   /* ctrl armed */
+uint32_t idd_db = 0;                                    /* drive buffer */
+uint32_t idd_wdptr = 0;                                 /* drive write data ptr */
+uint32_t idd_arm[ID_NUMDR] = { 0 };                     /* drives armed */
+uint16_t idd_dcy[ID_NUMDR] = { 0 };                     /* desired cyl */
+uint32_t idd_sirq = 0;                                  /* drive saved irq */
+int32_t idc_stime = 100;                                /* seek latency */
+int32_t idc_rtime = 100;                                /* rotate latency */
+int32_t idc_ctime = 5;                                  /* command latency */
+uint8_t idc_tplte[] = { 0, 1, 2, 3, 4, TPL_END };       /* ctrl + drive */
 
-uint32 id (uint32 dev, uint32 op, uint32 dat);
+uint32_t id (uint32_t dev, uint32_t op, uint32_t dat);
 t_stat idc_svc (UNIT *uptr);
 t_stat idc_reset (DEVICE *dptr);
 t_stat idc_attach (UNIT *uptr, const char *cptr);
-t_stat idc_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-void idc_wd_byte (uint32 dat);
+t_stat idc_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void idc_wd_byte (uint32_t dat);
 t_stat idc_rds (UNIT *uptr);
 t_stat idc_wds (UNIT *uptr);
-bool idc_dter (UNIT *uptr, uint32 first);
-void idc_done (uint32 flg);
+bool idc_dter (UNIT *uptr, uint32_t first);
+void idc_done (uint32_t flg);
 
-extern t_stat id_dboot (int32 u, DEVICE *dptr);
+extern t_stat id_dboot (int32_t u, DEVICE *dptr);
 
 /* DP data structures
 
@@ -348,9 +350,9 @@ DEVICE idc_dev = {
 
 /* Controller: IO routine */
 
-static uint32 idc (uint32 dev, uint32 op, uint32 dat)
+static uint32_t idc (uint32_t dev, uint32_t op, uint32_t dat)
 {
-uint32 f, t;
+uint32_t f, t;
 UNIT *uptr;
 
 switch (op) {                                           /* case IO op */
@@ -406,7 +408,7 @@ return 0;
 
 /* Process WD/WH data */
 
-void idc_wd_byte (uint32 dat)
+void idc_wd_byte (uint32_t dat)
 {
 dat = dat & 0xFF;
 switch (idc_wdptr) {
@@ -432,9 +434,9 @@ return;
 
 /* Drives: IO routine */
 
-uint32 id (uint32 dev, uint32 op, uint32 dat)
+uint32_t id (uint32_t dev, uint32_t op, uint32_t dat)
 {
-uint32 t, u, f;
+uint32_t t, u, f;
 UNIT *uptr;
 
 if (dev == idc_dib.dno)                                 /* controller? */
@@ -499,9 +501,9 @@ return 0;
 
 t_stat idc_svc (UNIT *uptr)
 {
-int32 diff;
-uint32 f, u = uptr - idc_dev.units;                     /* get unit number */
-uint32 dtype = GET_DTYPE (uptr->flags);                 /* get drive type */
+int32_t diff;
+uint32_t f, u = uptr - idc_dev.units;                   /* get unit number */
+uint32_t dtype = GET_DTYPE (uptr->flags);               /* get drive type */
 t_stat r;
 
 if (uptr->FNC & CMC_DRV) {                              /* drive cmd? */
@@ -652,9 +654,9 @@ return SCPE_OK;
 
 t_stat idc_rds (UNIT *uptr)
 {
-uint32 i;
+uint32_t i;
 
-i = fxread (idcxb, sizeof (uint8), IDC_NUMBY, uptr->fileref);
+i = fxread (idcxb, sizeof (uint8_t), IDC_NUMBY, uptr->fileref);
 if (ferror (uptr->fileref)) {                           /* error? */
     sim_perror ("IDC I/O error");
     clearerr (uptr->fileref);
@@ -672,7 +674,7 @@ t_stat idc_wds (UNIT *uptr)
 {
 for ( ; idc_bptr < IDC_NUMBY; idc_bptr++)
     idcxb[idc_bptr] = idc_db;                           /* fill with last */
-fxwrite (idcxb, sizeof (uint8), IDC_NUMBY, uptr->fileref);
+fxwrite (idcxb, sizeof (uint8_t), IDC_NUMBY, uptr->fileref);
 if (ferror (uptr->fileref)) {                           /* error? */
     sim_perror ("IDC I/O error");
     clearerr (uptr->fileref);
@@ -684,11 +686,11 @@ return SCPE_OK;
 
 /* Data transfer error test routine */
 
-bool idc_dter (UNIT *uptr, uint32 first)
+bool idc_dter (UNIT *uptr, uint32_t first)
 {
-uint32 cy;
-uint32 hd, sc, sa;
-uint32 dtype = GET_DTYPE (uptr->flags);                 /* get drive type */
+uint32_t cy;
+uint32_t hd, sc, sa;
+uint32_t dtype = GET_DTYPE (uptr->flags);               /* get drive type */
 
 if ((uptr->flags & UNIT_ATT) == 0) {                    /* not attached? */
     idc_done (STC_DTE);                                 /* error, done */
@@ -724,7 +726,7 @@ return false;
 
 /* Data transfer done routine */
 
-void idc_done (uint32 flg)
+void idc_done (uint32_t flg)
 {
 idc_sta = (idc_sta | STC_IDL | flg) & ~STA_BSY;         /* set flag, idle */
 if (idc_arm)                                            /* if armed,  intr */
@@ -744,7 +746,7 @@ t_stat idc_reset (DEVICE *dptr)
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 u;
+uint32_t u;
 UNIT *uptr;
 
 idc_sta = STC_IDL | STA_BSY;                            /* idle, busy */
@@ -775,7 +777,7 @@ return SCPE_OK;
 
 t_stat idc_attach (UNIT *uptr, const char *cptr)
 {
-uint32 i, p;
+uint32_t i, p;
 t_stat r;
 
 uptr->capac = drv_tab[GET_DTYPE (uptr->flags)].size;
@@ -799,7 +801,7 @@ return SCPE_OK;
 
 /* Set size command validation routine */
 
-t_stat idc_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat idc_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

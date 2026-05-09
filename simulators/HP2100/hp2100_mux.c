@@ -288,6 +288,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
@@ -350,7 +351,7 @@
 
 #define BAUD_RATE(p)        ((28800 / (OTL_BAUD (p) + 1) + 1) / 2)
 
-static const uint32 bits_per_char [8] = {       /* bits per character, indexed by OTL_LNT encoding */
+static const uint32_t bits_per_char [8] = {     /* bits per character, indexed by OTL_LNT encoding */
     9, 10, 11, 12, 5, 6, 7, 8
     };
 
@@ -531,42 +532,42 @@ typedef struct {
 static CARD_STATE muxl;                         /* per-card state */
 static CARD_STATE muxc;                         /* per-card state */
 
-static uint32 muxl_ibuf = 0;                    /* low in: rcv data */
-static uint32 muxl_obuf = 0;                    /* low out: param */
+static uint32_t muxl_ibuf = 0;                  /* low in: rcv data */
+static uint32_t muxl_obuf = 0;                  /* low out: param */
 
-static uint32 muxu_ibuf = 0;                    /* upr in: status */
-static uint32 muxu_obuf = 0;                    /* upr out: chan */
+static uint32_t muxu_ibuf = 0;                  /* upr in: status */
+static uint32_t muxu_obuf = 0;                  /* upr out: chan */
 
-static uint32 muxc_chan = 0;                    /* ctrl chan */
-static uint32 muxc_scan = 0;                    /* ctrl scan */
+static uint32_t muxc_chan = 0;                  /* ctrl chan */
+static uint32_t muxc_scan = 0;                  /* ctrl scan */
 
 
 /* Multiplexer per-line state variables */
 
-static uint16 mux_sta   [RECV_CHAN_COUNT];      /* line status */
-static uint16 mux_rpar  [RECV_CHAN_COUNT];      /* rcv param */
-static uint16 mux_xpar  [SEND_CHAN_COUNT];      /* xmt param */
+static uint16_t mux_sta   [RECV_CHAN_COUNT];    /* line status */
+static uint16_t mux_rpar  [RECV_CHAN_COUNT];    /* rcv param */
+static uint16_t mux_xpar  [SEND_CHAN_COUNT];    /* xmt param */
 
-static uint8  mux_rchp  [RECV_CHAN_COUNT];      /* rcv chr pend */
-static uint8  mux_defer [RECV_CHAN_COUNT];      /* rcv break deferred flags */
-static uint8  mux_xdon  [SEND_CHAN_COUNT];      /* xmt done */
+static uint8_t mux_rchp  [RECV_CHAN_COUNT];     /* rcv chr pend */
+static uint8_t mux_defer [RECV_CHAN_COUNT];     /* rcv break deferred flags */
+static uint8_t mux_xdon  [SEND_CHAN_COUNT];     /* xmt done */
 
-static uint8  muxc_ota  [TERM_COUNT];           /* ctrl: Cn,ESn,SSn */
-static uint8  muxc_lia  [TERM_COUNT];           /* ctrl: Sn */
+static uint8_t muxc_ota  [TERM_COUNT];          /* ctrl: Cn,ESn,SSn */
+static uint8_t muxc_lia  [TERM_COUNT];          /* ctrl: Sn */
 
 
 /* Multiplexer per-line buffer variables */
 
-static uint16 mux_rbuf [RECV_CHAN_COUNT];       /* rcv buf */
-static uint16 mux_xbuf [SEND_CHAN_COUNT];       /* xmt buf */
+static uint16_t mux_rbuf [RECV_CHAN_COUNT];     /* rcv buf */
+static uint16_t mux_xbuf [SEND_CHAN_COUNT];     /* xmt buf */
 
 
 /* Multiplexer local routines */
 
-static void mux_receive (int32 ln, int32 c, bool diag);
+static void mux_receive (int32_t ln, int32_t c, bool diag);
 static void mux_data_int (void);
 static void mux_ctrl_int (void);
-static void mux_diag (int32 c);
+static void mux_diag (int32_t c);
 
 
 /* Multiplexer local SCP support routines */
@@ -580,7 +581,7 @@ static t_stat muxo_svc (UNIT *uptr);
 static t_stat muxc_reset (DEVICE *dptr);
 static t_stat mux_attach (UNIT *uptr, const char *cptr);
 static t_stat mux_detach (UNIT *uptr);
-static t_stat mux_setdiag (UNIT *uptr, int32 val, const char *cptr, void *desc);
+static t_stat mux_setdiag (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 
 /* Multiplexer SCP data structures */
@@ -588,7 +589,7 @@ static t_stat mux_setdiag (UNIT *uptr, int32 val, const char *cptr, void *desc);
 
 /* Terminal multiplexer library structures */
 
-static int32 mux_order [TERM_COUNT] = {         /* line connection order */
+static int32_t mux_order [TERM_COUNT] = {       /* line connection order */
     -1                                          /*   use the default order */
     };
 
@@ -942,7 +943,7 @@ static SIGNALS_VALUE muxl_interface (const DIB *dibptr, INBOUND_SET inbound_sign
    This implementation does not use every parameter. */
 (void) dibptr;
 
-int32          ln;
+int32_t        ln;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
@@ -1047,7 +1048,7 @@ while (working_set) {                                   /* while signals remain 
                              ln);
 
                 else if (muxl_obuf & OTL_P) {           /* otherwise if this is a parameter store */
-                    mux_xpar[ln] = (uint16) muxl_obuf;  /*   then save it */
+                    mux_xpar[ln] = (uint16_t) muxl_obuf; /*   then save it */
 
                     tprintf (muxl_dev, TRACE_CSRW, "Channel %d send parameter %06o stored\n",
                              ln, muxl_obuf);
@@ -1058,7 +1059,7 @@ while (working_set) {                                   /* while signals remain 
                         muxl_obuf = muxl_obuf & ~OTL_PAR        /*   then replace the parity bit */
                                       | XMT_PAR (muxl_obuf);    /*     with the calculated value */
 
-                    mux_xbuf[ln] = (uint16) muxl_obuf;          /* load buffer */
+                    mux_xbuf[ln] = (uint16_t) muxl_obuf;        /* load buffer */
 
                     if (sim_is_active (&muxl_unit[ln])) {       /* still working? */
                         mux_sta[ln] = mux_sta[ln] | LIU_LOST;   /* char lost */
@@ -1087,7 +1088,7 @@ while (working_set) {                                   /* while signals remain 
                              ln);
 
                 else if (muxl_obuf & OTL_P) {           /* otherwise if this is a parameter store */
-                    mux_rpar[ln] = (uint16) muxl_obuf;  /*   then save it */
+                    mux_rpar[ln] = (uint16_t) muxl_obuf; /*   then save it */
 
                     tprintf (muxl_dev, TRACE_CSRW, "Channel %d receive parameter %06o stored\n",
                              ln, muxl_obuf);
@@ -1219,7 +1220,7 @@ static SIGNALS_VALUE muxc_interface (const DIB *dibptr, INBOUND_SET inbound_sign
    This implementation does not use every parameter. */
 (void) dibptr;
 
-int32          ln, old;
+int32_t        ln, old;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
@@ -1403,7 +1404,7 @@ return outbound;                                        /* return the outbound s
 
 t_stat muxi_svc (UNIT *uptr)
 {
-int32 ln, c;
+int32_t ln, c;
 bool loopback;
 
 tprintf (muxu_dev, TRACE_PSERV, "Poll delay %d service entered\n",
@@ -1470,9 +1471,9 @@ return SCPE_OK;
 
 t_stat muxo_svc (UNIT *uptr)
 {
-const int32 ln = uptr - muxl_unit;                      /* line # */
-const int32 altln = ln ^ 1;                             /* alt. line for diag mode */
-int32 c, fc;
+const int32_t ln = uptr - muxl_unit;                    /* line # */
+const int32_t altln = ln ^ 1;                           /* alt. line for diag mode */
+int32_t c, fc;
 bool loopback;
 t_stat result = SCPE_OK;
 
@@ -1518,10 +1519,10 @@ if (mux_ldsc[ln].xmte) {                                /* xmt enabled? */
     if (loopback || c >= 0)
         if (result == SCPE_LOST)
             tprintf (muxl_dev, TRACE_XFER, "Channel %d character %s discarded by connection loss\n",
-                     ln, fmt_char ((uint8) (loopback ? fc : c)));
+                     ln, fmt_char ((uint8_t) (loopback ? fc : c)));
         else
             tprintf (muxl_dev, TRACE_XFER, "Channel %d character %s sent\n",
-                     ln, fmt_char ((uint8) (loopback ? fc : c)));
+                     ln, fmt_char ((uint8_t) (loopback ? fc : c)));
     }
 
 else {                                              /* buf full */
@@ -1541,7 +1542,7 @@ return SCPE_OK;
 
 /* Process a character received from a multiplexer port */
 
-void mux_receive (int32 ln, int32 c, bool diag)
+void mux_receive (int32_t ln, int32_t c, bool diag)
 {
 if (c & SCPE_BREAK) {                                   /* break? */
     if (mux_defer[ln] || diag) {                        /* break deferred or diagnostic mode? */
@@ -1575,13 +1576,13 @@ else {                                                  /* normal */
             tmxr_poll_tx (&mux_desc);                   /* poll xmt */
             }
         }
-    mux_rbuf[ln] = (uint16) c;                          /* save char */
+    mux_rbuf[ln] = (uint16_t) c;                        /* save char */
     }
 
 mux_rchp[ln] = 1;                                       /* char pending */
 
 tprintf (muxl_dev, TRACE_XFER, "Channel %d character %s received\n",
-         ln, fmt_char ((uint8) c));
+         ln, fmt_char ((uint8_t) c));
 
 if (mux_rpar[ln] & OTL_DIAG)                            /* diagnose this line? */
     mux_diag (c);                                       /* do diagnosis */
@@ -1594,7 +1595,7 @@ return;
 
 void mux_data_int (void)
 {
-int32 i;
+int32_t i;
 
 for (i = FIRST_TERM; i <= LAST_TERM; i++) {             /* rcv lines */
     if ((mux_rpar[i] & OTL_ENB) && mux_rchp[i]) {       /* enabled, char? */
@@ -1662,7 +1663,7 @@ return;
 
 void mux_ctrl_int (void)
 {
-int32 i, line_count;
+int32_t i, line_count;
 
 line_count = (muxc_scan ? TERM_COUNT : 1);              /* check one or all lines */
 
@@ -1685,9 +1686,9 @@ return;
 
 /* Set diagnostic lines for given character */
 
-void mux_diag (int32 c)
+void mux_diag (int32_t c)
 {
-int32 i;
+int32_t i;
 
 for (i = FIRST_AUX; i <= LAST_AUX; i++) {             /* diag lines */
     if (c & SCPE_BREAK) {                               /* break? */
@@ -1697,7 +1698,7 @@ for (i = FIRST_AUX; i <= LAST_AUX; i++) {             /* diag lines */
     else {
         if (mux_rchp[i]) mux_sta[i] = mux_sta[i] | LIU_LOST;
         mux_rchp[i] = 1;
-        mux_rbuf[i] = (uint16) c;
+        mux_rbuf[i] = (uint16_t) c;
         }
     }
 return;
@@ -1706,7 +1707,7 @@ return;
 
 /* Reset an individual line */
 
-static void mux_reset_ln (int32 i)
+static void mux_reset_ln (int32_t i)
 {
 mux_rbuf[i] = mux_xbuf[i] = 0;                          /* clear state */
 mux_rpar[i] = mux_xpar[i] = 0;
@@ -1728,7 +1729,7 @@ return;
 
 t_stat muxc_reset (DEVICE *dptr)
 {
-int32 i;
+int32_t i;
 
 if (sim_switches & SWMASK ('P')                         /* initialization reset? */
   && muxc_dev.lname == NULL)                            /* logical name unassigned? */
@@ -1785,7 +1786,7 @@ return status;
 
 t_stat mux_detach (UNIT *uptr)
 {
-int32 i;
+int32_t i;
 t_stat r;
 
 r = tmxr_detach (&mux_desc, uptr);                      /* detach */
@@ -1817,14 +1818,14 @@ return r;
    here.)
 */
 
-t_stat mux_setdiag (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat mux_setdiag (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-int32 ln;
+int32_t ln;
 
 if (val) {                                              /* set diag? */
     mux_detach (uptr);                                  /* detach Telnet lines */

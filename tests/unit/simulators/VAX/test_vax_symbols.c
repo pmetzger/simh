@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +13,7 @@ UNIT cpu_unit;
 DEVICE cpu_dev = {
     "CPU", &cpu_unit, cpu_reg, NULL, 1, 16, 32, 1, 16, 8,
 };
-uint32 PSL;
+uint32_t PSL;
 DEVICE *sim_devices[] = {&cpu_dev, NULL};
 char sim_name[64] = "zimh-unit-vax-symbols";
 
@@ -31,7 +32,7 @@ t_stat sim_load(FILE *ptr, const char *cptr, const char *fnam, int flag)
     return SCPE_OK;
 }
 
-t_stat fprint_sym_cm(FILE *of, t_addr addr, t_value *bytes, int32 sw)
+t_stat fprint_sym_cm(FILE *of, t_addr addr, t_value *bytes, int32_t sw)
 {
     (void)of;
     (void)addr;
@@ -41,7 +42,7 @@ t_stat fprint_sym_cm(FILE *of, t_addr addr, t_value *bytes, int32 sw)
     return SCPE_ARG;
 }
 
-t_stat parse_sym_cm(const char *cptr, t_addr addr, t_value *bytes, int32 sw)
+t_stat parse_sym_cm(const char *cptr, t_addr addr, t_value *bytes, int32_t sw)
 {
     (void)cptr;
     (void)addr;
@@ -69,7 +70,7 @@ static char *read_stream(FILE *stream)
     return buffer;
 }
 
-static char *format_vax_symbol_m(t_value *bytes, uint32 addr, t_stat *status)
+static char *format_vax_symbol_m(t_value *bytes, uint32_t addr, t_stat *status)
 {
     FILE *stream = tmpfile();
     char *output;
@@ -83,7 +84,7 @@ static char *format_vax_symbol_m(t_value *bytes, uint32 addr, t_stat *status)
     return output;
 }
 
-static char *format_vax_symbol(t_value *bytes, t_addr addr, int32 sw,
+static char *format_vax_symbol(t_value *bytes, t_addr addr, int32_t sw,
                                t_stat *status)
 {
     FILE *stream = tmpfile();
@@ -116,7 +117,7 @@ static void assert_vax_symbol_m_formats(const t_value *bytes, size_t byte_count,
     free(output);
 }
 
-static void assert_vax_symbol_m_round_trips(uint32 addr, const char *input,
+static void assert_vax_symbol_m_round_trips(uint32_t addr, const char *input,
                                             const char *expected)
 {
     t_stat status;

@@ -24,6 +24,8 @@
    PDP-10.
 */
 
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "sim_tmxr.h"
 #include "kx10_defs.h"
@@ -63,7 +65,7 @@
 #define PORT_OUTPUT   1
 #define PORT_INPUT    2
 
-static t_stat       dpk_devio(uint32 dev, uint64 *data);
+static t_stat       dpk_devio(uint32_t dev, uint64 *data);
 static t_stat       dpk_input_svc (UNIT *uptr);
 static t_stat       dpk_output_svc (UNIT *uptr);
 static t_stat       dpk_reset (DEVICE *dptr);
@@ -71,8 +73,8 @@ static t_stat       dpk_attach (UNIT *uptr, const char *cptr);
 static t_stat       dpk_detach (UNIT *uptr);
 static const char   *dpk_description (DEVICE *dptr);
 static t_stat       dpk_help (FILE *st, DEVICE *dptr, UNIT *uptr,
-                               int32 flag, const char *cptr);
-extern int32        tmxr_poll;
+                               int32_t flag, const char *cptr);
+extern int32_t      tmxr_poll;
 
 TMLN dpk_ldsc[DPK_LINES] = { 0 };
 TMXR dpk_desc = { DPK_LINES, 0, 0, dpk_ldsc };
@@ -126,7 +128,7 @@ static void dpk_set_ospeed (int port, uint64 data)
     tmxr_set_line_speed(&dpk_ldsc[port], speed);
 }
 
-static t_stat dpk_devio(uint32 dev, uint64 *data)
+static t_stat dpk_devio(uint32_t dev, uint64 *data)
 {
     static int scan = 0;
     int port;
@@ -286,7 +288,7 @@ static void dpk_output (int port, TMLN *lp)
 static t_stat dpk_input_svc (UNIT *uptr)
 {
     static int scan = 0;
-    int32 ch;
+    int32_t ch;
     int i;
 
     sim_clock_coschedule (uptr, 1000);
@@ -397,7 +399,7 @@ static t_stat dpk_detach (UNIT *uptr)
 }
 
 static t_stat dpk_help (FILE *st, DEVICE *dptr, UNIT *uptr,
-                         int32 flag, const char *cptr)
+                         int32_t flag, const char *cptr)
 {
     fprintf (st, "DPK Datapoint kludge terminal multiplexer\n\n");
     fprintf (st, "The ATTACH command specifies the port to be used:\n\n");

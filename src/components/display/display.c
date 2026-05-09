@@ -38,12 +38,14 @@
  * from the authors.
  */
 
+#include <limits.h>         /* for USHRT_MAX */
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <limits.h>         /* for USHRT_MAX */
-#include "ws.h"
+
 #include "display.h"
+#include "sim_types.h"
+#include "ws.h"
 
 /*
  * The user may select (at compile time) how big a window is used to
@@ -374,9 +376,9 @@ struct point {
     struct point *next;         /* next entry in queue */
     struct point *prev;         /* prev entry in queue */
     delay_t delay;              /* delta T in DELAY_UNITs */
-    unsigned char ttl;          /* zero means off, not linked in */
-    unsigned char level : 7;    /* intensity level */
-    unsigned char color : 1;    /* for VR20 (two colors) */
+    uchar_t ttl;                /* zero means off, not linked in */
+    uchar_t level : 7;          /* intensity level */
+    uchar_t color : 1;          /* for VR20 (two colors) */
 };
 
 static struct point *points;    /* allocated array of points */
@@ -404,14 +406,14 @@ static void *device = NULL;  /* Current display device. */
  * global set by O/S display level to indicate "light pen tip switch activated"
  * (This is used only by the VS60 emulation, also by vttest to change patterns)
  */
-unsigned char display_lp_sw = 0;
+uchar_t display_lp_sw = 0;
 
 /*
  * global set by DR11-C simulation when DR device enabled; deactivates
  * light pen and instead reports mouse coordinates as Talos digitizer
  * data via DR11-C
  */
-unsigned char display_tablet = 0;
+uchar_t display_tablet = 0;
 
 /*
  * can be changed with display_lp_radius()
@@ -1149,7 +1151,7 @@ display_scale(void)
  */
 unsigned long spacewar_switches = 0;
 
-unsigned char display_last_char;
+uchar_t display_last_char;
 
 /* here from window system */
 void

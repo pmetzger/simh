@@ -34,6 +34,8 @@
    of junk.  File marks are represented by a byte count of 0.
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_tape.h"
 
@@ -129,33 +131,33 @@
 #define CPOS            u5        /* Character position */
 #define BPOS            u6        /* Position in buffer */
 
-t_stat         mt_devio(uint32 dev, uint64 *data);
+t_stat         mt_devio(uint32_t dev, uint64 *data);
 t_stat         mt_srv(UNIT *);
-t_stat         mt_boot(int32, DEVICE *);
-t_stat         mt_set_mta (UNIT *uptr, int32 val, const char *cptr, void *desc) ;
-t_stat         mt_show_mta (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat         mt_boot(int32_t, DEVICE *);
+t_stat         mt_set_mta (UNIT *uptr, int32_t val, const char *cptr, void *desc) ;
+t_stat         mt_show_mta (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 #if MPX_DEV
-t_stat         mt_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc) ;
-t_stat         mt_show_mpx (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat         mt_set_mpx (UNIT *uptr, int32_t val, const char *cptr, void *desc) ;
+t_stat         mt_show_mpx (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 #endif
 t_stat         mt_reset(DEVICE *);
 t_stat         mt_attach(UNIT *, const char *);
 t_stat         mt_detach(UNIT *);
-t_stat         mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat         mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                   const char *cptr);
 const char     *mt_description (DEVICE *dptr);
 
 struct df10     mt_df10;
-uint16          mt_pia;
-uint8           mt_sel_unit;
-uint8           mt_next_unit;
-uint8           wr_eor;
+uint16_t        mt_pia;
+uint8_t         mt_sel_unit;
+uint8_t         mt_next_unit;
+uint8_t         wr_eor;
 uint64          mt_status;
 uint64          mt_hold_reg;
 int             mt_mpx_lvl = 0;
 int             hri_mode; /* Read in mode for TM10B */
 
-static uint8          parity_table[64] = {
+static uint8_t        parity_table[64] = {
     /* 0    1    2    3    4    5    6    7 */
     0000, 0100, 0100, 0000, 0100, 0000, 0000, 0100,
     0100, 0000, 0000, 0100, 0000, 0100, 0100, 0000,
@@ -169,7 +171,7 @@ static uint8          parity_table[64] = {
 
 
 /* One buffer per channel */
-uint8               mt_buffer[BUFFSIZE];
+uint8_t             mt_buffer[BUFFSIZE];
 
 UNIT                mt_unit[] = {
 /* Controller 1 */
@@ -233,7 +235,7 @@ DEVICE              mt_dev = {
     NULL, NULL, &mt_help, NULL, NULL, &mt_description
 };
 
-t_stat mt_devio(uint32 dev, uint64 *data) {
+t_stat mt_devio(uint32_t dev, uint64 *data) {
       uint64     res;
       DEVICE    *dptr = &mt_dev;
       UNIT      *uptr = &mt_unit[mt_sel_unit];
@@ -251,14 +253,14 @@ t_stat mt_devio(uint32 dev, uint64 *data) {
              res |= SMASK;
           *data = res;
           sim_debug(DEBUG_CONI, dptr, "MT CONI %03o status %06o %o %o PC=%06o\n",
-                      dev, (uint32)res, mt_sel_unit, mt_pia, PC);
+                      dev, (uint32_t)res, mt_sel_unit, mt_pia, PC);
           break;
 
        case CONO:
           clr_interrupt(MT_DEVNUM);
           clr_interrupt(MT_DEVNUM+4);
           mt_next_unit = (*data >> 15) & 07;
-          mt_pia = (uint16)(*data) & (NEXT_UNIT_ENAB|FLAG_PIA|DATA_PIA);
+          mt_pia = (uint16_t)(*data) & (NEXT_UNIT_ENAB|FLAG_PIA|DATA_PIA);
           mt_status &= ~(DATA_REQUEST|CHAN_ERR|JOB_DONE|DATA_LATE| \
                       BAD_TAPE|RLC_ERR|READ_CMP|EOF_FLAG|EOT_FLAG|BOT_FLAG| \
                       PARITY_ERR|ILL_OPR|REW_FLAG|TRAN_HUNG| \
@@ -273,7 +275,7 @@ t_stat mt_devio(uint32 dev, uint64 *data) {
           if (mt_pia & NEXT_UNIT_ENAB) {
               set_interrupt(dev, mt_pia >> 3);
           }
-          uptr->CNTRL = (int32)(*data & 077300);
+          uptr->CNTRL = (int32_t)(*data & 077300);
           mt_df10.buf = 0;
           sim_debug(DEBUG_CONO, dptr,
                   "MT CONO %03o start %o %o %o %012llo %012llo PC=%06o\n",
@@ -428,7 +430,7 @@ t_stat mt_devio(uint32 dev, uint64 *data) {
      case DATAO|04:
           /* Set Initial CCW */
           if (dptr->flags & MTDF_TYPEB) {
-              df10_setup(&mt_df10, (uint32) *data);
+              df10_setup(&mt_df10, (uint32_t) *data);
               mt_status &= ~(WT_CW_DONE);
           } else
               mt_df10.buf ^= mt_hold_reg;
@@ -553,7 +555,7 @@ t_stat mt_srv(UNIT * uptr)
     int                 cmd = (uptr->CNTRL & FUNCTION) >> 9;
     t_mtrlnt            reclen;
     t_stat              r = SCPE_ARG;   /* Force error if not set */
-    uint8               ch;
+    uint8_t             ch;
     int                 cc;
     int                 cc_max;
 
@@ -631,7 +633,7 @@ t_stat mt_srv(UNIT * uptr)
             sim_debug(DEBUG_EXP, dptr, "data late\n");
             break;
         }
-        if ((uint32)uptr->BPOS < uptr->hwmark) {
+        if ((uint32_t)uptr->BPOS < uptr->hwmark) {
             if (uptr->flags & MTUF_7TRK) {
                 cc = 6 * (5 - uptr->CPOS);
                 ch = mt_buffer[uptr->BPOS];
@@ -652,7 +654,7 @@ t_stat mt_srv(UNIT * uptr)
             }
             uptr->BPOS++;
             uptr->CPOS++;
-            if ((uint32)(uptr->BPOS + cc_max) >= uptr->hwmark)
+            if ((uint32_t)(uptr->BPOS + cc_max) >= uptr->hwmark)
                 uptr->CNTRL |= MT_LASTWD;
             mt_status &= ~CHAR_COUNT;
             mt_status |= (uint64)(uptr->CPOS) << 18;
@@ -697,7 +699,7 @@ t_stat mt_srv(UNIT * uptr)
              }
              break;
          }
-         if (uptr->BPOS >= (int32)uptr->hwmark) {
+         if (uptr->BPOS >= (int32_t)uptr->hwmark) {
             if (cmd == CMP_NOEOR) {
                CLR_BUF(uptr);
                uptr->CNTRL &= ~MT_LASTWD;
@@ -745,7 +747,7 @@ t_stat mt_srv(UNIT * uptr)
             }
             uptr->BPOS++;
             uptr->CPOS++;
-            if (uptr->BPOS == (int32)uptr->hwmark)
+            if (uptr->BPOS == (int32_t)uptr->hwmark)
                 uptr->CNTRL |= MT_LASTWD;
             if (uptr->CPOS == cc_max) {
                uptr->CPOS = 0;
@@ -909,7 +911,7 @@ static void mt_read_word(UNIT *uptr) {
 
 /* Boot from given device */
 t_stat
-mt_boot(int32 unit_num, DEVICE * dptr)
+mt_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
     t_mtrlnt            reclen;
@@ -935,7 +937,7 @@ mt_boot(int32 unit_num, DEVICE * dptr)
     while (wc != 0) {
         wc = (wc + 1) & RMASK;
         addr = (addr + 1) & RMASK;
-        if ((uint32)uptr->BPOS >= uptr->hwmark) {
+        if ((uint32_t)uptr->BPOS >= uptr->hwmark) {
             r = sim_tape_rdrecf(uptr, &mt_buffer[0], &reclen, BUFFSIZE);
             if (r != SCPE_OK)
                 return r;
@@ -955,7 +957,7 @@ mt_boot(int32 unit_num, DEVICE * dptr)
 
     PC = mt_df10.buf & RMASK;
     /* If not at end of record and TMA continue record read */
-    if ((uint32)uptr->BPOS < uptr->hwmark) {
+    if ((uint32_t)uptr->BPOS < uptr->hwmark) {
         uptr->CNTRL |= MT_MOTION|MT_BUSY;
         uptr->CNTRL &= ~(MT_BRFUL|MT_BUFFUL);
         mt_hold_reg = mt_df10.buf = 0;
@@ -969,7 +971,7 @@ mt_boot(int32 unit_num, DEVICE * dptr)
     return SCPE_OK;
 }
 
-t_stat mt_set_mta (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat mt_set_mta (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -988,7 +990,7 @@ t_stat mt_set_mta (UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat mt_show_mta (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat mt_show_mta (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
    /* Generic show modifier signature.
       This implementation does not use every parameter. */
@@ -1012,7 +1014,7 @@ t_stat mt_show_mta (FILE *st, UNIT *uptr, int32 val, const void *desc)
 
 #if MPX_DEV
 /* set MPX level number */
-t_stat mt_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat mt_set_mpx (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1020,19 +1022,19 @@ t_stat mt_set_mpx (UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void) val;
     (void) desc;
 
-    int32 mpx;
+    int32_t mpx;
     t_stat r;
 
     if (cptr == NULL)
         return SCPE_ARG;
-    mpx = (int32) get_uint (cptr, 8, 8, &r);
+    mpx = (int32_t) get_uint (cptr, 8, 8, &r);
     if (r != SCPE_OK)
         return r;
     mt_mpx_lvl = mpx;
     return SCPE_OK;
 }
 
-t_stat mt_show_mpx (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat mt_show_mpx (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
    /* Generic show modifier signature.
       This implementation does not use every parameter. */
@@ -1086,7 +1088,7 @@ mt_detach(UNIT * uptr)
     return sim_tape_detach(uptr);
 }
 
-t_stat mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat mt_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "MT10 Magnetic Tape\n\n");
 fprintf (st, "The MT10 tape controller can be set to either type A or B\n");

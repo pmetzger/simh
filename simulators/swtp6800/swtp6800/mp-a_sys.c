@@ -25,7 +25,9 @@
 */
 
 #include <ctype.h>
+#include <stdint.h>
 #include <string.h>
+
 #include "swtp_defs.h"
 
 /* externals */
@@ -44,7 +46,7 @@ extern DEVICE mp_8m_dev;
 extern DEVICE dsk_dev;
 extern DEVICE fd400_dsk_dev;
 
-extern int32 saved_PC;                     /* Program counter */
+extern int32_t saved_PC;                   /* Program counter */
 
 /* SCP data structures
 
@@ -60,7 +62,7 @@ char sim_name[] = "SWTP 6800, V2, MP-A CPU Board";
 
 REG *sim_PC = &m6800_reg[0];
 
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 
 DEVICE *sim_devices[] = {
     &m6800_dev,

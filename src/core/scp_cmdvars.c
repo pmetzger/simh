@@ -3,11 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "scp.h"
 
 #include "sim_console.h"
 #include "sim_dynstr.h"
 #include "sim_host_path.h"
+#include "sim_types.h"
 
 #if !defined(_WIN32)
 #include <sys/utsname.h>
@@ -37,7 +40,7 @@ static struct timespec cmd_time;
 static char sim_host_ostype[64];
 
 extern bool sim_runlimit_enabled;
-extern int32 sim_runlimit_value;
+extern int32_t sim_runlimit_value;
 extern const char *sim_runlimit_units;
 extern bool sim_file_compare_diff_valid;
 extern size_t sim_file_compare_diff_offset;
@@ -111,9 +114,9 @@ static void sim_cmdvars_decode_initial_quoted_line(char *ip, size_t instr_size,
 
         cptr = get_glyph_quoted(cptr, tp, 0);
         if (*cptr == '\0') {
-            uint32 dsize;
+            uint32_t dsize;
 
-            if (SCPE_OK == sim_decode_quoted_string(tp, (uint8 *)tp, &dsize)) {
+            if (SCPE_OK == sim_decode_quoted_string(tp, (uint8_t *)tp, &dsize)) {
                 tp[dsize] = '\0';
                 while (sim_isspace(*tp))
                     memmove(tp, tp + 1, strlen(tp));
@@ -165,7 +168,7 @@ static const char *sim_cmdvars_parse_percent(const char **ipp, char *gbuf,
     const char *ip = *ipp;
     const char *ap = NULL;
     bool malformed_parts = false;
-    uint32 i;
+    uint32_t i;
 
     *emit_percent = false;
     *expand_it = false;
@@ -199,7 +202,7 @@ static const char *sim_cmdvars_parse_percent(const char **ipp, char *gbuf,
     }
     if ((*ip >= '0') && (*ip <= ('9'))) {
         ap = do_arg[*ip - '0'];
-        for (i = 0; i < (uint32)(*ip - '0'); ++i)
+        for (i = 0; i < (uint32_t)(*ip - '0'); ++i)
             if (do_arg[i] == NULL) {
                 ap = NULL;
                 break;
@@ -341,7 +344,7 @@ static const char *sim_get_host_env_uplowcase(const char *gbuf, char *rbuf,
         return ap;
     strlcpy(rbuf, gbuf, rbuf_size);
     for (i = 0; rbuf[i]; i++)
-        rbuf[i] = (char)toupper((unsigned char)rbuf[i]);
+        rbuf[i] = (char)toupper((uchar_t)rbuf[i]);
     return getenv(rbuf);
 }
 
@@ -856,7 +859,7 @@ const char *sim_unsub_args(const char *cptr)
 
 /* Implement SET ENVIRONMENT, including prompt-driven and decoded-string
    forms. */
-t_stat sim_set_environment(int32 flag, const char *cptr)
+t_stat sim_set_environment(int32_t flag, const char *cptr)
 {
     char varname[CBUFSIZE], prompt[CBUFSIZE], cbuf[CBUFSIZE];
 
@@ -900,12 +903,12 @@ t_stat sim_set_environment(int32 flag, const char *cptr)
         strlcpy(cbuf, cptr, sizeof(cbuf));
         sim_trim_endspc(cbuf);
         if (sim_switches & SWMASK('S')) {
-            uint32 str_size;
+            uint32_t str_size;
 
             cptr = cbuf;
             get_glyph_quoted(cptr, cbuf, 0);
             if (SCPE_OK !=
-                sim_decode_quoted_string(cbuf, (uint8 *)cbuf, &str_size))
+                sim_decode_quoted_string(cbuf, (uint8_t *)cbuf, &str_size))
                 return sim_messagef(SCPE_ARG, "Invalid quoted string: %s\n",
                                     cbuf);
             cbuf[str_size] = '\0';

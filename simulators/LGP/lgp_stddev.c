@@ -33,20 +33,21 @@
 
 #include "lgp_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
-uint32 tt_wait = WPS / 10;
-uint32 tti_buf = 0;
-uint32 tti_rdy = 0;
-uint32 tto_uc = 0;
-uint32 tto_buf = 0;
-uint32 ttr_stopioe = 1;
-uint32 ptr_rdy = 0;
-uint32 ptr_stopioe = 1;
-uint32 ptp_stopioe = 1;
+uint32_t tt_wait = WPS / 10;
+uint32_t tti_buf = 0;
+uint32_t tti_rdy = 0;
+uint32_t tto_uc = 0;
+uint32_t tto_buf = 0;
+uint32_t ttr_stopioe = 1;
+uint32_t ptr_rdy = 0;
+uint32_t ptr_stopioe = 1;
+uint32_t ptp_stopioe = 1;
 
-extern uint32 A;
-extern uint32 inp_strt, inp_done;
-extern uint32 out_strt, out_done;
+extern uint32_t A;
+extern uint32_t inp_strt, inp_done;
+extern uint32_t out_strt, out_done;
 extern UNIT cpu_unit;
 
 t_stat tti_svc (UNIT *uptr);
@@ -59,19 +60,19 @@ t_stat ptp_svc (UNIT *uptr);
 t_stat ptr_reset (DEVICE *uptr);
 t_stat ptp_reset (DEVICE *uptr);
 t_stat tap_attach (UNIT *uptr, const char *cptr);
-t_stat tap_attable (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat read_reader (UNIT *uptr, int32 stop, int32 *c);
-t_stat write_tto (int32 flex);
-t_stat write_punch (UNIT *uptr, int32 flex);
-t_stat tti_rdrss (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat punch_feed (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat send_start (UNIT *uptr, int32 val, const char *cptr, void *desc);
+t_stat tap_attable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat read_reader (UNIT *uptr, int32_t stop, int32_t *c);
+t_stat write_tto (int32_t flex);
+t_stat write_punch (UNIT *uptr, int32_t flex);
+t_stat tti_rdrss (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat punch_feed (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat send_start (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
-extern uint32 shift_in (uint32 a, uint32 dat, uint32 sh4);
+extern uint32_t shift_in (uint32_t a, uint32_t dat, uint32_t sh4);
 
 /* Conversion tables */
 
-const int32 flex_to_ascii[128] = {
+const int32_t flex_to_ascii[128] = {
     -1  , 'z', '0', ' ', '>', 'b', '1', '-',
     '<' , 'y', '2', '+', '|', 'r', '3', ';',
     '\r', 'i', '4', '/','\\', 'd', '5', '.',
@@ -91,7 +92,7 @@ const int32 flex_to_ascii[128] = {
     -1  , 'A', 'Q', -1 , -1 , 'S', 'W', 0
     };
 
-const int32 ascii_to_flex[128] = {
+const int32_t ascii_to_flex[128] = {
     -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 ,
     024, 030, -1 , -1 , -1 , 020, -1 , -1 ,
     -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1 ,
@@ -110,7 +111,7 @@ const int32 ascii_to_flex[128] = {
     047, 011, 001, -1 , 014, -1 , 036, 077
     };
 
-static const uint8 flex_inp_valid[64] = {
+static const uint8_t flex_inp_valid[64] = {
     1, 1, 1, 1, 0, 1, 1, 1,
     0, 1, 1, 1, 0, 1, 1, 1,
     0, 1, 1, 1, 0, 1, 1, 1,
@@ -301,7 +302,7 @@ DEVICE ptp_dev = {
 
 /* Input instruction */
 
-static void op_i_strt (uint32 dev)
+static void op_i_strt (uint32_t dev)
 {
 switch (dev) {                                          /* case on device */
 
@@ -318,7 +319,7 @@ switch (dev) {                                          /* case on device */
 return;
 }
 
-t_stat op_i (uint32 dev, uint32 ch, uint32 sh4)
+t_stat op_i (uint32_t dev, uint32_t ch, uint32_t sh4)
 {
 if (Q_LGP21 && out_strt)                                /* LGP-21? must be idle */
     return STOP_STALL;
@@ -365,7 +366,7 @@ return STOP_STALL;                                      /* stall */
 
 t_stat tti_svc (UNIT *uptr)
 {
-int32 c, flex;
+int32_t c, flex;
 
 sim_activate (uptr, tt_wait);                           /* continue poll */
 if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or error? */
@@ -393,7 +394,7 @@ t_stat ttr_svc (UNIT *uptr)
 {
 t_stat r;
 
-if ((r = read_reader (uptr, ttr_stopioe, (int32 *) &tti_buf)))
+if ((r = read_reader (uptr, ttr_stopioe, (int32_t *) &tti_buf)))
     return r;
 if (!(uptr->flags & UNIT_NOCS) &&                       /* cstop enable? */
     (tti_buf == FLEX_CSTOP))                            /* cond stop? */
@@ -427,7 +428,7 @@ return SCPE_OK;
 
 /* Output instruction */
 
-t_stat op_p (uint32 dev, uint32 ch)
+t_stat op_p (uint32_t dev, uint32_t ch)
 {
 switch (dev) {                                          /* case on device */
 
@@ -491,9 +492,9 @@ return write_punch (uptr, uptr->buf);                   /* write to ptp */
 
 /* Utility routines */
 
-t_stat read_reader (UNIT *uptr, int32 stop, int32 *fl)
+t_stat read_reader (UNIT *uptr, int32_t stop, int32_t *fl)
 {
-int32 ch, flex;
+int32_t ch, flex;
 
 if ((uptr->flags & UNIT_ATT) == 0)                      /* attached? */
     return IORETURN (stop, SCPE_UNATT);
@@ -511,8 +512,8 @@ do {
     if (uptr->flags & UNIT_FLEX)                        /* transposed flex? */
         flex = ((ch << 1) | (ch >> 5)) & 0x3F;          /* undo 612345 */
     else if (ch == '!') {                               /* encoded? */
-        int32 d1 = getc (uptr->fileref);                /* get 2 digits */
-        int32 d2 = getc (uptr->fileref);
+        int32_t d1 = getc (uptr->fileref);              /* get 2 digits */
+        int32_t d2 = getc (uptr->fileref);
         if ((d1 == EOF) || (d2 == EOF)) {               /* error? */
             if (feof (uptr->fileref)) {                 /* eof? */
                 if (stop)
@@ -533,9 +534,9 @@ do {
 return SCPE_OK;
 }
 
-t_stat write_tto (int32 flex)
+t_stat write_tto (int32_t flex)
 {
-int32 ch;
+int32_t ch;
 t_stat r;
 
 if (flex == FLEX_UC)                                    /* UC? set state */
@@ -559,9 +560,9 @@ else {
 return SCPE_OK;
 }
 
-t_stat write_punch (UNIT *uptr, int32 flex)
+t_stat write_punch (UNIT *uptr, int32_t flex)
 {
-int32 c, sta;
+int32_t c, sta;
 
 if (uptr->flags & UNIT_FLEX)                            /* transposed flex? */
     c = ((flex >> 1) | (flex << 5)) & 0x3F;             /* reorder to 612345 */
@@ -647,7 +648,7 @@ return SCPE_OK;
 
 /* Validate unit is attachable */
 
-t_stat tap_attable (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tap_attable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -662,7 +663,7 @@ return SCPE_NOFNC;
 
 /* Typewriter reader start/stop */
 
-t_stat tti_rdrss (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat tti_rdrss (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -681,20 +682,20 @@ return SCPE_OK;
 
 /* Punch feed routine */
 
-t_stat punch_feed (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat punch_feed (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) val;
 (void) desc;
 
-int32 cnt;
+int32_t cnt;
 t_stat r;
 
 if ((uptr->flags & UNIT_ATT) == 0)
     return SCPE_UNATT;
 if (cptr) {
-    cnt = (int32) get_uint (cptr, 10, 512, &r);
+    cnt = (int32_t) get_uint (cptr, 10, 512, &r);
     if ((r != SCPE_OK) || (cnt == 0))
         return SCPE_ARG;
     }
@@ -709,7 +710,7 @@ return SCPE_OK;
 
 /* Send start signal */
 
-t_stat send_start (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat send_start (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */

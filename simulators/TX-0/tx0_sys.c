@@ -35,6 +35,7 @@
 
 #include "tx0_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 extern DEVICE cpu_dev;
 extern DEVICE petr_dev;
@@ -50,10 +51,10 @@ extern DEVICE fpc_dev;
 #endif /* USE_FPC */
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern int32 M[];
-extern int32 PC;
-extern int32 ascii_to_flexo[], flexo_to_ascii[];
-extern int32 sc_map[];
+extern int32_t M[];
+extern int32_t PC;
+extern int32_t ascii_to_flexo[], flexo_to_ascii[];
+extern int32_t sc_map[];
 
 /* SCP data structures and interface routines
 
@@ -69,7 +70,7 @@ char sim_name[] = "TX-0";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -97,9 +98,9 @@ const char *sim_stop_messages[SCPE_BASE] = {
     "DECtape off reel"
      };
 
-int32 tx0_getw (FILE *inf)
+int32_t tx0_getw (FILE *inf)
 {
-int32 i, tmp, word;
+int32_t i, tmp, word;
 
 word = 0;
 for (i = 0; i < 3;) {
@@ -114,7 +115,7 @@ return word;
 
 /* Symbol tables */
 typedef struct {
-    int32 opr;
+    int32_t opr;
     const char *mnemonic;
     const char *desc;
 } OPMAP;
@@ -264,15 +265,15 @@ const OPMAP opmap [] = {
 #define SIXTOASC(x) flexo_to_ascii[x]
 #define ASCTOSIX(x) (ascii_to_flexo[x] & 077)
 
-extern int32 cpu_get_mode (void);
+extern int32_t cpu_get_mode (void);
 extern t_stat fprint_sym_orig (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw);
+    UNIT *uptr, int32_t sw);
 
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-int32 i, inst, op;
+int32_t i, inst, op;
 
 if(!cpu_get_mode()) {
     return fprint_sym_orig (of, addr, val, uptr, sw);
@@ -324,7 +325,7 @@ return SCPE_OK;
         val     =       output value
 */
 
-static t_value get_sint (char *cptr, int32 *sign, t_stat *status)
+static t_value get_sint (char *cptr, int32_t *sign, t_stat *status)
 {
 *sign = 1;
 if (*cptr == '+') {
@@ -349,7 +350,7 @@ return get_uint (cptr, 8, DMASK, status);
    Outputs:
         status  =       error status
 */
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */
@@ -360,9 +361,9 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
 (void) val;
 
 #if 0
-    int32 cflag, d, i, j, k, sign;
+    int32_t cflag, d, i, j, k, sign;
 t_stat r;
-static int32 sc_enc[10] = { 0, 01, 03, 07, 017, 037, 077, 0177, 0377, 0777 };
+static int32_t sc_enc[10] = { 0, 01, 03, 07, 017, 037, 077, 0177, 0377, 0777 };
 char gbuf[CBUFSIZE];
 
 cflag = (uptr == NULL) || (uptr == &cpu_unit);

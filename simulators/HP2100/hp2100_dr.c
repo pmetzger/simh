@@ -119,6 +119,7 @@
 
 
 #include <math.h>
+#include <stdint.h>
 
 #include "hp2100_defs.h"
 #include "hp2100_io.h"
@@ -191,7 +192,7 @@
 #define DRS_PER         0000002                 /* parity error */
 #define DRS_BSY         0000001                 /* ^busy */
 
-#define CALC_SCP(x)     (((int32) fmod ((x) / (double) dr_time,  \
+#define CALC_SCP(x)     (((int32_t) fmod ((x) / (double) dr_time, \
                         (double) (DR_NUMWD))) >= (DR_NUMWD - 3))
 
 typedef struct {
@@ -201,17 +202,17 @@ typedef struct {
 
 static CARD_STATE drd;                          /* data per-card state */
 
-static int32 drc_cw = 0;                        /* fnc, addr */
-static int32 drc_sta = 0;                       /* status */
-static int32 drc_run = 0;                       /* run flip-flop */
+static int32_t drc_cw = 0;                      /* fnc, addr */
+static int32_t drc_sta = 0;                     /* status */
+static int32_t drc_run = 0;                     /* run flip-flop */
 
-static int32 drd_ibuf = 0;                      /* input buffer */
-static int32 drd_obuf = 0;                      /* output buffer */
-static int32 drd_ptr = 0;                       /* sector pointer */
-static int32 drc_pcount = 1;                    /* number of prot tracks */
-static int32 dr_time = DR_DTIME;                /* time per word */
+static int32_t drd_ibuf = 0;                    /* input buffer */
+static int32_t drd_obuf = 0;                    /* output buffer */
+static int32_t drd_ptr = 0;                     /* sector pointer */
+static int32_t drc_pcount = 1;                  /* number of prot tracks */
+static int32_t dr_time = DR_DTIME;              /* time per word */
 
-static int32 sz_tab [16] = {
+static int32_t sz_tab [16] = {
      184320,                                    /*  180K  2770A     */
     1048576,                                    /* 1024K  2774A-002 */
      368640,                                    /*  360K  2771A     */
@@ -238,12 +239,12 @@ static INTERFACE drc_interface;
 static t_stat drc_svc (UNIT *uptr);
 static t_stat drc_reset (DEVICE *dptr);
 static t_stat drc_attach (UNIT *uptr, const char *cptr);
-static t_stat drc_boot (int32 unitno, DEVICE *dptr);
-static int32  dr_incda (int32 trk, int32 sec, int32 ptr);
-static int32  dr_seccntr (double simtime);
-static t_stat dr_set_prot (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat dr_show_prot (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat dr_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
+static t_stat drc_boot (int32_t unitno, DEVICE *dptr);
+static int32_t dr_incda (int32_t trk, int32_t sec, int32_t ptr);
+static int32_t dr_seccntr (double simtime);
+static t_stat dr_set_prot (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat dr_show_prot (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat dr_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 
 /* Device information blocks */
@@ -466,7 +467,7 @@ static SIGNALS_VALUE drd_interface (const DIB *dibptr, INBOUND_SET inbound_signa
    This implementation does not use every parameter. */
 (void) dibptr;
 
-int32          t;
+int32_t        t;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
@@ -584,7 +585,7 @@ static SIGNALS_VALUE drc_interface (const DIB *dibptr, INBOUND_SET inbound_signa
    This implementation does not use every parameter. */
 (void) dibptr;
 
-int32          sec;
+int32_t        sec;
 INBOUND_SIGNAL signal;
 INBOUND_SET    working_set = inbound_signals;
 SIGNALS_VALUE  outbound    = { ioNONE, 0 };
@@ -681,9 +682,9 @@ return outbound;                                        /* return the outbound s
 
 t_stat drc_svc (UNIT *uptr)
 {
-int32 trk, sec;
-uint32 da;
-uint16 *bptr = (uint16 *) uptr->filebuf;
+int32_t trk, sec;
+uint32_t da;
+uint16_t *bptr = (uint16_t *) uptr->filebuf;
 
 if ((uptr->flags & UNIT_ATT) == 0) {
     drc_sta = DRS_ABO;
@@ -698,8 +699,8 @@ drc_run = 1;                                            /* set run ff */
 
 if (drc_cw & CW_WR) {                                   /* write? */
     if ((da < uptr->capac) && (sec < DR_NUMSC)) {
-        bptr[da + drd_ptr] = (uint16) drd_obuf;
-        if (((uint32) (da + drd_ptr)) >= uptr->hwmark)
+        bptr[da + drd_ptr] = (uint16_t) drd_obuf;
+        if (((uint32_t) (da + drd_ptr)) >= uptr->hwmark)
             uptr->hwmark = da + drd_ptr + 1;
         }
     drd_ptr = dr_incda (trk, sec, drd_ptr);             /* inc disk addr */
@@ -710,7 +711,7 @@ if (drc_cw & CW_WR) {                                   /* write? */
     else {                                              /* done */
         if (drd_ptr)                                    /* need to fill? */
             for ( ; drd_ptr < DR_NUMWD; drd_ptr++)
-                bptr[da + drd_ptr] = (uint16) drd_obuf; /* fill with last word */
+                bptr[da + drd_ptr] = (uint16_t) drd_obuf; /* fill with last word */
         if (!(drc_unit [0].flags & UNIT_DRUM))          /* disk? */
             drc_sta = drc_sta | DRS_PER;                /* parity bit sets on write */
         drc_run = 0;                                    /* clear run ff */
@@ -731,7 +732,7 @@ return SCPE_OK;
 
 /* Increment current disk address */
 
-int32 dr_incda (int32 trk, int32 sec, int32 ptr)
+int32_t dr_incda (int32_t trk, int32_t sec, int32_t ptr)
 {
 ptr = ptr + 1;                                          /* inc pointer */
 if (ptr >= DR_NUMWD) {                                  /* end sector? */
@@ -762,11 +763,11 @@ return ptr;
    the time per word and the number of words per track.
 */
 
-int32 dr_seccntr (double simtime)
+int32_t dr_seccntr (double simtime)
 {
-int32 curword;
+int32_t curword;
 
-curword = (int32) fmod (simtime / (double) dr_time,
+curword = (int32_t) fmod (simtime / (double) dr_time,
                     (double) (DR_NUMWD * DR_NUMSC + DR_OVRHEAD));
 if (curword <= DR_OVRHEAD) return 0;
 else return ((curword - DR_OVRHEAD) / DR_NUMWD +
@@ -804,7 +805,7 @@ return SCPE_OK;
 t_stat drc_attach (UNIT *uptr, const char *cptr)
 {
 t_stat      result;
-const int32 sz = sz_tab [DR_GETSZ (uptr->flags)];
+const int32_t sz = sz_tab [DR_GETSZ (uptr->flags)];
 
 if (sz == 0)
     return SCPE_IERR;
@@ -814,14 +815,14 @@ else
 result = attach_unit (uptr, cptr);                      /* attach the drive */
 
 if (result == SCPE_OK && (sim_switches & SWMASK ('N'))) /* if the attach was successful and a new image was specified */
-    uptr->hwmark = (uint32) uptr->capac;                /*   then set the high-water mark to the last byte */
+    uptr->hwmark = (uint32_t) uptr->capac;              /*   then set the high-water mark to the last byte */
 
 return result;                                          /* return the result of the attach */
 }
 
 /* Set protected track count */
 
-t_stat dr_set_prot (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dr_set_prot (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -829,12 +830,12 @@ t_stat dr_set_prot (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 count;
+int32_t count;
 t_stat status;
 
 if (cptr == NULL)
     return SCPE_ARG;
-count = (int32) get_uint (cptr, 10, 768, &status);
+count = (int32_t) get_uint (cptr, 10, 768, &status);
 if (status != SCPE_OK)
     return status;
 else switch (count) {
@@ -863,7 +864,7 @@ return SCPE_OK;
 
 /* Show protected track count */
 
-t_stat dr_show_prot (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat dr_show_prot (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -877,15 +878,15 @@ return SCPE_OK;
 
 /* Set size routine */
 
-t_stat dr_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat dr_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
 (void) cptr;
 (void) desc;
 
-int32 sz;
-int32 szindex;
+int32_t sz;
+int32_t szindex;
 
 if (val < 0) return SCPE_IERR;
 if ((sz = sz_tab[szindex = DR_GETSZ (val)]) == 0) return SCPE_IERR;
@@ -1047,13 +1048,13 @@ static const LOADER_ARRAY dr_loaders = {
        to the current select codes of the PTR and DR devices.
  */
 
-t_stat drc_boot (int32 unitno, DEVICE *dptr)
+t_stat drc_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
 (void) dptr;
 
-uint32 start;
+uint32_t start;
 
 if (unitno != 0)                                        /* a BOOT DRC for a non-zero unit */
     return SCPE_NOFNC;                                  /*   is rejected as unsupported */

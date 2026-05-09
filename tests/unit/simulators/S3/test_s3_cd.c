@@ -5,31 +5,32 @@
 #include "test_cmocka.h"
 
 #include "s3_defs.h"
+#include "sim_types.h"
 
 extern UNIT cdr_unit;
 extern UNIT stack_unit[];
-extern int32 DAR;
-extern uint8 rbuf[];
+extern int32_t DAR;
+extern uint8_t rbuf[];
 
 t_stat cdr_svc(UNIT *uptr);
-int32 GetMem(int32 addr);
-int32 PutMem(int32 addr, int32 data);
-t_stat read_card(int32 ilnt, int32 mod);
+int32_t GetMem(int32_t addr);
+int32_t PutMem(int32_t addr, int32_t data);
+t_stat read_card(int32_t ilnt, int32_t mod);
 
-unsigned char ebcdic_to_ascii[256];
-unsigned char ascii_to_ebcdic[256];
+uchar_t ebcdic_to_ascii[256];
+uchar_t ascii_to_ebcdic[256];
 
 static int putmem_count;
-static int32 first_putmem_addr;
-static int32 first_putmem_data;
+static int32_t first_putmem_addr;
+static int32_t first_putmem_data;
 
-int32 GetMem(int32 addr)
+int32_t GetMem(int32_t addr)
 {
     (void)addr;
     return 0;
 }
 
-int32 PutMem(int32 addr, int32 data)
+int32_t PutMem(int32_t addr, int32_t data)
 {
     if (putmem_count == 0) {
         first_putmem_addr = addr;
@@ -41,7 +42,7 @@ int32 PutMem(int32 addr, int32 data)
 
 static int setup_card_reader(void **state)
 {
-    static const unsigned char card[CDR_WIDTH] = {
+    static const uchar_t card[CDR_WIDTH] = {
         0xF1, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
         0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
         0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,

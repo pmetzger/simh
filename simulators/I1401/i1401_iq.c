@@ -34,6 +34,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "i1401_defs.h"
 #include "i1401_bool_internal.h"
@@ -41,11 +42,11 @@
 #define UNIT_V_PCH      (UNIT_V_UF + 0)                 /* output conv */
 #define UNIT_PCH        (1 << UNIT_V_PCH)
 
-extern uint8 M[];
-extern int32 BS, iochk, ind[64];
+extern uint8_t M[];
+extern int32_t BS, iochk, ind[64];
 extern UNIT cpu_unit;
 
-int32 inq_char = 033;                                   /* request inq */
+int32_t inq_char = 033;                                 /* request inq */
 t_stat inq_svc (UNIT *uptr);
 t_stat inq_reset (DEVICE *dptr);
 
@@ -86,9 +87,9 @@ DEVICE inq_dev = {
    Modifiers have not been checked; legal modifiers are R and W
 */
 
-t_stat inq_io (int32 flag, int32 mod)
+t_stat inq_io (int32_t flag, int32_t mod)
 {
-int32 i, t, wm_seen = 0;
+int32_t i, t, wm_seen = 0;
 bool use_h = i1401_mask_is_set(inq_unit.flags, UNIT_PCH);
 
 ind[IN_INC] = 0;                                        /* clear inq clear */
@@ -173,7 +174,7 @@ t_stat inq_svc (UNIT *uptr)
    This implementation does not use every parameter. */
 (void) uptr;
 
-int32 temp;
+int32_t temp;
 
 sim_activate (&inq_unit, inq_unit.wait);                /* continue poll */
 if ((temp = sim_poll_kbd ()) < SCPE_KFLAG)              /* no char or error? */

@@ -38,20 +38,23 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 #include "sim_imd.h"
 #include "sim_tmxr.h"
+#include "sim_types.h"
 
 /********/
 /* SIMH */
 /********/
 
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
-extern t_stat set_dev_enbdis(DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-extern t_stat set_cmd(int32 flag, const char *cptr);
-extern void PutBYTEWrapper(const uint32 Addr, const uint32 Value);
-extern uint32 nmiInterrupt;
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
+extern t_stat set_dev_enbdis(DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+extern t_stat set_cmd(int32_t flag, const char *cptr);
+extern void PutBYTEWrapper(const uint32_t Addr, const uint32_t Value);
+extern uint32_t nmiInterrupt;
 
 /* Debug flags */
 #define VERBOSE_MSG         (1 << 0)
@@ -75,8 +78,8 @@ static t_stat jair_port_reset(DEVICE *dptr);
 static t_stat jair_svc(UNIT *uptr);
 static t_stat jair_rx_svc(UNIT *uptr);
 static t_stat jair_tx_svc(UNIT *uptr);
-static t_stat jair_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-static t_stat jair_boot(int32 unitno, DEVICE *dptr);
+static t_stat jair_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat jair_boot(int32_t unitno, DEVICE *dptr);
 static t_stat jair_attach(UNIT *uptr, const char *cptr);
 static t_stat jair_detach(UNIT *uptr);
 static t_stat jair_attach_mux(UNIT *uptr, const char *cptr);
@@ -88,17 +91,17 @@ static const char* jairs1_description(DEVICE *dptr);
 static const char* jairp_description(DEVICE *dptr);
 static int jair_get_modem_status(UNIT *uptr);
 static void jair_get_rxdata(UNIT *uptr);
-static int jair_set_mc(TMLN *tmln, uint8 data);
+static int jair_set_mc(TMLN *tmln, uint8_t data);
 static int jair_new_baud(UNIT *uptr);
-static t_stat jair_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat jair_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc);
-static t_stat jair_show_ports(FILE *st, UNIT *uptr, int32 val, const void *desc);
-static int32 jairio(int32 addr, int32 rw, int32 data);
-static uint8 jair_io_in(uint32 addr);
-static uint8 jair_io_out(uint32 addr, int32 data);
-static t_stat jair_set_rom(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static t_stat jair_set_norom(UNIT *uptr, int32 value, const char *cptr, void *desc);
-static int32 jair_shadow_rom(int32 Addr, int32 rw, int32 data);
+static t_stat jair_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat jair_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc);
+static t_stat jair_show_ports(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static int32_t jairio(int32_t addr, int32_t rw, int32_t data);
+static uint8_t jair_io_in(uint32_t addr);
+static uint8_t jair_io_out(uint32_t addr, int32_t data);
+static t_stat jair_set_rom(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static t_stat jair_set_norom(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+static int32_t jair_shadow_rom(int32_t Addr, int32_t rw, int32_t data);
 
 /***********/
 /* RAM/ROM */
@@ -111,7 +114,7 @@ static int32 jair_shadow_rom(int32 Addr, int32 rw, int32 data);
 #define JAIR_ROM_READ   false
 #define JAIR_ROM_WRITE  true
 
-static uint8 jair_rom_v25[JAIR_ROM_SIZE] = {
+static uint8_t jair_rom_v25[JAIR_ROM_SIZE] = {
     0x3e, 0x02, 0x21, 0x00, 0x00, 0x01, 0x01, 0x00,
     0x09, 0xd2, 0x08, 0x00, 0x3d, 0xc2, 0x02, 0x00,
     0x3e, 0x80, 0xd3, 0x23, 0xd3, 0x2b, 0x3e, 0x0c,
@@ -580,7 +583,7 @@ static uint8 jair_rom_v25[JAIR_ROM_SIZE] = {
     0xc3, 0x7f, 0x0e, 0x3a, 0x3d, 0xfd, 0xa3, 0xc9
     };
 
-static uint8 jair_ram[JAIR_ROM_SIZE] = {0};
+static uint8_t jair_ram[JAIR_ROM_SIZE] = {0};
 
 /*********************/
 /* JAIR Definitions */
@@ -668,20 +671,20 @@ static uint8 jair_ram[JAIR_ROM_SIZE] = {0};
 */
 
 typedef struct {
-    uint32    rom_base;       /* Memory Base Address */
-    uint32    rom_size;       /* Memory Address space requirement */
-    uint32    io_base;        /* I/O Base Address */
-    uint32    io_size;        /* I/O Address Space requirement */
+    uint32_t  rom_base;       /* Memory Base Address */
+    uint32_t  rom_size;       /* Memory Address space requirement */
+    uint32_t  io_base;        /* I/O Base Address */
+    uint32_t  io_size;        /* I/O Address Space requirement */
     bool      sr_ena;         /* Shadow ROM enable */
     bool      spi_cs;         /* SPI *CS (Active Low) */
-    uint8     sd_istate;      /* SD Card Input State */
-    uint8     sd_ostate;      /* SD Card Output State */
-    uint8     sd_cmd[512+6];  /* SD Card Command */
-    uint16    sd_cmd_len;
-    uint16    sd_cmd_idx;
-    uint8     sd_resp[512+6]; /* SD Card Response */
-    uint16    sd_resp_len;
-    uint16    sd_resp_idx;
+    uint8_t   sd_istate;      /* SD Card Input State */
+    uint8_t   sd_ostate;      /* SD Card Output State */
+    uint8_t   sd_cmd[512+6];  /* SD Card Command */
+    uint16_t  sd_cmd_len;
+    uint16_t  sd_cmd_idx;
+    uint8_t   sd_resp[512+6]; /* SD Card Response */
+    uint16_t  sd_resp_len;
+    uint16_t  sd_resp_idx;
     bool      sd_appcmd;      /* SD app command flag */
 } JAIR_CTX;
 
@@ -751,27 +754,27 @@ DEVICE jair_dev = {
 
 typedef struct {
     PNP_INFO  pnp;          /* Must be first */
-    int32     conn;         /* Connected Status */
-    uint16    baud;         /* Baud rate */
-    uint8     status;       /* Status Byte */
-    uint8     rdr;          /* Receive Data Ready */
-    uint8     rxd;          /* Receive Data Buffer */
-    uint8     txd;          /* Transmit Data Buffer */
+    int32_t   conn;         /* Connected Status */
+    uint16_t  baud;         /* Baud rate */
+    uint8_t   status;       /* Status Byte */
+    uint8_t   rdr;          /* Receive Data Ready */
+    uint8_t   rxd;          /* Receive Data Buffer */
+    uint8_t   txd;          /* Transmit Data Buffer */
     bool      txp;          /* Transmit Data Pending */
-    uint8     ier;          /* Interrupt Enable Register */
-    uint8     iir;          /* Interrupt Ident Register */
-    uint8     lcr;          /* Line Control Register */
-    uint8     mcr;          /* Modem Control Register */
-    uint8     lsr;          /* Line Status Register */
-    uint8     msr;          /* Modem Status Register */
-    uint8     sr;           /* Scratch Register */
-    uint8     dlls;         /* Divisor Latch LS */
-    uint8     dlms;         /* Divisor Latch MS */
+    uint8_t   ier;          /* Interrupt Enable Register */
+    uint8_t   iir;          /* Interrupt Ident Register */
+    uint8_t   lcr;          /* Line Control Register */
+    uint8_t   mcr;          /* Modem Control Register */
+    uint8_t   lsr;          /* Line Status Register */
+    uint8_t   msr;          /* Modem Status Register */
+    uint8_t   sr;           /* Scratch Register */
+    uint8_t   dlls;         /* Divisor Latch LS */
+    uint8_t   dlms;         /* Divisor Latch MS */
     TMLN     *tmln;         /* TMLN pointer */
     TMXR     *tmxr;         /* TMXR pointer */
-    int32    iobuf[JAIR_IOBUF_SIZE];
-    uint32   iobufin;
-    uint32   iobufout;
+    int32_t  iobuf[JAIR_IOBUF_SIZE];
+    uint32_t iobufin;
+    uint32_t iobufout;
 } JAIR_PORT_CTX;
 
 /**************************/
@@ -1093,7 +1096,7 @@ static t_stat jair_reset(DEVICE *dptr)
 static t_stat jair_port_reset(DEVICE *dptr) {
     JAIR_PORT_CTX *port;
     char uname[12];
-    uint32 u;
+    uint32_t u;
 
     port = (JAIR_PORT_CTX *) dptr->ctxt;
 
@@ -1144,7 +1147,7 @@ static t_stat jair_port_reset(DEVICE *dptr) {
 /*
  * The BOOT command will enter the ROM at 0x0000
  */
-static t_stat jair_boot(int32 unitno, DEVICE *dptr)
+static t_stat jair_boot(int32_t unitno, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -1153,7 +1156,7 @@ static t_stat jair_boot(int32 unitno, DEVICE *dptr)
 
     sim_printf("%s: Booting using ROM at 0x%04x\n", JAIR_SNAME, jair_ctx.rom_base);
 
-    *((int32 *) sim_PC->loc) = jair_ctx.rom_base;
+    *((int32_t *) sim_PC->loc) = jair_ctx.rom_base;
 
     return SCPE_OK;
 }
@@ -1198,7 +1201,7 @@ static t_stat jair_rx_svc(UNIT *uptr)
 {
     UNIT *rxunit = uptr;
     JAIR_PORT_CTX *port;
-    int32 c = 0;
+    int32_t c = 0;
     t_stat r = SCPE_OK;
 
     port = (JAIR_PORT_CTX *) uptr->dptr->ctxt;
@@ -1277,7 +1280,7 @@ static t_stat jair_tx_svc(UNIT *uptr)
 static t_stat jair_attach(UNIT *uptr, const char *cptr)
 {
     t_stat r;
-    unsigned int i = 0;
+    uint_t i = 0;
 
     r = attach_unit(uptr, cptr);    /* attach unit  */
     if (r != SCPE_OK) {             /* error?       */
@@ -1313,7 +1316,7 @@ static t_stat jair_attach(UNIT *uptr, const char *cptr)
 static t_stat jair_detach(UNIT *uptr)
 {
     t_stat r;
-    int8 i;
+    int8_t i;
 
     for (i = 0; i < JAIR_UNITS; i++) {
         if (jair_dev.units[i].fileref == uptr->fileref) {
@@ -1374,7 +1377,7 @@ static t_stat jair_detach_mux(UNIT *uptr)
     return r;
 }
 
-static t_stat jair_show_ports(FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat jair_show_ports(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1408,7 +1411,7 @@ static t_stat jair_config_line(DEVICE *dev, TMLN *tmln, int baud)
 static void jair_get_rxdata(UNIT *uptr)
 {
     JAIR_PORT_CTX *port;
-    int32 c = 0xff;
+    int32_t c = 0xff;
 
     port = (JAIR_PORT_CTX *) uptr->dptr->ctxt;
 
@@ -1439,8 +1442,8 @@ static void jair_get_rxdata(UNIT *uptr)
 static int jair_get_modem_status(UNIT *uptr)
 {
     JAIR_PORT_CTX *port;
-    uint8 msr;
-    int32 s;
+    uint8_t msr;
+    int32_t s;
     t_stat r;
 
     port = (JAIR_PORT_CTX *) uptr->dptr->ctxt;
@@ -1488,7 +1491,7 @@ static int jair_get_modem_status(UNIT *uptr)
     return r;
 }
 
-static int jair_set_mc(TMLN *tmln, uint8 data)
+static int jair_set_mc(TMLN *tmln, uint8_t data)
 {
     int s = 0;
 
@@ -1515,14 +1518,14 @@ static int jair_new_baud(UNIT *uptr)
     return port->baud;
 }
 
-static t_stat jair_set_baud(UNIT *uptr, int32 value, const char *cptr, void *desc)
+static t_stat jair_set_baud(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) value;
     (void) desc;
 
-    int32 baud;
+    int32_t baud;
     t_stat r = SCPE_ARG;
     JAIR_PORT_CTX *port;
 
@@ -1542,7 +1545,7 @@ static t_stat jair_set_baud(UNIT *uptr, int32 value, const char *cptr, void *des
     return r;
 }
 
-static t_stat jair_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc)
+static t_stat jair_show_baud(FILE *st, UNIT *uptr, int32_t value, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -1563,7 +1566,7 @@ static t_stat jair_show_baud(FILE *st, UNIT *uptr, int32 value, const void *desc
 /*
  * Handles I/O input and output
  */
-static int32 jairio(int32 addr, int32 rw, int32 data)
+static int32_t jairio(int32_t addr, int32_t rw, int32_t data)
 {
     if (rw == 0) {
         return(jair_io_in(addr));
@@ -1573,9 +1576,9 @@ static int32 jairio(int32 addr, int32 rw, int32 data)
     }
 }
 
-static uint8 jair_io_in(uint32 addr)
+static uint8_t jair_io_in(uint32_t addr)
 {
-    uint8 data = 0xff;
+    uint8_t data = 0xff;
 
     switch(addr & 0xff) {
         case JAIR_UART0 + JAIR_LSR:
@@ -1663,9 +1666,9 @@ static uint8 jair_io_in(uint32 addr)
     return (data);
 }
 
-static uint8 jair_io_out(uint32 addr, int32 data)
+static uint8_t jair_io_out(uint32_t addr, int32_t data)
 {
-    uint32 sd_addr;
+    uint32_t sd_addr;
 
     switch(addr & 0xff) {
         case JAIR_UART0 + JAIR_SDATA:
@@ -1799,8 +1802,8 @@ static uint8 jair_io_out(uint32 addr, int32 data)
                             case JAIR_CMD17:
                                 sd_addr = jair_ctx.sd_cmd[1] * 0x1000000;
                                 sd_addr |= jair_ctx.sd_cmd[2] * 0x10000;
-                                sd_addr |= (uint32) jair_ctx.sd_cmd[3] * 0x100;
-                                sd_addr |= (uint32) jair_ctx.sd_cmd[4];
+                                sd_addr |= (uint32_t) jair_ctx.sd_cmd[3] * 0x100;
+                                sd_addr |= (uint32_t) jair_ctx.sd_cmd[4];
                                 if (!(jair_unit[0].flags & UNIT_ATT)) {
                                     jair_ctx.sd_resp[0] |= 0x04;
                                     jair_ctx.sd_resp_len = 1;
@@ -1883,8 +1886,8 @@ static uint8 jair_io_out(uint32 addr, int32 data)
                     else {
                         sd_addr = jair_ctx.sd_cmd[1] * 0x1000000;
                         sd_addr |= jair_ctx.sd_cmd[2] * 0x10000;
-                        sd_addr |= (uint32) jair_ctx.sd_cmd[3] * 0x100;
-                        sd_addr |= (uint32) jair_ctx.sd_cmd[4];
+                        sd_addr |= (uint32_t) jair_ctx.sd_cmd[3] * 0x100;
+                        sd_addr |= (uint32_t) jair_ctx.sd_cmd[4];
 
                         if (!(jair_unit[0].flags & UNIT_ATT)) {
                             jair_ctx.sd_resp[0] = 0x0b;
@@ -1919,7 +1922,7 @@ static uint8 jair_io_out(uint32 addr, int32 data)
     return(0xff);
 }
 
-static t_stat jair_set_rom(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat jair_set_rom(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -1931,7 +1934,7 @@ static t_stat jair_set_rom(UNIT *uptr, int32 value, const char *cptr, void *desc
     return SCPE_OK;
 }
 
-static t_stat jair_set_norom(UNIT *uptr, int32 value, const char *cptr, void *desc) {
+static t_stat jair_set_norom(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -1951,7 +1954,7 @@ static t_stat jair_set_norom(UNIT *uptr, int32 value, const char *cptr, void *de
 **
 ** The ROM is enabled/disabled by writing a 0 (enable) or 1 (disable) to the parallel port.
 */
-static int32 jair_shadow_rom(int32 Addr, int32 rw, int32 data)
+static int32_t jair_shadow_rom(int32_t Addr, int32_t rw, int32_t data)
 {
     if (rw == JAIR_ROM_WRITE) {
         jair_ram[Addr & JAIR_ROM_MASK] = data;
@@ -1969,7 +1972,7 @@ static int32 jair_shadow_rom(int32 Addr, int32 rw, int32 data)
 /*
  * Display help
  */
-static t_stat jair_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat jair_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic help signature.
        This implementation does not use every parameter. */

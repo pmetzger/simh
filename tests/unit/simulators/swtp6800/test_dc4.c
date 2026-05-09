@@ -74,9 +74,9 @@ static void size_image(FILE *file, long size)
     assert_int_equal(fseek(file, 0, SEEK_SET), 0);
 }
 
-static void write_sir_geometry(FILE *file, uint8 tracks, uint8 sectors)
+static void write_sir_geometry(FILE *file, uint8_t tracks, uint8_t sectors)
 {
-    uint8 sir[SECT_SIZE];
+    uint8_t sir[SECT_SIZE];
 
     memset(sir, 0, sizeof(sir));
     sir[MAXCYL] = tracks - 1;

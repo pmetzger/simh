@@ -25,7 +25,10 @@
 */
 
 #include <ctype.h>
+#include <stdint.h>
+
 #include "altair_defs.h"
+#include "sim_types.h"
 
 extern DEVICE cpu_dev;
 extern DEVICE dsk_dev;
@@ -35,8 +38,8 @@ extern DEVICE sio_dev;
 extern DEVICE ptr_dev;
 extern DEVICE ptp_dev;
 extern DEVICE lpt_dev;
-extern unsigned char M[];
-extern int32 saved_PC;
+extern uchar_t M[];
+extern int32_t saved_PC;
 
 /* SCP data structures
 
@@ -52,7 +55,7 @@ char sim_name[] = "Altair 8800";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 4;
+int32_t sim_emax = 4;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -138,7 +141,7 @@ static const char *opcode[] = {
 "CM", "???", "CPI", "RST 7",                            /* 374-377 */
  };
 
-int32 oplen[256] = {
+int32_t oplen[256] = {
 1,3,1,1,1,1,2,1,0,1,1,1,1,1,2,1,0,3,1,1,1,1,2,1,0,1,1,1,1,1,2,1,
 0,3,3,1,1,1,2,1,0,1,3,1,1,1,2,1,0,3,3,1,1,1,2,1,0,1,3,1,1,1,2,1,
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -159,7 +162,7 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
    This implementation does not use every parameter. */
 (void)fnam;
 
-int32 i, addr = 0, cnt = 0;
+int32_t i, addr = 0, cnt = 0;
 
 if ((*cptr != 0) || (flag != 0)) return SCPE_ARG;
 addr = saved_PC;
@@ -185,14 +188,14 @@ return (SCPE_OK);
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-int32 c1, c2, inst, adr;
+int32_t c1, c2, inst, adr;
 
 c1 = (val[0] >> 8) & 0177;
 c2 = val[0] & 0177;
@@ -237,26 +240,26 @@ return -(oplen[inst] - 1);
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-int32 i = 0, j, r;
+int32_t i = 0, j, r;
 char gbuf[CBUFSIZE];
 
 memset (gbuf, 0, sizeof (gbuf));
 while (isspace (*cptr)) cptr++;                         /* absorb spaces */
 if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    val[0] = (uint32) cptr[0];
+    val[0] = (uint32_t) cptr[0];
     return SCPE_OK;
 }
 if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII string? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    val[0] = ((uint32) cptr[0] << 8) + (uint32) cptr[1];
+    val[0] = ((uint32_t) cptr[0] << 8) + (uint32_t) cptr[1];
     return SCPE_OK;
 }
 
@@ -264,7 +267,7 @@ if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII string? */
    or numeric (including spaces).
 */
 
-while (i < (int32)(sizeof (gbuf) - 4)) {
+while (i < (int32_t)(sizeof (gbuf) - 4)) {
     if (*cptr == ',' || *cptr == '\0' ||
          sim_isdigit(*cptr))
             break;

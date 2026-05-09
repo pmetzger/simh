@@ -35,9 +35,10 @@
 
 #include "tx0_defs.h"
 #include <ctype.h>
+#include <stdint.h>
 
 typedef struct {
-    int32 opr;
+    int32_t opr;
     const char *mnemonic;
     const char *desc;
 } OPMAP;
@@ -96,7 +97,7 @@ const OPMAP opmap_orig [] = {
 };
 
 t_stat fprint_sym_orig (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
@@ -104,7 +105,7 @@ t_stat fprint_sym_orig (FILE *of, t_addr addr, t_value *val,
 (void) uptr;
 (void) sw;
 
-int32 i, inst, op;
+int32_t i, inst, op;
 
 inst = val[0];
 

@@ -38,14 +38,15 @@
 
 #ifdef USE_DISPLAY
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "tx0_defs.h"
 #include "display/display.h"
 #include "sim_video.h"
 
-extern int32 ios, iosta, PF;
-extern int32 stop_inst;
-extern int32 PEN_HIT;
+extern int32_t ios, iosta, PF;
+extern int32_t stop_inst;
+extern int32_t PEN_HIT;
 
 t_stat dpy_svc (UNIT *uptr);
 t_stat dpy_reset (DEVICE *dptr);
@@ -90,10 +91,10 @@ DEVICE dpy_dev = {
     NULL, DEV_DISABLE | DEV_DIS | DEV_DEBUG, 0, dpy_deb };
 
 /* Display Routine */
-int32 dpy (int32 ac)
+int32_t dpy (int32_t ac)
 {
-    int32 pen_hit;
-    int32 x, y;
+    int32_t pen_hit;
+    int32_t x, y;
     int level;
 
     if (dpy_dev.flags & DEV_DIS)                /* disabled? */

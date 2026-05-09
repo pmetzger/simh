@@ -83,6 +83,9 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "sim_types.h"
 #include "system_defs.h"
 
 #define UNIT_V_OPSTOP   (UNIT_V_UF)             /* Stop on Invalid OP? */
@@ -92,42 +95,42 @@
 #define UNIT_V_MSIZE    (UNIT_V_UF+2)           /* Memory Size */
 #define UNIT_MSIZE      (1 << UNIT_V_MSIZE)
 
-unsigned char Mem[MAXMEMSIZE];                  /* Memory */
-unsigned int Smem[8];                           /* Stack memory with 7 levels
+uchar_t Mem[MAXMEMSIZE];                        /* Memory */
+uint_t Smem[8];                                 /* Stack memory with 7 levels
                                                    (TODO: and program counter) */
-int32 Areg = 0;                                 /* accumulator */
-int32 Breg = 0;                                 /* B register */
-int32 Creg = 0;                                 /* C register */
-int32 Dreg = 0;                                 /* D register */
-int32 Ereg = 0;                                 /* E register */
-int32 HLreg = 0;                                /* HL register pair */
-int32 SPreg = 0;                                /* Stack pointer 3 bits */
-int32 Cflag = 0;                                /* Carry flag */
-int32 Zflag = 0;                                /* Zero flag */
-int32 Sflag = 0;                                /* Sign flag */
-int32 Pflag = 0;                                /* Parity flag */
-int32 saved_PCreg = 0;                          /* Program Counter */
-int32 INTEflag = 0;                             /* Interrupt Enable */
-int32 int_req = 0;                              /* Interrupt Request */
+int32_t Areg = 0;                               /* accumulator */
+int32_t Breg = 0;                               /* B register */
+int32_t Creg = 0;                               /* C register */
+int32_t Dreg = 0;                               /* D register */
+int32_t Ereg = 0;                               /* E register */
+int32_t HLreg = 0;                              /* HL register pair */
+int32_t SPreg = 0;                              /* Stack pointer 3 bits */
+int32_t Cflag = 0;                              /* Carry flag */
+int32_t Zflag = 0;                              /* Zero flag */
+int32_t Sflag = 0;                              /* Sign flag */
+int32_t Pflag = 0;                              /* Parity flag */
+int32_t saved_PCreg = 0;                        /* Program Counter */
+int32_t INTEflag = 0;                           /* Interrupt Enable */
+int32_t int_req = 0;                            /* Interrupt Request */
 
-int32 PCXreg;                                   /* External view of PC */
+int32_t PCXreg;                                 /* External view of PC */
 
 /* Function prototypes */
 
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
 t_stat cpu_reset (DEVICE *dptr);
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw);
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw);
 
-void setarith(int32 reg);
-void setlogical(int32 reg);
-void setinc(int32 reg);
-int32 getreg(int32 reg);
-void putreg(int32 reg, int32 val);
-void parity(int32 reg);
-int32 cond(int32 con);
+void setarith(int32_t reg);
+void setlogical(int32_t reg);
+void setinc(int32_t reg);
+int32_t getreg(int32_t reg);
+void putreg(int32_t reg, int32_t val);
+void parity(int32_t reg);
+int32_t cond(int32_t con);
 
 extern struct idev dev_table[32];
 
@@ -249,7 +252,7 @@ static const char *opcode[] = {
 
 /* Intel 8008 opcode lengths
  */
-int32 oplen[256] = {
+int32_t oplen[256] = {
 1,1,1,1,2,1,2,1,                    /* 000 - 007 */
 1,1,1,1,2,1,2,1,                    /* 010 - 017 */
 1,1,1,1,2,1,2,1,                    /* 020 - 027 */
@@ -288,7 +291,7 @@ int32 oplen[256] = {
  */
 t_stat sim_instr (void)
 {
-    int32 PC, IR, OP, DAR, reason, hi, lo, carry, states;
+    int32_t PC, IR, OP, DAR, reason, hi, lo, carry, states;
     /* states (Machine States) are recorded for each instruction
        but not used yet */
 
@@ -857,7 +860,7 @@ return reason;
 
 /* Test an 8008 flag condition and return 1 if true, 0 if false
  */
-int32 cond(int32 con)
+int32_t cond(int32_t con)
 {
     switch (con) {
         case 0:  /* carry */
@@ -881,7 +884,7 @@ int32 cond(int32 con)
 /* Set the <C>arry, <S>ign, <Z>ero and <P>arity flags following
    an arithmetic operation on 'reg'.
  */
-void setarith(int32 reg)
+void setarith(int32_t reg)
 {
 
     if (reg & 0x100)
@@ -902,7 +905,7 @@ void setarith(int32 reg)
 /* Set the <C>arry, <S>ign, <Z>ero amd <P>arity flags following
    a logical (bitwise) operation on 'reg'.
  */
-void setlogical(int32 reg)
+void setlogical(int32_t reg)
 {
     Cflag = 0;
     if (reg & 0x80)
@@ -919,9 +922,9 @@ void setlogical(int32 reg)
 /* Set the Parity (P) flag based on parity of 'reg', i.e., number
    of bits on even: P=1, else P=0
  */
-void parity(int32 reg)
+void parity(int32_t reg)
 {
-    int32 bc = 0;
+    int32_t bc = 0;
 
     if (reg & 0x01) bc++;
     if (reg & 0x02) bc++;
@@ -940,7 +943,7 @@ void parity(int32 reg)
 /* Set the <S>ign, <Z>ero amd <P>arity flags following
    an INR/DCR operation on 'reg'.
  */
-void setinc(int32 reg)
+void setinc(int32_t reg)
 {
 
     if (reg & 0x80)
@@ -956,7 +959,7 @@ void setinc(int32 reg)
 
 /* Get an 8008 register and return it
  */
-int32 getreg(int32 reg)
+int32_t getreg(int32_t reg)
 {
     switch (reg) {
         case 0:
@@ -981,7 +984,7 @@ int32 getreg(int32 reg)
 
 /* Put a value into an 8008 register
  */
-void putreg(int32 reg, int32 val)
+void putreg(int32_t reg, int32_t val)
 {
     switch (reg) {
         case 0:
@@ -1030,7 +1033,7 @@ return SCPE_OK;
 
 /* Memory examine
  */
-t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -1046,7 +1049,7 @@ return SCPE_OK;
 
 /* Memory deposit
  */
-t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic deposit signature.
        This implementation does not use every parameter. */
@@ -1060,7 +1063,7 @@ t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw)
 
 /* Set memory size
  */
-t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1068,8 +1071,8 @@ t_stat cpu_set_size (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) cptr;
 (void) desc;
 
-int32 mc = 0;
-uint32 i;
+int32_t mc = 0;
+uint32_t i;
 
 if ((val <= 0) || (val > MAXMEMSIZE) || ((val & 07777) != 0))
     return SCPE_ARG;
@@ -1095,14 +1098,14 @@ return SCPE_OK;
         status  =       error code
 */
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
 /* Generic symbolic output signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-int32 c1, c2, inst, adr;
+int32_t c1, c2, inst, adr;
 
 c1 = (val[0] >> 8) & 0177;
 c2 = val[0] & 0177;
@@ -1153,35 +1156,35 @@ return -(oplen[inst] - 1);
    Outputs:
         status  =       error status
 */
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
 /* Generic symbolic input signature.
    This implementation does not use every parameter. */
 (void)addr;
 (void)uptr;
 
-int32 i = 0, j, r;
+int32_t i = 0, j, r;
 char gbuf[CBUFSIZE];
-int32 opcode_inp = 0;
-int32 opcode_out = 0;
+int32_t opcode_inp = 0;
+int32_t opcode_out = 0;
 
 memset (gbuf, 0, sizeof (gbuf));
 while (isspace (*cptr))
     cptr++;                                             /* absorb spaces */
 if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    val[0] = (uint32) cptr[0];
+    val[0] = (uint32_t) cptr[0];
     return SCPE_OK;
 }
 if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII string? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    val[0] = ((uint32) cptr[0] << 8) + (uint32) cptr[1];
+    val[0] = ((uint32_t) cptr[0] << 8) + (uint32_t) cptr[1];
     return SCPE_OK;
 }
 
 /* An instruction: get opcode (all characters until null, comma,
    or numeric (including spaces). */
-while (i < (int32)(sizeof (gbuf) - 4)) {
+while (i < (int32_t)(sizeof (gbuf) - 4)) {
     if (*cptr == ',' || *cptr == '\0' ||
          sim_isdigit(*cptr))
             break;

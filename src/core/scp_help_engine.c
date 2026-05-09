@@ -19,6 +19,7 @@
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Used when sorting a list of command names. */
 static int _cmd_name_compare(const void *pa, const void *pb)
@@ -328,9 +329,9 @@ void fprint_set_help_ex(FILE *st, DEVICE *dptr, bool silent)
     bool found = false;
     bool deb_desc_available = false;
     char buf[CBUFSIZE], header[CBUFSIZE], extra[CBUFSIZE];
-    uint32 enabled_units = dptr->numunits;
+    uint32_t enabled_units = dptr->numunits;
     char unit_spec[50];
-    uint32 unit, found_unit = 0;
+    uint32_t unit, found_unit = 0;
     const char *gap = "  ";
 
     snprintf(header, sizeof(header), "\n%s device SET commands:\n\n",
@@ -540,9 +541,9 @@ void fprint_show_help_ex(FILE *st, DEVICE *dptr, bool silent)
     MTAB *mptr;
     bool found = false;
     char buf[CBUFSIZE], header[CBUFSIZE], extra[CBUFSIZE];
-    uint32 enabled_units = dptr->numunits;
+    uint32_t enabled_units = dptr->numunits;
     char unit_spec[50];
-    uint32 unit, found_unit = 0;
+    uint32_t unit, found_unit = 0;
     const char *gap = "  ";
 
     snprintf(header, sizeof(header), "\n%s device SHOW commands:\n\n",
@@ -654,7 +655,7 @@ void fprint_brk_help_ex(FILE *st, DEVICE *dptr, bool silent)
             put_switches(gbuf, sizeof(gbuf), sim_brk_dflt));
 }
 
-t_stat help_dev_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat help_dev_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                      const char *cptr)
 {
     char gbuf[CBUFSIZE];
@@ -735,10 +736,10 @@ typedef struct topic {
     char *label;
     struct topic *parent;
     struct topic **children;
-    uint32 kids;
+    uint32_t kids;
     char *text;
     size_t len;
-    uint32 flags;
+    uint32_t flags;
     size_t kidwid;
 #define HLP_MAGIC_TOPIC 1
 } TOPIC;
@@ -1119,7 +1120,7 @@ static void displayMagicTopic(FILE *st, DEVICE *dptr, TOPIC *topic)
     remove(tmp_path);
 }
 
-static t_stat displayFlatHelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+static t_stat displayFlatHelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                               TOPIC *topic, va_list ap)
 {
     size_t i;
@@ -1176,7 +1177,7 @@ static size_t matchHelpTopicName(TOPIC *topic, const char *token)
     return match;
 }
 
-t_stat scp_vhelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat scp_vhelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                  const char *help, const char *cptr, va_list ap)
 {
 
@@ -1403,7 +1404,7 @@ t_stat scp_vhelp(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
     return SCPE_OK;
 }
 
-t_stat scp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat scp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                 const char *help, const char *cptr, ...)
 {
     t_stat r;
@@ -1416,7 +1417,7 @@ t_stat scp_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
     return r;
 }
 
-t_stat scp_vhelpFromFile(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat scp_vhelpFromFile(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                          const char *helpfile, const char *cptr, va_list ap)
 {
     FILE *fp;
@@ -1500,7 +1501,7 @@ t_stat scp_vhelpFromFile(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
     return r;
 }
 
-t_stat scp_helpFromFile(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag,
+t_stat scp_helpFromFile(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag,
                         const char *helpfile, const char *cptr, ...)
 {
     t_stat r;

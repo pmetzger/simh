@@ -10,20 +10,20 @@
 extern DEVICE tti_dev;
 extern DEVICE tto_dev;
 extern UNIT tti_unit;
-extern int32 int_req[IPL_HLVL];
+extern int32_t int_req[IPL_HLVL];
 
 t_stat tti_reset(DEVICE *dptr);
 t_stat tto_reset(DEVICE *dptr);
 
-int32 int_req[IPL_HLVL];
-uint32 cpu_opt;
-uint32 cpu_type;
+int32_t int_req[IPL_HLVL];
+uint32_t cpu_opt;
+uint32_t cpu_type;
 jmp_buf save_env;
 
 static char auto_config_name[8];
-static int32 auto_config_nctrl;
+static int32_t auto_config_nctrl;
 
-t_stat auto_config(const char *name, int32 nctrl)
+t_stat auto_config(const char *name, int32_t nctrl)
 {
     assert_non_null(name);
 
@@ -32,7 +32,7 @@ t_stat auto_config(const char *name, int32 nctrl)
     return SCPE_OK;
 }
 
-t_stat show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -41,7 +41,7 @@ t_stat show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat show_vec(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat show_vec(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;

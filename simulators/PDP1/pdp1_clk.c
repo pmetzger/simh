@@ -29,6 +29,8 @@
    provide for eventual implementation of idling.
 */
 
+#include <stdint.h>
+
 #include "pdp1_defs.h"
 
 #define CLK_HWRE_TPS    1000                            /* hardware freq */
@@ -37,12 +39,12 @@
 #define CLK_C1MIN       (1000 * 60)                     /* counts per min */
 #define CLK_C32MS       32                              /* counts per 32ms */
 
-int32 clk32ms_sbs = 0;                                  /* 32ms SBS level */
-int32 clk1min_sbs = 0;                                  /* 1min SBS level */
-int32 clk_cntr = 0;
-int32 tmxr_poll = 5000;
+int32_t clk32ms_sbs = 0;                                /* 32ms SBS level */
+int32_t clk1min_sbs = 0;                                /* 1min SBS level */
+int32_t clk_cntr = 0;
+int32_t tmxr_poll = 5000;
 
-extern int32 stop_inst;
+extern int32_t stop_inst;
 
 t_stat clk_svc (UNIT *uptr);
 t_stat clk_reset (DEVICE *dptr);
@@ -83,14 +85,14 @@ DEVICE clk_dev = {
 
 /* Clock IOT routine */
 
-int32 clk (int32 inst, int32 dev, int32 dat)
+int32_t clk (int32_t inst, int32_t dev, int32_t dat)
 {
 /* Generic IOT dispatch signature.
    This implementation does not use every parameter. */
 (void) inst;
 (void) dev;
 
-int32 used, incr;
+int32_t used, incr;
 
 if (clk_dev.flags & DEV_DIS)                            /* disabled? */
     return (stop_inst << IOT_V_REASON) | dat;           /* illegal inst */

@@ -22,6 +22,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "i7000_defs.h"
 
 #ifdef NUM_DEVS_CHRON
@@ -44,17 +46,17 @@
 #define MT_BOT      001000      /* Unit at begining of tape */
 #define MT_EOT      002000      /* Unit at end of tape */
 
-uint32              chron_cmd(UNIT *, uint16, uint16);
+uint32_t            chron_cmd(UNIT *, uint16_t, uint16_t);
 t_stat              chron_srv(UNIT *);
 t_stat              chron_reset(DEVICE *);
-t_stat              set_addr(UNIT * uptr, int32 val, const char *cptr, void *desc);
-t_stat              get_addr(FILE * st, UNIT *uptr, int32 v, const void *desc);
+t_stat              set_addr(UNIT * uptr, int32_t val, const char *cptr, void *desc);
+t_stat              get_addr(FILE * st, UNIT *uptr, int32_t v, const void *desc);
 t_stat              chron_help(FILE *st, DEVICE *dptr, UNIT *uptr,
-                             int32 flags, const char *ctxt);
+                             int32_t flags, const char *ctxt);
 const char          *chron_description (DEVICE *dptr);
 
 /* One buffer per channel */
-uint8               chron_buffer[BUFFSIZE];
+uint8_t             chron_buffer[BUFFSIZE];
 
 UNIT                chron_unit[] = {
 /* Controller 1 */
@@ -77,7 +79,7 @@ DEVICE              chron_dev = {
     NULL, NULL, &chron_help, NULL, NULL, &chron_description
 };
 
-uint32 chron_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
+uint32_t chron_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
 {
     int                 chan = UNIT_G_CHAN(uptr->flags);
     int                 time = 30;
@@ -135,9 +137,9 @@ uint32 chron_cmd(UNIT * uptr, uint16 cmd, uint16 dev)
 /* Convert number (0-99) to BCD */
 
 static void
-bcd_2d(int n, uint8 * b2)
+bcd_2d(int n, uint8_t * b2)
 {
-    uint8               d1, d2;
+    uint8_t             d1, d2;
 
     d1 = n / 10;
     d2 = n % 10;
@@ -238,7 +240,7 @@ chron_reset(DEVICE * dptr)
 
 /* Sets the address of the chrono clock */
 t_stat
-set_addr(UNIT * uptr, int32 val, const char *cptr, void *desc)
+set_addr(UNIT * uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -266,7 +268,7 @@ set_addr(UNIT * uptr, int32 val, const char *cptr, void *desc)
 }
 
 t_stat
-get_addr(FILE * st, UNIT * uptr, int32 v, const void *desc)
+get_addr(FILE * st, UNIT * uptr, int32_t v, const void *desc)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -280,7 +282,7 @@ get_addr(FILE * st, UNIT * uptr, int32 v, const void *desc)
 }
 
 t_stat
-chron_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+chron_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
   /* Generic callback signature.
      This implementation does not use every parameter. */

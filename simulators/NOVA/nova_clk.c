@@ -36,21 +36,23 @@
    24-Sep-97    RMS     Fixed bug in unit service (Charles Owen)
 */
 
+#include <stdint.h>
+
 #include "nova_defs.h"
 
-extern int32 int_req, dev_busy, dev_done, dev_disable ;
+extern int32_t int_req, dev_busy, dev_done, dev_disable ;
 
-int32 clk_sel = 0;                                      /* selected freq */
-int32 clk_time[4] = { 16000, 100000, 10000, 1000 };     /* freq table */
-int32 clk_tps[4] = { 60, 10, 100, 1000 };               /* ticks per sec */
-int32 clk_adj[4] = { 1, -5, 2, 20 };                    /* tmxr adjust */
-int32 tmxr_poll = 16000;                                /* tmxr poll */
+int32_t clk_sel = 0;                                    /* selected freq */
+int32_t clk_time[4] = { 16000, 100000, 10000, 1000 };   /* freq table */
+int32_t clk_tps[4] = { 60, 10, 100, 1000 };             /* ticks per sec */
+int32_t clk_adj[4] = { 1, -5, 2, 20 };                  /* tmxr adjust */
+int32_t tmxr_poll = 16000;                              /* tmxr poll */
 
-int32  clk (int32 pulse, int32 code, int32 AC);
+int32_t clk (int32_t pulse, int32_t code, int32_t AC);
 t_stat clk_svc (UNIT *uptr);
 t_stat clk_reset (DEVICE *dptr);
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* CLK data structures
 
@@ -98,7 +100,7 @@ DEVICE clk_dev = {
 
 /* IOT routine */
 
-int32 clk (int32 pulse, int32 code, int32 AC)
+int32_t clk (int32_t pulse, int32_t code, int32_t AC)
 {
 if (code == ioDOA) {                                    /* DOA */
     clk_sel = AC & 3;                                   /* save select */
@@ -131,7 +133,7 @@ return 0;
 
 t_stat clk_svc (UNIT *uptr)
 {
-int32 t;
+int32_t t;
 
 if ( DEV_IS_BUSY(INT_CLK) )
     {
@@ -170,7 +172,7 @@ return SCPE_OK;
 
 /* Set line frequency */
 
-t_stat clk_set_freq (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat clk_set_freq (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -187,7 +189,7 @@ return SCPE_OK;
 
 /* Show line frequency */
 
-t_stat clk_show_freq (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat clk_show_freq (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

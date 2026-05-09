@@ -22,6 +22,8 @@
 
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_PCLK
@@ -36,12 +38,12 @@
 #define PIA_FLG         07
 #define CLK_IRQ         010
 
-t_stat         pclk_devio(uint32 dev, uint64 *data);
+t_stat         pclk_devio(uint32_t dev, uint64 *data);
 const char *pclk_description (DEVICE *dptr);
 t_stat         pclk_srv(UNIT *uptr);
-t_stat         pclk_set_on(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat         pclk_set_off(UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat         pclk_show_on(FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat         pclk_set_on(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat         pclk_set_off(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat         pclk_show_on(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 UNIT pclk_unit[] = {
     {UDATA(pclk_srv, UNIT_IDLE|UNIT_DISABLE, 0)},  /* 0 */
@@ -67,7 +69,7 @@ DEVICE pclk_dev = {
 
         The original PCLK was installed on the PDP-6 I/O bus at the SAIL D.C.Power Lab in 1967.
 */
-t_stat pclk_devio(uint32 dev, uint64 *data)
+t_stat pclk_devio(uint32_t dev, uint64 *data)
 {
     time_t t=sim_get_time(NULL);
     struct tm *dt;
@@ -89,7 +91,7 @@ t_stat pclk_devio(uint32 dev, uint64 *data)
       break;
     case CONO:
         pclk_unit[0].PIA_CH &= ~(PIA_FLG);
-        pclk_unit[0].PIA_CH |= (int32)(*data & PIA_FLG);
+        pclk_unit[0].PIA_CH |= (int32_t)(*data & PIA_FLG);
         break;
     default:
         break;
@@ -117,7 +119,7 @@ const char *pclk_description (DEVICE *dptr)
     return "Stanford A.I.Lab Phil Petit calendar clock crock";
 }
 
-t_stat pclk_set_on(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat pclk_set_on(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -132,7 +134,7 @@ t_stat pclk_set_on(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat pclk_set_off(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat pclk_set_off(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -147,7 +149,7 @@ t_stat pclk_set_off(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat pclk_show_on(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat pclk_show_on(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */

@@ -7,6 +7,7 @@
 #include "test_support.h"
 
 #include "sim_tempfile.h"
+#include "sim_types.h"
 #include "system_defs.h"
 
 /*
@@ -14,21 +15,21 @@
  * fakes provide a flat memory image and record writes so loader tests can
  * detect overlong Intel HEX records before they corrupt arbitrary memory.
  */
-static uint8 test_memory[MAXMEMSIZE + 1];
-static uint32 test_write_count;
-static int32 test_write_limit = -1;
+static uint8_t test_memory[MAXMEMSIZE + 1];
+static uint32_t test_write_count;
+static int32_t test_write_limit = -1;
 
-uint32 saved_PC;
+uint32_t saved_PC;
 REG *sim_PC = NULL;
 DEVICE *sim_devices[] = {NULL};
 char sim_name[] = "Intel-MDS";
 const char *sim_stop_messages[SCPE_BASE];
-int32 sim_emax = 1;
+int32_t sim_emax = 1;
 
 extern t_stat sim_load(FILE *fileref, const char *cptr, const char *fnam,
                        int flag);
-uint8 get_mbyte(uint16 addr);
-void put_mbyte(uint16 addr, uint8 val);
+uint8_t get_mbyte(uint16_t addr);
+void put_mbyte(uint16_t addr, uint8_t val);
 
 /*
  * Satisfy the simulator core's execution callback for loader-only tests.
@@ -42,7 +43,7 @@ t_stat sim_instr(void)
  * Satisfy the simulator core's symbolic output callback for loader-only
  * tests, which never disassemble memory.
  */
-t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
     (void)ofile;
     (void)addr;
@@ -58,7 +59,7 @@ t_stat fprint_sym(FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
  * which never assemble memory.
  */
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
-                 int32 sw)
+                 int32_t sw)
 {
     (void)cptr;
     (void)addr;
@@ -72,7 +73,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
 /*
  * Read one byte from the fake i8080 memory image.
  */
-uint8 get_mbyte(uint16 addr)
+uint8_t get_mbyte(uint16_t addr)
 {
     return test_memory[addr];
 }
@@ -81,10 +82,10 @@ uint8 get_mbyte(uint16 addr)
  * Write one byte to fake memory and optionally fail if a test has limited the
  * number of expected writes.
  */
-void put_mbyte(uint16 addr, uint8 val)
+void put_mbyte(uint16_t addr, uint8_t val)
 {
     if ((test_write_limit >= 0) &&
-        (test_write_count >= (uint32)test_write_limit)) {
+        (test_write_count >= (uint32_t)test_write_limit)) {
         fail_msg("sim_load wrote more bytes than the record declared");
     }
     test_memory[addr] = val;
@@ -212,7 +213,7 @@ static char *capture_sim_load(FILE *file, const char *args, int flag,
 static void test_binary_load_uses_start_and_exact_input_size(void **state)
 {
     struct temp_stream stream;
-    const uint8 data[] = {0xAA, 0xBB, 0xCC};
+    const uint8_t data[] = {0xAA, 0xBB, 0xCC};
     char *output;
     t_stat status;
 
@@ -242,7 +243,7 @@ static void test_binary_load_uses_start_and_exact_input_size(void **state)
 static void test_binary_load_without_address_uses_saved_pc(void **state)
 {
     struct temp_stream stream;
-    const uint8 data[] = {0x44, 0x55};
+    const uint8_t data[] = {0x44, 0x55};
     char *output;
     t_stat status;
 
@@ -272,7 +273,7 @@ static void test_binary_load_without_address_uses_saved_pc(void **state)
 static void test_binary_load_rejects_address_trailing_garbage(void **state)
 {
     struct temp_stream stream;
-    const uint8 data[] = {0xAA};
+    const uint8_t data[] = {0xAA};
     char *output;
     t_stat status;
 
@@ -298,7 +299,7 @@ static void test_binary_load_rejects_address_trailing_garbage(void **state)
 static void test_binary_load_rejects_out_of_range_address(void **state)
 {
     struct temp_stream stream;
-    const uint8 data[] = {0xAA};
+    const uint8_t data[] = {0xAA};
     char *output;
     t_stat status;
 
@@ -324,7 +325,7 @@ static void test_binary_load_rejects_out_of_range_address(void **state)
 static void test_binary_dump_uses_inclusive_range(void **state)
 {
     struct temp_stream stream;
-    unsigned char data[3];
+    uchar_t data[3];
     char *output;
     t_stat status;
 
@@ -340,7 +341,7 @@ static void test_binary_dump_uses_inclusive_range(void **state)
 
     assert_int_equal(status, SCPE_OK);
     assert_int_equal(fread(data, 1, sizeof(data), stream.file), sizeof(data));
-    assert_memory_equal(data, ((unsigned char[]){0x11, 0x22, 0x33}), 3);
+    assert_memory_equal(data, ((uchar_t[]){0x11, 0x22, 0x33}), 3);
     assert_non_null(strstr(output, "3 Bytes dumped from 0100"));
 
     free(output);
@@ -683,8 +684,8 @@ static void test_intel_hex_dump_uses_full_record_length(void **state)
 
     (void)state;
 
-    for (uint16 i = 0; i < 16; ++i)
-        test_memory[0x0100 + i] = (uint8)i;
+    for (uint16_t i = 0; i < 16; ++i)
+        test_memory[0x0100 + i] = (uint8_t)i;
     sim_switches = SWMASK('H');
     open_temp_stream(&stream);
 

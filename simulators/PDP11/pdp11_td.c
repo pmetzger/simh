@@ -455,6 +455,8 @@ OP CODE 11 (Resened)
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_td.h"
 
 /* DL Definitions */
@@ -597,59 +599,59 @@ static const char *td_csostates[] = {
     "GETOPC", "GETLEN", "GETDATA"
     };
 
-static int32 td_stime = 100;                            /* seek, per block */
-static int32 td_ctime = 150;                            /* command time */
-static int32 td_xtime = 180;                            /* tr set time */
-static int32 td_itime = 180;                            /* init time */
+static int32_t td_stime = 100;                          /* seek, per block */
+static int32_t td_ctime = 150;                          /* command time */
+static int32_t td_xtime = 180;                          /* tr set time */
+static int32_t td_itime = 180;                          /* init time */
 
-static int32 td_ctrls = 1;                              /* number of enabled controllers */
+static int32_t td_ctrls = 1;                            /* number of enabled controllers */
 
-static uint32 tdi_ireq = 0;
-static uint32 tdo_ireq = 0;
+static uint32_t tdi_ireq = 0;
+static uint32_t tdo_ireq = 0;
 
 struct CTLR {
     DEVICE *dptr;
     UNIT *uptr;
-    uint16 rx_csr;
-    uint16 rx_buf;
-    void (*rx_set_int) (int32 ctlr_num, bool val);
-    uint16 tx_csr;
-    uint16 tx_buf;
-    void (*tx_set_int) (int32 ctlr_num, bool val);
-    uint8 ibuf[TD_NUMBY+1];                 /* input buffer */
-    int32 ibptr;                            /* input buffer pointer */
-    int32 ilen;                             /* input length */
-    uint8 obuf[TD_NUMBY+1];                 /* output buffer */
-    int32 obptr;                            /* output buffer pointer */
-    int32 olen;                             /* output length */
-    int32 block;                            /* current block number */
-    int32 txsize;                           /* remaining transfer size */
-    int32 offset;                           /* offset into current transfer */
-    int32 p_state;                          /* protocol state */
-    int32 o_state;                          /* output state */
-    int32 unitno;                           /* active unit number */
-    int32 ecode;                            /* end packet success code */
+    uint16_t rx_csr;
+    uint16_t rx_buf;
+    void (*rx_set_int) (int32_t ctlr_num, bool val);
+    uint16_t tx_csr;
+    uint16_t tx_buf;
+    void (*tx_set_int) (int32_t ctlr_num, bool val);
+    uint8_t ibuf[TD_NUMBY+1];               /* input buffer */
+    int32_t ibptr;                          /* input buffer pointer */
+    int32_t ilen;                           /* input length */
+    uint8_t obuf[TD_NUMBY+1];               /* output buffer */
+    int32_t obptr;                          /* output buffer pointer */
+    int32_t olen;                           /* output length */
+    int32_t block;                          /* current block number */
+    int32_t txsize;                         /* remaining transfer size */
+    int32_t offset;                         /* offset into current transfer */
+    int32_t p_state;                        /* protocol state */
+    int32_t o_state;                        /* output state */
+    int32_t unitno;                         /* active unit number */
+    int32_t ecode;                          /* end packet success code */
     };
 
 static CTLR td_ctlr[TD_NUMCTLR+1];          /* one for each DL based TU58 plus console */
 
-static t_stat td_rd (int32 *data, int32 PA, int32 access);
-static t_stat td_wr (int32 data, int32 PA, int32 access);
+static t_stat td_rd (int32_t *data, int32_t PA, int32_t access);
+static t_stat td_wr (int32_t data, int32_t PA, int32_t access);
 static t_stat td_svc (UNIT *uptr);
 static t_stat td_reset (DEVICE *dptr);
-static t_stat td_set_ctrls (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat td_show_ctlrs (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat td_boot (int32 unitno, DEVICE *dptr);
-static t_stat td_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
-static void tdi_set_int (int32 ctlr, bool val);
-static int32 tdi_iack (void);
-static void tdo_set_int (int32 ctlr, bool val);
-static int32 tdo_iack (void);
+static t_stat td_set_ctrls (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat td_show_ctlrs (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat td_boot (int32_t unitno, DEVICE *dptr);
+static t_stat td_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static void tdi_set_int (int32_t ctlr, bool val);
+static int32_t tdi_iack (void);
+static void tdo_set_int (int32_t ctlr, bool val);
+static int32_t tdo_iack (void);
 
 static const char *td_description (DEVICE *dptr);
 
 static void td_process_packet(CTLR *ctrl);
-static bool td_test_xfr (UNIT *uptr, int32 state);
+static bool td_test_xfr (UNIT *uptr, int32_t state);
 
 /* TU58 data structures
 
@@ -725,14 +727,14 @@ DEVICE tdc_dev = {
 #define CSO_CLR_INT ctlr->tx_set_int (ctlr-td_ctlr, 0)
 #define CSO_SET_INT ctlr->tx_set_int (ctlr-td_ctlr, 1)
 
-t_stat td_rd_i_csr (CTLR *ctlr, int32 *data)
+t_stat td_rd_i_csr (CTLR *ctlr, int32_t *data)
 {
 *data = ctlr->rx_csr & DLICSR_RD;
 sim_debug_bits_hdr(TDDEB_IRD, ctlr->dptr, "RX_CSR", rx_csr_bits, *data, *data, 1);
 return SCPE_OK;
 }
 
-t_stat td_wr_i_csr (CTLR *ctlr, int32 data)
+t_stat td_wr_i_csr (CTLR *ctlr, int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CSI_CLR_INT;
@@ -745,9 +747,9 @@ ctlr->rx_csr = (ctlr->rx_csr & ~DLICSR_WR) | (data & DLICSR_WR);
 return SCPE_OK;
 }
 
-t_stat td_rd_i_buf (CTLR *ctlr, int32 *data)
+t_stat td_rd_i_buf (CTLR *ctlr, int32_t *data)
 {
-int32 t = ctlr->rx_buf;
+int32_t t = ctlr->rx_buf;
 
 ctlr->rx_csr &= ~CSR_DONE;                          /* clr done */
 ctlr->rx_buf &= BMASK;                              /* clr errors */
@@ -757,7 +759,7 @@ CSI_CLR_INT;
 return SCPE_OK;
 }
 
-t_stat td_wr_i_buf (CTLR *ctlr, int32 data)
+t_stat td_wr_i_buf (CTLR *ctlr, int32_t data)
 {
 /* Shared register write signature.
    This implementation does not use every parameter. */
@@ -767,14 +769,14 @@ sim_debug_bits_hdr(TDDEB_IWR, ctlr->dptr, "RX_BUF", rx_buf_bits, ctlr->rx_buf, c
 return SCPE_OK;
 }
 
-t_stat td_rd_o_csr (CTLR *ctlr, int32 *data)
+t_stat td_rd_o_csr (CTLR *ctlr, int32_t *data)
 {
 sim_debug_bits_hdr(TDDEB_ORD, ctlr->dptr, "TX_CSR", tx_csr_bits, ctlr->tx_csr, ctlr->tx_csr, 1);
 *data = ctlr->tx_csr & DLOCSR_RD;
 return SCPE_OK;
 }
 
-t_stat td_wr_o_csr (CTLR *ctlr, int32 data)
+t_stat td_wr_o_csr (CTLR *ctlr, int32_t data)
 {
 sim_debug_bits_hdr(TDDEB_OWR, ctlr->dptr, "TX_CSR", tx_csr_bits, data, data, 1);
 if ((ctlr->tx_csr & DLOCSR_XBR) && !(data & DLOCSR_XBR)) {
@@ -790,14 +792,14 @@ ctlr->tx_csr = (ctlr->tx_csr & ~DLOCSR_WR) | (data & DLOCSR_WR);
 return SCPE_OK;
 }
 
-t_stat td_rd_o_buf (CTLR *ctlr, int32 *data)
+t_stat td_rd_o_buf (CTLR *ctlr, int32_t *data)
 {
 *data = 0;
 sim_debug_bits_hdr(TDDEB_ORD, ctlr->dptr, "TX_BUF", tx_buf_bits, *data, *data, 1);
 return SCPE_OK;
 }
 
-t_stat td_wr_o_buf (CTLR *ctlr, int32 data)
+t_stat td_wr_o_buf (CTLR *ctlr, int32_t data)
 {
 sim_debug (TDDEB_OWR, ctlr->dptr, "td_wr_o_buf() %s o_state=%s, ibptr=%d, ilen=%d\n", (ctlr->tx_csr & DLOCSR_XBR) ? "XMT-BRK" : "", td_csostates[ctlr->o_state], ctlr->ibptr, ctlr->ilen);
 sim_debug_bits_hdr(TDDEB_OWR, ctlr->dptr, "TX_BUF", tx_buf_bits, data, data, 1);
@@ -836,7 +838,7 @@ return SCPE_OK;
 
 static const char *reg_access[] = {"Read", "ReadC", "Write", "WriteC", "WriteB"};
 
-typedef t_stat (*reg_read_routine) (CTLR *ctlr, int32 *data);
+typedef t_stat (*reg_read_routine) (CTLR *ctlr, int32_t *data);
 
 static reg_read_routine td_rd_regs[] = {
     td_rd_i_csr,
@@ -845,9 +847,9 @@ static reg_read_routine td_rd_regs[] = {
     td_rd_o_buf
     };
 
-t_stat td_rd (int32 *data, int32 PA, int32 access)
+t_stat td_rd (int32_t *data, int32_t PA, int32_t access)
 {
-int32 ctlr = ((PA - td_dib.ba) >> 3);
+int32_t ctlr = ((PA - td_dib.ba) >> 3);
 
 if (ctlr > td_ctrls)                                    /* validate controller number */
     return SCPE_IERR;
@@ -860,7 +862,7 @@ sim_debug (TDDEB_RRD, &tdc_dev, "td_rd(PA=%o(%s), access=%d-%s)\n", PA, tdc_regn
 return (td_rd_regs[(PA >> 1) & 03])(&td_ctlr[ctlr], data);
 }
 
-typedef t_stat (*reg_write_routine) (CTLR *ctlr, int32 data);
+typedef t_stat (*reg_write_routine) (CTLR *ctlr, int32_t data);
 
 static reg_write_routine td_wr_regs[] = {
     td_wr_i_csr,
@@ -869,9 +871,9 @@ static reg_write_routine td_wr_regs[] = {
     td_wr_o_buf
     };
 
-static t_stat td_wr (int32 data, int32 PA, int32 access)
+static t_stat td_wr (int32_t data, int32_t PA, int32_t access)
 {
-int32 ctrl = ((PA - td_dib.ba) >> 3);
+int32_t ctrl = ((PA - td_dib.ba) >> 3);
 
 if (ctrl > td_ctrls)                                    /* validate line number */
     return SCPE_IERR;
@@ -888,8 +890,8 @@ return td_wr_regs[(PA >> 1) & 03](&td_ctlr[ctrl], data);
 
 static void td_process_packet(CTLR *ctlr)
 {
-uint32 unit;
-int32 opcode = ctlr->ibuf[0];
+uint32_t unit;
+int32_t opcode = ctlr->ibuf[0];
 const char *opcode_name, *command_name;
 
 switch (opcode) {
@@ -1013,12 +1015,12 @@ switch (opcode) {
             return;
             }
         else {
-            int8 *fbuf;
+            int8_t *fbuf;
             int i;
 
             sim_debug (TDDEB_TRC, ctlr->dptr, "td_process_packet(OPBOO) Unit=%d\n", ctlr->ibuf[4]);
             ctlr->unitno = ctlr->ibuf[1];
-            fbuf = (int8 *)ctlr->uptr[ctlr->unitno].filebuf;
+            fbuf = (int8_t *)ctlr->uptr[ctlr->unitno].filebuf;
             if (fbuf == NULL) {                         /* attached? */
                 sim_debug (TDDEB_ERR, ctlr->dptr, "td_process_packet(OPBOO) Unit=%d - NOT ATTACHED\n", ctlr->ibuf[4]);
                 break;
@@ -1052,10 +1054,10 @@ switch (opcode) {
 
 static t_stat td_svc (UNIT *uptr)
 {
-int32 i, t, data_size;
-uint16 c, w;
-uint32 da;
-int8 *fbuf = (int8 *)uptr->filebuf;
+int32_t i, t, data_size;
+uint16_t c, w;
+uint32_t da;
+int8_t *fbuf = (int8_t *)uptr->filebuf;
 CTLR *ctlr = (CTLR *)uptr->up7;
 
 sim_debug (TDDEB_TRC, ctlr->dptr, "td_svc(%s, p_state=%s)\n", sim_uname(uptr), td_states[ctlr->p_state]);
@@ -1109,7 +1111,7 @@ switch (ctlr->p_state) {                                /* case on state */
         c = 0;
         for (i = 0; i < (data_size + 2); i++) {         /* Calculate checksum */
             w = (ctlr->obuf[i] << ((i & 0x1) ? 8 : 0));
-            c = c + w + ( (uint32)((uint32)c + (uint32)w) > 0xFFFF ? 1 : 0);
+            c = c + w + ( (uint32_t)((uint32_t)c + (uint32_t)w) > 0xFFFF ? 1 : 0);
             }
         ctlr->obuf[ctlr->obptr++] = (c & 0xFF);         /* Checksum L */
         ctlr->obuf[ctlr->obptr++] = ((c >> 8) & 0xFF);  /* Checksum H */
@@ -1203,7 +1205,7 @@ switch (ctlr->p_state) {                                /* case on state */
         c = 0;
         for (i = 0; i < (0xA + 2); i++) {               /* Calculate checksum */
             w = (ctlr->obuf[i] << ((i & 0x1) ? 8 : 0));
-            c = c + w + ( (uint32)((uint32)c + (uint32)w) > 0xFFFF ? 1 : 0);
+            c = c + w + ( (uint32_t)((uint32_t)c + (uint32_t)w) > 0xFFFF ? 1 : 0);
             }
         ctlr->obuf[ctlr->obptr++] = c & 0xFF;           /* Checksum L */
         ctlr->obuf[ctlr->obptr++] = (c >> 8) & 0xFF;    /* Checksum H */
@@ -1246,7 +1248,7 @@ return SCPE_OK;
 
 /* Test for data transfer okay */
 
-static bool td_test_xfr (UNIT *uptr, int32 state)
+static bool td_test_xfr (UNIT *uptr, int32_t state)
 {
 CTLR *ctlr = (CTLR *)uptr->up7;
 
@@ -1265,9 +1267,9 @@ return false;
 
 /* Interrupt routines */
 
-static void tdi_set_int (int32 ctlr, bool val)
+static void tdi_set_int (int32_t ctlr, bool val)
 {
-uint32 mask = 1u << ctlr;
+uint32_t mask = 1u << ctlr;
 bool interrupt_set = ((tdi_ireq & mask) != 0);
 
 if (interrupt_set != val) {
@@ -1283,9 +1285,9 @@ if (interrupt_set != val) {
     }
 }
 
-static int32 tdi_iack (void)
+static int32_t tdi_iack (void)
 {
-int32 ctlr;
+int32_t ctlr;
 
 sim_debug (TDDEB_INT, &tdc_dev, "tdi_iack()\n");
 for (ctlr = 0; ctlr < TD_NUMCTLR; ctlr++) {             /* find 1st line */
@@ -1297,9 +1299,9 @@ for (ctlr = 0; ctlr < TD_NUMCTLR; ctlr++) {             /* find 1st line */
 return 0;
 }
 
-static void tdo_set_int (int32 ctlr, bool val)
+static void tdo_set_int (int32_t ctlr, bool val)
 {
-uint32 mask = 1u << ctlr;
+uint32_t mask = 1u << ctlr;
 bool interrupt_set = ((tdo_ireq & mask) != 0);
 
 if (interrupt_set != val) {
@@ -1315,9 +1317,9 @@ if (interrupt_set != val) {
     }
 }
 
-static int32 tdo_iack (void)
+static int32_t tdo_iack (void)
 {
-int32 ctlr;
+int32_t ctlr;
 
 sim_debug (TDDEB_INT, &tdc_dev, "tdo_iack()\n");
 for (ctlr = 0; ctlr < TD_NUMCTLR; ctlr++) {            /* find 1st line */
@@ -1451,7 +1453,7 @@ return "TU58 cartridge";
 
 /* Change number of controllers */
 
-static t_stat td_set_ctrls (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat td_set_ctrls (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -1459,13 +1461,13 @@ static t_stat td_set_ctrls (UNIT *uptr, int32 val, const char *cptr, void *desc)
 (void) val;
 (void) desc;
 
-int32 newln, i;
+int32_t newln, i;
 t_stat r;
 DEVICE *dli_dptr = find_dev ("DLI");
 
 if (cptr == NULL)
     return SCPE_ARG;
-newln = (int32)get_uint (cptr, 10, TD_NUMCTLR, &r);
+newln = (int32_t)get_uint (cptr, 10, TD_NUMCTLR, &r);
 if (r != SCPE_OK)
     return r;
 if (newln == 0)
@@ -1493,7 +1495,7 @@ return td_reset (&tdc_dev);
 
 /* Show number of controllers */
 
-t_stat td_show_ctlrs (FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat td_show_ctlrs (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -1505,7 +1507,7 @@ fprintf (st, "controllers=%d", td_ctrls);
 return SCPE_OK;
 }
 
-static t_stat td_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat td_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -1522,10 +1524,10 @@ return SCPE_OK;
 }
 
 t_stat td_connect_console_device (DEVICE *dptr,
-                                  void (*rx_set_int) (int32 ctlr_num, bool val),
-                                  void (*tx_set_int) (int32 ctlr_num, bool val))
+                                  void (*rx_set_int) (int32_t ctlr_num, bool val),
+                                  void (*tx_set_int) (int32_t ctlr_num, bool val))
 {
-uint32 i;
+uint32_t i;
 CTLR *ctlr = &td_ctlr[TD_NUMCTLR];
 
 for (i=0; i<dptr->numunits; i++) {
@@ -1550,11 +1552,11 @@ return td_reset_ctlr (ctlr);
 #define BOOT_ENTRY      (BOOT_START + 000)              /* entry */
 #define BOOT_CSR        (BOOT_START + 002)              /* CSR */
 #define BOOT_UNIT       (BOOT_START + 006)              /* unit number */
-#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16))
+#define BOOT_LEN        (sizeof (boot_rom) / sizeof (int16_t))
 
 /* PDP11 Bootstrap adapted from 23-76589.mac.txt */
 
-    static const uint16 boot_rom[] = {
+    static const uint16_t boot_rom[] = {
                         /* RCSR = 0 offset from CSR in R1                   */
                         /* RBUF = 2 offset from CSR in R1                   */
                         /* TCSR = 4 offset from CSR in R1                   */
@@ -1591,7 +1593,7 @@ return td_reset_ctlr (ctlr);
     0000207,            /*          RTS  PC         ; recurse or return         */
     };
 
-static t_stat td_boot (int32 unitno, DEVICE *dptr)
+static t_stat td_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */
@@ -1609,7 +1611,7 @@ return SCPE_OK;
 
 #else
 
-static t_stat td_boot (int32 unitno, DEVICE *dptr)
+static t_stat td_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic boot signature.
    This implementation does not use every parameter. */

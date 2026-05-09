@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#include "ints.h"
+#include "sim_types.h"
 
 // Return a mask for the low width bits of a uint32_t.
 //

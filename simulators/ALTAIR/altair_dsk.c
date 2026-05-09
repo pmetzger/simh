@@ -107,6 +107,7 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -125,21 +126,21 @@
 
 t_stat dsk_svc (UNIT *uptr);
 
-extern int32 PCX;
+extern int32_t PCX;
 
 /* Global data on status */
 
-int32 cur_disk = 8;                                     /* Currently selected drive */
-int32 cur_track[9] = {0, 0, 0, 0, 0, 0, 0, 0, 377};
-int32 cur_sect[9] = {0, 0, 0, 0, 0, 0, 0, 0, 377};
-int32 cur_byte[9] = {0, 0, 0, 0, 0, 0, 0, 0, 377};
-int32 cur_flags[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+int32_t cur_disk = 8;                                   /* Currently selected drive */
+int32_t cur_track[9] = {0, 0, 0, 0, 0, 0, 0, 0, 377};
+int32_t cur_sect[9] = {0, 0, 0, 0, 0, 0, 0, 0, 377};
+int32_t cur_byte[9] = {0, 0, 0, 0, 0, 0, 0, 0, 377};
+int32_t cur_flags[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 char dskbuf[138];                                       /* Data Buffer */
-int32 dirty = 0;                                        /* 1 when buffer has unwritten data in it */
+int32_t dirty = 0;                                      /* 1 when buffer has unwritten data in it */
 UNIT *dptr;                                             /* fileref to write dirty buffer to */
 
-int32 dsk_rwait = 100;                                  /* rotate latency */
+int32_t dsk_rwait = 100;                                /* rotate latency */
 
 static altair_dsk_seek_fn altair_dsk_seek_hook = fseek;
 static altair_dsk_read_fn altair_dsk_read_hook = fread;
@@ -233,7 +234,7 @@ return SCPE_OK;
     simulation requirement that they are reversed in hardware.
 */
 
-int32 dsk10(int32 io, int32 data)
+int32_t dsk10(int32_t io, int32_t data)
 {
 
     if (io == 0) {                                      /* IN: return flags */
@@ -265,9 +266,9 @@ int32 dsk10(int32 io, int32 data)
 
 /* Disk Drive Status/Functions */
 
-int32 dsk11(int32 io, int32 data)
+int32_t dsk11(int32_t io, int32_t data)
 {
-    int32 stat;
+    int32_t stat;
 
     if (io == 0) {                                      /* Read sector position */
         /*printf("\n[%o] IN 11", PCX);*/
@@ -349,9 +350,9 @@ int32 dsk11(int32 io, int32 data)
 
 /* Disk Data In/Out*/
 
-int32 dsk12(int32 io, int32 data)
+int32_t dsk12(int32_t io, int32_t data)
 {
-    static int32 i;
+    static int32_t i;
     static long pos;
     UNIT *uptr;
 
@@ -397,7 +398,7 @@ int32 dsk12(int32 io, int32 data)
 bool writebuf(void)
 {
     long pos;
-    int32 i;
+    int32_t i;
 
     i = cur_byte[cur_disk];                             /* null-fill rest of sector if any */
     while (i < 138) {

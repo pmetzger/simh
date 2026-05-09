@@ -5,24 +5,25 @@
 #include "test_cmocka.h"
 
 #include "kx10_defs.h"
+#include "sim_types.h"
 #include "sim_tmxr.h"
 
-static unsigned int ks10_dup_debug_bits_calls;
-static uint32 ks10_dup_debug_bits_reason;
+static uint_t ks10_dup_debug_bits_calls;
+static uint32_t ks10_dup_debug_bits_reason;
 static BITFIELD *ks10_dup_debug_bits_fields;
-static uint32 ks10_dup_debug_bits_before;
-static uint32 ks10_dup_debug_bits_after;
-static unsigned int ks10_dup_debug_calls;
-static uint32 ks10_dup_debug_reason;
+static uint32_t ks10_dup_debug_bits_before;
+static uint32_t ks10_dup_debug_bits_after;
+static uint_t ks10_dup_debug_calls;
+static uint32_t ks10_dup_debug_reason;
 static DEVICE *ks10_dup_debug_device;
 
 /*
  * Capture register bit-diff tracing so tests can characterize debug-only
  * behavior without depending on simulator debug output formatting.
  */
-static void ks10_dup_record_debug_bits(uint32 dbits, DEVICE *dptr,
-                                       BITFIELD *bitdefs, uint32 before,
-                                       uint32 after, int terminate)
+static void ks10_dup_record_debug_bits(uint32_t dbits, DEVICE *dptr,
+                                       BITFIELD *bitdefs, uint32_t before,
+                                       uint32_t after, int terminate)
 {
     (void)dptr;
     (void)terminate;
@@ -38,7 +39,7 @@ static void ks10_dup_record_debug_bits(uint32 dbits, DEVICE *dptr,
  * Capture ordinary debug calls so tests can verify that the source uses the
  * flags exposed by the DUP debug table, independently of formatted output.
  */
-static void ks10_dup_record_debug(uint32 dbits, DEVICE *dptr, const char *fmt,
+static void ks10_dup_record_debug(uint32_t dbits, DEVICE *dptr, const char *fmt,
                                   ...)
 {
     (void)fmt;
@@ -56,11 +57,11 @@ static void ks10_dup_record_debug(uint32 dbits, DEVICE *dptr, const char *fmt,
 #undef sim_debug_bits
 #undef sim_debug
 
-int32 tmxr_poll = 10000;
+int32_t tmxr_poll = 10000;
 
 static TMLN ks10_dup_test_lines[NUM_DEVS_DUP];
 
-t_stat uba_set_addr(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat uba_set_addr(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -69,7 +70,7 @@ t_stat uba_set_addr(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat uba_show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat uba_show_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -78,7 +79,7 @@ t_stat uba_show_addr(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat uba_set_br(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat uba_set_br(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -87,7 +88,7 @@ t_stat uba_set_br(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat uba_show_br(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat uba_show_br(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -96,7 +97,7 @@ t_stat uba_show_br(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat uba_set_vect(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat uba_set_vect(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -105,7 +106,7 @@ t_stat uba_set_vect(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat uba_show_vect(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat uba_show_vect(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -114,7 +115,7 @@ t_stat uba_show_vect(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat uba_set_ctl(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat uba_set_ctl(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     (void)uptr;
     (void)val;
@@ -123,7 +124,7 @@ t_stat uba_set_ctl(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat uba_show_ctl(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat uba_show_ctl(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     (void)st;
     (void)uptr;
@@ -230,7 +231,7 @@ static void test_dup_byte_write_preserves_other_byte(void **state)
 static void test_dup_read_returns_selected_register(void **state)
 {
     t_addr pa;
-    uint16 data = 0;
+    uint16_t data = 0;
 
     (void)state;
 
@@ -332,7 +333,7 @@ static void test_dup_handlers_decode_line_from_device_context(void **state)
     DEVICE dev = dup_dev;
     DIB alternate_dib = dup_dib;
     t_addr pa;
-    uint16 data = 0;
+    uint16_t data = 0;
 
     (void)state;
 

@@ -35,6 +35,8 @@
 #ifndef H316_DEFS_H_
 #define H316_DEFS_H_    0
 
+#include <stdint.h>
+
 #include "sim_defs.h"                                   /* simulator defns */
 
 #if defined(USE_INT64) || defined(USE_ADDR64)
@@ -59,7 +61,7 @@
 #define MEMSIZE         (cpu_unit.capac)                /* actual memory size */
 #define X_AMASK         (MAXMEMSIZE - 1)                /* ext address mask */
 #define NX_AMASK        ((MAXMEMSIZE / 2) - 1)          /* nx address mask */
-#define MEM_ADDR_OK(x)  (((uint32) (x)) < MEMSIZE)
+#define MEM_ADDR_OK(x)  (((uint32_t) (x)) < MEMSIZE)
 
 /* Architectural constants */
 
@@ -111,14 +113,14 @@
 /* Device information block */
 
 struct h316_dib {
-    uint32              dev;                            /* device number */
-    uint32              num;                            /* number of slots */
-    uint32              chan;                           /* dma/dmc channel */
-    uint32              chan2;                          /* alternate DMA/DMD channel */
-    uint32              inum;                           /* interrupt number */
-    uint32              inum2;                          /* alternate interrupt */
-    int32               (*io) (int32 inst, int32 fnc, int32 dat, int32 dev);
-    uint32              u3;                             /* "user" parameter #1 */
+    uint32_t            dev;                            /* device number */
+    uint32_t            num;                            /* number of slots */
+    uint32_t            chan;                           /* dma/dmc channel */
+    uint32_t            chan2;                          /* alternate DMA/DMD channel */
+    uint32_t            inum;                           /* interrupt number */
+    uint32_t            inum2;                          /* alternate interrupt */
+    int32_t             (*io) (int32_t inst, int32_t fnc, int32_t dat, int32_t dev);
+    uint32_t            u3;                             /* "user" parameter #1 */
 };
 typedef struct h316_dib DIB;
 
@@ -219,10 +221,10 @@ typedef struct h316_dib DIB;
 
 /* Prototypes */
 
-t_stat io_set_iobus (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat io_set_dma (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat io_set_dmc (UNIT *uptr, int32 val, const char *cptr, void *desc);
-t_stat io_show_chan (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat io_set_iobus (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat io_set_dma (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat io_set_dmc (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat io_show_chan (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* Rename of global PC variable to avoid namespace conflicts on some platforms */
 

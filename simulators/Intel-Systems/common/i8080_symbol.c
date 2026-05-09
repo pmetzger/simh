@@ -4,7 +4,10 @@
 // SPDX-License-Identifier: X11
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "i8080_symbol_internal.h"
+#include "sim_types.h"
 
 /*
  * The operand syntax records parser grammar separately from the text emitted
@@ -28,7 +31,7 @@ struct i8080_symbol_entry {
     enum i8080_symbol_operand operand;
     char dst;
     char src;
-    uint8 rst;
+    uint8_t rst;
     const char *arg;
 };
 
@@ -305,7 +308,7 @@ static const struct i8080_symbol_entry opcodes[256] = {
 /*
  * Return the encoded instruction length for an Intel 8080 opcode.
  */
-int32 i8080_symbol_instruction_length(uint8 opcode)
+int32_t i8080_symbol_instruction_length(uint8_t opcode)
 {
     switch (opcodes[opcode].operand) {
     case I8080_SYMBOL_NONE:
@@ -331,7 +334,7 @@ int32 i8080_symbol_instruction_length(uint8 opcode)
  */
 static const char *skip_spaces(const char *text)
 {
-    while (isspace((unsigned char)*text))
+    while (isspace((uchar_t)*text))
         text++;
     return text;
 }
@@ -339,11 +342,11 @@ static const char *skip_spaces(const char *text)
 /*
  * Return the numeric value of a hex digit, or -1 for a non-hex byte.
  */
-static int hex_digit_value(unsigned char ch)
+static int hex_digit_value(uchar_t ch)
 {
     if (ch >= '0' && ch <= '9')
         return ch - '0';
-    ch = (unsigned char)toupper(ch);
+    ch = (uchar_t)toupper(ch);
     if (ch >= 'A' && ch <= 'F')
         return ch - 'A' + 10;
     return -1;
@@ -358,7 +361,7 @@ static int parse_register(char ch)
     static const char registers[] = "BCDEHLMA";
     int index;
 
-    ch = (char)toupper((unsigned char)ch);
+    ch = (char)toupper((uchar_t)ch);
     for (index = 0; registers[index] != '\0'; index++) {
         if (ch == registers[index])
             return index;
@@ -374,15 +377,15 @@ static bool i8080_symbol_text_matches(const char *input, const char *symbol,
                                         const char **remaining)
 {
     while (*symbol != '\0') {
-        if (isspace((unsigned char)*symbol)) {
-            if (!isspace((unsigned char)*input))
+        if (isspace((uchar_t)*symbol)) {
+            if (!isspace((uchar_t)*input))
                 return false;
             input = skip_spaces(input);
             symbol = skip_spaces(symbol);
             continue;
         }
 
-        if (toupper((unsigned char)*input) != (unsigned char)*symbol)
+        if (toupper((uchar_t)*input) != (uchar_t)*symbol)
             return false;
         input++;
         symbol++;
@@ -398,11 +401,11 @@ static bool i8080_symbol_text_matches(const char *input, const char *symbol,
 static bool match_register_operand(const char *text, char reg,
                                      const char **remaining)
 {
-    if (!isspace((unsigned char)*text))
+    if (!isspace((uchar_t)*text))
         return false;
 
     text = skip_spaces(text);
-    if (toupper((unsigned char)*text) != reg)
+    if (toupper((uchar_t)*text) != reg)
         return false;
 
     text++;
@@ -416,7 +419,7 @@ static bool match_register_operand(const char *text, char reg,
 static bool match_text_operand(const char *text, const char *operand,
                                  const char **remaining)
 {
-    if (!isspace((unsigned char)*text))
+    if (!isspace((uchar_t)*text))
         return false;
 
     text = skip_spaces(text);
@@ -428,7 +431,7 @@ static bool match_text_operand(const char *text, const char *operand,
  */
 static bool parse_mov_operands(const char *text, int *dst, int *src)
 {
-    if (!isspace((unsigned char)*text))
+    if (!isspace((uchar_t)*text))
         return false;
 
     text = skip_spaces(text);
@@ -458,16 +461,16 @@ static bool parse_mov_operands(const char *text, int *dst, int *src)
 /*
  * Parse an RST restart number.
  */
-static bool parse_rst_operand(const char *text, uint8 *rst)
+static bool parse_rst_operand(const char *text, uint8_t *rst)
 {
-    if (!isspace((unsigned char)*text))
+    if (!isspace((uchar_t)*text))
         return false;
 
     text = skip_spaces(text);
     if (*text < '0' || *text > '7')
         return false;
 
-    *rst = (uint8)(*text - '0');
+    *rst = (uint8_t)(*text - '0');
     text++;
     text = skip_spaces(text);
     return *text == '\0';
@@ -478,17 +481,17 @@ static bool parse_rst_operand(const char *text, uint8 *rst)
  * fprint_sym().
  */
 static bool i8080_parse_hex_operand(const char *text, int max_digits,
-                                      uint32 *value)
+                                      uint32_t *value)
 {
     int digit;
     int digits = 0;
-    uint32 parsed = 0;
+    uint32_t parsed = 0;
 
     text = skip_spaces(text);
-    while ((digit = hex_digit_value((unsigned char)*text)) >= 0) {
+    while ((digit = hex_digit_value((uchar_t)*text)) >= 0) {
         if (digits == max_digits)
             return false;
-        parsed = (parsed << 4) | (uint32)digit;
+        parsed = (parsed << 4) | (uint32_t)digit;
         digits++;
         text++;
     }
@@ -552,13 +555,13 @@ static void fprint_text_operand(FILE *of,
 /*
  * Implement SIMH symbolic output for Intel 8080/8085 memory words.
  */
-t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
     /* Generic symbolic output signature.
        This implementation does not use every parameter. */
     (void)addr;
 
-    int32 c1, c2, inst, adr;
+    int32_t c1, c2, inst, adr;
     const struct i8080_symbol_entry *entry;
 
     (void)uptr;
@@ -605,14 +608,14 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
         adr |= (val[2] << 8) & 0xff00;
         fprintf(of, "%04X", adr);
     }
-    return -(i8080_symbol_instruction_length((uint8)inst) - 1);
+    return -(i8080_symbol_instruction_length((uint8_t)inst) - 1);
 }
 
 /*
  * Implement SIMH symbolic input for Intel 8080/8085 memory words.
  */
 t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
-                 int32 sw)
+                 int32_t sw)
 {
     /* Generic symbolic input signature.
        This implementation does not use every parameter. */
@@ -625,21 +628,21 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
     if ((sw & SWMASK('A')) || ((*cptr == '\'') && cptr++)) {
         if (cptr[0] == 0)
             return SCPE_ARG;
-        val[0] = (unsigned char)cptr[0];
+        val[0] = (uchar_t)cptr[0];
         return SCPE_OK;
     }
     if ((sw & SWMASK('C')) || ((*cptr == '"') && cptr++)) {
         if (cptr[0] == 0)
             return SCPE_ARG;
-        val[0] = ((uint32)(unsigned char)cptr[0] << 8) +
-                 (uint32)(unsigned char)cptr[1];
+        val[0] = ((uint32_t)(uchar_t)cptr[0] << 8) +
+                 (uint32_t)(uchar_t)cptr[1];
         return SCPE_OK;
     }
 
     for (op = 0; op < 256; op++) {
         const char *operand;
         const struct i8080_symbol_entry *entry = &opcodes[op];
-        uint32 parsed;
+        uint32_t parsed;
 
         if (entry->operand == I8080_SYMBOL_INVALID)
             continue;
@@ -659,16 +662,16 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
 
             if (!parse_mov_operands(operand, &dst, &src))
                 return SCPE_ARG;
-            val[0] = 0x40 + (uint32)(dst * 8 + src);
+            val[0] = 0x40 + (uint32_t)(dst * 8 + src);
             return SCPE_OK;
         }
 
         if (entry->operand == I8080_SYMBOL_RST) {
-            uint8 rst;
+            uint8_t rst;
 
             if (!parse_rst_operand(operand, &rst))
                 return SCPE_ARG;
-            val[0] = 0xC7 + ((uint32)rst * 8);
+            val[0] = 0xC7 + ((uint32_t)rst * 8);
             return SCPE_OK;
         }
 
@@ -721,18 +724,18 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
             return -2;
         }
 
-        if (!isspace((unsigned char)*operand))
+        if (!isspace((uchar_t)*operand))
             continue;
 
         if (!i8080_parse_hex_operand(
                 operand,
-                i8080_symbol_instruction_length((uint8)op) == 2 ? 2 : 4,
+                i8080_symbol_instruction_length((uint8_t)op) == 2 ? 2 : 4,
                 &parsed))
             return SCPE_ARG;
 
         val[0] = op;
         val[1] = parsed & 0xFF;
-        if (i8080_symbol_instruction_length((uint8)op) == 2)
+        if (i8080_symbol_instruction_length((uint8_t)op) == 2)
             return -1;
         val[2] = (parsed >> 8) & 0xFF;
         return -2;

@@ -24,6 +24,7 @@
 #include "i7010_defs.h"
 #include "sim_card.h"
 #include <ctype.h>
+#include <stdint.h>
 
 /* SCP data structures and interface routines
 
@@ -39,7 +40,7 @@ char                sim_name[] = "IBM 7010";
 
 REG                *sim_PC = &cpu_reg[0];
 
-int32               sim_emax = 50;
+int32_t             sim_emax = 50;
 
 DEVICE             *sim_devices[] = {
     &cpu_dev,
@@ -232,9 +233,9 @@ sim_load(FILE * fileref, const char *cptr, const char *fnam, int flag)
 /* Symbol tables */
 typedef struct _opcode
 {
-    uint16              opbase;
+    uint16_t            opbase;
     const char         *name;
-    uint8               type;
+    uint8_t             type;
 }
 t_opcode;
 
@@ -538,7 +539,7 @@ const char *chname[] = {
 
 
 /* Print out a address plus index */
-static t_stat fprint_addr (FILE *of, uint32 addr) {
+static t_stat fprint_addr (FILE *of, uint32_t addr) {
     int i;
     int reg;
 
@@ -552,7 +553,7 @@ static t_stat fprint_addr (FILE *of, uint32 addr) {
 }
 
 /* Print out a 1401 address plus index */
-static t_stat fprint_addr_1401 (FILE *of, uint32 addr) {
+static t_stat fprint_addr_1401 (FILE *of, uint32_t addr) {
     int reg;
     int v = 0;
 
@@ -584,15 +585,15 @@ static t_stat fprint_addr_1401 (FILE *of, uint32 addr) {
         return  =       status code
 */
 
-t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32 sw)
+t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
     (void)addr;
 
-int32   i, t;
-uint32  a, b;
-uint8   op, mod, flags;
+int32_t i, t;
+uint32_t a, b;
+uint8_t op, mod, flags;
 
 if (sw & SWMASK ('C')) {                                /* character? */
     t = val[0];
@@ -616,7 +617,7 @@ if (sw & SWMASK ('S')) {                                /* string? */
     return -(i - 1);
     }
 if (sw & SWMASK ('N')) {                                /* 1401 machine code? */
-    uint16      temp;
+    uint16_t    temp;
     t_opcode    *tab;
 
     mod = 0;
@@ -792,7 +793,7 @@ if (sw & SWMASK ('N')) {                                /* 1401 machine code? */
     return -(i - 1);
 }
 if (sw & SWMASK ('M')) {                                /* machine code? */
-    uint16      temp;
+    uint16_t    temp;
     t_opcode    *tab;
 
     mod = 0;
@@ -950,7 +951,7 @@ find_opcode(char *op, t_opcode * tab)
 */
 
 t_stat
-parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
+parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
 {
     /* Generic callback signature.
        This implementation does not use every parameter. */
@@ -984,7 +985,7 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32 sw)
     } else if (sw & SWMASK('M')) {
         t_opcode           *op;
         int                j;
-        int32              addr;
+        int32_t            addr;
 
         i = 0;
         /* Grab opcode */

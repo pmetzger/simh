@@ -24,8 +24,11 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
+#include "sim_types.h"
 
 #ifndef NUM_DEVS_AUXCPU
 #define NUM_DEVS_AUXCPU 0
@@ -53,14 +56,14 @@
 #define STATUS      u4
 t_addr auxcpu_base = 03000000;
 
-static t_stat auxcpu_devio(uint32 dev, uint64 *data);
+static t_stat auxcpu_devio(uint32_t dev, uint64 *data);
 static t_stat auxcpu_svc (UNIT *uptr);
 static t_stat auxcpu_reset (DEVICE *dptr);
 static t_stat auxcpu_attach (UNIT *uptr, const char *ptr);
 static t_stat auxcpu_detach (UNIT *uptr);
-static t_stat auxcpu_set_base (UNIT *uptr, int32 val, const char *cptr, void *desc);
-static t_stat auxcpu_show_base (FILE *st, UNIT *uptr, int32 val, const void *desc);
-static t_stat auxcpu_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+static t_stat auxcpu_set_base (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat auxcpu_show_base (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat auxcpu_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 static const char *auxcpu_description (DEVICE *dptr);
 
 UNIT auxcpu_unit[1] = {
@@ -156,7 +159,7 @@ static t_stat auxcpu_detach (UNIT *uptr)
   return r;
 }
 
-static void build (unsigned char *request, unsigned char octet)
+static void build (uchar_t *request, uchar_t octet)
 {
   request[0]++;
   request[request[0]] = octet & 0377;
@@ -186,7 +189,7 @@ static t_stat auxcpu_svc (UNIT *uptr)
   return SCPE_OK;
 }
 
-static t_stat auxcpu_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+static t_stat auxcpu_attach_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 const char helpString[] =
  /* The '*'s in the next line represent the standard text width of a help line */
@@ -223,9 +226,9 @@ static int error (const char *message)
   return -1;
 }
 
-static int transaction (unsigned char *request, unsigned char *response)
+static int transaction (uchar_t *request, uchar_t *response)
 {
-  const uint8 *auxcpu_request;
+  const uint8_t *auxcpu_request;
   size_t size;
   t_stat stat;
 
@@ -247,8 +250,8 @@ static int transaction (unsigned char *request, unsigned char *response)
 
 int auxcpu_read (t_addr addr, uint64 *data)
 {
-  unsigned char request[12];
-  unsigned char response[12];
+  uchar_t request[12];
+  uchar_t response[12];
 
   addr &= 037777;
 
@@ -287,8 +290,8 @@ int auxcpu_read (t_addr addr, uint64 *data)
 
 int auxcpu_write (t_addr addr, uint64 data)
 {
-  unsigned char request[12];
-  unsigned char response[12];
+  uchar_t request[12];
+  uchar_t response[12];
 
   addr &= 037777;
 
@@ -323,8 +326,8 @@ int auxcpu_write (t_addr addr, uint64 data)
 
 static int auxcpu_interrupt (void)
 {
-  unsigned char request[12];
-  unsigned char response[12];
+  uchar_t request[12];
+  uchar_t response[12];
   memset (request, 0, sizeof request);
 
   sim_debug(DEBUG_IRQ, &auxcpu_dev, "PDP-10 interrupting the PDP-6\n");
@@ -348,7 +351,7 @@ static int auxcpu_interrupt (void)
   return 0;
 }
 
-t_stat auxcpu_devio(uint32 dev, uint64 *data)
+t_stat auxcpu_devio(uint32_t dev, uint64 *data)
 {
     UNIT   *uptr = &auxcpu_unit[0];
 
@@ -381,7 +384,7 @@ t_stat auxcpu_devio(uint32 dev, uint64 *data)
     return SCPE_OK;
 }
 
-static t_stat auxcpu_set_base (UNIT *uptr, int32 val, const char *cptr, void *desc)
+static t_stat auxcpu_set_base (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -403,7 +406,7 @@ static t_stat auxcpu_set_base (UNIT *uptr, int32 val, const char *cptr, void *de
     return SCPE_OK;
 }
 
-static t_stat auxcpu_show_base (FILE *st, UNIT *uptr, int32 val, const void *desc)
+static t_stat auxcpu_show_base (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */

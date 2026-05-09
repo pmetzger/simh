@@ -131,6 +131,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "altairz80_defs.h"
 
 /* Debug flags */
@@ -161,55 +163,55 @@
 #define ALTAIR_DISK_SIZE    337664                  /* size of regular Altair disks             */
 #define ALTAIR_DISK_DELTA   256                     /* threshold for detecting Altair disks     */
 
-int32 dsk10(const int32 port, const int32 io, const int32 data);
-int32 dsk11(const int32 port, const int32 io, const int32 data);
-int32 dsk12(const int32 port, const int32 io, const int32 data);
-static t_stat dsk_boot(int32 unitno, DEVICE *dptr);
+int32_t dsk10(const int32_t port, const int32_t io, const int32_t data);
+int32_t dsk11(const int32_t port, const int32_t io, const int32_t data);
+int32_t dsk12(const int32_t port, const int32_t io, const int32_t data);
+static t_stat dsk_boot(int32_t unitno, DEVICE *dptr);
 static t_stat dsk_reset(DEVICE *dptr);
 static t_stat dsk_attach(UNIT *uptr, const char *cptr);
 static const char* dsk_description(DEVICE *dptr);
 
 extern UNIT cpu_unit;
-extern uint32 PCX;
+extern uint32_t PCX;
 
-extern t_stat install_bootrom(const int32 bootrom[], const int32 size, const int32 addr, const int32 makeROM);
-extern uint32 sim_map_resource(uint32 baseaddr, uint32 size, uint32 resource_type,
-                               int32 (*routine)(const int32, const int32, const int32), const char* name, uint8 unmap);
+extern t_stat install_bootrom(const int32_t bootrom[], const int32_t size, const int32_t addr, const int32_t makeROM);
+extern uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
+                               int32_t (*routine)(const int32_t, const int32_t, const int32_t), const char* name, uint8_t unmap);
 void install_ALTAIRbootROM(void);
-extern int32 find_unit_index(UNIT *uptr);
+extern int32_t find_unit_index(UNIT *uptr);
 
 /* global data on status */
 
 /* currently selected drive (values are 0 .. NUM_OF_DSK)
    current_disk < NUM_OF_DSK implies that the corresponding disk is attached to a file */
-static int32 current_disk                   = NUM_OF_DSK;
-static int32 current_track  [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static int32 current_sector [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static int32 current_byte   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static int32 current_flag   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static int32 sectors_per_track [NUM_OF_DSK] = { DSK_SECT, DSK_SECT, DSK_SECT, DSK_SECT,
+static int32_t current_disk                   = NUM_OF_DSK;
+static int32_t current_track  [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int32_t current_sector [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int32_t current_byte   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int32_t current_flag   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int32_t sectors_per_track [NUM_OF_DSK] = { DSK_SECT, DSK_SECT, DSK_SECT, DSK_SECT,
                                                 DSK_SECT, DSK_SECT, DSK_SECT, DSK_SECT,
                                                 DSK_SECT, DSK_SECT, DSK_SECT, DSK_SECT,
                                                 DSK_SECT, DSK_SECT, DSK_SECT, DSK_SECT };
-static int32 current_image_size [NUM_OF_DSK] = {
+static int32_t current_image_size [NUM_OF_DSK] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static int32 tracks         [NUM_OF_DSK]    = { MAX_TRACKS, MAX_TRACKS, MAX_TRACKS, MAX_TRACKS,
+static int32_t tracks         [NUM_OF_DSK]    = { MAX_TRACKS, MAX_TRACKS, MAX_TRACKS, MAX_TRACKS,
                                                 MAX_TRACKS, MAX_TRACKS, MAX_TRACKS, MAX_TRACKS,
                                                 MAX_TRACKS, MAX_TRACKS, MAX_TRACKS, MAX_TRACKS,
                                                 MAX_TRACKS, MAX_TRACKS, MAX_TRACKS, MAX_TRACKS };
-static int32 in9_count                      = 0;
-static int32 in9_message                    = false;
-static int32 dirty                          = false;    /* true when buffer has unwritten data in it    */
-static int32 warnLevelDSK                   = 3;
-static int32 warnLock       [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static int32 warnAttached   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-static int32 warnDSK10                      = 0;
-static int32 warnDSK11                      = 0;
-static int32 warnDSK12                      = 0;
-static int8 dskbuf[DSK_SECTSIZE];                       /* data Buffer                                  */
-static int32 sector_true                    = 0;        /* sector true flag for sector register read    */
+static int32_t in9_count                      = 0;
+static int32_t in9_message                    = false;
+static int32_t dirty                          = false;  /* true when buffer has unwritten data in it    */
+static int32_t warnLevelDSK                   = 3;
+static int32_t warnLock       [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int32_t warnAttached   [NUM_OF_DSK]    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int32_t warnDSK10                      = 0;
+static int32_t warnDSK11                      = 0;
+static int32_t warnDSK12                      = 0;
+static int8_t dskbuf[DSK_SECTSIZE];                     /* data Buffer                                  */
+static int32_t sector_true                    = 0;      /* sector true flag for sector register read    */
 
-static const int32 alt_bootrom_dsk[BOOTROM_SIZE_DSK] = {  // boot ROM for mini disk support
+static const int32_t alt_bootrom_dsk[BOOTROM_SIZE_DSK] = { // boot ROM for mini disk support
     0x21, 0x13, 0xff, 0x11, 0x00, 0x4c, 0x0e, 0xe3, /* ff00-ff07 */
     0x7e, 0x12, 0x23, 0x13, 0x0d, 0xc2, 0x08, 0xff, /* ff08-ff0f */
     0xc3, 0x00, 0x4c, 0xf3, 0xaf, 0xd3, 0x22, 0x2f, /* ff10-ff17 */
@@ -245,7 +247,7 @@ static const int32 alt_bootrom_dsk[BOOTROM_SIZE_DSK] = {  // boot ROM for mini d
 };
 
 /* Altair MITS modified BOOT EPROM, fits in upper 256 byte of memory */
-int32 bootrom_dsk[BOOTROM_SIZE_DSK] = {
+int32_t bootrom_dsk[BOOTROM_SIZE_DSK] = {
     0xf3, 0x06, 0x80, 0x3e, 0x0e, 0xd3, 0xfe, 0x05, /* ff00-ff07 */
     0xc2, 0x05, 0xff, 0x3e, 0x16, 0xd3, 0xfe, 0x3e, /* ff08-ff0f */
     0x12, 0xd3, 0xfe, 0xdb, 0xfe, 0xb7, 0xca, 0x20, /* ff10-ff17 */
@@ -380,7 +382,7 @@ DEVICE dsk_dev = {
     dsk_dt, NULL, NULL, NULL, NULL, NULL, &dsk_description
 };
 
-static const char* selectInOut(const int32 io) {
+static const char* selectInOut(const int32_t io) {
     return io == 0 ? "IN" : "OUT";
 }
 
@@ -388,7 +390,7 @@ static const char* selectInOut(const int32 io) {
 /* reset routine */
 
 static t_stat dsk_reset(DEVICE *dptr) {
-    int32 i;
+    int32_t i;
     for (i = 0; i < NUM_OF_DSK; i++) {
         warnLock[i]     = 0;
         warnAttached[i] = 0;
@@ -410,13 +412,13 @@ static t_stat dsk_reset(DEVICE *dptr) {
 }
 
 static bool dsk_image_size_is_near(
-    const int32 image_size, const int32 expected_size, const int32 delta)
+    const int32_t image_size, const int32_t expected_size, const int32_t delta)
 {
     return (expected_size - delta < image_size) &&
            (image_size < expected_size + delta);
 }
 
-static int32 dsk_boot_start_sector(const int32 image_size)
+static int32_t dsk_boot_start_sector(const int32_t image_size)
 {
     if (dsk_image_size_is_near(
             image_size, ALTAIR_DISK_SIZE, ALTAIR_DISK_DELTA))
@@ -428,8 +430,8 @@ static int32 dsk_boot_start_sector(const int32 image_size)
 /* dsk_attach - determine type of drive attached based on disk image size */
 
 static t_stat dsk_attach(UNIT *uptr, const char *cptr) {
-    int32 thisUnitIndex;
-    int32 imageSize;
+    int32_t thisUnitIndex;
+    int32_t imageSize;
     const t_stat r = attach_unit(uptr, cptr);           /* attach unit  */
     if (r != SCPE_OK)                                   /* error?       */
         return r;
@@ -460,7 +462,7 @@ void install_ALTAIRbootROM(void) {
     the specified disk is used for boot purposes.  For the standard boot ROM,
     the starting sector is chosen from the attached image size.
 */
-static t_stat dsk_boot(int32 unitno, DEVICE *dptr) {
+static t_stat dsk_boot(int32_t unitno, DEVICE *dptr) {
     /* Generic boot signature.
        This implementation does not use every parameter. */
     (void) dptr;
@@ -491,18 +493,18 @@ static t_stat dsk_boot(int32 unitno, DEVICE *dptr) {
             install_ALTAIRbootROM();                                    /* install modified ROM */
         }
     }
-    *((int32 *) sim_PC->loc) = ALTAIR_ROM_LOW;
+    *((int32_t *) sim_PC->loc) = ALTAIR_ROM_LOW;
     return SCPE_OK;
 }
 
-static int32 dskseek(const UNIT *xptr) {
+static int32_t dskseek(const UNIT *xptr) {
     return sim_fseek(xptr -> fileref, DSK_SECTSIZE * sectors_per_track[current_disk] * current_track[current_disk] +
         DSK_SECTSIZE * current_sector[current_disk], SEEK_SET);
 }
 
 /* precondition: current_disk < NUM_OF_DSK */
 static void writebuf(void) {
-    int32 i, rtn;
+    int32_t i, rtn;
     UNIT *uptr;
     i = current_byte[current_disk];         /* null-fill rest of sector if any */
     while (i < DSK_SECTSIZE)
@@ -557,12 +559,12 @@ static void writebuf(void) {
     simulation requirement that they are reversed in hardware.
 */
 
-int32 dsk10(const int32 port, const int32 io, const int32 data) {
+int32_t dsk10(const int32_t port, const int32_t io, const int32_t data) {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) port;
 
-    int32 current_disk_flags;
+    int32_t current_disk_flags;
     in9_count = 0;
     if (io == 0) {                                      /* IN: return flags */
         if (current_disk >= NUM_OF_DSK) {
@@ -611,7 +613,7 @@ int32 dsk10(const int32 port, const int32 io, const int32 data) {
 
 /* Disk Drive Status/Functions */
 
-int32 dsk11(const int32 port, const int32 io, const int32 data) {
+int32_t dsk11(const int32_t port, const int32_t io, const int32_t data) {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) port;
@@ -716,12 +718,12 @@ int32 dsk11(const int32 port, const int32 io, const int32 data) {
 
 /* Disk Data In/Out */
 
-int32 dsk12(const int32 port, const int32 io, const int32 data) {
+int32_t dsk12(const int32_t port, const int32_t io, const int32_t data) {
     /* I/O dispatch signature.
        This implementation does not use every parameter. */
     (void) port;
 
-    int32 i, rtn;
+    int32_t i, rtn;
     UNIT *uptr;
 
     if (current_disk >= NUM_OF_DSK) {

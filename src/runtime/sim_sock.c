@@ -23,6 +23,7 @@
 */
 
 #include "sim_sock.h"
+#include "sim_types.h"
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -728,12 +729,12 @@ while ((*acl != '\0') && !done) {
         for (aiv = ai_validate; aiv != NULL; aiv = aiv->ai_next) {
             if ((ai->ai_addrlen == aiv->ai_addrlen) &&
                 (ai->ai_family == aiv->ai_family)) {
-                unsigned int bit, addr_bits;
-                unsigned char *da, *dav;
+                uint_t bit, addr_bits;
+                uchar_t *da, *dav;
 
                 if (ai->ai_family == AF_INET) {
-                    da = (unsigned char *)&((struct sockaddr_in *)ai->ai_addr)->sin_addr;
-                    dav = (unsigned char *)&((struct sockaddr_in *)aiv->ai_addr)->sin_addr;
+                    da = (uchar_t *)&((struct sockaddr_in *)ai->ai_addr)->sin_addr;
+                    dav = (uchar_t *)&((struct sockaddr_in *)aiv->ai_addr)->sin_addr;
                     addr_bits = 32;
                     }
     #if !defined(AF_INET6)
@@ -744,8 +745,8 @@ while ((*acl != '\0') && !done) {
     #else
                 else {
                     if (ai->ai_family == AF_INET6) {
-                        da = (unsigned char *)&((struct sockaddr_in6 *)ai->ai_addr)->sin6_addr;
-                        dav = (unsigned char *)&((struct sockaddr_in6 *)aiv->ai_addr)->sin6_addr;
+                        da = (uchar_t *)&((struct sockaddr_in6 *)ai->ai_addr)->sin6_addr;
+                        dav = (uchar_t *)&((struct sockaddr_in6 *)aiv->ai_addr)->sin6_addr;
                         addr_bits = 128;
                         }
                     else {
@@ -757,7 +758,7 @@ while ((*acl != '\0') && !done) {
                 if (bits == 0)          /* Bits not specified? */
                     bits = addr_bits;   /* Use them all */
                 for (bit=0; (bit < bits) && (bit < addr_bits); bit++) {
-                    unsigned int bitmask = 1 << (7 - (bit & 7));
+                    uint_t bitmask = 1 << (7 - (bit & 7));
 
                     if ((da[bit>>3] & bitmask) != (dav[bit>>3] & bitmask))
                         break;

@@ -1,16 +1,18 @@
+#include <stdint.h>
+
 #include "test_cmocka.h"
 
 #include "sigma_cis.c"
 
-static uint32 test_registers[16];
+static uint32_t test_registers[16];
 
-uint32 *R = test_registers;
-uint32 CC;
-uint32 PSW1;
-uint32 bvamqrx;
-uint32 cpu_model;
+uint32_t *R = test_registers;
+uint32_t CC;
+uint32_t PSW1;
+uint32_t bvamqrx;
+uint32_t cpu_model;
 
-uint32 ReadB(uint32 bva, uint32 *dat, uint32 acc)
+uint32_t ReadB(uint32_t bva, uint32_t *dat, uint32_t acc)
 {
     (void)bva;
     (void)dat;
@@ -18,7 +20,7 @@ uint32 ReadB(uint32 bva, uint32 *dat, uint32 acc)
     return SCPE_IERR;
 }
 
-uint32 WriteB(uint32 bva, uint32 dat, uint32 acc)
+uint32_t WriteB(uint32_t bva, uint32_t dat, uint32_t acc)
 {
     (void)bva;
     (void)dat;

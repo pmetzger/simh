@@ -52,6 +52,7 @@
 #define VAX_610_DEFS_H_ 1
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Microcode constructs */
 
@@ -104,9 +105,9 @@
                               &vax610_set_instruction_set, NULL, NULL,                 "Set the CPU Instruction Set" },                    \
                             { MTAB_XTD|MTAB_VDV, 0, "INSTRUCTIONS", NULL,                                                                    \
                               NULL,                     &cpu_show_instruction_set, NULL, "Show the CPU Instruction Set (SHOW -V)" },
-t_stat vax610_set_instruction_set (UNIT *uptr, int32 val, const char *cptr, void *desc);
-int32 sysd_hlt_enb (void);
-void ioreset_wr (int32 data);
+t_stat vax610_set_instruction_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+int32_t sysd_hlt_enb (void);
+void ioreset_wr (int32_t data);
 
 /* QVSS memory space */
 
@@ -115,9 +116,9 @@ void ioreset_wr (int32 data);
 #define QVMAMASK        (QVMSIZE - 1)                   /* QVSS mem addr mask */
 #define QVMBASE         0x3C0000                        /* QVSS mem base */
 #define ADDR_IS_QVM(x)  (vc_buf &&                      \
-                         (((uint32) (x)) >= QVMBASE) && \
-                         (((uint32) (x)) < (QVMBASE + QVMSIZE)))
-extern uint32 *vc_buf;
+                         (((uint32_t) (x)) >= QVMBASE) && \
+                         (((uint32_t) (x)) < (QVMBASE + QVMSIZE)))
+extern uint32_t *vc_buf;
 
 /* Memory */
 
@@ -128,7 +129,7 @@ extern uint32 *vc_buf;
 #define INITMEMSIZE     (1 << 22)                       /* initial memory size */
 #define VS_MEMSIZE      (((cpu_unit.capac > QVMBASE) ? QVMBASE : cpu_unit.capac))
 #define MEMSIZE         (cpu_unit.capac)
-#define ADDR_IS_MEM(x)  (((uint32) (x)) < (sys_model ? VS_MEMSIZE : MEMSIZE))
+#define ADDR_IS_MEM(x)  (((uint32_t) (x)) < (sys_model ? VS_MEMSIZE : MEMSIZE))
 #undef  PAMASK
 #define PAMASK          0x203FFFFF                      /* KA610 needs a special mask */
 #define MEM_MODIFIERS   { UNIT_MSIZE, (1u << 19), NULL, "512K", &cpu_set_size, NULL, NULL, "Set Memory to 512K bytes" },\
@@ -137,7 +138,7 @@ extern uint32 *vc_buf;
                         { UNIT_MSIZE, (1u << 21), NULL, "2M",   &cpu_set_size, NULL, NULL, "Set Memory to 2M bytes" },  \
                         { UNIT_MSIZE, (1u << 22), NULL, "4M",   &cpu_set_size, NULL, NULL, "Set Memory to 4M bytes" },  \
                         { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "MEMORY", NULL, NULL, &cpu_show_memory, NULL, "Display memory configuration" }
-extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc);
+extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
 
 /* Qbus I/O page */
 
@@ -146,8 +147,8 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc
 #define IOPAGEMASK      (IOPAGESIZE - 1)                /* IO addr mask */
 #define IOPAGEBASE      0x20000000                      /* IO page base */
 #define ADDR_IS_IO(x)   ((ADDR_IS_QVM (x)) ||               \
-                         ((((uint32) (x)) >= IOPAGEBASE) && \
-                          (((uint32) (x)) < (IOPAGEBASE + IOPAGESIZE))))
+                         ((((uint32_t) (x)) >= IOPAGEBASE) && \
+                          (((uint32_t) (x)) < (IOPAGEBASE + IOPAGESIZE))))
 
 /* Other address spaces */
 
@@ -213,18 +214,18 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32 val, const void* desc
 #define VEC_DEVMAX      4                               /* max device vec */
 
 typedef struct {
-    uint32              ba;                             /* base addr */
-    uint32              lnt;                            /* length */
-    t_stat              (*rd)(int32 *dat, int32 ad, int32 md);
-    t_stat              (*wr)(int32 dat, int32 ad, int32 md);
-    int32               vnum;                           /* vectors: number */
-    int32               vloc;                           /* locator */
-    int32               vec;                            /* value */
-    int32               (*ack[VEC_DEVMAX])(void);       /* ack routine */
-    uint32              ulnt;                           /* IO length per-device */
+    uint32_t            ba;                             /* base addr */
+    uint32_t            lnt;                            /* length */
+    t_stat              (*rd)(int32_t *dat, int32_t ad, int32_t md);
+    t_stat              (*wr)(int32_t dat, int32_t ad, int32_t md);
+    int32_t             vnum;                           /* vectors: number */
+    int32_t             vloc;                           /* locator */
+    int32_t             vec;                            /* value */
+    int32_t             (*ack[VEC_DEVMAX])(void);       /* ack routine */
+    uint32_t            ulnt;                           /* IO length per-device */
                                                         /* Only need to be populated */
                                                         /* when numunits != num devices */
-    int32               numc;                           /* Number of controllers */
+    int32_t             numc;                           /* Number of controllers */
                                                         /* this field handles devices */
                                                         /* where multiple instances are */
                                                         /* simulated through a single */
@@ -352,27 +353,27 @@ typedef struct {
 #define SET_INT(dv)     int_req[IPL_##dv] = int_req[IPL_##dv] | (INT_##dv)
 #define CLR_INT(dv)     int_req[IPL_##dv] = int_req[IPL_##dv] & ~(INT_##dv)
 #define IORETURN(f,v)   ((f)? (v): SCPE_OK)             /* cond error return */
-extern int32 int_req[IPL_HLVL];                         /* intr, IPL 14-17 */
+extern int32_t int_req[IPL_HLVL];                       /* intr, IPL 14-17 */
 
 /* System model */
 
-extern int32 sys_model;
+extern int32_t sys_model;
 
 /* Function prototypes for I/O */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf);
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf);
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf);
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf);
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
+int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
+int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
 
 /* Function prototypes for system-specific unaligned support */
 
-int32 ReadIOU (uint32 pa, int32 lnt);
-int32 ReadRegU (uint32 pa, int32 lnt);
-void WriteIOU (uint32 pa, int32 val, int32 lnt);
-void WriteRegU (uint32 pa, int32 val, int32 lnt);
+int32_t ReadIOU (uint32_t pa, int32_t lnt);
+int32_t ReadRegU (uint32_t pa, int32_t lnt);
+void WriteIOU (uint32_t pa, int32_t val, int32_t lnt);
+void WriteRegU (uint32_t pa, int32_t val, int32_t lnt);
 
-t_stat cpu_show_leds (FILE *st, UNIT *uptr, int32 val, const void *desc);
+t_stat cpu_show_leds (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 #include "pdp11_io_lib.h"
 

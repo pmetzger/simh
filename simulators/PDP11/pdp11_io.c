@@ -50,13 +50,15 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "pdp11_defs.h"
 
-extern int32 ub_map[UBM_LNT_LW];
-extern int32 trap_req, ipl;
-extern int32 uba_last;
+extern int32_t ub_map[UBM_LNT_LW];
+extern int32_t trap_req, ipl;
+extern int32_t uba_last;
 
-int32 calc_ints (int32 nipl, int32 trq);
+int32_t calc_ints (int32_t nipl, int32_t trq);
 
 extern t_stat cpu_build_dib (void);
 extern void init_mbus_tab (void);
@@ -65,19 +67,19 @@ extern void fixup_mbus_tab (void);
 
 /* I/O data structures */
 
-t_stat (*iodispR[IOPAGESIZE >> 1])(int32 *dat, int32 ad, int32 md);
-t_stat (*iodispW[IOPAGESIZE >> 1])(int32 dat, int32 ad, int32 md);
+t_stat (*iodispR[IOPAGESIZE >> 1])(int32_t *dat, int32_t ad, int32_t md);
+t_stat (*iodispW[IOPAGESIZE >> 1])(int32_t dat, int32_t ad, int32_t md);
 DIB *iodibp[IOPAGESIZE >> 1];
 
-int32 int_vec[IPL_HLVL][32];                            /* int req to vector */
-int32 (*int_ack[IPL_HLVL][32])(void);                   /* int ack routines */
+int32_t int_vec[IPL_HLVL][32];                          /* int req to vector */
+int32_t (*int_ack[IPL_HLVL][32])(void);                 /* int ack routines */
 
-static const int32 pirq_bit[7] = {
+static const int32_t pirq_bit[7] = {
     INT_V_PIR1, INT_V_PIR2, INT_V_PIR3, INT_V_PIR4,
     INT_V_PIR5, INT_V_PIR6, INT_V_PIR7
     };
 
-static const int32 int_internal[IPL_HLVL] = {
+static const int32_t int_internal[IPL_HLVL] = {
     0,             INT_INTERNAL1, INT_INTERNAL2, INT_INTERNAL3,
     INT_INTERNAL4, INT_INTERNAL5, INT_INTERNAL6, INT_INTERNAL7
     };
@@ -93,9 +95,9 @@ static const int32 int_internal[IPL_HLVL] = {
         status  =       SCPE_OK or SCPE_NXM
 */
 
-t_stat iopageR (int32 *data, uint32 pa, int32 access)
+t_stat iopageR (int32_t *data, uint32_t pa, int32_t access)
 {
-int32 idx;
+int32_t idx;
 t_stat stat;
 
 idx = (pa & IOPAGEMASK) >> 1;
@@ -107,9 +109,9 @@ if (iodispR[idx]) {
 return SCPE_NXM;
 }
 
-t_stat iopageW (int32 data, uint32 pa, int32 access)
+t_stat iopageW (int32_t data, uint32_t pa, int32_t access)
 {
-int32 idx;
+int32_t idx;
 t_stat stat;
 
 idx = (pa & IOPAGEMASK) >> 1;
@@ -128,9 +130,9 @@ return SCPE_NXM;
    Outputs:
         status  =       true or false
 */
-static bool iopageCPUReg (uint32 pa)
+static bool iopageCPUReg (uint32_t pa)
 {
-int32 idx;
+int32_t idx;
 DIB *dibp;
 
 idx = (pa & IOPAGEMASK) >> 1;
@@ -141,9 +143,9 @@ return (dibp && (dibp->dptr == &cpu_dev));
 /* Calculate interrupt outstanding
    In a Qbus system, all device interrupts are treated as BR4 */
 
-int32 calc_ints (int32 nipl, int32 trq)
+int32_t calc_ints (int32_t nipl, int32_t trq)
 {
-int32 i, t;
+int32_t i, t;
 bool all_int = (UNIBUS || (nipl < IPL_HMIN));
 
 for (i = IPL_HLVL - 1; i > nipl; i--) {
@@ -157,9 +159,9 @@ return (trq & ~TRAP_INT);
 /* Find vector for highest priority interrupt
    In a Qbus system, all device interrupts are treated as BR4 */
 
-int32 get_vector (int32 nipl)
+int32_t get_vector (int32_t nipl)
 {
-int32 i, j, t, vec;
+int32_t i, j, t, vec;
 bool all_int = (UNIBUS || (nipl < IPL_HMIN));
 
 for (i = IPL_HLVL - 1; i > nipl; i--) {                 /* loop thru lvls */
@@ -188,22 +190,22 @@ return 0;
    These routines are only reachable if a Unibus map is configured.
 */
 
-t_stat ubm_rd (int32 *data, int32 addr, int32 access)
+t_stat ubm_rd (int32_t *data, int32_t addr, int32_t access)
 {
 /* Memory-mapped I/O dispatch signature.
    This implementation does not use every parameter. */
 (void) access;
 
-int32 pg = (addr >> 2) & UBM_M_PN;
+int32_t pg = (addr >> 2) & UBM_M_PN;
 
 *data = (addr & 2)? ((ub_map[pg] >> 16) & 077):
     (ub_map[pg] & 0177776);
 return SCPE_OK;
 }
 
-t_stat ubm_wr (int32 data, int32 addr, int32 access)
+t_stat ubm_wr (int32_t data, int32_t addr, int32_t access)
 {
-int32 sc, pg = (addr >> 2) & UBM_M_PN;
+int32_t sc, pg = (addr >> 2) & UBM_M_PN;
 
 if (access == WRITEB) {
     sc = (addr & 3) << 3;
@@ -225,10 +227,10 @@ return SCPE_OK;
 
 /* Map I/O address to memory address - caller checks cpu_bme */
 
-uint32 Map_Addr (uint32 ba)
+uint32_t Map_Addr (uint32_t ba)
 {
-int32 pg = UBM_GETPN (ba);                              /* map entry */
-int32 off = UBM_GETOFF (ba);                            /* offset */
+int32_t pg = UBM_GETPN (ba);                            /* map entry */
+int32_t off = UBM_GETOFF (ba);                          /* offset */
 
 if (pg != UBM_M_PN)                                     /* last page? */
     uba_last = (ub_map[pg] + off) & PAMASK;             /* no, use map */
@@ -256,19 +258,19 @@ return uba_last;
      Device addresses are trimmed to 22b.
 */
 
-int32 Map_ReadB (uint32 ba, int32 bc, uint8 *buf)
+int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf)
 {
-uint32 alim, lim, ma;
+uint32_t alim, lim, ma;
 
 /* I/O Page DMA only on Unibus systems */
-if (UNIBUS && (ba >= (uint32)(IOPAGEBASE & UNIMASK))) {
-    int32 value;
+if (UNIBUS && (ba >= (uint32_t)(IOPAGEBASE & UNIMASK))) {
+    int32_t value;
 
     while (bc) {
         if (iopageCPUReg (ba) ||
             (iopageR( &value, (ba & ~1), READ) != SCPE_OK))
             break;
-        *buf++ = (uint8) (((ba & 1)? (value >> 8): value) & 0xff);
+        *buf++ = (uint8_t) (((ba & 1)? (value >> 8): value) & 0xff);
         ba++;
         bc--;
         }
@@ -281,7 +283,7 @@ if (cpu_bme) {                                          /* map enabled? */
         ma = Map_Addr (ba);                             /* map addr */
         if (!ADDR_IS_MEM (ma))                          /* NXM? err */
             return (lim - ba);
-        *buf++ = (uint8) RdMemB (ma);                   /* get byte */
+        *buf++ = (uint8_t) RdMemB (ma);                 /* get byte */
         }
     return 0;
     }
@@ -292,26 +294,26 @@ else {                                                  /* physical */
         alim = MEMSIZE;
     else return bc;                                     /* no, err */
     for ( ; ba < alim; ba++) {                          /* by bytes */
-        *buf++ = (uint8) RdMemB (ba);                   /* get byte */
+        *buf++ = (uint8_t) RdMemB (ba);                 /* get byte */
         }
     return (lim - alim);
     }
 }
 
-int32 Map_ReadW (uint32 ba, int32 bc, uint16 *buf)
+int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf)
 {
-uint32 alim, lim, ma;
+uint32_t alim, lim, ma;
 
 /* I/O Page DMA only on Unibus systems */
-if (UNIBUS && (ba >= (uint32)(IOPAGEBASE & UNIMASK))) {
-    int32 value;
+if (UNIBUS && (ba >= (uint32_t)(IOPAGEBASE & UNIMASK))) {
+    int32_t value;
     if ((ba & 1) || (bc & 1))
         return bc;
     while (bc) {
         if (iopageCPUReg (ba) ||
             (iopageR( &value, ba, READ) != SCPE_OK))
             break;
-        *buf++ = (uint16) (value & 0xffff);
+        *buf++ = (uint16_t) (value & 0xffff);
         ba += 2;
         bc -= 2;
         }
@@ -324,7 +326,7 @@ if (cpu_bme) {                                          /* map enabled? */
         ma = Map_Addr (ba);                             /* map addr */
         if (!ADDR_IS_MEM (ma))                          /* NXM? err */
             return (lim - ba);
-        *buf++ = (uint16) RdMemW (ma);
+        *buf++ = (uint16_t) RdMemW (ma);
         }
     return 0;
     }
@@ -335,21 +337,21 @@ else {                                                  /* physical */
         alim = MEMSIZE;
     else return bc;                                     /* no, err */
     for ( ; ba < alim; ba = ba + 2) {                   /* by words */
-        *buf++ = (uint16) RdMemW (ba);
+        *buf++ = (uint16_t) RdMemW (ba);
         }
     return (lim - alim);
     }
 }
 
-int32 Map_WriteB (uint32 ba, int32 bc, const uint8 *buf)
+int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf)
 {
-uint32 alim, lim, ma;
+uint32_t alim, lim, ma;
 
 /* I/O Page DMA only on Unibus systems */
-if (UNIBUS && (ba >= (uint32)(IOPAGEBASE & UNIMASK))) {
+if (UNIBUS && (ba >= (uint32_t)(IOPAGEBASE & UNIMASK))) {
     while (bc) {
         if (iopageCPUReg (ba) ||
-            (iopageW( ((int32) *buf++) & 0xff, ba, WRITEB) != SCPE_OK))
+            (iopageW( ((int32_t) *buf++) & 0xff, ba, WRITEB) != SCPE_OK))
             break;
         ba++;
         bc--;
@@ -363,7 +365,7 @@ if (cpu_bme) {                                          /* map enabled? */
         ma = Map_Addr (ba);                             /* map addr */
         if (!ADDR_IS_MEM (ma))                          /* NXM? err */
             return (lim - ba);
-        WrMemB (ma, ((uint16) *buf++));
+        WrMemB (ma, ((uint16_t) *buf++));
         }
     return 0;
     }
@@ -374,23 +376,23 @@ else {                                                  /* physical */
         alim = MEMSIZE;
     else return bc;                                     /* no, err */
     for ( ; ba < alim; ba++) {                          /* by bytes */
-        WrMemB (ba, ((uint16) *buf++));
+        WrMemB (ba, ((uint16_t) *buf++));
         }
     return (lim - alim);
     }
 }
 
-int32 Map_WriteW (uint32 ba, int32 bc, const uint16 *buf)
+int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf)
 {
-uint32 alim, lim, ma;
+uint32_t alim, lim, ma;
 
 /* I/O Page DMA only on Unibus systems */
-if (UNIBUS && (ba >= (uint32)(IOPAGEBASE & UNIMASK))) {
+if (UNIBUS && (ba >= (uint32_t)(IOPAGEBASE & UNIMASK))) {
     if ((ba & 1) || (bc & 1))
         return bc;
     while (bc) {
         if (iopageCPUReg (ba) ||
-            (iopageW( ((int32) *buf++) & 0xffff, ba, WRITE) != SCPE_OK))
+            (iopageW( ((int32_t) *buf++) & 0xffff, ba, WRITE) != SCPE_OK))
             break;
         ba += 2;
         bc -= 2;
@@ -425,7 +427,7 @@ else {                                                  /* physical */
 
 t_stat build_dib_tab (void)
 {
-int32 i;
+int32_t i;
 DEVICE *dptr;
 DIB *dibp;
 t_stat r;

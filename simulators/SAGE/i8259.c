@@ -28,6 +28,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_defs.h"
 #include "m68k_cpu.h"
 #include "chip_defs.h"
@@ -41,9 +43,9 @@ DEBTAB i8259_dt[] = {
     { NULL,     0 }
 };
 
-static int32 priomask[] = { 0x0000,0x4000,0x6000,0x7000,0x7800,0x7c00,0x7e00,0x7f00 };
+static int32_t priomask[] = { 0x0000,0x4000,0x6000,0x7000,0x7800,0x7c00,0x7e00,0x7f00 };
 
-t_stat i8259_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
+t_stat i8259_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask)
 {
     /* Shared I/O handler signature.
        This implementation does not use every parameter. */
@@ -58,7 +60,7 @@ t_stat i8259_io(IOHANDLER* ioh,uint32* value,uint32 rw,uint32 mask)
     }
 }
 
-t_stat i8259_write(I8259* chip,int addr,uint32 value)
+t_stat i8259_write(I8259* chip,int addr,uint32_t value)
 {
     int i, bit;
 
@@ -169,7 +171,7 @@ t_stat i8259_write(I8259* chip,int addr,uint32 value)
     return SCPE_OK;
 }
 
-t_stat i8259_read(I8259* chip,int addr, uint32* value)
+t_stat i8259_read(I8259* chip,int addr, uint32_t* value)
 {
     int i, bit, num;
 
@@ -208,7 +210,7 @@ t_stat i8259_read(I8259* chip,int addr, uint32* value)
 
 t_stat i8259_raiseint(I8259* chip,int level)
 {
-    int32 bit, isr, myprio;
+    int32_t bit, isr, myprio;
 
     TRACE_PRINT1(DBG_PIC_II,"Request INT level=%d",level);
 

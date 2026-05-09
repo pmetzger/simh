@@ -48,6 +48,7 @@
 
 #include "ibm1130_defs.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>             /* needed for atexit, for cgi mode */
 
 /***************************************************************************************
@@ -93,11 +94,11 @@ static t_stat prt_reset  (DEVICE *dptr);
 static t_stat prt_attach (UNIT *uptr, const char *cptr);
 static t_stat prt_detach (UNIT *uptr);
 
-static int16 PRT_DSW   = 0;                                 /* device status word */
-static int32 prt_swait = 500;                               /* line skip wait */
-static int32 prt_cwait = 1250;                              /* character rotation wait */
-static int32 prt_fwait = 100;                               /* fast wait, for 1403 operations */
-static int32 prt_twait = 50;                                /* transfer wait, for 1403 operations */
+static int16_t PRT_DSW   = 0;                               /* device status word */
+static int32_t prt_swait = 500;                             /* line skip wait */
+static int32_t prt_cwait = 1250;                            /* character rotation wait */
+static int32_t prt_fwait = 100;                             /* fast wait, for 1403 operations */
+static int32_t prt_twait = 50;                              /* transfer wait, for 1403 operations */
 #define SKIPTARGET  (uptr->u4)                              /* target for skip operation */
 
 static bool formfed = false;                                /* last line printed was a formfeed */
@@ -207,6 +208,7 @@ cccgi[] = {
 };
 
 #include "ibm1130_prtwheel.h"
+#include "sim_types.h"
 
 /* cc_format_1132 and cc_format_1403 - turn cctape bits into proper format for DSW or status read */
 
@@ -233,7 +235,7 @@ static void reset_prt_line (void)
 static bool save_1132_prt_line (int ch)
 {
     int i, r, addr = 32;
-    int32 mask = 0, wd = 0;
+    int32_t mask = 0, wd = 0;
 
     for (i = 0; i < PRT1132_COLUMNS; i++) {
         if (mask == 0) {                    /* fetch next word from memory */
@@ -357,7 +359,7 @@ static void mytrace (int start, const char *what)
 
 /* xio_1132_printer - XIO command interpreter for the 1132 printer */
 
-void xio_1132_printer (int32 iocc_addr, int32 func, int32 modify)
+void xio_1132_printer (int32_t iocc_addr, int32_t func, int32_t modify)
 {
     char msg[80];
     UNIT *uptr = &prt_unit[0];
@@ -502,21 +504,21 @@ static t_stat prt1132_svc (UNIT *uptr)
     return SCPE_OK;
 }
 
-static void save_1403_prt_line (int32 addr)
+static void save_1403_prt_line (int32_t addr)
 {
     size_t j;
     int i, r, ch, even = true;
-    unsigned char ebcdic;
-    int32 wd;
+    uchar_t ebcdic;
+    int32_t wd;
 
     for (i = 0; i < PRT1403_COLUMNS; i++) {
         if (even) {                                     /* fetch next word from memory */
             wd     = M[addr++];
-            ebcdic = (unsigned char) ((wd >> 8) & 0x7F);
+            ebcdic = (uchar_t) ((wd >> 8) & 0x7F);
             even   = false;
         }
         else {
-            ebcdic = (unsigned char) (wd & 0x7F);       /* use low byte of previously fetched word */
+            ebcdic = (uchar_t) (wd & 0x7F);             /* use low byte of previously fetched word */
             even   = true;
         }
 
@@ -544,7 +546,7 @@ static void save_1403_prt_line (int32 addr)
     }
 }
 
-void xio_1403_printer (int32 iocc_addr, int32 func, int32 modify)
+void xio_1403_printer (int32_t iocc_addr, int32_t func, int32_t modify)
 {
     UNIT *uptr = &prt_unit[0];
 

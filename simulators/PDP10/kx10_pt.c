@@ -24,6 +24,8 @@
    in this Software without prior written authorization from Richard Cornwell.
 */
 
+#include <stdint.h>
+
 #include "kx10_defs.h"
 
 #ifndef NUM_DEVS_PT
@@ -58,23 +60,23 @@
 #endif
 
 
-t_stat         ptp_devio(uint32 dev, uint64 *data);
+t_stat         ptp_devio(uint32_t dev, uint64 *data);
 t_stat         ptp_svc (UNIT *uptr);
 t_stat         ptp_reset (DEVICE *dptr);
 t_stat         ptp_attach (UNIT *uptr, const char *cptr);
 t_stat         ptp_detach (UNIT *uptr);
 t_stat         ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr,
-                            int32 flag, const char *cptr);
+                            int32_t flag, const char *cptr);
 const char    *ptp_description (DEVICE *dptr);
 
-t_stat         ptr_devio(uint32 dev, uint64 *data);
+t_stat         ptr_devio(uint32_t dev, uint64 *data);
 t_stat         ptr_svc (UNIT *uptr);
-t_stat         ptr_boot(int32 unit_num, DEVICE * dptr);
+t_stat         ptr_boot(int32_t unit_num, DEVICE * dptr);
 t_stat         ptr_reset (DEVICE *dptr);
 t_stat         ptr_attach (UNIT *uptr, const char *cptr);
 t_stat         ptr_detach (UNIT *uptr);
 t_stat         ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr,
-                             int32 flag, const char *cptr);
+                             int32_t flag, const char *cptr);
 const char    *ptr_description (DEVICE *dptr);
 
 
@@ -128,7 +130,7 @@ DEVICE ptr_dev = {
 
 /* IOT routine */
 
-t_stat ptp_devio(uint32 dev, uint64 *data) {
+t_stat ptp_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &ptp_unit;
     switch(dev & 3) {
     case CONI:
@@ -237,7 +239,7 @@ t_stat ptp_detach (UNIT *uptr)
 
 
 
-t_stat ptr_devio(uint32 dev, uint64 *data) {
+t_stat ptr_devio(uint32_t dev, uint64 *data) {
     UNIT *uptr = &ptr_unit;
     switch(dev & 3) {
     case CONI:
@@ -280,7 +282,7 @@ t_stat ptr_devio(uint32 dev, uint64 *data) {
 /* Unit service */
 t_stat ptr_svc (UNIT *uptr)
 {
-    int32     temp;
+    int32_t   temp;
     uint64    word;
     int       count = (uptr->STATUS & BIN_FLG) ? 6 : 1;
 
@@ -333,7 +335,7 @@ ptr_read_word(UNIT *uptr) {
 
 /* Boot from given device */
 t_stat
-ptr_boot(int32 unit_num, DEVICE * dptr)
+ptr_boot(int32_t unit_num, DEVICE * dptr)
 {
     UNIT               *uptr = &dptr->units[unit_num];
     uint64              word;
@@ -403,7 +405,7 @@ t_stat ptr_detach (UNIT *uptr)
     return detach_unit (uptr);
 }
 
-t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ptr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -430,7 +432,7 @@ const char *ptr_description (DEVICE *dptr)
 return "paper tape reader";
 }
 
-t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat ptp_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

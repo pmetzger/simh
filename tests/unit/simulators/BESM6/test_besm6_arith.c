@@ -1,17 +1,19 @@
+#include <stdint.h>
+
 #include "test_cmocka.h"
 
 #include "besm6_arith_internal.h"
 
-uint32 RAU;
+uint32_t RAU;
 t_value ACC, RMR;
 jmp_buf cpu_halt;
 
-static t_value make_besm6_word(unsigned exponent, t_uint64 mantissa)
+static t_value make_besm6_word(unsigned exponent, uint64_t mantissa)
 {
     return ((t_value)(exponent & BITS(7)) << 41) | (mantissa & BITS41);
 }
 
-static t_uint64 make_alu_mantissa(t_uint64 word_mantissa)
+static uint64_t make_alu_mantissa(uint64_t word_mantissa)
 {
     if (word_mantissa & BIT41)
         return word_mantissa | BIT42;
@@ -24,8 +26,8 @@ static t_uint64 make_alu_mantissa(t_uint64 word_mantissa)
  * end of the 42-bit internal ALU mantissa, not with whatever a host compiler
  * happens to do for a signed negative left shift.
  */
-static void expect_right_normalized(unsigned *exponent, t_uint64 *mantissa,
-                                    t_uint64 *mr, int *round_requested)
+static void expect_right_normalized(unsigned *exponent, uint64_t *mantissa,
+                                    uint64_t *mr, int *round_requested)
 {
     switch ((*mantissa >> 40) & 3) {
     case 2:
@@ -64,9 +66,9 @@ static void test_alu_sign_extension_mask_sets_high_bits(void **state)
     assert_int_equal(besm6_alu_sign_extension_mask(0), BITS42);
     assert_int_equal(besm6_alu_sign_extension_mask(1), BITS42 & ~1);
     assert_int_equal(besm6_alu_sign_extension_mask(36),
-                     BITS42 & ~(((t_uint64)1 << 36) - 1));
+                     BITS42 & ~(((uint64_t)1 << 36) - 1));
     assert_int_equal(besm6_alu_sign_extension_mask(39),
-                     BITS42 & ~(((t_uint64)1 << 39) - 1));
+                     BITS42 & ~(((uint64_t)1 << 39) - 1));
 }
 
 /*
@@ -79,10 +81,10 @@ static void test_add_sign_extends_negative_close_exponent(void **state)
     const unsigned acc_exponent = 64;
     const unsigned value_exponent = 60;
     const unsigned diff = acc_exponent - value_exponent;
-    const t_uint64 value_mantissa = BIT41 | 0123456701234LL;
-    const t_uint64 alu_mantissa = make_alu_mantissa(value_mantissa);
-    t_uint64 expected_mantissa;
-    t_uint64 expected_mr;
+    const uint64_t value_mantissa = BIT41 | 0123456701234LL;
+    const uint64_t alu_mantissa = make_alu_mantissa(value_mantissa);
+    uint64_t expected_mantissa;
+    uint64_t expected_mr;
     int expected_round;
     unsigned expected_exponent;
 
@@ -115,10 +117,10 @@ static void test_add_sign_extends_negative_far_exponent(void **state)
     const unsigned acc_exponent = 64;
     const unsigned value_exponent = 10;
     const unsigned diff = acc_exponent - value_exponent - 40;
-    const t_uint64 value_mantissa = BIT41 | 076543210123LL;
-    const t_uint64 alu_mantissa = make_alu_mantissa(value_mantissa);
-    t_uint64 expected_mantissa;
-    t_uint64 expected_mr;
+    const uint64_t value_mantissa = BIT41 | 076543210123LL;
+    const uint64_t alu_mantissa = make_alu_mantissa(value_mantissa);
+    uint64_t expected_mantissa;
+    uint64_t expected_mr;
     int expected_round;
     unsigned expected_exponent;
 

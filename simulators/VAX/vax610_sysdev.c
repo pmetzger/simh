@@ -32,6 +32,8 @@
 */
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "vax_defs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -45,13 +47,13 @@
 struct boot_dev {
     const char          *devname;
     const char          *devalias;
-    int32               code;
+    int32_t             code;
     };
 
 extern DEVICE vc_dev, lk_dev, vs_dev;
 
-int32 conisp, conpc, conpsl;                            /* console reg */
-int32 sys_model = 0;                                    /* MicroVAX or VAXstation */
+int32_t conisp, conpc, conpsl;                          /* console reg */
+int32_t sys_model = 0;                                  /* MicroVAX or VAXstation */
 char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
 
 static struct boot_dev boot_tab[] = {
@@ -63,20 +65,20 @@ static struct boot_dev boot_tab[] = {
 
 t_stat sysd_reset (DEVICE *dptr);
 const char *sysd_description (DEVICE *dptr);
-t_stat vax610_boot (int32 flag, const char *ptr);
-t_stat vax610_boot_parse (int32 flag, const char *ptr);
+t_stat vax610_boot (int32_t flag, const char *ptr);
+t_stat vax610_boot_parse (int32_t flag, const char *ptr);
 
-extern int32 iccs_rd (void);
-extern int32 todr_rd (void);
-extern int32 rxcs_rd (void);
-extern int32 rxdb_rd (void);
-extern int32 txcs_rd (void);
-extern void iccs_wr (int32 dat);
-extern void todr_wr (int32 dat);
-extern void rxcs_wr (int32 dat);
-extern void txcs_wr (int32 dat);
-extern void txdb_wr (int32 dat);
-extern void ioreset_wr (int32 dat);
+extern int32_t iccs_rd (void);
+extern int32_t todr_rd (void);
+extern int32_t rxcs_rd (void);
+extern int32_t rxdb_rd (void);
+extern int32_t txcs_rd (void);
+extern void iccs_wr (int32_t dat);
+extern void todr_wr (int32_t dat);
+extern void rxcs_wr (int32_t dat);
+extern void txcs_wr (int32_t dat);
+extern void txdb_wr (int32_t dat);
+extern void ioreset_wr (int32_t dat);
 
 /* SYSD data structures
 
@@ -115,9 +117,9 @@ CTAB vax610_cmd[] = {
 
 /* Read KA610 specific IPR's */
 
-int32 ReadIPR (int32 rg)
+int32_t ReadIPR (int32_t rg)
 {
-int32 val;
+int32_t val;
 
 switch (rg) {
 
@@ -190,7 +192,7 @@ return val;
 
 /* Write KA610 specific IPR's */
 
-void WriteIPR (int32 rg, int32 val)
+void WriteIPR (int32_t rg, int32_t val)
 {
 switch (rg) {
 
@@ -261,10 +263,10 @@ return;
 */
 
 struct reglink {                                        /* register linkage */
-    uint32      low;                                    /* low addr */
-    uint32      high;                                   /* high addr */
-    int32       (*read)(int32 pa, int32 lnt);           /* read routine */
-    void        (*write)(int32 pa, int32 val, int32 lnt); /* write routine */
+    uint32_t    low;                                    /* low addr */
+    uint32_t    high;                                   /* high addr */
+    int32_t     (*read)(int32_t pa, int32_t lnt);       /* read routine */
+    void        (*write)(int32_t pa, int32_t val, int32_t lnt); /* write routine */
     };
 
 struct reglink regtable[] = {
@@ -280,7 +282,7 @@ struct reglink regtable[] = {
         longword of data
 */
 
-int32 ReadReg (uint32 pa, int32 lnt)
+int32_t ReadReg (uint32_t pa, int32_t lnt)
 {
 /* Model-dependent register read signature.
    This implementation does not use every parameter. */
@@ -304,7 +306,7 @@ MACH_CHECK (MCHK_READ);
         returned data, not shifted
 */
 
-int32 ReadRegU (uint32 pa, int32 lnt)
+int32_t ReadRegU (uint32_t pa, int32_t lnt)
 {
 /* Model-dependent unaligned register read signature.
    This implementation does not use every parameter. */
@@ -323,7 +325,7 @@ return ReadReg (pa & ~03, L_LONG);
         none
 */
 
-void WriteReg (uint32 pa, int32 val, int32 lnt)
+void WriteReg (uint32_t pa, int32_t val, int32_t lnt)
 {
 struct reglink *p;
 
@@ -347,10 +349,10 @@ SET_IRQL;
         none
 */
 
-void WriteRegU (uint32 pa, int32 val, int32 lnt)
+void WriteRegU (uint32_t pa, int32_t val, int32_t lnt)
 {
-int32 sc = (pa & 03) << 3;
-int32 dat = ReadReg (pa & ~03, L_LONG);
+int32_t sc = (pa & 03) << 3;
+int32_t dat = ReadReg (pa & ~03, L_LONG);
 
 dat = (dat & ~(insert[lnt] << sc)) | ((val & insert[lnt]) << sc);
 WriteReg (pa & ~03, dat, L_LONG);
@@ -364,7 +366,7 @@ return;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax610_boot (int32 flag, const char *ptr)
+t_stat vax610_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -384,12 +386,12 @@ return run_cmd (flag, "CPU");
 
 /* Parse boot command, set up registers - also used on reset */
 
-t_stat vax610_boot_parse (int32 flag, const char *ptr)
+t_stat vax610_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE], dbuf[CBUFSIZE], rbuf[CBUFSIZE];
 char *slptr;
 const char *regptr;
-int32 i, r5v, unitno;
+int32_t i, r5v, unitno;
 DEVICE *dptr;
 UNIT *uptr;
 t_stat r;
@@ -415,12 +417,12 @@ if ((strncmp (regptr, "/R5:", 4) == 0) ||
     (strncmp (regptr, "/R5=", 4) == 0) ||
     (strncmp (regptr, "/r5:", 4) == 0) ||
     (strncmp (regptr, "/r5=", 4) == 0)) {
-    r5v = (int32) get_uint (regptr + 4, 16, LMASK, &r);
+    r5v = (int32_t) get_uint (regptr + 4, 16, LMASK, &r);
     if (r != SCPE_OK)
         return r;
     }
 else if (*regptr == '/') {
-    r5v = (int32) get_uint (regptr + 1, 16, LMASK, &r);
+    r5v = (int32_t) get_uint (regptr + 1, 16, LMASK, &r);
     if (r != SCPE_OK)
         return r;
     }
@@ -434,7 +436,7 @@ if (gbuf[0]) {
             dptr = find_unit (dbuf, &uptr);
             if ((dptr == NULL) || (uptr == NULL))
                 return SCPE_ARG;
-            unitno = (int32) (uptr - dptr->units);
+            unitno = (int32_t) (uptr - dptr->units);
             }
         if ((unitno == -1) &&
             (memcmp (gbuf, boot_tab[i].devname, strlen(boot_tab[i].devname)) == 0)) {
@@ -442,7 +444,7 @@ if (gbuf[0]) {
             dptr = find_unit (dbuf, &uptr);
             if ((dptr == NULL) || (uptr == NULL))
                 return SCPE_ARG;
-            unitno = (int32) (uptr - dptr->units);
+            unitno = (int32_t) (uptr - dptr->units);
             }
         if (unitno == -1)
             continue;
@@ -467,21 +469,21 @@ else {
 return SCPE_NOFNC;
 }
 
-int32 sysd_hlt_enb (void)
+int32_t sysd_hlt_enb (void)
 {
 return 1;
 }
 
 /* Machine check */
 
-int32 machine_check (int32 p1, int32 opc, int32 cc, int32 delta)
+int32_t machine_check (int32_t p1, int32_t opc, int32_t cc, int32_t delta)
 {
 /* Model-dependent machine check signature.
    This implementation does not use every parameter. */
 (void) opc;
 (void) delta;
 
-int32 p2, acc;
+int32_t p2, acc;
 
 if (in_ie)                                              /* in exc? panic */
     ABORT (STOP_INIE);
@@ -500,7 +502,7 @@ return cc;
 
 /* Console entry */
 
-int32 con_halt (int32 code, int32 cc)
+int32_t con_halt (int32_t code, int32_t cc)
 {
 /* Model-dependent console halt signature.
    This implementation does not use every parameter. */
@@ -516,7 +518,7 @@ return cc;
 
 /* Bootstrap */
 
-t_stat cpu_boot (int32 unitno, DEVICE *dptr)
+t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 /* Generic CPU boot signature.
    This implementation does not use every parameter. */
@@ -533,7 +535,7 @@ AP = 1;
 return SCPE_OK;
 }
 
-t_stat vax610_set_instruction_set (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat vax610_set_instruction_set (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -573,7 +575,7 @@ const char *sysd_description (DEVICE *dptr)
 return "system devices";
 }
 
-t_stat cpu_set_model (UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -619,7 +621,7 @@ fprintf (st, (sys_model ? "VAXstation I" : "MicroVAX I"));
 return SCPE_OK;
 }
 
-t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */

@@ -49,6 +49,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "3b2_cpu.h"
@@ -68,6 +69,7 @@
 #include "3b2_mmu.h"
 #include "3b2_stddev.h"
 #include "3b2_timer.h"
+#include "sim_types.h"
 
 #if !defined(DONT_USE_INTERNAL_ROM)
 #if defined(REV3)
@@ -90,20 +92,20 @@
 #endif
 
 /* Static function declarations */
-static uint32 cpu_effective_address(operand * op);
-static uint32 cpu_read_op(operand * op);
-static void cpu_write_op(operand * op, t_uint64 val);
-static void cpu_set_nz_flags(t_uint64 data, operand * op);
-static inline void cpu_on_normal_exception(uint8 isc);
-static inline void cpu_on_stack_exception(uint8 isc);
-static inline void cpu_on_process_exception(uint8 isc);
-static inline void cpu_on_reset_exception(uint8 isc);
-static inline void cpu_perform_gate(uint32 index1, uint32 index2);
+static uint32_t cpu_effective_address(operand * op);
+static uint32_t cpu_read_op(operand * op);
+static void cpu_write_op(operand * op, uint64_t val);
+static void cpu_set_nz_flags(uint64_t data, operand * op);
+static inline void cpu_on_normal_exception(uint8_t isc);
+static inline void cpu_on_stack_exception(uint8_t isc);
+static inline void cpu_on_process_exception(uint8_t isc);
+static inline void cpu_on_reset_exception(uint8_t isc);
+static inline void cpu_perform_gate(uint32_t index1, uint32_t index2);
 static inline void clear_instruction(instr *inst);
-static inline int8 op_type(operand *op);
+static inline int8_t op_type(operand *op);
 static inline bool op_signed(operand *op);
-static inline uint32 sign_extend_b(uint8 val);
-static inline uint32 sign_extend_h(uint16 val);
+static inline uint32_t sign_extend_b(uint8_t val);
+static inline uint32_t sign_extend_h(uint16_t val);
 static inline bool cpu_z_flag(void);
 static inline bool cpu_n_flag(void);
 static inline bool cpu_c_flag(void);
@@ -112,33 +114,33 @@ static inline void cpu_set_z_flag(bool val);
 static inline void cpu_set_n_flag(bool val);
 static inline void cpu_set_c_flag(bool val);
 static inline void cpu_set_v_flag(bool val);
-static inline void cpu_set_v_flag_op(t_uint64 val, operand *op);
-static inline uint8 cpu_execution_level(void);
-static inline void cpu_push_word(uint32 val);
-static inline uint32 cpu_pop_word(void);
-static inline void irq_push_word(uint32 val);
-static inline uint32 irq_pop_word(void);
+static inline void cpu_set_v_flag_op(uint64_t val, operand *op);
+static inline uint8_t cpu_execution_level(void);
+static inline void cpu_push_word(uint32_t val);
+static inline uint32_t cpu_pop_word(void);
+static inline void irq_push_word(uint32_t val);
+static inline uint32_t irq_pop_word(void);
 static t_stat cpu_load_builtin_rom(void);
-static inline void cpu_context_switch_1(uint32 pcbp);
-static inline void cpu_context_switch_2(uint32 pcbp);
-static inline void cpu_context_switch_3(uint32 pcbp);
+static inline void cpu_context_switch_1(uint32_t pcbp);
+static inline void cpu_context_switch_2(uint32_t pcbp);
+static inline void cpu_context_switch_3(uint32_t pcbp);
 static inline bool op_is_psw(operand *op);
-static inline void add(t_uint64 a, t_uint64 b, operand *dst);
-static inline void sub(t_uint64 a, t_uint64 b, operand *dst);
+static inline void add(uint64_t a, uint64_t b, operand *dst);
+static inline void sub(uint64_t a, uint64_t b, operand *dst);
 #if defined(REV3)
-static inline uint8 add_bcd(uint8 a, uint8 b);
-static inline uint8 sub_bcd(uint8 a, uint8 b);
+static inline uint8_t add_bcd(uint8_t a, uint8_t b);
+static inline uint8_t sub_bcd(uint8_t a, uint8_t b);
 #endif
 
 /* RO memory. */
-uint8 *ROM = NULL;
+uint8_t *ROM = NULL;
 
 /* Main memory. */
-uint8 *RAM = NULL;
+uint8_t *RAM = NULL;
 
 /* Save environment for setjmp/longjmp */
 jmp_buf save_env;
-volatile uint32 abort_context;
+volatile uint32_t abort_context;
 
 /* Pointer to the last decoded instruction */
 instr *cpu_instr;
@@ -148,17 +150,17 @@ instr inst;
 
 /* Circular buffer of instructions */
 instr *INST = NULL;
-uint32 cpu_hist_size = 0;
-uint32 cpu_hist_p = 0;
+uint32_t cpu_hist_size = 0;
+uint32_t cpu_hist_p = 0;
 
 bool cpu_in_wait = false;
 
 volatile size_t cpu_exception_stack_depth = 0;
-volatile int32 stop_reason;
-volatile uint32 abort_reason;
+volatile int32_t stop_reason;
+volatile uint32_t abort_reason;
 
 /* Register data */
-uint32 R[NUM_REGISTERS];
+uint32_t R[NUM_REGISTERS];
 
 /* Other global CPU state */
 
@@ -167,16 +169,16 @@ bool rom_loaded = false;      /* True if ROM has been loaded, false otherwise */
 /* Interrupt request bitfield */
 /* Note: Only the lowest 8 bits are used by Rev 2, and only the lowest
    12 bits are used by Rev 3 */
-uint16 sbd_int_req = 0;       /* Currently set interrupt sources */
-uint8 int_map[INT_MAP_LEN];   /* Map of  interrupt sources  to highest
+uint16_t sbd_int_req = 0;     /* Currently set interrupt sources */
+uint8_t int_map[INT_MAP_LEN]; /* Map of  interrupt sources  to highest
                                  priority IPL */
 bool cpu_nmi = false;         /* If set, there has been an NMI */
-int32 pc_incr = 0;            /* Length (in bytes) of instruction
+int32_t pc_incr = 0;          /* Length (in bytes) of instruction
                                  currently being executed */
 bool cpu_ex_halt = false;     /* Flag to halt on exceptions / traps */
 bool cpu_km = false;          /* If true, kernel mode has been forced
                                  for memory access */
-uint16 cpu_int_ack;           /* The most recently acknowledged
+uint16_t cpu_int_ack;         /* The most recently acknowledged
                                  interrupt */
 
 CTAB sys_cmd[] = {
@@ -786,7 +788,7 @@ mnemonic ops[256] = {
 };
 
 /* from MAME (src/devices/cpu/m68000/m68kcpu.c) */
-const uint8 shift_8_table[65] =
+const uint8_t shift_8_table[65] =
 {
     0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -795,7 +797,7 @@ const uint8 shift_8_table[65] =
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     0xff, 0xff, 0xff, 0xff, 0xff
 };
-const uint16 shift_16_table[65] =
+const uint16_t shift_16_table[65] =
 {
     0x0000, 0x8000, 0xc000, 0xe000, 0xf000, 0xf800, 0xfc00, 0xfe00, 0xff00,
     0xff80, 0xffc0, 0xffe0, 0xfff0, 0xfff8, 0xfffc, 0xfffe, 0xffff, 0xffff,
@@ -806,7 +808,7 @@ const uint16 shift_16_table[65] =
     0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
     0xffff, 0xffff
 };
-const uint32 shift_32_table[65] =
+const uint32_t shift_32_table[65] =
 {
     0x00000000, 0x80000000, 0xc0000000, 0xe0000000, 0xf0000000, 0xf8000000,
     0xfc000000, 0xfe000000, 0xff000000, 0xff800000, 0xffc00000, 0xffe00000,
@@ -821,16 +823,16 @@ const uint32 shift_32_table[65] =
     0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
 };
 
-t_stat cpu_show_stack(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_stack(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)val;
 
-    uint32 i, j;
-    uint32 addr, v, count;
-    uint8 tmp;
+    uint32_t i, j;
+    uint32_t addr, v, count;
+    uint8_t tmp;
     char *cptr = (char *) desc;
     t_stat result;
 
@@ -852,7 +854,7 @@ t_stat cpu_show_stack(FILE *st, UNIT *uptr, int32 val, const void *desc)
             if (result != SCPE_OK) {
                 return result;
             }
-            v |= (uint32) tmp << ((3 - j) * 8);
+            v |= (uint32_t) tmp << ((3 - j) * 8);
         }
 
         fprintf(st, "  %08x: %08x\n", addr, v);
@@ -861,7 +863,7 @@ t_stat cpu_show_stack(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-t_stat cpu_show_cio(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_cio(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
@@ -869,7 +871,7 @@ t_stat cpu_show_cio(FILE *st, UNIT *uptr, int32 val, const void *desc)
     (void)val;
     (void)desc;
 
-    uint32 slot;
+    uint32_t slot;
 
     fprintf(st, "  SLOT     DEVICE\n");
     fprintf(st, "---------------------\n");
@@ -885,7 +887,7 @@ t_stat cpu_show_cio(FILE *st, UNIT *uptr, int32 val, const void *desc)
 }
 
 #if defined(REV3)
-t_stat sys_boot(int32 flag, const char *ptr)
+t_stat sys_boot(int32_t flag, const char *ptr)
 {
     char gbuf[CBUFSIZE];
 
@@ -901,7 +903,7 @@ t_stat sys_boot(int32 flag, const char *ptr)
     return run_cmd(flag, "CPU");
 }
 #else
-t_stat sys_boot(int32 flag, const char *ptr)
+t_stat sys_boot(int32_t flag, const char *ptr)
 {
     char gbuf[CBUFSIZE];
 
@@ -935,7 +937,7 @@ static t_stat cpu_load_builtin_rom(void)
     }
 
     if (ROM == NULL) {
-        ROM = (uint8 *)calloc((size_t)ROM_SIZE, sizeof(uint8));
+        ROM = (uint8_t *)calloc((size_t)ROM_SIZE, sizeof(uint8_t));
         if (ROM == NULL) {
             return SCPE_MEM;
         }
@@ -947,7 +949,7 @@ static t_stat cpu_load_builtin_rom(void)
 #endif /* defined(DONT_USE_INTERNAL_ROM) */
 }
 
-t_stat cpu_boot(int32 unit_num, DEVICE *dptr)
+t_stat cpu_boot(int32_t unit_num, DEVICE *dptr)
 {
     /* Generic boot signature.
        This implementation does not use every parameter. */
@@ -1001,14 +1003,14 @@ t_stat cpu_boot(int32 unit_num, DEVICE *dptr)
     return SCPE_OK;
 }
 
-t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic examine signature.
        This implementation does not use every parameter. */
     (void)uptr;
 
-    uint32 uaddr = (uint32) addr;
-    uint8 value;
+    uint32_t uaddr = (uint32_t) addr;
+    uint8_t value;
     t_stat succ;
 
     if (vptr == NULL) {
@@ -1021,7 +1023,7 @@ t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
         return succ;
     } else {
         if (IS_ROM(uaddr) || IS_RAM(uaddr)) {
-            *vptr = (uint32) pread_b(uaddr, BUS_CPU);
+            *vptr = (uint32_t) pread_b(uaddr, BUS_CPU);
             return SCPE_OK;
         } else {
             *vptr = 0;
@@ -1030,19 +1032,19 @@ t_stat cpu_ex(t_value *vptr, t_addr addr, UNIT *uptr, int32 sw)
     }
 }
 
-t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw)
+t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
     /* Generic deposit signature.
        This implementation does not use every parameter. */
     (void)uptr;
 
-    uint32 uaddr = (uint32) addr;
+    uint32_t uaddr = (uint32_t) addr;
 
     if (sw & EX_V_FLAG) {
-        return deposit(uaddr, (uint8) val);
+        return deposit(uaddr, (uint8_t) val);
     } else {
         if (IS_RAM(uaddr)) {
-            pwrite_b(uaddr, (uint8) val, BUS_CPU);
+            pwrite_b(uaddr, (uint8_t) val, BUS_CPU);
             return SCPE_OK;
         } else {
             return SCPE_NXM;
@@ -1056,7 +1058,7 @@ t_stat cpu_dep(t_value val, t_addr addr, UNIT *uptr, int32 sw)
 static void build_int_map(void)
 {
     int i;
-    uint8 ipl;
+    uint8_t ipl;
 
     for (i = 0; i < INT_MAP_LEN; i++) {
 #if defined(REV3)
@@ -1119,7 +1121,7 @@ t_stat cpu_reset(DEVICE *dptr)
 
         /* Allocate ROM if needed */
         if (ROM == NULL) {
-            ROM = (uint8 *) calloc((size_t)ROM_SIZE, sizeof(uint8));
+            ROM = (uint8_t *) calloc((size_t)ROM_SIZE, sizeof(uint8_t));
         }
         if (ROM == NULL) {
             return SCPE_MEM;
@@ -1127,7 +1129,7 @@ t_stat cpu_reset(DEVICE *dptr)
 
         /* Allocate RAM if needed */
         if (RAM == NULL) {
-            RAM = (uint8 *) calloc((size_t)MEM_SIZE, sizeof(uint8));
+            RAM = (uint8_t *) calloc((size_t)MEM_SIZE, sizeof(uint8_t));
         }
         if (RAM == NULL) {
             return SCPE_MEM;
@@ -1188,7 +1190,7 @@ bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs)
 #if defined(REV3)
     case UCALLPS:
 #endif
-        returns[0] = R[NUM_PC] + (unsigned int) (1 - fprint_sym(stdnul, R[NUM_PC],
+        returns[0] = R[NUM_PC] + (uint_t) (1 - fprint_sym(stdnul, R[NUM_PC],
                                                                 sim_eval, &cpu_unit,
                                                                 SWMASK ('M')));
         for (i=1; i<MAX_SUB_RETURN_SKIP; i++) {
@@ -1209,13 +1211,13 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
        This implementation does not use every parameter. */
     (void)addr;
 
-    uint8 desc, mode, reg, etype;
-    uint32 w;
-    int32 vp, inst, i;
+    uint8_t desc, mode, reg, etype;
+    uint32_t w;
+    int32_t vp, inst, i;
     mnemonic *mn;
     char reg_name[8];
 #if defined(REV3)
-    uint8 reg2 = 0;
+    uint8_t reg2 = 0;
     char reg2_name[8];
 #endif
 
@@ -1224,11 +1226,11 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
     vp = 0;
     etype = -1;
 
-    inst = (int32) val[vp++];
+    inst = (int32_t) val[vp++];
 
     if (inst == 0x30) {
         /* Scan to find opcode */
-        inst = 0x3000 | (uint8) val[vp++];
+        inst = 0x3000 | (uint8_t) val[vp++];
         for (i = 0; i < HWORD_OP_COUNT; i++) {
             if (hword_ops[i].opcode == inst) {
                 mn = &hword_ops[i];
@@ -1259,13 +1261,13 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
             mode = 4;
             reg = 15;
         } else {
-            desc = (uint8) val[vp++];
+            desc = (uint8_t) val[vp++];
 
 #if defined(REV3) /* WE 32200 only */
             switch (desc) {
             case 0x5b:
                 /* Get next byte */
-                desc = (uint8) val[vp++];
+                desc = (uint8_t) val[vp++];
                 /*
                  * Mode 0x10: Auto pre-decrement   -(%rx)
                  * Mode 0x12: Auto post-decrement  (%rx)-
@@ -1278,19 +1280,19 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
             case 0xab:
             case 0xbb:
                 mode = 0xab;
-                desc = (uint8) val[vp++];
+                desc = (uint8_t) val[vp++];
                 reg = (desc >> 4) & 0xf;
                 reg2 = (desc & 0xf) + 16;
                 break;
             case 0xcb:
                 /* Get next byte */
-                desc = (uint8) val[vp++];
+                desc = (uint8_t) val[vp++];
                 mode = (desc >> 4) & 0xf;
                 reg = (desc & 0xf) + 16;
                 break;
             case 0xdb:
                 mode = 0xdb;
-                desc = (uint8) val[vp++];
+                desc = (uint8_t) val[vp++];
                 reg = (desc >> 4) & 0xf;
                 reg2 = (desc & 0xf) + 16;
                 break;
@@ -1310,7 +1312,7 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
                  reg == 4 || reg == 6 || reg == 7)) {
                 etype = reg;
                 /* The real descriptor byte lies one ahead */
-                desc = (uint8) val[vp++];
+                desc = (uint8_t) val[vp++];
                 mode = (desc >> 4) & 0xf;
                 reg = desc & 0xf;
             }
@@ -1381,7 +1383,7 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
                 fprintf(of, "&0x%x", w);
                 break;
             default:
-                fprintf(of, "%d(%%fp)", (int8) reg);
+                fprintf(of, "%d(%%fp)", (int8_t) reg);
                 break;
             }
             break;
@@ -1392,7 +1394,7 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
                 fprintf(of, "$0x%x", w);
                 break;
             default:
-                fprintf(of, "%d(%%ap)", (int8) reg);
+                fprintf(of, "%d(%%ap)", (int8_t) reg);
                 break;
             }
             break;
@@ -1419,12 +1421,12 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
         case 12:  /* Byte Displacement */
             OP_R_B(w, val, vp);
             cpu_register_name(reg, reg_name, 8);
-            fprintf(of, "%d(%s)", (int8) w, reg_name);
+            fprintf(of, "%d(%s)", (int8_t) w, reg_name);
             break;
         case 13:  /* Byte Displacement Deferred */
             OP_R_B(w, val, vp);
             cpu_register_name(reg, reg_name, 8);
-            fprintf(of, "*%d(%s)", (int8) w, reg_name);
+            fprintf(of, "*%d(%s)", (int8_t) w, reg_name);
             break;
         case 14:
             if (reg == 15) {
@@ -1453,7 +1455,7 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
             OP_R_B(w, val, vp);
             cpu_register_name(reg, reg_name, 8);
             cpu_register_name(reg2, reg2_name, 8);
-            fprintf(of, "%d(%s,%s)", (int8) w, reg2_name, reg_name);
+            fprintf(of, "%d(%s,%s)", (int8_t) w, reg2_name, reg_name);
             break;
         case 0xbb:
             OP_R_H(w, val, vp);
@@ -1479,7 +1481,7 @@ t_stat fprint_sym_m(FILE *of, t_addr addr, t_value *val)
 
 void fprint_sym_hist(FILE *st, instr *ip)
 {
-    int32 i;
+    int32_t i;
 
     if (ip == NULL || ip->mn == NULL) {
         fprintf(st, "???");
@@ -1501,19 +1503,19 @@ void fprint_sym_hist(FILE *st, instr *ip)
     }
 }
 
-t_stat cpu_show_virt(FILE *of, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_virt(FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)val;
 
-    uint32 va, pa;
+    uint32_t va, pa;
     t_stat r;
 
     const char *cptr = (const char *)desc;
     if (cptr) {
-        va = (uint32) get_uint(cptr, 16, 0xffffffff, &r);
+        va = (uint32_t) get_uint(cptr, 16, 0xffffffff, &r);
         if (r == SCPE_OK) {
             r = mmu_decode_va(va, 0, false, &pa);
             if (r == SCPE_OK) {
@@ -1533,7 +1535,7 @@ t_stat cpu_show_virt(FILE *of, UNIT *uptr, int32 val, const void *desc)
     return SCPE_ARG;
 }
 
-t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_hist(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1541,7 +1543,7 @@ t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void)val;
     (void)desc;
 
-    uint32 i, size;
+    uint32_t i, size;
     t_stat result;
 
     /* Clear the history buffer if no argument */
@@ -1553,7 +1555,7 @@ t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
     }
 
     /* Otherwise, get the new length */
-    size = (uint32) get_uint(cptr, 10, MAX_HIST_SIZE, &result);
+    size = (uint32_t) get_uint(cptr, 10, MAX_HIST_SIZE, &result);
 
     /* If no length was provided, give up */
     if (result != SCPE_OK) {
@@ -1589,20 +1591,20 @@ t_stat cpu_set_hist(UNIT *uptr, int32 val, const char *cptr, void *desc)
     return SCPE_OK;
 }
 
-t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
+t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
     (void)uptr;
     (void)val;
 
-    uint32 i;
+    uint32_t i;
     size_t j, count;
     char *cptr = (char *) desc;
     t_stat result;
     instr *ip;
 
-    int32 di;
+    int32_t di;
 
     if (cpu_hist_size == 0) {
         return SCPE_NOFNC;
@@ -1620,16 +1622,16 @@ t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
     }
 
     /* Position for reading from ring buffer */
-    di = (int32) (cpu_hist_p - count);
+    di = (int32_t) (cpu_hist_p - count);
 
     if (di < 0) {
-        di = di + (int32) cpu_hist_size;
+        di = di + (int32_t) cpu_hist_size;
     }
 
     fprintf(st, "PSW      SP       PC        IR\n");
 
     for (i = 0; i < count; i++) {
-        ip = &INST[(di++) % (int32) cpu_hist_size];
+        ip = &INST[(di++) % (int32_t) cpu_hist_size];
         if (ip->valid) {
             /* Show the opcode mnemonic */
             fprintf(st, "%08x %08x %08x  ", ip->psw, ip->sp, ip->pc);
@@ -1640,9 +1642,9 @@ t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
                 fprint_sym_hist(st, ip);
                 if (ip->mn->op_count > 0 && ip->mn->mode == OP_DESC) {
                     fprintf(st, "\n                            ");
-                    for (j = 0; j < (uint32) ip->mn->op_count; j++) {
+                    for (j = 0; j < (uint32_t) ip->mn->op_count; j++) {
                         fprintf(st, "%08x", ip->operands[j].data);
-                        if (j < (uint32) ip->mn->op_count - 1) {
+                        if (j < (uint32_t) ip->mn->op_count - 1) {
                             fputc(' ', st);
                         }
                     }
@@ -1656,7 +1658,7 @@ t_stat cpu_show_hist(FILE *st, UNIT *uptr, int32 val, const void *desc)
     return SCPE_OK;
 }
 
-void cpu_register_name(uint8 reg, char *buf, size_t len) {
+void cpu_register_name(uint8_t reg, char *buf, size_t len) {
     switch(reg) {
     case 9:
         snprintf(buf, len, "%%fp");
@@ -1754,27 +1756,27 @@ void cpu_show_operand(FILE *st, operand *op)
         break;
     case 8:
         cpu_register_name(op->reg, reg_name, 8);
-        fprintf(st, "0x%x(%s)", (int32)op->embedded.w, reg_name);
+        fprintf(st, "0x%x(%s)", (int32_t)op->embedded.w, reg_name);
         break;
     case 9:
         cpu_register_name(op->reg, reg_name, 8);
-        fprintf(st, "*0x%x(%s)", (int32)op->embedded.w, reg_name);
+        fprintf(st, "*0x%x(%s)", (int32_t)op->embedded.w, reg_name);
         break;
     case 10:
         cpu_register_name(op->reg, reg_name, 8);
-        fprintf(st, "0x%x(%s)", (int16)op->embedded.w, reg_name);
+        fprintf(st, "0x%x(%s)", (int16_t)op->embedded.w, reg_name);
         break;
     case 11:
         cpu_register_name(op->reg, reg_name, 8);
-        fprintf(st, "*0x%x(%s)", (int16)op->embedded.w, reg_name);
+        fprintf(st, "*0x%x(%s)", (int16_t)op->embedded.w, reg_name);
         break;
     case 12:
         cpu_register_name(op->reg, reg_name, 8);
-        fprintf(st, "%d(%s)", (int8)op->embedded.w, reg_name);
+        fprintf(st, "%d(%s)", (int8_t)op->embedded.w, reg_name);
         break;
     case 13:
         cpu_register_name(op->reg, reg_name, 8);
-        fprintf(st, "*%d(%s)", (int8)op->embedded.w, reg_name);
+        fprintf(st, "*%d(%s)", (int8_t)op->embedded.w, reg_name);
         break;
     case 14:
         if (op->reg == 15) {
@@ -1782,7 +1784,7 @@ void cpu_show_operand(FILE *st, operand *op)
         }
         break;
     case 15:
-        fprintf(st, "&0x%x", (int32)op->embedded.w);
+        fprintf(st, "&0x%x", (int32_t)op->embedded.w);
         break;
 #if defined(REV3)
     case 0x10: /* Auto pre-decrement */
@@ -1804,7 +1806,7 @@ void cpu_show_operand(FILE *st, operand *op)
     case 0xab:
         cpu_register_name(op->reg, reg_name, 8);
         cpu_register_name(op->reg2, reg2_name, 8);
-        fprintf(st, "%d(%s,%s)", (int8)op->embedded.b, reg2_name, reg_name);
+        fprintf(st, "%d(%s,%s)", (int8_t)op->embedded.b, reg2_name, reg_name);
         break;
     case 0xbb:
         cpu_register_name(op->reg, reg_name, 8);
@@ -1820,7 +1822,7 @@ void cpu_show_operand(FILE *st, operand *op)
     }
 }
 
-t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
+t_stat cpu_set_size(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
@@ -1828,15 +1830,15 @@ t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
     (void)cptr;
     (void)desc;
 
-    uint32 uval = (uint32) val;
-    uint8 *nRAM = NULL;
+    uint32_t uval = (uint32_t) val;
+    uint8_t *nRAM = NULL;
 
     if ((val <= 0) || (val > MAXMEMSIZE)) {
         return SCPE_ARG;
     }
 
     /* Do (re-)allocation for memory. */
-    nRAM = (uint8 *) calloc(uval, sizeof(uint32));
+    nRAM = (uint8_t *) calloc(uval, sizeof(uint32_t));
 
     if (nRAM == NULL) {
         return SCPE_MEM;
@@ -1844,7 +1846,7 @@ t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
     free(RAM);
     RAM = nRAM;
-    memset(RAM, 0, (size_t)uval * sizeof(uint32));
+    memset(RAM, 0, (size_t)uval * sizeof(uint32_t));
 
     MEM_SIZE = uval;
 
@@ -1853,7 +1855,7 @@ t_stat cpu_set_size(UNIT *uptr, int32 val, const char *cptr, void *desc)
 
 static inline void clear_instruction(instr *inst)
 {
-    uint8 i;
+    uint8_t i;
 
     inst->mn = NULL;
     inst->psw = 0;
@@ -1874,10 +1876,10 @@ static inline void clear_instruction(instr *inst)
  * Decode a single descriptor-defined operand from the instruction
  * stream. Returns the number of bytes consumed during decode.
  */
-static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etype)
+static uint8_t decode_operand(uint32_t pa, instr *instr, uint8_t op_number, int8_t *etype)
 {
-    uint8 desc;
-    uint8 offset = 0;
+    uint8_t desc;
+    uint8_t offset = 0;
     operand *oper = &instr->operands[op_number];
 
     /* Read in the descriptor byte */
@@ -1951,10 +1953,10 @@ static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etyp
     case 4:  /* Word Immediate, Register Mode */
         switch (oper->reg) {
         case 15: /* Word Immediate */
-            oper->embedded.w = (uint32) read_b(pa + offset++, ACC_IF, BUS_CPU);
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 16u;
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 24u;
+            oper->embedded.w = (uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU);
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 16u;
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 24u;
             oper->data = oper->embedded.w;
             break;
         default: /* Register mode */
@@ -1965,8 +1967,8 @@ static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etyp
     case 5: /* Halfword Immediate, Register Deferred Mode */
         switch (oper->reg) {
         case 15: /* Halfword Immediate */
-            oper->embedded.h = (uint16) read_b(pa + offset++, ACC_IF, BUS_CPU);
-            oper->embedded.h |= ((uint16) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
+            oper->embedded.h = (uint16_t) read_b(pa + offset++, ACC_IF, BUS_CPU);
+            oper->embedded.h |= ((uint16_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
             oper->data = oper->embedded.h;
             break;
         case 11: /* INVALID */
@@ -1992,10 +1994,10 @@ static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etyp
     case 7: /* Absolute, AP Short Offset */
         switch (oper->reg) {
         case 15: /* Absolute */
-            oper->embedded.w = (uint32) read_b(pa + offset++, ACC_IF, BUS_CPU);
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 16u;
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 24u;
+            oper->embedded.w = (uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU);
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 16u;
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 24u;
             oper->data = oper->embedded.w;
             break;
         default: /* AP Short Offset */
@@ -2006,16 +2008,16 @@ static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etyp
         break;
     case 8: /* Word Displacement */
     case 9: /* Word Displacement Deferred */
-        oper->embedded.w = (uint32) read_b(pa + offset++, ACC_IF, BUS_CPU);
-        oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
-        oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 16u;
-        oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 24u;
+        oper->embedded.w = (uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU);
+        oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
+        oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 16u;
+        oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 24u;
         oper->data = oper->embedded.w;
         break;
     case 10: /* Halfword Displacement */
     case 11: /* Halfword Displacement Deferred */
         oper->embedded.h = read_b(pa + offset++, ACC_IF, BUS_CPU);
-        oper->embedded.h |= ((uint16) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
+        oper->embedded.h |= ((uint16_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
         oper->data = oper->embedded.h;
         break;
     case 12: /* Byte Displacement */
@@ -2026,10 +2028,10 @@ static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etyp
     case 14: /* Absolute Deferred, Extended-Operand */
         switch (oper->reg) {
         case 15: /* Absolute Deferred */
-            oper->embedded.w = (uint32) read_b(pa + offset++, ACC_IF, BUS_CPU);
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 16u;
-            oper->embedded.w |= ((uint32) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 24u;
+            oper->embedded.w = (uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU);
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 16u;
+            oper->embedded.w |= ((uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 24u;
             break;
         case 0:
         case 2:
@@ -2039,7 +2041,7 @@ static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etyp
         case 7: /* Expanded Datatype */
             /* Recursively decode the remainder of the operand after
                storing the expanded datatype */
-            *etype = (int8) oper->reg;
+            *etype = (int8_t) oper->reg;
             oper->etype = *etype;
             offset += decode_operand(pa + offset, instr, op_number, etype);
             break;
@@ -2061,7 +2063,7 @@ static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etyp
         break;
     case 0xbb:  /* Indexed with halfword displacement */
         oper->embedded.h = read_b(pa + offset++, ACC_IF, BUS_CPU);
-        oper->embedded.h |= ((uint16) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
+        oper->embedded.h |= ((uint16_t) read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8u;
         oper->data = oper->embedded.h;
         break;
     case 0xdb: /* Indexed with scaling */
@@ -2103,15 +2105,15 @@ static uint8 decode_operand(uint32 pa, instr *instr, uint8 op_number, int8 *etyp
  *
  * returns: a Normal Exception if an error occured, or 0 on success.
  */
-uint8 decode_instruction(instr *instr)
+uint8_t decode_instruction(instr *instr)
 {
-    uint8 offset = 0;
-    uint8 b1, b2;
-    uint16 hword_op;
-    uint32 pa;
+    uint8_t offset = 0;
+    uint8_t b1, b2;
+    uint16_t hword_op;
+    uint32_t pa;
     mnemonic *mn = NULL;
     int i;
-    int8 etype = -1;  /* Expanded datatype (if any) */
+    int8_t etype = -1; /* Expanded datatype (if any) */
 
     clear_instruction(instr);
 
@@ -2134,7 +2136,7 @@ uint8 decode_instruction(instr *instr)
 
     if (b1 == 0x30) {
         read_operand(pa + offset++, &b2);
-        hword_op = (uint16) ((uint16)b1 << 8) | (uint16) b2;
+        hword_op = (uint16_t) ((uint16_t)b1 << 8) | (uint16_t) b2;
         for (i = 0; i < HWORD_OP_COUNT; i++) {
             if (hword_ops[i].opcode == hword_op) {
                 mn = &hword_ops[i];
@@ -2170,27 +2172,27 @@ uint8 decode_instruction(instr *instr)
         break;
     case OP_HALF:
         instr->operands[0].embedded.h = read_b(pa + offset++, ACC_IF, BUS_CPU);
-        instr->operands[0].embedded.h |= (uint16)(read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8;
+        instr->operands[0].embedded.h |= (uint16_t)(read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8;
         instr->operands[0].mode = 5;
         instr->operands[0].reg = 15;
         break;
     case OP_COPR:
-        instr->operands[0].embedded.w = (uint32) read_b(pa + offset++, ACC_IF, BUS_CPU);
-        instr->operands[0].embedded.w |= (uint32) read_b(pa + offset++, ACC_IF, BUS_CPU) << 8;
-        instr->operands[0].embedded.w |= (uint32) read_b(pa + offset++, ACC_IF, BUS_CPU) << 16;
-        instr->operands[0].embedded.w |= (uint32) read_b(pa + offset++, ACC_IF, BUS_CPU) << 24;
+        instr->operands[0].embedded.w = (uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU);
+        instr->operands[0].embedded.w |= (uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU) << 8;
+        instr->operands[0].embedded.w |= (uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU) << 16;
+        instr->operands[0].embedded.w |= (uint32_t) read_b(pa + offset++, ACC_IF, BUS_CPU) << 24;
         instr->operands[0].mode = 4;
         instr->operands[0].reg = 15;
 
         /* Decode subsequent operands */
         for (i = 1; i < mn->op_count; i++) {
-            offset += decode_operand(pa + offset, instr, (uint8) i, &etype);
+            offset += decode_operand(pa + offset, instr, (uint8_t) i, &etype);
         }
 
         break;
     case OP_DESC:
         for (i = 0; i < mn->op_count; i++) {
-            offset += decode_operand(pa + offset, instr, (uint8) i, &etype);
+            offset += decode_operand(pa + offset, instr, (uint8_t) i, &etype);
         }
         break;
 #if defined(REV3)
@@ -2205,7 +2207,7 @@ uint8 decode_instruction(instr *instr)
         offset += decode_operand(pa + offset, instr, 0, &etype);
         /* Operand 1 is a signed byte offset */
         instr->operands[1].embedded.h = read_b(pa + offset++, ACC_IF, BUS_CPU);
-        instr->operands[1].embedded.h |= (uint16)(read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8;
+        instr->operands[1].embedded.h |= (uint16_t)(read_b(pa + offset++, ACC_IF, BUS_CPU)) << 8;
         break;
 #endif
     default:
@@ -2215,7 +2217,7 @@ uint8 decode_instruction(instr *instr)
     return offset;
 }
 
-static inline void cpu_context_switch_3(uint32 new_pcbp)
+static inline void cpu_context_switch_3(uint32_t new_pcbp)
 {
     if (R[NUM_PSW] & PSW_R_MASK) {
 
@@ -2243,7 +2245,7 @@ static inline void cpu_context_switch_3(uint32 new_pcbp)
     }
 }
 
-static inline void cpu_context_switch_2(uint32 new_pcbp)
+static inline void cpu_context_switch_2(uint32_t new_pcbp)
 {
     R[NUM_PCBP] = new_pcbp;
 
@@ -2260,7 +2262,7 @@ static inline void cpu_context_switch_2(uint32 new_pcbp)
     }
 }
 
-static inline void cpu_context_switch_1(uint32 new_pcbp)
+static inline void cpu_context_switch_1(uint32_t new_pcbp)
 {
     /* Save the current PC in PCB */
     write_w(R[NUM_PCBP] + 4, R[NUM_PC], BUS_CPU);
@@ -2291,10 +2293,10 @@ static inline void cpu_context_switch_1(uint32 new_pcbp)
     }
 }
 
-void cpu_on_interrupt(uint16 vec)
+void cpu_on_interrupt(uint16_t vec)
 {
-    uint32 new_psw_ptr, new_psw, new_pc; /* Quick-Interrupt */
-    uint32 new_pcbp, new_pcbp_ptr;       /* Full-Interrupt */
+    uint32_t new_psw_ptr, new_psw, new_pc; /* Quick-Interrupt */
+    uint32_t new_pcbp, new_pcbp_ptr;     /* Full-Interrupt */
     bool quick;
 
     cpu_int_ack = vec;
@@ -2322,7 +2324,7 @@ void cpu_on_interrupt(uint16 vec)
         /*
          * Quick interrupt microsequence
          */
-        new_psw_ptr = (uint32)0x48c + (8 * (uint32)vec);
+        new_psw_ptr = (uint32_t)0x48c + (8 * (uint32_t)vec);
 
         /* Set ISC, TM, and ET to 2, 0, 0 before saving */
         R[NUM_PSW] &= ~(PSW_ISC_MASK|PSW_TM_MASK|PSW_ET_MASK);
@@ -2371,7 +2373,7 @@ void cpu_on_interrupt(uint16 vec)
         /*
          * Full interrupt microsequence
          */
-        new_pcbp_ptr = (uint32)0x8c + (4 * (uint32)vec);
+        new_pcbp_ptr = (uint32_t)0x8c + (4 * (uint32_t)vec);
 
         abort_context = C_RESET_SYSTEM_DATA;
 
@@ -2405,32 +2407,32 @@ void cpu_on_interrupt(uint16 vec)
 
 t_stat sim_instr(void)
 {
-    uint8 et, isc, trap;
+    uint8_t et, isc, trap;
 
     /* Temporary register used for overflow detection */
-    t_uint64 result;
+    uint64_t result;
 
     /* Scratch space */
-    uint32   a, b, c, d;
+    uint32_t a, b, c, d;
 
     /* Used for field calculation */
-    uint32   width, offset;
-    uint32   mask;
+    uint32_t width, offset;
+    uint32_t mask;
 
     /* Generic index */
-    uint32   i;
+    uint32_t i;
 
     /* Interrupt request IPL */
-    uint8    ipl;
+    uint8_t  ipl;
 
     /* Used by oprocessor instructions */
-    uint32   coprocessor_word;
+    uint32_t coprocessor_word;
 
     operand *src1, *src2, *src3, *dst;
 
     stop_reason = 0;
 
-    abort_reason = (uint32) setjmp(save_env);
+    abort_reason = (uint32_t) setjmp(save_env);
 
     /* Exception handler.
      *
@@ -2633,7 +2635,7 @@ t_stat sim_instr(void)
         case ALSW3:
             a = cpu_read_op(src2);
             b = cpu_read_op(src1);
-            result = (t_uint64)a << (b & 0x1f);
+            result = (uint64_t)a << (b & 0x1f);
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
             cpu_set_c_flag(0);
@@ -2883,15 +2885,15 @@ t_stat sim_instr(void)
             switch(op_type(src2)) {
             case WD:
             case UW:
-                cpu_set_n_flag((int32)b < (int32)a);
+                cpu_set_n_flag((int32_t)b < (int32_t)a);
                 break;
             case HW:
             case UH:
-                cpu_set_n_flag((int16)b < (int16)a);
+                cpu_set_n_flag((int16_t)b < (int16_t)a);
                 break;
             case BT:
             case SB:
-                cpu_set_n_flag((int8)b < (int8)a);
+                cpu_set_n_flag((int8_t)b < (int8_t)a);
                 break;
             default:
                 /* Unreachable */
@@ -2921,7 +2923,7 @@ t_stat sim_instr(void)
                 cpu_set_v_flag(1);
             }
 
-            DIV(a, b, src1, dst, int32);
+            DIV(a, b, src1, dst, int32_t);
 
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
@@ -2940,7 +2942,7 @@ t_stat sim_instr(void)
                 cpu_set_v_flag(1);
             }
 
-            DIV(a, b, src1, dst, int16);
+            DIV(a, b, src1, dst, int16_t);
 
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
@@ -2959,7 +2961,7 @@ t_stat sim_instr(void)
                 cpu_set_v_flag(1);
             }
 
-            result = (uint8)b / (uint8)a;
+            result = (uint8_t)b / (uint8_t)a;
 
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
@@ -2978,7 +2980,7 @@ t_stat sim_instr(void)
                 cpu_set_v_flag(1);
             }
 
-            DIV(a, b, src1, src2, int32);
+            DIV(a, b, src1, src2, int32_t);
 
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
@@ -2997,7 +2999,7 @@ t_stat sim_instr(void)
                 cpu_set_v_flag(1);
             }
 
-            DIV(a, b, src1, src2, int16);
+            DIV(a, b, src1, src2, int16_t);
 
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
@@ -3016,7 +3018,7 @@ t_stat sim_instr(void)
                 cpu_set_v_flag(1);
             }
 
-            result = (uint8)b / (uint8)a;
+            result = (uint8_t)b / (uint8_t)a;
 
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
@@ -3108,7 +3110,7 @@ t_stat sim_instr(void)
         case LLSW3:
         case LLSH3:
         case LLSB3:
-            result = (t_uint64)cpu_read_op(src2) << (cpu_read_op(src1) & 0x1f);
+            result = (uint64_t)cpu_read_op(src2) << (cpu_read_op(src1) & 0x1f);
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
             cpu_set_c_flag(0);
@@ -3144,7 +3146,7 @@ t_stat sim_instr(void)
             cpu_set_v_flag(0);
             break;
         case LRSW3:
-            a = (uint32) cpu_read_op(src2) >> (cpu_read_op(src1) & 0x1f);
+            a = (uint32_t) cpu_read_op(src2) >> (cpu_read_op(src1) & 0x1f);
             cpu_write_op(dst, a);
             cpu_set_nz_flags(a, dst);
             cpu_set_c_flag(0);
@@ -3248,7 +3250,7 @@ t_stat sim_instr(void)
             break;
         case ROTW:
             a = cpu_read_op(src1) & 0x1f;
-            b = (uint32) cpu_read_op(src2);
+            b = (uint32_t) cpu_read_op(src2);
             mask = (CHAR_BIT * sizeof(a) - 1);
             d = (b >> a) | (b << ((~a + 1) & mask));
             cpu_write_op(dst, d);
@@ -3298,7 +3300,7 @@ t_stat sim_instr(void)
                 cpu_abort(NORMAL_EXCEPTION, INTEGER_ZERO_DIVIDE);
                 break;
             }
-            MOD(a, b, src1, dst, int32);
+            MOD(a, b, src1, dst, int32_t);
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
             cpu_set_c_flag(0);
@@ -3311,7 +3313,7 @@ t_stat sim_instr(void)
                 cpu_abort(NORMAL_EXCEPTION, INTEGER_ZERO_DIVIDE);
                 break;
             }
-            MOD(a, b, src1, dst, int16);
+            MOD(a, b, src1, dst, int16_t);
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
             cpu_set_c_flag(0);
@@ -3324,7 +3326,7 @@ t_stat sim_instr(void)
                 cpu_abort(NORMAL_EXCEPTION, INTEGER_ZERO_DIVIDE);
                 break;
             }
-            result = (uint8)b % (uint8)a;
+            result = (uint8_t)b % (uint8_t)a;
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
             cpu_set_c_flag(0);
@@ -3338,7 +3340,7 @@ t_stat sim_instr(void)
                 cpu_abort(NORMAL_EXCEPTION, INTEGER_ZERO_DIVIDE);
                 break;
             }
-            MOD(a, b, src1, src2, int32);
+            MOD(a, b, src1, src2, int32_t);
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
             cpu_set_c_flag(0);
@@ -3351,7 +3353,7 @@ t_stat sim_instr(void)
                 cpu_abort(NORMAL_EXCEPTION, INTEGER_ZERO_DIVIDE);
                 break;
             }
-            MOD(a, b, src1, src2, int16);
+            MOD(a, b, src1, src2, int16_t);
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
             cpu_set_c_flag(0);
@@ -3364,16 +3366,16 @@ t_stat sim_instr(void)
                 cpu_abort(NORMAL_EXCEPTION, INTEGER_ZERO_DIVIDE);
                 break;
             }
-            result = (uint8)b % (uint8)a;
+            result = (uint8_t)b % (uint8_t)a;
             cpu_write_op(dst, result);
             cpu_set_nz_flags(result, dst);
             cpu_set_c_flag(0);
             cpu_set_v_flag_op(result, dst);
             break;
         case MULW2:
-            result = (t_uint64)cpu_read_op(src1) * (t_uint64)cpu_read_op(dst);
-            cpu_write_op(dst, (uint32)(result & WORD_MASK));
-            cpu_set_nz_flags((uint32)(result & WORD_MASK), dst);
+            result = (uint64_t)cpu_read_op(src1) * (uint64_t)cpu_read_op(dst);
+            cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+            cpu_set_nz_flags((uint32_t)(result & WORD_MASK), dst);
             cpu_set_c_flag(0);
             cpu_set_v_flag_op(result, dst);
             break;
@@ -3392,9 +3394,9 @@ t_stat sim_instr(void)
             cpu_set_v_flag_op(result, src1);
             break;
         case MULW3:
-            result = (t_uint64)cpu_read_op(src1) * (t_uint64)cpu_read_op(src2);
-            cpu_write_op(dst, (uint32)(result & WORD_MASK));
-            cpu_set_nz_flags((uint32)(result & WORD_MASK), dst);
+            result = (uint64_t)cpu_read_op(src1) * (uint64_t)cpu_read_op(src2);
+            cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+            cpu_set_nz_flags((uint32_t)(result & WORD_MASK), dst);
             cpu_set_c_flag(0);
             cpu_set_v_flag_op(result, dst);
             break;
@@ -3730,7 +3732,7 @@ t_stat sim_instr(void)
              * pointer! */
             while (1) {
                 a = read_b(R[0], ACC_AF, BUS_CPU);
-                write_b(R[1], (uint8) a, BUS_CPU);
+                write_b(R[1], (uint8_t) a, BUS_CPU);
                 if (a == '\0') {
                     break;
                 }
@@ -3740,21 +3742,21 @@ t_stat sim_instr(void)
             break;
         case TSTW:
             a = cpu_read_op(src1);
-            cpu_set_n_flag((int32)a < 0);
+            cpu_set_n_flag((int32_t)a < 0);
             cpu_set_z_flag(a == 0);
             cpu_set_c_flag(0);
             cpu_set_v_flag(0);
             break;
         case TSTH:
             a = cpu_read_op(src1);
-            cpu_set_n_flag((int16)a < 0);
+            cpu_set_n_flag((int16_t)a < 0);
             cpu_set_z_flag(a == 0);
             cpu_set_c_flag(0);
             cpu_set_v_flag(0);
             break;
         case TSTB:
             a = cpu_read_op(src1);
-            cpu_set_n_flag((int8)a < 0);
+            cpu_set_n_flag((int8_t)a < 0);
             cpu_set_z_flag(a == 0);
             cpu_set_c_flag(0);
             cpu_set_v_flag(0);
@@ -3800,31 +3802,31 @@ t_stat sim_instr(void)
         case DTB:
             a = cpu_read_op(dst);
             result = a - 1;
-            cpu_write_op(dst, (uint32)(result & WORD_MASK));
-            if ((int32)result > -1) {
+            cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+            if ((int32_t)result > -1) {
                 pc_incr = sign_extend_b(src1->embedded.b);
             }
             sim_debug(EXECUTE_MSG, &cpu_dev,
                       "[%08x] DTB: dst=%08x r=%08x emb=%04x\n",
-                      R[NUM_PC], a, (uint32)(result & WORD_MASK), src1->embedded.h);
+                      R[NUM_PC], a, (uint32_t)(result & WORD_MASK), src1->embedded.h);
             break;
         case DTH:
             a = cpu_read_op(dst);
             result = a - 1;
-            cpu_write_op(dst, (uint32)(result & WORD_MASK));
-            if ((int32)result > -1) {
+            cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+            if ((int32_t)result > -1) {
                 pc_incr = sign_extend_h(src1->embedded.h);
             }
             sim_debug(EXECUTE_MSG, &cpu_dev,
                       "[%08x] DTH: dst=%08x r=%08x emb=%04x\n",
-                      R[NUM_PC], a, (uint32)(result & WORD_MASK), src1->embedded.h);
+                      R[NUM_PC], a, (uint32_t)(result & WORD_MASK), src1->embedded.h);
             break;
         case TEDTB:
             if (!cpu_z_flag()) {
                 a = cpu_read_op(dst);
                 result = a - 1;
-                cpu_write_op(dst, (uint32)(result & WORD_MASK));
-                if ((int32)result > -1) {
+                cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+                if ((int32_t)result > -1) {
                     pc_incr = sign_extend_b(src1->embedded.b);
                 }
             }
@@ -3833,8 +3835,8 @@ t_stat sim_instr(void)
             if (!cpu_z_flag()) {
                 a = cpu_read_op(dst);
                 result = a - 1;
-                cpu_write_op(dst, (uint32)(result & WORD_MASK));
-                if ((int32)result > -1) {
+                cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+                if ((int32_t)result > -1) {
                     pc_incr = sign_extend_h(src1->embedded.h);
                 }
             }
@@ -3843,8 +3845,8 @@ t_stat sim_instr(void)
             if (cpu_n_flag() || cpu_z_flag()) {
                 a = cpu_read_op(dst);
                 result = a - 1;
-                cpu_write_op(dst, (uint32)(result & WORD_MASK));
-                if ((int32)result > -1) {
+                cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+                if ((int32_t)result > -1) {
                     pc_incr = sign_extend_b(src1->embedded.b);
                 }
             }
@@ -3853,8 +3855,8 @@ t_stat sim_instr(void)
             if (cpu_n_flag() || cpu_z_flag()) {
                 a = cpu_read_op(dst);
                 result = a - 1;
-                cpu_write_op(dst, (uint32)(result & WORD_MASK));
-                if ((int32)result > -1) {
+                cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+                if ((int32_t)result > -1) {
                     pc_incr = sign_extend_h(src1->embedded.h);
                 }
             }
@@ -3863,8 +3865,8 @@ t_stat sim_instr(void)
             if (cpu_n_flag() && !cpu_z_flag()) {
                 a = cpu_read_op(dst);
                 result = a - 1;
-                cpu_write_op(dst, (uint32)(result & WORD_MASK));
-                if ((int32)result > -1) {
+                cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+                if ((int32_t)result > -1) {
                     pc_incr = sign_extend_b(src1->embedded.b);
                 }
             }
@@ -3873,8 +3875,8 @@ t_stat sim_instr(void)
             if (cpu_n_flag() && !cpu_z_flag()) {
                 a = cpu_read_op(dst);
                 result = a - 1;
-                cpu_write_op(dst, (uint32)(result & WORD_MASK));
-                if ((int32)result > -1) {
+                cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+                if ((int32_t)result > -1) {
                     pc_incr = sign_extend_h(src1->embedded.h);
                 }
             }
@@ -3883,8 +3885,8 @@ t_stat sim_instr(void)
             if (cpu_z_flag()) {
                 a = cpu_read_op(dst);
                 result = a - 1;
-                cpu_write_op(dst, (uint32)(result & WORD_MASK));
-                if ((int32)result > -1) {
+                cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+                if ((int32_t)result > -1) {
                     pc_incr = sign_extend_b(src1->embedded.b);
                 }
             }
@@ -3893,8 +3895,8 @@ t_stat sim_instr(void)
             if (cpu_z_flag()) {
                 a = cpu_read_op(dst);
                 result = a - 1;
-                cpu_write_op(dst, (uint32)(result & WORD_MASK));
-                if ((int32)result > -1) {
+                cpu_write_op(dst, (uint32_t)(result & WORD_MASK));
+                if ((int32_t)result > -1) {
                     pc_incr = sign_extend_h(src1->embedded.h);
                 }
             }
@@ -3935,9 +3937,9 @@ t_stat sim_instr(void)
                 cpu_write_op(src2, c);
             }
 
-            cpu_set_n_flag((int32)result < 0);
+            cpu_set_n_flag((int32_t)result < 0);
             cpu_set_z_flag(result == 0);
-            cpu_set_c_flag((uint32)b > (uint32)c);
+            cpu_set_c_flag((uint32_t)b > (uint32_t)c);
             cpu_set_v_flag_op(result, dst);
             break;
         case SETX:
@@ -4031,7 +4033,7 @@ t_stat sim_instr(void)
             R[NUM_PSW] &= ~(PSW_ET_MASK);
             R[NUM_PSW] &= ~(PSW_ISC_MASK);
             R[NUM_PSW] |= NORMAL_EXCEPTION;
-            R[NUM_PSW] |= (uint32) (trap << PSW_ISC);
+            R[NUM_PSW] |= (uint32_t) (trap << PSW_ISC);
             cpu_on_normal_exception(trap);
         }
     }
@@ -4039,9 +4041,9 @@ t_stat sim_instr(void)
     return stop_reason;
 }
 
-static inline void cpu_on_process_exception(uint8 isc)
+static inline void cpu_on_process_exception(uint8_t isc)
 {
-    uint32 new_pcbp;
+    uint32_t new_pcbp;
 
     sim_debug(EXECUTE_MSG, &cpu_dev,
               "[cpu_on_process_exception %d] SP=%08x PCBP=%08x ISP=%08x\n",
@@ -4066,9 +4068,9 @@ static inline void cpu_on_process_exception(uint8 isc)
     return;
 }
 
-static inline void cpu_on_reset_exception(uint8 isc)
+static inline void cpu_on_reset_exception(uint8_t isc)
 {
-    uint32 new_pcbp;
+    uint32_t new_pcbp;
 
     sim_debug(EXECUTE_MSG, &cpu_dev,
               "[cpu_on_reset_exception %d] SP=%08x PCBP=%08x ISP=%08x\n",
@@ -4092,9 +4094,9 @@ static inline void cpu_on_reset_exception(uint8 isc)
     abort_context = C_NONE;
 }
 
-static inline void cpu_on_stack_exception(uint8 isc)
+static inline void cpu_on_stack_exception(uint8_t isc)
 {
-    uint32 new_pcbp;
+    uint32_t new_pcbp;
 
     sim_debug(EXECUTE_MSG, &cpu_dev,
               "[cpu_on_stack_exception %d] SP=%08x PCBP=%08x ISP=%08x\n",
@@ -4110,7 +4112,7 @@ static inline void cpu_on_stack_exception(uint8 isc)
     abort_context = C_PROCESS_OLD_PCB;
     R[NUM_PSW] &= ~(PSW_ET_MASK|PSW_ISC_MASK);
     R[NUM_PSW] |= (2 << PSW_ET);
-    R[NUM_PSW] |= (uint32) (isc << PSW_ISC);
+    R[NUM_PSW] |= (uint32_t) (isc << PSW_ISC);
 
     cpu_context_switch_1(new_pcbp);
     cpu_context_switch_2(new_pcbp);
@@ -4124,7 +4126,7 @@ static inline void cpu_on_stack_exception(uint8 isc)
     abort_context = C_NONE;
 }
 
-static inline void cpu_on_normal_exception(uint8 isc)
+static inline void cpu_on_normal_exception(uint8_t isc)
 {
     sim_debug(EXECUTE_MSG, &cpu_dev,
               "[cpu_on_normal_exception %d] %%sp=%08x abort_context=%d\n",
@@ -4158,16 +4160,16 @@ static inline void cpu_on_normal_exception(uint8 isc)
 
     /* Set context for RESET (GATE VECTOR) */
     abort_context = C_RESET_GATE_VECTOR;
-    cpu_perform_gate(0, ((uint32) isc) << 3);
+    cpu_perform_gate(0, ((uint32_t) isc) << 3);
 
     /* Finish push of old PC and PSW */
     R[NUM_SP] += 8;
     abort_context = C_NONE;
 }
 
-static inline void cpu_perform_gate(uint32 index1, uint32 index2)
+static inline void cpu_perform_gate(uint32_t index1, uint32_t index2)
 {
-    uint32 gate_l2, new_psw;
+    uint32_t gate_l2, new_psw;
 
     abort_context = C_NORMAL_GATE_VECTOR;
     cpu_km = true;
@@ -4205,10 +4207,10 @@ static inline void cpu_perform_gate(uint32 index1, uint32 index2)
  * effective_address as a field in the operand struct and make
  * cpu_show_hist smarter.
  */
-static uint32 cpu_effective_address(operand *op)
+static uint32_t cpu_effective_address(operand *op)
 {
 #if defined(REV3)
-    uint32 tmp;
+    uint32_t tmp;
 #endif
 
     /* Register Deferred */
@@ -4459,10 +4461,10 @@ static uint32 cpu_effective_address(operand *op)
  *  Microprocessor Information Manual", Section 3.1.1
  *
  */
-static uint32 cpu_read_op(operand * op)
+static uint32_t cpu_read_op(operand * op)
 {
-    uint32 eff;
-    uint32 data;
+    uint32_t eff;
+    uint32_t data;
 
     /* Register */
     if (op->mode == 4 && op->reg != 15) {
@@ -4560,10 +4562,10 @@ static uint32 cpu_read_op(operand * op)
 }
 
 
-static void cpu_write_op(operand * op, t_uint64 val)
+static void cpu_write_op(operand * op, uint64_t val)
 {
-    uint32 eff;
-    op->data = (uint32) val;
+    uint32_t eff;
+    op->data = (uint32_t) val;
 
     /* Writing to a register. */
     if (op->mode == 4 && op->reg != 15) {
@@ -4575,9 +4577,9 @@ static void cpu_write_op(operand * op, t_uint64 val)
         /* Registers always get the full 32-bits written, EXCEPT for
          * the PSW, which has some Read-Only fields. */
         if (op->reg == NUM_PSW) {
-            WRITE_PSW((uint32) val);
+            WRITE_PSW((uint32_t) val);
         } else {
-            R[op->reg] = (uint32) val;
+            R[op->reg] = (uint32_t) val;
         }
 
         return;
@@ -4601,7 +4603,7 @@ static void cpu_write_op(operand * op, t_uint64 val)
     switch (op_type(op)) {
     case UW:
     case WD:
-        write_w(eff, (uint32) val, BUS_CPU);
+        write_w(eff, (uint32_t) val, BUS_CPU);
         break;
     case HW:
     case UH:
@@ -4624,7 +4626,7 @@ static void cpu_write_op(operand * op, t_uint64 val)
  * Returns the correct datatype for an operand -- either extended type
  * or default type.
  */
-static inline int8 op_type(operand *op) {
+static inline int8_t op_type(operand *op) {
     if (op->etype > -1) {
         return op->etype;
     } else {
@@ -4636,24 +4638,24 @@ static inline bool op_signed(operand *op) {
     return (op_type(op) == WD || op_type(op) == HW || op_type(op) == SB);
 }
 
-static inline uint32 sign_extend_b(uint8 val)
+static inline uint32_t sign_extend_b(uint8_t val)
 {
     if (val & 0x80)
-        return ((uint32) val) | 0xffffff00;
-    return (uint32) val;
+        return ((uint32_t) val) | 0xffffff00;
+    return (uint32_t) val;
 }
 
-static inline uint32 sign_extend_h(uint16 val)
+static inline uint32_t sign_extend_h(uint16_t val)
 {
     if (val & 0x8000)
-        return ((uint32) val) | 0xffff0000;
-    return (uint32) val;
+        return ((uint32_t) val) | 0xffff0000;
+    return (uint32_t) val;
 }
 
 /*
  * Returns the current CPU execution level.
  */
-static inline uint8 cpu_execution_level(void)
+static inline uint8_t cpu_execution_level(void)
 {
     return (R[NUM_PSW] & PSW_CM_MASK) >> PSW_CM;
 }
@@ -4723,7 +4725,7 @@ static inline void cpu_set_x_flag(bool val)
 }
 #endif
 
-static inline void cpu_set_v_flag_op(t_uint64 val, operand *op)
+static inline void cpu_set_v_flag_op(uint64_t val, operand *op)
 {
     switch(op_type(op)) {
     case WD:
@@ -4754,9 +4756,9 @@ static inline void cpu_set_v_flag(bool val)
     }
 }
 
-static void cpu_set_nz_flags(t_uint64 data, operand *dst)
+static void cpu_set_nz_flags(uint64_t data, operand *dst)
 {
-    int8 type = op_type(dst);
+    int8_t type = op_type(dst);
 
     switch (type) {
     case WD:
@@ -4777,15 +4779,15 @@ static void cpu_set_nz_flags(t_uint64 data, operand *dst)
     }
 }
 
-static inline void cpu_push_word(uint32 val)
+static inline void cpu_push_word(uint32_t val)
 {
     write_w(R[NUM_SP], val, BUS_CPU);
     R[NUM_SP] += 4;
 }
 
-static inline uint32 cpu_pop_word(void)
+static inline uint32_t cpu_pop_word(void)
 {
-    uint32 result;
+    uint32_t result;
     /* We always read fromthe stack first BEFORE decrementing,
        in case this causes a fault. */
     result = read_w(R[NUM_SP] - 4, ACC_AF, BUS_CPU);
@@ -4793,13 +4795,13 @@ static inline uint32 cpu_pop_word(void)
     return result;
 }
 
-static inline void irq_push_word(uint32 val)
+static inline void irq_push_word(uint32_t val)
 {
     write_w(R[NUM_ISP], val, BUS_CPU);
     R[NUM_ISP] += 4;
 }
 
-static inline uint32 irq_pop_word(void)
+static inline uint32_t irq_pop_word(void)
 {
     R[NUM_ISP] -= 4;
     return read_w(R[NUM_ISP], ACC_AF, BUS_CPU);
@@ -4810,22 +4812,22 @@ static inline bool op_is_psw(operand *op)
     return (op->mode == 4 && op->reg == NUM_PSW);
 }
 
-static inline void sub(t_uint64 a, t_uint64 b, operand *dst)
+static inline void sub(uint64_t a, uint64_t b, operand *dst)
 {
-    t_uint64 result;
+    uint64_t result;
 
     result = a - b;
 
     cpu_write_op(dst, result);
 
     cpu_set_nz_flags(result, dst);
-    cpu_set_c_flag((uint32)b > (uint32)a);
+    cpu_set_c_flag((uint32_t)b > (uint32_t)a);
     cpu_set_v_flag_op(result, dst);
 }
 
-static inline void add(t_uint64 a, t_uint64 b, operand *dst)
+static inline void add(uint64_t a, uint64_t b, operand *dst)
 {
-    t_uint64 result;
+    uint64_t result;
 
     result = a + b;
 
@@ -4867,9 +4869,9 @@ static inline void add(t_uint64 a, t_uint64 b, operand *dst)
  * bytes. This will set the C and X carry flags appropraitely if there
  * is a carry.
  */
-static inline uint8 add_bcd(uint8 packed_a, uint8 packed_b)
+static inline uint8_t add_bcd(uint8_t packed_a, uint8_t packed_b)
 {
-    uint16 l, h, result;
+    uint16_t l, h, result;
 
     l = (packed_a & 0x0f) + (packed_b & 0x0f) + (cpu_x_flag() ? 1 : 0);
     if ((l & 0xff) > 9) {
@@ -4889,7 +4891,7 @@ static inline uint8 add_bcd(uint8 packed_a, uint8 packed_b)
     cpu_set_n_flag(0);
     cpu_set_v_flag(0);
 
-    return (uint8)result;
+    return (uint8_t)result;
 }
 
 /*
@@ -4897,9 +4899,9 @@ static inline uint8 add_bcd(uint8 packed_a, uint8 packed_b)
  * input bytes. This will set the C and X carry flags appropraitely if
  * there is a carry.
  */
-static inline uint8 sub_bcd(uint8 packed_a, uint8 packed_b)
+static inline uint8_t sub_bcd(uint8_t packed_a, uint8_t packed_b)
 {
-    uint16 l, h, result;
+    uint16_t l, h, result;
 
     l = (packed_a & 0x0f) - (packed_b & 0x0f) - (cpu_x_flag() ? 1 : 0);
     if ((l & 0x10) != 0) {
@@ -4919,7 +4921,7 @@ static inline uint8 sub_bcd(uint8 packed_a, uint8 packed_b)
     cpu_set_n_flag(0);
     cpu_set_v_flag(0);
 
-    return (uint8)result;
+    return (uint8_t)result;
 }
 #endif
 
@@ -4927,7 +4929,7 @@ static inline uint8 sub_bcd(uint8 packed_a, uint8 packed_b)
  * Set PSW's ET and ISC fields, and store global exception or fault
  * state appropriately.
  */
-void cpu_abort(uint8 et, uint8 isc)
+void cpu_abort(uint8_t et, uint8_t isc)
 {
     /* We don't trap Integer Overflow if the OE bit is not set */
     if ((R[NUM_PSW] & PSW_OE_MASK) == 0 && isc == INTEGER_OVERFLOW) {
@@ -4937,7 +4939,7 @@ void cpu_abort(uint8 et, uint8 isc)
     R[NUM_PSW] &= ~(PSW_ET_MASK);  /* Clear ET  */
     R[NUM_PSW] &= ~(PSW_ISC_MASK); /* Clear ISC */
     R[NUM_PSW] |= et;                         /* Set ET    */
-    R[NUM_PSW] |= (uint32) (isc << PSW_ISC);  /* Set ISC   */
+    R[NUM_PSW] |= (uint32_t) (isc << PSW_ISC); /* Set ISC   */
 
     longjmp(save_env, ABORT_EXC);
 }
@@ -4955,7 +4957,7 @@ const char *cpu_description(DEVICE *dptr)
 #endif
 }
 
-t_stat cpu_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr)
+t_stat cpu_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
     /* Generic device help signature.
        This implementation does not use every parameter. */

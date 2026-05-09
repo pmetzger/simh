@@ -1,27 +1,28 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "test_cmocka.h"
 
 #include "vax_cpu1_internal.h"
 
-static int32 old_int_bool_call_frame_word(uint32 sp, int gs, int32 mask,
-                                          uint32 psl)
+static int32_t old_int_bool_call_frame_word(uint32_t sp, int gs, int32_t mask,
+                                          uint32_t psl)
 {
-    uint32 word;
+    uint32_t word;
 
     word =
-        ((sp & (uint32)CALL_M_SPA) << CALL_V_SPA) | (uint32)(gs << CALL_V_S) |
-        (((uint32)mask & (uint32)CALL_MASK) << CALL_V_MASK) | (psl & 0xFFE0u);
-    return (int32)word;
+        ((sp & (uint32_t)CALL_M_SPA) << CALL_V_SPA) | (uint32_t)(gs << CALL_V_S) |
+        (((uint32_t)mask & (uint32_t)CALL_MASK) << CALL_V_MASK) | (psl & 0xFFE0u);
+    return (int32_t)word;
 }
 
 static void test_call_frame_word_matches_old_int_bool_expression(void **state)
 {
     static const struct {
-        uint32 sp;
-        int32 mask;
-        uint32 psl;
+        uint32_t sp;
+        int32_t mask;
+        uint32_t psl;
     } cases[] = {
         {0x00000000u, 0x0000, 0x00000000u}, {0x00000001u, 0x0001, 0x00000020u},
         {0x00000002u, 0x0555, 0x0000FFE0u}, {0x00000003u, 0x0FFF, 0xFFFFFFFFu},
@@ -45,8 +46,8 @@ static void test_call_frame_word_matches_old_int_bool_expression(void **state)
 
 static void test_call_frame_word_sets_s_flag_only_for_calls(void **state)
 {
-    int32 callg_word;
-    int32 calls_word;
+    int32_t callg_word;
+    int32_t calls_word;
 
     (void)state;
 

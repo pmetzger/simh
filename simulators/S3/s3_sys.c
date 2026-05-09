@@ -27,7 +27,10 @@
 */
 
 #include <ctype.h>
+#include <stdint.h>
+
 #include "s3_defs.h"
+#include "sim_types.h"
 
 extern DEVICE cpu_dev;
 extern DEVICE pkb_dev;
@@ -41,13 +44,13 @@ extern DEVICE r2_dev;
 extern DEVICE f2_dev;
 extern UNIT cpu_unit;
 extern REG cpu_reg[];
-extern unsigned char M[];
-extern int32 saved_PC, IAR[];
-extern unsigned char ebcdic_to_ascii[];
-const char *parse_addr(const char *cptr,  char *gbuf, t_addr *addr, int32 *addrtype);
+extern uchar_t M[];
+extern int32_t saved_PC, IAR[];
+extern uchar_t ebcdic_to_ascii[];
+const char *parse_addr(const char *cptr,  char *gbuf, t_addr *addr, int32_t *addrtype);
 
-int32 printf_sym (FILE *of, char *strg, t_addr addr, uint32 *val,
-    UNIT *uptr, int32 sw);
+int32_t printf_sym (FILE *of, char *strg, t_addr addr, uint32_t *val,
+    UNIT *uptr, int32_t sw);
 
 /* SCP data structures
 
@@ -63,7 +66,7 @@ char sim_name[] = "System/3";
 
 REG *sim_PC = &cpu_reg[0];
 
-int32 sim_emax = 6;
+int32_t sim_emax = 6;
 
 DEVICE *sim_devices[] = {
     &cpu_dev,
@@ -120,7 +123,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
         want to appear first, the second will never appear on output.
 */
 
-int32 nopcode = 75;
+int32_t nopcode = 75;
 struct opdef opcode[75] = {
     {"HPL",  0x00,0,0,0},                                /** Halt Program Level */
     {"A",    0x06,0,1,3},                                /** Add to Register: A R,AADD */
@@ -199,7 +202,7 @@ struct opdef opcode[75] = {
     {"***",  0x00,0,0,0}
 };
 
-int32 regcode[15] = {   0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
+int32_t regcode[15] = {   0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
             0x80, 0xC0, 0xA0, 0x90, 0x88, 0x84, 0x82, 0x81
 };
 
@@ -231,7 +234,7 @@ t_stat sim_load (FILE *fileref, const char *cptr, const char *fnam, int flag)
    This implementation does not use every parameter. */
 (void) fnam;
 
-int32 i, addr = 0, cnt = 0;
+int32_t i, addr = 0, cnt = 0;
 
 if ((*cptr != 0) || (flag != 0)) return SCPE_ARG;
 addr = IAR[8];
@@ -257,9 +260,9 @@ return (SCPE_OK);
 */
 
 t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
-    UNIT *uptr, int32 sw)
+    UNIT *uptr, int32_t sw)
 {
-    int32 r;
+    int32_t r;
     char strg[256];
 
     strcpy(strg, "");
@@ -271,14 +274,14 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     return (r);
 }
 
-int32 printf_sym (FILE *of, char *strg, t_addr addr, uint32 *val,
-    UNIT *uptr, int32 sw)
+int32_t printf_sym (FILE *of, char *strg, t_addr addr, uint32_t *val,
+    UNIT *uptr, int32_t sw)
 {
-int32 c1, c2, group, len1, len2, inst, aaddr, baddr;
-int32 oplen, groupno, i, j, vpos, qbyte, da, m, n;
+int32_t c1, c2, group, len1, len2, inst, aaddr, baddr;
+int32_t oplen, groupno, i, j, vpos, qbyte, da, m, n;
 char bld[128], bldaddr[160], boperand[32], aoperand[32];
-int32 blk[16], blt[16];
-int32 blkadd;
+int32_t blk[16], blt[16];
+int32_t blkadd;
 
 memset (bld, 0, sizeof (bld));
 memset (bldaddr, 0, sizeof (bldaddr));
@@ -507,21 +510,21 @@ return -(oplen - 1);
         status  =       error status
 */
 
-t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32 sw)
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw)
 {
-int32 cflag, i = 0, j, r, oplen, addtyp, saveaddr, vptr;
+int32_t cflag, i = 0, j, r, oplen, addtyp, saveaddr, vptr;
 char gbuf[CBUFSIZE];
 
 cflag = (uptr == NULL) || (uptr == &cpu_unit);
 while (isspace (*cptr)) cptr++;                         /* absorb spaces */
 if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    val[0] = (unsigned int) cptr[0];
+    val[0] = (uint_t) cptr[0];
     return SCPE_OK;
 }
 if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* ASCII string? */
     if (cptr[0] == 0) return SCPE_ARG;                  /* must have 1 char */
-    val[0] = ((unsigned int) cptr[0] << 8) + (unsigned int) cptr[1];
+    val[0] = ((uint_t) cptr[0] << 8) + (uint_t) cptr[1];
     return SCPE_OK;
 }
 
@@ -929,9 +932,9 @@ switch (opcode[j].form) {                               /* Get operands based on
 return (-(oplen-1));
 }
 
-const char *parse_addr(const char *cptr,  char *gbuf, t_addr *addr, int32 *addrtype)
+const char *parse_addr(const char *cptr,  char *gbuf, t_addr *addr, int32_t *addrtype)
 {
-int32 nybble = 0;
+int32_t nybble = 0;
 char temp[CBUFSIZE];
 
 cptr = get_glyph(cptr, gbuf, ',');
