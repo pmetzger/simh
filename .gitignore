@@ -30,11 +30,7 @@ Thumbs.db
 # Ignore local build and install trees.
 /build/
 /vcpkg_installed/
-SIMH-install
+CMakeUserPresets.json
 
 # Temporary files during work
 tmp/
-
-# Temporary working tree containing existing Markdown conversions and
-# exported assets while the Word-document replacement effort is ongoing.
-simh-docs/
