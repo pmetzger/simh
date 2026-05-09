@@ -146,7 +146,7 @@ const char *sysd_description (DEVICE *dptr);
 int32 ka_rd (int32 pa);
 void ka_wr (int32 pa, int32 val, int32 lnt);
 int32 con_halt (int32 code, int32 cc);
-int32 tmr_tir_rd (void);
+uint32 tmr_tir_rd (void);
 void tmr_sched (void);
 
 extern int32 nar_rd (int32 pa);
@@ -827,7 +827,7 @@ return;
 
 int32 ka_rd (int32 pa)
 {
-int32 rg = (pa - KABASE) >> 2;
+uint32 rg = ((uint32) pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -841,10 +841,10 @@ switch (rg) {
         return ka_mear & MEAR_RD;
 
     case 3:                                             /* INT_REQ, VDC_SEL, VDC_ORG, INT_MSK */
-        return ((int_req[0] & BMASK) << 24) | \
-            ((vc_sel & 1) << 16) | \
-            ((vc_org & BMASK) << 8) | \
-            (int_mask & BMASK);
+        return (int32) (u32_make_field ((uint32) int_req[0], 24, 8) |
+                        u32_make_field (vc_sel, 16, 1) |
+                        u32_make_field (vc_org, 8, 8) |
+                        u32_make_field ((uint32) int_mask, 0, 8));
 
     case 4:                                             /* LED */
         return ka_led;
@@ -853,7 +853,7 @@ switch (rg) {
         return ka_pctl;
 
     case 7:                                             /* timer */
-        return ((tmr_tir_rd ()) << 16);
+        return (int32) u32_make_field (tmr_tir_rd (), 16, 16);
         }
 
 return 0;
@@ -865,7 +865,7 @@ void ka_wr (int32 pa, int32 val, int32 lnt)
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - KABASE) >> 2;
+uint32 rg = ((uint32) pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -911,13 +911,13 @@ switch (rg) {
         break;
 
     case 7:                                             /* timer */
-        tmr_tir = (val >> 16);
+        tmr_tir = u32_high_u16 ((uint32) val);
         break;
         }
 return;
 }
 
-int32 tmr_tir_rd (void)
+uint32 tmr_tir_rd (void)
 {
 uint32 usecs_remaining, cur_tir;
 

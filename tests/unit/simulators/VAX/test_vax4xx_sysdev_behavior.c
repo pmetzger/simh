@@ -17,6 +17,7 @@ void WriteReg(uint32 pa, int32 val, int32 lnt);
 void WriteRegU(uint32 pa, int32 val, int32 lnt);
 void ddb_WriteB(uint32 ba, uint32 bc, uint8 *buf);
 void ddb_WriteW(uint32 ba, uint32 bc, uint16 *buf);
+int32 ka_rd(int32 pa);
 int32 nar_rd(int32 pa);
 int32 dz_rd(int32 pa);
 int32 rd_rd(int32 pa);
@@ -29,6 +30,14 @@ void va_wr(int32 pa, int32 val, int32 lnt);
 void ve_wr(int32 pa, int32 val, int32 lnt);
 
 extern uint32 *ddb;
+extern int32 int_mask;
+extern int32 int_req[];
+
+#if !defined(VAX_410)
+extern UNIT sysd_unit;
+extern t_bool tmr_inst;
+extern uint32 tmr_tir;
+#endif
 
 #if defined(VAX_410)
 #define TEST_DDB_BASE D16BASE
@@ -200,6 +209,17 @@ static void reset_sysdev_behavior_state(void)
 {
     memset(test_ddb, 0, sizeof(test_ddb));
     ddb = test_ddb;
+    int_req[0] = 0;
+    int_mask = 0;
+    vc_sel = 0;
+    vc_org = 0;
+    fault_PC = 0;
+
+#if !defined(VAX_410)
+    assert_int_equal(sim_cancel(&sysd_unit), SCPE_OK);
+    tmr_inst = FALSE;
+    tmr_tir = 0;
+#endif
 }
 
 /*
@@ -332,6 +352,56 @@ static void test_ddb_direct_writes_preserve_high_lanes(void **state)
     assert_int_equal(test_ddb[0], 0x80345678u);
 }
 
+/* Verify KA register reads preserve high-lane bit composition. */
+static void test_ka_register_read_preserves_high_lanes(void **state)
+{
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    reset_sysdev_behavior_state();
+    int_req[0] = 0x91;
+    vc_sel = 1;
+    vc_org = 0x7e;
+    int_mask = 0xa5;
+
+    assert_int_equal((uint32)ka_rd((int32)(KABASE + (3u << 2))),
+                     0x91017ea5u);
+    assert_int_equal((uint32)ReadReg(KABASE + (3u << 2), L_LONG),
+                     0x91017ea5u);
+}
+
+#if !defined(VAX_410)
+/* Verify the KA420 timer register read preserves the high-half TIR field. */
+static void test_ka420_timer_read_preserves_high_half(void **state)
+{
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    reset_sysdev_behavior_state();
+    fault_PC = ROMBASE;
+    tmr_inst = TRUE;
+    assert_int_equal(sim_activate(&sysd_unit, 0x611a), SCPE_OK);
+
+    assert_int_equal((uint32)ReadReg(KABASE + (7u << 2), L_LONG),
+                     0x9ee60000u);
+}
+
+/* Verify KA420 timer writes preserve the high-half interval field. */
+static void test_ka420_timer_write_preserves_high_half(void **state)
+{
+    /* Cmocka test callback signature.
+       This implementation does not use every parameter. */
+    (void)state;
+
+    reset_sysdev_behavior_state();
+
+    WriteReg(KABASE + (7u << 2), (int32)0xe0ad0000u, L_LONG);
+    assert_int_equal(tmr_tir & 0xffffu, 0xe0adu);
+}
+#endif
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -341,6 +411,11 @@ int main(void)
         cmocka_unit_test(
             test_ddb_unaligned_register_writes_preserve_high_lanes),
         cmocka_unit_test(test_ddb_direct_writes_preserve_high_lanes),
+        cmocka_unit_test(test_ka_register_read_preserves_high_lanes),
+#if !defined(VAX_410)
+        cmocka_unit_test(test_ka420_timer_read_preserves_high_half),
+        cmocka_unit_test(test_ka420_timer_write_preserves_high_half),
+#endif
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

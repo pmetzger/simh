@@ -720,7 +720,7 @@ return;
 
 int32 ka_rd (int32 pa)
 {
-int32 rg = (pa - KABASE) >> 2;
+uint32 rg = ((uint32) pa - KABASE) >> 2;
 
 switch (rg) {
 
@@ -734,10 +734,10 @@ switch (rg) {
         return ka_mear & MEAR_RD;
 
     case 3:                                             /* INT_REQ, VDC_SEL, VDC_ORG, INT_MSK */
-        return ((int_req[0] & BMASK) << 24) | \
-            ((vc_sel & 1) << 16) | \
-            ((vc_org & BMASK) << 8) | \
-            (int_mask & BMASK);
+        return (int32) (u32_make_field ((uint32) int_req[0], 24, 8) |
+                        u32_make_field (vc_sel, 16, 1) |
+                        u32_make_field (vc_org, 8, 8) |
+                        u32_make_field ((uint32) int_mask, 0, 8));
         }
 
 return 0;
@@ -749,7 +749,7 @@ void ka_wr (int32 pa, int32 val, int32 lnt)
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = (pa - KABASE) >> 2;
+uint32 rg = ((uint32) pa - KABASE) >> 2;
 
 switch (rg) {
 
