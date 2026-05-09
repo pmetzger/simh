@@ -34,6 +34,7 @@
 */
 
 #include "vax_defs.h"
+#include "uint_bits.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #if defined(VAX_620)
@@ -297,21 +298,21 @@ int32 rom_rd (int32 pa, int32 lnt)
    This implementation does not use every parameter. */
 (void) lnt;
 
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 val = rom[rg];
+uint32 rg = (((uint32) pa - ROMBASE) & ROMAMASK) >> 2;
+uint32 val = rom[rg];
 
 if (rom_unit.flags & UNIT_NODELAY)
-    return val;
+    return (int32) val;
 
 return sim_rom_read_with_delay (val);
 }
 
 void rom_wr_B (int32 pa, int32 val)
 {
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 sc = (pa & 3) << 3;
+uint32 addr = (uint32) pa;
+uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = ((val & 0xFF) << sc) | (rom[rg] & ~(0xFF << sc));
+rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32) val, addr);
 return;
 }
 

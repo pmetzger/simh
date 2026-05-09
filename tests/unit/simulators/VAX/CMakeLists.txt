@@ -101,6 +101,36 @@ add_unit_test(unit-vax43-sysdev-behavior
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax630-rom-byte-write
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_rom_byte_write_behavior.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax630_sysdev.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        TEST_VAX630_SYSDEV
+        VM_VAX
+        VAX_630
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax4nn-stddev-rom-byte-write
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_rom_byte_write_behavior.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax4nn_stddev.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+    DEFINES
+        VM_VAX
+        IS_1000
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax-cpu1-call
     LABEL unit
     SOURCES

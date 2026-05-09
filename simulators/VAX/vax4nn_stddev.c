@@ -30,6 +30,7 @@
 */
 
 #include "vax_defs.h"
+#include "uint_bits.h"
 
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
 #define UNIT_NODELAY    (1u << UNIT_V_NODELAY)
@@ -51,6 +52,8 @@ t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
 t_stat rom_reset (DEVICE *dptr);
 t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
+int32 rom_rd (int32 pa);
+void rom_wr_B (int32 pa, int32 val);
 const char *rom_description (DEVICE *dptr);
 t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32 sw);
 t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32 sw);
@@ -58,7 +61,11 @@ t_stat nvr_reset (DEVICE *dptr);
 t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32 flag, const char *cptr);
 t_stat nvr_attach (UNIT *uptr, const char *cptr);
 t_stat nvr_detach (UNIT *uptr);
+int32 nvr_rd (int32 pa);
+void nvr_wr (int32 pa, int32 val, int32 lnt);
 const char *nvr_description (DEVICE *dptr);
+int32 iccs_rd (void);
+void iccs_wr (int32 data);
 t_stat clk_svc (UNIT *uptr);
 t_stat clk_reset (DEVICE *dptr);
 const char *clk_description (DEVICE *dptr);
@@ -168,21 +175,21 @@ DEVICE clk_dev = {
 
 int32 rom_rd (int32 pa)
 {
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 val = rom[rg];
+uint32 rg = (((uint32) pa - ROMBASE) & ROMAMASK) >> 2;
+uint32 val = rom[rg];
 
 if (rom_unit.flags & UNIT_NODELAY)
-    return val;
+    return (int32) val;
 
 return sim_rom_read_with_delay (val);
 }
 
 void rom_wr_B (int32 pa, int32 val)
 {
-int32 rg = ((pa - ROMBASE) & ROMAMASK) >> 2;
-int32 sc = (pa & 3) << 3;
+uint32 addr = (uint32) pa;
+uint32 rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
 
-rom[rg] = ((val & 0xFF) << sc) | (rom[rg] & ~(0xFF << sc));
+rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32) val, addr);
 return;
 }
 
