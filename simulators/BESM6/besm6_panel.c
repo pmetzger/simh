@@ -68,7 +68,9 @@ static TTF_Font *font_big;
 static TTF_Font *font_small;
 static SDL_Color foreground;
 static SDL_Color background;
+#if 0
 static const SDL_Color white = { 255, 255, 255 };
+#endif
 static const SDL_Color black = { 0,   0,   0   };
 static const SDL_Color cyan  = { 0,   128, 128 };
 static const SDL_Color grey  = { 64,  64,  64  };
