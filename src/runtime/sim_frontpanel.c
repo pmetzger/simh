@@ -160,10 +160,21 @@ static const char *register_ind_echo = "# REGISTER-INDIRECT:";
 static const char *command_status = "ECHO Status:%STATUS%-%TSTATUS%";
 static const char *command_done_echo = "# COMMAND-DONE";
 static int little_endian;
+
+/* Allow the compiler to validate printf-style format arguments. */
+#if !defined(PRINTF_FMT)
+#if defined(__GNUC__) || defined(__clang__)
+#define PRINTF_FMT(n, m) __attribute__ ((format (__printf__, n, m)))
+#else
+#define PRINTF_FMT(n, m)
+#endif
+#endif
+
 static void *_panel_reader(void *arg);
 static void *_panel_callback(void *arg);
 static void *_panel_debugflusher(void *arg);
-static int sim_panel_set_error (PANEL *p, const char *fmt, ...);
+static int sim_panel_set_error (PANEL *p, const char *fmt, ...)
+    PRINTF_FMT(2, 3);
 static pthread_key_t panel_thread_id;
 
 #define TN_IAC          0xFFu /* -1 */                  /* protocol delim */
@@ -197,15 +208,14 @@ if (p == NULL)
 return p;
 }
 
-/* Allow compiler to help validate printf style format arguments */
-#if !defined __GNUC__
-#define GCC_FMT_ATTR(n, m)
-#endif
-#if !defined(GCC_FMT_ATTR)
-#define GCC_FMT_ATTR(n, m) __attribute__ ((format (__printf__, n, m)))
-#endif
-
-static void __panel_debug (PANEL *p, int dbits, const char *fmt, const char *buf, int bufsize, ...) GCC_FMT_ATTR(3, 6);
+static void __panel_debug (PANEL *p, int dbits, const char *fmt,
+                           const char *buf, int bufsize, ...)
+    PRINTF_FMT(3, 6);
+static void __panel_vdebug (PANEL *p, int dbits, const char *fmt,
+                            const char *buf, int bufsize, va_list arglist)
+    PRINTF_FMT(3, 0);
+void sim_panel_debug (PANEL *panel, const char *fmt, ...)
+    PRINTF_FMT(2, 3);
 #define _panel_debug(p, dbits, fmt, buf, bufsize, ...) do { if (p && p->Debug && ((dbits) & p->debug)) __panel_debug (p, dbits, fmt, buf, bufsize, ##__VA_ARGS__);} while (0)
 
 static void __panel_vdebug (PANEL *p, int dbits, const char *fmt, const char *buf, int bufsize, va_list arglist)
@@ -404,10 +414,12 @@ return sent;
 }
 
 static int
-_panel_sendf (PANEL *p, int *completion_status, char **response, const char *fmt, ...);
+_panel_sendf (PANEL *p, int *completion_status, char **response,
+              const char *fmt, ...) PRINTF_FMT(4, 5);
 
 static int
-_panel_sendf_completion (PANEL *p, char **response, const char *completion, const char *fmt, ...);
+_panel_sendf_completion (PANEL *p, char **response, const char *completion,
+                         const char *fmt, ...) PRINTF_FMT(4, 5);
 
 static int
 _panel_register_query_string (PANEL *panel, char **buf, size_t *buf_size)
@@ -1181,14 +1193,20 @@ if ((!strcmp ("Invalid argument\r\n", response)) || (!c)) {
 data = strtoull (c + 1, NULL, 16);
 free (response);
 if (element_count > 0) {
-    if (_panel_sendf (panel, &cmd_stat, &response, "EXAMINE %s %s[%d]\r", device_name? device_name : "", name, element_count-1)) {
+    if (_panel_sendf (panel, &cmd_stat, &response,
+                      "EXAMINE %s %s[%zu]\r",
+                      device_name? device_name : "", name,
+                      element_count-1)) {
         free (reg->name);
         free (reg->device_name);
         free (regs);
         return -1;
         }
     if (!strcmp ("Subscript out of range\r\n", response)) {
-        sim_panel_set_error (NULL, "Invalid Register Array Dimension: %s %s[%d]", device_name? device_name : "", name, element_count-1);
+        sim_panel_set_error (NULL,
+                             "Invalid Register Array Dimension: %s %s[%zu]",
+                             device_name? device_name : "", name,
+                             element_count-1);
         free (response);
         free (reg->name);
         free (reg->device_name);
@@ -1480,7 +1498,7 @@ if ((simtime = strstr (response, "Time:"))) {
     }
 free (response);
 panel->simulation_time_base += panel->simulation_time;
-if (_panel_sendf_completion (panel, NULL, "Simulator Running...", "RUN\r", 5)) {
+if (_panel_sendf_completion (panel, NULL, "Simulator Running...", "RUN\r")) {
     _panel_debug (panel, DBG_THR, "Unable to start simulator: %s", NULL, 0, sim_panel_get_error());
     return -1;
     }
@@ -1987,7 +2005,7 @@ do {
         break;
         }
     if (cmd_stat) {
-        sim_panel_set_error (NULL, response);
+        sim_panel_set_error (NULL, "%s", response);
         stat = -1;
         }
     } while (0);
@@ -2545,7 +2563,15 @@ return -1;
 }
 
 static int
-_panel_vsendf_completion (PANEL *p, int *completion_status, char **response, const char *completion_string, const char *fmt, va_list arglist)
+_panel_vsendf_completion (PANEL *p, int *completion_status, char **response,
+                          const char *completion_string, const char *fmt,
+                          va_list arglist)
+    PRINTF_FMT(5, 0);
+
+static int
+_panel_vsendf_completion (PANEL *p, int *completion_status, char **response,
+                          const char *completion_string, const char *fmt,
+                          va_list arglist)
 {
 char stackbuf[1024];
 int bufsize = sizeof(stackbuf);
