@@ -2,11 +2,11 @@
 
 ## Problem
 
-`simulators/NOVA/eclipse_cpu.c` stores the Eclipse floating-point
-accumulators in:
+After the stdint spelling migration, `simulators/NOVA/eclipse_cpu.c`
+stores the Eclipse floating-point accumulators in:
 
 ```c
-t_int64 FPAC[4];
+int64_t FPAC[4];
 ```
 
 These accumulators are guest 64-bit register images. Much of the code
@@ -30,11 +30,32 @@ The warning should remain until we either fix the representation or make
 a deliberate, tested decision about where signed and unsigned domains
 meet.
 
+The current stdint spelling sweep briefly used this narrow local patch:
+
+```diff
+         t = 0;
+-        if (FPAC[j] == 0x521E290F94874A43)              /* Wrote 0000 0000 expected 4A43 0000 ... MOF bit is on! What is the default??? */
++        uint64_t fpac_bits = (uint64_t) FPAC[j];
++        if (fpac_bits == UINT64_C(0x521E290F94874A43))  /* Wrote 0000 0000 expected 4A43 0000 ... MOF bit is on! What is the default??? */
+             t = 1;
+-        if (FPAC[j] == 0x53F129F814FC8A7E)              /* Wrote 0000 0000 expected 27E0 0000 ... MOF bit is on! What is the default??? */
++        if (fpac_bits == UINT64_C(0x53F129F814FC8A7E))  /* Wrote 0000 0000 expected 27E0 0000 ... MOF bit is on! What is the default??? */
+             t = 2;
+-        if (FPAC[j] == 0xD01B680DB406DA03)              /* Wrote 0000 0000 expected F925 FD00 ... MOF bit is on! What is the default??? */
++        if (fpac_bits == UINT64_C(0xD01B680DB406DA03))  /* Wrote 0000 0000 expected F925 FD00 ... MOF bit is on! What is the default??? */
+             t = 3;
+```
+
+That patch is not being kept in the stdint rename because the warning
+predates the rename. It is still the likely minimal fix if we choose to
+address only the FFMD exact-pattern comparisons before a larger FPU
+representation cleanup.
+
 ## Proposed Direction
 
 Separate register storage from arithmetic state:
 
-- store `FPAC` as an unsigned 64-bit register image, likely `t_uint64`;
+- store `FPAC` as an unsigned 64-bit register image, likely `uint64_t`;
 - use unsigned extraction helpers for sign, exponent, and fraction
   fields;
 - keep signed arithmetic temporaries only where the value is genuinely
