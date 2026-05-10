@@ -5959,7 +5959,7 @@ return tmxr_show_sync (st, uptr, val, NULL);
 t_stat tmxr_show_sync (FILE* st, UNIT* uptr, int32_t val, const void *desc)
 {
   ETH_LIST  list[ETH_MAX_DEVICE];
-  int number, fcnt = 0;
+  int number;
 
   /* Generic callback signature.
      This implementation does not use every parameter. */
@@ -5978,7 +5978,6 @@ t_stat tmxr_show_sync (FILE* st, UNIT* uptr, int32_t val, const void *desc)
       int i;
       for (i=0; i<number; i++) {
           fprintf(st," sync%d\t%s\n", i, list[i].name);
-          fcnt++;
       }
     }
   return SCPE_OK;
