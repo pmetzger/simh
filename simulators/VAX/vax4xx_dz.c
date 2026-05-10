@@ -29,6 +29,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "vax_defs.h"
 #include "sim_sock.h"
@@ -39,7 +40,9 @@
 #define DZ_LINES        4
 #define DZ_LNOMASK      (DZ_LINES - 1)                  /* mask for lineno */
 #define DZ_LMASK        ((1 << DZ_LINES) - 1)           /* mask of lines */
+#define DZ_SILO_CAP     48                              /* silo capacity */
 #define DZ_SILO_ALM     16                              /* silo alarm level */
+/* TODO: KA48-specific docs do not confirm 16; check real VLC hardware. */
 
 /* line functions */
 
@@ -201,7 +204,7 @@ uint16_t dz_lpr = 0;                                    /* line param */
 uint16_t dz_tcr = 0;                                    /* xmit control */
 uint16_t dz_msr = 0;                                    /* modem status */
 uint16_t dz_tdr = 0;                                    /* xmit data */
-uint16_t dz_silo[DZ_SILO_ALM] = { 0 };                  /* silo */
+uint16_t dz_silo[DZ_SILO_CAP] = { 0 };                  /* silo */
 uint16_t dz_scnt = 0;                                   /* silo used */
 uint8_t dz_sae = 0;                                     /* silo alarm enabled */
 int32_t dz_mctl = 0;                                    /* modem ctrl enabled */
@@ -323,6 +326,36 @@ static const char *dz_rd_regs[] =
 static const char *dz_wr_regs[] =
     {"CSR ", "LPR ", "TCR ", "TDR "};
 
+/* Clear pending received data from the DZ's emulated receive path. */
+static void dz_flush_receive (void)
+{
+    int32_t line;
+
+    dz_rbuf = 0;
+    dz_scnt = 0;
+    dz_sae = 1;
+    if (dz_ldsc != NULL) {
+        for (line = 0; line < DZ_LINES; line++) {
+            dz_ldsc[line].rxbpr = 0;
+            dz_ldsc[line].rxbpi = 0;
+            dz_ldsc[line].rxnexttime = 0;
+            if (dz_ldsc[line].rbr && dz_ldsc[line].rxbsz > 0)
+                memset (dz_ldsc[line].rbr, 0, dz_ldsc[line].rxbsz);
+            }
+        }
+}
+
+/*
+ * Poll the host-side receive path and update the emulated receiver status.
+ * Real hardware can raise RDONE asynchronously while firmware is polling CSR;
+ * the emulator must sample host input on that path, not only on RBUF reads.
+ */
+static void dz_poll_receive (void)
+{
+    tmxr_poll_rx (&dz_desc);
+    dz_update_rcvi ();
+}
+
 /* IO dispatch routines */
 
 int32_t dz_rd (int32_t pa)
@@ -332,6 +365,8 @@ int32_t data = 0;
 switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
 
     case 00:                                            /* CSR */
+        if (dz_csr & CSR_MSE)                           /* scanner on? */
+            dz_poll_receive ();
         data = dz_csr = dz_csr & ~CSR_MBZ;
         break;
 
@@ -341,8 +376,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
             dz_rbuf = dz_getc ();                       /* get top of silo */
             if (!dz_rbuf)                               /* empty? re-enable */
                 dz_sae = 1;
-            tmxr_poll_rx (&dz_desc);                    /* poll input */
-            dz_update_rcvi ();                          /* update rx intr */
+            dz_poll_receive ();                         /* update rx intr */
             if (dz_rbuf) {
                 /* Reschedule the next poll preceisely so that the
                    the programmed input speed is observed. */
@@ -377,7 +411,9 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
         break;
         }
 
-sim_debug(DBG_REG, &dz_dev, "dz_rd(PA=0x%08X [%s], data=0x%X)\n", pa, dz_rd_regs[(pa >> 2) & 03], data);
+sim_debug (DBG_REG, &dz_dev,
+           "dz_rd(fault_PC=%08X, PA=0x%08X [%s], data=0x%X)\n",
+           fault_PC, pa, dz_rd_regs[(pa >> 2) & 03], data);
 
 SET_IRQL;
 return data;
@@ -388,12 +424,16 @@ void dz_wr (int32_t pa, int32_t data, int32_t access)
 int32_t line;
 char lineconfig[16];
 TMLN *lp;
+bool scan_was_enabled;
 
-sim_debug(DBG_REG, &dz_dev, "dz_wr(PA=0x%08X [%s], access=%d, data=0x%X)\n", pa, dz_wr_regs[(pa >> 2) & 03], access, data);
+sim_debug (DBG_REG, &dz_dev,
+           "dz_wr(fault_PC=%08X, PA=0x%08X [%s], access=%d, data=0x%X)\n",
+           fault_PC, pa, dz_wr_regs[(pa >> 2) & 03], access, data);
 
 switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
 
     case 00:                                            /* CSR */
+        scan_was_enabled = (dz_csr & CSR_MSE) != 0;
         if (access == L_BYTE) data = (pa & 1)?          /* byte? merge */
             (dz_csr & BMASK) | (data << 8):
             (dz_csr & ~BMASK) | data;
@@ -401,8 +441,23 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
             dz_clear (false);
         if (data & CSR_MSE)                             /* MSE? start poll */
             sim_clock_coschedule (&dz_unit[0], tmxr_poll);
-        else
+        else {
+            /*
+             * MSE enables the serial scanner.  On the real controller,
+             * turning it off clears receive state that has already been
+             * accepted by the controller.  TMXR's receive queue is inside
+             * that emulated boundary; leaving accepted bytes there lets old
+             * terminal probe replies appear later as fresh guest input, for
+             * example at the NetBSD boot prompt after a KA48 ROM reboot.
+             * Flush only when MSE actually transitions from enabled to
+             * disabled, not on every write that happens to leave MSE clear,
+             * or ordinary input that arrives while scanning is already
+             * disabled would be lost.
+             */
+            if (scan_was_enabled)
+                dz_flush_receive ();
             dz_csr &= ~(CSR_SA | CSR_RDONE | CSR_TRDY);
+            }
         dz_csr = (dz_csr & ~CSR_RW) | (data & CSR_RW);
         dz_update_rcvi ();
         dz_update_xmti ();
@@ -419,8 +474,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
         sprintf(lineconfig, "%s-%s%s%s", LPR_GETSPD(data), LPR_GETCHARSIZE(data), LPR_GETPARITY(data), LPR_GETSTOPBITS(data));
         if (!lp->serconfig || (0 != strcmp(lp->serconfig, lineconfig))) /* config changed? */
             tmxr_set_config_line (lp, lineconfig);      /* set it */
-        tmxr_poll_rx (&dz_desc);                        /* poll input */
-        dz_update_rcvi ();                              /* update rx intr */
+        dz_poll_receive ();                             /* update rx intr */
         break;
 
     case 02:                                            /* TCR */
@@ -463,7 +517,7 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
                 sim_debug(DBG_REG, &dz_dev, "maint char for line %d : %X\n", line, dz_char[line]);
                 break;
                 }
-            sim_activate (&dz_unit[1], 0);
+            sim_activate (&dz_unit[1], dz_unit[1].wait);
             }
         break;
         }
@@ -559,14 +613,20 @@ uint16_t dz_getc (void)
 {
 uint16_t ret;
 uint32_t i;
+uint32_t line;
 
 if (!dz_scnt)
     return 0;
 ret = dz_silo[0];                                       /* first fifo element */
 for (i = 1; i < dz_scnt; i++)                           /* slide down remaining entries */
     dz_silo[i-1] = dz_silo[i];
---dz_scnt;                                              /* adjust count */
-sim_debug (DBG_RCV, &dz_dev, "DZ Line %d - Received: 0x%X - '%c'\n", i, ret, sim_isprint(ret&0xFF) ? ret & 0xFF : '.');
+dz_scnt--;                                              /* adjust count */
+line = RBUF_GETRL(ret);
+sim_debug (DBG_RCV, &dz_dev,
+           "DZ Line %d - Received: 0x%X fault_PC=%08X "
+           "R0=%08X R2=%08X R3=%08X AP=%08X FP=%08X - '%c'\n",
+           line, ret, fault_PC, R[0], R[2], R[3], AP, FP,
+           sim_isprint(ret&0xFF) ? ret & 0xFF : '.');
 return ret;
 }
 
@@ -582,7 +642,7 @@ TMLN *lp;
 old_signal = (dz_csr & CSR_SAE) ? (dz_csr & CSR_SA) : (dz_csr & CSR_RDONE);
 if (dz_csr & CSR_MSE) {                                 /* enabled? */
     for (line = 0; line < DZ_LINES; line++) {           /* poll lines */
-        if (dz_scnt >= DZ_SILO_ALM)
+        if (dz_scnt >= DZ_SILO_CAP)
             break;
         c = 0;
         if ((dz_func[line] == DZ_TMXR) && ((dz_csr & CSR_MAINT) == 0)) {
@@ -630,7 +690,7 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
             c = (c & (RBUF_CHAR | RBUF_FRME)) | RBUF_VALID;;
             RBUF_PUTRL (c, line);                       /* add line # */
             dz_silo[dz_scnt] = (uint16_t)c;
-            ++dz_scnt;
+            dz_scnt++;
             }
 
         }
