@@ -117,6 +117,12 @@ t_stat cpu_load_bootcode(const char *filename,
     return SCPE_OK;
 }
 
+t_stat rom_apply_patches(void)
+{
+    /* Stubbed ROM patch helper for uncalled boot paths. */
+    return SCPE_OK;
+}
+
 int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei)
 {
     /* Stubbed interrupt helper for uncalled legacy paths. */

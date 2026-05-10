@@ -50,6 +50,7 @@ set(VAX420
     ${VAXD}/vax_syscm.c
     ${VAXD}/vax_watch.c
     ${VAXD}/vax_nar.c
+    ${VAXD}/vax4xx_rom_patch.c
     ${VAXD}/vax4xx_stddev.c
     ${VAXD}/vax420_sysdev.c
     ${VAXD}/vax420_syslist.c
@@ -76,6 +77,7 @@ set(VAX440
     ${VAXD}/vax_syscm.c
     ${VAXD}/vax_watch.c
     ${VAXD}/vax_nar.c
+    ${VAXD}/vax4xx_rom_patch.c
     ${VAXD}/vax4xx_stddev.c
     ${VAXD}/vax440_sysdev.c
     ${VAXD}/vax440_syslist.c
@@ -270,6 +272,7 @@ add_simulator(microvax2000
         vax_syscm.c
         vax_watch.c
         vax_nar.c
+        vax4xx_rom_patch.c
         vax4xx_stddev.c
         vax410_sysdev.c
         vax410_syslist.c
@@ -745,6 +748,7 @@ add_simulator(vaxstation3100m76
         vax_syscm.c
         vax_watch.c
         vax_nar.c
+        vax4xx_rom_patch.c
         vax4xx_stddev.c
         vax43_sysdev.c
         vax43_syslist.c

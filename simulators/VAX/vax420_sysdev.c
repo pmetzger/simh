@@ -34,6 +34,7 @@
 
 #include "sim_types.h"
 #include "vax_defs.h"
+#include "vax4xx_rom_patch.h"
 #include "vax4xx_stddev.h"
 #include "sim_ether.h"
 #include "uint_bits.h"
@@ -1064,6 +1065,9 @@ if (rom == NULL)
     return SCPE_IERR;
 if (*rom == 0) {                                        /* no boot? */
     r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, true, 0);
+    if (r != SCPE_OK)
+        return r;
+    r = rom_apply_patches ();
     if (r != SCPE_OK)
         return r;
     }

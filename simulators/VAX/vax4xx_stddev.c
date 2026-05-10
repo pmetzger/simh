@@ -30,10 +30,12 @@
    clk          100Hz and TODR clock
 */
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "uint_bits.h"
 #include "vax_defs.h"
+#include "vax4xx_rom_patch.h"
 #include "vax4xx_stddev.h"
 
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
@@ -89,6 +91,8 @@ REG rom_reg[] = {
 MTAB rom_mod[] = {
     { UNIT_NODELAY, UNIT_NODELAY, "fast access", "NODELAY", NULL, NULL, NULL, "Disable calibrated ROM access speed" },
     { UNIT_NODELAY, 0, "1usec calibrated access", "DELAY",  NULL, NULL, NULL, "Enable calibrated ROM access speed" },
+    { MTAB_XTD|MTAB_VDV|MTAB_VALR, 0, "PATCH", "PATCH={NONE|SKIP-RAM-SELFTEST}",
+      &rom_set_patch, &rom_show_patch, NULL, "Apply a documented ROM patch" },
     { 0 }
     };
 
@@ -306,6 +310,9 @@ fprintf (st, "written to the current directory and the load attempt is retried.\
 fprintf (st, "ROM accesses a use a calibrated delay that slows ROM-based execution to\n");
 fprintf (st, "about 500K instructions per second.  This delay is required to make the\n");
 fprintf (st, "power-up self-test routines run correctly on very fast hosts.\n");
+fprintf (st, "\nThe ROM device can apply documented ROM patches with SET ROM PATCH=name.\n");
+fprintf (st, "SET ROM PATCH=SKIP-RAM-SELFTEST bypasses the KA48 RAM self-test.  SET\n");
+fprintf (st, "ROM PATCH=NONE disables ROM patching and reverts an applied patch.\n");
 fprint_set_help (st, dptr);
 return SCPE_OK;
 }

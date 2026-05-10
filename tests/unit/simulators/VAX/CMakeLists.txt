@@ -30,6 +30,7 @@ add_unit_test(unit-vax4xx-stddev-behavior
     LABEL unit
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/test_vax4xx_stddev_behavior.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax4xx_rom_patch.c
         ${PROJECT_SOURCE_DIR}/simulators/VAX/vax4xx_stddev.c
     INCLUDES
         ${PROJECT_SOURCE_DIR}/src/runtime

@@ -70,6 +70,16 @@ add_unit_test(unit-sim-timer
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
+add_unit_test(unit-sim-rom-patch
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_sim_rom_patch.c
+        ${PROJECT_SOURCE_DIR}/src/runtime/sim_rom_patch.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
 add_unit_test(unit-sim-scsi
     LABEL unit
     SOURCES
