@@ -1995,7 +1995,7 @@ switch (sim_throt_state) {
             sim_debug (DBG_THR, &sim_timer_dev, "sim_throt_svc() Throttle values a_cps = %f, d_cps = %f, wait = %d, sleep = %d ms\n",
                                                 a_cps, d_cps, sim_throt_wait, sim_throt_sleep_time);
             sim_throt_cps = d_cps;                  /* save the desired rate */
-	    _sim_timer_adjust_cal();                /* adjust timer calibrations */
+            _sim_timer_adjust_cal();                /* adjust timer calibrations */
             }
         break;
 

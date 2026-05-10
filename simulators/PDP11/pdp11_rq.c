@@ -895,7 +895,7 @@ x  RF75  ?    ?     ?     ?    ?    ?     ?
 #define KLESI_MODEL     3
 
 #define RUX50_CTYPE     2               // UNIBUS RX50-only controller
-#define RUX50_UQPM      10		// this should be 10 according to the MSCP spec
+#define RUX50_UQPM      10              // this should be 10 according to the MSCP spec
 #define RUX50_MODEL     10
 
 #define UDA50A_CTYPE    3               // UNIBUS SDI (RAxx) controller
