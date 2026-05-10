@@ -249,8 +249,7 @@ static void sim_exp_log_exact_check(const EXPECT *exp, const uint8_t *data,
         return;
     estr = sim_encode_quoted_string(data, data_size);
     mstr = sim_encode_quoted_string(match, match_size);
-    sim_debug(exp->dbit, exp->dptr, "Checking String[%" SIZE_T_FMT "d:%"
-                                    SIZE_T_FMT "d]: %s\n",
+    sim_debug(exp->dbit, exp->dptr, "Checking String[%zu:%zu]: %s\n",
               start_offs, data_size, estr);
     sim_debug(exp->dbit, exp->dptr, "Against Match Data: %s\n", mstr);
     free(estr);
@@ -752,8 +751,8 @@ static void sim_exp_show_context_state(FILE *st, const EXPECT *exp,
     if (exp->buf_size) {
         char *bstr = sim_encode_quoted_string(exp->buf, exp->buf_ins);
 
-        fprintf(st, "  Match Buffer Size: %" SIZE_T_FMT "d\n", exp->buf_size);
-        fprintf(st, "  Buffer Insert Offset: %" SIZE_T_FMT "d\n", exp->buf_ins);
+        fprintf(st, "  Match Buffer Size: %zu\n", exp->buf_size);
+        fprintf(st, "  Buffer Insert Offset: %zu\n", exp->buf_ins);
         fprintf(st, "  Buffer Contents: %s\n", bstr);
         if (default_haltafter)
             fprintf(st, "  Default HaltAfter: %u %s\n",
@@ -772,7 +771,7 @@ static void sim_exp_show_context_state(FILE *st, const EXPECT *exp,
 static void sim_show_send_pending_data(FILE *st, const SEND *snd)
 {
     if (snd->extoff < snd->insoff) {
-        fprintf(st, "  %" SIZE_T_FMT "d bytes of pending input Data:\n    ",
+        fprintf(st, "  %zu bytes of pending input Data:\n    ",
                 snd->insoff - snd->extoff);
         fprint_buffer_string(st, snd->buffer + snd->extoff,
                              snd->insoff - snd->extoff);
@@ -883,9 +882,8 @@ t_stat sim_exp_check(EXPECT *exp, uint8_t data)
             exp->buf_ins -= exp->buf_size / 2;
             exp->buf_data = exp->buf_ins;
             sim_debug(exp->dbit, exp->dptr,
-                      "Buffer Full - sliding the last %" SIZE_T_FMT
-                      "d bytes to start of buffer new insert at: %" SIZE_T_FMT
-                      "d\n",
+                      "Buffer Full - sliding the last %zu bytes to start of "
+                      "buffer new insert at: %zu\n",
                       exp->buf_size / 2, exp->buf_ins);
         } else {
             exp->buf_ins = 0;

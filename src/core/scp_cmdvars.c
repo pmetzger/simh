@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 1993-2022 Robert M Supnik
 // SPDX-License-Identifier: MIT
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -614,7 +615,7 @@ const char *_sim_get_env_special(const char *gbuf, char *rbuf, size_t rbuf_size)
         strftime(rbuf, rbuf_size, "%c", tmnow);
         ap = rbuf;
     } else if (!strcmp("UTIME", gbuf)) {
-        sprintf(rbuf, "%" LL_FMT "d", (LL_TYPE)now);
+        sprintf(rbuf, "%" PRIdMAX, (intmax_t)now);
         ap = rbuf;
     } else if (tmnow && !strcmp("DATE_YYYY", gbuf)) {
         strftime(rbuf, rbuf_size, "%Y", tmnow);

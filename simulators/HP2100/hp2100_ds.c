@@ -134,6 +134,7 @@
 
 
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -1504,7 +1505,7 @@ if (uptr) {                                             /* did the command start
         tprintf (ds_dev, DEB_RWSC, "Controller %s command initiated\n",
                  dl_opcode_name (MAC, mac_cntlr.opcode));
     else
-        tprintf (ds_dev, DEB_RWSC, "Unit %td position %" T_ADDR_FMT "d %s command initiated\n",
+        tprintf (ds_dev, DEB_RWSC, "Unit %td position %" PRIu32 " %s command initiated\n",
                  uptr - ds_unit, uptr->pos, dl_opcode_name (MAC, mac_cntlr.opcode));
     }
 

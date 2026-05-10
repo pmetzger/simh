@@ -79,6 +79,7 @@
 #include "sim_tape_internal.h"
 #include "sim_types.h"
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -835,7 +836,7 @@ switch (MT_GET_FMT (uptr)) {
         if (uptr->recsize == 0)
             uptr->recsize = TAR_DFLT_RECSIZE;           /* Apply default block size */
         if ((uptr->recsize % 512) != 0)
-            return sim_messagef (SCPE_ARG, "TAR format block size of %" SIZE_T_FMT "u is not a multiple of 512\n", uptr->recsize);
+            return sim_messagef (SCPE_ARG, "TAR format block size of %zu is not a multiple of 512\n", uptr->recsize);
         sim_switches |= SWMASK ('E');                   /* The TAR file must exist */
         FALLTHROUGH;
     default:
@@ -1508,7 +1509,7 @@ if (ctx == NULL)                                        /* if not properly attac
 
 status = sim_tape_rdlntf (uptr, bc);                    /* read the record length */
 
-sim_debug_unit (MTSE_DBG_STR, uptr, "rd_lntf: st: %d, lnt: %d, pos: %" T_ADDR_FMT "u\n", status, *bc, uptr->pos);
+sim_debug_unit (MTSE_DBG_STR, uptr, "rd_lntf: st: %d, lnt: %d, pos: %" PRIuADDR "\n", status, *bc, uptr->pos);
 
 return status;
 }
@@ -1842,7 +1843,7 @@ if (ctx == NULL)                                        /* if not properly attac
 
 status = sim_tape_rdlntr (uptr, bc);                    /* read the record length */
 
-sim_debug_unit (MTSE_DBG_STR, uptr, "rd_lntr: st: %d, lnt: %d, pos: %" T_ADDR_FMT "u\n", status, *bc, uptr->pos);
+sim_debug_unit (MTSE_DBG_STR, uptr, "rd_lntr: st: %d, lnt: %d, pos: %" PRIuADDR "\n", status, *bc, uptr->pos);
 
 return status;
 }
@@ -2237,7 +2238,7 @@ if (ferror (uptr->fileref)) {                           /* error? */
     MT_SET_PNU (uptr);
     return sim_tape_ioerr (uptr);
     }
-sim_debug_unit (MTSE_DBG_STR, uptr, "wr_lnt: lnt: %d, pos: %" T_ADDR_FMT "u\n", dat, uptr->pos);
+sim_debug_unit (MTSE_DBG_STR, uptr, "wr_lnt: lnt: %d, pos: %" PRIuADDR "\n", dat, uptr->pos);
 uptr->pos = uptr->pos + sizeof (uint32_t);              /* move tape */
 if (uptr->pos > uptr->tape_eom)
     uptr->tape_eom = uptr->pos;                         /* update EOM */
@@ -3466,7 +3467,7 @@ if ((uptr == NULL) || (uptr->fileref == NULL))
 countmap = (uint32_t *)calloc (65536, sizeof(*countmap));
 recbuf = (uint8_t *)malloc (65536);
 tape_size = (t_addr)sim_fsize (uptr->fileref);
-sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: tape_size: %" T_ADDR_FMT "u\n", tape_size);
+sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: tape_size: %" PRIuADDR "\n", tape_size);
 for (objc = 0, sizec = 0, tpos = 0;; ) {
     (void)sim_tape_seek (uptr, tpos);
     i = sim_fread (&bc, sizeof (bc), 1, uptr->fileref);
@@ -3478,14 +3479,14 @@ for (objc = 0, sizec = 0, tpos = 0;; ) {
     if (map && (objc < mapsize))
         map[objc] = tpos;
     if (bc) {
-        sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: %d byte count at pos: %" T_ADDR_FMT "u\n", bc, tpos);
+        sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: %d byte count at pos: %" PRIuADDR "\n", bc, tpos);
         if (map && sim_deb && (dptr->dctrl & MTSE_DBG_STR)) {
             (void)sim_fread (recbuf, 1, bc, uptr->fileref);
             sim_data_trace(dptr, uptr, (((uptr->dctrl | dptr->dctrl) & MTSE_DBG_DAT) ? recbuf : NULL), "", bc, "Data Record", MTSE_DBG_STR);
             }
         }
     else
-        sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: tape mark at pos: %" T_ADDR_FMT "u\n", tpos);
+        sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: tape mark at pos: %" PRIuADDR "\n", tpos);
     objc++;
     tpos = tpos + ((bc + 1) & ~1) + sizeof (t_tpclnt);
     if ((bc == 0) && (last_bc == 0)) {  /* double tape mark? */
@@ -3512,7 +3513,7 @@ if (((last_bc != TPC_EOM) &&
     if (last_bc != TPC_EOM)
         sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: ERROR unexpected EOT byte count: %d\n", last_bc);
     if (tpos > tape_size)
-        sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: ERROR next record position %" T_ADDR_FMT "u beyond EOT: %" T_ADDR_FMT "u\n", tpos, tape_size);
+        sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: ERROR next record position %" PRIuADDR " beyond EOT: %" PRIuADDR "\n", tpos, tape_size);
     if (objc == countmap[0])
         sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: ERROR tape only contains tape marks\n");
     free (countmap);
@@ -3521,7 +3522,7 @@ if (((last_bc != TPC_EOM) &&
     }
 
 if ((last_bc != TPC_EOM) && (tpos > tape_size)) {
-    sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: WARNING unexpected EOT byte count: %d, double tape mark before %" T_ADDR_FMT "u provides logical EOT\n", last_bc, leot);
+    sim_debug_unit (MTSE_DBG_STR, uptr, "tpc_map: WARNING unexpected EOT byte count: %d, double tape mark before %" PRIuADDR " provides logical EOT\n", last_bc, leot);
     objc = had_double_tape_mark;
     tpos = leot;
     }
@@ -3636,7 +3637,7 @@ while (r == SCPE_OK) {
             break;
             }
         if (0 != memcmp (buf_f, buf_r, bc_f)) {
-            sim_printf ("%d byte record contents differ when read forward and backwards start from position %" T_ADDR_FMT "u\n", bc_f, pos_f);
+            sim_printf ("%d byte record contents differ when read forward and backwards start from position %" PRIuADDR "\n", bc_f, pos_f);
             r = MTSE_RECE;
             break;
             }
@@ -3648,7 +3649,7 @@ while (r == SCPE_OK) {
                 gap_bytes += (uint32_t)(pos_r - pos_f);
                 }
             else {
-                sim_printf ("Unexpected tape file position between forward and reverse record read: (%" T_ADDR_FMT "u, %" T_ADDR_FMT "u)\n", pos_f, pos_r);
+                sim_printf ("Unexpected tape file position between forward and reverse record read: (%" PRIuADDR ", %" PRIuADDR ")\n", pos_f, pos_r);
                 r = MTSE_RECE;
                 break;
                 }
@@ -3666,7 +3667,7 @@ while (r == SCPE_OK) {
             break;
             }
         if (pos_fa != pos_sa) {
-            sim_printf ("Unexpected tape file position after forward and skip record: (%" T_ADDR_FMT "u, %" T_ADDR_FMT "u)\n", pos_fa, pos_sa);
+            sim_printf ("Unexpected tape file position after forward and skip record: (%" PRIuADDR ", %" PRIuADDR ")\n", pos_fa, pos_sa);
             break;
             }
         r = SCPE_OK;
@@ -3695,7 +3696,7 @@ if (!stop_cpu) {            /* if SIGINT didn't interrupt the scan */
     if ((r != MTSE_EOM) || (sim_switches & SWMASK ('V')) || (sim_switches & SWMASK ('L')) ||
         (remaining_data > 0) ||
         (unique_record_sizes > 2 * tapemark_total)) {
-        sim_messagef (SCPE_OK, "%s %" SIZE_T_FMT "u bytes of tape data (%u record%s, %u tapemark%s)\n",
+        sim_messagef (SCPE_OK, "%s %zu bytes of tape data (%u record%s, %u tapemark%s)\n",
                                (r != MTSE_EOM) ? "After processing" : "contains", data_total,
                                record_total, (record_total == 1) ? "" : "s",
                                tapemark_total, (tapemark_total == 1) ? "" : "s");
@@ -4230,7 +4231,7 @@ sim_tape_format_ansi_decimal(char *field, size_t field_size, uint64_t value)
 
     if ((field == NULL) || (field_size == 0) || (field_size >= sizeof (text)))
         return false;
-    written = snprintf (text, sizeof (text), "%0*" T_UINT64_FMT "u",
+    written = snprintf (text, sizeof (text), "%0*" PRIu64,
                         (int)field_size, value);
     if ((written < 0) || ((size_t)written != field_size))
         return false;
@@ -4570,8 +4571,8 @@ ansi_resolve_record_layout(const struct ansi_tape_parameters *ansi,
     if (!text_file && (*max_record_size != 0) &&
         ((block_size % *max_record_size) != 0)) {
         sim_messagef(SCPE_ARG,
-                     "Binary file block size %" SIZE_T_FMT "u is not a "
-                     "multiple of the ANSI record size %" SIZE_T_FMT "u\n",
+                     "Binary file block size %zu is not a "
+                     "multiple of the ANSI record size %zu\n",
                      block_size, *max_record_size);
         return false;
     }

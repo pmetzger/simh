@@ -329,6 +329,7 @@
 
 
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -1188,7 +1189,7 @@ for (unit = 0; unit < cvptr->device->numunits; unit++) {    /* look for a write 
                     };
 
                 dpprintf (cvptr->device, TL_DEB_INCO,
-                          "Unit %u controller clear stopped tape motion at position %" T_ADDR_FMT "u\n",
+                          "Unit %u controller clear stopped tape motion at position %" PRIu32 "\n",
                           unit, uptr->pos);
                 }
 
@@ -2122,7 +2123,7 @@ switch (phase) {                                        /* dispatch the phase */
 
 
     case Start_Phase:
-        dpprintf (cvptr->device, TL_DEB_INCO, "Unit %d %s started at position %" T_ADDR_FMT "u\n",
+        dpprintf (cvptr->device, TL_DEB_INCO, "Unit %d %s started at position %" PRIu32 "\n",
                   unit, opcode_names [opcode], uptr->pos);
 
         pptr = &drive_props [PROP_INDEX (uptr)];        /* get the drive property pointer */
@@ -2638,7 +2639,7 @@ if (uptr->wait != NO_EVENT)                             /* if the unit has been 
 
 if (complete) {                                         /* if the command is complete */
     dpprintf (cvptr->device, TL_DEB_INCO,               /*   then report the final tape position */
-              "Unit %d %s completed at position %" T_ADDR_FMT "u\n",
+              "Unit %d %s completed at position %" PRIu32 "\n",
               unit, opcode_names [opcode], uptr->pos);
 
     dpprintf (cvptr->device, TL_DEB_CMD, (cvptr->length > 0

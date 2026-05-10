@@ -147,6 +147,52 @@ static void assert_tape_record_equals(const uint8_t *actual, t_mtrlnt actual_len
     assert_memory_equal(actual, expected, expected_len);
 }
 
+static char *capture_tape_debug_output(struct sim_tape_fixture *fixture)
+{
+    FILE *saved_deb = sim_deb;
+    int32_t saved_deb_switches = sim_deb_switches;
+    uint32_t saved_unit_dctrl = fixture->unit.dctrl;
+    FILE *capture;
+    char *output = NULL;
+    size_t output_size = 0;
+    uint8_t record[] = {0x10, 0x11, 0x12, 0x13};
+    uint8_t read_buffer[16] = {0};
+    t_mtrlnt record_length;
+
+    capture = tmpfile();
+    assert_non_null(capture);
+
+    sim_deb = capture;
+    sim_deb_switches |= SWMASK('F');
+    fixture->unit.dctrl |= MTSE_DBG_STR;
+
+    assert_int_equal(sim_tape_wrrecf(&fixture->unit, record, sizeof(record)),
+                     MTSE_OK);
+    assert_int_equal(sim_tape_wrtmk(&fixture->unit), MTSE_OK);
+    assert_int_equal(sim_tape_rewind(&fixture->unit), MTSE_OK);
+    assert_int_equal(sim_tape_rdrecf(&fixture->unit, read_buffer,
+                                     &record_length, sizeof(read_buffer)),
+                     MTSE_OK);
+    assert_tape_record_equals(read_buffer, record_length, record,
+                              sizeof(record));
+    assert_int_equal(sim_tape_rdrecr(&fixture->unit, read_buffer,
+                                     &record_length, sizeof(read_buffer)),
+                     MTSE_OK);
+    assert_tape_record_equals(read_buffer, record_length, record,
+                              sizeof(record));
+
+    assert_int_equal(fflush(capture), 0);
+    assert_int_equal(
+        simh_test_read_stream(capture, &output, &output_size), 0);
+    assert_int_equal(fclose(capture), 0);
+
+    sim_deb = saved_deb;
+    sim_deb_switches = saved_deb_switches;
+    fixture->unit.dctrl = saved_unit_dctrl;
+
+    return output;
+}
+
 /* Verify a counted tape image has matching leading and trailing lengths. */
 static void assert_counted_tape_metadata(const uint8_t *actual,
                                          size_t payload_len,
@@ -831,6 +877,22 @@ static void test_sim_tape_spacing_and_reverse_reads_work(void **state)
                               sizeof(first_record));
 }
 
+/* Verify debug output renders tape positions and record lengths correctly. */
+static void test_sim_tape_debug_output_formats_positions(void **state)
+{
+    struct sim_tape_fixture *fixture = *state;
+    char *output;
+
+    assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
+                     SCPE_OK);
+
+    output = capture_tape_debug_output(fixture);
+    assert_non_null(strstr(output, "wr_lnt: lnt: 0, pos: 12"));
+    assert_non_null(strstr(output, "rd_lntf: st: 0, lnt: 4, pos: 12"));
+    assert_non_null(strstr(output, "rd_lntr: st: 0, lnt: 4, pos: 0"));
+    free(output);
+}
+
 /* Verify operational error paths on attached tapes: short read buffers,
    write protection, and detach state cleanup. */
 static void test_sim_tape_operational_error_paths(void **state)
@@ -1147,6 +1209,7 @@ static void test_sim_tape_dos11_fallback_name_uses_six_digits(void **state)
 static void test_sim_tape_ansi_decimal_fields_validate_width(void **state)
 {
     char field[6];
+    char wide_field[16];
 
     (void)state;
 
@@ -1172,6 +1235,9 @@ static void test_sim_tape_ansi_decimal_fields_validate_width(void **state)
     memcpy(field, "yyyyyy", sizeof(field));
     assert_false(sim_tape_format_ansi_decimal(field, 6, 1000000));
     assert_memory_equal(field, "yyyyyy", sizeof(field));
+    assert_true(sim_tape_format_ansi_decimal(wide_field, 15,
+                                             UINT64_C(123456789012345)));
+    assert_memory_equal(wide_field, "123456789012345", 15);
     assert_false(sim_tape_format_ansi_decimal(NULL, 4, 1));
     assert_false(sim_tape_format_ansi_decimal(field, 0, 1));
 }
@@ -1718,6 +1784,9 @@ int main(void)
             setup_sim_tape_fixture, teardown_sim_tape_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_tape_spacing_and_reverse_reads_work,
+            setup_sim_tape_fixture, teardown_sim_tape_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_tape_debug_output_formats_positions,
             setup_sim_tape_fixture, teardown_sim_tape_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_tape_spfilebyrecf_reports_counts_and_leot,

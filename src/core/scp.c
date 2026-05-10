@@ -219,6 +219,7 @@
 #include "sim_frontpanel.h"
 #include "zimh_version.h"
 #include <ctype.h>
+#include <inttypes.h>
 #include <math.h>
 #include <setjmp.h>
 #include <signal.h>
@@ -10763,7 +10764,7 @@ if (sim_deb_switches & (SWMASK ('T') | SWMASK ('R') | SWMASK ('A'))) {
                      (int)(time_now.tv_nsec/1000000));
         }
     if (sim_deb_switches & SWMASK ('A')) {
-        sprintf(tim_t, "%" LL_FMT "d.%03d ", (LL_TYPE)(time_now.tv_sec), (int)(time_now.tv_nsec/1000000));
+        sprintf(tim_t, "%" PRIdMAX ".%03d ", (intmax_t)time_now.tv_sec, (int)(time_now.tv_nsec/1000000));
         }
     }
 if (sim_deb_switches & SWMASK ('P')) {
@@ -11217,7 +11218,7 @@ if (sim_deb && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & reason)) {
                 continue;
                 }
             if (same > 0) {
-                _sim_debug_unit (reason, uptr, "%04" SIZE_T_FMT "X thru %04" SIZE_T_FMT "X same as above\n",
+                _sim_debug_unit (reason, uptr, "%04zX thru %04zX same as above\n",
                                  i-(16*same), i - 1);
                 same = 0;
                 }
@@ -11266,10 +11267,10 @@ if (sim_deb && ((dptr->dctrl | (uptr ? uptr->dctrl : 0)) & reason)) {
             strbuf[soff+sidx] = '\0';
             ebcdicbuf[eidx] = '\0';
             rad50buf[ridx] = '\0';
-            _sim_debug_unit (reason, uptr, "%04" SIZE_T_FMT "X%-48s %s%s%s\n", i, outbuf, strbuf, ebcdicbuf, rad50buf);
+            _sim_debug_unit (reason, uptr, "%04zX%-48s %s%s%s\n", i, outbuf, strbuf, ebcdicbuf, rad50buf);
             }
         if (same > 0) {
-            _sim_debug_unit (reason, uptr, "%04" SIZE_T_FMT "X thru %04" SIZE_T_FMT "X same as above\n",
+            _sim_debug_unit (reason, uptr, "%04zX thru %04zX same as above\n",
                              (i-(16*same)), len - 1);
             }
         }
@@ -11507,7 +11508,7 @@ for (i = 0; (dptr = devices[i]) != NULL; i++) {
             }
 
         if (sim_switches & SWMASK ('R'))            /* Debug output */
-            sim_printf ("%5s:%-9.9s %s(rdx=%u, wd=%u, off=%u, dep=%u, strsz=%" SIZE_T_FMT "u, objsz=%" SIZE_T_FMT "u, elesz=%" SIZE_T_FMT "u, rsz=%" SIZE_T_FMT "u, %s %s%s membytes=%" SIZE_T_FMT "u, macro=%s)\n", dptr->name, rptr->name, rptr->macro,
+            sim_printf ("%5s:%-9.9s %s(rdx=%u, wd=%u, off=%u, dep=%u, strsz=%zu, objsz=%zu, elesz=%zu, rsz=%zu, %s %s%s membytes=%zu, macro=%s)\n", dptr->name, rptr->name, rptr->macro,
                         rptr->radix, rptr->width, rptr->offset, rptr->depth, rptr->stride, rptr->obj_size, rptr->size, rsz, rptr->desc ? rptr->desc : "",
                         (rptr->flags & REG_FIT) ? "REG_FIT" : "", (rptr->flags & REG_VMIO) ? " REG_VMIO" : "",
                         memsize, rptr->macro ? rptr->macro : "");

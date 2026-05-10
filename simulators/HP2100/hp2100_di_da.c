@@ -350,6 +350,7 @@
 
 
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -1890,7 +1891,7 @@ if (da_unit [unit].wait > 0)                            /* was service requested
 
 if (initiated)
     if (if_command [unit] == disc_command)
-        tprintf (da_dev, DEB_RWSC, "Unit %d position %" T_ADDR_FMT "d %s disc command initiated\n",
+        tprintf (da_dev, DEB_RWSC, "Unit %d position %" PRIu32 " %s disc command initiated\n",
                  unit, da_unit [unit].pos, dl_opcode_name (ICD, icd_cntlr [unit].opcode));
     else
         tprintf (da_dev, DEB_RWSC, "Unit %d %s command initiated\n",

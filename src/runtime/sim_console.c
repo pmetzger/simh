@@ -1364,7 +1364,7 @@ t_stat sim_rem_con_repeat_svc (UNIT *uptr)
 size_t line = uptr - rem_con_repeat_units;
 REMOTE *rem = &sim_rem_consoles[line];
 
-sim_debug (DBG_REP, &sim_remote_console, "sim_rem_con_repeat_svc(line=%" SIZE_T_FMT "u) - interval=%d usecs\n", line, rem->repeat_interval);
+sim_debug (DBG_REP, &sim_remote_console, "sim_rem_con_repeat_svc(line=%zu) - interval=%d usecs\n", line, rem->repeat_interval);
 if (rem->repeat_interval) {
     rem->repeat_pending = true;
     sim_activate_after (uptr, rem->repeat_interval);        /* reschedule */
@@ -1430,7 +1430,7 @@ t_stat sim_rem_con_smp_collect_svc (UNIT *uptr)
 size_t line = uptr - rem_con_smp_smpl_units;
 REMOTE *rem = &sim_rem_consoles[line];
 
-sim_debug (DBG_SAM, &sim_remote_console, "sim_rem_con_smp_collect_svc(line=%" SIZE_T_FMT "u) - interval=%d, dither=%d%%\n", line, rem->smp_sample_interval, rem->smp_sample_dither_pct);
+sim_debug (DBG_SAM, &sim_remote_console, "sim_rem_con_smp_collect_svc(line=%zu) - interval=%d, dither=%d%%\n", line, rem->smp_sample_interval, rem->smp_sample_dither_pct);
 if (rem->smp_sample_interval && (rem->smp_reg_count != 0)) {
     int32_t event_time = rem->smp_sample_interval;
 

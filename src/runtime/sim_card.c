@@ -831,7 +831,7 @@ _sim_parse_card(UNIT *uptr, DEVICE *dptr, struct _card_buffer *buf, uint16_t (*i
             }
         }
     end_card:
-        sim_debug(DEBUG_CARD, dptr, "-%" SIZE_T_FMT "u-", i);
+        sim_debug(DEBUG_CARD, dptr, "-%zu-", i);
 
         /* Scan to end of line, ignore anything after last column */
         while (buf->buffer[i] != '\n' && buf->buffer[i] != '\r' && i < buf->len) {

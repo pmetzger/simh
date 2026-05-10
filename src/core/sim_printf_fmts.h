@@ -1,87 +1,61 @@
-/*~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~
- * sim_printf_fmts.h
- *
- * Cross-platform printf() formats for simh data types. Refactored out to
- * this header so that these formats are available to more than SCP.
- *
- * Author: B. Scott Michel
- *
- * "scooter me fecit"
- *~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~*/
-// SPDX-FileCopyrightText: B. Scott Michel
+/* sim_printf_fmts.h: printf() format specifiers for ZIMH domain types */
+// SPDX-FileCopyrightText: 2026 The ZIMH Project
 // SPDX-License-Identifier: MIT
 
-#pragma once
-#if !defined(SIM_PRINTF_H)
+#ifndef SIM_PRINTF_FMTS_H
+#define SIM_PRINTF_FMTS_H
 
-/* cross-platform printf() format specifiers:
- *
- * Note: MS apparently does recognize "ll" as "l" in its printf() routines, but "I64" is
- * preferred for 64-bit types.
- *
- * MinGW note: __MINGW64__ and __MINGW32__ are both defined by 64-bit gcc. Check
- * for __MINGW64__ before __MINGW32__.
- *
- *
- * LL_FMT: long long format modifier, e.g. "%016" LL_FMT "x"
- * SIZE_T: size_t format modifier, e.g., "%" SIZE_T_FMT "u" (can use "d", but you will
- *         probably get a warning.)
- * T_UINT64_FMT: uint64_t format modifier, e.g. "%016" T_UINT64_FMT "x"
- * T_INT64_FMT: int64_t format modifier, e.g., "%" T_INT64_FMT "d"
- * POINTER_FMT: Format modifier for pointers, e.g. "%08" POINTER_FMT "X"
-*/
+#include <inttypes.h>
 
-#if defined (_WIN32) || defined(_WIN64)
-
-#  if defined(__MINGW64__)
-#    define LL_FMT     "I64"
-#    define SIZE_T_FMT "I64"
-#  elif defined(_MSC_VER) || defined(__MINGW32__)
-#    define LL_FMT     "ll"
-#    define SIZE_T_FMT "z"
-#  else
-     /* Graceful fail -- shouldn't ever default to this on a Windows platform. */
-#    define LL_FMT     "ll"
-#    define SIZE_T_FMT "I32"
-#  endif
-
-#  define T_UINT64_FMT   "I64"
-#  define T_INT64_FMT    "I64"
-#  define POINTER_FMT    "p"
-
-#elif defined(__GNU_LIBRARY__) || defined(__GLIBC__) || defined(__GLIBC_MINOR__) || \
-      defined(__APPLE__)
-
-/* GNU libc (Linux) and macOS */
-#  define LL_FMT         "ll"
-#  define SIZE_T_FMT     "z"
-#  define T_UINT64_FMT   "ll"
-#  define T_INT64_FMT    "ll"
-#  define POINTER_FMT    "p"
-
-#else
-/* Defaults. */
-#  define LL_FMT         "ll"
-#  define SIZE_T_FMT     ""
-#  define T_UINT64_FMT   ""
-#  define T_INT64_FMT    ""
-#  define POINTER_FMT    ""
-#endif
-
-
+/*
+ * Preferred printf() conversion specifiers for ZIMH domain type widths.
+ * These are complete conversion suffixes, following the <inttypes.h>
+ * PRI* convention.  Use them as "%" PRIuADDR, not as modifier fragments.
+ * Choose the signedness that matches the actual argument type after any
+ * deliberate cast.
+ */
 #if defined (USE_INT64) && defined (USE_ADDR64)
-#  define T_ADDR_FMT      T_UINT64_FMT
+#  define PRIdADDR PRId64
+#  define PRIiADDR PRIi64
+#  define PRIuADDR PRIu64
+#  define PRIoADDR PRIo64
+#  define PRIxADDR PRIx64
+#  define PRIXADDR PRIX64
 #else
-#  define T_ADDR_FMT      ""
+#  define PRIdADDR PRId32
+#  define PRIiADDR PRIi32
+#  define PRIuADDR PRIu32
+#  define PRIoADDR PRIo32
+#  define PRIxADDR PRIx32
+#  define PRIXADDR PRIX32
 #endif
 
 #if defined (USE_INT64)
-#  define T_VALUE_FMT     T_UINT64_FMT
-#  define T_SVALUE_FMT    T_INT64_FMT
+#  define PRIdVALUE  PRId64
+#  define PRIiVALUE  PRIi64
+#  define PRIuVALUE  PRIu64
+#  define PRIoVALUE  PRIo64
+#  define PRIxVALUE  PRIx64
+#  define PRIXVALUE  PRIX64
+#  define PRIdSVALUE PRId64
+#  define PRIiSVALUE PRIi64
+#  define PRIuSVALUE PRIu64
+#  define PRIoSVALUE PRIo64
+#  define PRIxSVALUE PRIx64
+#  define PRIXSVALUE PRIX64
 #else
-#  define T_VALUE_FMT     ""
-#  define T_SVALUE_FMT    ""
+#  define PRIdVALUE  PRId32
+#  define PRIiVALUE  PRIi32
+#  define PRIuVALUE  PRIu32
+#  define PRIoVALUE  PRIo32
+#  define PRIxVALUE  PRIx32
+#  define PRIXVALUE  PRIX32
+#  define PRIdSVALUE PRId32
+#  define PRIiSVALUE PRIi32
+#  define PRIuSVALUE PRIu32
+#  define PRIoSVALUE PRIo32
+#  define PRIxSVALUE PRIx32
+#  define PRIXSVALUE PRIX32
 #endif
 
-#define SIM_PRINTF_H
-#endif
+#endif /* SIM_PRINTF_FMTS_H */

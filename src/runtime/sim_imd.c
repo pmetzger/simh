@@ -131,7 +131,7 @@ static t_stat diskParse(DISK_INFO *myDisk, uint32_t isVerbose)
             break; /* detected end of IMD file */
 
         if (hdrBytes != 5) {
-            sim_printf("SIM_IMD: Header read returned %" SIZE_T_FMT "u bytes instead of 5.\n", hdrBytes);
+            sim_printf("SIM_IMD: Header read returned %zu bytes instead of 5.\n", hdrBytes);
             return (SCPE_OPENERR);
         }
 

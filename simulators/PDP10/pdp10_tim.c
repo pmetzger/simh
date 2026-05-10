@@ -40,6 +40,7 @@
 */
 
 #include "pdp10_defs.h"
+#include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -260,7 +261,7 @@ tempbase[1] &= ~((d10) TIM_BASE_RAZ);
  */
 Write (ea, tempbase[0], prv);
 Write (INCA(ea), tempbase[1], prv);
-sim_debug (DEB_RRD, &tim_dev, "rdtim() = %012" LL_FMT "o %012" LL_FMT "o\n", tempbase[0], tempbase[1]);
+sim_debug (DEB_RRD, &tim_dev, "rdtim() = %012" PRIo64 " %012" PRIo64 "\n", tempbase[0], tempbase[1]);
 return false;
 }
 
@@ -273,7 +274,7 @@ bool wrtim (a10 ea, int32_t prv)
 {
 tim_base[0] = Read (ea, prv);
 tim_base[1] = CLRS (Read (INCA (ea), prv) & ~((d10) TIM_HWRE_MASK));
-sim_debug (DEB_RWR, &tim_dev, "wrtim(%012" LL_FMT "o, %012" LL_FMT "o)\n", tim_base[0], tim_base[1]);
+sim_debug (DEB_RWR, &tim_dev, "wrtim(%012" PRIo64 ", %012" PRIo64 ")\n", tim_base[0], tim_base[1]);
 return false;
 }
 
@@ -284,7 +285,7 @@ return false;
 bool rdint (a10 ea, int32_t prv)
 {
 Write (ea, tim_interval, prv);
-sim_debug (DEB_RRD, &tim_dev, "rdint() = %012" LL_FMT "o\n", tim_interval);
+sim_debug (DEB_RRD, &tim_dev, "rdint() = %012" PRIo64 "\n", tim_interval);
 return false;
 }
 
@@ -300,7 +301,7 @@ return false;
 bool wrint (a10 ea, int32_t prv)
 {
 tim_interval = CLRS (Read (ea, prv));
-sim_debug (DEB_RWR, &tim_dev, "wrint(%012" LL_FMT "o)\n", tim_interval);
+sim_debug (DEB_RWR, &tim_dev, "wrint(%012" PRIo64 ")\n", tim_interval);
 return update_interval (tim_interval);
 }
 
@@ -400,7 +401,7 @@ tmxr_poll = tim_mult * (int32_t)(sim_timer_inst_per_sec () / clk_tps);/* set mux
 tim_incr_base (tim_base, tim_period);                   /* incr time base based on period of expired interval */
 tim_period = tim_new_period;                            /* If interval has changed, update period */
 apr_flg = apr_flg | APRF_TIM;                           /* request interrupt */
-sim_debug (DEB_INT, &tim_dev, "tim_svc(INT) tmr_poll=%d, tmxr_poll=%d, tim_period=%" LL_FMT "d\n", tmr_poll, tmxr_poll, tim_period);
+sim_debug (DEB_INT, &tim_dev, "tim_svc(INT) tmr_poll=%d, tmxr_poll=%d, tim_period=%" PRId64 "\n", tmr_poll, tmxr_poll, tim_period);
 if (Q_ITS) {                                            /* ITS? */
     if (pi_act == 0)
         quant = (quant + TIM_ITS_QUANT) & DMASK;

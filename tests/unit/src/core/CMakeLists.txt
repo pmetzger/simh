@@ -62,6 +62,32 @@ add_unit_test(unit-scp-message
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
+add_unit_test(unit-sim-printf-fmts
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_sim_printf_fmts.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
+add_unit_test(unit-sim-printf-fmts-i64
+    LABEL unit
+    FEATURE_INT64
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_sim_printf_fmts.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
+add_unit_test(unit-sim-printf-fmts-z64
+    LABEL unit
+    FEATURE_FULL64
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_sim_printf_fmts.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
 add_unit_test(unit-scp-expect
     LABEL unit
     SOURCES

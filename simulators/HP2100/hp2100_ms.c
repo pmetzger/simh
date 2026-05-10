@@ -100,6 +100,7 @@
 
 
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -824,7 +825,7 @@ while (working_set) {                                   /* while signals remain 
                     sim_activate (uptr, sched_time);    /* else schedule op */
 
                     tprintf (msc_dev, DEB_CMDS, "Unit %d command %03o (%s) scheduled, "
-                                                "pos = %" T_ADDR_FMT "d, time = %d\n",
+                                                "pos = %" PRIu32 ", time = %d\n",
                              msc_usl, uptr->FNC, ms_cmd_name (uptr->FNC),
                              uptr->pos, sched_time);
                     }

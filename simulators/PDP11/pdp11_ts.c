@@ -102,6 +102,7 @@
 #define TS_DIS          DEV_DIS                         /* off by default */
 #endif
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -764,7 +765,7 @@ if (!(cmdhdr & CMD_ACK)) {                              /* no acknowledge? */
     }
 fnc = GET_FNC (cmdhdr);                                 /* get fnc+mode */
 mod = GET_MOD (cmdhdr);
-sim_debug (DBG_REQ, &ts_dev, ">>STRT: cmd=%s, mod=%o, buf=%o, lnt=%d, pos=%" T_ADDR_FMT "u\n",
+sim_debug (DBG_REQ, &ts_dev, ">>STRT: cmd=%s, mod=%o, buf=%o, lnt=%d, pos=%" PRIuADDR "\n",
         fnc_name[fnc], mod, cmdadl, cmdlnt, ts_unit.pos);
 if ((fnc != FNC_WCHR) && (tssr & TSSR_NBA)) {           /* ~wr chr & nba? */
     ts_endcmd (TC3, 0, 0);                              /* error */
@@ -1046,7 +1047,7 @@ tssr = ts_updtssr (tssr | tc | TSSR_SSR | (tc? TSSR_SC: 0));
 if (cmdhdr & CMD_IE)
     SET_INT (TS);
 ts_ownm = 0; ts_ownc = 0;
-sim_debug (DBG_REQ, &ts_dev, ">>CMPL: sta=%o, tc=%o, rfc=%d, pos=%" T_ADDR_FMT "u\n",
+sim_debug (DBG_REQ, &ts_dev, ">>CMPL: sta=%o, tc=%o, rfc=%d, pos=%" PRIuADDR "\n",
                         msgxs0, GET_TC (tssr), msgrfc, ts_unit.pos);
 return;
 }

@@ -237,7 +237,7 @@ static t_stat sim_tape_test_create_tape_files(UNIT *uptr, const char *filename,
         for (j = 0; j < (size_t)records; j++) {
             awsrec_typ = AWS_REC;
             if (sim_switches & SWMASK('V'))
-                sim_printf("Writing %" SIZE_T_FMT "u byte record\n", rec_size);
+                sim_printf("Writing %zu byte record\n", rec_size);
             for (k = 0; k < rec_size; k++)
                 buf[k] = rand() & 0xFF;
             (void)sim_fwrite(&mtrlnt, sizeof(mtrlnt), 1, fSIMH);

@@ -52,6 +52,7 @@
 
 #define IN_SIM_FIO_C 1              /* Include from sim_fio.c */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -1114,7 +1115,7 @@ static void sim_filepath_format_size(char *buf, size_t size,
     if (sizeof(filestat->st_size) == 4)
         snprintf(buf, size, "%ld ", (long)filestat->st_size);
     else
-        snprintf(buf, size, "%" LL_FMT "d ", (LL_TYPE)filestat->st_size);
+        snprintf(buf, size, "%" PRIdMAX " ", (intmax_t)filestat->st_size);
 }
 
 /* Format the MM/DD/YYYY hh:mm AM/PM timestamp substitution. */

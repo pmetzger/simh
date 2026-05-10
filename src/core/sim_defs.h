@@ -213,12 +213,6 @@ typedef uint32_t        t_addr;
 #endif
 #define STACKBUFSIZE 2048
 
-#if defined (_WIN32) /* Actually, a GCC issue */
-#define LL_TYPE long long
-#else
-#define LL_TYPE long long
-#endif
-
 #if defined (_WIN32)
 #define NULL_DEVICE "NUL:"
 #else
