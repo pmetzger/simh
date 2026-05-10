@@ -119,6 +119,30 @@
 #include "sim_types.h"
 #include "vt11.h"
 
+/* Prefer the C23 fallthrough attribute when available. This compatibility
+   macro can be removed once all supported compilers accept [[fallthrough]]. */
+#ifndef FALLTHROUGH
+#  if defined(__has_c_attribute)
+#    if __has_c_attribute(fallthrough)
+#      define FALLTHROUGH [[fallthrough]]
+#    endif
+#  endif
+
+#  if !defined(FALLTHROUGH) && defined(__has_attribute)
+#    if __has_attribute(fallthrough)
+#      define FALLTHROUGH __attribute__((fallthrough))
+#    endif
+#  endif
+
+#  if !defined(FALLTHROUGH) && defined(__GNUC__) && __GNUC__ >= 7
+#    define FALLTHROUGH __attribute__((fallthrough))
+#  endif
+
+#  if !defined(FALLTHROUGH)
+#    define FALLTHROUGH ((void)0)
+#  endif
+#endif
+
 #define BITMASK(n) (1<<(n))             /* PDP-11 bit numbering */
 
 /* mask for a field */
@@ -2109,6 +2133,7 @@ vector3(int i, int32_t dx, int32_t dy, int32_t dz) /* unscaled display-file unit
         case 3:                         /* clipped on entry and exit */
             edge_indic = 1;             /* indicate clipped going in */
                                         /* XXX  might not be correct for VT11 */
+            FALLTHROUGH;
         case 2:                         /* clipped only on exit */
             edge_flag = edge_intr_ena;  /* indicate vector-clip interrupt */
             if (edge_flag) {
@@ -2123,7 +2148,7 @@ vector3(int i, int32_t dx, int32_t dy, int32_t dz) /* unscaled display-file unit
             return;
         default:
             DEBUGF("clip() bad return: %d\n", clip_vect);
-            /* Fallthrough */
+            FALLTHROUGH;
         case -1:                        /* visible, not clipped */
             clip_vect = 0;
             break;                      /* draw immediately */
@@ -3164,13 +3189,13 @@ vt11_cycle(int us, int slowdown)
         case 011:                       /* Set Graphic Mode 1001 */
             if (VT11)
                 goto bad_ins;
-            /*FALLTHRU*/
+            FALLTHROUGH;
         case 010:                       /* Set Graphic Mode 1000 */
             if (VT11) {
                 DEBUGF("SGM 1000 IGNORED\r\n");
                 break;
             }
-            /*FALLTHRU*/
+            FALLTHROUGH;
         case 0:                         /* Set Graphic Mode 0000 */
         case 1:                         /* Set Graphic Mode 0001 */
         case 2:                         /* Set Graphic Mode 0010 */
