@@ -514,6 +514,13 @@ static void set_test_framer_status_packet(ETH_PACK *packet, uint8_t on_flags)
     packet->msg[19] = on_flags;
 }
 
+/* Set the two-byte receive status word in a synthetic framer packet. */
+static void set_test_framer_receive_status(ETH_PACK *packet, uint16_t status)
+{
+    packet->msg[16] = (uint8_t)(status & 0xFF);
+    packet->msg[17] = (uint8_t)(status >> 8);
+}
+
 static void register_and_open_test_tmxr(struct sim_tmxr_fixture *fixture)
 {
     assert_int_equal(sim_register_internal_device(&fixture->device), SCPE_OK);
@@ -1134,6 +1141,45 @@ static void test_tmxr_poll_rx_skips_short_framer_data_frame(void **state)
         SCPE_OK);
 
     set_test_framer_packet_header(&fixture->io.eth_read_packets[0], 1, 'X');
+    set_test_framer_packet_header(&fixture->io.eth_read_packets[1], 3, 'A');
+    fixture->io.eth_read_results[0] = 1;
+    fixture->io.eth_read_results[1] = 1;
+    fixture->io.next_eth_read_result = 0;
+    line->rcve = 1;
+    line->conn = true;
+    line->rxbps = 0;
+
+    tmxr_poll_rx(&fixture->mux);
+    value = tmxr_getc_ln(line);
+
+    assert_int_equal(fixture->io.eth_read_calls, 2);
+    assert_true(value & TMXR_VALID);
+    assert_int_equal(value & 0xFF, 'A');
+
+    assert_int_equal(tmxr_detach_ln(line), SCPE_OK);
+    assert_int_equal(tmxr_close_master(&fixture->mux), SCPE_OK);
+}
+
+/* Verify bad framer receive status drops the damaged frame while leaving later
+   good frames available to the simulated device. */
+static void test_tmxr_poll_rx_skips_bad_framer_data_status(void **state)
+{
+    struct sim_tmxr_fixture *fixture = *state;
+    TMLN *line = &fixture->lines[1];
+    int32_t value;
+
+    install_tmxr_test_io_hooks();
+    fixture->io.eth_devices_result = 1;
+    snprintf(fixture->io.eth_devices_list[0].name,
+             sizeof(fixture->io.eth_devices_list[0].name), "%s", "framer0");
+    fixture->io.eth_devices_list[0].eth_api = ETH_API_PCAP;
+
+    assert_int_equal(
+        tmxr_open_master(&fixture->mux, "Line=1,SYNC=sync0:integral:56000"),
+        SCPE_OK);
+
+    set_test_framer_packet_header(&fixture->io.eth_read_packets[0], 3, 'B');
+    set_test_framer_receive_status(&fixture->io.eth_read_packets[0], 1);
     set_test_framer_packet_header(&fixture->io.eth_read_packets[1], 3, 'A');
     fixture->io.eth_read_results[0] = 1;
     fixture->io.eth_read_results[1] = 1;
@@ -3338,6 +3384,9 @@ int main(void)
             setup_sim_tmxr_fixture, teardown_sim_tmxr_fixture),
         cmocka_unit_test_setup_teardown(
             test_tmxr_poll_rx_skips_short_framer_data_frame,
+            setup_sim_tmxr_fixture, teardown_sim_tmxr_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_tmxr_poll_rx_skips_bad_framer_data_status,
             setup_sim_tmxr_fixture, teardown_sim_tmxr_fixture),
         cmocka_unit_test_setup_teardown(
             test_tmxr_put_packet_ln_reports_framer_write_failure,

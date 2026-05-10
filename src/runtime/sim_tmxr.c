@@ -6488,7 +6488,8 @@ framer_await_status (line, cnt);
 
 static int  tmxr_framer_read (TMLN *line, char *buf, int nbytes)
 {
-int stat, flen, fstat;
+int stat, flen;
+uint16_t fstat;
 ETH_PACK framer_rpkt;
 
 while (1) {
@@ -6497,13 +6498,16 @@ while (1) {
         return 0;
     /* Size reported by framer includes status, subtract that */
     flen  = (framer_rpkt.msg[14] + (framer_rpkt.msg[15] << 8)) - 2;
-    /* TODO: Check the pkoning2/ddcmp framer API and firmware before
-       deciding whether nonzero data-frame status means drop, report a line
-       error, count/log, or pass the packet through unchanged. */
-    fstat = framer_rpkt.msg[16] + (framer_rpkt.msg[17] << 8);
+    fstat = (uint16_t)(framer_rpkt.msg[16] | (framer_rpkt.msg[17] << 8));
     /* Ignore malformed frames shorter than the status field. */
     if (flen < 0)
         continue;
+    if (fstat != 0) {
+        sim_debug (TMXR_DBG_RCV, line->dptr,
+                   "framer receive status %u, dropping frame\n",
+                   (unsigned)fstat);
+        continue;
+        }
     if (framer_rpkt.msg[18] == 021) {
         /* DC1, so it's a framer status message.  Save it. */
         if ((size_t)flen > sizeof (struct status_msg_t))
