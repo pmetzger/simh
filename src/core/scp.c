@@ -4675,8 +4675,10 @@ return SCPE_OK;
 
 t_stat set_dev_debug (DEVICE *dptr, UNIT *uptr, int32_t flags, const char *cptr)
 {
-int32_t flag = flags & 1;
-bool uflag = ((flags & 2) != 0);
+uint32_t cmd_flags = (uint32_t)flags;
+uint32_t enable_mask = cmd_flags & 1u;
+bool enable = (enable_mask != 0);
+bool uflag = ((cmd_flags & 2u) != 0);
 char gbuf[CBUFSIZE];
 DEBTAB *dep;
 t_stat r = SCPE_OK;
@@ -4684,11 +4686,14 @@ t_stat r = SCPE_OK;
 if ((dptr->flags & DEV_DEBUG) == 0)
     return SCPE_NOFNC;
 if (cptr == NULL) {                                     /* no arguments? */
+    uint32_t debug_mask =
+        enable ? (dptr->debflags ? enable_mask : 0xFFFFFFFFu) : 0;
+
     if (uflag)
-        uptr->dctrl = flag ? (dptr->debflags ? flag : 0xFFFFFFFF) : 0;/* disable/enable w/o table */
+        uptr->dctrl = debug_mask;                       /* disable/enable w/o table */
     else
-        dptr->dctrl = flag ? (dptr->debflags ? flag : 0xFFFFFFFF) : 0;/* disable/enable w/o table */
-    if (flag && dptr->debflags) {                       /* enable with table? */
+        dptr->dctrl = debug_mask;                       /* disable/enable w/o table */
+    if (enable && dptr->debflags) {                     /* enable with table? */
         for (dep = dptr->debflags; dep->name != NULL; dep++)
             if (uflag)
                 uptr->dctrl = uptr->dctrl | dep->mask;      /* set all */
@@ -4703,7 +4708,7 @@ while (*cptr) {
     cptr = get_glyph (cptr, gbuf, ';');                 /* get debug flag */
     for (dep = dptr->debflags; dep->name != NULL; dep++) {
         if (strcmp (dep->name, gbuf) == 0) {            /* match? */
-            if (flag)
+            if (enable)
                 if (uflag)
                     uptr->dctrl = uptr->dctrl | dep->mask;
                 else

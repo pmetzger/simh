@@ -62,6 +62,14 @@ add_unit_test(unit-scp-message
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
+add_unit_test(unit-scp-debug
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_scp_debug.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
 add_unit_test(unit-sim-printf-fmts
     LABEL unit
     SOURCES
