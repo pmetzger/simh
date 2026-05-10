@@ -52,6 +52,14 @@ static t_stat expect_svc(UNIT *uptr)
 
 static UNIT sim_expect_unit = {UDATA(&expect_svc, 0, 0)};
 
+/* Schedule the internal expect stop using the rule's declared time base. */
+static t_stat sim_exp_schedule_halt(uint32_t after, int32_t switches)
+{
+    if (switches & EXP_TYP_TIME)
+        return sim_activate_after(&sim_expect_unit, after);
+    return sim_activate(&sim_expect_unit, (int32_t)after);
+}
+
 DEVICE sim_expect_dev = {"INT-EXPECT",
                          &sim_expect_unit,
                          NULL,
@@ -538,7 +546,7 @@ t_stat sim_set_expect(EXPECT *exp, const char *cptr)
     }
     tptr = get_glyph(cptr, gbuf, ',');
     if ((!strncmp(gbuf, "HALTAFTER=", 10)) && (gbuf[10])) {
-        after = (uint32_t)get_uint(&gbuf[10], 10, 2000000000, &r);
+        after = (uint32_t)get_uint(&gbuf[10], 10, (uint32_t)INT32_MAX, &r);
         if (r != SCPE_OK)
             return sim_messagef(SCPE_ARG, "Invalid Halt After Value: %s\n",
                                 &gbuf[10]);
@@ -609,6 +617,10 @@ t_stat sim_exp_set(EXPECT *exp, const char *match, int32_t cnt, uint32_t after,
     uint8_t *match_buf;
     uint32_t match_size;
     size_t i;
+
+    if (after > (uint32_t)INT32_MAX)
+        return sim_messagef(SCPE_ARG, "Invalid Halt After Value: %u\n",
+                            after);
 
     match_buf = (uint8_t *)calloc(strlen(match) + 1, 1);
     if (!match_buf)
@@ -902,6 +914,7 @@ t_stat sim_exp_check(EXPECT *exp, uint8_t data)
         } else {
             uint32_t after = ep->after;
             int32_t switches = ep->switches;
+            t_stat r;
 
             if (ep->act && *ep->act)
                 sim_debug(exp->dbit, exp->dptr, "Initiating actions: %s\n",
@@ -914,11 +927,11 @@ t_stat sim_exp_check(EXPECT *exp, uint8_t data)
                 sim_exp_clrall(exp);
             else if (!(ep->switches & EXP_TYP_PERSIST))
                 sim_exp_clr_tab(exp, ep);
-            sim_activate(
-                &sim_expect_unit,
-                (switches & EXP_TYP_TIME)
-                    ? (int32_t)((sim_timer_inst_per_sec() * after) / 1000000.0)
-                    : after);
+            r = sim_exp_schedule_halt(after, switches);
+            if (r != SCPE_OK) {
+                free(tstr);
+                return r;
+            }
         }
         exp->buf_data = exp->buf_ins = 0;
     }

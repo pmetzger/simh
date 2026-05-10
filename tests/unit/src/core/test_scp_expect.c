@@ -440,6 +440,19 @@ static void test_expect_cmd_parses_switches_and_rejects_bad_input(void **state)
     assert_int_equal(exp->rules[0].after, 1000);
 }
 
+/* Verify direct EXPECT setup rejects delays outside the scheduler range. */
+static void test_sim_exp_set_rejects_haltafter_outside_scheduler_range(
+    void **state)
+{
+    struct scp_expect_fixture *fixture = *state;
+
+    assert_int_equal(
+        SCPE_BARE_STATUS(sim_exp_set(&fixture->exp, "\"A\"", 0,
+                                     ((uint32_t)INT32_MAX) + 1u, 0, NULL)),
+        SCPE_ARG);
+    assert_int_equal(fixture->exp.size, 0);
+}
+
 /* Verify NOEXPECT clears one rule or all rules through the parser path. */
 static void test_sim_set_noexpect_removes_specific_rules_and_all(void **state)
 {
@@ -1008,6 +1021,10 @@ int main(void)
             simh_test_teardown_scp_expect_fixture),
         cmocka_unit_test_setup_teardown(
             test_expect_cmd_parses_switches_and_rejects_bad_input,
+            simh_test_setup_scp_expect_fixture,
+            simh_test_teardown_scp_expect_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_exp_set_rejects_haltafter_outside_scheduler_range,
             simh_test_setup_scp_expect_fixture,
             simh_test_teardown_scp_expect_fixture),
         cmocka_unit_test_setup_teardown(
