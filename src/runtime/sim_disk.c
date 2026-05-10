@@ -58,6 +58,7 @@ Internal routines:
 #include "sim_defs.h"
 #include "sim_disk.h"
 #include "sim_disk_ramdisk.h"
+#include "sim_dynstr.h"
 #include "sim_ether.h"
 #include "sim_types.h"
 #include <ctype.h>
@@ -2687,12 +2688,38 @@ sim_disk_default_ramdisk_size (UNIT *uptr,
 }
 #endif
 
+/* Change a disk unit's drive type by running the same SET command path a user
+   would use. Drive types are implemented by device modifier callbacks, so the
+   attach code must invoke those callbacks instead of assigning unit fields
+   directly. */
+static t_stat
+sim_disk_set_unit_drive_type(UNIT *uptr, const char *dtype)
+{
+    sim_dynstr_t cmd;
+    t_stat r;
+
+    sim_dynstr_init(&cmd);
+    if (!sim_dynstr_appendf(&cmd, "%s %s", sim_uname(uptr), dtype)) {
+        sim_dynstr_free(&cmd);
+        return SCPE_MEM;
+    }
+    r = set_cmd(0, sim_dynstr_cstr(&cmd));
+    sim_dynstr_free(&cmd);
+    return r;
+}
+
+/* Attach a disk unit to a file, device, or RAMDISK: specification.  The dtype
+   argument names the one drive type this caller wants to use; drive types are
+   device-specific SET options that may change the unit's capacity or geometry.
+   Callers that want attach to search an ordered list of possible drive types
+   use sim_disk_attach_ex instead. */
 t_stat sim_disk_attach (UNIT *uptr, const char *cptr, size_t sector_size, size_t xfer_element_size, bool dontchangecapac,
                         uint32_t dbit, const char *dtype, uint32_t pdp11tracksize, int completion_delay)
 {
 return sim_disk_attach_ex (uptr, cptr, sector_size, xfer_element_size, dontchangecapac, dbit, dtype, pdp11tracksize, completion_delay, NULL);
 }
 
+/* Attach a disk unit with an optional drive-type compatibility table. */
 t_stat sim_disk_attach_ex (UNIT *uptr, const char *cptr, size_t sector_size, size_t xfer_element_size, bool dontchangecapac,
                            uint32_t dbit, const char *dtype, uint32_t pdp11tracksize, int completion_delay, const char **drivetypes)
 {
@@ -2700,6 +2727,9 @@ return sim_disk_attach_ex2 (uptr, cptr, sector_size, xfer_element_size, dontchan
                             dbit, dtype, pdp11tracksize, completion_delay, drivetypes, 0);
 }
 
+/* Attach a disk unit using the full public disk attach argument set,
+   including reserved container sectors for devices that store private
+   metadata in the image. */
 t_stat sim_disk_attach_ex2 (UNIT *uptr, const char *cptr, size_t sector_size, size_t xfer_element_size, bool dontchangecapac,
                             uint32_t dbit, const char *dtype, uint32_t pdp11tracksize, int completion_delay, const char **drivetypes,
                             size_t reserved_sectors)
@@ -3072,13 +3102,10 @@ if (ramdisk_attach) {
     if (sim_disk_ramdisk_spec_has_type (options) &&
         ((dtype == NULL) ||
          (strcasecmp (sim_disk_ramdisk_spec_type (options), dtype) != 0))) {
-        char cmd[CBUFSIZE];
         const char *ramdisk_type = sim_disk_ramdisk_spec_type (options);
 
         strlcpy (ramdisk_dtype, ramdisk_type, sizeof (ramdisk_dtype));
-        snprintf (cmd, sizeof (cmd), "%s %s", sim_uname (uptr),
-                  ramdisk_dtype);
-        r = set_cmd (0, cmd);
+        r = sim_disk_set_unit_drive_type(uptr, ramdisk_dtype);
         if (r != SCPE_OK) {
             sim_disk_ramdisk_free_spec (options);
             return sim_messagef (_err_return (uptr, r),
@@ -3167,7 +3194,6 @@ if ((DK_GET_FMT (uptr) == DKUF_F_VHD) || (ctx->footer)) {
         container_dtype = (char *)ctx->footer->DriveType;
         }
     if (dtype) {
-        char cmd[32];
         t_stat r = SCPE_OK;
 
         if ((strcmp (container_dtype, dtype) == 0) ||
@@ -3175,8 +3201,7 @@ if ((DK_GET_FMT (uptr) == DKUF_F_VHD) || (ctx->footer)) {
              ((container_xfer_element_size == 0) || (container_xfer_element_size == ctx->xfer_element_size)))) {
             if (strcmp (container_dtype, dtype) != 0) {
                 if ((drivetypes != NULL) || (!dontchangecapac)) { /* Autosize allowed */
-                    snprintf (cmd, sizeof (cmd), "%s %s", sim_uname (uptr), container_dtype);
-                    r = set_cmd (0, cmd);
+                    r = sim_disk_set_unit_drive_type(uptr, container_dtype);
                     if (r != SCPE_OK)
                         r = sim_messagef (SCPE_INCOMPDSK, "%s: Cannot set to drive type %s\n", sim_uname (uptr), container_dtype);
                     }
@@ -3213,9 +3238,8 @@ if ((DK_GET_FMT (uptr) == DKUF_F_VHD) || (ctx->footer)) {
                 if (r == SCPE_OK) {
                     int32_t saved_show_message = sim_show_message;
 
-                    snprintf (cmd, sizeof (cmd), "%s %s", sim_uname (uptr), container_dtype);
                     set_cmd (0, "NOMESSAGE");
-                    set_cmd (0, cmd);
+                    (void)sim_disk_set_unit_drive_type(uptr, container_dtype);
                     sim_show_message = saved_show_message;
                     }
                 }
@@ -3227,8 +3251,7 @@ if ((DK_GET_FMT (uptr) == DKUF_F_VHD) || (ctx->footer)) {
         if (r != SCPE_OK) {
             uptr->flags |= UNIT_ATT;
             sim_disk_detach (uptr);                         /* report error now */
-            sprintf (cmd, "%s%d %s", dptr->name, (int)(uptr-dptr->units), dtype);/* restore original dtype */
-            set_cmd (0, cmd);
+            (void)sim_disk_set_unit_drive_type(uptr, dtype); /* restore original dtype */
             return r;
             }
         }

@@ -495,6 +495,28 @@ static void test_sim_disk_ramdisk_type_selects_default_size(void **state)
     assert_int_equal(sim_disk_detach(&fixture->sector_unit), SCPE_OK);
 }
 
+/* Verify RAMDISK:TYPE still reaches SET when a valid unit name nearly fills
+   the command parser's token buffer. */
+static void test_sim_disk_ramdisk_type_handles_long_unit_name(void **state)
+{
+    struct sim_disk_fixture *fixture = *state;
+    char unit_name[CBUFSIZE];
+
+    memset(unit_name, 'D', sizeof(unit_name));
+    unit_name[sizeof(unit_name) - 1] = '\0';
+    fixture->sector_unit.uname = NULL;
+    sim_set_uname(&fixture->sector_unit, unit_name);
+    fixture->sector_unit.capac = 2;
+    sim_switches = 0;
+
+    assert_int_equal(sim_disk_attach_ex(&fixture->sector_unit,
+                                        "RAMDISK:TYPE=LARGE", 512, 1, true, 0,
+                                        "TEST", 0, 0, NULL),
+                     SCPE_OK);
+    assert_int_equal(sim_disk_size(&fixture->sector_unit), 4096);
+    assert_int_equal(sim_disk_detach(&fixture->sector_unit), SCPE_OK);
+}
+
 /* Verify -R RAMDISK: attaches read-only storage and rejects writes. */
 static void test_sim_disk_ramdisk_read_only_switch_write_protects(void **state)
 {
@@ -1201,6 +1223,9 @@ int main(void)
             setup_sim_disk_fixture, teardown_sim_disk_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_disk_ramdisk_type_selects_default_size,
+            setup_sim_disk_fixture, teardown_sim_disk_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_disk_ramdisk_type_handles_long_unit_name,
             setup_sim_disk_fixture, teardown_sim_disk_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_disk_ramdisk_read_only_switch_write_protects,
