@@ -571,6 +571,11 @@ static int eth_get_packet_crc32_data(const uint8_t *msg, int len, uint8_t *crcda
   return crc_len;
 }
 
+#if !defined (USE_READER_THREAD)
+/* Append Ethernet CRC bytes directly to the packet buffer used by the polled
+   receive path.  Threaded receive cannot use this helper because it queues a
+   separate copy of the packet and stores generated CRC bytes beside that copy
+   instead of modifying the callback buffer in place. */
 static int eth_add_packet_crc32(uint8_t *msg, int len)
 {
   int crc_len;
@@ -582,6 +587,7 @@ static int eth_add_packet_crc32(uint8_t *msg, int len)
   }
   return crc_len;
 }
+#endif
 
 void eth_setcrc(ETH_DEV* dev, int need_crc)
 {
