@@ -803,7 +803,7 @@ static bool readCardASCII (   UNIT    *uptr,
                 uptr->pos = ftell (fp);
                 return fileEOF (uptr, hcard, ccard, acard, CDDB_PICK);
             }
-            /* fall through */
+            FALLTHROUGH;
         case '\r':
             peek = fgetc (uptr->fileref);
             if ((peek != EOF) && (peek != '\n'))

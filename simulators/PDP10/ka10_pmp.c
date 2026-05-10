@@ -939,7 +939,7 @@ pmp_startcmd(void) {
             return;
          }
 
-         /* Fall Through */
+         FALLTHROUGH;
 
     case 0x1:              /* Write command */
     case 0x2:              /* Read command */

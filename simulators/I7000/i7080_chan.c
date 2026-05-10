@@ -973,7 +973,7 @@ chan_cmd(uint16_t dev, uint16_t dcmd, uint32_t addr)
                 cmd[chan] &= CHAN_RECCNT;
                 cmd[chan] |= (op << 9) | CHAN_CMD;
             }
-            /* Fall through */
+            FALLTHROUGH;
 
         case IO_SKR:
         case IO_BSF:

@@ -948,6 +948,7 @@ while (working_set) {                                   /* while signals remain 
                             }
 
                     /* fall through into the FNC_CHK and FNC_AR cases */
+                    FALLTHROUGH;
 
                     case FNC_CHK:                       /* check */
                     case FNC_AR:                        /* addr rec */
@@ -1222,6 +1223,7 @@ switch (uptr->FNC) {                                    /* case function */
         dpc_sta[drv] = (dpc_sta[drv] | STA_ATN) & ~STA_BSY;
 
     /* fall through into cmpl */
+    FALLTHROUGH;
 
     case FNC_SEEK3:                                     /* seek complete */
         if (dpc_poll) {                                 /* polling enabled? */

@@ -633,7 +633,7 @@ switch (j) {                                            /* case on class */
         cptr = get_sd (cptr, val, ',', true);           /* src */
         if (!cptr)
             return SCPE_ARG;
-        /* fall through */
+        FALLTHROUGH;
     case F_V_SFI:                                       /* skip func impl */
         cptr = get_fnc (cptr, val);                     /* fo # */
         break;

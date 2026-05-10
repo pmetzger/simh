@@ -967,7 +967,7 @@ t_stat i8272_write(I8272* chip, int addr, uint32_t value)
                 TRACE_PRINT2(DBG_FD_CMD,"CMD=0x%02x[%s]", cmd, msgCMD);
                 chip->cmd_len = cmdsizes[cmd];
                 NEXTSTATE(S_CMDREAD);
-                /*fallthru*/
+                FALLTHROUGH;
             case S_CMDREAD:
                 /* following cmd bytes */
                 chip->cmd[chip->cmd_cnt] = value;
@@ -988,7 +988,7 @@ t_stat i8272_write(I8272* chip, int addr, uint32_t value)
                 if (i8272_datawrite(chip,value,dip)) return SCPE_OK;
                 TRACE_PRINT0(DBG_FD_WRDATA,"Go Sector Write");
                 NEXTSTATE(S_SECWRITE);
-                /*fallthru*/
+                FALLTHROUGH;
             case S_SECWRITE: /* write buffer */
                 if (i8272_secwrite(chip)) return SCPE_OK;
                 break;

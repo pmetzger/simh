@@ -952,7 +952,8 @@ switch (j) {                                            /* case on class */
                     return SCPE_ARG;
                 val[0] = val[0] | (ac << INST_V_AC);
                 }
-            }                                           /* fall through */
+            }
+            FALLTHROUGH;
     case I_V_OP:                                        /* operand */
         cptr = get_glyph (cptr, gbuf, 0);
         val[0] = val[0] | get_opnd (gbuf, &r);

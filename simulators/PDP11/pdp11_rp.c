@@ -1168,7 +1168,7 @@ if (!uptr->io_complete) { /* Top End (I/O Initiation) Processing */
                 rp_update_ds (DS_ATA, drv);             /* set attn */
                 return SCPE_OK;
             }
-            /* fall through */
+            FALLTHROUGH;
         case FNC_WCHK:                                  /* write check */
         case FNC_READ:                                  /* read */
         case FNC_READH:                                 /* read headers */

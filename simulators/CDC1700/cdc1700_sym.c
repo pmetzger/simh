@@ -216,7 +216,7 @@ t_stat parse_sym(const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_
         val[1] = temp;
         return -1;
       }
-      /* FALLTHROUGH */
+      FALLTHROUGH;
 
     case I_JUMP:
       if (*cptr == '(') {

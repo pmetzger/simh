@@ -4153,6 +4153,7 @@ switch (op_type) {                                      /* dispatch by the opera
         clear = hp2100_instruction_has_clear_flag(instruction);
 
     /* fall through into the opSC case */
+    FALLTHROUGH;
 
     /* IOG select code range 00-77 octal */
 
@@ -4709,6 +4710,7 @@ else {                                                  /* otherwise, it's a sin
             op_flag = true;                             /* set a flag to enable an optional ",C" */
 
         /* fall through into the opSC case */
+        FALLTHROUGH;
 
         /* IOG select code range 00-77 octal */
 
@@ -4732,6 +4734,7 @@ else {                                                  /* otherwise, it's a sin
                 return SCPE_ARG;                        /*   so report failure for a bad argument */
 
         /* fall through into opHC case */
+        FALLTHROUGH;
 
         /* IOG hold/clear bit 9 */
 

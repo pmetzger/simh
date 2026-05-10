@@ -1166,6 +1166,7 @@ switch (fl_state) {                                     /* case on state */
             t = 1;
         sim_activate (uptr, fl_swait * t);              /* schedule seek */
                                                         /* fall thru, set flag */
+        FALLTHROUGH;
     case FL_RWDS: case FL_RWDT: case FL_FILL:           /* rwds, rwdt, fill */
         tto_csr = tto_csr | CSR_DONE;                   /* set output done */
         if (tto_csr & CSR_IE)

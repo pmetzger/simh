@@ -1333,6 +1333,7 @@ while (command_set) {                                   /* process the set of re
             attention_unit = TLIBUS (result);           /*   and save the number of the requesting unit */
 
         /* fall through into the STINT case */
+        FALLTHROUGH;
 
         case STINT:                                     /* Set Interrupt */
             flags = NO_FLAGS;                           /* clear the interface transfer flags and INTOK */

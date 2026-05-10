@@ -478,7 +478,7 @@ t_stat lpr_srv(UNIT * uptr)
         case 46:
             print_line(uptr, chan, u);
             pos = 0;
-            /* Fall through */
+            FALLTHROUGH;
         case 0:
         case 1:                 /* Row 9 */
         case 2:
@@ -560,7 +560,7 @@ t_stat lpr_srv(UNIT * uptr)
             break;
         case 45:                /* Echo 1 */
             eor = 1;
-            /* Fall through */
+            FALLTHROUGH;
 
         case 30:
         case 31:                /* Echo 8 */

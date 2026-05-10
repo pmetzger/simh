@@ -623,7 +623,7 @@ static uint8_t SCP300F_Read(const uint32_t Addr)
     switch(Addr & SCP300F_IO_MASK) {
         case SCP300F_SPIC_0:
             sel_pic = SLAVE_PIC;
-            /* fall through */
+            FALLTHROUGH;
         case SCP300F_MPIC_0:
             if ((scp300f_pic[sel_pic].OCW3 & 0x03) == 0x03) {
                 cData = scp300f_pic[sel_pic].ISR;
@@ -641,7 +641,7 @@ static uint8_t SCP300F_Read(const uint32_t Addr)
             break;
         case SCP300F_SPIC_1:
             sel_pic = SLAVE_PIC;
-            /* fall through */
+            FALLTHROUGH;
         case SCP300F_MPIC_1:
             cData = scp300f_pic[sel_pic].IMR;
             sim_debug(PIC_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT
@@ -735,7 +735,7 @@ static uint8_t SCP300F_Write(const uint32_t Addr, uint8_t cData)
             break;
         case SCP300F_SPIC_1:
             sel_pic = SLAVE_PIC;
-            /* fall through */
+            FALLTHROUGH;
         case SCP300F_MPIC_1:
             if (scp300f_pic[sel_pic].config_cnt == 0) {
                 sim_debug(PIC_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT " WR: %s PIC IMR=0x%02x.\n", PCX, (sel_pic ? "Slave " : "Master"), cData);

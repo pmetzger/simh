@@ -528,7 +528,8 @@ switch (pflag) {                                        /* case on syntax */
         return -1;
 
     case A_PND+A_REL: case A_PND+A_REL+A_NUM:           /* #.+n, @#.+n */
-        disp = (disp + addr) & 0177777;                 /* fall through */
+        disp = (disp + addr) & 0177777;
+        FALLTHROUGH;
     case A_PND+A_NUM:                                   /* #n, @#n */
         *sptr = 027 + indir;
         *dptr = disp;
@@ -635,7 +636,8 @@ switch (j) {                                            /* case on class */
         cptr = get_glyph (cptr, gbuf, ',');             /* get glyph */
         if ((reg = get_reg (gbuf, 0)) < 0)
             return SCPE_ARG;
-        val[0] = val[0] | (reg << 6);                   /* fall through */
+        val[0] = val[0] | (reg << 6);
+        FALLTHROUGH;
     case I_V_SOP:                                       /* sop */
         cptr = get_glyph (cptr, gbuf, 0);               /* get glyph */
         if ((n1 = get_spec (gbuf, ad32, 0, &spec, &val[1])) > 0)

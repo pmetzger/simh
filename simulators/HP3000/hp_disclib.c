@@ -1824,11 +1824,13 @@ else {                                                  /* otherwise the command
             inbound_data &= ~CM_SPD_MASK;               /* clear the SPD bits to avoid changing the state */
 
         /* fall through into the Initialize case */
+        FALLTHROUGH;
 
         case Initialize:
             cvptr->spd_unit |= CM_SPD (inbound_data);   /* merge the SPD flags with the unit */
 
         /* fall through into the read/write cases */
+        FALLTHROUGH;
 
         case Read:
         case Read_Full_Sector:
@@ -2276,6 +2278,7 @@ switch (phase) {                                        /* dispatch the phase */
                 cvptr->file_mask = CM_SPARE_EN;             /* enable sparing in surface mode without auto-seek */
 
             /* fall through into the default case */
+            FALLTHROUGH;
 
             default:                                        /* a command was waiting on seek completion */
                 set_rotation (cvptr, uptr);                 /*   so set up the rotation phase and latency */

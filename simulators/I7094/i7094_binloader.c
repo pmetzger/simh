@@ -176,7 +176,7 @@ binloader (FILE *fd, const char *file, int loadpt)
 
         case RELADDR_TAG:
             ldata = ldata + loadaddr;
-            /* fall through */
+            FALLTHROUGH;
         case ABSDATA_TAG:
         STORE:
 #ifdef DEBUGLOADER
@@ -188,7 +188,7 @@ binloader (FILE *fd, const char *file, int loadpt)
 
         case ABSXFER_TAG:
             transfer = true;
-            /* fall through */
+            FALLTHROUGH;
         case ABSENTRY_TAG:
             PC = (uint32_t) ldata & AMASK;
 #ifdef DEBUGLOADER
@@ -200,7 +200,7 @@ binloader (FILE *fd, const char *file, int loadpt)
 
         case RELXFER_TAG:
             transfer = true;
-            /* fall through */
+            FALLTHROUGH;
         case RELENTRY_TAG:
             ldata = (ldata + loadaddr) & AMASK;
             PC = (uint32_t) ldata & AMASK;

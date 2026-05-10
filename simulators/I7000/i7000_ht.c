@@ -273,7 +273,7 @@ t_stat htc_srv(UNIT * uptr)
                 break;
         case 10:
                 eor = DEV_REOR;
-                /* Fall through */
+                FALLTHROUGH;
         case 9:
         case 8:
                 i = 4 * (ht_cmdcount[chan] - 8);
@@ -296,7 +296,7 @@ t_stat htc_srv(UNIT * uptr)
         case TIME_ERROR:
         case END_RECORD:
             ht_sense[schan] = 0;
-            /* Fall through */
+            FALLTHROUGH;
         case DATA_OK:
             uptr->u5 |= HT_SNS; /* So we catch disconnect */
             if (eor) {

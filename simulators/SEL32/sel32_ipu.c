@@ -2259,7 +2259,7 @@ exec2:
                   /* if IX == 0x => dest = IR + reg */
                   /* if IX == Ix => dest = ind + reg */
 
-                /* fall through */
+                FALLTHROUGH;
             case WRD:       /* Word addressing, no index */
                 bc = 0xC0000000;                    /* set bits 0, 1 for instruction if not indirect */
                 t = IR;                             /* get current IR */
@@ -2320,7 +2320,7 @@ exec2:
                 break;
             case 1:                                 /* left hw */
                 source >>= 16;                      /* move left hw to right hw*/
-                /* Fall through */
+                FALLTHROUGH;
             case 3:                                 /* right hw or right shifted left hw */
                 source &= RMASK;                    /* use just the right hw */
                 if (source & 0x8000) {              /* check sign of 16 bit value */
@@ -2368,7 +2368,7 @@ exec2:
                 break;
             case 1:                                 /* left hw */
                 source >>= 16;                      /* move left hw to right hw*/
-                /* Fall through */
+                FALLTHROUGH;
             case 3:                                 /* right hw or right shifted left hw */
                 source &= RMASK;                    /* use just the right hw */
                 break;
@@ -5159,7 +5159,7 @@ meoa:       /* merge point for eor, and, or */
 
         case 0xBC>>2:       /* 0xBC SD|RR|RM|ADR - SD|RR|RM|ADR */ /* SUMx */
             source = NEGATE32(source);
-            /* Fall through */
+            FALLTHROUGH;
 
         case 0xB8>>2:       /* 0xB8 SD|RR|RM|ADR - SD|RR|RM|ADR */ /* ADMx */
             ovr = 0;
@@ -6088,7 +6088,7 @@ dohist:
                 break;
 
             case 0x3:       /* LPSD F980 */
-                /* fall through */;
+                FALLTHROUGH;
             case 0x5:       /* LPSDCM FA80 */
                 if ((MODES & PRIVBIT) == 0) {       /* must be privileged */
                     TRAPME = PRIVVIOL_TRAP;         /* set the trap to take */
@@ -6624,7 +6624,7 @@ newpsd:
                         TRAPME, PSD1, PSD2);
                 }
                 drop_nop = 0;
-                /* fall through */
+                FALLTHROUGH;
                 /* do not update pc for page fault */
             case DEMANDPG_TRAP:                     /* 0xC4 Demand Page Fault Trap (V6&V9 Only) */
                 if (TRAPME == DEMANDPG_TRAP) {      /* 0xC4 Demand Page Fault Trap (V6&V9 Only) */

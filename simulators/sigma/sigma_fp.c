@@ -137,7 +137,7 @@ switch (op) {                                           /* case on opcode */
     case OP_FSS:                                        /* subtract */
     case OP_FSL:
         fop2.sign = fop2.sign ^ 1;                      /* invert mem sign */
-                                                        /* fall through */
+        FALLTHROUGH;
     case OP_FAS:                                        /* add */
     case OP_FAL:
         s1nz = fp_clnzro (&fop1, true);                 /* test, clean op1 */

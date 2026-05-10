@@ -563,6 +563,7 @@ else {                                                  /* otherwise the access 
                 TR [SM + SR - offset] = value;                      /*   then write the value to a TOS register */
 
         /* fall through into checked cases */
+        FALLTHROUGH;
 
         case data_checked:
             if (DL <= offset && offset <= SM + SR || PRIV)          /* if the offset is within bounds or is privileged */

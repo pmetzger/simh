@@ -345,7 +345,7 @@ static t_stat fprint_opr (FILE *of, uint16_t insn)
     fprintf (of, "HLT ");
     if (insn == 0)
       break;
-    /* Fall through. */
+    FALLTHROUGH;
   case 0100:
     return fprint_class1 (of, insn);
   case 0003:

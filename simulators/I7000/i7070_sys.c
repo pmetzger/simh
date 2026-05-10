@@ -1060,7 +1060,7 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
         case TYPE_TB:
                 opr <<= 4;
                 opr |= 1;
-                /* Fall through */
+                FALLTHROUGH;
         case TYPE_I:
                 d |= ((uint64_t)opr) << 16;
                 break;
@@ -1076,7 +1076,7 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
         case TYPE_C:
                 d |= ((uint64_t)opr) << 20;
                 d |= ((uint64_t)op2->opbase) << 16;
-                /* Fall through */
+                FALLTHROUGH;
         case TYPE_IQ:
                 d |= ((uint64_t)opr) << 20;
                 break;
@@ -1098,7 +1098,7 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
         case '-': sign = -1; cptr++; break;
         case '@': sign = 1; cptr++; break;
         case '+': cptr++;
-                  /* Fall through */
+                  FALLTHROUGH;
         default:
             sign = 0;
         }

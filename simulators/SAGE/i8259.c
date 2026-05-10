@@ -148,7 +148,7 @@ t_stat i8259_write(I8259* chip,int addr,uint32_t value)
                     break;
                 case 0xe0: /* rotate on specific eoi */
                     chip->prio = 7 - (value & 7) + chip->prio; if (chip->prio>7) chip->prio -= 8;
-                    /*fallthru*/
+                    FALLTHROUGH;
                 case 0x60: /* specific eoi */
                     bit = 1 << (value & 7);
                     chip->isr = chip->isr & ~bit & 0xff;

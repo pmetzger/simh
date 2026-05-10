@@ -757,7 +757,7 @@ enter_pri:
               break;
          case SEC_CLKWT:
               rtc_wait = (uint16_t)(M[SEC_DTT11 + base] & 0177777);
-              /* Fall Through */
+              FALLTHROUGH;
 
          case SEC_CLKON:
               dte_unit[3].STATUS |= SEC_CLK;

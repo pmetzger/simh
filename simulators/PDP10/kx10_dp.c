@@ -536,7 +536,7 @@ t_stat dp_devio(uint32_t dev, uint64 *data) {
                 return SCPE_OK;
              }
              *data &= ~SECTOR;    /* Clear sector */
-             /* Fall through */
+             FALLTHROUGH;
 
          case WR:
              if (uptr->flags & UNIT_WPRT) {
@@ -545,7 +545,7 @@ t_stat dp_devio(uint32_t dev, uint64 *data) {
                 df10_setirq(df10);
                 return SCPE_OK;
              }
-             /* Fall through */
+             FALLTHROUGH;
 
          case RD:
          case RV:
@@ -571,7 +571,7 @@ t_stat dp_devio(uint32_t dev, uint64 *data) {
 
          case RC:
              cyl = 0;
-             /* Fall through */
+             FALLTHROUGH;
 
          case SK:
              uptr->STATUS |= NOT_RDY;
@@ -588,7 +588,7 @@ t_stat dp_devio(uint32_t dev, uint64 *data) {
                    uptr->UFLAGS &= ~(SEEK_DONE);
                 uptr++;
              }
-             /* Fall through */
+             FALLTHROUGH;
 
          case NO:
              tmp = 0;

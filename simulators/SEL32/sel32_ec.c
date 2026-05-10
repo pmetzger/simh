@@ -709,7 +709,7 @@ t_stat ec_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
     case EC_NOP:                                /* NOP 0x03 */
     case EC_LIA:                                /* Load individual address */
     case EC_LGA:                                /* Load Multicast address */
-        /* Fall through */
+        FALLTHROUGH;
     case EC_SNS:                                /* Sense 0x04 */
         uptr->CMD |= cmd|EC_BUSY;               /* save cmd */
 //GF    sim_activate(uptr, 150);                /* start things off */

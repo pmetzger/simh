@@ -484,7 +484,7 @@ switch (fnc) {                                          /* case on function */
             rs_update_ds (DS_ATA, drv);                 /* set attn */
             return SCPE_OK;
             }
-        /* fall through */
+        FALLTHROUGH;
     case FNC_WCHK:                                      /* write check */
     case FNC_READ:                                      /* read */
         if (rsda[drv] & DA_INV) {                       /* bad addr? */

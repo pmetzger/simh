@@ -4702,6 +4702,7 @@ switch (UPPER_BYTE (IR)) {                              /* dispatch on bits 15-8
         cpu_interrupt_enable = CLEAR;                   /* defer interrupts */
 
     /* fall through into the JSB case */
+    FALLTHROUGH;
 
     case 0030: case 0031: case 0032: case 0033:         /* JSB */
     case 0034: case 0035: case 0036: case 0037:
@@ -4734,6 +4735,7 @@ switch (UPPER_BYTE (IR)) {                              /* dispatch on bits 15-8
         cpu_interrupt_enable = CLEAR;                   /* defer interrupts */
 
     /* fall through into the JMP case */
+    FALLTHROUGH;
 
     case 0050: case 0051: case 0052: case 0053:         /* JMP */
     case 0054: case 0055: case 0056: case 0057:

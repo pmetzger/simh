@@ -314,7 +314,7 @@ t_stat mt_devio(uint32_t dev, uint64 *data) {
                          mt_status |= DATA_REQUEST;
                          set_interrupt_mpx(MT_DEVNUM, mt_pia, mt_mpx_lvl);
                      }
-                     /* Fall through */
+                     FALLTHROUGH;
 
               case WTM:
               case READ:
@@ -329,7 +329,7 @@ t_stat mt_devio(uint32_t dev, uint64 *data) {
                          set_interrupt(MT_DEVNUM+4, mt_pia >> 3);
                          return SCPE_OK;
                      }
-                     /* Fall through */
+                     FALLTHROUGH;
 
               case SPC_FWD:
                      if ((dptr->flags & MTDF_TYPEB) == 0 && (cmd & 010) == 0) {

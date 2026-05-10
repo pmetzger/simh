@@ -662,7 +662,7 @@ if (uptr->DSTATE & DTC_MOT) {
            case FNC_WBLK:
                 if ((dtsb & DTB_STOP) == 0)
                     break;
-                /* Fall through */
+                FALLTHROUGH;
            case FNC_WALL:
            case FNC_RALL:
            case FNC_WRIT:
@@ -1018,7 +1018,7 @@ if (uptr->DSTATE & DTC_MOT) {
            case FNC_SRCH:
                 if ((dtsb & DTB_STOP) == 0)
                     break;
-                /* Fall through */
+                FALLTHROUGH;
            case FNC_WALL:
            case FNC_RALL:
            case FNC_WRIT:

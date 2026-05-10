@@ -325,7 +325,7 @@ tu_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data) {
         case FNC_READREV:                     /* read w/ headers */
             regs[TUDC] = 0;
             regs[TUTC] |= TC_FCS;
-             /* Fall through */
+             FALLTHROUGH;
 
         case FNC_WRITE:                       /* write */
         case FNC_SPACEF:                      /* Space forward */
@@ -334,7 +334,7 @@ tu_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data) {
                 regs[TUER1] |= ER1_NEF;
                 break;
              }
-             /* Fall through */
+             FALLTHROUGH;
 
         case FNC_ERASE:                       /* Erase gap */
         case FNC_WTM:                         /* Write tape mark */
@@ -816,7 +816,7 @@ t_stat tu_srv(UNIT * uptr)
 
          case MTSE_BOT:           /* beginning of tape */
               regs[TUER1] |= ER1_NEF;
-              /* Fall Through */
+              FALLTHROUGH;
 
          case MTSE_TMK:           /* tape mark */
          case MTSE_EOM:           /* end of medium */

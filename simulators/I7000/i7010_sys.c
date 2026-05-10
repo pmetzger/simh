@@ -1182,7 +1182,7 @@ parse_sym(const char *cptr, t_addr addr, UNIT * uptr, t_value * val, int32_t sw)
         switch(op->type) {
         case TYPE_M:    /* Move opcode */
             val[i++] = (op->opbase >> 6) & 077;
-            /* fall through */
+            FALLTHROUGH;
 
         default:
         case TYPE_IO:    /* Tape opcode, option */

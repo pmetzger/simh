@@ -1078,7 +1078,7 @@ static t_stat kmc_txService (UNIT *txup) {
         switch (d->txstate) {
         case TXDONE:                            /* Resume from completions */
             d->txstate = TXIDLE;
-            /* Fall through */
+            FALLTHROUGH;
 
         case TXIDLE:                            /* Check for new BD */
             if (!kmc_txNewBdl(d)) {
@@ -1093,7 +1093,7 @@ static t_stat kmc_txService (UNIT *txup) {
                            k, d->line, d->dupidx);
                 kmc_ctrlOut (k, SEL6_CO_NXM, 0, d->line, 0);
             }
-            /* Fall through */
+            FALLTHROUGH;
 
         case TXRTS:                             /* Wait for CTS */
             if (dup_get_CTS (d->dupidx) <= 0) {
@@ -1104,7 +1104,7 @@ static t_stat kmc_txService (UNIT *txup) {
 
             sim_debug (DF_BUF, &kmc_dev, "KMC%u line %u: transmitting bdl=%06o\n",
                        k, txup->unit_line, d->tx.bda);
-            /* Fall through */
+            FALLTHROUGH;
 
         case TXSOM:                             /* Start assembling a message */
             if (!(d->tx.bd[2] & BDL_SOM)) {
@@ -1126,14 +1126,14 @@ static t_stat kmc_txService (UNIT *txup) {
             }
 
             d->txstate = TXHDR;
-            /* Fall through */
+            FALLTHROUGH;
 
         case TXHDR:                             /* Assemble the header */
             if (!kmc_txAppendBuffer(d)) {       /* NXM - Try next list */
                 TXDELAY (TXDONE, TXDONE_DELAY);
             }
             TXDELAY (TXHDRX, XTIME (d->tx.bd[1], d->linespeed));
-            /* Fall through */
+            FALLTHROUGH;
 
         case TXHDRX:                            /* Report header descriptor done */
             if (!kmc_bufferAddressOut (k, 0, 0, d->line, d->tx.bda)) {
@@ -1176,14 +1176,14 @@ static t_stat kmc_txService (UNIT *txup) {
                 TXSTOP;
             }
             d->txstate = TXDATA;
-            /* Fall through */
+            FALLTHROUGH;
 
         case TXDATA:                            /* Assemble data/maint payload */
             if (!kmc_txAppendBuffer(d)) {       /* NXM */
                 TXDELAY (TXDONE, TXDONE_DELAY);
             }
             TXDELAY (TXDATAX, XTIME (d->tx.bd[1], d->linespeed));
-            /* Fall through */
+            FALLTHROUGH;
 
         case TXDATAX:                           /* Report BD completion */
             if (!kmc_bufferAddressOut (k, 0, 0, d->line, d->tx.bda)) {
@@ -1196,7 +1196,7 @@ static t_stat kmc_txService (UNIT *txup) {
                 TXDELAY (TXDONE, TXDONE_DELAY);
             }
             TXSTATE (TXDATA);
-            /* Fall through */
+            FALLTHROUGH;
 
             /* These states hand-off the message to the DUP.
              * txService suspends until transmit complete.
@@ -1387,7 +1387,7 @@ static t_stat kmc_rxService (UNIT *rxup) {
                            ((d->rxmsg[0] == DDCMP_SOH)? "DATA" : "MAINT"), d->rxmlen);
             }
         }
-        /* Fall through */
+        FALLTHROUGH;
 
     case RXBDL:
         if (!(bdl = (BDL *)remqueue(d->rxqh.next, &d->rxavail))) {
@@ -1411,7 +1411,7 @@ static t_stat kmc_rxService (UNIT *rxup) {
             ba += 2;
         }
         d->rxstate = RXBUF;
-        /* Fall through */
+        FALLTHROUGH;
 
     case RXBUF:
         d->rx.ba = ((d->rx.bd[2] & BDL_XAD) << BDL_S_XAD) | d->rx.bd[0];
@@ -1424,7 +1424,7 @@ static t_stat kmc_rxService (UNIT *rxup) {
         d->rx.rcvc = 0;
         d->rxdlen = 0;
         d->rxstate = RXDAT;
-        /* Fall through */
+        FALLTHROUGH;
 
     case RXDAT:
     more:

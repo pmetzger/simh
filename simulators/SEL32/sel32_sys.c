@@ -1112,7 +1112,7 @@ int fprint_inst(FILE *of, uint32_t val, int32_t sw)
                     ((inst&0xfc00) != 0xcc00) &&
                     ((inst&0xfc00) != 0x8000))
                     fputc(fc_type[i], of);
-                /* Fall through */
+                FALLTHROUGH;
 
             /* BIx instructions or bit in memory reference instructions */
             case TYPE_D:                    /* r,[*]o[,x] or r,o[(b)],[,x] */
@@ -1123,7 +1123,7 @@ int fprint_inst(FILE *of, uint32_t val, int32_t sw)
                     fputc('0'+((inst>>7) & 07), of);
                     fputc(',', of);
                 }
-                /* Fall through */
+                FALLTHROUGH;
 
             /* branch instruction */
             case TYPE_B:                    /* [*]o[,x] or o[(b)],[,x] */
@@ -1485,7 +1485,7 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
             default:
                 return SCPE_ARG;            /* base op suffix error */
             }
-            /* Fall through */
+            FALLTHROUGH;
 
         /* BIx instructions or memory reference */
         case TYPE_D:                        /* r,[*]o[,x] */
@@ -1503,7 +1503,7 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
                 } else
                     return SCPE_ARG;        /* invalid reg number is an argument error */
             }
-            /* Fall through */
+            FALLTHROUGH;
 
         /* branch instruction */
         case TYPE_B:                        /* [*]o[,x] */
@@ -1705,7 +1705,7 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
             default:
                 return SCPE_ARG;            /* base op suffix error */
         }
-        /* Fall through */
+        FALLTHROUGH;
 
         /* BIx instructions or memory reference */
         case TYPE_D:                        /* r,o[(b)],[,x] */
@@ -1723,7 +1723,7 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
                 } else
                     return SCPE_ARG;        /* invalid reg number is an argument error */
             }
-          /* Fall through */
+          FALLTHROUGH;
 
         /* branch instruction */
         case TYPE_B:                        /* o[(b)],[,x] */

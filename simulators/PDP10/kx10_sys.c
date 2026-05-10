@@ -1387,7 +1387,8 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
                         return SCPE_ARG;
                     val[0] = val[0] | (ac << INST_V_AC);
                 }
-            }                                           /* fall through */
+            }
+            FALLTHROUGH;
 
         case I_V_OP:                                    /* operand */
             cptr = get_glyph (cptr, gbuf, 0);

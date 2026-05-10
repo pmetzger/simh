@@ -1442,6 +1442,7 @@ while (working_set) {
                 device_sr = SET;                        /*   then set the device service request flip-flop */
 
         /* fall through into the DCONTSTB case */
+        FALLTHROUGH;
 
         case DCONTSTB:
             dprintf (lp_dev, DEB_CSRW,

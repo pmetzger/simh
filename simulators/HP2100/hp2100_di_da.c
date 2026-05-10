@@ -778,6 +778,7 @@ switch (if_state [unit]) {                                  /* dispatch the inte
         release_interface = true;                           /* release the interface at then end if it's idle */
 
     /* fall through into the command_exec handler to process the current command */
+    FALLTHROUGH;
 
     case command_exec:                                      /* command is executing */
         switch (if_command [unit]) {                        /* dispatch the interface command */
@@ -1857,6 +1858,7 @@ else {                                                      /* it is bus data (A
                 put_buffer_byte (&icd_cntlr [unit], data);  /*   then add the byte to the buffer */
 
         /* fall through into the error_sink handler */
+        FALLTHROUGH;
 
         case error_sink:                                        /* sinking data after an error */
             if (TRACING (da_dev, DEB_XFER))

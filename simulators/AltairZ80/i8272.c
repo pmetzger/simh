@@ -757,14 +757,14 @@ uint8_t I8272_Write(const uint32_t Addr, uint8_t cData)
                         case I8272_READ_TRACK:
                             sim_printf("I8272: " ADDRESS_FORMAT " Read a track (untested.)\n", PCX);
                             i8272_info->fdc_sector = 1; /* Read entire track from sector 1...eot */
-                            /* fall through */
+                            FALLTHROUGH;
 
                         case I8272_READ_DATA:
-                            /* fall through */
+                            FALLTHROUGH;
 
                         case I8272_READ_DELETED_DATA:
                             disk_read = 1;
-                            /* fall through */
+                            FALLTHROUGH;
 
                         case I8272_WRITE_DATA:
                         case I8272_WRITE_DELETED_DATA:

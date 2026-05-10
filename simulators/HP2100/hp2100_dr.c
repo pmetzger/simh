@@ -502,6 +502,7 @@ while (working_set) {                                   /* while signals remain 
                 drc_cw = 0;                             /* clear control word */
 
         /* fall through into the CLC handler */
+        FALLTHROUGH;
 
         case ioCLC:                                     /* Clear Control flip-flop */
             drd.control = CLEAR;                        /* clear the control flip-flop */

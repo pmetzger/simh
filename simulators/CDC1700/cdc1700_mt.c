@@ -1873,7 +1873,7 @@ static enum IOstatus doMTFunction(DEVICE *dev)
         fw_IOcompleteEOP(false, &mt_dev, &MTdev, 0xFFFF, "Rewind complete");
         return IO_REPLY;
       }
-      /* FALLTHROUGH */
+      FALLTHROUGH;
 
     case IO_1732A_REWU:
       break;
@@ -1970,7 +1970,7 @@ static enum IOstatus MTout(IO_DEVICE *iod, uint8_t reg)
                       "MT%d: Density changed to %04X\r\n",
                       u, Areg & (IO_1732_1600 | IO_1732_556 | IO_1732_800));
             }
-          /* FALLTHROUGH */
+          FALLTHROUGH;
 
         case 0:                         /* No change in density */
           break;

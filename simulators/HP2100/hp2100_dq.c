@@ -644,6 +644,7 @@ while (working_set) {                                   /* while signals remain 
                         dqc_sta[drv] = 0;               /* clear status */
 
                     /* fall through to schedule the transfer */
+                    FALLTHROUGH;
 
                     case FNC_STA: case FNC_LA:          /* rd sta, load addr */
                         dq_god (fnc, drv, dqc_dtime);   /* sched dch xfer */
@@ -905,6 +906,7 @@ switch (uptr->FNC) {                                    /* case function */
         else dqc_sta[drv] = dqc_sta[drv] & ~STA_BSY;    /* drive not busy */
 
     /* fall through into the next state */
+    FALLTHROUGH;
 
     case FNC_SEEK3:
         if (dqc_busy || dqc.flag) {                     /* ctrl busy? */

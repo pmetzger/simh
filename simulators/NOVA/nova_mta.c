@@ -516,11 +516,11 @@ switch (st) {
 
     case MTSE_FMT:                                      /* illegal fmt */
         mta_upddsta (uptr, uptr->USTAT | STA_WLK | STA_RDY);
-        /* fall through */
+        FALLTHROUGH;
     default:
     case MTSE_UNATT:                                    /* unattached */
         mta_sta = mta_sta | STA_ILL;
-        /* fall through */
+        FALLTHROUGH;
     case MTSE_OK:                                       /* no error */
         return SCPE_IERR;                               /* never get here! */
 

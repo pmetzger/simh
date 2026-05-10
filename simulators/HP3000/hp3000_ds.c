@@ -1332,6 +1332,7 @@ do {                                                    /* call the controller p
                     }
                                                         /* otherwise, request an interrupt */
             /* fall through into the STINT case */
+            FALLTHROUGH;
 
             case STINT:                                 /* Set Interrupt */
                 flags &= ~XFRNG;                        /* clear the transfer error flag */

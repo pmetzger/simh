@@ -1897,7 +1897,7 @@ load_tlb(int uf, int page, int wr)
                  return 0;           /* No access */
         case 2:                      /* R/W First */
                  pg |= KL_PAG_S;     /* Indicate writable */
-                 /* Fall through */
+                 FALLTHROUGH;
         case 1:                      /* Read Only */
                  if (wr) {
                      fault_data = ((data >> 16) << 28) | (010000LL << 18);
@@ -3452,7 +3452,7 @@ int page_lookup_its(t_addr addr, int flag, t_addr *loc, int wr, int cur_context,
                break;
        case 2: if (!wr)
                   break;
-               /* Fall through */
+               FALLTHROUGH;
        case 3: mem_prot = 1;
                fault_data |= 2;
                check_apr_irq();
@@ -6687,7 +6687,7 @@ unasign:
                       break;
                   goto ldb_ptr;
               }
-              /* Fall through */
+              FALLTHROUGH;
 
     case 0135:/* LDB */
     case 0137:/* DPB */
@@ -7130,7 +7130,7 @@ fnormx:
 #endif
               case 1:
                       set_reg(AC + 1, MQ & FMASK);
-                      /* Fall through */
+                      FALLTHROUGH;
 #if !PDP6
               case 5:
 #endif
@@ -7419,7 +7419,7 @@ fnormx:
 #endif
               case 1:
                       set_reg(AC + 1, MQ & FMASK);
-                      /* Fall through */
+                      FALLTHROUGH;
 #if !PDP6
               case 5:
 #endif
@@ -8008,11 +8008,11 @@ mul_done:
                       if (Mem_write(0, 0)) {
                          goto last;
                       }
-                      /* Fall through */
+                      FALLTHROUGH;
               case 5:
               case 4:
                       set_reg(AC + 1, MQ);
-                      /* Fall through */
+                      FALLTHROUGH;
               case 1:
               case 0:
                       set_reg(AC, AR);
@@ -8108,7 +8108,7 @@ mul_done:
                       if (Mem_write(0, 0)) {
                          goto last;
                       }
-                      /* Fall through */
+                      FALLTHROUGH;
               case 1:
               case 0:
                       set_reg(AC, AR);
@@ -8220,7 +8220,7 @@ mul_done:
                       if (Mem_write(0, 0)) {
                          goto last;
                       }
-                      /* Fall through */
+                      FALLTHROUGH;
               case 1:
               case 0:
                       set_reg(AC, AR);
@@ -8597,7 +8597,7 @@ xjrstf:
                        }
                        if (AC == 06)
                            goto xjrstf;
-                       /* Fall through */
+                       FALLTHROUGH;
 
               case 002: /* JRSTF */
                        BR = AR >> 23; /* Move into position */
@@ -11261,7 +11261,7 @@ skip_op:
                                           goto last;
                                      break;
                                  }
-                                 /* Fall through */
+                                 FALLTHROUGH;
 
                            /* 70154 */
                            case 013:        /* WRPCST */
@@ -11867,7 +11867,7 @@ fetch_opr:
                               }
                               break;
                           }
-                          /* Fall through */
+                          FALLTHROUGH;
 #endif
 
                   case 2:     /* 10 BLKO */

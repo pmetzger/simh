@@ -246,7 +246,7 @@ switch (cdr_sta) {                                      /* case on state */
                     cdr_bbuf[bufw] |= dat;
                 }
             }
-        /* fall through */
+        FALLTHROUGH;
     case CDS_DATA:                                      /* data state */
         dat = cdr_bbuf[cdr_bptr++];                     /* get next word */
         if (cdr_bptr >= CD_BINLNT) {                    /* last word? */

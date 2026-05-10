@@ -571,13 +571,13 @@ rp_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data) {
 
         case FNC_RECAL:                       /* recalibrate */
             regs[RPDC] = 0;
-             /* Fall through */
+             FALLTHROUGH;
 
         case FNC_RETURN:                      /* return to center */
         case FNC_OFFSET:                      /* offset */
         case FNC_UNLOAD:                      /* unload */
             regs[RPDS] &= ~DS_OFF;
-             /* Fall through */
+             FALLTHROUGH;
 
         case FNC_SEARCH:                      /* search */
         case FNC_SEEK:                        /* seek */
@@ -622,7 +622,7 @@ rp_write(DEVICE *dptr, struct rh_if *rhc, int reg, uint32_t data) {
             regs[RPDS] &= ~DS_OFF;
             regs[RPDS] |= DS_DRY;
             regs[RPOF] = 0;
-             /* Fall through */
+             FALLTHROUGH;
 
         case FNC_RELEASE:                     /* port release */
         case FNC_PACK:                        /* pack acknowledge */
@@ -873,7 +873,7 @@ t_stat rp_svc (UNIT *uptr)
         break;
     case FNC_OFFSET:                     /* offset */
         regs[RPDS] |= DS_OFF;
-        /* Fall through */
+        FALLTHROUGH;
     case FNC_RETURN:                     /* return to center */
     case FNC_PRESET:                     /* read-in preset */
     case FNC_RECAL:                      /* recalibrate */

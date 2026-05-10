@@ -148,7 +148,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
 
     case 6:                                             /* RFC!RRB */
         sim_activate (&ptr_unit, ptr_unit.wait);        /* activate */
-        /* fall through */
+        FALLTHROUGH;
     case 2:                                             /* RRB */
         dev_done = dev_done & ~INT_PTR;                 /* clear flag */
         int_req = int_req & ~INT_PTR;                   /* clear int req */

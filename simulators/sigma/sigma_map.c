@@ -531,7 +531,8 @@ if (QCPU_S89)
             ((R[rn] & S89_SR1_MARG) >> S89_SR1_MAROFF);
         break;
     case 0xB:                                           /* read sr0, clr */
-        mem_sr0[memu] = mem_sr1[memu] = 0;              /* fall through */
+        mem_sr0[memu] = mem_sr1[memu] = 0;
+        FALLTHROUGH;
     case 0x8:                                           /* read sr0 */
         R[rn] = (wd & S89_SR0_RD) |
             (((1u << (chan_num + 1)) - 1) << (S89_SR0_V_PORTS - (chan_num + 1)));

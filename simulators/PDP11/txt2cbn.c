@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #define ERROR   00404
+#include "sim_defs.h"
 #include "pdp11_cr_dat.h"
 
 static int  colStart = 1;       /* starting column */
@@ -14,7 +15,7 @@ main ()
         for (col = colStart; col <= colEnd; ) {
             switch (c = fgetc (stdin)) {
             case EOF:
-                /* fall through */
+                FALLTHROUGH;
             case '\n':
                 while (col <= colEnd) {
                     fputc (o29_code[' '] & 077, stdout);

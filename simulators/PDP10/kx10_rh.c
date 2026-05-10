@@ -317,7 +317,7 @@ uba_rh_write(DEVICE *dptr, t_addr addr, uint16_t data, int32_t access) {
 
     case  014: /* RPER1 - 176714 - error status 1 */ /* 6 */
         rhc->error = data;
-        /* Fall through */
+        FALLTHROUGH;
 
     default:
         if (access == BYTE) {

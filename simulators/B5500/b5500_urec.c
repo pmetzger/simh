@@ -1121,7 +1121,7 @@ con_srv(UNIT *uptr) {
            switch (ch) {
            case 033:
                 con_data[0].inptr = 0;
-                /* Fall through */
+                FALLTHROUGH;
            case '\r':
            case '\n':
                 uptr->CMD &= ~URCSTA_INPUT;

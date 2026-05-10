@@ -1596,7 +1596,7 @@ sim_instr(void)
             /* Treat invalid op as a NOP */
             default:
                 reason = STOP_UUO;
-                /* Fall through */
+                FALLTHROUGH;
 
             case OP_NOP:
                 /* Skip until next word mark */
@@ -2254,7 +2254,7 @@ sim_instr(void)
                         break;
                 case SCPE_NODEV:
 fprintf(stderr, "No device %d %d\n\r", ch, temp);
-                        /* Fall through */
+                        FALLTHROUGH;
                 case SCPE_IOERR:
                         chan_io_status[ch & 07] |= IO_CHS_NORDY;
                         break;

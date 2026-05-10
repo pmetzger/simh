@@ -592,7 +592,8 @@ switch (op) {                                           /* case on opcode */
             R[0] = A1LNT;                               /* args to registers */
             R[1] = A1ADR;
             R[4] = A2LNT;
-            }                                           /* fall through */
+            }
+            FALLTHROUGH;
     case 040: case 041:                                 /* register */
         fpd = 1;                                        /* set FPD */
         R[4] = R[4] & 0377;                             /* match character */
@@ -646,7 +647,8 @@ switch (op) {                                           /* case on opcode */
             R[1] = A1ADR;
             R[4] = A2LNT;
             R[5] = A2ADR;
-            }                                           /* fall through */
+            }
+            FALLTHROUGH;
     case 042: case 043:                                 /* register */
         fpd = 1;                                        /* set FPD */
         R[4] = R[4] & 0377;                             /* match character */
@@ -707,7 +709,8 @@ switch (op) {                                           /* case on opcode */
             R[2] = A2LNT;
             R[3] = A2ADR;
             R[4] = A3LNT;
-            }                                           /* fall through */
+            }
+            FALLTHROUGH;
    case 044:                                            /* register */
         fpd = 1;                                        /* set FPD */
         R[4] = R[4] & 0377;                             /* mask fill */
@@ -788,7 +791,8 @@ switch (op) {                                           /* case on opcode */
             R[1] = A1ADR;
             R[2] = A2LNT;
             R[3] = A2ADR;
-            }                                           /* fall through */
+            }
+            FALLTHROUGH;
     case 0045:                                          /* register */
         fpd = 1;
         for (match = 0; R[0] >= R[2]; ) {               /* loop thru string */

@@ -1400,7 +1400,7 @@ case 0xDE:                                              /* OC - RX */
     case 0x9F:                                          /* AIR - RR */
     case 0xDF:                                          /* AI - RX */
         R[r1] = int_getdev ();                          /* get int dev */
-                                                        /* fall through */
+        FALLTHROUGH;
     case 0x9D:                                          /* SSR - RR */
     case 0xDD:                                          /* SS - RX */
         dev = R[r1] & DEV_MAX;

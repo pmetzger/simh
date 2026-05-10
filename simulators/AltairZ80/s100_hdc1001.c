@@ -478,7 +478,7 @@ static uint8_t HDC1001_Write(const uint32_t Addr, uint8_t cData)
                 " Sector size specified in SDH register (0x%x) does not match disk geometry (0x%x.)\n",
                 hdc1001_info->sel_drive, PCX, pDrive->cur_sectsize, pDrive->sectsize);
         }
-            /* fall through */
+            FALLTHROUGH;
         case TF_PRECOMP:
         case TF_SECNT:
         case TF_SECNO:
@@ -650,7 +650,7 @@ static t_stat HDC1001_doCommand(void)
                 } else {
                     hdc1001_info->status_reg &= ~HDC1001_STATUS_WRITE_FAULT;
             }
-                /* Fall through */
+                FALLTHROUGH;
             case HDC1001_CMD_READ_SECT:
             {
                 uint32_t xfr_len;

@@ -921,7 +921,7 @@ static void CDDiskIO(UNIT *uptr, uint16_t iotype)
 
     case CDIO_MISMATCH:
       CDdev.STATUS |= IO_1733_NOCOMP;
-      /* FALLTHROUGH */
+      FALLTHROUGH;
 
     case CDIO_DONE:
       iou->state = CD_IDLE;
@@ -1188,7 +1188,7 @@ bool CDreject(IO_DEVICE *iod, bool output, uint8_t reg)
       case 0x06:
       case 0x07:
         /*** TODO: Check protect status ***/
-        /* FALLTHROUGH */
+        FALLTHROUGH;
 
       /*
        * Load Address/Read/Compare

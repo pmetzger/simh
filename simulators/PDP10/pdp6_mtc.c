@@ -781,7 +781,7 @@ mtc_srv(UNIT * uptr)
          case MTSE_OK:            /* no error */
               if ((cmd & 010) != 0)
                   break;
-              /* Fall through */
+              FALLTHROUGH;
          case MTSE_TMK:           /* tape mark */
          case MTSE_BOT:           /* beginning of tape */
          case MTSE_EOM:           /* end of medium */

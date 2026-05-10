@@ -809,7 +809,7 @@ switch (fnc) {                                          /* at speed, check fnc *
                     unum, blk, (dir? "backward": "forward"),
                     ((dtsa & DTA_MODE)? " continuous": " "));
             dt_substate = 0;
-            /* fall through */
+            FALLTHROUGH;
         case 0:                                         /* normal read */
             M[DT_WC] = (M[DT_WC] + 1) & 07777;          /* incr WC, CA */
             M[DT_CA] = (M[DT_CA] + 1) & 07777;
@@ -822,7 +822,7 @@ switch (fnc) {                                          /* at speed, check fnc *
                 dat = dt_comobv (dat);
             if (MEM_ADDR_OK (ma))                       /* mem addr legal? */
                 M[ma] = dat;
-            /* fall through */
+            FALLTHROUGH;
         case DTO_WCO:                                   /* wc ovf, not sob */
             if (wrd != (dir? 0: DTU_BSIZE (uptr) - 1))  /* not last? */
                 sim_activate (uptr, DT_WSIZE * dt_ltime);
@@ -870,11 +870,11 @@ switch (fnc) {                                          /* at speed, check fnc *
                     (dir? "backward": "forward"),
                     ((dtsa & DTA_MODE)? " continuous": " "));
             dt_substate = 0;
-            /* fall through */
+            FALLTHROUGH;
         case 0:                                         /* normal write */
             M[DT_WC] = (M[DT_WC] + 1) & 07777;          /* incr WC, CA */
             M[DT_CA] = (M[DT_CA] + 1) & 07777;
-            /* fall through */
+            FALLTHROUGH;
         case DTO_WCO:                                   /* wc ovflo */
             ma = DTB_GETMEX (dtsb) | M[DT_CA];          /* get mem addr */
             ba = (blk * DTU_BSIZE (uptr)) + wrd;        /* buffer ptr */

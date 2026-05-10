@@ -478,7 +478,7 @@ switch (inst) {                                         /* case on opcode */
         case 011: case 012: case 013:                   /* !not seeking 0-6 */
         case 014: case 015: case 016: case 017:
             u = fnc - 011;                              /* set u */
-            /* fall through */
+            FALLTHROUGH;
         case 007:                                       /* !not seeking 7 */
             if (!sim_is_active (&dp_unit[u]) ||         /* quiescent? */
                 (dp_unit[u].FNC != (FNC_SEEK | FNC_2ND)))

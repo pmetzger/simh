@@ -566,7 +566,7 @@ switch (fnc) {
 
     case RLFC_CONT:                                     /* request status with reset */
         rlcs_bcnt = 0;                                  /* clear byte counter */
-                                                        /* fall through */
+        FALLTHROUGH;
     case RLFC_STS:                                      /* request status */
         rlcs_state = RL_STATUS;
         cso_csr = cso_csr & ~CSR_DONE;                  /* clear done */

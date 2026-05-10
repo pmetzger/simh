@@ -663,7 +663,7 @@ enum IOstatus DCin(IO_DEVICE *iod, uint8_t reg)
     case 0x01:
       iod->iod_svcstate = IO_BDC_IDLE;
       DCSTATUS(iod) &= ~IO_ST_BUSY;
-      /* FALLTHROUGH */
+      FALLTHROUGH;
 
     /*
      * 1706 Current Address. May be the next address depending on where we

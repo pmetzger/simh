@@ -378,6 +378,7 @@ chan_proc(void)
             if ((chan_info[chan] & CHAINF_START) == 0)
                 continue;
             /* Fall through and behave like 7607 from now on */
+            FALLTHROUGH;
         case CHAN_7607:
             /* If no select, stop channel */
             if ((chan_flags[chan] & DEV_SEL) == 0
@@ -757,7 +758,7 @@ chan_proc(void)
                     if (chan_dev.dctrl & cmask)
                         sim_debug(DEBUG_TRAP, &chan_dev, "chan %d %02o LIPT\n",
                                  chan, chan_flags[chan] & 077);
-                    /* Fall through */
+                    FALLTHROUGH;
 
                 case TCH9:
                 case TCHX:

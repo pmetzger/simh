@@ -720,7 +720,7 @@ static void DPDiskIO(UNIT *uptr, uint16_t iotype)
 
     case DPIO_MISMATCH:
       DPdev.STATUS |= IO_1738_NOCOMP;
-      /* FALLTHROUGH */
+      FALLTHROUGH;
 
     case DPIO_DONE:
       iou->state = DP_IDLE;
@@ -963,7 +963,7 @@ bool DPreject(IO_DEVICE *iod, bool output, uint8_t reg)
       case 0x03:
       case 0x06:
         /*** TODO: Check protect status ***/
-        /* FALLTHROUGH */
+        FALLTHROUGH;
 
       /*
        * Load Address/Read/Compare

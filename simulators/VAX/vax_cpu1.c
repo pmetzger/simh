@@ -1525,7 +1525,7 @@ switch (prn) {                                          /* case on reg # */
 
     case MT_MAPEN:                                      /* MAPEN */
         mapen = val & 1;
-        /* fall through */
+        FALLTHROUGH;
     case MT_TBIA:                                       /* TBIA */
         zap_tb (1);                                     /* clr entire TLB */
         break;

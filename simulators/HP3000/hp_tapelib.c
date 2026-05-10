@@ -2175,6 +2175,7 @@ switch (phase) {                                        /* dispatch the phase */
                 outbound = RQSRV;                               /* request the first data word from the channel */
 
             /* fall through into the Write_File_Mark case */
+            FALLTHROUGH;
 
             case Write_File_Mark:
                 if ((cvptr->device->flags & DEV_REALTIME) == 0  /* if fast timing is enabled */
@@ -2185,6 +2186,7 @@ switch (phase) {                                        /* dispatch the phase */
                     }                                           /* otherwise an initial gap is needed */
 
             /* fall through into the Write_Gap case */
+            FALLTHROUGH;
 
             case Write_Gap:
                 outbound |=                                     /* erase the gap */
@@ -2243,6 +2245,7 @@ switch (phase) {                                        /* dispatch the phase */
                 uptr->flags |= UNIT_OFFLINE;            /* set the unit offline immediately */
 
             /* fall through into the Rewind case */
+            FALLTHROUGH;
 
             case Rewind:
                 outbound = end_command (cvptr, uptr);   /* release the controller */
@@ -2579,6 +2582,7 @@ switch (phase) {                                        /* dispatch the phase */
                     cvptr->status |= CST_ODDLEN;        /*     then set the corresponding status */
 
             /* fall through into the Write_File_Mark case */
+            FALLTHROUGH;
 
             case Write_File_Mark:
             case Write_Gap:
@@ -2871,6 +2875,7 @@ switch (cvptr->call_status) {                           /* dispatch on the call 
         cvptr->status |= CST_DATAERR;                   /* report as a data error */
 
     /* fall through into the MTSE_OK case */
+    FALLTHROUGH;
 
     case MTSE_OK:                                       /* operation succeeded */
         if (cvptr->length > 0)                          /* if data is present */
@@ -2883,6 +2888,7 @@ switch (cvptr->call_status) {                           /* dispatch on the call 
         cvptr->gaplen -= sizeof (t_mtrlnt);             /* reduce the gap length by the metadata marker size */
 
     /* fall through into the MTSE_EOM case */
+    FALLTHROUGH;
 
     case MTSE_EOM:                                      /* end of medium encountered */
         cvptr->status |= CST_EOF;                       /* set the EOF status */
@@ -2891,6 +2897,7 @@ switch (cvptr->call_status) {                           /* dispatch on the call 
             cvptr->status |= CST_ODDLEN;                /*   also sets odd length status for a tape mark */
 
     /* fall through into the MTSE_BOT case */
+    FALLTHROUGH;
 
     case MTSE_BOT:                                      /* beginning of tape encountered */
         cvptr->state = End_State;                       /* indicate a device end condition */

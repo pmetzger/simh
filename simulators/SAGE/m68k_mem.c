@@ -265,7 +265,7 @@ t_stat WritePB(t_addr a, uint32_t val)
         return rc;
     case SCPE_OK:
         *mem = val & BMASK;
-        /*fallthru*/
+        FALLTHROUGH;
     case SIM_NOMEM:
         return SCPE_OK;
     }
@@ -283,7 +283,7 @@ t_stat WritePW(t_addr a, uint32_t val)
         if (cputype < 3 && (a & 1)) return STOP_ERRADR;
         *(mem-1) = (val >> 8) & BMASK;
         *mem     =  val       & BMASK;
-        /*fallthru*/
+        FALLTHROUGH;
     case SIM_NOMEM:
         return SCPE_OK;
     }
@@ -304,7 +304,7 @@ t_stat WritePL(t_addr a, uint32_t val)
         *(mem-2) = (val >> 16) & BMASK;
         *(mem-1) = (val >>  8) & BMASK;
         *mem     =  val        & BMASK;
-        /*fallthru*/
+        FALLTHROUGH;
     case SIM_NOMEM:
         return SCPE_OK;
     }

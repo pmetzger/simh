@@ -829,7 +829,7 @@ t_stat mt_srv(UNIT * uptr)
 
     case MT_RDS:
          mode = 0100;
-         /* Fall through */
+         FALLTHROUGH;
 
     case MT_RDSB:
         uptr->u5 &= ~MT_LWR;     /* Not write command */
@@ -984,7 +984,7 @@ t_stat mt_srv(UNIT * uptr)
     /* Check mode */
     case MT_WRS:
         mode = 0100;
-        /* fall through */
+        FALLTHROUGH;
     case MT_WRSB:
         uptr->u5 |= MT_LWR;     /* write command */
         if (uptr->u5 & MT_EGAP) {
@@ -1010,7 +1010,7 @@ t_stat mt_srv(UNIT * uptr)
                 }
             }
 #endif
-            /* fall through */
+            FALLTHROUGH;
 
         case END_RECORD:
             if (uptr->u6 > 0) { /* Only if data in record */
@@ -1110,7 +1110,7 @@ t_stat mt_srv(UNIT * uptr)
                 uptr->u6 = uptr->hwmark;    /* Force read next record */
                 break;
             }
-            /* fall through */
+            FALLTHROUGH;
 
         case DATA_OK:
             sim_debug(DEBUG_DATA, dptr, "Read data unit=%d %d %02o\n",

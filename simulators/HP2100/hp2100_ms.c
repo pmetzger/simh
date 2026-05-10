@@ -943,6 +943,7 @@ switch (uptr->FNC) {                                    /* case on function */
             goto DO_WFM;                                /* do plain file mark */
 
     /* fall through into GAP */
+    FALLTHROUGH;
 
     case FNC_GAP:                                       /* erase gap */
         tprintf (msc_dev, DEB_RWS, "Unit %d wrote gap\n", unum);
@@ -953,6 +954,7 @@ switch (uptr->FNC) {                                    /* case on function */
             break;                                      /*   then bail out now */
 
     /* fall through into WFM */
+    FALLTHROUGH;
 
     case FNC_WFM:                                       /* write file mark */
         if ((ms_timing == 0) && sim_tape_bot (uptr)) {  /* realistic timing + BOT? */

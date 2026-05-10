@@ -288,7 +288,7 @@ switch (drm_sta) {                                      /* case on state */
         if (i >= uptr-> hwmark)
             uptr->hwmark = i + 1;
         drm_sta = DRM_DATA;                             /* now data */
-                                                        /* fall through */
+        FALLTHROUGH;
     case DRM_DATA:                                      /* data */
         if (drm_op) {                                   /* write? */
             if (drm_chob_v)                             /* valid? clear */

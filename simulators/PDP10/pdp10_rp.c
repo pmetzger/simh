@@ -933,7 +933,7 @@ switch (uptr->FUNC) {                                   /* case on function */
             update_rpcs (CS1_DONE | CS1_TRE, drv);      /* set done, err */
             break;
             }
-        /* fall through */
+        FALLTHROUGH;
     case FNC_WCHK:                                      /* write check */
     case FNC_READ:                                      /* read */
     case FNC_READH:                                     /* read headers */
@@ -1027,7 +1027,7 @@ switch (uptr->FUNC) {                                   /* case on function */
             sim_printf ("RP I/O error");
             return SCPE_IOERR;
             }
-        /* fall through */
+        FALLTHROUGH;
 
     case FNC_WRITEH:                                    /* write headers stub */
         update_rpcs (CS1_DONE, drv);                    /* set done */

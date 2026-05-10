@@ -2997,7 +2997,7 @@ step2:
              case 000:
              case 020:
                      flags |= SGNFLAG|ANYFLAG;
-                     /* Fall through */
+                     FALLTHROUGH;
              case 060:
                      msign = 0;
                      break;

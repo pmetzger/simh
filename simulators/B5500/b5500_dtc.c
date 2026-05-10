@@ -384,14 +384,14 @@ t_stat dtc_srv(UNIT * uptr)
         switch(i) {
         case BufNotReady:
                 chan_set_notrdy(chan);
-                /* Fall through */
+                FALLTHROUGH;
         case BufInputBusy:
-                /* Fall through */
+                FALLTHROUGH;
         case BufRead:
-                /* Fall through */
+                FALLTHROUGH;
         case BufReadRdy:
                 chan_set_error(chan);
-                /* Fall through */
+                FALLTHROUGH;
         case BufOutBusy:
                 chan_set_eof(chan);
                 chan_set_end(chan);
@@ -468,16 +468,16 @@ t_stat dtc_srv(UNIT * uptr)
         switch(i) {
         case BufNotReady:
                 chan_set_notrdy(chan);
-                /* Fall through */
+                FALLTHROUGH;
         case BufInputBusy:
                 chan_set_error(chan);
-                /* Fall through */
+                FALLTHROUGH;
         case BufWriteRdy:
-                /* Fall through */
+                FALLTHROUGH;
         case BufOutBusy:
-                /* Fall through */
+                FALLTHROUGH;
         case BufIdle:
-                /* Fall through */
+                FALLTHROUGH;
         case BufWrite:
                 chan_set_eof(chan);
                 chan_set_end(chan);
@@ -575,7 +575,7 @@ dtco_srv(UNIT * uptr)
 
              case BufWriteRdy:          /* Awaiting output, terminate */
                   dtc_bufptr[ln] = 0;
-                /* Fall through */
+                FALLTHROUGH;
              case BufInputBusy:         /* reading, terminate with EOT */
                   dtc_buf[ln][dtc_bufptr[ln]++] = 017;
                   dtc_bsize[ln] = dtc_bufptr[ln]+1;
@@ -610,7 +610,7 @@ dtco_srv(UNIT * uptr)
                          ln);
              dtc_bufptr[ln] = 0;
              dtc_bsize[ln] = 0;
-             /* Fall through */
+             FALLTHROUGH;
 
          case BufInputBusy:
               t = 1;
@@ -643,11 +643,12 @@ dtco_srv(UNIT * uptr)
                        dtc_buf[ln][dtc_bufptr[ln]++] = 017;
                        dtc_lstatus[ln] |= BufAbnormal;
                        /* Fall through to next */
+                       FALLTHROUGH;
 
                  case '\r':
-                       /* Fall through */
+                       FALLTHROUGH;
                  case '\n':
-                       /* Fall through */
+                       FALLTHROUGH;
                  case '~':
                        dtc_lstatus[ln] &= ~BufSMASK;
                        dtc_lstatus[ln] |= BufIRQ|BufReadRdy;

@@ -264,7 +264,7 @@ switch (fnc) {                                          /* case on function */
 
     case FNC_RSCO:                                      /* read sec cnt ov */
         BS = dcf + DCF_CNT;                             /* set count back */
-                                                        /* fall thru */
+        FALLTHROUGH;
     case FNC_READ:                                      /* read */
         psec = dp_fndsec (uptr, sec, dcf);              /* find sector */
         if (psec < 0)                                   /* addr cmp error? */
@@ -307,7 +307,7 @@ switch (fnc) {                                          /* case on function */
 
     case FNC_WRSCO:                                     /* write sec cnt ov */
         BS = dcf + DCF_CNT;                             /* set count back */
-                                                        /* fall through */
+        FALLTHROUGH;
     case FNC_WRITE:                                     /* read */
         psec = dp_fndsec (uptr, sec, dcf);              /* find sector */
         if (psec < 0)                                   /* addr cmp error? */

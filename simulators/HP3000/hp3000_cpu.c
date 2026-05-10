@@ -1482,12 +1482,14 @@ if (abortval) {                                         /* if a microcode abort 
                 MICRO_ABORT (trap_SysHalt_CSTV_1);      /*   then the failure is fatal */
 
         /* fall through into the next trap handler */
+        FALLTHROUGH;
 
         case trap_STT_Violation:
             if (STT_SEGMENT (parameter) <= ISR_SEGMENT) /* if the trap occurred in segment 1 */
                 MICRO_ABORT (trap_SysHalt_STTV_1);      /*   then the failure is fatal */
 
         /* fall through into the next trap handler */
+        FALLTHROUGH;
 
         case trap_Unimplemented:
         case trap_DST_Violation:
@@ -1497,12 +1499,14 @@ if (abortval) {                                         /* if a microcode abort 
             parameter = label;                          /* the label is the parameter for these traps */
 
         /* fall through into the next trap handler */
+        FALLTHROUGH;
 
         case trap_DS_Absent:
             cpu_flush ();                               /* flush the TOS registers to memory */
             cpu_mark_stack ();                          /*   and then write a stack marker */
 
         /* fall through into the next trap handler */
+        FALLTHROUGH;
 
         case trap_Uncallable:
             break;                                      /* set up the trap handler */
@@ -1541,6 +1545,7 @@ if (abortval) {                                         /* if a microcode abort 
             status = STOP_CLOAD;                        /* report that the cold load is complete */
 
         /* fall through into trap_Stack_Overflow */
+        FALLTHROUGH;
 
         case trap_Stack_Overflow:                           /* this trap executes on the ICS */
             if (CPX1 & cpx1_ICSFLAG)                        /*   so if the trap occurred while on the ICS */

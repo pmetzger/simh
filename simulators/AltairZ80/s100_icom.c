@@ -1370,6 +1370,7 @@ static uint8_t ICOM_Command(UNIT *uptr, ICOM_REG *pICOM, int32_t Data)
             sim_debug(VERBOSE_MSG, &icom_dev, "DDM writes not supported. Performing standard write.\n");
 
             /* fall into ICOM_CMD_WRITE */
+            FALLTHROUGH;
 
         case ICOM_CMD_WRITE:
             if (uptr->flags & UNIT_ICOM_WPROTECT) {

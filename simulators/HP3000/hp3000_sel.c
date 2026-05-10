@@ -1014,6 +1014,7 @@ while (sel_request && cycles > 0) {                     /* execute as long as a 
             sequencer = Transfer_Sequence;              /* continue with the transfer sequence */
 
         /* fall through into the Transfer_Sequence */
+        FALLTHROUGH;
 
 
         case Transfer_Sequence:

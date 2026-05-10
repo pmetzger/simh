@@ -386,13 +386,13 @@ if (pulse & 004) {                                      /* LPDI */
             lp647_buf[lp647_bp] = lp647_buf[lp647_bp] | ((dat >> 12) & 077);
             lp647_bp = lp647_bp + 1;
             }
-        /* fall through */
+        FALLTHROUGH;
     case 020:                                           /* LPB2 */
         if (lp647_bp < LP647_BSIZE) {
             lp647_buf[lp647_bp] = lp647_buf[lp647_bp] | ((dat >> 6) & 077);
             lp647_bp = lp647_bp + 1;
             }
-        /* fall through */
+        FALLTHROUGH;
     case 060:                                           /* LPB1 */
         if (lp647_bp < LP647_BSIZE) {
             lp647_buf[lp647_bp] = lp647_buf[lp647_bp] | (dat & 077);

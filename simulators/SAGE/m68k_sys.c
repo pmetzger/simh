@@ -256,7 +256,7 @@ static t_stat m68k_sread(FILE* fptr)
             if ((a = getHex(fptr,&chksum))==EOF) goto error;
             addr = (addr << 8) | a;
             i = 4;
-            /*fallthru*/
+            FALLTHROUGH;
         case '2':
             if ((a = getHex(fptr,&chksum))==EOF) goto error;
             addr = (addr << 8) | a;
@@ -266,14 +266,14 @@ dread:
         case '7':
             if ((a = getHex(fptr,&chksum))==EOF) goto error;
             addr = (addr << 8) | a;
-            /*fallthru*/
+            FALLTHROUGH;
         case '8':
             if ((a = getHex(fptr,&chksum))==EOF) goto error;
             addr = (addr << 8) | a;
-            /*fallthru*/
+            FALLTHROUGH;
         case '9':
             end = true;
-            /*fallthru*/
+            FALLTHROUGH;
         case '5':
             if((d = getHex(fptr,&chksum))==EOF) goto error;
             break;

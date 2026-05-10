@@ -437,7 +437,7 @@ store:
                 goto iadd;
             case 5:     /* SUB */
                 SR ^= MSIGN;
-                /* Fall through */
+                FALLTHROUGH;
             case 9:     /* ADD */
               iadd:
                 f = 0;
@@ -556,7 +556,7 @@ store:
                     break;
                 case 2:
                     AC |= AMSIGN;
-                    /* FALL THRU */
+                    FALLTHROUGH;
                 case 1:
                     MQ |= MSIGN;
                     break;

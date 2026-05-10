@@ -1015,10 +1015,10 @@ sim_instr(void)
                      break;
                 case OP_HB:
                      IC = MA;
-                     /* fall through */
+                     FALLTHROUGH;
                 case OP_HP:
                      reason = STOP_HALT;
-                     /* fall through */
+                     FALLTHROUGH;
                 case OP_NOP:
                      /* fall through */
                      if (hst_lnt) {  /* history enabled? */
@@ -2144,7 +2144,7 @@ sim_instr(void)
                                         WriteP(MA, PSIGN|timer);
                                    goto done;
                                 }
-                                /* fall through */
+                                FALLTHROUGH;
                       default:
                                 reason = STOP_UUO;
                                 goto done;

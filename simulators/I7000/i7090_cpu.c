@@ -1483,7 +1483,7 @@ prottrap:
             case OP_HTR:
                 /* Stop at HTR instruction if trapped */
                 IC--;
-                /* Fall through */
+                FALLTHROUGH;
             case OP_HPR:
               halt:
                 hltinst = 1;
@@ -1864,7 +1864,7 @@ prottrap:
                 goto iadd;
             case OP_SUB:
                 SR ^= MSIGN;
-                /* Fall through */
+                FALLTHROUGH;
 
             case OP_ADD:
               iadd:
@@ -1905,7 +1905,7 @@ prottrap:
             case OP_MPY:
             case OP_MPR:
                 decr = 043;
-                /* Fall through */
+                FALLTHROUGH;
 
             case OP_VLM + 1:
             case OP_VLM:
@@ -1945,7 +1945,7 @@ prottrap:
             case OP_DVH:
             case OP_DVP:
                 decr = 043;
-                /* Fall through */
+                FALLTHROUGH;
 
             case OP_VDH + 2:
             case OP_VDH:
@@ -2005,7 +2005,7 @@ prottrap:
                     break;
                 case 2:
                     AC |= AMSIGN;
-                    /* FALL THRU */
+                    FALLTHROUGH;
                 case 1:
                     MQ |= MSIGN;
                     break;

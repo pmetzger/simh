@@ -215,7 +215,7 @@ uint32_t cdp_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
                 return SCPE_IOERR;
             }
             iuptr->u3--;
-            /* Fall through */
+            FALLTHROUGH;
 
         case INPUT_FULL >> INPUT_V:
             for (i = 0; i < 80; image[i++] = 0);
@@ -224,7 +224,7 @@ uint32_t cdp_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
             switch(sim_read_card(iuptr, image)) {
             case CDSE_ERROR:
                  uptr->u5 |= URCSTA_ERR;
-                 /* Fall through */
+                 FALLTHROUGH;
 
             case CDSE_EOF:
             case CDSE_EMPTY:

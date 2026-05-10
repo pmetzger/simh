@@ -238,7 +238,7 @@ if (drm_sta != DRM_SXFR) {                              /* fetch drum prog? */
         case DRM_EIE:                                   /* end, int if err */
             if (!drm_err)
                 return SCPE_OK;
-            /* fall through */
+            FALLTHROUGH;
         case DRM_EIU:                                   /* end, int uncond */
             int_req = int_req | INT_DRM;
             return SCPE_OK;

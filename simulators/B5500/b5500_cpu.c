@@ -2475,7 +2475,7 @@ crf_loop:
                 if (TFFF)
                    break;
 
-                /* Fall through */
+                FALLTHROUGH;
             case CMOP_JNS:      /* Jump out of loop unconditional */
                 /* Read Loop/Return control word */
                 atemp = S;
@@ -2498,7 +2498,7 @@ crf_loop:
                 if (TFFF != 0)
                    break;
 
-                /* Fall through */
+                FALLTHROUGH;
             case CMOP_JFW:      /* Jump Forward Unconditional */
             case CMOP_JRV:      /* Jump Reverse Unconditional */
                  i = (C << 2) | L;   /* Make into syllable pointer */
@@ -3087,7 +3087,7 @@ control:
                         if (NCSF)       /* Nop in normal state */
                             break;
 
-                        /* Fall through */
+                        FALLTHROUGH;
                 case VARIANT(WMOP_PRL): /* Program Release */
                         A_valid();
                         if ((A & FLAG) == 0) {
@@ -3418,7 +3418,7 @@ control:
                             break;
                         }
 
-                        /* Fall through */
+                        FALLTHROUGH;
                 case VARIANT(WMOP_BFW): /* Branch Forward Unconditional 4231 */
                 case VARIANT(WMOP_BBW): /* Banch Backward Unconditional 4131 */
                 case VARIANT(WMOP_LFU): /* Word Branch Forward Unconditional  6231*/
@@ -3571,7 +3571,7 @@ control:
                             }
                         }
 
-                        /* Fall through */
+                        FALLTHROUGH;
                 case VARIANT(WMOP_XIT): /* Exit  04 */
                         if (field & 04)
                             AROF = 0;

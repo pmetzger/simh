@@ -749,7 +749,8 @@ switch (j) {                                            /* case on class */
         d = get_uint (gbuf, 8, 077, &r);                /* opcode */
         if (r != SCPE_OK)
             return SCPE_ARG;
-        val[0] = val[0] | d;                            /* fall thru */
+        val[0] = val[0] | d;
+        FALLTHROUGH;
 
     case I_V_IOI:                                       /* I/O */
         cptr = get_glyph (cptr, gbuf, ',');             /* get next field */

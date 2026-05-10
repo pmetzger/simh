@@ -359,7 +359,7 @@ dd_text (uint64 insn)
         case 011:
             if (!rubout)
                 break;
-            /* Fall through. */
+            FALLTHROUGH;
         default:
         print:
             {

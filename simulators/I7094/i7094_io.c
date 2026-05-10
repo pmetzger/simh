@@ -1305,7 +1305,7 @@ switch (op) {                                           /* case on opcode */
     case CH6_IOST:                                      /* IOST */
         if (ch_flags[ch] & CHF_EOR)                     /* EOR set? immed ch req */
             ch_req |= REQ_CH (ch);
-        /* fall through */
+        FALLTHROUGH;
     case CH6_IOCT:                                      /* IOCT */
         if (ch_wc[ch] == 0) {                           /* wc 0? */
             if (ch_ld)                                  /* load? end now */
@@ -1317,7 +1317,7 @@ switch (op) {                                           /* case on opcode */
     case CH6_IOSP:                                      /* IOSP */
         if (ch_flags[ch] & CHF_EOR)                     /* EOR set? immed ch req */
             ch_req |= REQ_CH (ch);
-        /* fall through */
+        FALLTHROUGH;
     case CH6_IOCP:                                      /* IOCP */
         if (ch_wc[ch] == 0)                             /* wc 0? immed ch req */
             ch_req |= REQ_CH (ch);
@@ -1545,7 +1545,7 @@ switch (ch_op[ch]) {                                    /* check initial cond */
     case CH9_SMS:
         if (ch_flags[ch] & (CHF_PRD|CHF_PWR|CHF_RDS|CHF_WRS))
             ch9_eval_int (ch, CHINT_SEQC);              /* not during data */
-        /* fall through */
+        FALLTHROUGH;
     case CH9_TCM:                                       /* jumps */
     case CH9_TCH:
     case CH9_TDC:

@@ -4618,6 +4618,7 @@ static t_stat sim_instr_mmu (void) {
 
                     case 0x94:      /* SUB IXH */
                         SETFLAG(C, 0);/* fall through, a bit less efficient but smaller code */
+                        FALLTHROUGH;
 
                     case 0x9c:      /* SBC A,IXH */
                         tStates += 9;
@@ -4629,6 +4630,7 @@ static t_stat sim_instr_mmu (void) {
 
                     case 0x95:      /* SUB IXL */
                         SETFLAG(C, 0);/* fall through, a bit less efficient but smaller code */
+                        FALLTHROUGH;
 
                     case 0x9d:      /* SBC A,IXL */
                         tStates += 9;
@@ -6156,6 +6158,7 @@ static t_stat sim_instr_mmu (void) {
 
                     case 0x94:      /* SUB IYH */
                         SETFLAG(C, 0);/* fall through, a bit less efficient but smaller code */
+                        FALLTHROUGH;
 
                     case 0x9c:      /* SBC A,IYH */
                         tStates += 9;
@@ -6167,6 +6170,7 @@ static t_stat sim_instr_mmu (void) {
 
                     case 0x95:      /* SUB IYL */
                         SETFLAG(C, 0);/* fall through, a bit less efficient but smaller code */
+                        FALLTHROUGH;
 
                     case 0x9d:      /* SBC A,IYL */
                         tStates += 9;

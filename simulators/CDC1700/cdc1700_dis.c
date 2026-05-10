@@ -603,7 +603,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
             break;
           }
         }
-        /* FALLTHROUGH */
+        FALLTHROUGH;
 
       case OPC_RTJ:
         if (((instr & (MOD_IN | MOD_I1 | MOD_I2)) != 0) & !dbg)

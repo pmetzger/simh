@@ -645,7 +645,7 @@ static t_stat rr_rd (int32_t *data, int32_t PA, int32_t access)
             *data = suca;
             break;
         }
-        /* FALLTHRU */
+        FALLTHROUGH;
     default:                                            /* not implemented */
         *data = 0;
         return SCPE_OK;
@@ -734,7 +734,7 @@ static t_stat rr_wr (int32_t data, int32_t PA, int32_t access)
     case 10:                                            /* SUCA: read-only */
         if (rr_dev.flags & DEV_RP11CE)
             break;
-        /*FALLTHRU*/
+        FALLTHROUGH;
     default:
         return SCPE_OK;
     }

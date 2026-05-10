@@ -208,7 +208,7 @@ switch (pls & 057) {                                    /* case IR<6,8:11> */
     case 010:                                           /* RCC */
         dat |= dcs_buf[dcs_scan];                       /* return line buf */
         dcs_flg[dcs_scan] = 0;                          /* clr line flag */
-                                                        /* fall through */
+        FALLTHROUGH;
     case 011:                                           /* RSC */
         dcs_scan_next (true);                           /* unlock scanner */
         break;

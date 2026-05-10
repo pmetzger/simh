@@ -185,12 +185,12 @@ uint16_t cpu_alu (uint16_t insn, uint16_t op, uint16_t adata, uint16_t bdata)
   case ALU_MROT: result = adata & cpu_rot (R[R[REG_ALATCH]], insn & 017); break;
   case ALU_ROT:  result = cpu_rot (adata, insn & 017); break;
   case ALU_DEC:  result = adata - 1; V = (result == 077777); break;
-  case ALU_XADD: bdata += C; /* Fall through. */
+  case ALU_XADD: bdata += C; FALLTHROUGH;
   case ALU_ADD:
     result = adata + bdata;
     V = (((~adata ^ bdata) & (bdata ^ result)) >> 15) & 1;
     break;
-  case ALU_XSUB: bdata += C; /* Fall through. */
+  case ALU_XSUB: bdata += C; FALLTHROUGH;
   case ALU_SUB:
     result = adata - bdata;
     V = (((adata ^ bdata) & (~bdata ^ result)) >> 15) & 1;

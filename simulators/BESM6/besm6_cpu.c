@@ -1235,7 +1235,7 @@ static void cpu_one_inst (void)
         delay = MEAN_TIME (3, 5);
         break;
     case 032:                                       /* э32, ext */
-        /* Fall through... */
+        FALLTHROUGH;
     case 033:                                       /* увв, ext */
         Aex = ADDR (addr + M[reg]);
         if (! IS_SUPERVISOR (RUU))

@@ -1988,6 +1988,7 @@ switch (opcode) {                                       /* dispatch by the exten
             operand = NEG8 (operand);                   /*   negate the operand for display */
 
     /* fall through into the BRIS case */
+    FALLTHROUGH;
 
     case 011:                                           /* BRIS - branch if significance */
         if (operand & D8_SIGN) {                        /* if the displacement is negative */
@@ -3524,6 +3525,7 @@ switch (ops [op_index].operand) {                       /* dispatch by the opera
         indirect = (instruction & I_FLAG_BIT_5) != 0;   /*   and the indirect condition */
 
     /* fall through into the P-relative displacement case */
+    FALLTHROUGH;
 
     /* P +/- displacement range 0-255 */
 
@@ -3658,6 +3660,7 @@ switch (ops [op_index].operand) {                       /* dispatch by the opera
         indirect = (instruction & I_FLAG_BIT_5) != 0;       /* save the indirect condition */
 
     /* fall through into the index case */
+    FALLTHROUGH;
 
     /* index bit 4 */
 
@@ -3673,6 +3676,7 @@ switch (ops [op_index].operand) {                       /* dispatch by the opera
         op_value = op_value & DISPL_63_MASK;            /*   and mask to the operand value */
 
     /* fall through into the unsigned value case */
+    FALLTHROUGH;
 
     /* unsigned value range 0-63 */
 
@@ -3720,6 +3724,7 @@ switch (ops [op_index].operand) {                       /* dispatch by the opera
         op_value = op_value >> EIS_SDEC_SHIFT;          /* align the S decrement value */
 
     /* fall through into the unsigned operand case */
+    FALLTHROUGH;
 
     /* unsigned value range 0-1 */
     /* unsigned value range 0-255 */

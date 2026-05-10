@@ -390,7 +390,7 @@ t_stat dsk_srv(UNIT * uptr)
         case 0:
                 sim_debug(DEBUG_SNS, &dsk_dev, "unit=%d chan sense=%05x\n", dev,
                          sense[schan]);
-                /* fall through */
+                FALLTHROUGH;
         case 1: case 2: case 3: case 4:
                 ch = (sense[schan] >> (4 * (4 - cmd_count[chan]))) & 0xF;
                 break;
@@ -398,7 +398,7 @@ t_stat dsk_srv(UNIT * uptr)
                 sim_debug(DEBUG_SNS, &dsk_dev, "unit=%d unit sense=%08x\n", dev,
                          sense_unit[schan]);
                 eor = DEV_REOR;
-                /* fall through */
+                FALLTHROUGH;
         case 5: case 6: case 7: case 8:
                 ch = (sense_unit[schan] >> (4 * (9 - cmd_count[chan]))) & 0xF;
                 break;
@@ -914,7 +914,7 @@ clear_drive:
             disk_cmderr(up, PROG_FMTCHK);
             return 1;
         }
-        /* fall through */
+        FALLTHROUGH;
     case DVTA:          /* Prepare to Verify track addr */
     case DVTN:          /* Prepare to Verify track no addr */
     case DVCY:          /* Prepare to Verify Cyl */

@@ -338,7 +338,7 @@ static uint8_t SS1_Read(const uint32_t Addr)
     switch(Addr & 0x0F) {
         case SS1_S8259_L:
             sel_pic = SLAVE_PIC;
-            /* fall through */
+            FALLTHROUGH;
         case SS1_M8259_L:
             if((ss1_pic[sel_pic].OCW3 & 0x03) == 0x03) {
                 cData = ss1_pic[sel_pic].ISR;
@@ -354,7 +354,7 @@ static uint8_t SS1_Read(const uint32_t Addr)
             break;
         case SS1_S8259_H:
             sel_pic = SLAVE_PIC;
-            /* fall through */
+            FALLTHROUGH;
         case SS1_M8259_H:
             cData = ss1_pic[sel_pic].IMR;
             sim_debug(PIC_MSG, &ss1_dev, "SS1: " ADDRESS_FORMAT
@@ -511,7 +511,7 @@ static uint8_t SS1_Write(const uint32_t Addr, uint8_t cData)
             break;
         case SS1_S8259_H:
             sel_pic = SLAVE_PIC;
-            /* fall through */
+            FALLTHROUGH;
         case SS1_M8259_H:
             if(ss1_pic[sel_pic].config_cnt == 0) {
                 sim_debug(PIC_MSG, &ss1_dev, "SS1: " ADDRESS_FORMAT " WR: %s PIC IMR=0x%02x.\n", PCX, (sel_pic ? "Slave " : "Master"), cData);

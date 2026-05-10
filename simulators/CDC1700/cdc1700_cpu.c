@@ -792,7 +792,7 @@ static t_stat getEffectiveAddr(uint16_t p, uint16_t instr, uint16_t *addr)
 
       case MOD_RE | MOD_IN:
         result = doADDinternal(result, LoadFromMem(result));
-        /* FALLTHROUGH */
+        FALLTHROUGH;
 
       case MOD_IN:
         result = LoadFromMem(result);
@@ -817,7 +817,7 @@ static t_stat getEffectiveAddr(uint16_t p, uint16_t instr, uint16_t *addr)
 
     case MOD_RE | MOD_IN:
       result = doADDinternal(EXTEND8(result), p);
-      /* FALLTHROUGH */
+      FALLTHROUGH;
 
     case MOD_IN:
       result = LoadFromMem(result);
@@ -874,7 +874,7 @@ t_stat disEffectiveAddr(uint16_t p, uint16_t instr, uint16_t *base, uint16_t *ad
 
       case MOD_RE | MOD_IN:
         result = doADDinternal(result, LoadFromMem(result));
-        /* FALLTHROUGH */
+        FALLTHROUGH;
 
       case MOD_IN:
         result = LoadFromMem(result);
@@ -899,7 +899,7 @@ t_stat disEffectiveAddr(uint16_t p, uint16_t instr, uint16_t *base, uint16_t *ad
 
       case MOD_RE | MOD_IN:
         result = doADDinternal(EXTEND8(result), p);
-        /* FALLTHROUGH */
+        FALLTHROUGH;
 
       case MOD_IN:
         result = LoadFromMem(result);
@@ -1234,7 +1234,7 @@ static t_stat executeAnInstruction(void)
                   fprintf(DBGOUT, "%s Possible Enh. Instruction (%04X) at %04x\r\n",
                           INTprefix, instr, OrigPreg);
               }
-              /* FALLTHROUGH */
+              FALLTHROUGH;
 
             case INSTR_ORIGINAL:
               if ((cpu_unit.flags & UNIT_STOPSW) != 0) {
@@ -1499,7 +1499,7 @@ static t_stat executeAnInstruction(void)
               }
               break;
           }
-          /* FALLTHROUGH */
+          FALLTHROUGH;
 
           /*
            * The following instructions (EIN, IIN, SPB, CPB and EXI)

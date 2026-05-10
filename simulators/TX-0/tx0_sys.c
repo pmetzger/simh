@@ -392,7 +392,8 @@ j = (opc_val[i] >> I_V_FL) & I_M_FL;                    /* get class */
 switch (j) {                                            /* case on class */
 
     case I_V_LAW:                                       /* LAW */
-        cflag = 0;                                      /* fall through */
+        cflag = 0;
+        FALLTHROUGH;
     case I_V_MRF: case I_V_MRI:                         /* mem ref */
         cptr = get_glyph (cptr, gbuf, 0);               /* get next field */
         if ((j != I_V_MRI) && strcmp (gbuf, "I") == 0) { /* indirect? */

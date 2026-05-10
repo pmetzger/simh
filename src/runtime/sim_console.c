@@ -3582,7 +3582,7 @@ ControlHandler(DWORD dwCtrlType)
         case CTRL_LOGOFF_EVENT:     // User is logging off
             if (!GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &Mode))
                 return TRUE;        // Not our User, so ignore
-            /* fall through */
+            FALLTHROUGH;
         case CTRL_SHUTDOWN_EVENT:   // System is shutting down
             int_handler(SIGTERM);
             return TRUE;

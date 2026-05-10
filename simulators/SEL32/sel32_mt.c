@@ -703,7 +703,7 @@ t_stat mt_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
 
         /* UTX_needs_interrupt */
         cmd = MT_CMDMSK;                    /* insert INCH cmd as 0xff */
-        /* fall through */
+        FALLTHROUGH;
     case 0x03:                              /* Tape motion commands or NOP */
     case 0x13:                              /* Read and compare command */
     case 0x23:                              /* Rewind command */
@@ -716,7 +716,7 @@ t_stat mt_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
     case 0x93:                              /* Write Tape filemark */
     case 0xA3:                              /* Erase 3.5 of tape */
         /* UTX_needs_interrupt on NOP or INCH */
-        /* fall through */
+        FALLTHROUGH;
     case 0x01:                              /* Write command */
     case 0x02:                              /* Read command */
     case 0x0C:                              /* Read backward */
@@ -748,7 +748,7 @@ t_stat mt_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
         sim_debug(DEBUG_CMD, dptr, "mt_startcmd attached sense %08x chan %04x cmd %02x\n",
             uptr->SNS, chan, cmd);
         }
-        /* Fall through */
+        FALLTHROUGH;
 
     case 0x04:             /* Sense */
         uptr->CMD &= ~(MT_CMDMSK);          /* clear out last cmd */

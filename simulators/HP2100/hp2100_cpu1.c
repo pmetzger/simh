@@ -257,6 +257,7 @@ switch ((IR >> 8) & 0377) {                             /* decode IR<15:8> */
                     }
 
             /* fall through into the MPY case if 1000 M-Series */
+            FALLTHROUGH;
 
             case 010:                                   /* MPY 100200 (OP_K) */
                 reason = cpu_ops (OP_K, op);            /* get operand */

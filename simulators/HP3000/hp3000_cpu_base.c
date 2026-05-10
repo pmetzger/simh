@@ -3340,6 +3340,7 @@ switch (operation) {                                    /* dispatch the move or 
                     }
 
             /* fall through into the LOCK executor */
+            FALLTHROUGH;
 
             case 001:                                   /* LOCK (none; MODE) */
                 if (UNIT_CPU_MODEL == UNIT_SERIES_II) { /* if the CPU is a Series II */
@@ -3363,6 +3364,7 @@ switch (operation) {                                    /* dispatch the move or 
                     }
 
             /* fall through into the PCN executor */
+            FALLTHROUGH;
 
             case 002:                                       /* PCN (none; STOV, MODE) */
                 cpu_push ();                                /* push the stack down */
@@ -3387,6 +3389,7 @@ switch (operation) {                                    /* dispatch the move or 
                     }                                   /* otherwise fall into the UNLK executor */
 
             /* fall through into the UNLK executor */
+            FALLTHROUGH;
 
             case 003:                                   /* UNLK (none; MODE) */
                 if (UNIT_CPU_MODEL == UNIT_SERIES_II) { /* if the CPU is a Series II */
@@ -3717,6 +3720,7 @@ switch (operation) {                                    /* dispatch the I/O or c
                     }
 
             /* fall through into the PSDB executor */
+            FALLTHROUGH;
 
             case 001:                                   /* PSDB (none; MODE) */
                 cpu_read_memory (absolute, ICS_Q,       /* read the ICS stack marker pointer value */
@@ -3742,6 +3746,7 @@ switch (operation) {                                    /* dispatch the I/O or c
                     }
 
             /* fall through into the DISP executor */
+            FALLTHROUGH;
 
             case 002:                                   /* DISP (CCx; MODE, CSTV, TRACE, ABS CST, BNDV) */
                 cpu_read_memory (absolute, ICS_Q,       /* read the stack marker initial value */
@@ -3776,6 +3781,7 @@ switch (operation) {                                    /* dispatch the I/O or c
                     }
 
             /* fall through into the PSEB executor */
+            FALLTHROUGH;
 
             case 003:                                   /* PSEB (CCx; MODE, CSTV, TRACE, ABS CST, BNDV) */
                 cpu_read_memory (absolute, ICS_Q,       /* read the stack marker initial value */
