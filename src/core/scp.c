@@ -4773,6 +4773,10 @@ return r;
 
 t_stat show_cmd_fi (FILE *ofile, int32_t flag, const char *cptr)
 {
+/* Generic show command signature.
+   This implementation does not use every parameter. */
+(void)flag;
+
 uint32_t lvl = 0xFFFFFFFF;
 char gbuf[CBUFSIZE], *cvptr;
 const char *svptr;
@@ -5824,6 +5828,10 @@ return SCPE_OK;
 t_stat show_one_mod (FILE *st, DEVICE *dptr, UNIT *uptr, MTAB *mptr,
     const char *cptr, int32_t flag)
 {
+/* Modifier display helper signature.
+   This implementation does not use every parameter. */
+(void)dptr;
+
 t_stat r = SCPE_OK;
 
 if (mptr->disp)

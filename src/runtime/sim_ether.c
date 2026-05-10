@@ -976,7 +976,14 @@ t_stat eth_show (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 static int _eth_get_system_id (char *buf, size_t buf_size)
   {memset (buf, 0, buf_size); return 0;}
 t_stat sim_ether_test (DEVICE *dptr, const char *cptr)
-  {return SCPE_OK;}
+  {
+  /* Generic test command signature.
+     This implementation does not use every parameter. */
+  (void)dptr;
+  (void)cptr;
+
+  return SCPE_OK;
+  }
 #else    /* endif unimplemented */
 
 const char *eth_capabilities(void)
@@ -4461,6 +4468,10 @@ return (errors == 0) ? SCPE_OK : SCPE_IERR;
 
 t_stat sim_ether_test (DEVICE *dptr, const char *cptr)
 {
+/* Generic test command signature.
+   This implementation does not use every parameter. */
+(void)cptr;
+
 t_stat stat = SCPE_OK;
 SIM_TEST_INIT;
 
