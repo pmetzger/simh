@@ -8,3 +8,12 @@ add_unit_test(unit-cdc1700-strings
         ${PROJECT_SOURCE_DIR}/simulators/CDC1700
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
+
+add_unit_test(unit-cdc1700-dis
+    LABEL CDC1700
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_cdc1700_dis.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/CDC1700
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
