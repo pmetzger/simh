@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "test_cmocka.h"
@@ -9,6 +10,8 @@
  */
 #undef strlcpy
 #undef strlcat
+#undef strdup
+#undef strndup
 
 #include "sim_string_compat.h"
 
@@ -47,12 +50,60 @@ static void test_strlcpy_zero_size_only_measures(void **state)
     assert_int_equal(buffer[0], 'x');
 }
 
+/* Verify strdup returns a writable copy of the complete string. */
+static void test_strdup_copies_complete_string(void **state)
+{
+    char *copy;
+
+    (void)state;
+
+    copy = strdup("alpha");
+    assert_non_null(copy);
+    assert_string_equal(copy, "alpha");
+
+    copy[0] = 'A';
+    assert_string_equal(copy, "Alpha");
+
+    free(copy);
+}
+
+/* Verify strndup copies at most the requested number of bytes. */
+static void test_strndup_truncates_to_limit(void **state)
+{
+    char *copy;
+
+    (void)state;
+
+    copy = strndup("alphabet", 5);
+    assert_non_null(copy);
+    assert_string_equal(copy, "alpha");
+
+    free(copy);
+}
+
+/* Verify strndup stops at the source NUL before the limit. */
+static void test_strndup_stops_at_nul(void **state)
+{
+    char *copy;
+
+    (void)state;
+
+    copy = strndup("abc", 8);
+    assert_non_null(copy);
+    assert_string_equal(copy, "abc");
+
+    free(copy);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_strlcpy_reports_truncation),
         cmocka_unit_test(test_strlcat_reports_truncation),
         cmocka_unit_test(test_strlcpy_zero_size_only_measures),
+        cmocka_unit_test(test_strdup_copies_complete_string),
+        cmocka_unit_test(test_strndup_truncates_to_limit),
+        cmocka_unit_test(test_strndup_stops_at_nul),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

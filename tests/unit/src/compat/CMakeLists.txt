@@ -4,9 +4,13 @@ add_unit_test(unit-compat-string
         ${CMAKE_CURRENT_SOURCE_DIR}/test_compat_string.c
         ${SIMH_COMPAT_ROOT}/strlcpy.c
         ${SIMH_COMPAT_ROOT}/strlcat.c
+        ${SIMH_COMPAT_ROOT}/strdup.c
+        ${SIMH_COMPAT_ROOT}/strndup.c
     DEFINES
         SIMH_NEED_STRLCPY
         SIMH_NEED_STRLCAT
+        SIMH_NEED_STRDUP
+        SIMH_NEED_STRNDUP
 )
 
 add_unit_test(unit-compat-temp
