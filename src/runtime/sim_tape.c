@@ -75,6 +75,7 @@
 
 #include "sim_defs.h"
 #include "sim_dynstr.h"
+#include "sim_string.h"
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
 #include "sim_types.h"
@@ -574,6 +575,21 @@ if ((dptr = find_dev_from_unit (uptr)) == NULL)
 return sim_tape_attach_ex (uptr, cptr, ((dptr->flags & DEV_DEBUG) || (dptr->debflags != NULL)) ? MTSE_DBG_API : 0, 0);
 }
 
+static t_stat
+sim_tape_save_memory_attach_name(UNIT *uptr, const char *name, t_addr tape_eom)
+{
+    size_t name_size = strlen(name) + 1;
+    char *name_copy = (char *)malloc(name_size);
+
+    if (name_copy == NULL)
+        return SCPE_MEM;
+    strlcpy(name_copy, name, name_size);
+    uptr->filename = name_copy;
+    uptr->flags |= UNIT_ATT;
+    uptr->tape_eom = tape_eom;
+    return SCPE_OK;
+}
+
 t_stat sim_tape_attach_ex (UNIT *uptr, const char *cptr, uint32_t dbit, int completion_delay)
 {
 struct tape_context *ctx;
@@ -664,10 +680,8 @@ switch (MT_GET_FMT (uptr)) {
                 /* RT-11 and RSTS write three tape marks at the end of an ANSI volume */
                 /* RSX-11 and VMS do not, but there is no harm in the extra tape mark */
                 memory_tape_add_block (tape, NULL, 0);  /* Tape Mark */
-                uptr->flags |= UNIT_ATT;
-                uptr->filename = (char *)malloc (strlen (ocptr) + 1);
-                strcpy (uptr->filename, ocptr);
-                uptr->tape_eom = tape->record_count;
+                r = sim_tape_save_memory_attach_name (uptr, ocptr,
+                                                       tape->record_count);
                 }
             else {
                 r = SCPE_ARG;
@@ -782,10 +796,8 @@ switch (MT_GET_FMT (uptr)) {
             else {
                 memory_tape_add_block (tape, NULL, 0);  /* Tape Mark */
                 memory_tape_add_block (tape, NULL, 0);  /* Tape Mark */
-                uptr->flags |= UNIT_ATT;
-                uptr->filename = (char *)malloc (strlen (cptr) + 1);
-                strcpy (uptr->filename, cptr);
-                uptr->tape_eom = tape->record_count;
+                r = sim_tape_save_memory_attach_name (uptr, cptr,
+                                                       tape->record_count);
                 }
             }
         break;
@@ -820,10 +832,8 @@ switch (MT_GET_FMT (uptr)) {
                 /* RSX-11 and RSTS write three tape marks at the end of a DOS volume */
                 /* VMS does not, but there is no harm in the extra tape mark         */
                 memory_tape_add_block (tape, NULL, 0); /* Tape Mark */
-                uptr->flags |= UNIT_ATT;
-                uptr->filename = (char *)malloc (strlen (ocptr) + 1);
-                strcpy (uptr->filename, ocptr);
-                uptr->tape_eom = tape->record_count;
+                r = sim_tape_save_memory_attach_name (uptr, ocptr,
+                                                       tape->record_count);
                 }
             else {
                 r = SCPE_ARG;
@@ -3906,16 +3916,12 @@ if ((!valid_bits) || (valid_bits >> BPI_COUNT))
     return SCPE_ARG;
 for (density = count = 0; density < BPI_COUNT; density++) {
     if (valid_bits & (1 << density)) {
-        char density_str[20];
-
         ++count;
         if (count == 1)
             strlcat (string, "{", string_size);
         else
             strlcat (string, "|", string_size);
-        (void)snprintf (density_str, sizeof (density_str), "%d",
-                        bpi[density]);
-        strlcat (string, density_str, string_size);
+        strlappendf (string, string_size, "%d", bpi[density]);
         }
     }
 if ((count == 1) && (string_size > 1))
@@ -4017,8 +4023,7 @@ static void ansi_make_HDR1 (ANSI_HDR1 *hdr1, ANSI_VOL1 *vol, ANSI_HDR4 *hdr4, co
     else
         ++fn;                                   /* skip over slash or backslash */
     fn_len = strlen (fn);
-    fn_cpy = (char *)malloc (fn_len + 1);
-    strcpy (fn_cpy, fn);
+    fn_cpy = strdup (fn);
     fn = fn_cpy;
     ext = strrchr (fn_cpy, '.');
     if (ext) {

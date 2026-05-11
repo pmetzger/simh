@@ -41,6 +41,13 @@ void sim_video_set_test_sdl_hooks(const sim_video_sdl_hooks *hooks);
 /* Restore default SDL hooks and clear any test-owned controller state. */
 void sim_video_reset_test_hooks(void);
 
+/* Exercise video string-formatting helpers without opening an SDL window. */
+void sim_video_test_format_window_title(char *title_buf, size_t title_size,
+                                        DEVICE *dptr, const char *title);
+void sim_video_test_format_screenshot_name(char *name, size_t name_size,
+                                           const char *filename, int index,
+                                           bool multiple);
+
 /* Exercise controller setup and cleanup without opening a real video window. */
 void sim_video_test_setup_gamepad_controllers(DEVICE *dev);
 void sim_video_test_cleanup_gamepad_controllers(void);

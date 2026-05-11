@@ -142,7 +142,7 @@ static t_stat sim_exp_compile_regex_pattern(EXPECT *exp, const uint8_t *match_bu
     if (NULL == ep->regex) {
         if (pcre2_get_error_message(error_code, errmsg,
                                     sizeof(errmsg) / sizeof(*errmsg)) < 0)
-            strcpy((char *)errmsg, "unknown");
+            strlcpy((char *)errmsg, "unknown", sizeof(errmsg));
         sim_messagef(SCPE_ARG, "Regular Expression Error: %s\n",
                      (char *)errmsg);
         return SCPE_ARG | SCPE_NOMESSAGE;
@@ -176,7 +176,7 @@ static char *sim_exp_build_regex_buffer(EXPECT *exp, char **tstr)
         *tstr = (char *)malloc(exp->buf_ins + 1);
         (*tstr)[0] = '\0';
         for (off = 0; off < exp->buf_ins; off += 1 + strlen((char *)&exp->buf[off]))
-            strcpy(&(*tstr)[strlen(*tstr)], (char *)&exp->buf[off]);
+            strlcat(*tstr, (char *)&exp->buf[off], exp->buf_ins + 1);
         cbuf = *tstr;
     }
     return cbuf;
@@ -203,7 +203,8 @@ static void sim_exp_export_regex_groups(EXPECT *exp, const char *cbuf,
                      (ovector[2 * j + 1] != PCRE2_UNSET) &&
                      (end_offs >= start_offs);
 
-        sprintf(env_name, "_EXPECT_MATCH_GROUP_%d", (int)j);
+        snprintf(env_name, sizeof(env_name), "_EXPECT_MATCH_GROUP_%d",
+                 (int)j);
         if (have_range) {
             memcpy(buf, &cbuf[start_offs], end_offs - start_offs);
             buf[end_offs - start_offs] = '\0';
@@ -217,7 +218,8 @@ static void sim_exp_export_regex_groups(EXPECT *exp, const char *cbuf,
     for (; j < *sim_exp_match_sub_count; j++) {
         char env_name[32];
 
-        sprintf(env_name, "_EXPECT_MATCH_GROUP_%d", (int)j);
+        snprintf(env_name, sizeof(env_name), "_EXPECT_MATCH_GROUP_%d",
+                 (int)j);
         sim_sub_var_set(env_name, "");
     }
     *sim_exp_match_sub_count = (size_t)re_nsub + 1;
@@ -670,9 +672,7 @@ t_stat sim_exp_set(EXPECT *exp, const char *match, int32_t cnt, uint32_t after,
     exp->size += 1;
     memset(ep, 0, sizeof(*ep));
     ep->after = after;
-    ep->match_pattern = (char *)malloc(strlen(match) + 1);
-    if (ep->match_pattern)
-        strcpy(ep->match_pattern, match);
+    ep->match_pattern = strdup(match);
     ep->cnt = cnt;
     ep->switches = switches;
     match_buf = (uint8_t *)calloc(strlen(match) + 1, 1);
@@ -708,10 +708,9 @@ t_stat sim_exp_set(EXPECT *exp, const char *match, int32_t cnt, uint32_t after,
         char *newp;
 
         act = sim_unsub_args(act);
-        newp = (char *)calloc(strlen(act) + 1, sizeof(*act));
+        newp = strdup(act);
         if (newp == NULL)
             return SCPE_MEM;
-        strcpy(newp, act);
         ep->act = newp;
     }
     for (i = 0; i < exp->size; i++) {
@@ -1005,7 +1004,7 @@ bool sim_send_poll_data(SEND *snd, t_stat *stat)
             *stat = snd->buffer[snd->extoff++] | SCPE_KFLAG;
             snd->next_time = sim_gtime() + snd->delay;
             if (sim_isgraph(*stat & 0xFF) || ((*stat & 0xFF) == ' '))
-                sprintf(dstr, " '%c'", *stat & 0xFF);
+                snprintf(dstr, sizeof(dstr), " '%c'", *stat & 0xFF);
             sim_debug(snd->dbit, snd->dptr, "Byte value: 0x%02X%s injected\n",
                       *stat & 0xFF, dstr);
         }

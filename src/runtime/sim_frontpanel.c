@@ -24,7 +24,9 @@
 
 #include "sim_sock.h"
 
+#include "sim_attrs.h"
 #include "sim_frontpanel.h"
+#include "sim_string.h"
 #include "sim_time.h"
 #include "sim_types.h"
 
@@ -162,15 +164,6 @@ static const char *command_status = "ECHO Status:%STATUS%-%TSTATUS%";
 static const char *command_done_echo = "# COMMAND-DONE";
 static int little_endian;
 
-/* Allow the compiler to validate printf-style format arguments. */
-#if !defined(PRINTF_FMT)
-#if defined(__GNUC__) || defined(__clang__)
-#define PRINTF_FMT(n, m) __attribute__ ((format (__printf__, n, m)))
-#else
-#define PRINTF_FMT(n, m)
-#endif
-#endif
-
 static void *_panel_reader(void *arg);
 static void *_panel_callback(void *arg);
 static void *_panel_debugflusher(void *arg);
@@ -209,6 +202,20 @@ if (p == NULL)
 return p;
 }
 
+/*
+ * Duplicate an owned string and record the frontpanel error state if the
+ * allocation fails.
+ */
+static char *
+_panel_strdup (const char *str)
+{
+char *copy = strdup (str);
+
+if (copy == NULL)
+    sim_panel_set_error (NULL, "Out of Memory");
+return copy;
+}
+
 static void __panel_debug (PANEL *p, int dbits, const char *fmt,
                            const char *buf, int bufsize, ...)
     PRINTF_FMT(3, 6);
@@ -231,8 +238,8 @@ while (p && p->Debug && (dbits & p->debug)) {
     char *obuf = (char *)_panel_malloc (obufsize);
 
     (void)sim_clock_gettime(CLOCK_REALTIME, &time_now);
-    sprintf (timestamp, "%lld.%03d ", (long long)(time_now.tv_sec), (int)(time_now.tv_nsec/1000000));
-    sprintf (threadname, "%s:%s ", p->parent ? p->device_name : "CPU", (pthread_getspecific (panel_thread_id)) ? (char *)pthread_getspecific (panel_thread_id) : "");
+    snprintf (timestamp, sizeof (timestamp), "%lld.%03d ", (long long)(time_now.tv_sec), (int)(time_now.tv_nsec/1000000));
+    snprintf (threadname, sizeof (threadname), "%s:%s ", p->parent ? p->device_name : "CPU", (pthread_getspecific (panel_thread_id)) ? (char *)pthread_getspecific (panel_thread_id) : "");
 
     obuf[obufsize - 1] = '\0';
     len = vsnprintf (obuf, obufsize - 1, fmt, arglist);
@@ -248,61 +255,61 @@ while (p && p->Debug && (dbits & p->debug)) {
     for (i=0; i<bufsize; ++i) {
         switch ((uchar_t)buf[i]) {
             case TN_CR:
-                sprintf (&obuf[strlen (obuf)], "_TN_CR_");
+                strlcat (obuf, "_TN_CR_", obufsize);
                 break;
             case TN_LF:
-                sprintf (&obuf[strlen (obuf)], "_TN_LF_");
+                strlcat (obuf, "_TN_LF_", obufsize);
                 break;
             case TN_IAC:
-                sprintf (&obuf[strlen (obuf)], "_TN_IAC_");
+                strlcat (obuf, "_TN_IAC_", obufsize);
                 switch ((uchar_t)buf[i+1]) {
                     case TN_IAC:
-                        sprintf (&obuf[strlen (obuf)], "_TN_IAC_"); ++i;
+                        strlcat (obuf, "_TN_IAC_", obufsize); ++i;
                         break;
                     case TN_DONT:
-                        sprintf (&obuf[strlen (obuf)], "_TN_DONT_"); ++i;
+                        strlcat (obuf, "_TN_DONT_", obufsize); ++i;
                         break;
                     case TN_DO:
-                        sprintf (&obuf[strlen (obuf)], "_TN_DO_"); ++i;
+                        strlcat (obuf, "_TN_DO_", obufsize); ++i;
                         break;
                     case TN_WONT:
-                        sprintf (&obuf[strlen (obuf)], "_TN_WONT_"); ++i;
+                        strlcat (obuf, "_TN_WONT_", obufsize); ++i;
                         break;
                     case TN_WILL:
-                        sprintf (&obuf[strlen (obuf)], "_TN_WILL_"); ++i;
+                        strlcat (obuf, "_TN_WILL_", obufsize); ++i;
                         break;
                     default:
-                        sprintf (&obuf[strlen (obuf)], "_0x%02X_", (uchar_t)buf[i+1]); ++i;
+                        strlappendf (obuf, obufsize, "_0x%02X_", (uchar_t)buf[i+1]); ++i;
                         break;
                     }
                 switch ((uchar_t)buf[i+1]) {
                     case TN_BIN:
-                        sprintf (&obuf[strlen (obuf)], "_TN_BIN_"); ++i;
+                        strlcat (obuf, "_TN_BIN_", obufsize); ++i;
                         break;
                     case TN_ECHO:
-                        sprintf (&obuf[strlen (obuf)], "_TN_ECHO_"); ++i;
+                        strlcat (obuf, "_TN_ECHO_", obufsize); ++i;
                         break;
                     case TN_SGA:
-                        sprintf (&obuf[strlen (obuf)], "_TN_SGA_"); ++i;
+                        strlcat (obuf, "_TN_SGA_", obufsize); ++i;
                         break;
                     case TN_LINE:
-                        sprintf (&obuf[strlen (obuf)], "_TN_LINE_"); ++i;
+                        strlcat (obuf, "_TN_LINE_", obufsize); ++i;
                         break;
                     default:
-                        sprintf (&obuf[strlen (obuf)], "_0x%02X_", (uchar_t)buf[i+1]); ++i;
+                        strlappendf (obuf, obufsize, "_0x%02X_", (uchar_t)buf[i+1]); ++i;
                         break;
                     }
                     break;
             default:
                 if (isprint((u_char)buf[i]))
-                    sprintf (&obuf[strlen (obuf)], "%c", buf[i]);
+                    strlappendf (obuf, obufsize, "%c", buf[i]);
                 else {
-                    sprintf (&obuf[strlen (obuf)], "_");
+                    strlcat (obuf, "_", obufsize);
                     if ((buf[i] >= 1) && (buf[i] <= 26))
-                        sprintf (&obuf[strlen (obuf)], "^%c", 'A' + buf[i] - 1);
+                        strlappendf (obuf, obufsize, "^%c", 'A' + buf[i] - 1);
                     else
-                        sprintf (&obuf[strlen (obuf)], "\\%03o", (u_char)buf[i]);
-                    sprintf (&obuf[strlen (obuf)], "_");
+                        strlappendf (obuf, obufsize, "\\%03o", (u_char)buf[i]);
+                    strlcat (obuf, "_", obufsize);
                     }
                 break;
             }
@@ -459,7 +466,7 @@ if (buf_needed > *buf_size) {
     }
 buf_data = 0;
 if (reg_count) {
-    sprintf (*buf + buf_data, "EXECUTE %s;%s;", register_get_start, register_get_prefix);
+    snprintf (*buf + buf_data, buf_needed - buf_data, "EXECUTE %s;%s;", register_get_start, register_get_prefix);
     buf_data += strlen (*buf + buf_data);
     }
 dev = "";
@@ -478,10 +485,10 @@ for (i=j=0; i<panel->reg_count; i++) {
             pthread_mutex_unlock (&panel->io_lock);
             return -1;
             }
-        strcpy (tbuf, *buf);
+        strlcpy (tbuf, *buf, buf_needed);
         free (*buf);
         *buf = tbuf;
-        sprintf (*buf + buf_data, "%s%s%s;", (i == 0)? "" : ";", register_dev_echo, reg_dev);
+        snprintf (*buf + buf_data, buf_needed - buf_data, "%s%s%s;", (i == 0)? "" : ";", register_dev_echo, reg_dev);
         buf_data += strlen (*buf + buf_data);
         dev = reg_dev;
         j = 0;
@@ -489,21 +496,21 @@ for (i=j=0; i<panel->reg_count; i++) {
         }
     if (panel->regs[i].element_count == 0) {
         if (j == 0)
-            sprintf (*buf + buf_data, "E -16 %s %s", dev, panel->regs[i].name);
+            snprintf (*buf + buf_data, buf_needed - buf_data, "E -16 %s %s", dev, panel->regs[i].name);
         else
-            sprintf (*buf + buf_data, ",%s", panel->regs[i].name);
+            snprintf (*buf + buf_data, buf_needed - buf_data, ",%s", panel->regs[i].name);
         }
     else {
         if (j == 0)
-            sprintf (*buf + buf_data, "E -16 %s %s[0:%d]", dev, panel->regs[i].name, (int)(panel->regs[i].element_count-1));
+            snprintf (*buf + buf_data, buf_needed - buf_data, "E -16 %s %s[0:%d]", dev, panel->regs[i].name, (int)(panel->regs[i].element_count-1));
         else
-            sprintf (*buf + buf_data, ",%s[0:%d]", panel->regs[i].name, (int)(panel->regs[i].element_count-1));
+            snprintf (*buf + buf_data, buf_needed - buf_data, ",%s[0:%d]", panel->regs[i].name, (int)(panel->regs[i].element_count-1));
         }
     ++j;
     buf_data += strlen (*buf + buf_data);
     }
 if (buf_data && ((*buf)[buf_data-1] != ';')) {
-    strcpy (*buf + buf_data, ";");
+    strlcpy (*buf + buf_data, ";", buf_needed - buf_data);
     buf_data += strlen (*buf + buf_data);
     }
 for (i=j=0; i<panel->reg_count; i++) {
@@ -511,18 +518,18 @@ for (i=j=0; i<panel->reg_count; i++) {
 
     if ((!panel->regs[i].indirect) || (panel->regs[i].bits))
         continue;
-    sprintf (*buf + buf_data, "%s%s;E -16 %s %s,$;", register_ind_echo, panel->regs[i].name, reg_dev, panel->regs[i].name);
+    snprintf (*buf + buf_data, buf_needed - buf_data, "%s%s;E -16 %s %s,$;", register_ind_echo, panel->regs[i].name, reg_dev, panel->regs[i].name);
     buf_data += strlen (*buf + buf_data);
     }
 if (bit_reg_count) {
-    strcpy (*buf + buf_data, register_get_postfix);
+    strlcpy (*buf + buf_data, register_get_postfix, buf_needed - buf_data);
     buf_data += strlen (*buf + buf_data);
-    strcpy (*buf + buf_data, ";");
+    strlcpy (*buf + buf_data, ";", buf_needed - buf_data);
     buf_data += strlen (*buf + buf_data);
     }
-strcpy (*buf + buf_data, register_get_end);
+strlcpy (*buf + buf_data, register_get_end, buf_needed - buf_data);
 buf_data += strlen (*buf + buf_data);
-strcpy (*buf + buf_data, "\r");
+strlcpy (*buf + buf_data, "\r", buf_needed - buf_data);
 buf_data += strlen (*buf + buf_data);
 *buf_size = buf_data;
 pthread_mutex_unlock (&panel->io_lock);
@@ -552,13 +559,13 @@ buf_data = 0;
 for (i=0; i<panel->reg_count; i++) {
     if (panel->regs[i].bits) {
         ++bits_count;
-        sprintf (buf + buf_data, "%s%s", (bits_count != 1) ? "," : "", panel->regs[i].indirect ? "-I " : "");
+        snprintf (buf + buf_data, buf_needed - buf_data, "%s%s", (bits_count != 1) ? "," : "", panel->regs[i].indirect ? "-I " : "");
         buf_data += strlen (buf + buf_data);
         if (panel->regs[i].device_name) {
-            sprintf (buf + buf_data, "%s ", panel->regs[i].device_name);
+            snprintf (buf + buf_data, buf_needed - buf_data, "%s ", panel->regs[i].device_name);
             buf_data += strlen (buf + buf_data);
             }
-        sprintf (buf + buf_data, "%s", panel->regs[i].name);
+        snprintf (buf + buf_data, buf_needed - buf_data, "%s", panel->regs[i].name);
         buf_data += strlen (buf + buf_data);
         }
     }
@@ -668,13 +675,12 @@ if (simulator_panel) {
         goto Error_Return;
     memset (p, 0, sizeof(*p));
     _panel_register_panel (p);
-    p->device_name = (char *)_panel_malloc (1 + strlen (device_name));
+    p->device_name = _panel_strdup (device_name);
     if (p->device_name == NULL)
         goto Error_Return;
-    strcpy (p->device_name, device_name);
     p->parent = simulator_panel;
     p->Debug = p->parent->Debug;
-    strcpy (p->hostport, simulator_panel->hostport);
+    strlcpy (p->hostport, simulator_panel->hostport, sizeof (p->hostport));
     p->sock = INVALID_SOCKET;
     }
 else {
@@ -684,7 +690,7 @@ else {
     for (port=1024; port < 2048; port++) {
         SOCKET sock;
 
-        sprintf (hostport, "%d", port);
+        snprintf (hostport, sizeof (hostport), "%d", port);
         sock = sim_connect_sock_ex (NULL, hostport, NULL, NULL, SIM_SOCK_OPT_NODELAY | SIM_SOCK_OPT_BLOCKING);
         if (sock != INVALID_SOCKET) {
             int sta = 0;
@@ -713,23 +719,23 @@ else {
     memset (p, 0, sizeof(*p));
     _panel_register_panel (p);
     p->sock = INVALID_SOCKET;
-    p->path = (char *)_panel_malloc (strlen (sim_path) + 1);
+    size_t temp_config_size = strlen (sim_config) + 40;
+
+    p->path = _panel_strdup (sim_path);
     if (p->path == NULL)
         goto Error_Return;
-    strcpy (p->path, sim_path);
-    p->config = (char *)_panel_malloc (strlen (sim_config) + 1);
+    p->config = _panel_strdup (sim_config);
     if (p->config == NULL)
         goto Error_Return;
-    strcpy (p->config, sim_config);
     fIn = fopen (sim_config, "r");
     if (fIn == NULL) {
         sim_panel_set_error (NULL, "Can't open configuration file '%s': %s", sim_config, strerror(errno));
         goto Error_Return;
         }
-    p->temp_config = (char *)_panel_malloc (strlen (sim_config) + 40);
+    p->temp_config = (char *)_panel_malloc (temp_config_size);
     if (p->temp_config == NULL)
         goto Error_Return;
-    sprintf (p->temp_config, "%s-Panel-%d", sim_config, getpid());
+    snprintf (p->temp_config, temp_config_size, "%s-Panel-%d", sim_config, getpid());
     fOut = fopen (p->temp_config, "w");
     if (fOut == NULL) {
         sim_panel_set_error (NULL, "Can't create temporary configuration file '%s': %s", p->temp_config, strerror(errno));
@@ -789,7 +795,7 @@ if (!simulator_panel) {
     PROCESS_INFORMATION ProcessInfo;
     STARTUPINFO StartupInfo;
 
-    sprintf(cmd, "%s%s%s %s%s%s", strchr (sim_path, ' ') ? "\"" : "", sim_path, strchr (sim_path, ' ') ? "\"" : "", strchr (p->temp_config, ' ') ? "\"" : "", p->temp_config, strchr (p->temp_config, ' ') ? "\"" : "");
+    snprintf(cmd, sizeof (cmd), "%s%s%s %s%s%s", strchr (sim_path, ' ') ? "\"" : "", sim_path, strchr (sim_path, ' ') ? "\"" : "", strchr (p->temp_config, ' ') ? "\"" : "", p->temp_config, strchr (p->temp_config, ' ') ? "\"" : "");
 
     memset (&ProcessInfo, 0, sizeof(ProcessInfo));
     memset (&StartupInfo, 0, sizeof(StartupInfo));
@@ -822,7 +828,7 @@ if (!simulator_panel) {
         goto Error_Return;
         }
 #endif
-    strcpy (p->hostport, hostport);
+    strlcpy (p->hostport, hostport, sizeof (p->hostport));
     }
 for (i=0; i<100; i++) {          /* Allow up to 10 seconds waiting for simulator to start up */
     p->sock = sim_connect_sock_ex (NULL, p->hostport, NULL, NULL, SIM_SOCK_OPT_NODELAY | SIM_SOCK_OPT_BLOCKING);
@@ -926,11 +932,10 @@ if (fOut) {
     }
 if (buf)
     free (buf);
-if (1) {
+{
     const char *err = sim_panel_get_error();
-    char *errbuf = (char *)_panel_malloc (1 + strlen (err));
+    char *errbuf = _panel_strdup (err);
 
-    strcpy (errbuf, err);               /* preserve error info while closing */
     sim_panel_destroy (p);
     sim_panel_set_error (NULL, "%s", errbuf);
     free (errbuf);
@@ -1110,7 +1115,7 @@ pthread_mutex_lock (&panel->io_lock);
 memcpy (regs, panel->regs, panel->reg_count*sizeof(*regs));
 reg = &regs[panel->reg_count];
 memset (reg, 0, sizeof(*regs));
-reg->name = (char *)_panel_malloc (1 + strlen (name));
+reg->name = _panel_strdup (name);
 if (reg->name == NULL) {
     panel->State = Error;
     pthread_mutex_unlock (&panel->io_lock);
@@ -1118,7 +1123,6 @@ if (reg->name == NULL) {
     free (regs);
     return -1;
     }
-strcpy (reg->name, name);
 reg->indirect = indirect;
 reg->addr = addr;
 reg->size = size;
@@ -1130,14 +1134,13 @@ for (i=0; i<strlen (reg->name); i++) {
         reg->name[i] = toupper (reg->name[i]);
     }
 if (device_name) {
-    reg->device_name = (char *)_panel_malloc (1 + strlen (device_name));
+    reg->device_name = _panel_strdup (device_name);
     if (reg->device_name == NULL) {
         free (reg->name);
         free (regs);
         pthread_mutex_unlock (&panel->io_lock);
         return sim_panel_set_error (panel, "_panel_add_register(): Out of Memory\n");
         }
-    strcpy (reg->device_name, device_name);
     for (i=0; i<strlen (reg->device_name); i++) {
         if (islower (reg->device_name[i]))
             reg->device_name[i] = toupper (reg->device_name[i]);
@@ -1157,8 +1160,8 @@ for (i=0; i<panel->reg_count; i++) {
         pthread_mutex_unlock (&panel->io_lock);
         return sim_panel_set_error (NULL, "_panel_add_register(): Out of Memory\n");
         }
-    sprintf (t1, "%s %s", regs[i].device_name ? regs[i].device_name : "", regs[i].name);
-    sprintf (t2, "%s %s", reg->device_name ? reg->device_name : "", reg->name);
+    snprintf (t1, 2 + strlen (regs[i].name) + (regs[i].device_name? strlen (regs[i].device_name) : 0), "%s %s", regs[i].device_name ? regs[i].device_name : "", regs[i].name);
+    snprintf (t2, 2 + strlen (reg->name) + (reg->device_name? strlen (reg->device_name) : 0), "%s %s", reg->device_name ? reg->device_name : "", reg->name);
     if ((!strcmp (t1, t2)) &&
         (reg->indirect == regs[i].indirect) &&
         ((reg->bits == NULL) == (regs[i].bits == NULL))) {
@@ -1731,7 +1734,7 @@ if (_panel_sendf (panel, &cmd_stat, &response, "SHOW HISTORY=%d", count)) {
     free (response);
     return -1;
     }
-strncpy (buffer, response, size);
+strlcpy (buffer, response, size);
 free (response);
 return 0;
 }
@@ -2311,9 +2314,9 @@ while ((p->sock != INVALID_SOCKET) &&
             p->io_response_size = p->io_response_data + strlen (s) + 3;
             }
         _panel_debug (p, DBG_RCV, "Receive Data Accumulated: '%s'", NULL, 0, s);
-        strcpy (p->io_response + p->io_response_data, s);
+        strlcpy (p->io_response + p->io_response_data, s, p->io_response_size - p->io_response_data);
         p->io_response_data += strlen(s);
-        strcpy (p->io_response + p->io_response_data, "\r\n");
+        strlcpy (p->io_response + p->io_response_data, "\r\n", p->io_response_size - p->io_response_data);
         p->io_response_data += 2;
         if ((!p->parent) &&
             (p->completion_string) &&
@@ -2365,13 +2368,12 @@ Start_Next_Line:
         _panel_debug (p, DBG_RSP, "State transitioning to Halt: io_wait_done: %d", NULL, 0, io_wait_done);
         p->State = Halt;
         free (p->halt_reason);
-        p->halt_reason = (char *)_panel_malloc (1 + strlen (p->io_response));
+        p->halt_reason = _panel_strdup (p->io_response);
         if (p->halt_reason == NULL) {
             _panel_debug (p, DBG_RCV, "%s", NULL, 0, sim_panel_get_error());
             p->State = Error;
             break;
             }
-        strcpy (p->halt_reason, p->io_response);
         }
     if (io_wait_done) {
         _panel_debug (p, DBG_RCV, "*Match Command Complete - Match signaling waiting thread", NULL, 0);
@@ -2456,15 +2458,15 @@ while ((p->sock != INVALID_SOCKET) &&
             buf_data -= (c - buf) + strlen (register_get_start);
             c += strlen (register_get_start);
             }
-        sprintf (repeat, "%s%d%s%s%*.*s", register_repeat_prefix,
-                                     interval,
-                                     register_repeat_units,
-                                     register_repeat_start,
-                                     (int)buf_data, (int)buf_data, c);
+        snprintf (repeat, repeat_data, "%s%d%s%s%*.*s", register_repeat_prefix,
+                                      interval,
+                                      register_repeat_units,
+                                      register_repeat_start,
+                                      (int)buf_data, (int)buf_data, c);
         pthread_mutex_unlock (&p->io_lock);
         c = strstr (repeat, register_get_end);      /* remove register_done_echo string and */
         if (c)                                      /* always true */
-            strcpy (c, register_repeat_end);        /* replace it with the register_repeat_end string */
+            strlcpy (c, register_repeat_end, repeat_data - (size_t)(c - repeat)); /* replace it with the register_repeat_end string */
         if (_panel_sendf (p, &cmd_stat, NULL, "%s", repeat)) {
             pthread_mutex_lock (&p->io_lock);
             free (repeat);
@@ -2614,7 +2616,7 @@ while (1) {                                         /* format passed string, arg
     }
 
 if (len && (buf[len-1] != '\r')) {
-    strcpy (&buf[len], "\r");           /* Make sure command line is terminated */
+    strlcpy (&buf[len], "\r", bufsize - len); /* Make sure command line is terminated */
     ++len;
     }
 
@@ -2622,7 +2624,7 @@ pthread_mutex_lock (&p->io_command_lock);
 ++p->command_count;
 if (completion_status || completion_string) {
     if (completion_status) {
-        sprintf (&buf[len], "%s\r%s\r", command_status, command_done_echo);
+        snprintf (&buf[len], bufsize - len, "%s\r%s\r", command_status, command_done_echo);
         status_echo_len = strlen (&buf[len]);
         }
     pthread_mutex_lock (&p->io_lock);

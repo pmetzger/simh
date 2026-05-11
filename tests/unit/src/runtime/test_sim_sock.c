@@ -134,12 +134,12 @@ static void test_sim_addr_acl_check_rejects_oversized_segments(void **state)
     (void)state;
 
     memset(validate_addr, '1', 256);
-    strcpy(validate_addr + 256, "/24");
+    strlcpy(validate_addr + 256, "/24", sizeof(validate_addr) - 256);
     assert_int_equal(sim_addr_acl_check(validate_addr, NULL), -1);
 
     acl[0] = '+';
     memset(acl + 1, '1', 260);
-    strcpy(acl + 261, ",+127.0.0.0/24");
+    strlcpy(acl + 261, ",+127.0.0.0/24", sizeof(acl) - 261);
     assert_int_equal(sim_addr_acl_check("127.0.0.1", acl), -1);
 }
 

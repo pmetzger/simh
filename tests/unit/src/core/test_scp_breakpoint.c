@@ -89,6 +89,23 @@ static void test_sim_brk_set_and_test_default_breakpoint(void **state)
     assert_non_null(strstr(message, "Alpha breakpoint"));
 }
 
+/* Verify fallback breakpoint hit messages include type and address text. */
+static void test_sim_brk_message_formats_fallback_text(void **state)
+{
+    struct scp_breakpoint_fixture *fixture = *state;
+    const char *message;
+
+    (void)fixture;
+
+    sim_brk_type_desc = NULL;
+    sim_brk_match_type = SWMASK('B');
+    sim_brk_match_addr = 0x2A;
+
+    message = sim_brk_message();
+    assert_non_null(strstr(message, "B Breakpoint at:"));
+    assert_non_null(strstr(message, "2A"));
+}
+
 /* Verify countdown breakpoints ignore early hits and fire on the last one. */
 static void test_sim_brk_countdown_defers_until_threshold(void **state)
 {
@@ -167,6 +184,9 @@ int main(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup_teardown(
             test_sim_brk_set_and_test_default_breakpoint,
+            setup_scp_breakpoint_fixture, teardown_scp_breakpoint_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_brk_message_formats_fallback_text,
             setup_scp_breakpoint_fixture, teardown_scp_breakpoint_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_brk_countdown_defers_until_threshold,

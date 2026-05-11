@@ -75,7 +75,8 @@ static Stack *new_Stack(void)
 }
 
 /* Pop the top stack element into the provided data and operator slots. */
-static bool pop_Stack(Stack *this_Stack, char *data, Operator **op)
+static bool pop_Stack(Stack *this_Stack, char *data, size_t data_size,
+                      Operator **op)
 {
     *op = NULL;
     *data = '\0';
@@ -83,7 +84,8 @@ static bool pop_Stack(Stack *this_Stack, char *data, Operator **op)
     if (isempty_Stack(this_Stack))
         return false;
 
-    strcpy(data, this_Stack->elements[this_Stack->pointer - 1].data);
+    strlcpy(data, this_Stack->elements[this_Stack->pointer - 1].data,
+            data_size);
     *op = this_Stack->elements[this_Stack->pointer - 1].op;
     --this_Stack->pointer;
 
@@ -130,12 +132,14 @@ static bool push_Stack(Stack *this_Stack, char *data, Operator *op)
 }
 
 /* Peek at the top element of a stack without removing it. */
-static bool top_Stack(Stack *this_Stack, char *data, Operator **op)
+static bool top_Stack(Stack *this_Stack, char *data, size_t data_size,
+                      Operator **op)
 {
     if (isempty_Stack(this_Stack))
         return false;
 
-    strcpy(data, this_Stack->elements[this_Stack->pointer - 1].data);
+    strlcpy(data, this_Stack->elements[this_Stack->pointer - 1].data,
+            data_size);
     *op = this_Stack->elements[this_Stack->pointer - 1].op;
 
     if (*op)
@@ -320,8 +324,8 @@ static Operator operators[] = {
     {NULL}};
 
 /* Decode one expression token, including literals and operators. */
-static const char *get_glyph_exp(const char *cptr, char *buf, Operator **oper,
-                                 t_stat *stat)
+static const char *get_glyph_exp(const char *cptr, char *buf, size_t buf_size,
+                                 Operator **oper, t_stat *stat)
 {
     static const char HexDigits[] = "0123456789abcdefABCDEF";
     static const char OctalDigits[] = "01234567";
@@ -407,7 +411,7 @@ static const char *get_glyph_exp(const char *cptr, char *buf, Operator **oper,
 
             for (op = operators; op->string; op++) {
                 if (!memcmp(cptr, op->string, strlen(op->string))) {
-                    strcpy(buf, op->string);
+                    strlcpy(buf, op->string, buf_size);
                     cptr += strlen(op->string);
                     *oper = op;
                     break;
@@ -450,7 +454,7 @@ static const char *sim_into_postfix(Stack *stack1, const char *cptr,
     while (*cptr) {
         last_cptr = cptr;
         last_op = op;
-        cptr = get_glyph_exp(cptr, gbuf, &op, stat);
+        cptr = get_glyph_exp(cptr, gbuf, sizeof(gbuf), &op, stat);
         if (*stat != SCPE_OK) {
             delete_Stack(stack2);
             return cptr;
@@ -477,7 +481,8 @@ static const char *sim_into_postfix(Stack *stack1, const char *cptr,
             Operator *temp_op;
 
             --parens;
-            if ((!pop_Stack(stack2, temp_buf, &temp_op)) || (parens < 0)) {
+            if ((!pop_Stack(stack2, temp_buf, sizeof(temp_buf), &temp_op)) ||
+                (parens < 0)) {
                 *stat =
                     sim_messagef(SCPE_INVEXPR, "Invalid Parenthesis nesting\n");
                 delete_Stack(stack2);
@@ -485,7 +490,7 @@ static const char *sim_into_postfix(Stack *stack1, const char *cptr,
             }
             while (0 != strcmp(temp_op->string, "(")) {
                 push_Stack(stack1, temp_buf, temp_op);
-                if (!pop_Stack(stack2, temp_buf, &temp_op))
+                if (!pop_Stack(stack2, temp_buf, sizeof(temp_buf), &temp_op))
                     break;
             }
             if (parens_required && (parens == 0)) {
@@ -498,10 +503,10 @@ static const char *sim_into_postfix(Stack *stack1, const char *cptr,
             char top_buf[CBUFSIZE];
             Operator *top_op;
 
-            top_Stack(stack2, top_buf, &top_op);
+            top_Stack(stack2, top_buf, sizeof(top_buf), &top_op);
             if (top_op->precedence > op->precedence)
                 break;
-            pop_Stack(stack2, top_buf, &top_op);
+            pop_Stack(stack2, top_buf, sizeof(top_buf), &top_op);
             push_Stack(stack1, top_buf, top_op);
         }
         push_Stack(stack2, gbuf, op);
@@ -509,7 +514,7 @@ static const char *sim_into_postfix(Stack *stack1, const char *cptr,
     if (parens != 0)
         *stat = sim_messagef(SCPE_INVEXPR, "Invalid Parenthesis nesting\n");
     while (!isempty_Stack(stack2)) {
-        pop_Stack(stack2, gbuf, &op);
+        pop_Stack(stack2, gbuf, sizeof(gbuf), &op);
         push_Stack(stack1, gbuf, op);
     }
 
@@ -600,7 +605,7 @@ static t_svalue sim_eval_postfix(Stack *stack1, t_stat *stat)
 
     *stat = SCPE_OK;
     while (!isempty_Stack(stack1)) {
-        pop_Stack(stack1, temp_data, &temp_op);
+        pop_Stack(stack1, temp_data, sizeof(temp_data), &temp_op);
         if (temp_op)
             sim_debug(SIM_DBG_EXP_EVAL, &sim_scp_dev,
                       "[Expression element: %s (%d)\n", temp_op->string,
@@ -612,7 +617,7 @@ static t_svalue sim_eval_postfix(Stack *stack1, t_stat *stat)
     }
 
     while (!isempty_Stack(stack2)) {
-        pop_Stack(stack2, temp_data, &temp_op);
+        pop_Stack(stack2, temp_data, sizeof(temp_data), &temp_op);
         if (temp_op) {
             bool num1;
             t_svalue val1;
@@ -625,14 +630,14 @@ static t_svalue sim_eval_postfix(Stack *stack1, t_stat *stat)
             char string2[CBUFSIZE + 2];
             Operator *op2;
 
-            if (!pop_Stack(stack1, item1, &op1)) {
+            if (!pop_Stack(stack1, item1, sizeof(item1), &op1)) {
                 *stat = SCPE_INVEXPR;
                 delete_Stack(stack2);
                 return 0;
             }
             if (temp_op->unary)
                 strlcpy(item2, "0", sizeof(item2));
-            else if ((!pop_Stack(stack1, item2, &op2)) &&
+            else if ((!pop_Stack(stack1, item2, sizeof(item2), &op2)) &&
                      (temp_op->string[0] != '-') &&
                      (temp_op->string[0] != '+')) {
                 *stat = SCPE_INVEXPR;
@@ -652,7 +657,7 @@ static t_svalue sim_eval_postfix(Stack *stack1, t_stat *stat)
         } else
             push_Stack(stack1, temp_data, temp_op);
     }
-    if (!pop_Stack(stack1, temp_data, &temp_op)) {
+    if (!pop_Stack(stack1, temp_data, sizeof(temp_data), &temp_op)) {
         *stat = SCPE_INVEXPR;
         delete_Stack(stack2);
         return 0;

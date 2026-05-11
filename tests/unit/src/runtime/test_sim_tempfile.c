@@ -34,8 +34,8 @@ static unsigned long test_win32_temp_path(unsigned long size, char *buf)
     if (need > size)
         return (unsigned long)need;
 
-    strcpy(buf, test_temp_dir);
-    strcat(buf, "\\");
+    strlcpy(buf, test_temp_dir, size);
+    strlcat(buf, "\\", size);
     return (unsigned long)(need - 1);
 }
 #endif

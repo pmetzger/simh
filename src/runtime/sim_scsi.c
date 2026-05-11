@@ -518,7 +518,7 @@ else {
                 bus->buf[bus->buf_b++] = 0x80;          /* page code */
                 bus->buf[bus->buf_b++] = 0x00;          /* reserved */
                 bus->buf[bus->buf_b++] = 4;             /* serial number length */
-                sprintf (&bus->buf[l], "%-4s", "1234");
+                snprintf ((char *)&bus->buf[l], 5, "%-4.4s", "1234");
                 l += 4;
                 break;
 
@@ -538,11 +538,11 @@ else {
     bus->buf[bus->buf_b++] = 0;                         /* reserved */
     bus->buf[bus->buf_b++] = 0;
 
-    sprintf ((char *)&bus->buf[bus->buf_b], "%-8s", dev->manufacturer);
+    snprintf ((char *)&bus->buf[bus->buf_b], 9, "%-8.8s", dev->manufacturer);
     bus->buf_b += 8;
-    sprintf ((char *)&bus->buf[bus->buf_b], "%-16s", dev->product);
+    snprintf ((char *)&bus->buf[bus->buf_b], 17, "%-16.16s", dev->product);
     bus->buf_b += 16;
-    sprintf ((char *)&bus->buf[bus->buf_b], "%-4s", dev->rev);
+    snprintf ((char *)&bus->buf[bus->buf_b], 5, "%-4.4s", dev->rev);
     bus->buf_b += 4;
     }
 

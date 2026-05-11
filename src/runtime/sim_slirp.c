@@ -270,8 +270,7 @@ static int parse_forward_rule(sim_slirp_forward_rule **head, const char *buff,
     char *portstr = NULL;
     sim_slirp_forward_rule *newp;
 
-    gbuf[sizeof(gbuf) - 1] = '\0';
-    strncpy(gbuf, buff, sizeof(gbuf) - 1);
+    strlcpy(gbuf, buff, sizeof(gbuf));
     if (((ipaddrstr = strchr(gbuf, ':')) == NULL) || (*(ipaddrstr + 1) == 0)) {
         snprintf(errbuf, errbuf_size, "redir %s syntax error",
                  forward_protocol_names[is_udp]);
@@ -386,6 +385,14 @@ int sim_slirp_config_parse(sim_slirp_config *config, const char *args,
     if (targs == NULL)
         return -1;
     while (*tptr && !err) {
+        const char *comma = strchr(tptr, ',');
+        size_t option_len = comma ? (size_t)(comma - tptr) : strlen(tptr);
+
+        if (option_len >= sizeof(tbuf)) {
+            set_parse_error(errbuf, errbuf_size, "NAT argument too long");
+            err = 1;
+            break;
+        }
         tptr = get_glyph_nc(tptr, tbuf, ',');
         if (!tbuf[0])
             break;

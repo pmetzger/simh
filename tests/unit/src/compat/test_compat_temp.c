@@ -57,7 +57,7 @@ static void test_expected_attempt(char *path, size_t size, char *template_ptr,
     uint_t seed;
 
     assert_true(size >= strlen(template_ptr) + 1);
-    strcpy(path, template_ptr);
+    strlcpy(path, template_ptr, size);
     first_x = strstr(path, "XXXXXX");
     assert_non_null(first_x);
 

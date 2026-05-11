@@ -820,7 +820,7 @@ t_stat ec_srv(UNIT *uptr)
             }
         }
         eth_copy_mac(ec_data.mac, &buf[0]);
-        eth_mac_fmt(ec_data.mac, (char *)&buf[0]);
+        eth_mac_fmt(ec_data.mac, (char *)&buf[0], sizeof(buf));
         sim_debug(DEBUG_CMD, dptr, "ec_srv setting mac %s\n", buf);
         n = ec_data.macs_n + 2;
         eth_copy_mac(ec_data.macs[0], ec_data.mac);
@@ -863,7 +863,7 @@ t_stat ec_srv(UNIT *uptr)
         ec_data.amc = 1;
 
         for (i = 0; i< len; i++) {
-            eth_mac_fmt(ec_data.macs[i], (char *) &buf[0]);
+            eth_mac_fmt(ec_data.macs[i], (char *) &buf[0], sizeof(buf));
             sim_debug(DEBUG_DETAIL, &ec_dev, "ec_srv load mcast%d: %s\n",i,buf);
         }
 
@@ -1721,12 +1721,12 @@ void ec_packet_debug(const char *action, ETH_PACK *packet) {
 
         if (!(ec_dev.dctrl & DEBUG_ARP))
             return;
-        eth_mac_fmt(arp->ethhdr.src, eth_src);
-        eth_mac_fmt(arp->ethhdr.dest, eth_dst);
-        eth_mac_fmt(arp->shwaddr, arp_shwaddr);
+        eth_mac_fmt(arp->ethhdr.src, eth_src, sizeof(eth_src));
+        eth_mac_fmt(arp->ethhdr.dest, eth_dst, sizeof(eth_dst));
+        eth_mac_fmt(arp->shwaddr, arp_shwaddr, sizeof(arp_shwaddr));
         memcpy(&in_addr, &arp->sipaddr, sizeof(in_addr));
         strlcpy(arp_sipaddr, ipv4_inet_ntoa(in_addr), sizeof(arp_sipaddr));
-        eth_mac_fmt(arp->dhwaddr, arp_dhwaddr);
+        eth_mac_fmt(arp->dhwaddr, arp_dhwaddr, sizeof(arp_dhwaddr));
         memcpy(&in_addr, &arp->dipaddr, sizeof(in_addr));
         strlcpy(arp_dipaddr, ipv4_inet_ntoa(in_addr), sizeof(arp_dipaddr));
         sim_debug(DEBUG_ARP, &ec_dev,
@@ -1837,7 +1837,7 @@ t_stat ec_show_mac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
     (void) desc;
 
     char buffer[20];
-    eth_mac_fmt(ec_data.mac, buffer);
+    eth_mac_fmt(ec_data.mac, buffer, sizeof(buffer));
     fprintf(st, "MAC=%s", buffer);
     return SCPE_OK;
 }
@@ -1909,7 +1909,7 @@ t_stat ec_attach(UNIT* uptr, const char* cptr)
         free(tptr);
         return status;
     }
-    eth_mac_fmt(ec_data.mac, buf);              /* format ethernet mac address */
+    eth_mac_fmt(ec_data.mac, buf, sizeof(buf));              /* format ethernet mac address */
     if (SCPE_OK != eth_check_address_conflict (&ec_data.etherface,
                                                  ec_data.mac)) {
         eth_close(&ec_data.etherface);

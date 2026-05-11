@@ -16,6 +16,7 @@
 #include "sim_video.h"
 #include "sim_video_internal.h"
 #include "scp.h"
+#include "sim_string.h"
 
 int vid_active = 0;
 int32_t vid_cursor_x;
@@ -250,9 +251,11 @@ const char *vid_key_name (uint32_t key)
 static char tmp_key_name[40];
 
     if (key < sizeof(key_names)/sizeof(key_names[0]))
-        sprintf (tmp_key_name, "SIM_KEY_%s", key_names[key]);
+        snprintf (tmp_key_name, sizeof(tmp_key_name), "SIM_KEY_%s",
+                  key_names[key]);
     else
-        sprintf (tmp_key_name, "UNKNOWN KEY: %d", key);
+        snprintf (tmp_key_name, sizeof(tmp_key_name), "UNKNOWN KEY: %u",
+                  (unsigned int)key);
     return tmp_key_name;
 }
 
@@ -493,6 +496,26 @@ static VID_DISPLAY vid_first;
 
 KEY_EVENT_QUEUE vid_key_events;                         /* keyboard events */
 MOUSE_EVENT_QUEUE vid_mouse_events;                     /* mouse events */
+
+/* Format the visible window title, preserving the legacy fallback rule. */
+static void vid_format_window_title(char *title_buf, size_t title_size,
+                                    DEVICE *dptr, const char *title)
+{
+    if ((strlen(sim_name) + 7 + (dptr ? strlen(dptr->name) : 0) +
+         (title ? strlen(title) : 0)) < title_size)
+        snprintf(title_buf, title_size, "%s%s%s%s%s", sim_name,
+                 dptr ? " - " : "", dptr ? dptr->name : "",
+                 title ? " - " : "", title ? title : "");
+    else
+        strlcpy(title_buf, sim_name, title_size);
+}
+
+/* Test seam for the video title formatter. */
+void sim_video_test_format_window_title(char *title_buf, size_t title_size,
+                                        DEVICE *dptr, const char *title)
+{
+    vid_format_window_title(title_buf, title_size, dptr, title);
+}
 
 static VID_DISPLAY *vid_get_event_window (SDL_Event *ev, Uint32 windowID)
 {
@@ -881,10 +904,8 @@ static t_stat vid_init_window (VID_DISPLAY *vptr, DEVICE *dptr, const char *titl
 {
 t_stat stat;
 
-if ((strlen(sim_name) + 7 + (dptr ? strlen (dptr->name) : 0) + (title ? strlen (title) : 0)) < sizeof (vptr->vid_title))
-    sprintf (vptr->vid_title, "%s%s%s%s%s", sim_name, dptr ? " - " : "", dptr ? dptr->name : "", title ? " - " : "", title ? title : "");
-else
-    sprintf (vptr->vid_title, "%s", sim_name);
+vid_format_window_title (vptr->vid_title, sizeof (vptr->vid_title), dptr,
+                         title);
 vptr->vid_flags = flags;
 vptr->vid_active_window = true;
 vptr->vid_width = width;
@@ -2031,8 +2052,9 @@ if (vptr->vid_flags & SIM_VID_INPUTCAPTURED) {
 
     memset (title, 0, sizeof(title));
     strlcpy (title, vptr->vid_title, sizeof(title));
-    strlcat (title, "                                             ReleaseKey=", sizeof(title));
-    strlcat (title, vid_release_key, sizeof(title));
+    strlappendf (title, sizeof(title),
+                 "                                             ReleaseKey=%s",
+                 vid_release_key);
     SDL_SetWindowTitle (vptr->vid_window, title);
     }
 else
@@ -2787,12 +2809,14 @@ static t_stat _vid_screenshot (VID_DISPLAY *vptr, const char *filename)
 {
 int stat;
 char *fullname = NULL;
+size_t fullname_size;
 
 if (!vid_active) {
     sim_printf ("No video display is active\n");
     return SCPE_UDIS | SCPE_NOMESSAGE;
     }
-fullname = (char *)malloc (strlen(filename) + 5);
+fullname_size = strlen(filename) + 5;
+fullname = (char *)malloc (fullname_size);
 if (!fullname)
     return SCPE_MEM;
 if (1) {
@@ -2811,15 +2835,17 @@ if (1) {
         }
 #if defined(HAVE_LIBPNG)
     if (!match_ext (filename, "bmp")) {
-        sprintf (fullname, "%s%s", filename, match_ext (filename, "png") ? "" : ".png");
+        snprintf (fullname, fullname_size, "%s%s", filename,
+                  match_ext (filename, "png") ? "" : ".png");
         stat = SDL_SavePNG(sshot, fullname);
         }
     else {
-        sprintf (fullname, "%s", filename);
+        strlcpy (fullname, filename, fullname_size);
         stat = SDL_SaveBMP(sshot, fullname);
         }
 #else
-    sprintf (fullname, "%s%s", filename, match_ext (filename, "bmp") ? "" : ".bmp");
+    snprintf (fullname, fullname_size, "%s%s", filename,
+              match_ext (filename, "bmp") ? "" : ".bmp");
     stat = SDL_SaveBMP(sshot, fullname);
 #endif /* defined(HAVE_LIBPNG) */
     SDL_FreeSurface(sshot);
@@ -2840,30 +2866,60 @@ else {
 static t_stat _screenshot_stat;
 static const char *_screenshot_filename;
 
+/* Format the per-window screenshot name used by screenshot events. */
+static void vid_format_screenshot_name(char *name, size_t name_size,
+                                       const char *filename, int index,
+                                       bool multiple)
+{
+    const char *extension = strrchr(filename, '.');
+    size_t prefix_len;
+
+    if (extension)
+        prefix_len = (size_t)(extension - filename);
+    else {
+        prefix_len = strlen(filename);
+        extension = "";
+        }
+
+    strlcpy(name, filename, name_size);
+    if (prefix_len >= name_size)
+        return;
+
+    name[prefix_len] = '\0';
+    if (multiple)
+        snprintf(name + prefix_len, name_size - prefix_len, "%d%s", index,
+                 extension);
+    else
+        snprintf(name + prefix_len, name_size - prefix_len, "%s", extension);
+}
+
+/* Test seam for screenshot-event filename formatting. */
+void sim_video_test_format_screenshot_name(char *name, size_t name_size,
+                                           const char *filename, int index,
+                                           bool multiple)
+{
+    vid_format_screenshot_name(name, name_size, filename, index, multiple);
+}
+
 void vid_screenshot_event (void)
 {
 VID_DISPLAY *vptr;
-int i = 0, n;
-char *name = (char *)malloc (strlen (_screenshot_filename) + 5);
-char *extension = strrchr ((char *)_screenshot_filename, '.');
+int i = 0;
+size_t name_size = strlen (_screenshot_filename) + 5;
+char *name = (char *)malloc (name_size);
 if (name == NULL) {
     _screenshot_stat = SCPE_NXM;
     return;
     }
-if (extension)
-    n = extension - _screenshot_filename;
-else {
-    n = strlen (_screenshot_filename);
-    extension = (char *)"";
-    }
-strncpy (name, _screenshot_filename, n);
 for (vptr = &vid_first; vptr != NULL; vptr = vptr->next) {
     if (vptr->vid_width == 0)
         continue;
     if (vid_active > 1)
-        sprintf (name + n, "%d%s", i++, extension);
+        vid_format_screenshot_name (name, name_size, _screenshot_filename,
+                                    i++, true);
     else
-        sprintf (name + n, "%s", extension);
+        vid_format_screenshot_name (name, name_size, _screenshot_filename, i,
+                                    false);
     _screenshot_stat = _vid_screenshot (vptr, name);
     if (_screenshot_stat != SCPE_OK) {
         free (name);

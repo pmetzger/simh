@@ -613,7 +613,17 @@ static void test_slirp_parse_reports_missing_values(void **state)
 /* Verify malformed NAT options fail with specific diagnostics. */
 static void test_slirp_parse_reports_invalid_values(void **state)
 {
+    char long_forward_rule[5 * CBUFSIZE];
+    size_t forward_prefix_len;
+
     (void)state;
+
+    forward_prefix_len = strlcpy(long_forward_rule, "TCP=8023:10.0.2.15:",
+                                 sizeof(long_forward_rule));
+    assert_true(forward_prefix_len < sizeof(long_forward_rule));
+    memset(long_forward_rule + forward_prefix_len, '1',
+           sizeof(long_forward_rule) - forward_prefix_len - 1);
+    long_forward_rule[sizeof(long_forward_rule) - 1] = '\0';
 
     assert_parse_fails("UNKNOWN=1", "Unexpected NAT argument: UNKNOWN");
     assert_parse_fails("GATEWAY=10.0.2.1/33", "Invalid network mask length");
@@ -625,6 +635,7 @@ static void test_slirp_parse_reports_invalid_values(void **state)
     assert_parse_fails("DHCP=bad", "Invalid DHCP start address");
     assert_parse_fails("TCP=0:10.0.2.15:23", "Invalid port number");
     assert_parse_fails("UDP=8053:bad:53", "Invalid redirect IP address");
+    assert_parse_fails(long_forward_rule, "NAT argument too long");
 }
 
 /* Verify open passes parsed config and forwarding rules to the backend. */

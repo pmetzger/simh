@@ -925,7 +925,7 @@ void nia_load_mcast(void)
         }
      }
      for(i = 0; i< n; i++) {
-         eth_mac_fmt(nia_data.macs[i], buffer);
+         eth_mac_fmt(nia_data.macs[i], buffer, sizeof(buffer));
          sim_debug(DEBUG_DETAIL, &nia_dev, "NIA load mcast%d: %s\n",i,buffer);
      }
      nia_data.macs_n = n - 2;
@@ -1022,12 +1022,12 @@ static void nia_packet_debug(struct nia_device *nia, const char *action,
 
         if (!(nia_dev.dctrl & DEBUG_ARP))
             return;
-        eth_mac_fmt(arp->ethhdr.src, eth_src);
-        eth_mac_fmt(arp->ethhdr.dest, eth_dst);
-        eth_mac_fmt(arp->shwaddr, arp_shwaddr);
+        eth_mac_fmt(arp->ethhdr.src, eth_src, sizeof(eth_src));
+        eth_mac_fmt(arp->ethhdr.dest, eth_dst, sizeof(eth_dst));
+        eth_mac_fmt(arp->shwaddr, arp_shwaddr, sizeof(arp_shwaddr));
         memcpy(&in_addr, &arp->sipaddr, sizeof(in_addr));
         strlcpy(arp_sipaddr, ipv4_inet_ntoa(in_addr), sizeof(arp_sipaddr));
-        eth_mac_fmt(arp->dhwaddr, arp_dhwaddr);
+        eth_mac_fmt(arp->dhwaddr, arp_dhwaddr, sizeof(arp_dhwaddr));
         memcpy(&in_addr, &arp->dipaddr, sizeof(in_addr));
         strlcpy(arp_dipaddr, ipv4_inet_ntoa(in_addr), sizeof(arp_dipaddr));
         sim_debug(DEBUG_ARP, &nia_dev,
@@ -1557,7 +1557,7 @@ t_stat nia_show_mac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 
     char buffer[20];
 
-    eth_mac_fmt(nia_data.mac, buffer);
+    eth_mac_fmt(nia_data.mac, buffer, sizeof(buffer));
     fprintf(st, "MAC=%s", buffer);
     return SCPE_OK;
 }
@@ -1614,7 +1614,7 @@ t_stat nia_attach(UNIT* uptr, const char* cptr)
         free(tptr);
         return status;
     }
-    eth_mac_fmt(nia_data.mac, buf);      /* format ethernet mac address */
+    eth_mac_fmt(nia_data.mac, buf, sizeof(buf));      /* format ethernet mac address */
     if (SCPE_OK != eth_check_address_conflict (&nia_data.etherface,
                                                  nia_data.mac)) {
         eth_close(&nia_data.etherface);

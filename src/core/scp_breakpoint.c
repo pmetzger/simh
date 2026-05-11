@@ -444,9 +444,8 @@ void sim_brk_setact(const char *action)
         if (sim_brk_act[do_depth] && (*sim_brk_act[do_depth])) {
             size_t old_size = strlen(sim_brk_act[do_depth]);
             size_t new_size = strlen(action) + old_size + 3;
-            char *old_action = (char *)malloc(1 + old_size);
+            char *old_action = strdup(sim_brk_act[do_depth]);
 
-            strlcpy(old_action, sim_brk_act[do_depth], 1 + old_size);
             sim_brk_act_buf[do_depth] =
                 (char *)realloc(sim_brk_act_buf[do_depth], new_size);
             strlcpy(sim_brk_act_buf[do_depth], action, new_size);
@@ -457,9 +456,11 @@ void sim_brk_setact(const char *action)
                       do_depth, action, old_action);
             free(old_action);
         } else {
+            size_t action_size = strlen(action) + 1;
+
             sim_brk_act_buf[do_depth] =
-                (char *)realloc(sim_brk_act_buf[do_depth], strlen(action) + 1);
-            strcpy(sim_brk_act_buf[do_depth], action);
+                (char *)realloc(sim_brk_act_buf[do_depth], action_size);
+            strlcpy(sim_brk_act_buf[do_depth], action, action_size);
             sim_debug(SIM_DBG_BRK_ACTION, &sim_scp_dev,
                       "sim_brk_setact(%d) - Set to: '%s'\n", do_depth, action);
         }
@@ -528,15 +529,15 @@ const char *sim_brk_message(void)
 
         while (2 == strlen(put_switches(buf, sizeof(buf), brk->btyp))) {
             if (brk->btyp == sim_brk_match_type) {
-                sprintf(msg, "%s: %s", brk->desc, addr);
+                snprintf(msg, sizeof(msg), "%s: %s", brk->desc, addr);
                 break;
             }
             brk++;
         }
     }
     if (!msg[0])
-        sprintf(msg, "%s Breakpoint at: %s\n",
-                put_switches(buf, sizeof(buf), sim_brk_match_type), addr);
+        snprintf(msg, sizeof(msg), "%s Breakpoint at: %s\n",
+                 put_switches(buf, sizeof(buf), sim_brk_match_type), addr);
 
     return msg;
 }

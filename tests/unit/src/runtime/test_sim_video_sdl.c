@@ -199,6 +199,43 @@ static int setup_fake_sdl_hooks(void **state)
     return 0;
 }
 
+static void test_key_name_formats_known_and_unknown_keys(void **state)
+{
+    (void)state;
+
+    assert_string_equal(vid_key_name(SIM_KEY_A), "SIM_KEY_A");
+    assert_string_equal(vid_key_name(9999), "UNKNOWN KEY: 9999");
+}
+
+static void test_window_title_combines_simulator_and_window_title(void **state)
+{
+    char title[128];
+
+    (void)state;
+
+    sim_video_test_format_window_title(title, sizeof(title), NULL, "panel");
+    assert_string_equal(title, "zimh-unit - panel");
+}
+
+static void test_screenshot_name_preserves_current_suffix_rules(void **state)
+{
+    char name[32];
+
+    (void)state;
+
+    sim_video_test_format_screenshot_name(name, sizeof(name), "screen.bmp", 0,
+                                          false);
+    assert_string_equal(name, "screen.bmp");
+
+    sim_video_test_format_screenshot_name(name, sizeof(name), "screen.bmp", 2,
+                                          true);
+    assert_string_equal(name, "screen2.bmp");
+
+    sim_video_test_format_screenshot_name(name, sizeof(name), "screen", 3,
+                                          true);
+    assert_string_equal(name, "screen3");
+}
+
 static void test_screenshot_reports_surface_allocation_failure(void **state)
 {
     const char *path = "zimh-unit-video-screenshot.bmp";
@@ -483,6 +520,9 @@ static void test_gamepad_events_reach_registered_callbacks(void **state)
 int main(void)
 {
     const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_key_name_formats_known_and_unknown_keys),
+        cmocka_unit_test(test_window_title_combines_simulator_and_window_title),
+        cmocka_unit_test(test_screenshot_name_preserves_current_suffix_rules),
         cmocka_unit_test(test_screenshot_reports_surface_allocation_failure),
         cmocka_unit_test_teardown(test_gamepad_callbacks_register_before_open,
                                   teardown_gamepad_callbacks),

@@ -48,6 +48,30 @@ static void test_eth_mac_scan_generated_prefix_lengths(void **state)
     }
 }
 
+static void test_eth_mac_fmt_formats_address(void **state)
+{
+    static const ETH_MAC mac = {0x02, 0x84, 0x86, 0x08, 0x0a, 0x0c};
+    char buffer[ETH_MAC_STRING_SIZE];
+
+    (void)state;
+
+    eth_mac_fmt(mac, buffer, sizeof(buffer));
+    assert_string_equal(buffer, "02:84:86:08:0A:0C");
+}
+
+static void test_eth_mac_fmt_truncates_to_buffer_size(void **state)
+{
+    static const ETH_MAC mac = {0x02, 0x84, 0x86, 0x08, 0x0a, 0x0c};
+    char buffer[8];
+
+    (void)state;
+
+    memset(buffer, 'x', sizeof(buffer));
+    eth_mac_fmt(mac, buffer, sizeof(buffer));
+    assert_string_equal(buffer, "02:84:8");
+    assert_int_equal(buffer[sizeof(buffer) - 1], '\0');
+}
+
 static void test_eth_dev_command_formatting(void **state)
 {
     (void)state;
@@ -72,6 +96,8 @@ int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_eth_mac_scan_generated_prefix_lengths),
+        cmocka_unit_test(test_eth_mac_fmt_formats_address),
+        cmocka_unit_test(test_eth_mac_fmt_truncates_to_buffer_size),
         cmocka_unit_test(test_eth_dev_command_formatting),
         cmocka_unit_test(test_eth_reader_thread_async_flag_is_bool),
     };

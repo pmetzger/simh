@@ -117,10 +117,10 @@ char buf1[100], buf2[100], buf3[100], buf4[100];
 static const char *states[] = {"Halt", "Run "};
 
 buf1[sizeof(buf1)-1] = buf2[sizeof(buf2)-1] = buf3[sizeof(buf3)-1] = buf4[sizeof(buf4)-1] = 0;
-sprintf (buf1, "%4s PC: %08X   SP: %08X   AP: %08X   FP: %08X  @PC: %08X\n", states[sim_panel_get_state (panel)], PC, SP, AP, FP, atPC);
-sprintf (buf2, "PSL: %08X                               Instructions Executed: %lld\n", PSL, simulation_time);
-sprintf (buf3, "R0:%08X  R1:%08X  R2:%08X  R3:%08X   R4:%08X   R5:%08X\n", R0, R1, R2, R3, R4, R5);
-sprintf (buf4, "R6:%08X  R7:%08X  R8:%08X  R9:%08X  R10:%08X  R11:%08X\n", R6, R7, R8, R9, R10, R11);
+snprintf (buf1, sizeof(buf1), "%4s PC: %08X   SP: %08X   AP: %08X   FP: %08X  @PC: %08X\n", states[sim_panel_get_state (panel)], PC, SP, AP, FP, atPC);
+snprintf (buf2, sizeof(buf2), "PSL: %08X                               Instructions Executed: %lld\n", PSL, simulation_time);
+snprintf (buf3, sizeof(buf3), "R0:%08X  R1:%08X  R2:%08X  R3:%08X   R4:%08X   R5:%08X\n", R0, R1, R2, R3, R4, R5);
+snprintf (buf4, sizeof(buf4), "R6:%08X  R7:%08X  R8:%08X  R9:%08X  R10:%08X  R11:%08X\n", R6, R7, R8, R9, R10, R11);
 #if defined(_WIN32)
 if (1) {
     static HANDLE out = NULL;
@@ -729,7 +729,7 @@ if (panel_setup ())
 for (i=0; breakpoints[i].addr; i++) {
     char buf[120];
 
-    sprintf (buf, "%08X;SHOW QUEUE%s%s", breakpoints[i].addr, breakpoints[i].extra ? ";" : "", breakpoints[i].extra ? breakpoints[i].extra : "");
+    snprintf (buf, sizeof(buf), "%08X;SHOW QUEUE%s%s", breakpoints[i].addr, breakpoints[i].extra ? ";" : "", breakpoints[i].extra ? breakpoints[i].extra : "");
     if (sim_panel_break_set (panel, buf)) {
         printf ("Error establishing breakpoint at %s: %s\n", breakpoints[i].desc, sim_panel_get_error());
         goto Done;

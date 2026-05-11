@@ -970,6 +970,7 @@ static void test_sim_tape_memory_format_detach_clears_filename(void **state)
     assert_int_equal(sim_tape_attach(&fixture->unit, fixture->tape_path),
                      SCPE_OK);
     assert_non_null(fixture->unit.filename);
+    assert_string_equal(fixture->unit.filename, fixture->tape_path);
 
     assert_int_equal(sim_tape_detach(&fixture->unit), SCPE_OK);
     assert_null(fixture->unit.filename);
@@ -980,6 +981,7 @@ static void test_sim_tape_memory_format_detach_clears_filename(void **state)
                      SCPE_OK);
     assert_int_equal(sim_tape_attach(&fixture->unit, ansi_path), SCPE_OK);
     assert_non_null(fixture->unit.filename);
+    assert_string_equal(fixture->unit.filename, ansi_path);
 
     assert_int_equal(sim_tape_detach(&fixture->unit), SCPE_OK);
     assert_null(fixture->unit.filename);

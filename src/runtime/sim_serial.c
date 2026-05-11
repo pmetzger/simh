@@ -227,8 +227,8 @@ for (i=0; i<serial_open_device_count; ++i) {
         continue;
     if (ports >= max)
         break;
-    strcpy(list[ports].name, serial_open_devices[i].name);
-    strcpy(list[ports].desc, serial_open_devices[i].config);
+    strlcpy(list[ports].name, serial_open_devices[i].name, sizeof(list[ports].name));
+    strlcpy(list[ports].desc, serial_open_devices[i].config, sizeof(list[ports].desc));
     ++ports;
     }
 if (ports) /* Order the list returned alphabetically by the port name */
@@ -236,18 +236,33 @@ if (ports) /* Order the list returned alphabetically by the port name */
 return ports;
 }
 
-static char* sim_serial_getname (int number, char* name)
+/*
+ * Replace a serial line's cached configuration string.  The existing cached
+ * string remains valid if the new allocation fails.
+ */
+static t_stat sim_serial_set_cached_config (TMLN *lp, const char *config)
+{
+    char *serconfig = strdup (config);
+
+    if (serconfig == NULL)
+        return SCPE_MEM;
+    free (lp->serconfig);
+    lp->serconfig = serconfig;
+    return SCPE_OK;
+}
+
+static char* sim_serial_getname (int number, char* name, size_t name_size)
 {
 SERIAL_LIST  list[SER_MAX_DEVICE];
 int count = sim_serial_devices(SER_MAX_DEVICE, list);
 
 if (count <= number)
     return NULL;
-strcpy(name, list[number].name);
+strlcpy(name, list[number].name, name_size);
 return name;
 }
 
-static char* sim_serial_getname_bydesc (char* desc, char* name)
+static char* sim_serial_getname_bydesc (char* desc, char* name, size_t name_size)
 {
 SERIAL_LIST  list[SER_MAX_DEVICE];
 int count = sim_serial_devices(SER_MAX_DEVICE, list);
@@ -267,14 +282,14 @@ for (i=0; i<count; i++) {
         continue;
 
     /* found a case-insensitive description match */
-    strcpy(name, list[i].name);
+    strlcpy(name, list[i].name, name_size);
     return name;
     }
 /* not found */
 return NULL;
 }
 
-static char* sim_serial_getname_byname (char* name, char* temp)
+static char* sim_serial_getname_byname (char* name, char* temp, size_t temp_size)
 {
 SERIAL_LIST  list[SER_MAX_DEVICE];
 int count = sim_serial_devices(SER_MAX_DEVICE, list);
@@ -287,13 +302,13 @@ for (i=0; i<count && !found; i++) {
     if ((n == strlen(list[i].name)) &&
         (strncasecmp(name, list[i].name, n) == 0)) {
         found = 1;
-        strcpy(temp, list[i].name); /* only case might be different */
+        strlcpy(temp, list[i].name, temp_size); /* only case might be different */
         }
     }
 return (found ? temp : NULL);
 }
 
-static char* sim_serial_getdesc_byname (char* name, char* temp)
+static char* sim_serial_getdesc_byname (char* name, char* temp, size_t temp_size)
 {
 SERIAL_LIST  list[SER_MAX_DEVICE];
 int count = sim_serial_devices(SER_MAX_DEVICE, list);
@@ -306,7 +321,7 @@ for (i=0; i<count && !found; i++) {
     if ((n == strlen(list[i].name)) &&
         (strncasecmp(name, list[i].name, n) == 0)) {
         found = 1;
-        strcpy(temp, list[i].desc);
+        strlcpy(temp, list[i].desc, temp_size);
         }
     }
   return (found ? temp : NULL);
@@ -349,7 +364,7 @@ if (serial_open_device_count) {
 
     fprintf(st,"Open Serial Devices:\n");
     for (i=0; i<serial_open_device_count; i++) {
-        d = sim_serial_getdesc_byname(serial_open_devices[i].name, desc);
+        d = sim_serial_getdesc_byname(serial_open_devices[i].name, desc, sizeof(desc));
         fprintf(st, " %s\tLn%02d %s%s%s%s\tConfig: %s\n", serial_open_devices[i].line->mp->dptr->name, (int)(serial_open_devices[i].line->mp->ldsc-serial_open_devices[i].line),
                     serial_open_devices[i].line->destination, ((d != NULL) && (*d != '\0')) ? " (" : "", ((d != NULL) && (*d != '\0'))  ? d : "", ((d != NULL) && (*d != '\0'))  ? ")" : "", serial_open_devices[i].line->serconfig);
         }
@@ -382,7 +397,7 @@ if ((strlen(devname) <= 5)
     && (isdigit(devname[4]) || (devname[4] == '\0'))
    ) {
     int num = atoi(&devname[3]);
-    savname = sim_serial_getname(num, temp1);
+    savname = sim_serial_getname(num, temp1, sizeof(temp1));
     if (savname == NULL) {                              /* didn't translate */
         if (stat)
             *stat = SCPE_OPENERR;
@@ -391,10 +406,10 @@ if ((strlen(devname) <= 5)
     }
 else {
     /* are they trying to use device description? */
-    savname = sim_serial_getname_bydesc(devname, temp1);
+    savname = sim_serial_getname_bydesc(devname, temp1, sizeof(temp1));
     if (savname == NULL) {                              /* didn't translate */
         /* probably is not serX and has no description */
-        savname = sim_serial_getname_byname(devname, temp1);
+        savname = sim_serial_getname_byname(devname, temp1, sizeof(temp1));
         if (savname == NULL) /* didn't translate */
             savname = devname;
         }
@@ -426,8 +441,13 @@ if (status != SCPE_OK) {                                /* port configuration er
     }
 
 if ((port != INVALID_HANDLE) && (*config) && (lp)) {
-    lp->serconfig = (char *)realloc (lp->serconfig, 1 + strlen (config));
-    strcpy (lp->serconfig, config);
+    status = sim_serial_set_cached_config (lp, config);
+    if (status != SCPE_OK) {
+        sim_close_serial (port);
+        if (stat)
+            *stat = status;
+        port = INVALID_HANDLE;
+        }
     }
 if (port != INVALID_HANDLE)
     _serial_add_to_open_list (port, lp, savname, config);
@@ -477,8 +497,10 @@ if (strcmp (sptr, ".5") == 0)                           /* 1.5 stop bits request
 r = sim_config_os_serial (port, config);
 dev = _get_open_device (port);
 if (dev) {
-    dev->line->serconfig = (char *)realloc (dev->line->serconfig, 1 + strlen (sconfig));
-    strcpy (dev->line->serconfig, sconfig);
+    t_stat cache_status = sim_serial_set_cached_config (dev->line, sconfig);
+
+    if (cache_status != SCPE_OK)
+        return cache_status;
     }
 return r;
 }

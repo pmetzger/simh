@@ -580,7 +580,7 @@ t_stat ni_showmac(FILE* st, UNIT* uptr, int32_t val, const void* desc)
     UNUSED(val);
     UNUSED(desc);
 
-    eth_mac_fmt(ni.macs[NI_NIC_MAC], buffer);
+    eth_mac_fmt(ni.macs[NI_NIC_MAC], buffer, sizeof(buffer));
     fprintf(st, "MAC=%s", buffer);
     return SCPE_OK;
 }
@@ -594,12 +594,12 @@ t_stat ni_show_filters(FILE* st, UNIT* uptr, int32_t val, const void* desc)
     UNUSED(val);
     UNUSED(desc);
 
-    eth_mac_fmt(ni.macs[NI_NIC_MAC], buffer);
+    eth_mac_fmt(ni.macs[NI_NIC_MAC], buffer, sizeof(buffer));
     fprintf(st, "Physical Address=%s\n", buffer);
     if (ni.filter_count > 0) {
         fprintf(st, "Filters:\n");
         for (i=0; i < ni.filter_count; i++) {
-            eth_mac_fmt(ni.macs[i], buffer);
+            eth_mac_fmt(ni.macs[i], buffer, sizeof(buffer));
             fprintf(st, "[%2d]: %s\n", i, buffer);
         }
         fprintf(st, "\n");

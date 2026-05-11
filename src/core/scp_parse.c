@@ -79,7 +79,8 @@ const char *get_glyph_quoted(const char *iptr, char *optr, char mchar)
 const char *get_glyph_cmd(const char *iptr, char *optr)
 {
     if ((iptr[0] == '!') && (!sim_isspace(iptr[1]))) {
-        strcpy(optr, "!");
+        optr[0] = '!';
+        optr[1] = '\0';
         return (const char *)(iptr + 1);
     }
     return (const char *)get_glyph_gen(iptr, optr, 0, true, false, 0);

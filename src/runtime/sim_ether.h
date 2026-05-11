@@ -342,7 +342,9 @@ t_stat eth_show_devices (FILE* st, DEVICE *dptr,        /* show ethernet devices
 int eth_devices (int max, ETH_LIST* dev, ETH_BOOL framers); /* get ethernet devices on host */
 void eth_show_dev (FILE*st, ETH_DEV* dev);              /* show ethernet device state */
 
-void eth_mac_fmt (const ETH_MAC add, char* buffer);     /* format ethernet mac address */
+#define ETH_MAC_STRING_SIZE sizeof("XX:XX:XX:XX:XX:XX")
+void eth_mac_fmt (const ETH_MAC add, char* buffer,
+                  size_t buffer_size);                  /* format ethernet mac address */
 t_stat eth_mac_scan (ETH_MAC mac, const char* strmac);  /* scan string for mac, put in mac */
 t_stat eth_mac_scan_ex (ETH_MAC mac,                    /* scan string for mac, put in mac */
                         const char* strmac, UNIT *uptr);/* for specified unit */

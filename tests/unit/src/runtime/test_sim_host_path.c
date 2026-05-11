@@ -31,7 +31,7 @@ static unsigned long win32_temp_path2_success(unsigned long size, char *buf)
     ++win32_temp_path2_calls;
     if (strlen(path) + 1 > size)
         return (unsigned long)(strlen(path) + 1);
-    strcpy(buf, path);
+    strlcpy(buf, path, size);
     return (unsigned long)strlen(path);
 }
 
@@ -42,7 +42,7 @@ static unsigned long win32_temp_path_success(unsigned long size, char *buf)
     ++win32_temp_path_calls;
     if (strlen(path) + 1 > size)
         return (unsigned long)(strlen(path) + 1);
-    strcpy(buf, path);
+    strlcpy(buf, path, size);
     return (unsigned long)strlen(path);
 }
 

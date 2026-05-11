@@ -42,17 +42,24 @@ const char *sim_uname(UNIT *uptr)
     if (!d)
         return "";
     if (d->numunits == 1)
-        sprintf(uname, "%s", sim_dname(d));
+        snprintf(uname, sizeof(uname), "%s", sim_dname(d));
     else
-        sprintf(uname, "%s%d", sim_dname(d), (int)(uptr - d->units));
+        snprintf(uname, sizeof(uname), "%s%d", sim_dname(d),
+                 (int)(uptr - d->units));
     return sim_set_uname(uptr, uname);
 }
 
 /* Replace the cached display name for a unit. */
 const char *sim_set_uname(UNIT *uptr, const char *uname)
 {
+    size_t uname_size = strlen(uname) + 1;
+    char *new_uname = (char *)malloc(uname_size);
+
+    if (new_uname == NULL)
+        return NULL;
+    strlcpy(new_uname, uname, uname_size);
     free(uptr->uname);
-    return uptr->uname = strcpy((char *)malloc(1 + strlen(uname)), uname);
+    return uptr->uname = new_uname;
 }
 
 /* Find the named device in either simulator or internal device tables. */

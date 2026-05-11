@@ -559,11 +559,10 @@ switch (DK_GET_FMT (uptr)) {                            /* case on format */
             if (ctx->media_removed) {
                 int32_t saved_switches = sim_switches;
                 int32_t saved_quiet = sim_quiet;
-                char *path = (char *)malloc (1 + strlen (uptr->filename));
+                char *path = strdup (uptr->filename);
 
                 sim_switches = 0;
                 sim_quiet = 1;
-                strcpy (path, uptr->filename);
                 sim_disk_attach (uptr, path, ctx->sector_size, ctx->xfer_element_size,
                                  false, ctx->dbit, NULL, 0, 0);
                 sim_quiet = saved_quiet;
@@ -618,7 +617,7 @@ for (dev = 0; (dptr = sim_devices[dev]) != NULL; dev++) {
         int32_t saved_sim_show_message = sim_show_message;
 
         sim_show_message = false;
-        sprintf (cmd, "%s %sAUTOSIZE", sim_uname (&dptr->units[unit]), no_autosize ? "NO" : "");
+        snprintf (cmd, sizeof (cmd), "%s %sAUTOSIZE", sim_uname (&dptr->units[unit]), no_autosize ? "NO" : "");
         set_cmd (0, cmd);
         sim_show_message = saved_sim_show_message;
         }
@@ -3417,7 +3416,7 @@ else if (container_size && (container_size != (t_offset)-1)) {
                     t_stat st;
 
                     uptr->flags &= ~UNIT_ATT;   /* temporarily mark as un-attached */
-                    sprintf (cmd, "%s %s", sim_uname (uptr), *drivetypes);
+                    snprintf (cmd, sizeof (cmd), "%s %s", sim_uname (uptr), *drivetypes);
                     st = set_cmd (0, cmd);
                     uptr->flags |= UNIT_ATT;    /* restore attached indicator */
                     if (st == SCPE_OK)
@@ -4045,7 +4044,7 @@ DEVICE *dptr = find_dev_from_unit (uptr);
 if (sim_deb && ((uptr->dctrl | dptr->dctrl) & reason)) {
     char pos[32];
 
-    sprintf (pos, "lbn: %08X ", (uint_t)lba);
+    snprintf (pos, sizeof (pos), "lbn: %08X ", (uint_t)lba);
     sim_data_trace(dptr, uptr, (detail ? data : NULL), pos, len, txt, reason);
     }
 }
@@ -4235,7 +4234,8 @@ static FILE *sim_os_disk_open_raw (const char *rawdevicename, const char *openmo
 HANDLE Handle;
 DWORD DesiredAccess = 0;
 uint32_t is_cdrom;
-char *tmpname = (char *)malloc (2 + strlen (rawdevicename));
+size_t tmpname_size = 2 + strlen (rawdevicename);
+char *tmpname = (char *)malloc (tmpname_size);
 
 if (tmpname == NULL)
     return NULL;
@@ -4250,10 +4250,10 @@ if (strchr (openmode, 'w') || strchr (openmode, '+'))
 if ((!memcmp ("\\.\\", rawdevicename, 3)) ||
     (!memcmp ("/./", rawdevicename, 3))) {
     *tmpname = '\\';
-    strcpy (tmpname + 1, rawdevicename);
+    strlcpy (tmpname + 1, rawdevicename, tmpname_size - 1);
     }
 else
-    strcpy (tmpname, rawdevicename);
+    strlcpy (tmpname, rawdevicename, tmpname_size);
 Handle = CreateFileA (tmpname, DesiredAccess, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS|FILE_FLAG_WRITE_THROUGH, NULL);
 free (tmpname);
 if (Handle != INVALID_HANDLE_VALUE) {
@@ -5786,8 +5786,7 @@ static FILE *sim_vhd_disk_merge (const char *szVHDPath, char **ParentVHD)
         fclose (hVHD->File);
         hVHD->File = NULL;
         (void)remove (szVHDPath);
-        *ParentVHD = (char*) malloc (strlen (hVHD->ParentVHDPath)+1);
-        strcpy (*ParentVHD, hVHD->ParentVHDPath);
+        *ParentVHD = strdup (hVHD->ParentVHDPath);
         }
 Cleanup_Return:
     free (BlockData);
@@ -6222,10 +6221,10 @@ if (RelativeMatch) {
     UpDir[2] = FullParentVHDPath[RelativeMatch];
     if (UpDirectories)
         for (i=0; i<UpDirectories; i++)
-            strcpy (RelativeParentVHDPath+strlen (RelativeParentVHDPath), UpDir);
+            strlcat (RelativeParentVHDPath, UpDir, BytesPerSector+2);
     else
-        strcpy (RelativeParentVHDPath+strlen (RelativeParentVHDPath), UpDir+1);
-    strcpy (RelativeParentVHDPath+strlen (RelativeParentVHDPath), &FullParentVHDPath[RelativeMatch+1]);
+        strlcat (RelativeParentVHDPath, UpDir+1, BytesPerSector+2);
+    strlcat (RelativeParentVHDPath, &FullParentVHDPath[RelativeMatch+1], BytesPerSector+2);
     }
 for (i=0; i < strlen(RelativeParentVHDPath); i++)
     RelativeParentVHDPathUnicode[i*2] = RelativeParentVHDPath[i];
@@ -6788,7 +6787,7 @@ t_offset container_size;
 (void) FileSize;
 (void) filestat;
 
-sprintf (FullPath, "%s%s", directory, filename);
+snprintf (FullPath, sizeof (FullPath), "%s%s", directory, filename);
 
 if (info->flag) {        /* zap type */
     struct stat statb;
@@ -7175,10 +7174,10 @@ if ((0 == strcmp ("RL", dptr->name)) ||
         else
             sim_printf ("%d : No File System\n", tests[i].testid);
         sim_switches = tests[i].switches;
-        sprintf(cmd, "%s %sAUTOSIZE", sim_uname (uptr), tests[i].autosize_attach ? "" : "NO");
+        snprintf(cmd, sizeof (cmd), "%s %sAUTOSIZE", sim_uname (uptr), tests[i].autosize_attach ? "" : "NO");
         set_cmd (0, cmd);
         if (tests[i].drive_type != NULL) {
-            sprintf(cmd, "%s %s", sim_uname (uptr), tests[i].drive_type);
+            snprintf(cmd, sizeof (cmd), "%s %s", sim_uname (uptr), tests[i].drive_type);
             set_cmd (0, cmd);
             }
         if (tests[i].container_size)

@@ -93,12 +93,15 @@ static char err_buf[512];
 for (i=0; (sock_errors[i].text) && (sock_errors[i].value != err); i++)
     ;
 if (sock_errors[i].value == err)
-    sprintf (err_buf, "Sockets: %s error %d - %s\n", emsg, err, sock_errors[i].text);
+    snprintf (err_buf, sizeof (err_buf), "Sockets: %s error %d - %s\n",
+              emsg, err, sock_errors[i].text);
 else
 #if defined(_WIN32)
-    sprintf (err_buf, "Sockets: %s error %d\n", emsg, err);
+    snprintf (err_buf, sizeof (err_buf), "Sockets: %s error %d\n", emsg,
+              err);
 #else
-    sprintf (err_buf, "Sockets: %s error %d - %s\n", emsg, err, strerror(err));
+    snprintf (err_buf, sizeof (err_buf), "Sockets: %s error %d - %s\n",
+              emsg, err, strerror(err));
 #endif
 return err_buf;
 }
@@ -297,12 +300,14 @@ for (ip=ips; (ip != NULL) && (*ip != NULL); ++ip) {
     lai = ai;
     }
 if (cname) {
-    result->ai_canonname = (char *)calloc(1, strlen(cname)+1);
+    size_t canonname_size = strlen(cname) + 1;
+
+    result->ai_canonname = (char *)calloc(1, canonname_size);
     if (NULL == result->ai_canonname) {
         s_freeaddrinfo(result);
         return EAI_MEMORY;
         }
-    strcpy(result->ai_canonname, cname);
+    strlcpy(result->ai_canonname, cname, canonname_size);
     }
 *res = result;
 return 0;
@@ -340,15 +345,15 @@ if ((serv) && (servlen > 0)) {
     if (se) {
         if (servlen <= strlen(se->s_name))
             return EAI_OVERFLOW;
-        strcpy(serv, se->s_name);
+        strlcpy(serv, se->s_name, servlen);
         }
     else {
         char buf[16];
 
-        sprintf(buf, "%d", ntohs(sin->sin_port));
+        snprintf(buf, sizeof(buf), "%d", ntohs(sin->sin_port));
         if (servlen <= strlen(buf))
             return EAI_OVERFLOW;
-        strcpy(serv, buf);
+        strlcpy(serv, buf, servlen);
         }
     }
 if ((host) && (hostlen > 0)) {
@@ -359,14 +364,14 @@ if ((host) && (hostlen > 0)) {
     if (he) {
         if (hostlen < strlen(he->h_name)+1)
             return EAI_OVERFLOW;
-        strcpy(host, he->h_name);
+        strlcpy(host, he->h_name, hostlen);
         }
     else {
         if (flags & NI_NAMEREQD)
             return EAI_NONAME;
         if (hostlen < strlen(inet_ntoa(sin->sin_addr))+1)
             return EAI_OVERFLOW;
-        strcpy(host, inet_ntoa(sin->sin_addr));
+        strlcpy(host, inet_ntoa(sin->sin_addr), hostlen);
         }
     }
 return 0;
@@ -511,15 +516,14 @@ if ((cptr == NULL) || (*cptr == 0)) {
         return -1;                                  /* no place */
     if ((strlen(default_host) >= host_len) || (strlen(default_port) >= port_len))
         return -1;                                  /* no room */
-    strcpy (host, default_host);
-    strcpy (port, default_port);
+    strlcpy (host, default_host, host_len);
+    strlcpy (port, default_port, port_len);
     return 0;
     }
 memset (default_pbuf, 0, sizeof(default_pbuf));
 if (default_port)
-    strncpy (default_pbuf, default_port, sizeof(default_pbuf)-1);
-gbuf[sizeof(gbuf)-1] = '\0';
-strncpy (gbuf, cptr, sizeof(gbuf)-1);
+    strlcpy (default_pbuf, default_port, sizeof(default_pbuf));
+strlcpy (gbuf, cptr, sizeof(gbuf));
 hostp = gbuf;                                           /* default addr */
 portp = NULL;
 if ((portp = strrchr (gbuf, ':')) &&                    /* x:y? split */
@@ -548,7 +552,7 @@ if (port)                                               /* port wanted? */
         if (strlen(portp) >= port_len)
             return -1;                                  /* no room */
         else
-            strcpy (port, portp);
+            strlcpy (port, portp, port_len);
         }
 if ((hostp != NULL) && (*hostp != '\0')) {
     if (']' == hostp[strlen(hostp)-1]) {
@@ -575,19 +579,19 @@ if (host) {                                             /* host wanted? */
             return -1;                                  /* no room */
         else
             if (('\0' != hostp[0]) || (default_host == NULL))
-                strcpy (host, hostp);
+                strlcpy (host, hostp, host_len);
             else
                 if (strlen(default_host) >= host_len)
                     return -1;                          /* no room */
                 else
-                    strcpy (host, default_host);
+                    strlcpy (host, default_host, host_len);
         }
     else {
         if (default_host) {
             if (strlen(default_host) >= host_len)
                 return -1;                              /* no room */
             else
-                strcpy (host, default_host);
+                strlcpy (host, default_host, host_len);
             }
         }
     }
@@ -711,7 +715,7 @@ while ((*acl != '\0') && !done) {
     else {
         if (strlen (acl) >= sizeof (rule))
             break;                  /* Too big - error */
-        strcpy (rule, acl + 1);
+        strlcpy (rule, acl + 1, sizeof (rule));
         }
     acl += strlen (rule) + 1 + (cc != NULL);
     c = strchr (rule, '/');
@@ -1272,20 +1276,21 @@ socklen_t peernamesize = (socklen_t)sizeof(peername);
 #endif
 char hostbuf[NI_MAXHOST+1];
 char portbuf[NI_MAXSERV+1];
+const size_t namebuf_size = NI_MAXHOST + NI_MAXSERV + 4;
 
 if (socknamebuf)
-    *socknamebuf = (char *)calloc(1, NI_MAXHOST+NI_MAXSERV+4);
+    *socknamebuf = (char *)calloc(1, namebuf_size);
 if (peernamebuf)
-    *peernamebuf = (char *)calloc(1, NI_MAXHOST+NI_MAXSERV+4);
+    *peernamebuf = (char *)calloc(1, namebuf_size);
 (void)getsockname (sock, (struct sockaddr *)&sockname, &socknamesize);
 (void)getpeername (sock, (struct sockaddr *)&peername, &peernamesize);
 if (socknamebuf != NULL) {
     _sim_getaddrname ((struct sockaddr *)&sockname, (size_t)socknamesize, hostbuf, portbuf);
-    sprintf(*socknamebuf, "[%s]:%s", hostbuf, portbuf);
+    snprintf(*socknamebuf, namebuf_size, "[%s]:%s", hostbuf, portbuf);
     }
 if (peernamebuf != NULL) {
     _sim_getaddrname ((struct sockaddr *)&peername, (size_t)peernamesize, hostbuf, portbuf);
-    sprintf(*peernamebuf, "[%s]:%s", hostbuf, portbuf);
+    snprintf(*peernamebuf, namebuf_size, "[%s]:%s", hostbuf, portbuf);
     }
 return 0;
 }

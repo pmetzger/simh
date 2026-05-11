@@ -199,6 +199,7 @@ char *c;
 int i;
 char cleaned_rom_filename[512];
 char *include_filename;
+size_t include_filename_size;
 char array_name[512];
 
 if (NULL == (rFile = fopen (rom_filename, "rb"))) {
@@ -221,11 +222,10 @@ fclose (rFile);
 for (i=0; i<statb.st_size; ++i)
     checksum += ROMData[i];
 checksum = ~checksum;
-strncpy (cleaned_rom_filename, rom_filename, sizeof(cleaned_rom_filename)-2);
-cleaned_rom_filename[sizeof(cleaned_rom_filename)-1] = '\0';
+strlcpy (cleaned_rom_filename, rom_filename, sizeof(cleaned_rom_filename));
 while ((c = strchr (cleaned_rom_filename, '\\')))
     *c = '/';
-strcpy (array_name, cleaned_rom_filename);
+strlcpy (array_name, cleaned_rom_filename, sizeof(array_name));
 for (c=array_name; *c; ++c)
     if (isupper(*c))
         *c = (char)tolower(*c);
@@ -233,12 +233,13 @@ if ((c = strchr (array_name, '.')))
     *c = '_';
 if ((c = strchr (array_name, '/')))
     *c = '_';
-include_filename = (char *)calloc (3 + strlen (cleaned_rom_filename), sizeof (*include_filename));
-sprintf (include_filename, "%s.h", cleaned_rom_filename);
+include_filename_size = 3 + strlen (cleaned_rom_filename);
+include_filename = (char *)calloc (include_filename_size, sizeof (*include_filename));
+snprintf (include_filename, include_filename_size, "%s.h", cleaned_rom_filename);
 if ((c = strrchr (include_filename, '/')))
-    sprintf (c+1, "%s.h", array_name);
+    snprintf (c+1, include_filename_size - (size_t)(c+1-include_filename), "%s.h", array_name);
 else
-    sprintf (include_filename, "%s.h", array_name);
+    snprintf (include_filename, include_filename_size, "%s.h", array_name);
 printf ("The ROMs array entry for this new ROM image file should look something like:\n");
 printf ("{\"%s\",    \"%s\",     %d,  0x%08X, \"%s\"}\n",
         rom_filename, include_filename, (int)(statb.st_size), checksum, array_name);

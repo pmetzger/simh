@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "test_cmocka.h"
 
@@ -15,6 +16,7 @@
 
 struct sim_card_fixture {
     char temp_dir[1024];
+    char original_cwd[1024];
     char input_path[1024];
     char output_path[1024];
     UNIT reader_unit;
@@ -36,6 +38,8 @@ static int setup_sim_card_fixture(void **state)
                                              sizeof(fixture->temp_dir),
                                              "sim-card"),
                      0);
+    assert_non_null(
+        getcwd(fixture->original_cwd, sizeof(fixture->original_cwd)));
     assert_int_equal(simh_test_join_path(fixture->input_path,
                                          sizeof(fixture->input_path),
                                          fixture->temp_dir, "input.deck"),
@@ -60,6 +64,9 @@ static int setup_sim_card_fixture(void **state)
     devices[1] = &fixture->punch_dev;
     devices[2] = NULL;
     assert_int_equal(simh_test_set_devices(devices), 0);
+    sim_dflt_dev = &fixture->reader_dev;
+    sim_dfdev = &fixture->reader_dev;
+    sim_dfunit = &fixture->reader_unit;
 
     *state = fixture;
     return 0;
@@ -76,6 +83,7 @@ static int teardown_sim_card_fixture(void **state)
         assert_int_equal(sim_card_detach(&fixture->punch_unit), SCPE_OK);
     }
 
+    assert_int_equal(chdir(fixture->original_cwd), 0);
     assert_int_equal(simh_test_remove_path(fixture->temp_dir), 0);
     sim_switches = fixture->saved_sim_switches;
     free(fixture);
@@ -171,6 +179,8 @@ static void test_sim_card_append_deck_preserves_read_order(void **state)
     struct sim_card_fixture *fixture = *state;
     char second_path[1024];
     char append_arg[1200];
+    char expected_first_name[1200];
+    char expected_second_name[2400];
     uint16_t image[80];
 
     assert_int_equal(simh_test_join_path(second_path, sizeof(second_path),
@@ -185,13 +195,24 @@ static void test_sim_card_append_deck_preserves_read_order(void **state)
     assert_int_equal(snprintf(append_arg, sizeof(append_arg), "-S -E %s",
                               second_path) < (int)sizeof(append_arg),
                      1);
+    assert_int_equal(snprintf(expected_first_name, sizeof(expected_first_name),
+                              "-F TEXT %s", fixture->input_path) <
+                         (int)sizeof(expected_first_name),
+                     1);
+    assert_int_equal(snprintf(expected_second_name,
+                              sizeof(expected_second_name),
+                              "%s, -E -F TEXT %s", expected_first_name,
+                              second_path) < (int)sizeof(expected_second_name),
+                     1);
 
     assert_int_equal(
         sim_card_attach(&fixture->reader_unit, fixture->input_path), SCPE_OK);
+    assert_string_equal(fixture->reader_unit.filename, expected_first_name);
     assert_int_equal(sim_hopper_size(&fixture->reader_unit), 1);
     assert_int_equal(sim_card_attach(&fixture->reader_unit, append_arg),
                      SCPE_OK);
     sim_switches = 0;
+    assert_string_equal(fixture->reader_unit.filename, expected_second_name);
     assert_int_equal(sim_hopper_size(&fixture->reader_unit), 3);
     assert_int_equal(sim_card_input_hopper_count(&fixture->reader_unit), 2);
 
@@ -242,6 +263,16 @@ static void test_sim_card_replace_deck_discards_previous_hopper(void **state)
     assert_punched_output(fixture, expected_output);
 }
 
+/* Verify the built-in card TESTLIB path succeeds in a temporary directory. */
+static void test_sim_card_self_test_succeeds(void **state)
+{
+    struct sim_card_fixture *fixture = *state;
+
+    assert_int_equal(chdir(fixture->temp_dir), 0);
+    assert_int_equal(sim_card_test(&fixture->reader_dev, NULL), SCPE_OK);
+    assert_int_equal(chdir(fixture->original_cwd), 0);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -260,6 +291,9 @@ int main(void)
         cmocka_unit_test_setup_teardown(
             test_sim_card_replace_deck_discards_previous_hopper,
             setup_sim_card_fixture, teardown_sim_card_fixture),
+        cmocka_unit_test_setup_teardown(test_sim_card_self_test_succeeds,
+                                        setup_sim_card_fixture,
+                                        teardown_sim_card_fixture),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

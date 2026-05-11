@@ -391,7 +391,7 @@ t_stat xu_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
   CTLR* xu = xu_unit2ctlr(uptr);
   char  buffer[20];
 
-  eth_mac_fmt(xu->var->mac, buffer);
+  eth_mac_fmt(xu->var->mac, buffer, sizeof(buffer));
   fprintf(st, "MAC=%s", buffer);
   return SCPE_OK;
 }
@@ -469,7 +469,7 @@ t_stat xu_show_filters (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 
   fprintf(st, "Filters:\n");
   for (i=0; i<XU_FILTER_MAX; i++) {
-    eth_mac_fmt(xu->var->setup.macs[i], buffer);
+    eth_mac_fmt(xu->var->setup.macs[i], buffer, sizeof(buffer));
     fprintf(st, "  [%2d]: %s\n", i, buffer);
   }
   if (xu->var->setup.multicast)

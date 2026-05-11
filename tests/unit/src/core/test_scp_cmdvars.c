@@ -86,7 +86,7 @@ static unsigned long simh_test_win32_temp_path_success(unsigned long size,
 
     if (strlen(path) + 1 > size)
         return (unsigned long)(strlen(path) + 1);
-    strcpy(buf, path);
+    strlcpy(buf, path, size);
     return (unsigned long)strlen(path);
 }
 #endif

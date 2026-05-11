@@ -358,9 +358,7 @@ static const char *sim_get_host_env_uplowcase(const char *gbuf, char *rbuf,
 static void sim_subststr_substr(const char *ops, char *rbuf, size_t rbuf_size)
 {
     int rbuf_len = (int)strlen(rbuf);
-    char *tstr = (char *)malloc(1 + rbuf_len);
-
-    strcpy(tstr, rbuf);
+    char *tstr = strdup(rbuf);
 
     if (*ops == '~') {
         int offset = 0, length = rbuf_len;
@@ -394,11 +392,10 @@ static void sim_subststr_substr(const char *ops, char *rbuf, size_t rbuf_size)
         if ((eq = strchr(ops, '='))) {
             const char *last = tstr;
             const char *curr = tstr;
-            char *match = (char *)malloc(1 + (eq - ops));
+            char *match = strndup(ops, eq - ops);
             size_t copy_left = rbuf_size ? rbuf_size - 1 : 0;
             bool asterisk_match;
 
-            strlcpy(match, ops, 1 + (eq - ops));
             asterisk_match = (*ops == '*');
             if (asterisk_match)
                 memmove(match, match + 1, 1 + strlen(match + 1));
@@ -436,22 +433,15 @@ static void sim_subststr_substr(const char *ops, char *rbuf, size_t rbuf_size)
 void sim_cmdvars_capture_env_alias(const char *name)
 {
     const char *env_value;
-    size_t value_len;
 
     env_value = getenv(name);
     if (env_value == NULL)
         return;
-    value_len = strlen(env_value);
     ++sim_external_env_count;
     sim_external_env = (struct deleted_env_var *)realloc(
         sim_external_env, sim_external_env_count * sizeof(*sim_external_env));
-    sim_external_env[sim_external_env_count - 1].name =
-        (char *)malloc(1 + strlen(name));
-    strcpy(sim_external_env[sim_external_env_count - 1].name, name);
-    sim_external_env[sim_external_env_count - 1].value =
-        (char *)malloc(1 + value_len);
-    strlcpy(sim_external_env[sim_external_env_count - 1].value, env_value,
-            1 + value_len);
+    sim_external_env[sim_external_env_count - 1].name = strdup(name);
+    sim_external_env[sim_external_env_count - 1].value = strdup(env_value);
     unsetenv(name);
 }
 
@@ -522,18 +512,14 @@ void sim_sub_var_set(const char *name, const char *value)
     for (i = 0; i < sim_sub_var_count; ++i)
         if (0 == strcmp(name, sim_sub_vars[i].name)) {
             free(sim_sub_vars[i].value);
-            sim_sub_vars[i].value = (char *)malloc(1 + strlen(value));
-            strcpy(sim_sub_vars[i].value, value);
+            sim_sub_vars[i].value = strdup(value);
             return;
         }
     ++sim_sub_var_count;
     sim_sub_vars = (struct scp_sub_var *)realloc(
         sim_sub_vars, sim_sub_var_count * sizeof(*sim_sub_vars));
-    sim_sub_vars[sim_sub_var_count - 1].name = (char *)malloc(1 + strlen(name));
-    strcpy(sim_sub_vars[sim_sub_var_count - 1].name, name);
-    sim_sub_vars[sim_sub_var_count - 1].value =
-        (char *)malloc(1 + strlen(value));
-    strcpy(sim_sub_vars[sim_sub_var_count - 1].value, value);
+    sim_sub_vars[sim_sub_var_count - 1].name = strdup(name);
+    sim_sub_vars[sim_sub_var_count - 1].value = strdup(value);
 }
 
 /* Remove one SCP-owned substitution variable, if present. */
@@ -593,17 +579,17 @@ const char *_sim_get_env_special(const char *gbuf, char *rbuf, size_t rbuf_size)
     tmnow = sim_cmdvars_localtime(now, &tm_storage) ? &tm_storage : NULL;
 
     if (tmnow && !strcmp("DATE", gbuf)) {
-        sprintf(rbuf, "%4d-%02d-%02d", tmnow->tm_year + 1900, tmnow->tm_mon + 1,
-                tmnow->tm_mday);
+        snprintf(rbuf, rbuf_size, "%4d-%02d-%02d", tmnow->tm_year + 1900,
+                 tmnow->tm_mon + 1, tmnow->tm_mday);
         ap = rbuf;
     } else if (tmnow && !strcmp("TIME", gbuf)) {
-        sprintf(rbuf, "%02d:%02d:%02d", tmnow->tm_hour, tmnow->tm_min,
-                tmnow->tm_sec);
+        snprintf(rbuf, rbuf_size, "%02d:%02d:%02d", tmnow->tm_hour,
+                 tmnow->tm_min, tmnow->tm_sec);
         ap = rbuf;
     } else if (tmnow && !strcmp("DATETIME", gbuf)) {
-        sprintf(rbuf, "%04d-%02d-%02dT%02d:%02d:%02d", tmnow->tm_year + 1900,
-                tmnow->tm_mon + 1, tmnow->tm_mday, tmnow->tm_hour,
-                tmnow->tm_min, tmnow->tm_sec);
+        snprintf(rbuf, rbuf_size, "%04d-%02d-%02dT%02d:%02d:%02d",
+                 tmnow->tm_year + 1900, tmnow->tm_mon + 1, tmnow->tm_mday,
+                 tmnow->tm_hour, tmnow->tm_min, tmnow->tm_sec);
         ap = rbuf;
     } else if (tmnow && !strcmp("LDATE", gbuf)) {
         strftime(rbuf, rbuf_size, "%x", tmnow);
@@ -615,7 +601,7 @@ const char *_sim_get_env_special(const char *gbuf, char *rbuf, size_t rbuf_size)
         strftime(rbuf, rbuf_size, "%c", tmnow);
         ap = rbuf;
     } else if (!strcmp("UTIME", gbuf)) {
-        sprintf(rbuf, "%" PRIdMAX, (intmax_t)now);
+        snprintf(rbuf, rbuf_size, "%" PRIdMAX, (intmax_t)now);
         ap = rbuf;
     } else if (tmnow && !strcmp("DATE_YYYY", gbuf)) {
         strftime(rbuf, rbuf_size, "%Y", tmnow);
@@ -636,9 +622,9 @@ const char *_sim_get_env_special(const char *gbuf, char *rbuf, size_t rbuf_size)
         int cal_year = years[selector];
 
         if (!strcmp("DATE_19XX_YY", gbuf))
-            sprintf(rbuf, "%d", cal_year);
+            snprintf(rbuf, rbuf_size, "%d", cal_year);
         else
-            sprintf(rbuf, "%d", cal_year + 1900);
+            snprintf(rbuf, rbuf_size, "%d", cal_year + 1900);
         ap = rbuf;
     } else if (tmnow && !strcmp("DATE_MM", gbuf)) {
         strftime(rbuf, rbuf_size, "%m", tmnow);
@@ -653,7 +639,8 @@ const char *_sim_get_env_special(const char *gbuf, char *rbuf, size_t rbuf_size)
         strftime(rbuf, rbuf_size, "%d", tmnow);
         ap = rbuf;
     } else if (tmnow && !strcmp("DATE_D", gbuf)) {
-        sprintf(rbuf, "%d", (tmnow->tm_wday ? tmnow->tm_wday : 7));
+        snprintf(rbuf, rbuf_size, "%d",
+                 (tmnow->tm_wday ? tmnow->tm_wday : 7));
         ap = rbuf;
     } else if (tmnow &&
                ((!strcmp("DATE_WW", gbuf)) || (!strcmp("DATE_WYYYY", gbuf)))) {
@@ -673,9 +660,9 @@ const char *_sim_get_env_special(const char *gbuf, char *rbuf, size_t rbuf_size)
             iso_wk = 1;
         }
         if (!strcmp("DATE_WW", gbuf))
-            sprintf(rbuf, "%02d", iso_wk);
+            snprintf(rbuf, rbuf_size, "%02d", iso_wk);
         else
-            sprintf(rbuf, "%04d", iso_yr);
+            snprintf(rbuf, rbuf_size, "%04d", iso_yr);
         ap = rbuf;
     } else if (tmnow && !strcmp("DATE_JJJ", gbuf)) {
         strftime(rbuf, rbuf_size, "%j", tmnow);
@@ -690,31 +677,32 @@ const char *_sim_get_env_special(const char *gbuf, char *rbuf, size_t rbuf_size)
         strftime(rbuf, rbuf_size, "%S", tmnow);
         ap = rbuf;
     } else if (!strcmp("TIME_MSEC", gbuf)) {
-        sprintf(rbuf, "%03d", (int)(cmd_time.tv_nsec / 1000000));
+        snprintf(rbuf, rbuf_size, "%03d",
+                 (int)(cmd_time.tv_nsec / 1000000));
         ap = rbuf;
     } else if (!strcmp("STATUS", gbuf)) {
-        sprintf(rbuf, "%08X", sim_last_cmd_stat);
+        snprintf(rbuf, rbuf_size, "%08X", sim_last_cmd_stat);
         ap = rbuf;
     } else if (!strcmp("TSTATUS", gbuf)) {
         t_stat stat = SCPE_BARE_STATUS(sim_last_cmd_stat);
 
         if ((stat > SCPE_OK) && (stat < SCPE_BASE) &&
             (sim_stop_messages[stat] != NULL))
-            sprintf(rbuf, "%s", sim_stop_messages[stat]);
+            strlcpy(rbuf, sim_stop_messages[stat], rbuf_size);
         else
-            sprintf(rbuf, "%s", sim_error_text(stat));
+            strlcpy(rbuf, sim_error_text(stat), rbuf_size);
         ap = rbuf;
     } else if (!strcmp("SIM_VERIFY", gbuf)) {
-        sprintf(rbuf, "%s", scp_do_echo_enabled() ? "-V" : "");
+        strlcpy(rbuf, scp_do_echo_enabled() ? "-V" : "", rbuf_size);
         ap = rbuf;
     } else if (!strcmp("SIM_VERBOSE", gbuf)) {
-        sprintf(rbuf, "%s", scp_do_echo_enabled() ? "-V" : "");
+        strlcpy(rbuf, scp_do_echo_enabled() ? "-V" : "", rbuf_size);
         ap = rbuf;
     } else if (!strcmp("SIM_QUIET", gbuf)) {
-        sprintf(rbuf, "%s", sim_quiet ? "-Q" : "");
+        strlcpy(rbuf, sim_quiet ? "-Q" : "", rbuf_size);
         ap = rbuf;
     } else if (!strcmp("SIM_MESSAGE", gbuf)) {
-        sprintf(rbuf, "%s", sim_show_message ? "" : "-Q");
+        strlcpy(rbuf, sim_show_message ? "" : "-Q", rbuf_size);
         ap = rbuf;
     } else if (!strcmp("SIM_NULL_DEVICE", gbuf)) {
         strlcpy(rbuf, NULL_DEVICE, rbuf_size);
@@ -735,7 +723,7 @@ const char *_sim_get_env_special(const char *gbuf, char *rbuf, size_t rbuf_size)
         ap = sim_ostype_value(rbuf, rbuf_size);
     } else if (!strcmp("SIM_RUNLIMIT", gbuf)) {
         if (sim_runlimit_enabled) {
-            sprintf(rbuf, "%d", sim_runlimit_value);
+            snprintf(rbuf, rbuf_size, "%d", sim_runlimit_value);
             ap = rbuf;
         }
     } else if (!strcmp("SIM_RUNLIMIT_UNITS", gbuf)) {
@@ -845,7 +833,7 @@ void sim_sub_args(char *instr, size_t instr_size, char *do_arg[])
     }
     *op = 0;
     sim_sub_instr_off[outstr_off] = 0;
-    strcpy(instr, tmpbuf);
+    strlcpy(instr, tmpbuf, instr_size);
     free(tmpbuf);
 }
 
@@ -921,7 +909,7 @@ t_stat sim_set_environment(int32_t flag, const char *cptr)
 
                 cptr = sim_eval_expression(eptr, &val, false, &stat);
                 if (stat == SCPE_OK) {
-                    sprintf(cbuf, "%ld", (long)val);
+                    snprintf(cbuf, sizeof(cbuf), "%ld", (long)val);
                     cptr = cbuf;
                 } else
                     return stat;

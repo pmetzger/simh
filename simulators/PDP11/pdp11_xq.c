@@ -673,7 +673,7 @@ t_stat xq_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
   CTLR* xq = xq_unit2ctlr(uptr);
   char  buffer[20];
 
-  eth_mac_fmt(xq->var->mac, buffer);
+  eth_mac_fmt(xq->var->mac, buffer, sizeof(buffer));
   fprintf(st, "MAC=%s", buffer);
   return SCPE_OK;
 }
@@ -791,10 +791,11 @@ t_stat xq_show_filters (FILE* st, UNIT* uptr, int32_t val, const void* desc)
   int i;
 
   if (xq->var->mode == XQ_T_DELQA_PLUS) {
-    eth_mac_fmt(xq->var->init.phys, buffer);
+    eth_mac_fmt(xq->var->init.phys, buffer, sizeof(buffer));
     fprintf(st, "Physical Address=%s\n", buffer);
     for (i=1; i<xq->var->etherface->addr_count; i++) {
-      eth_mac_fmt(xq->var->etherface->filter_address[i], buffer);
+      eth_mac_fmt(xq->var->etherface->filter_address[i], buffer,
+                  sizeof(buffer));
       fprintf(st, "Additional Filter:[%2d]: %s\n", (int)i, buffer);
     }
     if (xq->var->etherface->hash_filter) {
@@ -808,7 +809,7 @@ t_stat xq_show_filters (FILE* st, UNIT* uptr, int32_t val, const void* desc)
   } else {
     fprintf(st, "Filters:\n");
     for (i=0; i<XQ_FILTER_MAX; i++) {
-      eth_mac_fmt(xq->var->setup.macs[i], buffer);
+      eth_mac_fmt(xq->var->setup.macs[i], buffer, sizeof(buffer));
       fprintf(st, "  [%2d]: %s\n", (int)i, buffer);
     }
     if (xq->var->setup.multicast)
@@ -3187,7 +3188,7 @@ void xq_debug_setup(CTLR* xq)
     }
 
   for (i = 0; i < XQ_FILTER_MAX; i++) {
-    eth_mac_fmt(xq->var->setup.macs[i], buffer);
+    eth_mac_fmt(xq->var->setup.macs[i], buffer, sizeof(buffer));
     sim_debug(DBG_SET, xq->dev, "%s: setup> set addr[%d]: %s\n", xq->dev->name, i, buffer);
   }
 
@@ -3220,7 +3221,7 @@ void xq_debug_turbo_setup(CTLR* xq)
   if (xq->var->init.mode & XQ_IN_MO_LOP) strcat(buffer, "LOP ");
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Mode: %s\n", xq->dev->name, buffer);
 
-  eth_mac_fmt(xq->var->init.phys, buffer);
+  eth_mac_fmt(xq->var->init.phys, buffer, sizeof(buffer));
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Physical MAC Address: %s\n", xq->dev->name, buffer);
 
   buffer[0] = '\0';

@@ -599,6 +599,36 @@ static void test_disk_synchronize_cache_flushes_backing_store(void **state)
     teardown_disk_bus(&disk_case);
 }
 
+static void test_disk_inquiry_reports_identity_fields(void **state)
+{
+    struct scsi_disk_case disk_case;
+    const uint8_t expected[] = {
+        0x00,       /* direct-access block device */
+        0x00,       /* fixed media */
+        0x02, 0x02, /* SCSI version and response data format */
+        31, 0x00, 0x00, 0x00,
+        'S', 'I', 'M', 'H', ' ', ' ', ' ', ' ',
+        'D', 'I', 'S', 'K', ' ', ' ', ' ', ' ',
+        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+        '0', '0', '0', '1',
+    };
+    uint8_t data[sizeof(expected)];
+
+    (void)state;
+
+    setup_disk_bus(&disk_case);
+    disk_case.command[0] = 0x12;
+    disk_case.command[4] = sizeof(expected);
+    disk_case.command_len = 6;
+
+    assert_disk_command_writes_silently(&disk_case);
+    read_scsi_bus_data(&disk_case.bus, data, sizeof(data), sizeof(expected));
+    assert_memory_equal(data, expected, sizeof(expected));
+    assert_scsi_bus_good_status(&disk_case.bus);
+
+    teardown_disk_bus(&disk_case);
+}
+
 static void test_disk_read6_failure_reports_medium_error(void **state)
 {
     struct scsi_disk_case disk_case;
@@ -1240,6 +1270,7 @@ int main(void)
         cmocka_unit_test(test_scsi_reset_clears_bus_signals_and_sense),
         cmocka_unit_test(test_cdrom_synchronize_cache_returns_good_status),
         cmocka_unit_test(test_disk_synchronize_cache_flushes_backing_store),
+        cmocka_unit_test(test_disk_inquiry_reports_identity_fields),
         cmocka_unit_test(test_disk_read6_failure_reports_medium_error),
         cmocka_unit_test(test_disk_read10_failure_reports_medium_error),
         cmocka_unit_test(test_disk_read_long_failure_reports_medium_error),
