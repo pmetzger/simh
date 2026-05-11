@@ -6005,25 +6005,26 @@ t_stat dir_cmd (int32_t flg, const char *cptr)
 DIR_CTX dir_state;
 t_stat r;
 char *WildName;
+const size_t wildname_size = PATH_MAX + 1;
 struct stat filestat;
 
-if ((WildName = (char *) calloc(PATH_MAX + 1, sizeof(char))) == NULL)
+if ((WildName = (char *) calloc(wildname_size, sizeof(char))) == NULL)
   return SCPE_MEM;
 
 GET_SWITCHES (cptr);                                    /* get switches */
 memset (&dir_state, 0, sizeof (dir_state));
-strlcpy (WildName, cptr, sizeof(WildName));
+strlcpy (WildName, cptr, wildname_size);
 cptr = WildName;
 sim_trim_endspc (WildName);
 if (*cptr == '\0')
-    strlcpy (WildName, ".", sizeof (WildName));
+    strlcpy (WildName, ".", wildname_size);
 else {
     if ((WildName[strlen (WildName) - 1] == '/') ||
         (WildName[strlen (WildName) - 1] == '\\'))
-        strlcat (WildName, ".", sizeof (WildName));
+        strlcat (WildName, ".", wildname_size);
     }
 if ((!sim_stat (WildName, &filestat)) && (filestat.st_mode & S_IFDIR))
-    strlcat (WildName, "/*", sizeof (WildName));
+    strlcat (WildName, "/*", wildname_size);
 r = sim_dir_scan (cptr, sim_dir_entry, &dir_state);
 sim_dir_entry (NULL, NULL, 0, NULL, &dir_state);    /* output summary */
 if (r != SCPE_OK) {

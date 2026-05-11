@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -258,6 +259,51 @@ static void test_register_internal_device_ignores_duplicates(void **state)
     assert_int_equal(sim_internal_device_count, 1);
 }
 
+struct dir_cmd_capture_context {
+    const char *path;
+    t_stat status;
+};
+
+static void capture_dir_cmd_output(void *context)
+{
+    struct dir_cmd_capture_context *capture = context;
+
+    capture->status = dir_cmd(0, capture->path);
+}
+
+/* Verify DIR preserves dynamically allocated path capacity. */
+static void test_dir_cmd_lists_paths_longer_than_pointer_width(void **state)
+{
+    char directory[PATH_MAX];
+    char file_path[PATH_MAX];
+    char *output = NULL;
+    size_t output_size = 0;
+    struct dir_cmd_capture_context capture;
+
+    (void)state;
+
+    assert_int_equal(simh_test_make_temp_dir(directory, sizeof(directory),
+                                             "zimh-scp-dir-long-path"),
+                     0);
+    assert_true(strlen(directory) > sizeof(char *));
+    assert_int_equal(simh_test_join_path(file_path, sizeof(file_path),
+                                         directory, "visible-file.txt"),
+                     0);
+    assert_int_equal(simh_test_write_file(file_path, "x", 1), 0);
+
+    capture.path = directory;
+    capture.status = SCPE_IERR;
+    assert_int_equal(simh_test_capture_stdout(capture_dir_cmd_output, &capture,
+                                              &output, &output_size),
+                     0);
+
+    assert_int_equal(capture.status, SCPE_OK);
+    assert_non_null(strstr(output, "visible-file.txt"));
+
+    free(output);
+    assert_int_equal(simh_test_remove_path(directory), 0);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -290,6 +336,9 @@ int main(void)
             setup_scp_context_fixture, teardown_scp_context_fixture),
         cmocka_unit_test_setup_teardown(
             test_register_internal_device_ignores_duplicates,
+            setup_scp_context_fixture, teardown_scp_context_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_dir_cmd_lists_paths_longer_than_pointer_width,
             setup_scp_context_fixture, teardown_scp_context_fixture),
     };
 
