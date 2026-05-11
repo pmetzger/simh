@@ -118,7 +118,7 @@ daz_wr(int32_t data, int32_t PA, int32_t access)
   return SCPE_NXM;
 }
 
-int daz_keyboard (SIM_KEY_EVENT *kev)
+static int daz_keyboard (SIM_KEY_EVENT *kev)
 {
   uint32_t mask;
   int n;

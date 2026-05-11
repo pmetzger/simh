@@ -234,7 +234,7 @@ static void check_interrupt (UNIT *uptr)
 }
 
 /* return true if display not stopped */
-int dpy_update_status (UNIT *uptr, ty340word status, int done)
+static int dpy_update_status (UNIT *uptr, ty340word status, int done)
 {
     int running = !(status & ST340_STOPPED);
 

@@ -705,7 +705,7 @@ uint16_t vt_boot_rom[] = {
                                       //         000001                                  .END
     };
 
-t_stat
+static t_stat
 vt_rom_rd(int32_t *data, int32_t PA, int32_t access)
 {
 *data = (int32_t)vt_boot_rom[(((PA - vt_rom_base) & 0xFFFF) >> 1)];

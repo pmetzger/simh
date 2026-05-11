@@ -114,7 +114,7 @@ t_stat dkb_devio(uint32_t dev, uint64 *data) {
     return SCPE_OK;
 }
 
-int dkb_modifiers (SIM_KEY_EVENT *kev)
+static int dkb_modifiers (SIM_KEY_EVENT *kev)
 {
     if (kev->state == SIM_KEYPRESS_UP) {
         switch (kev->key) {
@@ -163,7 +163,7 @@ int dkb_modifiers (SIM_KEY_EVENT *kev)
      return 0;
 }
 
-int dkb_keys (SIM_KEY_EVENT *kev, UNIT *uptr)
+static int dkb_keys (SIM_KEY_EVENT *kev, UNIT *uptr)
 {
   if (kev->state == SIM_KEYPRESS_UP) {
     if (kev->key == SIM_KEY_F11)
@@ -435,7 +435,7 @@ int dkb_keys (SIM_KEY_EVENT *kev, UNIT *uptr)
   }
 }
 
-uint32_t dkb_line (SIM_KEY_EVENT *kev)
+static uint32_t dkb_line (SIM_KEY_EVENT *kev)
 {
 #if NUM_DEVS_III
     if (kev->dev == &iii_dev)

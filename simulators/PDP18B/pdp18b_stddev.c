@@ -710,9 +710,10 @@ ptr_unit.flags = ptr_unit.flags & ~UNIT_RASCII;
 return detach_unit (uptr);
 }
 
+#if !defined (PDP4)
 /* Hardware RIM loader routines, PDP-7/9/15 */
 
-int32_t ptr_getw (UNIT *uptr, int32_t *hi)
+static int32_t ptr_getw (UNIT *uptr, int32_t *hi)
 {
 int32_t word, bits, st, ch;
 
@@ -753,6 +754,7 @@ for (;;) {                                              /* word loop */
     }
 return SCPE_FMT;
 }
+#endif /* !defined (PDP4) */
 
 #if defined (PDP4) || defined (PDP7)
 

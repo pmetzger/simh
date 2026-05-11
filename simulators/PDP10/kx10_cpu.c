@@ -835,7 +835,7 @@ struct _byte {
  * Set quantum clock to qua_time.
  */
 
-void
+static void
 set_quantum(void)
 {
     double us;
@@ -849,7 +849,7 @@ set_quantum(void)
 /*
  * Update the qua_time variable.
  */
-void
+static void
 load_quantum(void)
 {
     if (sim_is_active(&cpu_unit[1])) {
@@ -866,7 +866,7 @@ load_quantum(void)
 /*
  * Get the current quantum time.
  */
-uint32_t
+static uint32_t
 get_quantum(void)
 {
     uint32_t t = qua_time;
@@ -1037,7 +1037,7 @@ void set_pi_hold(void) {
 /*
  * PI device for KA and KI and KL
  */
-t_stat dev_pi(uint32_t dev, uint64 *data) {
+static t_stat dev_pi(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     switch(dev & 3) {
     case CONO:
@@ -1149,7 +1149,7 @@ t_stat dev_pi(uint32_t dev, uint64 *data) {
 /*
  * Non existent device
 */
-t_stat null_dev(uint32_t dev, uint64 *data) {
+static t_stat null_dev(uint32_t dev, uint64 *data) {
     switch(dev & 3) {
     case CONI:
     case DATAI:
@@ -1165,7 +1165,7 @@ t_stat null_dev(uint32_t dev, uint64 *data) {
 #endif
 
 #if KL
-void
+static void
 update_times(int tim)
 {
     uint64    temp;
@@ -1186,7 +1186,7 @@ update_times(int tim)
 /*
  * Page device for KL10.
  */
-t_stat dev_pag(uint32_t dev, uint64 *data) {
+static t_stat dev_pag(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     int    i;
     switch(dev & 03) {
@@ -1285,7 +1285,7 @@ t_stat dev_pag(uint32_t dev, uint64 *data) {
  * Cache control.
  * All operations set sweep done.
  */
-t_stat dev_cca(uint32_t dev, uint64 *data) {
+static t_stat dev_cca(uint32_t dev, uint64 *data) {
     /* Generic I/O device signature.
        This implementation does not use every parameter. */
     (void) dev;
@@ -1314,7 +1314,7 @@ void check_apr_irq(void) {
 /*
  * APR device for KL10.
  */
-t_stat dev_apr(uint32_t dev, uint64 *data) {
+static t_stat dev_apr(uint32_t dev, uint64 *data) {
     uint64 res = 0;
 
     switch(dev & 03) {
@@ -1369,7 +1369,7 @@ t_stat dev_apr(uint32_t dev, uint64 *data) {
 /*
  * MTR device for KL10.
  */
-t_stat dev_mtr(uint32_t dev, uint64 *data) {
+static t_stat dev_mtr(uint32_t dev, uint64 *data) {
 
     switch(dev & 03) {
     case CONI:
@@ -1414,7 +1414,7 @@ t_stat dev_mtr(uint32_t dev, uint64 *data) {
 /*
  * TIM device for KL10.
  */
-t_stat dev_tim(uint32_t dev, uint64 *data) {
+static t_stat dev_tim(uint32_t dev, uint64 *data) {
     uint64 res;
     double us;
     UNIT   *uptr = &cpu_unit[1 + ITS];
@@ -1476,7 +1476,7 @@ t_stat dev_tim(uint32_t dev, uint64 *data) {
     return SCPE_OK;
 }
 
-t_addr
+static t_addr
 tim_irq(uint32_t dev, t_addr addr)
 {
     /* Generic device interrupt signature.
@@ -1495,7 +1495,7 @@ static int      timer_irq, timer_flg;
 /*
  * Page device for KI10.
  */
-t_stat dev_pag(uint32_t dev, uint64 *data) {
+static t_stat dev_pag(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     int    i;
     switch(dev & 03) {
@@ -1579,7 +1579,7 @@ void check_apr_irq(void) {
 /*
  * APR device for KI10.
  */
-t_stat dev_apr(uint32_t dev, uint64 *data) {
+static t_stat dev_apr(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     switch(dev & 03) {
     case CONI:
@@ -1643,7 +1643,7 @@ t_stat dev_apr(uint32_t dev, uint64 *data) {
 #if KA
 
 #if BBN
-t_stat dev_pag(uint32_t dev, uint64 *data) {
+static t_stat dev_pag(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     int    i;
     int    page_limit[] = {
@@ -1730,7 +1730,7 @@ void check_apr_irq(void) {
 /*
  * APR Device for KA10.
  */
-t_stat dev_apr(uint32_t dev, uint64 *data) {
+static t_stat dev_apr(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     switch(dev & 03) {
     case CONI:
@@ -1866,7 +1866,7 @@ void cty_execute(int addr)
      fe_xct = addr;
 }
 
-int
+static int
 load_tlb(int uf, int page, int wr)
 {
     uint64  data;
@@ -2128,7 +2128,7 @@ pg_loop:
  * cur_context is set when access should ignore xct_flag
  * fetch is set for instruction fetches.
  */
-int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
+static int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
     int      data;
     int      page = (RMASK & addr) >> 9;
     int      uf = (FLAGS & USER) != 0;
@@ -2367,7 +2367,7 @@ int Mem_write(int flag, int cur_context) {
 #endif
 
 #if KL
-int
+static int
 load_tlb(int uf, int page, int wr)
 {
     uint64  data;
@@ -2632,7 +2632,7 @@ pg_loop:
  * cur_context is set when access should ignore xct_flag
  * fetch is set for instruction fetches.
  */
-int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
+static int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
     int      data;
     int      page = (RMASK & addr) >> 9;
     int      uf = (FLAGS & USER) != 0;
@@ -2921,7 +2921,7 @@ int Mem_write(int flag, int cur_context) {
 }
 
 /* executive page table lookup */
-int exec_page_lookup(t_addr addr, int wr, t_addr *loc)
+static int exec_page_lookup(t_addr addr, int wr, t_addr *loc)
 {
     int      data;
     int      page = (RMASK & addr) >> 9;
@@ -3107,7 +3107,7 @@ address_conditions (int fetch, int write)
  * Load the TLB entry, used for both page_lookup and MAP.
  * Do not call this for direct map executive pages.
  */
-int
+static int
 load_tlb(int uf, int page)
 {
     uint64  data;
@@ -3162,7 +3162,7 @@ load_tlb(int uf, int page)
  * cur_context is set when access should ignore xct_flag
  * fetch is set for instruction fetches.
  */
-int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch, int modify) {
+static int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch, int modify) {
     int      data;
     int      page = (RMASK & addr) >> 9;
     int      uf = (FLAGS & USER) != 0;
@@ -3250,14 +3250,14 @@ int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int
 /*
  * Register access on KI 10
  */
-uint64 get_reg(int reg) {
+static uint64 get_reg(int reg) {
     if (FLAGS & USER)
        return FM[fm_sel|(reg & 017)];
     else
        return FM[reg & 017];
 }
 
-void   set_reg(int reg, uint64 value) {
+static void   set_reg(int reg, uint64 value) {
     if (FLAGS & USER)
         FM[fm_sel|(reg & 017)] = value;
     else
@@ -3370,7 +3370,7 @@ write:
 /*
  * Load TBL entry for ITS.
  */
-int its_load_tlb(uint32_t reg, int page, uint32_t *tlb) {
+static int its_load_tlb(uint32_t reg, int page, uint32_t *tlb) {
     uint64 data;
     int len = (reg >> 19) & 0177;
     uint_t entry = (reg & 01777777) + ((page & 0377) >> 1);
@@ -3406,7 +3406,7 @@ int its_load_tlb(uint32_t reg, int page, uint32_t *tlb) {
  * Translation logic for KA10
  */
 
-int page_lookup_its(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch, int modify) {
+static int page_lookup_its(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch, int modify) {
     uint64   data;
     int      page = (RMASK & addr) >> 10;
     int      acc;
@@ -3538,7 +3538,7 @@ fault:
  *
  * Return of 0 if successful, 1 if there was an error.
  */
-int Mem_read_its(int flag, int cur_context, int fetch, int mod) {
+static int Mem_read_its(int flag, int cur_context, int fetch, int mod) {
     t_addr addr;
 
     if (AB < 020) {
@@ -3598,7 +3598,7 @@ int Mem_read_its(int flag, int cur_context, int fetch, int mod) {
  *
  * Return of 0 if successful, 1 if there was an error.
  */
-int Mem_write_its(int flag, int cur_context) {
+static int Mem_write_its(int flag, int cur_context) {
     t_addr addr;
 
     if (AB < 020) {
@@ -3657,7 +3657,7 @@ int Mem_write_its(int flag, int cur_context) {
 #endif
 
 #if BBN
-int page_lookup_bbn(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
+static int page_lookup_bbn(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
       /* Group 0, 01 = 00
                   bit 2 = Age 00x                                        0100000
                   bit 3 = Age 02x                                        0040000
@@ -3917,7 +3917,7 @@ fault_bbn:
  *
  * Return of 0 if successful, 1 if there was an error.
  */
-int Mem_read_bbn(int flag, int cur_context, int fetch, int mod) {
+static int Mem_read_bbn(int flag, int cur_context, int fetch, int mod) {
     t_addr addr;
 
     /* If not doing any special access, just access register */
@@ -3962,7 +3962,7 @@ int Mem_read_bbn(int flag, int cur_context, int fetch, int mod) {
  *
  * Return of 0 if successful, 1 if there was an error.
  */
-int Mem_write_bbn(int flag, int cur_context) {
+static int Mem_write_bbn(int flag, int cur_context) {
     t_addr addr;
 
     /* If not doing any special access, just access register */
@@ -4001,7 +4001,7 @@ int Mem_write_bbn(int flag, int cur_context) {
 #endif
 
 #if WAITS
-int page_lookup_waits(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
+static int page_lookup_waits(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
     int      uf = (FLAGS & USER) != 0;
 
     /* If this is modify instruction use write access */
@@ -4042,7 +4042,7 @@ int page_lookup_waits(t_addr addr, int flag, t_addr *loc, int wr, int cur_contex
     return 1;
 }
 
-int Mem_read_waits(int flag, int cur_context, int fetch, int mod) {
+static int Mem_read_waits(int flag, int cur_context, int fetch, int mod) {
     t_addr addr;
 
     if (AB < 020 && ((xct_flag == 0 || fetch || cur_context || (FLAGS & USER) != 0))) {
@@ -4079,7 +4079,7 @@ int Mem_read_waits(int flag, int cur_context, int fetch, int mod) {
  * Return of 0 if successful, 1 if there was an error.
  */
 
-int Mem_write_waits(int flag, int cur_context) {
+static int Mem_write_waits(int flag, int cur_context) {
     t_addr addr;
 
     /* If not doing any special access, just access register */
@@ -4112,7 +4112,7 @@ int Mem_write_waits(int flag, int cur_context) {
 }
 #endif
 
-int page_lookup_ka(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
+static int page_lookup_ka(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
       /* Shared paging helper signature.
          This model variant does not use every parameter. */
       (void) cur_context;
@@ -4141,7 +4141,7 @@ int page_lookup_ka(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, 
       return 1;
 }
 
-int Mem_read_ka(int flag, int cur_context, int fetch, int mod) {
+static int Mem_read_ka(int flag, int cur_context, int fetch, int mod) {
     t_addr addr = AB;
 
     if (AB < 020) {
@@ -4172,7 +4172,7 @@ int Mem_read_ka(int flag, int cur_context, int fetch, int mod) {
  * Return of 0 if successful, 1 if there was an error.
  */
 
-int Mem_write_ka(int flag, int cur_context) {
+static int Mem_write_ka(int flag, int cur_context) {
     t_addr addr = AB;
 
     if (AB < 020) {
@@ -4215,7 +4215,7 @@ void check_apr_irq(void) {
 /*
  * APR Device for PDP6.
  */
-t_stat dev_apr(uint32_t dev, uint64 *data) {
+static t_stat dev_apr(uint32_t dev, uint64 *data) {
     uint64 res = 0;
     switch(dev & 03) {
     case CONI:
@@ -4298,7 +4298,7 @@ t_stat dev_apr(uint32_t dev, uint64 *data) {
 #define get_reg(reg)                 FM[(reg) & 017]
 #define set_reg(reg, value)          FM[(reg) & 017] = value
 
-int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
+static int page_lookup(t_addr addr, int flag, t_addr *loc, int wr, int cur_context, int fetch) {
       /* Shared paging helper signature.
          This model variant does not use every parameter. */
       (void) wr;
@@ -12367,7 +12367,7 @@ return reason;
 #if KL | KS
 
 /* Handle indirection for extended byte instructions */
-int
+static int
 do_byte_setup(int n, int wr, int *pos, int *sz)
 {
     uint64    val1;
@@ -12571,7 +12571,7 @@ do_byte_setup(int n, int wr, int *pos, int *sz)
 }
 
 /* Get data from pointer */
-int
+static int
 load_byte(int n, uint64 *data, uint64 fill, int cnt)
 {
     uint64    val1, msk;
@@ -12610,7 +12610,7 @@ back:
 }
 
 /* Store data into pointer */
-int
+static int
 store_byte(int n, uint64 data, int cnt)
 {
     uint64    val1, msk;
@@ -12649,7 +12649,7 @@ back:
     return 0;
 }
 
-void
+static void
 get_mask(int n, uint64 *msk)
 {
     uint64   val;
@@ -12664,7 +12664,7 @@ get_mask(int n, uint64 *msk)
 }
 
 /* Adjust a pointer to be valid */
-void
+static void
 adj_byte(int n)
 {
     uint64    val1, val2;
@@ -12717,7 +12717,7 @@ adj_byte(int n)
 
 
 /* Advance a pointer by 1 */
-void
+static void
 adv_byte(int n)
 {
     uint64    val1, val2;
@@ -12783,7 +12783,7 @@ adv_byte(int n)
 }
 
 /* back a pointer by 1 */
-void
+static void
 bak_byte(int n, int cnt)
 {
     uint64    val;
@@ -12812,7 +12812,7 @@ bak_byte(int n, int cnt)
 }
 
 /* Preform a table lookup operation */
-int
+static int
 do_xlate(uint32_t tbl, uint64 val, int mask)
 {
     uint64 reg;

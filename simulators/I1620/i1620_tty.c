@@ -463,7 +463,7 @@ return SCPE_OK;
 
 /* Wrap line, if needed, prior to character output */
 
-void tto_wrap(void)
+static void tto_wrap(void)
 {
 if (tto_col > TTO_COLMAX) {                             /* line wrap? */
     sim_putchar('\r');
