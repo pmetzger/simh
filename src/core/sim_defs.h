@@ -113,13 +113,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Allow the compiler to validate printf-style format arguments. */
-#if defined(__GNUC__) || defined(__clang__)
-#define PRINTF_FMT(n, m) __attribute__ ((format (__printf__, n, m)))
-#else
-#define PRINTF_FMT(n, m)
-#endif
-
 #ifndef EXIT_FAILURE
 #define EXIT_FAILURE 1
 #endif
@@ -138,6 +131,7 @@
 #include <process.h>
 #endif
 
+#include "sim_attrs.h"
 #include "sim_string_compat.h"
 
 #if defined(_WIN32)
@@ -160,30 +154,6 @@
 #endif
 #ifndef MIN
 #define MIN(a, b) (((a) <= (b)) ? (a) : (b))
-#endif
-
-/* Prefer the C23 fallthrough attribute when available. This compatibility
-   macro can be removed once all supported compilers accept [[fallthrough]]. */
-#ifndef FALLTHROUGH
-#  if defined(__has_c_attribute)
-#    if __has_c_attribute(fallthrough)
-#      define FALLTHROUGH [[fallthrough]]
-#    endif
-#  endif
-
-#  if !defined(FALLTHROUGH) && defined(__has_attribute)
-#    if __has_attribute(fallthrough)
-#      define FALLTHROUGH __attribute__((fallthrough))
-#    endif
-#  endif
-
-#  if !defined(FALLTHROUGH) && defined(__GNUC__) && __GNUC__ >= 7
-#    define FALLTHROUGH __attribute__((fallthrough))
-#  endif
-
-#  if !defined(FALLTHROUGH)
-#    define FALLTHROUGH ((void)0)
-#  endif
 #endif
 
 typedef int             t_stat;                         /* status */
@@ -217,16 +187,6 @@ typedef uint32_t        t_addr;
 #define NULL_DEVICE "NUL:"
 #else
 #define NULL_DEVICE "/dev/null"
-#endif
-
-/* Stubs for noinline */
-
-#if defined(_MSC_VER)
-#define SIM_NOINLINE _declspec (noinline)
-#elif defined(__GNUC__)
-#define SIM_NOINLINE  __attribute__ ((noinline))
-#else
-#define SIM_NOINLINE
 #endif
 
 /* Packed structure support */
