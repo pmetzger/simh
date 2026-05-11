@@ -461,8 +461,8 @@ static void ports_cmd(uint8_t slot, cio_entry *rentry, uint8_t *rapp_data)
 
         if ((rentry->subdevice & 7) < PORTS_LINES) {
             /* Adjust baud rate */
-            sprintf(line_config, "%s-8N1",
-                    ports_baud[opts.cflag&0xf]);
+            snprintf(line_config, sizeof(line_config), "%s-8N1",
+                     ports_baud[opts.cflag&0xf]);
 
             sim_debug(TRACE_DBG, &ports_dev,
                       "Setting PORTS line %d to %s\n",

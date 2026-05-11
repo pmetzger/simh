@@ -120,7 +120,7 @@ t_stat cio_install(uint16_t id,
             cio[s].populated = true;
             cio[s].id = id;
             cio[s].ipl = ipl;
-            strncpy(cio[s].name, name, CIO_NAME_LEN);
+            strlcpy(cio[s].name, name, sizeof(cio[s].name));
             cio[s].exp_handler = exp_handler;
             cio[s].full_handler = full_handler;
             cio[s].sysgen = sysgen;

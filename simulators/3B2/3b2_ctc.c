@@ -377,7 +377,7 @@ static void ctc_cmd(uint8_t slot,
 
         vtoc.sanity   = VTOC_VALID;
         vtoc.version  = 1;
-        strcpy((char *)vtoc.volume, "ctctape");
+        strlcpy((char *)vtoc.volume, "ctctape", sizeof(vtoc.volume));
         vtoc.sectorsz = PD_BYTES;
         vtoc.nparts   = VTOC_PART;
 

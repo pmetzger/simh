@@ -350,10 +350,10 @@ t_stat contty_attach(UNIT *uptr, const char *cptr)
     parity_sel = IU_PARITY_EVEN;
     bits_per_char = 7;
 
-    sprintf(line_config, "%s-%d%s1",
-            brg_rates[brg_reg][brg_clk],
-            bits_per_char,
-            parity[parity_sel]);
+    snprintf(line_config, sizeof(line_config), "%s-%d%s1",
+             brg_rates[brg_reg][brg_clk],
+             bits_per_char,
+             parity[parity_sel]);
 
     tmxr_set_config_line(&contty_ldsc[0], line_config);
 
@@ -920,10 +920,10 @@ void iu_write(uint32_t pa, uint32_t val, size_t size)
         brg_clk = (bval >> 4) & 0xf;
 
         if (brg_rates[brg_reg][brg_clk] != NULL) {
-            sprintf(line_config, "%s-%d%s1",
-                    brg_rates[brg_reg][brg_clk],
-                    bits_per_char,
-                    parity[parity_sel]);
+            snprintf(line_config, sizeof(line_config), "%s-%d%s1",
+                     brg_rates[brg_reg][brg_clk],
+                     bits_per_char,
+                     parity[parity_sel]);
 
             sim_debug(EXECUTE_MSG, &contty_dev,
                       "Setting CONTTY line to %s\n",

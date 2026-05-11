@@ -930,11 +930,10 @@ t_stat ni_attach(UNIT *uptr, const char *cptr)
 
     sim_debug(DBG_TRACE, &ni_dev, "ni_attach()\n");
 
-    tptr = (char *) malloc(strlen(cptr) + 1);
+    tptr = strdup(cptr);
     if (tptr == NULL) {
         return SCPE_MEM;
     }
-    strcpy(tptr, cptr);
 
     ni.eth = (ETH_DEV *) malloc(sizeof(ETH_DEV));
     if (!ni.eth) {
