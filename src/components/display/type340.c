@@ -78,6 +78,12 @@
 #ifndef TYPE342
 #define TYPE342 1                       /* default to character generation */
 #endif
+#ifndef TYPE343
+#define TYPE343 0                       /* default to no slave display ctl. */
+#endif
+#ifndef TYPE347
+#define TYPE347 0                       /* default to no subroutine facility */
+#endif
 
 #define BITMASK(N) (1<<(17-(N)))
 
@@ -859,7 +865,7 @@ ty340_instruction(ty340word inst)
 {
     struct type340 *u = UNIT(0);
     int i, escape;
-#ifdef TYPE347
+#if TYPE347
     ty340word addr;
 #endif
 
