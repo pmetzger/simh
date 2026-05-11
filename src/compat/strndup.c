@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "sim_string_compat.h"
+
 #undef strndup
 
 char *strndup(const char *s, size_t n)
