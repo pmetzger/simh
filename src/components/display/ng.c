@@ -147,7 +147,7 @@ static void point (void)
   display_point(x1 + 256, y1 + 256, DISPLAY_INT_MAX, 0);
 }
 
-void increment (uint16_t inst)
+static void increment (uint16_t inst)
 {
   int n = (inst >> 8) & 7;
   int i, mask;
@@ -209,7 +209,7 @@ void increment (uint16_t inst)
   }
 }
 
-void pushj (uint16_t inst)
+static void pushj (uint16_t inst)
 {
   uint16_t a;
   fetch (16 + 2*console, &a);
@@ -220,7 +220,7 @@ void pushj (uint16_t inst)
   dpc[console] = inst << 1;
 }
 
-void stop (void)
+static void stop (void)
 {
   DEBUGF("[%d] STOP\n", console);
   if (ng_type == TYPE_DAZZLE)
@@ -229,7 +229,7 @@ void stop (void)
     dpc[0] = 2*0;
 }
 
-uint16_t pop (void)
+static uint16_t pop (void)
 {
   uint16_t a;
   fetch (16 + 2*console, &a);
@@ -238,7 +238,7 @@ uint16_t pop (void)
   return a - 1;
 }
 
-void popj (void)
+static void popj (void)
 {
   uint16_t a, x;
   a = pop ();
@@ -247,19 +247,19 @@ void popj (void)
   dpc[console] = x;
 }
 
-void resetx (void)
+static void resetx (void)
 {
   DEBUGF("[%d] RESET X\n", console);
   x[console] = 0;
 }
 
-void resety (void)
+static void resety (void)
 {
   DEBUGF("[%d] RESET Y\n", console);
   y[console] = 0;
 }
 
-void delta (uint16_t inst)
+static void delta (uint16_t inst)
 {
   int delta = inst & 01777;
 

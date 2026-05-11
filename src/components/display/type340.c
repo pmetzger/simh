@@ -265,7 +265,7 @@ point(int x, int y, int seq)
     return 1;
 }
 
-void
+static void
 lpoint(int x, int y)
 {
 #ifdef TYPE340_LPOINT
@@ -507,7 +507,7 @@ lineTwoStep(int x0, int y0, int x1, int y1)
 } /* lineTwoStep */
 
 /* here in VECTOR & VCONT modes */
-int
+static int
 vector(int i, int sy, int dy, int sx, int dx)
 {
     struct type340 *u = UNIT(0);
@@ -568,7 +568,7 @@ vector(int i, int sy, int dy, int sx, int dx)
  * n is subvector number
  * byte is 4 bits
  */
-int
+static int
 ipoint(int i, int n, uchar_t byte)
 {
     struct type340 *u = UNIT(0);
@@ -775,7 +775,7 @@ ty342_set_grid(int w, int h)
  * type 342 Character/Symbol generator for type 340 display
  * return true if ESCaped
  */
-int
+static int
 character(int n, uchar_t c)
 {
     struct type340 *u = UNIT(0);

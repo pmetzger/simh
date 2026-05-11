@@ -597,7 +597,7 @@ static int main_argc;
 static char **main_argv;
 static SDL_Thread *vid_main_thread_handle;
 
-int main_thread (void *arg)
+static int main_thread (void *arg)
 {
 SDL_Event user_event;
 int stat;
@@ -1223,7 +1223,7 @@ void vid_refresh (void)
 vid_refresh_window (&vid_first);
 }
 
-int vid_map_key (int key)
+static int vid_map_key (int key)
 {
 switch (key) {
 
@@ -1601,7 +1601,7 @@ void vid_controller_button (SDL_ControllerButtonEvent *event)
 #endif
 }
 
-void vid_key (SDL_KeyboardEvent *event)
+static void vid_key (SDL_KeyboardEvent *event)
 {
 SIM_KEY_EVENT ev;
 VID_DISPLAY *vptr = vid_get_event_window ((SDL_Event *)event, event->windowID);
@@ -1658,7 +1658,7 @@ if (SDL_SemWait (vid_key_events.sem) == 0) {
     }
 }
 
-void vid_mouse_move (SDL_MouseMotionEvent *event)
+static void vid_mouse_move (SDL_MouseMotionEvent *event)
 {
 SDL_Event dummy_event;
 SDL_MouseMotionEvent *dev = (SDL_MouseMotionEvent *)&dummy_event;
@@ -1733,7 +1733,7 @@ if (SDL_SemWait (vid_mouse_events.sem) == 0) {
     }
 }
 
-void vid_mouse_button (SDL_MouseButtonEvent *event)
+static void vid_mouse_button (SDL_MouseButtonEvent *event)
 {
 SDL_Event dummy_event;
 SIM_MOUSE_EVENT ev;
@@ -1898,7 +1898,7 @@ if (vptr->vid_flags & SIM_VID_IGNORE_VBAR) {
     }
 }
 
-void vid_update (VID_DISPLAY *vptr)
+static void vid_update (VID_DISPLAY *vptr)
 {
 SDL_Rect vid_dst;
 vid_stretch(vptr, &vid_dst);
@@ -1916,7 +1916,8 @@ else {
     }
 }
 
-void vid_update_cursor (VID_DISPLAY *vptr, SDL_Cursor *cursor, bool visible)
+static void vid_update_cursor (VID_DISPLAY *vptr, SDL_Cursor *cursor,
+                               bool visible)
 {
 if (!cursor)
     return;
@@ -1932,7 +1933,7 @@ SDL_ShowCursor (visible);
 vptr->vid_cursor_visible = visible;
 }
 
-void vid_warp_position (VID_DISPLAY *vptr)
+static void vid_warp_position (VID_DISPLAY *vptr)
 {
 sim_debug (SIM_VID_DBG_VIDEO, vptr->vid_dev, "Mouse Warp Event: Warp to: (%d,%d)\n", vid_cursor_x, vid_cursor_y);
 
@@ -1941,7 +1942,7 @@ SDL_WarpMouseInWindow (NULL, vid_cursor_x, vid_cursor_y);
 SDL_PumpEvents ();
 }
 
-void vid_draw_region (VID_DISPLAY *vptr, SDL_UserEvent *event)
+static void vid_draw_region (VID_DISPLAY *vptr, SDL_UserEvent *event)
 {
 SDL_Rect *vid_dst = (SDL_Rect *)event->data1;
 uint32_t *buf = (uint32_t *)event->data2;

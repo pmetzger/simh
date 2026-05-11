@@ -1173,7 +1173,7 @@ pop(int restore)
 
 /* compute depth-cued display intensity from current display-file intensity */
 
-int
+static int
 dintens(int32_t z)
 {
     int i = intensity;
@@ -1593,7 +1593,7 @@ lineTwoStep(int32_t x0, int32_t y0, int32_t z0, int32_t x1, int32_t y1, int32_t 
  *
  * The Z coordinate just goes along for the ride.
  */
-int
+static int
 clip3(int32_t x0, int32_t y0, int32_t z0, int32_t x1, int32_t y1, int32_t z1)
 {
     int code0, code1;                   /* Cohen-Sutherland endpoint codes */
