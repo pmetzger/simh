@@ -833,6 +833,7 @@ static uint8_t SCP300F_Write(const uint32_t Addr, uint8_t cData)
             sim_debug(UART_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT
                 " WR: UART Stat=0x%02x.\n", PCX, cData);
             sio0s(Addr, 1, cData);
+            break;
         case SCP300F_PIO_DATA:
             sim_debug(PIO_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT " PIO DATA WR[%02x]=%02x: not implemented.\n", PCX, Addr, cData);
             break;
