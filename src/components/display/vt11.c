@@ -1187,7 +1187,10 @@ pop(int restore)
 {
     stack_under = STACK_EMPTY;          /* TOS? */
     if (!stack_under) {
-        stack[8] = *sp;                 /* restore parameters (including DPC) */
+        if (restore)
+            stack[8] = *sp;             /* restore parameters (including DPC) */
+        else
+            DPC = sp->_dpc;             /* restore DPC only */
         ++sp;
         stack_sel += 1<<2;
         /* XXX  should stack_sel stack-byte bits be cleared? maybe for TOS? */

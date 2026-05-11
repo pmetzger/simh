@@ -189,7 +189,7 @@
 
 /* display pop, restore (VS60): */
 #define DPOP_R  \
-        0165000
+        0166000
 
 /* display stop: */
 #define DSTOP   LSRA(ST_STOP,SI_SAME,LI_SAME,IT_SAME,RF_UNSYNC,MN_SAME)
