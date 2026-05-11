@@ -33,6 +33,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <signal.h>
@@ -1288,6 +1289,8 @@ return _panel_add_register (panel, name, device_name, 0, NULL, 1, 0, bits, bit_w
 static int
 _panel_get_registers (PANEL *panel, int calledback, unsigned long long *simulation_time)
 {
+int reg_query_size;
+
 if ((!panel) || (panel->State == Error)) {
     sim_panel_set_error (NULL, "Invalid Panel");
     return -1;
@@ -1300,9 +1303,14 @@ if (!panel->reg_count) {
     sim_panel_set_error (NULL, "No registers specified");
     return -1;
     }
+if (panel->reg_query_size > INT_MAX) {
+    sim_panel_set_error (NULL, "Register query too large");
+    return -1;
+    }
+reg_query_size = (int)panel->reg_query_size;
 pthread_mutex_lock (&panel->io_command_lock);
 pthread_mutex_lock (&panel->io_lock);
-if (panel->reg_query_size != _panel_send (panel, panel->reg_query, panel->reg_query_size)) {
+if (reg_query_size != _panel_send (panel, panel->reg_query, reg_query_size)) {
     pthread_mutex_unlock (&panel->io_lock);
     pthread_mutex_unlock (&panel->io_command_lock);
     return -1;
