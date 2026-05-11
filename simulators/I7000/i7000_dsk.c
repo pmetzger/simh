@@ -412,6 +412,7 @@ t_stat dsk_srv(UNIT * uptr)
         case DATA_OK:
                 if (eor == 0)
                    break;
+                FALLTHROUGH;
         case TIME_ERROR:
         case END_RECORD:
                 sense[chan] &= STAT_SIXBIT;
@@ -640,6 +641,7 @@ disk_cmd(UNIT * uptr)
     switch(chan_read_char(chan, &ch, 0)) {
     case TIME_ERROR:
         disk_cmderr(uptr, DATA_RESPONSE);
+        FALLTHROUGH;
     case END_RECORD:
         return 0;
     case DATA_OK:
@@ -753,6 +755,7 @@ clear_drive:
 
      case DWRC:         /* Prepare to Write Check */
          sim_debug(DEBUG_CMD, &dsk_dev, "write check\n");
+         FALLTHROUGH;
      case DVSR:         /* Prepare to Verify single record */
      case DWRF:         /* Prepare to Format */
      case DVTN:         /* Prepare to Verify track no addr */
@@ -1064,6 +1067,7 @@ disk_wblock(UNIT * uptr)
                     disk_posterr(uptr, PROG_FMTCHK|EXPT_DSKCHK);
                     break;
                 }
+                FALLTHROUGH;
             case 1:
                 disk_posterr(uptr, PROG_FMTCHK);
                 break;

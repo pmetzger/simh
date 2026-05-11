@@ -257,6 +257,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
     case 6:                                             /* TLS */
         dev_done = dev_done & ~INT_TTO;                 /* clear flag */
         int_req = int_req & ~INT_TTO;                   /* clear int req */
+        FALLTHROUGH;
     case 4:                                             /* TPC */
         sim_activate (&tto_unit, tto_unit.wait);        /* activate unit */
         tto_unit.buf = AC;                              /* load buffer */

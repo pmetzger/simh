@@ -614,6 +614,7 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
                 break;
             }                                           /* or fall through to MRF */
 
+            FALLTHROUGH;
         case I_V_MRF:                                   /* mem ref */
             fprintf (of, "%s %-o", opcode[i], va);
             if (tag)

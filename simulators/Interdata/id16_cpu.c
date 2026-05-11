@@ -911,6 +911,7 @@ while (reason == 0) {                                   /* loop until halted */
 
     case 0xCC:                                          /* SRHL - RS */
         opnd = opnd & 0xF;                              /* shift count */
+        FALLTHROUGH;
     case 0x90:                                          /* SRLS - NO */
         rslt = R[r1] >> opnd;                           /* result */
         CC_GL_16 (rslt);                                /* set G,L */
@@ -921,6 +922,7 @@ while (reason == 0) {                                   /* loop until halted */
 
     case 0xCD:                                          /* SLHL - RS */
         opnd = opnd & 0xF;                              /* shift count */
+        FALLTHROUGH;
     case 0x91:                                          /* SLLS - NO */
         rslt = R[r1] << opnd;                           /* raw result */
         R[r1] = rslt & DMASK16;                         /* masked result */
@@ -1260,6 +1262,7 @@ while (reason == 0) {                                   /* loop until halted */
 
     case 0x95:                                          /* EPSR - NO */
         R[r1] = BUILD_PSW (cc);                         /* save PSW */
+        FALLTHROUGH;
     case 0x33:                                          /* LPSR - NO */
         cc = newPSW (R[r2]);                            /* load new PSW */
         if (PSW & PSW_SQI)                              /* test for q */
@@ -1315,6 +1318,7 @@ while (reason == 0) {                                   /* loop until halted */
 
 case 0xDE:                                              /* OC - RX */
     opnd = ReadB (ea);                                  /* fetch operand */
+    FALLTHROUGH;
     case 0x9E:                                          /* OCR - RR */
         dev = R[r1] & DEV_MAX;
         if (DEV_ACC (dev)) {
@@ -1328,6 +1332,7 @@ case 0xDE:                                              /* OC - RX */
 
     case 0xDA:                                          /* WD - RX */
         opnd = ReadB (ea);                              /* fetch operand */
+        FALLTHROUGH;
     case 0x9A:                                          /* WDR - RR */
         dev = R[r1] & DEV_MAX;
         if (DEV_ACC (dev)) {
@@ -1341,6 +1346,7 @@ case 0xDE:                                              /* OC - RX */
 
     case 0xD8:                                          /* WH - RX */
         opnd = ReadH (ea);                              /* fetch operand */
+        FALLTHROUGH;
     case 0x98:                                          /* WHR - RR */
         dev = R[r1] & DEV_MAX;
         if (DEV_ACC (dev)) {

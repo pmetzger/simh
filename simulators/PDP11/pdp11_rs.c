@@ -403,6 +403,7 @@ switch (fnc) {                                          /* case on function */
 
     case FNC_DCLR:                                      /* drive clear */
         rser[drv] = 0;                                  /* clear errors */
+        FALLTHROUGH;
     case FNC_NOP:                                       /* no operation */
         return SCPE_OK;
 

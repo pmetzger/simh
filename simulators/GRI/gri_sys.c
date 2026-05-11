@@ -675,6 +675,7 @@ switch (j) {                                            /* case on class */
         if (k >= 8)
             return SCPE_ARG;
         val[0] = val[0] | (k << (I_V_OP + 1));          /* or to inst */
+        FALLTHROUGH;
 
     case F_V_JU:                                        /* jump uncond */
         cptr = get_ma (cptr, val, 0);                   /* addr */
@@ -684,6 +685,7 @@ switch (j) {                                            /* case on class */
         cptr = get_sd (cptr, val, ',', true);           /* src */
         if (!cptr)
             return SCPE_ARG;
+        FALLTHROUGH;
     case F_V_ZM:                                        /* zero mem */
         cptr = get_op (cptr, val, ',');                 /* op */
         if (!cptr)

@@ -746,6 +746,7 @@ print_opcode(FILE * of, t_value val, t_opcode * tab)
                 case 4:
                 case 3:
                 case 2: fputc('0' + f2 - 1, of);
+                        FALLTHROUGH;
                 case 1:
                 case 8:
                 case 9:

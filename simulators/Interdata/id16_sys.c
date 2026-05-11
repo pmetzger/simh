@@ -380,6 +380,7 @@ for (i = 0; opcode[i] != NULL; i++) {                   /* loop thru ops */
 
         case I_V_SB:                                    /* short branch */
             fprintf (of, "%-X,", r1);
+            FALLTHROUGH;
         case I_V_SX:                                    /* ext short branch */
             fprintf (of, "%-X", ((inst & MSK_SBF)?
                 (addr + r2 + r2): (addr - r2 - r2)));

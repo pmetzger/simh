@@ -562,6 +562,7 @@ else switch (CC) {                                      /* 5X0 */
         break;
     case 0xC:                                           /* read sr0, clr */
         mem_sr0[memu] = 0;                              /* clr, fall through */
+        FALLTHROUGH;
     case 0x8:                                           /* read sr0 */
         R[rn] = S5X0_SR0_FIXED | (wd & S5X0_SR0_RD) |
             (((1u << (chan_num + 1)) - 1) << (S5X0_SR0_V_PORTS - (chan_num + 1)));

@@ -599,6 +599,7 @@ switch (st) {
     case MTSE_FMT:                                      /* illegal fmt */
     case MTSE_UNATT:                                    /* unattached */
         ct_srb |= SRB_CRC;
+        FALLTHROUGH;
     case MTSE_OK:                                       /* no error */
         return SCPE_IERR;                               /* never get here! */
 

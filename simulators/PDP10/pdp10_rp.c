@@ -785,6 +785,7 @@ switch (fnc) {                                          /* case on function */
         if (drv_tab[dtype].ctrl == MBA_RM_CTRL)         /* RM? */
             rpmr[drv] = 0;                              /* clear maint */
         else rpec1[drv] = 0;                            /* RP, clear EC1 */
+        FALLTHROUGH;
     case FNC_NOP:                                       /* no operation */
     case FNC_RELEASE:                                   /* port release */
         return;
@@ -793,6 +794,7 @@ switch (fnc) {                                          /* case on function */
         rpdc[drv] = 0;                                  /* clear disk addr */
         rpda[drv] = 0;
         rpof[drv] = 0;                                  /* clear offset */
+        FALLTHROUGH;
     case FNC_PACK:                                      /* pack acknowledge */
         if ((uptr->flags & UNIT_UTS) == 0) {            /* not attached? */
             set_rper (ER1_UNS, drv);                    /* unsafe */
@@ -814,6 +816,7 @@ switch (fnc) {                                          /* case on function */
     case FNC_UNLOAD:                                    /* unload */
     case FNC_RECAL:                                     /* recalibrate */
         dc = 0;                                         /* seek to 0 */
+        FALLTHROUGH;
     case FNC_SEEK:                                      /* seek */
     case FNC_SEARCH:                                    /* search */
         if ((uptr->flags & UNIT_UTS) == 0) {            /* not attached? */

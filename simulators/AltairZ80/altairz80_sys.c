@@ -655,6 +655,7 @@ static int32_t match(const char *pattern, const char *input, char *xyFirst, char
                     inp = *input++;
                     continue;
                 }   /* otherwise fall through */
+                FALLTHROUGH;
 
             case ' ':
                 if (inp != pat)

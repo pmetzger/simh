@@ -2161,6 +2161,7 @@ exec2:
                 ix = (IR >> 20) & 7;                /* get index reg from instruction */
                 if (ix != 0)
                     addr += (GPR[ix] & MASK24);     /* if not zero, add in reg contents */
+                FALLTHROUGH;
             case WRD:
                 if (PC & 02) {                      /* if pc is on HW boundry, bad address */
                     TRAPME = ADDRSPEC_TRAP;         /* bad address, error */
@@ -3013,6 +3014,7 @@ exec2:
                         i_flags |= HLF;             /* if nop in rt hw, bump pc a word */
                 }
                 /* drop through */
+                FALLTHROUGH;
             default:        /* INV */               /* everything else is invalid instruction */
                 TRAPME = UNDEFINSTR_TRAP;           /* Undefined Instruction Trap */
                 if ((CPU_MODEL == MODEL_97) || (CPU_MODEL == MODEL_V9))
@@ -3028,6 +3030,7 @@ exec2:
             case 0x8:                               /* this is ORRM op */
                  dest &= GPR[4];                    /* mask with reg 4 contents */
                  /* drop thru */
+                FALLTHROUGH;
             case 0x0:                               /* this is ORR op */
                 if (dest & MSIGN)                   /* see if we need to sign extend */
                     dest |= D32LMASK;               /* force upper word to all ones */
@@ -3046,6 +3049,7 @@ exec2:
             case 0x8:                               /* this is EORM op */
                  dest &= GPR[4];                    /* mask with reg 4 contents */
                 /* drop thru */
+                FALLTHROUGH;
             case 0x0:                               /* this is EOR op */
                 if (dest & MSIGN)                   /* see if we need to sign extend */
                     dest |= D32LMASK;               /* force upper word to all ones */
@@ -5307,6 +5311,7 @@ doovr:
             case 0x2:       /* SUI */
                 addr = NEGATE32(addr);              /* just make value a negative add */
                 /* drop through */
+                FALLTHROUGH;
             case 0x1:       /* ADI */
                t = (temp & FSIGN) != 0;             /* set flag for sign bit not set in reg value */
                t |= ((addr & FSIGN) != 0) ? 2 : 0;  /* ditto for the extended immediate value */
@@ -6639,6 +6644,7 @@ newpsd:
                 /* Moved here 05/28/2021 so PC gets incremented correctly */
                 /* This caused the 2nd instruction of an int service routine to be skipped */
                 /* The attn trap had to be on 2nd instruction */
+                FALLTHROUGH;
             case CONSOLEATN_TRAP:                   /* 0xB4 PL0D Console Attention Trap */
             case SIGNALIPU_TRAP:                    /* 0xAC PL0B Signal IPU/CPU Trap */
                 sim_debug(DEBUG_TRAP, my_dev,

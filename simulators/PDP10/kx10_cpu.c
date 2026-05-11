@@ -5208,6 +5208,7 @@ unasign:
               uuo_cycle = 1;
 #endif
 
+              FALLTHROUGH;
               /* LUUO */
     case 0001: case 0002: case 0003:
     case 0004: case 0005: case 0006: case 0007:
@@ -6469,6 +6470,7 @@ dpnorm:
               }
 #endif
 
+              FALLTHROUGH;
                /* UUO */
     case 0105: case 0106: case 0107:
     case 0110: case 0111: case 0112: case 0113:
@@ -6591,6 +6593,7 @@ unasign:
                   break;
               }
 #endif
+              FALLTHROUGH;
     case 0134: /* ILDB */
     case 0136: /* IDPB */
               if ((FLAGS & BYTI) == 0) {      /* BYF6 */
@@ -11272,6 +11275,7 @@ skip_op:
                                      break;
                                  }
 #endif
+                                 FALLTHROUGH;
                            default:
                                  goto muuo;
                            }
@@ -11492,6 +11496,7 @@ skip_op:
                                      break;
                                  }
 #endif
+                                 FALLTHROUGH;
                            default:
                                  goto muuo;
                            }
@@ -13210,6 +13215,7 @@ do_extend(uint32_t ia)
                  case 6:   /* Skip on N */
                          if ((reg & BIT1) == 0)
                              break;
+                         FALLTHROUGH;
                  case 7:   /* Skip allways */
     skipa:
                          /* Compute new byte number */
@@ -13219,6 +13225,7 @@ do_extend(uint32_t ia)
                          reg += (val2 >> 2);
                          reg |= (val2 & 3) << 30;
                          i = 0;
+                         break;
                  default:
                          break;
                  }
@@ -13562,6 +13569,7 @@ xblt_done:
                   return 0;
               }
 #endif
+              FALLTHROUGH;
     case 021:  /* GSNGL */
     case 022:  /* GDBLE */
     case 023:  /* GDFIX */

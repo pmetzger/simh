@@ -119,6 +119,7 @@ uint32_t chron_cmd(UNIT * uptr, uint16_t cmd, uint16_t dev)
     case IO_BSF: /* Nop, just set flag and leave */
         chan_set(chan, CHS_BOT);
         /* All nops, just return success */
+        FALLTHROUGH;
     case IO_WEF:
     case IO_REW:
     case IO_RUN:

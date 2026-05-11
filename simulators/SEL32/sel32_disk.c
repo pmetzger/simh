@@ -807,6 +807,7 @@ loop:
         if (chp->ccw_count == 896)              /* count must be 896 to be valid */
             break;
         /* drop through */
+        FALLTHROUGH;
     default:
         chp->chan_status |= STATUS_PCHK;        /* program check for invalid cmd */
         uptr->SNS |= SNS_CMDREJ;                /* cmd rejected */
@@ -1014,11 +1015,13 @@ t_stat disk_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
             chp->chan_caw -= 8;                 /* backup iocd address for diags */
             break;                              /* yes, can't be 1st */
         }
+        FALLTHROUGH;
     case DSK_ICH:                               /* 0xFF Initialize controller */
         if ((cmd == DSK_ICH) &&
             (chp->ccw_count != 896)) {          /* count must be 896 to be valid */
             break;
         }
+        FALLTHROUGH;
     case DSK_SCK:                               /* Seek command 0x07 */
     case DSK_XEZ:                               /* Rezero & Read IPL record 0x37 */
     case DSK_WD:                                /* Write command 0x01 */
@@ -1037,6 +1040,7 @@ t_stat disk_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
     case DSK_REL:                               /* 0x33 Release */
         uptr->SNS &= ~MASK24;                   /* clear data  & leave mode */
         uptr->SNS2 = (SNS_UNR|SNS_ONC|SNS_USEL);/* reset status to on cyl & ready */
+        FALLTHROUGH;
     case DSK_SNS:                               /* Sense 0x04 */
         uptr->CMD |= cmd;                       /* save cmd */
         uptr->LASTCNT = chp->ccw_count;         /* save cmd count for diags */

@@ -543,6 +543,7 @@ switch (dp_fnc) {                                       /* case on function */
     case FNC_FMT:                                       /* format */
         if (uptr->flags & UNIT_WPRT)                    /* write protect? */
             return dp_done (1, STA_WPRER);              /* stop now */
+        FALLTHROUGH;
     case FNC_RCA:                                       /* read current addr */
         dp_xip = u | XIP_SCHED;                         /* operation started */
         sim_activate (uptr, dp_xtime * 10);             /* rotation timeout */
@@ -600,6 +601,7 @@ switch (uptr->FNC) {                                    /* case on function */
             (dcyl < 0) ||
             (dcyl >= (int32_t) dp_tab[dp_ctype].cyl))
             return dp_done (1, STA_SEKER);              /* bad seek? */
+        FALLTHROUGH;
 
     case FNC_SK0:                                       /* recalibrate */
         dp_sta = dp_sta & ~STA_BUSY;                    /* clear busy */

@@ -31,6 +31,7 @@
 #ifndef PDP11_DDCMP_H_
 #define PDP11_DDCMP_H_    0
 
+#include "sim_attrs.h"
 #include "sim_tmxr.h"
 #include "sim_types.h"
 
@@ -286,6 +287,7 @@ while (TMXR_VALID & (c = tmxr_getc_ln (lp))) {
             default:
                 tmxr_debug (DDCMP_DBG_PRCV, lp, "Ignoring unexpected byte in DDCMP mode", (char *)&lp->rxpb[0], 1);
                 lp->rxpboffset = 0;
+                FALLTHROUGH;
             case DDCMP_SOH:
             case DDCMP_ENQ:
             case DDCMP_DLE:

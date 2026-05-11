@@ -444,6 +444,7 @@ for (i = 0; opc_val[i] != 0xFFFF; i++) {                /* loop thru ops */
 
         case I_V_SB:                                    /* short branch */
             fprintf (of, "%-X,", r1);
+            FALLTHROUGH;
         case I_V_SX:                                    /* ext short branch */
             fprintf (of, "%-X", ((inst & MSK_SBF)?
                     (addr + r2 + r2): (addr - r2 - r2)));
@@ -472,6 +473,7 @@ for (i = 0; opc_val[i] != 0xFFFF; i++) {                /* loop thru ops */
         case I_V_RX:                                    /* register-memory */
         case I_V_FX:                                    /* floating-memory */
             fprintf (of, "R%d,", r1);
+            FALLTHROUGH;
         case I_V_X:                                     /* memory */
             return fprint_addr (of, addr, r2, ea1, ea2);
             }                                           /* end case */

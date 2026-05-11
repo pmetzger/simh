@@ -220,6 +220,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
 
         case RKX_CLS:                                   /* clear status */
             if (rk_busy != 0) rk_sta = rk_sta | RKS_BUSY;
+            FALLTHROUGH;
         case RKX_CLSA:                                  /* clear status alt */
             break;
 

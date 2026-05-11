@@ -1083,6 +1083,7 @@ static t_stat kmc_txService (UNIT *txup) {
         switch (d->txstate) {
         case TXDONE:                            /* Resume from completions */
             d->txstate = TXIDLE;
+            FALLTHROUGH;
 
         case TXIDLE:                            /* Check for new BD */
             if (!kmc_txNewBdl(d)) {
@@ -1098,6 +1099,7 @@ static t_stat kmc_txService (UNIT *txup) {
                 kmc_ctrlOut (k, SEL6_CO_NXM, 0, d->line, 0);
             }
 
+            FALLTHROUGH;
 
         case TXRTS:                             /* Wait for CTS */
             if (dup_get_CTS (d->dupidx) <= 0) {
@@ -1108,6 +1110,7 @@ static t_stat kmc_txService (UNIT *txup) {
 
             sim_debug (DF_BUF, &kmc_dev, "KMC%u line %u: transmitting bdl=%06o\n",
                        k, txup->unit_line, d->tx.bda);
+            FALLTHROUGH;
         case TXSOM:                             /* Start assembling a message */
             if (!(d->tx.bd[2] & BDL_SOM)) {
                 sim_debug (DF_ERR, &kmc_dev, "KMC%u line %u: TX BDL not SOM\n", k, d->line);
@@ -1128,6 +1131,7 @@ static t_stat kmc_txService (UNIT *txup) {
             }
 
             d->txstate = TXHDR;
+            FALLTHROUGH;
 
         case TXHDR:                             /* Assemble the header */
             if (!kmc_txAppendBuffer(d)) {       /* NXM - Try next list */
@@ -1176,6 +1180,7 @@ static t_stat kmc_txService (UNIT *txup) {
                 TXSTOP;
             }
             d->txstate = TXDATA;
+            FALLTHROUGH;
 
         case TXDATA:                            /* Assemble data/maint payload */
             if (!kmc_txAppendBuffer(d)) {       /* NXM */
@@ -1382,6 +1387,7 @@ static t_stat kmc_rxService (UNIT *rxup) {
             }
         }
 
+        FALLTHROUGH;
     case RXBDL:
         if (!(bdl = (BDL *)remqueue(d->rxqh.next, &d->rxavail))) {
             rxup->wait = RXBDL_DELAY;
@@ -1400,6 +1406,7 @@ static t_stat kmc_rxService (UNIT *rxup) {
             break;
         }
         d->rxstate = RXBUF;
+        FALLTHROUGH;
 
     case RXBUF:
         d->rx.ba = ((d->rx.bd[2] & BDL_XAD) << BDL_S_XAD) | d->rx.bd[0];
@@ -1412,6 +1419,7 @@ static t_stat kmc_rxService (UNIT *rxup) {
         d->rx.rcvc = 0;
         d->rxdlen = 0;
         d->rxstate = RXDAT;
+        FALLTHROUGH;
 
     case RXDAT:
     more:

@@ -342,6 +342,7 @@ switch (RXCS_GETFNC (rx_csr)) {                         /* decode command */
             rx_esr = rx_esr & RXES_ID;                  /* clear errors */
             break;
             }                                           /* else fall thru */
+        FALLTHROUGH;
     default:
         rx_state = CMD_COMPLETE;                        /* state = cmd compl */
         sim_activate (&rx_unit[drv], rx_cwait);         /* sched done */

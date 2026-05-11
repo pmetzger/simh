@@ -540,6 +540,7 @@ switch (st) {
     case MTSE_FMT:                                      /* illegal fmt */
     case MTSE_UNATT:                                    /* unattached */
         ta_cs |= TACS_ERR|TACS_CRC;
+        FALLTHROUGH;
     case MTSE_OK:                                       /* no error */
     default:                                            /* unknown error*/
         return SCPE_IERR;                               /* never get here! */

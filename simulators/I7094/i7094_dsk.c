@@ -459,6 +459,7 @@ switch (sel) {
     case CHSL_RDS:                                      /* read */
         if (dsk_mode == DSKC_WFMT)                      /* write format? */
             return dsk_uend (ch, DSKS_INVS);            /* sequence error */
+        FALLTHROUGH;
     case CHSL_WRS:                                      /* write */
         if (dsk_mode == 0)                              /* no mode? seq check */
             dsk_uend (ch, DSKS_INVS);
@@ -605,6 +606,7 @@ else if (bcd[OP1] == 8) {                               /* cmd = 8x? */
     case DSKC_WFMT:                                     /* format */
         if (!(dsk_unit[m].flags & UNIT_FMTE))           /* format enabled? */
             return dsk_uend (ch, DSKS_FMTC);            /* no, error */
+        FALLTHROUGH;
     case DSKC_TNOA:                                     /* track no addr */
     case DSKC_CYL:                                      /* cyl no addr */
     case DSKC_TWIA:                                     /* track with addr */

@@ -213,6 +213,7 @@ for (;;) {                                              /* until stopped */
                 ad = (ad + amod) & AMASK;               /* modify */
             wd = (wd & (SIGN|I_OP)) + (ad << I_V_EA);   /* instruction */
 
+            FALLTHROUGH;
         default:                                        /* data word */
             Write (origin, wd);
             origin = (origin + 1) & AMASK;

@@ -471,6 +471,7 @@ t_stat con_srvi(UNIT *uptr) {
 
     case CON_ECHO:      /* 0x0a */          /* read from device w/ECHO */
         uptr->CMD |= CON_EKO;               /* save echo status */
+        FALLTHROUGH;
     case CON_RD:        /* 0x02 */          /* read from device */
     case CON_RDBWD:     /* 0x0c */          /* Read Backward */
 
@@ -544,6 +545,7 @@ t_stat con_srvi(UNIT *uptr) {
             }
             break;
         }
+        break;
     default:
         break;
     }

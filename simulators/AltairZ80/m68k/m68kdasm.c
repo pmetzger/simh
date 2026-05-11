@@ -39,6 +39,7 @@
 #include <string.h>
 
 #include "m68k.h"
+#include "sim_attrs.h"
 #include "sim_types.h"
 
 #ifndef uint32
@@ -3825,6 +3826,7 @@ uint_t m68k_is_valid_instruction(uint_t instruction, uint_t cpu_type)
             if(g_instruction_table[instruction] == d68010_rtd)
                 return 0;
             // Fallthrough
+            FALLTHROUGH;
         case M68K_CPU_TYPE_68010:
             if(g_instruction_table[instruction] == d68020_bcc_32)
                 return 0;
@@ -3947,6 +3949,7 @@ uint_t m68k_is_valid_instruction(uint_t instruction, uint_t cpu_type)
             if(g_instruction_table[instruction] == d68020_unpk_mm)
                 return 0;
             // Fallthrough
+            FALLTHROUGH;
         case M68K_CPU_TYPE_68EC020:
         case M68K_CPU_TYPE_68020:
         case M68K_CPU_TYPE_68030:
@@ -3966,6 +3969,7 @@ uint_t m68k_is_valid_instruction(uint_t instruction, uint_t cpu_type)
             if(g_instruction_table[instruction] == d68040_move16_al_ai)
                 return 0;
             // Fallthrough
+            FALLTHROUGH;
         case M68K_CPU_TYPE_68040:
         case M68K_CPU_TYPE_68EC040:
         case M68K_CPU_TYPE_68LC040:

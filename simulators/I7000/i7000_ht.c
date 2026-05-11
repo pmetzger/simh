@@ -409,6 +409,7 @@ t_stat ht_srv(UNIT * uptr)
                     break;
                 /* Overran tape buffer, give error */
                 ht_tape_posterr(uptr, DATA_TRACKSKEW);
+                FALLTHROUGH;
         case END_RECORD:
                 if (uptr->u6 != 0) {
                     sim_debug(DEBUG_CMD, dptr,
@@ -488,6 +489,7 @@ t_stat ht_srv(UNIT * uptr)
         case END_RECORD:
             sim_debug(DEBUG_DATA, dptr, "eor\n");
             chan_set(chan, DEV_REOR|CTL_END);
+            FALLTHROUGH;
         case DATA_OK:
             break;
         }

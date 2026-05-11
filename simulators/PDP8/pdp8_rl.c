@@ -299,6 +299,7 @@ switch (IR & 07) {                                      /* case IR<9:11> */
 
         case RLCSB_CLRD:                                /* clear drive */
             uptr->STAT = uptr->STAT & ~RLDS_ERR;        /* clear errors */
+            FALLTHROUGH;
         case RLCSB_MNT:                                 /* mnt */
             rl_set_done (0);
             break;

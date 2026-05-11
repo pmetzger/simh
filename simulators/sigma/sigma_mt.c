@@ -540,6 +540,7 @@ switch (st) {
     case MTSE_WRP:                                      /* write protect */
     default:                                            /* unknown error*/
         chan_set_chf (dva, CHF_XMME);                   /* set err, fall through */
+        FALLTHROUGH;
     case MTSE_OK:                                       /* no error */
         return SCPE_IERR;
 

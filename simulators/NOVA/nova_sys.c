@@ -1046,6 +1046,7 @@ switch (j) {                                            /* case on class */
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
+        FALLTHROUGH;
     case I_V_D:                                         /* IOT dev */
         cptr = get_glyph (cptr, gbuf, 0);               /* get device */
         for (i = 0; (device[i] != NULL) &&
@@ -1066,6 +1067,7 @@ switch (j) {                                            /* case on class */
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
+        FALLTHROUGH;
     case I_V_M:                                         /* addr */
         cptr = get_addr (cptr, addr, false, cflag, amd);
         if (cptr == NULL)
@@ -1142,6 +1144,7 @@ switch (j) {                                            /* case on class */
         if (r != SCPE_OK)
             return SCPE_ARG;
         val[0] = val[0] | (d << I_V_DST);               /* put in place */
+        FALLTHROUGH;
     case I_V_LM:                                        /* long mem */
         cptr = get_addr (cptr, addr, true, cflag, amd);
         if (cptr == NULL)

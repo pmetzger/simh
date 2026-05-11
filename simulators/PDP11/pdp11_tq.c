@@ -1457,6 +1457,7 @@ switch (cmd) {                                          /* case on command */
         if (res->io_status)
             return tq_mot_err (uptr, 0);                /* log, end */
         uptr->objp = uptr->objp + 1;                    /* incr obj cnt */
+        FALLTHROUGH;
     case OP_ERG:                                        /* erase gap */
         if (TEST_EOT (uptr))                            /* EOT on write? */
             uptr->flags = uptr->flags | UNIT_SXC;

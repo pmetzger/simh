@@ -547,6 +547,7 @@ switch (st) {
     case MTSE_FMT:                                      /* illegal fmt */
     case MTSE_UNATT:                                    /* not attached */
         tm_sta = tm_sta | STA_ILL;
+        FALLTHROUGH;
     case MTSE_OK:                                       /* no error */
     default:                                            /* unknown error */
         return SCPE_IERR;

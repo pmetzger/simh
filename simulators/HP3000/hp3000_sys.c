@@ -3636,6 +3636,7 @@ switch (ops [op_index].operand) {                       /* dispatch by the opera
 
     /* DB+/Q+/Q-/S- displacements, indirect bit 5, index bit 4 */
 
+        FALLTHROUGH;
     case opD255IX:
         if ((instruction & DISPL_DB_FLAG) == 0) {           /* if this a DB-relative displacement */
             prefix = " DB+";                                /*   then set the base register label */

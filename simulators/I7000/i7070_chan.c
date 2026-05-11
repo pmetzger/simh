@@ -553,6 +553,7 @@ chan_trap:
                 chan_flags[chan] &= ~DEV_FULL;
 
                 /* Device does not need a word and has not given us one */
+                FALLTHROUGH;
             case 0:
                 if (chan_flags[chan] & DEV_REOR) {
                     /* Check EOR at end of segment */
@@ -1063,6 +1064,7 @@ chan_trap:
                         case SCPE_NODEV:
                                 chan_info[chan] |= CHAN_TWE;
                                 chan_flags[chan] &= ~STA_ACTIVE;
+                                FALLTHROUGH;
                         case SCPE_BUSY: /* Device not ready yet, wait */
                                 chan_flags[chan] &= ~(CTL_SNS);
                                 continue;

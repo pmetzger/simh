@@ -835,6 +835,7 @@ chan_cmd(uint16_t dev, uint16_t dcmd, uint32_t addr)
         case CHAN_7908:
             switch(dcmd & 0xf) {
             case 1:     cmd[chan] |= CHAN_SKIP;
+                        FALLTHROUGH;
             case 0:     chan_flags[chan] |= CTL_READ; break;
             case 3:     chan_flags[chan] |= CTL_SNS; break; /* Do Sense */
             case 4:     /* Do control then read */
@@ -889,6 +890,7 @@ chan_cmd(uint16_t dev, uint16_t dcmd, uint32_t addr)
         case CHAN_7908:
             switch(dcmd & 0xf) {
             case 1:     cmd[chan] |= CHAN_NOREC;
+                        FALLTHROUGH;
             case 0:     chan_flags[chan] |= CTL_WRITE; break;
             case 3:     /* Do control */
                         chan_flags[chan] |= CTL_CNTL; break;
@@ -983,6 +985,7 @@ chan_cmd(uint16_t dev, uint16_t dcmd, uint32_t addr)
             irqdev[chan] = dev;
             irqflags &= ~(1 << chan);
             ioflags[dev/8] &= ~(1 << (dev & 07));
+            break;
         default:
             break;
         }

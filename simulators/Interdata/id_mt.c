@@ -431,6 +431,7 @@ switch (st) {
     case MTSE_UNATT:                                    /* not attached */
     default:                                            /* unknown error */
         mt_sta = mt_sta | STA_ERR;
+        FALLTHROUGH;
     case MTSE_OK:                                       /* no error */
         return SCPE_IERR;
 

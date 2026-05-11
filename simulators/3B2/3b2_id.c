@@ -271,6 +271,7 @@ t_stat id_unit_svc(UNIT *uptr)
            reach track 0 */
         recal_error = (id_state[unit].cyl != 0);
         /* intentional fall-through */
+        FALLTHROUGH;
     case ID_CMD_SEEK:
         id_int_status = 0;
         uptr->u4 = 0;

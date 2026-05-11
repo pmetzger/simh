@@ -854,6 +854,7 @@ stop_cpu:
                              /* Nop */
                              break;
                          }
+                         FALLTHROUGH;
                      case CPU_705:   /* 705 */
                      case CPU_702:   /* 702 */
                          if (flags & ANYFLAG)
@@ -1949,6 +1950,7 @@ stop_cpu:
                                  break;
                              } else if ((cpu_unit.flags & EMULATE3) == 0)
                                  break;
+                             FALLTHROUGH;
                      case CPU_7053:  /* 705-iii */
                              if ((cpu_unit.flags & EMULATE2) == 0) {
                                  t = ReadP(MAC, MCHCHK);
@@ -2042,6 +2044,7 @@ stop_cpu:
                              break;
                          } else if ((cpu_unit.flags & EMULATE3) == 0)
                              temp &= 03;
+                         FALLTHROUGH;
                      case CPU_7053:  /* 705-iii */
                          temp &= 07;
                          AC[addr] = bin_bcd[temp];
@@ -2734,6 +2737,7 @@ t_stat do_addsub(int mode, int reg, int smt, uint16_t fmsk) {
     case 000:
     case 020:
              flags |= SGNFLAG|ANYFLAG;
+             FALLTHROUGH;
     case 060:
              break;
     case 040:
@@ -2877,6 +2881,7 @@ do_mult(int reg, uint16_t fmsk)
              case 000:
              case 020:
                       flags |= SGNFLAG|ANYFLAG;
+                      FALLTHROUGH;
              case 060:
                       break;
              case 040:

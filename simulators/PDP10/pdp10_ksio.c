@@ -657,10 +657,12 @@ if (seg) {                                              /* Unaligned head */
         *buf++ = (uint8_t) ((m >> V_BYTE1) & M_BYTE);
         if (!--seg)
             break;
+        FALLTHROUGH;
     case 2:
         *buf++ = (uint8_t) (m & M_BYTE); /* V_BYTE2 */
         if (!--seg)
             break;
+        FALLTHROUGH;
     case 3:
         *buf++ = (uint8_t) ((m >> V_BYTE3) & M_BYTE);
         --seg;
@@ -726,8 +728,10 @@ if (bc) {
     switch (bc) {
     case 3:
         buf[2] = (uint8_t) (m & M_BYTE);        /* V_BYTE2 */
+        FALLTHROUGH;
     case 2:
         buf[1] = (uint8_t) ((m >> V_BYTE1) & M_BYTE);
+        FALLTHROUGH;
     case 1:
         buf[0] = (uint8_t) ((m >> V_BYTE0) & M_BYTE);
         break;
@@ -1083,10 +1087,12 @@ if (seg) {                                      /* Unaligned head */
         m = (m & M_BYTE1) | (((d10) (*buf++)) << V_BYTE1);
         if (!--seg)
             break;
+        FALLTHROUGH;
     case 2:
         m = (m & M_BYTE2) | ((d10) (*buf++)); /* V_BYTE2 */
         if (!--seg)
             break;
+        FALLTHROUGH;
     case 3:
         m = (m & M_BYTE3) | (((d10) (*buf++)) << V_BYTE3);
         --seg;
@@ -1147,8 +1153,10 @@ if (bc) {
         switch (bc) {
         case 3:
             m = (m & M_BYTE2) | ((d10) (buf[2])); /* V_BYTE2 */
+            FALLTHROUGH;
         case 2:
             m = (m & M_BYTE1) | (((d10) (buf[1])) << V_BYTE1);
+            FALLTHROUGH;
         case 1:
             m = (m & M_BYTE0) | (((d10) (buf[0])) << V_BYTE0);
             break;

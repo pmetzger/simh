@@ -730,6 +730,7 @@ switch (entry) {                                        /* decode IR<5:0> */
         WriteW (op[1].word, 1);                         /* set flag */
         reason = cpu_iog (op[0].word);                  /* execute I/O instr */
         op[0].word = op[2].word;                        /* set rtn and fall through */
+        FALLTHROUGH;
 
     case 012:                                           /* PRFEX 105472 (OP_A) */
         PCQ_ENTRY;

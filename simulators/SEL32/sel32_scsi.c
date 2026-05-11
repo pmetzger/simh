@@ -496,6 +496,7 @@ t_stat scsi_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
     case DSK_SID:                               /* channel Sense 0x80 */
         /* leave the TCMD bit */
         uptr->SNS &= ~MASK24;                   /* clear all but old mode data */
+        FALLTHROUGH;
     case DSK_SNS:                               /* Sense 0x04 */
         uptr->CMD |= cmd;                       /* save cmd */
         sim_debug(DEBUG_CMD, dptr,

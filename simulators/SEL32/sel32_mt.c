@@ -484,6 +484,7 @@ loop:
                 chp->ccw_cmd, chan, chp->chan_status);
             return 1;                           /* error return */
         }
+        FALLTHROUGH;
     case MT_INCH:
         break;
     default:

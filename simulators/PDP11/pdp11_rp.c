@@ -1012,6 +1012,7 @@ switch (fnc) {                                          /* case on function */
             rpmr[drv] = 0;                              /* clear maint */
         else rpec1[drv] = 0;                            /* RP, clear EC1 */
         rpds[drv] = rpds[drv] & ~DS_ERR;                /* Clear ERR */
+        FALLTHROUGH;
     case FNC_NOP:                                       /* no operation */
         sim_debug (DBG_REQ, dptr, ">>RP%d DONE: fnc=%s, ds=%o, cyl=%o, da=%o, er=%d\n",
                      drv, rp_fname[fnc], rpds[drv], rpdc[drv], rpda[drv], rper1[drv]);
@@ -1021,6 +1022,7 @@ switch (fnc) {                                          /* case on function */
         rpdc[drv] = 0;                                  /* clear disk addr */
         rpda[drv] = 0;
         rpof[drv] = 0;                                  /* clear offset */
+        FALLTHROUGH;
     case FNC_PACK:                                      /* pack acknowledge */
         rpds[drv] = rpds[drv] | DS_VV;                  /* set volume valid */
         return SCPE_OK;
@@ -1045,6 +1047,7 @@ switch (fnc) {                                          /* case on function */
 
     case FNC_RECAL:                                     /* recalibrate */
         dc = 0;                                         /* seek to 0 */
+        FALLTHROUGH;
     case FNC_SEEK:                                      /* seek */
     case FNC_SEARCH:                                    /* search */
         if ((uptr->flags & UNIT_ATT) == 0) {            /* not attached? */

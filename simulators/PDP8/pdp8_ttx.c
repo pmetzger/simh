@@ -351,6 +351,7 @@ switch (pulse) {                                        /* case IR<9:11> */
 
     case 6:                                             /* TLS */
         TTOX_CLR_DONE (ln);                             /* clear flag */
+        FALLTHROUGH;
     case 4:                                             /* TPC */
         sim_activate (&ttox_unit[ln], ttox_unit[ln].wait); /* activate */
         ttox_buf[ln] = AC & 0377;                       /* load buffer */

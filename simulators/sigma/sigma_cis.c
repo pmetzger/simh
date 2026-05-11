@@ -224,27 +224,34 @@ switch (op) {                                           /* case on opcode */
                     switch (d) {                        /* case */
                     case 5:                             /* + 2 + 2 + 1 */
                         AddDstr (&src2x, &dst, &dst, 0);
+                        FALLTHROUGH;
                     case 3:                             /* + 2 + 1 */
                         AddDstr (&src2x, &dst, &dst, 0);
+                        FALLTHROUGH;
                     case 1:                             /* + 1 */
                         AddDstr (&src2, &dst, &dst, 0);
+                        FALLTHROUGH;
                     case 0:
                         break;
                     case 4:                             /* + 2 + 2 */
                         AddDstr (&src2x, &dst, &dst, 0);
+                        FALLTHROUGH;
                     case 2:                             /* + 2 */
                         AddDstr (&src2x, &dst, &dst, 0);
                         break;
                     case 6:                             /* - 2 - 2 + 10 */
                         SubDstr (&src2x, &dst, &dst);
+                        FALLTHROUGH;
                     case 8:                             /* - 2 + 10 */
                         SubDstr (&src2x, &dst, &dst);
                         src1.val[0] += 0x10;            /* + 10 */
                         break;
                     case 7:                             /* -2 - 1 + 10 */
                         SubDstr (&src2x, &dst, &dst);
+                        FALLTHROUGH;
                     case 9:                             /* -1 + 10 */
                         SubDstr (&src2, &dst, &dst);
+                        FALLTHROUGH;
                     default:                            /* + 10 */
                         src1.val[0] += 0x10;
                         }                               /* end switch */

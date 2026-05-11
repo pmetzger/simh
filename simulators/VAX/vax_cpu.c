@@ -644,11 +644,14 @@ for ( ;; ) {
             case RB_R5:
                 hlast->res[5] = R[5];
                 hlast->res[4] = R[4];
+                FALLTHROUGH;
             case RB_R3:
                 hlast->res[3] = R[3];
                 hlast->res[2] = R[2];
+                FALLTHROUGH;
             case RB_R1:
                 hlast->res[1] = R[1];
+                FALLTHROUGH;
             case RB_R0:
                 hlast->res[0] = R[0];
                 break;
@@ -856,8 +859,10 @@ for ( ;; ) {
 
             case GRN|VB:
                 vfldrp1 = R[(rn + 1) & RGMASK];
+                FALLTHROUGH;
             case GRN|WB: case GRN|WW: case GRN|WL: case GRN|WQ: case GRN|WO:
                 opnd[j++] = rn;
+                FALLTHROUGH;
             case GRN|RL: case GRN|RF: case GRN|ML:
                 CHECK_FOR_PC;
                 opnd[j++] = R[rn];
@@ -882,6 +887,7 @@ for ( ;; ) {
             case RGD|VB:
             case RGD|WB: case RGD|WW: case RGD|WL: case RGD|WQ: case RGD|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case RGD|AB: case RGD|AW: case RGD|AL: case RGD|AQ: case RGD|AO:
                 CHECK_FOR_PC;
                 va = opnd[j++] = R[rn];
@@ -890,6 +896,7 @@ for ( ;; ) {
             case ADC|VB:
             case ADC|WB: case ADC|WW: case ADC|WL: case ADC|WQ: case ADC|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case ADC|AB: case ADC|AW: case ADC|AL: case ADC|AQ: case ADC|AO:
                 CHECK_FOR_PC;
                 va = opnd[j++] = R[rn] = R[rn] - DR_LNT (disp);
@@ -899,6 +906,7 @@ for ( ;; ) {
             case ADC|RB: case ADC|RW: case ADC|RL: case ADC|RF:
                 R[rn] = R[rn] - (DR_LNT (disp));
                 recq[recqptr++] = RQ_REC (disp, rn);
+                FALLTHROUGH;
             case RGD|RB: case RGD|RW: case RGD|RL: case RGD|RF:
                 CHECK_FOR_PC;
                 opnd[j++] = Read (va = R[rn], DR_LNT (disp), RA);
@@ -907,6 +915,7 @@ for ( ;; ) {
             case ADC|RQ: case ADC|RD: case ADC|RG:
                 R[rn] = R[rn] - 8;
                 recq[recqptr++] = RQ_REC (disp, rn);
+                FALLTHROUGH;
             case RGD|RQ: case RGD|RD: case RGD|RG:
                 CHECK_FOR_PC;
                 opnd[j++] = Read (va = R[rn], L_LONG, RA);
@@ -916,6 +925,7 @@ for ( ;; ) {
             case ADC|RO: case ADC|RH:
                 R[rn] = R[rn] - 16;
                 recq[recqptr++] = RQ_REC (disp, rn);
+                FALLTHROUGH;
             case RGD|RO: case RGD|RH:
                 CHECK_FOR_PC;
                 j = ReadOcta (va = R[rn], opnd, j, RA);
@@ -924,6 +934,7 @@ for ( ;; ) {
             case ADC|MB: case ADC|MW: case ADC|ML:
                 R[rn] = R[rn] - (DR_LNT (disp));
                 recq[recqptr++] = RQ_REC (disp, rn);
+                FALLTHROUGH;
             case RGD|MB: case RGD|MW: case RGD|ML:
                 CHECK_FOR_PC;
                 opnd[j++] = Read (va = R[rn], DR_LNT (disp), WA);
@@ -932,6 +943,7 @@ for ( ;; ) {
             case ADC|MQ:
                 R[rn] = R[rn] - 8;
                 recq[recqptr++] = RQ_REC (disp, rn);
+                FALLTHROUGH;
             case RGD|MQ:
                 CHECK_FOR_PC;
                 opnd[j++] = Read (va = R[rn], L_LONG, WA);
@@ -941,6 +953,7 @@ for ( ;; ) {
             case ADC|MO:
                 R[rn] = R[rn] - 16;
                 recq[recqptr++] = RQ_REC (disp, rn);
+                FALLTHROUGH;
             case RGD|MO:
                 CHECK_FOR_PC;
                 j = ReadOcta (va = R[rn], opnd, j, WA);
@@ -951,6 +964,7 @@ for ( ;; ) {
             case AIN|VB:
             case AIN|WB: case AIN|WW: case AIN|WL: case AIN|WQ: case AIN|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case AIN|AB: case AIN|AW: case AIN|AL: case AIN|AQ: case AIN|AO:
                 va = opnd[j++] = R[rn];
                 if (rn == nPC) {
@@ -1049,6 +1063,7 @@ for ( ;; ) {
             case AID|VB:
             case AID|WB: case AID|WW: case AID|WL: case AID|WQ: case AID|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case AID|AB: case AID|AW: case AID|AL: case AID|AQ: case AID|AO:
                 if (rn == nPC) {
                     GET_ISTR (va = opnd[j++], L_LONG);
@@ -1139,6 +1154,7 @@ for ( ;; ) {
             case BDP|VB:
             case BDP|WB: case BDP|WW: case BDP|WL: case BDP|WQ: case BDP|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case BDP|AB: case BDP|AW: case BDP|AL: case BDP|AQ: case BDP|AO:
                 GET_ISTR (temp, L_BYTE);
                 va = opnd[j++] = R[rn] + SXTB (temp);
@@ -1187,6 +1203,7 @@ for ( ;; ) {
             case BDD|VB:
             case BDD|WB: case BDD|WW: case BDD|WL: case BDD|WQ: case BDD|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case BDD|AB: case BDD|AW: case BDD|AL: case BDD|AQ: case BDD|AO:
                 GET_ISTR (temp, L_BYTE);
                 iad = R[rn] + SXTB (temp);
@@ -1242,6 +1259,7 @@ for ( ;; ) {
             case WDP|VB:
             case WDP|WB: case WDP|WW: case WDP|WL: case WDP|WQ: case WDP|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case WDP|AB: case WDP|AW: case WDP|AL: case WDP|AQ: case WDP|AO:
                 GET_ISTR (temp, L_WORD);
                 va = opnd[j++] = R[rn] + SXTW (temp);
@@ -1290,6 +1308,7 @@ for ( ;; ) {
             case WDD|VB:
             case WDD|WB: case WDD|WW: case WDD|WL: case WDD|WQ: case WDD|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case WDD|AB: case WDD|AW: case WDD|AL: case WDD|AQ: case WDD|AO:
                 GET_ISTR (temp, L_WORD);
                 iad = R[rn] + SXTW (temp);
@@ -1345,6 +1364,7 @@ for ( ;; ) {
             case LDP|VB:
             case LDP|WB: case LDP|WW: case LDP|WL: case LDP|WQ: case LDP|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case LDP|AB: case LDP|AW: case LDP|AL: case LDP|AQ: case LDP|AO:
                 GET_ISTR (temp, L_LONG);
                 va = opnd[j++] = R[rn] + temp;
@@ -1393,6 +1413,7 @@ for ( ;; ) {
             case LDD|VB:
             case LDD|WB: case LDD|WW: case LDD|WL: case LDD|WQ: case LDD|WO:
                 opnd[j++] = OP_MEM;
+                FALLTHROUGH;
             case LDD|AB: case LDD|AW: case LDD|AL: case LDD|AQ: case LDD|AO:
                 GET_ISTR (temp, L_LONG);
                 iad = R[rn] + temp;
@@ -1459,6 +1480,7 @@ for ( ;; ) {
                 case ADC:
                     R[rn] = R[rn] - DR_LNT (disp);
                     recq[recqptr++] = RQ_REC (ADC | (disp & DR_LNMASK), rn);
+                    FALLTHROUGH;
                 case RGD:
                     CHECK_FOR_PC;
                     index = index + R[rn];
@@ -1526,6 +1548,7 @@ for ( ;; ) {
                 case VB:
                 case WB: case WW: case WL: case WQ: case WO:
                     opnd[j++] = OP_MEM;
+                    FALLTHROUGH;
                 case AB: case AW: case AL: case AQ: case AO:
                     va = opnd[j++] = index;
                     break;
@@ -2325,6 +2348,7 @@ for ( ;; ) {
         if (sim_switches & SWMASK ('R'))
             ++step_out_nest_level;
 
+        FALLTHROUGH;
     case JMP:
         JUMP (op0);                                     /* jump */
         break;
@@ -2673,6 +2697,7 @@ for ( ;; ) {
                 ABORT (STOP_HALT);                      /* halt to simulator */
             }
 
+        FALLTHROUGH;
     case NOP:
         break;
 

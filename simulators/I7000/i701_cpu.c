@@ -734,6 +734,7 @@ store:
                 switch (chan_cmd(MA, opcode)) {
                 case SCPE_BUSY:
                     iowait = 1; /* Channel is active, hold */
+                    FALLTHROUGH;
                 case SCPE_OK:
                     ihold = 1;  /* Hold interupts for one */
                     break;

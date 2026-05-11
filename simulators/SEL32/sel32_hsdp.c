@@ -1147,6 +1147,7 @@ t_stat hsdp_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
         if ((cmd == DSK_INC) &&
             (chp->ccw_count != 0x20))           /* count must be 32 to be valid */
             break;
+        FALLTHROUGH;
     case DSK_NOP:                               /* NOP 0x03 */
     case DSK_SKC:                               /* Seek command 0x07 */
     case DSK_XEZ:                               /* Rezero & Read IPL record 0x1f */
@@ -1166,6 +1167,7 @@ t_stat hsdp_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
     case DSK_REL:                               /* 0x33 Release */
         uptr->SNS &= ~MASK24;                   /* clear data  & leave mode */
         uptr->SNS2 = (SNS_UNR|SNS_ONC|SNS_USEL);/* reset status to on cyl & ready */
+        FALLTHROUGH;
     case DSK_SNS:                               /* Sense 0x04 */
         uptr->CMD |= cmd;                       /* save cmd */
         sim_debug(DEBUG_CMD, dptr,
@@ -1455,6 +1457,7 @@ t_stat hsdp_srv(UNIT *uptr)
             break;
         }
         /* NOP drop through after wait */
+        FALLTHROUGH;
     case DSK_RES:                               /* 0x23 Reserve */
     case DSK_REL:                               /* 0x33 Release */
         uptr->CMD &= LMASK;                     /* remove old cmd */

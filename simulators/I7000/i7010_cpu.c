@@ -946,11 +946,13 @@ sim_instr(void)
                 case CHR_B: /* Fix branch to correct kind */
                             switch(state) {
                             case 8: op_mod = ar;        /* B ddd iii c */
+                            FALLTHROUGH;
                             case 7:                     /* B ddd iii */
                             case 1:                     /* B */
                                     op = OP_BCE;
                                     break;
                             case 4: ar = CHR_ABLANK;    /* B ddd */
+                            FALLTHROUGH;
                             case 2:                     /* B c ?? */
                             default:                    /* B ddd c */
                             case 5: op = OP_B; op_mod = ar; break;
@@ -1120,6 +1122,7 @@ sim_instr(void)
                             break;
                 case CHR_Q:     /* Handle SAR here */
                             BAR = AAR;  /* Copy AAR to BAR */
+                            FALLTHROUGH;
                 case CHR_H:     /* Handle SBR here */
                             op = OP_NOP;/* done and at WM, so skip rest */
                             if (state > 2)
@@ -1204,12 +1207,14 @@ sim_instr(void)
                          reason = STOP_IOCHECK;
                          break;
                      }
+                     FALLTHROUGH;
                 case OP_STS:
                     /* Not in protected mode */
                      if (prot_enb) {
                          reason = STOP_PROG;
                          break;
                      }
+                     FALLTHROUGH;
 
                 case OP_PRI:
                 case OP_B:
@@ -1366,6 +1371,7 @@ sim_instr(void)
                         case OP_IO4:
                              if (op_mod != 0)
                                  break;
+                             FALLTHROUGH;
                         case OP_B:
                              if (state > 6)
                                 ok_irq = 1;
@@ -1821,12 +1827,14 @@ sim_instr(void)
                         if ((cy & 0xd) == 1) {  /* Set fill flag */
                             cy |= ((br & 077) == CHR_DOL)?0x8:0x4;
                         }
+                        FALLTHROUGH;
                     case CHR_0: /* 0 */
                         /* Supression off */
                         if ((br & 077) == CHR_0 && (cy & 1) == 0) {
                             ch |= WM;
                             cy |= 1;            /* Set on */
                         }
+                        FALLTHROUGH;
                     case CHR_ABLANK:    /* blank */
                         WriteP(STAR, ch);
                         if ((br & WM) == 0) {
@@ -1869,6 +1877,7 @@ sim_instr(void)
                             if ((cy & 3) == 2) {        /* Decimal suppress */
                                 ch = (cy & 0x4)?CHR_STAR:0;     /* * or blank */
                             }
+                            FALLTHROUGH;
                      case CHR_0:        /* 0 */
                      case CHR_ABLANK:   /* blank */
                             if ((cy & 3) == 1) {        /* Supress, no dec */
@@ -1878,6 +1887,7 @@ sim_instr(void)
                      case CHR_DOT:      /* . */
                             if (cy & 1)
                                 cy |= 2;                /* Set dec */
+                            FALLTHROUGH;
                      case CHR_MINUS:    /* - */
                             break;
                      default:

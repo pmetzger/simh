@@ -277,6 +277,7 @@ switch (pulse) {                                        /* decode IR<9:11> */
 
     case 3:                                             /* DXAL */
         rf_da = rf_da & 07777;                          /* clear DAR<0:7> */
+        FALLTHROUGH;
     case 2:                                             /* DXAL w/o clear */
         rf_da = rf_da | ((AC & 0377) << 12);            /* DAR<0:7> |= AC */
         AC = 0;                                         /* clear AC */
@@ -284,6 +285,7 @@ switch (pulse) {                                        /* decode IR<9:11> */
 
     case 5:                                             /* DXAC */
         AC = 0;                                         /* clear AC */
+        FALLTHROUGH;
     case 4:                                             /* DXAC w/o clear */
         AC = AC | ((rf_da >> 12) & 0377);               /* AC |= DAR<0:7> */
         break;

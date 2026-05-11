@@ -377,6 +377,7 @@ if ((fnc & 0x4) != 0) {                                 /* transmit */
     case 0x7:                                           /* disconnect */
         tmxr_reset_ln (&mux_ldsc[ln]);                  /* reset line */
         mux_reset_ln (ln);                              /* reset state */
+        break;
     default:                                            /* fall through */
         break;
         }
@@ -400,6 +401,7 @@ else {                                                  /* receive */
     case 0x3:                                           /* disconnect */
         tmxr_reset_ln (&mux_ldsc[ln]);                  /* reset line */
         mux_reset_ln (ln);                              /* reset state */
+        break;
     default:                                            /* fall through */
         break;
         }

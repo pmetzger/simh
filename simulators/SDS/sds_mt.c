@@ -293,6 +293,7 @@ switch (fnc) {                                          /* case function */
             case 031:                                   /* sks 1621n */
             case 033:                                   /* sks 1661n */
                 *dat = 1;                               /* not 556bpi */
+                FALLTHROUGH;
             case 035:                                   /* sks 1721n */
                 break;                                  /* not 800bpi */
                 }

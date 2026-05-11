@@ -117,6 +117,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
         dev_done = dev_done & ~INT_LPT;                 /* clear flag */
         int_req = int_req & ~INT_LPT;                   /* clear int req */
 
+        FALLTHROUGH;
     case 4:                                             /* PSTB */
         lpt_unit.buf = AC & 0177;                       /* load buffer */
         if ((lpt_unit.buf == 015) || (lpt_unit.buf == 014) ||

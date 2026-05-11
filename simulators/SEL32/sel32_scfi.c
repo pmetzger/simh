@@ -730,6 +730,7 @@ t_stat scfi_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
             chp->chan_caw -= 8;                 /* backup iocd address for diags */
             break;                              /* yes, can't be 1st */
         }
+        FALLTHROUGH;
     case DSK_ICH:                               /* 0xFF Initialize controller */
     case DSK_SCK:                               /* Seek command 0x07 */
     case DSK_XEZ:                               /* Rezero & Read IPL record 0x37 */
@@ -749,6 +750,7 @@ t_stat scfi_startcmd(UNIT *uptr, uint16_t chan,  uint8_t cmd)
     case DSK_REL:                               /* 0x33 Release */
         uptr->SNS &= ~MASK24;                   /* clear data  & leave mode */
         uptr->SNS2 = (SNS_UNR|SNS_ONC|SNS_USEL);/* reset status to on cyl & ready */
+        FALLTHROUGH;
     case DSK_SNS:                               /* Sense 0x04 */
         uptr->CMD |= cmd;                       /* save cmd */
         sim_debug(DEBUG_CMD, dptr,
@@ -910,6 +912,7 @@ t_stat scfi_srv(UNIT *uptr)
             break;
         }
 
+        FALLTHROUGH;
     case DSK_INCH2:                             /* use 0xF0 for inch, just need int */
         len = chp->ccw_count;                   /* INCH command count */
         mema = chp->ccw_addr;                   /* get inch or buffer addr */

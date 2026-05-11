@@ -1640,6 +1640,7 @@ switch (op_case) {
             *return_p++ = va & VA_MASK;
         }
         /* -- fall through to Next_Simple case -- */
+        FALLTHROUGH;
     case Next_Simple:
         if (atomic || forward)
             *return_p++ = (P + 1) & VA_MASK;
@@ -1648,6 +1649,7 @@ switch (op_case) {
         if (atomic)
             *return_p++ = 0100 + I_GETOP(inst);
         /* -- fall through to Next_Skip case -- */
+        FALLTHROUGH;
     case Next_Skip:
         *return_p++ = (P + 1) & VA_MASK;
         *return_p++ = (P + 2) & VA_MASK;

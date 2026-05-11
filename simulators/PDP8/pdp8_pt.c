@@ -232,6 +232,7 @@ switch (IR & 07) {                                      /* decode IR<9:11> */
     case 6:                                             /* PLS */
         dev_done = dev_done & ~INT_PTP;                 /* clear flag */
         int_req = int_req & ~INT_PTP;                   /* clear int req */
+        FALLTHROUGH;
     case 4:                                             /* PPC */
         ptp_unit.buf = AC & 0377;                       /* load punch buf */
         sim_activate (&ptp_unit, ptp_unit.wait);        /* activate unit */

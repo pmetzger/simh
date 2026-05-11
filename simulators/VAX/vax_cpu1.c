@@ -890,6 +890,7 @@ switch (R[5] & MVC_M_STATE) {                           /* case on state */
         R[1] = R[1] + (R[0] & STR_LNMASK);              /* final src addr */
         R[3] = R[3] + (R[0] & STR_LNMASK);              /* final dst addr */
 
+        FALLTHROUGH;
     case MVC_FILL:                                      /* fill */
     FILL:
         if (vax_slong (R[4]) <= 0)                      /* any fill? */

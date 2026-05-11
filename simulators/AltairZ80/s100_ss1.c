@@ -368,8 +368,10 @@ static uint8_t SS1_Read(const uint32_t Addr)
             break;
         case SS1_8253_TC2:
             sel_tc++;
+            FALLTHROUGH;
         case SS1_8253_TC1:
             sel_tc++;
+            FALLTHROUGH;
         case SS1_8253_TC0:
             sim_debug(TC_MSG, &ss1_dev, "SS1: " ADDRESS_FORMAT
                       " RD: TC [%d]=0x%02x.\n", PCX, sel_tc, cData);
@@ -491,6 +493,7 @@ static uint8_t SS1_Write(const uint32_t Addr, uint8_t cData)
     switch(Addr & 0x0F) {
         case SS1_S8259_L:
             sel_pic = SLAVE_PIC;    /* intentional fallthrough */
+            FALLTHROUGH;
         case SS1_M8259_L:
             if(cData & 0x10) {
                 sim_debug(PIC_MSG, &ss1_dev, "SS1: " ADDRESS_FORMAT
@@ -555,8 +558,10 @@ static uint8_t SS1_Write(const uint32_t Addr, uint8_t cData)
             break;
         case SS1_8253_TC2:
             sel_tc++;
+            FALLTHROUGH;
         case SS1_8253_TC1:
             sel_tc++;
+            FALLTHROUGH;
         case SS1_8253_TC0:
             if(ss1_tc[0].rl[sel_timer] == 3) {
                 if(bc==0) {

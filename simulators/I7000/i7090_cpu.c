@@ -2023,6 +2023,7 @@ prottrap:
             case OP_FAM:
             case OP_UAM:
                 SR &= PMASK;    /* Clear SR sign */
+                FALLTHROUGH;
             case OP_FAD:
             case OP_UFA:
               fpadd:
@@ -2441,6 +2442,7 @@ prottrap:
             case OP_DFAM:
             case OP_DUAM:
                 SR &= PMASK;    /* Clear SR sign */
+                FALLTHROUGH;
             case OP_DFAD:
             case OP_DUFA:
               dfpadd:
@@ -3437,6 +3439,7 @@ prottrap:
                 case SCPE_OK:   /* Ready, skip one */
                     IC++;
                     ihold = 2;  /* Hold interupts for two */
+                    FALLTHROUGH;
                 case SCPE_IOERR:        /* Not ready, just return */
                     break;
                 case SCPE_NODEV:
@@ -3629,6 +3632,7 @@ prottrap:
                     break;
                 case SCPE_BUSY:
                     iowait = 1;
+                    FALLTHROUGH;
                 case SCPE_OK:
                     break;
                 }
@@ -3718,6 +3722,7 @@ prottrap:
 /* Extended precision floating point */
             case OP_ESB:
                 SR ^= MSIGN;    /* Reverse sign */
+                FALLTHROUGH;
             case OP_EAD:
             case OP_EUA:
                 if ((cpu_unit.flags & OPTION_EFP) == 0)

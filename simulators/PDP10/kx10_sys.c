@@ -1243,6 +1243,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
 
             case I_V_AC:                                /* AC + address */
                 fprintf (of, "%-o,", ac);               /* print AC, fall thru */
+                FALLTHROUGH;
             case I_V_OP:                                /* address only */
                 if (inst & INST_IND)
                     fprintf (of, "@");

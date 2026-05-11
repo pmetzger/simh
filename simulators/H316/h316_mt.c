@@ -527,6 +527,7 @@ switch (st) {
     case MTSE_UNATT:                                    /* unattached */
     default:                                            /* unknown error */
         mt_err = 1;                                     /* reject */
+        FALLTHROUGH;
     case MTSE_OK:                                       /* no error */
         return SCPE_IERR;                               /* never get here! */
 

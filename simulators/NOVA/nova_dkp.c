@@ -755,6 +755,7 @@ switch (uptr->FUNC) {                                   /* decode command */
         uptr->FUNC = FCCY_SEEK ;                        /* save command */
         uptr->CYL  = 0 ;
 
+        FALLTHROUGH;
     case FCCY_SEEK:                                     /* seek */
         if ( ! (uptr->flags & UNIT_ATT) )                /* not attached? */
             {

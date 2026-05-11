@@ -276,6 +276,7 @@ static void cpu_reg_op (uint16_t insn)
   switch (insn & 030000) {
   case 030000:
     if (C) {
+      FALLTHROUGH;
   case 000000:
       sim_debug (DBG_STATE, &cpu_dev, "REG[%02o] <= %06o\n", a, result);
       R[a] = result;

@@ -810,6 +810,7 @@ for (i = 0; opc_val[i] >= 0; i++) {                     /* loop thru ops */
 
         case I_V_AC:                                    /* AC + address */
             fprintf (of, "%-o,", ac);                   /* print AC, fall thru */
+            FALLTHROUGH;
         case I_V_OP:                                    /* address only */
             if (inst & INST_IND)
                 fprintf (of, "@");

@@ -486,6 +486,7 @@ switch (st) {
 
     case MTSE_RECE:                                     /* record in error */
         msgxs0 = msgxs0 | XS0_MOT;                      /* tape has moved */
+        FALLTHROUGH;
     case MTSE_INVRL:                                    /* invalid rec lnt */
     case MTSE_IOERR:                                    /* IO error */
     default:                                            /* unknown error */
@@ -811,6 +812,7 @@ switch (fnc) {                                          /* case on func */
         if (!sim_tape_bot (uptr))                       /* set if tape moves */
             msgxs0 = msgxs0 | XS0_MOT;
         sim_tape_rewind (uptr);                         /* rewind */
+        FALLTHROUGH;
     case FNC_WSSM:                                      /* write mem */
     case FNC_GSTA:                                      /* get status */
         ts_endcmd (TC0, 0, MSG_ACK | MSG_CEND);         /* send end packet */

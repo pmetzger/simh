@@ -306,6 +306,7 @@ bcd_xlat(int chan, int direction)
             case 020:
             case 060:
                 ch ^= 040;
+                FALLTHROUGH;
             case 040:
                 break;
             }
@@ -320,8 +321,10 @@ bcd_xlat(int chan, int direction)
             case 060:
                 if (ch == 060)
                     ch = 060;   /* => 000 */
+                FALLTHROUGH;
             case 020:
                 ch ^= 040;
+                FALLTHROUGH;
             case 040:
                 break;
             }
@@ -465,6 +468,7 @@ chan_proc(void)
                 chan_flags[chan] &= ~DEV_FULL;
 
                 /* Device does not need a word and has not given us one */
+                FALLTHROUGH;
             case 0:
                 /* Device idle, expecting data from it */
 
@@ -726,6 +730,7 @@ chan_proc(void)
                                   chan);
                     iotraps |= 1 << chan;
                     chan_flags[chan] |= CTL_INHB;
+                    FALLTHROUGH;
                 case WTR:
                 case WTRX:
                     /* Check if command not allowed */
@@ -938,6 +943,7 @@ chan_proc(void)
                         if (wcount[chan] != 0)
                             chan_flags[chan] &= ~(DEV_REOR);
                     }
+                    FALLTHROUGH;
                 case CPYD:
                 case CPYDX:
                     if ((chan_flags[chan] & (CTL_READ|CTL_WRITE|CTL_SNS))==0) {

@@ -438,10 +438,12 @@ t_stat lpr_srv(UNIT *uptr) {
             lpr_data[u].lbuff[uptr->CBP++] = 0x0a;
             uptr->CNT++;                    /* increment the line count */
             /* drop thru */
+            FALLTHROUGH;
         case 2:                             /* <LF> <LF> */
             lpr_data[u].lbuff[uptr->CBP++] = 0x0a;
             uptr->CNT++;                    /* increment the line count */
             /* drop thru */
+            FALLTHROUGH;
         case 1:                             /* <LF> (0x0a) */
             lpr_data[u].lbuff[uptr->CBP++] = 0x0a;
             uptr->CNT++;                    /* increment the line count */
@@ -506,10 +508,12 @@ t_stat lpr_srv(UNIT *uptr) {
             lpr_data[u].lbuff[uptr->CBP++] = 0x0a;
             uptr->CNT++;                    /* increment the line count */
             /* drop thru */
+            FALLTHROUGH;
         case 2:                             /* <LF> <LF> */
             lpr_data[u].lbuff[uptr->CBP++] = 0x0a;
             uptr->CNT++;                    /* increment the line count */
             /* drop thru */
+            FALLTHROUGH;
         case 1:                             /* <LF> (0x0a) */
             lpr_data[u].lbuff[uptr->CBP++] = 0x0a;
             uptr->CNT++;                    /* increment the line count */

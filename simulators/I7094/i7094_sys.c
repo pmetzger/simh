@@ -660,6 +660,7 @@ for (i = 0; opc_v[i] > 0; i++) {                        /* loop thru ops */
                     c |= fld[k];
                 if (c == 0)
                     return SCPE_OK;
+                FALLTHROUGH;
             case INST_P_PNZ:                            /* print non-zero */
                 fputc (k? ',': ' ', of);
                 if (fld[k])

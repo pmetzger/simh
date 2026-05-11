@@ -1036,6 +1036,7 @@ switch ((IR >> 7) & 037) {                              /* decode IR<0:4> */
                 break;
                 }
             LAC = LAC | SC;                             /* mode A: SCA then */
+            FALLTHROUGH;
         case 001:                                       /* mode B: ACS */
             if (emode) {
                 SC = LAC & 037;
@@ -1062,6 +1063,7 @@ switch ((IR >> 7) & 037) {                              /* decode IR<0:4> */
                 break;
                 }
             LAC = LAC | SC;                             /* mode A: SCA then */
+            FALLTHROUGH;
         case 002:                                       /* MUY */
             MA = IF | PC;
             if (emode) {                                /* mode B: defer */
@@ -1080,6 +1082,7 @@ switch ((IR >> 7) & 037) {                              /* decode IR<0:4> */
             if (emode)
                 break;
             LAC = LAC | SC;                             /* mode A: SCA then */
+            FALLTHROUGH;
         case 003:                                       /* DVI */
             MA = IF | PC;
             if (emode) {                                /* mode B: defer */
@@ -1108,6 +1111,7 @@ switch ((IR >> 7) & 037) {                              /* decode IR<0:4> */
                 break;
                 }
             LAC = LAC | SC;                             /* mode A: SCA then */
+            FALLTHROUGH;
         case 004:                                       /* NMI */
             temp = (LAC << 12) | MQ;                    /* preserve link */
             for (SC = 0; ((temp & 017777777) != 0) &&
@@ -1127,6 +1131,7 @@ switch ((IR >> 7) & 037) {                              /* decode IR<0:4> */
                 break;
                 }
             LAC = LAC | SC;                             /* mode A: SCA then */
+            FALLTHROUGH;
         case 5:                                         /* SHL */
             SC = (M[IF | PC] & 037) + (emode ^ 1);      /* shift+1 if mode A */
             if (SC > 25)                                /* >25? result = 0 */
@@ -1146,6 +1151,7 @@ switch ((IR >> 7) & 037) {                              /* decode IR<0:4> */
                 break;
                 }
             LAC = LAC | SC;                             /* mode A: SCA then */
+            FALLTHROUGH;
         case 6:                                         /* ASR */
             SC = (M[IF | PC] & 037) + (emode ^ 1);      /* shift+1 if mode A */
             temp = ((LAC & 07777) << 12) | MQ;          /* sext from AC0 */
@@ -1170,6 +1176,7 @@ switch ((IR >> 7) & 037) {                              /* decode IR<0:4> */
                 break;
                 }
             LAC = LAC | SC;                             /* mode A: SCA then */
+            FALLTHROUGH;
         case 7:                                         /* LSR */
             SC = (M[IF | PC] & 037) + (emode ^ 1);      /* shift+1 if mode A */
             temp = ((LAC & 07777) << 12) | MQ;          /* clear link */

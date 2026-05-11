@@ -223,6 +223,7 @@ if (drm_sta != DRM_SXFR) {                              /* fetch drum prog? */
                 int_req = int_req | INT_DRM;            /* req int */
                 return SCPE_OK;                         /* done */
                 }
+            FALLTHROUGH;
         case DRM_OXF:                                   /* transfer */
             drm_wc = dwd & DRM_WCMASK;                  /* save wc */
             drm_sta = DRM_SFCA;                         /* next state */

@@ -1033,6 +1033,7 @@ void putreg(int32_t reg, int32_t val)
             break;
         case 7:
             A = val & 0xff;
+            break;
         default:
             break;
     }

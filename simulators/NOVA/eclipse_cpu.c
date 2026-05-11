@@ -4835,6 +4835,7 @@ if (t < 014) {                                          /* mem ref? */
     switch (t) {                                        /* decode IR<1:4> */
     case 001:                                           /* JSR */
         AC[3] = PC;
+        FALLTHROUGH;
     case 000:                                           /* JMP */
         old_PC = PC;
         PC = MA;

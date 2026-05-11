@@ -87,6 +87,7 @@ static t_stat i8253_write(I8253* chip, int addr, uint32_t value)
                 cntr->divider = (cntr->divider & 0xff00) | (value & 0xff);
                 cntr->state = I8253_ST_MSBNEXT; /* reset latch mode and LSB bit */
             }
+            break;
         default:
             break;
         }

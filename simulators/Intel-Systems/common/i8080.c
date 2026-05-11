@@ -1109,6 +1109,7 @@ void putreg(int32_t reg, int32_t val)
         break;
     case 7:                         /* reg A */
         A = val & BYTE_R;
+        break;
     default:
         break;
     }

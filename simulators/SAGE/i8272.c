@@ -532,6 +532,7 @@ t_stat i8272_read(I8272* chip,int addr,uint32_t* value)
                 if ((rc=i8272_secread(chip)) != SCPE_OK) return rc;
                 if (chip->fdc_state ==S_DATAREAD) return SCPE_OK;
                 /* will immediately move to state S_RESULT */
+                FALLTHROUGH;
             case S_RESULT:
                 *value = chip->result[chip->result_cnt];
                 TRACE_PRINT2(DBG_FD_STATUS, "Result [%d]=0x%02x",chip->result_cnt, *value);
@@ -1027,6 +1028,7 @@ t_stat i8272_write(I8272* chip, int addr, uint32_t value)
                 case I8272_READ_TRACK:
                     sim_printf("I8272: " ADDRESS_FORMAT " Read a track (untested.)" NLP, PCX);
                     chip->fdc_sector = 1; /* Read entire track from sector 1...eot */
+                    FALLTHROUGH;
                 case I8272_READ_DATA:
                 case I8272_READ_DELETED_DATA:
                     if (!i8272_secrw(chip,cmd))

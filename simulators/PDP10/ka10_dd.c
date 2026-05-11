@@ -523,6 +523,7 @@ dd_decode (uint64 insn)
         break;
     case 010: case 030: case 050: case 070:
         sim_debug(DEBUG_CMD, &dd_dev, "(weird command)\n");
+        FALLTHROUGH;
     case 004: case 014: case 024: case 034:
     case 044: case 054: case 064: case 074:
         dd_command ((insn >> 9) & 7, (insn >> 28) & 0377);

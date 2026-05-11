@@ -961,6 +961,7 @@ case 0123:  st = xtend (ac, ea, pflgs);                 /* EXTEND */
             switch (st) {
             case XT_SKIP:
                 INCPC;
+                FALLTHROUGH;
             case XT_NOSK:
                 break;
             default:

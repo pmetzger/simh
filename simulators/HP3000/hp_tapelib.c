@@ -2502,6 +2502,7 @@ switch (phase) {                                        /* dispatch the phase */
 
             /* otherwise fall through into the Backspace_File case */
 
+                FALLTHROUGH;
             case Backspace_File:
                 uptr->PHASE = Start_Phase;                  /* set up to space over the next record */
                 uptr->wait = 2 * cvptr->dlyptr->ir_start;   /*   after spacing over the interrecord gap */

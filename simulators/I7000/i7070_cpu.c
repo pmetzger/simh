@@ -445,6 +445,7 @@ sim_instr(void)
                 case OP_ZS1: case OP_ZS2: case OP_ZS3:
                      if ((MBR & SMASK) != ASIGN)
                         MBR ^= SMASK;
+                     FALLTHROUGH;
                 /* Zero add, load AC from memory */
                 case OP_ZA1: case OP_ZA2: case OP_ZA3:
         set_ac:
@@ -611,6 +612,7 @@ sim_instr(void)
                      if (hst_lnt) {  /* history enabled? */
                          hst[hst_p].ic |= HIST_NOBEF;
                      }
+                     FALLTHROUGH;
                 /* Store digit */
                 case OP_STD1: case OP_STD2: case OP_STD3:
                 /* Store AC */
@@ -962,6 +964,7 @@ sim_instr(void)
                 /* Branch load index */
                 case OP_BLX:
                      upd_idx(&M[IX], IC);
+                     FALLTHROUGH;
                 /* Branch */
                 case OP_B:
                      IC = MA;
@@ -1033,6 +1036,7 @@ sim_instr(void)
                          break;
                      }
                      AC[2] = 0;
+                     FALLTHROUGH;
                 case OP_FDD: /* AC1,2 <- AC1/M, norm */
                      if ((cpu_unit.flags & OPTION_FLOAT) == 0) {
                          reason = STOP_UUO;
@@ -1297,6 +1301,7 @@ sim_instr(void)
                          break;
                      }
                      AC[2] = 0x65000000000LL;
+                     FALLTHROUGH;
                 /* Floating add double */
                 case OP_FAD: /* AC1,2 <- AC1,2 + M, norm */
                 /* Floating add double, suppress norm */
@@ -1489,6 +1494,7 @@ sim_instr(void)
                 case OP_XLIN:
                      MBR = (MBR & (SMASK|OMASK)) | ((MBR >> 16) & AMASK) |
                                 ((MBR << 16) & IMASK);
+                     FALLTHROUGH;
                 /* Load index */
                 case OP_XL:
                      WriteP(IX, MBR);
@@ -1915,6 +1921,7 @@ sim_instr(void)
                                 case 1:
                                         if (opcode != OP_LEH)
                                             break;
+                                        FALLTHROUGH;
                                 case 0:
                                         if (opcode != OP_LL) {
                                             f = 1;

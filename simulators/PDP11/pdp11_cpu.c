@@ -1059,6 +1059,7 @@ while (reason == 0)  {
                     setTRAP (TRAP_ILL);
                     break;
                     }
+                FALLTHROUGH;
             case 2:                                     /* RTI */
                 src = ReadW (SP | dsenable);
                 src2 = ReadW (((SP + 2) & 0177777) | dsenable);
@@ -2928,6 +2929,7 @@ switch (apr & PDR_ACF) {                                /* case on ACF */
                 }
             return;                                     /* continue */
             }                                           /* not impl, abort NR */
+        FALLTHROUGH;
     case 0: case 3: case 7:                             /* non-resident */
         err = MMR0_NR;                                  /* set MMR0 */
         break;                                          /* go test PLF, abort */
@@ -3038,6 +3040,7 @@ switch (apr & PDR_ACF) {                                /* case on ACF */
                 }
             return;                               /* continue, set A */
             }                                           /* not impl, abort NR */
+        FALLTHROUGH;
     case 0: case 3: case 7:                             /* non-resident */
         err = MMR0_NR;                                  /* MMR0 status */
         break;                                          /* go test PLF, abort */

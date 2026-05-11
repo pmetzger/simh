@@ -3127,11 +3127,13 @@ switch (Op) {
     case LE:
         if (cmp == 0)
             return true;
+        FALLTHROUGH;
     case LT:
         return (cmp < 0);
     case GE:
         if (cmp == 0)
             return true;
+        FALLTHROUGH;
     case GT:
         return (cmp > 0);
     default:    /* Never happens */

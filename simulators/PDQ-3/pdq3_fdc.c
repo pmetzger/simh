@@ -858,6 +858,7 @@ static void debug_fdccmd(uint16_t cmd) {
       strlcat(buf, cmd & FDC_BIT_SIDECMP ? "+SideCmp1" : "+SideCmp0",sizeof(buf));
       if (cr > 9)
         strlcat(buf, cmd & FDC_BIT_DATAMARK ? "+DelMark" : "+DataMark",sizeof(buf));
+      break;
     default:
       break;
     case 0x0f:

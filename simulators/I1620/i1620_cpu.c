@@ -800,6 +800,7 @@ while (reason == SCPE_OK) {                             /* loop until halted */
             reason = STOP_INVEAD;                       /* stop */
             break;
             }
+        FALLTHROUGH;
     case OP_DN:
     case OP_RN:
     case OP_WN:

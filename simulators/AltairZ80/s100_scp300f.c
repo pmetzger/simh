@@ -713,6 +713,7 @@ static uint8_t SCP300F_Write(const uint32_t Addr, uint8_t cData)
     switch(Addr & SCP300F_IO_MASK) {
         case SCP300F_SPIC_0:
             sel_pic = SLAVE_PIC;    /* intentional fallthrough */
+            FALLTHROUGH;
         case SCP300F_MPIC_0:
             if (cData & 0x10) {
                 sim_debug(PIC_MSG, &scp300f_dev, "SCP300F: " ADDRESS_FORMAT

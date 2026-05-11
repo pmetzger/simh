@@ -1295,6 +1295,7 @@ switch (j) {                                            /* case on class */
 
     case I_V_EMD:                                       /* or'able */
         val[0] = val[0] | ((opc_val[i] >> I_V_DC) & 077); /* default shift */
+        FALLTHROUGH;
     case I_V_EST: case I_V_ESH:
     case I_V_NPN: case I_V_NPI:
     case I_V_IOT: case I_V_OPR:

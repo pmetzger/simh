@@ -261,6 +261,7 @@ t_stat cp_svc(UNIT *uptr) {
             break;
         case CPS_STOPI:
             chan_set_chi(dva,CHI_END);              /* interrupt */
+            FALLTHROUGH;
         case CPS_STOP:
             st = chan_end (dva);                    /* set channel end */
             if (CHS_IFERR (st))                     /* channel error? */

@@ -1048,6 +1048,7 @@ switch (fnc) {                                          /* case on function */
     case FNC_WRITEH:                                    /* write headers */
     case FNC_WRITE:                                     /* write */
         hk_off[drv] = 0;                                /* clr offset */
+        FALLTHROUGH;
     case FNC_WCHK:                                      /* write check */
     case FNC_READ:                                      /* read */
     case FNC_READH:                                     /* read headers */
@@ -1096,6 +1097,7 @@ switch (fnc) {                                          /* case on function */
 
     case FNC_UNLOAD:                                    /* unload */
         hk_detach (uptr);                               /* detach unit */
+        FALLTHROUGH;
     case FNC_START:                                     /* start spindle */
         update_hkcs (CS1_DONE, drv);                    /* done */
         break;
@@ -1151,6 +1153,7 @@ switch (fnc) {                                          /* case on function */
             hk_err (CS1_ERR|CS1_DONE, 0, ER_WLE, drv);  /* set err, stop op */
             return SCPE_OK;
             }
+        FALLTHROUGH;
     case FNC_WCHK:                                      /* write check */
     case FNC_READ:                                      /* read */
         if (SC02C)                                      /* 22b addr? */
@@ -1253,6 +1256,7 @@ switch (fnc) {                                          /* case on function */
             return SCPE_IOERR;
             }
 
+        FALLTHROUGH;
     case FNC_WRITEH:                                    /* write headers stub */
         update_hkcs (CS1_DONE, drv);                    /* set done */
         break;
