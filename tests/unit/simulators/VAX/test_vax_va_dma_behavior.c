@@ -24,6 +24,8 @@ extern uint32_t va_dga_int;
 extern t_stat va_dmasvc(UNIT *uptr);
 extern UNIT va_unit[];
 
+uint8_t ua2681_oport(UART2681 *ctx);
+
 int32_t int_req[IPL_HLVL];
 int32_t sys_model;
 uint32_t fault_PC;

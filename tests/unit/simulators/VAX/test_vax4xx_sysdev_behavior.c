@@ -31,6 +31,7 @@ void rd_wr(int32_t pa, int32_t val, int32_t lnt);
 void vc_wr(int32_t pa, int32_t val, int32_t lnt);
 void va_wr(int32_t pa, int32_t val, int32_t lnt);
 void ve_wr(int32_t pa, int32_t val, int32_t lnt);
+t_stat rom_apply_patches(void);
 
 extern uint32_t *ddb;
 extern int32_t int_mask;

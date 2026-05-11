@@ -32,6 +32,10 @@ const int32_t hun_table[64];
 const int32_t ten_table[64];
 const int32_t one_table[64];
 
+int32_t store_addr_h(int32_t addr);
+int32_t store_addr_t(int32_t addr);
+int32_t store_addr_u(int32_t addr);
+
 int32_t store_addr_h(int32_t addr)
 {
     return addr;

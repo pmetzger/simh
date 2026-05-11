@@ -8,6 +8,18 @@
 #include "vax_defs.h"
 
 t_stat sysd_reset(DEVICE *dptr);
+t_stat rom_apply_patches(void);
+int32_t iccs_rd(void);
+void iccs_wr(int32_t data);
+t_stat or_map(uint32_t index, uint8_t *rom_buf, t_addr size);
+t_stat or_unmap(uint32_t index);
+int32_t nar_rd(int32_t pa);
+int32_t dz_rd(int32_t pa);
+int32_t nvr_rd(int32_t pa);
+int32_t or_rd(int32_t pa);
+int32_t rom_rd(int32_t pa);
+void dz_wr(int32_t pa, int32_t val, int32_t lnt);
+void nvr_wr(int32_t pa, int32_t val, int32_t lnt);
 
 extern int32_t CADR;
 extern int32_t SCCR;

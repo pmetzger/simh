@@ -21,6 +21,12 @@ int32_t ReadReg(uint32_t pa, int32_t lnt);
 void WriteReg(uint32_t pa, int32_t val, int32_t lnt);
 void WriteRegU(uint32_t pa, int32_t val, int32_t lnt);
 int32_t ka_rd(int32_t pa);
+t_stat show_vec(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat rom_apply_patches(void);
+int32_t iccs_rd(void);
+void iccs_wr(int32_t data);
+t_stat or_map(uint32_t index, uint8_t *rom_buf, t_addr size);
+t_stat or_unmap(uint32_t index);
 
 extern uint32_t *ddb;
 extern int32_t cdg_dat[];
@@ -135,6 +141,7 @@ int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei)
 }
 
 #define STUB_READ(name)                                                        \
+    int32_t name(int32_t pa);                                                  \
     int32_t name(int32_t pa)                                                   \
     {                                                                          \
         /* Stubbed register read for uncalled dispatch entries. */             \
@@ -144,6 +151,7 @@ int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei)
     }
 
 #define STUB_WRITE(name)                                                       \
+    void name(int32_t pa, int32_t val, int32_t lnt);                           \
     void name(int32_t pa, int32_t val, int32_t lnt)                            \
     {                                                                          \
         /* Stubbed register write for uncalled dispatch entries. */            \

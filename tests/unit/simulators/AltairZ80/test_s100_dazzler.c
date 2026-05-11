@@ -9,6 +9,15 @@
 
 ChipType chiptype;
 
+uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size,
+                          uint32_t resource_type,
+                          int32_t (*routine)(const int32_t, const int32_t,
+                                             const int32_t),
+                          const char *name, uint8_t unmap);
+t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+uint8_t GetBYTEWrapper(const uint32_t Addr);
+
 uint32_t sim_map_resource(uint32_t baseaddr, uint32_t size, uint32_t resource_type,
                         int32_t (*routine)(const int32_t, const int32_t,
                                          const int32_t),
