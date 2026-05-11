@@ -278,6 +278,7 @@ switch (fnc) {
                 *dat = 0;                               /* no skip if fail */
             }
         else CRETINS;
+        break;
 
     default:
         return SCPE_IERR;
