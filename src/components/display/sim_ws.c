@@ -213,6 +213,10 @@ key_to_ascii (SIM_KEY_EVENT *kev)
 int
 ws_poll(int *valp, int maxus)
 {
+    /* Generic window-system polling signature.
+       This implementation does not use every parameter. */
+    (void)valp;
+
     SIM_MOUSE_EVENT mev;
     SIM_KEY_EVENT kev;
 
@@ -390,6 +394,10 @@ free (cursor);
 int
 ws_init(const char *name, int xp, int yp, int colors, void *dptr)
 {
+    /* Generic window-system initialization signature.
+       This implementation does not use every parameter. */
+    (void)colors;
+
     int i;
     int ret;
 

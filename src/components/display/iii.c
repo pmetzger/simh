@@ -30,6 +30,10 @@
 
 int iii_init(void *dev, int debug)
 {
+  /* Generic display initialization signature.
+     This implementation does not use every parameter. */
+  (void)debug;
+
   return display_init(DIS_III, 1, dev);
 }
 

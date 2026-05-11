@@ -235,6 +235,7 @@ point(int x, int y, int seq)
 #ifdef TYPE340_POINT
     DEBUGF(("type340 point %d %d %d\r\n", x, y, seq));
 #endif
+    (void)seq;
 
     i = DISPLAY_INT_MAX-7+u->intensity;
     if (i <= 0)

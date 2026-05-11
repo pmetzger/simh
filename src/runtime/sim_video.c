@@ -297,6 +297,10 @@ static char tmp_key_name[40];
 /* libpng callbacks */
 static void png_error_SDL(png_structp ctx, png_const_charp str)
 {
+    /* Generic libpng error callback signature.
+       This implementation does not use every parameter. */
+    (void)ctx;
+
     SDL_SetError("libpng: %s\n", str);
 }
 static void png_write_SDL(png_structp png_ptr, png_bytep data, png_size_t length)
@@ -599,6 +603,10 @@ static SDL_Thread *vid_main_thread_handle;
 
 static int main_thread (void *arg)
 {
+/* Generic thread entry signature.
+   This implementation does not use every parameter. */
+(void)arg;
+
 SDL_Event user_event;
 int stat;
 
@@ -2479,11 +2487,24 @@ return (const char *)SDLVersion;
 
 t_stat vid_set_release_key (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
+/* Generic SET command signature.
+   This implementation does not use every parameter. */
+(void) st;
+(void) uptr;
+(void) val;
+(void) desc;
+
 return SCPE_NOFNC;
 }
 
 t_stat vid_show_release_key (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
+/* Generic SHOW command signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+(void) val;
+(void) desc;
+
 VID_DISPLAY *vptr;
 for (vptr = &vid_first; vptr != NULL; vptr = vptr->next) {
     if (vptr->vid_flags & SIM_VID_INPUTCAPTURED) {
@@ -2886,6 +2907,10 @@ static int vid_beep_samples;
 
 static void vid_audio_callback(void *ctx, Uint8 *stream, int length)
 {
+/* Generic audio callback signature.
+   This implementation does not use every parameter. */
+(void)ctx;
+
 int i, sum, remnant = ((vid_beep_samples - vid_beep_offset) * sizeof (*vid_beep_data));
 
 if (length > remnant) {

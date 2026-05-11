@@ -754,6 +754,10 @@ vt11_get_mpr(void)
 void
 vt11_set_mpr(uint16_t d)
 {   INIT
+    /* Generic register write signature.
+       This implementation does not use every parameter. */
+    (void)d;
+
     /* beeps the "bell" on the LK40 keyboard */
 #if 0   /* probably doesn't hurt to do it for the VS60 also */
     if (VT11)   /* according to the VS60 specs */
@@ -773,6 +777,10 @@ vt11_get_xpr(void)
 void
 vt11_set_xpr(uint16_t d)
 {   INIT
+    /* Generic register write signature.
+       This implementation does not use every parameter. */
+    (void)d;
+
     DEBUGF("set XPR: no effect\r\n");
 }
 
@@ -788,6 +796,10 @@ vt11_get_ypr(void)
 void
 vt11_set_ypr(uint16_t d)
 {   INIT
+    /* Generic register write signature.
+       This implementation does not use every parameter. */
+    (void)d;
+
     DEBUGF("set YPR: no effect\r\n");
 }
 
@@ -941,6 +953,10 @@ vt11_get_nr(void)
 void
 vt11_set_nr(uint16_t d)
 {   INIT
+    /* Generic register write signature.
+       This implementation does not use every parameter. */
+    (void)d;
+
     DEBUGF("set NR: no effect\r\n");
 }
 
@@ -977,6 +993,10 @@ vt11_get_sdr(void)
 void
 vt11_set_sdr(uint16_t d)
 {   INIT
+    /* Generic register write signature.
+       This implementation does not use every parameter. */
+    (void)d;
+
     DEBUGF("set SDR: no effect\r\n");
 }
 
@@ -1055,6 +1075,10 @@ vt11_get_zpr(void)
 void
 vt11_set_zpr(uint16_t d)
 {   INIT
+    /* Generic register write signature.
+       This implementation does not use every parameter. */
+    (void)d;
+
     DEBUGF("set ZPR: no effect\r\n");
 }
 
