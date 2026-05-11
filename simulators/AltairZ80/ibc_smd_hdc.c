@@ -474,6 +474,7 @@ static uint8_t IBC_SMD_Read(const uint32_t Addr)
         cData = 0x7f;
         sim_debug(ERROR_MSG, &ibc_smd_dev, DEV_NAME ": " ADDRESS_FORMAT
             " RD Unknown  0x%02x=0x%02x\n", PCX, Addr, cData);
+        break;
     case IBC_SMD_REG_DATA:
         cData = ibc_smd_info->sectbuf[ibc_smd_info->secbuf_index];
         sim_debug(FIFO_MSG, &ibc_smd_dev, DEV_NAME ": " ADDRESS_FORMAT

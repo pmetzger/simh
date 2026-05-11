@@ -7,6 +7,15 @@ add_unit_test(unit-altairz80-dazzler
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
+add_unit_test(unit-altairz80-ibc-smd-hdc
+    LABEL AltairZ80
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_ibc_smd_hdc.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/AltairZ80
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
 add_unit_test(unit-altairz80-scp300f
     LABEL AltairZ80
     SOURCES
