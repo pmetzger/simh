@@ -102,6 +102,22 @@ add_unit_test(unit-vax43-sysdev-behavior
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax440-sysdev-behavior
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax440_sysdev_behavior.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax440_sysdev.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+    DEFINES
+        DONT_USE_INTERNAL_ROM
+        VM_VAX
+        VAX_440
+        VAX_48
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax630-rom-byte-write
     LABEL unit
     SOURCES

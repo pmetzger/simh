@@ -156,6 +156,7 @@ int32_t int_mask = 0;                                   /* interrupt mask */
 uint32_t tmr_tir = 0;                                   /* curr interval */
 
 t_stat sysd_reset (DEVICE *dptr);
+t_stat sysd_powerup (void);
 const char *sysd_description (DEVICE *dptr);
 int32_t ka_rd (int32_t pa);
 void ka_wr (int32_t pa, int32_t val, int32_t lnt);
@@ -1043,6 +1044,30 @@ if (*rom == 0) {                                        /* no boot? */
 return SCPE_OK;
 }
 
+/*
+ * Restore KA46/KA47/KA48 system-device state that should match a fresh host
+ * process after a power cycle.  Ordinary RESET deliberately preserves this
+ * state; RESET -P uses this before the ordinary reset recomputes hardware
+ * presence registers and allocates backing storage.
+ */
+
+t_stat sysd_powerup (void)
+{
+    for (int i = 0; i < IPL_HLVL; i++)
+        int_req[i] = 0;
+
+    conisp = 0;
+    conpc = 0;
+    conpsl = 0;
+    ka_hltcod = 0;
+    mem_cnfg = 0;
+    CADR = 0;
+    SCCR = 0;
+    int_mask = 0;
+
+    return SCPE_OK;
+}
+
 /* SYSD reset */
 
 t_stat sysd_reset (DEVICE *dptr)
@@ -1050,6 +1075,9 @@ t_stat sysd_reset (DEVICE *dptr)
 /* Generic device reset signature.
    This implementation does not use every parameter. */
 (void) dptr;
+
+if (sim_switches & SWMASK ('P'))
+    sysd_powerup ();
 
 ka_mapbase = 0;
 ka_cfgtst = CFGT_L3C;
