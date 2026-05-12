@@ -141,3 +141,13 @@ add_unit_test(unit-intel-systems-zx200a
         ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/tests/unit/support
     LABEL intel-systems)
+
+add_unit_test(unit-intel-systems-sys-model
+    SOURCES
+        ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/common/sys.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_sys_model.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/common
+        ${PROJECT_SOURCE_DIR}/simulators/Intel-Systems/Intel-MDS
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+    LABEL intel-systems)

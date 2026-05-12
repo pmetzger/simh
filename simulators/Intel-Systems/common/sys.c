@@ -34,6 +34,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "system_defs.h"                /* system header in system dir */
 
@@ -517,7 +518,7 @@ t_stat sys_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
     for (i=0; i<SYS_NUM; i++) {               //search stored configurations
         if (!strncmp(cptr, models[i].name, strlen(cptr))) { //find the system
             model = models[i].id;
-            strncpy(sim_name, models[i].name, 11);
+            strlcpy(sim_name, models[i].name, sizeof(sim_name));
             printf("sys_set_model: Configuring an %s\n", sim_name);
             switch (model) {            //set memory map type
                 case 0:                 //mds-210

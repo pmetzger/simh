@@ -71,7 +71,7 @@ extern DEVICE zx200a_dev;
    sim_stop_messages    array of pointers to stop messages
 */
 
-char sim_name[] = "Intel-MDS";
+char sim_name[64] = "Intel-MDS";
 
 REG *sim_PC = &i8080_reg[0];
 
