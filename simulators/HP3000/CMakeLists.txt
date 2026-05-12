@@ -17,6 +17,7 @@ add_simulator(hp3000
         hp3000_cpu_fp.c
         hp3000_cpu_cis.c
         hp3000_ds.c
+        hp3000_format.c
         hp3000_iop.c
         hp3000_lp.c
         hp3000_mem.c

@@ -24,6 +24,7 @@ add_simulator(hp2100
         hp2100_di_da.c
         hp2100_disclib.c
         hp2100_dma.c
+        hp2100_format.c
         hp2100_dp.c
         hp2100_dq.c
         hp2100_dr.c

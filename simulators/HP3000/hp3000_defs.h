@@ -638,8 +638,8 @@ typedef enum {
 
 /* Bitset formatting.
 
-   See the comments at the "fmt_bitset" function (hp3000_sys.c) for details of
-   the specification of bitset names and format structures.
+   See hp3000_format.h for details of the specification of bitset names and
+   format structures.
 */
 
 typedef enum {                                  /* direction of interpretation */
@@ -702,8 +702,7 @@ extern t_stat fprint_cpu  (FILE *ofile, t_value *val, uint32_t radix, int32_t sw
 extern uint32_t fprint_edit (FILE *ofile, t_value *val, uint32_t radix, uint32_t byte_address);
 
 extern const char *fmt_status (uint32_t status);
-extern const char *fmt_char   (uint32_t charval);
-extern const char *fmt_bitset (uint32_t bitset, const BITSET_FORMAT bitfmt);
+#include "hp3000_format.h"
 
 extern void   hp_debug           (DEVICE *dptr, uint32_t flag,
                                   const char *format, ...) PRINTF_FMT(3, 4);

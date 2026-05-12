@@ -748,8 +748,8 @@ typedef enum {                                  /* flip-flop values */
 
 /* Bitset formatting.
 
-   See the comments at the "fmt_bitset" function (hp2100_sys.c) for details of
-   the specification of bitset names and format structures.
+   See hp2100_format.h for details of the specification of bitset names and
+   format structures.
 */
 
 typedef enum {                                  /* direction of interpretation */
@@ -928,8 +928,7 @@ extern t_stat hp_show_dib (FILE *st, UNIT *uptr, int32_t count, const void *desc
 
 extern t_stat fprint_cpu (FILE *ofile, t_addr addr, t_value *val, uint32_t radix, SYMBOL_SOURCE source);
 
-extern const char *fmt_char   (uint32_t charval);
-extern const char *fmt_bitset (uint32_t bitset, const BITSET_FORMAT bitfmt);
+#include "hp2100_format.h"
 
 extern void   hp_initialize_trace (uint32_t device_max, uint32_t flag_max);
 extern void   hp_trace            (DEVICE *dptr, uint32_t flag,
