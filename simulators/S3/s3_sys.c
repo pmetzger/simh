@@ -283,6 +283,10 @@ char bld[128], bldaddr[160], boperand[32], aoperand[32];
 int32_t blk[16], blt[16];
 int32_t blkadd;
 
+/* Generic symbol print signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+
 memset (bld, 0, sizeof (bld));
 memset (bldaddr, 0, sizeof (bldaddr));
 c1 = val[0] & 0xff;

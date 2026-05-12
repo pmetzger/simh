@@ -118,6 +118,10 @@ t_stat tv_devio(uint32_t dev, uint64 *data)
 
 static t_stat tv_reset (DEVICE *dptr)
 {
+    /* Generic reset signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     memset (joy_axes, 0, sizeof joy_axes);
     memset (joy_buttons, 0, sizeof joy_buttons);
     vid_register_gamepad_motion_callback (tv_joy_motion);
@@ -127,6 +131,10 @@ static t_stat tv_reset (DEVICE *dptr)
 
 const char *tv_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "Stanford TV camera and Spacewar buttons";
 }
 #endif

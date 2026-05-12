@@ -3469,6 +3469,10 @@ t_stat cpu_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 int32_t st;
 uint32_t addr = (uint32_t) exta;
 
+/* Generic memory deposit signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+
 if (sw & SWMASK ('V')) {
     int32_t acc = cpu_get_vsw (sw);
     addr = Test (addr, acc, &st);

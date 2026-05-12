@@ -261,6 +261,10 @@ kbd_event(SIM_KEY_EVENT *ev)
 static t_stat
 kbd_reset(DEVICE *dptr)
 {
+  /* Generic device reset signature.
+     This implementation does not use every parameter. */
+  (void)dptr;
+
 #ifndef USE_DISPLAY
   /* Generic device reset signature.
      This build variant does not use every parameter. */

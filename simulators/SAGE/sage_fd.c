@@ -143,9 +143,17 @@ static void sagefd_interrupt(I8272* chip,int delay)
 /* dummy routines for i8272 - sage does not use DMA */
 void PutByteDMA(uint32_t addr, uint8_t data)
 {
+    /* Generic i8272 DMA callback signature.
+       This implementation does not use every parameter. */
+    (void) addr;
+    (void) data;
 }
 
 uint8_t GetByteDMA(uint32_t addr)
 {
+    /* Generic i8272 DMA callback signature.
+       This implementation does not use every parameter. */
+    (void) addr;
+
     return 0;
 }

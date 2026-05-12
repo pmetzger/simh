@@ -721,6 +721,11 @@ vt_boot(int32_t unit, DEVICE *dptr)
     char stability[32];
     extern int32_t saved_PC;
 
+    /* Generic boot signature.
+       This implementation does not use every parameter. */
+    (void) unit;
+    (void) dptr;
+
     if (sim_switch_number == 40) {      /* GT40 Boot? */
         set_cmd (0, "CPU 11/05");
         set_cmd (0, "CPU 16k");
@@ -774,6 +779,12 @@ vt_set_crt(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     char gbuf[CBUFSIZE];
 
+    /* Generic set modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     if (vt11_init)
         return SCPE_ALATT;              /* should be "changes locked out" */
     if (cptr == NULL)
@@ -797,6 +808,12 @@ vt_set_crt(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 t_stat
 vt_show_crt(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+    /* Generic show modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     fprintf(st, "crt=VR%d", (int)vt11_display);
     return SCPE_OK;
 }
@@ -806,6 +823,13 @@ vt_set_scale(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     t_stat r;
     t_value v;
+
+    /* Generic set modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     if (vt11_init)
         return SCPE_ALATT;              /* should be "changes locked out" */
     if (cptr == NULL)
@@ -822,6 +846,12 @@ vt_set_scale(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 t_stat
 vt_show_scale(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+    /* Generic show modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     fprintf(st, "scale=%d", (int)vt11_scale);
     return SCPE_OK;
 }
@@ -830,6 +860,13 @@ t_stat
 vt_set_hspace(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     char gbuf[CBUFSIZE];
+
+    /* Generic set modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     if (vt11_init)
         return SCPE_ALATT;              /* should be "changes locked out" */
     if (cptr == NULL)
@@ -847,6 +884,12 @@ vt_set_hspace(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 t_stat
 vt_show_hspace(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+    /* Generic show modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     fprintf(st, "hspace=%s", vt11_csp_w==12 ? "narrow" : "normal");
     return SCPE_OK;
 }
@@ -855,6 +898,13 @@ t_stat
 vt_set_vspace(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
     char gbuf[CBUFSIZE];
+
+    /* Generic set modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     if (vt11_init)
         return SCPE_ALATT;              /* should be "changes locked out" */
     if (cptr == NULL)
@@ -872,6 +922,12 @@ vt_set_vspace(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 t_stat
 vt_show_vspace(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+    /* Generic show modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     fprintf(st, "vspace=%s", vt11_csp_h==26 ? "tall" : "normal");
     return SCPE_OK;
 }
@@ -941,6 +997,10 @@ vt_fetch(uint32_t addr, vt11word *wp)
 
 const char *vt_description (DEVICE *dptr)
 {
+/* Generic description signature.
+   This implementation does not use every parameter. */
+(void) dptr;
+
 return (VS60) ? "VS60 Display processor"
               : "VT11 Display processor";
 }
@@ -956,6 +1016,11 @@ t_stat vt_set_kb(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 char gbuf[CBUFSIZE];
 
+/* Generic set modifier signature.
+   This implementation does not use every parameter. */
+(void) val;
+(void) desc;
+
 if (cptr == NULL || *cptr == 0)
     return SCPE_ARG;
 get_glyph(cptr, gbuf, 0);
@@ -970,6 +1035,11 @@ return SCPE_OK;
 
 t_stat vt_show_kb(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+/* Generic show modifier signature.
+   This implementation does not use every parameter. */
+(void) val;
+(void) desc;
+
 fprintf(st, "keyboard=%s",
         (uptr->flags & UNIT_NOSPACEWAR) ? "nospacewar" : "spacewar");
 return SCPE_OK;

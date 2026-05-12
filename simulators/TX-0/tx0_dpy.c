@@ -140,6 +140,10 @@ int32_t dpy (int32_t ac)
  */
 t_stat dpy_svc (UNIT *uptr)
 {
+    /* Generic unit service signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+
     display_age(dpy_unit.wait*CYCLE_TIME, 1);
     sim_activate (&dpy_unit, dpy_unit.wait); /* requeue! */
     if (dpy_stop_flag) {

@@ -952,6 +952,7 @@ t_stat dtc_show_buf (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
     /* Generic show modifier signature.
        This implementation does not use every parameter. */
+    (void) uptr;
     (void) val;
     (void) desc;
 

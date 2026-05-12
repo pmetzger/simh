@@ -13771,6 +13771,10 @@ t_stat cpu_reset (DEVICE *dptr)
 
 t_stat cpu_ex (t_value *vptr, t_addr ea, UNIT *uptr, int32_t sw)
 {
+/* Generic memory examine signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+
 if (vptr == NULL)
     return SCPE_ARG;
 if (ea < 020)
@@ -13811,6 +13815,10 @@ return SCPE_OK;
 
 t_stat cpu_dep (t_value val, t_addr ea, UNIT *uptr, int32_t sw)
 {
+/* Generic memory deposit signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+
 if (ea < 020)
     FM[ea] = val & FMASK;
 else {
@@ -14194,6 +14202,12 @@ return SCPE_OK;
 t_stat
 cpu_help(FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
+    /* Generic help signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) flag;
+    (void) cptr;
+
     fprintf(st, "%s\n\n", cpu_description(dptr));
     fprintf(st, "To stop the cpu use the command:\n\n");
     fprintf(st, "    sim> SET CTY STOP\n\n");

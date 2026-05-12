@@ -714,6 +714,11 @@ t_stat cpu_boot (int32_t unitno, DEVICE *dptr)
 {
 t_stat r;
 
+/* Generic boot signature.
+   This implementation does not use every parameter. */
+(void) unitno;
+(void) dptr;
+
 r = cpu_load_bootcode (BOOT_CODE_FILENAME, BOOT_CODE_ARRAY, BOOT_CODE_SIZE, false, 0x200);
 if (r != SCPE_OK)
     return r;
@@ -725,6 +730,10 @@ return SCPE_OK;
 
 t_stat sbi_reset (DEVICE *dptr)
 {
+/* Generic reset signature.
+   This implementation does not use every parameter. */
+(void) dptr;
+
 wcs_addr = 0;
 wcs_data = 0;
 wcs_mbrk = 0;
@@ -739,6 +748,10 @@ return SCPE_OK;
 
 const char *sbi_description (DEVICE *dptr)
 {
+/* Generic description signature.
+   This implementation does not use every parameter. */
+(void) dptr;
+
 return "Synchronous Backplane Interconnect";
 }
 
@@ -746,6 +759,11 @@ return "Synchronous Backplane Interconnect";
 
 t_stat show_nexus (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+/* Generic show modifier signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+(void) desc;
+
 fprintf (st, "nexus=%d, address=%X", val, NEXUSBASE + ((1 << REG_V_NEXUS) * val));
 return SCPE_OK;
 }
@@ -830,6 +848,12 @@ return SCPE_OK;
 
 t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
+/* Generic set modifier signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+(void) val;
+(void) desc;
+
 if (cptr == NULL) return SCPE_ARG;
 if (strcmp(cptr, "780") == 0) {
    sys_model = 0;
@@ -852,6 +876,13 @@ return SCPE_OK;
 
 t_stat cpu_model_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
+/* Generic help signature.
+   This implementation does not use every parameter. */
+(void) dptr;
+(void) uptr;
+(void) flag;
+(void) cptr;
+
 fprintf (st, "Initial memory size is 8MB.\n\n");
 fprintf (st, "The simulator is booted with the BOOT command:\n\n");
 fprintf (st, "   sim> BO{OT} <device>{/R5:flags}\n\n");

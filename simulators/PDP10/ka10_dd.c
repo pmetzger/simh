@@ -647,6 +647,13 @@ static t_stat dd_set_windows (UNIT *uptr, int32_t val, const char *cptr, void *d
 {
     t_value x;
     t_stat r;
+
+    /* Generic set modifier signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+    (void) val;
+    (void) desc;
+
     if (cptr == NULL)
         return SCPE_ARG;
     x = get_uint (cptr, 10, 32, &r);
@@ -658,6 +665,11 @@ static t_stat dd_set_windows (UNIT *uptr, int32_t val, const char *cptr, void *d
 
 static t_stat dd_show_windows (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+    /* Generic show modifier signature.
+       This implementation does not use every parameter. */
+    (void) val;
+    (void) desc;
+
     if (uptr == NULL)
         return SCPE_IERR;
     fprintf (st, "WINDOWS=%d", dd_windows);
@@ -667,12 +679,24 @@ static t_stat dd_show_windows (FILE *st, UNIT *uptr, int32_t val, const void *de
 static t_stat
 dd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
+    /* Generic help signature.
+       This implementation does not use every parameter. */
+    (void) st;
+    (void) dptr;
+    (void) uptr;
+    (void) flag;
+    (void) cptr;
+
     return SCPE_OK;
 }
 
 static const char *
 dd_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "Data Disc Television Display System";
 }
 
@@ -743,12 +767,24 @@ vds_devio(uint32_t dev, uint64 *data)
 static t_stat
 vds_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
+    /* Generic help signature.
+       This implementation does not use every parameter. */
+    (void) st;
+    (void) dptr;
+    (void) uptr;
+    (void) flag;
+    (void) cptr;
+
     return SCPE_OK;
 }
 
 static const char *
 vds_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "Video Switch";
 }
 #endif

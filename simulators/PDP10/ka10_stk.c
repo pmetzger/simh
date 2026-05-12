@@ -391,6 +391,10 @@ t_stat stk_devio(uint32_t dev, uint64 *data)
 
 static t_stat stk_reset (DEVICE *dptr)
 {
+    /* Generic reset signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     if ((stk_dev.flags & DEV_DIS) == 0)
         vid_display_kb_event_process = stk_keyboard;
     return SCPE_OK;
@@ -398,6 +402,10 @@ static t_stat stk_reset (DEVICE *dptr)
 
 const char *stk_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "Stanford keyboard";
 }
 #endif

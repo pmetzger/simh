@@ -94,6 +94,10 @@ int32_t dpy (int32_t inst, int32_t dev, int32_t io, int32_t ac)
 int32_t x, y;
 int level;
 
+/* Generic IOT dispatch signature.
+   This implementation does not use every parameter. */
+(void) dev;
+
 if (dpy_dev.flags & DEV_DIS)                            /* disabled? */
         return (stop_inst << IOT_V_REASON) | io;        /* stop if requested */
 if (GEN_CPLS (inst)) {                                  /* comp pulse? */
@@ -143,6 +147,10 @@ return io;
  */
 t_stat dpy_svc (UNIT *uptr)
 {
+    /* Generic unit service signature.
+       This implementation does not use every parameter. */
+    (void) uptr;
+
     if (cpls & CPLS_DPY) {              /* completion pulse? */
         ios = 1;                        /* restart */
         cpls = cpls & ~CPLS_DPY;  }     /* clr pulse pending */
@@ -205,6 +213,11 @@ t_stat dpy_reset (DEVICE *dptr)
 
 int32_t spacewar (int32_t inst, int32_t dev, int32_t io)
 {
+/* Generic IOT dispatch signature.
+   This implementation does not use every parameter. */
+(void) inst;
+(void) dev;
+
 if (dpy_dev.flags & DEV_DIS)                            /* disabled? */
         return (stop_inst << IOT_V_REASON) | io;        /* stop if requested */
 return spacewar_switches;

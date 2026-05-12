@@ -2733,6 +2733,10 @@ return result;
 
 t_stat hp_set_dib (UNIT *uptr, int32_t count, const char *cptr, void *desc)
 {
+/* Generic set modifier signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+
 DIB    *dibptr = (DIB *) desc;                          /* a pointer to the associated DIB array */
 t_stat status = SCPE_OK;
 uint32_t value;
@@ -2789,6 +2793,10 @@ return status;                                          /* return the validation
 
 t_stat hp_show_dib (FILE *st, UNIT *uptr, int32_t count, const void *desc)
 {
+/* Generic show modifier signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+
 const DIB *dibptr = (const DIB *) desc;                 /* a pointer to the associated DIB array */
 int32_t   index, limit;
 
@@ -4771,6 +4779,10 @@ return SCPE_OK;
 
 static t_stat poll_reset (DEVICE *dptr)
 {
+/* Generic reset signature.
+   This implementation does not use every parameter. */
+(void) dptr;
+
 if (sim_switches & SWMASK ('P'))                        /* if this is a power-on reset */
     sim_rtcn_init (poll_unit [0].wait, TMR_POLL);       /*   then initialize the poll timer */
 

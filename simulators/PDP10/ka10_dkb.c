@@ -477,6 +477,10 @@ t_stat dkb_svc(UNIT *uptr)
 
 t_stat dkb_reset( DEVICE *dptr)
 {
+    /* Generic reset signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     if ((dkb_dev.flags & DEV_DIS) == 0)
         sim_activate_abs (dkb_unit, 0);
     dkb_kmod = SHFT|TOP|META|CTRL;
@@ -486,12 +490,23 @@ t_stat dkb_reset( DEVICE *dptr)
 
 t_stat dkb_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
+    /* Generic help signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+    (void) uptr;
+    (void) flag;
+    (void) cptr;
+
     fprintf (stderr, "Keyboard input for the Stanford III and Data Disc displays\n");
     return SCPE_OK;
 }
 
 const char *dkb_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "Keyboard scanner for III and DD display devices";
 }
 #endif

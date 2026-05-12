@@ -208,6 +208,11 @@ ng_boot(int32_t unit, DEVICE *dptr)
 {
     t_stat r;
 
+    /* Generic boot signature.
+       This implementation does not use every parameter. */
+    (void) unit;
+    (void) dptr;
+
     set_cmd (0, "CPU 56K");
     set_cmd (0, "NG TYPE=LOGO");
     set_cmd (0, "PCLK ENABLED");
@@ -240,6 +245,12 @@ ng_boot(int32_t unit, DEVICE *dptr)
 t_stat
 ng_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
+  /* Generic set modifier signature.
+     This implementation does not use every parameter. */
+  (void) uptr;
+  (void) val;
+  (void) desc;
+
   if (MATCH_CMD (cptr, "DAZZLE") == 0)
     ng_type = TYPE_DAZZLE;
   else if (MATCH_CMD (cptr, "LOGO") == 0)
@@ -252,6 +263,12 @@ ng_set_type(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 t_stat
 ng_show_type(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+  /* Generic show modifier signature.
+     This implementation does not use every parameter. */
+  (void) uptr;
+  (void) val;
+  (void) desc;
+
   if (ng_type == TYPE_DAZZLE)
     fprintf(st, "type=DAZZLE");
   else if (ng_type == TYPE_LOGO)
@@ -266,6 +283,12 @@ ng_set_scale(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
   t_stat r;
   t_value v;
+
+  /* Generic set modifier signature.
+     This implementation does not use every parameter. */
+  (void) val;
+  (void) desc;
+
   if ((uptr->flags & UNIT_DIS) == 0)
     return SCPE_ALATT;
   if (cptr == NULL)
@@ -282,6 +305,12 @@ ng_set_scale(UNIT *uptr, int32_t val, const char *cptr, void *desc)
 t_stat
 ng_show_scale(FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
+  /* Generic show modifier signature.
+     This implementation does not use every parameter. */
+  (void) uptr;
+  (void) val;
+  (void) desc;
+
   fprintf(st, "scale=%d", (int)ng_scale);
   return SCPE_OK;
 }
@@ -313,11 +342,21 @@ ng_fetch(uint32_t addr, uint16_t *wp)
 
 const char *ng_description (DEVICE *dptr)
 {
+  /* Generic description signature.
+     This implementation does not use every parameter. */
+  (void) dptr;
+
   return "Vector display controller for MIT Logo PDP-11/45";
 }
 
 t_stat ng_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
+  /* Generic help signature.
+     This implementation does not use every parameter. */
+  (void) uptr;
+  (void) flag;
+  (void) cptr;
+
  /* The '*'s in the next line represent the standard text width of a help line */
               /****************************************************************************/
   fprintf(st, "%s\n\n", ng_description (dptr));

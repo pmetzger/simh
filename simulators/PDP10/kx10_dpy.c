@@ -210,6 +210,10 @@ DEVICE dpy_dev = {
 
 const char *dpy_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "Type 340 Display on Type 344 interface";
 }
 
@@ -408,6 +412,10 @@ t_stat dpy_reset (DEVICE *dptr)
 ty340word
 ty340_fetch(ty340word addr)
 {
+    /* Generic Type 340 callback signature.
+       This implementation does not use every parameter. */
+    (void) addr;
+
     return 0;
 }
 
@@ -415,6 +423,10 @@ ty340_fetch(ty340word addr)
 void
 ty340_store(ty340word addr, ty340word value)
 {
+    /* Generic Type 340 callback signature.
+       This implementation does not use every parameter. */
+    (void) addr;
+    (void) value;
 }
 
 void
@@ -505,6 +517,10 @@ DEVICE wcnsls_dev = {
 
 const char *wcnsls_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "MIT Spacewar Consoles, and DEC color scope";
 }
 
@@ -746,6 +762,10 @@ DEVICE ocnsls_dev = {
 
 const char *ocnsls_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "Old MIT Spacewar Consoles";
 }
 

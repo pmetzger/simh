@@ -252,6 +252,11 @@ daz_boot(int32_t unit, DEVICE *dptr)
 {
     t_stat r;
 
+    /* Generic boot signature.
+       This implementation does not use every parameter. */
+    (void) unit;
+    (void) dptr;
+
     set_cmd (0, "CPU 56K");
     set_cmd (0, "NG TYPE=DAZZLE");
     set_cmd (0, "PCLK ENABLED");
@@ -265,11 +270,21 @@ daz_boot(int32_t unit, DEVICE *dptr)
 
 const char *daz_description (DEVICE *dptr)
 {
+  /* Generic description signature.
+     This implementation does not use every parameter. */
+  (void) dptr;
+
   return "Input buttons for Dazzle Dart";
 }
 
 t_stat daz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
+  /* Generic help signature.
+     This implementation does not use every parameter. */
+  (void) uptr;
+  (void) flag;
+  (void) cptr;
+
  /* The '*'s in the next line represent the standard text width of a help line */
               /****************************************************************************/
   fprintf(st, "%s\n\n", daz_description (dptr));

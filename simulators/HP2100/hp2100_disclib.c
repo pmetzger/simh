@@ -1393,6 +1393,10 @@ return result;                                          /* return the result of 
 
 t_stat dl_service_timer (CVPTR cvptr, UNIT *uptr)
 {
+/* Generic unit service signature.
+   This implementation does not use every parameter. */
+(void) uptr;
+
 sim_cancel (cvptr->aux);                                /* cancel any controller activation */
 
 dl_idle_controller (cvptr);                             /* idle the controller */

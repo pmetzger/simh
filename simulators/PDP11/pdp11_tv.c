@@ -558,6 +558,10 @@ t_stat tv_svc(UNIT *uptr)
   uint16_t key;
   int i;
 
+  /* Generic unit service signature.
+     This implementation does not use every parameter. */
+  (void) uptr;
+
   for (i = 0; i < TV_WINDOWS; i++) {
     if (!tv_updated[i])
       continue;
@@ -622,6 +626,10 @@ t_stat tv_reset(DEVICE *dptr)
 
 const char *tv_description (DEVICE *dptr)
 {
+  /* Generic description signature.
+     This implementation does not use every parameter. */
+  (void) dptr;
+
   return "Raster display controller for MIT Logo PDP-11/45";
 }
 

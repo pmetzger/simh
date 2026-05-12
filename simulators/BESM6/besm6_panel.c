@@ -436,6 +436,13 @@ static void draw_brz_static (int left, int top)
  */
 t_stat besm6_close_panel (UNIT *u, int32_t val, const char *cptr, void *desc)
 {
+    /* Generic set modifier signature.
+       This implementation does not use every parameter. */
+    (void) u;
+    (void) val;
+    (void) cptr;
+    (void) desc;
+
     if (! screen)
         return SCPE_UNATT;
     if (font_big) TTF_CloseFont(font_big);
@@ -448,6 +455,12 @@ t_stat besm6_close_panel (UNIT *u, int32_t val, const char *cptr, void *desc)
 
 t_stat besm6_show_panel (FILE *st, UNIT *up, int32_t v, const void *dp)
 {
+    /* Generic show modifier signature.
+       This implementation does not use every parameter. */
+    (void) up;
+    (void) v;
+    (void) dp;
+
     if (screen)
         fprintf(st, "Panel displayed");
     else

@@ -678,11 +678,23 @@ draw_line(int x1, int y1, int x2, int y2, int b, UNIT *uptr)
 
 t_stat iii_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
+/* Generic help signature.
+   This implementation does not use every parameter. */
+(void) st;
+(void) dptr;
+(void) uptr;
+(void) flag;
+(void) cptr;
+
 return SCPE_OK;
 }
 
 const char *iii_description (DEVICE *dptr)
 {
+    /* Generic description signature.
+       This implementation does not use every parameter. */
+    (void) dptr;
+
     return "Triple-I Display";
 }
 #endif

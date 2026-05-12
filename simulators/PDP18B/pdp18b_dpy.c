@@ -150,6 +150,10 @@ int32_t dpy_iors (void)
 
 int32_t dpy05 (int32_t dev, int32_t pulse, int32_t dat)
 {
+  /* Generic IOT dispatch signature.
+     This implementation does not use every parameter. */
+  (void) dev;
+
   sim_debug(DBG_IOT, &dpy_dev, "7005%02o, %06o\n", pulse, dat);
 
   if ((pulse & 001) != 0 && !TYPE34) {
@@ -187,6 +191,10 @@ int32_t dpy05 (int32_t dev, int32_t pulse, int32_t dat)
 
 int32_t dpy06 (int32_t dev, int32_t pulse, int32_t dat)
 {
+  /* Generic IOT dispatch signature.
+     This implementation does not use every parameter. */
+  (void) dev;
+
   sim_debug(DBG_IOT, &dpy_dev, "7006%02o, %06o\n", pulse, dat);
 
   if ((pulse & 001) != 0 && !TYPE34) {
@@ -226,6 +234,10 @@ int32_t dpy06 (int32_t dev, int32_t pulse, int32_t dat)
 
 int32_t dpy07 (int32_t dev, int32_t pulse, int32_t dat)
 {
+  /* Generic IOT dispatch signature.
+     This implementation does not use every parameter. */
+  (void) dev;
+
   sim_debug(DBG_IOT, &dpy_dev, "7007%02o, %06o\n", pulse, dat);
 
   if (TYPE34) {
@@ -255,6 +267,10 @@ int32_t dpy07 (int32_t dev, int32_t pulse, int32_t dat)
 
 int32_t dpy10 (int32_t dev, int32_t pulse, int32_t dat)
 {
+  /* Generic IOT dispatch signature.
+     This implementation does not use every parameter. */
+  (void) dev;
+
   sim_debug(DBG_IOT, &dpy_dev, "7010%02o, %06o\n", pulse, dat);
 
   if (TYPE34)
