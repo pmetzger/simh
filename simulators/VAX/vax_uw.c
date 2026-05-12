@@ -228,6 +228,7 @@ case 0:
         uw_clr_int();
     if ((data & CSR_TRN) == 0)
         CSR &= ~CSR_ERR;
+    break;
 case 1:
     if (data == 0 && (data & CSR_TRN) == 0)
         uw_clr_int();

@@ -367,3 +367,18 @@ add_unit_test(unit-vax780-fload
         VAX_780
     FEATURE_FULL64
 )
+
+add_unit_test(unit-vax-uw
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_uw.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_uw.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_780
+    FEATURE_FULL64
+)
