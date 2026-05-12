@@ -312,7 +312,7 @@ void xio_1131_console (int32_t iocc_addr, int32_t func, int32_t modify)
             break;
 
         default:
-            sprintf(msg, "Invalid console XIO function %x", func);
+            snprintf(msg, sizeof(msg), "Invalid console XIO function %x", func);
             xio_error(msg);
     }
 
@@ -837,8 +837,8 @@ static void set_default_mapping (int32_t flags)
 
     reset_mapping();
 
-    strcpy((char *) black_ribbon, "\033[30m");
-    strcpy((char *) red_ribbon,  "\033[31m");
+    strlcpy((char *) black_ribbon, "\033[30m", sizeof(black_ribbon));
+    strlcpy((char *) red_ribbon,  "\033[31m", sizeof(red_ribbon));
 
     switch (flags & CSET_MASK) {
         case CSET_1130:

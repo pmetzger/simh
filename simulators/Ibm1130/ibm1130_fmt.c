@@ -180,7 +180,8 @@ size_t  iI;                                                 /* work integer */
     if (*p_pszEdit == '*')                                  /* q. comment line? */
     {                                                       /* a. yes..  */
         strlcpy(pszWork, EditToWhitespace(p_pszEdit, width), sizeof pszWork);/* .. convert any tabs */
-        sprintf(gszOutput, ACOMMENTFMT, pszWork);           /* .. put the comment out there in the opcode column */
+        snprintf(gszOutput, sizeof(gszOutput), ACOMMENTFMT,
+                 pszWork);                                  /* .. put the comment out there in the opcode column */
         return gszOutput;                                   /* .. and return it */
     }
 
@@ -199,7 +200,7 @@ size_t  iI;                                                 /* work integer */
 
     if (strlen(pszLine) == 0)                               /* q. blank line? */
     {                                                       /* a. yes ..  Assembler abhors these so */
-        sprintf(gszOutput, ABLANKLINE);                     /* format as comment statement */
+        snprintf(gszOutput, sizeof(gszOutput), ABLANKLINE);  /* format as comment statement */
         return gszOutput;                                   /* .. and return it */
     }
 
@@ -220,7 +221,7 @@ size_t  iI;                                                 /* work integer */
                 *(pszLine + TAGOFFSET) = acTFWrk[iI];       /* a. yes .. make it the tag */
     }
 
-    sprintf(gszOutput, AFORMAT, pszLine);                   /* format the line */
+    snprintf(gszOutput, sizeof(gszOutput), AFORMAT, pszLine);  /* format the line */
 
     return gszOutput;                                       /* return formatted line */
 }
@@ -276,7 +277,7 @@ int     bContinue;                                          /* true if continue 
 
     strncpy(gszArg, pszWork, 75);                           /* copy rest to argument */
 
-    sprintf(gszOutput, (bContinue) ? FCONTFMT : FFORMAT,    /* format the line */
+    snprintf(gszOutput, sizeof(gszOutput), (bContinue) ? FCONTFMT : FFORMAT,  /* format the line */
                         gszLabel,                           /* .. statement # */
                         gszArg);                            /* .. code */
 

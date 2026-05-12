@@ -536,11 +536,11 @@ for (i = 0, dibp = NULL; i < (IOPAGESIZE >> 1); i++) {  /* loop thru entries */
         }                                               /* end if */
     }                                                   /* end for i */
 maxaddr = fprint_val (NULL, (t_value) dibp->ba, rdx, 32, PV_LEFT);
-sprintf (valbuf, (rdx == 16) ? "%03X" : "%03o", maxvec);
+snprintf (valbuf, sizeof(valbuf), (rdx == 16) ? "%03X" : "%03o", maxvec);
 vecwid = maxvec = (int32_t) strlen (valbuf);
 if (vecwid < 3)
     vecwid = 3;
-sprintf (valbuf, "%u", maxdev);
+snprintf (valbuf, sizeof(valbuf), "%u", maxdev);
 maxdev = (uint32_t)strlen (valbuf);
 
 j = strlen ("Address");
@@ -654,13 +654,13 @@ _map_description (desc, sizeof (desc), busmap[mstart], mstart, mapvalid);
 fprintf (st, "%s-MAP[%04X] = %08X%s\n", busname, mstart, busmap[mstart], desc);
 same_start = mstart;
 same_val = busmap[mstart];
-strcpy (same_desc, desc);
+strlcpy (same_desc, desc, sizeof(same_desc));
 for (mr = mstart + 1; mr <= mend; mr++) {
     ind_eq = _map_description (desc, sizeof (desc), busmap[mr], mr, mapvalid);
     if (((same_val == busmap[mr]) && (0 == strcmp (desc, same_desc))) ||
         (ind_eq && (0 == strcmp (desc, same_desc)))) {
         same_val = busmap[mr];
-        strcpy (same_desc, desc);
+        strlcpy (same_desc, desc, sizeof(same_desc));
         continue;
         }
     if (same_start != mr - 1) {
@@ -672,7 +672,7 @@ for (mr = mstart + 1; mr <= mend; mr++) {
     fprintf (st, "%s-MAP[%04X] = %08X%s\n", busname, mr, busmap[mr], desc);
     same_start = mr;
     same_val = busmap[mr];
-    strcpy (same_desc, desc);
+    strlcpy (same_desc, desc, sizeof(same_desc));
     }
 if ((same_start != mend) ||
     (0 != strcmp (same_desc, desc)))

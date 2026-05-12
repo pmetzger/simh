@@ -171,7 +171,7 @@ int main (int argc, char **argv)
         maxiplcols = (mode == B_1130) ? 80 : 72;
     else {
         while (strlen(cardid) < 8)
-            strcat(cardid, "0");
+            strlcat(cardid, "0", sizeof(cardid));
         maxiplcols = 72;
     }
 
@@ -299,10 +299,10 @@ void flushcard (void)
         i++;                            // index of first digit in trailing sequence
 
         if (ndig > 0) {                     // if any, increment them
-            sprintf(fmt, "%%0%dd", ndig);   // make, e.g. %03d
-            sprintf(newdig, fmt, atoi(cardid+i)+1);
+            snprintf(fmt, sizeof(fmt), "%%0%dd", ndig);   // make, e.g. %03d
+            snprintf(newdig, sizeof(newdig), fmt, atoi(cardid+i)+1);
             newdig[ndig] = '\0';            // clip if necessary
-            strcpy(cardid+i, newdig);       // replace for next card's sequence number
+            strlcpy(cardid+i, newdig, sizeof(cardid) - i);       // replace for next card's sequence number
         }
     }
 

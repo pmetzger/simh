@@ -513,7 +513,7 @@ t_stat ch11_set_peer (UNIT* uptr, int32_t val, const char* cptr, void* desc)
   if (host[0] == '\0')
     return SCPE_ARG;
 
-  strncpy (peer, cptr, sizeof(peer) - 1);
+  strlcpy (peer, cptr, sizeof(peer));
   return SCPE_OK;
 }
 

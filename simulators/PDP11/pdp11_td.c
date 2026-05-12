@@ -1411,7 +1411,7 @@ else {
 
         td_enabled_reset = true;
         /* make sure to bound the number of DLI devices */
-        sprintf (num, "%d", td_ctrls);
+        snprintf (num, sizeof(num), "%d", td_ctrls);
         td_set_ctrls (dptr->units, 0, num, NULL);
         }
     }

@@ -4626,7 +4626,7 @@ if (*cptr != '\0'                                       /* if there is more to p
             val [0] = 0;                                /* clear the assembled opcode */
             accumulator = 0;                            /*   and the accumulated significant opcode bits */
 
-            strcpy (gbuf, mptr);                        /* restore the original mnemonic to the buffer */
+            strlcpy (gbuf, mptr, sizeof (gbuf));        /* restore the original mnemonic to the buffer */
             gptr = cptr;                                /*   and the original remainder-of-line pointer */
 
             optr = asg_uops;                            /* set to search the ASG micro-ops table */

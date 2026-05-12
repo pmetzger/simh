@@ -748,10 +748,10 @@ static void mt_dump(void)
 
         text[i] = chars[MTbuf[offset] & 0x7F];
 
-        sprintf(temp, "0x%02x", MTbuf[offset++]);
+        snprintf(temp, sizeof(temp), "0x%02x", MTbuf[offset++]);
         if (msg[0] != '\0')
-          strcat(msg, " ");
-        strcat(msg, temp);
+          strlcat(msg, " ", sizeof(msg));
+        strlcat(msg, temp, sizeof(msg));
       }
       text[remain] = '\0';
 
@@ -778,10 +778,10 @@ static void mt_DSAdump(uint16_t lwa, bool rw)
     text[idx++] = chars[(M[cwa] >> 8) & 0x7F];
     text[idx++] = chars[M[cwa] & 0x7F];
 
-    sprintf(temp, "0x%04X", M[cwa]);
+    snprintf(temp, sizeof(temp), "0x%04X", M[cwa]);
     if (msg[0] != '\0')
-      strcat(msg, " ");
-    strcat(msg, temp);
+      strlcat(msg, " ", sizeof(msg));
+    strlcat(msg, temp, sizeof(msg));
 
     if (idx == 10) {
       text[idx++] = '\0';
@@ -809,11 +809,11 @@ static void MTstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
 {
   char device[16];
 
-  strcpy(device, "None");
+  strlcpy(device, "None", sizeof(device));
   if (iod->iod_unit != NULL) {
     int32_t u = iod->iod_unit - dev->units;
 
-    sprintf(device, "MT%u", u);
+    snprintf(device, sizeof(device), "MT%u", u);
   }
 
   fprintf(DBGOUT,

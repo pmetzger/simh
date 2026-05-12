@@ -187,7 +187,7 @@ static t_stat symset_cmd(int32_t arg, const char* buf)
     t_addr val;
 
     gbuf[sizeof(gbuf)-1] = '\0';
-    strncpy(gbuf, buf, sizeof(gbuf)-1);
+    strlcpy(gbuf, buf, sizeof(gbuf));
     if ((name = strtok(gbuf, "= ")) == 0) return SCPE_2FARG;
     if ((vstr = strtok(NULL, " \t\n")) == 0) return SCPE_2FARG;
     val = strtol(vstr, 0, 16);
@@ -210,7 +210,7 @@ static t_stat symclr_cmd(int32_t arg, const char* buf)
         char gbuf[2*CBUFSIZE];
 
         gbuf[sizeof(gbuf)-1] = '\0';
-        strncpy(gbuf, buf, sizeof(gbuf)-1);
+        strlcpy(gbuf, buf, sizeof(gbuf));
         token = strtok(gbuf," \t\n");
         if (!token) return SCPE_2FARG;
         return sym_delete(token) ? SCPE_OK : SCPE_ARG;
@@ -230,7 +230,7 @@ static t_stat symlist_cmd(int32_t arg, const char* buf)
     bool found = false;
 
     gbuf[sizeof(gbuf)-1] = '\0';
-    strncpy(gbuf, buf, sizeof(gbuf)-1);
+    strlcpy(gbuf, buf, sizeof(gbuf));
     name = strtok(gbuf," \t\n");
     if (name) {
         if (sym_lookupname(name,&n))
@@ -293,7 +293,7 @@ static t_stat hdump_cmd(int32_t arg, const char* buf)
     memset(byte,0,sizeof(uint32_t)*16);
 
     gbuf[sizeof(gbuf)-1] = '\0';
-    strncpy(gbuf, buf, sizeof(gbuf)-1);
+    strlcpy(gbuf, buf, sizeof(gbuf));
     token = strtok(gbuf,"- \t\n");
     if (!token) return SCPE_2FARG;
     low = strtol(token,0,16);

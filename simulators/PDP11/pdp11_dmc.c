@@ -1011,7 +1011,9 @@ static char *ddcmp_link_state(DDCMP *link)
 {
 static char buf[512];
 
-sprintf (buf, "(R:%d,N:%d,A:%d,T:%d,X:%d,SACK:%d,SNAK:%d,SREP:%d,NAKed:%d)", link->R, link->N, link->A, link->T, link->X, link->SACK, link->SNAK, link->SREP, link->NAKed);
+snprintf (buf, sizeof(buf), "(R:%d,N:%d,A:%d,T:%d,X:%d,SACK:%d,SNAK:%d,SREP:%d,NAKed:%d)",
+                    link->R, link->N, link->A, link->T, link->X, link->SACK,
+                    link->SNAK, link->SREP, link->NAKed);
 return buf;
 }
 
@@ -1019,7 +1021,7 @@ static char *controller_queue_state(CTLR *controller)
 {
 static char buf[512];
 
-sprintf (buf, "(ACKW:%d,XMT:%d,RCV:%d,CMPL:%d,FREE:%d) TOT:%d",
+snprintf (buf, sizeof(buf), "(ACKW:%d,XMT:%d,RCV:%d,CMPL:%d,FREE:%d) TOT:%d",
                     (int)controller->ack_wait_queue->count,
                     (int)controller->xmt_queue->count,
                     (int)controller->rcv_queue->count,
@@ -2087,9 +2089,10 @@ char devname[16];
 char devcount[16];
 char connectpoll[16];
 
-sprintf (devname, "%s11" , dptr->name);
-sprintf (devcount, "%d", (dptr == &dmc_dev) ? DMC_NUMDEVICE : DMP_NUMDEVICE);
-sprintf (connectpoll, "%d", DMC_CONNECT_POLL);
+snprintf (devname, sizeof(devname), "%s11" , dptr->name);
+snprintf (devcount, sizeof(devcount), "%d",
+          (dptr == &dmc_dev) ? DMC_NUMDEVICE : DMP_NUMDEVICE);
+snprintf (connectpoll, sizeof(connectpoll), "%d", DMC_CONNECT_POLL);
 
 return scp_help (st, dptr, uptr, flag, helpString, cptr, devname, devcount, connectpoll);
 }
@@ -4087,7 +4090,7 @@ if (!cptr || !*cptr)
 if (!(uptr->flags & UNIT_ATTABLE))
     return SCPE_NOATT;
 if (0 == strncasecmp (cptr, "SYNC", 4)) {
-    sprintf (attach_string, "Line=%d,%s", dmc, cptr);
+    snprintf (attach_string, sizeof(attach_string), "Line=%d,%s", dmc, cptr);
     ans = tmxr_open_master (mp, attach_string);
 }
 else {
@@ -4095,7 +4098,8 @@ else {
         sim_printf ("Peer must be specified before attach\n");
         return SCPE_ARG;
     }
-    sprintf (attach_string, "Line=%d,Connect=%s,%s", dmc, peer, cptr);
+    snprintf (attach_string, sizeof(attach_string), "Line=%d,Connect=%s,%s", dmc,
+              peer, cptr);
     ans = tmxr_open_master (mp, attach_string);                 /* open master socket */
 }
 if (ans != SCPE_OK)

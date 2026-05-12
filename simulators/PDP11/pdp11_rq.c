@@ -3382,11 +3382,11 @@ if (!plugs_inited ) {
     for (i = 0; i < RQ_NUMCT; i++) {
         rq_devmap[i]->units[RQ_TIMER].action = &rq_tmrsvc;
         rq_devmap[i]->units[RQ_TIMER].flags = UNIT_IDLE|UNIT_DIS;
-        sprintf (uname, "%s-TIMER", rq_devmap[i]->name);
+        snprintf (uname, sizeof(uname), "%s-TIMER", rq_devmap[i]->name);
         sim_set_uname (&rq_devmap[i]->units[RQ_TIMER], uname);
         rq_devmap[i]->units[RQ_QUEUE].action = &rq_quesvc;
         rq_devmap[i]->units[RQ_QUEUE].flags = UNIT_DIS;
-        sprintf (uname, "%s-QUESVC", rq_devmap[i]->name);
+        snprintf (uname, sizeof(uname), "%s-QUESVC", rq_devmap[i]->name);
         sim_set_uname (&rq_devmap[i]->units[RQ_QUEUE], uname);
         free (rq_devmap[i]->units[0].uname);    /* We're going to use unit 0 as a template for extended units */
         rq_devmap[i]->units[0].uname = NULL;    /* free the only potentially allocated pointer in the structure */
@@ -3734,6 +3734,6 @@ const char *rq_description (DEVICE *dptr)
 {
 static char buf[80];
 
-sprintf (buf, "%s MSCP disk controller", ctlr_tab[rq_ctxmap[dptr->units->cnum]->ctype].name);
+snprintf (buf, sizeof(buf), "%s MSCP disk controller", ctlr_tab[rq_ctxmap[dptr->units->cnum]->ctype].name);
 return buf;
 }

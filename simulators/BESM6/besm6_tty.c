@@ -247,16 +247,16 @@ static t_stat vt_clk (UNIT * this)
             break;
         }
         if (sim_int_char < 040 || sim_int_char == 0177) {
-            sprintf (buf, "WRU – Break to sim> prompt character - is ^%c\r\n",
+            snprintf (buf, sizeof (buf), "WRU – Break to sim> prompt character - is ^%c\r\n",
                      sim_int_char ^ 0100);
         } else {
-            sprintf (buf, "WRU – Break to sim> prompt character - is %c\r\n",
+            snprintf (buf, sizeof (buf), "WRU – Break to sim> prompt character - is %c\r\n",
                      sim_int_char);
         }
         tmxr_linemsg (t, buf);
         tty_idle_count[num] = 0;
         tty_last_time[num] = sim_get_time (0);
-        sprintf (buf, "%.24s from %s\r\n",
+        snprintf (buf, sizeof (buf), "%.24s from %s\r\n",
                  ctime (&tty_last_time[num]),
                  t->ipad);
         tmxr_linemsg (t, buf);
@@ -872,7 +872,7 @@ static t_stat cmd_show (int32_t num, const char *cptr)
     if (! cptr)
         return SCPE_INVSW;
     if (! *cptr) {
-        sprintf (gbuf, "TTY%d", num);
+        snprintf (gbuf, sizeof (gbuf), "TTY%d", num);
         tmxr_linemsg (t, gbuf);
         for (m=tty_mod; m->mask; m++) {
             if (m->pstring &&
@@ -892,7 +892,7 @@ static t_stat cmd_show (int32_t num, const char *cptr)
 
     len = strlen (gbuf);
     if (strncmp ("STATISTICS", gbuf, len) == 0) {
-        sprintf (gbuf, "line %d: input queued/total = %d/%d, "
+        snprintf (gbuf, sizeof (gbuf), "line %d: input queued/total = %d/%d, "
                  "output queued/total = %d/%d\r\n", num,
                  t->rxbpi - t->rxbpr, t->rxcnt,
                  t->txbpi - t->txbpr, t->txcnt);

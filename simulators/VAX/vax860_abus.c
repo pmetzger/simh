@@ -720,7 +720,7 @@ if (r != SCPE_OK) {                                     /* error? */
         }
     return r;
     }
-strncpy (cpu_boot_cmd, ptr, CBUFSIZE-1);                /* save for reboot */
+strlcpy (cpu_boot_cmd, ptr, sizeof (cpu_boot_cmd));     /* save for reboot */
 return run_cmd (flag, "CPU");
 }
 
@@ -878,11 +878,11 @@ t_stat cpu_set_model (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 if (cptr == NULL) return SCPE_ARG;
 if (strcmp(cptr, "8600") == 0) {
    sys_model = 0;
-   strcpy (sim_name, "VAX 8600");
+   strlcpy (sim_name, "VAX 8600", sizeof (sim_name));
    }
 else if (strcmp(cptr, "8650") == 0) {
    sys_model = 1;
-   strcpy (sim_name, "VAX 8650");
+   strlcpy (sim_name, "VAX 8650", sizeof (sim_name));
    }
 else
    return SCPE_ARG;

@@ -560,7 +560,7 @@ void flag (char *arg)
             case 'r':
                 if (sscanf(arg, "%d.%d", &major, &minor) != 2)
                     bail(usestr);
-                sprintf(dmsversion, "V%01.1dM%02.2d", major, minor);
+                snprintf(dmsversion, sizeof(dmsversion), "V%01.1dM%02.2d", major, minor);
                 return;
 
             case 'f':
@@ -1022,7 +1022,7 @@ void listout (bool reset)
         fputs(listline, flist);
         putc('\n', flist);
         if (reset)
-            sprintf(listline, LEFT_MARGIN, org);
+            snprintf(listline, sizeof(listline), LEFT_MARGIN, org);
     }
 }
 
@@ -1068,7 +1068,7 @@ void setw (int pos, int word, RELOC relative)
     if (flist == NULL || ! list_on)
         return;
 
-    sprintf(tok, "%04X", word & 0xFFFF);
+    snprintf(tok, sizeof(tok), "%04X", word & 0xFFFF);
 
     for (i = 0, p = listline + 5*pos; i < 4; i++)
         p[i] = tok[i];
@@ -1599,7 +1599,7 @@ void bincard_writecard (char *sbrk_text)
         }
     }
 
-    sprintf(ident, "%08ld", ++bincard_seq);         /* append sequence text */
+    snprintf(ident, sizeof(ident), "%08ld", ++bincard_seq);  /* append sequence text */
     memmove(ident, progname, MIN(strlen(progname), 4));
 
     for (i = 0; i < 8; i++)
@@ -1805,7 +1805,7 @@ void handle_sbrk (char *line)
     strncpy(rline, line, 81);           /* get a copy and pad it if necessary to 80 characters */
     rline[80] = '\0';
     while (strlen(rline) < 80)
-        strcat(rline, " ");
+        strlcat(rline, " ", sizeof(rline));
 
     switch (outmode) {
         case OUTMODE_LOAD:
@@ -1929,10 +1929,10 @@ void parse_line (char *line)
         }
     }
 
-    strcat(mods, op->mods_implied);             /* tack on implied modifiers */
+    strlcat(mods, op->mods_implied, sizeof(mods));  /* tack on implied modifiers */
 
     if (strchr(mods, 'I'))                      /* indirect implies long */
-        strcat(mods, "L");
+        strlcat(mods, "L", sizeof(mods));
 
     requires_even_address = op->flags & IS_DBL;
 
@@ -1976,7 +1976,7 @@ void proc (char *fname)
     if (strchr(fname, '.') == NULL)             /* if input file has no extension, */
         addextn(fname, ".asm", curfn);          /* set appropriate file extension */
     else
-        strcpy(curfn, fname);                   /* otherwise use extension specified */
+        strlcpy(curfn, fname, sizeof(curfn));       /* otherwise use extension specified */
 
 /* let's leave filename case alone even if it doesn't matter */
 /*#if (defined(_WIN32) || defined(VMS)) */
@@ -2010,7 +2010,8 @@ void proc (char *fname)
     }
 
     if (flist) {                                /* put banner in listing file */
-        strcpy(listline,"=== FILE ======================================================================");
+        strlcpy(listline, "=== FILE ======================================================================",
+                sizeof(listline));
         for (i = 9, c = curfn; *c;)
             listline[i++] = *c++;
         listline[i] = ' ';
@@ -2054,14 +2055,14 @@ void prep_line (char *line)
 
     if (flist && list_on) {                 /* construct beginning of listing line */
         if (tabformat)
-            sprintf(listline, LINEFORMAT, lno, detab(line));
+            snprintf(listline, sizeof(listline), LINEFORMAT, lno, detab(line));
         else {
             if (strlen(line) > 20)          /* get the part where the commands start */
                 c = line+20;
             else
                 c = "";
 
-            sprintf(listline, LINEFORMAT, lno, c);
+            snprintf(listline, sizeof(listline), LINEFORMAT, lno, c);
             stuff(listline, line, 20);      /* stuff the left margin in to the left side */
         }
     }
@@ -4045,26 +4046,26 @@ void output_literals (bool eof)
 
     for (i = 0; i < n_literals; i++) {          /* generate DC statements for any pending literal constants */
         if (literal[i].even && literal[i].hex)              /* create the value string */
-            sprintf(num, "/%08lX", literal[i].value);
+            snprintf(num, sizeof(num), "/%08lX", literal[i].value);
         else if (literal[i].even)
-            sprintf(num, "%ld",    literal[i].value);
+            snprintf(num, sizeof(num), "%ld",    literal[i].value);
         else if (literal[i].hex)
-            sprintf(num, "/%04X",  literal[i].value & 0xFFFF);
+            snprintf(num, sizeof(num), "/%04X",  literal[i].value & 0xFFFF);
         else
-            sprintf(num, "%d",     literal[i].value);
+            snprintf(num, sizeof(num), "%d",     literal[i].value);
 
-        sprintf(label, "_L%03d", literal[i].tagno);
+        snprintf(label, sizeof(label), "_L%03d", literal[i].tagno);
         format_line(line, label, literal[i].even ? "DEC" : "DC", "", num, "GENERATED LITERAL CONSTANT");
 
         if (eof) {
             eof = false;                            /* at end of file, for first literal, only prepare blank line */
-            sprintf(listline, LEFT_MARGIN, org);
+            snprintf(listline, sizeof(listline), LEFT_MARGIN, org);
         }
         else
             listout(true);                          /* push out any pending line(s) */
 
         if (flist && list_on)                       /* this makes stuff appear in the listing */
-            sprintf(listline, LEFT_MARGIN " %s", detab(line));
+            snprintf(listline, sizeof(listline), LEFT_MARGIN " %s", detab(line));
 
         nwout = 0;
 
@@ -4493,8 +4494,8 @@ void exprerr (int n)
 
     strncpy(msg, oexprptr, nex);        /* show where the problem was */
     msg[nex] = '\0';
-    strcat(msg, " << ");
-    strcat(msg, errstr[n]);
+    strlcat(msg, " << ", sizeof(msg));
+    strlcat(msg, errstr[n], sizeof(msg));
 
     asm_error(msg);
 

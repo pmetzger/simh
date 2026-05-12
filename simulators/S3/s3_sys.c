@@ -265,10 +265,10 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     int32_t r;
     char strg[256];
 
-    strcpy(strg, "");
+    strg[0] = '\0';
     r = printf_sym(of, strg, addr, val, uptr, sw);
     if (sw & SWMASK ('A'))
-        strcpy(strg, "");
+        strg[0] = '\0';
         else
         fprintf(of, "%s", strg);
     return (r);
@@ -381,7 +381,7 @@ if (i >= nopcode) {
     sprintf(strg, "%02X", val[0]);
     oplen = 1;
 } else {
-    sprintf(bld, "%s ", opcode[i].op);
+    snprintf(bld, sizeof(bld), "%s ", opcode[i].op);
 
     /* Extract the addresses into aaddr and baddr */
 

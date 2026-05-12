@@ -2093,9 +2093,9 @@ if (!plugs_inited ) {
     uint32_t d;
     char uname[16];
 
-    sprintf (uname, "%s-TIMER", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-TIMER", dptr->name);
     sim_set_uname (&dptr->units[4], uname);
-    sprintf (uname, "%s-QUESVC", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-QUESVC", dptr->name);
     sim_set_uname (&dptr->units[5], uname);
     plugs_inited  = true;
     for (d = 0; d < tq_dev.numunits - 2; d++)

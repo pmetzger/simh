@@ -977,7 +977,7 @@ static char buf[32];
 uint32_t uval = (uint32_t)val;
 
 if (val < 0x10000000)
-    sprintf (buf, "Not VMS Time: 0x%08X", uval);
+    snprintf (buf, sizeof (buf), "Not VMS Time: 0x%08X", uval);
 else {
     int yday, hr, min, sec, msecs;
 
@@ -991,7 +991,7 @@ else {
     hr = uval % 24;
     uval /= 24;
     yday = uval;
-    sprintf (buf, "yday:%d %02d:%02d:%02d.%03d", yday, hr, min, sec, msecs);
+    snprintf (buf, sizeof (buf), "yday:%d %02d:%02d:%02d.%03d", yday, hr, min, sec, msecs);
     }
 return buf;
 }

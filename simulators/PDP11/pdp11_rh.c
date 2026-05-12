@@ -987,7 +987,7 @@ else {
             break;
         }
     }
-sprintf (buf, "RH70/RH11 Massbus adapter%s%s%s",
+snprintf (buf, sizeof(buf), "RH70/RH11 Massbus adapter%s%s%s",
                dptr ? " (for " : "", dptr ? dptr->name : "", dptr ? ")" : "");
 return buf;
 }

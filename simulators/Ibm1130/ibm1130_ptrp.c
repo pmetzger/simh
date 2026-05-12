@@ -116,7 +116,7 @@ void xio_1134_papertape (int32_t iocc_addr, int32_t iocc_func, int32_t iocc_mod)
             break;
 
         default:
-            sprintf(msg, "Invalid 1134 reader/1055 punch XIO function %x", iocc_func);
+            snprintf(msg, sizeof(msg), "Invalid 1134 reader/1055 punch XIO function %x", iocc_func);
             xio_error(msg);
     }
 }

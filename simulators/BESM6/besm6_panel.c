@@ -344,7 +344,7 @@ static void draw_bit_numbers (int left, int top, int totbits)
     char message [16];
     int x;
     for (x=0; x<totbits; ++x) {
-        sprintf (message, "%d", totbits-x);
+        snprintf (message, sizeof (message), "%d", totbits-x);
         render_utf8 (font_small, left+TEXTW+(STEPX/2-1) + x*STEPX,
                      (x & 1) ? top+4 : top+10, 0, message);
     }
@@ -363,7 +363,7 @@ static void draw_modifiers_static (int group, int left, int top)
     /* Register names */
     for (y=0; y<8; ++y) {
         reg = regnum [y + group*8];
-        sprintf (message, "М%2o", reg);
+        snprintf (message, sizeof (message), "М%2o", reg);
         render_utf8 (font_big, left, top + HEADER-4 + y*STEPY, 1, message);
     }
 
@@ -424,7 +424,7 @@ static void draw_brz_static (int left, int top)
 
     /* Register names */
     for (y=7; y>=0; --y) {
-        sprintf (message, "БРЗ %d", 7-y);
+        snprintf (message, sizeof (message), "БРЗ %d", 7-y);
         render_utf8 (font_big, left, top + HEADER-4 + y*STEPY, 1, message);
     }
 

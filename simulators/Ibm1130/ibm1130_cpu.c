@@ -694,7 +694,8 @@ t_stat sim_instr (void)
 
                 switch (iocc_func) {
                     case XIO_UNUSED:
-                        sprintf(msg, "Unknown XIO op %x on device %02x (%s)", iocc_func, iocc_dev,  xio_devs[iocc_dev]);
+                        snprintf(msg, sizeof(msg), "Unknown XIO op %x on device %02x (%s)",
+                                 iocc_func, iocc_dev,  xio_devs[iocc_dev]);
                         xio_error(msg);
                         break;
 
@@ -765,7 +766,7 @@ t_stat sim_instr (void)
                                 xio_t2741_terminal(iocc_addr, iocc_func, iocc_mod);
                                 break;
                             default:
-                                sprintf(msg, "unknown device %02x", iocc_dev);
+                                snprintf(msg, sizeof(msg), "unknown device %02x", iocc_dev);
                                 xio_error(msg);
                                 break;
                         }
@@ -1503,7 +1504,7 @@ void xio_1131_switches (int32_t addr, int32_t func, int32_t modify)
             break;
 
         default:
-            sprintf(msg, "Invalid console switch function %x", func);
+            snprintf(msg, sizeof(msg), "Invalid console switch function %x", func);
             xio_error(msg);
     }
 }
@@ -1845,7 +1846,7 @@ static void trace_instruction (void)
                 mant = -mant;
             fac = (float) mant * ((float) 1./ (float) (unsigned long) 0x80000000);
         }
-        sprintf(fltstr, "%c%.5f ", sign ? '-' : ' ', fac);
+        snprintf(fltstr, sizeof(fltstr), "%c%.5f ", sign ? '-' : ' ', fac);
 
         if (BETWEEN(M[3], 0x300, MEMSIZE-128)) {
             exp  = (short) ((M[M[3]+125] & 0xFF) - 128);
@@ -1872,10 +1873,10 @@ static void trace_instruction (void)
             else if (exp < 0)
                 fac /= (float) (1 << -exp);
 
-            sprintf(facstr, "%c%.5e ", sign ? '-' : ' ', fac);
+            snprintf(facstr, sizeof(facstr), "%c%.5e ", sign ? '-' : ' ', fac);
         }
         else
-            strcpy(facstr, "             ");
+            strlcpy(facstr, "             ", sizeof(facstr));
     }
 
     addr = IAR & 0xFFFF;
@@ -1999,7 +2000,7 @@ static t_stat view_cmd (int32_t flag, const char *cptr)
 #ifdef _WIN32
     char cmdline[256];
 
-    sprintf(cmdline, "notepad %s", cptr);
+    snprintf(cmdline, sizeof(cmdline), "notepad %s", cptr);
     WinExec(cmdline, SW_SHOWNORMAL);
 #endif
     return SCPE_OK;

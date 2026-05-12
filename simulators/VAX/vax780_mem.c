@@ -292,7 +292,7 @@ const char *mctl_description (DEVICE *dptr)
 {
 static char buf[64];
 
-sprintf (buf, "Memory controller %d", (int)(dptr-mctl_dev));
+snprintf (buf, sizeof (buf), "Memory controller %d", (int)(dptr-mctl_dev));
 return buf;
 }
 

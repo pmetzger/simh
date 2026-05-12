@@ -150,9 +150,9 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
   uint16_t t;
   bool enhValid = false, enhChar = false;
 
-  strcpy(optional, "    ");
-  strcpy(optional2, "    ");
-  strcpy(decoded, "UNDEF");
+  strlcpy(optional, "    ", sizeof(optional));
+  strlcpy(optional2, "    ", sizeof(optional2));
+  strlcpy(decoded, "UNDEF", sizeof(decoded));
 
   if ((instr & OPC_MASK) != 0) {
     if ((instr & MOD_RE) == 0)
@@ -176,11 +176,11 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
 
     if (delta == 0) {
       consumed++;
-      sprintf(optional, "%04X", LoadFromMem(addr + 1));
-      sprintf(temp, "$%04X", LoadFromMem(addr + 1));
-    } else sprintf(temp, "$%02X", delta);
+      snprintf(optional, sizeof(optional), "%04X", LoadFromMem(addr + 1));
+      snprintf(temp, sizeof(temp), "$%04X", LoadFromMem(addr + 1));
+    } else snprintf(temp, sizeof(temp), "$%02X", delta);
 
-    sprintf(decoded, "%s%s%s%s%s%s%s",
+    snprintf(decoded, sizeof(decoded), "%s%s%s%s%s%s%s",
             opName[(instr & OPC_MASK) >> 12],
             mode,
             isconst ? "=" : "",
@@ -204,24 +204,24 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
              */
             switch (instr) {
               case OPC_ECA:
-                sprintf(decoded, "%s", "ECA");
+                snprintf(decoded, sizeof(decoded), "%s", "ECA");
                 break;
 
               case OPC_DCA:
-                sprintf(decoded, "%s", "DCA");
+                snprintf(decoded, sizeof(decoded), "%s", "DCA");
                 break;
 
               default:
-                sprintf(decoded, "%s", spc);
+                snprintf(decoded, sizeof(decoded), "%s", spc);
                 break;
             }
             break;
 
           case INSTR_BASIC:
             if (delta == 0) {
-              sprintf(decoded, "%s", spc);
+              snprintf(decoded, sizeof(decoded), "%s", spc);
             } else {
-              sprintf(decoded, "%s", "NOP  [ Possible enhanced instruction");
+              snprintf(decoded, sizeof(decoded), "%s", "NOP  [ Possible enhanced instruction");
             }
             break;
 
@@ -241,14 +241,14 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                         mode = delta == 0 ? "+    " : "-    ";
                       else mode = "*    ";
 
-                      sprintf(optional, "%04X", instr2);
+                      snprintf(optional, sizeof(optional), "%04X", instr2);
                       if (delta == 0) {
                         consumed++;
-                        sprintf(optional2, "%04X", LoadFromMem(addr + 2));
-                        sprintf(temp, "$%04X", LoadFromMem(addr + 2));
-                      } else sprintf(temp, "$%02X", delta);
+                        snprintf(optional2, sizeof(optional2), "%04X", LoadFromMem(addr + 2));
+                        snprintf(temp, sizeof(temp), "$%04X", LoadFromMem(addr + 2));
+                      } else snprintf(temp, sizeof(temp), "$%02X", delta);
 
-                      sprintf(decoded, "%s%s%s%s%s,%d,%d%s",
+                      snprintf(decoded, sizeof(decoded), "%s%s%s%s%s,%d,%d%s",
                               enhFldName[instr & OPC_FLDF3A],
                               mode,
                               (instr & MOD_ENHIN) != 0 ? "(" : "",
@@ -260,7 +260,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                       break;
                     }
                   }
-                  strcpy(decoded, "UNDEF");
+                  strlcpy(decoded, "UNDEF", sizeof(decoded));
                   targ = false;
                   break;
 
@@ -274,22 +274,22 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                       if (enhMode == 0) {
                         enhValid = true;
                         if (enhRB == REG_NOREG)
-                          strcpy(enhInstr, "SJE");
-                        else sprintf(enhInstr, "SJ%c", enhRegChar[enhRB]);
+                          strlcpy(enhInstr, "SJE", sizeof(enhInstr));
+                        else snprintf(enhInstr, sizeof(enhInstr), "SJ%c", enhRegChar[enhRB]);
                       }
                       break;
 
                     case OPC_STOADD:
                       if ((enhMode == 0) && (enhRB != REG_NOREG)) {
                         enhValid = true;
-                        sprintf(enhInstr, "AR%c", enhRegChar[enhRB]);
+                        snprintf(enhInstr, sizeof(enhInstr), "AR%c", enhRegChar[enhRB]);
                       }
                       break;
 
                     case OPC_STOSUB:
                       if ((enhMode == 0) && (enhRB != REG_NOREG)) {
                         enhValid = true;
-                        sprintf(enhInstr, "SB%c", enhRegChar[enhRB]);
+                        snprintf(enhInstr, sizeof(enhInstr), "SB%c", enhRegChar[enhRB]);
                       }
                       break;
 
@@ -298,12 +298,12 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                         switch (enhMode) {
                           case WORD_REG:
                             enhValid = true;
-                            sprintf(enhInstr, "AN%c", enhRegChar[enhRB]);
+                            snprintf(enhInstr, sizeof(enhInstr), "AN%c", enhRegChar[enhRB]);
                             break;
 
                           case WORD_MEM:
                             enhValid = true;
-                            sprintf(enhInstr, "AM%c", enhRegChar[enhRB]);
+                            snprintf(enhInstr, sizeof(enhInstr), "AM%c", enhRegChar[enhRB]);
                             break;
                         }
                       break;
@@ -313,14 +313,14 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                         case WORD_REG:
                           if (enhRB != REG_NOREG) {
                             enhValid = true;
-                            sprintf(enhInstr, "LR%c", enhRegChar[enhRB]);
+                            snprintf(enhInstr, sizeof(enhInstr), "LR%c", enhRegChar[enhRB]);
                           }
                           break;
 
                         case WORD_MEM:
                           if (enhRB != REG_NOREG) {
                             enhValid = true;
-                            sprintf(enhInstr, "SR%c", enhRegChar[enhRB]);
+                            snprintf(enhInstr, sizeof(enhInstr), "SR%c", enhRegChar[enhRB]);
                           }
                           break;
 
@@ -328,7 +328,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                           if (enhRB != REG_NOREG) {
                             enhValid = true;
                             enhChar = true;
-                            strcpy(enhInstr, "LCA");
+                            strlcpy(enhInstr, "LCA", sizeof(enhInstr));
                           }
                           break;
 
@@ -336,7 +336,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                           if (enhRB != REG_NOREG) {
                             enhValid = true;
                             enhChar = true;
-                            strcpy(enhInstr, "SCA");
+                            strlcpy(enhInstr, "SCA", sizeof(enhInstr));
                           }
                           break;
                       }
@@ -347,12 +347,12 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                         switch (enhMode) {
                           case WORD_REG:
                             enhValid = true;
-                            sprintf(enhInstr, "OR%c", enhRegChar[enhRB]);
+                            snprintf(enhInstr, sizeof(enhInstr), "OR%c", enhRegChar[enhRB]);
                             break;
 
                           case WORD_MEM:
                             enhValid = true;
-                            sprintf(enhInstr, "OM%c", enhRegChar[enhRB]);
+                            snprintf(enhInstr, sizeof(enhInstr), "OM%c", enhRegChar[enhRB]);
                             break;
                         }
                       break;
@@ -362,7 +362,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                         case WORD_REG:
                           if (enhRB != REG_NOREG) {
                             enhValid = true;
-                            sprintf(enhInstr, "C%cE", enhRegChar[enhRB]);
+                            snprintf(enhInstr, sizeof(enhInstr), "C%cE", enhRegChar[enhRB]);
                           }
                           break;
 
@@ -370,7 +370,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                           if (enhRB != REG_NOREG) {
                             enhValid = true;
                             enhChar = true;
-                            strcpy(enhInstr, "CCE");
+                            strlcpy(enhInstr, "CCE", sizeof(enhInstr));
                           }
                           break;
                       }
@@ -384,19 +384,19 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                       mode = delta == 0 ? "+    " : "-    ";
                     else mode = "*    ";
 
-                    sprintf(optional, "%04X", instr2);
+                    snprintf(optional, sizeof(optional), "%04X", instr2);
                     if (delta == 0) {
                       consumed++;
-                      sprintf(optional2, "%04X", LoadFromMem(addr + 2));
-                      sprintf(temp, "$%04X", LoadFromMem(addr + 2));
-                    } else sprintf(temp, "$%02X", delta);
+                      snprintf(optional2, sizeof(optional2), "%04X", LoadFromMem(addr + 2));
+                      snprintf(temp, sizeof(temp), "$%04X", LoadFromMem(addr + 2));
+                    } else snprintf(temp, sizeof(temp), "$%02X", delta);
 
                     if (!enhChar) {
                       if ((delta == 0) &&
                           (instr & (MOD_ENHRE | MOD_ENHIN)) == 0)
                         isconst = 1;
 
-                      sprintf(decoded, "%s%s%s%s%s%s%s",
+                      snprintf(decoded, sizeof(decoded), "%s%s%s%s%s%s%s",
                               enhInstr,
                               mode,
                               isconst ? "=" : "",
@@ -405,7 +405,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                               (instr & MOD_ENHIN) != 0 ? ")" : "",
                               enhIdxName[(instr & MOD_ENHRA) >> 3]);
                     } else {
-                      sprintf(decoded, "%s%s%s%s%s%s%s",
+                      snprintf(decoded, sizeof(decoded), "%s%s%s%s%s%s%s",
                               enhInstr,
                               mode,
                               (instr & MOD_ENHIN) != 0 ? "(" : "",
@@ -415,7 +415,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                               enhIdxName[(instr & MOD_ENHRA) >> 3]);
                     }
                   } else {
-                    strcpy(decoded, "UNDEF");
+                    strlcpy(decoded, "UNDEF", sizeof(decoded));
                     targ = false;
                   }
                   break;
@@ -425,7 +425,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                     char reg = enhRegChar[(instr & OPC_DRPRA) >> 5];
                     uint8_t sk = instr & OPC_DRPSK;
 
-                    sprintf(decoded, "D%cP     $%1X", reg, sk);
+                    snprintf(decoded, sizeof(decoded), "D%cP     $%1X", reg, sk);
                     break;
                   }
                   break;
@@ -436,16 +436,16 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                       char ra = enhRegChar[(instr & OPC_ENHXFRRA) >> 5];
                       char rb = enhRegChar[instr & OPC_ENHXFRRB];
 
-                      sprintf(decoded, "XF%c     %c", ra, rb);
+                      snprintf(decoded, sizeof(decoded), "XF%c     %c", ra, rb);
                       break;
                     }
                   }
-                  strcpy(decoded, "UNDEF");
+                  strlcpy(decoded, "UNDEF", sizeof(decoded));
                   targ = false;
                   break;
               }
             } else {
-              sprintf(decoded, "%s", spc);
+              snprintf(decoded, sizeof(decoded), "%s", spc);
               targ = false;
             }
             break;
@@ -455,13 +455,13 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
       case OPC_NOP:
         switch (INSTR_SET) {
           case INSTR_ORIGINAL:
-            sprintf(decoded, "%s", spc);
+            snprintf(decoded, sizeof(decoded), "%s", spc);
             break;
 
           case INSTR_BASIC:
             if (delta != 0) {
-              sprintf(decoded, "%s", "NOP  [ Possible enhanced instruction");
-            } else sprintf(decoded, "%s", spc);
+              snprintf(decoded, sizeof(decoded), "%s", "NOP  [ Possible enhanced instruction");
+            } else snprintf(decoded, sizeof(decoded), "%s", spc);
             break;
 
           case INSTR_ENHANCED:
@@ -474,24 +474,24 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                 if (miscFN <= ENH_MAXMISC0)
                   spc = enhMiscName0[miscFN];
                 else spc = "UNDEF";
-                sprintf(decoded, "%s", spc);
+                snprintf(decoded, sizeof(decoded), "%s", spc);
               } else {
                 if (miscFN <= ENH_MAXMISC1) {
                   spc = enhMiscName1[miscFN];
-                  sprintf(decoded, "%s     %c", spc, reg);
-                } else strcpy(decoded, "UNDEF");
+                  snprintf(decoded, sizeof(decoded), "%s     %c", spc, reg);
+                } else strlcpy(decoded, "UNDEF", sizeof(decoded));
               }
-            } else sprintf(decoded, "%s", spc);
+            } else snprintf(decoded, sizeof(decoded), "%s", spc);
             break;
         }
         break;
 
       case OPC_EXI:
-        sprintf(decoded, "%s     $%02X", spc, delta);
+        snprintf(decoded, sizeof(decoded), "%s     $%02X", spc, delta);
         break;
 
       case OPC_SKIPS:
-        sprintf(decoded, "%s     $%01X",
+        snprintf(decoded, sizeof(decoded), "%s     $%01X",
                 skpName[(instr & OPC_SKIPMASK) >> 4], instr & OPC_SKIPCOUNT);
         break;
 
@@ -499,11 +499,11 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
         if (delta != 0) {
           switch (INSTR_SET) {
             case INSTR_BASIC:
-              sprintf(decoded, "%s", "NOP  [ Possible enhanced instruction");
+              snprintf(decoded, sizeof(decoded), "%s", "NOP  [ Possible enhanced instruction");
               break;
 
             case INSTR_ORIGINAL:
-              sprintf(decoded, "%s     $%02X", spc, delta);
+              snprintf(decoded, sizeof(decoded), "%s     $%02X", spc, delta);
               break;
 
             case INSTR_ENHANCED:
@@ -512,7 +512,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
                 char type = enhSkipType[(instr & OPC_ENHSKIPTY) >> 4];
                 uint8_t sk = instr & OPC_ENHSKIPCNT;
 
-                sprintf(decoded, "S%c%c     $%1X", reg, type, sk);
+                snprintf(decoded, sizeof(decoded), "S%c%c     $%1X", reg, type, sk);
               }
               break;
           }
@@ -525,7 +525,7 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
       case OPC_ENA:
       case OPC_ENQ:
       case OPC_INQ:
-        sprintf(decoded, "%s     $%02X", spc, delta);
+        snprintf(decoded, sizeof(decoded), "%s     $%02X", spc, delta);
         break;
 
       case OPC_INTER:
@@ -533,13 +533,13 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
         inter = interName[t >> 3];
         dest = destName[instr & (MOD_D_A | MOD_D_Q | MOD_D_M)];
         if (inter != NULL)
-          sprintf(decoded, "%s     %s", inter, dest);
+          snprintf(decoded, sizeof(decoded), "%s     %s", inter, dest);
         break;
 
       case OPC_SHIFTS:
         shift = shiftName[(instr & OPC_SHIFTMASK) >> 5];
         if (shift != NULL)
-          sprintf(decoded, "%s     $%X", shift, instr & OPC_SHIFTCOUNT);
+          snprintf(decoded, sizeof(decoded), "%s     $%X", shift, instr & OPC_SHIFTCOUNT);
         break;
     }
   }

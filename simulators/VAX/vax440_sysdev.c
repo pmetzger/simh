@@ -1150,7 +1150,7 @@ if (MATCH_CMD(gbuf, "MICROVAX") == 0) {
     lk_dev.flags = lk_dev.flags | DEV_DIS;               /* disable keyboard */
     vs_dev.flags = vs_dev.flags | DEV_DIS;               /* disable mouse */
 #endif
-    strcpy (sim_name, "MicroVAX 3100-80 (KA47)");
+    strlcpy (sim_name, "MicroVAX 3100-80 (KA47)", sizeof (sim_name));
     reset_all (0);                                       /* reset everything */
     }
 #if defined (VAX_46) || defined (VAX_48)
@@ -1160,9 +1160,9 @@ else if (MATCH_CMD(gbuf, "VAXSTATION") == 0) {
     lk_dev.flags = lk_dev.flags & ~DEV_DIS;              /* enable keyboard */
     vs_dev.flags = vs_dev.flags & ~DEV_DIS;              /* enable mouse */
 #if defined (VAX_46)
-    strcpy (sim_name, "VAXstation 4000-60 (KA46)");
+    strlcpy (sim_name, "VAXstation 4000-60 (KA46)", sizeof (sim_name));
 #else   /* VAX_48 */
-    strcpy (sim_name, "VAXstation 4000-VLC (KA48)");
+    strlcpy (sim_name, "VAXstation 4000-VLC (KA48)", sizeof (sim_name));
 #endif
     reset_all (0);                                       /* reset everything */
 #else

@@ -3677,7 +3677,8 @@ if (vf == NULL) {                                       /* if the standard VFU i
         }
 
     form_length = 66;                                   /* set the form length */
-    strcpy (vfu_title, "Standard VFU");                 /*   and set the title */
+    strlcpy (vfu_title, "Standard VFU",                 /*   and set the title */
+             sizeof (vfu_title));
     }
 
 else {                                                  /* otherwise load a custom VFU from the file */
@@ -3698,7 +3699,7 @@ else {                                                  /* otherwise load a cust
         return SCPE_FMT;                                            /*     and fail with a format error */
         }
 
-    strcpy (punch, tptr);                               /* save the set of punch characters */
+    strlcpy (punch, tptr, sizeof (punch));              /* save the set of punch characters */
 
     tptr = strtok (NULL, ",");                          /* parse the no-punch token */
 
@@ -3712,9 +3713,10 @@ else {                                                  /* otherwise load a cust
     tptr = strtok (NULL, ",");                          /* parse the optional title */
 
     if (tptr != NULL)                                   /* if it's present */
-        strcpy (vfu_title, tptr);                       /*   then save the user's title */
+        strlcpy (vfu_title, tptr, sizeof (vfu_title));  /*   then save the user's title */
     else                                                /* otherwise */
-        strcpy (vfu_title, "Custom VFU");               /*   use a generic title */
+        strlcpy (vfu_title, "Custom VFU",               /*   use a generic title */
+                 sizeof (vfu_title));
 
 
     for (line = 1; line <= VFU_MAX; line++) {           /* load up to the maximum VFU tape length */

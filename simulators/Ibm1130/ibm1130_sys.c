@@ -386,12 +386,12 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
             mnem = "BOSC";
 
         tst[0] = '\0';
-        if (DSPLC & 0x20)   strcat(tst, "Z");
-        if (DSPLC & 0x10)   strcat(tst, "-");
-        if (DSPLC & 0x08)   strcat(tst, "+");
-        if (DSPLC & 0x04)   strcat(tst, "E");
-        if (DSPLC & 0x02)   strcat(tst, "C");
-        if (DSPLC & 0x01)   strcat(tst, "O");
+        if (DSPLC & 0x20)   strlcat(tst, "Z", sizeof(tst));
+        if (DSPLC & 0x10)   strlcat(tst, "-", sizeof(tst));
+        if (DSPLC & 0x08)   strlcat(tst, "+", sizeof(tst));
+        if (DSPLC & 0x04)   strlcat(tst, "E", sizeof(tst));
+        if (DSPLC & 0x02)   strlcat(tst, "C", sizeof(tst));
+        if (DSPLC & 0x01)   strlcat(tst, "O", sizeof(tst));
 
         if (F) {
             fprintf(of, "%04x %s %c%c %s,%04x   ", IR & 0xFFFF, mnem, F ? (INDIR ? 'I' : 'L') : ' ', tagc[TAG], tst, eaddr & 0xFFFF);

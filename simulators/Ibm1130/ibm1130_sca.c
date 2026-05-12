@@ -1156,7 +1156,7 @@ void xio_sca (int32_t iocc_addr, int32_t func, int32_t modify)
             break;
 
         default:
-            sprintf(msg, "Invalid SCA XIO function %x", func);
+            snprintf(msg, sizeof(msg), "Invalid SCA XIO function %x", func);
             xio_error(msg);
     }
 }

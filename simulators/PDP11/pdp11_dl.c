@@ -620,7 +620,7 @@ else {
             char lines[16];
             int32_t saved_switches = sim_switches;
 
-            sprintf (lines, "%d", 16 - dlx_tu58_count());
+            snprintf (lines, sizeof(lines), "%d", 16 - dlx_tu58_count());
             sim_switches |= SWMASK('Y');
             dlx_set_lines (NULL, 0, lines, NULL);
             sim_switches = saved_switches;

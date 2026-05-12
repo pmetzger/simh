@@ -584,7 +584,7 @@ static t_stat rc_attach (UNIT *uptr, const char *cptr)
     static const char *platters[] = {"1P", "2P", "3P", "4P", NULL};
     char plat[32];
 
-    sprintf (plat, "%dP", UNIT_GETP (uptr->flags));
+    snprintf (plat, sizeof(plat), "%dP", UNIT_GETP (uptr->flags));
 
     return sim_disk_attach_ex (uptr, cptr, RC_NUMWD * sizeof (uint16_t), sizeof (uint16_t),
                                     true, 0, plat, false, 0, (uptr->flags & UNIT_NOAUTO) ? NULL : platters);

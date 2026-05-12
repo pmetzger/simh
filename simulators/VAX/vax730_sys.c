@@ -492,7 +492,7 @@ if (r != SCPE_OK) {                                     /* error? */
         }
     return r;
     }
-strncpy (cpu_boot_cmd, ptr, CBUFSIZE-1);                /* save for reboot */
+strlcpy (cpu_boot_cmd, ptr, sizeof (cpu_boot_cmd));     /* save for reboot */
 return run_cmd (flag, "CPU");
 }
 

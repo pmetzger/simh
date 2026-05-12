@@ -496,7 +496,7 @@ for (mptr = dptr->modifiers; mptr && (mptr->mask != 0); mptr++) {
     if ((mptr->match >> 20) > max_mem)
         max_mem = (mptr->match >> 20);
     }
-sprintf (buf, "VAX CPU with %dMB-%dMB of memory", (int)min_mem, (int)max_mem);
+snprintf (buf, sizeof (buf), "VAX CPU with %dMB-%dMB of memory", (int)min_mem, (int)max_mem);
 return buf;
 }
 
@@ -4010,9 +4010,9 @@ sim_messagef (SCPE_OK, "Loading boot code from %s%s\n", builtin_code ? "internal
 if (builtin_code)
     sim_set_memory_load_file (builtin_code, size);
 if (rom)
-    sprintf (args, "-R %s", filename);
+    snprintf (args, sizeof (args), "-R %s", filename);
 else
-    sprintf (args, "-O %s %X", filename, (int)offset);
+    snprintf (args, sizeof (args), "-O %s %X", filename, (int)offset);
 r = load_cmd (0, args);
 sim_set_memory_load_file (NULL, 0);
 sim_switches = saved_sim_switches;

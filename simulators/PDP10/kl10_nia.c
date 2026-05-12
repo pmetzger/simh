@@ -523,12 +523,12 @@ ipv4_inet_ntoa(struct in_addr ip)
    static char str[20];
 
    if (sim_end)
-       sprintf (str, "%d.%d.%d.%d", ip.s_addr & 0xFF,
+       snprintf (str, sizeof(str), "%d.%d.%d.%d", ip.s_addr & 0xFF,
                             (ip.s_addr >> 8) & 0xFF,
                             (ip.s_addr >> 16) & 0xFF,
                             (ip.s_addr >> 24) & 0xFF);
    else
-       sprintf (str, "%d.%d.%d.%d", (ip.s_addr >> 24) & 0xFF,
+       snprintf (str, sizeof(str), "%d.%d.%d.%d", (ip.s_addr >> 24) & 0xFF,
                               (ip.s_addr >> 16) & 0xFF,
                               (ip.s_addr >> 8) & 0xFF,
                                ip.s_addr & 0xFF);

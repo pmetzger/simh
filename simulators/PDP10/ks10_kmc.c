@@ -3092,7 +3092,7 @@ static t_stat kmc_help (FILE *st, DEVICE *dptr,
 ;
     char kmc_units[10];
 
-    sprintf (kmc_units, "%u", KMC_UNITS);
+    snprintf (kmc_units, sizeof(kmc_units), "%u", KMC_UNITS);
 
     return scp_help (st, dptr, uptr, flag, text, cptr, kmc_units);
 }

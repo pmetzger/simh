@@ -978,13 +978,12 @@ if (cptr == zptr || *zptr != '\0' || id_number == 0)    /* if the parse failed o
     return SCPE_ARG;                                    /*   then reject the attach with an invalid argument error */
 
 else {                                                  /* otherwise a single number was specified */
-    tptr = (char *) malloc (strlen (cptr) + 1);         /*   so allocate a string buffer to hold the ID */
+    tptr = strdup (cptr);                               /*   so copy the ID number to a new buffer */
 
     if (tptr == NULL)                                   /* if the allocation failed */
         return SCPE_MEM;                                /*   then reject the attach with an out-of-memory error */
 
     else {                                              /* otherwise */
-        strcpy (tptr, cptr);                            /*   copy the ID number to the buffer */
         uptr->filename = tptr;                          /*     and assign it as the attached object name */
 
         uptr->flags |= UNIT_ATT;                        /* set the unit attached flag */
@@ -1018,8 +1017,8 @@ else {                                                  /* otherwise a single nu
         activate_unit (optr);                           /*   and activate the unit to poll */
         }
 
-    sprintf (object_name, "/%s-MEM-%d",                 /* generate the shared memory area name */
-             sim_name, id_number);
+    snprintf (object_name, sizeof (object_name),         /* generate the shared memory area name */
+              "/%s-MEM-%d", sim_name, id_number);
 
     status = sim_shmem_open (object_name, sizeof dev_bus,   /* allocate the shared memory area */
                              &memory_region, (void **) &isp);
@@ -1050,8 +1049,8 @@ else {                                                  /* otherwise a single nu
         io_ptrs [iplo].output->cable_connected = true;          /*   have been connected */
         }
 
-    sprintf (event_name, "/%s-EVT-%d",                  /* generate the process synchronization event name */
-             sim_name, id_number);
+    snprintf (event_name, sizeof (event_name),           /* generate the process synchronization event name */
+              "/%s-EVT-%d", sim_name, id_number);
 
     event_error = create_event (event_name, &event_id); /* create the event */
 

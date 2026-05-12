@@ -336,7 +336,7 @@ int main (int argc, char **argv)
 
     printf("Filename: %s", image);
 
-    sprintf(cartid, "%04x", sector.data[3]);                // display cartridge ID in upper case
+    snprintf(cartid, sizeof(cartid), "%04x", sector.data[3]);                // display cartridge ID in upper case
     printf("   Cartridge ID: %s", upcase(cartid));
     if (show_all)
         printf("   Copy: number %d", sector.data[4]);
@@ -407,7 +407,7 @@ void commas (int n, int width)
     int nchar;
     char tmp[20], *cin, *cout;
 
-    sprintf(tmp, "%d", n);                  // format number n into string
+    snprintf(tmp, sizeof(tmp), "%d", n);                  // format number n into string
     nchar = strlen(tmp);                    // get length of string
 
     for (cin = tmp, cout = fmt; *cin; ) {   // scan through the formatted number
@@ -420,7 +420,7 @@ void commas (int n, int width)
 
 #else                                       // THOUSANDS_SEP is undefined, output number w/o commas
 
-    sprintf(fmt, "%d", n);
+    snprintf(fmt, sizeof(fmt), "%d", n);
 
 #endif
 
@@ -1248,7 +1248,7 @@ void print_dsf_info (LETENTRY *entry)
 
             for (i = 0; i < nentries; i++) {                            // list entry point names and addresses
                 convert_namecode(hdr.x.entry[i].name, name);
-                sprintf(label, (i < 9) ? "%d: " : "%d:", i+1);          // print, e.g. "2: " or "12:"
+                snprintf(label, sizeof(label), (i < 9) ? "%d: " : "%d:", i+1);          // print, e.g. "2: " or "12:"
                 printf(INDENT "Entry %s     %-5s addr /%04x\n", label, name, hdr.x.entry[i].addr);
             }
             break;
@@ -1513,7 +1513,7 @@ char * file_progtype (LETENTRY *entry)                  // description of module
             subtype           = (hdr.type >> 12) & 0x0F;                        // extract file type and subtype
             progtype          = (hdr.type >>  8) & 0x0F;
 
-            strcpy(buf, progtype_nm[progtype]);
+            strlcpy(buf, progtype_nm[progtype], sizeof(buf));
             if (progtype == 3 || progtype == 4 || progtype == 5 || progtype == 7) {
                 nm = NULL;
                 for (i = 0; i < N_SUBTYPE_NMS; i++) {
@@ -1523,8 +1523,8 @@ char * file_progtype (LETENTRY *entry)                  // description of module
                     }
                 }
                 if (nm != NULL) {
-                    strcat(buf, "; ");
-                    strcat(buf, nm);
+                    strlcat(buf, "; ", sizeof(buf));
+                    strlcat(buf, nm, sizeof(buf));
                 }
             }
             break;

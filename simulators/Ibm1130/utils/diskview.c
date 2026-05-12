@@ -355,7 +355,7 @@ void dump_dcom (void)
     getsector(1, dcom);
 
     for (d = dcominfo; d->nm != NULL; d++) {
-        sprintf(txt, "%-4.4s %s", d->nm, d->descr);
+        snprintf(txt, sizeof(txt), "%-4.4s %s", d->nm, d->descr);
         pbf(txt, dcom+d->offset, 1);
     }
 }
@@ -434,7 +434,7 @@ void dump_slet (void)
             if (sletinfo[j].pfrom <= iphase && sletinfo[j].pto >= iphase)
                 break;
 
-        sprintf(sstr, "(%d.%d)", sec / DSK_SECCYL, slet[i].sector % DSK_SECCYL);
+        snprintf(sstr, sizeof(sstr), "(%d.%d)", sec / DSK_SECCYL, slet[i].sector % DSK_SECCYL);
 
         printf("%3d %04x %4d %04x %04x %04x %s %-7s %3x",
             i, slet[i].phid, iphase, slet[i].addr, slet[i].nwords, slet[i].sector, smark, sstr, nsecs);
@@ -519,7 +519,7 @@ bool mget (int offset, char *name)
         return false;
 
     getsector(dcom[offset], buf);
-    sprintf(title, "Sector %x - %s", dcom[offset], name);
+    snprintf(title, sizeof(title), "Sector %x - %s", dcom[offset], name);
     showmajor(title);
     return true;
 }

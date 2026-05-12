@@ -926,9 +926,9 @@ t_stat xu_reset(DEVICE* dptr)
     char uname[16];
 
     xu->var->initialized = true;
-    sprintf (uname, "%s-SVC", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-SVC", dptr->name);
     sim_set_uname (&dptr->units[0], uname);
-    sprintf (uname, "%s-TMRSVC", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-TMRSVC", dptr->name);
     sim_set_uname (&dptr->units[1], uname);
     /* Set an initial MAC address in the DEC range */
     xu_setmac (dptr->units, 0, "08:00:2B:00:00:00/24", NULL);
@@ -1746,17 +1746,17 @@ t_stat xu_wr(int32_t data, int32_t PA, int32_t access)
 
   switch (access) {
     case WRITE :
-      strcpy(desc, "Word");
+      strlcpy (desc, "Word", sizeof(desc));
       break;
     case WRITEB:
       if (PA & 1) {
-        strcpy(desc, "ByteHi");
+        strlcpy (desc, "ByteHi", sizeof(desc));
       } else {
-        strcpy(desc, "ByteLo");
+        strlcpy (desc, "ByteLo", sizeof(desc));
       }
       break;
     default :
-      strcpy(desc, "Unknown");
+      strlcpy (desc, "Unknown", sizeof(desc));
       break;
   }
   sim_debug(DBG_REG, xu->dev, "xu_wr(), PCSR%d, data=%08x, PA=%08x, access=%d[%s]\n", reg, data, PA, access, desc);

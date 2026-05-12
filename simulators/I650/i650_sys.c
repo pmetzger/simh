@@ -930,7 +930,7 @@ static t_stat deck_split_cmd(const char *cptr)
         if ((uptr->flags & UNIT_ATT) == 0)                  /* attached? */
             return SCPE_UNATT;
         // get the file name
-        strcpy(fn0, uptr->filename);
+        strlcpy(fn0, uptr->filename, sizeof(fn0));
         sim_card_detach(uptr);                              // detach file from cdp device to be splitted
     }
 

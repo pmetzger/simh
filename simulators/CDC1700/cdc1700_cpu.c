@@ -943,7 +943,7 @@ static t_stat executeAnInstruction(void)
   INTprefix[0] = '\0';
 
   if ((cpu_dev.dctrl & DBG_INTLVL) != 0)
-    sprintf(INTprefix, "%02d> ", INTlevel);
+    snprintf(INTprefix, sizeof(INTprefix), "%02d> ", INTlevel);
 
   if (INTflag && !DEFERflag) {
     if ((operand = Pending & Mreg) != 0) {
@@ -999,7 +999,7 @@ static t_stat executeAnInstruction(void)
             Pending &= 0xFFFE;
 
           if ((cpu_dev.dctrl & DBG_INTLVL) != 0)
-            sprintf(INTprefix, "%02d> ", INTlevel);
+            snprintf(INTprefix, sizeof(INTprefix), "%02d> ", INTlevel);
 
           if (sim_brk_summ && sim_brk_test(Preg, SWMASK('E'))) {
             /*

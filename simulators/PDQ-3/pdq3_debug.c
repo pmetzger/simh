@@ -258,7 +258,8 @@ t_stat dbg_segtrack(uint16_t segbase) {
   if (!s) {
     s = seghash[idx] = new_seginfo(seghash[idx], segbase);
     if ((rc=ReadEx(segbase, 0, &s->size)) != SCPE_OK) return rc;
-    strcpy(s->name, segbase==0xf418 ? "HDT" : pdq3_segname(segbase+2));
+    strlcpy(s->name, segbase==0xf418 ? "HDT" : pdq3_segname(segbase+2),
+            sizeof(s->name));
     if ((rc=ReadBEx(segbase+s->size, 0, &s->segno)) != SCPE_OK) return rc;
     if ((rc=ReadBEx(segbase+s->size, 1, &s->nproc)) != SCPE_OK) return rc;
 //    printf("Entered at %04x: %s sz=%x seg=%x np=%x\n",segbase, s->name, s->size, s->segno, s->nproc);
@@ -356,7 +357,7 @@ static const char* find_procname(PROCINFO* p) {
   ALIASES* a;
   int dummy;
   static char buf[100];
-  sprintf(buf,"%s:proc%d", p->seg->name, p->procno);
+  snprintf(buf, sizeof(buf), "%s:proc%d", p->seg->name, p->procno);
   a = find_alias(buf, &dummy);
   if (a) return a->alias;
   return buf;

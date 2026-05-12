@@ -1078,15 +1078,15 @@ static t_stat linc_boot(int32_t flag, const char *cptr)
     return run_cmd(RU_BOOT, dev);
 
   bbuf[0] = 0;
-  strcpy(gbuf, "20");
+  strlcpy(gbuf, "20", sizeof(gbuf));
   while (*cptr) {
     cptr = get_glyph(cptr, arg, 0);
     if (strncmp(arg, "RDC=", 4) == 0)
-      LSW = 0700, strcpy(bbuf, arg + 4);
+      LSW = 0700, strlcpy(bbuf, arg + 4, sizeof(bbuf));
     else if (strncmp(arg, "RCG=", 4) == 0)
-      LSW = 0701, strcpy(bbuf, arg + 4);
+      LSW = 0701, strlcpy(bbuf, arg + 4, sizeof(bbuf));
     else if (strncmp(arg, "START=", 6) == 0)
-      LSW = 0701, strcpy(gbuf, arg + 6);
+      LSW = 0701, strlcpy(gbuf, arg + 6, sizeof(gbuf));
     else
       return SCPE_ARG;
   }

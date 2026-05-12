@@ -2667,15 +2667,15 @@ t_stat xq_reset(DEVICE* dptr)
     char uname[16];
 
     xq->var->initialized = true;
-    sprintf (uname, "%s-SVC", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-SVC", dptr->name);
     sim_set_uname (&dptr->units[0], uname);
-    sprintf (uname, "%s-TMRSVC", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-TMRSVC", dptr->name);
     sim_set_uname (&dptr->units[1], uname);
-    sprintf (uname, "%s-STARTSVC", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-STARTSVC", dptr->name);
     sim_set_uname (&dptr->units[2], uname);
-    sprintf (uname, "%s-RCVSVC", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-RCVSVC", dptr->name);
     sim_set_uname (&dptr->units[3], uname);
-    sprintf (uname, "%s-SRQRSVC", dptr->name);
+    snprintf (uname, sizeof(uname), "%s-SRQRSVC", dptr->name);
     sim_set_uname (&dptr->units[4], uname);
     /* Set an initial MAC address in the DEC range */
     xq_setmac (dptr->units, 0, "08:00:2B:00:00:00/24", NULL);
@@ -3195,10 +3195,10 @@ void xq_debug_setup(CTLR* xq)
   if (xq->var->write_buffer.len > 128) {
     char buffer[20] = {0};
     uint16_t len = (uint16_t)xq->var->write_buffer.len;
-    if (len & XQ_SETUP_MC) strcat(buffer, "MC ");
-    if (len & XQ_SETUP_PM) strcat(buffer, "PM ");
-    if (len & XQ_SETUP_LD) strcat(buffer, "LD ");
-    if (len & XQ_SETUP_ST) strcat(buffer, "ST ");
+    if (len & XQ_SETUP_MC) strlcat(buffer, "MC ", sizeof(buffer));
+    if (len & XQ_SETUP_PM) strlcat(buffer, "PM ", sizeof(buffer));
+    if (len & XQ_SETUP_LD) strlcat(buffer, "LD ", sizeof(buffer));
+    if (len & XQ_SETUP_ST) strlcat(buffer, "ST ", sizeof(buffer));
     sim_debug(DBG_SET, xq->dev, "%s: setup> Length [%d =0x%X, LD:%d, ST:%d] info: %s\n",
       xq->dev->name, len, len, (len & XQ_SETUP_LD) >> 2, (len & XQ_SETUP_ST) >> 4, buffer);
   }
@@ -3214,11 +3214,11 @@ void xq_debug_turbo_setup(CTLR* xq)
 
   sim_debug(DBG_SET, xq->dev, "%s: setup> Turbo Initialization Block!\n", xq->dev->name);
 
-  if (xq->var->init.mode & XQ_IN_MO_PRO) strcat(buffer, "PRO ");
-  if (xq->var->init.mode & XQ_IN_MO_INT) strcat(buffer, "INT ");
-  if (xq->var->init.mode & XQ_IN_MO_DRT) strcat(buffer, "DRC ");
-  if (xq->var->init.mode & XQ_IN_MO_DTC) strcat(buffer, "DTC ");
-  if (xq->var->init.mode & XQ_IN_MO_LOP) strcat(buffer, "LOP ");
+  if (xq->var->init.mode & XQ_IN_MO_PRO) strlcat(buffer, "PRO ", sizeof(buffer));
+  if (xq->var->init.mode & XQ_IN_MO_INT) strlcat(buffer, "INT ", sizeof(buffer));
+  if (xq->var->init.mode & XQ_IN_MO_DRT) strlcat(buffer, "DRC ", sizeof(buffer));
+  if (xq->var->init.mode & XQ_IN_MO_DTC) strlcat(buffer, "DTC ", sizeof(buffer));
+  if (xq->var->init.mode & XQ_IN_MO_LOP) strlcat(buffer, "LOP ", sizeof(buffer));
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Mode: %s\n", xq->dev->name, buffer);
 
   eth_mac_fmt(xq->var->init.phys, buffer, sizeof(buffer));
@@ -3230,8 +3230,8 @@ void xq_debug_turbo_setup(CTLR* xq)
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Multicast Hash: %s\n", xq->dev->name, buffer);
 
   buffer[0] = '\0';
-  if (xq->var->init.options & XQ_IN_OP_HIT) strcat(buffer, "HIT ");
-  if (xq->var->init.options & XQ_IN_OP_INT) strcat(buffer, "INT ");
+  if (xq->var->init.options & XQ_IN_OP_HIT) strlcat(buffer, "HIT ", sizeof(buffer));
+  if (xq->var->init.options & XQ_IN_OP_INT) strlcat(buffer, "INT ", sizeof(buffer));
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Options: %s\n", xq->dev->name, buffer);
 
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Vector: %d =0x%X\n",

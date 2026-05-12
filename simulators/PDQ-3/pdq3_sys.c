@@ -293,7 +293,7 @@ static t_stat pdq3_cmd_namealias(int32_t arg, const char *buf) {
     return dbg_listalias(stdout);
 
   gbuf[sizeof(gbuf)-1] = '\0';
-  strncpy (gbuf, buf, sizeof(gbuf)-1);
+  strlcpy (gbuf, buf, sizeof(gbuf));
   name = strtok(gbuf, " \t");
   alias = strtok(NULL, " \t\n");
   return name == NULL || alias == NULL ? SCPE_ARG : dbg_enteralias(name, alias);

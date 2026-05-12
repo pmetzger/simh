@@ -304,7 +304,7 @@ static void hi_debug_msg (uint16_t line, uint16_t next, uint16_t count, const ch
   if (!ISHDBG(line, HI_DBG_MSG)) return;
   sim_debug(HI_DBG_MSG, PDEVICE(line), "message %s (length=%d)\n", ptext, count);
   for (i = 1, len = 0;  i <= count;  ++i) {
-    len += sprintf(buf+len, "%06o ", M[next+i-1]);
+    len += snprintf(buf+len, sizeof(buf)-len, "%06o ", M[next+i-1]);
     if (((i & 7) == 0) || (i == count)) {
       sim_debug(HI_DBG_MSG, PDEVICE(line), "- %s\n", buf);  len = 0;
     }
@@ -720,7 +720,7 @@ t_stat hi_attach (UNIT *uptr, const char *cptr)
   // to display in the "SHOW HIn ..." command.
   pfn = (char *) calloc (CBUFSIZE, sizeof (char));
   if (pfn == NULL) return SCPE_MEM;
-  strncpy (pfn, cptr, CBUFSIZE);
+  strlcpy (pfn, cptr, CBUFSIZE);
 
   // Create the UDP connection.
   ret = udp_create(PDEVICE(host), cptr, &(PHIDB(host)->link));

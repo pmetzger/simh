@@ -317,12 +317,12 @@ switch (ch) {
             cpu_setreg (cpu, rg, rval);
 #endif
             rxcd_count = 3;                             /* ready for next cmd */
-            sprintf (&rxcd_obuf[0], ">>>");
+            snprintf (rxcd_obuf, sizeof (rxcd_obuf), ">>>");
             rxcd_optr = 0;
             }
         else if (rxcd_ibuf[0] == 'I') {                 /* INIT */
             rxcd_count = 3;                             /* ready for next cmd */
-            sprintf (&rxcd_obuf[0], ">>>");
+            snprintf (rxcd_obuf, sizeof (rxcd_obuf), ">>>");
             rxcd_optr = 0;
             }
         else if (rxcd_ibuf[0] == 'S') {                 /* START */
@@ -337,7 +337,7 @@ switch (ch) {
 
     case 0x10:                                          /* CTRL-P */
         rxcd_count = 3;                                 /* ready for next cmd */
-        sprintf (&rxcd_obuf[0], ">>>");
+        snprintf (rxcd_obuf, sizeof (rxcd_obuf), ">>>");
         rxcd_optr = 0;
         break;
 

@@ -196,7 +196,7 @@ void xio_disk (int32_t iocc_addr, int32_t func, int32_t modify, int drv)
     if (! BETWEEN(drv, 0, DSK_NUMDR-1)) {           /* hmmm, invalid drive */
         if (func != XIO_SENSE_DEV) {                /* tried to use it, too  */
         /* just do nothing, as if the controller isn't there. NAMCRA at N0116300 tests for drives by attempting reads
-            sprintf(msg, "Op %x on invalid drive number %d", func, drv);
+            snprintf(msg, sizeof(msg), "Op %x on invalid drive number %d", func, drv);
             xio_error(msg);
         */
         }
@@ -367,7 +367,7 @@ void xio_disk (int32_t iocc_addr, int32_t func, int32_t modify, int drv)
             break;
 
         default:
-            sprintf(msg, "Invalid disk XIO function %x", func);
+            snprintf(msg, sizeof(msg), "Invalid disk XIO function %x", func);
             xio_error(msg);
     }
 }

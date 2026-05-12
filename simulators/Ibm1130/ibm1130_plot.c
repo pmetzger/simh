@@ -349,7 +349,7 @@ void xio_1627_plotter (int32_t iocc_addr, int32_t iocc_func, int32_t iocc_mod)
             break;
 
         default:
-            sprintf(msg, "Invalid 1627 Plotter XIO function %x", iocc_func);
+            snprintf(msg, sizeof(msg), "Invalid 1627 Plotter XIO function %x", iocc_func);
             xio_error(msg);
     }
     return;

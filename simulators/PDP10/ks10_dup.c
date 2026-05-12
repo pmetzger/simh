@@ -1210,7 +1210,7 @@ if (!cptr || !*cptr)
     return SCPE_ARG;
 if (!(uptr->flags & UNIT_ATTABLE))
     return SCPE_NOATT;
-sprintf (attach_string, "Line=%d,%s", dup, cptr);
+snprintf (attach_string, sizeof(attach_string), "Line=%d,%s", dup, cptr);
 r = tmxr_open_master (&dup_desc, attach_string);                 /* open master socket */
 free (uptr->filename);
 uptr->filename = tmxr_line_attach_string(&dup_desc.ldsc[dup]);
@@ -1652,8 +1652,8 @@ const char helpString[] =
 char devcount[16];
 char connectpoll[16];
 
-sprintf (devcount, "%d", NUM_DEVS_DUP);
-sprintf (connectpoll, "%d", DUP_CONNECT_POLL);
+snprintf (devcount, sizeof(devcount), "%d", NUM_DEVS_DUP);
+snprintf (connectpoll, sizeof(connectpoll), "%d", DUP_CONNECT_POLL);
 
 return scp_help (st, dptr, uptr, flag, helpString, cptr, "Unibus", devcount, connectpoll);
 }

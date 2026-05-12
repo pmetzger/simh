@@ -296,7 +296,7 @@ int32_t translate_out(int32_t c)
     if (curpos == 2) {                                  /* 3rd char of cursor position */
         row = c & 0x7f;
         curpos = 0;
-        sprintf(outstr, "\033[%d;%dH", row+1, col+1);
+        snprintf(outstr, sizeof(outstr), "\033[%d;%dH", row+1, col+1);
         if ((temp = putseq(outstr)) != SCPE_OK) return temp;
         return (SCPE_OK);
     }
@@ -308,7 +308,7 @@ int32_t translate_out(int32_t c)
         case 005:                                       /* Read cursor address */
             break;
         case 010:                                       /* Cursor home */
-            sprintf(outstr, "\033[1;1H");
+            snprintf(outstr, sizeof(outstr), "\033[1;1H");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             row = col = 0;
             return (SCPE_OK);
@@ -322,11 +322,11 @@ int32_t translate_out(int32_t c)
             if (row > 24) row = 1;
             return (SCPE_OK);
         case 013:                                       /* Erase EOL */
-            sprintf(outstr, "\033[K");
+            snprintf(outstr, sizeof(outstr), "\033[K");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             return (SCPE_OK);
         case 014:                                       /* Erase screen */
-            sprintf(outstr, "\033[1;1H\033[2J");
+            snprintf(outstr, sizeof(outstr), "\033[1;1H\033[2J");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             row = col = 0;
             return (SCPE_OK);
@@ -336,33 +336,33 @@ int32_t translate_out(int32_t c)
             col = 1;
             return (SCPE_OK);
         case 016:                                       /* Blink On */
-            sprintf(outstr, "\033[5m");
+            snprintf(outstr, sizeof(outstr), "\033[5m");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             return (SCPE_OK);
         case 017:                                       /* Blink off */
-            sprintf(outstr, "\033[25m");
+            snprintf(outstr, sizeof(outstr), "\033[25m");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             return (SCPE_OK);
         case 020:                                       /* Write cursor address */
             curpos = 1;
             return SCPE_OK;
         case 024:                                       /* underscore on */
-            sprintf(outstr, "\033[4m");
+            snprintf(outstr, sizeof(outstr), "\033[4m");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             return (SCPE_OK);
         case 025:                                       /* underscore off */
-            sprintf(outstr, "\033[24m");
+            snprintf(outstr, sizeof(outstr), "\033[24m");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             return (SCPE_OK);
             break;
         case 027:                                       /* cursor up */
-            sprintf(outstr, "\033[A");
+            snprintf(outstr, sizeof(outstr), "\033[A");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             row--;
             if (row < 1) row = 24;
             return (SCPE_OK);
         case 030:                                       /* cursor right */
-            sprintf(outstr, "\033[C");
+            snprintf(outstr, sizeof(outstr), "\033[C");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             col++;
             if (col > 80) {
@@ -372,7 +372,7 @@ int32_t translate_out(int32_t c)
             }
             return (SCPE_OK);
         case 031:                                       /* Cursor left */
-            sprintf(outstr, "\033[D");
+            snprintf(outstr, sizeof(outstr), "\033[D");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             tto_unit.pos += 1;
             col--;
@@ -383,17 +383,17 @@ int32_t translate_out(int32_t c)
             }
             return (SCPE_OK);
         case 032:                                       /* Cursor down */
-            sprintf(outstr, "\033[B");
+            snprintf(outstr, sizeof(outstr), "\033[B");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             row++;
             if (row > 24) row = 1;
             return (SCPE_OK);
         case 034:                                       /* Dim on */
-            sprintf(outstr, "\033[22m");
+            snprintf(outstr, sizeof(outstr), "\033[22m");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             return (SCPE_OK);
         case 035:                                       /* Dim off */
-            sprintf(outstr, "\033[1m");
+            snprintf(outstr, sizeof(outstr), "\033[1m");
             if ((temp = putseq(outstr)) != SCPE_OK) return temp;
             return (SCPE_OK);
         case 036:                                       /* Special sequence */

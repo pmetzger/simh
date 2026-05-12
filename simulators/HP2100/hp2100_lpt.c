@@ -2082,7 +2082,8 @@ if (vf == NULL) {                                       /* if the standard VFU i
         }
 
     if (lpt_dev.flags & DEV_DIAG) {                     /* if the device is in diagnostic mode */
-        strcpy (vfu_title, "Diagnostic VFU");           /*   then install the diagnostic VFU tape */
+        strlcpy (vfu_title, "Diagnostic VFU",           /*   then install the diagnostic VFU tape */
+                 sizeof (vfu_title));
 
         tape [59] |= VFU_CHANNEL_10;                    /* punch channel 10 on line 59 */
         tape [66] |= VFU_CHANNEL_11;                    /* punch channel 11 on line 66 */
@@ -2094,7 +2095,8 @@ if (vf == NULL) {                                       /* if the standard VFU i
         }
 
     else                                                /* otherwise the device is in standard mode */
-        strcpy (vfu_title, "Standard VFU");             /*   so install the standard VFU tape */
+        strlcpy (vfu_title, "Standard VFU",             /*   so install the standard VFU tape */
+                 sizeof (vfu_title));
 
     form_length = 66;                                   /* set the form length */
     }
@@ -2117,7 +2119,7 @@ else {                                                  /* otherwise load a cust
         return SCPE_FMT;                                            /*     and fail with a format error */
         }
 
-    strcpy (punch, tptr);                               /* save the set of punch characters */
+    strlcpy (punch, tptr, sizeof (punch));              /* save the set of punch characters */
 
     tptr = strtok (NULL, ",");                          /* parse the no-punch token */
 
@@ -2131,9 +2133,10 @@ else {                                                  /* otherwise load a cust
     tptr = strtok (NULL, ",");                          /* parse the optional title */
 
     if (tptr != NULL)                                   /* if it's present */
-        strcpy (vfu_title, tptr);                       /*   then save the user's title */
+        strlcpy (vfu_title, tptr, sizeof (vfu_title));  /*   then save the user's title */
     else                                                /* otherwise */
-        strcpy (vfu_title, "Custom VFU");               /*   use a generic title */
+        strlcpy (vfu_title, "Custom VFU",               /*   use a generic title */
+                 sizeof (vfu_title));
 
 
     for (line = 1; line <= VFU_MAX; line++) {           /* load up to the maximum VFU tape length */

@@ -421,13 +421,13 @@ void xio_1132_printer (int32_t iocc_addr, int32_t func, int32_t modify)
                 CLRBIT(PRT_DSW, PRT1132_DSW_CARRIAGE_BUSY);
 
             if ((uptr->flags & (UNIT_SKIPPING|UNIT_SPACING)) == (UNIT_SKIPPING|UNIT_SPACING)) {
-                sprintf(msg, "1132 printer skip and space at same time?");
+                snprintf(msg, sizeof(msg), "1132 printer skip and space at same time?");
                 xio_error(msg);
             }
             break;
 
         default:
-            sprintf(msg, "Invalid 1132 printer XIO function %x", func);
+            snprintf(msg, sizeof(msg), "Invalid 1132 printer XIO function %x", func);
             xio_error(msg);
     }
 }
@@ -728,7 +728,7 @@ static t_stat prt_attach (UNIT *uptr, const char *cptr)
     if (strcmp(cptr, "(stdout)") == 0) {                /* connect printer to stdout */
         if (uptr -> flags & UNIT_DIS) return SCPE_UDIS; /* disabled? */
         uptr->filename = (char *)calloc(CBUFSIZE, sizeof(char));
-        strcpy(uptr->filename, "(stdout)");
+        strlcpy(uptr->filename, "(stdout)", CBUFSIZE);
         uptr->fileref = stdout;
         SETBIT(uptr->flags, UNIT_ATT);
         uptr->pos = 0;

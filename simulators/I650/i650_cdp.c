@@ -362,7 +362,7 @@ static void encode_soap_wiring(int bMultiPass)
         if (b_pch_a) {
             // punch non generating code card
             encode_pch_str("0?0000800?");             // load card
-            sprintf(pch_word, "      %04d", CardNum); // card number
+            snprintf(pch_word, sizeof(pch_word), "      %04d", CardNum); // card number
             encode_pch_str(pch_word);
             encode_pch_str("          ");             // two blank words
             encode_pch_str("          ");
@@ -373,9 +373,9 @@ static void encode_soap_wiring(int bMultiPass)
             } else {
                 encode_pch_str("6I1954195C");         // load card for word to be stored in drum
             }
-            sprintf(pch_word, "      %04d", CardNum); // card number
+            snprintf(pch_word, sizeof(pch_word), "      %04d", CardNum); // card number
             encode_pch_str(pch_word);
-            sprintf(pch_word, "24%04d800?", location);// addr to place the loaded word
+            snprintf(pch_word, sizeof(pch_word), "24%04d800?", location);// addr to place the loaded word
             encode_pch_str(pch_word);
             sprintf_word(pch_word, AbsWord(instr) * (neg ? -1:1), ((neg) && (instr == 0)) ? 1:0, 1);
             encode_pch_str(pch_word);
@@ -606,7 +606,8 @@ static void encode_supersoap_wiring(void)
         }
     } else if (cardtype=='5') {
         // punch five-per-card per card format
-        sprintf(pch_word, "888888%04d", (int)(IOSync[8] % D4)); // punch six 8's, then the card number
+        snprintf(pch_word, sizeof(pch_word), "888888%04d",
+                 (int)(IOSync[8] % D4)); // punch six 8's, then the card number
         encode_pch_str(pch_word);
         for(i=1;i<6;i++) {
             sprintf_word(pch_word, IOSync[i], 0, 1); // sign on units
@@ -626,16 +627,16 @@ static void encode_supersoap_wiring(void)
             encode_pch_str("F919541953"); // punch for load card
         }
         if ((ty!=1) && (ty!=3) && ((opcodeNum==647963) || (opcodeNum==637664))) {
-            sprintf(pch_word, " %s%04d", loc, CardNum);  // card DRC or COD
+            snprintf(pch_word, sizeof(pch_word), " %s%04d", loc, CardNum);  // card DRC or COD
         } else {
-            sprintf(pch_word, "      %04d", CardNum);    // consecutive card count
+            snprintf(pch_word, sizeof(pch_word), "      %04d", CardNum);    // consecutive card count
         }
         encode_pch_str(pch_word);
         if   (cardtype=='A') {
             encode_pch_str("          ");
             encode_pch_str("          ");
         } else {
-            sprintf(pch_word, "24%04d800?", location);// addr to place the loaded word
+            snprintf(pch_word, sizeof(pch_word), "24%04d800?", location);// addr to place the loaded word
             encode_pch_str(pch_word);
             sprintf_word(pch_word, AbsWord(instr) * (neg ? -1:1), ((neg) && (instr == 0)) ? 1:0, 1);
             encode_pch_str(pch_word);
@@ -808,9 +809,9 @@ static void encode_is_wiring(void)
     } else {
         // punch a card using output format
         if (loc < 1000) {
-            sprintf(pch_word, "%04d  %03d%01d", CardNum, loc, wc);
+            snprintf(pch_word, sizeof(pch_word), "%04d  %03d%01d", CardNum, loc, wc);
         } else {
-            sprintf(pch_word, "%04d %04d%01d", CardNum, loc, wc);
+            snprintf(pch_word, sizeof(pch_word), "%04d %04d%01d", CardNum, loc, wc);
         }
         encode_pch_str(pch_word);
         for(i=0;i<6;i++) {
@@ -831,7 +832,7 @@ static void encode_is_wiring(void)
         }
         if (PrNum < 0) PrNum = 0;
         if (PrNum > 999) PrNum = 999;
-        sprintf(pch_word, "%03d", PrNum);
+        snprintf(pch_word, sizeof(pch_word), "%03d", PrNum);
         encode_pch_str(pch_word);
     }
 

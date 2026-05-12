@@ -863,15 +863,15 @@ if (Debug_Flags) {
         Tron = 1;
         Trace = fopen("trace.log", "w");
     }
-    strcpy(debmap, " ");
-    strcpy(debion, " ");
+    strlcpy(debmap, " ", sizeof(debmap));
+    strlcpy(debion, " ", sizeof(debion));
     debcar = 0;
     if (C) debcar = 1;
-    if (Usermap == 1) strcpy(debmap, "A");
-    if (Usermap == 2) strcpy(debmap, "B");
-    if (Usermap == 5) strcpy(debmap, "C");
-    if (Usermap == 6) strcpy(debmap, "D");
-    if (int_req & INT_ION) strcpy(debion, "I");
+    if (Usermap == 1) strlcpy(debmap, "A", sizeof(debmap));
+    if (Usermap == 2) strlcpy(debmap, "B", sizeof(debmap));
+    if (Usermap == 5) strlcpy(debmap, "C", sizeof(debmap));
+    if (Usermap == 6) strlcpy(debmap, "D", sizeof(debmap));
+    if (int_req & INT_ION) strlcpy(debion, "I", sizeof(debion));
     if (XCT_mode == 0) {
         debpc = PC;
         simeval[0] = GetMap(PC);
@@ -5279,16 +5279,16 @@ else {                                                  /* IOT */
         reason = iodata >> IOT_V_REASON;
         if (code & 1) AC[dstAC] = iodata & 0177777;
         if ((Debug_Flags & 077) == device && Debug_Flags != 0) {
-            strcpy(pulcode, "");
+            pulcode[0] = '\0';
             switch (pulse) {
                 case iopP:
-                strcpy(pulcode, "P");
+                strlcpy(pulcode, "P", sizeof(pulcode));
                 break;
             case iopS:
-                strcpy(pulcode, "S");
+                strlcpy(pulcode, "S", sizeof(pulcode));
                 break;
             case iopC:
-                strcpy(pulcode, "C");
+                strlcpy(pulcode, "C", sizeof(pulcode));
                 break;
             default:
                 break;
@@ -6048,19 +6048,19 @@ t_stat Dump_History (FILE *st, UNIT *uptr, int32_t val, const void *desc)
         if (ctr == end)
             break;
         count++;
-        strcpy(debion, " ");
-        strcpy(debmap, " ");
+        strlcpy(debion, " ", sizeof(debion));
+        strlcpy(debmap, " ", sizeof(debmap));
         debcar = 0;
         if (hflags[ctr] & 0x80) {
             fprintf(st, "--------- Interrupt %o (%o) to %6o ---------\n",
                  hinst[ctr], hac0[ctr], hac1[ctr]);
        } else {
             if (hflags[ctr] & 0x01) debcar = 1;
-            if (hflags[ctr] & 0x02) strcpy(debion, "I");
-            if (hflags[ctr] & 0x04) strcpy(debmap, "A");
-            if (hflags[ctr] & 0x08) strcpy(debmap, "B");
-            if (hflags[ctr] & 0x10) strcpy(debmap, "C");
-            if (hflags[ctr] & 0x20) strcpy(debmap, "D");
+            if (hflags[ctr] & 0x02) strlcpy(debion, "I", sizeof(debion));
+            if (hflags[ctr] & 0x04) strlcpy(debmap, "A", sizeof(debmap));
+            if (hflags[ctr] & 0x08) strlcpy(debmap, "B", sizeof(debmap));
+            if (hflags[ctr] & 0x10) strlcpy(debmap, "C", sizeof(debmap));
+            if (hflags[ctr] & 0x20) strlcpy(debmap, "D", sizeof(debmap));
             fprintf(st, "%s%s%06o acs: %06o %06o %06o %06o %01o ",
                 debion, debmap, hpc[ctr], hac0[ctr], hac1[ctr], hac2[ctr],
                 hac3[ctr], debcar);

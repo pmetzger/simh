@@ -2127,7 +2127,7 @@ static const char flags [] = "m i t r o c CCx";
 static char formatted [sizeof flags];
 uint32_t index;
 
-strcpy (formatted, flags);                              /* copy the initial flags template */
+strlcpy (formatted, flags, sizeof (formatted));         /* copy the initial flags template */
 
 formatted [14] = conditions [TO_CCN (status)];          /* set the condition code representation */
 

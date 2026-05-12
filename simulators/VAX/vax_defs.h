@@ -87,7 +87,7 @@ extern jmp_buf save_env;
                                                                                                         \
         if (sim_deb && !opcd) {                                                                         \
             opcd = op_num;                                                                              \
-            sprintf (op_num, "Opcode 0x%X", opc);                                                              \
+            snprintf (op_num, sizeof (op_num), "Opcode 0x%X", opc);                                    \
             sim_debug (LOG_CPU_FAULT_RSVD, &cpu_dev, "%s fault_PC=%08x, PSL=%08x, SP=%08x, PC=%08x\n",  \
                                                      opcd, fault_PC, PSL, SP, PC);                      \
             }                                                                                           \

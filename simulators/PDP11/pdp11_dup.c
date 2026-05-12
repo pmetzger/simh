@@ -1719,7 +1719,7 @@ if (!cptr || !*cptr)
     return SCPE_ARG;
 if (!(uptr->flags & UNIT_ATTABLE))
     return SCPE_NOATT;
-sprintf (attach_string, "Line=%d,%s", dup, cptr);
+snprintf (attach_string, sizeof(attach_string), "Line=%d,%s", dup, cptr);
 r = tmxr_open_master (&dup_desc, attach_string);                 /* open master socket */
 free (uptr->filename);
 uptr->filename = tmxr_line_attach_string(&dup_desc.ldsc[dup]);
@@ -2221,9 +2221,9 @@ char busname[16];
 char devcount[16];
 char connectpoll[16];
 
-sprintf (busname, UNIBUS ? "Unibus" : "Qbus");
-sprintf (devcount, "%d", DUP_LINES);
-sprintf (connectpoll, "%d", DUP_CONNECT_POLL);
+strlcpy (busname, UNIBUS ? "Unibus" : "Qbus", sizeof(busname));
+snprintf (devcount, sizeof(devcount), "%d", DUP_LINES);
+snprintf (connectpoll, sizeof(connectpoll), "%d", DUP_CONNECT_POLL);
 
 return scp_help (st, dptr, uptr, flag, helpString, cptr, busname, devcount, connectpoll);
 }

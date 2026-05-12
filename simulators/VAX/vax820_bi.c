@@ -640,7 +640,7 @@ if (r != SCPE_OK) {                                     /* error? */
         }
     return r;
     }
-strncpy (cpu_boot_cmd, ptr, CBUFSIZE-1);                /* save for reboot */
+strlcpy (cpu_boot_cmd, ptr, sizeof (cpu_boot_cmd));     /* save for reboot */
 return run_cmd (flag, "CPU");
 }
 
@@ -830,11 +830,11 @@ if (cptr == NULL)
     return SCPE_ARG;
 if (strcmp(cptr, "8200") == 0) {
    sys_model = 0;
-   strcpy (sim_name, "VAX 8200 (KA820)");
+   strlcpy (sim_name, "VAX 8200 (KA820)", sizeof (sim_name));
    }
 else if (strcmp(cptr, "8250") == 0) {
    sys_model = 1;
-   strcpy (sim_name, "VAX 8250 (KA825)");
+   strlcpy (sim_name, "VAX 8250 (KA825)", sizeof (sim_name));
    }
 else
    return SCPE_ARG;

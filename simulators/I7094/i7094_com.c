@@ -1191,7 +1191,7 @@ uint16_t *lh;
 char name[20];
 
 ln = uptr - coml_dev.units;
-sprintf (name, val? "Output queue %d": "Input queue %d", ln);
+snprintf (name, sizeof (name), val? "Output queue %d": "Input queue %d", ln);
 lh = val? com_outq[ln]: com_inpq[ln];
 if ((entc = com_show_qsumm (st, lh, name))) {
     for (i = 0, next = lh[HEAD]; next != 0;

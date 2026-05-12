@@ -761,7 +761,7 @@ vt_boot(int32_t unit, DEVICE *dptr)
     cpu_set_boot (saved_PC);
     set_cmd (0, "VT SCALE=1");
     set_cmd (0, "VT CRT=VR14");
-    sprintf (stability, "%d", SIM_IDLE_STMIN);
+    snprintf (stability, sizeof(stability), "%d", SIM_IDLE_STMIN);
     sim_set_idle (NULL, 0, stability, NULL);    /* force minimum calibration stability */
     sim_clr_idle (NULL, 0, stability, NULL);
     return r;

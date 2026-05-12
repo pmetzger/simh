@@ -471,7 +471,8 @@ switch ((pa >> 2) & 03) {                               /* case on PA<2:1> */
             lp->rcve = 1;
         else
             lp->rcve = 0;                               /* else line off */
-        sprintf(lineconfig, "%s-%s%s%s", LPR_GETSPD(data), LPR_GETCHARSIZE(data), LPR_GETPARITY(data), LPR_GETSTOPBITS(data));
+        snprintf(lineconfig, sizeof(lineconfig), "%s-%s%s%s", LPR_GETSPD(data),
+                 LPR_GETCHARSIZE(data), LPR_GETPARITY(data), LPR_GETSTOPBITS(data));
         if (!lp->serconfig || (0 != strcmp(lp->serconfig, lineconfig))) /* config changed? */
             tmxr_set_config_line (lp, lineconfig);      /* set it */
         dz_poll_receive ();                             /* update rx intr */

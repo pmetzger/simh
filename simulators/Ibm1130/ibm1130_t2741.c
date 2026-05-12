@@ -132,7 +132,7 @@ void xio_t2741_terminal (int32_t iocc_addr, int32_t iocc_func, int32_t iocc_mod)
             break;
 
         default:
-            sprintf(msg, "Invalid T2741 XIO function %x", iocc_func);
+            snprintf(msg, sizeof(msg), "Invalid T2741 XIO function %x", iocc_func);
             xio_error(msg);
     }
 }

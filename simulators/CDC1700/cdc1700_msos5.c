@@ -412,8 +412,8 @@ void MSOS5request(uint16_t param, uint16_t depth)
     char temp[16];
 
     if (secondary)
-      sprintf(details, "    Compl    = $%04X\r\n", M[param + 1]);
-    else sprintf(details, "    Compl    = %s\r\n", cpabs(param, temp));
+      snprintf(details, sizeof(details), "    Compl    = $%04X\r\n", M[param + 1]);
+    else snprintf(details, sizeof(details), "    Compl    = %s\r\n", cpabs(param, temp));
   }
 
   switch (reqCode) {
@@ -433,7 +433,7 @@ void MSOS5request(uint16_t param, uint16_t depth)
       request = "STATUS";
       luadr = luchr[(M[param + 1] & 0xC00) >> 10];
       lu = M[param + 1] & 0x3FF;
-      sprintf(parameters, "%u, 0, %c, 0, %c", lu, luadr, partOne);
+      snprintf(parameters, sizeof(parameters), "%u, 0, %c, 0, %c", lu, luadr, partOne);
 
       sprintf(END(details), "    LU       = %u\r\n", luabs(param, lu, luadr));
       break;
@@ -452,7 +452,7 @@ void MSOS5request(uint16_t param, uint16_t depth)
   rw:
       luadr = luchr[(M[param + 3] & 0xC00) >> 10];
       lu = M[param + 3] & 0x3FF;
-      sprintf(parameters, "%u, $%04X, $%04X, %u, %c, %u, %u, %c, %c, %c",
+      snprintf(parameters, sizeof(parameters), "%u, $%04X, $%04X, %u, %c, %u, %u, %c, %c, %c",
               lu, completion, M[param + 5], M[param + 4],
               mode[(M[param + 3] & 0x1000) >> 12],
               (M[param] & RP) >> 4, M[param] & CP,
@@ -491,13 +491,13 @@ void MSOS5request(uint16_t param, uint16_t depth)
 
     case RQ_LOADER:
       request = "LOADER";
-      sprintf(parameters, "[A: %04X, Q: %04X, lu: %u, t: %u, tna: %04X]",
+      snprintf(parameters, sizeof(parameters), "[A: %04X, Q: %04X, lu: %u, t: %u, tna: %04X]",
               Areg, Qreg, (Areg & 0xFFF0) >> 4, Areg & 0xF, Qreg);
       break;
 
     case RQ_TIMER:
       request = "TIMER";
-      sprintf(parameters, "$%04X, %u, %c, %u, %c, %c",
+      snprintf(parameters, sizeof(parameters), "$%04X, %u, %c, %u, %c, %c",
               M[param + 1], M[param] & 0xF,
               relative, M[param + 2],
               units[(M[param] & 0xF0) >> 4], partOne);
@@ -505,31 +505,31 @@ void MSOS5request(uint16_t param, uint16_t depth)
 
     case RQ_SCHDLE:
       request = secondary ? "Secondary SCHDLE" : "SCHDLE";
-      sprintf(parameters, "$%04X, %u, %c, %c",
+      snprintf(parameters, sizeof(parameters), "$%04X, %u, %c, %c",
               M[param + 1], M[param] & CP, relative, partOne);
       break;
 
     case RQ_SPACE:
       request = "SPACE";
-      sprintf(parameters, "%u, $%04X, %u, %u, %c, %c",
+      snprintf(parameters, sizeof(parameters), "%u, $%04X, %u, %u, %c, %c",
               M[param + 4], M[param + 1],
               (M[param] & RP) >> 4, M[param] & CP, relative, partOne);
       break;
 
     case RQ_CORE:
       request = "CORE";
-      sprintf(parameters, "[A: %04X, Q: %04X]", Areg, Qreg);
+      snprintf(parameters, sizeof(parameters), "[A: %04X, Q: %04X]", Areg, Qreg);
       break;
 
     case RQ_RELEAS:
       request = "RELEAS";
-      sprintf(parameters, "$%04X, %c, %c, %c",
+      snprintf(parameters, sizeof(parameters), "$%04X, %c, %c, %c",
               M[param + 1], exitind[M[param] & 0x01], relative, partOne);
       break;
 
     case RQ_GTFILE:
       request = "GTFILE";
-      sprintf(parameters, "$%04X, $%04X, $%04X, $%04X, $%04X, %c, %u, %u, %c",
+      snprintf(parameters, sizeof(parameters), "$%04X, $%04X, $%04X, $%04X, $%04X, %c, %u, %u, %c",
               M[param + 1], M[param + 7], M[param + 5],
               M[param + 4], M[param + 6], relative,
               (M[param] & RP) >> 4, M[param] & CP, partOne);
@@ -562,7 +562,7 @@ void MSOS5request(uint16_t param, uint16_t depth)
       request = "MOTION";
       luadr = luchr[(M[param + 3] & 0xC00) >> 10];
       lu = M[param + 3] & 0x3FF;
-      sprintf(parameters, "%u, $%04X, %u, %u, %u, %u, %u, %u, %c, %c, %c, %c",
+      snprintf(parameters, sizeof(parameters), "%u, $%04X, %u, %u, %u, %u, %u, %u, %c, %c, %c, %c",
               lu, M[param + 1],
               (M[param + 4] & 0xF000) >> 12,
               (M[param + 4] & 0xF00) >> 8,
@@ -577,7 +577,7 @@ void MSOS5request(uint16_t param, uint16_t depth)
 
     case RQ_TIMPT1:
       request = "TIMPT1";
-      sprintf(parameters, "$%04X, %u, 0, %u, %c",
+      snprintf(parameters, sizeof(parameters), "$%04X, %u, 0, %u, %c",
               M[param + 1], M[param] & 0xF,
               M[param + 2], units[(M[param] & 0xF0) >> 4]);
       break;
@@ -590,7 +590,7 @@ void MSOS5request(uint16_t param, uint16_t depth)
 
     case RQ_PTNCOR:
       request = "PTNCOR";
-      sprintf(parameters, "%u, $%04X, %u, %u, %u, %c, %c",
+      snprintf(parameters, sizeof(parameters), "%u, $%04X, %u, %u, %u, %c, %c",
               M[param + 4], M[param + 1], M[param + 5],
               (M[param] & RP) >> 4, M[param] & CP,
               relative, partOne);
@@ -598,7 +598,7 @@ void MSOS5request(uint16_t param, uint16_t depth)
 
     case RQ_SYSCHD:
       request = "SYSCHD";
-      sprintf(parameters, "$%04X, %u",
+      snprintf(parameters, sizeof(parameters), "$%04X, %u",
               M[param + 1], M[param & 0xF]);
       break;
 
@@ -606,24 +606,24 @@ void MSOS5request(uint16_t param, uint16_t depth)
       switch (M[param] & 0xFF) {
         case 0:
           request = "ENSCHD";
-          sprintf(parameters, "$%04X", M[param + 1]);
+          snprintf(parameters, sizeof(parameters), "$%04X", M[param + 1]);
           break;
 
         case 0xFF:
           request = "DISCHD";
-          sprintf(parameters, "$%04X", M[param + 1]);
+          snprintf(parameters, sizeof(parameters), "$%04X", M[param + 1]);
           break;
 
         default:
           request = "SYSCHD";
-          strcpy(parameters, "Invalid directory scheduling code");
+          strlcpy(parameters, "Invalid directory scheduling code", sizeof(parameters));
           break;
       }
       break;
 
     default:
       request = "*Unknown*";
-      sprintf(parameters, "Request code: %d", (M[param] & 0x3E00) >> 9);
+      snprintf(parameters, sizeof(parameters), "Request code: %d", (M[param] & 0x3E00) >> 9);
       break;
   }
   fprintf(DBGOUT, "%sMSOS5(%06u): [RQ: $%04X]%s%s  %s\r\n",

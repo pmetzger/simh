@@ -995,7 +995,8 @@ static void vh_set_config (     TMLX    *lp)
 {
     char lineconfig[16];
 
-    sprintf(lineconfig, "%s-%s%s%s", LPR_GETSPD(lp->lpr), LPR_GETCHARSIZE(lp->lpr), LPR_GETPARITY(lp->lpr), LPR_GETSTOPBITS(lp->lpr));
+    snprintf (lineconfig, sizeof(lineconfig), "%s-%s%s%s", LPR_GETSPD(lp->lpr),
+              LPR_GETCHARSIZE(lp->lpr), LPR_GETPARITY(lp->lpr), LPR_GETSTOPBITS(lp->lpr));
     if (!lp->tmln->serconfig || (0 != strcmp(lp->tmln->serconfig, lineconfig))) /* config changed? */
         tmxr_set_config_line (lp->tmln, lineconfig);      /* set it */
 }

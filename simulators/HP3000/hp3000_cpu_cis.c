@@ -694,11 +694,11 @@ switch (opcode) {                                       /* dispatch the opcode *
             mem_update_byte (&target);                      /* update the final target byte */
 
             if (DPRINTING (cpu_dev, DEB_MOPND)) {
-                sprintf (label, "source fraction %d length", source_fraction);
+                snprintf (label, sizeof (label), "source fraction %d length", source_fraction);
                 fprint_operand (&source, label, &fmt_byte_operand);
 
                 if (trap == trap_None) {
-                    sprintf (label, "target fraction %d length", target_fraction);
+                    snprintf (label, sizeof (label), "target fraction %d length", target_fraction);
                     fprint_operand (&target, label, &fmt_byte_operand);
                     }
                 }

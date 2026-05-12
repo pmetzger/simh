@@ -126,7 +126,7 @@ const char *sim_stop_messages[SCPE_BASE] = {
 t_stat ch_bkpt (uint32_t ch, uint32_t clc)
 {
 ch_bkpt_msg[8] = 'A' + ch;
-sprintf (&ch_bkpt_msg[27], "%06o", clc);
+snprintf (&ch_bkpt_msg[27], sizeof (ch_bkpt_msg) - 27, "%06o", clc);
 return STOP_CHBKPT;
 }
 

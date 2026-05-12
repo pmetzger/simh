@@ -1000,7 +1000,7 @@ t_stat load_cr_boot (int32_t drvno, int switches)
     }
                                     /* quiet switch or CGI mode inhibit the boot remark */
     if (((switches & SWMASK('Q')) == 0) && ! cgi) {                 /* 3.0-3, parenthesized & operation, per lint check */
-        sprintf(msg, "Loaded %s cold start card", name);
+        snprintf(msg, sizeof(msg), "Loaded %s cold start card", name);
 
         remark_cmd(msg);
     }
@@ -1653,7 +1653,7 @@ static t_stat cr_attach (UNIT *uptr, const char *iptr)
     if (strcmp(cptr, "(stdin)") == 0 && ! use_decklist) {   /* standard input */
         if (uptr->flags & UNIT_DIS) return SCPE_UDIS;       /* disabled? */
         uptr->filename = (char *)calloc(CBUFSIZE, sizeof(char));
-        strcpy(uptr->filename, "(stdin)");
+        strlcpy(uptr->filename, "(stdin)", CBUFSIZE);
         uptr->fileref = stdin;
         SETBIT(uptr->flags, UNIT_ATT);
         uptr->pos = 0;
@@ -1920,7 +1920,7 @@ void xio_2501_card (int32_t addr, int32_t func, int32_t modify)
             break;
 
         default:
-            sprintf(msg, "Invalid 2501 XIO function %x", func);
+            snprintf(msg, sizeof(msg), "Invalid 2501 XIO function %x", func);
             xio_error(msg);
             break;
     }
@@ -2099,7 +2099,7 @@ void xio_1442_card (int32_t addr, int32_t func, int32_t modify)
                     break;
 
                 default:
-                    sprintf(msg, "1442: Multiple operations in XIO_CONTROL: %x", modify);
+                    snprintf(msg, sizeof(msg), "1442: Multiple operations in XIO_CONTROL: %x", modify);
                     xio_error(msg);
                     return;
             }
@@ -2107,7 +2107,7 @@ void xio_1442_card (int32_t addr, int32_t func, int32_t modify)
             break;
 
         default:
-            sprintf(msg, "Invalid 1442 XIO function %x", func);
+            snprintf(msg, sizeof(msg), "Invalid 1442 XIO function %x", func);
             xio_error(msg);
             break;
     }

@@ -1146,7 +1146,7 @@ if (MATCH_CMD(gbuf, "MICROVAX") == 0) {
     lk_dev.flags = lk_dev.flags | DEV_DIS;               /* disable keyboard */
     vs_dev.flags = vs_dev.flags | DEV_DIS;               /* disable mouse */
 #endif
-    strcpy (sim_name, "MicroVAX II (KA630)");
+    strlcpy (sim_name, "MicroVAX II (KA630)", sizeof (sim_name));
     reset_all (0);                                       /* reset everything */
     }
 else if (MATCH_CMD(gbuf, "VAXSTATION") == 0) {
@@ -1156,7 +1156,7 @@ else if (MATCH_CMD(gbuf, "VAXSTATION") == 0) {
     va_dev.flags = va_dev.flags | DEV_DIS;               /* disable QDSS */
     lk_dev.flags = lk_dev.flags & ~DEV_DIS;              /* enable keyboard */
     vs_dev.flags = vs_dev.flags & ~DEV_DIS;              /* enable mouse */
-    strcpy (sim_name, "VAXstation II (KA630)");
+    strlcpy (sim_name, "VAXstation II (KA630)", sizeof (sim_name));
     reset_all (0);                                       /* reset everything */
 #else
     return sim_messagef(SCPE_ARG, "Simulator built without Graphic Device Support\n");
@@ -1169,7 +1169,7 @@ else if (MATCH_CMD(gbuf, "VAXSTATIONGPX") == 0) {
     va_dev.flags = va_dev.flags & ~DEV_DIS;              /* enable QDSS */
     lk_dev.flags = lk_dev.flags & ~DEV_DIS;              /* enable keyboard */
     vs_dev.flags = vs_dev.flags & ~DEV_DIS;              /* enable mouse */
-    strcpy (sim_name, "VAXstation II/GPX (KA630)");
+    strlcpy (sim_name, "VAXstation II/GPX (KA630)", sizeof (sim_name));
     reset_all (0);                                       /* reset everything */
 #else
     return sim_messagef(SCPE_ARG, "Simulator built without Graphic Device Support\n");

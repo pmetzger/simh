@@ -1493,22 +1493,22 @@ for (i=0; i<wc; i++)
     int j;
     d10 d = M[pa_start+i];
 
-    sprintf (octal, "%07o: %06o,,%06o", pa_start+i, (int)((d>>V_WORD0)&M_WORD18),
+    snprintf (octal, sizeof(octal), "%07o: %06o,,%06o", pa_start+i, (int)((d>>V_WORD0)&M_WORD18),
                                                     (int)((d>>V_WORD1)&M_WORD18));
-    sprintf (words, "0x%05X: %04X,,%04X", pa_start+i, (int)((d>>V_WORD0)&M_WORD),
+    snprintf (words, sizeof(words), "0x%05X: %04X,,%04X", pa_start+i, (int)((d>>V_WORD0)&M_WORD),
                                                       (int)((d>>V_WORD1)&M_WORD));
-    sprintf (bytes, "%02X %02X %02X %02X", (int)(((d&~M_BYTE0)>>V_BYTE0)&M_BYTE),
+    snprintf (bytes, sizeof(bytes), "%02X %02X %02X %02X", (int)(((d&~M_BYTE0)>>V_BYTE0)&M_BYTE),
                                            (int)(((d&~M_BYTE1)>>V_BYTE1)&M_BYTE),
                                            (int)(((d&~M_BYTE2)>>V_BYTE2)&M_BYTE),
                                            (int)(((d&~M_BYTE3)>>V_BYTE3)&M_BYTE));
-    strcpy (ascii, "'.....'");
+    strlcpy (ascii, "'.....'", sizeof(ascii));
     for (j=1; j<=5; j++)
         {
         c = 0x7F&(d>>(36-(j*7)));
         if (isprint(c))
             ascii[j] = c;
         }
-    strcpy (sixbit, "'.....'");
+    strlcpy (sixbit, "'.....'", sizeof(sixbit));
     for (j=1; j<=6; j++)
         {
         c = 0x3F&(d>>(36-(j*6)));

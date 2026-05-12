@@ -631,7 +631,7 @@ if (r != SCPE_OK) {                                     /* error? */
         }
     return r;
     }
-strncpy (cpu_boot_cmd, ptr, CBUFSIZE-1);                /* save for reboot */
+strlcpy (cpu_boot_cmd, ptr, sizeof (cpu_boot_cmd));     /* save for reboot */
 return run_cmd (flag, "CPU");
 }
 
@@ -690,7 +690,7 @@ if (gbuf[0]) {
                     return r;
                 vax750_bootdev = boot_tab[i].bootdev;
                 }
-            sprintf(dbuf, "%s%s", boot_tab[i].devname, gbuf + strlen(boot_tab[i].romdevalias));
+            snprintf(dbuf, sizeof(dbuf), "%s%s", boot_tab[i].devname, gbuf + strlen(boot_tab[i].romdevalias));
             dptr = find_unit (dbuf, &uptr);
             if ((dptr == NULL) || (uptr == NULL))
                 return SCPE_ARG;
@@ -709,7 +709,7 @@ if (gbuf[0]) {
             DIB *dibp;
             uint32_t ba;
 
-            sprintf(dbuf, "%s%s", boot_tab[i].devname, gbuf + strlen(boot_tab[i].devname));
+            snprintf(dbuf, sizeof(dbuf), "%s%s", boot_tab[i].devname, gbuf + strlen(boot_tab[i].devname));
             dptr = find_unit (dbuf, &uptr);
             if ((dptr == NULL) || (uptr == NULL))
                 return SCPE_ARG;

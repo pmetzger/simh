@@ -1561,7 +1561,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                     di_poll_response (da, unit, SET);       /* enable PPR */
 
                     if (TRACING (da_dev, DEB_XFER))
-                        strcpy (action, "device clear");
+                        strlcpy (action, "device clear", sizeof (action));
                     break;
 
 
@@ -1583,7 +1583,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                 stopped_talking = true;                     /* MLA stops the unit from talking */
 
                 if (TRACING (da_dev, DEB_XFER))
-                    sprintf (action, "listen %d", message_address);
+                    snprintf (action, sizeof (action), "listen %d", message_address);
                 }
 
             else if (message_address == BUS_UNADDRESS) {    /* is it an Unlisten? */
@@ -1592,7 +1592,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                 stopped_listening = true;                   /* UNL stops the unit from listening */
 
                 if (TRACING (da_dev, DEB_XFER))
-                    strcpy (action, "unlisten");
+                    strlcpy (action, "unlisten", sizeof (action));
                 }
 
             else                                            /* other listen addresses */
@@ -1612,7 +1612,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
                 stopped_listening = true;                   /* MTA stops the unit from listening */
 
                 if (TRACING (da_dev, DEB_XFER))
-                    sprintf (action, "talk %d", message_address);
+                    snprintf (action, sizeof (action), "talk %d", message_address);
                 }
 
             else {                                          /* it is some other talker (or Untalk) */
@@ -1625,7 +1625,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
 
                 else                                        /* it's an Untalk */
                     if (TRACING (da_dev, DEB_XFER))
-                        strcpy (action, "untalk");
+                        strlcpy (action, "untalk", sizeof (action));
                 }
 
             break;
@@ -1771,7 +1771,7 @@ if (di [da].bus_cntl & BUS_ATN) {                           /* is it a bus comma
 
             if (accepted) {                                 /* was the command accepted? */
                 if (TRACING (da_dev, DEB_XFER))
-                    sprintf (action, "secondary %02XH", message_address);
+                    snprintf (action, sizeof (action), "secondary %02XH", message_address);
 
                 if (if_command [unit] != amigo_identify)    /* disable PPR for all commands */
                     di_poll_response (da, unit, CLEAR);     /*   except Amigo ID */
@@ -1815,7 +1815,7 @@ else {                                                      /* it is bus data (A
 
         case opcode_wait:                                   /* waiting for an opcode */
             if (TRACING (da_dev, DEB_XFER))
-                sprintf (action, "opcode %02XH", data & DL_OPCODE_MASK);
+                snprintf (action, sizeof (action), "opcode %02XH", data & DL_OPCODE_MASK);
 
             buffer [0] = TO_WORD (data, 0);                 /* set the opcode into the buffer */
 
@@ -1837,7 +1837,7 @@ else {                                                      /* it is bus data (A
 
         case parameter_wait:                                /* waiting for a parameter */
             if (TRACING (da_dev, DEB_XFER))
-                sprintf (action, "parameter %02XH", data);
+                snprintf (action, sizeof (action), "parameter %02XH", data);
 
             put_buffer_byte (&icd_cntlr [unit], data);      /* add the byte to the buffer */
 
@@ -1862,7 +1862,7 @@ else {                                                      /* it is bus data (A
 
         case error_sink:                                        /* sinking data after an error */
             if (TRACING (da_dev, DEB_XFER))
-                sprintf (action, "data %03o", data);
+                snprintf (action, sizeof (action), "data %03o", data);
 
             if (di [da].bus_cntl & BUS_EOI)                     /* is this the last byte from the bus? */
                 icd_cntlr [unit].eod = SET;                     /* indicate EOD to the controller */
@@ -1878,7 +1878,7 @@ else {                                                      /* it is bus data (A
                            error_sink);                     /*   and sink any data that follows */
 
             if (TRACING (da_dev, DEB_XFER))
-                sprintf (action, "unhandled data %03o", data);
+                snprintf (action, sizeof (action), "unhandled data %03o", data);
             break;
         }
     }

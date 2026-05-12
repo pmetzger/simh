@@ -743,10 +743,9 @@ t_stat status;
 char* tptr;
 CTLR *xs = &xs_ctrl[0];
 
-tptr = (char *) malloc(strlen(cptr) + 1);
+tptr = strdup(cptr);
 if (tptr == NULL)
     return SCPE_MEM;
-strcpy(tptr, cptr);
 
 xs->var->etherface = (ETH_DEV *) malloc(sizeof(ETH_DEV));
 if (!xs->var->etherface) {

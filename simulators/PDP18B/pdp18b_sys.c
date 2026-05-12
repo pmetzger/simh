@@ -1177,7 +1177,7 @@ if (dptr == NULL)
 while (isspace (*cptr))
     cptr++;
 memset (cbuf, '\0', sizeof(cbuf));
-strcpy (cbuf, cptr);
+strlcpy (cbuf, cptr, sizeof(cbuf));
 cptr = cbuf;
 if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
     if (cptr[0] == 0)                                   /* must have 1 char */

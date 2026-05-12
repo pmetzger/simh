@@ -301,7 +301,7 @@ static void TTIstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
   temp[0] = '\0';
 
   if (TTIdev.iod_holdFull)
-    sprintf(temp, ", Hold full (%02X)", tti_unit.buf & 0xFF);
+    snprintf(temp, sizeof(temp), ", Hold full (%02X)", tti_unit.buf & 0xFF);
 
   fprintf(DBGOUT,
           "%s[TTI %s: Func: %04X, Sta: %04X, Ena: %04X, Dly: %c%s]\r\n",
@@ -513,7 +513,7 @@ static void TTOstate(const char *where, DEVICE *dev, IO_DEVICE *iod)
   temp[0] = '\0';
 
   if (TTOdev.iod_holdFull)
-    sprintf(temp, ", Hold full (%02X)", tto_unit.buf & 0xFF);
+    snprintf(temp, sizeof(temp), ", Hold full (%02X)", tto_unit.buf & 0xFF);
 
   fprintf(DBGOUT,
           "%s[TTO %s: Func: %04X, Sta: %04X, Ena: %04X%s]\r\n",

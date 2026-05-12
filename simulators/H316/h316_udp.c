@@ -264,7 +264,9 @@ t_stat udp_create (DEVICE *dptr, const char *premote, int32_t *pln)
   if ((ret = udp_parse_remote(link, premote)) != SCPE_OK) return ret;
 
   // Create the socket connection to the destination ...
-  sprintf(linkinfo, "Buffer=%d,Line=%d,%s,UDP,Connect=%s", (int)(sizeof(UDP_PACKET)+sizeof(int32_t)), link, udp_links[link].lport, udp_links[link].rhostport);
+  snprintf(linkinfo, sizeof(linkinfo), "Buffer=%d,Line=%d,%s,UDP,Connect=%s",
+           (int)(sizeof(UDP_PACKET)+sizeof(int32_t)), link,
+           udp_links[link].lport, udp_links[link].rhostport);
   ret = tmxr_open_master (&udp_tmxr, linkinfo);
   if (ret != SCPE_OK) return ret;
 

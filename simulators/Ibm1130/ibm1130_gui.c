@@ -1167,8 +1167,9 @@ static void DrawConsole (HDC hDC, PAINTSTRUCT *ps)
                 else if (uptr->flags & UNIT_ATT) {
                     SetTextColor(hDC, RGB(0,0,255));
                     if ((n = strlen(uptr->filename)) > 30) {
-                        strcpy(nametemp, "...");
-                        strcpy(nametemp+3, uptr->filename+n-30);
+                        strlcpy(nametemp, "...", sizeof(nametemp));
+                        strlcpy(nametemp+3, uptr->filename+n-30,
+                                sizeof(nametemp) - 3);
                         dispname = nametemp;
                     }
                     else
@@ -1336,7 +1337,7 @@ void HandleCommand (HWND hWnd, WORD wNotify, WORD idCtl, HWND hwCtl)
                     if (boot_drive >= 0) {
                         char cmd[50];
 
-                        sprintf(cmd, "boot dsk%d", boot_drive);
+                        snprintf(cmd, sizeof(cmd), "boot dsk%d", boot_drive);
                         stuff_cmd(cmd);
                     }
                 }
@@ -1638,7 +1639,7 @@ static void accept_dropped_file (HANDLE hDrop)
                                                 /* if shift key is down, prepend @ to name (make it a deck file) */
     deckfile = ((GetKeyState(VK_SHIFT) & 0x8000) && cardreader) ? "@" : "";
 
-    sprintf(cmd, "%s \"%s%s\"", cardreader ? "attach cr" : "do", deckfile, fname);
+    snprintf(cmd, sizeof(cmd), "%s \"%s%s\"", cardreader ? "attach cr" : "do", deckfile, fname);
     stuff_cmd(cmd);
 }
 
@@ -1654,18 +1655,18 @@ static void tear_printer (void)
         return;
     }
 
-    strcpy(filename, prt_unit.filename);                /* save current attached filename */
+    strlcpy(filename, prt_unit.filename, sizeof(filename));  /* save current attached filename */
 
     if (! stuff_and_wait("detach prt", 1000, 0))        /* detach it */
         return;
 
-    sprintf(cmd, "view \"%s\"", filename);              /* spawn notepad to view it */
+    snprintf(cmd, sizeof(cmd), "view \"%s\"", filename);  /* spawn notepad to view it */
     if (! stuff_and_wait(cmd, 3000, 2000))
         return;
 
     remove(filename);                                   /* delete the file */
 
-    sprintf(cmd, "attach prt %s", filename);            /* reattach */
+    snprintf(cmd, sizeof(cmd), "attach prt %s", filename);  /* reattach */
     stuff_cmd(cmd);
 }
 
