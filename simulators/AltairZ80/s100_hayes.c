@@ -492,7 +492,7 @@ static t_stat hayes_config_line(UNIT *uptr)
             break;
     }
 
-    sprintf(config, "%d-%c%c%c", hayes_ctx.baud, b,p,s);
+    snprintf(config, sizeof(config), "%d-%c%c%c", hayes_ctx.baud, b, p, s);
 
     r = tmxr_set_config_line(hayes_ctx.tmln, config);
 

@@ -694,7 +694,7 @@ static t_stat m2sio_config_line(UNIT *uptr)
                 break;
         }
 
-        sprintf(config, "%d-%s", xptr->baud, fmt);
+        snprintf(config, sizeof(config), "%d-%s", xptr->baud, fmt);
 
         r = tmxr_set_config_line(xptr->tmln, config);
 

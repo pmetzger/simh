@@ -895,11 +895,13 @@ static int32_t sio0dCore(const int32_t port, const int32_t io, const int32_t dat
     return 0x00;                                            /* ignored since OUT                        */
 }
 
-static char* printable(char* result, int32_t data, const int32_t isIn) {
+static char* printable(char* result, size_t result_size, int32_t data,
+        const int32_t isIn) {
     result[0] = 0;
     data &= 0x7f;
     if ((0x20 <= data) && (data < 0x7f))
-        sprintf(result, isIn ? " <-\"%c\"" : " ->\"%c\"", data);
+        snprintf(result, result_size, isIn ? " <-\"%c\"" : " ->\"%c\"",
+                data);
     return result;
 }
 
@@ -908,10 +910,12 @@ int32_t sio0d(const int32_t port, const int32_t io, const int32_t data) {
     const int32_t result = sio0dCore(port, io, data);
     if (io == 0) {
         sim_debug(IN_MSG, &sio_dev, "\tSIO_D: " ADDRESS_FORMAT
-                  " IN(0x%03x) = 0x%02x%s\n", PCX, port, result, printable(buffer, result, true));
+                  " IN(0x%03x) = 0x%02x%s\n", PCX, port, result,
+                  printable(buffer, sizeof(buffer), result, true));
     } else if (io) {
         sim_debug(OUT_MSG, &sio_dev, "\tSIO_D: " ADDRESS_FORMAT
-                  " OUT(0x%03x) = 0x%02x%s\n", PCX, port, data, printable(buffer, data, false));
+                  " OUT(0x%03x) = 0x%02x%s\n", PCX, port, data,
+                  printable(buffer, sizeof(buffer), data, false));
         }
     return result;
 }

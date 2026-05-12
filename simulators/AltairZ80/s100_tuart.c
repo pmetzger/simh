@@ -581,7 +581,8 @@ static t_stat tuart_config_line(UNIT *uptr)
     xptr = (TUART_CTX *) uptr->dptr->ctxt;
 
     if (xptr != NULL) {
-        sprintf(config, "%d-8N%d", TUART_BAUD(xptr), xptr->sbits);
+        snprintf(config, sizeof(config), "%d-8N%d", TUART_BAUD(xptr),
+                 xptr->sbits);
 
         if ((uptr->flags & UNIT_ATT) && (xptr->tmln->serport)) {
             r = tmxr_set_config_line(xptr->tmln, config);

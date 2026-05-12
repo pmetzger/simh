@@ -133,7 +133,8 @@ static t_stat set_net(UNIT *uptr, int32_t value, const char *cptr, void *desc) {
 
     char temp[CBUFSIZE];
     if ((net_unit.flags & UNIT_ATT) && ((net_unit.flags & UNIT_SERVER) != (uint32_t)value)) {
-        strncpy(temp, net_unit.filename, CBUFSIZE - 1); /* save name for later attach */
+        /* save name for later attach */
+        strlcpy(temp, net_unit.filename, sizeof(temp));
         net_detach(&net_unit);
         net_unit.flags ^= UNIT_SERVER; /* now switch from client to server and vice versa */
         net_attach(uptr, temp);
@@ -190,10 +191,9 @@ static t_stat net_attach(UNIT *uptr, const char *cptr) {
             return SCPE_IOERR;
     }
     net_unit.flags |= UNIT_ATT;
-    net_unit.filename = (char *) calloc(1, strlen(cptr)+1);         /* alloc name buf */
+    net_unit.filename = strdup(cptr);                               /* alloc name buf */
     if (net_unit.filename == NULL)
         return SCPE_MEM;
-    strcpy(net_unit.filename, cptr);                                /* save name */
     return SCPE_OK;
 }
 

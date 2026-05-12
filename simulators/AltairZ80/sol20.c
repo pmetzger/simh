@@ -1965,7 +1965,7 @@ static t_stat sol20_config_line(DEVICE *dev, TMLN *tmln, int baud)
     if (tmln->serport) {
         fmt = "8N1";
 
-        sprintf(config, "%d-%s", baud, fmt);
+        snprintf(config, sizeof(config), "%d-%s", baud, fmt);
 
         r = tmxr_set_config_line(tmln, config);
 

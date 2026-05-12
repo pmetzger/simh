@@ -1123,9 +1123,11 @@ static t_stat jair_port_reset(DEVICE *dptr) {
         tmxr_set_line_unit(port->tmxr, 0, &dptr->units[JAIR_UNIT_RX]);
         tmxr_set_line_output_unit(port->tmxr, 0, &dptr->units[JAIR_UNIT_TX]);
 
-        sprintf(uname, "%.6sRX", sim_uname(&dptr->units[JAIR_UNIT_RX]));
+        snprintf(uname, sizeof(uname), "%.6sRX",
+                 sim_uname(&dptr->units[JAIR_UNIT_RX]));
         sim_set_uname(&dptr->units[JAIR_UNIT_RX], uname);
-        sprintf(uname, "%.6sTX", sim_uname(&dptr->units[JAIR_UNIT_TX]));
+        snprintf(uname, sizeof(uname), "%.6sTX",
+                 sim_uname(&dptr->units[JAIR_UNIT_TX]));
         sim_set_uname(&dptr->units[JAIR_UNIT_TX], uname);
 
         port->status = 0x00;
@@ -1397,7 +1399,7 @@ static t_stat jair_config_line(DEVICE *dev, TMLN *tmln, int baud)
     char config[20];
     t_stat r = SCPE_IERR;
 
-    sprintf(config, "%d-8N1", baud);
+    snprintf(config, sizeof(config), "%d-8N1", baud);
 
     if (tmln->serport) {
         r = tmxr_set_config_line(tmln, config);

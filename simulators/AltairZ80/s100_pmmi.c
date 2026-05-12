@@ -574,7 +574,7 @@ static t_stat pmmi_config_line(UNIT *uptr)
             break;
     }
 
-    sprintf(config, "%d-%c%c%c", pmmi_ctx.baud, b,p,s);
+    snprintf(config, sizeof(config), "%d-%c%c%c", pmmi_ctx.baud, b, p, s);
 
     sim_debug(STATUS_MSG, uptr->dptr, "setting port configuration to '%s'.\n", config);
 

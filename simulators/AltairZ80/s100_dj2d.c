@@ -1311,7 +1311,7 @@ static t_stat dj2d_set_model(UNIT *uptr, int32_t val, const char *cptr, void *de
         return SCPE_ARG;
     }
 
-    sprintf(base, "%04x", dj2d_info->prom_base);
+    snprintf(base, sizeof(base), "%04x", dj2d_info->prom_base);
 
     dj2d_set_prombase(uptr, dj2d_info->prom_base, base, "PROMBASE");
 
@@ -1551,7 +1551,8 @@ static t_stat dj2d_config_line(void)
 
     fmt = "8N1";
 
-    sprintf(config, "%d-%s", dj2d_info->DJ2D.uart_baud, fmt);
+    snprintf(config, sizeof(config), "%d-%s", dj2d_info->DJ2D.uart_baud,
+             fmt);
 
     r = tmxr_set_config_line(dj2d_info->tmln, config);
 

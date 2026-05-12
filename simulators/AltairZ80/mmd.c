@@ -3310,7 +3310,7 @@ static t_stat mmd_config_line(DEVICE *dev, TMLN *tmln, int baud)
                 return SCPE_OK;
         }
 
-        sprintf(config, "%d-%s", baud, fmt);
+        snprintf(config, sizeof(config), "%d-%s", baud, fmt);
 
         r = tmxr_set_config_line(tmln, config);
 

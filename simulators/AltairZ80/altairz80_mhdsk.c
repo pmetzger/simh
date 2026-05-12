@@ -268,7 +268,7 @@ static const char* cmdTranslate(const int32_t cmd) {
     static char result[128];
     if ((0 <= cmd) && (cmd < CMD_MAX))
         return commandMessage[cmd];
-    sprintf(result, "Undefined %i", cmd);
+    snprintf(result, sizeof(result), "Undefined %i", cmd);
     return result;
 }
 

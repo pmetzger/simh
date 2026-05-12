@@ -30,7 +30,10 @@
 */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "altairz80_defs.h"
 #include "m68k/m68k.h"
@@ -110,7 +113,8 @@ extern DEVICE wdi2_dev;
 extern DEVICE scp300f_dev;
 extern DEVICE djhdc_dev;
 
-extern long disasm (uchar_t *data, char *output, int segsize, long offset);
+extern long disasm(uchar_t *data, char *output, size_t output_size,
+                   int segsize, long offset);
 
 void prepareMemoryAccessMessage(const t_addr loc);
 void prepareInstructionMessage(const t_addr loc, const uint32_t op);
@@ -429,21 +433,44 @@ static const char *const MnemonicsXCB[256] = {
 };
 
 void prepareMemoryAccessMessage(const t_addr loc) {
-    sprintf(memoryAccessMessage, "Memory access breakpoint [%05xh]", loc);
+    snprintf(memoryAccessMessage, sizeof(memoryAccessMessage),
+             "Memory access breakpoint [%05xh]", loc);
 }
 
 void prepareInstructionMessage(const t_addr loc, const uint32_t op) {
-    sprintf(instructionMessage, "Instruction \"%s\" breakpoint [%05xh]", chiptype == CHIP_TYPE_8080 ?  Mnemonics8080[op & 0xff] :
-            (chiptype == CHIP_TYPE_Z80 ? MnemonicsZ80[op & 0xff] : "???"), loc);
+    snprintf(instructionMessage, sizeof(instructionMessage),
+             "Instruction \"%s\" breakpoint [%05xh]",
+             chiptype == CHIP_TYPE_8080 ? Mnemonics8080[op & 0xff] :
+             (chiptype == CHIP_TYPE_Z80 ? MnemonicsZ80[op & 0xff] : "???"),
+             loc);
 }
 
 /* Ensure that hex number starts with a digit when printed */
-static void printHex2(char* string, const uint32_t value) {
-    sprintf(string, (value <= 0x9f ? "%02X" : "%03X"), value);
+static void printHex2(char *string, size_t string_size, const uint32_t value) {
+    snprintf(string, string_size, (value <= 0x9f ? "%02X" : "%03X"), value);
 }
 
-static void printHex4(char* string, const uint32_t value) {
-    sprintf(string, (value <= 0x9fff ? "%04X" : "%05X"), value);
+static void printHex4(char *string, size_t string_size, const uint32_t value) {
+    snprintf(string, string_size, (value <= 0x9fff ? "%04X" : "%05X"), value);
+}
+
+/*
+ * Copy the leading prefix of a mnemonic template into a bounded output
+ * buffer before appending substituted operands.
+ */
+static void copyMnemonicPrefix(char *dst, size_t dst_size, const char *src,
+                               size_t prefix_len) {
+    size_t copy_len;
+
+    if (dst_size == 0)
+        return;
+
+    copy_len = prefix_len;
+    if (copy_len >= dst_size)
+        copy_len = dst_size - 1;
+
+    memcpy(dst, src, copy_len);
+    dst[copy_len] = '\0';
 }
 
 /*  Symbolic disassembler
@@ -462,7 +489,8 @@ static void printHex4(char* string, const uint32_t value) {
 
 */
 
-static int32_t DAsm(char *S, const uint32_t *val, const int32_t useZ80Mnemonics, const int32_t addr) {
+static int32_t DAsm(char *S, size_t S_size, const uint32_t *val,
+                    const int32_t useZ80Mnemonics, const int32_t addr) {
     char R[128], H[10], C = '\0', *P;
     const char *T, *T1;
     uint8_t J = 0, Offset = 0;
@@ -501,9 +529,8 @@ static int32_t DAsm(char *S, const uint32_t *val, const int32_t useZ80Mnemonics,
         T = Mnemonics8080[val[B++]];
 
     if ( (T1 = strchr(T, '^')) ) {
-        strncpy(R, T, T1 - T);
-        R[T1 - T] = '\0';
-        printHex2(H, val[B++]);
+        copyMnemonicPrefix(R, sizeof(R), T, T1 - T);
+        printHex2(H, sizeof(H), val[B++]);
         strlcat(R, H, sizeof (R));
         strlcat(R, T1 + 1, sizeof (R)); /* ok, since T1 is a short sub-string coming from one of the tables */
     } else
@@ -515,37 +542,35 @@ static int32_t DAsm(char *S, const uint32_t *val, const int32_t useZ80Mnemonics,
     }
 
     if ( (P = strchr(R, '*')) ) {
-        strncpy(S, R, P - R);
-        S[P - R] = '\0';
-        printHex2(H, val[B++]);
-        strcat(S, H);
-        strcat(S, P + 1);
+        copyMnemonicPrefix(S, S_size, R, P - R);
+        printHex2(H, sizeof(H), val[B++]);
+        strlcat(S, H, S_size);
+        strlcat(S, P + 1, S_size);
     } else if ( (P = strchr(R, '@')) ) {
-        strncpy(S, R, P - R);
-        S[P - R] = '\0';
+        copyMnemonicPrefix(S, S_size, R, P - R);
         if (!J)
             Offset = val[B++];
-        strcat(S, Offset & 0x80 ? "-" : "+");
+        strlcat(S, Offset & 0x80 ? "-" : "+", S_size);
         J = Offset & 0x80 ? 256 - Offset : Offset;
-        printHex2(H, J);
-        strcat(S, H);
-        strcat(S, P + 1);
+        printHex2(H, sizeof(H), J);
+        strlcat(S, H, S_size);
+        strlcat(S, P + 1, S_size);
     } else if ( (P = strchr(R, '$')) ) {
-        strncpy(S, R, P - R);
-        S[P - R] = '\0';
+        copyMnemonicPrefix(S, S_size, R, P - R);
         Offset = val[B++];
-        printHex4(H, (addr + 2 + (Offset & 0x80 ? (Offset - 256) : Offset)) & 0xFFFF);
-        strcat(S, H);
-        strcat(S, P + 1);
+        printHex4(H, sizeof(H),
+                  (addr + 2 + (Offset & 0x80 ? (Offset - 256) : Offset)) &
+                  0xFFFF);
+        strlcat(S, H, S_size);
+        strlcat(S, P + 1, S_size);
     } else if ( (P = strchr(R, '#')) ) {
-        strncpy(S, R, P - R);
-        S[P - R] = '\0';
-        printHex4(H, val[B] + 256 * val[B + 1]);
-        strcat(S, H);
-        strcat(S, P + 1);
+        copyMnemonicPrefix(S, S_size, R, P - R);
+        printHex4(H, sizeof(H), val[B] + 256 * val[B + 1]);
+        strlcat(S, H, S_size);
+        strlcat(S, P + 1, S_size);
         B += 2;
     } else
-        strcpy(S, R);
+        strlcpy(S, R, S_size);
     return(B);
 }
 
@@ -579,17 +604,17 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw) {
         return SCPE_ARG;
     switch (chiptype) {
         case CHIP_TYPE_8080:
-            r = DAsm(disasm_result, val, false, addr);
+            r = DAsm(disasm_result, sizeof(disasm_result), val, false, addr);
             break;
 
         case CHIP_TYPE_Z80:
-            r = DAsm(disasm_result, val, true, addr);
+            r = DAsm(disasm_result, sizeof(disasm_result), val, true, addr);
             break;
 
         case CHIP_TYPE_8086:
             for (i = 0; i < SIM_EMAX; i++)
                 vals[i] = val[i] & 0xff;
-            r = disasm(vals, disasm_result, 16, addr);
+            r = disasm(vals, disasm_result, sizeof(disasm_result), 16, addr);
             break;
 
         case CHIP_TYPE_M68K:

@@ -124,6 +124,7 @@ static t_stat fw2_attach(UNIT *uptr, const char *cptr)
     t_stat r;
     uint_t i = 0;
     uint32_t baseaddr;
+    int len;
     char *tptr;
 
     r = get_base_address(cptr, &baseaddr);
@@ -169,10 +170,13 @@ static t_stat fw2_attach(UNIT *uptr, const char *cptr)
         return SCPE_ARG;
     }
 
-    tptr = (char *) malloc (strlen (cptr) + 3); /* get string buf */
+    len = snprintf(NULL, 0, "0x%04x", baseaddr);
+    if (len < 0)
+        return SCPE_IERR;
+    tptr = (char *) malloc ((size_t)len + 1); /* get string buf */
     if (tptr == NULL)
         return SCPE_MEM;          /* no more mem? */
-    sprintf(tptr, "0x%04x", baseaddr);          /* copy base address */
+    snprintf(tptr, (size_t)len + 1, "0x%04x", baseaddr); /* copy base address */
     uptr->filename = tptr;                      /* save */
     uptr->flags = uptr->flags | UNIT_ATT;
     return SCPE_OK;
@@ -277,7 +281,7 @@ static uint8_t FW2_Write(const uint32_t Addr, uint8_t Value)
         if(Value & 0x80) { /* reverse video */
             if(fw2->reversevideo == 0) {
                 fw2->reversevideo = 1;
-                sprintf(ansibuf, "\x1b[07m");
+                snprintf(ansibuf, sizeof(ansibuf), "\x1b[07m");
                 for(i=0;i<strlen(ansibuf);i++) {
                     sio0d(port, 1, ansibuf[i]);
                 }
@@ -285,7 +289,7 @@ static uint8_t FW2_Write(const uint32_t Addr, uint8_t Value)
         } else {
             if(fw2->reversevideo == 1) {
                 fw2->reversevideo = 0;
-                sprintf(ansibuf, "\x1b[00m");
+                snprintf(ansibuf, sizeof(ansibuf), "\x1b[00m");
                 for(i=0;i<strlen(ansibuf);i++) {
                     sio0d(port, 1, ansibuf[i]);
                 }
@@ -304,7 +308,8 @@ static uint8_t FW2_Write(const uint32_t Addr, uint8_t Value)
             sio0d(port, 1, outchar);
         } else {
             /* ESC[#;#H */
-            sprintf(ansibuf, "\x1b[%d;%dH%c", FL_Row, FL_Col, outchar);
+            snprintf(ansibuf, sizeof(ansibuf), "\x1b[%d;%dH%c", FL_Row,
+                     FL_Col, outchar);
             for(i=0;i<strlen(ansibuf);i++) {
                 sio0d(port, 1, ansibuf[i]);
             }
