@@ -252,6 +252,7 @@
 
 #include "pdp11_xq.h"
 #include "pdp11_xq_bootrom.h"
+#include "sim_string.h"
 #include "sim_types.h"
 #include "uint_bits.h"
 
@@ -2980,9 +2981,8 @@ t_stat xq_attach(UNIT* uptr, const char* cptr)
     if (*cptr == 0) return SCPE_ARG;                        /* ignore blank */
   }                                                         /* resume attaching */
 
-  tptr = (char *) malloc(strlen(cptr) + 1);
+  tptr = strdup(cptr);
   if (tptr == NULL) return SCPE_MEM;
-  strcpy(tptr, cptr);
 
   xq->var->etherface = (ETH_DEV *) malloc(sizeof(ETH_DEV));
   if (!xq->var->etherface) {
@@ -3226,7 +3226,7 @@ void xq_debug_turbo_setup(CTLR* xq)
 
   buffer[0] = '\0';
   for (i = 0; i < sizeof(xq->var->init.hash_filter); i++)
-    sprintf(&buffer[strlen(buffer)], "%02X ", xq->var->init.hash_filter[i]);
+    strlappendf(buffer, sizeof(buffer), "%02X ", xq->var->init.hash_filter[i]);
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Multicast Hash: %s\n", xq->dev->name, buffer);
 
   buffer[0] = '\0';
@@ -3242,7 +3242,7 @@ void xq_debug_turbo_setup(CTLR* xq)
 
   buffer[0] = '\0';
   for (i = 0; i < sizeof(xq->var->init.bootpassword); i++)
-    sprintf(&buffer[strlen(buffer)], "%02X ", xq->var->init.bootpassword[i]);
+    strlappendf(buffer, sizeof(buffer), "%02X ", xq->var->init.bootpassword[i]);
 
   sim_debug(DBG_SET, xq->dev, "%s: setup> set Boot Password: %s\n", xq->dev->name, buffer);
 

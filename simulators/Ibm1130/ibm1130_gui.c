@@ -1779,7 +1779,7 @@ char *read_cmdline (char *ptr, int size, FILE *stream)
     update_gui(true);
     SetEvent(hCmdReadEvent);                                /* let read thread get one line */
     WaitForSingleObject(hCmdReadyEvent, INFINITE);          /* wait for read thread or GUI to respond */
-    strncpy(ptr, cmdbuffer, MIN(size, sizeof(cmdbuffer)));  /* copy line to caller's buffer */
+    strlcpy(ptr, cmdbuffer, (size_t)size);                  /* copy line to caller's buffer */
 
     for (cptr = ptr; isspace(*cptr); cptr++)                /* absorb spaces */
         ;

@@ -669,7 +669,7 @@ typedef struct io_device IO_DEVICE;
  */
 typedef uint16_t devINTR(DEVICE *);
 
-int disassem(char *, uint16_t, bool, bool, bool);
+int disassem(char *, size_t, uint16_t, bool, bool, bool);
 
 enum IOstatus doIO(bool, DEVICE **);
 bool doDirectorFunc(DEVICE *, bool);
@@ -697,7 +697,7 @@ IO_DEVICE *fw_findChanDevice(IO_DEVICE *, uint16_t);
 
 uint16_t cpuINTR(DEVICE *);
 uint16_t dev1INTR(DEVICE *);
-void dev1Interrupts(char *);
+void dev1Interrupts(char *, size_t);
 
 uint16_t dcINTR(void);
 void buildDCtables(void);

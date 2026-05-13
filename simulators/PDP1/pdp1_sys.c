@@ -586,6 +586,7 @@ char gbuf[CBUFSIZE], cbuf[2*CBUFSIZE];
 cflag = (uptr == NULL) || (uptr == &cpu_unit);
 while (isspace (*cptr)) cptr++;
 memset (cbuf, '\0', sizeof(cbuf));
+/* Copy a bounded scratch prefix, preserving room for parser lookahead. */
 strncpy (cbuf, cptr, sizeof(cbuf)-4);
 cptr = cbuf;
 if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */

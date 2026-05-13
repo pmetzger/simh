@@ -275,7 +275,7 @@ int     bContinue;                                          /* true if continue 
 
     memset(gszArg, 0, MAXLINE);                             /* .. and arguments */
 
-    strncpy(gszArg, pszWork, 75);                           /* copy rest to argument */
+    strlcpy(gszArg, pszWork, sizeof(gszArg));               /* copy rest to argument */
 
     snprintf(gszOutput, sizeof(gszOutput), (bContinue) ? FCONTFMT : FFORMAT,  /* format the line */
                         gszLabel,                           /* .. statement # */
@@ -298,7 +298,7 @@ char    pszWork[WORKSZ];                                    /* work buffer */
     if (p_pszEdit == NULL)                                  /* q. null request? */
         return WMSG;                                        /* a. yes .. return display message */
 
-    strncpy(pszLine, p_pszEdit, MAXLINE-1);                 /* copy the line local */
+    strlcpy(pszLine, p_pszEdit, sizeof(pszLine));           /* copy the line local */
 
     if (width == 0) width = 8;                              /* default */
 

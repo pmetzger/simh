@@ -1284,8 +1284,10 @@ static char * alltrim (char *str)
 {
     char *s, *lastnb;
 
+    /* Source and destination are in the same buffer, so this must handle
+       overlap. */
     if ((s = skipbl(str)) != str)           /* slide down over leading whitespace */
-        strcpy(str, s);
+        memmove(str, s, strlen(s) + 1);
 
     for (lastnb = str-1, s = str; *s; s++)  /* point to last nonblank characteter in string */
         if (*s > ' ')
@@ -1670,7 +1672,7 @@ static t_stat cr_attach (UNIT *uptr, const char *iptr)
 
     if (use_decklist) {                             /* if we skipped the '@', store the actually-specified name */
         uptr->filename[0] = '@';
-        strncpy(uptr->filename+1, cptr, CBUFSIZE-1);
+        strlcpy(uptr->filename + 1, cptr, CBUFSIZE - 1);
 
         deckfile = cr_unit.fileref;                 /* save the deck file stream in our local variable */
         cr_unit.fileref  = NULL;
@@ -2207,6 +2209,7 @@ static char      lastcmd = '?';
 static t_stat pcr_attach (UNIT *uptr, const char *devname)
 {
     DWORD thread_id;
+    char *filename;
     t_stat rval;
 
     pcr_state = PCR_STATE_CLOSED;
@@ -2215,6 +2218,13 @@ static t_stat pcr_attach (UNIT *uptr, const char *devname)
 
     if ((rval = pcr_open_controller(devname)) != SCPE_OK)
         return rval;
+
+    if ((filename = strdup(devname)) == NULL) {
+        pcr_state = PCR_STATE_CLOSED;
+        CloseHandle(hpcr);
+        hpcr = INVALID_HANDLE_VALUE;
+        return SCPE_MEM;
+    }
 
     if (hPickEvent == INVALID_HANDLE_VALUE)
         hPickEvent = CreateEvent(NULL, false, false, NULL);
@@ -2233,13 +2243,13 @@ static t_stat pcr_attach (UNIT *uptr, const char *devname)
         pcr_state = PCR_STATE_CLOSED;
         CloseHandle(hpcr);
         hpcr = INVALID_HANDLE_VALUE;
+        free(filename);
         printf("Error creating card reader thread\n");
         return SCPE_IERR;
     }
 
     SETBIT(uptr->flags, UNIT_PHYSICAL|UNIT_ATT);    /* mark device as attached */
-    uptr->filename = (char *)malloc(strlen(devname)+1);
-    strcpy(uptr->filename, devname);
+    uptr->filename = filename;
 
     return SCPE_OK;
 }

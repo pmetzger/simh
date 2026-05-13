@@ -18,3 +18,13 @@ add_unit_test(unit-pdp11-td-interrupts
     DEFINES
         VM_PDP11
 )
+
+add_unit_test(unit-pdp11-dmc-attach
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_pdp11_dmc_attach.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_PDP11
+)

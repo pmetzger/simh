@@ -146,12 +146,12 @@ void pdq3_sprint_addr (char *buf, DEVICE *dptr, t_addr addr)
 {
   *buf = '\0';
   if (ADDR_ISWORD(addr))
-    sprintf(buf,"$");
+    strlcpy(buf,"$", 65);
   else if (ADDR_SEG(addr) == reg_segb)
-    sprintf(&buf[strlen(buf)],"#");
+    strlcat(buf,"#", 65);
   else {
     sprint_val (&buf[strlen(buf)], ADDR_SEG(addr), dptr->dradix, dptr->dwidth, PV_LEFT);
-    sprintf(&buf[strlen(buf)],":");
+    strlcat(buf,":", 65);
   }
   sprint_val (&buf[strlen(buf)], ADDR_OFF(addr), dptr->dradix, dptr->dwidth, PV_LEFT);
   return;

@@ -316,9 +316,9 @@ if (sw & SWMASK ('A')) {
 if (sw & SWMASK ('C')) {
     c2 = ebcdic_to_ascii[c1];
     if (c2 < 040 || c2 > 0177) {
-        sprintf(strg, "<%02X>", c1 & 0xff);
+        snprintf(strg, sizeof(strg), "<%02X>", c1 & 0xff);
     } else {
-        sprintf (strg, "%c", c2 & 0xff);
+        snprintf (strg, sizeof(strg), "%c", c2 & 0xff);
     }
     return SCPE_OK;  }
 if (!(sw & SWMASK ('M'))) return SCPE_ARG;
@@ -378,7 +378,7 @@ for (i = 0; i < nopcode; i++) {
 /* print the opcode */
 
 if (i >= nopcode) {
-    sprintf(strg, "%02X", val[0]);
+    snprintf(strg, sizeof(strg), "%02X", val[0]);
     oplen = 1;
 } else {
     snprintf(bld, sizeof(bld), "%s ", opcode[i].op);
@@ -492,7 +492,7 @@ if (i >= nopcode) {
             snprintf(bldaddr, sizeof (bldaddr) - 1, "%s,%s", boperand, aoperand);
             break;
     }
-    sprintf(strg, "%s%s", bld, bldaddr);
+    snprintf(strg, sizeof(strg), "%s%s", bld, bldaddr);
 }
 
 return -(oplen - 1);

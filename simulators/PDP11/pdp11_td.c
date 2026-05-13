@@ -1382,19 +1382,23 @@ if (!td_regs_inited) {
 
         snprintf(reg_name, sizeof(reg_name), "IBUF_%d", ctl);
         registers[reg] = reg_template[0];
-        registers[reg].name = (char *)calloc (strlen (reg_name) + 1, sizeof (char));
-        strcpy ((char *)registers[reg].name, reg_name);
+        registers[reg].name = strdup (reg_name);
+        if (registers[reg].name == NULL)
+            return SCPE_MEM;
         snprintf(reg_desc, sizeof(reg_desc), "input buffer for %s%d", dptr->name, ctl);
-        registers[reg].desc = (char*)calloc(strlen(reg_desc) + 1, sizeof(char));
-        strcpy((char*)registers[reg].desc, reg_desc);
+        registers[reg].desc = strdup (reg_desc);
+        if (registers[reg].desc == NULL)
+            return SCPE_MEM;
         registers[reg].loc = td_ctlr[ctl].ibuf;
         snprintf(reg_name, sizeof(reg_name), "OBUF_%d", ctl);
         registers[reg + 1] = reg_template[0];
-        registers[reg + 1].name = (char*)calloc(strlen(reg_name) + 1, sizeof(char));
-        strcpy((char*)registers[reg + 1].name, reg_name);
+        registers[reg + 1].name = strdup (reg_name);
+        if (registers[reg + 1].name == NULL)
+            return SCPE_MEM;
         snprintf(reg_desc, sizeof(reg_desc), "output buffer for %s%d", dptr->name, ctl);
-        registers[reg + 1].desc = (char*)calloc(strlen(reg_desc) + 1, sizeof(char));
-        strcpy((char*)registers[reg + 1].desc, reg_desc);
+        registers[reg + 1].desc = strdup (reg_desc);
+        if (registers[reg + 1].desc == NULL)
+            return SCPE_MEM;
         registers[reg + 1].loc = td_ctlr[ctl].obuf;
         reg += 2;
         }

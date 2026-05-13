@@ -439,6 +439,8 @@ t_stat ch_svc(UNIT *uptr)
 t_stat ch_attach (UNIT *uptr, const char *cptr)
 {
   char *linkinfo;
+  char *filename;
+  size_t linkinfo_size;
   t_stat r;
 
   if (address == CH11_NO_ADDRESS)
@@ -446,21 +448,29 @@ t_stat ch_attach (UNIT *uptr, const char *cptr)
   if (peer[0] == '\0')
     return sim_messagef (SCPE_2FARG, "Must set Chaosnet PEER \"SET CH PEER=host:port\"\n");
 
-  linkinfo = (char *)calloc (100 + strlen (cptr) + strlen (peer), sizeof (*linkinfo));
-  if (linkinfo == NULL)
+  filename = strdup (cptr);
+  if (filename == NULL)
       return SCPE_MEM;
-  sprintf (linkinfo, "Buffer=%d,Line=%d,UDP,%s,PACKET,Connect=%s",
-           (int)sizeof (tx_buffer), 0, cptr, peer);
+
+  linkinfo_size = 100 + strlen (cptr) + strlen (peer);
+  linkinfo = (char *)calloc (linkinfo_size, sizeof (*linkinfo));
+  if (linkinfo == NULL) {
+      free (filename);
+      return SCPE_MEM;
+      }
+  snprintf (linkinfo, linkinfo_size, "Buffer=%d,Line=%d,UDP,%s,PACKET,Connect=%s",
+            (int)sizeof (tx_buffer), 0, cptr, peer);
   r = tmxr_attach (&ch_tmxr, uptr, linkinfo);
   free (linkinfo);
   if (r != SCPE_OK) {
     sim_debug (DBG_ERR, &ch_dev, "TMXR error opening master\n");
+    free (filename);
     return sim_messagef (r, "Error Opening connection to: %s, using: %s\n", peer, cptr);
   }
 
   sim_clock_coschedule (uptr, 1000);        /* make sure polling starts */
-  uptr->filename = (char *)realloc (uptr->filename, 1 + strlen (cptr));
-  strcpy (uptr->filename, cptr);
+  free (uptr->filename);
+  uptr->filename = filename;
   return SCPE_OK;
 }
 

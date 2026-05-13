@@ -286,15 +286,12 @@ static t_stat sca_set_baud (UNIT *uptr, int32_t value, const char *cptr, void *d
 
 static char *mstring (const char *str)
 {
-    int len;
     char *m;
 
-    len = strlen(str)+1;
-    if ((m = (char *)malloc(len)) == NULL) {
+    if ((m = strdup(str)) == NULL) {
         printf("Out of memory!");
         return (char *)"?";     /* this will of course cause trouble if it's subsequently freed */
     }
-    strcpy(m, str);
     return m;
 }
 

@@ -187,6 +187,7 @@
 /*-----------------------------------------------------------------------------------------------*/
 
 #include "sel32_defs.h"
+#include "sim_string.h"
 #include "sim_types.h"
 #include <ctype.h>
 #include <stdint.h>
@@ -323,39 +324,35 @@ char *dump_mem(uint32_t mp, int cnt)
 {
     char    buff[257];
     uint32_t ma = mp;                           /* save memory address */
-    char    *cp = &line[0];                     /* output buffer */
-    int     cc=0, ch, bp=0, bl=cnt;
+    int     ch, bp=0, bl=cnt;
 
     if (cnt > 16)
         bl = 16;                                /* stop at 16 chars */
 
+    line[0] = '\0';
     while (bp < bl) {
         if (!bp) {
-            cc = sprintf(cp, " %06x : ", ma);    /* output location address */
-            cp += cc;                           /* next print location */
+            /* output location address */
+            strlappendf(line, sizeof(line), " %06x : ", ma);
         }
         ch = RMB(ma) & 0xff;                    /* get a char from memory */
         ma++;                                   /* next loc */
-        cc += sprintf(cp, "%02x", ch);          /* print out current char */
-        cp += 2;                                /* next print location */
+        strlappendf(line, sizeof(line), "%02x", ch);  /* print current char */
         buff[bp++] = PRINTABLE(ch);             /* get printable version of char */
         if (!(bp % 4)) {                        /* word boundry yet? */
-            cc += sprintf(cp, " ");             /* space between words */
-            cp += 1;                            /* next print location */
+            strlappendf(line, sizeof(line), " ");   /* space between words */
         }
     }
 
     while (bp < 16) {
-        cc += sprintf(cp, " ");                 /* print out one space */
-        cp += 1;                                /* next print location */
+        strlappendf(line, sizeof(line), " ");   /* print out one space */
         buff[bp++] = 0x20;                      /* blank char buffer */
         if (!(bp % 4)) {
-            cc += sprintf(cp, " ");             /* space between words */
-            cp += 1;                            /* next print location */
+            strlappendf(line, sizeof(line), " ");   /* space between words */
         }
     }
     buff[bp] = 0;                               /* terminate line */
-    cc += sprintf(cp, "|%s|\n", buff);          /* print out ascii text */
+    strlappendf(line, sizeof(line), "|%s|\n", buff); /* print ascii text */
     return (line);                              /* return pointer to caller */
 }
 
@@ -365,38 +362,34 @@ char *dump_buf(uint8_t *mp, int32_t off, int cnt)
 {
     char    buff[257];
     uint32_t ma = off;                          /* save memory address */
-    char    *cp = &line[0];                     /* output buffer */
-    int     cc=0, ch, bp=0, bl=cnt;
+    int     ch, bp=0, bl=cnt;
 
     if (cnt > 16)
         bl = 16;                                /* stop at 16 chars */
 
+    line[0] = '\0';
     while (bp < bl) {
         if (!bp) {
-            cc = sprintf(cp, " %06x : ", ma);    /* output location offset */
-            cp += cc;                           /* next print location */
+            /* output location offset */
+            strlappendf(line, sizeof(line), " %06x : ", ma);
         }
         ch = mp[ma++] & 0xff;                   /* get a char from memory */
-        cc += sprintf(cp, "%02x", ch);          /* print out current char */
-        cp += 2;                                /* next print location */
+        strlappendf(line, sizeof(line), "%02x", ch);  /* print current char */
         buff[bp++] = PRINTABLE(ch);             /* get printable version of char */
         if (!(bp % 4)) {                        /* word boundry yet? */
-            cc += sprintf(cp, " ");             /* space between words */
-            cp += 1;                            /* next print location */
+            strlappendf(line, sizeof(line), " ");   /* space between words */
         }
     }
 
     while (bp < 16) {
-        cc += sprintf(cp, " ");                 /* print out one space */
-        cp += 1;                                /* next print location */
+        strlappendf(line, sizeof(line), " ");   /* print out one space */
         buff[bp++] = 0x20;                      /* blank char buffer */
         if (!(bp % 4)) {
-            cc += sprintf(cp, " ");             /* space between words */
-            cp += 1;                            /* next print location */
+            strlappendf(line, sizeof(line), " ");   /* space between words */
         }
     }
     buff[bp] = 0;                               /* terminate line */
-    cc += sprintf(cp, "|%s|\n", buff);          /* print out ascii text */
+    strlappendf(line, sizeof(line), "|%s|\n", buff); /* print ascii text */
     return (line);                              /* return pointer to caller */
 }
 

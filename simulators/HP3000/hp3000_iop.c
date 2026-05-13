@@ -855,8 +855,8 @@ if (value == 1) {                                       /* if we are setting the
     if (mptr == NULL)                                   /* if the allocation failed */
         return SCPE_MEM;                                /*   report memory exhaustion */
 
-    strcpy (mptr, cptr);                                /* copy over the existing command string */
-    tptr = strcat (mptr, ";");                          /*   and append a semicolon to make parsing easier */
+    snprintf (mptr, strlen (cptr) + 2, "%s;", cptr);    /* copy the command and add a parsing semicolon */
+    tptr = mptr;                                        /* point at the string to parse */
 
     while (*tptr) {                                     /* parse the command string until it is exhausted */
         tptr = get_range (NULL, tptr, &low, &high,      /* get a semicolon-separated device number range */

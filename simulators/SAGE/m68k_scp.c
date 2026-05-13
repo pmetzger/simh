@@ -134,6 +134,7 @@ static bool sym_lookupval(t_addr val, SYMHASH **v)
 
 static bool sym_enter(const char* name,t_addr val)
 {
+    size_t name_size;
     int nhash = getnhash(name);
     int vhash = getvhash(val);
     SYMHASH *v, *n, *e;
@@ -144,8 +145,9 @@ static bool sym_enter(const char* name,t_addr val)
     e = (SYMHASH*)malloc(sizeof(SYMHASH));
     e->nnext = n;
     e->vnext = v;
-    e->name = (char *)malloc(strlen(name)+1);
-    strcpy(e->name,name);
+    name_size = strlen(name)+1;
+    e->name = (char *)malloc(name_size);
+    strlcpy(e->name,name,name_size);
     e->val = val;
     symbyname[nhash].nnext = symbyval[vhash].vnext = e;
     return true;
@@ -328,7 +330,7 @@ char* m68k_getsym(t_addr val, char* outbuf)
     if (symtrace && sym_lookupval(val,&v))
         return v->name;
     else {
-        sprintf(outbuf, "0x%08x", val);
+        snprintf(outbuf, 20, "0x%08x", val);
         return outbuf;
     }
 }

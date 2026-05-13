@@ -1031,8 +1031,7 @@ int sum = 0;
 if (!gptr || !*gptr)
     return SCPE_ARG;
 
-gbuf[sizeof(gbuf)-1] = '\0';
-strncpy (gbuf, gptr, sizeof(gbuf)-1);
+strlcpy (gbuf, gptr, sizeof(gbuf));
 cptr = gbuf;
 
 fname = strchr (cptr, '=');

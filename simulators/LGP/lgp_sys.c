@@ -234,7 +234,7 @@ static void lgp_sprint_addr (char *buf, DEVICE *dptr, t_addr addr)
 if ((dptr == sim_devices[0]) &&
     ((sim_switches & SWMASK ('T')) ||
     ((cpu_unit.flags & UNIT_TTSS_D) && !(sim_switches & SWMASK ('N')))))
-    sprintf (buf, "%02d%02d", addr >> 6, addr & SCMASK_30);
+    snprintf (buf, 64, "%02d%02d", addr >> 6, addr & SCMASK_30);
 else sprint_val (buf, addr, dptr->aradix, dptr->awidth, PV_LEFT);
 }
 

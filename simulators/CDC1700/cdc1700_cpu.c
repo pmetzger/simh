@@ -170,14 +170,14 @@ bool FirstAddr = true;
 
 extern void MSOS5request(uint16_t, uint16_t);
 
-extern int disassem(char *, uint16_t, bool, bool, bool);
+extern int disassem(char *, size_t, uint16_t, bool, bool, bool);
 
 extern enum IOstatus doIO(bool, DEVICE **);
 extern void fw_init(void);
 extern void VMinit(void);
 extern void rebuildPending(void);
 
-extern void dev1Interrupts(char *);
+extern void dev1Interrupts(char *, size_t);
 
 t_stat cpu_set_instr(UNIT *, int32_t, const char *, void *);
 t_stat cpu_show_instr(FILE *, UNIT *, int32_t, const void *);
@@ -982,7 +982,7 @@ static t_stat executeAnInstruction(void)
               char intbuf[32];
               char *buf = &intbuf[0];
 
-              dev1Interrupts(buf);
+              dev1Interrupts(buf, sizeof(intbuf));
               if (buf[0] == ' ')
                 buf++;
 
@@ -1029,7 +1029,7 @@ static t_stat executeAnInstruction(void)
     char buf[128];
     bool target = (cpu_dev.dctrl & DBG_TARGET) != 0;
 
-    disassem(buf, Preg, true, target, true);
+    disassem(buf, sizeof(buf), Preg, true, target, true);
     fprintf(DBGOUT, "%s%s\r\n", INTprefix, buf);
   }
 

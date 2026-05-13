@@ -939,8 +939,11 @@ while (*Conditions)
             break;
         }
     ++Conditions;
-    if (Name->Name)
-        sprintf (&buf[strlen(buf)], "%s%s", Name->Name, *Conditions ? " && " : "");
+    if (Name->Name) {
+        strlcat (buf, Name->Name, sizeof(buf));
+        if (*Conditions)
+            strlcat (buf, " && ", sizeof(buf));
+        }
     }
 return buf;
 }
@@ -1001,8 +1004,11 @@ while (*Actions)
             break;
         }
     ++Actions;
-    if (Name->Name)
-        sprintf (&buf[strlen(buf)], "%s%s", Name->Name, *Actions ? " + " : "");
+    if (Name->Name) {
+        strlcat (buf, Name->Name, sizeof(buf));
+        if (*Actions)
+            strlcat (buf, " + ", sizeof(buf));
+        }
     }
 return buf;
 }
@@ -1424,7 +1430,7 @@ if (sim_parse_addr (cptr, host, sizeof(host), NULL, port, sizeof(port), NULL, NU
     return SCPE_ARG;
 if (host[0] == '\0')
     return SCPE_ARG;
-strncpy(peer, cptr, PEERSIZE-1);
+strlcpy(peer, cptr, PEERSIZE);
 return SCPE_OK;
 }
 
@@ -4083,7 +4089,9 @@ TMXR *mp = (dptr == &dmc_dev) ? &dmc_desc : &dmp_desc;
 t_stat ans = SCPE_OK;
 char *peer = ((dptr == &dmc_dev)? &dmc_peer[dmc][0] : &dmp_peer[dmc][0]);
 char *port = ((dptr == &dmc_dev)? &dmc_port[dmc][0] : &dmp_port[dmc][0]);
+char port_string[PEERSIZE];
 char attach_string[1024];
+char *filename;
 
 if (!cptr || !*cptr)
     return SCPE_ARG;
@@ -4091,7 +4099,6 @@ if (!(uptr->flags & UNIT_ATTABLE))
     return SCPE_NOATT;
 if (0 == strncasecmp (cptr, "SYNC", 4)) {
     snprintf (attach_string, sizeof(attach_string), "Line=%d,%s", dmc, cptr);
-    ans = tmxr_open_master (mp, attach_string);
 }
 else {
     if (!peer[0]) {
@@ -4100,14 +4107,21 @@ else {
     }
     snprintf (attach_string, sizeof(attach_string), "Line=%d,Connect=%s,%s", dmc,
               peer, cptr);
-    ans = tmxr_open_master (mp, attach_string);                 /* open master socket */
 }
+strlcpy (port_string, cptr, sizeof(port_string));
+filename = strdup (port_string);
+if (filename == NULL)
+    return SCPE_MEM;
+ans = tmxr_open_master (mp, attach_string);                     /* open master socket */
 if (ans != SCPE_OK)
+    {
+    free (filename);
     return ans;
+    }
 mp->dptr = dptr;
-strncpy (port, cptr, sizeof(dmc_port[0]));
-uptr->filename = (char *)malloc (strlen(port)+1);
-strcpy (uptr->filename, port);
+strlcpy (port, port_string, sizeof(dmc_port[0]));
+free (uptr->filename);
+uptr->filename = filename;
 uptr->flags |= UNIT_ATT;
 sim_activate_after (dptr->units+(dptr->numunits-2), DMC_CONNECT_POLL*1000000);/* start poll */
 return ans;

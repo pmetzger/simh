@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "cdc1700_defs.h"
+#include "sim_string.h"
 
 extern uint16_t M[], Preg, Areg, Qreg;
 
@@ -117,8 +118,6 @@ const char *action[] = {
 };
 
 uint32_t seqno = 0;
-
-#define END(s)  &s[strlen(s)]
 
 /*
  * Character representation.
@@ -273,7 +272,7 @@ static uint16_t npabs(uint16_t param)
 /*
  * Convert completion address to absolute value
  */
-static char *cpabs(uint16_t param, char *buf)
+static char *cpabs(uint16_t param, char *buf, size_t buf_size)
 {
   uint16_t ca = M[param + 1];
 
@@ -289,7 +288,7 @@ static char *cpabs(uint16_t param, char *buf)
         /*
          * If negative, System directory reference
          */
-        sprintf(buf, "SYSDIR(%u)", ca & 0x7FFF);
+        snprintf(buf, buf_size, "SYSDIR(%u)", ca & 0x7FFF);
         return buf;
       } else {
         if ((M[param] & X) != 0) {
@@ -302,39 +301,41 @@ static char *cpabs(uint16_t param, char *buf)
         ca = doADDinternal(ca, 0x7FFF);
     }
   }
-  sprintf(buf, "$%04X", ca);
+  snprintf(buf, buf_size, "$%04X", ca);
   return buf;
 }
 
 /*
  * Describe motion parameters
  */
-static void motion(uint16_t param, char *d)
+static void motion(uint16_t param, char *d, size_t d_size)
 {
   uint16_t commands = M[param + 4];
 
   if ((commands & 0xF) != 0)
-    sprintf(END(d), "    Density   = %s\r\n", density[commands & 0xF]);
+    strlappendf(d, d_size, "    Density   = %s\r\n", density[commands & 0xF]);
 
   if ((commands & 0x8000) == 0) {
     if ((commands & 0xF000) != 0) {
-      sprintf(END(d), "    Actions   = %s", action[(commands & 0xF000) >> 12]);
+      strlappendf(d, d_size, "    Actions   = %s",
+                  action[(commands & 0xF000) >> 12]);
       if ((commands & 0xF00) != 0) {
-        sprintf(END(d), ",%s", action[(commands & 0xF00) >> 8]);
+        strlappendf(d, d_size, ",%s", action[(commands & 0xF00) >> 8]);
         if ((commands & 0xF0) != 0)
-          sprintf(END(d), ",%s", action[(commands & 0xF0) >> 4]);
+          strlappendf(d, d_size, ",%s", action[(commands & 0xF0) >> 4]);
       }
-      sprintf(END(d), "\r\n");
+      strlappendf(d, d_size, "\r\n");
     }
   } else {
-    sprintf(END(d), "    Repeat   = %s, %u times\r\n",
-            action[(commands & 0x7000) >> 12], commands & 0xFFF);
+    strlappendf(d, d_size, "    Repeat   = %s, %u times\r\n",
+                action[(commands & 0x7000) >> 12], commands & 0xFFF);
   }
 }
 
 /*
- * Generate a test representation of a write to the console teletype. If the
- * text is too long to fix (> 50 chars) it will be truncated.
+ * Generate a text representation of a write to the console teletype. Text
+ * longer than MAXTEXT display characters is truncated without splitting a
+ * control-character representation.
  */
 #define MAXTEXT         50
 
@@ -342,20 +343,27 @@ static char *textRep(uint16_t start, uint16_t len)
 {
   int i;
   static char text[64];
-  size_t text_space = sizeof (text) - 1;
+  size_t text_len = 0;
 
   text[0] = '\0';
 
-  for (i = 0; (i < (2 * len)) && (text_space >= MAXTEXT); i++) {
+  for (i = 0; i < (2 * len); i++) {
     uint16_t ch = M[start];
+    const char *rep;
+    size_t rep_len;
 
     if ((i & 1) == 0)
       ch >>= 8;
     else start++;
     ch &= 0x7F;
 
-    strncpy(&text[strlen(text)], charRep[ch], text_space);
-    text_space -= strlen(charRep[ch]);
+    rep = charRep[ch];
+    rep_len = strlen(rep);
+    if (text_len + rep_len > MAXTEXT)
+      break;
+
+    strlcat(text, charRep[ch], sizeof(text));
+    text_len += rep_len;
   }
   return text;
 }
@@ -413,7 +421,8 @@ void MSOS5request(uint16_t param, uint16_t depth)
 
     if (secondary)
       snprintf(details, sizeof(details), "    Compl    = $%04X\r\n", M[param + 1]);
-    else snprintf(details, sizeof(details), "    Compl    = %s\r\n", cpabs(param, temp));
+    else snprintf(details, sizeof(details), "    Compl    = %s\r\n",
+                  cpabs(param, temp, sizeof(temp)));
   }
 
   switch (reqCode) {
@@ -435,7 +444,8 @@ void MSOS5request(uint16_t param, uint16_t depth)
       lu = M[param + 1] & 0x3FF;
       snprintf(parameters, sizeof(parameters), "%u, 0, %c, 0, %c", lu, luadr, partOne);
 
-      sprintf(END(details), "    LU       = %u\r\n", luabs(param, lu, luadr));
+      strlappendf(details, sizeof(details), "    LU       = %u\r\n",
+                  luabs(param, lu, luadr));
       break;
 
     case RQ_FREAD:
@@ -467,12 +477,14 @@ void MSOS5request(uint16_t param, uint16_t depth)
       }
       abswd = npabs(param);
 
-      sprintf(END(details), "    LU       = %u\r\n", abslu);
-      sprintf(END(details), "    Start    = $%04X\r\n", abss);
-      sprintf(END(details), "    Words    = %u ($%04X)\r\n", abswd, abswd);
+      strlappendf(details, sizeof(details), "    LU       = %u\r\n", abslu);
+      strlappendf(details, sizeof(details), "    Start    = $%04X\r\n", abss);
+      strlappendf(details, sizeof(details), "    Words    = %u ($%04X)\r\n",
+                  abswd, abswd);
 
       if (isMassStorage(abslu))
-        sprintf(END(details), "    MSA      = $%08X\r\n", getMSA(reqCode, param));
+        strlappendf(details, sizeof(details), "    MSA      = $%08X\r\n",
+                    getMSA(reqCode, param));
 
       /*
        * If this a write to the console teletype, generate a partial
@@ -482,8 +494,8 @@ void MSOS5request(uint16_t param, uint16_t depth)
       if (abslu == TELETYPE) {
         if ((M[param + 3] & 0x1000) != 0) {
           if ((reqCode == RQ_WRITE) || (reqCode == RQ_FWRITE)) {
-            sprintf(END(details), "    Text     = %s\r\n",
-                    textRep(spabs(param), npabs(param)));
+            strlappendf(details, sizeof(details), "    Text     = %s\r\n",
+                        textRep(spabs(param), npabs(param)));
           }
         }
       }
@@ -551,11 +563,12 @@ void MSOS5request(uint16_t param, uint16_t depth)
       sector = (M[param + 8] << 16) | M[param + 9];
 
       if (sector != 0)
-        sprintf(END(details), "    Sector   = %u\r\n", sector);
-      else sprintf(END(details), "    Name     = %c%c%c%c%c%c\r\n",
-                   (M[i] >> 8) & 0xFF, M[i] & 0xFF,
-                   (M[i + 1] >> 8) & 0xFF, M[i + 1] & 0xFF,
-                   (M[i + 2] >> 8) & 0xFF, M[i + 2] & 0xFF);
+        strlappendf(details, sizeof(details), "    Sector   = %u\r\n", sector);
+      else
+        strlappendf(details, sizeof(details), "    Name     = %c%c%c%c%c%c\r\n",
+                    (M[i] >> 8) & 0xFF, M[i] & 0xFF,
+                    (M[i + 1] >> 8) & 0xFF, M[i + 1] & 0xFF,
+                    (M[i + 2] >> 8) & 0xFF, M[i + 2] & 0xFF);
       break;
 
     case RQ_MOTION:
@@ -571,8 +584,9 @@ void MSOS5request(uint16_t param, uint16_t depth)
               luadr, relative, partOne,
               mode[(M[param + 3] & 0x1000) >> 12]);
 
-      sprintf(END(details), "    LU       = %u\r\n", luabs(param, lu, luadr));
-      motion(param, details);
+      strlappendf(details, sizeof(details), "    LU       = %u\r\n",
+                  luabs(param, lu, luadr));
+      motion(param, details, sizeof(details));
       break;
 
     case RQ_TIMPT1:

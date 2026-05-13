@@ -138,6 +138,7 @@ binloader (FILE *fd, const char *file, int loadpt)
         otag = *op++;
         if (otag == ' ')
         break;
+        /* Copy one fixed-width loader word, then terminate it for sscanf. */
         strncpy (item, op, CHARWORD);
         item[CHARWORD] = '\0';
         sscanf (item, "%" SCNo64, &ldata);

@@ -1489,16 +1489,19 @@ uint16_t dev1INTR(DEVICE *dptr)
  * Update a buffer indicating which device 1 stations are asserting interrupt
  * status.
  */
-void dev1Interrupts(char *buf)
+void dev1Interrupts(char *buf, size_t buf_size)
 {
+  if (buf_size == 0)
+    return;
+
   buf[0] = '\0';
 
   if ((TTIdev.STATUS & IO_ST_INT) != 0)
-    strcat(buf, " TTI");
+    strlcat(buf, " TTI", buf_size);
   if ((TTOdev.STATUS & IO_ST_INT) != 0)
-    strcat(buf, "TTO");
+    strlcat(buf, "TTO", buf_size);
   if ((PTRdev.STATUS & IO_ST_INT) != 0)
-    strcat(buf, " PTR");
+    strlcat(buf, " PTR", buf_size);
   if ((PTPdev.STATUS & IO_ST_INT) != 0)
-    strcat(buf, " PTP");
+    strlcat(buf, " PTP", buf_size);
 }

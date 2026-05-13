@@ -985,8 +985,7 @@ static t_stat font_cmd (int32_t flag, const char *iptr)
        This implementation does not use every parameter. */
     (void) flag;
 
-    gbuf[sizeof(gbuf)-1] = '\0';
-    strncpy(gbuf, iptr, sizeof(gbuf)-1);
+    strlcpy(gbuf, iptr, sizeof(gbuf));
     while (*cptr && (*cptr <= ' ')) cptr++;         /* skip blanks */
     if (! *cptr) return SCPE_2FARG;                 /* argument missing */
 

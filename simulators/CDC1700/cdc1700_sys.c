@@ -36,7 +36,7 @@
 
 extern void buildIOtable(void);
 
-extern int disassem(char *, uint16_t, bool, bool, bool);
+extern int disassem(char *, size_t, uint16_t, bool, bool, bool);
 
 extern uint16_t M[];
 extern REG cpu_reg[];
@@ -333,7 +333,7 @@ t_stat fprint_sym(FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw)
   if ((sw & SWMASK('M')) == 0)
     return SCPE_ARG;
 
-  consume = disassem(buf, (uint16_t)addr, false, target, false);
+  consume = disassem(buf, sizeof(buf), (uint16_t)addr, false, target, false);
   fprintf(of, "%s", buf);
   return -(consume - 1);
 }

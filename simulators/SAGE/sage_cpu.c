@@ -81,6 +81,8 @@ DEVICE sagecpu_dev = {
 
 static t_stat sagecpu_set_bios(UNIT *uptr, int32_t value, const char *cptr, void *desc)
 {
+    size_t biosfile_size;
+
     /* Generic set modifier signature.
        This implementation does not use every parameter. */
     (void) uptr;
@@ -92,8 +94,9 @@ static t_stat sagecpu_set_bios(UNIT *uptr, int32_t value, const char *cptr, void
     if ((fp=fopen(cptr,"r"))==0) return SCPE_OPENERR;
     fclose(fp);
 
-    biosfile = (char *)realloc(biosfile, strlen(cptr)+1);
-    strcpy(biosfile,cptr);
+    biosfile_size = strlen(cptr)+1;
+    biosfile = (char *)realloc(biosfile, biosfile_size);
+    strlcpy(biosfile,cptr,biosfile_size);
 
     /* enforce reload of BIOS code on next boot */
     if (ROM != 0) free(ROM);

@@ -1603,9 +1603,8 @@ t_stat nia_attach(UNIT* uptr, const char* cptr)
     char* tptr;
     char buf[32];
 
-    tptr = (char *) malloc(strlen(cptr) + 1);
+    tptr = strdup(cptr);
     if (tptr == NULL) return SCPE_MEM;
-    strcpy(tptr, cptr);
 
     eth_copy_mac(nia_data.macs[0], nia_data.mac);
     memcpy(&nia_data.macs[1], &broadcast_ethaddr, 6);

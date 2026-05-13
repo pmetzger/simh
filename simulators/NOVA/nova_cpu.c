@@ -331,7 +331,7 @@ t_stat build_devtab (void);
 t_stat hist_set( UNIT * uptr, int32_t val, const char * cptr, void * desc ) ;
 t_stat hist_show( FILE * st, UNIT * uptr, int32_t val, const void * desc ) ;
 static int hist_save( int32_t pc, int32_t our_ir ) ;
-char * devBitNames( int32_t flags, char * ptr, char * sepStr ) ;
+char * devBitNames( int32_t flags, char * ptr, size_t ptr_size, char * sepStr ) ;
 
 void mask_out (int32_t mask);
 
@@ -1440,7 +1440,7 @@ if ( hptr )
         {
         char    tmp[ 500 ] ;
 
-        devBitNames( hptr->devIntr, tmp, NULL ) ;
+        devBitNames( hptr->devIntr, tmp, sizeof( tmp ), NULL ) ;
         fprintf( fp, "    %s", tmp ) ;
         }
 
@@ -1530,11 +1530,11 @@ struct Dbits
     } ;
 
 
-char * devBitNames( int32_t flags, char * ptr, char * sepStr )
+char * devBitNames( int32_t flags, char * ptr, size_t ptr_size, char * sepStr )
 {
 int    a ;
 
-if ( ptr )
+if ( ptr && ptr_size )
     {
     *ptr = 0 ;
     for ( a = 0 ; (devBits[a].dBit) ; ++a )
@@ -1542,12 +1542,12 @@ if ( ptr )
         {
         if ( *ptr )
             {
-            strcat( ptr, (sepStr) ? sepStr : " " ) ;
-            strcat( ptr, devBits[a].dName ) ;
+            strlcat( ptr, (sepStr) ? sepStr : " ", ptr_size ) ;
+            strlcat( ptr, devBits[a].dName, ptr_size ) ;
             }
         else
             {
-            strcpy( ptr, devBits[a].dName ) ;
+            strlcpy( ptr, devBits[a].dName, ptr_size ) ;
             }
         }
     }

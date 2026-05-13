@@ -3225,9 +3225,8 @@ t_stat imp_attach(UNIT* uptr, const char* cptr)
       return sim_messagef (SCPE_NOATT, "%s: An IP Address must be specified when DHCP is disabled\n",
                imp_dev.name);
 
-    tptr = (char *) malloc(strlen(cptr) + 1);
+    tptr = strdup(cptr);
     if (tptr == NULL) return SCPE_MEM;
-    strcpy(tptr, cptr);
 
     memset(&imp_data.ReadQ, 0, sizeof(ETH_QUE));
     status = eth_open(&imp_data.etherface, cptr, &imp_dev, DEBUG_ETHER);

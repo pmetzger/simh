@@ -1791,7 +1791,7 @@ static t_stat cpu_attach (UNIT *uptr, const char *cptr)
             }
 
             sym[5] = '\0';
-            strcpy(n->sym, sym);
+            strlcpy(n->sym, sym, sizeof(n->sym));
             upcase(n->sym);
             n->addr = addr;
 

@@ -112,6 +112,8 @@ const char *enhFldName[] = {
   "???", "???", "SFZ", "SFN", "LFA", "SFA", "CLF", "SEF"
 };
 
+#define TARGET_COLUMN   48
+
 /*
  * Generate a single line of text for an instruction. Format is:
  *
@@ -137,7 +139,8 @@ const char *enhFldName[] = {
  *      # of words consumed by the instruction
  */
 
-int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
+int disassem(char *buf, size_t buf_size, uint16_t addr, bool dbg, bool targ,
+             bool exec)
 {
   int consumed = 1;
   char prot = ISPROTECTED(addr) ? 'P' : ' ';
@@ -546,18 +549,18 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
 
   if (dbg) {
     if (INSTR_SET == INSTR_ENHANCED)
-      sprintf(buf, "%c %04X %04X %s %s         %s",
-              prot, addr, instr, optional, optional2, decoded);
+      snprintf(buf, buf_size, "%c %04X %04X %s %s         %s",
+               prot, addr, instr, optional, optional2, decoded);
     else
-      sprintf(buf, "%c %04X %04X %s         %s",
-              prot, addr, instr, optional, decoded);
+      snprintf(buf, buf_size, "%c %04X %04X %s         %s",
+               prot, addr, instr, optional, decoded);
   } else {
     if (INSTR_SET == INSTR_ENHANCED)
-      sprintf(buf, "%c %04X %s %s               %s",
-              prot, instr, optional, optional2, decoded);
+      snprintf(buf, buf_size, "%c %04X %s %s               %s",
+               prot, instr, optional, optional2, decoded);
     else
-      sprintf(buf, "%c %04X %s               %s",
-              prot, instr, optional, decoded);
+      snprintf(buf, buf_size, "%c %04X %s               %s",
+               prot, instr, optional, decoded);
   }
 
   if (targ) {
@@ -669,28 +672,33 @@ int disassem(char *buf, uint16_t addr, bool dbg, bool targ, bool exec)
     }
 
     if (more || indJmp) {
-      int i, count = 48 - strlen(buf);
+      size_t len = strnlen(buf, buf_size);
 
-      for (i = 0; i < count; i++)
-        strcat(buf, " ");
+      while ((len < TARGET_COLUMN) && (len + 1 < buf_size)) {
+        buf[len++] = ' ';
+        buf[len] = '\0';
+      }
 
-      buf += strlen(buf);
-      if (indJmp) {
-        sprintf(buf, "[ => (%04X%s)", taddr2, rel);
-      } else {
-        switch (more) {
-          case 1:
-            sprintf(buf, "[ => %04X%s %s {%04X}", taddr2, rel,
-                    P[MEMADDR(taddr)] ? "(P)" : "",
-                    LoadFromMem(taddr));
-            break;
+      if (len < buf_size) {
+        char *target = buf + len;
+        size_t target_size = buf_size - len;
 
-          case 2:
-            sprintf(buf, "[ => %04X%s (B:%04X%s) %s {%04X}",
-                    taddr2, rel, base, rel,
-                    P[MEMADDR(taddr)] ? "(P)" : "",
-                    LoadFromMem(taddr));
-            break;
+        if (indJmp) {
+          snprintf(target, target_size, "[ => (%04X%s)", taddr2, rel);
+        } else {
+          switch (more) {
+            case 1:
+              snprintf(target, target_size, "[ => %04X%s %s {%04X}", taddr2,
+                       rel, P[MEMADDR(taddr)] ? "(P)" : "",
+                       LoadFromMem(taddr));
+              break;
+
+            case 2:
+              snprintf(target, target_size, "[ => %04X%s (B:%04X%s) %s {%04X}",
+                       taddr2, rel, base, rel, P[MEMADDR(taddr)] ? "(P)" : "",
+                       LoadFromMem(taddr));
+              break;
+          }
         }
       }
     }

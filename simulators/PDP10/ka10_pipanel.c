@@ -601,8 +601,7 @@ vm_read(char *cptr, int32_t sz, FILE *file)
            rl_callback_read_char();
        } else {
            if (pwr_off) {
-               if ((input_buffer = (char *)malloc(20)) != 0) {
-                   strcpy(input_buffer, "quit\r");
+               if ((input_buffer = strdup("quit\r")) != 0) {
                    stop_sw = 1;
                    pwr_off = 0;
                    input_wait = 0;
@@ -631,16 +630,14 @@ vm_read(char *cptr, int32_t sz, FILE *file)
                             break;
 
                     case 2:      /* Execute function */
-                            if ((input_buffer = (char *)malloc(20)) != 0) {
-                                strcpy(input_buffer, "step\r");
+                            if ((input_buffer = strdup("step\r")) != 0) {
                                 xct_sw = 1;
                                 input_wait = 0;
                             }
                             break;
 
                     case 3:      /* Reset function */
-                            if ((input_buffer = (char *)malloc(20)) != 0) {
-                                strcpy(input_buffer, "reset all\r");
+                            if ((input_buffer = strdup("reset all\r")) != 0) {
                                 input_wait = 0;
                             }
                             break;
@@ -649,24 +646,23 @@ vm_read(char *cptr, int32_t sz, FILE *file)
                             break;
 
                     case 5:      /* Continue */
-                            if ((input_buffer = (char *)malloc(10)) != 0) {
-                               strcpy(input_buffer,
-                                        (sing_inst_sw) ? "step\r" : "cont\r");
+                            if ((input_buffer = strdup((sing_inst_sw) ?
+                                                       "step\r" : "cont\r")) != 0) {
                                input_wait = 0;
                             }
                             break;
 
                     case 6:      /* Start */
                             if ((input_buffer = (char *)malloc(20)) != 0) {
-                                sprintf(input_buffer, "run %06o\r", AS);
+                                snprintf(input_buffer, 20, "run %06o\r", AS);
                                 input_wait = 0;
                             }
                             break;
 
 #if KA | KI
                     case 7:      /* ReadIN */
-                            if ((input_buffer = (char *)malloc(20)) != 0) {
-                                DEVICE         *dptr;
+                            {
+                                DEVICE        *dptr;
                                 int            i;
 
                                 /* Scan all devices to find match */
@@ -674,13 +670,17 @@ vm_read(char *cptr, int32_t sz, FILE *file)
                                     DIB *dibp = (DIB *) dptr->ctxt;
                                     if (dibp && !(dptr->flags & DEV_DIS) &&
                                         (dibp->dev_num == (rdrin_dev & 0774))) {
-                                        if (dptr->numunits > 1)
-                                            sprintf(input_buffer, "boot %s0\r",
-                                                      dptr->name);
-                                        else
-                                            sprintf(input_buffer, "boot %s\r",
-                                                      dptr->name);
-                                        input_wait = 0;
+                                        size_t cmd_size = strlen(dptr->name) + 8;
+
+                                        if ((input_buffer = (char *)malloc(cmd_size)) != 0) {
+                                            if (dptr->numunits > 1)
+                                                snprintf(input_buffer, cmd_size,
+                                                         "boot %s0\r", dptr->name);
+                                            else
+                                                snprintf(input_buffer, cmd_size,
+                                                         "boot %s\r", dptr->name);
+                                            input_wait = 0;
+                                        }
                                         break;
                                     }
                                 }

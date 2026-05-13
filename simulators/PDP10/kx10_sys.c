@@ -1342,6 +1342,7 @@ t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32
 
     while (isspace (*cptr)) cptr++;
     memset (cbuf, '\0', sizeof(cbuf));
+    /* Copy the parser input into scratch space, leaving room for suffix text. */
     strncpy (cbuf, cptr, sizeof(cbuf)-7);
     cptr = cbuf;
     if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */

@@ -1828,9 +1828,8 @@ t_stat xu_attach(UNIT* uptr, const char* cptr)
   CTLR* xu = xu_unit2ctlr(uptr);
 
   sim_debug(DBG_TRC, xu->dev, "xu_attach(cptr=%s)\n", cptr);
-  tptr = (char *) malloc(strlen(cptr) + 1);
+  tptr = strdup(cptr);
   if (tptr == NULL) return SCPE_MEM;
-  strcpy(tptr, cptr);
 
   xu->var->etherface = (ETH_DEV *) malloc(sizeof(ETH_DEV));
   if (!xu->var->etherface) {

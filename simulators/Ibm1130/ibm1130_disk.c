@@ -35,6 +35,7 @@ commands may NOT be accurate. This should probably be fixed.
 
 #include "ibm1130_defs.h"
 #include "ibm1130_bool_internal.h"
+#include "sim_string.h"
 #include <memory.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -642,11 +643,14 @@ const char * saywhere (int addr)
 
     for (i = 0; i < nseg; i++) {
         if (addr >= mseg[i].addr && addr < (mseg[i].addr+mseg[i].len)) {
-            sprintf(buf, "/%04x = /%04x + /%x in ", addr, mseg[i].addr - mseg[i].offset, addr-mseg[i].addr + mseg[i].offset);
+            snprintf(buf, sizeof(buf), "/%04x = /%04x + /%x in ", addr,
+                     mseg[i].addr - mseg[i].offset,
+                     addr - mseg[i].addr + mseg[i].offset);
             if (mseg[i].phid > 0)
-                sprintf(buf+strlen(buf), "phase %02x (%s)", mseg[i].phid, mseg[i].name);
+                strlappendf(buf, sizeof(buf), "phase %02x (%s)",
+                            mseg[i].phid, mseg[i].name);
             else
-                sprintf(buf+strlen(buf), "%s", mseg[i].name);
+                strlcat(buf, mseg[i].name, sizeof(buf));
 
             return buf;
         }
