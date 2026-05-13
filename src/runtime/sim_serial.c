@@ -964,7 +964,7 @@ int ports = 0;
 
 memset(list, 0, max*sizeof(*list));
 #if defined(__linux) || defined(__linux__)
-if (1) {
+{
     struct dirent **namelist = NULL;
     struct stat st;
 

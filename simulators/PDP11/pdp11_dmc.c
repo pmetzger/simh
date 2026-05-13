@@ -3009,7 +3009,7 @@ if (dmc_is_dmc(controller)) {
                 sim_debug(DBG_INF, controller->device, "%s%d: Completing Base In input transfer, base address=0x%08x count=%d\n", controller->device->name, controller->index, *controller->baseaddr, *controller->basesize);
                 break;
             case DMC_C_TYPE_XBACC:
-                if (1) {
+                {
                     BUFFER *buffer = dmc_buffer_queue_add(controller->xmt_queue, addr, count, TransmitData);
                     int n;
 

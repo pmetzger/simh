@@ -1345,7 +1345,7 @@ t_stat r = SCPE_OK;
 
 if (cptr == NULL)
     return SCPE_ARG;
-if (1) {
+{
     int32_t newpct;
     char gbuf[CBUFSIZE];
 

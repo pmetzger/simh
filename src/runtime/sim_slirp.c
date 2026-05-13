@@ -1078,7 +1078,7 @@ void sim_slirp_close(sim_slirp_handle *slirp)
         sim_slirp_config_free(&slirp->config);
         if (slirp->db_chime != INVALID_SOCKET)
             closesocket(slirp->db_chime);
-        if (1) {
+        {
             struct slirp_write_request *buffer;
 
             while (NULL != (buffer = slirp->write_buffers)) {

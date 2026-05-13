@@ -394,7 +394,7 @@ free (ROMData);
 fprintf (iFile,"};\r\n");
 fprintf (iFile, "#endif /* ROM_%s_H */\r\n", rom_array_name);
 fclose (iFile);
-if (1) { /* Set Modification Time on the include file to be the modification time of the ROM file */
+{ /* Set Modification Time on the include file to be the modification time of the ROM file */
     struct utimbuf times;
 
     times.modtime = statb.st_mtime;

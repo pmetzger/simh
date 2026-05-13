@@ -1331,7 +1331,7 @@ static int load_pcap(void) {
     case 0:                  /* not loaded */
             /* attempt to load DLL */
 #ifdef _WIN32
-      if (1) {
+      {
         BOOL(WINAPI *p_SetDllDirectory)(LPCTSTR);
         UINT(WINAPI *p_GetSystemDirectory)(LPTSTR lpBuffer, UINT uSize);
 
@@ -1707,7 +1707,7 @@ static void eth_get_nic_hw_addr(ETH_DEV* dev, const char *devname, int set_on)
   if (!pcap_mac_if_win32(devname, dev->host_nic_phy_hw_addr))
     dev->have_host_nic_phy_addr = 1;
 #else
-  if (1) {
+  {
     char command[1024];
     FILE *f;
     int i;
@@ -1908,7 +1908,7 @@ while (dev->handle) {
     }
   if ((dev->eth_api == ETH_API_UDP) || (dev->eth_api == ETH_API_NAT))
 #endif /* _WIN32 */
-  if (1) {
+  {
     if (do_select) {
 #ifdef HAVE_SLIRP_NETWORK
       if (dev->eth_api == ETH_API_NAT) {
@@ -1944,7 +1944,7 @@ while (dev->handle) {
 #endif
 #ifdef HAVE_TAP_NETWORK
       case ETH_API_TAP:
-        if (1) {
+        {
           struct pcap_pkthdr header;
           int len;
           u_char buf[ETH_MAX_JUMBO_FRAME];
@@ -1967,7 +1967,7 @@ while (dev->handle) {
 #endif /* HAVE_TAP_NETWORK */
 #ifdef HAVE_VDE_NETWORK
       case ETH_API_VDE:
-        if (1) {
+        {
           struct pcap_pkthdr header;
           int len;
           u_char buf[ETH_MAX_JUMBO_FRAME];
@@ -1995,7 +1995,7 @@ while (dev->handle) {
         break;
 #endif /* HAVE_SLIRP_NETWORK */
       case ETH_API_UDP:
-        if (1) {
+        {
           struct pcap_pkthdr header;
           int len;
           u_char buf[ETH_MAX_JUMBO_FRAME];
@@ -2231,7 +2231,7 @@ if (0 == strncmp("tap:", savname, 4)) {
   int  tun = -1;    /* TUN/TAP Socket */
   int  on = 1;
 
-  if (1) {
+  {
     char dev_name[64] = "";
 
     snprintf(dev_name, sizeof(dev_name)-1, "/dev/%s", devname);
@@ -2385,7 +2385,7 @@ else { /* !tap: */
 #if !defined(HAS_PCAP_SENDPACKET) && defined (xBSD) && !defined (__APPLE__)
         /* Tell the kernel that the header is fully-formed when it gets it.
            This is required in order to fake the src address. */
-        if (1) {
+        {
           int one = 1;
           ioctl(pcap_fileno(*handle), BIOCSHDRCMPLT, &one);
           }
@@ -2407,7 +2407,7 @@ else { /* !tap: */
           }
 #endif
 #if defined (__APPLE__)
-        if (1) {
+        {
           /* Deliver packets immediately, needed for OS X 10.6.2 and later
            * (Snow-Leopard).
            * See this thread on libpcap and Mac Os X 10.6 Snow Leopard on
@@ -2534,7 +2534,7 @@ dev->dptr = dptr;
 dev->dbit = dbit;
 
 #if defined (USE_READER_THREAD)
-if (1) {
+{
   pthread_attr_t attr;
 
   ethq_init (&dev->read_queue, 200);         /* initialize FIFO queue */
@@ -2611,7 +2611,7 @@ pthread_join (dev->writer_thread, NULL);
 pthread_mutex_destroy (&dev->self_lock);
 pthread_mutex_destroy (&dev->writer_lock);
 pthread_cond_destroy (&dev->writer_cond);
-if (1) {
+{
   ETH_WRITE_REQUEST *buffer;
    while (NULL != (buffer = dev->write_buffers)) {
     dev->write_buffers = buffer->next;
@@ -3413,7 +3413,7 @@ switch (IP->proto) {
       header.caplen = header.len = 14 + ntohs(IP->total_len);
       eth_packet_trace (dev, ((u_char *)IP)-14, header.len, "reading Datagram fragment");
 #if ETH_MIN_JUMBO_FRAME < ETH_MAX_PACKET
-      if (1) {
+      {
         /* Debugging is easier if we read packets directly with pcap
            (i.e. we can use Wireshark to verify packet contents)
            we don't want to do this all the time for 2 reasons:
@@ -3467,7 +3467,7 @@ switch (IP->proto) {
       header.caplen = header.len = 14 + ntohs(IP->total_len);
       eth_packet_trace_ex (dev, ((u_char *)IP)-14, header.len, "reading TCP segment", 1, dev->dbit);
 #if ETH_MIN_JUMBO_FRAME < ETH_MAX_PACKET
-      if (1) {
+      {
         /* Debugging is easier if we read packets directly with pcap
            (i.e. we can use Wireshark to verify packet contents)
            we don't want to do this all the time for 2 reasons:
@@ -3714,7 +3714,7 @@ if (bpf_used ? to_me : (to_me && !from_me)) {
   if (_eth_process_loopback(dev, data, header->len))
     return;
 #if defined (USE_READER_THREAD)
-  if (1) {
+  {
     int crc_len = 0;
     uint8_t crc_data[4] = { 0, 0, 0, 0 };
     uint32_t len = header->len;
@@ -3805,7 +3805,7 @@ do {
 #endif
 #ifdef HAVE_TAP_NETWORK
     case ETH_API_TAP:
-      if (1) {
+      {
         struct pcap_pkthdr header;
         int len;
         u_char buf[ETH_MAX_JUMBO_FRAME];
@@ -3828,7 +3828,7 @@ do {
 #endif /* HAVE_TAP_NETWORK */
 #ifdef HAVE_VDE_NETWORK
     case ETH_API_VDE:
-      if (1) {
+      {
         struct pcap_pkthdr header;
         int len;
         u_char buf[ETH_MAX_JUMBO_FRAME];
@@ -3850,7 +3850,7 @@ do {
       break;
 #endif /* HAVE_VDE_NETWORK */
     case ETH_API_UDP:
-      if (1) {
+      {
         struct pcap_pkthdr header;
         int len;
         u_char buf[ETH_MAX_JUMBO_FRAME];
@@ -4210,7 +4210,7 @@ if (dev->error_needs_reset)
   fprintf(st, "  In Error Needs Reset:    True\n");
 if (dev->error_reopen_count)
   fprintf(st, "  Error Reopen Count:      %d\n", (int)dev->error_reopen_count);
-if (1) {
+{
   int i, count = 0;
   char  buffer[ETH_MAC_STRING_SIZE];
 
@@ -4372,7 +4372,7 @@ int bpf_construct_error_count = 0;
 int bpf_compile_error_count = 0;
 int bpf_compile_skip_count = 0;
 #define SIM_PRINT_BPF_ARGUMENTS                                 \
-    if (1) {                                                    \
+    do {                                                        \
       sim_printf ("Eth: Input to BPF string construction:\n");  \
       sim_printf ("Eth: Reflections: %d\n", reflections);       \
       sim_printf ("Eth: Filter Set:\n");                        \
@@ -4392,7 +4392,7 @@ int bpf_compile_skip_count = 0;
         eth_mac_fmt(*host_phy_addr_list[host_phy_addr_listindex], mac, sizeof(mac));\
         sim_printf ("Eth: host_nic_phy_hw_addr: %s\n", mac);    \
         }                                                       \
-      }
+    } while (0)
 
 
 memset (&eth_tst, 0, sizeof(eth_tst));

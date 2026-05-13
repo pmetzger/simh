@@ -261,7 +261,7 @@ static t_stat diskParse(DISK_INFO *myDisk, uint32_t isVerbose)
                     if (sectorMap[i]-start_sect < MAX_SPT) {
                         myDisk->track[imd.cyl][imd.head].sectorOffsetMap[sectorMap[i]-start_sect] = ftell(myDisk->file);
                         myDisk->flags |= FD_FLAG_WRITELOCK; /* Write-protect the disk if any sectors are compressed. */
-                        if (1) {
+                        {
                             uint8_t cdata = (uint8_t)fgetc(myDisk->file);
 
                             sim_debug(myDisk->debugmask, myDisk->device, "Compressed Data = 0x%02x", cdata);

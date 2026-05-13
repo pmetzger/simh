@@ -3775,7 +3775,7 @@ if ((line == 0) && (DR_GETRES(drom[h->opc][0]))) {
         case RB_R3:
         case RB_R1:
         case RB_R0:
-            if (1) {
+            {
                 static const int rcnts[] = {1, 2, 4, 6};
                 int i;
 

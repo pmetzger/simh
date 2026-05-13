@@ -2482,7 +2482,7 @@ switch (DK_GET_FMT (uptr)) {                            /* case on format */
         f = NULL;
         break;
     case DKUF_F_VHD:                                    /* VHD format */
-        if (1) {
+        {
             time_t creation_time;
 
             /* Construct a pseudo simh disk footer*/
@@ -4291,7 +4291,7 @@ LARGE_INTEGER Size;
 if (GetFileSizeEx((HANDLE)Disk, &Size))
     return (t_offset)(Size.QuadPart);
 #ifdef IOCTL_STORAGE_READ_CAPACITY
-if (1) {
+{
     STORAGE_READ_CAPACITY S;
 
     ZeroMemory (&S, sizeof (S));
@@ -4308,7 +4308,7 @@ if (1) {
     }
 #endif
 #ifdef IOCTL_DISK_GET_DRIVE_GEOMETRY_EX
-if (1) {
+{
     DISK_GEOMETRY_EX G;
 
     ZeroMemory (&G, sizeof (G));
@@ -4324,7 +4324,7 @@ if (1) {
     }
 #endif
 #ifdef IOCTL_DISK_GET_DRIVE_GEOMETRY
-if (1) {
+{
     DISK_GEOMETRY G;
 
     if (DeviceIoControl((HANDLE)Disk,                      /* handle to volume */
@@ -4414,7 +4414,7 @@ if (removable)
 if (is_cdrom)
     *is_cdrom = (Device.DeviceType == FILE_DEVICE_CD_ROM) || (Device.DeviceType == FILE_DEVICE_DVD);
 #ifdef IOCTL_STORAGE_READ_CAPACITY
-if (1) {
+{
     STORAGE_READ_CAPACITY S;
 
     ZeroMemory (&S, sizeof (S));
@@ -4432,7 +4432,7 @@ if (1) {
     }
 #endif
 #ifdef IOCTL_DISK_GET_DRIVE_GEOMETRY_EX
-if (1) {
+{
     DISK_GEOMETRY_EX G;
 
     ZeroMemory (&G, sizeof (G));
@@ -4449,7 +4449,7 @@ if (1) {
     }
 #endif
 #ifdef IOCTL_DISK_GET_DRIVE_GEOMETRY
-if (1) {
+{
     DISK_GEOMETRY G;
 
     if (DeviceIoControl((HANDLE)Disk,                      /* handle to volume */
@@ -4465,7 +4465,7 @@ if (1) {
     }
 #endif
 #ifdef IOCTL_STORAGE_GET_HOTPLUG_INFO
-if (1) {
+{
     STORAGE_HOTPLUG_INFO H;
 
     ZeroMemory (&H, sizeof (H));
@@ -5954,7 +5954,7 @@ Footer.CurrentSize = NtoHll (SizeInBytes);
 uuid_gen (Footer.UniqueID);
 Footer.DiskType = NtoHl (bFixedVHD ? VHD_DT_Fixed : VHD_DT_Dynamic);
 Footer.DiskGeometry = NtoHl (0xFFFF10FF);
-if (1) { /* CHS Calculation */
+{ /* CHS Calculation */
     uint32_t totalSectors = (uint32_t)(SizeInBytes/BytesPerSector);/* Total data sectors present in the disk image */
     uint32_t cylinders;                                        /* Number of cylinders present on the disk */
     uint32_t heads;                                            /* Number of heads present on the disk */

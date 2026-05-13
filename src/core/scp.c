@@ -263,7 +263,7 @@
 
 #define SRBSIZ          1024                            /* save/restore buffer */
 #define UPDATE_SIM_TIME                                         \
-    if (1) {                                                    \
+    do {                                                        \
         int32_t _x;                                             \
         AIO_LOCK;                                               \
         if (sim_clock_queue == QUEUE_LIST_END)                  \
@@ -277,9 +277,7 @@
         else                                                    \
             sim_clock_queue->time = sim_interval;               \
         AIO_UNLOCK;                                             \
-        }                                                       \
-    else                                                        \
-        (void)0
+    } while (0)
 
 #if defined (USE_INT64)
 #define SZ_LOAD(sz,v,mb,j) \
@@ -4390,7 +4388,7 @@ const bool flag_bool = (flag != 0);
 
 if (flag_bool == sim_asynch_enabled)                    /* already set correctly? */
     return SCPE_OK;
-if (1) {
+{
     uint32_t i;
     DEVICE *dptr;
 
@@ -4403,7 +4401,7 @@ if (1) {
 sim_asynch_enabled = flag_bool;
 tmxr_change_async ();
 sim_timer_change_asynch ();
-if (1) {
+{
     uint32_t i, j;
     DEVICE *dptr;
     UNIT *uptr;
@@ -5341,7 +5339,7 @@ if (flag) {
     if (eth_version ())
         fprintf (st, "\n        Ethernet packet info: %s", eth_version());
 #if defined(_WIN32)
-    if (1) {
+    {
         char *proc_id = getenv ("PROCESSOR_IDENTIFIER");
         char *arch = getenv ("PROCESSOR_ARCHITECTURE");
         char *procs = getenv ("NUMBER_OF_PROCESSORS");
@@ -5393,7 +5391,7 @@ if (flag) {
             fprintf (st, "\n        curl tool: %s", curlversion);
         }
 #else
-    if (1) {
+    {
         char osversion[2*PATH_MAX+1] = "";
         char tarversion[PATH_MAX+1] = "";
         char curlversion[PATH_MAX+1] = "";
@@ -9099,7 +9097,7 @@ while (iptr[1]) {               /* Skip trailing quote */
             ++optr;
             break;
         case 'x':
-            if (1) {
+            {
                 static const char *hex_digits = "0123456789ABCDEF";
                 const char *c;
 

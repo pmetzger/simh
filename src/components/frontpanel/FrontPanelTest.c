@@ -122,7 +122,7 @@ snprintf (buf2, sizeof(buf2), "PSL: %08X                               Instructi
 snprintf (buf3, sizeof(buf3), "R0:%08X  R1:%08X  R2:%08X  R3:%08X   R4:%08X   R5:%08X\n", R0, R1, R2, R3, R4, R5);
 snprintf (buf4, sizeof(buf4), "R6:%08X  R7:%08X  R8:%08X  R9:%08X  R10:%08X  R11:%08X\n", R6, R7, R8, R9, R10, R11);
 #if defined(_WIN32)
-if (1) {
+{
     static HANDLE out = NULL;
     static CONSOLE_SCREEN_BUFFER_INFO info;
     static COORD origin = {0, 0};
@@ -141,7 +141,7 @@ if (1) {
         SetConsoleCursorPosition (out, info.dwCursorPosition);
     }
 #else
-if (1) {
+{
 #if defined(HAVE_NCURSES)
     static int row, col;
 
@@ -264,7 +264,7 @@ if (debug) {
     sim_panel_set_debug_mode (panel, DBG_XMT|DBG_RCV|DBG_REQ|DBG_RSP|DBG_THR|DBG_APP);
     }
 sim_panel_debug (panel, "Starting Debug\n");
-if (1) {
+{
     tape = sim_panel_add_device_panel (panel, "TAPE DRIVE");
 
     if (!tape) {
@@ -275,7 +275,7 @@ if (1) {
         sim_panel_set_debug_mode (tape, DBG_XMT|DBG_RCV|DBG_REQ|DBG_RSP|DBG_THR|DBG_APP);
         }
     }
-if (1) {
+{
     uint_t noop_noop_noop_halt = 0x00010101, addr400 = 0x00000400, pc_value;
     int mstime = 0;
 
@@ -395,7 +395,7 @@ if (sim_panel_get_registers (panel, NULL)) {
     printf ("Error getting register data: %s\n", sim_panel_get_error());
     goto Done;
     }
-if (1) {
+{
     uint_t deadbeef = 0xdeadbeef, beefdead = 0xbeefdead, addr200 = 0x00000200, beefdata;
 
     if (sim_panel_set_register_value (panel, "R0", "DEADBEEF")) {
@@ -512,7 +512,7 @@ if (sim_panel_add_register_bits (panel, "PCQ[3]",  NULL, 32, PCQ_3_bits)) {
     printf ("Error adding register 'PCQ[3]' bits: %s\n", sim_panel_get_error());
     goto Done;
     }
-if (1) {
+{
     uint_t noop_noop_noop_halt = 0x00010101, brb_self = 0x0000FE11, addr400 = 0x00000400, pc_value;
     int mstime;
 
@@ -677,7 +677,7 @@ if ((argc > 1) && ((!strcmp("-d", argv[1])) || (!strcmp("-D", argv[1])) || (!str
 
 if (panel_setup())
     goto Done;
-if (1) {
+{
     struct {
         uint_t addr;
         const char *instr;

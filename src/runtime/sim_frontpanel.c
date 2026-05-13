@@ -859,7 +859,7 @@ if (sizeof(mantra) != _panel_send (p, (char *)mantra, sizeof(mantra))) {
     sim_panel_set_error (NULL, "Error sending Telnet mantra (options): %s", sim_get_err_sock ("send"));
     goto Error_Return;
     }
-if (1) {
+{
     pthread_attr_t attr;
 
     pthread_attr_init(&attr);
@@ -895,7 +895,7 @@ else {
     /* Validate sim_frontpanel API version */
     if (_panel_sendf (p, &cmd_stat, &p->simulator_version, "SHOW VERSION\r"))
         goto Error_Return;
-    if (1) {
+    {
         int api_version = 0;
         char *c = strstr (p->simulator_version, "FrontPanel API Version");
 
@@ -906,7 +906,7 @@ else {
             goto Error_Return;
             }
         }
-    if (1) {
+    {
         char *radix = NULL;
 
         if (_panel_sendf (p, &cmd_stat, &radix, "SHOW %s RADIX\r", p->device_name ? p->device_name : "")) {

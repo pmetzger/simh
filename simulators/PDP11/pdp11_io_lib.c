@@ -949,7 +949,7 @@ for (j = 0; (dptr = sim_devices[j]) != NULL; j++) {
                 dibp = (DIB *)dptr->ctxt;
                 ilvl = dibp->vloc / 32;
                 ibit = dibp->vloc % 32;
-                if (1) {
+                {
                     int v;
 
                     for (v=0; v<MAX(dibp->vnum, 1); v++)

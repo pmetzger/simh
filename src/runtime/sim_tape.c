@@ -1485,7 +1485,7 @@ switch (f) {                                       /* otherwise the read method 
     case MTUF_F_ANSI:
     case MTUF_F_FIXED:
     case MTUF_F_DOS11:
-        if (1) {
+        {
             MEMORY_TAPE *tape = (MEMORY_TAPE *)uptr->fileref;
 
             if (uptr->pos >= tape->record_count)
@@ -1697,7 +1697,7 @@ switch (f) {                                            /* otherwise the read me
         break;
 
     case MTUF_F_P7B:
-        if (1) {
+        {
 #define BUF_SZ 512
             uint8_t buf[BUF_SZ];
             t_addr buf_offset = uptr->pos;
@@ -1823,7 +1823,7 @@ switch (f) {                                            /* otherwise the read me
     case MTUF_F_ANSI:
     case MTUF_F_FIXED:
     case MTUF_F_DOS11:
-        if (1) {
+        {
             MEMORY_TAPE *tape = (MEMORY_TAPE *)uptr->fileref;
 
             --uptr->pos;

@@ -2483,7 +2483,7 @@ else
                         compiled.major, compiled.minor, compiled.patch,
                         running.major, running.minor, running.patch);
 #if defined (HAVE_LIBPNG)
-if (1) {
+{
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
     if (strcmp (PNG_LIBPNG_VER_STRING, png_get_libpng_ver (png)))
@@ -2663,7 +2663,7 @@ if (vid_active) {
         }
     fprintf (st, "  Currently Active Renderer: %s\n", info.name);
     }
-if (1) {
+{
     static const char *hints[] = {
 #if defined (SDL_HINT_FRAMEBUFFER_ACCELERATION)
                 SDL_HINT_FRAMEBUFFER_ACCELERATION   ,
@@ -2819,7 +2819,7 @@ fullname_size = strlen(filename) + 5;
 fullname = (char *)malloc (fullname_size);
 if (!fullname)
     return SCPE_MEM;
-if (1) {
+{
     SDL_Surface *sshot = sim_end ? SDL_CreateRGBSurface(0, vptr->vid_width, vptr->vid_height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000) :
                                    SDL_CreateRGBSurface(0, vptr->vid_width, vptr->vid_height, 32, 0x0000ff00, 0x000ff000, 0xff000000, 0x000000ff) ;
     if (!sshot) {
