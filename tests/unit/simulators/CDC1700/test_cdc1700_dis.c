@@ -66,7 +66,7 @@ static void test_zero_delta_sls_disassembles_without_operand(void **state)
     reset_disassembler_state();
     test_memory[0] = OPC_SLS;
 
-    assert_int_equal(disassem(output, 0, false, false, false), 1);
+    assert_int_equal(disassem(output, sizeof output, 0, false, false, false), 1);
     assert_non_null(strstr(output, "SLS"));
     assert_null(strstr(output, "$00"));
     assert_null(strstr(output, "UNDEF"));
