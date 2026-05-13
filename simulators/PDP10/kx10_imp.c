@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 #include "kx10_defs.h"
+#include "kx10_imp_ftp.h"
 #include "sim_ether.h"
 
 #if NUM_DEVS_IMP > 0
@@ -1513,59 +1514,51 @@ imp_packet_in(struct imp_device *imp)
                         uint32_t nip = ntohl(imp->hostip);
                         int     nlen;
                         int     i;
-                        char    port_buffer[100];
+                        size_t  rewritten_len;
                         struct udp_hdr     udp_hdr;
                        if (l > 1500)
                            l = 1500;
-                       /* Count out 4 commas */
-                       for (i = nlen = 0; i < l && nlen < 4; i++) {
-                          if (tcp_payload[i] == ',')
-                             nlen++;
-                       }
-                       nlen = sprintf(port_buffer, "PORT %d,%d,%d,%d,",
-                            (nip >> 24) & 0xFF, (nip >> 16) & 0xFF,
-                            (nip >> 8) & 0xFF, nip & 0xff);
-                       /* Copy over rest of string */
-                       while(i < l) {
-                           port_buffer[nlen++] = tcp_payload[i++];
-                       }
-                       port_buffer[nlen] = '\0';
-                       memcpy(tcp_payload, port_buffer, nlen);
-                       /* Check if we need to update the sequence numbers */
-                       if (nlen != l && (ntohs(tcp_hdr->flags) & TCP_FL_SYN) == 0) {
-                           int n = -1;
-                           /* See if we need to change the sequence number */
-                           for (i = 0; i < 64; i++) {
-                               if (imp->port_map[i].sport == sport &&
-                                   imp->port_map[i].dport == dport) {
-                                   n = i;
-                                   break;
+                       if (l > 0 &&
+                           kx10_imp_rewrite_ftp_port_payload(tcp_payload, 1500, nip,
+                                                             (size_t)l,
+                                                             &rewritten_len)) {
+                           nlen = (int)rewritten_len;
+                           /* Check if we need to update the sequence numbers */
+                           if (nlen != l && (ntohs(tcp_hdr->flags) & TCP_FL_SYN) == 0) {
+                               int n = -1;
+                               /* See if we need to change the sequence number */
+                               for (i = 0; i < 64; i++) {
+                                   if (imp->port_map[i].sport == sport &&
+                                       imp->port_map[i].dport == dport) {
+                                       n = i;
+                                       break;
+                                   }
+                                   if (n < 0 && imp->port_map[i].dport == 0)
+                                       n = 0;
                                }
-                               if (n < 0 && imp->port_map[i].dport == 0)
-                                   n = 0;
+                               if (n >= 0) {
+                                   imp->port_map[n].dport = dport;
+                                   imp->port_map[n].sport = sport;
+                                   imp->port_map[n].adj += nlen - l;
+                                   imp->port_map[n].cls_tim = 0;
+                                   imp->port_map[n].lseq = ntohl(tcp_hdr->seq);
+                               }
                            }
-                           if (n >= 0) {
-                               imp->port_map[n].dport = dport;
-                               imp->port_map[n].sport = sport;
-                               imp->port_map[n].adj += nlen - l;
-                               imp->port_map[n].cls_tim = 0;
-                               imp->port_map[n].lseq = ntohl(tcp_hdr->seq);
-                           }
+                           /* Now we need to update the checksums */
+                           tcp_hdr->chksum = 0;
+                           ip_hdr->ip_len = htons(nlen + thl + hl);
+                           ip_checksum((uint8_t *)&tcp_hdr->chksum, (uint8_t *)tcp_hdr,
+                                   nlen + thl);
+                           udp_hdr.ip_src = ip_hdr->ip_src;
+                           udp_hdr.ip_dst = imp->hostip;
+                           udp_hdr.zero = 0;
+                           udp_hdr.proto = TCP_PROTO;
+                           udp_hdr.hlen = htons(nlen + thl);
+                           checksumadjust((uint8_t *)&tcp_hdr->chksum, (uint8_t *)(&udp_hdr), 0,
+                                (uint8_t *)(&udp_hdr), sizeof(udp_hdr));
+                           ip_hdr->ip_sum = 0;
+                           ip_checksum((uint8_t *)(&ip_hdr->ip_sum), (uint8_t *)ip_hdr, 20);
                        }
-                       /* Now we need to update the checksums */
-                       tcp_hdr->chksum = 0;
-                       ip_hdr->ip_len = htons(nlen + thl + hl);
-                       ip_checksum((uint8_t *)&tcp_hdr->chksum, (uint8_t *)tcp_hdr,
-                               nlen + thl);
-                       udp_hdr.ip_src = ip_hdr->ip_src;
-                       udp_hdr.ip_dst = imp->hostip;
-                       udp_hdr.zero = 0;
-                       udp_hdr.proto = TCP_PROTO;
-                       udp_hdr.hlen = htons(nlen + thl);
-                       checksumadjust((uint8_t *)&tcp_hdr->chksum, (uint8_t *)(&udp_hdr), 0,
-                            (uint8_t *)(&udp_hdr), sizeof(udp_hdr));
-                       ip_hdr->ip_sum = 0;
-                       ip_checksum((uint8_t *)(&ip_hdr->ip_sum), (uint8_t *)ip_hdr, 20);
                    }
                /* Check if UDP */
                } else if (ip_hdr->ip_p == UDP_PROTO) {
@@ -1764,58 +1757,50 @@ imp_packet_out(struct imp_device *imp, ETH_PACK *packet) {
                int     l = ntohs(pkt->iphdr.ip_len) - thl - hl;
                uint32_t nip = ntohl(imp->ip);
                int     nlen;
-               char    port_buffer[100];
+               size_t  rewritten_len;
                struct udp_hdr     udp_hdr;
-               /* Count out 4 commas */
-               for (i = nlen = 0; i < l && nlen < 4; i++) {
-                  if (tcp_payload[i] == ',')
-                     nlen++;
-               }
-               nlen = sprintf(port_buffer, "PORT %d,%d,%d,%d,",
-                    (nip >> 24) & 0xFF, (nip >> 16) & 0xFF,
-                    (nip >> 8) & 0xFF, nip&0xff);
-               /* Copy over rest of string */
-               while(i < l) {
-                   port_buffer[nlen++] = tcp_payload[i++];
-               }
-               port_buffer[nlen] = '\0';
-               memcpy(tcp_payload, port_buffer, nlen);
-               /* Check if we need to update the sequence numbers */
-               if (nlen != l && (ntohs(tcp_hdr->flags) & TCP_FL_SYN) == 0) {
-                   int n = -1;
-                   /* See if we need to change the sequence number */
-                   for (i = 0; i < 64; i++) {
-                       if (imp->port_map[i].sport == sport &&
-                           imp->port_map[i].dport == dport) {
-                           n = i;
-                           break;
+               if (l > 0 &&
+                   kx10_imp_rewrite_ftp_port_payload(tcp_payload, 1500, nip,
+                                                     (size_t)l,
+                                                     &rewritten_len)) {
+                   nlen = (int)rewritten_len;
+                   /* Check if we need to update the sequence numbers */
+                   if (nlen != l && (ntohs(tcp_hdr->flags) & TCP_FL_SYN) == 0) {
+                       int n = -1;
+                       /* See if we need to change the sequence number */
+                       for (i = 0; i < 64; i++) {
+                           if (imp->port_map[i].sport == sport &&
+                               imp->port_map[i].dport == dport) {
+                               n = i;
+                               break;
+                           }
+                           if (n < 0 && imp->port_map[i].dport == 0)
+                               n = 0;
                        }
-                       if (n < 0 && imp->port_map[i].dport == 0)
-                           n = 0;
+                       if (n >= 0) {
+                           imp->port_map[n].dport = dport;
+                           imp->port_map[n].sport = sport;
+                           imp->port_map[n].adj += nlen - l;
+                           imp->port_map[n].cls_tim = 0;
+                           imp->port_map[n].lseq = ntohl(tcp_hdr->seq);
+                       }
                    }
-                   if (n >= 0) {
-                       imp->port_map[n].dport = dport;
-                       imp->port_map[n].sport = sport;
-                       imp->port_map[n].adj += nlen - l;
-                       imp->port_map[n].cls_tim = 0;
-                       imp->port_map[n].lseq = ntohl(tcp_hdr->seq);
-                   }
+                   /* Now we need to update the checksums */
+                   tcp_hdr->chksum = 0;
+                   pkt->iphdr.ip_len = htons(nlen + thl + hl);
+                   ip_checksum((uint8_t *)&tcp_hdr->chksum, (uint8_t *)tcp_hdr,
+                           nlen + thl);
+                   udp_hdr.ip_src = imp->ip;
+                   udp_hdr.ip_dst = pkt->iphdr.ip_dst;
+                   udp_hdr.zero = 0;
+                   udp_hdr.proto = TCP_PROTO;
+                   udp_hdr.hlen = htons(nlen + thl);
+                   checksumadjust((uint8_t *)&tcp_hdr->chksum, (uint8_t *)(&udp_hdr), 0,
+                        (uint8_t *)(&udp_hdr), sizeof(udp_hdr));
+                   pkt->iphdr.ip_sum = 0;
+                   ip_checksum((uint8_t *)(&pkt->iphdr.ip_sum), (uint8_t *)&pkt->iphdr, 20);
+                   packet->len = nlen + thl + hl +  sizeof(struct imp_eth_hdr);
                }
-               /* Now we need to update the checksums */
-               tcp_hdr->chksum = 0;
-               pkt->iphdr.ip_len = htons(nlen + thl + hl);
-               ip_checksum((uint8_t *)&tcp_hdr->chksum, (uint8_t *)tcp_hdr,
-                       nlen + thl);
-               udp_hdr.ip_src = imp->ip;
-               udp_hdr.ip_dst = pkt->iphdr.ip_dst;
-               udp_hdr.zero = 0;
-               udp_hdr.proto = TCP_PROTO;
-               udp_hdr.hlen = htons(nlen + thl);
-               checksumadjust((uint8_t *)&tcp_hdr->chksum, (uint8_t *)(&udp_hdr), 0,
-                    (uint8_t *)(&udp_hdr), sizeof(udp_hdr));
-               pkt->iphdr.ip_sum = 0;
-               ip_checksum((uint8_t *)(&pkt->iphdr.ip_sum), (uint8_t *)&pkt->iphdr, 20);
-               packet->len = nlen + thl + hl +  sizeof(struct imp_eth_hdr);
            }
        /* Check if UDP */
        } else if (pkt->iphdr.ip_p == UDP_PROTO) {

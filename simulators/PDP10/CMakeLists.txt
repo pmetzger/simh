@@ -74,6 +74,7 @@ add_simulator(pdp10-ka
         ${KA10D}/ka10_pd.c
         ${KA10D}/kx10_rh.c
         ${KA10D}/kx10_imp.c
+        ${KA10D}/kx10_imp_ftp.c
         ${KA10D}/ka10_tk10.c
         ${KA10D}/ka10_mty.c
         ${KA10D}/ka10_imx.c
@@ -142,6 +143,7 @@ add_simulator(pdp10-ki
         ${KI10D}/kx10_tu.c
         ${KI10D}/kx10_rs.c
         ${KI10D}/kx10_imp.c
+        ${KI10D}/kx10_imp_ftp.c
         ${KI10D}/kx10_dpy.c
         ${KI10D}/kx10_disk.c
         ${KI10D}/kx10_ddc.c
@@ -177,6 +179,7 @@ add_simulator(pdp10-kl
         ${KL10D}/kx10_tu.c
         ${KL10D}/kx10_rs.c
         ${KL10D}/kx10_imp.c
+        ${KL10D}/kx10_imp_ftp.c
         ${KL10D}/kl10_fe.c
         ${KL10D}/ka10_pd.c
         ${KL10D}/ka10_ch10.c
@@ -209,6 +212,7 @@ add_simulator(pdp10-ks
         ${KS10D}/ks10_kmc.c
         ${KS10D}/ks10_dup.c
         ${KS10D}/kx10_imp.c
+        ${KS10D}/kx10_imp_ftp.c
     INCLUDES
         ${KS10D}
         ${PDP11D}
