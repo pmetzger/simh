@@ -61,7 +61,7 @@ int main (int argc, char **argv)
 {
     FILE *fp;
     char *fname = NULL, *arg, *argval;
-    int i, j, cyl, sec, pos, asec, retry, nbad = 0, nfixed = 0, nline;
+    int i, j, cyl, sec, pos, asec, retry, nbad = 0, nline;
     bool fixit = false, dump = false;
     int dsec, nsec = 1;
     unsigned short wd, buf[DSK_NUMWD];
@@ -169,7 +169,6 @@ again:
 
                     if (retry) {
                         retry = 0;
-                        nfixed++;
                         goto again;
                     }
 

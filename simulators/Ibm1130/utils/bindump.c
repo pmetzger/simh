@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #ifdef _WIN32
 #  include <windows.h>
 #  include <io.h>
@@ -130,8 +131,11 @@ void process (char *nm)
         fprintf(stderr, "No files matching '%s'\n", nm);
 
     else {
+        size_t prefix_len;
+
         if ((c = strrchr(nm, '\\')) == NULL)
             c = strrchr(nm, ':');
+        prefix_len = (c == NULL) ? 0 : (size_t)(c - nm + 1);
 
         do {
             if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -140,8 +144,11 @@ void process (char *nm)
             if (c == NULL)
                 dump(fd.cFileName);
             else {
-                strcpy(buf, nm);
-                strcpy(buf + (c-nm+1), fd.cFileName);
+                if (prefix_len >= sizeof(buf))
+                    continue;
+                memcpy(buf, nm, prefix_len);
+                strlcpy(buf + prefix_len, fd.cFileName,
+                        sizeof(buf) - prefix_len);
                 dump(buf);
             }
 
@@ -195,7 +202,7 @@ void sort_phases (char *fname)
     fseek(fd, 0, SEEK_SET);
 
     if (len <= 0 || (len % 160) != 0) {
-        fprintf(stderr, "%s is not a binard deck image\n");
+        fprintf(stderr, "%s is not a binard deck image\n", fname);
         fclose(fd);
         return;
     }
@@ -203,13 +210,13 @@ void sort_phases (char *fname)
     ncards = len / 160;
 
     if (ncards <= 0) {
-        fprintf(stderr, "%s: can't sort, empty deck\n");
+        fprintf(stderr, "%s: can't sort, empty deck\n", fname);
         fclose(fd);
         return;
     }
 
     if ((deck = (struct tag_card *) malloc(ncards*sizeof(struct tag_card))) == NULL) {
-        fprintf(stderr, "%s: can't sort, insufficient memory\n");
+        fprintf(stderr, "%s: can't sort, insufficient memory\n", fname);
         fclose(fd);
         return;
     }
@@ -218,7 +225,7 @@ void sort_phases (char *fname)
     for (i = 0; i < ncards; i++) {
         if (fxread(deck[i].card, sizeof(card[0]), 80, fd) != 80) {
             free(deck);
-            fprintf(stderr, "%s: error reading deck\n");
+            fprintf(stderr, "%s: error reading deck\n", fname);
             fclose(fd);
             return;
         }
@@ -252,7 +259,8 @@ void sort_phases (char *fname)
                 break;
 
             default:
-                fprintf(stderr, "%s is a %s deck, can't sort\n", card_type_name(cardtype));
+                fprintf(stderr, "%s is a %s deck, can't sort\n",
+                        fname, card_type_name(cardtype));
                 free(deck);
                 fclose(fd);
                 return;

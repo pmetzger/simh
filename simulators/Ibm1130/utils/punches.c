@@ -44,10 +44,18 @@ end
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
+#  include <strings.h>
+#  include <unistd.h>
+#endif
 #include "util_io.h"
-#ifdef WIN32                    // for Windows binary file mode setting
+#ifdef _WIN32                   // for Windows binary file mode setting
 #  include <io.h>
 #  include <fcntl.h>
+#  define strnicmp _strnicmp
+#  define unlink _unlink
+#else
+#  define strnicmp strncasecmp
 #endif
 
 #define BETWEEN(v,a,b) (((v) >= (a)) && ((v) <= (b)))
@@ -127,7 +135,7 @@ char *alltrim (char *str)
         ;
 
     if (c > str)                                // if there was some, copy string down over it
-        strcpy(str, c);
+        memmove(str, c, strlen(c)+1);
 
     for (e = str-1, c = str; *c; c++)           // find last non-white character
         if (*c > ' ')
@@ -182,7 +190,7 @@ void tobinary (char *fnin, char *fnout)
             if (col == 0)
                 col = 1;
             else {
-                fprintf(stderr, "\"start\" encountered where column %d was expected, at line %d\n", lineno);
+                fprintf(stderr, "\"start\" encountered where column %d was expected, at line %d\n", col, lineno);
                 failed = true;
             }
         }

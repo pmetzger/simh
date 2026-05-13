@@ -35,6 +35,7 @@
 // -------------------------------------------------------------------------------------------
 
 #define ALLOCATE(obj) ((obj *) calloc(1, sizeof(obj)))      // macro to allocate an object and return pointer to it
+#define MIN(a,b)       (((a) <= (b)) ? (a) : (b))
 
 #define SEC_WORDS       320                         // useful words per sector
 #define SEC_BYTES       640                         // bytes per sector
@@ -344,7 +345,7 @@ int main (int argc, char **argv)
     printf("\n\n");
 
     getsec(1);                                              // get sector 1, save to DCOM
-    memcpy(&dcom, sector.data, min(sizeof(dcom), SEC_BYTES));
+    memcpy(&dcom, sector.data, MIN(sizeof(dcom), SEC_BYTES));
 
     is_system = dcom.sysc != 0;                             // is this a system cartridge?
 
@@ -482,6 +483,7 @@ void getsec (uint16_t secno)
 void getdata (void *buf, uint16_t dbaddr, uint16_t offset, uint16_t nwords)
 {
     uint16_t secno, nsec, nw;
+    uint16_t *wbuf = buf;
 
     if (nwords == 0)
         return;
@@ -496,15 +498,15 @@ void getdata (void *buf, uint16_t dbaddr, uint16_t offset, uint16_t nwords)
 
     for (;;) {
         getsec(secno);                                  // read desired sector
-        nw = min(SEC_WORDS-offset, nwords);             // number of words to copy from this sector
-        memcpy(buf, &sector.data[offset], nw*2);        // copy the data
+        nw = MIN(SEC_WORDS-offset, nwords);             // number of words to copy from this sector
+        memcpy(wbuf, &sector.data[offset], nw*2);       // copy the data
 
         if ((nwords -= nw) <= 0)                        // decrement remaining word count
             break;
 
         secno++;                                        // bump sector
         offset = 0;                                     // no offset in subsequent sector(s)
-        ((uint16_t *) buf) += nw;                       // bump buffer pointer
+        wbuf += nw;                                     // bump buffer pointer
     }
 }
 
@@ -857,7 +859,7 @@ void get_let (LETENTRY **listhead, uint16_t secno)
             nwords -= 3;
 
             entry = ALLOCATE(LETENTRY);
-            strcpy(entry->name, name);
+            strlcpy(entry->name, name, sizeof(entry->name));
             entry->next     = NULL;
             entry->filetype = filetype;
             entry->dbaddr   = addr;
@@ -969,8 +971,9 @@ char *astring (char *str)
 {
     char *cpy;
 
-    cpy = malloc(strlen(str)+1);
-    strcpy(cpy, str);
+    cpy = strdup(str);
+    if (cpy == NULL)
+        bail("out of memory");
 
     return cpy;
 }
@@ -1053,7 +1056,7 @@ void add_list (char *name, NAMELIST *plisthead)
         free_nodes = n->next;
     }
 
-    strcpy(n->name, name);                                          // save the name
+    strlcpy(n->name, name, sizeof(n->name));                        // save the name
 
     if (prev == NULL) {                                             // add to head of list
         n->next = *plisthead;
@@ -1156,7 +1159,7 @@ bool get_dsf_word (DSFSTREAM *dsf_stream, uint16_t *word, uint16_t *addr, uint16
             dsf_stream->nwords -= 2;                    // deduct 2 dataheader words we just read
         }
 
-        dsf_stream->nw = min(dsf_stream->nwords, 9);    // size of next data block
+        dsf_stream->nw = MIN(dsf_stream->nwords, 9);    // size of next data block
         getdata(dsf_stream->datablock, dsf_stream->dbaddr, dsf_stream->offset, dsf_stream->nw);
         dsf_stream->offset += dsf_stream->nw;           // bump file offset
         dsf_stream->nwords -= dsf_stream->nw;           // and number of words left in current module
@@ -1185,6 +1188,7 @@ bool get_dsf_word (DSFSTREAM *dsf_stream, uint16_t *word, uint16_t *addr, uint16
     *addr = dsf_stream->addr;                           // give caller the word's address, and increment address
     if (*relflag != 2)                                  // unless relflag was 2 (LIBF), which occupies only 1 word
         dsf_stream->addr++;                             // in core. We'll increment addr when we fetch the 2nd name word
+    return true;
 }
 
 // -------------------------------------------------------------------------------------------
@@ -1307,7 +1311,7 @@ void print_dsf_info (LETENTRY *entry)
                 else if (relflag == 1)                          // 1101 - DSN
                     add_list(name, &dsn_list);                  // add name to list of data source names
                 else                                            // 1110 or 1111 - invalid
-                    printf(INDENT, "CORRUPT: object data contains invalid relocation bits 111%d\n", relflag & 1);
+                    printf(INDENT "CORRUPT: object data contains invalid relocation bits 111%d\n", relflag & 1);
                 break;
         }
     }
@@ -1398,7 +1402,7 @@ void dumpfile (LETENTRY *entry)
     while (nwords > 0) {
         printf("   %04x |", offset);                    // print current offset
 
-        nw = min(nwords, 8);                            // fetch (up to) 8 words of data
+        nw = MIN(nwords, 8);                            // fetch (up to) 8 words of data
         getdata(buf, entry->dbaddr, offset, nw);
         offset += nw;                                   // bump offset and count
         nwords -= nw;

@@ -34,5 +34,4 @@ if (WIN32)
     target_sources(ibm1130 PRIVATE ibm1130.rc)
 endif()
 
-# IBM 1130 utilities:
-# add_subdirectory(utils)
+add_subdirectory(utils)

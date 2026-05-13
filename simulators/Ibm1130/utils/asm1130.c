@@ -185,7 +185,7 @@
 #define MAXLITERALS 300
 #define MAXENTRIES   14
 
-#define LINEFORMAT    "                          %4ld | %s"
+#define LINEFORMAT    "                          %4d | %s"
 #define LEFT_MARGIN   "                                |"
                  /*  XXXX XXXX XXXX XXXX XXXX XXXX */
                  /*  org  w1   w2   w3   w4   w5 */
@@ -799,10 +799,9 @@ char *astring (char *str)
         if (strcmp(s, str) == 0)        /* if same as immediately previous allocation */
             return s;                   /* return same pointer (why did I do this?) */
 
-    if ((s = malloc(strlen(str)+1)) == NULL)
+    if ((s = strdup(str)) == NULL)
         bail("out of memory");
 
-    strcpy(s, str);
     return s;
 }
 
@@ -1022,7 +1021,7 @@ void listout (bool reset)
         fputs(listline, flist);
         putc('\n', flist);
         if (reset)
-            snprintf(listline, sizeof(listline), LEFT_MARGIN, org);
+            snprintf(listline, sizeof(listline), LEFT_MARGIN);
     }
 }
 
@@ -1137,7 +1136,7 @@ void org_even (void)
  * first whitespace delimited token).
  ********************************************************************************************/
 
-void tabtok (char *c, char *tok, int i, char *save)
+void tabtok (char *c, char *tok, int i, char *save, size_t save_size)
 {
     *tok = '\0';
 
@@ -1154,7 +1153,7 @@ void tabtok (char *c, char *tok, int i, char *save)
         c++;
 
     if (save != NULL)           /* save copy of entire remainder */
-        strcpy(save, c);
+        strlcpy(save, c, save_size);
 
     while (*c > ' ') {          /* take up to any whitespace */
         if (*c == '(') {            /* if we start with a paren, take all up to closing paren including spaces */
@@ -1186,7 +1185,8 @@ void tabtok (char *c, char *tok, int i, char *save)
  * ifrom and ito on entry are column numbers, not indices; we change that right away
  ********************************************************************************************/
 
-void coltok (char *c, char *tok, int ifrom, int ito, bool condense, char *save)
+void coltok (char *c, char *tok, int ifrom, int ito, bool condense, char *save,
+             size_t save_size)
 {
     char *otok = tok;
     int i;
@@ -1204,7 +1204,7 @@ void coltok (char *c, char *tok, int ifrom, int ito, bool condense, char *save)
     }
 
     if (save)                           /* save from ifrom on */
-        strcpy(save, c+i);
+        strlcpy(save, c+i, save_size);
 
     if (condense) {
         for (; i <= ito; i++) {         /* save only nonwhite characters */
@@ -1421,22 +1421,24 @@ struct tag_op ops[] = {
  * if outbuf is NULL, we allocate a buffer
  ********************************************************************************************/
 
-char *addextn (char *fname, char *extn, char *outbuf)
+char *addextn (char *fname, char *extn, char *outbuf, size_t outbuf_size)
 {
     char *buf, line[500], *c;
+    size_t buf_size;
 
     buf = (outbuf == NULL) ? line : outbuf;
+    buf_size = (outbuf == NULL) ? sizeof(line) : outbuf_size;
 
-    strcpy(buf, fname);                         /* create listfn from first source filename (e.g. xxx.lst); */
+    strlcpy(buf, fname, buf_size);              /* create listfn from first source filename (e.g. xxx.lst); */
     if ((c = strrchr(buf, '\\')) == NULL)
         if ((c = strrchr(buf, '/')) == NULL)
             if ((c = strrchr(buf, ':')) == NULL)
                 c = buf;
 
     if ((c = strrchr(c, '.')) == NULL)
-        strcat(buf, extn);
+        strlcat(buf, extn, buf_size);
     else
-        strcpy(c, extn);
+        strlcpy(c, extn, buf_size - (size_t)(c - buf));
 
     return (outbuf == NULL) ? astring(line) : outbuf;
 }
@@ -1495,12 +1497,14 @@ void stuff (char *buf, char *tok, int maxchars)
  * format_line - construct a source code input line from components
  ********************************************************************************************/
 
-void format_line (char *buf, char *label, char *op, char *mods, char *args, char *remarks)
+void format_line (char *buf, size_t buf_size, char *label, char *op,
+                  char *mods, char *args, char *remarks)
 {
     int i;
 
     if (tabformat) {
-        sprintf(buf, "%s\t%s\t%s\t%s\t%s", label, op, mods, args, remarks);
+        snprintf(buf, buf_size, "%s\t%s\t%s\t%s\t%s",
+                 label, op, mods, args, remarks);
     }
     else {
         for (i = 0; i < 72; i++)
@@ -1599,7 +1603,7 @@ void bincard_writecard (char *sbrk_text)
         }
     }
 
-    snprintf(ident, sizeof(ident), "%08ld", ++bincard_seq);  /* append sequence text */
+    snprintf(ident, sizeof(ident), "%08d", ++bincard_seq);  /* append sequence text */
     memmove(ident, progname, MIN(strlen(progname), 4));
 
     for (i = 0; i < 8; i++)
@@ -1802,7 +1806,8 @@ void handle_sbrk (char *line)
     if (pass != 2)
         return;
 
-    strncpy(rline, line, 81);           /* get a copy and pad it if necessary to 80 characters */
+    /* Copy up to one card image, then pad it to exactly 80 characters. */
+    strncpy(rline, line, 81);
     rline[80] = '\0';
     while (strlen(rline) < 80)
         strlcat(rline, " ", sizeof(rline));
@@ -1881,10 +1886,10 @@ void parse_line (char *line)
         if (*c == '*' || ! *c)                  /* ignore as a comment */
             return;
 
-        tabtok(line, label, 0, NULL);
-        tabtok(line, mnem,  1, NULL);
-        tabtok(line, mods,  2, NULL);
-        tabtok(line, arg,   3, opfield);
+        tabtok(line, label, 0, NULL, 0);
+        tabtok(line, mnem,  1, NULL, 0);
+        tabtok(line, mods,  2, NULL, 0);
+        tabtok(line, arg,   3, opfield, sizeof(opfield));
     }
     else {                                      /* if no tabs, use strict card-column format */
         if (line[20] == '*')                    /* comment */
@@ -1892,10 +1897,10 @@ void parse_line (char *line)
 
         line[72] = '\0';                        /* clip off sequence */
 
-        coltok(line, label, 21, 25, true, NULL);
-        coltok(line, mnem,  27, 30, true, NULL);
-        coltok(line, mods,  32, 33, true, NULL);
-        coltok(line, arg,   35, 72, false, opfield);
+        coltok(line, label, 21, 25, true, NULL, 0);
+        coltok(line, mnem,  27, 30, true, NULL, 0);
+        coltok(line, mods,  32, 33, true, NULL, 0);
+        coltok(line, arg,   35, 72, false, opfield, sizeof(opfield));
     }
 
     if (*label)                                 /* display org in any line with a label */
@@ -1922,7 +1927,7 @@ void parse_line (char *line)
         for (c = mods; *c; ) {
             if (strchr(op->mods_allowed, *c) == NULL) {
                 asm_warning("Modifier '%c' not permitted", *c);
-                strcpy(c, c+1);                 /* remove it and keep parsing */
+                memmove(c, c+1, strlen(c+1)+1); /* remove it and keep parsing */
             }
             else
                 c++;
@@ -1974,7 +1979,7 @@ void proc (char *fname)
     int i;
 
     if (strchr(fname, '.') == NULL)             /* if input file has no extension, */
-        addextn(fname, ".asm", curfn);          /* set appropriate file extension */
+        addextn(fname, ".asm", curfn, sizeof(curfn)); /* set appropriate file extension */
     else
         strlcpy(curfn, fname, sizeof(curfn));       /* otherwise use extension specified */
 
@@ -1989,7 +1994,8 @@ void proc (char *fname)
                 if ((c = strrchr(curfn, ':')) == NULL)
                     c = curfn;
 
-        strncpy(progname, c, sizeof(progname)); /* take name after path */
+        /* Copy the path component into the fixed program-name buffer. */
+        strncpy(progname, c, sizeof(progname));
         progname[sizeof(progname)-1] = '\0';
         if ((c = strchr(progname, '.')) != NULL)/* remove extension */
             *c = '\0';
@@ -1999,7 +2005,7 @@ void proc (char *fname)
     ended = false;                              /* have not seen END statement */
 
     if (listfn == NULL)                         /* if list file name is undefined, */
-        listfn = addextn(fname, ".lst", NULL);  /* create from first filename */
+        listfn = addextn(fname, ".lst", NULL, 0);  /* create from first filename */
 
     if (verbose)
         fprintf(stderr, "--- Starting file %s pass %d\n", curfn, pass);
@@ -2173,7 +2179,7 @@ void startpass (int n)
     }
     else {                                              /* second pass only */
         if (outfn == NULL)
-            outfn = addextn(curfn, (outmode == OUTMODE_LOAD) ? ".out" : ".bin" , NULL);
+            outfn = addextn(curfn, (outmode == OUTMODE_LOAD) ? ".out" : ".bin" , NULL, 0);
 
         if ((fout = fopen(outfn, OUTWRITEMODE)) == NULL) {              /* open output file */
             perror(outfn);
@@ -2464,7 +2470,6 @@ void x_xflc (struct tag_op *op, char *label, char *mods, char *arg)
 {
     char *tok, *b;
     double d;
-    int bexp, fixed;
     unsigned short wd[3];
 
     org_advanced = 2;                   /* who knows? */
@@ -2479,10 +2484,7 @@ void x_xflc (struct tag_op *op, char *label, char *mods, char *arg)
 /*      fprintf(stderr, ">>> ENCOUNTERED XFLC WITH NO ARGUMENT IN %s -- THIS WAS BUGGY BEFORE\n", curfn); */
     }
 
-    bexp = 0;                           /* parse the value */
     if ((b = strchr(tok, 'B')) != NULL) {
-        bexp = atoi(b+1);
-        fixed = true;
         *b = '\0';                      /* truncate at the b */
         asm_warning("Fixed point extended floating constant?");
     }
@@ -2867,7 +2869,7 @@ void x_link (struct tag_op *op, char *label, char *mods, char *arg)
         asm_error("LINK missing program name");
     }
     else {
-        format_line(nline, label, "CALL", "", "$LINK", "");
+        format_line(nline, sizeof(nline), label, "CALL", "", "$LINK", "");
         parse_line(nline);
 
         if (outmode == OUTMODE_BINARY) {
@@ -3363,7 +3365,7 @@ void x_pdmp (struct tag_op *op, char *label, char *mods, char *arg)
 
     org_advanced = 0;                   /* * means this address+1 */
 
-    format_line(nline, label, "BSI", "L", DOLLARDUMP, "");
+    format_line(nline, sizeof(nline), label, "BSI", "L", DOLLARDUMP, "");
     parse_line(nline);                  /* compile "call $dump" */
 
     writew(addr[2].value, ABSOLUTE);    /* append arguments (0, start, end address) */
@@ -3679,7 +3681,6 @@ void shf_op (struct tag_op *op, char *label, char *mods, char *arg)
 {
     EXPR expr;
     int opcode = basic_opcode(op, mods);
-
     if (*label)                                     /* define label */
         set_symbol(label, org, true, relocate);
 
@@ -3709,8 +3710,6 @@ void shf_op (struct tag_op *op, char *label, char *mods, char *arg)
 
 void x_mdm (struct tag_op *op, char *label, char *mods, char *arg)
 {
-    int opcode = basic_opcode(op, mods);
-
     if (*label)                                     /* define label */
         set_symbol(label, org, true, relocate);
                                                     /* oh dear: bug here */
@@ -3726,7 +3725,7 @@ void x_exit (struct tag_op *op, char *label, char *mods, char *arg)
 {
     char nline[120];
 
-    format_line(nline, label, "LDX", "X", DOLLAREXIT, "");
+    format_line(nline, sizeof(nline), label, "LDX", "X", DOLLAREXIT, "");
     parse_line(nline);
 }
 
@@ -3771,7 +3770,8 @@ void askip (char *target)
 
         prep_line(nline);                           /* preform standard line prep */
 
-        strncpy(cur_label, nline, 6);               /* get first 5 characters */
+        /* Copy the fixed-width label field and terminate it explicitly. */
+        strncpy(cur_label, nline, 6);
         cur_label[5] = '\0';
 
         for (c = cur_label; *c > ' '; c++)          /* truncate at first whitespace */
@@ -4046,20 +4046,21 @@ void output_literals (bool eof)
 
     for (i = 0; i < n_literals; i++) {          /* generate DC statements for any pending literal constants */
         if (literal[i].even && literal[i].hex)              /* create the value string */
-            snprintf(num, sizeof(num), "/%08lX", literal[i].value);
+            snprintf(num, sizeof(num), "/%08X", literal[i].value);
         else if (literal[i].even)
-            snprintf(num, sizeof(num), "%ld",    literal[i].value);
+            snprintf(num, sizeof(num), "%d",     literal[i].value);
         else if (literal[i].hex)
             snprintf(num, sizeof(num), "/%04X",  literal[i].value & 0xFFFF);
         else
             snprintf(num, sizeof(num), "%d",     literal[i].value);
 
         snprintf(label, sizeof(label), "_L%03d", literal[i].tagno);
-        format_line(line, label, literal[i].even ? "DEC" : "DC", "", num, "GENERATED LITERAL CONSTANT");
+        format_line(line, sizeof(line), label, literal[i].even ? "DEC" : "DC",
+                    "", num, "GENERATED LITERAL CONSTANT");
 
         if (eof) {
             eof = false;                            /* at end of file, for first literal, only prepare blank line */
-            snprintf(listline, sizeof(listline), LEFT_MARGIN, org);
+            snprintf(listline, sizeof(listline), LEFT_MARGIN);
         }
         else
             listout(true);                          /* push out any pending line(s) */
@@ -4492,7 +4493,8 @@ void exprerr (int n)
     char msg[256];
     int nex = exprptr-oexprptr;
 
-    strncpy(msg, oexprptr, nex);        /* show where the problem was */
+    /* Copy the expression substring being diagnosed and terminate it below. */
+    strncpy(msg, oexprptr, nex);
     msg[nex] = '\0';
     strlcat(msg, " << ", sizeof(msg));
     strlcat(msg, errstr[n], sizeof(msg));

@@ -59,20 +59,18 @@ Status: 16Aug2002
    as a leading symbol in labels, I have to find out why
    this is.
 
-BUILD NOTES: if you download this simulator directly from
-IBM1130.org, the makefile, source, and binaries are all in
-the main directory. If you use the version from Bob Supnik's
-SIMH distribution, the makefile is in the main simh
-directory, and the SCP files used are Bob's.  For a
-Windows build, use the .mak file in the IBM1130 directory,
-as this incorporates the GUI.
+BUILD NOTES: historical source packages from IBM1130.org placed the
+makefile, source, and binaries in the main directory. Older SIMH
+distributions used the main SIMH makefile and Bob Supnik's SCP files;
+the standalone Windows package used a local .mak file for the GUI build.
 
-Make the utilities in the utils directory if you want
-to actually build and load DMS from scratch.  Move the
-executables to a common directory in your search path
+In ZIMH, build this simulator with the CMake tree. The standalone
+utilities in the utils directory are available through the non-default
+ibm1130-utils CMake target if you want to check that they still build,
+but they are not installed with the simulator binaries yet.
 
-Brian Knittel
-brian@ibm1130.org
+Upstream IBM 1130 simulator author:
+Brian Knittel <brian@ibm1130.org>
 
 --------------------------------------------------------------------------
 Some sample things to run:

@@ -156,6 +156,7 @@ int main (int argc, char **argv)
                     break;
 
                 case 5:
+                    /* Copy the card ID field prefix and terminate it explicitly. */
                     strncpy(cardid, arg, 9);
                     cardid[8] = '\0';
                     upcase(cardid);
