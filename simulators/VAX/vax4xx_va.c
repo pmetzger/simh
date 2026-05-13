@@ -30,6 +30,8 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax4xx_defs.h"
+#include "vax4xx_va.h"
 #include "sim_video.h"
 #include "vax_gpx.h"
 #include "vax_lk.h"
@@ -127,65 +129,62 @@
 #define FCC_CMPC        0xB                             /* CPMC - PLA address */
 #define FCC_MAXREG      0xB
 
-extern int32_t int_req[IPL_HLVL];
-extern int32_t tmxr_poll;                               /* calibrated delay */
-extern uint32_t fault_PC;
-extern uint32_t trpirq;
+static uint16_t va_ram[RAM_SIZE];
 
-uint16_t va_ram[RAM_SIZE];
+static uint32_t va_fcc_csr = 0;
+static uint32_t va_fcc_int = 0;
+static uint32_t va_fcc_fcsr = 0;
+static uint32_t va_fcc_data = 0;
+static uint32_t va_fcc_sc = 0;
+static int32_t va_fcc_fifo_sz = 0;                      /* data size */
+static int32_t va_fcc_fifo_th = 0;                      /* threshold */
+static uint32_t va_fcc_fifo_wp = 0;                     /* write pointer */
+static uint32_t va_fcc_fifo_rp = 0;                     /* read pointer */
 
-uint32_t va_fcc_csr = 0;
-uint32_t va_fcc_int = 0;
-uint32_t va_fcc_fcsr = 0;
-uint32_t va_fcc_data = 0;
-uint32_t va_fcc_sc = 0;
-int32_t va_fcc_fifo_sz = 0;                             /* data size */
-int32_t va_fcc_fifo_th = 0;                             /* threshold */
-uint32_t va_fcc_fifo_wp = 0;                            /* write pointer */
-uint32_t va_fcc_fifo_rp = 0;                            /* read pointer */
+static uint32_t va_ccmd = 0;                            /* cursor command reg */
+static uint32_t va_xpos = 0;                            /* cursor x position */
+static uint32_t va_ypos = 0;                            /* cursor y position */
+static uint32_t va_xmin1 = 0;                           /* region 1 left edge */
+static uint32_t va_xmax1 = 0;                           /* region 1 right edge */
+static uint32_t va_ymin1 = 0;                           /* region 1 top edge */
+static uint32_t va_ymax1 = 0;                           /* region 1 bottom edge */
+static uint32_t va_xmin2 = 0;                           /* region 2 left edge */
+static uint32_t va_xmax2 = 0;                           /* region 2 right edge */
+static uint32_t va_ymin2 = 0;                           /* region 2 top edge */
+static uint32_t va_ymax2 = 0;                           /* region 2 bottom edge */
+static uint16_t va_cur[32];                             /* cursor image data */
+static uint32_t va_cur_p = 0;                           /* cursor image pointer */
 
-uint32_t va_ccmd = 0;                                   /* cursor command reg */
-uint32_t va_xpos = 0;                                   /* cursor x position */
-uint32_t va_ypos = 0;                                   /* cursor y position */
-uint32_t va_xmin1 = 0;                                  /* region 1 left edge */
-uint32_t va_xmax1 = 0;                                  /* region 1 right edge */
-uint32_t va_ymin1 = 0;                                  /* region 1 top edge */
-uint32_t va_ymax1 = 0;                                  /* region 1 bottom edge */
-uint32_t va_xmin2 = 0;                                  /* region 2 left edge */
-uint32_t va_xmax2 = 0;                                  /* region 2 right edge */
-uint32_t va_ymin2 = 0;                                  /* region 2 top edge */
-uint32_t va_ymax2 = 0;                                  /* region 2 bottom edge */
-uint16_t va_cur[32];                                    /* cursor image data */
-uint32_t va_cur_p = 0;                                  /* cursor image pointer */
+static uint32_t va_cur_x = 0;                           /* Last cursor X-position */
+static uint32_t va_cur_y = 0;                           /* Last cursor Y-position */
+static uint32_t va_cur_f = 0;                           /* Last cursor function */
+static bool va_cur_v = false;                           /* Last cursor visible */
 
-uint32_t va_cur_x = 0;                                  /* Last cursor X-position */
-uint32_t va_cur_y = 0;                                  /* Last cursor Y-position */
-uint32_t va_cur_f = 0;                                  /* Last cursor function */
-bool va_cur_v = false;                                  /* Last cursor visible */
-
-bool va_active = false;
+static bool va_active = false;
 bool va_updated[2048];
-bool va_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
+static bool va_input_captured = false;                  /* Mouse and Keyboard input captured in video window */
 uint32_t *va_buf = NULL;                                /* Video memory */
-uint32_t *va_lines = NULL;                              /* Video Display Lines */
+static uint32_t *va_lines = NULL;                       /* Video Display Lines */
 #if defined(BT458)
-uint32_t va_palette[VA_BPP + CUR_COL];                  /* Colour palette (screen, cursor)*/
-uint32_t va_cmap2[VA_BPP + CUR_COL];                    /* Colour palette (screen, cursor)*/
+static uint32_t va_palette[VA_BPP + CUR_COL];           /* Colour palette (screen, cursor)*/
+static uint32_t va_cmap2[VA_BPP + CUR_COL];             /* Colour palette (screen, cursor)*/
 #else
-uint32_t va_palette[VA_BPP + VA_BPP + CUR_COL];         /* Colour palette (fg, bg, cursor)*/
+static uint32_t va_palette[VA_BPP + VA_BPP + CUR_COL];  /* Colour palette (fg, bg, cursor)*/
 #endif
 
-uint32_t va_dla = 0;                                    /* display list addr */
-int32_t va_yoff = 0;
-int32_t va_dpln = 0;
-uint32_t va_white = 0;
-uint32_t va_black = 0;
+static uint32_t va_dla = 0;                             /* display list addr */
+static int32_t va_yoff = 0;
+static int32_t va_dpln = 0;
+static uint32_t va_white = 0;
+static uint32_t va_black = 0;
 
-uint32_t va_bt458_addr = 0;
-uint32_t va_cmap_p = 0;
-uint32_t va_cmap[3];
+static uint32_t va_bt458_addr = 0;
+#if defined(BT458)
+static uint32_t va_cmap_p = 0;
+static uint32_t va_cmap[3];
+#endif
 
-const char *va_fcc_rgd[] = {                            /* FIFO compression chip registers */
+static const char *va_fcc_rgd[] = {                     /* FIFO compression chip registers */
     "Colour Board CSR",
     "Interrupt CSR",
     "FIFO CSR",
@@ -200,7 +199,8 @@ const char *va_fcc_rgd[] = {                            /* FIFO compression chip
     "CMPC - PLA Address"
     };
 
-const char *va_dac_rgd[] = {                            /* D/A converter registers */
+#if !defined(BT458)
+static const char *va_dac_rgd[] = {                     /* D/A converter registers */
     "Active Region Colour 0",
     "Active Region Colour 1",
     "Active Region Colour 2",
@@ -254,8 +254,9 @@ const char *va_dac_rgd[] = {                            /* D/A converter registe
     "Delay Adjust - Blank",
     "Delay Adjust - Active Region"
     };
+#endif
 
-const char *va_ccr_rgd[] = {                            /* cusror chip registers */
+static const char *va_ccr_rgd[] = {                     /* cusror chip registers */
     "Command Register",
     "X Position",
     "Y Position",
@@ -274,23 +275,20 @@ const char *va_ccr_rgd[] = {                            /* cusror chip registers
     "Cursor Bitmap"
     };
 
-t_stat va_svc (UNIT *uptr);
-t_stat va_dmasvc (UNIT *uptr);
-t_stat va_reset (DEVICE *dptr);
-t_stat va_attach (UNIT *uptr, const char *cptr);
-t_stat va_detach (UNIT *uptr);
-t_stat va_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat va_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat va_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
-t_stat va_set_yoff (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat va_show_yoff (FILE* st, UNIT* uptr, int32_t val, const void* desc);
-t_stat va_set_dpln (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat va_show_dpln (FILE* st, UNIT* uptr, int32_t val, const void* desc);
-t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *va_description (DEVICE *dptr);
-void va_dlist (void);
-
-extern int32_t eval_int (void);
+static t_stat va_svc (UNIT *uptr);
+static t_stat va_dmasvc (UNIT *uptr);
+static t_stat va_reset (DEVICE *dptr);
+static t_stat va_detach (UNIT *uptr);
+static t_stat va_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat va_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat va_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+static t_stat va_set_yoff (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat va_show_yoff (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+static t_stat va_set_dpln (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat va_show_dpln (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+static t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *va_description (DEVICE *dptr);
+static void va_dlist (void);
 
 /* GPX data structures
 
@@ -300,7 +298,7 @@ extern int32_t eval_int (void);
    va_mod       GPX modifier list
 */
 
-DIB va_dib = {
+static DIB va_dib = {
     VA_ROM_INDEX, BOOT_CODE_ARRAY, BOOT_CODE_SIZE
     };
 
@@ -309,7 +307,7 @@ UNIT va_unit[] = {
     { UDATA (&va_dmasvc, UNIT_IDLE+UNIT_DIS, 0) },
     };
 
-REG va_reg[] = {
+static REG va_reg[] = {
     { HRDATAD (AADCT, va_adp[ADP_ADCT], 16, "address counter") },
     { HRDATAD (AREQ,  va_adp[ADP_REQ],  16, "request enable") },
     { HRDATAD (AINT,  va_adp[ADP_INT],  16, "interrupt enable") },
@@ -318,7 +316,7 @@ REG va_reg[] = {
     { NULL }
     };
 
-MTAB va_mod[] = {
+static MTAB va_mod[] = {
     { MTAB_XTD|MTAB_VDV, 1, NULL, "ENABLE",
         &va_set_enable, NULL, NULL, "Enable GPX" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
@@ -834,7 +832,7 @@ if (rg >= VA_ADP_OF) {                                  /* address processor */
     }
 }
 
-void va_dlist (void)
+static void va_dlist (void)
 {
 bool nodec = false;
 uint32_t inst, saved_inst;
@@ -954,7 +952,7 @@ for (ln = y1; ln < y2; ln++)
     va_updated[ln] = true;                              /* flag as updated */
 }
 
-t_stat va_svc (UNIT *uptr)
+static t_stat va_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
@@ -1165,9 +1163,9 @@ for (;;) {
     }
 }
 
-int32_t debug_flag = 0;
+static int32_t debug_flag = 0;
 
-t_stat va_dmasvc (UNIT *uptr)
+static t_stat va_dmasvc (UNIT *uptr)
 {
 uint16_t data;
 
@@ -1271,7 +1269,7 @@ else if ((va_fcc_int & 0xC0) == 0xC0)                   /* threshold interrupt *
 return SCPE_OK;
 }
 
-t_stat va_reset (DEVICE *dptr)
+static t_stat va_reset (DEVICE *dptr)
 {
 int32_t i;
 t_stat r;
@@ -1286,7 +1284,9 @@ va_fcc_csr = 0x8000;
 va_dla = 0;
 
 va_bt458_addr = 0;
+#if defined(BT458)
 va_cmap_p = 0;
+#endif
 
 for (i = 0; i < VA_YSIZE; i++)
     va_updated[i] = true;
@@ -1343,7 +1343,7 @@ sim_activate_abs (&va_unit[0], tmxr_poll);
 return SCPE_OK;
 }
 
-t_stat va_detach (UNIT *uptr)
+static t_stat va_detach (UNIT *uptr)
 {
 /* Generic detach signature.
    This implementation does not use every parameter. */
@@ -1356,7 +1356,7 @@ if ((va_dev.flags & DEV_DIS) == 0) {
 return SCPE_OK;
 }
 
-t_stat va_set_yoff (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat va_set_yoff (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1375,7 +1375,7 @@ for (i = 0; i < VA_YSIZE; i++)
 return r;
 }
 
-t_stat va_show_yoff (FILE* st, UNIT* uptr, int32_t val, const void* desc)
+static t_stat va_show_yoff (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1387,7 +1387,7 @@ fprintf (st, "%d", va_yoff);
 return SCPE_OK;
 }
 
-t_stat va_set_dpln (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat va_set_dpln (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1410,7 +1410,7 @@ for (i = 0; i < VA_YSIZE; i++)
 return r;
 }
 
-t_stat va_show_dpln (FILE* st, UNIT* uptr, int32_t val, const void* desc)
+static t_stat va_show_dpln (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1422,7 +1422,7 @@ fprintf (st, "%d", va_dpln);
 return SCPE_OK;
 }
 
-t_stat va_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat va_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1433,7 +1433,7 @@ t_stat va_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 return cpu_set_model (NULL, 0, (val ? "VAXSTATIONGPX" : "MICROVAX"), NULL);
 }
 
-t_stat va_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat va_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1447,7 +1447,7 @@ va_input_captured = (val != 0);
 return SCPE_OK;
 }
 
-t_stat va_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
+static t_stat va_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 if (va_input_captured) {
     fprintf (st, "Captured Input Mode, ");
@@ -1458,7 +1458,7 @@ else
 return SCPE_OK;
 }
 
-t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat va_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -1475,7 +1475,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *va_description (DEVICE *dptr)
+static const char *va_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

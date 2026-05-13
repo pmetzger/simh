@@ -40,14 +40,14 @@ struct vdp_t {
 typedef struct vdp_t VDP;
 
 int32_t va_adp[ADP_NUMREG];                             /* Address processor registers */
-uint32_t va_adp_fifo[VA_FIFOSIZE];                      /* ADP FIFO */
-uint32_t va_adp_fifo_wp;                                /* write pointer */
-uint32_t va_adp_fifo_rp;                                /* read pointer */
-uint32_t va_adp_fifo_sz;                                /* data size */
+static uint32_t va_adp_fifo[VA_FIFOSIZE];               /* ADP FIFO */
+static uint32_t va_adp_fifo_wp;                         /* write pointer */
+static uint32_t va_adp_fifo_rp;                         /* read pointer */
+static uint32_t va_adp_fifo_sz;                         /* data size */
 
-VDP va_vdp[8];                                          /* 8 video processors */
-uint32_t va_ucs = 0;                                    /* update chip select */
-uint32_t va_scs = 0;                                    /* scroll chip select */
+static VDP va_vdp[8];                                   /* 8 video processors */
+static uint32_t va_ucs = 0;                             /* update chip select */
+static uint32_t va_scs = 0;                             /* scroll chip select */
 
 typedef struct {
     int32_t x;
@@ -61,14 +61,14 @@ typedef struct {
     int32_t spix;
 } VA_LINE;
 
-VA_LINE s1_slow, s1_fast, dst_slow, dst_fast;
-VA_LINE s2_slow, s2_fast;
-int32_t dx, dy;
-int32_t s2_pixf, s2_pixs;
-uint32_t s2_xmask, s2_ymask;
-DEVICE *gpx_dev;
+static VA_LINE s1_slow, s1_fast, dst_slow, dst_fast;
+static VA_LINE s2_slow, s2_fast;
+static int32_t dx, dy;
+static int32_t s2_pixf, s2_pixs;
+static uint32_t s2_xmask, s2_ymask;
+static DEVICE *gpx_dev;
 
-const char *va_adp_rgd[] = {                            /* address processor registers */
+static const char *va_adp_rgd[] = {                     /* address processor registers */
     "Address Counter",
     "Request Enable",
     "Interrupt Enable",
@@ -135,7 +135,7 @@ const char *va_adp_rgd[] = {                            /* address processor reg
     "Sync Phase"
     };
 
-const char *va_vdp_rgd[] = {                            /* video processor registers */
+static const char *va_vdp_rgd[] = {                     /* video processor registers */
     "Resolution Mode",
     "Bus Width",
     "Scroll Constant",
@@ -162,7 +162,7 @@ const char *va_vdp_rgd[] = {                            /* video processor regis
     "Reserved"
     };
 
-const char *va_fnc[] = {                                /* logic functions */
+static const char *va_fnc[] = {                         /* logic functions */
     "ZEROs",
     "NOT (D OR S)",
     "NOT (D) AND S",
@@ -181,13 +181,12 @@ const char *va_fnc[] = {                                /* logic functions */
     "ONEs"
     };
 
-void va_adpstat (uint32_t set, uint32_t clr);
-void va_fifo_clr (void);
-void va_cmd (int32_t cmd);
-void va_scmd (int32_t cmd);
-void va_fill_setup (void);
-void va_adp_setup (void);
-void va_erase (uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1);
+static void va_fifo_clr (void);
+static void va_cmd (int32_t cmd);
+static void va_scmd (int32_t cmd);
+static void va_fill_setup (void);
+static void va_adp_setup (void);
+static void va_erase (uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1);
 
 void va_adpstat (uint32_t set, uint32_t clr)
 {
@@ -197,7 +196,7 @@ va_adp[ADP_STAT] = va_adp[ADP_STAT] | set;
 va_adp[ADP_STAT] = va_adp[ADP_STAT] & ~clr;
 }
 
-void va_fifo_clr (void)
+static void va_fifo_clr (void)
 {
 sim_debug (DBG_FIFO, gpx_dev, "va_fifo_clr\n");
 va_adp_fifo[0] = 0;                                     /* clear top word */
@@ -943,7 +942,7 @@ va_adpstat (ADPSTAT_AC | ADPSTAT_RC, 0);
 return SCPE_OK;
 }
 
-void va_cmd (int32_t cmd)
+static void va_cmd (int32_t cmd)
 {
 uint32_t sel, cn, val, rg;
 uint32_t adp_opc = (cmd >> 8) & 0x7;
@@ -1278,7 +1277,7 @@ switch (adp_opc) {                                      /* address processor opc
 sim_debug (DBG_ROP, gpx_dev, "Command: Unknown(%02X)\n", cmd);
 }
 
-void va_scmd (int32_t cmd)
+static void va_scmd (int32_t cmd)
 {
 uint32_t sel, cn, val, rg;
 uint32_t adp_opc = (cmd >> 8) & 0x7;
@@ -1555,7 +1554,7 @@ else {                                                  /* up, left or right */
 va_adp[ADP_PYSC] = 0;
 }
 
-void va_adp_setup (void)
+static void va_adp_setup (void)
 {
 int32_t sx, sy;
 uint32_t pix;
@@ -1638,7 +1637,7 @@ if ((va_adp[ADP_CMD1] & 0x400) && (va_adp[ADP_MDE] & 0x80)) /* dest enabled, pen
 sim_debug (DBG_ROP, gpx_dev, "\n");
 }
 
-void va_fill_setup (void)
+static void va_fill_setup (void)
 {
 int32_t sx, sy;
 uint32_t pix;
@@ -1815,7 +1814,7 @@ va_adpstat (ADPSTAT_RC, 0);
 return SCPE_OK;
 }
 
-void va_erase (uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1)
+static void va_erase (uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1)
 {
 uint32_t i, j, msk, val, x, y, dest;
 uint8_t zfill[16];

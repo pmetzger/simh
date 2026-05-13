@@ -82,6 +82,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "vax_vc.h"
+
 /* Microcode constructs */
 
 #define CVAX_SID        (10 << 24)                      /* system ID */
@@ -136,7 +138,7 @@
                         { UNIT_MSIZE, (1u << 28), NULL, "256M", &cpu_set_size, NULL, NULL, "Set Memory to 256M bytes" },            \
                         { UNIT_MSIZE, (1u << 29), NULL, "512M", &cpu_set_size, NULL, NULL, "Set Memory to 512M bytes" },            \
                         { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "MEMORY", NULL, NULL, &cpu_show_memory, NULL, "Display memory configuration" }
-extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
 #define CPU_MODEL_MODIFIERS { MTAB_XTD|MTAB_VDV, 0, "MODEL", "MODEL={VAXserver|MicroVAX|VAXstation}",       \
                               &cpu_set_model, &cpu_show_model, NULL, "Set/Display processor model" },       \
                             { MTAB_XTD|MTAB_VDV, 0,          "AUTOBOOT",   "AUTOBOOT",                      \
@@ -245,7 +247,6 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* de
 #define ADDR_IS_QVM(x)  (vc_buf &&                      \
                          (((uint32_t) (x)) >= QVMBASE) && \
                          (((uint32_t) (x)) < (QVMBASE + QVMSIZE)))
-extern uint32_t *vc_buf;
 
 /* Machine specific reserved operand tests (mostly NOPs) */
 
@@ -469,12 +470,17 @@ int32_t cqipc_rd (int32_t pa);
 void cqipc_wr (int32_t pa, int32_t val, int32_t lnt);
 int32_t cqmap_rd (int32_t pa);
 void cqmap_wr (int32_t pa, int32_t val, int32_t lnt);
+void cdg_wr (int32_t pa, int32_t val, int32_t lnt);
+void cmctl_wr (int32_t pa, int32_t val, int32_t lnt);
 int32_t iccs_rd (void);
 void iccs_wr (int32_t data);
 void ioreset_wr (int32_t data);
+int32_t nvr_rd (int32_t pa);
+void nvr_wr (int32_t pa, int32_t val, int32_t lnt);
 int32_t rxcs_rd (void);
 void rxcs_wr (int32_t data);
 int32_t rxdb_rd (void);
+void ssc_wr (int32_t pa, int32_t val, int32_t lnt);
 int32_t todr_rd (void);
 void todr_wr (int32_t data);
 int32_t txcs_rd (void);
@@ -484,8 +490,8 @@ int32_t sysd_hlt_enb (void);
 
 #include "pdp11_io_lib.h"
 
-extern t_stat sysd_set_halt (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern t_stat sysd_show_halt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat sysd_set_halt (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat sysd_show_halt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* Function prototypes for system-specific unaligned support */
 

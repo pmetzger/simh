@@ -37,6 +37,7 @@
 
 #include "vax_defs.h"
 #include "sim_tmxr.h"
+#include "vax_uw_internal.h"
 
 #define UW_UNITS 1
 #define IOLN_UW 16
@@ -44,14 +45,13 @@
 #define DBG_INT  0x0002
 #define DBG_FIB  0x0004
 
-t_stat uw_svc (UNIT *uptr);
-t_stat uw_wr (int32_t data, int32_t PA, int32_t access);
-t_stat uw_rd (int32_t *data, int32_t PA, int32_t access);
-int32_t uw_inta (void);
-t_stat uw_reset (DEVICE *dptr);
-t_stat uw_attach (UNIT *uptr, const char *cptr);
-t_stat uw_detach (UNIT *uptr);
-const char *uw_description (DEVICE *dptr);
+static t_stat uw_svc (UNIT *uptr);
+static t_stat uw_rd (int32_t *data, int32_t PA, int32_t access);
+static int32_t uw_inta (void);
+static t_stat uw_reset (DEVICE *dptr);
+static t_stat uw_attach (UNIT *uptr, const char *cptr);
+static t_stat uw_detach (UNIT *uptr);
+static const char *uw_description (DEVICE *dptr);
 
 uint16_t uw_csr[IOLN_UW];
 
@@ -109,29 +109,29 @@ uint16_t uw_csr[IOLN_UW];
 
 #define POLL_SLOW   100000 //Poll for connection every 100 ms.
 #define POLL_FAST     1000 //Poll for data every 1 ms.
-int32_t uw_poll = POLL_SLOW;
+static int32_t uw_poll = POLL_SLOW;
 
 //Max message size is 7.
-uint8_t uw_message[7];
-uint8_t uw_length;
+static uint8_t uw_message[7];
+static uint8_t uw_length;
 
-DEBTAB uw_debug[] = {
+static DEBTAB uw_debug[] = {
     { "REG",  DBG_REG,  "Register access" },
     { "INT",  DBG_INT,  "Interrupt" },
     { "FIB",  DBG_FIB,  "Fibre data" },
     {0}
     };
 
-TMLN uw_ldsc[UW_UNITS] = { 0 };
-TMXR uw_desc = { UW_UNITS, 0, 0, uw_ldsc };
-UNIT uw_unit[UW_UNITS] = { { UDATA (uw_svc, UNIT_IDLE|UNIT_ATTABLE, 0) } };
+static TMLN uw_ldsc[UW_UNITS] = { 0 };
+static TMXR uw_desc = { UW_UNITS, 0, 0, uw_ldsc };
+static UNIT uw_unit[UW_UNITS] = { { UDATA (uw_svc, UNIT_IDLE|UNIT_ATTABLE, 0) } };
 
-REG uw_reg[] = {
+static REG uw_reg[] = {
     { BRDATAD (CSR, uw_csr, 16, IOLN_UW, 16, "Control and status registers") },
     { NULL }
     };
 
-MTAB uw_mod[] = {
+static MTAB uw_mod[] = {
     { MTAB_XTD|MTAB_VDV|MTAB_VALR, 004, "ADDRESS", "ADDRESS",
         &set_addr, &show_addr, NULL, "Bus address" },
     { MTAB_XTD|MTAB_VDV, 0, "VECTOR", NULL,
@@ -139,7 +139,7 @@ MTAB uw_mod[] = {
     { 0 }
     };
 
-DIB uw_dib = {
+static DIB uw_dib = {
     IOBA_AUTO, 2*IOLN_UW, &uw_rd, &uw_wr,
     2, IVCL (UW), VEC_AUTO, { &uw_inta, &uw_inta }
     };
@@ -247,7 +247,7 @@ if(xmit_off) {
 return SCPE_OK;
 }
 
-t_stat uw_rd (int32_t *data, int32_t pa, int32_t access)
+static t_stat uw_rd (int32_t *data, int32_t pa, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -259,7 +259,7 @@ sim_debug (DBG_REG, &uw_dev, "Read CSR%d: %04X\n", pa, *data);
 return SCPE_OK;
 }
 
-int32_t uw_inta (void)
+static int32_t uw_inta (void)
 {
 sim_debug (DBG_INT, &uw_dev, "Interrupt ack: %03o\n", IVR);
 return IVR;
@@ -356,7 +356,7 @@ default:
 uw_length = 0;
 }
 
-t_stat uw_svc (UNIT *uptr)
+static t_stat uw_svc (UNIT *uptr)
 {
 /* Generic unit service signature.
    This implementation does not use every parameter. */
@@ -397,7 +397,7 @@ for(;;) {
 return SCPE_OK;
 }
 
-t_stat uw_reset (DEVICE *dptr)
+static t_stat uw_reset (DEVICE *dptr)
 {
 memset(uw_csr, 0, sizeof uw_csr);
 if (uw_unit->flags & UNIT_ATT)
@@ -408,7 +408,7 @@ IRR = 1;
 return auto_config (dptr->name, (dptr->flags & DEV_DIS) ? 0 : 1);
 }
 
-t_stat uw_attach (UNIT *uptr, const char *cptr)
+static t_stat uw_attach (UNIT *uptr, const char *cptr)
 {
 t_stat stat;
 tmxr_set_notelnet (&uw_desc);
@@ -421,7 +421,7 @@ sim_activate (uw_unit, 1);
 return stat;
 }
 
-t_stat uw_detach (UNIT *uptr)
+static t_stat uw_detach (UNIT *uptr)
 {
 t_stat stat = tmxr_detach (&uw_desc, uptr);
 uw_ldsc[0].rcve = 0;
@@ -430,7 +430,7 @@ sim_cancel (uw_unit);
 return stat;
 }
 
-const char *uw_description (DEVICE *dptr)
+static const char *uw_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

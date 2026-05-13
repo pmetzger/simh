@@ -6,21 +6,13 @@
 
 #include "vax_defs.h"
 #include "vax4xx_rom_patch.h"
+#include "vax4xx_stddev.h"
+#include "vax4xx_stddev_internal.h"
 
 /*
  * These tests preserve the legacy KA4xx standard-device ROM, NVR, and option
  * ROM bit-packing behavior at the real entry points.
  */
-
-int32_t rom_rd(int32_t pa);
-void rom_wr_B(int32_t pa, int32_t val);
-int32_t nvr_rd(int32_t pa);
-void nvr_wr(int32_t pa, int32_t val, int32_t lnt);
-int32_t or_rd(int32_t pa);
-
-extern uint32_t *rom;
-extern uint32_t *nvr;
-extern UNIT or_unit[];
 
 static uint32_t test_rom[ROMSIZE >> 2];
 static uint32_t test_nvr[NVRSIZE >> 2];

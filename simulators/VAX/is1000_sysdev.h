@@ -1,0 +1,26 @@
+/* is1000_sysdev.h: InfoServer 1000 system-device interfaces */
+// SPDX-FileCopyrightText: 2019 Matt Burke
+// SPDX-FileCopyrightText: 1998-2008 Robert M Supnik
+// SPDX-License-Identifier: X11
+
+#ifndef IS1000_SYSDEV_H_
+#define IS1000_SYSDEV_H_ 1
+
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "sim_defs.h"
+
+extern int32_t sys_model;
+
+int32_t Map_ReadB(uint32_t ba, int32_t bc, uint8_t *buf, bool map);
+int32_t Map_ReadW(uint32_t ba, int32_t bc, uint16_t *buf, bool map);
+int32_t Map_WriteB(uint32_t ba, int32_t bc, uint8_t *buf, bool map);
+int32_t Map_WriteW(uint32_t ba, int32_t bc, uint16_t *buf, bool map);
+
+int32_t ReadRegU(uint32_t pa, int32_t lnt);
+void WriteRegU(uint32_t pa, int32_t val, int32_t lnt);
+
+t_stat auto_config(const char *name, int32_t nctrl);
+
+#endif /* IS1000_SYSDEV_H_ */

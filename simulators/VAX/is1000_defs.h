@@ -51,6 +51,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "sim_defs.h"
+#include "vax_nar.h"
+
 /* Microcode constructs */
 
 #define CVAX_SID        (10 << 24)                      /* system ID */
@@ -241,9 +244,9 @@ typedef struct {
 #define CLR_INT(dv)     int_req[0] = int_req[0] & ~(INT_##dv)
 #define IORETURN(f,v)   ((f)? (v): SCPE_OK)             /* cond error return */
 
-/* System model */
-
-extern int32_t sys_model;
+#include "is1000_sysdev.h"
+#include "vax_rzdev.h"
+#include "vax4nn_stddev.h"
 
 /* Machine specific definitions - DZ */
 
@@ -265,22 +268,6 @@ extern int32_t sys_model;
 #define XS_WRITEB(ba,bc,buf)   Map_WriteB(ba, bc, buf, false)
 #define XS_WRITEW(ba,bc,buf)   Map_WriteW(ba, bc, buf, false)
 #define XS_ADRMBO       (0)
-
-/* Function prototypes for I/O */
-
-int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf, bool map);
-int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf, bool map);
-int32_t Map_WriteB (uint32_t ba, int32_t bc, uint8_t *buf, bool map);
-int32_t Map_WriteW (uint32_t ba, int32_t bc, uint16_t *buf, bool map);
-
-/* Function prototypes for system-specific unaligned support */
-
-int32_t ReadIOU (uint32_t pa, int32_t lnt);
-int32_t ReadRegU (uint32_t pa, int32_t lnt);
-void WriteIOU (uint32_t pa, int32_t val, int32_t lnt);
-void WriteRegU (uint32_t pa, int32_t val, int32_t lnt);
-
-t_stat auto_config (const char *name, int32_t nctrl);
 
 /* Function prototypes for virtual and physical memory interface (inlined) */
 

@@ -1,7 +1,9 @@
 /* vax_cpu1_internal.h: internal VAX complex-instruction helpers */
+// SPDX-FileCopyrightText: 1998-2017 Robert M Supnik
+// SPDX-License-Identifier: X11
 
 #ifndef VAX_CPU1_INTERNAL_H_
-#define VAX_CPU1_INTERNAL_H_ 0
+#define VAX_CPU1_INTERNAL_H_ 1
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -30,6 +30,8 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax4xx_defs.h"
+#include "vax4xx_ve.h"
 #include "sim_video.h"
 #include "vax_lk.h"
 #include "vax_vs.h"
@@ -116,11 +118,6 @@
 #define GET_FIFO(x)     ((x >> 3) - 2)
 #define FIFO_LEN        0x4000
 
-extern int32_t tmxr_poll;
-extern int32_t ka_cfgtst;
-extern uint32_t vc_org;
-extern uint32_t vc_last_org;
-
 struct fifo_reg_t {
     uint32_t buf[FIFO_LEN >> 2];
     uint32_t put_ptr;
@@ -132,57 +129,57 @@ struct fifo_reg_t {
 
 typedef struct fifo_reg_t FIFO_REG;
 
-uint32_t bt459_addr = 0;
-uint32_t bt459_cmap_p = 0;
-uint32_t bt459_cmap[3];
-uint32_t cp_fb_format = 0;
-uint32_t cp_int_status = 0;
-uint32_t cp_int_mask = 0;
-uint32_t gf_fb_format = 0;
-uint32_t spx_xstart = 0;
-uint32_t spx_ystart = 0;
-uint32_t spx_xend = 0;
-uint32_t spx_yend = 0;
-uint32_t spx_dstpix = 0;
-uint32_t spx_srcpix = 0;
-uint32_t spx_fg = 0;
-uint32_t spx_cmd = 0;
-uint32_t spx_rmask = 0;
-uint32_t spx_wmask = 0;
-uint32_t spx_smask = 0;
-uint32_t spx_dmask = 0;
-uint32_t spx_strx = 0;
-uint32_t spx_stry = 0;
-uint32_t spx_destloop = 0;
-uint32_t spx_upc = 0;                                   /* micro pc */
-uint32_t spx_status = 0;
-uint32_t tbc_csr = 0;
-FIFO_REG tbc_fifo[4];
-uint32_t tbc_table = 0;
-uint32_t tbc_timing_setup = 0;
-uint32_t spx_timing_csr = 0;
-uint32_t tbc_ltrr = 0;
-uint32_t tbc_timing = 0;
-bool ve_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
-uint8_t *ve_buf = NULL;                                 /* Video memory */
-uint32_t *ve_lines = NULL;                              /* Video Display Lines */
-uint32_t ve_palette[256];
-bool ve_updated[VE_YSIZE];
-bool ve_active = false;
+static uint32_t bt459_addr = 0;
+static uint32_t bt459_cmap_p = 0;
+static uint32_t bt459_cmap[3];
+static uint32_t cp_fb_format = 0;
+static uint32_t cp_int_status = 0;
+static uint32_t cp_int_mask = 0;
+static uint32_t gf_fb_format = 0;
+static uint32_t spx_xstart = 0;
+static uint32_t spx_ystart = 0;
+static uint32_t spx_xend = 0;
+static uint32_t spx_yend = 0;
+static uint32_t spx_dstpix = 0;
+static uint32_t spx_srcpix = 0;
+static uint32_t spx_fg = 0;
+static uint32_t spx_cmd = 0;
+static uint32_t spx_rmask = 0;
+static uint32_t spx_wmask = 0;
+static uint32_t spx_smask = 0;
+static uint32_t spx_dmask = 0;
+static uint32_t spx_strx = 0;
+static uint32_t spx_stry = 0;
+static uint32_t spx_destloop = 0;
+static uint32_t spx_upc = 0;                            /* micro pc */
+static uint32_t spx_status = 0;
+static uint32_t tbc_csr = 0;
+static FIFO_REG tbc_fifo[4];
+static uint32_t tbc_table = 0;
+static uint32_t tbc_timing_setup = 0;
+static uint32_t spx_timing_csr = 0;
+static uint32_t tbc_ltrr = 0;
+static uint32_t tbc_timing = 0;
+static bool ve_input_captured = false;                  /* Mouse and Keyboard input captured in video window */
+static uint8_t *ve_buf = NULL;                          /* Video memory */
+static uint32_t *ve_lines = NULL;                       /* Video Display Lines */
+static uint32_t ve_palette[256];
+static bool ve_updated[VE_YSIZE];
+static bool ve_active = false;
 
-t_stat ve_svc (UNIT *uptr);
-t_stat ve_micro_svc (UNIT *uptr);
-t_stat ve_reset (DEVICE *dptr);
-t_stat ve_detach (UNIT *dptr);
-t_stat ve_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat ve_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat ve_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
-t_stat ve_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *ve_description (DEVICE *dptr);
-int32_t tbc_rd (int32_t rg);
-void tbc_wr (int32_t rg, int32_t val, int32_t lnt);
-int32_t scn_rd (int32_t rg);
-void scn_wr (int32_t rg, int32_t val, int32_t lnt);
+static t_stat ve_svc (UNIT *uptr);
+static t_stat ve_micro_svc (UNIT *uptr);
+static t_stat ve_reset (DEVICE *dptr);
+static t_stat ve_detach (UNIT *dptr);
+static t_stat ve_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat ve_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat ve_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+static t_stat ve_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *ve_description (DEVICE *dptr);
+static int32_t tbc_rd (int32_t rg);
+static void tbc_wr (int32_t rg, int32_t val, int32_t lnt);
+static int32_t scn_rd (int32_t rg);
+static void scn_wr (int32_t rg, int32_t val, int32_t lnt);
 static void ve_put_fifo (uint32_t id, uint32_t data);
 static void ve_get_fifo (uint32_t id, uint32_t *data);
 static void ve_clear_fifo (uint32_t id);
@@ -195,16 +192,16 @@ static void ve_clear_fifo (uint32_t id);
    ve_reg      VE register list
 */
 
-DIB ve_dib = {
+static DIB ve_dib = {
     VE_ROM_INDEX, BOOT_CODE_ARRAY, BOOT_CODE_SIZE
     };
 
-UNIT ve_unit[] = {
+static UNIT ve_unit[] = {
     { UDATA (&ve_svc, UNIT_IDLE, 0) },
     { UDATA (&ve_micro_svc, UNIT_IDLE+UNIT_DIS, 0) }
     };
 
-REG ve_reg[] = {
+static REG ve_reg[] = {
     { NULL }
     };
 
@@ -213,7 +210,7 @@ REG ve_reg[] = {
 #define DBG_REG         0x0100                          /* register activity */
 #define DBG_ROP         0x0200                          /* raster operations */
 
-DEBTAB ve_debug[] = {
+static DEBTAB ve_debug[] = {
     {"REG",     DBG_REG,                "Register activity"},
     {"ROP",     DBG_ROP,                "Raster operations"},
     {"VMOUSE",  SIM_VID_DBG_MOUSE,      "Video Mouse"},
@@ -223,7 +220,7 @@ DEBTAB ve_debug[] = {
     { 0 }
     };
 
-MTAB ve_mod[] = {
+static MTAB ve_mod[] = {
     { MTAB_XTD|MTAB_VDV, 1, NULL, "ENABLE",
         &ve_set_enable, NULL, NULL, "Enable VCB01 (QVSS)" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
@@ -491,7 +488,7 @@ tbc_fifo[id].get_ptr = 0;
 tbc_fifo[id].count = FIFO_LEN;
 }
 
-int32_t tbc_rd (int32_t rg)
+static int32_t tbc_rd (int32_t rg)
 {
 uint32_t data = 0;
 
@@ -641,7 +638,7 @@ switch (rg) {
 return data;
 }
 
-void tbc_wr (int32_t rg, int32_t val, int32_t lnt)
+static void tbc_wr (int32_t rg, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -859,7 +856,7 @@ switch (rg) {
         }
 }
 
-int32_t scn_rd (int32_t rg)
+static int32_t scn_rd (int32_t rg)
 {
 uint32_t data = 0;
 
@@ -976,7 +973,7 @@ switch (rg) {
 return data;
 }
 
-void scn_wr (int32_t rg, int32_t val, int32_t lnt)
+static void scn_wr (int32_t rg, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -1251,7 +1248,7 @@ else {                                                  /* read */
     }
 }
 
-t_stat ve_micro_svc (UNIT *uptr)
+static t_stat ve_micro_svc (UNIT *uptr)
 {
 /* Generic service signature.
    This implementation does not use every parameter. */
@@ -1293,7 +1290,7 @@ for (ln = y1; ln < y2; ln++)
     ve_updated[ln] = true;                              /* flag as updated */
 }
 
-t_stat ve_svc (UNIT *uptr)
+static t_stat ve_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
@@ -1410,7 +1407,7 @@ if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or error? */
 return SCPE_OK;
 }
 
-t_stat ve_reset (DEVICE *dptr)
+static t_stat ve_reset (DEVICE *dptr)
 {
 t_stat r;
 uint32_t i;
@@ -1493,7 +1490,7 @@ sim_activate_abs (&ve_unit[0], tmxr_poll);
 return SCPE_OK;
 }
 
-t_stat ve_detach (UNIT *uptr)
+static t_stat ve_detach (UNIT *uptr)
 {
 /* Generic detach signature.
    This implementation does not use every parameter. */
@@ -1506,7 +1503,7 @@ if ((ve_dev.flags & DEV_DIS) == 0) {
 return SCPE_OK;
 }
 
-t_stat ve_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat ve_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1517,7 +1514,7 @@ t_stat ve_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 return cpu_set_model (NULL, 0, (val ? "VAXSTATIONSPX" : "MICROVAX"), NULL);
 }
 
-t_stat ve_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat ve_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -1531,7 +1528,7 @@ ve_input_captured = (val != 0);
 return SCPE_OK;
 }
 
-t_stat ve_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
+static t_stat ve_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 if (ve_input_captured) {
     fprintf (st, "Captured Input Mode, ");
@@ -1542,7 +1539,7 @@ else
 return SCPE_OK;
 }
 
-t_stat ve_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat ve_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -1559,7 +1556,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *ve_description (DEVICE *dptr)
+static const char *ve_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

@@ -34,6 +34,7 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax630_stddev.h"
 #include "sim_tmxr.h"
 
 #define TTICSR_IMP      (CSR_DONE + CSR_IE)             /* terminal input */
@@ -49,27 +50,25 @@
 #define CLK_DELAY       5000                            /* 100 Hz */
 #define TMXR_MULT       1                               /* 100 Hz */
 
-int32_t tti_csr = 0;                                    /* control/status */
-uint32_t tti_buftime;                                   /* time input character arrived */
-int32_t tto_csr = 0;                                    /* control/status */
-int32_t clk_csr = 0;                                    /* control/status */
+static int32_t tti_csr = 0;                             /* control/status */
+static uint32_t tti_buftime;                            /* time input character arrived */
+static int32_t tto_csr = 0;                             /* control/status */
+static int32_t clk_csr = 0;                             /* control/status */
 int32_t clk_tps = 100;                                  /* ticks/second */
 int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
 int32_t tmr_poll = CLK_DELAY;                           /* pgm timer poll */
 
-t_stat tti_svc (UNIT *uptr);
-t_stat tto_svc (UNIT *uptr);
-t_stat clk_svc (UNIT *uptr);
-t_stat tti_reset (DEVICE *dptr);
-t_stat tto_reset (DEVICE *dptr);
-t_stat clk_reset (DEVICE *dptr);
-const char *tti_description (DEVICE *dptr);
-const char *tto_description (DEVICE *dptr);
-const char *clk_description (DEVICE *dptr);
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-
-extern int32_t sysd_hlt_enb (void);
+static t_stat tti_svc (UNIT *uptr);
+static t_stat tto_svc (UNIT *uptr);
+static t_stat clk_svc (UNIT *uptr);
+static t_stat tti_reset (DEVICE *dptr);
+static t_stat tto_reset (DEVICE *dptr);
+static t_stat clk_reset (DEVICE *dptr);
+static const char *tti_description (DEVICE *dptr);
+static const char *tto_description (DEVICE *dptr);
+static const char *clk_description (DEVICE *dptr);
+static t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 
 /* TTI data structures
 
@@ -78,11 +77,11 @@ extern int32_t sysd_hlt_enb (void);
    tti_reg      TTI register list
 */
 
-DIB tti_dib = { 0, 0, NULL, NULL, 1, IVCL (TTI), SCB_TTI, { NULL } };
+static DIB tti_dib = { 0, 0, NULL, NULL, 1, IVCL (TTI), SCB_TTI, { NULL } };
 
-UNIT tti_unit = { UDATA (&tti_svc, UNIT_IDLE|TT_MODE_8B, 0), TMLN_SPD_9600_BPS };
+static UNIT tti_unit = { UDATA (&tti_svc, UNIT_IDLE|TT_MODE_8B, 0), TMLN_SPD_9600_BPS };
 
-REG tti_reg[] = {
+static REG tti_reg[] = {
     { HRDATAD (BUF,     tti_unit.buf,         16, "last data item processed") },
     { HRDATAD (CSR,          tti_csr,         16, "control/status register") },
     { FLDATAD (INT, int_req[IPL_TTI],  INT_V_TTI, "interrupt pending flag") },
@@ -94,7 +93,7 @@ REG tti_reg[] = {
     { NULL }
     };
 
-MTAB tti_mod[] = {
+static MTAB tti_mod[] = {
     { TT_MODE,  TT_MODE_7B, "7b", "7B",     NULL, NULL,      NULL, "Set 7 bit mode" },
     { TT_MODE,  TT_MODE_8B, "8b", "8B",     NULL, NULL,      NULL, "Set 8 bit mode" },
     { MTAB_XTD|MTAB_VDV, 0, "VECTOR", NULL, NULL, &show_vec, NULL, "Display interrupt vector" },
@@ -117,11 +116,11 @@ DEVICE tti_dev = {
    tto_reg      TTO register list
 */
 
-DIB tto_dib = { 0, 0, NULL, NULL, 1, IVCL (TTO), SCB_TTO, { NULL } };
+static DIB tto_dib = { 0, 0, NULL, NULL, 1, IVCL (TTO), SCB_TTO, { NULL } };
 
-UNIT tto_unit = { UDATA (&tto_svc, TT_MODE_8B, 0), SERIAL_OUT_WAIT };
+static UNIT tto_unit = { UDATA (&tto_svc, TT_MODE_8B, 0), SERIAL_OUT_WAIT };
 
-REG tto_reg[] = {
+static REG tto_reg[] = {
     { HRDATAD (BUF,     tto_unit.buf,          8, "last data item processed") },
     { HRDATAD (CSR,          tto_csr,         16, "control/status register") },
     { FLDATAD (INT, int_req[IPL_TTO],  INT_V_TTO, "interrupt pending flag") },
@@ -133,7 +132,7 @@ REG tto_reg[] = {
     { NULL }
     };
 
-MTAB tto_mod[] = {
+static MTAB tto_mod[] = {
     { TT_MODE,  TT_MODE_7B, "7b", "7B",     NULL, NULL,      NULL, "Set 7 bit mode" },
     { TT_MODE,  TT_MODE_8B, "8b", "8B",     NULL, NULL,      NULL, "Set 8 bit mode" },
     { TT_MODE,  TT_MODE_7P, "7p", "7P",     NULL, NULL,      NULL, "Set 7 bit mode (suppress non printing)" },
@@ -157,11 +156,11 @@ DEVICE tto_dev = {
    clk_reg      CLK register list
 */
 
-DIB clk_dib = { 0, 0, NULL, NULL, 1, IVCL (CLK), SCB_INTTIM, { NULL } };
+static DIB clk_dib = { 0, 0, NULL, NULL, 1, IVCL (CLK), SCB_INTTIM, { NULL } };
 
 UNIT clk_unit = { UDATA (&clk_svc, UNIT_IDLE, 0), CLK_DELAY };
 
-REG clk_reg[] = {
+static REG clk_reg[] = {
     { HRDATAD (CSR,          clk_csr,        16, "control/status register") },
     { FLDATAD (INT, int_req[IPL_CLK], INT_V_CLK, "interrupt pending flag") },
     { FLDATAD (IE,           clk_csr,  CSR_V_IE, "interrupt enable flag (CSR<6>)") },
@@ -268,7 +267,7 @@ return;
    tti_reset    process reset
 */
 
-t_stat tti_svc (UNIT *uptr)
+static t_stat tti_svc (UNIT *uptr)
 {
 int32_t c;
 
@@ -293,7 +292,7 @@ if (tti_csr & CSR_IE)
 return SCPE_OK;
 }
 
-t_stat tti_reset (DEVICE *dptr)
+static t_stat tti_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -307,7 +306,7 @@ sim_activate_abs (&tti_unit, tmr_poll);
 return SCPE_OK;
 }
 
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -328,7 +327,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *tti_description (DEVICE *dptr)
+static const char *tti_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -343,7 +342,7 @@ return "console terminal input";
    tto_reset    process reset
 */
 
-t_stat tto_svc (UNIT *uptr)
+static t_stat tto_svc (UNIT *uptr)
 {
 int32_t c;
 t_stat r;
@@ -362,7 +361,7 @@ uptr->pos = uptr->pos + 1;
 return SCPE_OK;
 }
 
-t_stat tto_reset (DEVICE *dptr)
+static t_stat tto_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -375,7 +374,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -391,7 +390,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *tto_description (DEVICE *dptr)
+static const char *tto_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -407,7 +406,7 @@ return "console terminal output";
    todr_powerup powerup for TODR (get date from system)
 */
 
-t_stat clk_svc (UNIT *uptr)
+static t_stat clk_svc (UNIT *uptr)
 {
 int32_t t;
 
@@ -423,7 +422,7 @@ return SCPE_OK;
 
 /* Reset routine */
 
-t_stat clk_reset (DEVICE *dptr)
+static t_stat clk_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -440,7 +439,7 @@ tmxr_poll = t * TMXR_MULT;                              /* set mux poll */
 return SCPE_OK;
 }
 
-const char *clk_description (DEVICE *dptr)
+static const char *clk_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

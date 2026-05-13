@@ -35,6 +35,7 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax820_stddev.h"
 #include "sim_tmxr.h"
 
 /* Terminal definitions */
@@ -174,18 +175,18 @@ const char *fl_fncnames[] = {
 #define CALC_SC(t,s)    (fl_intl[((t) - 1) % FL_INTL][((s) - 1)])
 #define CALC_DA(t,s)    ((((t) - 1) * FL_NUMSC) + CALC_SC(t,s)) * FL_NUMBY
 
-int32_t tti_csr = 0;                                    /* control/status */
-uint32_t tti_buftime;                                   /* time input character arrived */
-int32_t tti_buf = 0;                                    /* buffer */
+static int32_t tti_csr = 0;                             /* control/status */
+static uint32_t tti_buftime;                            /* time input character arrived */
+static int32_t tti_buf = 0;                             /* buffer */
 int32_t tti_int = 0;                                    /* interrupt */
-int32_t tto_csr[KA_NUM] = { 0 };                        /* control/status */
-int32_t tto_buf = 0;                                    /* buffer */
+static int32_t tto_csr[KA_NUM] = { 0 };                 /* control/status */
+static int32_t tto_buf = 0;                             /* buffer */
 int32_t tto_int = 0;                                    /* interrupt */
 
-int32_t tmr_iccs = 0;                                   /* interval timer csr */
-uint32_t tmr_icr = 0;                                   /* curr interval */
-uint32_t tmr_nicr = 0;                                  /* next interval */
-uint32_t tmr_inc = 0;                                   /* timer increment */
+static int32_t tmr_iccs = 0;                            /* interval timer csr */
+static uint32_t tmr_icr = 0;                            /* curr interval */
+static uint32_t tmr_nicr = 0;                           /* next interval */
+static uint32_t tmr_inc = 0;                            /* timer increment */
 int32_t tmr_int = 0;                                    /* interrupt */
 int32_t clk_tps = 100;                                  /* ticks/second */
 int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
@@ -197,24 +198,24 @@ struct todr_battery_info {
     };
 typedef struct todr_battery_info TOY;
 
-int32_t fl_cs0 = 0;
-int32_t fl_cs1 = 0;
-int32_t fl_cs2 = 0;
-int32_t fl_cs3 = 0;
-int32_t fl_cs4 = 0;
-int32_t fl_cs5 = 0;
+static int32_t fl_cs0 = 0;
+static int32_t fl_cs1 = 0;
+static int32_t fl_cs2 = 0;
+static int32_t fl_cs3 = 0;
+static int32_t fl_cs4 = 0;
+static int32_t fl_cs5 = 0;
 
 int32_t fl_int = 0;
-int32_t fl_fnc = 0;                                     /* function */
-int32_t fl_ecode = 0;                                   /* error code */
-int32_t fl_track = 0;                                   /* desired track */
-int32_t fl_sector = 0;                                  /* desired sector */
-int32_t fl_stopioe = 1;                                 /* stop on error */
-int32_t fl_swait = 100;                                 /* seek, per track */
-int32_t fl_cwait = 50;                                  /* command time */
-int32_t fl_xwait = 20;                                  /* tr set time */
-uint8_t fl_buf[FL_NUMBY] = { 0 };                       /* sector buffer */
-int32_t fl_bptr = 0;                                    /* buffer pointer */
+static int32_t fl_fnc = 0;                              /* function */
+static int32_t fl_ecode = 0;                            /* error code */
+static int32_t fl_track = 0;                            /* desired track */
+static int32_t fl_sector = 0;                           /* desired sector */
+static int32_t fl_stopioe = 1;                          /* stop on error */
+static int32_t fl_swait = 100;                          /* seek, per track */
+static int32_t fl_cwait = 50;                           /* command time */
+static int32_t fl_xwait = 20;                           /* tr set time */
+static uint8_t fl_buf[FL_NUMBY] = { 0 };                /* sector buffer */
+static int32_t fl_bptr = 0;                             /* buffer pointer */
 static int32_t fl_intl[FL_INTL][FL_NUMSC] = {
     { 0, 5, 1, 6, 2, 7, 3, 8, 4, 9 },
     { 4, 9, 0, 5, 1, 6, 2, 7, 3, 8 },
@@ -224,35 +225,29 @@ static int32_t fl_intl[FL_INTL][FL_NUMSC] = {
     };
 
 
-extern int32_t cur_cpu;
-
-t_stat tti_svc (UNIT *uptr);
-t_stat tto_svc (UNIT *uptr);
-t_stat tmr_svc (UNIT *uptr);
-t_stat clk_svc (UNIT *uptr);
-t_stat tti_reset (DEVICE *dptr);
-t_stat tto_reset (DEVICE *dptr);
-t_stat clk_reset (DEVICE *dptr);
-const char *tti_description (DEVICE *dptr);
-const char *tto_description (DEVICE *dptr);
-const char *clk_description (DEVICE *dptr);
-const char *tmr_description (DEVICE *dptr);
-const char *fl_description (DEVICE *dptr);
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat clk_attach (UNIT *uptr, const char *cptr);
-t_stat clk_detach (UNIT *uptr);
-t_stat tmr_reset (DEVICE *dptr);
-t_stat fl_svc (UNIT *uptr);
-t_stat fl_reset (DEVICE *dptr);
-int32_t icr_rd (void);
-void tmr_sched (uint32_t incr);
-t_stat todr_resync (void);
-bool fl_test_xfr (UNIT *uptr, bool wr);
-void fl_protocol_error (void);
-
-extern int32_t con_halt (int32_t code, int32_t cc);
+static t_stat tti_svc (UNIT *uptr);
+static t_stat tto_svc (UNIT *uptr);
+static t_stat tmr_svc (UNIT *uptr);
+static t_stat clk_svc (UNIT *uptr);
+static t_stat tti_reset (DEVICE *dptr);
+static t_stat tto_reset (DEVICE *dptr);
+static t_stat clk_reset (DEVICE *dptr);
+static const char *tti_description (DEVICE *dptr);
+static const char *tto_description (DEVICE *dptr);
+static const char *clk_description (DEVICE *dptr);
+static const char *tmr_description (DEVICE *dptr);
+static const char *fl_description (DEVICE *dptr);
+static t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat clk_attach (UNIT *uptr, const char *cptr);
+static t_stat clk_detach (UNIT *uptr);
+static t_stat tmr_reset (DEVICE *dptr);
+static t_stat fl_svc (UNIT *uptr);
+static t_stat fl_reset (DEVICE *dptr);
+static void tmr_sched (uint32_t incr);
+static t_stat todr_resync (void);
+static bool fl_test_xfr (UNIT *uptr, bool wr);
 
 /* TTI data structures
 
@@ -261,9 +256,9 @@ extern int32_t con_halt (int32_t code, int32_t cc);
    tti_reg      TTI register list
 */
 
-UNIT tti_unit = { UDATA (&tti_svc, UNIT_IDLE|TT_MODE_8B, 0), TMLN_SPD_9600_BPS };
+static UNIT tti_unit = { UDATA (&tti_svc, UNIT_IDLE|TT_MODE_8B, 0), TMLN_SPD_9600_BPS };
 
-REG tti_reg[] = {
+static REG tti_reg[] = {
     { HRDATAD (RXDB,       tti_buf,         16, "last data item processed") },
     { HRDATAD (RXCS,       tti_csr,         16, "control/status register") },
     { FLDATAD (INT,        tti_int,          0, "interrupt pending flag") },
@@ -274,7 +269,7 @@ REG tti_reg[] = {
     { NULL }
     };
 
-MTAB tti_mod[] = {
+static MTAB tti_mod[] = {
     { TT_MODE,  TT_MODE_7B, "7b", "7B",     NULL, NULL,      NULL, "Set 7 bit mode" },
     { TT_MODE,  TT_MODE_8B, "8b", "8B",     NULL, NULL,      NULL, "Set 8 bit mode" },
     { 0 }
@@ -296,12 +291,12 @@ DEVICE tti_dev = {
    tto_reg      TTO register list
 */
 
-UNIT tto_unit[] = {
+static UNIT tto_unit[] = {
     { UDATA (&tto_svc, TT_MODE_8B, 0), SERIAL_OUT_WAIT },
     { UDATA (&tto_svc, TT_MODE_8B, 0), SERIAL_OUT_WAIT }
     };
 
-REG tto_reg[] = {
+static REG tto_reg[] = {
     { HRDATAD (TXDB,       tto_buf,         16, "last data item processed") },
     { HRDATAD (TXCS,       tto_csr,         16, "control/status register") },
     { FLDATAD (INT,        tto_int,          0, "interrupt pending flag") },
@@ -312,7 +307,7 @@ REG tto_reg[] = {
     { NULL }
     };
 
-MTAB tto_mod[] = {
+static MTAB tto_mod[] = {
     { TT_MODE,  TT_MODE_7B, "7b", "7B",     NULL, NULL,      NULL, "Set 7 bit mode" },
     { TT_MODE,  TT_MODE_8B, "8b", "8B",     NULL, NULL,      NULL, "Set 8 bit mode" },
     { TT_MODE,  TT_MODE_7P, "7p", "7P",     NULL, NULL,      NULL, "Set 7 bit mode (suppress non printing output)" },
@@ -332,7 +327,7 @@ DEVICE tto_dev = {
 
 UNIT clk_unit = { UDATA (&clk_svc, UNIT_FIX, sizeof(TOY))};
 
-REG clk_reg[] = {
+static REG clk_reg[] = {
     { DRDATAD (TIME,                   clk_unit.wait,  24, "initial poll interval"), REG_NZ + PV_LEFT },
     { DRDATAD (POLL,                        tmr_poll,  24, "calibrated poll interval"), REG_NZ + PV_LEFT + REG_HRO },
 #if defined (SIM_ASYNCH_IO)
@@ -345,7 +340,7 @@ REG clk_reg[] = {
 
 #define TMR_DB_TODR     0x10    /* TODR */
 
-DEBTAB todr_deb[] = {
+static DEBTAB todr_deb[] = {
     { "TODR",  TMR_DB_TODR,     "TODR activities"},
     { NULL, 0 }
     };
@@ -359,9 +354,9 @@ DEVICE clk_dev = {
     &clk_description
     };
 
-UNIT tmr_unit = { UDATA (&tmr_svc, 0, 0) };                     /* timer */
+static UNIT tmr_unit = { UDATA (&tmr_svc, 0, 0) };              /* timer */
 
-REG tmr_reg[] = {
+static REG tmr_reg[] = {
     { HRDATADF (ICCS,         tmr_iccs, 32, "interval timer control and status", tmr_iccs_bits) },
     { HRDATAD  (ICR,           tmr_icr, 32, "interval count register") },
     { HRDATAD  (NICR,         tmr_nicr, 32, "next interval count register") },
@@ -376,7 +371,7 @@ REG tmr_reg[] = {
 #define TMR_DB_SCHED    0x04    /* Scheduling */
 #define TMR_DB_INT      0x08    /* Interrupts */
 
-DEBTAB tmr_deb[] = {
+static DEBTAB tmr_deb[] = {
     { "REG",   TMR_DB_REG,      "Register Access"},
     { "TICK",  TMR_DB_TICK,     "Ticks"},
     { "SCHED", TMR_DB_SCHED,    "Scheduling"},
@@ -402,14 +397,14 @@ DEVICE tmr_dev = {
    fl_mod       RX modifier list
 */
 
-UNIT fl_unit[] = {
+static UNIT fl_unit[] = {
     { UDATA (&fl_svc,
       UNIT_FIX+UNIT_ATTABLE+UNIT_BUFABLE+UNIT_MUSTBUF, FL_SIZE) },
     { UDATA (&fl_svc,
       UNIT_FIX+UNIT_ATTABLE+UNIT_BUFABLE+UNIT_MUSTBUF, FL_SIZE) }
     };
 
-REG fl_reg[] = {
+static REG fl_reg[] = {
     { HRDATAD (FNC,          fl_fnc,  8, "function select") },
     { HRDATAD (ECODE,      fl_ecode,  8, "error code") },
     { HRDATAD (TA,         fl_track,  8, "track address") },
@@ -423,7 +418,7 @@ REG fl_reg[] = {
     { NULL }
     };
 
-MTAB fl_mod[] = {
+static MTAB fl_mod[] = {
     { MTAB_XTD|MTAB_VUN, 0, "write enabled", "WRITEENABLED",
         &set_writelock, &show_writelock,   NULL, "Write enable floppy drive" },
     { MTAB_XTD|MTAB_VUN, 1, NULL, "LOCKED",
@@ -435,7 +430,7 @@ MTAB fl_mod[] = {
 #define FL_DB_FNC       0x02                            /* Functions */
 #define FL_DB_INT       0x04                            /* Interrupts */
 
-DEBTAB fl_deb[] = {
+static DEBTAB fl_deb[] = {
     { "REG", FL_DB_REG, "Register Access"},
     { "FNC", FL_DB_FNC, "Functions"},
     { "INT", FL_DB_INT, "Interrupts"},
@@ -452,7 +447,7 @@ DEVICE fl_dev = {
     &fl_description
     };
 
-const char *fl_regnames[] = {
+static const char *fl_regnames[] = {
     "",             /* 0 spare */
     "",             /* 1 spare */
     "CS0",          /* 2 */
@@ -531,7 +526,7 @@ sim_activate (&tto_unit[cur_cpu], tto_unit[cur_cpu].wait);
 
 /* Terminal input service (poll for character) */
 
-t_stat tti_svc (UNIT *uptr)
+static t_stat tti_svc (UNIT *uptr)
 {
 int32_t c;
 
@@ -556,7 +551,7 @@ return SCPE_OK;
 
 /* Terminal input reset */
 
-t_stat tti_reset (DEVICE *dptr)
+static t_stat tti_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -570,7 +565,7 @@ sim_activate (&tti_unit, tmr_poll);
 return SCPE_OK;
 }
 
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -586,7 +581,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *tti_description (DEVICE *dptr)
+static const char *tti_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -597,7 +592,7 @@ return "console terminal input";
 
 /* Terminal output service (output character) */
 
-t_stat tto_svc (UNIT *uptr)
+static t_stat tto_svc (UNIT *uptr)
 {
 int32_t c;
 t_stat r;
@@ -623,7 +618,7 @@ return SCPE_OK;
 
 /* Terminal output reset */
 
-t_stat tto_reset (DEVICE *dptr)
+static t_stat tto_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -641,7 +636,7 @@ for (i = 0; i < KA_NUM; i++) {
 return SCPE_OK;
 }
 
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -657,7 +652,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *tto_description (DEVICE *dptr)
+static const char *tto_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -761,7 +756,7 @@ tmr_nicr = val;
 
 /* Interval timer unit service */
 
-t_stat tmr_svc (UNIT *uptr)
+static t_stat tmr_svc (UNIT *uptr)
 {
 /* Generic unit service signature.
    This implementation does not use every parameter. */
@@ -787,7 +782,7 @@ return SCPE_OK;
 
 /* Timer scheduling */
 
-void tmr_sched (uint32_t nicr)
+static void tmr_sched (uint32_t nicr)
 {
 uint32_t usecs = (nicr) ? (~nicr + 1) : 0xFFFFFFFF;
 
@@ -800,7 +795,7 @@ else
 
 /* 100Hz TODR reset */
 
-t_stat clk_reset (DEVICE *dptr)
+static t_stat clk_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -821,7 +816,7 @@ tmr_poll = sim_rtcn_init_unit (&clk_unit, CLK_DELAY, TMR_CLK);  /* init timer */
 return SCPE_OK;
 }
 
-t_stat clk_svc (UNIT *uptr)
+static t_stat clk_svc (UNIT *uptr)
 {
 int32_t t;
 t = sim_rtcn_calb (clk_tps, TMR_CLK);                   /* calibrate clock */
@@ -831,7 +826,7 @@ tmxr_poll = t * TMXR_MULT;                              /* set mux poll */
 return SCPE_OK;
 }
 
-t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -874,7 +869,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *clk_description (DEVICE *dptr)
+static const char *clk_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -899,7 +894,7 @@ return data;
 
 /* CLK attach */
 
-t_stat clk_attach (UNIT *uptr, const char *cptr)
+static t_stat clk_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
 
@@ -931,7 +926,7 @@ return r;
 
 /* CLK detach */
 
-t_stat clk_detach (UNIT *uptr)
+static t_stat clk_detach (UNIT *uptr)
 {
 t_stat r;
 
@@ -944,7 +939,7 @@ return r;
 
 /* Interval timer reset */
 
-t_stat tmr_reset (DEVICE *dptr)
+static t_stat tmr_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -957,7 +952,7 @@ sim_cancel (&tmr_unit);                                 /* cancel timer */
 return SCPE_OK;
 }
 
-const char *tmr_description (DEVICE *dptr)
+static const char *tmr_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -1030,7 +1025,7 @@ if (clk_unit.flags & UNIT_ATT) {                        /* OS Agnostic mode? */
 sim_debug (TMR_DB_TODR, &clk_dev, "todr_wr(0x%X) - %s - GMTBASE=%8.8s.%03d\n", data, todr_fmt_vms_todr (data), 11+ctime(&tbase), (int)(base.tv_nsec/1000000));
 }
 
-t_stat todr_resync (void)
+static t_stat todr_resync (void)
 {
 TOY *toy = (TOY *)clk_unit.filebuf;
 
@@ -1197,7 +1192,7 @@ fl_cs4 = 0;                                             /* FIXME */
    FL_DONE              Copy requested data to TXDB, set FL_IDLE
 */
 
-t_stat fl_svc (UNIT *uptr)
+static t_stat fl_svc (UNIT *uptr)
 {
 int32_t fnc = (fl_cs0 >> FLCS0_V_FNC) & FLCS0_M_FNC;
 int8_t *fbuf = (int8_t *)uptr->filebuf;
@@ -1262,7 +1257,7 @@ return SCPE_OK;
 
 /* Test for data transfer okay */
 
-bool fl_test_xfr (UNIT *uptr, bool wr)
+static bool fl_test_xfr (UNIT *uptr, bool wr)
 {
 if ((uptr->flags & UNIT_BUF) == 0)                      /* not buffered? */
     fl_ecode = 0x50;                                    /* selected unit not ready */
@@ -1279,7 +1274,7 @@ return false;
 
 /* Reset */
 
-t_stat fl_reset (DEVICE *dptr)
+static t_stat fl_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -1294,7 +1289,7 @@ sim_cancel (&fl_unit[1]);                               /* cancel drive */
 return SCPE_OK;
 }
 
-const char *fl_description (DEVICE *dptr)
+static const char *fl_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

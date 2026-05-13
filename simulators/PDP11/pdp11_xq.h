@@ -69,7 +69,7 @@
 #error "DEQNA/DELQA not supported on PDP10!"
 
 #elif defined (VM_VAX)                                  /* VAX version */
-#include "vax_defs.h"
+#include "vax_cpu.h"
 #define XQ_RDX          16
 #define XQ_WID          32
 #define ULTRIX1X ((cpu_idle_mask&VAX_IDLE_ULT1X) && ((cpu_idle_mask & ~VAX_IDLE_ULT1X) == 0))

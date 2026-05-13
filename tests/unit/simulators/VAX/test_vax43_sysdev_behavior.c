@@ -7,33 +7,17 @@
 #include "test_cmocka.h"
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax4xx_rom_patch.h"
+#include "vax43_sysdev_internal.h"
 
 /*
  * These tests preserve legacy KA43 system-device lane behavior at the real
  * disk data buffer, cache diagnostic, and KA register entry points.
  */
 
-void ddb_WriteB(uint32_t ba, uint32_t bc, uint8_t *buf);
-void ddb_WriteW(uint32_t ba, uint32_t bc, uint16_t *buf);
-void ddb_ReadB(uint32_t ba, uint32_t bc, uint8_t *buf);
-void ddb_ReadW(uint32_t ba, uint32_t bc, uint16_t *buf);
-int32_t ReadReg(uint32_t pa, int32_t lnt);
-void WriteReg(uint32_t pa, int32_t val, int32_t lnt);
-void WriteRegU(uint32_t pa, int32_t val, int32_t lnt);
-int32_t ka_rd(int32_t pa);
 t_stat show_vec(FILE *st, UNIT *uptr, int32_t val, const void *desc);
-t_stat rom_apply_patches(void);
-int32_t iccs_rd(void);
-void iccs_wr(int32_t data);
-t_stat or_map(uint32_t index, uint8_t *rom_buf, t_addr size);
-t_stat or_unmap(uint32_t index);
-
-extern uint32_t *ddb;
-extern int32_t cdg_dat[];
-extern int32_t int_mask;
-extern int32_t int_req[];
-extern bool tmr_inst;
-extern uint32_t tmr_tir;
 
 static uint32_t test_ddb[D128SIZE >> 2];
 

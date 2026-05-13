@@ -5,6 +5,9 @@
 #include "test_cmocka.h"
 
 #include "vax_defs.h"
+#include "vax_qbus_internal.h"
+#include "vax_va.h"
+#include "vax_vc.h"
 
 /*
  * These tests preserve the legacy mapped Qbus memory write behavior at the
@@ -19,19 +22,10 @@
 #define TEST_QBUS_MAP_VALID 0x80000000u
 
 #if defined(VAX_630)
-t_stat qbmem_wr(int32_t dat, int32_t pa, int32_t md);
 #define mapped_qbus_write qbmem_wr
-extern int32_t qb_map[];
 #else
-t_stat cqm_wr(int32_t dat, int32_t pa, int32_t md);
 #define mapped_qbus_write cqm_wr
-extern int32_t cq_mbr;
 #endif
-
-int32_t vc_mem_rd(int32_t pa);
-void vc_mem_wr(int32_t pa, int32_t val, int32_t lnt);
-int32_t va_mem_rd(int32_t pa);
-void va_mem_wr(int32_t pa, int32_t val, int32_t lnt);
 
 typedef struct {
     uint32_t qbus_pa;

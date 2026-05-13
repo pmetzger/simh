@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: X11
 
 #ifndef VAX_SYS_INTERNAL_H_
-#define VAX_SYS_INTERNAL_H_ 0
+#define VAX_SYS_INTERNAL_H_ 1
 
 #include <stdint.h>
 

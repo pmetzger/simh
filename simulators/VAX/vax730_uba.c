@@ -33,6 +33,9 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax730_rb.h"
+#include "vax730_sys.h"
+#include "vax730_uba.h"
 
 /* Unibus adapter */
 
@@ -91,29 +94,22 @@
 
 int32_t int_req[IPL_HLVL] = { 0 };                      /* intr, IPL 14-17 */
 int32_t int_vec_set[IPL_HLVL][32] = { 0 };              /* bits to set in vector */
-uint32_t uba_csr = 0;                                   /* control & status reg */
-uint32_t uba_fmer = 0;                                  /* failing map reg */
-uint32_t uba_map[UBA_NMAPR] = { 0 };                    /* map registers */
+static uint32_t uba_csr = 0;                            /* control & status reg */
+static uint32_t uba_fmer = 0;                           /* failing map reg */
+static uint32_t uba_map[UBA_NMAPR] = { 0 };             /* map registers */
 int32_t autcon_enb = 1;                                 /* autoconfig enable */
 
-t_stat uba_reset (DEVICE *dptr);
-const char *uba_description (DEVICE *dptr);
-t_stat uba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat uba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat uba_rdreg (int32_t *val, int32_t pa, int32_t mode);
-t_stat uba_wrreg (int32_t val, int32_t pa, int32_t lnt);
-int32_t uba_get_ubvector (int32_t lvl);
-bool uba_eval_int (int32_t lvl);
-void uba_ubpdn (int32_t time);
-bool uba_map_addr (uint32_t ua, uint32_t *ma);
+static t_stat uba_reset (DEVICE *dptr);
+static const char *uba_description (DEVICE *dptr);
+static t_stat uba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat uba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat uba_rdreg (int32_t *val, int32_t pa, int32_t mode);
+static t_stat uba_wrreg (int32_t val, int32_t pa, int32_t lnt);
+static void uba_ubpdn (int32_t time);
+static bool uba_map_addr (uint32_t ua, uint32_t *ma);
 static bool uba_map_addr_c (uint32_t ua, uint32_t *ma);
-t_stat uba_show_virt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-t_stat uba_show_map (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-
-extern int32_t eval_int (void);
-extern t_stat build_dib_tab (void);
-extern t_stat rb_rd32 (int32_t *data, int32_t PA, int32_t access);
-extern t_stat rb_wr32 (int32_t data, int32_t PA, int32_t access);
+static t_stat uba_show_virt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat uba_show_map (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* Unibus IO page dispatches */
 
@@ -136,11 +132,11 @@ int32_t int_vec[IPL_HLVL][32];                          /* int req to vector */
    uba_reg      UBA register list
 */
 
-DIB uba_dib = { TR_UBA, 0, &uba_rdreg, &uba_wrreg, 0, 0 };
+static DIB uba_dib = { TR_UBA, 0, &uba_rdreg, &uba_wrreg, 0, 0 };
 
-UNIT uba_unit = { UDATA (0, 0, 0) };
+static UNIT uba_unit = { UDATA (0, 0, 0) };
 
-REG uba_reg[] = {
+static REG uba_reg[] = {
     { HRDATAD (IPL17,   int_req[3], 32, "IPL 17 interrupt flags"), REG_RO },
     { HRDATAD (IPL16,   int_req[2], 32, "IPL 16 interrupt flags"), REG_RO },
     { HRDATAD (IPL15,   int_req[1], 32, "IPL 15 interrupt flags"), REG_RO },
@@ -151,7 +147,7 @@ REG uba_reg[] = {
     { NULL }
     };
 
-MTAB uba_mod[] = {
+static MTAB uba_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_UBA, "NEXUS", NULL,
       NULL, &show_nexus, NULL, "Display nexus" },
     { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "IOSPACE", NULL,
@@ -167,7 +163,7 @@ MTAB uba_mod[] = {
     { 0 }
     };
 
-DEBTAB uba_deb[] = {
+static DEBTAB uba_deb[] = {
     { "REGREAD", UBA_DEB_RRD },
     { "REGWRITE", UBA_DEB_RWR },
     { "MAPREAD", UBA_DEB_MRD },
@@ -189,7 +185,7 @@ DEVICE uba_dev = {
 
 /* Read Unibus adapter register - aligned lw only */
 
-t_stat uba_rdreg (int32_t *val, int32_t pa, int32_t lnt)
+static t_stat uba_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 int32_t idx, ofs;
 
@@ -240,7 +236,7 @@ return SCPE_OK;
 
 /* Write Unibus adapter register */
 
-t_stat uba_wrreg (int32_t val, int32_t pa, int32_t lnt)
+static t_stat uba_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 int32_t idx, ofs;
 
@@ -554,7 +550,7 @@ return 0;
 
 /* Map an address via the translation map */
 
-bool uba_map_addr (uint32_t ua, uint32_t *ma)
+static bool uba_map_addr (uint32_t ua, uint32_t *ma)
 {
 uint32_t ublk, umap;
 
@@ -592,7 +588,7 @@ return false;
 
 /* Unibus power fail routines */
 
-void uba_ubpdn (int32_t time)
+static void uba_ubpdn (int32_t time)
 {
 /* Shared powerdown hook signature.
    This implementation does not use every parameter. */
@@ -611,7 +607,7 @@ return;
 
 /* Reset Unibus adapter */
 
-t_stat uba_reset (DEVICE *dptr)
+static t_stat uba_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -630,7 +626,7 @@ return SCPE_OK;
 
 /* Memory examine via map (word only) */
 
-t_stat uba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat uba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic memory examine signature.
    This implementation does not use every parameter. */
@@ -650,7 +646,7 @@ return SCPE_NXM;
 
 /* Memory deposit via map (word only) */
 
-t_stat uba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat uba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic memory deposit signature.
    This implementation does not use every parameter. */
@@ -670,7 +666,7 @@ return SCPE_NXM;
 
 /* Show UBA virtual address */
 
-t_stat uba_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc)
+static t_stat uba_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -694,7 +690,7 @@ fprintf (of, "Invalid argument\n");
 return SCPE_OK;
 }
 
-const char *uba_description (DEVICE *dptr)
+static const char *uba_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -705,7 +701,7 @@ return "Unibus adapter";
 
 /* Show UBA map register(s) */
 
-t_stat uba_show_map (FILE *of, UNIT *uptr, int32_t val, const void *desc)
+static t_stat uba_show_map (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */

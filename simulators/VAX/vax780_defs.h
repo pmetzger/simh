@@ -183,8 +183,8 @@
                         { UNIT_MSIZE, (1u << 26), NULL, "64M", &cpu_set_size, NULL, NULL, "Set Memory to 64M bytes" },              \
                         { UNIT_MSIZE, (1u << 27), NULL, "128M", &cpu_set_size, NULL, NULL, "Set Memory to 128M bytes" },            \
                         { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "MEMORY", NULL, NULL, &cpu_show_memory, NULL, "Display memory configuration" }
-extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
-extern t_stat vax780_fload (int32_t flag, const char *cptr);
+#include "vax780_fload.h"
+#include "vax780_mem.h"
 #define CPU_MODEL_MODIFIERS                                                                     \
                         { MTAB_XTD|MTAB_VDV, 0, "MODEL", "MODEL={780|785}",                     \
                           &cpu_set_model, &cpu_show_model, NULL, "Set/Show the simulator CPU Model" },
@@ -441,26 +441,10 @@ typedef struct {
 
 /* Function prototypes for I/O */
 
-int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
-int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
-int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
-int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
-
-int32_t mba_rdbufW (uint32_t mbus, int32_t bc, uint16_t *buf);
-int32_t mba_wrbufW (uint32_t mbus, int32_t bc, const uint16_t *buf);
-int32_t mba_chbufW (uint32_t mbus, int32_t bc, uint16_t *buf);
-int32_t mba_get_bc (uint32_t mbus);
-void init_mbus_tab (void);
-t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp);
-void mba_upd_ata (uint32_t mbus, uint32_t val);
-void mba_set_exc (uint32_t mbus);
-void mba_set_don (uint32_t mbus);
-void mba_set_enbdis (DEVICE *dptr);
-t_stat mba_show_num (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-
-t_stat show_nexus (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-
-void sbi_set_errcnf (void);
+#include "vax7x0_mba.h"
+#include "vax780_sbi.h"
+#include "vax780_stddev.h"
+#include "vax780_uba.h"
 
 /* Function prototypes for system-specific unaligned support
    11/780 treats unaligned like aligned */

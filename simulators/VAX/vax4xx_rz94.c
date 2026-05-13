@@ -31,6 +31,7 @@
 
 #include "vax_defs.h"
 #include "sim_scsi.h"
+#include "vax4xx_rz94_internal.h"
 #include "vax_rzdev.h"
 
 /* command groups */
@@ -76,8 +77,8 @@
 
 #define RZ_MAXFR        (1u << 16)                      /* max transfer */
 
-uint32_t rz_last_cmd = 0;
-uint32_t rz_txi = 0;                                    /* transfer count */
+static uint32_t rz_last_cmd = 0;
+static uint32_t rz_txi = 0;                             /* transfer count */
 uint32_t rz_txc = 0;                                    /* transfer counter */
 uint8_t rz_cfg1 = 0;                                    /* config 1 */
 uint8_t rz_cfg2 = 0;                                    /* config 2 */
@@ -90,8 +91,8 @@ uint8_t rz_fifo[16] = { 0 };
 uint32_t rz_fifo_t = 0;
 uint32_t rz_fifo_b = 0;
 uint32_t rz_fifo_c = 0;
-uint32_t rz_dma = 0;
-uint32_t rz_dir = 0;
+static uint32_t rz_dma = 0;
+static uint32_t rz_dir = 0;
 uint8_t *rz_buf;
 SCSI_BUS rz_bus;
 
@@ -101,7 +102,7 @@ SCSI_BUS rz_bus;
 #define DBG_CMD         0x0002                          /* display commands */
 #define DBG_INT         0x0004                          /* display transfer requests */
 
-DEBTAB rz_debug[] = {
+static DEBTAB rz_debug[] = {
     { "REG",  DBG_REG,      "Register activity" },
     { "CMD",  DBG_CMD,      "Chip commands" },
     { "INT",  DBG_INT,      "Interrupts" },
@@ -113,15 +114,13 @@ DEBTAB rz_debug[] = {
     { 0 }
 };
 
-t_stat rz_svc (UNIT *uptr);
-t_stat rz_reset (DEVICE *dptr);
-t_stat rz_attach (UNIT *uptr, const char *cptr);
-void rz_sw_reset (void);
-t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-void rz_cmd (uint32_t cmd);
-t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-const char *rz_description (DEVICE *dptr);
+static t_stat rz_svc (UNIT *uptr);
+static t_stat rz_attach (UNIT *uptr, const char *cptr);
+static void rz_sw_reset (void);
+static t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static const char *rz_description (DEVICE *dptr);
 
 
 /* RZ data structures
@@ -151,12 +150,12 @@ UNIT rz_unit[] = {
     { UDATA (&rz_svc, UNIT_DIS, 0) }
     };
 
-REG rz_reg[] = {
+static REG rz_reg[] = {
     { FLDATAD (INT, int_req[IPL_SC], INT_V_SC, "interrupt pending flag") },
     { NULL }
     };
 
-MTAB rz_mod[] = {
+static MTAB rz_mod[] = {
     { MTAB_XTD|MTAB_VUN, 0, "write enabled", "WRITEENABLED",
         &scsi_set_wlk, &scsi_show_wlk,   NULL, "Write enable drive" },
     { MTAB_XTD|MTAB_VUN, 1, NULL, "LOCKED",
@@ -436,7 +435,7 @@ SET_IRQL;
 
 /* Unit service routine */
 
-t_stat rz_svc (UNIT *uptr)
+static t_stat rz_svc (UNIT *uptr)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -831,7 +830,7 @@ if (cmd > 0)
     rz_last_cmd = cmd;
 }
 
-void rz_sw_reset (void)
+static void rz_sw_reset (void)
 {
 uint32_t i;
 
@@ -880,7 +879,7 @@ return SCPE_OK;
 
 /* Set unit type (and capacity if user defined) */
 
-t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 uint32_t cap;
 uint32_t max = sim_toffset_64? RZU_EMAXC: RZU_MAXC;
@@ -911,7 +910,7 @@ return SCPE_OK;
 
 /* Show unit type */
 
-t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
+static t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */
@@ -922,7 +921,7 @@ fprintf (st, "%s", rzdev_tab[GET_DTYPE (uptr->flags)].name);
 return SCPE_OK;
 }
 
-t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "NCR 53C94 SCSI Controller (%s)\n\n", dptr->name);
 fprintf (st, "The %s controller simulates the NCR 53C94 SCSI controller connected\n", dptr->name);
@@ -942,12 +941,12 @@ scsi_help (st, dptr, uptr, flag, cptr);
 return SCPE_OK;
 }
 
-t_stat rz_attach (UNIT *uptr, const char *cptr)
+static t_stat rz_attach (UNIT *uptr, const char *cptr)
 {
 return scsi_attach_ex (uptr, cptr, drv_types);
 }
 
-const char *rz_description (DEVICE *dptr)
+static const char *rz_description (DEVICE *dptr)
 {
 /* Generic callback signature.
    This implementation does not use every parameter. */

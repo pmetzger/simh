@@ -35,6 +35,12 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax750_cmi.h"
+#include "vax750_mem.h"
+#include "vax750_stddev.h"
+#include "vax750_uba.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "vmb.exe"
@@ -74,56 +80,22 @@
 
 
 uint32_t nexus_req[NEXUS_HLVL];                         /* nexus int req */
-uint32_t cmi_err = 0;
-uint32_t cmi_cadr = 0;
-char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
+static uint32_t cmi_err = 0;
+static uint32_t cmi_cadr = 0;
+static char cpu_boot_cmd[CBUFSIZE]  = { 0 };            /* boot command */
 int32_t sys_model = 0;
-int32_t vax750_bootdev = 0;                             /* 0-A, 1-B, 2-C, 3-D */
+static int32_t vax750_bootdev = 0;                      /* 0-A, 1-B, 2-C, 3-D */
 
-uint32_t pcspatchbit = 0;
-uint32_t vax750_wcsmem[16384];
+static uint32_t pcspatchbit = 0;
+static uint32_t vax750_wcsmem[16384];
 
 static t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
 static t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
 
-extern uint32_t rom[ROMSIZE/sizeof(uint32_t)];                 /* boot ROM */
-extern int32_t tmr_int, tti_int, tto_int, csi_int, cso_int;
-
-t_stat cmi_reset (DEVICE *dptr);
-const char *cmi_description (DEVICE *dptr);
-void cmi_set_tmo (void);
-t_stat vax750_boot (int32_t flag, const char *ptr);
-t_stat vax750_boot_parse (int32_t flag, const char *ptr);
-t_stat vax750_set_bootdev (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat vax750_show_bootdev (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-
-extern int32_t iccs_rd (void);
-extern int32_t nicr_rd (void);
-extern int32_t icr_rd (void);
-extern int32_t todr_rd (void);
-extern int32_t rxcs_rd (void);
-extern int32_t rxdb_rd (void);
-extern int32_t txcs_rd (void);
-extern int32_t csrs_rd (void);
-extern int32_t csrd_rd (void);
-extern int32_t csts_rd (void);
-extern void iccs_wr (int32_t dat);
-extern void nicr_wr (int32_t dat);
-extern void todr_wr (int32_t dat);
-extern void rxcs_wr (int32_t dat);
-extern void txcs_wr (int32_t dat);
-extern void txdb_wr (int32_t dat);
-extern void csrs_wr (int32_t dat);
-extern void csts_wr (int32_t dat);
-extern void cstd_wr (int32_t dat);
-extern void init_mbus_tab (void);
-extern void init_ubus_tab (void);
-extern t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp);
-extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
-extern void uba_eval_int (void);
-extern int32_t uba_get_ubvector (int32_t lvl);
-extern void uba_ioreset (void);
-extern t_stat mctl_populate_rom (const char *rom_filename);
+static t_stat cmi_reset (DEVICE *dptr);
+static const char *cmi_description (DEVICE *dptr);
+static t_stat vax750_boot (int32_t flag, const char *ptr);
+static t_stat vax750_boot_parse (int32_t flag, const char *ptr);
 
 /* CMI data structures
 
@@ -132,9 +104,9 @@ extern t_stat mctl_populate_rom (const char *rom_filename);
    cmi_reg      CMI register list
 */
 
-UNIT cmi_unit = { UDATA (NULL, 0, 0) };
+static UNIT cmi_unit = { UDATA (NULL, 0, 0) };
 
-REG cmi_reg[] = {
+static REG cmi_reg[] = {
     { HRDATA (NREQ14, nexus_req[0], 16) },
     { HRDATA (NREQ15, nexus_req[1], 16) },
     { HRDATA (NREQ16, nexus_req[2], 16) },
@@ -155,7 +127,7 @@ DEVICE cmi_dev = {
 
 /* Special boot command, overrides regular boot */
 
-CTAB vax750_cmd[] = {
+static CTAB vax750_cmd[] = {
     { "BOOT", &vax750_boot, RU_BOOT,
       "bo{ot} <device>{/R5:flg} boot device\n"
       "                         type HELP CPU to see bootable devices\n", NULL, &run_cmd_message },
@@ -617,7 +589,7 @@ static struct boot_dev boot_tab[] = {
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax750_boot (int32_t flag, const char *ptr)
+static t_stat vax750_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -637,7 +609,7 @@ return run_cmd (flag, "CPU");
 
 /* Parse boot command, set up registers - also used on reset */
 
-t_stat vax750_boot_parse (int32_t flag, const char *ptr)
+static t_stat vax750_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE], dbuf[CBUFSIZE], rbuf[CBUFSIZE];
 char *slptr;
@@ -821,7 +793,7 @@ return SCPE_OK;
 
 /* CMI reset */
 
-t_stat cmi_reset (DEVICE *dptr)
+static t_stat cmi_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -833,7 +805,7 @@ cmi_cadr = 0;
 return SCPE_OK;
 }
 
-const char *cmi_description (DEVICE *dptr)
+static const char *cmi_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

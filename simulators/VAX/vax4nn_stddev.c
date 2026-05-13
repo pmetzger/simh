@@ -32,6 +32,8 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax4nn_stddev.h"
+#include "vax4nn_stddev_internal.h"
 #include "uint_bits.h"
 
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
@@ -50,29 +52,21 @@ int32_t tmr_int = 0;                                    /* interrupt */
 int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
 int32_t tmr_poll = CLK_DELAY;                           /* pgm timer poll */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat rom_reset (DEVICE *dptr);
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-int32_t rom_rd (int32_t pa);
-void rom_wr_B (int32_t pa, int32_t val);
-const char *rom_description (DEVICE *dptr);
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nvr_reset (DEVICE *dptr);
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat nvr_attach (UNIT *uptr, const char *cptr);
-t_stat nvr_detach (UNIT *uptr);
-int32_t nvr_rd (int32_t pa);
-void nvr_wr (int32_t pa, int32_t val, int32_t lnt);
-const char *nvr_description (DEVICE *dptr);
-int32_t iccs_rd (void);
-void iccs_wr (int32_t data);
-t_stat clk_svc (UNIT *uptr);
-t_stat clk_reset (DEVICE *dptr);
-const char *clk_description (DEVICE *dptr);
-
-extern int32_t nar_rd (int32_t pa);
+static t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat rom_reset (DEVICE *dptr);
+static t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *rom_description (DEVICE *dptr);
+static t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nvr_reset (DEVICE *dptr);
+static t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat nvr_attach (UNIT *uptr, const char *cptr);
+static t_stat nvr_detach (UNIT *uptr);
+static const char *nvr_description (DEVICE *dptr);
+static t_stat clk_svc (UNIT *uptr);
+static t_stat clk_reset (DEVICE *dptr);
+static const char *clk_description (DEVICE *dptr);
 
 /* ROM data structures
 
@@ -197,7 +191,7 @@ return;
 
 /* ROM examine */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -216,7 +210,7 @@ return SCPE_OK;
 
 /* ROM deposit */
 
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -235,7 +229,7 @@ return SCPE_OK;
 
 /* ROM reset */
 
-t_stat rom_reset (DEVICE *dptr)
+static t_stat rom_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -248,7 +242,7 @@ if (rom == NULL)
 return SCPE_OK;
 }
 
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -273,7 +267,7 @@ fprint_set_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *rom_description (DEVICE *dptr)
+static const char *rom_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -307,7 +301,7 @@ nvr[rg] = (val & BMASK);
 
 /* NVR examine */
 
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -326,7 +320,7 @@ return SCPE_OK;
 
 /* NVR deposit */
 
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -345,7 +339,7 @@ return SCPE_OK;
 
 /* NVR reset */
 
-t_stat nvr_reset (DEVICE *dptr)
+static t_stat nvr_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -360,7 +354,7 @@ if (nvr == NULL)
 return SCPE_OK;
 }
 
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -380,7 +374,7 @@ return SCPE_OK;
 
 /* NVR attach */
 
-t_stat nvr_attach (UNIT *uptr, const char *cptr)
+static t_stat nvr_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
 
@@ -397,7 +391,7 @@ return r;
 
 /* NVR detach */
 
-t_stat nvr_detach (UNIT *uptr)
+static t_stat nvr_detach (UNIT *uptr)
 {
 t_stat r;
 
@@ -409,7 +403,7 @@ if ((uptr->flags & UNIT_ATT) == 0) {
 return r;
 }
 
-const char *nvr_description (DEVICE *dptr)
+static const char *nvr_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -445,7 +439,7 @@ return;
    clk_description  return device description
 */
 
-t_stat clk_svc (UNIT *uptr)
+static t_stat clk_svc (UNIT *uptr)
 {
 int32_t t;
 
@@ -461,7 +455,7 @@ return SCPE_OK;
 
 /* Reset routine */
 
-t_stat clk_reset (DEVICE *dptr)
+static t_stat clk_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -478,7 +472,7 @@ tmxr_poll = t * TMXR_MULT;                              /* set mux poll */
 return SCPE_OK;
 }
 
-const char *clk_description (DEVICE *dptr)
+static const char *clk_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

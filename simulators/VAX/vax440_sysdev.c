@@ -33,8 +33,14 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax440_sysdev.h"
+#include "vax440_sysdev_internal.h"
 #include "vax4xx_rom_patch.h"
-#include "vax4xx_stddev.h"
+#include "vax_lk.h"
+#include "vax_vs.h"
+#include "vax_xs.h"
 #include "sim_ether.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -56,7 +62,7 @@
 #endif /* DONT_USE_INTERNAL_ROM */
 
 
-t_stat vax460_boot (int32_t flag, const char *ptr);
+static t_stat vax460_boot (int32_t flag, const char *ptr);
 
 /* Special boot command, overrides regular boot */
 
@@ -133,10 +139,6 @@ CTAB vax460_cmd[] = {
 #define DMAMAP_PAG      0x0000FFFF                      /* mem page */
 #endif
 
-extern int32_t tmr_int;
-extern DEVICE lk_dev, vs_dev;
-extern uint32_t *rom;
-
 uint32_t *isdn = NULL;                                  /* ISDN/audio registers */
 uint32_t *invfl = NULL;                                 /* invalidate filter */
 uint32_t *cache2ds = NULL;                              /* cache 2 data store */
@@ -155,18 +157,10 @@ int32_t int_req[IPL_HLVL] = { 0 };                      /* interrupt requests */
 int32_t int_mask = 0;                                   /* interrupt mask */
 uint32_t tmr_tir = 0;                                   /* curr interval */
 
-t_stat sysd_reset (DEVICE *dptr);
-t_stat sysd_powerup (void);
-const char *sysd_description (DEVICE *dptr);
-int32_t ka_rd (int32_t pa);
-void ka_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t con_halt (int32_t code, int32_t cc);
-
-extern int32_t nar_rd (int32_t pa);
-extern int32_t dz_rd (int32_t pa);
-extern int32_t xs_rd (int32_t pa);
-extern void dz_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void xs_wr (int32_t pa, int32_t val, int32_t lnt);
+static t_stat sysd_powerup (void);
+static const char *sysd_description (DEVICE *dptr);
+static int32_t ka_rd (int32_t pa);
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt);
 
 UNIT sysd_unit = { UDATA (NULL, 0, 0) };
 
@@ -865,7 +859,7 @@ return;
 
 /* KA460 registers */
 
-int32_t ka_rd (int32_t pa)
+static int32_t ka_rd (int32_t pa)
 {
 int32_t rg = (pa - KABASE) >> 2;
 
@@ -893,7 +887,7 @@ switch (rg) {
 return 0;
 }
 
-void ka_wr (int32_t pa, int32_t val, int32_t lnt)
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -1004,7 +998,7 @@ return 0;                                               /* new cc = 0 */
 
 */
 
-t_stat vax460_boot (int32_t flag, const char *ptr)
+static t_stat vax460_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -1051,7 +1045,7 @@ return SCPE_OK;
  * presence registers and allocates backing storage.
  */
 
-t_stat sysd_powerup (void)
+static t_stat sysd_powerup (void)
 {
     for (int i = 0; i < IPL_HLVL; i++)
         int_req[i] = 0;
@@ -1107,7 +1101,7 @@ sim_vm_cmd = vax460_cmd;
 return SCPE_OK;
 }
 
-const char *sysd_description (DEVICE *dptr)
+static const char *sysd_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

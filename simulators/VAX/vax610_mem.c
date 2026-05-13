@@ -29,6 +29,7 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax610_mem.h"
 
 #define MAX_MCTL_COUNT  16
 
@@ -37,13 +38,13 @@
 #define MCSR_ECR        0x4000                          /* extended CSR read enable */
 #define MCSR_RW         (MCSR_ECR|MCSR_WWP|MCSR_PEN)
 
-int32_t mctl_csr[MAX_MCTL_COUNT];
-int32_t mctl_count = 0;
+static int32_t mctl_csr[MAX_MCTL_COUNT];
+static int32_t mctl_count = 0;
 
-t_stat mctl_rd (int32_t *data, int32_t PA, int32_t access);
-t_stat mctl_wr (int32_t data, int32_t PA, int32_t access);
-t_stat mctl_reset (DEVICE *dptr);
-const char *mctl_description (DEVICE *dptr);
+static t_stat mctl_rd (int32_t *data, int32_t PA, int32_t access);
+static t_stat mctl_wr (int32_t data, int32_t PA, int32_t access);
+static t_stat mctl_reset (DEVICE *dptr);
+static const char *mctl_description (DEVICE *dptr);
 
 /* MCTL data structures
 
@@ -55,20 +56,20 @@ const char *mctl_description (DEVICE *dptr);
 
 #define IOLN_MEM        040
 
-DIB mctl_dib = {
+static DIB mctl_dib = {
     IOBA_AUTO, IOLN_MEM, &mctl_rd, &mctl_wr,
     1, 0, 0, { NULL }
     };
 
-UNIT mctl_unit =  { UDATA (NULL, 0, 0) };
+static UNIT mctl_unit =  { UDATA (NULL, 0, 0) };
 
-REG mctl_reg[] = {
+static REG mctl_reg[] = {
     { DRDATAD (COUNT, mctl_count, 16, "Memory Module Count") },
     { BRDATAD (CSR,     mctl_csr, DEV_RDX, 16, MAX_MCTL_COUNT, "control/status registers") },
     { NULL }
     };
 
-MTAB mctl_mod[] = {
+static MTAB mctl_mod[] = {
     { MTAB_XTD|MTAB_VDV, 010, "ADDRESS", "ADDRESS",
         NULL, &show_addr, NULL, "Bus address" },
     { 0 }
@@ -85,7 +86,7 @@ DEVICE mctl_dev = {
 
 /* I/O dispatch routines */
 
-t_stat mctl_rd (int32_t *data, int32_t PA, int32_t access)
+static t_stat mctl_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Bus read dispatch signature.
    This implementation does not use every parameter. */
@@ -98,7 +99,7 @@ if (rg >= mctl_count)
 return SCPE_OK;
 }
 
-t_stat mctl_wr (int32_t data, int32_t PA, int32_t access)
+static t_stat mctl_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Bus write dispatch signature.
    This implementation does not use every parameter. */
@@ -111,7 +112,7 @@ mctl_csr[rg] = data & MCSR_RW;
 return SCPE_OK;
 }
 
-t_stat mctl_reset (DEVICE *dptr)
+static t_stat mctl_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -125,7 +126,7 @@ mctl_count = (int32_t)(MEMSIZE >> 18);                  /* memory controllers en
 return SCPE_OK;
 }
 
-const char *mctl_description (DEVICE *dptr)
+static const char *mctl_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

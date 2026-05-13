@@ -30,6 +30,8 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax4xx_defs.h"
+#include "vax4xx_vc.h"
 #include "sim_video.h"
 #include "vax_lk.h"
 #include "vax_vs.h"
@@ -74,45 +76,42 @@
 #define DBG_CURSOR      0x0002                          /* Cursor content, function and visibility activity */
 #define DBG_TCURSOR     0x0800                          /* Cursor content, function and visibility activity */
 
-extern int32_t tmxr_poll;
-extern int32_t ka_cfgtst;
-
-uint32_t vc_cmd = 0;                                    /* cursor command reg */
-uint32_t vc_xpos = 0;                                   /* cursor x position */
-uint32_t vc_ypos = 0;                                   /* cursor y position */
-uint32_t vc_xmin1 = 0;                                  /* region 1 left edge */
-uint32_t vc_xmax1 = 0;                                  /* region 1 right edge */
-uint32_t vc_ymin1 = 0;                                  /* region 1 top edge */
-uint32_t vc_ymax1 = 0;                                  /* region 1 bottom edge */
-uint32_t vc_xmin2 = 0;                                  /* region 2 left edge */
-uint32_t vc_xmax2 = 0;                                  /* region 2 right edge */
-uint32_t vc_ymin2 = 0;                                  /* region 2 top edge */
-uint32_t vc_ymax2 = 0;                                  /* region 2 bottom edge */
-uint16_t vc_cur[32];                                    /* cursor image data */
-uint32_t vc_cur_p = 0;                                  /* cursor image pointer */
-bool vc_updated[VC_YSIZE];
-bool vc_cur_new_data = false;                           /* New Cursor image data */
-bool vc_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
-uint32_t vc_cur_x = 0;                                  /* Last cursor X-position */
-uint32_t vc_cur_y = 0;                                  /* Last cursor Y-position */
-uint32_t vc_cur_f = 0;                                  /* Last cursor function */
-bool vc_cur_v = false;                                  /* Last cursor visible */
+static uint32_t vc_cmd = 0;                             /* cursor command reg */
+static uint32_t vc_xpos = 0;                            /* cursor x position */
+static uint32_t vc_ypos = 0;                            /* cursor y position */
+static uint32_t vc_xmin1 = 0;                           /* region 1 left edge */
+static uint32_t vc_xmax1 = 0;                           /* region 1 right edge */
+static uint32_t vc_ymin1 = 0;                           /* region 1 top edge */
+static uint32_t vc_ymax1 = 0;                           /* region 1 bottom edge */
+static uint32_t vc_xmin2 = 0;                           /* region 2 left edge */
+static uint32_t vc_xmax2 = 0;                           /* region 2 right edge */
+static uint32_t vc_ymin2 = 0;                           /* region 2 top edge */
+static uint32_t vc_ymax2 = 0;                           /* region 2 bottom edge */
+static uint16_t vc_cur[32];                             /* cursor image data */
+static uint32_t vc_cur_p = 0;                           /* cursor image pointer */
+static bool vc_updated[VC_YSIZE];
+static bool vc_cur_new_data = false;                    /* New Cursor image data */
+static bool vc_input_captured = false;                  /* Mouse and Keyboard input captured in video window */
+static uint32_t vc_cur_x = 0;                           /* Last cursor X-position */
+static uint32_t vc_cur_y = 0;                           /* Last cursor Y-position */
+static uint32_t vc_cur_f = 0;                           /* Last cursor function */
+static bool vc_cur_v = false;                           /* Last cursor visible */
 uint32_t vc_org = 0;                                    /* display origin */
 uint32_t vc_last_org = 0;                               /* display last origin */
 uint32_t vc_sel = 0;                                    /* interrupt select */
-uint32_t *vc_buf = NULL;                                /* Video memory */
-uint32_t *vc_lines = NULL;                              /* Video Display Lines */
-uint32_t vc_palette[2];                                 /* Monochrome palette */
-bool vc_active = false;
+static uint32_t *vc_buf = NULL;                         /* Video memory */
+static uint32_t *vc_lines = NULL;                       /* Video Display Lines */
+static uint32_t vc_palette[2];                          /* Monochrome palette */
+static bool vc_active = false;
 
-t_stat vc_svc (UNIT *uptr);
-t_stat vc_reset (DEVICE *dptr);
-t_stat vc_detach (UNIT *dptr);
-t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
-t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *vc_description (DEVICE *dptr);
+static t_stat vc_svc (UNIT *uptr);
+static t_stat vc_reset (DEVICE *dptr);
+static t_stat vc_detach (UNIT *dptr);
+static t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+static t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *vc_description (DEVICE *dptr);
 
 /* VC data structures
 
@@ -121,11 +120,11 @@ const char *vc_description (DEVICE *dptr);
    vc_reg      VC register list
 */
 
-UNIT vc_unit = {
+static UNIT vc_unit = {
     UDATA ( &vc_svc, UNIT_IDLE, 0 )
     };
 
-REG vc_reg[] = {
+static REG vc_reg[] = {
     { HRDATAD  (CMD,   vc_cmd,   16, "Cursor command register") },
     { DRDATAD  (XPOS,  vc_xpos,  16, "Cursor X position") },
     { DRDATAD  (YPOS,  vc_ypos,  16, "Cursor Y position") },
@@ -143,14 +142,14 @@ REG vc_reg[] = {
     { NULL }
     };
 
-DEBTAB vc_debug[] = {
+static DEBTAB vc_debug[] = {
     { "REG",     DBG_REG,     "Register activity" },
     { "CURSOR",  DBG_CURSOR,  "Cursor content, function and visibility activity" },
     { "TCURSOR", DBG_TCURSOR, "Cursor content, function and visibility activity" },
     { 0 }
     };
 
-MTAB vc_mod[] = {
+static MTAB vc_mod[] = {
     { MTAB_XTD|MTAB_VDV, 1, NULL, "ENABLE",
         &vc_set_enable, NULL, NULL, "Enable Monochrome Video" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
@@ -367,7 +366,7 @@ for (ln = y1; ln < y2; ln++)
     vc_updated[ln] = true;                              /* flag as updated */
 }
 
-t_stat vc_svc (UNIT *uptr)
+static t_stat vc_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
@@ -467,7 +466,7 @@ if ((c = sim_poll_kbd ()) < SCPE_KFLAG)                 /* no char or error? */
 return SCPE_OK;
 }
 
-t_stat vc_reset (DEVICE *dptr)
+static t_stat vc_reset (DEVICE *dptr)
 {
 t_stat r;
 uint32_t i;
@@ -533,7 +532,7 @@ sim_activate_abs (&vc_unit, tmxr_poll);
 return SCPE_OK;
 }
 
-t_stat vc_detach (UNIT *uptr)
+static t_stat vc_detach (UNIT *uptr)
 {
 /* Generic detach signature.
    This implementation does not use every parameter. */
@@ -546,7 +545,7 @@ if ((vc_dev.flags & DEV_DIS) == 0) {
 return SCPE_OK;
 }
 
-t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -557,7 +556,7 @@ t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 return cpu_set_model (NULL, 0, (val ? "VAXSTATION" : "MICROVAX"), NULL);
 }
 
-t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -571,7 +570,7 @@ vc_input_captured = (val != 0);
 return SCPE_OK;
 }
 
-t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
+static t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 if (vc_input_captured) {
     fprintf (st, "Captured Input Mode, ");
@@ -582,7 +581,7 @@ else
 return SCPE_OK;
 }
 
-t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -599,7 +598,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *vc_description (DEVICE *dptr)
+static const char *vc_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

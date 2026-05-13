@@ -110,24 +110,21 @@ typedef struct todr_battery_info TOY;
 int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
 int32_t tmr_poll = CLK_DELAY;                           /* pgm timer poll */
 
-t_stat tti_svc (UNIT *uptr);
-t_stat tto_svc (UNIT *uptr);
-t_stat clk_svc (UNIT *uptr);
-t_stat tti_reset (DEVICE *dptr);
-t_stat tto_reset (DEVICE *dptr);
-t_stat clk_reset (DEVICE *dptr);
-t_stat clk_attach (UNIT *uptr, const char *cptr);
-t_stat clk_detach (UNIT *uptr);
-t_stat todr_resync (void);
-const char *tti_description (DEVICE *dptr);
-const char *tto_description (DEVICE *dptr);
-const char *clk_description (DEVICE *dptr);
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-
-extern int32_t sysd_hlt_enb (void);
-extern uint32_t fault_PC;
+static t_stat tti_svc (UNIT *uptr);
+static t_stat tto_svc (UNIT *uptr);
+static t_stat clk_svc (UNIT *uptr);
+static t_stat tti_reset (DEVICE *dptr);
+static t_stat tto_reset (DEVICE *dptr);
+static t_stat clk_reset (DEVICE *dptr);
+static t_stat clk_attach (UNIT *uptr, const char *cptr);
+static t_stat clk_detach (UNIT *uptr);
+static t_stat todr_resync (void);
+static const char *tti_description (DEVICE *dptr);
+static const char *tto_description (DEVICE *dptr);
+static const char *clk_description (DEVICE *dptr);
+static t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
 
 /* TTI data structures
 
@@ -342,7 +339,7 @@ return;
    tti_reset    process reset
 */
 
-t_stat tti_svc (UNIT *uptr)
+static t_stat tti_svc (UNIT *uptr)
 {
 int32_t c;
 
@@ -367,7 +364,7 @@ if (tti_csr & CSR_IE)
 return SCPE_OK;
 }
 
-t_stat tti_reset (DEVICE *dptr)
+static t_stat tti_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -381,7 +378,7 @@ sim_activate (&tti_unit, tmr_poll);
 return SCPE_OK;
 }
 
-t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat tti_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -402,7 +399,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *tti_description (DEVICE *dptr)
+static const char *tti_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -417,7 +414,7 @@ return "console terminal input";
    tto_reset    process reset
 */
 
-t_stat tto_svc (UNIT *uptr)
+static t_stat tto_svc (UNIT *uptr)
 {
 int32_t c;
 t_stat r;
@@ -436,7 +433,7 @@ uptr->pos = uptr->pos + 1;
 return SCPE_OK;
 }
 
-t_stat tto_reset (DEVICE *dptr)
+static t_stat tto_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -449,7 +446,7 @@ sim_cancel (&tto_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat tto_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -465,7 +462,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *tto_description (DEVICE *dptr)
+static const char *tto_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -482,7 +479,7 @@ return "console terminal output";
    todr_resync  powerup for TODR (get date from system)
 */
 
-t_stat clk_svc (UNIT *uptr)
+static t_stat clk_svc (UNIT *uptr)
 {
 /* Generic unit service signature.
    This implementation does not use every parameter. */
@@ -568,7 +565,7 @@ sim_debug (DBG_REG, &clk_dev, "todr_wr(0x%X) - TODR=0x%X blow=%d\n", data, todr_
 
 /* TODR resync routine */
 
-t_stat todr_resync (void)
+static t_stat todr_resync (void)
 {
 TOY *toy = (TOY *)clk_unit.filebuf;
 
@@ -601,7 +598,7 @@ return SCPE_OK;
 
 /* Reset routine */
 
-t_stat clk_reset (DEVICE *dptr)
+static t_stat clk_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -626,7 +623,7 @@ if (clk_unit.filebuf == NULL) {                         /* make sure the TODR is
 return SCPE_OK;
 }
 
-t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat clk_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -669,7 +666,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *clk_description (DEVICE *dptr)
+static const char *clk_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -694,7 +691,7 @@ return data;
 
 /* CLK attach */
 
-t_stat clk_attach (UNIT *uptr, const char *cptr)
+static t_stat clk_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
 
@@ -724,7 +721,7 @@ return r;
 
 /* CLK detach */
 
-t_stat clk_detach (UNIT *uptr)
+static t_stat clk_detach (UNIT *uptr)
 {
 t_stat r;
 

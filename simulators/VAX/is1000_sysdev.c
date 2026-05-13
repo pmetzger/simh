@@ -33,6 +33,10 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "is1000_sysdev.h"
+#include "vax_xs.h"
 #include "sim_tmxr.h"
 #include "sim_ether.h"
 
@@ -43,7 +47,7 @@
 #endif /* DONT_USE_INTERNAL_ROM */
 
 
-t_stat is1000_boot (int32_t flag, const char *ptr);
+static t_stat is1000_boot (int32_t flag, const char *ptr);
 
 /* Special boot command, overrides regular boot */
 
@@ -100,11 +104,6 @@ CTAB is1000_cmd[] = {
 #define TTIBUF_FRM      0x2000                          /* framing error */
 #define TTIBUF_RBR      0x0400                          /* receive break */
 
-extern int32_t tmr_int;
-extern UNIT clk_unit;
-extern int32_t tmr_poll;
-extern uint32_t *rom;
-
 uint32_t *invfl = NULL;                                 /* invalidate filter */
 int32_t conisp, conpc, conpsl;                          /* console reg */
 int32_t ka_hltcod = 0;                                  /* IS1000 halt code */
@@ -120,7 +119,6 @@ int32_t SCCR = 0;                                       /* secondary cache contr
 int32_t sys_model = 0;                                  /* MicroVAX or VAXstation */
 int32_t int_req[IPL_HLVL] = { 0 };                      /* interrupt requests */
 int32_t int_mask = 0;                                   /* interrupt mask */
-int32_t vc_sel, vc_org;
 int32_t dz_csr = 0;                                     /* control/status */
 int32_t dz_lpr = 0;                                     /* line param */
 uint32_t dz_buftime;                                    /* time input character arrived */
@@ -128,26 +126,17 @@ uint32_t dma_csr = 0;
 uint32_t dma_txc = 0;
 uint32_t dma_addr = 0;
 
-t_stat tti_svc (UNIT *uptr);
-t_stat tto_svc (UNIT *uptr);
-t_stat dz_reset (DEVICE *dptr);
-t_stat sysd_reset (DEVICE *dptr);
-const char *dz_description (DEVICE *dptr);
-const char *sysd_description (DEVICE *dptr);
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-int32_t dz_rd (int32_t pa);
-int32_t ka_rd (int32_t pa);
-void dz_wr (int32_t pa, int32_t val, int32_t lnt);
-void ka_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t con_halt (int32_t code, int32_t cc);
-
-extern int32_t iccs_rd (void);
-extern int32_t rom_rd (int32_t pa);
-extern int32_t nvr_rd (int32_t pa);
-extern int32_t xs_rd (int32_t pa);
-extern void iccs_wr (int32_t dat);
-extern void nvr_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void xs_wr (int32_t pa, int32_t val, int32_t lnt);
+static t_stat tti_svc (UNIT *uptr);
+static t_stat tto_svc (UNIT *uptr);
+static int32_t dz_rd (int32_t pa);
+static void dz_wr (int32_t pa, int32_t val, int32_t lnt);
+static t_stat dz_reset (DEVICE *dptr);
+static t_stat sysd_reset (DEVICE *dptr);
+static const char *dz_description (DEVICE *dptr);
+static const char *sysd_description (DEVICE *dptr);
+static t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static int32_t ka_rd (int32_t pa);
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt);
 
 /* TTI data structures
 
@@ -459,7 +448,7 @@ else {
 return 0;
 }
 
-int32_t dz_rd (int32_t pa)
+static int32_t dz_rd (int32_t pa)
 {
 int32_t rg = (pa >> 2) & 0x7;
 int32_t val;
@@ -497,7 +486,7 @@ SET_IRQL;
 return val;
 }
 
-void dz_wr (int32_t pa, int32_t val, int32_t lnt)
+static void dz_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -757,7 +746,7 @@ return;
 
 /* IS1000 registers */
 
-int32_t ka_rd (int32_t pa)
+static int32_t ka_rd (int32_t pa)
 {
 int32_t rg = (pa >> 2) & 0x1B;                          /* registers appear multiple times */
 int32_t val = 0;
@@ -809,7 +798,7 @@ switch (rg) {
 return val;
 }
 
-void ka_wr (int32_t pa, int32_t val, int32_t lnt)
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -928,7 +917,7 @@ return 0;                                               /* new cc = 0 */
 
 */
 
-t_stat is1000_boot (int32_t flag, const char *ptr)
+static t_stat is1000_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -967,7 +956,7 @@ return SCPE_OK;
 
 /* SYSD reset */
 
-t_stat sysd_reset (DEVICE *dptr)
+static t_stat sysd_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -984,7 +973,7 @@ sim_vm_cmd = is1000_cmd;
 return SCPE_OK;
 }
 
-const char *sysd_description (DEVICE *dptr)
+static const char *sysd_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -998,7 +987,7 @@ return "system devices";
    tti_svc      process event (character ready)
 */
 
-t_stat tti_svc (UNIT *uptr)
+static t_stat tti_svc (UNIT *uptr)
 {
 int32_t c;
 
@@ -1028,7 +1017,7 @@ return SCPE_OK;
    tto_svc      process event (character typed)
 */
 
-t_stat tto_svc (UNIT *uptr)
+static t_stat tto_svc (UNIT *uptr)
 {
 int32_t c;
 t_stat r;
@@ -1046,7 +1035,7 @@ uptr->pos = uptr->pos + 1;
 return SCPE_OK;
 }
 
-t_stat dz_reset (DEVICE *dptr)
+static t_stat dz_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -1061,7 +1050,7 @@ sim_cancel (&dz_unit[1]);                               /* deactivate unit */
 return SCPE_OK;
 }
 
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -1082,7 +1071,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *dz_description (DEVICE *dptr)
+static const char *dz_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

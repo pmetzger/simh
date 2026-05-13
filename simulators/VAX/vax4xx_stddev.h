@@ -1,14 +1,17 @@
-/* vax4xx_stddev.h: KA4xx standard device interfaces */
+/* vax4xx_stddev.h: KA4xx standard-device interfaces */
 // SPDX-FileCopyrightText: 2019 Matt Burke
 // SPDX-FileCopyrightText: 1998-2008 Robert M Supnik
 // SPDX-License-Identifier: X11
 
 #ifndef VAX4XX_STDDEV_H_
-#define VAX4XX_STDDEV_H_ 0
+#define VAX4XX_STDDEV_H_ 1
 
 #include <stdint.h>
 
-#include "vax_defs.h"
+#include "sim_defs.h"
+
+extern int32_t tmr_int;
+extern uint32_t *rom;
 
 /*
  * Read and write the KA4xx interval clock control/status register.  The
@@ -39,12 +42,13 @@ t_stat or_map(uint32_t index, uint8_t *rom, t_addr size);
 t_stat or_unmap(uint32_t index);
 
 /*
- * Read or byte-write the KA4xx boot ROM.  The signed int32_t signature follows
- * the legacy signed VAX load and I/O callback pattern; the implementation
- * treats the address, stored byte, and returned word as unsigned guest bit
- * patterns.
+ * Read the KA4xx boot ROM.  The signed int32_t signature follows the legacy
+ * signed VAX load and I/O callback pattern; the implementation treats the
+ * address and returned word as unsigned guest bit patterns.
  */
 int32_t rom_rd(int32_t pa);
-void rom_wr_B(int32_t pa, int32_t val);
 
-#endif
+int32_t ReadIOU(uint32_t pa, int32_t lnt);
+void WriteIOU(uint32_t pa, int32_t val, int32_t lnt);
+
+#endif /* VAX4XX_STDDEV_H_ */

@@ -195,8 +195,8 @@ extern int32_t va_adp[ADP_NUMREG];                      /* Address processor reg
 
 /* External functions/data - implemented by machine specific device */
 
-extern void va_setint (int32_t src);
-extern void va_clrint (int32_t src);
+void va_setint (int32_t src);
+void va_clrint (int32_t src);
 
 extern uint32_t *va_buf;                                /* Video memory */
 extern bool va_updated[VA_BYSIZE];

@@ -35,6 +35,7 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_watch.h"
 
 /* control/status registers */
 
@@ -44,8 +45,8 @@
 #define WTC_CSRA_DV     (WTC_CSRA_M_DV << WTC_CSRA_V_DV)
 #define WTC_CSRA_UIP    0x80                            /* update in progess (BUSY) */
 #define WTC_CSRA_WR     (WTC_CSRA_RS | WTC_CSRA_DV)
-const char *wtc_dv_modes[] = {"4.194304MHz", "1.048576MHz", "32.768KHz", "Any", "Any", "Test-Only", "Test-Only", "Test-Only"};
-BITFIELD wtc_csra_bits[] = {
+static const char *wtc_dv_modes[] = {"4.194304MHz", "1.048576MHz", "32.768KHz", "Any", "Any", "Test-Only", "Test-Only", "Test-Only"};
+static BITFIELD wtc_csra_bits[] = {
     BITNCF(4),                              /* Rate Select - unused MBZ for VMS */
     BITFNAM(DV,3,wtc_dv_modes),             /* Divider Select */
     BIT(UIP),                               /* Update In Progress */
@@ -61,10 +62,10 @@ BITFIELD wtc_csra_bits[] = {
 #define WTC_CSRB_UIE    0x10                            /* update ended interrupt enable (Not Used by VMS) */
 #define WTC_CSRB_SQWE   0x08                            /* square wave enable (Not Used by VMS) */
 #define WTC_CSRB_WR     (WTC_CSRB_DSE | WTC_CSRB_2412 | WTC_CSRB_DM | WTC_CSRB_SET)
-const char *wtc_dse_modes[] = {"Disabled", "Enabled"};
-const char *wtc_hr_modes[] = {"12Hr", "24Hr"};
-const char *wtc_data_modes[] = {"BCD", "Binary"};
-BITFIELD wtc_csrb_bits[] = {
+static const char *wtc_dse_modes[] = {"Disabled", "Enabled"};
+static const char *wtc_hr_modes[] = {"12Hr", "24Hr"};
+static const char *wtc_data_modes[] = {"BCD", "Binary"};
+static BITFIELD wtc_csrb_bits[] = {
     BITFNAM(DST,1,wtc_dse_modes),           /* Daylight Savings Time Enable */
     BITFNAM(24HR,1,wtc_hr_modes),           /* 24/12 Hour Mode */
     BITFNAM(DM,1,wtc_data_modes),           /* Data Mode */
@@ -73,54 +74,50 @@ BITFIELD wtc_csrb_bits[] = {
     ENDBITS
 };
 
-BITFIELD wtc_csrc_bits[] = {
+static BITFIELD wtc_csrc_bits[] = {
     BITF(VALUE,8),                          /* Should be unused */
     ENDBITS
 };
 #define WTC_CSRD_VRT    0x80                            /* valid time */
 #define WTC_CSRD_RD     (WTC_CSRD_VRT)
 #define WTC_CSRD_WR     (WTC_CSRD_VRT)
-BITFIELD wtc_csrd_bits[] = {
+static BITFIELD wtc_csrd_bits[] = {
     BITNCF(7),
     BIT(VALID),                             /* Valid RAM and Time (VRT) */
     ENDBITS
 };
 
-BITFIELD wtc_value_bits[] = {
+static BITFIELD wtc_value_bits[] = {
     BITF_SIGNED(VALUE,8),                   /* Decimal Value */
     ENDBITS
 };
-BITFIELD* wtc_bitdefs[] = {wtc_value_bits, wtc_value_bits, wtc_value_bits, wtc_value_bits,
+static BITFIELD* wtc_bitdefs[] = {wtc_value_bits, wtc_value_bits, wtc_value_bits, wtc_value_bits,
                            wtc_value_bits, wtc_value_bits, wtc_value_bits, wtc_value_bits,
                            wtc_value_bits, wtc_value_bits, wtc_csra_bits,  wtc_csrb_bits,
                            wtc_csrc_bits,  wtc_csrd_bits,  wtc_value_bits, wtc_value_bits};
 
 #define WTC_MODE_STD    0
 #define WTC_MODE_VMS    1
-const char *wtc_modes[] = {"Std", "VMS"};
-BITFIELD wtc_mode_bits[] = {
+static const char *wtc_modes[] = {"Std", "VMS"};
+static BITFIELD wtc_mode_bits[] = {
     BITFNAM(MODE,1,wtc_modes),              /* Watch Date/Time mode */
     ENDBITS
 };
 
-int32_t wtc_csra = 0;
-int32_t wtc_csrb = 0;
-int32_t wtc_csrc = 0;
-int32_t wtc_csrd = 0;
-int32_t wtc_mode = WTC_MODE_VMS;
-uint8_t wtc_ram[64];
+static int32_t wtc_csra = 0;
+static int32_t wtc_csrb = 0;
+static int32_t wtc_csrc = 0;
+static int32_t wtc_csrd = 0;
+static int32_t wtc_mode = WTC_MODE_VMS;
+static uint8_t wtc_ram[64];
 
-t_stat wtc_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat wtc_show (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-t_stat wtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *wtc_description (DEVICE *dptr);
-t_stat wtc_reset (DEVICE *dptr);
-void wtc_set_valid (void);
-void wtc_set_invalid (void);
+static t_stat wtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *wtc_description (DEVICE *dptr);
+static t_stat wtc_reset (DEVICE *dptr);
 
-UNIT wtc_unit = { UDATA (NULL, 0, 0) };
+static UNIT wtc_unit = { UDATA (NULL, 0, 0) };
 
-REG wtc_reg[] = {
+static REG wtc_reg[] = {
     { HRDATADF (CSRA, wtc_csra, 8, "CSRA", wtc_csra_bits) },
     { HRDATADF (CSRB, wtc_csrb, 8, "CSRB", wtc_csrb_bits) },
     { HRDATADF (CSRC, wtc_csrc, 8, "CSRC", wtc_csrc_bits) },
@@ -130,7 +127,7 @@ REG wtc_reg[] = {
     { NULL }
     };
 
-MTAB wtc_mod[] = {
+static MTAB wtc_mod[] = {
     { MTAB_XTD|MTAB_VDV, 0, "TIME", "TIME={VMS|STD}", &wtc_set, &wtc_show, NULL, "Display watch time mode" },
     { 0 }
     };
@@ -138,7 +135,7 @@ MTAB wtc_mod[] = {
 /* debugging bitmaps */
 #define DBG_REG  0x0001                                 /* trace read/write registers */
 
-DEBTAB wtc_debug[] = {
+static DEBTAB wtc_debug[] = {
   {"REG",    DBG_REG},
   {0}
 };
@@ -305,7 +302,7 @@ if (lnt == 4)
     wtc_wr (((pa + 2) & (sizeof (wtc_ram) - 1)) >> 1, val);
 }
 
-t_stat wtc_reset (DEVICE *dptr)
+static t_stat wtc_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -371,7 +368,7 @@ void wtc_set_invalid (void)
 wtc_csrd &= ~WTC_CSRD_VRT;
 }
 
-t_stat wtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat wtc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -391,7 +388,7 @@ fprintf (st, "verify that the time reported is valid.  The default mode is VMS.\
 return SCPE_OK;
 }
 
-const char *wtc_description (DEVICE *dptr)
+static const char *wtc_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

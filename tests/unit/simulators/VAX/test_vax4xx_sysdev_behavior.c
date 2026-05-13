@@ -7,41 +7,21 @@
 
 #include "sim_types.h"
 #include "vax_defs.h"
-#include "vax4xx_stddev.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax4xx_defs.h"
+#include "vax4xx_rom_patch.h"
+#include "vax_xs.h"
+#if defined(VAX_410)
+#include "vax410_sysdev_internal.h"
+#else
+#include "vax420_sysdev_internal.h"
+#endif
 
 /*
  * These tests preserve legacy KA410/KA420 system-device unaligned register
  * read behavior at the real disk data buffer entry point.
  */
-
-int32_t ReadReg(uint32_t pa, int32_t lnt);
-int32_t ReadRegU(uint32_t pa, int32_t lnt);
-void WriteReg(uint32_t pa, int32_t val, int32_t lnt);
-void WriteRegU(uint32_t pa, int32_t val, int32_t lnt);
-void ddb_WriteB(uint32_t ba, uint32_t bc, uint8_t *buf);
-void ddb_WriteW(uint32_t ba, uint32_t bc, uint16_t *buf);
-int32_t ka_rd(int32_t pa);
-int32_t nar_rd(int32_t pa);
-int32_t dz_rd(int32_t pa);
-int32_t rd_rd(int32_t pa);
-int32_t va_rd(int32_t pa);
-int32_t ve_rd(int32_t pa);
-void dz_wr(int32_t pa, int32_t val, int32_t lnt);
-void rd_wr(int32_t pa, int32_t val, int32_t lnt);
-void vc_wr(int32_t pa, int32_t val, int32_t lnt);
-void va_wr(int32_t pa, int32_t val, int32_t lnt);
-void ve_wr(int32_t pa, int32_t val, int32_t lnt);
-t_stat rom_apply_patches(void);
-
-extern uint32_t *ddb;
-extern int32_t int_mask;
-extern int32_t int_req[];
-
-#if !defined(VAX_410)
-extern UNIT sysd_unit;
-extern bool tmr_inst;
-extern uint32_t tmr_tir;
-#endif
 
 #if defined(VAX_410)
 #define TEST_DDB_BASE D16BASE

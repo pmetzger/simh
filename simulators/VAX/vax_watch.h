@@ -37,13 +37,13 @@
 
 #include "vax_defs.h"
 
-extern t_stat wtc_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern t_stat wtc_show (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-extern void wtc_set_valid (void);
-extern void wtc_set_invalid (void);
-extern int32_t wtc_rd (int32_t rg);
-extern int32_t wtc_rd_pa (int32_t pa);
-extern void wtc_wr (int32_t rg, int32_t val);
-extern void wtc_wr_pa (int32_t pa, int32_t val, int32_t lnt);
+t_stat wtc_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat wtc_show (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+void wtc_set_valid (void);
+void wtc_set_invalid (void);
+int32_t wtc_rd (int32_t rg);
+int32_t wtc_rd_pa (int32_t pa);
+void wtc_wr (int32_t rg, int32_t val);
+void wtc_wr_pa (int32_t pa, int32_t val, int32_t lnt);
 
 #endif

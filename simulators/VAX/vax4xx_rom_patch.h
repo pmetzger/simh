@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef VAX4XX_ROM_PATCH_H_
-#define VAX4XX_ROM_PATCH_H_ 0
+#define VAX4XX_ROM_PATCH_H_ 1
 
 #include <stdio.h>
 
@@ -21,4 +21,4 @@ t_stat rom_set_patch(UNIT *uptr, int32_t val, const char *cptr, void *desc);
 /* Show the currently enabled KA4xx ROM patch. */
 t_stat rom_show_patch(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
-#endif
+#endif /* VAX4XX_ROM_PATCH_H_ */

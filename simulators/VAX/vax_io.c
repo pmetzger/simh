@@ -127,26 +127,22 @@ int32_t cq_mbr = 0;                                     /* MBR */
 int32_t cq_ipc = 0;                                     /* IPC */
 int32_t autcon_enb = 1;                                 /* autoconfig enable */
 
-extern int32_t ssc_bto;
-extern int32_t vc_mem_rd (int32_t pa);
-extern void vc_mem_wr (int32_t pa, int32_t val, int32_t mode);
-
-t_stat dbl_rd (int32_t *data, int32_t addr, int32_t access);
-t_stat dbl_wr (int32_t data, int32_t addr, int32_t access);
-t_stat cqm_rd(int32_t *dat, int32_t ad, int32_t md);
-t_stat cqm_wr(int32_t dat, int32_t ad, int32_t md);
-int32_t eval_int (void);
-void cq_merr (int32_t pa);
-void cq_serr (int32_t pa);
-t_stat qba_reset (DEVICE *dptr);
-t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-bool qba_map_addr (uint32_t qa, uint32_t *ma);
-bool qba_map_addr_c (uint32_t qa, uint32_t *ma);
-t_stat qba_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc);
-t_stat qba_show_map (FILE *of, UNIT *uptr, int32_t val, const void *desc);
-t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *qba_description (DEVICE *dptr);
+static t_stat dbl_rd (int32_t *data, int32_t addr, int32_t access);
+static t_stat dbl_wr (int32_t data, int32_t addr, int32_t access);
+#ifndef VAX_QBUS_TEST_RECORD_READS
+static t_stat cqm_rd(int32_t *dat, int32_t ad, int32_t md);
+#endif
+static void cq_merr (int32_t pa);
+static void cq_serr (int32_t pa);
+static t_stat qba_reset (DEVICE *dptr);
+static t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static bool qba_map_addr (uint32_t qa, uint32_t *ma);
+static bool qba_map_addr_c (uint32_t qa, uint32_t *ma);
+static t_stat qba_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc);
+static t_stat qba_show_map (FILE *of, UNIT *uptr, int32_t val, const void *desc);
+static t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *qba_description (DEVICE *dptr);
 
 /* Qbus adapter data structures
 
@@ -588,7 +584,7 @@ return;
 
 /* I/O page routines */
 
-t_stat dbl_rd (int32_t *data, int32_t addr, int32_t access)
+static t_stat dbl_rd (int32_t *data, int32_t addr, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -599,7 +595,7 @@ t_stat dbl_rd (int32_t *data, int32_t addr, int32_t access)
 return SCPE_OK;
 }
 
-t_stat dbl_wr (int32_t data, int32_t addr, int32_t access)
+static t_stat dbl_wr (int32_t data, int32_t addr, int32_t access)
 {
 cqipc_wr (addr, data, (access == WRITEB)? L_BYTE: L_WORD);
 return SCPE_OK;
@@ -652,7 +648,8 @@ return;
    as that could create a recursive loop.
 */
 
-t_stat cqm_rd (int32_t *dat, int32_t pa, int32_t md)
+#ifndef VAX_QBUS_TEST_RECORD_READS
+static t_stat cqm_rd (int32_t *dat, int32_t pa, int32_t md)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -676,6 +673,7 @@ if (ADDR_IS_QVM(pa)) {                                  /* QVSS memory? */
 MACH_CHECK (MCHK_READ);                                 /* err? mcheck */
 return SCPE_OK;
 }
+#endif
 
 t_stat cqm_wr (int32_t dat, int32_t pa, int32_t md)
 {
@@ -704,7 +702,7 @@ return SCPE_OK;
 
 /* Map an address via the translation map */
 
-bool qba_map_addr (uint32_t qa, uint32_t *ma)
+static bool qba_map_addr (uint32_t qa, uint32_t *ma)
 {
 int32_t qblk = (qa >> VA_V_VPN);                        /* Qbus blk */
 int32_t qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;     /* map entry */
@@ -727,7 +725,7 @@ return false;
 
 /* Map an address via the translation map - console version (no status changes) */
 
-bool qba_map_addr_c (uint32_t qa, uint32_t *ma)
+static bool qba_map_addr_c (uint32_t qa, uint32_t *ma)
 {
 int32_t qblk = (qa >> VA_V_VPN);                        /* Qbus blk */
 int32_t qmma = ((qblk << 2) & CQMAPAMASK) + cq_mbr;     /* map entry */
@@ -744,7 +742,7 @@ return false;
 
 /* Set master error */
 
-void cq_merr (int32_t pa)
+static void cq_merr (int32_t pa)
 {
 if (cq_dser & CQDSER_ERR)
     cq_dser = cq_dser | CQDSER_LST;
@@ -755,7 +753,7 @@ return;
 
 /* Set slave error */
 
-void cq_serr (int32_t pa)
+static void cq_serr (int32_t pa)
 {
 if (cq_dser & CQDSER_ERR)
     cq_dser = cq_dser | CQDSER_LST;
@@ -787,7 +785,7 @@ return SCPE_OK;
 
 /* Reset CQBIC */
 
-t_stat qba_reset (DEVICE *dptr)
+static t_stat qba_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -944,7 +942,7 @@ return 0;
 
 /* Memory examine via map (word only) */
 
-t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat qba_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -964,7 +962,7 @@ return SCPE_NXM;
 
 /* Memory deposit via map (word only) */
 
-t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat qba_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -1004,7 +1002,7 @@ return SCPE_OK;
 
 /* Show QBA virtual address */
 
-t_stat qba_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc)
+static t_stat qba_show_virt (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1030,7 +1028,7 @@ return SCPE_OK;
 
 /* Show QBA map register(s) */
 
-t_stat qba_show_map (FILE *of, UNIT *uptr, int32_t val, const void *desc)
+static t_stat qba_show_map (FILE *of, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -1042,7 +1040,7 @@ uint32_t *qb_map = &M[cq_mbr >> 2];
 return show_bus_map (of, (const char *)desc, qb_map, (CQMAPSIZE >> 2), "Qbus", CQMAP_VLD);
 }
 
-t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat qba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -1062,7 +1060,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *qba_description (DEVICE *dptr)
+static const char *qba_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

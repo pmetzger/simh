@@ -62,6 +62,11 @@
 #include "sim_types.h"
 #include "uint_bits.h"
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax_lk.h"
+#include "vax_sysdev_internal.h"
+#include "vax_vs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "ka655x.bin"
@@ -72,7 +77,7 @@
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
 #define UNIT_NODELAY    (1u << UNIT_V_NODELAY)
 
-t_stat vax_boot (int32_t flag, const char *ptr);
+static t_stat vax_boot (int32_t flag, const char *ptr);
 int32_t sys_model = 0;
 
 /* Special boot command, overrides regular boot */
@@ -229,11 +234,6 @@ static BITFIELD tmr_csr_bits[] = {
 
 #define SSCADS_MASK     0x3FFFFFFC                      /* match or mask */
 
-extern UNIT clk_unit;
-extern int32_t MSER;
-extern int32_t tmr_poll;
-extern DEVICE vc_dev, lk_dev, vs_dev;
-
 uint32_t *rom = NULL;                                   /* boot ROM */
 uint32_t *nvr = NULL;                                   /* non-volatile mem */
 int32_t CADR = 0;                                       /* cache disable reg */
@@ -258,74 +258,49 @@ int32_t ssc_adsm[2] = { 0 };                            /* addr strobes */
 int32_t ssc_adsk[2] = { 0 };
 int32_t cdg_dat[CDASIZE >> 2];                          /* cache data */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat rom_reset (DEVICE *dptr);
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *rom_description (DEVICE *dptr);
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nvr_reset (DEVICE *dptr);
-t_stat nvr_attach (UNIT *uptr, const char *cptr);
-t_stat nvr_detach (UNIT *uptr);
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *nvr_description (DEVICE *dptr);
-t_stat csi_reset (DEVICE *dptr);
-const char *csi_description (DEVICE *dptr);
-t_stat cso_reset (DEVICE *dptr);
-t_stat cso_svc (UNIT *uptr);
-const char *cso_description (DEVICE *dptr);
-t_stat tmr_svc (UNIT *uptr);
-t_stat sysd_reset (DEVICE *dptr);
-t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *sysd_description (DEVICE *dptr);
+static t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat rom_reset (DEVICE *dptr);
+static t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *rom_description (DEVICE *dptr);
+static t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nvr_reset (DEVICE *dptr);
+static t_stat nvr_attach (UNIT *uptr, const char *cptr);
+static t_stat nvr_detach (UNIT *uptr);
+static t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *nvr_description (DEVICE *dptr);
+static t_stat csi_reset (DEVICE *dptr);
+static const char *csi_description (DEVICE *dptr);
+static t_stat cso_reset (DEVICE *dptr);
+static t_stat cso_svc (UNIT *uptr);
+static const char *cso_description (DEVICE *dptr);
+static t_stat tmr_svc (UNIT *uptr);
+static t_stat sysd_reset (DEVICE *dptr);
+static t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *sysd_description (DEVICE *dptr);
 
-int32_t rom_rd (int32_t pa);
-int32_t nvr_rd (int32_t pa);
-void nvr_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t csrs_rd (void);
-int32_t csrd_rd (void);
-int32_t csts_rd (void);
-void csrs_wr (int32_t dat);
-void csts_wr (int32_t dat);
-void cstd_wr (int32_t dat);
-int32_t cmctl_rd (int32_t pa);
-void cmctl_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t ka_rd (int32_t pa);
-void ka_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t cdg_rd (int32_t pa);
-void cdg_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t ssc_rd (int32_t pa);
-void ssc_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t tmr_tir_rd (int32_t tmr);
-void tmr_csr_wr (int32_t tmr, int32_t val);
-int32_t tmr_csr_rd (int32_t tmr);
-void tmr_sched (int32_t tmr);
-void tmr_incr (int32_t tmr, uint32_t inc);
-int32_t tmr0_inta (void);
-int32_t tmr1_inta (void);
-int32_t parity (int32_t val, int32_t odd);
-t_stat sysd_powerup (void);
-
-extern int32_t intexc (int32_t vec, int32_t cc, int32_t ipl, int ei);
-extern int32_t cqmap_rd (int32_t pa);
-extern void cqmap_wr (int32_t pa, int32_t val, int32_t lnt);
-extern int32_t cqipc_rd (int32_t pa);
-extern void cqipc_wr (int32_t pa, int32_t val, int32_t lnt);
-extern int32_t cqbic_rd (int32_t pa);
-extern void cqbic_wr (int32_t pa, int32_t val, int32_t lnt);
-extern int32_t iccs_rd (void);
-extern int32_t todr_rd (void);
-extern int32_t rxcs_rd (void);
-extern int32_t rxdb_rd (void);
-extern int32_t txcs_rd (void);
-extern void iccs_wr (int32_t dat);
-extern void todr_wr (int32_t dat);
-extern void rxcs_wr (int32_t dat);
-extern void txcs_wr (int32_t dat);
-extern void txdb_wr (int32_t dat);
-extern void ioreset_wr (int32_t dat);
-extern void cpu_idle (void);
+static int32_t rom_rd (int32_t pa);
+static int32_t csrs_rd (void);
+static int32_t csrd_rd (void);
+static int32_t csts_rd (void);
+static void csrs_wr (int32_t dat);
+static void csts_wr (int32_t dat);
+static void cstd_wr (int32_t dat);
+static int32_t cmctl_rd (int32_t pa);
+static int32_t ka_rd (int32_t pa);
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt);
+static int32_t cdg_rd (int32_t pa);
+static int32_t ssc_rd (int32_t pa);
+static int32_t tmr_tir_rd (int32_t tmr);
+static void tmr_csr_wr (int32_t tmr, int32_t val);
+static int32_t tmr_csr_rd (int32_t tmr);
+static void tmr_sched (int32_t tmr);
+static void tmr_incr (int32_t tmr, uint32_t inc);
+static int32_t tmr0_inta (void);
+static int32_t tmr1_inta (void);
+static int32_t parity (int32_t val, int32_t odd);
+static t_stat sysd_powerup (void);
 
 /* ROM data structures
 
@@ -417,7 +392,8 @@ DEVICE csi_dev = {
     1, 10, 31, 1, 8, 8,
     NULL, NULL, &csi_reset,
     NULL, NULL, NULL,
-    &csi_dib, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL
+    &csi_dib, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL,
+    &csi_description
     };
 
 /* CSO data structures
@@ -453,7 +429,8 @@ DEVICE cso_dev = {
     1, 10, 31, 1, 8, 8,
     NULL, NULL, &cso_reset,
     NULL, NULL, NULL,
-    &cso_dib, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL
+    &cso_dib, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL,
+    &cso_description
     };
 
 /* SYSD data structures
@@ -552,7 +529,7 @@ DEVICE sysd_dev = {
  * VAX I/O signature, but the physical address and ROM word are unsigned guest
  * bit patterns internally.
  */
-int32_t rom_rd (int32_t pa)
+static int32_t rom_rd (int32_t pa)
 {
 uint32_t addr = (uint32_t) pa;
 uint32_t rg = ((addr - ROMBASE) & ROMAMASK) >> 2;
@@ -579,7 +556,7 @@ rom[rg] = u32_put_addr_u8_le (rom[rg], (uint32_t) val, addr);
 
 /* ROM examine */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -598,7 +575,7 @@ return SCPE_OK;
 
 /* ROM deposit */
 
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -617,7 +594,7 @@ return SCPE_OK;
 
 /* ROM reset */
 
-t_stat rom_reset (DEVICE *dptr)
+static t_stat rom_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -631,7 +608,7 @@ if (rom == NULL)
 return SCPE_OK;
 }
 
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -654,7 +631,7 @@ fprint_set_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *rom_description (DEVICE *dptr)
+static const char *rom_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -699,7 +676,7 @@ else
 
 /* NVR examine */
 
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -718,7 +695,7 @@ return SCPE_OK;
 
 /* NVR deposit */
 
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -737,7 +714,7 @@ return SCPE_OK;
 
 /* NVR reset */
 
-t_stat nvr_reset (DEVICE *dptr)
+static t_stat nvr_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -755,7 +732,7 @@ return SCPE_OK;
 
 /* NVR attach */
 
-t_stat nvr_attach (UNIT *uptr, const char *cptr)
+static t_stat nvr_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
 
@@ -772,7 +749,7 @@ return r;
 
 /* NVR detach */
 
-t_stat nvr_detach (UNIT *uptr)
+static t_stat nvr_detach (UNIT *uptr)
 {
 t_stat r;
 
@@ -782,7 +759,7 @@ if ((uptr->flags & UNIT_ATT) == 0)
 return r;
 }
 
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -802,7 +779,7 @@ fprintf (st, "Successfully loading an NVR image clears the SSC battery-low indic
 return SCPE_OK;
 }
 
-const char *nvr_description (DEVICE *dptr)
+static const char *nvr_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -813,19 +790,19 @@ return "non-volatile memory";
 
 /* CSI: console storage input */
 
-int32_t csrs_rd (void)
+static int32_t csrs_rd (void)
 {
 return (csi_csr & CSICSR_IMP);
 }
 
-int32_t csrd_rd (void)
+static int32_t csrd_rd (void)
 {
 csi_csr = csi_csr & ~CSR_DONE;
 CLR_INT (CSI);
 return (csi_unit.buf & 0377);
 }
 
-void csrs_wr (int32_t data)
+static void csrs_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CLR_INT (CSI);
@@ -834,7 +811,7 @@ else if ((csi_csr & (CSR_DONE + CSR_IE)) == CSR_DONE)
 csi_csr = (csi_csr & ~CSICSR_RW) | (data & CSICSR_RW);
 }
 
-t_stat csi_reset (DEVICE *dptr)
+static t_stat csi_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -846,7 +823,7 @@ CLR_INT (CSI);
 return SCPE_OK;
 }
 
-const char *csi_description (DEVICE *dptr)
+static const char *csi_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -857,12 +834,12 @@ return "console storage input";
 
 /* CSO: console storage output */
 
-int32_t csts_rd (void)
+static int32_t csts_rd (void)
 {
 return (cso_csr & CSOCSR_IMP);
 }
 
-void csts_wr (int32_t data)
+static void csts_wr (int32_t data)
 {
 if ((data & CSR_IE) == 0)
     CLR_INT (CSO);
@@ -872,7 +849,7 @@ else
 cso_csr = (cso_csr & ~CSOCSR_RW) | (data & CSOCSR_RW);
 }
 
-void cstd_wr (int32_t data)
+static void cstd_wr (int32_t data)
 {
 cso_unit.buf = data & 0377;
 cso_csr = cso_csr & ~CSR_DONE;
@@ -880,7 +857,7 @@ CLR_INT (CSO);
 sim_activate (&cso_unit, cso_unit.wait);
 }
 
-t_stat cso_svc (UNIT *uptr)
+static t_stat cso_svc (UNIT *uptr)
 {
 /* Generic unit service signature.
    This implementation does not use every parameter. */
@@ -900,7 +877,7 @@ cso_unit.pos = cso_unit.pos + 1;
 return SCPE_OK;
 }
 
-t_stat cso_reset (DEVICE *dptr)
+static t_stat cso_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -913,7 +890,7 @@ sim_cancel (&cso_unit);                                 /* deactivate unit */
 return SCPE_OK;
 }
 
-const char *cso_description (DEVICE *dptr)
+static const char *cso_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -1206,7 +1183,7 @@ WriteReg (pa & ~03, (int32_t) dat, L_LONG);
    The CMCTL registers are cleared at power up.
 */
 
-int32_t cmctl_rd (int32_t pa)
+static int32_t cmctl_rd (int32_t pa)
 {
 int32_t rg = (pa - CMCTLBASE) >> 2;
 
@@ -1299,7 +1276,7 @@ return SCPE_OK;
 
 /* KA655 registers */
 
-int32_t ka_rd (int32_t pa)
+static int32_t ka_rd (int32_t pa)
 {
 int32_t rg = (pa - KABASE) >> 2;
 
@@ -1315,7 +1292,7 @@ switch (rg) {
 return 0;
 }
 
-void ka_wr (int32_t pa, int32_t val, int32_t lnt)
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Generic register write signature.
    This implementation does not use every parameter. */
@@ -1336,7 +1313,7 @@ return ka_bdr & BDR_BRKENB;
 
 /* Cache diagnostic space */
 
-int32_t cdg_rd (int32_t pa)
+static int32_t cdg_rd (int32_t pa)
 {
 int32_t t, row = CDG_GETROW (pa);
 
@@ -1365,7 +1342,7 @@ if (lnt < L_LONG) {                                     /* byte or word? */
 cdg_dat[row] = val;                                     /* store data */
 }
 
-int32_t parity (int32_t val, int32_t odd)
+static int32_t parity (int32_t val, int32_t odd)
 {
 for ( ; val != 0; val = val >> 1) {
     if (val & 1)
@@ -1376,7 +1353,7 @@ return odd;
 
 /* SSC registers - byte/word merges done in ssc_wr */
 
-int32_t ssc_rd (int32_t pa)
+static int32_t ssc_rd (int32_t pa)
 {
 int32_t rg = (pa - SSCBASE) >> 2;
 int32_t val;
@@ -1597,7 +1574,7 @@ switch (rg) {
    programmed from the ROM for short duration delays.
 */
 
-int32_t tmr_tir_rd (int32_t tmr)
+static int32_t tmr_tir_rd (int32_t tmr)
 {
 if (tmr_csr[tmr] & TMR_CSR_RUN) {           /* running? then interpolate */
     uint32_t usecs_remaining, cur_tir;
@@ -1622,14 +1599,14 @@ sim_debug (DBG_REGR, &sysd_dev, "tmr_tir_rd(tmr=%d) - 0x%X\n", tmr, tmr_tir[tmr]
 return tmr_tir[tmr];
 }
 
-int32_t tmr_csr_rd (int32_t tmr)
+static int32_t tmr_csr_rd (int32_t tmr)
 {
 sim_debug (DBG_REGR, &sysd_dev, "tmr_csr_rd(tmr=%d) - 0x%X", tmr, tmr_csr[tmr]);
 sim_debug_bits_hdr (DBG_REGR, &sysd_dev, " ", tmr_csr_bits, tmr_csr[tmr], tmr_csr[tmr], 1);
 return tmr_csr[tmr];
 }
 
-void tmr_csr_wr (int32_t tmr, int32_t val)
+static void tmr_csr_wr (int32_t tmr, int32_t val)
 {
 int32_t before_tmr_csr;
 
@@ -1678,7 +1655,7 @@ if ((before_tmr_csr & (TMR_CSR_DON | TMR_CSR_IE)) &&
 
 /* Unit service */
 
-t_stat tmr_svc (UNIT *uptr)
+static t_stat tmr_svc (UNIT *uptr)
 {
 int32_t tmr = uptr - sysd_dev.units;                    /* get timer # */
 uint32_t delta_usecs = ~tmr_tir[tmr] + 1;
@@ -1689,7 +1666,7 @@ return SCPE_OK;
 
 /* Timer increment */
 
-void tmr_incr (int32_t tmr, uint32_t inc)
+static void tmr_incr (int32_t tmr, uint32_t inc)
 {
 uint32_t new_tir = tmr_tir[tmr] + inc;                  /* add incr */
 
@@ -1722,7 +1699,7 @@ else {
 
 /* Timer scheduling */
 
-void tmr_sched (int32_t tmr)
+static void tmr_sched (int32_t tmr)
 {
 uint32_t usecs_sched = tmr_tir[tmr] ? (~tmr_tir[tmr] + 1) : 0xFFFFFFFF;
 double usecs_sched_d = tmr_tir[tmr] ? (double)(~tmr_tir[tmr] + 1) : (1.0 + (double)0xFFFFFFFFu);
@@ -1741,13 +1718,13 @@ else {
     }
 }
 
-int32_t tmr0_inta (void)
+static int32_t tmr0_inta (void)
 {
 sim_debug (DBG_INT, &sysd_dev, "tmr0_inta() - Int Ack - Vector=0x%X\n", tmr_tivr[0]);
 return tmr_tivr[0];
 }
 
-int32_t tmr1_inta (void)
+static int32_t tmr1_inta (void)
 {
 sim_debug (DBG_INT, &sysd_dev, "tmr1_inta() - Int Ack - Vector=0x%X\n", tmr_tivr[1]);
 return tmr_tivr[1];
@@ -1817,7 +1794,7 @@ return 0;                                               /* new cc = 0 */
 
 */
 
-t_stat vax_boot (int32_t flag, const char *ptr)
+static t_stat vax_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -1887,7 +1864,7 @@ return SCPE_OK;
 
 /* SYSD reset */
 
-t_stat sysd_reset (DEVICE *dptr)
+static t_stat sysd_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -1915,7 +1892,7 @@ return SCPE_OK;
 
 /* SYSD powerup */
 
-t_stat sysd_powerup (void)
+static t_stat sysd_powerup (void)
 {
 int32_t i;
 
@@ -1933,7 +1910,7 @@ ssc_otp = 0;
 return SCPE_OK;
 }
 
-t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -1959,7 +1936,7 @@ fprintf (st, "setting the flag.  The default value is set.\n");
 return SCPE_OK;
 }
 
-const char *sysd_description (DEVICE *dptr)
+static const char *sysd_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

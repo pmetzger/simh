@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax860_sbia.h"
 
 /* SBIA registers */
 
@@ -74,22 +75,17 @@
 
 #define SBIQC_MBZ       0xC0000007                      /* MBZ */
 
-extern uint32_t nexus_req[NEXUS_HLVL];                  /* nexus int req */
-uint32_t sbi_fs = 0;                                    /* SBI fault status */
-uint32_t sbi_sc = 0;                                    /* SBI silo comparator */
-uint32_t sbi_mt = 0;                                    /* SBI maintenance */
+static uint32_t sbi_fs = 0;                             /* SBI fault status */
+static uint32_t sbi_sc = 0;                             /* SBI silo comparator */
+static uint32_t sbi_mt = 0;                             /* SBI maintenance */
 uint32_t sbi_er = 0;                                    /* SBI error status */
-uint32_t sbi_tmo = 0;                                   /* SBI timeout addr */
-uint32_t sbi_csr = 0;                                   /* SBI control/status */
+static uint32_t sbi_tmo = 0;                            /* SBI timeout addr */
+static uint32_t sbi_csr = 0;                            /* SBI control/status */
 
-t_stat sbia_reset (DEVICE *dptr);
-const char *sbia_description (DEVICE *dptr);
-void sbi_set_tmo (int32_t pa);
-t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
-t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
-
-extern int32_t intexc (int32_t vec, int32_t cc, int32_t ipl, int ei);
-extern int32_t eval_int (void);
+static t_stat sbia_reset (DEVICE *dptr);
+static const char *sbia_description (DEVICE *dptr);
+static t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
+static t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
 
 /* SBIA data structures
 
@@ -98,9 +94,9 @@ extern int32_t eval_int (void);
    sbia_reg     SBIA register list
 */
 
-UNIT sbia_unit = { UDATA (NULL, 0, 0) };
+static UNIT sbia_unit = { UDATA (NULL, 0, 0) };
 
-REG sbia_reg[] = {
+static REG sbia_reg[] = {
     { HRDATA (NREQ14, nexus_req[0], 16) },
     { HRDATA (NREQ15, nexus_req[1], 16) },
     { HRDATA (NREQ16, nexus_req[2], 16) },
@@ -290,7 +286,7 @@ return;
 
 /* SBI reset */
 
-t_stat sbia_reset (DEVICE *dptr)
+static t_stat sbia_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -305,7 +301,7 @@ sbi_csr = SBICSR_SCOEN | SBICSR_SCIEN;
 return SCPE_OK;
 }
 
-const char *sbia_description (DEVICE *dptr)
+static const char *sbia_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

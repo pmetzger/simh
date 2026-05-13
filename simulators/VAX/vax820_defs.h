@@ -157,10 +157,9 @@
                         { MTAB_XTD|MTAB_VDV, 0, "MODEL", "MODEL={8200|8250}",                   \
                               &cpu_set_model, &cpu_show_model, NULL, "Set/Display processor model" },
 
-int32_t rxcd_rd (void);
-void rxcd_wr (int32_t val);
-int32_t pcsr_rd (int32_t pa);
-void pcsr_wr (int32_t pa, int32_t val, int32_t lnt);
+#include "vax820_ka.h"
+
+#include "vax820_stddev.h"
 
 /* Memory */
 
@@ -181,7 +180,7 @@ void pcsr_wr (int32_t pa, int32_t val, int32_t lnt);
                         { UNIT_MSIZE, (1u << 28), NULL, "256M", &cpu_set_size, NULL, NULL, "Set Memory to 256M bytes" },                \
                         { UNIT_MSIZE, (1u << 29), NULL, "512M", &cpu_set_size, NULL, NULL, "Set Memory to 512M bytes" },                \
                         { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "MEMORY", NULL, NULL, &cpu_show_memory, NULL, "Display memory configuration" }
-extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+#include "vax820_mem.h"
 
 /* Node window space */
 
@@ -426,24 +425,15 @@ typedef struct {
 
 /* Function prototypes for I/O */
 
-int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
-int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
-int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
-int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
+#include "vax7x0_mba.h"
+#include "vax820_bi.h"
+#include "vax820_uba.h"
 
-int32_t mba_rdbufW (uint32_t mbus, int32_t bc, uint16_t *buf);
-int32_t mba_wrbufW (uint32_t mbus, int32_t bc, const uint16_t *buf);
-int32_t mba_chbufW (uint32_t mbus, int32_t bc, uint16_t *buf);
-int32_t mba_get_bc (uint32_t mbus);
-void mba_upd_ata (uint32_t mbus, uint32_t val);
-void mba_set_exc (uint32_t mbus);
-void mba_set_don (uint32_t mbus);
-void mba_set_enbdis (DEVICE *dptr);
-t_stat mba_show_num (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-
-t_stat show_nexus (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-void init_nexus_tab (void);
-t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp);
+/* VAX_MP CPU interfaces. */
+#if defined (VAX_MP)
+void cpu_setreg (int32_t cpu, int32_t rg, int32_t val);
+void cpu_start (int32_t cpu, uint32_t addr);
+#endif
 
 /* Function prototypes for system-specific unaligned support
    8200 treats unaligned like aligned? */

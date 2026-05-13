@@ -42,6 +42,9 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cmode.h"
+#include "vax_cpu.h"
+#include "vax_sys.h"
 
 #if defined (CMPM_VAX)
 
@@ -53,15 +56,15 @@
 #define CC_XOR_NV(x)    ((((x) & CC_N) != 0) ^ (((x) & CC_V) != 0))
 #define CC_XOR_NC(x)    ((((x) & CC_N) != 0) ^ (((x) & CC_C) != 0))
 
-int32_t GeteaB (int32_t spec);
-int32_t GeteaW (int32_t spec);
-int32_t RdMemW (int32_t a);
-int32_t RdMemMW (int32_t a);
-void WrMemW (int32_t d, int32_t a);
-int32_t RdRegB (int32_t rn);
-int32_t RdRegW (int32_t rn);
-void WrRegB (int32_t val, int32_t rn);
-void WrRegW (int32_t val, int32_t rn);
+static int32_t GeteaB (int32_t spec);
+static int32_t GeteaW (int32_t spec);
+static int32_t RdMemW (int32_t a);
+static int32_t RdMemMW (int32_t a);
+static void WrMemW (int32_t d, int32_t a);
+static int32_t RdRegB (int32_t rn);
+static int32_t RdRegW (int32_t rn);
+static void WrRegB (int32_t val, int32_t rn);
+static void WrRegW (int32_t val, int32_t rn);
 
 /* Validate PSL for compatibility mode */
 
@@ -1094,7 +1097,7 @@ return cc;
         ea      =       effective address
 */
 
-int32_t GeteaW (int32_t spec)
+static int32_t GeteaW (int32_t spec)
 {
 int32_t adr, reg;
 
@@ -1160,7 +1163,7 @@ switch (spec >> 3) {                                    /* decode spec<5:3> */
         }                                               /* end switch */
 }
 
-int32_t GeteaB (int32_t spec)
+static int32_t GeteaB (int32_t spec)
 {
 int32_t adr, reg;
 
@@ -1236,7 +1239,7 @@ switch (spec >> 3) {                                    /* decode spec<5:3> */
 
 /* Memory and register access routines */
 
-int32_t RdMemW (int32_t a)
+static int32_t RdMemW (int32_t a)
 {
 int32_t acc = ACC_MASK (USER);
 
@@ -1245,7 +1248,7 @@ if (a & 1)
 return Read (a, L_WORD, RA);
 }
 
-int32_t RdMemMW (int32_t a)
+static int32_t RdMemMW (int32_t a)
 {
 int32_t acc = ACC_MASK (USER);
 
@@ -1254,7 +1257,7 @@ if (a & 1)
 return Read (a, L_WORD, WA);
 }
 
-void WrMemW (int32_t d, int32_t a)
+static void WrMemW (int32_t d, int32_t a)
 {
 int32_t acc = ACC_MASK (USER);
 
@@ -1264,21 +1267,21 @@ Write (a, d, L_WORD, WA);
 return;
 }
 
-int32_t RdRegB (int32_t rn)
+static int32_t RdRegB (int32_t rn)
 {
 if (rn == 7)
     return (PC & BMASK);
 else return (R[rn] & BMASK);
 }
 
-int32_t RdRegW (int32_t rn)
+static int32_t RdRegW (int32_t rn)
 {
 if (rn == 7)
     return (PC & WMASK);
 else return (R[rn] & WMASK);
 }
 
-void WrRegB (int32_t val, int32_t rn)
+static void WrRegB (int32_t val, int32_t rn)
 {
 if (rn == 7) {
     CMODE_JUMP ((PC & ~BMASK) | val);
@@ -1287,7 +1290,7 @@ else R[rn] = (R[rn] & ~BMASK) | val;
 return;
 }
 
-void WrRegW (int32_t val, int32_t rn)
+static void WrRegW (int32_t val, int32_t rn)
 {
 if (rn == 7) {
     CMODE_JUMP (val);

@@ -28,7 +28,12 @@
 #define _VAX_RZDEV_H_
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sim_scsi.h"
+
+int32_t rz_rd(int32_t pa);
+void rz_wr(int32_t pa, int32_t val, int32_t lnt);
 
 #define RZ23_DTYPE      0
 #define RZ23_TYPE       SCSI_DISK

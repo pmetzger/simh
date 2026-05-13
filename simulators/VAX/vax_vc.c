@@ -44,11 +44,12 @@
 #include "sim_video.h"
 #include "vax_2681.h"
 #include "vax_lk.h"
+#include "vax_vc.h"
 #include "vax_vs.h"
 
 /* CSR - control/status register */
 
-BITFIELD vc_csr_bits[] = {
+static BITFIELD vc_csr_bits[] = {
     BIT(MOD),                           /* Monitor size (1 -> VR260(19"), 0 -> (15") */
 #define CSR_V_MOD 0
 #define CSR_MOD     (1<<CSR_V_MOD)
@@ -91,7 +92,7 @@ BITFIELD vc_csr_bits[] = {
 
 /* ICSR - interrupt controller command/status register */
 
-BITFIELD vc_icsr_bits[] = {
+static BITFIELD vc_icsr_bits[] = {
     BITF(IRRVEC,3),                     /* IRR Vector */
 #define ICSR_V_IRRVEC  0
 #define ICSR_S_IRRVEC  3
@@ -116,11 +117,11 @@ BITFIELD vc_icsr_bits[] = {
 };
 
 
-const char *vc_icm_rp_names[] = {"ISR", "IMR", "IRR", "ACR"};
+static const char *vc_icm_rp_names[] = {"ISR", "IMR", "IRR", "ACR"};
 
 /* mode - interrupt controller mode register */
 
-BITFIELD vc_ic_mode_bits[] = {
+static BITFIELD vc_ic_mode_bits[] = {
     BIT(PM),                            /* Priority Mode */
 #define ICM_V_PM     0
 #define ICM_PM       (1<<ICM_V_PM)
@@ -202,8 +203,6 @@ BITFIELD vc_ic_mode_bits[] = {
 
 #define IOLN_QVSS       0100
 
-extern int32_t tmxr_poll;                               /* calibrated delay */
-
 struct vc_int_t {
     uint32_t ptr;
     uint32_t vec[8];                                    /* Interrupt vectors */
@@ -214,42 +213,42 @@ struct vc_int_t {
     uint32_t mode;
     };
 
-struct vc_int_t vc_intc;                                /* Interrupt controller */
+static struct vc_int_t vc_intc;                         /* Interrupt controller */
 
-uint32_t vc_csr = 0;                                    /* Control/status */
-uint32_t vc_curx = 0;                                   /* Cursor X-position */
-uint32_t vc_cur_x = 0;                                  /* Last cursor X-position */
-uint32_t vc_cur_y = 0;                                  /* Last cursor Y-position */
-uint32_t vc_cur_f = 0;                                  /* Last cursor function (0->AND, 1->OR) */
-bool vc_cur_v = false;                                  /* Last cursor visible */
-bool vc_cur_new_data = false;                           /* New Cursor image data */
-bool vc_input_captured = false;                         /* Mouse and Keyboard input captured in video window */
-uint32_t vc_mpos = 0;                                   /* Mouse position */
-uint32_t vc_crtc[CRTC_SIZE];                            /* CRTC registers */
-uint32_t vc_crtc_p = 0;                                 /* CRTC pointer */
-uint32_t vc_icdr = 0;                                   /* Interrupt controller data */
-uint32_t vc_icsr = 0;                                   /* Interrupt controller status */
-uint32_t *vc_map;                                       /* Scanline map */
+static uint32_t vc_csr = 0;                             /* Control/status */
+static uint32_t vc_curx = 0;                            /* Cursor X-position */
+static uint32_t vc_cur_x = 0;                           /* Last cursor X-position */
+static uint32_t vc_cur_y = 0;                           /* Last cursor Y-position */
+static uint32_t vc_cur_f = 0;                           /* Last cursor function (0->AND, 1->OR) */
+static bool vc_cur_v = false;                           /* Last cursor visible */
+static bool vc_cur_new_data = false;                    /* New Cursor image data */
+static bool vc_input_captured = false;                  /* Mouse and Keyboard input captured in video window */
+static uint32_t vc_mpos = 0;                            /* Mouse position */
+static uint32_t vc_crtc[CRTC_SIZE];                     /* CRTC registers */
+static uint32_t vc_crtc_p = 0;                          /* CRTC pointer */
+static uint32_t vc_icdr = 0;                            /* Interrupt controller data */
+static uint32_t vc_icsr = 0;                            /* Interrupt controller status */
+static uint32_t *vc_map;                                /* Scanline map */
 uint32_t *vc_buf = NULL;                                /* Video memory */
-uint32_t *vc_lines = NULL;                              /* Video Display Lines */
-uint8_t vc_cur[256];                                    /* Cursor image */
-uint32_t vc_palette[2];                                 /* Monochrome palette */
-bool vc_active = false;
+static uint32_t *vc_lines = NULL;                       /* Video Display Lines */
+static uint8_t vc_cur[256];                             /* Cursor image */
+static uint32_t vc_palette[2];                          /* Monochrome palette */
+static bool vc_active = false;
 
-t_stat vc_rd (int32_t *data, int32_t PA, int32_t access);
-t_stat vc_wr (int32_t data, int32_t PA, int32_t access);
-t_stat vc_svc (UNIT *uptr);
-t_stat vc_reset (DEVICE *dptr);
-t_stat vc_detach (UNIT *dptr);
-t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
-void vc_setint (int32_t src);
-int32_t vc_inta (void);
-void vc_clrint (int32_t src);
-void vc_uart_int (uint32_t set);
-t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *vc_description (DEVICE *dptr);
+static t_stat vc_rd (int32_t *data, int32_t PA, int32_t access);
+static t_stat vc_wr (int32_t data, int32_t PA, int32_t access);
+static t_stat vc_svc (UNIT *uptr);
+static t_stat vc_reset (DEVICE *dptr);
+static t_stat vc_detach (UNIT *dptr);
+static t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+static void vc_setint (int32_t src);
+static int32_t vc_inta (void);
+static void vc_clrint (int32_t src);
+static void vc_uart_int (uint32_t set);
+static t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *vc_description (DEVICE *dptr);
 
 
 /* QVSS data structures
@@ -260,7 +259,7 @@ const char *vc_description (DEVICE *dptr);
    vc_mod       QVSS modifier list
 */
 
-DIB vc_dib = {
+static DIB vc_dib = {
     IOBA_AUTO, IOLN_QVSS, &vc_rd, &vc_wr,
     2, IVCL (QVSS), VEC_AUTO, { &vc_inta, &vc_inta }
     };
@@ -282,7 +281,7 @@ DIB vc_dib = {
 #define DBG_INT7        0x0080                          /* interrupt 7 */
 #define DBG_INT         0x00FF                          /* interrupt 0-7 */
 
-DEBTAB vc_debug[] = {
+static DEBTAB vc_debug[] = {
     {"REG",     DBG_REG,                "Register activity"},
     {"CRTC",    DBG_CRTC,               "CRTC register activity"},
     {"CURSOR",  DBG_CURSOR,             "Cursor content, function and visibility activity"},
@@ -304,9 +303,9 @@ DEBTAB vc_debug[] = {
     {0}
     };
 
-UNIT vc_unit = { UDATA (&vc_svc, UNIT_IDLE, 0) };
+static UNIT vc_unit = { UDATA (&vc_svc, UNIT_IDLE, 0) };
 
-REG vc_reg[] = {
+static REG vc_reg[] = {
     { HRDATADF (CSR,        vc_csr, 16, "Control and status register",                  vc_csr_bits) },
     { HRDATAD  (CURX,      vc_curx,  9, "Cursor X-position") },
     { HRDATAD  (MPOS,      vc_mpos, 16, "Mouse position register") },
@@ -324,7 +323,7 @@ REG vc_reg[] = {
     { NULL }
     };
 
-MTAB vc_mod[] = {
+static MTAB vc_mod[] = {
     { MTAB_XTD|MTAB_VDV, 1, NULL, "ENABLE",
         &vc_set_enable, NULL, NULL, "Enable VCB01 (QVSS)" },
     { MTAB_XTD|MTAB_VDV, 0, NULL, "DISABLE",
@@ -354,12 +353,12 @@ DEVICE vc_dev = {
     &vc_description
     };
 
-UART2681 vc_uart = {
+static UART2681 vc_uart = {
     &vc_uart_int, NULL,
     { { &lk_wr, &lk_rd }, { &vs_wr, &vs_rd } }
     };
 
-const char *vc_regnames[] = {
+static const char *vc_regnames[] = {
     "CSR",          /* +0 */
     "CUR-X",        /* +2 */
     "MPOS",         /* +4 */
@@ -395,7 +394,7 @@ const char *vc_regnames[] = {
     "",             /* +62 spare */
 };
 
-const char *vc_crtc_regnames[] = {
+static const char *vc_crtc_regnames[] = {
     "HTOT",         /* Horizontal Total The total number of character times in a line, minus 1 */
     "HDSP",         /* Horizontal Displayed The total number of displayed characters in a line. */
     "HPOS",         /* HSYNC Position Defines the number of character times until HSYNC (horizontal sync). */
@@ -419,7 +418,7 @@ const char *vc_crtc_regnames[] = {
 };
 
 
-t_stat vc_rd (int32_t *data, int32_t PA, int32_t access)
+static t_stat vc_rd (int32_t *data, int32_t PA, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -511,7 +510,7 @@ sim_debug (DBG_REG, &vc_dev, "vc_rd(%s) data=0x%04X\n", vc_regnames[(PA >> 1) & 
 return SCPE_OK;
 }
 
-t_stat vc_wr (int32_t data, int32_t PA, int32_t access)
+static t_stat vc_wr (int32_t data, int32_t PA, int32_t access)
 {
 /* Generic I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -831,7 +830,7 @@ else {
     }
 }
 
-void vc_clrint (int32_t src)
+static void vc_clrint (int32_t src)
 {
 uint32_t msk = (1u << src);
 vc_intc.irr &= ~msk;
@@ -840,7 +839,7 @@ sim_debug (msk, &vc_dev, "vc_clrint(%d)\n", src);
 vc_checkint ();
 }
 
-void vc_setint (int32_t src)
+static void vc_setint (int32_t src)
 {
 uint32_t msk = (1u << src);
 vc_intc.irr |= msk;
@@ -848,7 +847,7 @@ sim_debug (msk, &vc_dev, "vc_setint(%d)\n", src);
 vc_checkint ();
 }
 
-void vc_uart_int (uint32_t set)
+static void vc_uart_int (uint32_t set)
 {
 if (set)
     vc_setint (IRQ_DUART);
@@ -856,7 +855,7 @@ else
     vc_clrint (IRQ_DUART);
 }
 
-int32_t vc_inta (void)
+static int32_t vc_inta (void)
 {
 uint32_t i;
 uint32_t msk = (vc_intc.irr & ~vc_intc.imr);            /* unmasked interrutps */
@@ -878,7 +877,7 @@ sim_debug (DBG_INT, &vc_dev, "Int Ack Vector: 0%03o\n", 0);
 return 0;                                               /* no intr req */
 }
 
-t_stat vc_svc (UNIT *uptr)
+static t_stat vc_svc (UNIT *uptr)
 {
 SIM_MOUSE_EVENT mev;
 SIM_KEY_EVENT kev;
@@ -993,7 +992,7 @@ sim_clock_coschedule (uptr, tmxr_poll);                 /* reactivate */
 return SCPE_OK;
 }
 
-t_stat vc_reset (DEVICE *dptr)
+static t_stat vc_reset (DEVICE *dptr)
 {
 uint32_t i;
 t_stat r;
@@ -1072,7 +1071,7 @@ sim_activate_abs (&vc_unit, tmxr_poll);
 return auto_config (NULL, 0);                           /* run autoconfig */
 }
 
-t_stat vc_detach (UNIT *uptr)
+static t_stat vc_detach (UNIT *uptr)
 {
 /* Generic detach signature.
    This implementation does not use every parameter. */
@@ -1085,7 +1084,7 @@ if ((vc_dev.flags & DEV_DIS) == 0) {
 return SCPE_OK;
 }
 
-t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -1096,7 +1095,7 @@ t_stat vc_set_enable (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 return cpu_set_model (NULL, 0, (val ? "VAXSTATION" : "MICROVAX"), NULL);
 }
 
-t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat vc_set_capture (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -1110,7 +1109,7 @@ vc_input_captured = (val != 0);
 return SCPE_OK;
 }
 
-t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
+static t_stat vc_show_capture (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 if (vc_input_captured) {
     fprintf (st, "Captured Input Mode, ");
@@ -1121,7 +1120,7 @@ else
 return SCPE_OK;
 }
 
-t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat vc_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -1138,7 +1137,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *vc_description (DEVICE *dptr)
+static const char *vc_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

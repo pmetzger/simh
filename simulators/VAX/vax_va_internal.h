@@ -19,6 +19,13 @@ typedef struct {
     bool bus_timeout;
 } VA_DGA_MAP_STATUS;
 
+extern uint32_t va_dga_addr;
+extern uint32_t va_dga_count;
+extern uint32_t va_dga_csr;
+extern uint32_t va_dga_int;
+
+t_stat va_dmasvc(UNIT *uptr);
+
 /*
  * Convert a Qbus map routine's residual byte count into the number of bytes
  * the DMA gate array actually transferred. A non-zero residual means the

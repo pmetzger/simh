@@ -33,6 +33,9 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax860_abus.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "vmb.exe"
@@ -90,13 +93,13 @@ struct boot_dev {
     };
 
 uint32_t nexus_req[NEXUS_HLVL];                         /* nexus int req */
-uint32_t pamloc = 0;
-uint32_t pamm[1024];                                    /* Contents of physical memory space */
-uint32_t cswp = 0;
-uint32_t ehsr = 0;
-uint32_t mdctl = 0;
+static uint32_t pamloc = 0;
+static uint32_t pamm[1024];                             /* Contents of physical memory space */
+static uint32_t cswp = 0;
+static uint32_t ehsr = 0;
+static uint32_t mdctl = 0;
 int32_t sys_model = 0;
-char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
+static char cpu_boot_cmd[CBUFSIZE]  = { 0 };            /* boot command */
 
 static struct boot_dev boot_tab[] = {
     { "RP", BOOT_MB, 0 },
@@ -110,46 +113,11 @@ static struct boot_dev boot_tab[] = {
     { NULL }
     };
 
-extern int32_t tmr_int, tti_int, tto_int, csi_int;
-extern uint32_t sbi_er;
-
-void uba_eval_int (void);
-t_stat abus_reset (DEVICE *dptr);
-const char *abus_description (DEVICE *dptr);
-t_stat vax860_boot (int32_t flag, const char *ptr);
-t_stat vax860_boot_parse (int32_t flag, const char *ptr);
-void init_pamm (void);
-
-extern t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
-extern t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
-extern int32_t iccs_rd (void);
-extern int32_t nicr_rd (void);
-extern int32_t icr_rd (void);
-extern int32_t todr_rd (void);
-extern int32_t rxcs_rd (void);
-extern int32_t rxdb_rd (void);
-extern int32_t txcs_rd (void);
-extern int32_t stxcs_rd (void);
-extern int32_t stxdb_rd (void);
-extern void iccs_wr (int32_t dat);
-extern void nicr_wr (int32_t dat);
-extern void todr_wr (int32_t dat);
-extern void rxcs_wr (int32_t dat);
-extern void txcs_wr (int32_t dat);
-extern void txdb_wr (int32_t dat);
-extern void stxcs_wr (int32_t data);
-extern void stxdb_wr (int32_t data);
-extern void init_mbus_tab (void);
-extern void init_ubus_tab (void);
-extern void init_nexus_tab (void);
-extern t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp);
-extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
-extern t_stat build_nexus_tab (DEVICE *dptr, DIB *dibp);
-extern void sbi_set_tmo (int32_t pa);
-extern int32_t sbia_rd (int32_t pa, int32_t lnt);
-extern void sbia_wr (int32_t pa, int32_t val, int32_t lnt);
-extern t_stat sbi_rd (int32_t pa, int32_t *val, int32_t lnt);
-extern t_stat sbi_wr (int32_t pa, int32_t val, int32_t lnt);
+static t_stat abus_reset (DEVICE *dptr);
+static const char *abus_description (DEVICE *dptr);
+static t_stat vax860_boot (int32_t flag, const char *ptr);
+static t_stat vax860_boot_parse (int32_t flag, const char *ptr);
+static void init_pamm (void);
 
 /* ABUS data structures
 
@@ -158,9 +126,9 @@ extern t_stat sbi_wr (int32_t pa, int32_t val, int32_t lnt);
    abus_reg      A-Bus register list
 */
 
-UNIT abus_unit = { UDATA (NULL, 0, 0) };
+static UNIT abus_unit = { UDATA (NULL, 0, 0) };
 
-REG abus_reg[] = {
+static REG abus_reg[] = {
     { GRDATA (PAMLOC,       pamloc, 16, 32, 0) },
     { GRDATA (CSWP,           cswp, 16, 32, 0) },
     { GRDATA (EHSR,           ehsr, 16, 32, 0) },
@@ -203,7 +171,7 @@ The logic here fills as many slots as possible with memory boards to describe
 the total system memory size.
 */
 
-void init_pamm(void)
+static void init_pamm(void)
 {
 int32_t addr = 0;
 int32_t mem = (int32_t)(MEMSIZE >> 20);
@@ -706,7 +674,7 @@ return cc;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax860_boot (int32_t flag, const char *ptr)
+static t_stat vax860_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -726,7 +694,7 @@ return run_cmd (flag, "CPU");
 
 /* Parse boot command, set up registers - also used on reset */
 
-t_stat vax860_boot_parse (int32_t flag, const char *ptr)
+static t_stat vax860_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 char *slptr;
@@ -814,7 +782,7 @@ return SCPE_OK;
 
 /* A-Bus reset */
 
-t_stat abus_reset (DEVICE *dptr)
+static t_stat abus_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -825,7 +793,7 @@ init_pamm ();
 return SCPE_OK;
 }
 
-const char *abus_description (DEVICE *dptr)
+static const char *abus_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

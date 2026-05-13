@@ -62,9 +62,9 @@
 #define PORT_A          0
 #define PORT_B          1
 
-void ua2681_update_rxi (UART2681 *ctx);
-void ua2681_update_txi (UART2681 *ctx);
-uint8_t ua2681_oport (UART2681 *ctx);
+static void ua2681_update_rxi (UART2681 *ctx);
+static void ua2681_update_txi (UART2681 *ctx);
+static uint8_t ua2681_oport (UART2681 *ctx);
 
 
 void ua2681_wr (UART2681 *ctx, uint32_t rg, uint32_t data)
@@ -277,7 +277,7 @@ switch (rg) {
 return data;
 }
 
-void ua2681_update_txi (UART2681 *ctx)
+static void ua2681_update_txi (UART2681 *ctx)
 {
 if (ctx->port[PORT_A].cmd & CMD_ETX) {                  /* Transmitter A enabled? */
     ctx->port[PORT_A].sts |= STS_TXR;                   /* ready */
@@ -309,7 +309,7 @@ if (ctx->opcr & 0xc0)
 
 }
 
-void ua2681_update_rxi (UART2681 *ctx)
+static void ua2681_update_rxi (UART2681 *ctx)
 {
 uint8_t c;
 t_stat r;
@@ -363,7 +363,7 @@ if (ctx->opcr & 0x30)
 
 }
 
-uint8_t ua2681_oport (UART2681 *ctx)
+static uint8_t ua2681_oport (UART2681 *ctx)
 {
 uint8_t t = ctx->oport;
 

@@ -8,6 +8,9 @@
 
 #include "test_cmocka.h"
 
+#include "scp.h"
+#include "vax4xx_dz_internal.h"
+#include "vax4xx_defs.h"
 #include "vax_defs.h"
 #include "vax_lk.h"
 #include "vax_vs.h"
@@ -31,26 +34,6 @@
 #define DZ_SILO_CAPACITY 48
 #define DZ_DEBUG_REG 0x0001
 #define DZ_DEBUG_RCV TMXR_DBG_RCV
-
-extern DEVICE dz_dev;
-extern TMXR dz_desc;
-extern TMLN *dz_ldsc;
-extern UNIT dz_unit[];
-extern uint16_t dz_csr;
-extern uint16_t dz_silo[];
-extern uint16_t dz_scnt;
-extern uint16_t dz_tcr;
-extern uint32_t dz_func[];
-extern int32_t dz_lnorder[];
-extern FILE *sim_deb;
-extern int32_t sim_deb_switches;
-
-t_stat dz_clear(bool flag);
-uint16_t dz_getc(void);
-int32_t dz_rd(int32_t pa);
-t_stat dz_reset(DEVICE *dptr);
-void dz_update_rcvi(void);
-void dz_wr(int32_t pa, int32_t data, int32_t access);
 
 int32_t int_req[IPL_HLVL];
 uint32_t R[16];

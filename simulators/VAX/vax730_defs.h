@@ -139,7 +139,6 @@
                         { UNIT_MSIZE, (4u << 20), NULL, "4M", &cpu_set_size, NULL, NULL, "Set Memory to 4M bytes" }, \
                         { UNIT_MSIZE, (5u << 20), NULL, "5M", &cpu_set_size, NULL, NULL, "Set Memory to 5M bytes" }, \
                         { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "MEMORY", NULL, NULL, &cpu_show_memory, NULL, "Display memory configuration" }
-extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
 #define CPU_MODEL_MODIFIERS                                                                     \
                         { MTAB_XTD|MTAB_VDV, 0, "MODEL", NULL,                                  \
                               NULL, &cpu_show_model, NULL, "Display the simulator CPU Model" },
@@ -258,6 +257,12 @@ typedef struct {
                                                         /* Populated by auto-configure */
     } DIB;
 
+#include "vax730_mem.h"
+#include "vax730_rb.h"
+#include "vax730_stddev.h"
+#include "vax730_sys.h"
+#include "vax730_uba.h"
+
 /* Unibus I/O page layout - see pdp11_io_lib.c for address layout details */
 
 #define IOBA_AUTO       (0)                             /* Assigned by Auto Configure */
@@ -372,17 +377,6 @@ typedef struct {
 #define BOOT_RB         3
 #define BOOT_UDA        17
 #define BOOT_TD         64
-
-/* Function prototypes for I/O */
-
-int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
-int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
-int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
-int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
-
-t_stat show_nexus (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-
-void sbi_set_errcnf (void);
 
 /* Function prototypes for system-specific unaligned support
    11/730 treats unaligned like aligned */

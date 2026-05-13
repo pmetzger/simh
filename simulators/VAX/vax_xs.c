@@ -29,6 +29,8 @@
 
 #include <stdint.h>
 
+#include "sim_ether.h"
+#include "vax_defs.h"
 #include "vax_xs.h"
 
 #if defined(VAX_410)
@@ -42,24 +44,172 @@
 #define GETW(p,x)         ((p[(x + 1)] << 8) | p[x])
 #define GETL(p,x)         ((p[(x + 3)] << 24) | (p[(x + 2)] << 16) | (p[(x + 1)] << 8) | p[x])
 
-extern int32_t tmxr_poll;
+#define XS_QUE_MAX       500                            /* message queue array */
+#define XS_FILTER_MAX    11                             /* mac + 10 multicast addrs */
 
-t_stat xs_svc (UNIT *uptr);
-void xs_process_receive(CTLR* xs);
-void xs_process_transmit (CTLR* xs);
-void xs_dump_rxring(CTLR* xs);
-void xs_dump_txring(CTLR* xs);
-t_stat xs_init (CTLR* xs);
-void xs_updateint(CTLR* xs);
-void xs_setint (CTLR* xs);
-void xs_clrint (CTLR* xs);
-void xs_read_callback (int status);
-void xs_write_callback (int status);
-t_stat xs_reset (DEVICE *dptr);
-t_stat xs_attach (UNIT *uptr, const char *cptr);
-t_stat xs_detach (UNIT* uptr);
-t_stat xs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *xs_description (DEVICE *dptr);
+struct xs_setup {
+    int32_t             promiscuous;                    /* promiscuous mode enabled */
+    int32_t             multicast;                      /* enable all multicast addresses */
+    uint32_t            mult0;
+    uint32_t            mult1;
+    int32_t             mac_count;                      /* number of multicast mac addresses */
+    ETH_MAC             macs[XS_FILTER_MAX];            /* MAC addresses to respond to */
+};
+
+/* CSR definitions */
+#define CSR0_ESUM       0x8000                          /* <15> error summary */
+#define CSR0_BABL       0x4000                          /* <14> transmitter timeout */
+#define CSR0_CERR       0x2000                          /* <13> collision error */
+#define CSR0_MISS       0x1000                          /* <12> missed packet */
+#define CSR0_MERR       0x0800                          /* <11> memory error */
+#define CSR0_RINT       0x0400                          /* <10> receive interrupt */
+#define CSR0_TINT       0x0200                          /* <09> transmit interrupt */
+#define CSR0_IDON       0x0100                          /* <08> initialisation done */
+#define CSR0_INTR       0x0080                          /* <07> interrupt reqest */
+#define CSR0_RXON       0x0020                          /* <05> receiver on */
+#define CSR0_TXON       0x0010                          /* <04> transmitter on */
+#define CSR0_TDMD       0x0008                          /* <03> transmitter demand */
+#define CSR0_STOP       0x0004                          /* <02> stop */
+#define CSR0_STRT       0x0002                          /* <01> start */
+#define CSR0_INIT       0x0001                          /* <00> initialise */
+#define CSR0_RW         (CSR_IE)
+#define CSR0_W1C        (CSR0_IDON | CSR0_TINT | CSR0_RINT | \
+                         CSR0_MERR | CSR0_MISS | CSR0_CERR | \
+                         CSR0_BABL)
+#define CSR0_ERR        (CSR0_BABL | CSR0_CERR | CSR0_MISS | \
+                         CSR0_MERR)
+
+/* Mode definitions */
+#define MODE_PROM       0x8000                          /* <15> Promiscuous Mode */
+#define MODE_INTL       0x0040                          /* <06> Internal Loopback */
+#define MODE_DRTY       0x0020                          /* <05> Disable Retry */
+#define MODE_COLL       0x0010                          /* <04> Force Collision */
+#define MODE_DTCR       0x0008                          /* <03> Disable Transmit CRC */
+#define MODE_LOOP       0x0004                          /* <02> Loopback */
+#define MODE_DTX        0x0002                          /* <01> Disable Transmitter */
+#define MODE_DRX        0x0001                          /* <00> Disable Receiver */
+
+/* Transmitter Ring definitions */
+#define TXR_OWN         0x8000                          /* <15> we own it (1) */
+#define TXR_ERRS        0x4000                          /* <14> error summary */
+#define TXR_MORE        0x1000                          /* <12> Mult Retries Needed */
+#define TXR_ONE         0x0800                          /* <11> One Collision */
+#define TXR_DEF         0x0400                          /* <10> Deferred */
+#define TXR_STF         0x0200                          /* <09> Start Of Frame */
+#define TXR_ENF         0x0100                          /* <08> End Of Frame */
+#define TXR_HADR        0x00FF                          /* <7:0> High order buffer address */
+#define TXR_BUFL        0x8000                          /* <15> Buffer Length Error */
+#define TXR_UFLO        0x4000                          /* <14> Underflow Error */
+#define TXR_LCOL        0x1000                          /* <12> Late Collision */
+#define TXR_LCAR        0x0800                          /* <11> Lost Carrier */
+#define TXR_RTRY        0x0400                          /* <10> Retry Failure (16x) */
+#define TXR_TDR         0x01FF                          /* <9:0> TDR value if RTRY=1 */
+
+/* Receiver Ring definitions */
+#define RXR_OWN         0x8000                          /* <15> we own it (1) */
+#define RXR_ERRS        0x4000                          /* <14> Error Summary */
+#define RXR_FRAM        0x2000                          /* <13> Frame Error */
+#define RXR_OFLO        0x1000                          /* <12> Message Overflow */
+#define RXR_CRC         0x0800                          /* <11> CRC Check Error */
+#define RXR_BUFL        0x0400                          /* <10> Buffer Length error */
+#define RXR_STF         0x0200                          /* <09> Start Of Frame */
+#define RXR_ENF         0x0100                          /* <08> End Of Frame */
+#define RXR_HADR        0x00FF                          /* <7:0> High order buffer address */
+#define RXR_MLEN        0x0FFF                          /* <11:0> Message Length */
+
+/* Debug definitions */
+#define DBG_TRC         0x0001
+#define DBG_REG         0x0002
+#define DBG_PCK         0x0004
+#define DBG_DAT         0x0008
+#define DBG_ETH         0x0010
+
+struct xs_device {
+                                                        /*+ initialized values - DO NOT MOVE */
+    ETH_PCALLBACK       rcallback;                      /* read callback routine */
+    ETH_PCALLBACK       wcallback;                      /* write callback routine */
+                                                        /*- initialized values - DO NOT MOVE */
+
+                                                        /* I/O register storage */
+    uint32_t            irq;                            /* interrupt request flag */
+
+    ETH_MAC             mac;                            /* MAC address */
+    ETH_DEV*            etherface;                      /* buffers, etc. */
+    ETH_PACK            read_buffer;
+    ETH_PACK            write_buffer;
+    ETH_QUE             ReadQ;
+    struct xs_setup     setup;
+
+    uint16_t            csr0;                           /* LANCE registers */
+    uint16_t            csr1;
+    uint16_t            csr2;
+    uint16_t            csr3;
+    uint16_t            rptr;                           /* register pointer */
+    uint16_t            mode;                           /* mode register */
+    uint32_t            inbb;                           /* initialisation block base */
+
+    uint32_t            tdrb;                           /* transmit desc ring base */
+    uint32_t            telen;                          /* transmit desc ring entry len */
+    uint32_t            trlen;                          /* transmit desc ring length */
+    uint32_t            txnext;                         /* transmit buffer pointer */
+    uint32_t            rdrb;                           /* receive desc ring base */
+    uint32_t            relen;                          /* receive desc ring entry len */
+    uint32_t            rrlen;                          /* receive desc ring length */
+    uint32_t            rxnext;                         /* receive buffer pointer */
+
+    uint16_t            rxhdr[4];                       /* content of RX ring entry, during wait */
+    uint16_t            txhdr[4];                       /* content of TX ring entry, during xmit */
+};
+
+struct xs_controller {
+    DEVICE*             dev;                            /* device block */
+    UNIT*               unit;                           /* unit block */
+    DIB*                dib;                            /* device interface block */
+    struct xs_device*   var;                            /* controller-specific variables */
+};
+
+typedef struct xs_controller CTLR;
+
+static BITFIELD xs_tdes_w1[] = {
+  BITNCF(8), BIT(ENP), BIT(STP), BIT(DEF), BIT(ONE), BIT(MORE), BIT(FCS), BIT(ERR), BIT(OWN),
+  ENDBITS
+};
+static BITFIELD xs_tdes_w2[] = {
+  BITF_QHEXP(mlen,12),
+  ENDBITS
+};
+
+static BITFIELD xs_rdes_w1[] = {
+  BITNCF(8), BIT(ENP), BIT(STP), BIT(BUFL), BIT(CRC), BIT(OFLO), BIT(FRAM), BIT(ERRS), BIT(OWN),
+  ENDBITS
+};
+static BITFIELD xs_rdes_w2[] = {
+  BITF_QHEXP(blen,12),
+  ENDBITS
+};
+static BITFIELD xs_rdes_w3[] = {
+  BITF_QHEXP(mlen,12),
+  ENDBITS
+};
+
+static t_stat xs_svc (UNIT *uptr);
+static void xs_process_receive(CTLR* xs);
+static void xs_process_transmit (CTLR* xs);
+#if 0
+static void xs_dump_rxring(CTLR* xs);
+static void xs_dump_txring(CTLR* xs);
+#endif
+static t_stat xs_init (CTLR* xs);
+static void xs_updateint(CTLR* xs);
+static void xs_setint (CTLR* xs);
+static void xs_clrint (CTLR* xs);
+static void xs_read_callback (int status);
+static void xs_write_callback (int status);
+static t_stat xs_reset (DEVICE *dptr);
+static t_stat xs_attach (UNIT *uptr, const char *cptr);
+static t_stat xs_detach (UNIT* uptr);
+static t_stat xs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *xs_description (DEVICE *dptr);
 
 /* XS data structures
 
@@ -69,20 +219,20 @@ const char *xs_description (DEVICE *dptr);
    xs_mod       XS modifier list
 */
 
-struct xs_device  xs_var = {
+static struct xs_device xs_var = {
     xs_read_callback,                      /* read callback routine */
     xs_write_callback,                     /* write callback routine */
     };
 
-DIB xs_dib = {
+static DIB xs_dib = {
     XS_ROM_INDEX, BOOT_CODE_ARRAY, BOOT_CODE_SIZE
     };
 
-UNIT xs_unit = {
+static UNIT xs_unit = {
    UDATA (&xs_svc, UNIT_IDLE | UNIT_ATTABLE | UNIT_DISABLE, 0)
    };
 
-REG xs_reg[] = {
+static REG xs_reg[] = {
     { GRDATA  ( SA0,    xs_var.mac[0],        16,  8, 0), REG_RO|REG_FIT },
     { GRDATA  ( SA1,    xs_var.mac[1],        16,  8, 0), REG_RO|REG_FIT },
     { GRDATA  ( SA2,    xs_var.mac[2],        16,  8, 0), REG_RO|REG_FIT },
@@ -112,7 +262,7 @@ REG xs_reg[] = {
     { NULL }
     };
 
-DEBTAB xs_debug[] = {
+static DEBTAB xs_debug[] = {
     {"TRACE",  DBG_TRC, "trace routine calls"},
     {"REG",    DBG_REG, "read/write registers"},
     {"PACKET", DBG_PCK, "packet headers"},
@@ -121,7 +271,7 @@ DEBTAB xs_debug[] = {
     { 0 }
 };
 
-MTAB xs_mod[] = {
+static MTAB xs_mod[] = {
     { MTAB_XTD | MTAB_VDV | MTAB_NMO, 0, "ETH", NULL,
       NULL, &eth_show, NULL, "Display attachable devices" },
     { 0 }
@@ -137,7 +287,7 @@ DEVICE xs_dev = {
     &xs_description
     };
 
-CTLR xs_ctrl[] = {
+static CTLR xs_ctrl[] = {
    {&xs_dev, &xs_unit, NULL, &xs_var}       /* XS controller */
    };
 
@@ -267,7 +417,7 @@ return;
 
 /* Unit service */
 
-t_stat xs_svc (UNIT *uptr)
+static t_stat xs_svc (UNIT *uptr)
 {
 int32_t queue_size;
 CTLR *xs = &xs_ctrl[0];
@@ -306,7 +456,7 @@ return SCPE_OK;
 }
 
 /* Transfer received packets into receive ring. */
-void xs_process_receive(CTLR* xs)
+static void xs_process_receive(CTLR* xs)
 {
 uint8_t b0, b1, b2, b3;
 uint32_t segb, ba;
@@ -456,7 +606,7 @@ while (xs->var->ReadQ.count > 0) {
     // xs_dump_rxring(xs); /* debug receive ring */
 }
 
-void xs_process_transmit (CTLR* xs)
+static void xs_process_transmit (CTLR* xs)
 {
 uint32_t segb, ba;
 int slen, wlen, off, giant, runt;
@@ -581,7 +731,7 @@ for (;;) {
 xs_updateint (xs);
 }
 
-t_stat xs_init (CTLR* xs)
+static t_stat xs_init (CTLR* xs)
 {
 uint16_t w1, w2;
 uint8_t inb[0x18];
@@ -663,7 +813,7 @@ sim_activate (&xs_unit, 50);
 return SCPE_OK;
 }
 
-void xs_updateint(CTLR* xs)
+static void xs_updateint(CTLR* xs)
 {
 if (xs->var->csr0 & 0x5F00)                             /* if any interrupt bits on, */
     xs_setint (xs);
@@ -671,7 +821,7 @@ else
     xs_clrint (xs);
 }
 
-void xs_setint (CTLR* xs)
+static void xs_setint (CTLR* xs)
 {
 if (xs->var->csr0 & CSR0_INTR)
     return;
@@ -680,13 +830,13 @@ if (xs->var->csr0 & CSR_IE)
     SET_INT (XS1);
 }
 
-void xs_clrint (CTLR* xs)
+static void xs_clrint (CTLR* xs)
 {
 xs->var->csr0 &= ~CSR0_INTR;
 CLR_INT (XS1);
 }
 
-void xs_read_callback(int status)
+static void xs_read_callback(int status)
 {
 /* Generic Ethernet packet callback signature.
    This implementation does not use every parameter. */
@@ -701,7 +851,7 @@ if (DEBUG_PRI (xs_dev, DBG_PCK))
 ethq_insert(&xs->var->ReadQ, 2, &xs->var->read_buffer, 0);
 }
 
-void xs_write_callback (int status)
+static void xs_write_callback (int status)
 {
 CTLR *xs = &xs_ctrl[0];
 xs->var->write_buffer.status = status;
@@ -709,7 +859,7 @@ xs->var->write_buffer.status = status;
 
 /* Device initialization */
 
-t_stat xs_reset (DEVICE *dptr)
+static t_stat xs_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -737,7 +887,7 @@ return SCPE_OK;
 
 /* Attach routine */
 
-t_stat xs_attach (UNIT *uptr, const char *cptr)
+static t_stat xs_attach (UNIT *uptr, const char *cptr)
 {
 t_stat status;
 char* tptr;
@@ -770,7 +920,7 @@ xs_reset(xs->dev);
 return SCPE_OK;
 }
 
-t_stat xs_detach (UNIT* uptr)
+static t_stat xs_detach (UNIT* uptr)
 {
 CTLR *xs = &xs_ctrl[0];
 
@@ -785,7 +935,8 @@ if (uptr->flags & UNIT_ATT) {
 return SCPE_OK;
 }
 
-void xs_dump_rxring (CTLR* xs)
+#if 0
+static void xs_dump_rxring (CTLR* xs)
 {
 int i;
 int rrlen = xs->var->rrlen;
@@ -804,7 +955,7 @@ for (i=0; i<rrlen; i++) {
     }
 }
 
-void xs_dump_txring (CTLR* xs)
+static void xs_dump_txring (CTLR* xs)
 {
 int i;
 int trlen = xs->var->trlen;
@@ -822,8 +973,9 @@ for (i=0; i<trlen; i++) {
                     i, own, len, addr, txhdr[0], txhdr[1], txhdr[2], txhdr[3]);
     }
 }
+#endif
 
-t_stat xs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat xs_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "LANCE Ethernet Controller (XS)\n\n");
 fprintf (st, "The simulator implements one LANCE Ethernet controller (XS).\n");
@@ -842,7 +994,7 @@ eth_attach_help(st, dptr, uptr, flag, cptr);
 return SCPE_OK;
 }
 
-const char *xs_description (DEVICE *dptr)
+static const char *xs_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

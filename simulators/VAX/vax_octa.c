@@ -48,6 +48,8 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_octa.h"
+#include "vax_sys.h"
 
 #define WORDSWAP(x)     ((((x) & WMASK) << 16) | (((x) >> 16) & WMASK))
 
@@ -71,43 +73,43 @@ typedef struct {
 #define UH_HRND         0x00004000                      /* H round */
 #define UH_V_NM         127
 
-int32_t op_tsth (int32_t val);
-int32_t op_cmph (uint32_t *hf1, uint32_t *hf2);
-int32_t op_cvtih (int32_t val, uint32_t *hf);
-int32_t op_cvthi (uint32_t *hf, int32_t *flg, int32_t opc);
-int32_t op_cvtfdh (int32_t vl, int32_t vh, uint32_t *hf);
-int32_t op_cvtgh (int32_t vl, int32_t vh, uint32_t *hf);
-int32_t op_cvthfd (uint32_t *hf, int32_t *vh);
-int32_t op_cvthg (uint32_t *hf, int32_t *vh);
-int32_t op_addh (uint32_t *opnd, uint32_t *hf, bool sub);
-int32_t op_mulh (uint32_t *opnd, uint32_t *hf);
-int32_t op_divh (uint32_t *opnd, uint32_t *hf);
-int32_t op_emodh (uint32_t *opnd, uint32_t *hflt, int32_t *intgr, int32_t *flg);
-void op_polyh (uint32_t *opnd, int32_t acc);
-void h_write_b (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst);
-void h_write_w (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst);
-void h_write_l (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst);
-void h_write_q (int32_t spec, int32_t va, int32_t vl, int32_t vh, int32_t acc, InstHistory *hst);
-void h_write_o (int32_t spec, int32_t va, uint32_t *val, int32_t acc, InstHistory *hst);
-void vax_hadd (UFPH *a, UFPH *b, uint32_t mlo);
-void vax_hmul (UFPH *a, UFPH *b, uint32_t mlo);
-void vax_hmod (UFPH *a, int32_t *intgr, int32_t *flg);
-void vax_hdiv (UFPH *a, UFPH *b);
-uint32_t qp_add (UQP *a, UQP *b);
-uint32_t qp_sub (UQP *a, UQP *b);
-void qp_inc (UQP *a);
-void qp_lsh (UQP *a, uint32_t sc);
-void qp_rsh (UQP *a, uint32_t sc);
-void qp_rsh_s (UQP *a, uint32_t sc, uint32_t neg);
-void qp_neg (UQP *a);
-int32_t qp_cmp (UQP *a, UQP *b);
-void h_unpackfd (int32_t hi, int32_t lo, UFPH *a);
-void h_unpackg (int32_t hi, int32_t lo, UFPH *a);
-void h_unpackh (uint32_t *hflt, UFPH *a);
-void h_normh (UFPH *a);
-int32_t h_rpackfd (UFPH *a, int32_t *rl);
-int32_t h_rpackg (UFPH *a, int32_t *rl);
-int32_t h_rpackh (UFPH *a, uint32_t *hflt);
+static int32_t op_tsth (int32_t val);
+static int32_t op_cmph (uint32_t *hf1, uint32_t *hf2);
+static int32_t op_cvtih (int32_t val, uint32_t *hf);
+static int32_t op_cvthi (uint32_t *hf, int32_t *flg, int32_t opc);
+static int32_t op_cvtfdh (int32_t vl, int32_t vh, uint32_t *hf);
+static int32_t op_cvtgh (int32_t vl, int32_t vh, uint32_t *hf);
+static int32_t op_cvthfd (uint32_t *hf, int32_t *vh);
+static int32_t op_cvthg (uint32_t *hf, int32_t *vh);
+static int32_t op_addh (uint32_t *opnd, uint32_t *hf, bool sub);
+static int32_t op_mulh (uint32_t *opnd, uint32_t *hf);
+static int32_t op_divh (uint32_t *opnd, uint32_t *hf);
+static int32_t op_emodh (uint32_t *opnd, uint32_t *hflt, int32_t *intgr, int32_t *flg);
+static void op_polyh (uint32_t *opnd, int32_t acc);
+static void h_write_b (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst);
+static void h_write_w (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst);
+static void h_write_l (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst);
+static void h_write_q (int32_t spec, int32_t va, int32_t vl, int32_t vh, int32_t acc, InstHistory *hst);
+static void h_write_o (int32_t spec, int32_t va, uint32_t *val, int32_t acc, InstHistory *hst);
+static void vax_hadd (UFPH *a, UFPH *b, uint32_t mlo);
+static void vax_hmul (UFPH *a, UFPH *b, uint32_t mlo);
+static void vax_hmod (UFPH *a, int32_t *intgr, int32_t *flg);
+static void vax_hdiv (UFPH *a, UFPH *b);
+static uint32_t qp_add (UQP *a, UQP *b);
+static uint32_t qp_sub (UQP *a, UQP *b);
+static void qp_inc (UQP *a);
+static void qp_lsh (UQP *a, uint32_t sc);
+static void qp_rsh (UQP *a, uint32_t sc);
+static void qp_rsh_s (UQP *a, uint32_t sc, uint32_t neg);
+static void qp_neg (UQP *a);
+static int32_t qp_cmp (UQP *a, UQP *b);
+static void h_unpackfd (int32_t hi, int32_t lo, UFPH *a);
+static void h_unpackg (int32_t hi, int32_t lo, UFPH *a);
+static void h_unpackh (uint32_t *hflt, UFPH *a);
+static void h_normh (UFPH *a);
+static int32_t h_rpackfd (UFPH *a, int32_t *rl);
+static int32_t h_rpackg (UFPH *a, int32_t *rl);
+static int32_t h_rpackh (UFPH *a, uint32_t *hflt);
 
 static uint32_t z_octa[4] = { 0, 0, 0, 0 };
 
@@ -450,7 +452,7 @@ return cc;
    Note that only the high 32b is processed.
    If the high 32b is not zero, the rest of the fraction is unchanged. */
 
-int32_t op_tsth (int32_t val)
+static int32_t op_tsth (int32_t val)
 {
 if (val & H_EXP)                                        /* non-zero? */
     return val;
@@ -461,7 +463,7 @@ return 0;                                               /* clean 0 */
 
 /* Compare h_floating */
 
-int32_t op_cmph (uint32_t *hf1, uint32_t *hf2)
+static int32_t op_cmph (uint32_t *hf1, uint32_t *hf2)
 {
 UFPH a, b;
 int32_t r;
@@ -482,7 +484,7 @@ return CC_Z;                                            /* =, set Z */
 
 /* Integer to h_floating convert */
 
-int32_t op_cvtih (int32_t val, uint32_t *hf)
+static int32_t op_cvtih (int32_t val, uint32_t *hf)
 {
 UFPH a;
 uint32_t mag;
@@ -508,7 +510,7 @@ return h_rpackh (&a, hf);                               /* round and pack */
 
 /* H_floating to integer convert */
 
-int32_t op_cvthi (uint32_t *hf, int32_t *flg, int32_t opc)
+static int32_t op_cvthi (uint32_t *hf, int32_t *flg, int32_t opc)
 {
 UFPH a;
 int32_t lnt = opc & 03;
@@ -540,7 +542,7 @@ return (a.sign? NEG (a.frac.f0): a.frac.f0);            /* return lo frac */
 
 /* Floating to floating convert - F/D to H, G to H, H to F/D, H to G */
 
-int32_t op_cvtfdh (int32_t vl, int32_t vh, uint32_t *hflt)
+static int32_t op_cvtfdh (int32_t vl, int32_t vh, uint32_t *hflt)
 {
 UFPH a;
 
@@ -549,7 +551,7 @@ a.exp = a.exp - FD_BIAS + H_BIAS;                       /* if nz, adjust exp */
 return h_rpackh (&a, hflt);                             /* round and pack */
 }
 
-int32_t op_cvtgh (int32_t vl, int32_t vh, uint32_t *hflt)
+static int32_t op_cvtgh (int32_t vl, int32_t vh, uint32_t *hflt)
 {
 UFPH a;
 
@@ -558,7 +560,7 @@ a.exp = a.exp - G_BIAS + H_BIAS;                        /* if nz, adjust exp */
 return h_rpackh (&a, hflt);                             /* round and pack */
 }
 
-int32_t op_cvthfd (uint32_t *hflt, int32_t *rh)
+static int32_t op_cvthfd (uint32_t *hflt, int32_t *rh)
 {
 UFPH a;
 
@@ -567,7 +569,7 @@ a.exp = a.exp - H_BIAS + FD_BIAS;                       /* if nz, adjust exp */
 return h_rpackfd (&a, rh);                              /* round and pack */
 }
 
-int32_t op_cvthg (uint32_t *hflt, int32_t *rh)
+static int32_t op_cvthg (uint32_t *hflt, int32_t *rh)
 {
 UFPH a;
 
@@ -578,7 +580,7 @@ return h_rpackg (&a, rh);                               /* round and pack */
 
 /* Floating add and subtract */
 
-int32_t op_addh (uint32_t *opnd, uint32_t *hflt, bool sub)
+static int32_t op_addh (uint32_t *opnd, uint32_t *hflt, bool sub)
 {
 UFPH a, b;
 
@@ -592,7 +594,7 @@ return h_rpackh (&a, hflt);                             /* round and pack */
 
 /* Floating multiply */
 
-int32_t op_mulh (uint32_t *opnd, uint32_t *hflt)
+static int32_t op_mulh (uint32_t *opnd, uint32_t *hflt)
 {
 UFPH a, b;
 
@@ -604,7 +606,7 @@ return h_rpackh (&a, hflt);                             /* round and pack */
 
 /* Floating divide */
 
-int32_t op_divh (uint32_t *opnd, uint32_t *hflt)
+static int32_t op_divh (uint32_t *opnd, uint32_t *hflt)
 {
 UFPH a, b;
 
@@ -622,7 +624,7 @@ return h_rpackh (&b, hflt);                             /* round and pack */
    and add steps are masked prior to normalization.  In addition,
    negative small fractions must not be treated as 0 during denorm. */
 
-void op_polyh (uint32_t *opnd, int32_t acc)
+static void op_polyh (uint32_t *opnd, int32_t acc)
 {
 /* Shared instruction helper signature.
    This implementation does not use every parameter. */
@@ -672,7 +674,7 @@ return;
    Second, it has two write operands, a dubious distinction it shares
    with EDIV. */
 
-int32_t op_emodh (uint32_t *opnd, uint32_t *hflt, int32_t *intgr, int32_t *flg)
+static int32_t op_emodh (uint32_t *opnd, uint32_t *hflt, int32_t *intgr, int32_t *flg)
 {
 UFPH a, b;
 
@@ -688,7 +690,7 @@ return h_rpackh (&a, hflt);                             /* round and pack frac *
 
 /* Floating add */
 
-void vax_hadd (UFPH *a, UFPH *b, uint32_t mlo)
+static void vax_hadd (UFPH *a, UFPH *b, uint32_t mlo)
 {
 int32_t ediff;
 UFPH t;
@@ -731,7 +733,7 @@ return;
 
 /* Floating multiply - 128b * 128b */
 
-void vax_hmul (UFPH *a, UFPH *b, uint32_t mlo)
+static void vax_hmul (UFPH *a, UFPH *b, uint32_t mlo)
 {
 int32_t i, c;
 UQP accum = { 0, 0, 0, 0 };
@@ -769,7 +771,7 @@ return;
                                   integer overflow
 */
 
-void vax_hmod (UFPH *a, int32_t *intgr, int32_t *flg)
+static void vax_hmod (UFPH *a, int32_t *intgr, int32_t *flg)
 {
 UQP ifr;
 
@@ -811,7 +813,7 @@ return;
 
    Carried out to 128 bits, although fewer are required */
 
-void vax_hdiv (UFPH *a, UFPH *b)
+static void vax_hdiv (UFPH *a, UFPH *b)
 {
 int32_t i;
 UQP quo = { 0, 0, 0, 0 };
@@ -839,7 +841,7 @@ return;
 
 /* Quad precision integer routines */
 
-int32_t qp_cmp (UQP *a, UQP *b)
+static int32_t qp_cmp (UQP *a, UQP *b)
 {
 if (a->f3 < b->f3)                                      /* compare hi */
     return -1;
@@ -860,7 +862,7 @@ if (a->f0 > b->f0)
 return 0;                                               /* all equal */
 }
 
-uint32_t qp_add (UQP *a, UQP *b)
+static uint32_t qp_add (UQP *a, UQP *b)
 {
 uint32_t cry1, cry2, cry3, cry4;
 
@@ -875,7 +877,7 @@ cry4 = (a->f3 < b->f3) || (cry3 && (a->f3 == b->f3));   /* carry? */
 return cry4;                                            /* return carry out */
 }
 
-void qp_inc (UQP *a)
+static void qp_inc (UQP *a)
 {
 a->f0 = (a->f0 + 1) & LMASK;                            /* inc lo */
 if (a->f0 == 0) {                                       /* propagate carry */
@@ -890,7 +892,7 @@ if (a->f0 == 0) {                                       /* propagate carry */
 return;
 }
 
-uint32_t qp_sub (UQP *a, UQP *b)
+static uint32_t qp_sub (UQP *a, UQP *b)
 {
 uint32_t brw1, brw2, brw3, brw4;
 
@@ -905,7 +907,7 @@ a->f3 = (a->f3 - b->f3 - brw3) & LMASK;                 /* sub high */
 return brw4;
 }
 
-void qp_neg (UQP *a)
+static void qp_neg (UQP *a)
 {
 uint32_t cryin;
 
@@ -923,7 +925,7 @@ a->f3 = (~a->f3 + cryin) & LMASK;
 return;
 }
 
-void qp_lsh (UQP *r, uint32_t sc)
+static void qp_lsh (UQP *r, uint32_t sc)
 {
 if (sc >= 128)                                          /* > 127? result 0 */
     r->f3 = r->f2 = r->f1 = r->f0 = 0;
@@ -962,7 +964,7 @@ else if (sc != 0) {                                     /* [31,1]? */
 return;
 }
 
-void qp_rsh (UQP *r, uint32_t sc)
+static void qp_rsh (UQP *r, uint32_t sc)
 {
 if (sc >= 128)                                          /* > 127? result 0 */
     r->f3 = r->f2 = r->f1 = r->f0 = 0;
@@ -1001,7 +1003,7 @@ else if (sc != 0) {                                     /* [31,1]? */
 return;
 }
 
-void qp_rsh_s (UQP *r, uint32_t sc, uint32_t neg)
+static void qp_rsh_s (UQP *r, uint32_t sc, uint32_t neg)
 {
 qp_rsh (r, sc);                                         /* do unsigned right */
 if (neg && sc) {                                        /* negative? */
@@ -1021,7 +1023,7 @@ return;
 
 /* Support routines */
 
-void h_unpackfd (int32_t hi, int32_t lo, UFPH *r)
+static void h_unpackfd (int32_t hi, int32_t lo, UFPH *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = FD_GETEXP (hi);                                /* get exponent */
@@ -1038,7 +1040,7 @@ qp_lsh (&r->frac, FD_GUARD);
 return;
 }
 
-void h_unpackg (int32_t hi, int32_t lo, UFPH *r)
+static void h_unpackg (int32_t hi, int32_t lo, UFPH *r)
 {
 r->sign = hi & FPSIGN;                                  /* get sign */
 r->exp = G_GETEXP (hi);                                 /* get exponent */
@@ -1055,7 +1057,7 @@ qp_lsh (&r->frac, G_GUARD);
 return;
 }
 
-void h_unpackh (uint32_t *hflt, UFPH *r)
+static void h_unpackh (uint32_t *hflt, UFPH *r)
 {
 int32_t thflt0;
 
@@ -1077,7 +1079,7 @@ qp_lsh (&r->frac, H_GUARD);
 return;
 }
 
-void h_normh (UFPH *r)
+static void h_normh (UFPH *r)
 {
 int32_t i;
 static uint32_t normmask[5] = {
@@ -1100,7 +1102,7 @@ while ((r->frac.f3 & UH_NM_H) == 0) {                   /* normalized? */
 return;
 }
 
-int32_t h_rpackfd (UFPH *r, int32_t *rh)
+static int32_t h_rpackfd (UFPH *r, int32_t *rh)
 {
 static UQP f_round = { 0, 0, 0, UH_FRND };
 static UQP d_round = { 0, 0, UH_DRND, 0 };
@@ -1128,7 +1130,7 @@ return r->sign | (r->exp << FD_V_EXP) |
     (WORDSWAP (r->frac.f3) & ~(FD_HB | FPSIGN | FD_EXP));
 }
 
-int32_t h_rpackg (UFPH *r, int32_t *rh)
+static int32_t h_rpackg (UFPH *r, int32_t *rh)
 {
 static UQP g_round = { 0, 0, UH_GRND, 0 };
 
@@ -1153,7 +1155,7 @@ return r->sign | (r->exp << G_V_EXP) |
     (WORDSWAP (r->frac.f3) & ~(G_HB | FPSIGN | G_EXP));
 }
 
-int32_t h_rpackh (UFPH *r, uint32_t *hflt)
+static int32_t h_rpackh (UFPH *r, uint32_t *hflt)
 {
 static UQP h_round = { UH_HRND, 0, 0, 0 };
 
@@ -1181,7 +1183,7 @@ hflt[3] = WORDSWAP (r->frac.f0);
 return hflt[0];
 }
 
-void h_write_b (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst)
+static void h_write_b (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst)
 {
 int32_t rn;
 
@@ -1196,7 +1198,7 @@ else {
 return;
 }
 
-void h_write_w (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst)
+static void h_write_w (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst)
 {
 int32_t rn;
 
@@ -1211,7 +1213,7 @@ else {
 return;
 }
 
-void h_write_l (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst)
+static void h_write_l (int32_t spec, int32_t va, int32_t val, int32_t acc, InstHistory *hst)
 {
 if (hst)
     hst->res[0] = val;
@@ -1221,7 +1223,7 @@ else R[spec & 0xF] = val;
 return;
 }
 
-void h_write_q (int32_t spec, int32_t va, int32_t vl, int32_t vh, int32_t acc, InstHistory *hst)
+static void h_write_q (int32_t spec, int32_t va, int32_t vl, int32_t vh, int32_t acc, InstHistory *hst)
 {
 int32_t rn, mstat;
 
@@ -1245,7 +1247,7 @@ else {
 return;
 }
 
-void h_write_o (int32_t spec, int32_t va, uint32_t *val, int32_t acc, InstHistory *hst)
+static void h_write_o (int32_t spec, int32_t va, uint32_t *val, int32_t acc, InstHistory *hst)
 {
 int32_t rn, mstat;
 

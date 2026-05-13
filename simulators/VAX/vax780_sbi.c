@@ -40,6 +40,9 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax780_sbi.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "vmb.exe"
@@ -104,15 +107,15 @@ struct boot_dev {
     int32_t             let;
     };
 
-uint32_t wcs_addr = 0;
-uint32_t wcs_data = 0;
-uint32_t wcs_mbrk = 0;
+static uint32_t wcs_addr = 0;
+static uint32_t wcs_data = 0;
+static uint32_t wcs_mbrk = 0;
 uint32_t nexus_req[NEXUS_HLVL];                         /* nexus int req */
-uint32_t sbi_fs = 0;                                    /* SBI fault status */
-uint32_t sbi_sc = 0;                                    /* SBI silo comparator */
-uint32_t sbi_mt = 0;                                    /* SBI maintenance */
-uint32_t sbi_er = 0;                                    /* SBI error status */
-uint32_t sbi_tmo = 0;                                   /* SBI timeout addr */
+static uint32_t sbi_fs = 0;                             /* SBI fault status */
+static uint32_t sbi_sc = 0;                             /* SBI silo comparator */
+static uint32_t sbi_mt = 0;                             /* SBI maintenance */
+static uint32_t sbi_er = 0;                             /* SBI error status */
+static uint32_t sbi_tmo = 0;                            /* SBI timeout addr */
 int32_t sys_model = 0;                                  /* 780 or 785 */
 static char cpu_boot_cmd[CBUFSIZE]  = { 0 };            /* boot command */
 
@@ -131,32 +134,11 @@ static struct boot_dev boot_tab[] = {
     { NULL }
     };
 
-extern int32_t tmr_int, tti_int, tto_int;
-
-t_stat sbi_reset (DEVICE *dptr);
-const char *sbi_description (DEVICE *dptr);
-void sbi_set_tmo (int32_t pa);
-void uba_eval_int (void);
-t_stat vax780_boot (int32_t flag, const char *ptr);
-t_stat vax780_boot_parse (int32_t flag, const char *ptr);
-
-extern int32_t iccs_rd (void);
-extern int32_t nicr_rd (void);
-extern int32_t icr_rd (void);
-extern int32_t todr_rd (void);
-extern int32_t rxcs_rd (void);
-extern int32_t rxdb_rd (void);
-extern int32_t txcs_rd (void);
-extern void iccs_wr (int32_t dat);
-extern void nicr_wr (int32_t dat);
-extern void todr_wr (int32_t dat);
-extern void rxcs_wr (int32_t dat);
-extern void txcs_wr (int32_t dat);
-extern void txdb_wr (int32_t dat);
-extern void init_mbus_tab (void);
-extern void init_ubus_tab (void);
-extern t_stat build_mbus_tab (DEVICE *dptr, DIB *dibp);
-extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
+static t_stat sbi_reset (DEVICE *dptr);
+static const char *sbi_description (DEVICE *dptr);
+static void sbi_set_tmo (int32_t pa);
+static t_stat vax780_boot (int32_t flag, const char *ptr);
+static t_stat vax780_boot_parse (int32_t flag, const char *ptr);
 
 /* SBI data structures
 
@@ -165,9 +147,9 @@ extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
    sbi_reg      SBI register list
 */
 
-UNIT sbi_unit = { UDATA (NULL, 0, 0) };
+static UNIT sbi_unit = { UDATA (NULL, 0, 0) };
 
-REG sbi_reg[] = {
+static REG sbi_reg[] = {
     { HRDATA (NREQ14, nexus_req[0], 16) },
     { HRDATA (NREQ15, nexus_req[1], 16) },
     { HRDATA (NREQ16, nexus_req[2], 16) },
@@ -541,7 +523,7 @@ return;
 
 /* Set SBI timeout - machine checks only on reads */
 
-void sbi_set_tmo (int32_t pa)
+static void sbi_set_tmo (int32_t pa)
 {
 if ((sbi_er & SBIER_TMO) == 0) {                        /* not yet set? */
     sbi_tmo = pa >> 2;                                  /* save addr */
@@ -620,7 +602,7 @@ return cc;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax780_boot (int32_t flag, const char *ptr)
+static t_stat vax780_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -638,7 +620,7 @@ return run_cmd (flag, "CPU");
 
 /* Parse boot command, set up registers - also used on reset */
 
-t_stat vax780_boot_parse (int32_t flag, const char *ptr)
+static t_stat vax780_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 char *slptr;
@@ -728,7 +710,7 @@ return SCPE_OK;
 
 /* SBI reset */
 
-t_stat sbi_reset (DEVICE *dptr)
+static t_stat sbi_reset (DEVICE *dptr)
 {
 /* Generic reset signature.
    This implementation does not use every parameter. */
@@ -746,7 +728,7 @@ sim_vm_cmd = vax780_cmd;
 return SCPE_OK;
 }
 
-const char *sbi_description (DEVICE *dptr)
+static const char *sbi_description (DEVICE *dptr)
 {
 /* Generic description signature.
    This implementation does not use every parameter. */

@@ -8,6 +8,7 @@
 
 #include "sim_tempfile.h"
 #include "vax_sys_internal.h"
+#include "vax_syscm.h"
 
 REG cpu_reg[1];
 UNIT cpu_unit;

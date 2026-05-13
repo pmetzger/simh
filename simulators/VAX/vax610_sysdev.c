@@ -35,6 +35,11 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax_lk.h"
+#include "vax610_sysdev.h"
+#include "vax_vs.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "ka610.bin"
@@ -50,11 +55,9 @@ struct boot_dev {
     int32_t             code;
     };
 
-extern DEVICE vc_dev, lk_dev, vs_dev;
-
-int32_t conisp, conpc, conpsl;                          /* console reg */
+static int32_t conisp, conpc, conpsl;                   /* console reg */
 int32_t sys_model = 0;                                  /* MicroVAX or VAXstation */
-char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
+static char cpu_boot_cmd[CBUFSIZE]  = { 0 };            /* boot command */
 
 static struct boot_dev boot_tab[] = {
     { "RQ",  "DUA", 0x00415544 },                       /* DUAn */
@@ -63,22 +66,10 @@ static struct boot_dev boot_tab[] = {
     { NULL }
     };
 
-t_stat sysd_reset (DEVICE *dptr);
-const char *sysd_description (DEVICE *dptr);
-t_stat vax610_boot (int32_t flag, const char *ptr);
-t_stat vax610_boot_parse (int32_t flag, const char *ptr);
-
-extern int32_t iccs_rd (void);
-extern int32_t todr_rd (void);
-extern int32_t rxcs_rd (void);
-extern int32_t rxdb_rd (void);
-extern int32_t txcs_rd (void);
-extern void iccs_wr (int32_t dat);
-extern void todr_wr (int32_t dat);
-extern void rxcs_wr (int32_t dat);
-extern void txcs_wr (int32_t dat);
-extern void txdb_wr (int32_t dat);
-extern void ioreset_wr (int32_t dat);
+static t_stat sysd_reset (DEVICE *dptr);
+static const char *sysd_description (DEVICE *dptr);
+static t_stat vax610_boot (int32_t flag, const char *ptr);
+static t_stat vax610_boot_parse (int32_t flag, const char *ptr);
 
 /* SYSD data structures
 
@@ -87,9 +78,9 @@ extern void ioreset_wr (int32_t dat);
    sysd_reg     SYSD register list
 */
 
-UNIT sysd_unit = { UDATA (NULL, 0, 0) };
+static UNIT sysd_unit = { UDATA (NULL, 0, 0) };
 
-REG sysd_reg[] = {
+static REG sysd_reg[] = {
     { HRDATAD (CONISP, conisp, 32, "console ISP") },
     { HRDATAD (CONPC,   conpc, 32, "console PD") },
     { HRDATAD (CONPSL, conpsl, 32, "console PSL") },
@@ -108,7 +99,7 @@ DEVICE sysd_dev = {
 
 /* Special boot command, overrides regular boot */
 
-CTAB vax610_cmd[] = {
+static CTAB vax610_cmd[] = {
     { "BOOT", &vax610_boot, RU_BOOT,
       "bo{ot} <device>{/R5:flg} boot device\n"
       "                         type HELP CPU to see bootable devices\n", NULL, &run_cmd_message },
@@ -269,7 +260,7 @@ struct reglink {                                        /* register linkage */
     void        (*write)(int32_t pa, int32_t val, int32_t lnt); /* write routine */
     };
 
-struct reglink regtable[] = {
+static struct reglink regtable[] = {
     { 0, 0, NULL, NULL }
     };
 
@@ -366,7 +357,7 @@ return;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax610_boot (int32_t flag, const char *ptr)
+static t_stat vax610_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -386,7 +377,7 @@ return run_cmd (flag, "CPU");
 
 /* Parse boot command, set up registers - also used on reset */
 
-t_stat vax610_boot_parse (int32_t flag, const char *ptr)
+static t_stat vax610_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE], dbuf[CBUFSIZE], rbuf[CBUFSIZE];
 char *slptr;
@@ -556,7 +547,7 @@ return sim_messagef (SCPE_ARG, "Unknown/Unsupported instruction set: %s\n", gbuf
 
 /* SYSD reset */
 
-t_stat sysd_reset (DEVICE *dptr)
+static t_stat sysd_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -566,7 +557,7 @@ sim_vm_cmd = vax610_cmd;
 return SCPE_OK;
 }
 
-const char *sysd_description (DEVICE *dptr)
+static const char *sysd_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

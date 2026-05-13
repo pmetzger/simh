@@ -37,6 +37,12 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax_lk.h"
+#include "vax630_sysdev.h"
+#include "vax630_sysdev_internal.h"
+#include "vax_vs.h"
 #include "uint_bits.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
@@ -57,12 +63,12 @@
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
 #define UNIT_NODELAY    (1u << UNIT_V_NODELAY)
 
-t_stat vax630_boot (int32_t flag, const char *ptr);
+static t_stat vax630_boot (int32_t flag, const char *ptr);
 int32_t sys_model = 0;                                  /* MicroVAX or VAXstation */
 
 /* Special boot command, overrides regular boot */
 
-CTAB vax630_cmd[] = {
+static CTAB vax630_cmd[] = {
     { "BOOT", &vax630_boot, RU_BOOT,
       "bo{ot}                   boot simulator\n", NULL, &run_cmd_message },
     { NULL }
@@ -124,67 +130,41 @@ CTAB vax630_cmd[] = {
 #define DEAR_LMADD      0x00007FFF                      /* local mem addr */
 #define DEAR_RD         (DEAR_LMADD)
 
-extern UNIT clk_unit;
-extern int32_t tmr_poll;
-extern DEVICE va_dev, vc_dev, lk_dev, vs_dev;
-
 uint32_t *rom = NULL;                                   /* boot ROM */
-uint8_t *nvr = NULL;                                   /* non-volatile mem */
-int32_t conisp, conpc, conpsl;                          /* console reg */
-int32_t ka_bdr = BDR_BRKENB;                            /* KA630 boot diag */
+static uint8_t *nvr = NULL;                             /* non-volatile mem */
+static int32_t conisp, conpc, conpsl;                   /* console reg */
+static int32_t ka_bdr = BDR_BRKENB;                     /* KA630 boot diag */
 int32_t ka_mser = 0;                                    /* KA630 mem sys err */
-int32_t ka_cear = 0;                                    /* KA630 cpu err */
-int32_t ka_dear = 0;                                    /* KA630 dma err */
-bool ka_diag_full = false;
-bool ka_hltenab = true;                                 /* Halt Enable / Autoboot flag */
+static int32_t ka_cear = 0;                             /* KA630 cpu err */
+static int32_t ka_dear = 0;                             /* KA630 dma err */
+static bool ka_diag_full = false;
+static bool ka_hltenab = true;                          /* Halt Enable / Autoboot flag */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat rom_reset (DEVICE *dptr);
-t_stat rom_set_diag (UNIT *uptr, int32_t val, const char *cptr, const void *desc);
-t_stat rom_show_diag (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *rom_description (DEVICE *dptr);
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nvr_reset (DEVICE *dptr);
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat nvr_attach (UNIT *uptr, const char *cptr);
-t_stat nvr_detach (UNIT *uptr);
-const char *nvr_description (DEVICE *dptr);
-t_stat sysd_reset (DEVICE *dptr);
-t_stat sysd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *sysd_description (DEVICE *dptr);
+static t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat rom_reset (DEVICE *dptr);
+static t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *rom_description (DEVICE *dptr);
+static t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nvr_reset (DEVICE *dptr);
+static t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat nvr_attach (UNIT *uptr, const char *cptr);
+static t_stat nvr_detach (UNIT *uptr);
+static const char *nvr_description (DEVICE *dptr);
+static t_stat sysd_reset (DEVICE *dptr);
+static const char *sysd_description (DEVICE *dptr);
 
-int32_t rom_rd (int32_t pa, int32_t lnt);
-int32_t nvr_rd (int32_t pa, int32_t lnt);
-void nvr_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t ka_rd (int32_t pa, int32_t lnt);
-void ka_wr (int32_t pa, int32_t val, int32_t lnt);
-t_stat sysd_powerup (void);
-int32_t sysd_hlt_enb (void);
-int32_t con_halt (int32_t code, int32_t cc);
-
-extern int32_t qbmap_rd (int32_t pa, int32_t lnt);
-extern void qbmap_wr (int32_t pa, int32_t val, int32_t lnt);
-extern int32_t qbmem_rd (int32_t pa, int32_t lnt);
-extern void qbmem_wr (int32_t pa, int32_t val, int32_t lnt);
-extern int32_t iccs_rd (void);
-extern int32_t todr_rd (void);
-extern int32_t rxcs_rd (void);
-extern int32_t rxdb_rd (void);
-extern int32_t txcs_rd (void);
-extern void iccs_wr (int32_t dat);
-extern void todr_wr (int32_t dat);
-extern void rxcs_wr (int32_t dat);
-extern void txcs_wr (int32_t dat);
-extern void txdb_wr (int32_t dat);
-extern void ioreset_wr (int32_t dat);
+static int32_t nvr_rd (int32_t pa, int32_t lnt);
+static void nvr_wr (int32_t pa, int32_t val, int32_t lnt);
+static int32_t ka_rd (int32_t pa, int32_t lnt);
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt);
+static t_stat sysd_powerup (void);
 
 /* debugging bitmaps */
 #define DBG_REG  0x0001                                 /* trace read/write registers */
 
-DEBTAB nvr_debug[] = {
+static DEBTAB nvr_debug[] = {
   {"REG",    DBG_REG},
   {0}
 };
@@ -199,11 +179,11 @@ DEBTAB nvr_debug[] = {
 
 UNIT rom_unit = { UDATA (NULL, UNIT_FIX+UNIT_BINK, ROMSIZE) };
 
-REG rom_reg[] = {
+static REG rom_reg[] = {
     { NULL }
     };
 
-MTAB rom_mod[] = {
+static MTAB rom_mod[] = {
     { MTAB_XTD|MTAB_VDV, 0, "ADDRESS", NULL,     NULL, &show_mapped_addr, (void *)ROMBASE, "Display base address" },
     { UNIT_NODELAY, UNIT_NODELAY, "fast access", "NODELAY", NULL, NULL, NULL, "Disable calibrated ROM access speed" },
     { UNIT_NODELAY, 0, "1usec calibrated access", "DELAY",  NULL, NULL, NULL, "Enable calibrated ROM access speed" },
@@ -226,14 +206,14 @@ DEVICE rom_dev = {
    nvr_reg      NVR register list
 */
 
-UNIT nvr_unit =
+static UNIT nvr_unit =
     { UDATA (NULL, UNIT_FIX+UNIT_BINK, NVRSIZE) };
 
-REG nvr_reg[] = {
+static REG nvr_reg[] = {
     { NULL }
     };
 
-MTAB nvr_mod[] = {
+static MTAB nvr_mod[] = {
     { MTAB_XTD|MTAB_VDV, 0, "ADDRESS", NULL,     NULL, &show_mapped_addr, (void *)NVRBASE, "Display base address" },
     { 0 }
     };
@@ -254,9 +234,9 @@ DEVICE nvr_dev = {
    sysd_reg     SYSD register list
 */
 
-UNIT sysd_unit = { UDATA (NULL, 0, 0) };
+static UNIT sysd_unit = { UDATA (NULL, 0, 0) };
 
-REG sysd_reg[] = {
+static REG sysd_reg[] = {
     { HRDATAD (CONISP,         conisp, 32, "console ISP") },
     { HRDATAD (CONPC,           conpc, 32, "console PD") },
     { HRDATAD (CONPSL,         conpsl, 32, "console PSL") },
@@ -321,7 +301,7 @@ return;
 
 /* ROM examine */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -340,7 +320,7 @@ return SCPE_OK;
 
 /* ROM deposit */
 
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -359,7 +339,7 @@ return SCPE_OK;
 
 /* ROM reset */
 
-t_stat rom_reset (DEVICE *dptr)
+static t_stat rom_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -372,7 +352,7 @@ if (rom == NULL)
 return SCPE_OK;
 }
 
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -402,7 +382,7 @@ fprintf (st, "    SET CPU DIAG=FULL       Run full diagnostics\n\n");
 return SCPE_OK;
 }
 
-const char *rom_description (DEVICE *dptr)
+static const char *rom_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -413,7 +393,7 @@ return "read-only memory";
 
 /* NVR: non-volatile RAM - stored in a buffered file */
 
-int32_t nvr_rd (int32_t pa, int32_t lnt)
+static int32_t nvr_rd (int32_t pa, int32_t lnt)
 {
 /* Generic memory read signature.
    This implementation does not use every parameter. */
@@ -438,7 +418,7 @@ sim_debug (DBG_REG, &nvr_dev, "nvr_rd(pa=0x%X) nvr[0x%X] returns: 0x%X\n", pa, r
 return result;
 }
 
-void nvr_wr (int32_t pa, int32_t val, int32_t lnt)
+static void nvr_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 int32_t rg = (pa + 1 - NVRBASE) >> 1;
 
@@ -469,7 +449,7 @@ else {
 
 /* NVR examine */
 
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -488,7 +468,7 @@ return SCPE_OK;
 
 /* NVR deposit */
 
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -508,7 +488,7 @@ return SCPE_OK;
 
 /* NVR reset */
 
-t_stat nvr_reset (DEVICE *dptr)
+static t_stat nvr_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -523,7 +503,7 @@ if (nvr == NULL)
 return SCPE_OK;
 }
 
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -548,14 +528,14 @@ return SCPE_OK;
    ROM behavior the first time the NVR device is attached (to an empty
    file).  Attaching a already existing file will overwrite this initial
    contents with whatever the NVRAM file contains.  */
-uint8_t nvr_empty_valid[NVRSIZE] = {
+static uint8_t nvr_empty_valid[NVRSIZE] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00,
     0x00, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE,
     0xFF, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x48, 0x45, 0x41, 0x50, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     };
 
-t_stat nvr_attach (UNIT *uptr, const char *cptr)
+static t_stat nvr_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
 int32_t saved_sim_quiet = sim_quiet;
@@ -577,7 +557,7 @@ return r;
 
 /* NVR detach */
 
-t_stat nvr_detach (UNIT *uptr)
+static t_stat nvr_detach (UNIT *uptr)
 {
 t_stat r;
 
@@ -589,7 +569,7 @@ if ((uptr->flags & UNIT_ATT) == 0) {
 return r;
 }
 
-const char *nvr_description (DEVICE *dptr)
+static const char *nvr_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -756,7 +736,7 @@ struct reglink {                                        /* register linkage */
     void        (*write)(int32_t pa, int32_t val, int32_t lnt);/* write routine */
     };
 
-struct reglink regtable[] = {
+static struct reglink regtable[] = {
     { QBMAPBASE, QBMAPBASE+QBMAPSIZE, &qbmap_rd, &qbmap_wr },
     { ROMBASE, ROMBASE+ROMSIZE+ROMSIZE, &rom_rd, NULL },
     { NVRBASE, NVRBASE+NVRASIZE, &nvr_rd, &nvr_wr },
@@ -861,7 +841,7 @@ WriteReg (pa & ~03, dat, L_LONG);
 
 /* KA630 registers */
 
-int32_t ka_rd (int32_t pa, int32_t lnt)
+static int32_t ka_rd (int32_t pa, int32_t lnt)
 {
 /* Generic memory read signature.
    This implementation does not use every parameter. */
@@ -887,7 +867,7 @@ switch (rg) {
 return 0;
 }
 
-void ka_wr (int32_t pa, int32_t val, int32_t lnt)
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Generic memory write signature.
    This implementation does not use every parameter. */
@@ -982,7 +962,7 @@ return 0;                                               /* new cc = 0 */
 
 */
 
-t_stat vax630_boot (int32_t flag, const char *ptr)
+static t_stat vax630_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -1087,7 +1067,7 @@ return SCPE_OK;
 
 /* SYSD reset */
 
-t_stat sysd_reset (DEVICE *dptr)
+static t_stat sysd_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -1108,7 +1088,7 @@ sim_vm_cmd = vax630_cmd;
 return SCPE_OK;
 }
 
-const char *sysd_description (DEVICE *dptr)
+static const char *sysd_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -1119,7 +1099,7 @@ return "system devices";
 
 /* SYSD powerup */
 
-t_stat sysd_powerup (void)
+static t_stat sysd_powerup (void)
 {
 ka_diag_full = 0;
 return SCPE_OK;

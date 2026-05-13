@@ -4,34 +4,14 @@
 
 #include "test_cmocka.h"
 
+#include "scp.h"
 #include "sim_types.h"
 #include "vax_defs.h"
-
-t_stat sysd_reset(DEVICE *dptr);
-t_stat rom_apply_patches(void);
-int32_t iccs_rd(void);
-void iccs_wr(int32_t data);
-t_stat or_map(uint32_t index, uint8_t *rom_buf, t_addr size);
-t_stat or_unmap(uint32_t index);
-int32_t nar_rd(int32_t pa);
-int32_t dz_rd(int32_t pa);
-int32_t nvr_rd(int32_t pa);
-int32_t or_rd(int32_t pa);
-int32_t rom_rd(int32_t pa);
-void dz_wr(int32_t pa, int32_t val, int32_t lnt);
-void nvr_wr(int32_t pa, int32_t val, int32_t lnt);
-
-extern int32_t CADR;
-extern int32_t SCCR;
-extern int32_t conisp;
-extern int32_t conpc;
-extern int32_t conpsl;
-extern int32_t int_mask;
-extern int32_t int_req[];
-extern int32_t ka_hltcod;
-extern int32_t mem_cnfg;
-extern int32_t sim_switches;
-extern DEVICE sysd_dev;
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax4xx_rom_patch.h"
+#include "vax440_sysdev_internal.h"
+#include "vax_xs.h"
 
 uint32_t *rom;
 uint32_t *M;

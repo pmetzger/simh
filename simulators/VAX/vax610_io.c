@@ -33,17 +33,14 @@
 
 #include "uint_bits.h"
 #include "vax_qbus_internal.h"
+#include "vax610_io.h"
 
 int32_t int_req[IPL_HLVL] = { 0 };                      /* intr, IPL 14-17 */
 int32_t int_vec_set[IPL_HLVL][32] = { 0 };              /* bits to set in vector */
 int32_t autcon_enb = 1;                                 /* autoconfig enable */
 
-extern int32_t vc_mem_rd (int32_t pa);
-extern void vc_mem_wr (int32_t pa, int32_t val, int32_t lnt);
-
-int32_t eval_int (void);
-t_stat qba_reset (DEVICE *dptr);
-const char *qba_description (DEVICE *dptr);
+static t_stat qba_reset (DEVICE *dptr);
+static const char *qba_description (DEVICE *dptr);
 
 /* Qbus adapter data structures
 
@@ -52,9 +49,9 @@ const char *qba_description (DEVICE *dptr);
    qba_reg      QBA register list
 */
 
-UNIT qba_unit = { UDATA (NULL, 0, 0) };
+static UNIT qba_unit = { UDATA (NULL, 0, 0) };
 
-REG qba_reg[] = {
+static REG qba_reg[] = {
     { HRDATAD (IPL17, int_req[3], 32, "IPL 17 interrupt flags"), REG_RO },
     { HRDATAD (IPL16, int_req[2], 32, "IPL 16 interrupt flags"), REG_RO },
     { HRDATAD (IPL15, int_req[1], 32, "IPL 15 interrupt flags"), REG_RO },
@@ -63,7 +60,7 @@ REG qba_reg[] = {
     { NULL }
     };
 
-MTAB qba_mod[] = {
+static MTAB qba_mod[] = {
     { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "IOSPACE", NULL,
       NULL, &show_iospace, NULL, "Display I/O space address map" },
     { MTAB_XTD|MTAB_VDV, 1, "AUTOCONFIG", "AUTOCONFIG",
@@ -378,7 +375,7 @@ return;
 
 /* Reset Qbus */
 
-t_stat qba_reset (DEVICE *dptr)
+static t_stat qba_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -391,7 +388,7 @@ for (i = 0; i < IPL_HLVL; i++)
 return SCPE_OK;
 }
 
-const char *qba_description (DEVICE *dptr)
+static const char *qba_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

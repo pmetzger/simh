@@ -26,6 +26,9 @@
    11-Jun-2013  MB      First version
 */
 
+#ifndef VAX_2681_H_
+#define VAX_2681_H_ 1
+
 #include <stdint.h>
 
 #include "sim_defs.h"
@@ -67,3 +70,5 @@ void ua2681_ip2_wr (UART2681 *ctx, uint32_t set);
 void ua2681_ip3_wr (UART2681 *ctx, uint32_t set);
 t_stat ua2681_svc (UART2681 *ctx);
 t_stat ua2681_reset (UART2681 *ctx);
+
+#endif /* VAX_2681_H_ */

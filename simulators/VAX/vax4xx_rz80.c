@@ -142,20 +142,20 @@ typedef struct {
     SCSI_BUS bus;                                       /* SCSI bus state */
     } CTLR;
 
-t_stat rz_svc (UNIT *uptr);
-t_stat rz_isvc (UNIT *uptr);
-t_stat rz_reset (DEVICE *dptr);
-t_stat rz_attach (UNIT *uptr, const char *cptr);
-t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-void rz_update_status (CTLR *rz);
-void rz_setint (CTLR *rz, uint32_t flags);
-void rz_clrint (CTLR *rz);
-void rz_sw_reset (CTLR *rz);
-void rz_ack (CTLR *rz);
-int32_t rz_parity (int32_t val, int32_t odd);
-const char *rz_description (DEVICE *dptr);
+static t_stat rz_svc (UNIT *uptr);
+static t_stat rz_isvc (UNIT *uptr);
+static t_stat rz_reset (DEVICE *dptr);
+static t_stat rz_attach (UNIT *uptr, const char *cptr);
+static t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static void rz_update_status (CTLR *rz);
+static void rz_setint (CTLR *rz, uint32_t flags);
+static void rz_clrint (CTLR *rz);
+static void rz_sw_reset (CTLR *rz);
+static void rz_ack (CTLR *rz);
+static int32_t rz_parity (int32_t val, int32_t odd);
+static const char *rz_description (DEVICE *dptr);
 
 /* RZ data structures
 
@@ -164,9 +164,9 @@ const char *rz_description (DEVICE *dptr);
    rz_reg      RZ register list
 */
 
-CTLR rz_ctx = { 0 };
+static CTLR rz_ctx = { 0 };
 
-UNIT rz_unit[] = {
+static UNIT rz_unit[] = {
     { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
             (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
     { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
@@ -186,12 +186,12 @@ UNIT rz_unit[] = {
     { UDATA (&rz_isvc, UNIT_DIS, 0) }
     };
 
-REG rz_reg[] = {
+static REG rz_reg[] = {
     { FLDATAD ( INT,    int_req[IPL_SCA], INT_V_SCA, "interrupt pending flag") },
     { NULL }
     };
 
-DEBTAB rz_debug[] = {
+static DEBTAB rz_debug[] = {
     { "REG",  DBG_REG,      "Register activity" },
     { "CMD",  DBG_CMD,      "Chip commands" },
     { "INT",  DBG_INT,      "Interrupts" },
@@ -203,7 +203,7 @@ DEBTAB rz_debug[] = {
     { 0 }
 };
 
-MTAB rz_mod[] = {
+static MTAB rz_mod[] = {
     { MTAB_XTD|MTAB_VUN, 0, "write enabled", "WRITEENABLED",
         &scsi_set_wlk, &scsi_show_wlk,   NULL, "Write enable drive" },
     { MTAB_XTD|MTAB_VUN, 1, NULL, "LOCKED",
@@ -291,13 +291,13 @@ DEVICE rz_dev = {
    rzb_reg      RZB register list
 */
 
-CTLR rzb_ctx = { 1 };
+static CTLR rzb_ctx = { 1 };
 
-DIB rzb_dib = {
+static DIB rzb_dib = {
     RZ_ROM_INDEX, BOOT_CODE_ARRAY, BOOT_CODE_SIZE
     };
 
-UNIT rzb_unit[] = {
+static UNIT rzb_unit[] = {
     { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
             (RZ23_DTYPE << UNIT_V_DTYPE), RZ_SIZE (RZ23)) },
     { UDATA (&rz_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+UNIT_ROABLE+
@@ -317,7 +317,7 @@ UNIT rzb_unit[] = {
     { UDATA (&rz_isvc, UNIT_DIS, 0) }
     };
 
-REG rzb_reg[] = {
+static REG rzb_reg[] = {
     { FLDATAD ( INT,    int_req[IPL_SCB], INT_V_SCB, "interrupt pending flag") },
     { NULL }
     };
@@ -617,7 +617,7 @@ sim_debug (DBG_REG, dptr, "reg %d write, value = %X, PC = %08X\n", rg, data, fau
 SET_IRQL;
 }
 
-int32_t rz_parity (int32_t val, int32_t odd)
+static int32_t rz_parity (int32_t val, int32_t odd)
 {
 for ( ; val != 0; val = val >> 1) {
     if (val & 1)
@@ -626,7 +626,7 @@ for ( ; val != 0; val = val >> 1) {
 return odd;
 }
 
-void rz_ack (CTLR *rz)
+static void rz_ack (CTLR *rz)
 {
 uint32_t len;
 uint32_t old_phase;
@@ -656,7 +656,7 @@ if (old_phase == PH_MSG_IN)                             /* message in just proce
 rz_update_status (rz);
 }
 
-void rz_update_status (CTLR *rz)
+static void rz_update_status (CTLR *rz)
 {
 DEVICE *dptr = rz_devmap[rz->cnum];
 
@@ -679,7 +679,7 @@ if ((rz->mode & MODE_MONBSY) && (rz->bus.target < 0)) {  /* monitoring BSY? */
     }
 }
 
-t_stat rz_svc (UNIT *uptr)
+static t_stat rz_svc (UNIT *uptr)
 {
 CTLR *rz = rz_ctxmap[uptr->cnum];
 DEVICE *dptr = rz_devmap[uptr->cnum];
@@ -724,7 +724,7 @@ rz_update_status (rz);
 return SCPE_OK;
 }
 
-t_stat rz_isvc (UNIT *uptr)
+static t_stat rz_isvc (UNIT *uptr)
 {
 CTLR *rz = rz_ctxmap[uptr->cnum];
 DEVICE *dptr = rz_devmap[uptr->cnum];
@@ -739,7 +739,7 @@ uptr->iflgs = 0;
 return SCPE_OK;
 }
 
-void rz_setint (CTLR *rz, uint32_t flags)
+static void rz_setint (CTLR *rz, uint32_t flags)
 {
 DEVICE *dptr = rz_devmap[rz->cnum];
 UNIT *uptr = dptr->units + RZ_CTLR;
@@ -749,7 +749,7 @@ if (!sim_is_active (uptr))
     sim_activate (uptr, 50);
 }
 
-void rz_clrint (CTLR *rz)
+static void rz_clrint (CTLR *rz)
 {
 DEVICE *dptr = rz_devmap[rz->cnum];
 
@@ -761,7 +761,7 @@ else
 rz->status = rz->status & ~STS_INTREQ;
 }
 
-void rz_sw_reset (CTLR *rz)
+static void rz_sw_reset (CTLR *rz)
 {
 DEVICE *dptr;
 UNIT *uptr;
@@ -789,7 +789,7 @@ rz->buf_ptr = 0;
 scsi_reset (&rz->bus);
 }
 
-t_stat rz_reset (DEVICE *dptr)
+static t_stat rz_reset (DEVICE *dptr)
 {
 int32_t ctlr, i;
 uint32_t dtyp;
@@ -830,7 +830,7 @@ return SCPE_OK;
 
 /* Set unit type (and capacity if user defined) */
 
-t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat rz_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic modifier signature.
    This implementation does not use every parameter. */
@@ -862,7 +862,7 @@ return SCPE_OK;
 
 /* Show unit type */
 
-t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
+static t_stat rz_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -873,7 +873,7 @@ fprintf (st, "%s", rzdev_tab[GET_DTYPE (uptr->flags)].name);
 return SCPE_OK;
 }
 
-t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat rz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "NCR 5380 SCSI Controller (%s)\n\n", dptr->name);
 fprintf (st, "The %s controller simulates the NCR 5380 SCSI controller connected\n", dptr->name);
@@ -893,12 +893,12 @@ scsi_help (st, dptr, uptr, flag, cptr);
 return SCPE_OK;
 }
 
-t_stat rz_attach (UNIT *uptr, const char *cptr)
+static t_stat rz_attach (UNIT *uptr, const char *cptr)
 {
 return scsi_attach_ex (uptr, cptr, drv_types);
 }
 
-const char *rz_description (DEVICE *dptr)
+static const char *rz_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

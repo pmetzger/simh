@@ -54,6 +54,9 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cis.h"
+#include "vax_cpu.h"
+#include "vax_sys.h"
 
 /* Decimal string structure */
 
@@ -75,26 +78,24 @@ typedef struct {
 static DSTR Dstr_zero = { 0, {0, 0, 0, 0} };
 static DSTR Dstr_one = { 0, {0x10, 0, 0, 0} };
 
-int32_t ReadDstr (int32_t lnt, int32_t addr, DSTR *dec, int32_t acc);
-int32_t WriteDstr (int32_t lnt, int32_t addr, DSTR *dec, int32_t v, int32_t acc);
-int32_t SetCCDstr (int32_t lnt, DSTR *src, int32_t pslv);
-int32_t AddDstr (DSTR *src1, DSTR *src2, DSTR *dst, int32_t cin);
-void SubDstr (DSTR *src1, DSTR *src2, DSTR *dst);
-int32_t CmpDstr (DSTR *src1, DSTR *src2);
-int32_t TestDstr (DSTR *dsrc);
-void ProbeDstr (int32_t lnt, int32_t addr, int32_t acc);
-int32_t LntDstr (DSTR *dsrc, int32_t nz);
-uint32_t NibbleLshift (DSTR *dsrc, int32_t sc, uint32_t cin);
-uint32_t NibbleRshift (DSTR *dsrc, int32_t sc, uint32_t cin);
-int32_t WordLshift (DSTR *dsrc, int32_t sc);
-void WordRshift (DSTR *dsrc, int32_t sc);
-void CreateTable (DSTR *dsrc, DSTR mtable[10]);
-int32_t do_crc_4b (int32_t crc, int32_t tbl, int32_t acc);
-int32_t edit_read_src (int32_t inc, int32_t acc);
-void edit_adv_src (int32_t inc);
-int32_t edit_read_sign (int32_t acc);
-
-extern int32_t eval_int (void);
+static int32_t ReadDstr (int32_t lnt, int32_t addr, DSTR *dec, int32_t acc);
+static int32_t WriteDstr (int32_t lnt, int32_t addr, DSTR *dec, int32_t v, int32_t acc);
+static int32_t SetCCDstr (int32_t lnt, DSTR *src, int32_t pslv);
+static int32_t AddDstr (DSTR *src1, DSTR *src2, DSTR *dst, int32_t cin);
+static void SubDstr (DSTR *src1, DSTR *src2, DSTR *dst);
+static int32_t CmpDstr (DSTR *src1, DSTR *src2);
+static int32_t TestDstr (DSTR *dsrc);
+static void ProbeDstr (int32_t lnt, int32_t addr, int32_t acc);
+static int32_t LntDstr (DSTR *dsrc, int32_t nz);
+static uint32_t NibbleLshift (DSTR *dsrc, int32_t sc, uint32_t cin);
+static uint32_t NibbleRshift (DSTR *dsrc, int32_t sc, uint32_t cin);
+static int32_t WordLshift (DSTR *dsrc, int32_t sc);
+static void WordRshift (DSTR *dsrc, int32_t sc);
+static void CreateTable (DSTR *dsrc, DSTR mtable[10]);
+static int32_t do_crc_4b (int32_t crc, int32_t tbl, int32_t acc);
+static int32_t edit_read_src (int32_t inc, int32_t acc);
+static void edit_adv_src (int32_t inc);
+static int32_t edit_read_sign (int32_t acc);
 
 /* CIS emulator */
 
@@ -1219,7 +1220,7 @@ return cc;
    and bad digits cause a fault.
 */
 
-int32_t ReadDstr (int32_t lnt, int32_t adr, DSTR *src, int32_t acc)
+static int32_t ReadDstr (int32_t lnt, int32_t adr, DSTR *src, int32_t acc)
 {
 int32_t c, i, end, t = 0;
 
@@ -1270,7 +1271,7 @@ return TestDstr (src);                                  /* clean -0 */
    sign, but PSL.N is clear
 */
 
-int32_t WriteDstr (int32_t lnt, int32_t adr, DSTR *dst, int32_t pslv, int32_t acc)
+static int32_t WriteDstr (int32_t lnt, int32_t adr, DSTR *dst, int32_t pslv, int32_t acc)
 {
 int32_t c, i, cc, end;
 
@@ -1296,7 +1297,7 @@ return cc;
         cc      =       condition codes
 */
 
-int32_t SetCCDstr (int32_t lnt, DSTR *dst, int32_t pslv)
+static int32_t SetCCDstr (int32_t lnt, DSTR *dst, int32_t pslv)
 {
 int32_t psln, pslz, i, limit;
 uint32_t mask;
@@ -1328,7 +1329,7 @@ return (psln? CC_N: 0) | (pslz? CC_Z: 0) | (pslv? CC_V: 0);
 
 /* Probe decimal string for accessibility */
 
-void ProbeDstr (int32_t lnt, int32_t addr, int32_t acc)
+static void ProbeDstr (int32_t lnt, int32_t addr, int32_t acc)
 {
 Read (addr, L_BYTE, acc);
 Read ((addr + lnt) & LMASK, L_BYTE, acc);
@@ -1376,7 +1377,7 @@ return;
    (actually, shift it right 3 and subtract 3*adjustment).
 */
 
-int32_t AddDstr (DSTR *s1, DSTR *s2, DSTR *ds, int32_t cy)
+static int32_t AddDstr (DSTR *s1, DSTR *s2, DSTR *ds, int32_t cy)
 {
 int32_t i;
 uint32_t sm1, sm2, tm1, tm2, tm3, tm4;
@@ -1406,7 +1407,7 @@ return cy;
 
 */
 
-void SubDstr (DSTR *s1, DSTR *s2, DSTR *ds)
+static void SubDstr (DSTR *s1, DSTR *s2, DSTR *ds)
 {
 int32_t i;
 DSTR complX;
@@ -1425,7 +1426,7 @@ return;
    Output       =       1 if >, 0 if =, -1 if <
 */
 
-int32_t CmpDstr (DSTR *s1, DSTR *s2)
+static int32_t CmpDstr (DSTR *s1, DSTR *s2)
 {
 int32_t i;
 
@@ -1447,7 +1448,7 @@ return 0;
    If the string is zero, the sign is cleared
 */
 
-int32_t TestDstr (DSTR *dsrc)
+static int32_t TestDstr (DSTR *dsrc)
 {
 int32_t i;
 
@@ -1466,7 +1467,7 @@ return 0;
         nz      =       result from TestDstr
 */
 
-int32_t LntDstr (DSTR *dsrc, int32_t nz)
+static int32_t LntDstr (DSTR *dsrc, int32_t nz)
 {
 int32_t i;
 
@@ -1490,7 +1491,7 @@ return ((nz - 1) * 8) + i;
    Also note that mtable[0] is not filled in
 */
 
-void CreateTable (DSTR *dsrc, DSTR mtable[10])
+static void CreateTable (DSTR *dsrc, DSTR mtable[10])
 {
 int32_t (i);
 
@@ -1507,7 +1508,7 @@ return;
         sc      =       shift count
 */
 
-void WordRshift (DSTR *dsrc, int32_t sc)
+static void WordRshift (DSTR *dsrc, int32_t sc)
 {
 int32_t i;
 
@@ -1528,7 +1529,7 @@ return;
         sc      =       shift count
 */
 
-int32_t WordLshift (DSTR *dsrc, int32_t sc)
+static int32_t WordLshift (DSTR *dsrc, int32_t sc)
 {
 int32_t i, c, zc;
 
@@ -1554,7 +1555,7 @@ return c;
         cin     =       carry in
 */
 
-uint32_t NibbleRshift (DSTR *dsrc, int32_t sc, uint32_t cin)
+static uint32_t NibbleRshift (DSTR *dsrc, int32_t sc, uint32_t cin)
 {
 int32_t i, s, nc;
 
@@ -1578,7 +1579,7 @@ return 0;
         cin     =       carry in
 */
 
-uint32_t NibbleLshift (DSTR *dsrc, int32_t sc, uint32_t cin)
+static uint32_t NibbleLshift (DSTR *dsrc, int32_t sc, uint32_t cin)
 {
 int32_t i, s, nc;
 
@@ -1604,7 +1605,7 @@ return 0;
         new CRC
 */
 
-int32_t do_crc_4b (int32_t crc, int32_t tbl, int32_t acc)
+static int32_t do_crc_4b (int32_t crc, int32_t tbl, int32_t acc)
 {
 int32_t idx = (crc & 0xF) << 2;
 int32_t t;
@@ -1616,7 +1617,7 @@ return crc ^ t;
 
 /* Edit routines */
 
-int32_t edit_read_src (int32_t inc, int32_t acc)
+static int32_t edit_read_src (int32_t inc, int32_t acc)
 {
 int32_t c, r0, r1;
 
@@ -1636,7 +1637,7 @@ c = Read (r1, L_BYTE, RA);
 return (((r0 & 1)? (c >> 4): c) & 0xF);
 }
 
-void edit_adv_src (int32_t inc)
+static void edit_adv_src (int32_t inc)
 {
 if (R[0] & LSIGN) {                                     /* ld zeroes? */
     R[0] = (R[0] + (inc << 16)) & LMASK;                /* retire 0's */
@@ -1651,7 +1652,7 @@ R[0] = (R[0] - inc) & 0x1F;
 return;
 }
 
-int32_t edit_read_sign (int32_t acc)
+static int32_t edit_read_sign (int32_t acc)
 {
 int32_t sign;
 

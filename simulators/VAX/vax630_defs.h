@@ -61,6 +61,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "vax630_io.h"
+#include "vax630_stddev.h"
+#include "vax630_sysdev.h"
+#include "vax_va.h"
+#include "vax_vc.h"
+
 /* Microcode constructs */
 
 #define VAX620_SID      (16 << 24)                      /* system ID */
@@ -130,7 +136,6 @@
                         { UNIT_MSIZE, (1u << 23) + (1u << 22) + (1u << 20), NULL, "13M", &cpu_set_size, NULL, NULL, "Set Memory to 13M bytes" }, \
                         { UNIT_MSIZE, (1u << 24), NULL, "16M", &cpu_set_size, NULL, NULL, "Set Memory to 16M bytes" },                           \
                         { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "MEMORY", NULL, NULL, &cpu_show_memory, NULL, "Display memory configuration" }
-extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
 
 /* Qbus I/O page */
 
@@ -202,7 +207,6 @@ extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* de
 #define ADDR_IS_QVM(x)  (vc_buf &&                      \
                          (((uint32_t) (x)) >= QVMBASE) && \
                          (((uint32_t) (x)) < (QVMBASE + QVMSIZE)))
-extern uint32_t *vc_buf;
 
 /* QDSS memory space */
 
@@ -214,7 +218,6 @@ extern uint32_t *vc_buf;
                          (((uint32_t) (x)) >= QDMBASE) && \
                          (((uint32_t) (x)) < (QDMBASE + QDMSIZE)))
 extern uint32_t *va_buf;
-extern uint32_t va_addr;                                /* QDSS memory offset */
 
 /* Other address spaces */
 
@@ -301,7 +304,6 @@ typedef struct {
 /* Qbus I/O page layout - see pdp11_io_lib.c for address layout details */
 
 #define IOBA_AUTO       (0)                             /* Assigned by Auto Configure */
-
 
 /* The KA620/KA630 maintains 4 separate hardware IPL levels, IPL 17 to IPL 14;
    however, DEC Qbus controllers all interrupt on IPL 14
@@ -428,28 +430,6 @@ typedef struct {
 #define SET_INT(dv)     int_req[IPL_##dv] = int_req[IPL_##dv] | (INT_##dv)
 #define CLR_INT(dv)     int_req[IPL_##dv] = int_req[IPL_##dv] & ~(INT_##dv)
 #define IORETURN(f,v)   ((f)? (v): SCPE_OK)             /* cond error return */
-
-/* Function prototypes for I/O */
-
-int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
-int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
-int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
-int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
-int32_t va_mem_rd (int32_t pa);
-void va_mem_wr (int32_t pa, int32_t val, int32_t lnt);
-
-/* Function prototypes for system-specific unaligned support */
-
-int32_t ReadIOU (uint32_t pa, int32_t lnt);
-int32_t ReadRegU (uint32_t pa, int32_t lnt);
-void WriteIOU (uint32_t pa, int32_t val, int32_t lnt);
-void WriteRegU (uint32_t pa, int32_t val, int32_t lnt);
-
-extern t_stat sysd_set_diag (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern t_stat sysd_show_diag (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-extern t_stat sysd_set_halt (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern t_stat sysd_show_halt (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-extern t_stat sysd_show_leds (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 #include "pdp11_io_lib.h"
 

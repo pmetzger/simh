@@ -37,6 +37,7 @@
 #include "vax_defs.h"
 #include "vax4xx_rom_patch.h"
 #include "vax4xx_stddev.h"
+#include "vax4xx_stddev_internal.h"
 
 #define UNIT_V_NODELAY  (UNIT_V_UF + 0)                 /* ROM access equal to RAM access */
 #define UNIT_NODELAY    (1u << UNIT_V_NODELAY)
@@ -54,26 +55,24 @@ int32_t tmr_int = 0;                                    /* interrupt */
 int32_t tmxr_poll = CLK_DELAY * TMXR_MULT;              /* term mux poll */
 int32_t tmr_poll = CLK_DELAY;                           /* pgm timer poll */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat rom_reset (DEVICE *dptr);
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *rom_description (DEVICE *dptr);
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nvr_reset (DEVICE *dptr);
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat nvr_attach (UNIT *uptr, const char *cptr);
-t_stat nvr_detach (UNIT *uptr);
-const char *nvr_description (DEVICE *dptr);
-t_stat or_reset (DEVICE *dptr);
-t_stat or_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *or_description (DEVICE *dptr);
-t_stat clk_svc (UNIT *uptr);
-t_stat clk_reset (DEVICE *dptr);
-const char *clk_description (DEVICE *dptr);
-
-extern int32_t sysd_hlt_enb (void);
+static t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat rom_reset (DEVICE *dptr);
+static t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *rom_description (DEVICE *dptr);
+static t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nvr_reset (DEVICE *dptr);
+static t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat nvr_attach (UNIT *uptr, const char *cptr);
+static t_stat nvr_detach (UNIT *uptr);
+static const char *nvr_description (DEVICE *dptr);
+static t_stat or_reset (DEVICE *dptr);
+static t_stat or_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *or_description (DEVICE *dptr);
+static t_stat clk_svc (UNIT *uptr);
+static t_stat clk_reset (DEVICE *dptr);
+static const char *clk_description (DEVICE *dptr);
 
 /* ROM data structures
 
@@ -238,7 +237,7 @@ return;
 
 /* ROM examine */
 
-t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat rom_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -257,7 +256,7 @@ return SCPE_OK;
 
 /* ROM deposit */
 
-t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat rom_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -276,7 +275,7 @@ return SCPE_OK;
 
 /* ROM reset */
 
-t_stat rom_reset (DEVICE *dptr)
+static t_stat rom_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -289,7 +288,7 @@ if (rom == NULL)
 return SCPE_OK;
 }
 
-t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat rom_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -317,7 +316,7 @@ fprint_set_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *rom_description (DEVICE *dptr)
+static const char *rom_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -370,7 +369,7 @@ else {
 
 /* NVR examine */
 
-t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nvr_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -389,7 +388,7 @@ return SCPE_OK;
 
 /* NVR deposit */
 
-t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nvr_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -408,7 +407,7 @@ return SCPE_OK;
 
 /* NVR reset */
 
-t_stat nvr_reset (DEVICE *dptr)
+static t_stat nvr_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -423,7 +422,7 @@ if (nvr == NULL)
 return SCPE_OK;
 }
 
-t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat nvr_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -443,7 +442,7 @@ return SCPE_OK;
 
 /* NVR attach */
 
-t_stat nvr_attach (UNIT *uptr, const char *cptr)
+static t_stat nvr_attach (UNIT *uptr, const char *cptr)
 {
 t_stat r;
 
@@ -460,7 +459,7 @@ return r;
 
 /* NVR detach */
 
-t_stat nvr_detach (UNIT *uptr)
+static t_stat nvr_detach (UNIT *uptr)
 {
 t_stat r;
 
@@ -472,7 +471,7 @@ if ((uptr->flags & UNIT_ATT) == 0) {
 return r;
 }
 
-const char *nvr_description (DEVICE *dptr)
+static const char *nvr_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -544,7 +543,7 @@ if ((uptr->flags & UNIT_ATT) && (opr != NULL)) {
 return (int32_t) sim_rom_read_with_delay (0xFFFFFFFFu);
 }
 
-t_stat or_reset (DEVICE *dptr)
+static t_stat or_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -553,7 +552,7 @@ t_stat or_reset (DEVICE *dptr)
 return SCPE_OK;
 }
 
-t_stat or_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat or_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -588,7 +587,7 @@ uptr->flags &= ~UNIT_ATT;
 return SCPE_OK;
 }
 
-const char *or_description (DEVICE *dptr)
+static const char *or_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -624,7 +623,7 @@ return;
    clk_description  return device description
 */
 
-t_stat clk_svc (UNIT *uptr)
+static t_stat clk_svc (UNIT *uptr)
 {
 int32_t t;
 
@@ -640,7 +639,7 @@ return SCPE_OK;
 
 /* Reset routine */
 
-t_stat clk_reset (DEVICE *dptr)
+static t_stat clk_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -657,7 +656,7 @@ tmxr_poll = t * TMXR_MULT;                              /* set mux poll */
 return SCPE_OK;
 }
 
-const char *clk_description (DEVICE *dptr)
+static const char *clk_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

@@ -30,20 +30,20 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_nar.h"
 #include "sim_ether.h"
 
-uint32_t nar[NARSIZE];                                  /* network address ROM */
-ETH_MAC nar_mac = {0x08, 0x00, 0x2B, 0xCC, 0xDD, 0xEE};
-bool nar_init = false;
+static uint32_t nar[NARSIZE];                           /* network address ROM */
+static ETH_MAC nar_mac = {0x08, 0x00, 0x2B, 0xCC, 0xDD, 0xEE};
+static bool nar_init = false;
 
-int32_t nar_rd (int32_t pa);
-t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
-t_stat nar_reset (DEVICE *dptr);
-t_stat nar_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *nar_description (DEVICE *dptr);
-t_stat nar_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc);
-t_stat nar_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc);
+static t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw);
+static t_stat nar_reset (DEVICE *dptr);
+static t_stat nar_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *nar_description (DEVICE *dptr);
+static t_stat nar_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc);
+static t_stat nar_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc);
 
 /* NAR data structures
 
@@ -52,13 +52,13 @@ t_stat nar_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc);
    nar_reg      NAR register list
 */
 
-UNIT nar_unit = { UDATA (NULL, UNIT_FIX+UNIT_BINK, NARSIZE) };
+static UNIT nar_unit = { UDATA (NULL, UNIT_FIX+UNIT_BINK, NARSIZE) };
 
-REG nar_reg[] = {
+static REG nar_reg[] = {
     { NULL }
     };
 
-MTAB nar_mod[] = {
+static MTAB nar_mod[] = {
     { MTAB_XTD|MTAB_VDV|MTAB_VALR, 0, "MAC", "MAC=xx:xx:xx:xx:xx:xx",
       &nar_setmac, &nar_showmac, NULL, "MAC address" },
     { 0 }
@@ -81,7 +81,7 @@ int32_t rg = (pa >> 2) & 0x1F;
 return nar[rg];
 }
 
-t_stat nar_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
+static t_stat nar_showmac (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 {
 /* Generic show signature.
    This implementation does not use every parameter. */
@@ -96,7 +96,7 @@ fprintf (st, "MAC=%s", buffer);
 return SCPE_OK;
 }
 
-t_stat nar_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc)
+static t_stat nar_setmac (UNIT* uptr, int32_t val, const char* cptr, void* desc)
 {
 /* Generic set signature.
    This implementation does not use every parameter. */
@@ -117,7 +117,7 @@ return SCPE_OK;
 
 /* NAR examine */
 
-t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nar_ex (t_value *vptr, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -136,7 +136,7 @@ return SCPE_OK;
 
 /* NAR deposit */
 
-t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
+static t_stat nar_dep (t_value val, t_addr exta, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -155,7 +155,7 @@ return SCPE_OK;
 
 /* NAR reset */
 
-t_stat nar_reset (DEVICE *dptr)
+static t_stat nar_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -211,7 +211,7 @@ nar[31] = 0xAA;
 return SCPE_OK;
 }
 
-t_stat nar_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat nar_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -232,7 +232,7 @@ fprintf (st, "can be directly set.\n");
 return SCPE_OK;
 }
 
-const char *nar_description (DEVICE *dptr)
+static const char *nar_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

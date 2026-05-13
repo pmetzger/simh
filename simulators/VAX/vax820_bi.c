@@ -33,6 +33,9 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax820_bi.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "vmb.exe"
@@ -62,16 +65,16 @@ struct boot_dev {
     int32_t             let;
     };
 
-uint32_t wcs_addr = 0;
-uint32_t wcs_data = 0;
+static uint32_t wcs_addr = 0;
+static uint32_t wcs_data = 0;
 uint32_t nexus_req[NEXUS_HLVL];                         /* nexus int req */
-int32_t ipr_int = 0;
+static int32_t ipr_int = 0;
 int32_t rxcd_int = 0;
 int32_t ipir = 0;
-int32_t accs = 0;
+static int32_t accs = 0;
 int32_t sys_model = 0;
-int32_t mchk_flag[KA_NUM] = { 0 };
-char cpu_boot_cmd[CBUFSIZE]  = { 0 };                   /* boot command */
+static int32_t mchk_flag[KA_NUM] = { 0 };
+static char cpu_boot_cmd[CBUFSIZE]  = { 0 };            /* boot command */
 
 static t_stat (*nexusR[NEXUS_NUM])(int32_t *dat, int32_t ad, int32_t md);
 static t_stat (*nexusW[NEXUS_NUM])(int32_t dat, int32_t ad, int32_t md);
@@ -87,37 +90,9 @@ static struct boot_dev boot_tab[] = {
     { NULL }
     };
 
-extern int32_t tmr_int, tti_int, tto_int, fl_int;
-extern int32_t cur_cpu;
-
-t_stat bi_reset (DEVICE *dptr);
-t_stat vax820_boot (int32_t flag, const char *ptr);
-t_stat vax820_boot_parse (int32_t flag, const char *ptr);
-t_stat cpu_boot (int32_t unitno, DEVICE *dptr);
-
-extern void uba_eval_int (void);
-extern int32_t uba_get_ubvector (int32_t lvl);
-extern int32_t iccs_rd (void);
-extern int32_t nicr_rd (void);
-extern int32_t icr_rd (void);
-extern int32_t todr_rd (void);
-extern int32_t rxcs_rd (void);
-extern int32_t rxdb_rd (void);
-extern int32_t txcs_rd (void);
-extern int32_t rxcd_rd (void);
-extern int32_t pcsr_rd (int32_t pa);
-extern int32_t fl_rd (int32_t pa);
-extern void iccs_wr (int32_t dat);
-extern void nicr_wr (int32_t dat);
-extern void todr_wr (int32_t dat);
-extern void rxcs_wr (int32_t dat);
-extern void txcs_wr (int32_t dat);
-extern void txdb_wr (int32_t dat);
-extern void rxcd_wr (int32_t val);
-extern void pcsr_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void fl_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void init_ubus_tab (void);
-extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
+static t_stat bi_reset (DEVICE *dptr);
+static t_stat vax820_boot (int32_t flag, const char *ptr);
+static t_stat vax820_boot_parse (int32_t flag, const char *ptr);
 
 /* BI data structures
 
@@ -126,9 +101,9 @@ extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
    bi_reg       BI register list
 */
 
-UNIT bi_unit = { UDATA (NULL, 0, 0) };
+static UNIT bi_unit = { UDATA (NULL, 0, 0) };
 
-REG bi_reg[] = {
+static REG bi_reg[] = {
     { HRDATA (NREQ14, nexus_req[0], 16) },
     { HRDATA (NREQ15, nexus_req[1], 16) },
     { HRDATA (NREQ16, nexus_req[2], 16) },
@@ -493,7 +468,7 @@ struct reglink {                                        /* register linkage */
     void        (*write)(int32_t pa, int32_t val, int32_t lnt); /* write routine */
     };
 
-struct reglink regtable[] = {
+static struct reglink regtable[] = {
     { WATCHBASE, WATCHBASE+WATCHSIZE, &wtc_rd_pa, &wtc_wr_pa },
     { 0x20088000, 0x20088004, &pcsr_rd, &pcsr_wr },
     { 0x200B0000, 0x200B0020, &fl_rd, &fl_wr },
@@ -628,7 +603,7 @@ return cc;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax820_boot (int32_t flag, const char *ptr)
+static t_stat vax820_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -644,7 +619,7 @@ strlcpy (cpu_boot_cmd, ptr, sizeof (cpu_boot_cmd));     /* save for reboot */
 return run_cmd (flag, "CPU");
 }
 
-t_stat vax820_boot_parse (int32_t flag, const char *ptr)
+static t_stat vax820_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 char *slptr;
@@ -717,7 +692,7 @@ return SCPE_OK;
 
 /* BI reset */
 
-t_stat bi_reset (DEVICE *dptr)
+static t_stat bi_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */

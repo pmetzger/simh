@@ -30,6 +30,8 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax4xx_defs.h"
+#include "vax4xx_rd.h"
 #include "sim_disk.h"
 
 #if defined(VAX_420)
@@ -287,18 +289,18 @@ int32_t rd_data = 0;
 
 uint16_t *rd_xb = NULL;                                 /* xfer buffer */
 
-t_stat rd_svc (UNIT *uptr);
-t_stat rd_reset (DEVICE *dptr);
-void rd_set_dstat (UNIT *uptr);
-void rd_done (int32_t term_code, bool setint);
-void rd_cmd (int32_t data);
-int32_t rd_decode_cmd (int32_t data);
-t_stat rd_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat rd_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-t_stat rd_attach (UNIT *uptr, const char *cptr);
-t_stat rd_detach (UNIT *uptr);
-t_stat rd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *rd_description (DEVICE *dptr);
+static t_stat rd_svc (UNIT *uptr);
+static t_stat rd_reset (DEVICE *dptr);
+static void rd_set_dstat (UNIT *uptr);
+static void rd_done (int32_t term_code, bool setint);
+static void rd_cmd (int32_t data);
+static int32_t rd_decode_cmd (int32_t data);
+static t_stat rd_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat rd_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat rd_attach (UNIT *uptr, const char *cptr);
+static t_stat rd_detach (UNIT *uptr);
+static t_stat rd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *rd_description (DEVICE *dptr);
 
 /* RD data structures
 
@@ -549,7 +551,7 @@ switch (rg) {
 SET_IRQL;
 }
 
-void rd_cmd (int32_t data)
+static void rd_cmd (int32_t data)
 {
 int32_t max_cyl;
 UNIT *uptr = &rd_unit[CUR_DRV];
@@ -620,7 +622,7 @@ switch (uptr->CMD) {
         }
 }
 
-int32_t rd_decode_cmd (int32_t data)
+static int32_t rd_decode_cmd (int32_t data)
 {
 if (data == 0) return CMD_RESET;                        /* 00000000    Reset */
 if (data & 0x80) {
@@ -713,7 +715,7 @@ return sim_disk_wrsect (uptr, lba, (uint8_t *)rd_xb, &sectswritten, sects);
 
 /* Unit service */
 
-t_stat rd_svc (UNIT *uptr)
+static t_stat rd_svc (UNIT *uptr)
 {
 t_lba lba;
 int32_t dtype = GET_DTYPE (uptr->flags);
@@ -825,7 +827,7 @@ return SCPE_OK;
 
 /* Update the drive status register to reflect the current unit state */
 
-void rd_set_dstat (UNIT *uptr)
+static void rd_set_dstat (UNIT *uptr)
 {
 if ((uptr->flags & (UNIT_DIS + UNIT_ATT)) == UNIT_ATT) { /* drive present? */
     uptr->STAT = (DST_SCOM | DST_RDY);
@@ -844,7 +846,7 @@ else                                                    /* drive not present */
    request interrupt if needed, return to IDLE state.
 */
 
-void rd_done (int32_t term_code, bool setint)
+static void rd_done (int32_t term_code, bool setint)
 {
 rd_stat = ((term_code & STAT_M_TRMC) << STAT_V_TRMC) | STAT_DONE;
 if ((rd_term & 0x20) && setint) {
@@ -855,7 +857,7 @@ if ((rd_term & 0x20) && setint) {
 
 /* Device initialization. */
 
-t_stat rd_reset (DEVICE *dptr)
+static t_stat rd_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -876,7 +878,7 @@ return SCPE_OK;
 
 /* Attach routine */
 
-t_stat rd_attach (UNIT *uptr, const char *cptr)
+static t_stat rd_attach (UNIT *uptr, const char *cptr)
 {
 const char *drives[] = {"RX33", "RD31", "RD32", "RD53", "RD54", };
 
@@ -888,7 +890,7 @@ return sim_disk_attach_ex (uptr, cptr, RD_NUMBY,
 
 /* Detach routine */
 
-t_stat rd_detach (UNIT *uptr)
+static t_stat rd_detach (UNIT *uptr)
 {
 sim_cancel (uptr);
 return sim_disk_detach (uptr);
@@ -896,7 +898,7 @@ return sim_disk_detach (uptr);
 
 /* Set unit type */
 
-t_stat rd_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat rd_set_type (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -923,7 +925,7 @@ return SCPE_OK;
 
 /* Show unit type */
 
-t_stat rd_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
+static t_stat rd_show_type (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -934,7 +936,7 @@ fprintf (st, "%s", drv_tab[GET_DTYPE (uptr->flags)].name);
 return SCPE_OK;
 }
 
-t_stat rd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat rd_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 fprintf (st, "HDC9224 Disk Controller (RD)\n\n");
 fprintf (st, "The RD controller simulates the HDC9224 Universal Disk Controller\n");
@@ -956,7 +958,7 @@ sim_disk_attach_help (st, dptr, uptr, flag, cptr);
 return SCPE_OK;
 }
 
-const char *rd_description (DEVICE *dptr)
+static const char *rd_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

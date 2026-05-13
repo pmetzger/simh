@@ -4,16 +4,13 @@
 #include "test_cmocka.h"
 
 #include "vax_qbus_internal.h"
+#include "vax_va.h"
+#include "vax_vc.h"
 
 /*
  * These tests preserve the legacy WriteIO/WriteIOU contract by recording
  * the exact WriteQb operations that the pre-cleanup code emitted.
  */
-
-void WriteIO(uint32_t pa, int32_t val, int32_t lnt);
-void WriteIOU(uint32_t pa, int32_t val, int32_t lnt);
-int32_t va_mem_rd(int32_t pa);
-void va_mem_wr(int32_t pa, int32_t val, int32_t lnt);
 
 typedef struct {
     uint32_t pa;

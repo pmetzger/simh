@@ -14,9 +14,6 @@
 #include "uint_bits.h"
 #include "vax_defs.h"
 #include "vax4xx_rom_patch.h"
-#include "vax4xx_stddev.h"
-
-extern uint32_t *rom;
 
 static const uint8_t ka48_skip_ram_selftest_expected[] = {
     0xc2,

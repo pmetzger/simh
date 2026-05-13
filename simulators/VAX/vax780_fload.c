@@ -46,6 +46,8 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax780_fload.h"
+#include "vax780_fload_internal.h"
 
 #define BLK_SIZE        256                             /* RT11 block size */
 
@@ -80,13 +82,9 @@
 #define DE_SIZE         7                               /* entry size in words */
 #define DE_GET_STAT(x)  (((x) >> 8) & 0377)
 
-extern UNIT fl_unit;
-
-bool rtfile_parse (char *pntr, uint16_t *file_name);
-uint32_t rtfile_lookup (uint16_t *file_name, uint32_t *start);
-uint32_t rtfile_ator50 (uint32_t ascii);
-bool rtfile_read (uint32_t block, uint32_t count, uint16_t *buffer);
-uint32_t rtfile_find (uint32_t block, uint32_t sector);
+static bool rtfile_parse (char *pntr, uint16_t *file_name);
+static uint32_t rtfile_lookup (uint16_t *file_name, uint32_t *start);
+static uint32_t rtfile_ator50 (uint32_t ascii);
 
 /* FLOAD file_name {file_origin} */
 
@@ -132,7 +130,7 @@ return SCPE_OK;
 
 /* Parse an RT11 file name and convert it to radix-50 */
 
-bool rtfile_parse (char *pntr, uint16_t *file_name)
+static bool rtfile_parse (char *pntr, uint16_t *file_name)
 {
 char c;
 uint16_t d;
@@ -174,7 +172,7 @@ return true;
 
 /* ASCII to radix-50 conversion */
 
-uint32_t rtfile_ator50 (uint32_t ascii)
+static uint32_t rtfile_ator50 (uint32_t ascii)
 {
 static const char *r50 = " ABCDEFGHIJKLMNOPQRSTUVWXYZ$._0123456789";
 const char *fptr;
@@ -187,7 +185,7 @@ else return 0;
 
 /* Lookup an RT11 file name in the directory */
 
-uint32_t rtfile_lookup (uint16_t *file_name, uint32_t *start)
+static uint32_t rtfile_lookup (uint16_t *file_name, uint32_t *start)
 {
 uint16_t dirseg[DS_SIZE];
 uint32_t segnum, dirent;

@@ -9,6 +9,12 @@
 
 #include "vax_defs.h"
 
+/* Internal mapped Qbus memory test seams. */
+extern int32_t qb_map[];
+extern int32_t cq_mbr;
+t_stat qbmem_wr(int32_t dat, int32_t pa, int32_t md);
+t_stat cqm_wr(int32_t dat, int32_t pa, int32_t md);
+
 #ifdef VAX_QBUS_TEST_RECORD_READS
 int32_t vax_qbus_test_record_read(uint32_t pa);
 #endif

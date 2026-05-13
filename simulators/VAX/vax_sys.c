@@ -47,6 +47,8 @@
 */
 
 #include "vax_sys_internal.h"
+#include "vax_sys.h"
+#include "vax_syscm.h"
 #include <ctype.h>
 #include <stdint.h>
 
@@ -55,8 +57,6 @@
 #else
 #define ODC(x)          ((x) << DR_V_USPMASK)
 #endif
-
-extern REG cpu_reg[];
 
 static int32_t fprint_sym_qoimm (FILE *of, t_value *val, int32_t vp, int32_t lnt);
 static t_stat parse_char (const char *cptr, t_value *val, int32_t lnt);
@@ -71,9 +71,6 @@ static uint32_t get_symbol_le_value (const t_value *val, int32_t *vp, int32_t si
 static void put_symbol_le_value (t_value *val, int32_t *vp, uint32_t value,
     int32_t size);
 static int64_t symbol_addr_delta (uint32_t target, uint32_t base);
-
-extern t_stat fprint_sym_cm (FILE *of, t_addr addr, t_value *bytes, int32_t sw);
-extern t_stat parse_sym_cm (const char *cptr, t_addr addr, t_value *bytes, int32_t sw);
 
 /* SCP data structures and interface routines
 

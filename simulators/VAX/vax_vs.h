@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-#include "vax_defs.h"
+#include "sim_defs.h"
 #include "sim_video.h"
 
 /* command definitions */
@@ -53,8 +53,10 @@
 #define RPT_BC          0x7                             /* button code */
 #define RPT_EC          0x7F                            /* error code */
 
+extern DEVICE vs_dev;
+
 t_stat vs_wr (uint8_t c);
 t_stat vs_rd (uint8_t *c);
 void vs_event (SIM_MOUSE_EVENT *ev);
 
-#endif
+#endif /* _VAX_VS_H_ */

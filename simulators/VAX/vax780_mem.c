@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax780_mem.h"
 
 /* Memory controller register A */
 
@@ -85,16 +86,16 @@
 
 #define MCRROM_OF       0x400
 
-uint32_t mcr_a[MCTL_NUM];
-uint32_t mcr_b[MCTL_NUM];
-uint32_t mcr_c[MCTL_NUM];
-uint32_t mcr_d[MCTL_NUM];
-uint32_t rom_lw[MCTL_NUM][ROMSIZE >> 2];
+static uint32_t mcr_a[MCTL_NUM];
+static uint32_t mcr_b[MCTL_NUM];
+static uint32_t mcr_c[MCTL_NUM];
+static uint32_t mcr_d[MCTL_NUM];
+static uint32_t rom_lw[MCTL_NUM][ROMSIZE >> 2];
 
-t_stat mctl_reset (DEVICE *dptr);
-const char *mctl_description (DEVICE *dptr);
-t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
-t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
+static t_stat mctl_reset (DEVICE *dptr);
+static const char *mctl_description (DEVICE *dptr);
+static t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
+static t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
 
 /* MCTLx data structures
 
@@ -103,11 +104,11 @@ t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
    mctlx_reg    MCTLx register list
 */
 
-DIB mctl0_dib = { TR_MCTL0, 0, &mctl_rdreg, &mctl_wrreg, 0 };
+static DIB mctl0_dib = { TR_MCTL0, 0, &mctl_rdreg, &mctl_wrreg, 0 };
 
-UNIT mctl0_unit = { UDATA (NULL, 0, 0) };
+static UNIT mctl0_unit = { UDATA (NULL, 0, 0) };
 
-REG mctl0_reg[] = {
+static REG mctl0_reg[] = {
     { HRDATA (CRA, mcr_a[0], 32) },
     { HRDATA (CRB, mcr_b[0], 32) },
     { HRDATA (CRC, mcr_c[0], 32) },
@@ -116,22 +117,22 @@ REG mctl0_reg[] = {
     { NULL }
     };
 
-MTAB mctl0_mod[] = {
+static MTAB mctl0_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_MCTL0, "NEXUS", NULL,
       NULL, &show_nexus, NULL, "Display nexus" },
     { 0 }
     };
 
-DIB mctl1_dib = { TR_MCTL1, 0, &mctl_rdreg, &mctl_wrreg, 0 };
+static DIB mctl1_dib = { TR_MCTL1, 0, &mctl_rdreg, &mctl_wrreg, 0 };
 
-UNIT mctl1_unit = { UDATA (NULL, 0, 0) };
+static UNIT mctl1_unit = { UDATA (NULL, 0, 0) };
 
-MTAB mctl1_mod[] = {
+static MTAB mctl1_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_MCTL1, "NEXUS", NULL,
       NULL, &show_nexus, NULL, "Display nexus" },
     { 0 }  };
 
-REG mctl1_reg[] = {
+static REG mctl1_reg[] = {
     { HRDATA (CRA, mcr_a[1], 32) },
     { HRDATA (CRB, mcr_b[1], 32) },
     { HRDATA (CRC, mcr_c[1], 32) },
@@ -163,7 +164,7 @@ DEVICE mctl_dev[] = {
 
 /* Memory controller register read */
 
-t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
+static t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 int32_t mctl, ofs;
 bool extmem = MEMSIZE > MAXMEMSIZE;
@@ -208,7 +209,7 @@ return SCPE_OK;
 
 /* Memory controller register write */
 
-t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
+static t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 int32_t mctl, ofs, mask;
 bool extmem = MEMSIZE > MAXMEMSIZE;
@@ -265,7 +266,7 @@ return;
 
 /* MEMCTL reset */
 
-t_stat mctl_reset (DEVICE *dptr)
+static t_stat mctl_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -288,7 +289,7 @@ for (i = 0; i < MCTL_NUM; i++) {
 return SCPE_OK;
 }
 
-const char *mctl_description (DEVICE *dptr)
+static const char *mctl_description (DEVICE *dptr)
 {
 static char buf[64];
 

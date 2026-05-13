@@ -4,16 +4,13 @@
 #include "test_cmocka.h"
 
 #include "vax_qbus_internal.h"
+#include "vax_va.h"
+#include "vax_vc.h"
 
 /*
  * These tests preserve the legacy ReadIO/ReadIOU contract by supplying
  * controlled ReadQb results and recording the exact Qbus read sequence.
  */
-
-int32_t ReadIO(uint32_t pa, int32_t lnt);
-int32_t ReadIOU(uint32_t pa, int32_t lnt);
-int32_t va_mem_rd(int32_t pa);
-void va_mem_wr(int32_t pa, int32_t val, int32_t lnt);
 
 typedef int32_t (*qbus_io_read_fn)(uint32_t pa, int32_t lnt);
 

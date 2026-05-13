@@ -38,6 +38,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "vax_defs.h"
 #include "vax_vs.h"
 
 #define VSXXX_PROMPT    0
@@ -59,23 +60,21 @@ typedef struct {
     uint8_t buf[VS_BUF_LEN];
 } VS_FIFO;
 
-int32_t vs_mode = VSXXX_PROMPT;
-int32_t vs_x = 0;                                       /* X-axis motion */
-int32_t vs_y = 0;                                       /* Y-axis motion */
-bool vs_l = false;                                      /* Left button state */
-bool vs_m = false;                                      /* Middle button state */
-bool vs_r = false;                                      /* Right button state */
-VS_FIFO vs_sndf;                                        /* send FIFO */
+static int32_t vs_mode = VSXXX_PROMPT;
+static int32_t vs_x = 0;                                /* X-axis motion */
+static int32_t vs_y = 0;                                /* Y-axis motion */
+static bool vs_l = false;                               /* Left button state */
+static bool vs_m = false;                               /* Middle button state */
+static bool vs_r = false;                               /* Right button state */
+static VS_FIFO vs_sndf;                                 /* send FIFO */
 
-t_stat vs_wr (uint8_t c);
-t_stat vs_rd (uint8_t *c);
-t_stat vs_reset (DEVICE *dptr);
-void vs_cmd (int32_t c);
-void vs_sendupd (void);
-const char *vs_description (DEVICE *dptr);
-t_stat vs_put_fifo (VS_FIFO *fifo, uint8_t data);
-t_stat vs_get_fifo (VS_FIFO *fifo, uint8_t *data);
-void vs_clear_fifo (VS_FIFO *fifo);
+static t_stat vs_reset (DEVICE *dptr);
+static void vs_cmd (int32_t c);
+static void vs_sendupd (void);
+static const char *vs_description (DEVICE *dptr);
+static t_stat vs_put_fifo (VS_FIFO *fifo, uint8_t data);
+static t_stat vs_get_fifo (VS_FIFO *fifo, uint8_t *data);
+static void vs_clear_fifo (VS_FIFO *fifo);
 
 
 /* VS data structures
@@ -87,19 +86,19 @@ void vs_clear_fifo (VS_FIFO *fifo);
    vs_debug     VS debug list
 */
 
-DEBTAB vs_debug[] = {
+static DEBTAB vs_debug[] = {
     {"SERIAL", DBG_SERIAL,  "Serial port data"},
     {"CMD",    DBG_CMD,     "Commands"},
     {0}
     };
 
-UNIT vs_unit = { UDATA (NULL, 0, 0) };
+static UNIT vs_unit = { UDATA (NULL, 0, 0) };
 
-REG vs_reg[] = {
+static REG vs_reg[] = {
     { NULL }
     };
 
-MTAB vs_mod[] = {
+static MTAB vs_mod[] = {
     { 0 }
     };
 
@@ -131,7 +130,7 @@ if (r == SCPE_OK)
 return r;
 }
 
-t_stat vs_put_fifo (VS_FIFO *fifo, uint8_t data)
+static t_stat vs_put_fifo (VS_FIFO *fifo, uint8_t data)
 {
 if (fifo->count < VS_BUF_LEN) {
     fifo->buf[fifo->head++] = data;
@@ -144,7 +143,7 @@ else
     return SCPE_EOF;
 }
 
-t_stat vs_get_fifo (VS_FIFO *fifo, uint8_t *data)
+static t_stat vs_get_fifo (VS_FIFO *fifo, uint8_t *data)
 {
 if (fifo->count > 0) {
     *data = fifo->buf[fifo->tail++];
@@ -157,14 +156,14 @@ else
     return SCPE_EOF;
 }
 
-void vs_clear_fifo (VS_FIFO *fifo)
+static void vs_clear_fifo (VS_FIFO *fifo)
 {
 fifo->head = 0;
 fifo->tail = 0;
 fifo->count = 0;
 }
 
-void vs_cmd (int32_t c)
+static void vs_cmd (int32_t c)
 {
 uint8_t data;
 
@@ -202,7 +201,7 @@ switch (c) {
     }
 }
 
-t_stat vs_reset (DEVICE *dptr)
+static t_stat vs_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -218,7 +217,7 @@ vs_mode = VSXXX_PROMPT;
 return SCPE_OK;
 }
 
-void vs_sendupd (void)
+static void vs_sendupd (void)
 {
 uint8_t b0, b1, b2;
 
@@ -264,7 +263,7 @@ if (vs_mode == VSXXX_INC)
     vs_sendupd ();
 }
 
-const char *vs_description (DEVICE *dptr)
+static const char *vs_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

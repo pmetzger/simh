@@ -78,7 +78,11 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cmode.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
 #include "vax_cpu1_internal.h"
+#include "vax_sys.h"
 
 static const uint8_t rcnt[128] = {
  0, 4, 4, 8, 4, 8, 8,12, 4, 8, 8,12, 8,12,12,16,        /* 00 - 0F */
@@ -90,10 +94,6 @@ static const uint8_t rcnt[128] = {
  8,12,12,16,12,16,16,20,12,16,16,20,16,20,20,24,        /* 60 - 6F */
 12,16,16,20,16,20,20,24,16,20,20,24,20,24,24,28         /* 70 - 7F */
 };
-
-extern int32_t ReadIPR (int32_t rg);
-extern void WriteIPR (int32_t rg, int32_t val);
-extern bool BadCmPSL (int32_t newpsl);
 
 /* Branch on bit and no modify
    Branch on bit and modify

@@ -36,6 +36,12 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax730_rb.h"
+#include "vax730_stddev.h"
+#include "vax730_sys.h"
+#include "vax730_uba.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "vmb.exe"
@@ -71,38 +77,10 @@ static struct boot_dev boot_tab[] = {
     { NULL }
     };
 
-extern int32_t tmr_int, tti_int, tto_int, csi_int, cso_int;
-
-t_stat sysb_reset (DEVICE *dptr);
-const char *sysb_description (DEVICE *dptr);
-t_stat vax730_boot (int32_t flag, const char *ptr);
-t_stat vax730_boot_parse (int32_t flag, const char *ptr);
-
-extern int32_t iccs_rd (void);
-extern int32_t nicr_rd (void);
-extern int32_t icr_rd (void);
-extern int32_t todr_rd (void);
-extern int32_t rxcs_rd (void);
-extern int32_t rxdb_rd (void);
-extern int32_t txcs_rd (void);
-extern int32_t csrs_rd (void);
-extern int32_t csrd_rd (void);
-extern int32_t csts_rd (void);
-extern void iccs_wr (int32_t dat);
-extern void nicr_wr (int32_t dat);
-extern void todr_wr (int32_t dat);
-extern void rxcs_wr (int32_t dat);
-extern void txcs_wr (int32_t dat);
-extern void txdb_wr (int32_t dat);
-extern void csrs_wr (int32_t dat);
-extern void csts_wr (int32_t dat);
-extern void cstd_wr (int32_t dat);
-extern void init_ubus_tab (void);
-extern t_stat build_ubus_tab (DEVICE *dptr, DIB *dibp);
-extern int32_t ubamap_rd (int32_t pa);
-extern void ubamap_wr (int32_t pa, int32_t val, int32_t lnt);
-extern bool uba_eval_int (int32_t lvl);
-extern int32_t uba_get_ubvector (int32_t lvl);
+static t_stat sysb_reset (DEVICE *dptr);
+static const char *sysb_description (DEVICE *dptr);
+static t_stat vax730_boot (int32_t flag, const char *ptr);
+static t_stat vax730_boot_parse (int32_t flag, const char *ptr);
 
 /* SYSB data structures
 
@@ -111,9 +89,9 @@ extern int32_t uba_get_ubvector (int32_t lvl);
    sysb_reg      SYSB register list
 */
 
-UNIT sysb_unit = { UDATA (NULL, 0, 0) };
+static UNIT sysb_unit = { UDATA (NULL, 0, 0) };
 
-REG sysb_reg[] = {
+static REG sysb_reg[] = {
     { BRDATA (BOOTCMD, cpu_boot_cmd, 16, 8, CBUFSIZE), REG_HRO },
     { NULL }
     };
@@ -129,7 +107,7 @@ DEVICE sysb_dev = {
 
 /* Special boot command, overrides regular boot */
 
-CTAB vax730_cmd[] = {
+static CTAB vax730_cmd[] = {
     { "BOOT", &vax730_boot, RU_BOOT,
       "bo{ot} <device>{/R5:flg} boot device\n"
       "                         type HELP CPU to see bootable devices\n", NULL, &run_cmd_message },
@@ -478,7 +456,7 @@ return cc;
    Sets up R0-R5, calls SCP boot processor with effective BOOT CPU
 */
 
-t_stat vax730_boot (int32_t flag, const char *ptr)
+static t_stat vax730_boot (int32_t flag, const char *ptr)
 {
 t_stat r;
 
@@ -498,7 +476,7 @@ return run_cmd (flag, "CPU");
 
 /* Parse boot command, set up registers - also used on reset */
 
-t_stat vax730_boot_parse (int32_t flag, const char *ptr)
+static t_stat vax730_boot_parse (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 char *slptr;
@@ -550,7 +528,6 @@ for (i = 0; boot_tab[i].name != NULL; i++) {
     if (strcmp (dptr->name, boot_tab[i].name) == 0) {
         R[0] = boot_tab[i].code;
         if (boot_tab[i].code == BOOT_RB) {              /* vector set by console for RB730 */
-            extern DIB rb_dib;
             R[0] = R[0] | ((rb_dib.vec) << 16);
             }
         R[1] = TR_UBA;
@@ -585,7 +562,7 @@ return SCPE_OK;
 
 /* SYSB reset */
 
-t_stat sysb_reset (DEVICE *dptr)
+static t_stat sysb_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -595,7 +572,7 @@ sim_vm_cmd = vax730_cmd;
 return SCPE_OK;
 }
 
-const char *sysb_description (DEVICE *dptr)
+static const char *sysb_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

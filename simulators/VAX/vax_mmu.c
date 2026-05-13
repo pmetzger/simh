@@ -82,18 +82,10 @@ static const int32_t cvtacc[16] = { 0, 0,
     TLB_ACCR (KERN)+TLB_ACCR (EXEC)+TLB_ACCR (SUPV)+TLB_ACCR (USER)
     };
 
-t_stat tlb_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
-t_stat tlb_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
-t_stat tlb_reset (DEVICE *dptr);
-const char *tlb_description (DEVICE *dptr);
-
-TLBENT fill (uint32_t va, int32_t lnt, int32_t acc, int32_t *stat);
-extern int32_t ReadIO (uint32_t pa, int32_t lnt);
-extern void WriteIO (uint32_t pa, int32_t val, int32_t lnt);
-extern int32_t ReadReg (uint32_t pa, int32_t lnt);
-extern void WriteReg (uint32_t pa, int32_t val, int32_t lnt);
-int32_t ReadU (uint32_t pa, int32_t lnt);
-void WriteU (uint32_t pa, int32_t val, int32_t lnt);
+static t_stat tlb_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw);
+static t_stat tlb_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw);
+static t_stat tlb_reset (DEVICE *dptr);
+static const char *tlb_description (DEVICE *dptr);
 
 /* TLB data structures
 
@@ -261,7 +253,7 @@ return false;
 
 /* TLB examine */
 
-t_stat tlb_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
+static t_stat tlb_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic examine signature.
    This implementation does not use every parameter. */
@@ -280,7 +272,7 @@ return SCPE_OK;
 
 /* TLB deposit */
 
-t_stat tlb_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
+static t_stat tlb_dep (t_value val, t_addr addr, UNIT *uptr, int32_t sw)
 {
 /* Generic deposit signature.
    This implementation does not use every parameter. */
@@ -304,7 +296,7 @@ return SCPE_OK;
 
 /* TLB reset */
 
-t_stat tlb_reset (DEVICE *dptr)
+static t_stat tlb_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -317,7 +309,7 @@ for (i = 0; i < VA_TBSIZE; i++)
 return SCPE_OK;
 }
 
-const char *tlb_description (DEVICE *dptr)
+static const char *tlb_description (DEVICE *dptr)
     {
     /* Generic device description signature.
        This implementation does not use every parameter. */

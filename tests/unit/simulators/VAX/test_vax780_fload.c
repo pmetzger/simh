@@ -7,9 +7,7 @@
 #include "test_cmocka.h"
 
 #include "vax_defs.h"
-
-extern bool rtfile_read(uint32_t block, uint32_t count, uint16_t *buffer);
-extern uint32_t rtfile_find(uint32_t block, uint32_t sector);
+#include "vax780_fload_internal.h"
 
 UNIT fl_unit;
 UNIT cpu_unit;

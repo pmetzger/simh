@@ -52,7 +52,7 @@
 #define MBA_EXTDRV(x)   (((x) >> MBA_V_DRV) & MBA_M_DRV)
 #define MBA_EXTOFS(x)   (((x) >> MBA_V_DEVOFS) & MBA_M_DEVOFS)
 
-const char *mba_regnames[] = {"CNF", "CR", "SR", "VA", "BC", "DR", "SMR", "CMD"};
+static const char *mba_regnames[] = {"CNF", "CR", "SR", "VA", "BC", "DR", "SMR", "CMD"};
 
 /* Massbus configuration register */
 
@@ -63,7 +63,7 @@ const char *mba_regnames[] = {"CNF", "CR", "SR", "VA", "BC", "DR", "SMR", "CMD"}
 #define MBACNF_RD       (SBI_FAULTS|MBACNF_W1C)
 #define MBACNF_W1C      0x00C00000
 
-BITFIELD mba_cnf_bits[] = {
+static BITFIELD mba_cnf_bits[] = {
   BITF(CODE,8),                             /* Adapter Code */
   BITNCF(13),                               /* 08:20 Reserved */
   BIT(OT),                                  /* Over Temperature */
@@ -89,7 +89,7 @@ BITFIELD mba_cnf_bits[] = {
 #define MBACR_RD        0x0000000E
 #define MBACR_WR        0x0000000E
 
-BITFIELD mba_cr_bits[] = {
+static BITFIELD mba_cr_bits[] = {
   BIT(INIT),                                /* Initialization */
   BIT(ABORT),                               /* Abort Data Transfer */
   BIT(IE),                                  /* Interrupt Enable */
@@ -130,7 +130,7 @@ BITFIELD mba_cr_bits[] = {
 #define MBASR_ERRORS    0x608E49FF
 #define MBASR_INTR      0x000F7000
 
-BITFIELD mba_sr_bits[] = {
+static BITFIELD mba_sr_bits[] = {
   BIT(RDTIMEOUT),                           /* Read Data Timeout */
   BIT(ISTIMEOUT),                           /* Interface Sequence Timeout */
   BIT(RDS),                                 /* Read Data Substitute */
@@ -163,7 +163,7 @@ BITFIELD mba_sr_bits[] = {
 #define MBAVA_RD        0x0001FFFF
 #define MBAVA_WR        (MBAVA_RD)
 
-BITFIELD mba_va_bits[] = {
+static BITFIELD mba_va_bits[] = {
   BITF(PAGEBYTE,9),                         /* Page Byte Address */
   BITF(MAPPOINTER,8),                       /* Map Pointer */
   ENDBITS
@@ -175,7 +175,7 @@ BITFIELD mba_va_bits[] = {
 #define MBABC_WR        0x0000FFFF
 #define MBABC_V_MBC     16                              /* MB count */
 
-BITFIELD mba_bc_bits[] = {
+static BITFIELD mba_bc_bits[] = {
   BITF(SBIBYTECOUNT,16),                     /* SBI Byte Counter */
   BITF(MBBYTECOUNT,16),                      /* Massbus Byte Counter */
   ENDBITS
@@ -187,7 +187,7 @@ BITFIELD mba_bc_bits[] = {
 #define MBADR_RD        0xFFFFFFFF
 #define MBADR_WR        0xFFC00000
 
-BITFIELD mba_dr_bits[] = {
+static BITFIELD mba_dr_bits[] = {
   BITF(DR,32),                               /* Diagnostic Register */
   ENDBITS
 };
@@ -197,7 +197,7 @@ BITFIELD mba_dr_bits[] = {
 #define MBASMR_OF       0x6
 #define MBASMR_RD       (MBAMAP_RD)
 
-BITFIELD mba_smr_bits[] = {
+static BITFIELD mba_smr_bits[] = {
   BITF(SMR,32),                              /* Selected Map Register */
   ENDBITS
 };
@@ -206,12 +206,12 @@ BITFIELD mba_smr_bits[] = {
 
 #define MBACMD_OF       0x7
 
-BITFIELD mba_cmd_bits[] = {
+static BITFIELD mba_cmd_bits[] = {
   BITF(CAR,32),                              /* Command Address Register */
   ENDBITS
 };
 
-BITFIELD *mba_reg_bits[] = {
+static BITFIELD *mba_reg_bits[] = {
     mba_cnf_bits,
     mba_cr_bits,
     mba_sr_bits,
@@ -245,26 +245,24 @@ BITFIELD *mba_reg_bits[] = {
 #define MBA_DEB_ERR     0x20                            /* errors */
 #define MBA_DEB_INT     0x40                            /* interrupts */
 
-uint32_t mba_cnf[MBA_NUM];                              /* config reg */
-uint32_t mba_cr[MBA_NUM];                               /* control reg */
-uint32_t mba_sr[MBA_NUM];                               /* status reg */
-uint32_t mba_va[MBA_NUM];                               /* virt addr */
-uint32_t mba_bc[MBA_NUM];                               /* byte count */
-uint32_t mba_dr[MBA_NUM];                               /* diag reg */
-uint32_t mba_smr[MBA_NUM];                              /* sel map reg */
-uint32_t mba_map[MBA_NUM][MBA_NMAPR];                   /* map */
+static uint32_t mba_cnf[MBA_NUM];                       /* config reg */
+static uint32_t mba_cr[MBA_NUM];                        /* control reg */
+static uint32_t mba_sr[MBA_NUM];                        /* status reg */
+static uint32_t mba_va[MBA_NUM];                        /* virt addr */
+static uint32_t mba_bc[MBA_NUM];                        /* byte count */
+static uint32_t mba_dr[MBA_NUM];                        /* diag reg */
+static uint32_t mba_smr[MBA_NUM];                       /* sel map reg */
+static uint32_t mba_map[MBA_NUM][MBA_NMAPR];            /* map */
 
-extern uint32_t nexus_req[NEXUS_HLVL];
-
-t_stat mba_reset (DEVICE *dptr);
-t_stat mba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *mba_description (DEVICE *dptr);
-t_stat mba_rdreg (int32_t *val, int32_t pa, int32_t mode);
-t_stat mba_wrreg (int32_t val, int32_t pa, int32_t lnt);
-bool mba_map_addr (uint32_t va, uint32_t *ma, uint32_t mb);
-void mba_set_int (uint32_t mb);
-void mba_clr_int (uint32_t mb);
-void mba_upd_sr (uint32_t set, uint32_t clr, uint32_t mb);
+static t_stat mba_reset (DEVICE *dptr);
+static t_stat mba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *mba_description (DEVICE *dptr);
+static t_stat mba_rdreg (int32_t *val, int32_t pa, int32_t mode);
+static t_stat mba_wrreg (int32_t val, int32_t pa, int32_t lnt);
+static bool mba_map_addr (uint32_t va, uint32_t *ma, uint32_t mb);
+static void mba_set_int (uint32_t mb);
+static void mba_clr_int (uint32_t mb);
+static void mba_upd_sr (uint32_t set, uint32_t clr, uint32_t mb);
 
 /* Massbus register dispatches */
 
@@ -281,11 +279,11 @@ static int32_t mba_active = 0;  /* Number of active MBA's */
    mbax_reg     MBA register list
 */
 
-DIB mba0_dib = { TR_MBA0, 0, &mba_rdreg, &mba_wrreg, 0, NVCL (MBA0) };
+static DIB mba0_dib = { TR_MBA0, 0, &mba_rdreg, &mba_wrreg, 0, NVCL (MBA0) };
 
-UNIT mba0_unit = { UDATA (NULL, 0, 0) };
+static UNIT mba0_unit = { UDATA (NULL, 0, 0) };
 
-REG mba0_reg[] = {
+static REG mba0_reg[] = {
     { HRDATAD (CNFR,            mba_cnf[0],      32, "config register") },
     { HRDATAD (CR,               mba_cr[0],       4, "control register") },
     { HRDATAD (SR,               mba_sr[0],      32, "status register") },
@@ -298,23 +296,23 @@ REG mba0_reg[] = {
     { NULL }
     };
 
-MTAB mba0_mod[] = {
+static MTAB mba0_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_MBA0, "NEXUS", NULL,
       NULL, &show_nexus, NULL, "Display nexus" },
     { 0 }
     };
 
-DIB mba1_dib = { TR_MBA1, 0, &mba_rdreg, &mba_wrreg, 0, NVCL (MBA1) };
+static DIB mba1_dib = { TR_MBA1, 0, &mba_rdreg, &mba_wrreg, 0, NVCL (MBA1) };
 
-UNIT mba1_unit = { UDATA (NULL, 0, 0) };
+static UNIT mba1_unit = { UDATA (NULL, 0, 0) };
 
-MTAB mba1_mod[] = {
+static MTAB mba1_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_MBA1, "NEXUS", NULL,
       NULL, &show_nexus, NULL, "Display nexus" },
     { 0 }
     };
 
-REG mba1_reg[] = {
+static REG mba1_reg[] = {
     { HRDATAD (CNFR,            mba_cnf[1],      32, "config register") },
     { HRDATAD (CR,               mba_cr[1],       4, "control register") },
     { HRDATAD (SR,               mba_sr[1],      32, "status register") },
@@ -327,7 +325,7 @@ REG mba1_reg[] = {
     { NULL }
     };
 
-DEBTAB mba_deb[] = {
+static DEBTAB mba_deb[] = {
     { "REGREAD", MBA_DEB_RRD },
     { "REGWRITE", MBA_DEB_RWR },
     { "MAPREAD", MBA_DEB_MRD },
@@ -361,7 +359,7 @@ DEVICE mba_dev[] = {
 
 /* Read Massbus adapter register */
 
-t_stat mba_rdreg (int32_t *val, int32_t pa, int32_t lnt)
+static t_stat mba_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 #if defined (VAX_750)
 /* Shared bus read signature.
@@ -465,7 +463,7 @@ return SCPE_OK;
 
 /* Write Massbus adapter register */
 
-t_stat mba_wrreg (int32_t val, int32_t pa, int32_t lnt)
+static t_stat mba_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 int32_t mb, ofs, drv, rtype;
 uint32_t old_reg, old_sr;
@@ -740,7 +738,7 @@ return i;
 
 /* Map an address via the translation map */
 
-bool mba_map_addr (uint32_t va, uint32_t *ma, uint32_t mb)
+static bool mba_map_addr (uint32_t va, uint32_t *ma, uint32_t mb)
 {
 uint32_t vblk = (va >> VA_V_VPN);                       /* map index */
 uint32_t mmap = mba_map[mb][vblk];                      /* get map */
@@ -792,7 +790,7 @@ if (mb >= MBA_NUM)
 return (MBABC_WR + 1) - mba_bc[mb];
 }
 
-void mba_set_int (uint32_t mb)
+static void mba_set_int (uint32_t mb)
 {
 DIB *dibp;
 
@@ -806,7 +804,7 @@ if (dibp) {
 return;
 }
 
-void mba_clr_int (uint32_t mb)
+static void mba_clr_int (uint32_t mb)
 {
 DIB *dibp;
 
@@ -820,7 +818,7 @@ if (dibp) {
 return;
 }
 
-void mba_upd_sr (uint32_t set, uint32_t clr, uint32_t mb)
+static void mba_upd_sr (uint32_t set, uint32_t clr, uint32_t mb)
 {
 uint32_t o_sr;
 
@@ -844,7 +842,7 @@ return;
 
 /* Reset Massbus adapter */
 
-t_stat mba_reset (DEVICE *dptr)
+static t_stat mba_reset (DEVICE *dptr)
 {
 int32_t i, mb;
 DIB *dibp = (DIB *)dptr->ctxt;
@@ -868,7 +866,7 @@ if (mbabort[mb])                                        /* reset device */
 return build_dib_tab();
 }
 
-t_stat mba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat mba_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic help signature.
    This implementation does not use every parameter. */
@@ -886,7 +884,7 @@ fprint_reg_help (st, dptr);
 return SCPE_OK;
 }
 
-const char *mba_description (DEVICE *dptr)
+static const char *mba_description (DEVICE *dptr)
 {
 static char buf[64];
 uint32_t mb = dptr - mba_dev;

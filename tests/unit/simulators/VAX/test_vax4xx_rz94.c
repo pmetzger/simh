@@ -11,31 +11,12 @@
 #include "sim_scsi.h"
 #include "test_simh_personality.h"
 #include "test_support.h"
+#include "vax4xx_rz94_internal.h"
 
 #define RZ_INT_ILLCMD 0x40
 #define RZ_INT_DIS 0x20
 #define RZ_INT_BUSSV 0x10
 #define RZ_INT_FC 0x08
-
-extern DEVICE rz_dev;
-extern UNIT rz_unit[];
-extern SCSI_BUS rz_bus;
-extern uint8_t rz_cfg1;
-extern uint8_t rz_cfg2;
-extern uint8_t rz_cfg3;
-extern uint8_t rz_dest;
-extern uint8_t rz_int;
-extern uint8_t rz_seq;
-extern uint8_t rz_stat;
-extern uint8_t *rz_buf;
-extern uint8_t rz_fifo[];
-extern uint32_t rz_fifo_b;
-extern uint32_t rz_fifo_c;
-extern uint32_t rz_fifo_t;
-extern uint32_t rz_txc;
-
-extern t_stat rz_reset(DEVICE *dptr);
-void rz_cmd(uint32_t cmd);
 
 int32_t int_req[IPL_HLVL];
 int32_t sys_model;

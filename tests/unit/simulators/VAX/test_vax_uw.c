@@ -7,6 +7,7 @@
 #include "test_cmocka.h"
 
 #include "vax_defs.h"
+#include "vax_uw_internal.h"
 
 enum {
     UW_CSR = 0,
@@ -14,9 +15,6 @@ enum {
     UW_CSR_COUNT = 16,
     UW_CSR_TRN = 0x8000,
 };
-
-extern uint16_t uw_csr[UW_CSR_COUNT];
-extern t_stat uw_wr(int32_t data, int32_t pa, int32_t access);
 
 int32_t int_req[IPL_HLVL];
 int32_t sys_model;

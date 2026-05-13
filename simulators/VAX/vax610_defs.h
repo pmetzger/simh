@@ -54,6 +54,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "vax610_io.h"
+#include "vax610_mem.h"
+#include "vax610_stddev.h"
+#include "vax610_sysdev.h"
+#include "vax_vc.h"
+
 /* Microcode constructs */
 
 #define VAX610_SID      (7 << 24)                       /* system ID */
@@ -105,9 +111,6 @@
                               &vax610_set_instruction_set, NULL, NULL,                 "Set the CPU Instruction Set" },                    \
                             { MTAB_XTD|MTAB_VDV, 0, "INSTRUCTIONS", NULL,                                                                    \
                               NULL,                     &cpu_show_instruction_set, NULL, "Show the CPU Instruction Set (SHOW -V)" },
-t_stat vax610_set_instruction_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-int32_t sysd_hlt_enb (void);
-void ioreset_wr (int32_t data);
 
 /* QVSS memory space */
 
@@ -118,7 +121,6 @@ void ioreset_wr (int32_t data);
 #define ADDR_IS_QVM(x)  (vc_buf &&                      \
                          (((uint32_t) (x)) >= QVMBASE) && \
                          (((uint32_t) (x)) < (QVMBASE + QVMSIZE)))
-extern uint32_t *vc_buf;
 
 /* Memory */
 
@@ -138,7 +140,6 @@ extern uint32_t *vc_buf;
                         { UNIT_MSIZE, (1u << 21), NULL, "2M",   &cpu_set_size, NULL, NULL, "Set Memory to 2M bytes" },  \
                         { UNIT_MSIZE, (1u << 22), NULL, "4M",   &cpu_set_size, NULL, NULL, "Set Memory to 4M bytes" },  \
                         { MTAB_XTD|MTAB_VDV|MTAB_NMO, 0, "MEMORY", NULL, NULL, &cpu_show_memory, NULL, "Display memory configuration" }
-extern t_stat cpu_show_memory (FILE* st, UNIT* uptr, int32_t val, const void* desc);
 
 /* Qbus I/O page */
 
@@ -353,25 +354,6 @@ typedef struct {
 #define SET_INT(dv)     int_req[IPL_##dv] = int_req[IPL_##dv] | (INT_##dv)
 #define CLR_INT(dv)     int_req[IPL_##dv] = int_req[IPL_##dv] & ~(INT_##dv)
 #define IORETURN(f,v)   ((f)? (v): SCPE_OK)             /* cond error return */
-extern int32_t int_req[IPL_HLVL];                       /* intr, IPL 14-17 */
-
-/* System model */
-
-extern int32_t sys_model;
-
-/* Function prototypes for I/O */
-
-int32_t Map_ReadB (uint32_t ba, int32_t bc, uint8_t *buf);
-int32_t Map_ReadW (uint32_t ba, int32_t bc, uint16_t *buf);
-int32_t Map_WriteB (uint32_t ba, int32_t bc, const uint8_t *buf);
-int32_t Map_WriteW (uint32_t ba, int32_t bc, const uint16_t *buf);
-
-/* Function prototypes for system-specific unaligned support */
-
-int32_t ReadIOU (uint32_t pa, int32_t lnt);
-int32_t ReadRegU (uint32_t pa, int32_t lnt);
-void WriteIOU (uint32_t pa, int32_t val, int32_t lnt);
-void WriteRegU (uint32_t pa, int32_t val, int32_t lnt);
 
 t_stat cpu_show_leds (FILE *st, UNIT *uptr, int32_t val, const void *desc);
 

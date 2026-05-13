@@ -34,8 +34,14 @@
 
 #include "sim_types.h"
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax420_sysdev.h"
+#include "vax420_sysdev_internal.h"
 #include "vax4xx_rom_patch.h"
-#include "vax4xx_stddev.h"
+#include "vax_lk.h"
+#include "vax_vs.h"
+#include "vax_xs.h"
 #include "sim_ether.h"
 #include "uint_bits.h"
 
@@ -70,7 +76,7 @@
 #endif /* DONT_USE_INTERNAL_ROM */
 
 
-t_stat vax420_boot (int32_t flag, const char *ptr);
+static t_stat vax420_boot (int32_t flag, const char *ptr);
 
 /* Special boot command, overrides regular boot */
 
@@ -120,14 +126,6 @@ CTAB vax420_cmd[] = {
 
 #define TMR_INC         10000                           /* usec/interval */
 
-extern int32_t tmr_int;
-extern UNIT clk_unit;
-extern int32_t tmr_poll;
-extern uint32_t vc_sel, vc_org;
-extern DEVICE rd_dev;
-extern DEVICE va_dev, vc_dev, ve_dev, lk_dev, vs_dev;
-extern uint32_t *rom;
-
 uint32_t *ddb = NULL;                                   /* 128k disk buffer */
 int32_t conisp, conpc, conpsl;                          /* console reg */
 int32_t ka_hltcod = 0;                                  /* KA420 halt code */
@@ -145,29 +143,12 @@ int32_t int_mask = 0;                                   /* interrupt mask */
 uint32_t tmr_tir = 0;                                   /* curr interval */
 bool tmr_inst = false;                                  /* wait instructions vs usecs */
 
-t_stat tmr_svc (UNIT *uptr);
-t_stat sysd_reset (DEVICE *dptr);
-const char *sysd_description (DEVICE *dptr);
-int32_t ka_rd (int32_t pa);
-void ka_wr (int32_t pa, int32_t val, int32_t lnt);
-int32_t con_halt (int32_t code, int32_t cc);
-uint32_t tmr_tir_rd (void);
-void tmr_sched (void);
-
-extern int32_t nar_rd (int32_t pa);
-extern int32_t dz_rd (int32_t pa);
-extern int32_t rd_rd (int32_t pa);
-extern int32_t xs_rd (int32_t pa);
-extern int32_t vc_mem_rd (int32_t pa);
-extern int32_t va_rd (int32_t pa);
-extern int32_t ve_rd (int32_t pa);
-extern void dz_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void rd_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void xs_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void vc_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void vc_mem_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void va_wr (int32_t pa, int32_t val, int32_t lnt);
-extern void ve_wr (int32_t pa, int32_t val, int32_t lnt);
+static t_stat tmr_svc (UNIT *uptr);
+static t_stat sysd_reset (DEVICE *dptr);
+static const char *sysd_description (DEVICE *dptr);
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt);
+static uint32_t tmr_tir_rd (void);
+static void tmr_sched (void);
 
 /* SYSD data structures
 
@@ -864,7 +845,7 @@ switch (rg) {
 return 0;
 }
 
-void ka_wr (int32_t pa, int32_t val, int32_t lnt)
+static void ka_wr (int32_t pa, int32_t val, int32_t lnt)
 {
 /* Register write signature.
    This implementation does not use every parameter. */
@@ -922,7 +903,7 @@ switch (rg) {
 return;
 }
 
-uint32_t tmr_tir_rd (void)
+static uint32_t tmr_tir_rd (void)
 {
 uint32_t usecs_remaining, cur_tir;
 
@@ -937,7 +918,7 @@ return cur_tir;
 
 /* Unit service */
 
-t_stat tmr_svc (UNIT *uptr)
+static t_stat tmr_svc (UNIT *uptr)
 {
 /* Generic unit service signature.
    This implementation does not use every parameter. */
@@ -949,7 +930,7 @@ return SCPE_OK;
 
 /* Timer scheduling */
 
-void tmr_sched (void)
+static void tmr_sched (void)
 {
 uint32_t usecs_sched = tmr_tir ? (~tmr_tir + 1) : 0xFFFF;
 tmr_tir = 0;
@@ -1032,7 +1013,7 @@ return 0;                                               /* new cc = 0 */
 
 */
 
-t_stat vax420_boot (int32_t flag, const char *ptr)
+static t_stat vax420_boot (int32_t flag, const char *ptr)
 {
 char gbuf[CBUFSIZE];
 
@@ -1090,7 +1071,7 @@ return SCPE_OK;
 
 /* SYSD reset */
 
-t_stat sysd_reset (DEVICE *dptr)
+static t_stat sysd_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -1138,7 +1119,7 @@ sim_vm_cmd = vax420_cmd;
 return SCPE_OK;
 }
 
-const char *sysd_description (DEVICE *dptr)
+static const char *sysd_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

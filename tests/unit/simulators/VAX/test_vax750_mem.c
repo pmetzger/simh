@@ -6,11 +6,9 @@
 #include "sim_types.h"
 #include "test_cmocka.h"
 
+#include "vax_cpu.h"
+#include "vax750_mem.h"
 #include "vax750_mem_internal.h"
-
-extern uint32_t rom[];
-
-void rom_wr_B(int32_t pa, int32_t val);
 
 UNIT cpu_unit;
 

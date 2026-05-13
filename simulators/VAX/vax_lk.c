@@ -37,6 +37,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "vax_defs.h"
 #include "vax_lk.h"
 
 /* States */
@@ -74,125 +75,123 @@ typedef struct {
     uint8_t code;
 } LK_KEYDATA;
 
-LK_KEYDATA LK_KEY_UNKNOWN    = { 0, LK_UNKNOWN };
-LK_KEYDATA LK_KEY_TR_0       = { 1, LK_TR_0 };
-LK_KEYDATA LK_KEY_TR_1       = { 1, LK_TR_1 };
-LK_KEYDATA LK_KEY_TR_2       = { 1, LK_TR_2 };
-LK_KEYDATA LK_KEY_TR_3       = { 1, LK_TR_3 };
-LK_KEYDATA LK_KEY_TR_4       = { 1, LK_TR_4 };
-LK_KEYDATA LK_KEY_TR_5       = { 1, LK_TR_5 };
-LK_KEYDATA LK_KEY_TR_6       = { 1, LK_TR_6 };
-LK_KEYDATA LK_KEY_TR_7       = { 1, LK_TR_7 };
-LK_KEYDATA LK_KEY_TR_8       = { 1, LK_TR_8 };
-LK_KEYDATA LK_KEY_TR_9       = { 1, LK_TR_9 };
-LK_KEYDATA LK_KEY_A          = { 1, LK_A };
-LK_KEYDATA LK_KEY_B          = { 1, LK_B };
-LK_KEYDATA LK_KEY_C          = { 1, LK_C };
-LK_KEYDATA LK_KEY_D          = { 1, LK_D };
-LK_KEYDATA LK_KEY_E          = { 1, LK_E };
-LK_KEYDATA LK_KEY_F          = { 1, LK_F };
-LK_KEYDATA LK_KEY_G          = { 1, LK_G };
-LK_KEYDATA LK_KEY_H          = { 1, LK_H };
-LK_KEYDATA LK_KEY_I          = { 1, LK_I };
-LK_KEYDATA LK_KEY_J          = { 1, LK_J };
-LK_KEYDATA LK_KEY_K          = { 1, LK_K };
-LK_KEYDATA LK_KEY_L          = { 1, LK_L };
-LK_KEYDATA LK_KEY_M          = { 1, LK_M };
-LK_KEYDATA LK_KEY_N          = { 1, LK_N };
-LK_KEYDATA LK_KEY_O          = { 1, LK_O };
-LK_KEYDATA LK_KEY_P          = { 1, LK_P };
-LK_KEYDATA LK_KEY_Q          = { 1, LK_Q };
-LK_KEYDATA LK_KEY_R          = { 1, LK_R };
-LK_KEYDATA LK_KEY_S          = { 1, LK_S };
-LK_KEYDATA LK_KEY_T          = { 1, LK_T };
-LK_KEYDATA LK_KEY_U          = { 1, LK_U };
-LK_KEYDATA LK_KEY_V          = { 1, LK_V };
-LK_KEYDATA LK_KEY_W          = { 1, LK_W };
-LK_KEYDATA LK_KEY_X          = { 1, LK_X };
-LK_KEYDATA LK_KEY_Y          = { 1, LK_Y };
-LK_KEYDATA LK_KEY_Z          = { 1, LK_Z };
-LK_KEYDATA LK_KEY_SPACE      = { 1, LK_SPACE };
-LK_KEYDATA LK_KEY_SEMICOLON  = { 1, LK_SEMICOLON };
-LK_KEYDATA LK_KEY_PLUS       = { 1, LK_PLUS };
-LK_KEYDATA LK_KEY_COMMA      = { 1, LK_COMMA };
-LK_KEYDATA LK_KEY_UBAR       = { 1, LK_UBAR };
-LK_KEYDATA LK_KEY_PERIOD     = { 1, LK_PERIOD };
-LK_KEYDATA LK_KEY_QMARK      = { 1, LK_QMARK };
-LK_KEYDATA LK_KEY_QUOTE      = { 1, LK_QUOTE };
-LK_KEYDATA LK_KEY_LBRACE     = { 1, LK_LBRACE };
-LK_KEYDATA LK_KEY_RBRACE     = { 1, LK_RBRACE };
-LK_KEYDATA LK_KEY_VBAR       = { 1, LK_VBAR };
-LK_KEYDATA LK_KEY_TILDE      = { 1, LK_TILDE };
-LK_KEYDATA LK_KEY_KP_0       = { 2, LK_KP_0 };
-LK_KEYDATA LK_KEY_KP_1       = { 2, LK_KP_1 };
-LK_KEYDATA LK_KEY_KP_2       = { 2, LK_KP_2 };
-LK_KEYDATA LK_KEY_KP_3       = { 2, LK_KP_3 };
-LK_KEYDATA LK_KEY_KP_4       = { 2, LK_KP_4 };
-LK_KEYDATA LK_KEY_KP_5       = { 2, LK_KP_5 };
-LK_KEYDATA LK_KEY_KP_6       = { 2, LK_KP_6 };
-LK_KEYDATA LK_KEY_KP_7       = { 2, LK_KP_7 };
-LK_KEYDATA LK_KEY_KP_8       = { 2, LK_KP_8 };
-LK_KEYDATA LK_KEY_KP_9       = { 2, LK_KP_9 };
-LK_KEYDATA LK_KEY_KP_PF1     = { 2, LK_KP_PF1 };
-LK_KEYDATA LK_KEY_KP_PF2     = { 2, LK_KP_PF2 };
-LK_KEYDATA LK_KEY_KP_PF3     = { 2, LK_KP_PF3 };
-LK_KEYDATA LK_KEY_KP_PF4     = { 2, LK_KP_PF4 };
-LK_KEYDATA LK_KEY_KP_HYPHEN  = { 2, LK_KP_HYPHEN };
-LK_KEYDATA LK_KEY_KP_COMMA   = { 2, LK_KP_COMMA };
-LK_KEYDATA LK_KEY_KP_PERIOD  = { 2, LK_KP_PERIOD };
-LK_KEYDATA LK_KEY_KP_ENTER   = { 2, LK_KP_ENTER };
-LK_KEYDATA LK_KEY_DELETE     = { 3, LK_DELETE };
-LK_KEYDATA LK_KEY_TAB        = { 3, LK_TAB };
-LK_KEYDATA LK_KEY_RETURN     = { 4, LK_RETURN };
-LK_KEYDATA LK_KEY_META       = { 5, LK_META };
-LK_KEYDATA LK_KEY_LOCK       = { 5, LK_LOCK };
-LK_KEYDATA LK_KEY_SHIFT      = { 6, LK_SHIFT };
-LK_KEYDATA LK_KEY_CTRL       = { 6, LK_CTRL };
-LK_KEYDATA LK_KEY_LEFT       = { 7, LK_LEFT };
-LK_KEYDATA LK_KEY_RIGHT      = { 7, LK_RIGHT };
-LK_KEYDATA LK_KEY_UP         = { 8, LK_UP };
-LK_KEYDATA LK_KEY_DOWN       = { 8, LK_DOWN };
-LK_KEYDATA LK_KEY_REMOVE     = { 9, LK_REMOVE };
-LK_KEYDATA LK_KEY_NEXT_SCREEN= { 9, LK_NEXT_SCREEN };
-LK_KEYDATA LK_KEY_PREV_SCREEN= { 9, LK_PREV_SCREEN };
-LK_KEYDATA LK_KEY_INSERT_HERE= { 9, LK_INSERT_HERE };
-LK_KEYDATA LK_KEY_FIND       = { 9, LK_FIND };
-LK_KEYDATA LK_KEY_SELECT     = { 9, LK_SELECT };
-LK_KEYDATA LK_KEY_F1         = { 10, LK_F1 };
-LK_KEYDATA LK_KEY_F2         = { 10, LK_F2 };
-LK_KEYDATA LK_KEY_F3         = { 10, LK_F3 };
-LK_KEYDATA LK_KEY_F4         = { 10, LK_F4 };
-LK_KEYDATA LK_KEY_F5         = { 10, LK_F5 };
-LK_KEYDATA LK_KEY_F6         = { 11, LK_F6 };
-LK_KEYDATA LK_KEY_F7         = { 11, LK_F7 };
-LK_KEYDATA LK_KEY_F8         = { 11, LK_F8 };
-LK_KEYDATA LK_KEY_F9         = { 11, LK_F9 };
-LK_KEYDATA LK_KEY_F10        = { 11, LK_F10 };
-LK_KEYDATA LK_KEY_F11        = { 12, LK_F11 };
-LK_KEYDATA LK_KEY_F12        = { 12, LK_F12 };
+static LK_KEYDATA LK_KEY_UNKNOWN    = { 0, LK_UNKNOWN };
+static LK_KEYDATA LK_KEY_TR_0       = { 1, LK_TR_0 };
+static LK_KEYDATA LK_KEY_TR_1       = { 1, LK_TR_1 };
+static LK_KEYDATA LK_KEY_TR_2       = { 1, LK_TR_2 };
+static LK_KEYDATA LK_KEY_TR_3       = { 1, LK_TR_3 };
+static LK_KEYDATA LK_KEY_TR_4       = { 1, LK_TR_4 };
+static LK_KEYDATA LK_KEY_TR_5       = { 1, LK_TR_5 };
+static LK_KEYDATA LK_KEY_TR_6       = { 1, LK_TR_6 };
+static LK_KEYDATA LK_KEY_TR_7       = { 1, LK_TR_7 };
+static LK_KEYDATA LK_KEY_TR_8       = { 1, LK_TR_8 };
+static LK_KEYDATA LK_KEY_TR_9       = { 1, LK_TR_9 };
+static LK_KEYDATA LK_KEY_A          = { 1, LK_A };
+static LK_KEYDATA LK_KEY_B          = { 1, LK_B };
+static LK_KEYDATA LK_KEY_C          = { 1, LK_C };
+static LK_KEYDATA LK_KEY_D          = { 1, LK_D };
+static LK_KEYDATA LK_KEY_E          = { 1, LK_E };
+static LK_KEYDATA LK_KEY_F          = { 1, LK_F };
+static LK_KEYDATA LK_KEY_G          = { 1, LK_G };
+static LK_KEYDATA LK_KEY_H          = { 1, LK_H };
+static LK_KEYDATA LK_KEY_I          = { 1, LK_I };
+static LK_KEYDATA LK_KEY_J          = { 1, LK_J };
+static LK_KEYDATA LK_KEY_K          = { 1, LK_K };
+static LK_KEYDATA LK_KEY_L          = { 1, LK_L };
+static LK_KEYDATA LK_KEY_M          = { 1, LK_M };
+static LK_KEYDATA LK_KEY_N          = { 1, LK_N };
+static LK_KEYDATA LK_KEY_O          = { 1, LK_O };
+static LK_KEYDATA LK_KEY_P          = { 1, LK_P };
+static LK_KEYDATA LK_KEY_Q          = { 1, LK_Q };
+static LK_KEYDATA LK_KEY_R          = { 1, LK_R };
+static LK_KEYDATA LK_KEY_S          = { 1, LK_S };
+static LK_KEYDATA LK_KEY_T          = { 1, LK_T };
+static LK_KEYDATA LK_KEY_U          = { 1, LK_U };
+static LK_KEYDATA LK_KEY_V          = { 1, LK_V };
+static LK_KEYDATA LK_KEY_W          = { 1, LK_W };
+static LK_KEYDATA LK_KEY_X          = { 1, LK_X };
+static LK_KEYDATA LK_KEY_Y          = { 1, LK_Y };
+static LK_KEYDATA LK_KEY_Z          = { 1, LK_Z };
+static LK_KEYDATA LK_KEY_SPACE      = { 1, LK_SPACE };
+static LK_KEYDATA LK_KEY_SEMICOLON  = { 1, LK_SEMICOLON };
+static LK_KEYDATA LK_KEY_PLUS       = { 1, LK_PLUS };
+static LK_KEYDATA LK_KEY_COMMA      = { 1, LK_COMMA };
+static LK_KEYDATA LK_KEY_UBAR       = { 1, LK_UBAR };
+static LK_KEYDATA LK_KEY_PERIOD     = { 1, LK_PERIOD };
+static LK_KEYDATA LK_KEY_QMARK      = { 1, LK_QMARK };
+static LK_KEYDATA LK_KEY_QUOTE      = { 1, LK_QUOTE };
+static LK_KEYDATA LK_KEY_LBRACE     = { 1, LK_LBRACE };
+static LK_KEYDATA LK_KEY_RBRACE     = { 1, LK_RBRACE };
+static LK_KEYDATA LK_KEY_VBAR       = { 1, LK_VBAR };
+static LK_KEYDATA LK_KEY_TILDE      = { 1, LK_TILDE };
+static LK_KEYDATA LK_KEY_KP_0       = { 2, LK_KP_0 };
+static LK_KEYDATA LK_KEY_KP_1       = { 2, LK_KP_1 };
+static LK_KEYDATA LK_KEY_KP_2       = { 2, LK_KP_2 };
+static LK_KEYDATA LK_KEY_KP_3       = { 2, LK_KP_3 };
+static LK_KEYDATA LK_KEY_KP_4       = { 2, LK_KP_4 };
+static LK_KEYDATA LK_KEY_KP_5       = { 2, LK_KP_5 };
+static LK_KEYDATA LK_KEY_KP_6       = { 2, LK_KP_6 };
+static LK_KEYDATA LK_KEY_KP_7       = { 2, LK_KP_7 };
+static LK_KEYDATA LK_KEY_KP_8       = { 2, LK_KP_8 };
+static LK_KEYDATA LK_KEY_KP_9       = { 2, LK_KP_9 };
+static LK_KEYDATA LK_KEY_KP_PF1     = { 2, LK_KP_PF1 };
+static LK_KEYDATA LK_KEY_KP_PF2     = { 2, LK_KP_PF2 };
+static LK_KEYDATA LK_KEY_KP_PF3     = { 2, LK_KP_PF3 };
+static LK_KEYDATA LK_KEY_KP_PF4     = { 2, LK_KP_PF4 };
+static LK_KEYDATA LK_KEY_KP_HYPHEN  = { 2, LK_KP_HYPHEN };
+static LK_KEYDATA LK_KEY_KP_COMMA   = { 2, LK_KP_COMMA };
+static LK_KEYDATA LK_KEY_KP_PERIOD  = { 2, LK_KP_PERIOD };
+static LK_KEYDATA LK_KEY_KP_ENTER   = { 2, LK_KP_ENTER };
+static LK_KEYDATA LK_KEY_DELETE     = { 3, LK_DELETE };
+static LK_KEYDATA LK_KEY_TAB        = { 3, LK_TAB };
+static LK_KEYDATA LK_KEY_RETURN     = { 4, LK_RETURN };
+static LK_KEYDATA LK_KEY_META       = { 5, LK_META };
+static LK_KEYDATA LK_KEY_LOCK       = { 5, LK_LOCK };
+static LK_KEYDATA LK_KEY_SHIFT      = { 6, LK_SHIFT };
+static LK_KEYDATA LK_KEY_CTRL       = { 6, LK_CTRL };
+static LK_KEYDATA LK_KEY_LEFT       = { 7, LK_LEFT };
+static LK_KEYDATA LK_KEY_RIGHT      = { 7, LK_RIGHT };
+static LK_KEYDATA LK_KEY_UP         = { 8, LK_UP };
+static LK_KEYDATA LK_KEY_DOWN       = { 8, LK_DOWN };
+static LK_KEYDATA LK_KEY_REMOVE     = { 9, LK_REMOVE };
+static LK_KEYDATA LK_KEY_NEXT_SCREEN= { 9, LK_NEXT_SCREEN };
+static LK_KEYDATA LK_KEY_PREV_SCREEN= { 9, LK_PREV_SCREEN };
+static LK_KEYDATA LK_KEY_INSERT_HERE= { 9, LK_INSERT_HERE };
+static LK_KEYDATA LK_KEY_FIND       = { 9, LK_FIND };
+static LK_KEYDATA LK_KEY_SELECT     = { 9, LK_SELECT };
+static LK_KEYDATA LK_KEY_F1         = { 10, LK_F1 };
+static LK_KEYDATA LK_KEY_F2         = { 10, LK_F2 };
+static LK_KEYDATA LK_KEY_F3         = { 10, LK_F3 };
+static LK_KEYDATA LK_KEY_F4         = { 10, LK_F4 };
+static LK_KEYDATA LK_KEY_F5         = { 10, LK_F5 };
+static LK_KEYDATA LK_KEY_F6         = { 11, LK_F6 };
+static LK_KEYDATA LK_KEY_F7         = { 11, LK_F7 };
+static LK_KEYDATA LK_KEY_F8         = { 11, LK_F8 };
+static LK_KEYDATA LK_KEY_F9         = { 11, LK_F9 };
+static LK_KEYDATA LK_KEY_F10        = { 11, LK_F10 };
+static LK_KEYDATA LK_KEY_F11        = { 12, LK_F11 };
+static LK_KEYDATA LK_KEY_F12        = { 12, LK_F12 };
 
 /* Debugging Bitmaps */
 
 #define DBG_SERIAL      0x0001                          /* serial port data */
 #define DBG_CMD         0x0002                          /* commands */
 
-bool lk_repeat = true;                                  /* autorepeat flag */
-bool lk_trpti = false;                                  /* temp repeat inhibit */
-int32_t lk_keysdown = 0;                                /* no of keys held down */
-LK_FIFO lk_sndf;                                        /* send FIFO */
-LK_FIFO lk_rcvf;                                        /* receive FIFO */
-int32_t lk_mode[16];                                    /* mode of each key group */
+static bool lk_repeat = true;                           /* autorepeat flag */
+static bool lk_trpti = false;                           /* temp repeat inhibit */
+static int32_t lk_keysdown = 0;                         /* no of keys held down */
+static LK_FIFO lk_sndf;                                 /* send FIFO */
+static LK_FIFO lk_rcvf;                                 /* receive FIFO */
+static int32_t lk_mode[16];                             /* mode of each key group */
 
-t_stat lk_wr (uint8_t c);
-t_stat lk_rd (uint8_t *c);
-t_stat lk_reset (DEVICE *dptr);
-void lk_reset_mode (void);
-void lk_cmd (void);
-const char *lk_description (DEVICE *dptr);
+static t_stat lk_reset (DEVICE *dptr);
+static void lk_reset_mode (void);
+static void lk_cmd (void);
+static const char *lk_description (DEVICE *dptr);
 static LK_KEYDATA lk_map_key (int key);
-t_stat lk_put_fifo (LK_FIFO *fifo, uint8_t data);
-t_stat lk_get_fifo (LK_FIFO *fifo, uint8_t *data);
-void lk_clear_fifo (LK_FIFO *fifo);
+static t_stat lk_put_fifo (LK_FIFO *fifo, uint8_t data);
+static t_stat lk_get_fifo (LK_FIFO *fifo, uint8_t *data);
+static void lk_clear_fifo (LK_FIFO *fifo);
 
 /* LK data structures
 
@@ -203,19 +202,19 @@ void lk_clear_fifo (LK_FIFO *fifo);
    lk_debug     LK debug list
 */
 
-DEBTAB lk_debug[] = {
+static DEBTAB lk_debug[] = {
     {"SERIAL", DBG_SERIAL,  "Serial port data"},
     {"CMD",    DBG_CMD,     "Commands"},
     {0}
     };
 
-UNIT lk_unit = { UDATA (NULL, 0, 0) };
+static UNIT lk_unit = { UDATA (NULL, 0, 0) };
 
-REG lk_reg[] = {
+static REG lk_reg[] = {
     { NULL }
     };
 
-MTAB lk_mod[] = {
+static MTAB lk_mod[] = {
     { 0 }
     };
 
@@ -259,7 +258,7 @@ if (r == SCPE_OK)
 return r;
 }
 
-t_stat lk_put_fifo (LK_FIFO *fifo, uint8_t data)
+static t_stat lk_put_fifo (LK_FIFO *fifo, uint8_t data)
 {
 if (fifo->count < LK_BUF_LEN) {
     fifo->buf[fifo->head++] = data;
@@ -272,7 +271,7 @@ else
     return SCPE_EOF;
 }
 
-t_stat lk_get_fifo (LK_FIFO *fifo, uint8_t *data)
+static t_stat lk_get_fifo (LK_FIFO *fifo, uint8_t *data)
 {
 if (fifo->count > 0) {
     *data = fifo->buf[fifo->tail++];
@@ -287,14 +286,14 @@ else {
     }
 }
 
-void lk_clear_fifo (LK_FIFO *fifo)
+static void lk_clear_fifo (LK_FIFO *fifo)
 {
 fifo->head = 0;
 fifo->tail = 0;
 fifo->count = 0;
 }
 
-void lk_cmd (void)
+static void lk_cmd (void)
 {
 int32_t i, group, mode;
 uint8_t data;
@@ -784,7 +783,7 @@ switch (key) {
 return lk_key;
 }
 
-void lk_reset_mode (void)
+static void lk_reset_mode (void)
 {
 lk_mode[1]  = LK_MODE_AUTODOWN;                         /* 1  = 48 graphic keys, spacebar */
 lk_mode[2]  = LK_MODE_AUTODOWN;                         /* 2  = numeric keypad */
@@ -802,7 +801,7 @@ lk_mode[13] = LK_MODE_AUTODOWN;                         /* 13 = function keys: h
 lk_mode[14] = LK_MODE_AUTODOWN;                         /* 14 = function keys: f17 - f20 */
 }
 
-t_stat lk_reset (DEVICE *dptr)
+static t_stat lk_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -865,7 +864,7 @@ switch (mode) {
     }
 }
 
-const char *lk_description (DEVICE *dptr)
+static const char *lk_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

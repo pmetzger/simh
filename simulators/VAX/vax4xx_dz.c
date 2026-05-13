@@ -32,6 +32,9 @@
 #include <string.h>
 
 #include "vax_defs.h"
+#include "vax4xx_defs.h"
+#include "vax4xx_dz.h"
+#include "vax4xx_dz_internal.h"
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include "vax_lk.h"
@@ -196,8 +199,6 @@ BITFIELD dz_tdr_bits[] = {
     ENDBITS
     };
 
-extern int32_t tmxr_poll;                               /* calibrated delay */
-
 uint16_t dz_csr = 0;                                    /* csr */
 uint16_t dz_rbuf = 0;                                   /* rcv buffer */
 uint16_t dz_lpr = 0;                                    /* line param */
@@ -239,22 +240,18 @@ DEBTAB dz_debug[] = {
     { 0 }
     };
 
-t_stat dz_svc (UNIT *uptr);
-t_stat dz_xmt_svc (UNIT *uptr);
-t_stat dz_reset (DEVICE *dptr);
-t_stat dz_attach (UNIT *uptr, const char *cptr);
-t_stat dz_detach (UNIT *uptr);
-t_stat dz_clear (bool flag);
-uint16_t dz_getc (void);
-t_stat dz_putc (int32_t line, uint16_t data);
-void dz_update_rcvi (void);
-void dz_update_xmti (void);
-t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
-const char *dz_description (DEVICE *dptr);
+static t_stat dz_svc (UNIT *uptr);
+static t_stat dz_xmt_svc (UNIT *uptr);
+static t_stat dz_attach (UNIT *uptr, const char *cptr);
+static t_stat dz_detach (UNIT *uptr);
+static t_stat dz_putc (int32_t line, uint16_t data);
+static void dz_update_xmti (void);
+static t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc);
+static t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr);
+static const char *dz_description (DEVICE *dptr);
 
 /* DZ data structures
 
@@ -537,7 +534,7 @@ SET_IRQL;
    or none of them.
 */
 
-t_stat dz_svc (UNIT *uptr)
+static t_stat dz_svc (UNIT *uptr)
 {
 int32_t newln, muxln;
 
@@ -561,7 +558,7 @@ if (dz_csr & CSR_MSE) {                                 /* enabled? */
 return SCPE_OK;
 }
 
-t_stat dz_xmt_svc (UNIT *uptr)
+static t_stat dz_xmt_svc (UNIT *uptr)
 {
 int32_t line;
 
@@ -577,7 +574,7 @@ return SCPE_OK;
 
 /* Put a character to the specified line */
 
-t_stat dz_putc (int32_t line, uint16_t data)
+static t_stat dz_putc (int32_t line, uint16_t data)
 {
 t_stat r = SCPE_OK;
 int32_t c;
@@ -713,7 +710,7 @@ return;
 
 /* Update transmit interrupts */
 
-void dz_update_xmti (void)
+static void dz_update_xmti (void)
 {
 int32_t linemask, i, line;
 uint16_t old_csr;
@@ -826,7 +823,7 @@ return SCPE_OK;
 
 /* Attach */
 
-t_stat dz_attach (UNIT *uptr, const char *cptr)
+static t_stat dz_attach (UNIT *uptr, const char *cptr)
 {
 int32_t muxln;
 t_stat r;
@@ -861,7 +858,7 @@ return SCPE_OK;
 
 /* Detach */
 
-t_stat dz_detach (UNIT *uptr)
+static t_stat dz_detach (UNIT *uptr)
 {
 dz_mctl = dz_auto = 0;                                  /* modem ctl off */
 return tmxr_detach (&dz_desc, uptr);
@@ -869,7 +866,7 @@ return tmxr_detach (&dz_desc, uptr);
 
 /* SET LOG processor */
 
-t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat dz_set_log (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -893,7 +890,7 @@ return tmxr_set_log (NULL, ln, cptr, desc);
 
 /* SET NOLOG processor */
 
-t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat dz_set_nolog (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -913,7 +910,7 @@ return tmxr_set_nolog (NULL, ln, NULL, desc);
 
 /* SHOW LOG processor */
 
-t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
+static t_stat dz_show_log (FILE *st, UNIT *uptr, int32_t val, const void *desc)
 {
 /* Generic show modifier signature.
    This implementation does not use every parameter. */
@@ -930,7 +927,7 @@ for (i = 0; i < dz_desc.lines; i++) {
 return SCPE_OK;
 }
 
-t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat dz_help (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 /* Generic device help signature.
    This implementation does not use every parameter. */
@@ -973,7 +970,7 @@ fprintf (st, "detached.\n");
 return SCPE_OK;
 }
 
-t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
+static t_stat dz_help_attach (FILE *st, DEVICE *dptr, UNIT *uptr, int32_t flag, const char *cptr)
 {
 tmxr_attach_help (st, dptr, uptr, flag, cptr);
 fprintf (st, "The terminal lines perform input and output through Telnet sessions connected\n");
@@ -989,7 +986,7 @@ fprintf (st, "status.\n\n");
 return SCPE_OK;
 }
 
-const char *dz_description (DEVICE *dptr)
+static const char *dz_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

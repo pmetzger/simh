@@ -70,15 +70,15 @@ static const uint32_t insert[4] = {
     0x00000000, 0x000000FF, 0x0000FFFF, 0x00FFFFFF
     };
 
-extern void zap_tb (int stb);
-extern void zap_tb_ent (uint32_t va);
-extern bool chk_tb_ent (uint32_t va);
-extern void set_map_reg (void);
-extern int32_t ReadIO (uint32_t pa, int32_t lnt);
-extern void WriteIO (uint32_t pa, int32_t val, int32_t lnt);
-extern int32_t ReadReg (uint32_t pa, int32_t lnt);
-extern void WriteReg (uint32_t pa, int32_t val, int32_t lnt);
-extern TLBENT fill (uint32_t va, int32_t lnt, int32_t acc, int32_t *stat);
+void zap_tb (int stb);
+void zap_tb_ent (uint32_t va);
+bool chk_tb_ent (uint32_t va);
+void set_map_reg (void);
+int32_t ReadIO (uint32_t pa, int32_t lnt);
+void WriteIO (uint32_t pa, int32_t val, int32_t lnt);
+int32_t ReadReg (uint32_t pa, int32_t lnt);
+void WriteReg (uint32_t pa, int32_t val, int32_t lnt);
+TLBENT fill (uint32_t va, int32_t lnt, int32_t acc, int32_t *stat);
 static inline int32_t ReadU (uint32_t pa, int32_t lnt);
 static inline void WriteU (uint32_t pa, int32_t val, int32_t lnt);
 static inline int32_t ReadB (uint32_t pa);

@@ -189,6 +189,13 @@
 
 #include "sim_types.h"
 #include "vax_defs.h"
+#include "vax_cis.h"
+#include "vax_cmode.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax_fpa.h"
+#include "vax_octa.h"
+#include "vax_sys.h"
 
 #define UNIT_V_CONH     (UNIT_V_UF + 0)                 /* halt to console */
 #define UNIT_V_MSIZE    (UNIT_V_UF + 1)                 /* dummy */
@@ -317,8 +324,6 @@ const uint32_t align[4] = {
  };
 
 /* External and forward references */
-
-extern int32_t sys_model;
 
 t_stat cpu_reset (DEVICE *dptr);
 bool cpu_is_pc_a_subroutine_call (t_addr **ret_addrs);

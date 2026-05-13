@@ -12,6 +12,9 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax750_cmi.h"
+#include "vax750_mem.h"
 #include "vax750_mem_internal.h"
 #include "uint_bits.h"
 
@@ -54,16 +57,16 @@
 #define MCTL_DEB_RRD     0x01                            /* reg reads */
 #define MCTL_DEB_RWR     0x02                            /* reg writes */
 
-uint32_t mcsr0 = 0;
-uint32_t mcsr1 = 0;
-uint32_t mcsr2 = 0;
+static uint32_t mcsr0 = 0;
+static uint32_t mcsr1 = 0;
+static uint32_t mcsr2 = 0;
 
 uint32_t rom[ROMSIZE/sizeof(uint32_t)];                 /* boot ROM */
 
-t_stat mctl_reset (DEVICE *dptr);
-const char *mctl_description (DEVICE *dptr);
-t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
-t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
+static t_stat mctl_reset (DEVICE *dptr);
+static const char *mctl_description (DEVICE *dptr);
+static t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
+static t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
 
 /* MCTL data structures
 
@@ -72,11 +75,11 @@ t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
    mctl_reg    MCTL register list
 */
 
-DIB mctl_dib = { TR_MCTL, 0, &mctl_rdreg, &mctl_wrreg, 0 };
+static DIB mctl_dib = { TR_MCTL, 0, &mctl_rdreg, &mctl_wrreg, 0 };
 
-UNIT mctl_unit = { UDATA (NULL, 0, 0) };
+static UNIT mctl_unit = { UDATA (NULL, 0, 0) };
 
-REG mctl_reg[] = {
+static REG mctl_reg[] = {
     { HRDATAD (CSR0, mcsr0, 32, "ECC syndrome bits") },
     { HRDATAD (CSR1, mcsr1, 32, "CPU error control/check bits") },
     { HRDATAD (CSR2, mcsr2, 32, "Memory Configuration") },
@@ -84,13 +87,13 @@ REG mctl_reg[] = {
     { NULL }
     };
 
-MTAB mctl_mod[] = {
+static MTAB mctl_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_MCTL, "NEXUS", NULL,
       NULL, &show_nexus, NULL, "Display Nexus" },
     { 0 }
     };
 
-DEBTAB mctl_deb[] = {
+static DEBTAB mctl_deb[] = {
     { "REGREAD", MCTL_DEB_RRD },
     { "REGWRITE", MCTL_DEB_RWR },
     { NULL, 0 }
@@ -108,7 +111,7 @@ DEVICE mctl_dev = {
 
 /* Memory controller register read */
 
-t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
+static t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 /* Nexus register read signature.
    This implementation does not use every parameter. */
@@ -143,7 +146,7 @@ return SCPE_OK;
 
 /* Memory controller register write */
 
-t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
+static t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 /* Nexus register write signature.
    This implementation does not use every parameter. */
@@ -188,7 +191,7 @@ return;
 
 /* Memory controller reset */
 
-t_stat mctl_reset (DEVICE *dptr)
+static t_stat mctl_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -212,7 +215,7 @@ else
 #endif
 }
 
-const char *mctl_description (DEVICE *dptr)
+static const char *mctl_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

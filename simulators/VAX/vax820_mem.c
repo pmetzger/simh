@@ -29,6 +29,7 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax820_mem.h"
 
 /* Memory CSR 1 */
 
@@ -43,13 +44,13 @@
 
 #define MCSR2_OF        0x41
 
-uint32_t mcsr_1[MCTL_NUM];
-uint32_t mcsr_2[MCTL_NUM];
+static uint32_t mcsr_1[MCTL_NUM];
+static uint32_t mcsr_2[MCTL_NUM];
 
-t_stat mctl_reset (DEVICE *dptr);
-const char *mctl_description (DEVICE *dptr);
-t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
-t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
+static t_stat mctl_reset (DEVICE *dptr);
+static const char *mctl_description (DEVICE *dptr);
+static t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t mode);
+static t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
 
 /* MCTLx data structures
 
@@ -58,32 +59,32 @@ t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t mode);
    mctlx_reg    MCTLx register list
 */
 
-DIB mctl0_dib[] = { { TR_MCTL0, 0, &mctl_rdreg, &mctl_wrreg, 0 } };
+static DIB mctl0_dib[] = { { TR_MCTL0, 0, &mctl_rdreg, &mctl_wrreg, 0 } };
 
-UNIT mctl0_unit = { UDATA (NULL, 0, 0) };
+static UNIT mctl0_unit = { UDATA (NULL, 0, 0) };
 
-REG mctl0_reg[] = {
+static REG mctl0_reg[] = {
     { HRDATA (CSR1, mcsr_1[0], 32) },
     { HRDATA (CSR2, mcsr_2[0], 32) },
     { NULL }
     };
 
-MTAB mctl0_mod[] = {
+static MTAB mctl0_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_MCTL0, "NEXUS", NULL,
       NULL, &show_nexus, NULL, "Display nexus" },
     { 0 }
     };
 
-DIB mctl1_dib[] = { { TR_MCTL1, 0, &mctl_rdreg, &mctl_wrreg, 0 } };
+static DIB mctl1_dib[] = { { TR_MCTL1, 0, &mctl_rdreg, &mctl_wrreg, 0 } };
 
-UNIT mctl1_unit = { UDATA (NULL, 0, 0) };
+static UNIT mctl1_unit = { UDATA (NULL, 0, 0) };
 
-MTAB mctl1_mod[] = {
+static MTAB mctl1_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_MCTL1, "NEXUS", NULL,
       NULL, &show_nexus },
     { 0 }  };
 
-REG mctl1_reg[] = {
+static REG mctl1_reg[] = {
     { HRDATA (CSR1, mcsr_1[1], 32) },
     { HRDATA (CSR2, mcsr_2[1], 32) },
     { NULL }
@@ -112,7 +113,7 @@ DEVICE mctl_dev[] = {
 
 /* Memory controller register read */
 
-t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
+static t_stat mctl_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 /* Nexus register read signature.
    This implementation does not use every parameter. */
@@ -160,7 +161,7 @@ return SCPE_OK;
 
 /* Memory controller register write */
 
-t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
+static t_stat mctl_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 /* Nexus register write signature.
    This implementation does not use every parameter. */
@@ -204,7 +205,7 @@ return;
 
 /* MEMCTL reset */
 
-t_stat mctl_reset (DEVICE *dptr)
+static t_stat mctl_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -218,7 +219,7 @@ for (i = 0; i < MCTL_NUM; i++) {                        /* init for MS820 */
 return SCPE_OK;
 }
 
-const char *mctl_description (DEVICE *dptr)
+static const char *mctl_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */

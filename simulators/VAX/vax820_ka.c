@@ -31,6 +31,7 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax820_ka.h"
 
 #define PCSR_RSTH       0x80000000                      /* restart halt */
 #define PCSR_LCON       0x40000000                      /* logical console */
@@ -69,33 +70,24 @@
                          PCSR_CRDEN)
 #define PCSR_W1C        (PCSR_EVLCK | PCSR_PER | PCSR_TIMEOUT)
 
-int32_t rxcd_count = 0;
-char rxcd_ibuf[20];
-char rxcd_obuf[20];
-int32_t rxcd_iptr = 0;
-int32_t rxcd_optr = 0;
-char rxcd_char = '\0';
-BIIC ka_biic[KA_NUM];
-uint32_t ka_rxcd[KA_NUM];
-uint32_t ka_pcsr[KA_NUM];
+static int32_t rxcd_count = 0;
+static char rxcd_ibuf[20];
+static char rxcd_obuf[20];
+static int32_t rxcd_iptr = 0;
+static int32_t rxcd_optr = 0;
+static char rxcd_char = '\0';
+static BIIC ka_biic[KA_NUM];
+static uint32_t ka_rxcd[KA_NUM];
+static uint32_t ka_pcsr[KA_NUM];
 
-extern int32_t rxcd_int;
-extern int32_t ipir;
-#if defined (VAX_MP)
-extern int32_t cur_cpu;
-#else
+#if !defined (VAX_MP)
 int32_t cur_cpu;
 #endif
 
-t_stat ka_reset (DEVICE *dptr);
-t_stat ka_rdreg (int32_t *val, int32_t pa, int32_t mode);
-t_stat ka_wrreg (int32_t val, int32_t pa, int32_t mode);
-t_stat ka_svc (UNIT *uptr);
-
-#if defined (VAX_MP)
-extern void cpu_setreg (int32_t cpu, int32_t rg, int32_t val);
-extern void cpu_start (int32_t cpu, uint32_t addr);
-#endif
+static t_stat ka_reset (DEVICE *dptr);
+static t_stat ka_rdreg (int32_t *val, int32_t pa, int32_t mode);
+static t_stat ka_wrreg (int32_t val, int32_t pa, int32_t mode);
+static t_stat ka_svc (UNIT *uptr);
 
 /* KAx data structures
 
@@ -104,30 +96,30 @@ extern void cpu_start (int32_t cpu, uint32_t addr);
    kax_reg      KAx register list
 */
 
-DIB ka0_dib[] = { { TR_KA0, 0, &ka_rdreg, &ka_wrreg, 0 } };
+static DIB ka0_dib[] = { { TR_KA0, 0, &ka_rdreg, &ka_wrreg, 0 } };
 
-UNIT ka0_unit = { UDATA (&ka_svc, 0, 0) };
+static UNIT ka0_unit = { UDATA (&ka_svc, 0, 0) };
 
-REG ka0_reg[] = {
+static REG ka0_reg[] = {
     { NULL }
     };
 
-MTAB ka0_mod[] = {
+static MTAB ka0_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_KA0, "NEXUS", NULL,
       NULL, &show_nexus },
     { 0 }
     };
 
-DIB ka1_dib[] = { { TR_KA1, 0, &ka_rdreg, &ka_wrreg, 0 } };
+static DIB ka1_dib[] = { { TR_KA1, 0, &ka_rdreg, &ka_wrreg, 0 } };
 
-UNIT ka1_unit = { UDATA (&ka_svc, 0, 0) };
+static UNIT ka1_unit = { UDATA (&ka_svc, 0, 0) };
 
-MTAB ka1_mod[] = {
+static MTAB ka1_mod[] = {
     { MTAB_XTD|MTAB_VDV, TR_KA1, "NEXUS", NULL,
       NULL, &show_nexus },
     { 0 }  };
 
-REG ka1_reg[] = {
+static REG ka1_reg[] = {
     { NULL }
     };
 
@@ -150,7 +142,7 @@ DEVICE ka_dev[] = {
 
 /* KA read */
 
-t_stat ka_rdreg (int32_t *val, int32_t pa, int32_t lnt)
+static t_stat ka_rdreg (int32_t *val, int32_t pa, int32_t lnt)
 {
 /* Nexus register dispatch signature.
    This implementation does not use every parameter. */
@@ -196,7 +188,7 @@ return SCPE_OK;
 
 /* KA write */
 
-t_stat ka_wrreg (int32_t val, int32_t pa, int32_t lnt)
+static t_stat ka_wrreg (int32_t val, int32_t pa, int32_t lnt)
 {
 /* Nexus register dispatch signature.
    This implementation does not use every parameter. */
@@ -237,7 +229,7 @@ return SCPE_OK;
 
 /* KA reset */
 
-t_stat ka_reset (DEVICE *dptr)
+static t_stat ka_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -261,7 +253,7 @@ sim_cancel (&ka1_unit);
 return SCPE_OK;
 }
 
-t_stat ka_svc (UNIT *uptr)
+static t_stat ka_svc (UNIT *uptr)
 {
 if ((rxcd_count > 0) && rxcd_int)
     sim_activate (uptr, 20);
@@ -292,10 +284,12 @@ void rxcd_wr (int32_t val)
 {
 int32_t cpu = (val >> 8) & 7;
 int32_t ch = val & 0xFF;
+#if defined (VAX_MP)
 int32_t rg;
 int32_t rval;
 t_stat r;
 char conv[10];
+#endif
 
 if (ka_rxcd[cpu] & 0x8000) {                            /* busy? */
     mxpr_cc_vc |= CC_V;                                 /* set overflow */
@@ -308,12 +302,12 @@ switch (ch) {
         rxcd_ibuf[rxcd_iptr++] = '\0';                  /* terminator */
         printf (">>> %s\n", &rxcd_ibuf[0]);
         if (rxcd_ibuf[0] == 'D') {                      /* DEPOSIT */
+#if defined (VAX_MP)
             conv[0] = rxcd_ibuf[4];
             conv[1] = '\0';
             rg = (int32_t)get_uint (conv, 16, 0xF, &r); /* get register number */
             strlcpy (conv, &rxcd_ibuf[6], 9);
             rval = (int32_t)get_uint (conv, 16, 0xFFFFFFFF, &r); /* get deposit value */
-#if defined (VAX_MP)
             cpu_setreg (cpu, rg, rval);
 #endif
             rxcd_count = 3;                             /* ready for next cmd */
@@ -326,9 +320,9 @@ switch (ch) {
             rxcd_optr = 0;
             }
         else if (rxcd_ibuf[0] == 'S') {                 /* START */
+#if defined (VAX_MP)
             strlcpy (conv, &rxcd_ibuf[2], 9);
             rval = (int32_t)get_uint (conv, 16, 0xFFFFFFFF, &r);
-#if defined (VAX_MP)
             cpu_start (cpu, rval);
 #endif
             }

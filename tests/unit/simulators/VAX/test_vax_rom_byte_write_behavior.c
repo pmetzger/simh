@@ -7,30 +7,25 @@
 #include "test_cmocka.h"
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax_watch.h"
+#if defined(TEST_VAX630_SYSDEV)
+#include "pdp11_io_lib.h"
+#include "vax630_io.h"
+#include "vax630_stddev.h"
+#include "vax630_sysdev_internal.h"
+#else
+#include "vax4nn_stddev.h"
+#include "vax4nn_stddev_internal.h"
+#endif
 
 /*
  * These tests preserve legacy VAX ROM byte-write lane behavior at the real
  * ROM byte writer used while patching model-specific boot ROM images.
  */
 
-void rom_wr_B(int32_t pa, int32_t val);
-
-#if defined(TEST_VAX630_SYSDEV)
-int32_t rom_rd(int32_t pa, int32_t lnt);
-int32_t ReadRegU(uint32_t pa, int32_t lnt);
-#else
-int32_t rom_rd(int32_t pa);
-#endif
-
-extern uint32_t *rom;
-extern UNIT rom_unit;
-
 static uint32_t test_rom[ROMSIZE >> 2];
-
-int32_t wtc_rd(int32_t rg);
-void wtc_wr(int32_t rg, int32_t val);
-void wtc_set_valid(void);
-void wtc_set_invalid(void);
 
 int32_t wtc_rd(int32_t rg)
 {
@@ -58,30 +53,10 @@ void wtc_set_invalid(void)
 }
 
 #if defined(TEST_VAX630_SYSDEV)
-TLBENT fill(uint32_t va, int32_t lnt, int32_t acc, int32_t *stat);
-t_stat show_mapped_addr(FILE *st, UNIT *uptr, int32_t val, const void *desc);
-t_stat cpu_load_bootcode(const char *filename,
-                         const uchar_t *builtin_code, size_t size,
-                         bool load_rom, t_addr offset);
-int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei);
-int32_t qbmap_rd(int32_t pa, int32_t lnt);
-void qbmap_wr(int32_t pa, int32_t val, int32_t lnt);
 int32_t qbmem_rd(int32_t pa, int32_t lnt);
 void qbmem_wr(int32_t pa, int32_t val, int32_t lnt);
-void WriteIO(uint32_t pa, int32_t val, int32_t lnt);
-void WriteIOU(uint32_t pa, int32_t val, int32_t lnt);
-int32_t iccs_rd(void);
 int32_t todr_rd(void);
-int32_t rxcs_rd(void);
-int32_t rxdb_rd(void);
-int32_t txcs_rd(void);
-void iccs_wr(int32_t dat);
 void todr_wr(int32_t dat);
-void rxcs_wr(int32_t dat);
-void txcs_wr(int32_t dat);
-void txdb_wr(int32_t dat);
-void ioreset_wr(int32_t dat);
-void cpu_idle(void);
 
 uint32_t *M;
 uint32_t R[16];
@@ -274,8 +249,6 @@ void cpu_idle(void)
     /* Stubbed idle hook for uncalled halt paths. */
 }
 #else
-int32_t nar_rd(int32_t pa);
-
 int32_t nar_rd(int32_t pa)
 {
     /* Stubbed NAR read for uncalled I/O paths. */

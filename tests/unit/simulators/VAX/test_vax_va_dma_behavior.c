@@ -17,13 +17,6 @@
 #define DGA_MODE_PTB (3u << 9)
 #define DMA_REQUEST_BYTES 128u
 
-extern uint32_t va_dga_addr;
-extern uint32_t va_dga_count;
-extern uint32_t va_dga_csr;
-extern uint32_t va_dga_int;
-extern t_stat va_dmasvc(UNIT *uptr);
-extern UNIT va_unit[];
-
 uint8_t ua2681_oport(UART2681 *ctx);
 
 int32_t int_req[IPL_HLVL];

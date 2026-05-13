@@ -7,6 +7,9 @@
 #include "test_cmocka.h"
 
 #include "vax_defs.h"
+#include "vax_cpu.h"
+#include "vax_cpu1.h"
+#include "vax_sysdev_internal.h"
 
 /*
  * These tests preserve the legacy VAX 3900 system-device lane write behavior
@@ -14,21 +17,6 @@
  */
 
 #define TEST_SSC_TNIR0_PA (SSCBASE + (0x42u << 2))
-
-int32_t rom_rd(int32_t pa);
-void rom_wr_B(int32_t pa, int32_t val);
-int32_t nvr_rd(int32_t pa);
-void nvr_wr(int32_t pa, int32_t val, int32_t lnt);
-void WriteRegU(uint32_t pa, int32_t val, int32_t lnt);
-void cmctl_wr(int32_t pa, int32_t val, int32_t lnt);
-void cdg_wr(int32_t pa, int32_t val, int32_t lnt);
-void ssc_wr(int32_t pa, int32_t val, int32_t lnt);
-
-extern uint32_t *rom;
-extern uint32_t *nvr;
-extern int32_t cmctl_reg[];
-extern int32_t cdg_dat[];
-extern uint32_t tmr_tnir[];
 
 static uint32_t test_rom[ROMSIZE >> 2];
 static uint32_t test_nvr[NVRSIZE >> 2];

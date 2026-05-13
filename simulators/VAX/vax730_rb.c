@@ -45,6 +45,8 @@
 #include <stdint.h>
 
 #include "vax_defs.h"
+#include "vax730_rb.h"
+#include "vax730_uba.h"
 
 /* Constants */
 
@@ -196,27 +198,25 @@
 #define DBG_RD          0x0004                          /* disk reads */
 #define DBG_WR          0x0008                          /* disk writes */
 
-uint16_t *rbxb = NULL;                                   /* xfer buffer */
-int32_t rbcs = 0;                                       /* control/status */
-int32_t rbba = 0;                                       /* memory address */
-int32_t rbbc = 0;                                       /* bytes count */
-int32_t rbda = 0;                                       /* disk addr */
-int32_t rbmp = 0, rbmp1 = 0, rbmp2 = 0;                 /* mp register queue */
-int32_t rb_swait = 150;                                 /* seek wait */
-int32_t rb_mwait = 300;                                 /* seek wait */
-int32_t rb_cwait = 50;                                  /* seek wait */
+static uint16_t *rbxb = NULL;                           /* xfer buffer */
+static int32_t rbcs = 0;                                /* control/status */
+static int32_t rbba = 0;                                /* memory address */
+static int32_t rbbc = 0;                                /* bytes count */
+static int32_t rbda = 0;                                /* disk addr */
+static int32_t rbmp = 0, rbmp1 = 0, rbmp2 = 0;          /* mp register queue */
+static int32_t rb_swait = 150;                          /* seek wait */
+static int32_t rb_mwait = 300;                          /* seek wait */
+static int32_t rb_cwait = 50;                           /* seek wait */
 
-t_stat rb_rd16 (int32_t *data, int32_t PA, int32_t access);
-t_stat rb_wr16 (int32_t data, int32_t PA, int32_t access);
-t_stat rb_rd32 (int32_t *data, int32_t PA, int32_t access);
-t_stat rb_wr32 (int32_t data, int32_t PA, int32_t access);
-t_stat rb_svc (UNIT *uptr);
-t_stat rb_reset (DEVICE *dptr);
-const char *rb_description (DEVICE *dptr);
-void rb_set_done (int32_t error);
-t_stat rb_attach (UNIT *uptr, const char *cptr);
-t_stat rb_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-t_stat rb_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat rb_rd16 (int32_t *data, int32_t PA, int32_t access);
+static t_stat rb_wr16 (int32_t data, int32_t PA, int32_t access);
+static t_stat rb_svc (UNIT *uptr);
+static t_stat rb_reset (DEVICE *dptr);
+static const char *rb_description (DEVICE *dptr);
+static void rb_set_done (int32_t error);
+static t_stat rb_attach (UNIT *uptr, const char *cptr);
+static t_stat rb_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+static t_stat rb_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 /* RB730 data structures
 
@@ -232,7 +232,7 @@ DIB rb_dib = {
     IOBA_AUTO, IOLN_RB, &rb_rd16, &rb_wr16,
     1, IVCL (RB), VEC_AUTO, { NULL }, IOLN_RB };
 
-UNIT rb_unit[] = {
+static UNIT rb_unit[] = {
     { UDATA (&rb_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+
              UNIT_ROABLE+UNIT_RB80, RB80_SIZE) },
     { UDATA (&rb_svc, UNIT_FIX+UNIT_ATTABLE+UNIT_DISABLE+
@@ -243,11 +243,11 @@ UNIT rb_unit[] = {
              UNIT_ROABLE, RB02_SIZE) },
     };
 
-REG rb_reg[] = {
+static REG rb_reg[] = {
     { NULL }
     };
 
-DEBTAB rb_debug[] = {
+static DEBTAB rb_debug[] = {
     {"REG", DBG_REG},
     {"CMD", DBG_CMD},
     {"RD",  DBG_RD},
@@ -255,7 +255,7 @@ DEBTAB rb_debug[] = {
     {0}
 };
 
-MTAB rb_mod[] = {
+static MTAB rb_mod[] = {
     { MTAB_XTD|MTAB_VUN, 0, "write enabled", "WRITEENABLED",
         &set_writelock, &show_writelock,   NULL, "Write enable disk drive" },
     { MTAB_XTD|MTAB_VUN, 1, NULL, "LOCKED",
@@ -292,7 +292,7 @@ DEVICE rb_dev = {
    17775606     RBDCS    dummy csr to trigger sysgen
 */
 
-t_stat rb_rd16 (int32_t *data, int32_t PA, int32_t access)
+static t_stat rb_rd16 (int32_t *data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -303,7 +303,7 @@ t_stat rb_rd16 (int32_t *data, int32_t PA, int32_t access)
 return SCPE_OK;
 }
 
-t_stat rb_wr16 (int32_t data, int32_t PA, int32_t access)
+static t_stat rb_wr16 (int32_t data, int32_t PA, int32_t access)
 {
 /* Device I/O dispatch signature.
    This implementation does not use every parameter. */
@@ -455,7 +455,7 @@ return SCPE_OK;
    the current command.
 */
 
-t_stat rb_svc (UNIT *uptr)
+static t_stat rb_svc (UNIT *uptr)
 {
 int32_t curr, newc, swait;
 int32_t err, wc, maxwc, t;
@@ -617,7 +617,7 @@ return SCPE_OK;
 
 /* Set done and possibly errors */
 
-void rb_set_done (int32_t status)
+static void rb_set_done (int32_t status)
 {
 rbcs = rbcs | status | CSR_DONE;                        /* set done */
 rbcs = rbcs | RBCS_IRQ;
@@ -634,7 +634,7 @@ return;
 
 /* Device reset */
 
-t_stat rb_reset (DEVICE *dptr)
+static t_stat rb_reset (DEVICE *dptr)
 {
 /* Generic device reset signature.
    This implementation does not use every parameter. */
@@ -659,7 +659,7 @@ if (rbxb == NULL)
 return SCPE_OK;
 }
 
-const char *rb_description (DEVICE *dptr)
+static const char *rb_description (DEVICE *dptr)
 {
 /* Generic device description signature.
    This implementation does not use every parameter. */
@@ -670,7 +670,7 @@ return "RB730 disk controller";
 
 /* Attach routine */
 
-t_stat rb_attach (UNIT *uptr, const char *cptr)
+static t_stat rb_attach (UNIT *uptr, const char *cptr)
 {
 uint32_t p;
 t_stat r;
@@ -692,7 +692,7 @@ return SCPE_OK;
 
 /* Set size routine */
 
-t_stat rb_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat rb_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
@@ -707,7 +707,7 @@ return SCPE_OK;
 
 /* Set bad block routine */
 
-t_stat rb_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc)
+static t_stat rb_set_bad (UNIT *uptr, int32_t val, const char *cptr, void *desc)
 {
 /* Generic set modifier signature.
    This implementation does not use every parameter. */
