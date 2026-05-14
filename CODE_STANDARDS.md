@@ -63,6 +63,44 @@ whose sizes come directly from user configuration should validate the
 request, report an error, and leave simulator state coherent so the
 user can correct the command.
 
+## Time APIs
+
+Code must distinguish host wall-clock time, host monotonic/watchdog
+time, guest-visible device time, and simulator event/instruction time.
+Do not use one time domain as a substitute for another.
+
+Kernel-facing calls that obtain the current time or wait for time to
+pass must go through the runtime wrappers in `sim_time.h`, such as
+`sim_clock_gettime`, `sim_time`, `sim_nanosleep`, and `sim_sleep`.
+These wrappers are thin seams around the modern POSIX-shaped time APIs,
+chiefly `clock_gettime` and `nanosleep`. They make time-dependent code
+testable and keep platform differences out of core, runtime, and
+simulator logic.
+
+The project uses these POSIX-shaped APIs on every supported host,
+including Windows. When a supported platform does not provide a function
+directly, the compatibility layer supplies the same interface. New code
+should therefore call the shared wrappers or the standardized
+POSIX-shaped helper directly, rather than adding local `_WIN32` branches
+or older API alternatives.
+
+Timestamp-processing helpers that transform an existing timestamp but do
+not obtain time from the host or wait should be used directly. Prefer
+`localtime_r`, `gmtime_r`, `strftime`, `mktime`, and `difftime`. These
+are deterministic transformations of caller-supplied time values and do
+not need the test seam used for kernel-facing clock and sleep calls.
+
+Do not add new direct uses of `time`, `gettimeofday`, `sleep`, `usleep`,
+or raw `clock_gettime` / `nanosleep` in common runtime, core, or
+simulator code unless there is a documented reason. Do not use
+`localtime`, `gmtime`, `ctime`, or `asctime` in new code; use the
+reentrant POSIX-shaped interfaces and explicit formatting instead.
+
+Simulator event scheduling and guest-visible timers are not host
+watchdogs. Test timeouts and host safety guards must use a host time
+domain that remains correct even when guest time is accelerated,
+stalled, or virtualized.
+
 ## Includes
 
 When adding or touching include blocks, keep system includes
