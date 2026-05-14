@@ -32,6 +32,18 @@ Do not use unbounded string construction APIs in new code:
 - use `snprintf` instead of `sprintf`
 - use `strlcpy` instead of `strcpy`
 - use `strlcat` instead of `strcat`
+- usually use `xstrdup` or `xstrndup` for owned string copies
+- use `strlappendf` for formatted appends to an existing fixed buffer
+
+The `xstrdup` and `xstrndup` helpers are allocation-aborting variants of
+the standard-style `strdup` and `strndup` interfaces. Like the other
+fatal allocation wrappers described in the Allocation section, use them
+only where that policy is appropriate. Use `strdup` or `strndup`
+directly only when local recovery from allocation failure is meaningful.
+
+The `strlappendf` helper is a local ZIMH utility for appending formatted
+text to an existing NUL-terminated fixed buffer while preserving
+`strlcpy`/`strlcat`-style truncation semantics.
 
 When replacing legacy code, preserve behavior and add tests first. Use
 the return values of bounded APIs when truncation matters to the caller.
@@ -46,6 +58,12 @@ should normally become `strlcpy`, `strlcat`, or tracked-offset
 If a fixed buffer is the wrong abstraction, record the issue and discuss
 a dynamic-string refactor. Do not fold large buffer-design changes into
 a mechanical safety pass without agreement.
+
+Use `dynstr` for internal open-ended string construction where a fixed
+buffer would make truncation part of the implementation by accident.
+Keep compatibility boundaries explicit: a legacy fixed-buffer API may
+still copy from a dynamic result at the boundary until the public API can
+be changed.
 
 ## Allocation
 
@@ -101,6 +119,60 @@ watchdogs. Test timeouts and host safety guards must use a host time
 domain that remains correct even when guest time is accelerated,
 stalled, or virtualized.
 
+## Temporary Files
+
+Production C code should create named temporary files through
+`sim_tempfile_open` or `sim_tempfile_open_stream`. Do not add new direct
+uses of `mkstemp`, `mkstemps`, `mktemp`, `tmpnam`, or hand-built
+process-ID-based temporary paths.
+
+Do not add new uses of `tmpfile`. Although it is a C standard interface,
+it is not a good portable default on Windows. Existing test fixtures that
+use `tmpfile` should migrate to the shared temporary-file API when they
+are touched, unless they are specifically testing a compatibility shim.
+
+## Randomness
+
+The randomness API is still being renovated. Until that work is done, do
+not add new direct uses of host `rand` or `srand`. Code that needs a
+deterministic simulator or test pseudo-random stream should use the
+project PRNG interface so behavior is reproducible across hosts.
+
+Future host-quality randomness work should stay separate from the
+deterministic simulator PRNG. UUID generation, entropy, security-sensitive
+values, and host identity material should eventually use an explicit
+host-random or UUID-specific API. If new code needs that before the
+shared helper exists, discuss the API instead of choosing a local random
+source.
+
+## Host Platform Boundaries
+
+Keep host operating system integration in shared runtime, compatibility,
+component, or build-system layers where practical. Simulator device
+models should focus on emulated machine behavior, not host GUI, timing,
+networking, filesystem, or Windows/POSIX plumbing.
+
+Prefer direct host APIs or shared wrappers for host introspection. Do not
+use `popen` merely to ask the host for information such as the hostname,
+kernel identity, or CPU model when a direct OS API is practical. `popen`
+is acceptable only when the feature intentionally runs an external
+command or shell pipeline.
+
+New display work should route through the shared display/video layer,
+currently the SDL-backed path, rather than adding or reviving raw host
+backends such as direct X11, Win32, or Carbon display code.
+
+## Utility Code
+
+Reusable C support code that is not specific to the simulator framework
+belongs under `src/lib` with public headers in `src/include`. Generic
+helpers should avoid dependencies on `sim_defs.h` or other
+simulator-specific headers.
+
+Use neutral names for generic utility facilities, such as `xalloc`,
+`dynstr`, and `string_util`, rather than `sim_*` names. Keep
+simulator-specific policy macros and APIs in simulator headers.
+
 ## Includes
 
 When adding or touching include blocks, keep system includes
@@ -110,6 +182,57 @@ conditional platform blocks readable.
 Prefer direct includes for the standard facilities a source file uses.
 For example, include `<stdbool.h>` for `bool` and `<stdint.h>` for
 fixed-width integer names.
+
+Callers should include the header for the API they use directly rather
+than relying on incidental transitive includes.
+
+New headers should use conventional include guards:
+
+```c
+#ifndef EXAMPLE_H_
+#define EXAMPLE_H_ 1
+```
+
+Do not use replacement value `0` for new include guards.
+
+## Build Configuration
+
+Keep standard CMake variables unchanged. For project-defined options,
+use `WITH_*` for product or runtime features and `ENABLE_*` for tooling,
+analysis, and validation modes. Avoid negative option names such as
+`NO_*`, `DONT_*`, and `WITHOUT_*`.
+
+Prefer configuration-time capability checks over hard-coded host-name
+checks when the real dependency is a header, function, type, constant,
+or behavior. Keep platform-family checks only when the distinction is
+inherently about the platform family.
+
+## Vendored Code
+
+Prefer using maintained upstream packages through the build system over
+copying third-party source into the tree. Vendor code only when a normal
+package dependency is not practical or when there is a deliberate project
+reason to carry a copy.
+
+Keep vendored or imported third-party code as close to upstream as
+practical. Do not apply broad ZIMH style, formatting, or API-renaming
+passes inside vendored code unless the change is needed for integration
+and cannot reasonably live in adapter code.
+
+Local integration glue should live outside the vendored subtree where
+practical. Preserve upstream license and copyright notices, and record
+the upstream version or commit used for substantial vendor imports.
+
+## Licensing
+
+New ZIMH-owned source files should use SPDX license headers from the
+start. When touching older SIMH-owned source files, convert the existing
+license header to the appropriate SPDX form as part of the local edit
+when that can be done without obscuring the functional change.
+
+Do not rewrite imported third-party source merely to convert license
+text. License cleanup in vendored code should happen only as part of a
+deliberate vendor import or integration pass.
 
 ## Formatting
 
