@@ -27,7 +27,7 @@
 */
 
 #ifndef M68K_CPU_H_
-#define M68K_CPU_H_ 0
+#define M68K_CPU_H_ 1
 
 #include <stdint.h>
 

@@ -41,7 +41,7 @@
 */
 
 #ifndef I1401_DEFS_H_
-#define I1401_DEFS_H_  0
+#define I1401_DEFS_H_  1
 
 #include <stdbool.h>
 #include <stdint.h>

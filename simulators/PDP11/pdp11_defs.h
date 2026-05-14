@@ -81,7 +81,7 @@
 */
 
 #ifndef PDP11_DEFS_H
-#define PDP11_DEFS_H   0
+#define PDP11_DEFS_H   1
 
 #ifndef VM_PDP11
 #define VM_PDP11        0

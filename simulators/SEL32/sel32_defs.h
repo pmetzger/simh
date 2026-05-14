@@ -23,7 +23,7 @@
 */
 
 #ifndef SEL32_DEFS_H_
-#define SEL32_DEFS_H_ 0
+#define SEL32_DEFS_H_ 1
 
 /********************Attention************************/
 /* define the environment wanted for sel32 execution */

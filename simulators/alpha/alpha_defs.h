@@ -31,7 +31,7 @@
 */
 
 #ifndef _ALPHA_DEFS_H_
-#define _ALPHA_DEFS_H_  0
+#define _ALPHA_DEFS_H_  1
 
 #include "sim_defs.h"
 #include <setjmp.h>

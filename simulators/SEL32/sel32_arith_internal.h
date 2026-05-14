@@ -1,7 +1,7 @@
 /* sel32_arith_internal.h: internal SEL-32 arithmetic helpers */
 
 #ifndef SEL32_ARITH_INTERNAL_H_
-#define SEL32_ARITH_INTERNAL_H_ 0
+#define SEL32_ARITH_INTERNAL_H_ 1
 
 #include <stdbool.h>
 #include <stdint.h>

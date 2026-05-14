@@ -34,7 +34,7 @@
 */
 
 #ifndef I7094_DEFS_H_
-#define I7094_DEFS_H_  0
+#define I7094_DEFS_H_  1
 
 #include <stdbool.h>
 #include <stdint.h>

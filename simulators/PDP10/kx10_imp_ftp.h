@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef KX10_IMP_FTP_H_
-#define KX10_IMP_FTP_H_ 0
+#define KX10_IMP_FTP_H_ 1
 
 #include <stdbool.h>
 #include <stddef.h>

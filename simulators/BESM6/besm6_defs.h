@@ -28,7 +28,7 @@
  * authorization from Leonid Broukhis and Serge Vakulenko.
  */
 #ifndef _BESM6_DEFS_H_
-#define _BESM6_DEFS_H_    0
+#define _BESM6_DEFS_H_    1
 
 #include <setjmp.h>
 #include <stdint.h>

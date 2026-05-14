@@ -47,7 +47,7 @@
 */
 
 #ifndef PDP8_DEFS_H_
-#define PDP8_DEFS_H_   0
+#define PDP8_DEFS_H_   1
 
 #include <stdint.h>
 

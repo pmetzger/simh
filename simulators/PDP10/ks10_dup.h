@@ -33,7 +33,7 @@
 */
 
 #ifndef PDP11_DUP_H_
-#define PDP11_DUP_H_    0
+#define PDP11_DUP_H_    1
 #include <stdbool.h>
 #include <stdint.h>
 

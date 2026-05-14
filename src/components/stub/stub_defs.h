@@ -27,7 +27,7 @@
 */
 
 #ifndef STUB_DEFS_H_
-#define STUB_DEFS_H_  0
+#define STUB_DEFS_H_  1
 
 #include <stdint.h>
 

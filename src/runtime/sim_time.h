@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SIM_TIME_H_
-#define SIM_TIME_H_ 0
+#define SIM_TIME_H_ 1
 
 #include <time.h>
 

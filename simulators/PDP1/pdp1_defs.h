@@ -50,7 +50,7 @@
 */
 
 #ifndef PDP1_DEFS_H_
-#define PDP1_DEFS_H_   0
+#define PDP1_DEFS_H_   1
 
 #include <stdint.h>
 

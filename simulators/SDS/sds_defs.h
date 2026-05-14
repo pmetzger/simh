@@ -29,7 +29,7 @@
 */
 
 #ifndef SDS_DEFS_H_
-#define SDS_DEFS_H_    0
+#define SDS_DEFS_H_    1
 
 #include <stdbool.h>
 #include <stdint.h>

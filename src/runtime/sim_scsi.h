@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: X11
 
 #ifndef _SIM_SCSI_H_
-#define _SIM_SCSI_H_     0
+#define _SIM_SCSI_H_     1
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -47,7 +47,7 @@
 */
 
 #ifndef NOVA_DEFS_H_
-#define NOVA_DEFS_H_   0
+#define NOVA_DEFS_H_   1
 
 #include <stdint.h>
 

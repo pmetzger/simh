@@ -31,7 +31,7 @@
 */
 
 #ifndef ALPHA_SYS_DEFS_H_
-#define ALPHA_SYS_DEFS_H_      0
+#define ALPHA_SYS_DEFS_H_      1
 
 #define PA_SIZE                 36                       /* PA size */
 #define PA_MASK                 0x0000000FFFFFFFFF

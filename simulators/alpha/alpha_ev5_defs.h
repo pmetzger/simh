@@ -29,7 +29,7 @@
 */
 
 #ifndef ALPHA_EV5_DEFS_H_
-#define ALPHA_EV5_DEFS_H_      0
+#define ALPHA_EV5_DEFS_H_      1
 
 #include <stdint.h>
 

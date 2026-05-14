@@ -31,7 +31,7 @@
 */
 
 #ifndef _SSEM_DEFS_H_
-#define _SSEM_DEFS_H_    0
+#define _SSEM_DEFS_H_    1
 
 #include <stdint.h>
 

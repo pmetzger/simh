@@ -10,7 +10,7 @@
 
 
 #ifndef SIM_SERIAL_H_
-#define SIM_SERIAL_H_    0
+#define SIM_SERIAL_H_    1
 
 #ifndef SIMH_SERHANDLE_DEFINED
 #define SIMH_SERHANDLE_DEFINED 0

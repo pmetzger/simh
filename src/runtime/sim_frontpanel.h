@@ -26,7 +26,7 @@
 */
 
 #ifndef SIM_FRONTPANEL_H_
-#define SIM_FRONTPANEL_H_     0
+#define SIM_FRONTPANEL_H_     1
 
 #include <stdlib.h>
 

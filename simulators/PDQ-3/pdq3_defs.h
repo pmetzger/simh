@@ -28,7 +28,7 @@
    20141003 hv recommended warnings from VC++ and gcc added
 */
 #ifndef _PDQ3_DEFS_H_
-#define _PDQ3_DEFS_H_ 0
+#define _PDQ3_DEFS_H_ 1
 
 #include <stdbool.h>
 #include <stdint.h>

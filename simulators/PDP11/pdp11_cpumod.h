@@ -29,7 +29,7 @@
 */
 
 #ifndef PDP11_CPUMOD_H_
-#define PDP11_CPUMOD_H_        0
+#define PDP11_CPUMOD_H_        1
 
 #include <stdint.h>
 

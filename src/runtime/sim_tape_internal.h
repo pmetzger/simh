@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SIM_TAPE_INTERNAL_H_
-#define SIM_TAPE_INTERNAL_H_ 0
+#define SIM_TAPE_INTERNAL_H_ 1
 
 #include <stdbool.h>
 #include <stddef.h>

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: X11
 
 #ifndef UINT_BITS_H_
-#define UINT_BITS_H_ 0
+#define UINT_BITS_H_ 1
 
 #include <stdint.h>
 

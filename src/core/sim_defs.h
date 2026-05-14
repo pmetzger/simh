@@ -98,7 +98,7 @@
 */
 
 #ifndef SIM_DEFS_H_
-#define SIM_DEFS_H_    0
+#define SIM_DEFS_H_    1
 
 #include <ctype.h>
 #include <errno.h>

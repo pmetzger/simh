@@ -27,7 +27,7 @@
 */
 
 #ifndef LINC_DEFS_H_
-#define LINC_DEFS_H_  0
+#define LINC_DEFS_H_  1
 
 #include <stdint.h>
 

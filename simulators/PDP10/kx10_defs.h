@@ -26,7 +26,7 @@
 */
 
 #ifndef _KA10_DEFS_H_
-#define _KA10_DEFS_H_  0
+#define _KA10_DEFS_H_  1
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -34,7 +34,7 @@
  *************************************************************************/
 
 #ifndef TX0_DEFS_H_
-#define TX0_DEFS_H_   0
+#define TX0_DEFS_H_   1
 
 #include <stdint.h>
 

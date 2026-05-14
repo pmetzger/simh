@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: X11
 
 #ifndef I8080_SYMBOL_INTERNAL_H_
-#define I8080_SYMBOL_INTERNAL_H_ 0
+#define I8080_SYMBOL_INTERNAL_H_ 1
 
 #include <stdint.h>
 

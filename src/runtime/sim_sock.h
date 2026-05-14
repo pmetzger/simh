@@ -24,7 +24,7 @@
 */
 
 #ifndef SIM_SOCK_H_
-#define SIM_SOCK_H_    0
+#define SIM_SOCK_H_    1
 
 #if defined (_WIN32)                                    /* Windows */
 #include <winsock2.h>

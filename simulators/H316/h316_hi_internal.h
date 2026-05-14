@@ -1,7 +1,7 @@
 /* h316_hi_internal.h: internal 1822 host interface conversion helpers */
 
 #ifndef H316_HI_INTERNAL_H_
-#define H316_HI_INTERNAL_H_ 0
+#define H316_HI_INTERNAL_H_ 1
 
 #include <stdint.h>
 #include <string.h>

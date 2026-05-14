@@ -1,7 +1,7 @@
 /* sel32_chan_internal.h: internal SEL-32 channel helpers */
 
 #ifndef SEL32_CHAN_INTERNAL_H_
-#define SEL32_CHAN_INTERNAL_H_ 0
+#define SEL32_CHAN_INTERNAL_H_ 1
 
 #include <stdint.h>
 

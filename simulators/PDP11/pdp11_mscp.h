@@ -30,7 +30,7 @@
 */
 
 #ifndef PDP11_MSCP_H_
-#define PDP11_MSCP_H_  0
+#define PDP11_MSCP_H_  1
 
 /* Misc constants */
 

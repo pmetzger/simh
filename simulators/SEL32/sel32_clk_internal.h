@@ -1,7 +1,7 @@
 /* sel32_clk_internal.h: internal SEL-32 clock helpers */
 
 #ifndef SEL32_CLK_INTERNAL_H_
-#define SEL32_CLK_INTERNAL_H_ 0
+#define SEL32_CLK_INTERNAL_H_ 1
 
 #include <math.h>
 #include <stdint.h>

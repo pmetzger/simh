@@ -25,7 +25,7 @@
 */
 
 #ifndef SIM_TMXR_H_
-#define SIM_TMXR_H_    0
+#define SIM_TMXR_H_    1
 
 #include <stdarg.h>
 #include <stdbool.h>

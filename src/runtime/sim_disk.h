@@ -12,7 +12,7 @@
 */
 
 #ifndef SIM_DISK_H_
-#define SIM_DISK_H_    0
+#define SIM_DISK_H_    1
 
 #include <stdbool.h>
 #include <stdint.h>

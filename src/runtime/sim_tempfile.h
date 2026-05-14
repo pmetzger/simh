@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SIM_TEMPFILE_H_
-#define SIM_TEMPFILE_H_ 0
+#define SIM_TEMPFILE_H_ 1
 
 #include <stddef.h>
 #include <stdio.h>

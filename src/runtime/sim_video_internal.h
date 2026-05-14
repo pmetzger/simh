@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: X11
 
 #ifndef SIM_VIDEO_INTERNAL_H_
-#define SIM_VIDEO_INTERNAL_H_ 0
+#define SIM_VIDEO_INTERNAL_H_ 1
 
 #include "sim_video.h"
 

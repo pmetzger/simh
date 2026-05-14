@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SCP_CMDVARS_H_
-#define SCP_CMDVARS_H_ 0
+#define SCP_CMDVARS_H_ 1
 
 #include <stdbool.h>
 #include <stdint.h>

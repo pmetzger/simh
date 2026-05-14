@@ -27,7 +27,7 @@
 */
 
 #ifndef IMLAC_DEFS_H_
-#define IMLAC_DEFS_H_  0
+#define IMLAC_DEFS_H_  1
 
 #include <stdint.h>
 

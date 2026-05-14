@@ -37,7 +37,7 @@
 */
 
 #ifndef ID_DEFS_H_
-#define ID_DEFS_H_     0
+#define ID_DEFS_H_     1
 
 #include <stdbool.h>
 #include <stdint.h>

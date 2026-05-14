@@ -30,7 +30,7 @@
 */
 
 #ifndef SIGMA_IO_DEFS_H_
-#define SIGMA_IO_DEFS_H_  0
+#define SIGMA_IO_DEFS_H_  1
 
 #include <stdbool.h>
 #include <stdint.h>

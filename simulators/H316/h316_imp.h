@@ -30,7 +30,7 @@
 
 #ifdef VM_IMPTIP
 #ifndef H316_IMP_H_
-#define H316_IMP_H_   0
+#define H316_IMP_H_   1
 #include "sim_defs.h"
 
 // Common modem and host parameters ...

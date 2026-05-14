@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SIM_DISK_RAMDISK_H_
-#define SIM_DISK_RAMDISK_H_ 0
+#define SIM_DISK_RAMDISK_H_ 1
 
 #include <stdbool.h>
 #include <stddef.h>

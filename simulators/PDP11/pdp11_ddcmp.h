@@ -29,7 +29,7 @@
 */
 
 #ifndef PDP11_DDCMP_H_
-#define PDP11_DDCMP_H_    0
+#define PDP11_DDCMP_H_    1
 
 #include "c_attrs.h"
 #include "sim_tmxr.h"

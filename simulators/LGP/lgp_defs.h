@@ -27,7 +27,7 @@
 */
 
 #ifndef LGP_DEFS_H_
-#define LGP_DEFS_H_    0
+#define LGP_DEFS_H_    1
 
 #include <stdint.h>
 

@@ -27,7 +27,7 @@
 */
 
 #ifndef ALTAIRZ80_DEFS_H_
-#define ALTAIRZ80_DEFS_H_    0
+#define ALTAIRZ80_DEFS_H_    1
 
 #include <stdbool.h>
 #include <stdint.h>

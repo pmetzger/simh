@@ -15,7 +15,7 @@
 */
 
 #ifndef SIM_CONSOLE_H_
-#define SIM_CONSOLE_H_ 0
+#define SIM_CONSOLE_H_ 1
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SCP_HELP_ENGINE_H_
-#define SCP_HELP_ENGINE_H_ 0
+#define SCP_HELP_ENGINE_H_ 1
 
 #include <stdarg.h>
 #include <stdbool.h>

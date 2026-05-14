@@ -28,7 +28,7 @@
 */
 
 #ifndef PDP11_UQSSP_H_
-#define PDP11_UQSSP_H_ 0
+#define PDP11_UQSSP_H_ 1
 
 #include <stdint.h>
 

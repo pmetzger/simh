@@ -1,7 +1,7 @@
 /* pdp18b_cpu_internal.h: internal helpers for 18-bit PDP CPU tests */
 
 #ifndef PDP18B_CPU_INTERNAL_H_
-#define PDP18B_CPU_INTERNAL_H_ 0
+#define PDP18B_CPU_INTERNAL_H_ 1
 
 #include <stdint.h>
 

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: X11
 
 #ifndef SCP_HELP_H_
-#define SCP_HELP_H_  0
+#define SCP_HELP_H_  1
 
 /* The SCP structured help uses help text that defines a hierarchy of information
  * organized into topics and subtopics.  This is modelled on the VMS help command.

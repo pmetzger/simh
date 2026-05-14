@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef HP3000_FORMAT_H_
-#define HP3000_FORMAT_H_ 0
+#define HP3000_FORMAT_H_ 1
 
 #include <stddef.h>
 #include <stdint.h>

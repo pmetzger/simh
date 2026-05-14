@@ -29,7 +29,7 @@
 */
 
 #ifndef ALPHA_PAL_DEFS_H_
-#define ALPHA_PAL_DEFS_H_  0
+#define ALPHA_PAL_DEFS_H_  1
 
 /* VA - NT software format */
 

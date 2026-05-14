@@ -27,7 +27,7 @@
 */
 
 #ifndef TT2500_DEFS_H_
-#define TT2500_DEFS_H_  0
+#define TT2500_DEFS_H_  1
 
 #include <stdbool.h>
 #include <stdint.h>

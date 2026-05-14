@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SIM_IMD_H_
-#define SIM_IMD_H_     0
+#define SIM_IMD_H_     1
 
 #include <stdint.h>
 

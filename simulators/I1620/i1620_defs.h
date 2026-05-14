@@ -36,7 +36,7 @@
 */
 
 #ifndef I1620_DEFS_H_
-#define I1620_DEFS_H_  0
+#define I1620_DEFS_H_  1
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -7,7 +7,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SIM_HOST_PATH_H_
-#define SIM_HOST_PATH_H_ 0
+#define SIM_HOST_PATH_H_ 1
 
 #include <stddef.h>
 

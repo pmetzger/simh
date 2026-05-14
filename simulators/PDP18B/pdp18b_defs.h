@@ -55,7 +55,7 @@
 */
 
 #ifndef PDP18B_DEFS_H_
-#define PDP18B_DEFS_H_ 0
+#define PDP18B_DEFS_H_ 1
 
 #include <stdint.h>
 

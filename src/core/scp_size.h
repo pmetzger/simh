@@ -9,7 +9,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SIM_SCP_SIZE_H_
-#define SIM_SCP_SIZE_H_ 0
+#define SIM_SCP_SIZE_H_ 1
 
 #include <stdint.h>
 

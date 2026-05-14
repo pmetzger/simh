@@ -1,7 +1,7 @@
 /* altair_dsk_internal.h: private 88-DISK helpers for tests */
 
 #ifndef ALTAIR_DSK_INTERNAL_H_
-#define ALTAIR_DSK_INTERNAL_H_ 0
+#define ALTAIR_DSK_INTERNAL_H_ 1
 
 #include <stdbool.h>
 #include <stddef.h>

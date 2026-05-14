@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef SIM_SCP_UNIT_H_
-#define SIM_SCP_UNIT_H_ 0
+#define SIM_SCP_UNIT_H_ 1
 
 #include "sim_defs.h"
 

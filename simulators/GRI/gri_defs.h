@@ -48,7 +48,7 @@
 */
 
 #ifndef GRI_DEFS_H_
-#define GRI_DEFS_H_    0
+#define GRI_DEFS_H_    1
 
 #include <stdint.h>
 

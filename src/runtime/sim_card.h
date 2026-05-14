@@ -64,7 +64,7 @@
 */
 
 #ifndef SIM_CARD_H_
-#define SIM_CARD_H_     0
+#define SIM_CARD_H_     1
 
 #include <stdint.h>
 

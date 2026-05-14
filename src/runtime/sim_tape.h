@@ -17,7 +17,7 @@
 */
 
 #ifndef SIM_TAPE_H_
-#define SIM_TAPE_H_    0
+#define SIM_TAPE_H_    1
 
 #include <stdbool.h>
 #include <stdint.h>

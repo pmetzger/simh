@@ -44,7 +44,7 @@
 */
 
 #ifndef PDP10_DEFS_H_
-#define PDP10_DEFS_H_  0
+#define PDP10_DEFS_H_  1
 
 #ifndef VM_PDP10
 #define VM_PDP10        0

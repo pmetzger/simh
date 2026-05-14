@@ -15,7 +15,7 @@
 */
 
 #ifndef SIM_SCP_H_
-#define SIM_SCP_H_     0
+#define SIM_SCP_H_     1
 
 #include <stdarg.h>
 #include <stdbool.h>
