@@ -187,7 +187,7 @@
 /*-----------------------------------------------------------------------------------------------*/
 
 #include "sel32_defs.h"
-#include "sim_string.h"
+#include "string_util.h"
 #include "sim_types.h"
 #include <ctype.h>
 #include <stdint.h>

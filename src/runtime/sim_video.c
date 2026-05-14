@@ -16,7 +16,7 @@
 #include "sim_video.h"
 #include "sim_video_internal.h"
 #include "scp.h"
-#include "sim_string.h"
+#include "string_util.h"
 
 int vid_active = 0;
 int32_t vid_cursor_x;

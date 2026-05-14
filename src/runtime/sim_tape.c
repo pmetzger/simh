@@ -75,7 +75,7 @@
 
 #include "sim_defs.h"
 #include "dynstr.h"
-#include "sim_string.h"
+#include "string_util.h"
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
 #include "sim_types.h"

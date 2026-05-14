@@ -347,7 +347,7 @@
 
 #include "sim_ether.h"
 #include "sim_sock.h"
-#include "sim_string.h"
+#include "string_util.h"
 #include "sim_time.h"
 #include "sim_timer.h"
 #include "sim_types.h"

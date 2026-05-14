@@ -35,7 +35,7 @@ commands may NOT be accurate. This should probably be fixed.
 
 #include "ibm1130_defs.h"
 #include "ibm1130_bool_internal.h"
-#include "sim_string.h"
+#include "string_util.h"
 #include <memory.h>
 #include <stdbool.h>
 #include <stdint.h>

@@ -252,7 +252,7 @@
 
 #include "pdp11_xq.h"
 #include "pdp11_xq_bootrom.h"
-#include "sim_string.h"
+#include "string_util.h"
 #include "sim_types.h"
 #include "uint_bits.h"
 

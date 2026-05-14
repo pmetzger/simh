@@ -3,7 +3,7 @@
 
 #include "test_cmocka.h"
 
-#include "sim_string.h"
+#include "string_util.h"
 
 /* Verify formatted append preserves existing text and appends new text. */
 static void test_strlappendf_appends_formatted_text(void **state)

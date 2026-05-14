@@ -26,7 +26,7 @@ set(SIM_SOURCES
     ${SIMH_RUNTIME_ROOT}/sim_rom_patch.c
     ${SIMH_RUNTIME_ROOT}/sim_scsi.c
     ${SIMH_RUNTIME_ROOT}/sim_serial.c
-    ${SIMH_RUNTIME_ROOT}/sim_string.c
+    ${SIMH_LIB_ROOT}/string_util.c
     ${SIMH_RUNTIME_ROOT}/sim_sock.c
     ${SIMH_RUNTIME_ROOT}/sim_tape.c
     ${SIMH_RUNTIME_ROOT}/sim_tape_testlib.c

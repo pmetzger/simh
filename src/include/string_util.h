@@ -1,9 +1,9 @@
-/* sim_string.h: Fixed-buffer string helpers for ZIMH */
+/* string_util.h: Fixed-buffer string helpers for ZIMH */
 // SPDX-FileCopyrightText: 2026 The ZIMH Project
 // SPDX-License-Identifier: MIT
 
-#ifndef SIM_STRING_H_
-#define SIM_STRING_H_ 0
+#ifndef STRING_UTIL_H_
+#define STRING_UTIL_H_ 1
 
 #include "sim_attrs.h"
 

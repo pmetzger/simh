@@ -14,14 +14,6 @@ add_unit_test(unit-sim-host-path
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
-add_unit_test(unit-sim-string
-    LABEL unit
-    SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_sim_string.c
-    INCLUDES
-        ${PROJECT_SOURCE_DIR}/tests/unit/support
-)
-
 add_unit_test(unit-sim-tempfile
     LABEL unit
     SOURCES

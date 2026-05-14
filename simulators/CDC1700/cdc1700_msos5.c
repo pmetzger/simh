@@ -32,7 +32,7 @@
 #include <stdint.h>
 
 #include "cdc1700_defs.h"
-#include "sim_string.h"
+#include "string_util.h"
 
 extern uint16_t M[], Preg, Areg, Qreg;
 

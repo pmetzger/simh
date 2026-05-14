@@ -1,8 +1,8 @@
-/* sim_string.c: Fixed-buffer string helpers for ZIMH */
+/* string_util.c: Fixed-buffer string helpers for ZIMH */
 // SPDX-FileCopyrightText: 2026 The ZIMH Project
 // SPDX-License-Identifier: MIT
 
-#include "sim_string.h"
+#include "string_util.h"
 
 #include <stdarg.h>
 #include <stdio.h>

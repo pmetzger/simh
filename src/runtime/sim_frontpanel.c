@@ -26,7 +26,7 @@
 
 #include "sim_attrs.h"
 #include "sim_frontpanel.h"
-#include "sim_string.h"
+#include "string_util.h"
 #include "sim_time.h"
 #include "sim_types.h"
 
