@@ -77,37 +77,47 @@ void dynstr_append(dynstr_t *ds, const char *text)
     ds->len += text_len;
 }
 
-/* Append one formatted string fragment. */
-bool dynstr_appendf(dynstr_t *ds, const char *fmt, ...)
+/* Append one formatted string fragment from a va_list. */
+bool dynstr_vappendf(dynstr_t *ds, const char *fmt, va_list args)
 {
     dynstr_vsnprintf_fn vsnprintf_fn;
     char stackbuf[DYNSTR_STACK_SIZE];
-    va_list args;
     va_list copy;
     int len;
     int rendered;
 
     vsnprintf_fn = dynstr_vsnprintf_impl();
-    va_start(args, fmt);
     va_copy(copy, args);
     len = vsnprintf_fn(stackbuf, sizeof(stackbuf), fmt, copy);
     va_end(copy);
-    if (len < 0) {
-        va_end(args);
+    if (len < 0)
         return false;
-    }
     if ((size_t)len < sizeof(stackbuf)) {
-        va_end(args);
         dynstr_append(ds, stackbuf);
         return true;
     }
     dynstr_reserve(ds, ds->len + (size_t)len + 1);
-    rendered = vsnprintf_fn(ds->buf + ds->len, (size_t)len + 1, fmt, args);
-    va_end(args);
-    if (rendered != len)
+    va_copy(copy, args);
+    rendered = vsnprintf_fn(ds->buf + ds->len, (size_t)len + 1, fmt, copy);
+    va_end(copy);
+    if (rendered != len) {
+        ds->buf[ds->len] = '\0';
         return false;
+    }
     ds->len += (size_t)len;
     return true;
+}
+
+/* Append one formatted string fragment. */
+bool dynstr_appendf(dynstr_t *ds, const char *fmt, ...)
+{
+    va_list args;
+    bool ok;
+
+    va_start(args, fmt);
+    ok = dynstr_vappendf(ds, fmt, args);
+    va_end(args);
+    return ok;
 }
 
 /* Append one character and keep the buffer NUL-terminated. */

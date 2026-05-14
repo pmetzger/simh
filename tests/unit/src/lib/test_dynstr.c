@@ -15,6 +15,19 @@ static int test_dynstr_vsnprintf_calls = 0;
 
 #define DYNSTR_TEST_STACK_SIZE 4096
 
+/* Exercise the va_list append API from an ordinary variadic wrapper. */
+static bool PRINTF_FMT(2, 3)
+    test_dynstr_call_vappendf(dynstr_t *ds, const char *fmt, ...)
+{
+    va_list args;
+    bool ok;
+
+    va_start(args, fmt);
+    ok = dynstr_vappendf(ds, fmt, args);
+    va_end(args);
+    return ok;
+}
+
 /* Force formatted append down the negative-return path when requested. */
 static int PRINTF_FMT(3, 0)
     test_dynstr_vsnprintf_fail_hook(char *buf, size_t size, const char *fmt,
@@ -138,6 +151,38 @@ static void test_dynstr_appendf_handles_long_formatted_output(void **state)
     long_text[sizeof(long_text) - 1] = '\0';
     dynstr_init(&ds);
     assert_true(dynstr_appendf(&ds, "<%s>", long_text));
+    assert_int_equal(ds.len, strlen(long_text) + 2);
+    assert_int_equal(dynstr_cstr(&ds)[0], '<');
+    assert_int_equal(dynstr_cstr(&ds)[ds.len - 1], '>');
+    dynstr_free(&ds);
+}
+
+/* Verify va_list formatted append has the same visible behavior as appendf. */
+static void test_dynstr_vappendf_builds_string(void **state)
+{
+    dynstr_t ds;
+
+    (void)state;
+
+    dynstr_init(&ds);
+    assert_true(test_dynstr_call_vappendf(&ds, "%s=%d", "alpha", 7));
+    assert_string_equal(dynstr_cstr(&ds), "alpha=7");
+    assert_int_equal(ds.len, 7);
+    dynstr_free(&ds);
+}
+
+/* Verify va_list formatted append handles output larger than the stack path. */
+static void test_dynstr_vappendf_handles_long_formatted_output(void **state)
+{
+    dynstr_t ds;
+    char long_text[DYNSTR_TEST_STACK_SIZE * 2];
+
+    (void)state;
+
+    memset(long_text, 'v', sizeof(long_text) - 1);
+    long_text[sizeof(long_text) - 1] = '\0';
+    dynstr_init(&ds);
+    assert_true(test_dynstr_call_vappendf(&ds, "<%s>", long_text));
     assert_int_equal(ds.len, strlen(long_text) + 2);
     assert_int_equal(dynstr_cstr(&ds)[0], '<');
     assert_int_equal(dynstr_cstr(&ds)[ds.len - 1], '>');
@@ -326,6 +371,12 @@ int main(void)
             teardown_dynstr_fixture),
         cmocka_unit_test_setup_teardown(
             test_dynstr_appendf_handles_long_formatted_output,
+            setup_dynstr_fixture, teardown_dynstr_fixture),
+        cmocka_unit_test_setup_teardown(test_dynstr_vappendf_builds_string,
+                                        setup_dynstr_fixture,
+                                        teardown_dynstr_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_dynstr_vappendf_handles_long_formatted_output,
             setup_dynstr_fixture, teardown_dynstr_fixture),
         cmocka_unit_test_setup_teardown(
             test_dynstr_appendf_initial_vsnprintf_failure_preserves_state,

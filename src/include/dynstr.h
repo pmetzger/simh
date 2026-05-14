@@ -5,6 +5,7 @@
 #ifndef DYNSTR_H_
 #define DYNSTR_H_ 1
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -30,6 +31,14 @@ void dynstr_append(dynstr_t *ds, const char *text);
  * Returns false only if the formatter reports an encoding error.
  */
 bool dynstr_appendf(dynstr_t *ds, const char *fmt, ...) PRINTF_FMT(2, 3);
+
+/*
+ * Append one formatted string fragment from a va_list, aborting on
+ * allocation failure. Returns false only if the formatter reports an
+ * encoding error.
+ */
+bool dynstr_vappendf(dynstr_t *ds, const char *fmt,
+                     va_list args) PRINTF_FMT(2, 0);
 
 /* Append one single character, aborting on allocation failure. */
 void dynstr_append_ch(dynstr_t *ds, char ch);
