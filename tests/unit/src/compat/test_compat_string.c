@@ -16,7 +16,7 @@
 #undef strcasecmp
 #undef strncasecmp
 
-#include "sim_string_compat.h"
+#include "string_compat.h"
 
 /* Verify strlcpy reports source length and NUL-terminates truncated copies. */
 static void test_strlcpy_reports_truncation(void **state)

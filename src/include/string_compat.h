@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: The ZIMH Project
 // SPDX-License-Identifier: MIT
 
-#ifndef H_SIM_STRING_COMPAT
-#define H_SIM_STRING_COMPAT 1
+#ifndef STRING_COMPAT_H_
+#define STRING_COMPAT_H_ 1
 
 /*
  * String compatibility routines that may be missing on several hosts.
@@ -40,4 +40,4 @@ int strcasecmp(const char *l, const char *r);
 int strncasecmp(const char *l, const char *r, size_t n);
 #endif
 
-#endif /* H_SIM_STRING_COMPAT */
+#endif /* STRING_COMPAT_H_ */

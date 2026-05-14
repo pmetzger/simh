@@ -36,7 +36,7 @@ runtime starts depending on it outside Windows.
 
 Compatibility declarations are split by scope:
 
-- `sim_string_compat.h` declares string routines such as `strlcpy` and
+- `string_compat.h` declares string routines such as `strlcpy` and
   `strlcat`.
 - `sim_win32_compat.h` declares Windows-only shims and CRT spelling
   aliases.

@@ -132,7 +132,7 @@
 #endif
 
 #include "sim_attrs.h"
-#include "sim_string_compat.h"
+#include "string_compat.h"
 
 #if defined(_WIN32)
 #include "sim_win32_compat.h"
