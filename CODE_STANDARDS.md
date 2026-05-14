@@ -122,14 +122,14 @@ stalled, or virtualized.
 ## Temporary Files
 
 Production C code should create named temporary files through
-`sim_tempfile_open` or `sim_tempfile_open_stream`. Do not add new direct
-uses of `mkstemp`, `mkstemps`, `mktemp`, `tmpnam`, or hand-built
-process-ID-based temporary paths.
+`sim_tempfile_open` or `sim_tempfile_open_stream`. Code that needs an
+anonymous scratch stream should use `sim_tmpfile`. Do not add new direct
+uses of `mkstemp`, `mkstemps`, `mktemp`, `tmpnam`, C `tmpfile`, or
+hand-built process-ID-based temporary paths.
 
-Do not add new uses of `tmpfile`. Although it is a C standard interface,
-it is not a good portable default on Windows. Existing test fixtures that
-use `tmpfile` should migrate to the shared temporary-file API when they
-are touched, unless they are specifically testing a compatibility shim.
+Although C `tmpfile` is a standard interface, it is not a good portable
+default on Windows. Use the project temporary-file APIs unless a test is
+specifically exercising a compatibility shim.
 
 ## Randomness
 

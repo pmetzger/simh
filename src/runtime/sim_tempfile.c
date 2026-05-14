@@ -5,6 +5,7 @@
 #include "sim_tempfile.h"
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -161,14 +162,19 @@ static void sim_tempfile_fill_suffix(char *first_x, uint_t value)
 }
 
 /* Atomically create the requested path for binary read/write access. */
-static int sim_tempfile_open_path(const char *path)
+static int sim_tempfile_open_path(const char *path, bool delete_on_close)
 {
 #if defined(_WIN32)
     HANDLE handle;
+    DWORD attributes;
     int fd;
 
+    attributes = FILE_ATTRIBUTE_TEMPORARY;
+    if (delete_on_close)
+        attributes |= FILE_FLAG_DELETE_ON_CLOSE;
+
     handle = CreateFileA(path, GENERIC_READ | GENERIC_WRITE, 0, NULL,
-                         CREATE_NEW, FILE_ATTRIBUTE_TEMPORARY, NULL);
+                         CREATE_NEW, attributes, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
         sim_tempfile_set_errno(GetLastError());
         return -1;
@@ -182,6 +188,8 @@ static int sim_tempfile_open_path(const char *path)
 
     return fd;
 #else
+    (void)delete_on_close;
+
     int flags = O_CREAT | O_EXCL | O_RDWR;
 
 #if defined(O_CLOEXEC)
@@ -191,9 +199,10 @@ static int sim_tempfile_open_path(const char *path)
 #endif
 }
 
-/* Create an atomically unique temporary file and return its file descriptor. */
-int sim_tempfile_open(char *path, size_t path_size, const char *prefix,
-                      const char *suffix)
+/* Create an atomically unique temporary path with selected close behavior. */
+static int sim_tempfile_create(char *path, size_t path_size,
+                               const char *prefix, const char *suffix,
+                               bool delete_on_close)
 {
     char temp_dir[PATH_MAX + 1];
     char *first_x;
@@ -224,7 +233,7 @@ int sim_tempfile_open(char *path, size_t path_size, const char *prefix,
         int fd;
 
         sim_tempfile_fill_suffix(first_x, seed + attempt);
-        fd = sim_tempfile_open_path(path);
+        fd = sim_tempfile_open_path(path, delete_on_close);
         if (fd >= 0)
             return fd;
         if (errno != EEXIST)
@@ -235,7 +244,14 @@ int sim_tempfile_open(char *path, size_t path_size, const char *prefix,
     return -1;
 }
 
-/* Create an atomically unique temporary file and return it as a stdio stream. */
+/* Create an atomically unique temporary file and return its file descriptor. */
+int sim_tempfile_open(char *path, size_t path_size, const char *prefix,
+                      const char *suffix)
+{
+    return sim_tempfile_create(path, path_size, prefix, suffix, false);
+}
+
+/* Create an atomically unique temporary file as a stdio stream. */
 FILE *sim_tempfile_open_stream(char *path, size_t path_size, const char *prefix,
                                const char *suffix, const char *mode)
 {
@@ -267,6 +283,48 @@ FILE *sim_tempfile_open_stream(char *path, size_t path_size, const char *prefix,
         remove(path);
         errno = saved_errno;
     }
+
+    return stream;
+}
+
+/* Create a temporary stream that is automatically removed on close. */
+FILE *sim_tmpfile(void)
+{
+    char path[PATH_MAX + 1];
+    FILE *stream;
+    int fd;
+
+    fd = sim_tempfile_create(path, sizeof(path), "zimh-tmp-", ".tmp", true);
+    if (fd < 0)
+        return NULL;
+
+#if defined(_WIN32)
+    stream = _fdopen(fd, "w+b");
+#else
+    stream = fdopen(fd, "w+b");
+#endif
+    if (stream == NULL) {
+        int saved_errno = errno;
+
+#if defined(_WIN32)
+        _close(fd);
+#else
+        close(fd);
+#endif
+        remove(path);
+        errno = saved_errno;
+        return NULL;
+    }
+
+#if !defined(_WIN32)
+    if (unlink(path) != 0) {
+        int saved_errno = errno;
+
+        fclose(stream);
+        errno = saved_errno;
+        return NULL;
+    }
+#endif
 
     return stream;
 }

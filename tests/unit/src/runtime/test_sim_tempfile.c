@@ -193,6 +193,23 @@ static void test_sim_tempfile_open_stream_creates_read_write_file(void **state)
     assert_int_equal(unlink(path), 0);
 }
 
+static void test_sim_tmpfile_creates_read_write_stream(void **state)
+{
+    char buffer[8] = {0};
+    FILE *stream;
+
+    (void)state;
+
+    stream = sim_tmpfile();
+    assert_non_null(stream);
+
+    assert_int_equal(fwrite("ghi", 1, 3, stream), 3);
+    assert_int_equal(fseek(stream, 0, SEEK_SET), 0);
+    assert_int_equal(fread(buffer, 1, 3, stream), 3);
+    assert_string_equal(buffer, "ghi");
+    assert_int_equal(fclose(stream), 0);
+}
+
 static void test_sim_tempfile_open_rejects_invalid_arguments(void **state)
 {
     char path[512];
@@ -237,6 +254,7 @@ int main(void)
         cmocka_unit_test(test_sim_tempfile_open_creates_read_write_file),
         cmocka_unit_test(test_sim_tempfile_open_accepts_default_affixes),
         cmocka_unit_test(test_sim_tempfile_open_stream_creates_read_write_file),
+        cmocka_unit_test(test_sim_tmpfile_creates_read_write_stream),
         cmocka_unit_test(test_sim_tempfile_open_rejects_invalid_arguments),
         cmocka_unit_test(
             test_sim_tempfile_open_stream_rejects_invalid_mode),

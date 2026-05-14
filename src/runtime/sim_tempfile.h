@@ -38,4 +38,12 @@ int sim_tempfile_open(char *path, size_t path_size, const char *prefix,
 FILE *sim_tempfile_open_stream(char *path, size_t path_size, const char *prefix,
                                const char *suffix, const char *mode);
 
+/*
+ * Create a temporary binary read/write stream with no pathname contract.
+ *
+ * The caller owns the returned stream and must close it with fclose.  The
+ * backing file is removed automatically when the stream is closed.
+ */
+FILE *sim_tmpfile(void);
+
 #endif
