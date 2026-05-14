@@ -5,7 +5,8 @@
 #ifndef VAX_CMODE_H_
 #define VAX_CMODE_H_ 1
 
-#include "vax_defs.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 int32_t op_cmode(int32_t cc);
 bool BadCmPSL(int32_t newpsl);

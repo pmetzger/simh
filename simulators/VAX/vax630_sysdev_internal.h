@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-#include "vax_defs.h"
+#include "sim_defs.h"
 
 extern uint32_t *rom;
 extern UNIT rom_unit;

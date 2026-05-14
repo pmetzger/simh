@@ -5,7 +5,7 @@
 #ifndef VAX_SYSCM_H_
 #define VAX_SYSCM_H_ 1
 
-#include "vax_defs.h"
+#include "sim_defs.h"
 
 t_stat fprint_sym_cm(FILE *of, t_addr addr, t_value *bytes, int32_t sw);
 t_stat parse_sym_cm(const char *cptr, t_addr addr, t_value *bytes, int32_t sw);

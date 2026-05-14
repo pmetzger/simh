@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-#include "vax_defs.h"
+#include "sim_defs.h"
 
 /*
  * Apply any enabled KA4xx ROM patches to a loaded ROM image.  If the ROM has

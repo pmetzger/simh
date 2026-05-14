@@ -5,7 +5,8 @@
 #ifndef VAX_CPU1_H_
 #define VAX_CPU1_H_ 1
 
-#include "vax_defs.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 int32_t op_bb_n(uint32_t *opnd, int32_t acc);
 int32_t op_bb_x(uint32_t *opnd, int32_t newb, int32_t acc);

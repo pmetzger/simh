@@ -5,7 +5,7 @@
 #ifndef VAX_CIS_H_
 #define VAX_CIS_H_ 1
 
-#include "vax_defs.h"
+#include <stdint.h>
 
 int32_t op_cis(uint32_t *opnd, int32_t cc, int32_t opc, int32_t acc);
 

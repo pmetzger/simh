@@ -6,7 +6,9 @@
 #ifndef VAX4XX_STDDEV_INTERNAL_H_
 #define VAX4XX_STDDEV_INTERNAL_H_ 1
 
-#include "vax_defs.h"
+#include <stdint.h>
+
+#include "sim_defs.h"
 
 extern uint32_t *nvr;
 extern UNIT or_unit[];

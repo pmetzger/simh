@@ -6,7 +6,7 @@
 #ifndef VAX4NN_STDDEV_INTERNAL_H_
 #define VAX4NN_STDDEV_INTERNAL_H_ 1
 
-#include "vax_defs.h"
+#include "sim_defs.h"
 
 extern UNIT rom_unit;
 

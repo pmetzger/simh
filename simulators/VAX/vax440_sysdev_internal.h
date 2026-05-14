@@ -5,7 +5,9 @@
 #ifndef VAX440_SYSDEV_INTERNAL_H_
 #define VAX440_SYSDEV_INTERNAL_H_ 1
 
-#include "vax_defs.h"
+#include <stdint.h>
+
+#include "sim_defs.h"
 
 extern int32_t CADR;
 extern int32_t SCCR;

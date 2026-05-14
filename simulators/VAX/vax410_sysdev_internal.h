@@ -5,7 +5,9 @@
 #ifndef VAX410_SYSDEV_INTERNAL_H_
 #define VAX410_SYSDEV_INTERNAL_H_ 1
 
-#include "vax_defs.h"
+#include <stdint.h>
+
+#include "sim_defs.h"
 
 extern uint32_t *ddb;
 extern int32_t int_mask;

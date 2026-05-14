@@ -5,7 +5,8 @@
 #ifndef VAX_FPA_H_
 #define VAX_FPA_H_ 1
 
-#include "vax_defs.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 int32_t op_ashq(uint32_t *opnd, int32_t *rh, int32_t *flg);
 int32_t op_emul(int32_t mpy, int32_t mpc, int32_t *rh);

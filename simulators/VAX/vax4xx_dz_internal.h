@@ -9,8 +9,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "sim_defs.h"
 #include "sim_tmxr.h"
-#include "vax_defs.h"
 
 extern DEVICE dz_dev;
 extern TMXR dz_desc;

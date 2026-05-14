@@ -35,7 +35,7 @@
 
 #include <stdint.h>
 
-#include "vax_defs.h"
+#include "sim_defs.h"
 
 t_stat wtc_set (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat wtc_show (FILE *st, UNIT *uptr, int32_t val, const void *desc);
