@@ -48,10 +48,12 @@
 #define VM_VAX          0
 #endif
 
-#include "sim_defs.h"
 #include <setjmp.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+#include "sim_defs.h"
+#include "vax_psl.h"
 
 /* Stops and aborts */
 
@@ -208,42 +210,6 @@ extern jmp_buf save_env;
 #define USP             STK[USER]
 #define IS              STK[4]
 
-/* PSL, PSW, and condition codes */
-
-#define PSL_V_CM        31                              /* compatibility mode */
-#define PSL_CM          (1u << PSL_V_CM)
-#define PSL_V_TP        30                              /* trace pending */
-#define PSL_TP          (1 << PSL_V_TP)
-#define PSL_V_FPD       27                              /* first part done */
-#define PSL_FPD         (1 << PSL_V_FPD)
-#define PSL_V_IS        26                              /* interrupt stack */
-#define PSL_IS          (1 << PSL_V_IS)
-#define PSL_V_CUR       24                              /* current mode */
-#define PSL_V_PRV       22                              /* previous mode */
-#define PSL_M_MODE      0x3                             /* mode mask */
-#define PSL_CUR         (PSL_M_MODE << PSL_V_CUR)
-#define PSL_PRV         (PSL_M_MODE << PSL_V_PRV)
-#define PSL_V_IPL       16                              /* int priority lvl */
-#define PSL_M_IPL       0x1F
-#define PSL_IPL         (PSL_M_IPL << PSL_V_IPL)
-#define PSL_IPL1        (0x01 << PSL_V_IPL)
-#define PSL_IPL17       (0x17 << PSL_V_IPL)
-#define PSL_IPL1F       (0x1F << PSL_V_IPL)
-#define PSL_MBZ         (0x30200000 | PSW_MBZ)          /* must be zero */
-#define PSW_MBZ         0xFF00                          /* must be zero */
-#define PSW_DV          0x80                            /* dec ovflo enable */
-#define PSW_FU          0x40                            /* flt undflo enable */
-#define PSW_IV          0x20                            /* int ovflo enable */
-#define PSW_T           0x10                            /* trace enable */
-#define CC_N            0x08                            /* negative */
-#define CC_Z            0x04                            /* zero */
-#define CC_V            0x02                            /* overflow */
-#define CC_C            0x01                            /* carry */
-#define CC_MASK         (CC_N | CC_Z | CC_V | CC_C)
-#define PSL_GETCUR(x)   (((x) >> PSL_V_CUR) & PSL_M_MODE)
-#define PSL_GETPRV(x)   (((x) >> PSL_V_PRV) & PSL_M_MODE)
-#define PSL_GETIPL(x)   (((x) >> PSL_V_IPL) & PSL_M_IPL)
-
 /* Software interrupt summary register */
 
 #define SISR_MASK       0xFFFE
@@ -329,45 +295,6 @@ extern jmp_buf save_env;
 #define CMODE_TRAP      0x4                             /* TRAP */
 #define CMODE_ILLI      0x5                             /* illegal instr */
 #define CMODE_ODD       0x6                             /* odd address */
-
-/* EDITPC suboperators */
-
-#define EO_END          0x00                            /* end */
-#define EO_END_FLOAT    0x01                            /* end float */
-#define EO_CLR_SIGNIF   0x02                            /* clear signif */
-#define EO_SET_SIGNIF   0x03                            /* set signif */
-#define EO_STORE_SIGN   0x04                            /* store sign */
-#define EO_LOAD_FILL    0x40                            /* load fill */
-#define EO_LOAD_SIGN    0x41                            /* load sign */
-#define EO_LOAD_PLUS    0x42                            /* load sign if + */
-#define EO_LOAD_MINUS   0x43                            /* load sign if - */
-#define EO_INSERT       0x44                            /* insert */
-#define EO_BLANK_ZERO   0x45                            /* blank zero */
-#define EO_REPL_SIGN    0x46                            /* replace sign */
-#define EO_ADJUST_LNT   0x47                            /* adjust length */
-#define EO_FILL         0x80                            /* fill */
-#define EO_MOVE         0x90                            /* move */
-#define EO_FLOAT        0xA0                            /* float */
-#define EO_RPT_MASK     0x0F                            /* rpt mask */
-#define EO_RPT_FLAG     0x80                            /* rpt flag */
-
-/* EDITPC R2 packup parameters */
-
-#define ED_V_CC         16                              /* condition codes */
-#define ED_M_CC         0xFF
-#define ED_CC           (ED_M_CC << ED_V_CC)
-#define ED_V_SIGN       8                               /* sign */
-#define ED_M_SIGN       0xFF
-#define ED_SIGN         (ED_M_SIGN << ED_V_SIGN)
-#define ED_V_FILL       0                               /* fill */
-#define ED_M_FILL       0xFF
-#define ED_FILL         (ED_M_FILL << ED_V_FILL)
-#define ED_GETCC(x)     (((x) >> ED_V_CC) & CC_MASK)
-#define ED_GETSIGN(x)   (((x) >> ED_V_SIGN) & ED_M_SIGN)
-#define ED_GETFILL(x)   (((x) >> ED_V_FILL) & ED_M_FILL)
-#define ED_PUTCC(r,x)   (((r) & ~ED_CC) | (((x) << ED_V_CC) & ED_CC))
-#define ED_PUTSIGN(r,x) (((r) & ~ED_SIGN) | (((x) << ED_V_SIGN) & ED_SIGN))
-#define ED_PUTFILL(r,x) (((r) & ~ED_FILL) | (((x) << ED_V_FILL) & ED_FILL))
 
 /* SCB offsets */
 
