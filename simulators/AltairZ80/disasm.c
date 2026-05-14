@@ -16,7 +16,7 @@
 
 #include "nasm.h"
 #include "insns.h"
-#include "sim_attrs.h"
+#include "c_attrs.h"
 #include "sim_types.h"
 
 /* names.c   included source file defining instruction and register

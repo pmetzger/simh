@@ -1,9 +1,9 @@
-/* sim_attrs.h: compiler attribute compatibility macros for ZIMH */
+/* c_attrs.h: C attribute compatibility macros */
 // SPDX-FileCopyrightText: 2026 The ZIMH Project
 // SPDX-License-Identifier: MIT
 
-#ifndef SIM_ATTRS_H_
-#define SIM_ATTRS_H_ 0
+#ifndef C_ATTRS_H_
+#define C_ATTRS_H_ 1
 
 /*
  * Allow the compiler to validate printf-style format arguments. The
@@ -41,20 +41,6 @@
 
 #if !defined(FALLTHROUGH)
 #define FALLTHROUGH ((void)0)
-#endif
-#endif
-
-/*
- * Prevent inlining where call frame boundaries are useful for debugging,
- * instrumentation, or host-specific behavior.
- */
-#if !defined(SIM_NOINLINE)
-#if defined(_MSC_VER)
-#define SIM_NOINLINE _declspec(noinline)
-#elif defined(__GNUC__) || defined(__clang__)
-#define SIM_NOINLINE __attribute__((noinline))
-#else
-#define SIM_NOINLINE
 #endif
 #endif
 

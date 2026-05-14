@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef DYNSTR_H_
-#define DYNSTR_H_ 0
+#define DYNSTR_H_ 1
 
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "sim_attrs.h"
+#include "c_attrs.h"
 
 typedef struct dynstr {
     char *buf;

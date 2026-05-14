@@ -5,7 +5,7 @@
 #ifndef STRING_UTIL_H_
 #define STRING_UTIL_H_ 1
 
-#include "sim_attrs.h"
+#include "c_attrs.h"
 
 #include <stddef.h>
 

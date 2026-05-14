@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef DYNSTR_INTERNAL_H_
-#define DYNSTR_INTERNAL_H_ 0
+#define DYNSTR_INTERNAL_H_ 1
 
 #include <stdarg.h>
 #include <stddef.h>
 
-#include "sim_attrs.h"
+#include "c_attrs.h"
 
 /* Test hook for formatted output sizing and rendering. */
 typedef int (*dynstr_vsnprintf_fn)(char *buf, size_t size, const char *fmt,

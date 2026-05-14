@@ -24,7 +24,7 @@
 
 #include "sim_sock.h"
 
-#include "sim_attrs.h"
+#include "c_attrs.h"
 #include "sim_frontpanel.h"
 #include "string_util.h"
 #include "sim_time.h"

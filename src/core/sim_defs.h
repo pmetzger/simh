@@ -131,7 +131,7 @@
 #include <process.h>
 #endif
 
-#include "sim_attrs.h"
+#include "c_attrs.h"
 #include "string_compat.h"
 
 #if defined(_WIN32)
@@ -147,6 +147,20 @@
 #endif
 #ifdef PAGESIZE
 #undef PAGESIZE
+#endif
+
+/*
+ * Prevent inlining where call frame boundaries are useful for debugging,
+ * instrumentation, or host-specific behavior.
+ */
+#if !defined(SIM_NOINLINE)
+#if defined(_MSC_VER)
+#define SIM_NOINLINE _declspec(noinline)
+#elif defined(__GNUC__) || defined(__clang__)
+#define SIM_NOINLINE __attribute__((noinline))
+#else
+#define SIM_NOINLINE
+#endif
 #endif
 
 #ifndef MAX

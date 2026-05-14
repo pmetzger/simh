@@ -39,7 +39,7 @@
 #include <string.h>
 
 #include "m68k.h"
-#include "sim_attrs.h"
+#include "c_attrs.h"
 #include "sim_types.h"
 
 #ifndef uint32
