@@ -521,7 +521,7 @@ int disassem(char *buf, size_t buf_size, uint16_t addr, bool dbg, bool targ,
           }
           break;
         }
-        sprintf(decoded, "%s", spc);
+        strlcpy(decoded, spc, sizeof(decoded));
         break;
 
       case OPC_INP:
