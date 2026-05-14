@@ -250,6 +250,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#if defined (VM_VAX)
+#include "vax_defs.h"
+#endif
 #include "pdp11_xq.h"
 #include "pdp11_xq_bootrom.h"
 #include "string_util.h"

@@ -5,7 +5,23 @@
 #ifndef VAX_CPU_H_
 #define VAX_CPU_H_ 1
 
-#include "vax_defs.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#include "sim_defs.h"
+#include "sim_types.h"
+
+#define VAX_IDLE_VMS        0x01
+#define VAX_IDLE_ULT        0x02 /* Ultrix more recent versions */
+#define VAX_IDLE_ULTOLD     0x04 /* Ultrix older versions */
+#define VAX_IDLE_ULT1X      0x08 /* Ultrix 1.x */
+#define VAX_IDLE_QUAD       0x10
+#define VAX_IDLE_BSDNEW     0x20
+#define VAX_IDLE_SYSV       0x40
+#define VAX_IDLE_ELN        0x40 /* VAXELN */
+#define VAX_IDLE_INFOSERVER 0x80 /* InfoServer */
 
 extern uint32_t cpu_idle_mask; /* idle mask */
 extern int32_t extra_bytes; /* bytes referenced by current string instruction */

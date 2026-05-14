@@ -947,15 +947,6 @@ return val >> sc;
 /* Operand Memory vs Register Indicator */
 #define OP_MEM          0xFFFFFFFF
 
-#define VAX_IDLE_VMS        0x01
-#define VAX_IDLE_ULT        0x02    /* Ultrix more recent versions */
-#define VAX_IDLE_ULTOLD     0x04    /* Ultrix older versions */
-#define VAX_IDLE_ULT1X      0x08    /* Ultrix 1.x */
-#define VAX_IDLE_QUAD       0x10
-#define VAX_IDLE_BSDNEW     0x20
-#define VAX_IDLE_SYSV       0x40
-#define VAX_IDLE_ELN        0x40    /* VAXELN */
-#define VAX_IDLE_INFOSERVER 0x80    /* InfoServer */
 /* Instruction History */
 #define HIST_MIN        64
 #define HIST_MAX        250000
