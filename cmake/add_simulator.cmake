@@ -13,12 +13,12 @@ set(SIM_SOURCES
     ${SIMH_CORE_ROOT}/scp_help_engine.c
     ${SIMH_CORE_ROOT}/scp_parse.c
     ${SIMH_CORE_ROOT}/scp_unit.c
+    ${SIMH_LIB_ROOT}/dynstr.c
     ${SIMH_LIB_ROOT}/xalloc.c
     ${SIMH_RUNTIME_ROOT}/sim_card.c
     ${SIMH_RUNTIME_ROOT}/sim_console.c
     ${SIMH_RUNTIME_ROOT}/sim_disk.c
     ${SIMH_RUNTIME_ROOT}/sim_disk_ramdisk.c
-    ${SIMH_RUNTIME_ROOT}/sim_dynstr.c
     ${SIMH_RUNTIME_ROOT}/sim_ether.c
     ${SIMH_RUNTIME_ROOT}/sim_fio.c
     ${SIMH_RUNTIME_ROOT}/sim_host_path.c

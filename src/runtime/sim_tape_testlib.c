@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "sim_defs.h"
-#include "sim_dynstr.h"
+#include "dynstr.h"
 #include "sim_fio.h"
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
@@ -24,7 +24,7 @@ static uint8_t p7b_even_parity[64];
 /* Build one allocated TESTLIB tape file name; caller frees result. */
 static char *sim_tape_test_file_name(const char *filename, const char *suffix)
 {
-    return sim_dynstr_concat_cstrs(filename, suffix);
+    return dynstr_concat_cstrs(filename, suffix);
 }
 
 /* Open one sim_tape self-test file using an allocated suffix path. */
@@ -93,34 +93,34 @@ static t_stat sim_tape_test_remove_file(const char *filename,
 /* Build TESTLIB Architecture Workstation tape attach args; caller frees. */
 char *sim_tape_test_aws_attach_args(const char *filename)
 {
-    sim_dynstr_t args;
+    dynstr_t args;
 
     if (filename == NULL)
         return NULL;
 
-    sim_dynstr_init(&args);
-    if (!sim_dynstr_appendf(&args, "aws %s.aws.tape", filename)) {
-        sim_dynstr_free(&args);
+    dynstr_init(&args);
+    if (!dynstr_appendf(&args, "aws %s.aws.tape", filename)) {
+        dynstr_free(&args);
         return NULL;
     }
-    return sim_dynstr_take(&args);
+    return dynstr_take(&args);
 }
 
 /* Build one quoted TESTLIB tape file name; caller frees result. */
 static char *sim_tape_test_quoted_file_name(const char *filename,
                                             const char *suffix)
 {
-    sim_dynstr_t name;
+    dynstr_t name;
 
     if ((filename == NULL) || (suffix == NULL))
         return NULL;
 
-    sim_dynstr_init(&name);
-    if (!sim_dynstr_appendf(&name, "\"%s%s\"", filename, suffix)) {
-        sim_dynstr_free(&name);
+    dynstr_init(&name);
+    if (!dynstr_appendf(&name, "\"%s%s\"", filename, suffix)) {
+        dynstr_free(&name);
         return NULL;
     }
-    return sim_dynstr_take(&name);
+    return dynstr_take(&name);
 }
 
 /* Build TESTLIB tape classification attach args; caller frees result. */
@@ -128,18 +128,18 @@ char *sim_tape_test_classify_args(const char *unit_name,
                                   const char *attach_args,
                                   const char *test_name)
 {
-    sim_dynstr_t args;
+    dynstr_t args;
 
     if ((unit_name == NULL) || (attach_args == NULL) || (test_name == NULL))
         return NULL;
 
-    sim_dynstr_init(&args);
-    if (!sim_dynstr_appendf(&args, "%s -v %s %s", unit_name, attach_args,
+    dynstr_init(&args);
+    if (!dynstr_appendf(&args, "%s -v %s %s", unit_name, attach_args,
                             test_name)) {
-        sim_dynstr_free(&args);
+        dynstr_free(&args);
         return NULL;
     }
-    return sim_dynstr_take(&args);
+    return dynstr_take(&args);
 }
 
 static t_stat sim_tape_test_create_tape_files(UNIT *uptr, const char *filename,
@@ -375,30 +375,29 @@ Done_Files:
 char *sim_tape_test_process_args(const char *filename, const char *format,
                                  t_awslnt recsize)
 {
-    sim_dynstr_t args;
+    dynstr_t args;
 
     if ((filename == NULL) || (format == NULL))
         return NULL;
 
-    sim_dynstr_init(&args);
-    if (!sim_dynstr_append(&args, format))
-        goto fail;
+    dynstr_init(&args);
+    dynstr_append(&args, format);
     if (recsize != 0) {
-        if (!sim_dynstr_appendf(&args, " %d", (int)recsize))
+        if (!dynstr_appendf(&args, " %d", (int)recsize))
             goto fail;
     }
     if (strchr(filename, '*') == NULL) {
-        if (!sim_dynstr_appendf(&args, " %s.%s", filename, format))
+        if (!dynstr_appendf(&args, " %s.%s", filename, format))
             goto fail;
     } else {
-        if (!sim_dynstr_appendf(&args, " %s", filename))
+        if (!dynstr_appendf(&args, " %s", filename))
             goto fail;
     }
 
-    return sim_dynstr_take(&args);
+    return dynstr_take(&args);
 
 fail:
-    sim_dynstr_free(&args);
+    dynstr_free(&args);
     return NULL;
 }
 

@@ -74,7 +74,7 @@
 */
 
 #include "sim_defs.h"
-#include "sim_dynstr.h"
+#include "dynstr.h"
 #include "sim_string.h"
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
@@ -4349,9 +4349,10 @@ while (year >= 2000)
 
 fileday = 1000 * ((year - 70) % 100) + tm->tm_yday + 1;
 
-full_path = sim_dynstr_concat_cstrs(directory, filename);
+full_path = dynstr_concat_cstrs(directory, filename);
 if (full_path == NULL) {
-    sim_messagef(SCPE_MEM, "Can't allocate full tape input path\n");
+    sim_messagef(SCPE_IERR,
+                 "Internal error constructing full tape input path\n");
     return;
     }
 f = tape_open_and_check_file (full_path);
@@ -4744,9 +4745,10 @@ char *full_path = NULL;
 (void) FileSize;
 (void) filestat;
 
-full_path = sim_dynstr_concat_cstrs(directory, filename);
+full_path = dynstr_concat_cstrs(directory, filename);
 if (full_path == NULL) {
-    sim_messagef(SCPE_MEM, "Can't allocate full tape input path\n");
+    sim_messagef(SCPE_IERR,
+                 "Internal error constructing full tape input path\n");
     return;
     }
 

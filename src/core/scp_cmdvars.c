@@ -9,7 +9,7 @@
 #include "scp.h"
 
 #include "sim_console.h"
-#include "sim_dynstr.h"
+#include "dynstr.h"
 #include "sim_host_path.h"
 #include "sim_types.h"
 
@@ -75,28 +75,26 @@ static sim_cmdvars_localtime_hook_fn sim_cmdvars_localtime_hook =
     sim_cmdvars_default_localtime_call;
 
 /* Assemble the %* expansion into one growable temporary string. */
-static bool sim_cmdvars_expand_star_args(sim_dynstr_t *ds, char *do_arg[])
+static void sim_cmdvars_expand_star_args(dynstr_t *ds, char *do_arg[])
 {
     size_t i;
 
     for (i = 1; i <= 9; ++i) {
         if (do_arg[i] == NULL)
             break;
-        if ((i != 1) && !sim_dynstr_append(ds, " "))
-            return false;
+        if (i != 1)
+            dynstr_append(ds, " ");
         if (strchr(do_arg[i], ' ')) {
             char quote = '"';
 
             if (strchr(do_arg[i], quote))
                 quote = '\'';
-            if (!sim_dynstr_append_ch(ds, quote) ||
-                !sim_dynstr_append(ds, do_arg[i]) ||
-                !sim_dynstr_append_ch(ds, quote))
-                return false;
-        } else if (!sim_dynstr_append(ds, do_arg[i]))
-            return false;
+            dynstr_append_ch(ds, quote);
+            dynstr_append(ds, do_arg[i]);
+            dynstr_append_ch(ds, quote);
+        } else
+            dynstr_append(ds, do_arg[i]);
     }
-    return true;
 }
 
 /* Break down one wall-clock time value using the platform local-time API. */
@@ -163,7 +161,7 @@ static const char *sim_cmdvars_parse_percent(const char **ipp, char *gbuf,
                                              char *rbuf, size_t rbuf_size,
                                              char *do_arg[], bool *expand_it,
                                              char *parts,
-                                             sim_dynstr_t *star_args,
+                                             dynstr_t *star_args,
                                              bool *emit_percent)
 {
     const char *ip = *ipp;
@@ -210,8 +208,8 @@ static const char *sim_cmdvars_parse_percent(const char **ipp, char *gbuf,
             }
         ++ip;
     } else if (*ip == '*') {
-        if (sim_cmdvars_expand_star_args(star_args, do_arg))
-            ap = sim_dynstr_cstr(star_args);
+        sim_cmdvars_expand_star_args(star_args, do_arg);
+        ap = dynstr_cstr(star_args);
         ++ip;
     } else if (*ip == '\0') {
         *emit_percent = true;
@@ -800,10 +798,10 @@ void sim_sub_args(char *instr, size_t instr_size, char *do_arg[])
 
             if (*ip == '%') {
                 const char *percent_ip;
-                sim_dynstr_t star_args;
+                dynstr_t star_args;
                 bool emit_percent;
 
-                sim_dynstr_init(&star_args);
+                dynstr_init(&star_args);
                 ++ip;
                 percent_ip = ip;
                 ap = sim_cmdvars_parse_percent(
@@ -814,7 +812,7 @@ void sim_sub_args(char *instr, size_t instr_size, char *do_arg[])
                     *op++ = '%';
                 sim_cmdvars_expand_and_copy(ap, expand_it, parts, &op, oend,
                                             instr, ip, &outstr_off);
-                sim_dynstr_free(&star_args);
+                dynstr_free(&star_args);
             } else {
                 if (ip == istart) {
                     if (!sim_cmdvars_expand_initial_token(

@@ -47,6 +47,22 @@ If a fixed buffer is the wrong abstraction, record the issue and discuss
 a dynamic-string refactor. Do not fold large buffer-design changes into
 a mechanical safety pass without agreement.
 
+## Allocation
+
+Use `xmalloc`, `xcalloc`, `xrealloc`, `xstrdup`, and `xstrndup` for
+ordinary internal allocations where meaningful local recovery is not
+possible. This includes small bookkeeping objects, dynamic strings,
+owned copies, and parse/build buffers. If these allocations fail, the
+process is already in a state where pretending to continue is usually
+less safe than stopping.
+
+Do not use fatal allocation wrappers for large user-directed resource
+requests where recovery is part of the interface. Simulator memory,
+RAM disks, large media buffers, optional caches, and other allocations
+whose sizes come directly from user configuration should validate the
+request, report an error, and leave simulator state coherent so the
+user can correct the command.
+
 ## Includes
 
 When adding or touching include blocks, keep system includes

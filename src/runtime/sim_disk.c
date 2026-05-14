@@ -58,7 +58,7 @@ Internal routines:
 #include "sim_defs.h"
 #include "sim_disk.h"
 #include "sim_disk_ramdisk.h"
-#include "sim_dynstr.h"
+#include "dynstr.h"
 #include "sim_ether.h"
 #include "sim_types.h"
 #include <ctype.h>
@@ -2694,16 +2694,17 @@ sim_disk_default_ramdisk_size (UNIT *uptr,
 static t_stat
 sim_disk_set_unit_drive_type(UNIT *uptr, const char *dtype)
 {
-    sim_dynstr_t cmd;
+    dynstr_t cmd;
     t_stat r;
 
-    sim_dynstr_init(&cmd);
-    if (!sim_dynstr_appendf(&cmd, "%s %s", sim_uname(uptr), dtype)) {
-        sim_dynstr_free(&cmd);
-        return SCPE_MEM;
+    dynstr_init(&cmd);
+    if (!dynstr_appendf(&cmd, "%s %s", sim_uname(uptr), dtype)) {
+        dynstr_free(&cmd);
+        return sim_messagef(SCPE_IERR,
+                            "Internal error formatting drive type command\n");
     }
-    r = set_cmd(0, sim_dynstr_cstr(&cmd));
-    sim_dynstr_free(&cmd);
+    r = set_cmd(0, dynstr_cstr(&cmd));
+    dynstr_free(&cmd);
     return r;
 }
 

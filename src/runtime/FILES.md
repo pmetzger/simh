@@ -27,12 +27,6 @@ These files own shared disk-image and block-device support: image-file
 handling, format-specific disk helpers, and reusable runtime services for
 simulated disks.
 
-## `sim_dynstr.c` and `sim_dynstr.h`
-
-These files own a tiny shared dynamic-string utility used by runtime and
-core helpers that need growable C strings without carrying local buffer
-growth code.
-
 ## `sim_ether.c` and `sim_ether.h`
 
 These files own shared Ethernet and network-interface support used by

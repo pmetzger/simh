@@ -10,7 +10,6 @@
 
 #include "scp.h"
 #include "sim_defs.h"
-#include "sim_dynstr_internal.h"
 #include "sim_fio.h"
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
@@ -46,7 +45,6 @@ struct sim_tape_callback_state {
 };
 
 static struct sim_tape_callback_state *active_tape_callback_state;
-static int sim_tape_dynstr_realloc_failures;
 
 static int setup_sim_tape_fixture(void **state)
 {
@@ -75,7 +73,6 @@ static int setup_sim_tape_fixture(void **state)
         simh_test_install_devices("zimh-unit-sim-tape", fixture->devices),
         0);
     assert_int_equal(sim_tape_init(), SCPE_OK);
-    sim_dynstr_reset_test_hooks();
 
     *state = fixture;
     return 0;
@@ -90,34 +87,9 @@ static int teardown_sim_tape_fixture(void **state)
     assert_int_equal(chdir(fixture->original_cwd), 0);
     assert_int_equal(simh_test_remove_path(fixture->temp_dir), 0);
     simh_test_reset_simulator_state();
-    sim_dynstr_reset_test_hooks();
     free(fixture);
     *state = NULL;
     return 0;
-}
-
-/* Reset dynstr test hooks before tests that inject allocation failures. */
-static int setup_sim_tape_dynstr_fixture(void **state)
-{
-    (void)state;
-    sim_dynstr_reset_test_hooks();
-    return 0;
-}
-
-/* Clear dynstr test hooks so failure injection cannot leak between tests. */
-static int teardown_sim_tape_dynstr_fixture(void **state)
-{
-    (void)state;
-    sim_dynstr_reset_test_hooks();
-    return 0;
-}
-
-static void *sim_tape_dynstr_realloc_fail(void *ptr, size_t size)
-{
-    ++sim_tape_dynstr_realloc_failures;
-    (void)ptr;
-    (void)size;
-    return NULL;
 }
 
 static void assert_show_output(t_stat (*show_fn)(FILE *, UNIT *, int32_t,
@@ -1288,20 +1260,6 @@ static void test_sim_tape_test_process_args_builds_attach_commands(void **state)
     }
 }
 
-/* Verify TESTLIB tape processing attach command allocation failures are
-   reported without returning partial command text. */
-static void test_sim_tape_test_process_args_reports_alloc_failure(void **state)
-{
-    (void)state;
-
-    sim_tape_dynstr_realloc_failures = 0;
-    sim_dynstr_set_test_realloc_hook(sim_tape_dynstr_realloc_fail);
-
-    assert_null(sim_tape_test_process_args("TapeTestFile1.bin", "fixed",
-                                           2048));
-    assert_int_equal(sim_tape_dynstr_realloc_failures, 1);
-}
-
 /* Verify TESTLIB Architecture Workstation tape attach commands are built
    without truncating long filenames. */
 static void test_sim_tape_test_aws_attach_args_builds_command(void **state)
@@ -1339,20 +1297,6 @@ static void test_sim_tape_test_aws_attach_args_builds_command(void **state)
         }
         free(args);
     }
-}
-
-/* Verify TESTLIB Architecture Workstation attach command allocation failures
-   are reported without returning partial command text. */
-static void test_sim_tape_test_aws_attach_args_reports_alloc_failure(
-    void **state)
-{
-    (void)state;
-
-    sim_tape_dynstr_realloc_failures = 0;
-    sim_dynstr_set_test_realloc_hook(sim_tape_dynstr_realloc_fail);
-
-    assert_null(sim_tape_test_aws_attach_args("TapeTestFile1"));
-    assert_int_equal(sim_tape_dynstr_realloc_failures, 1);
 }
 
 /* Verify TESTLIB classification attach commands are built without
@@ -1396,21 +1340,6 @@ static void test_sim_tape_test_classify_args_builds_command(void **state)
         }
         free(args);
     }
-}
-
-/* Verify TESTLIB classification attach command allocation failures are
-   reported without returning partial command text. */
-static void test_sim_tape_test_classify_args_reports_alloc_failure(
-    void **state)
-{
-    (void)state;
-
-    sim_tape_dynstr_realloc_failures = 0;
-    sim_dynstr_set_test_realloc_hook(sim_tape_dynstr_realloc_fail);
-
-    assert_null(sim_tape_test_classify_args("TAPE0", "-F FIXED",
-                                            "sample.txt"));
-    assert_int_equal(sim_tape_dynstr_realloc_failures, 1);
 }
 
 /* Verify TESTLIB file table helpers open every suffixed file and close all
@@ -1461,48 +1390,6 @@ static void test_sim_tape_test_file_table_closes_partial_failure(void **state)
                      SCPE_OPENERR);
     assert_null(first);
     assert_null(second);
-}
-
-/* Verify memory tape attach reports path allocation failures cleanly. */
-static void assert_memory_tape_attach_reports_path_alloc_failure(
-    struct sim_tape_fixture *fixture, const char *fmt)
-{
-    static const char text[] = "HELLO\n";
-    struct sim_tape_attach_capture capture;
-    char *output = NULL;
-    size_t output_size = 0;
-
-    assert_int_equal(simh_test_write_file(fixture->tape_path, text,
-                                          sizeof(text) - 1),
-                     0);
-    assert_int_equal(sim_tape_set_fmt(&fixture->unit, 0, fmt, NULL), SCPE_OK);
-
-    sim_tape_dynstr_realloc_failures = 0;
-    sim_dynstr_set_test_realloc_hook(sim_tape_dynstr_realloc_fail);
-    capture.unit = &fixture->unit;
-    capture.path = fixture->tape_path;
-    capture.status = SCPE_OK;
-    assert_int_equal(simh_test_capture_stdout(write_sim_tape_attach_output,
-                                              &capture, &output,
-                                              &output_size),
-                     0);
-    assert_int_equal(SCPE_BARE_STATUS(capture.status), SCPE_ARG);
-    assert_string_contains(output, "Can't allocate full tape input path");
-    assert_false((fixture->unit.flags & UNIT_ATT) != 0);
-    assert_null(fixture->unit.fileref);
-    assert_null(fixture->unit.filename);
-    assert_int_equal(sim_tape_dynstr_realloc_failures, 1);
-    free(output);
-}
-
-static void test_sim_tape_ansi_attach_reports_path_alloc_failure(void **state)
-{
-    assert_memory_tape_attach_reports_path_alloc_failure(*state, "ANSI-VMS");
-}
-
-static void test_sim_tape_dos11_attach_reports_path_alloc_failure(void **state)
-{
-    assert_memory_tape_attach_reports_path_alloc_failure(*state, "DOS11");
 }
 
 /* Verify generic positioning can count objects and position by
@@ -1839,35 +1726,15 @@ int main(void)
             test_sim_tape_dos11_fallback_name_uses_six_digits),
         cmocka_unit_test(
             test_sim_tape_ansi_decimal_fields_validate_width),
-        cmocka_unit_test_setup_teardown(
-            test_sim_tape_test_process_args_builds_attach_commands,
-            setup_sim_tape_dynstr_fixture, teardown_sim_tape_dynstr_fixture),
-        cmocka_unit_test_setup_teardown(
-            test_sim_tape_test_process_args_reports_alloc_failure,
-            setup_sim_tape_dynstr_fixture, teardown_sim_tape_dynstr_fixture),
-        cmocka_unit_test_setup_teardown(
-            test_sim_tape_test_aws_attach_args_builds_command,
-            setup_sim_tape_dynstr_fixture, teardown_sim_tape_dynstr_fixture),
-        cmocka_unit_test_setup_teardown(
-            test_sim_tape_test_aws_attach_args_reports_alloc_failure,
-            setup_sim_tape_dynstr_fixture, teardown_sim_tape_dynstr_fixture),
-        cmocka_unit_test_setup_teardown(
-            test_sim_tape_test_classify_args_builds_command,
-            setup_sim_tape_dynstr_fixture, teardown_sim_tape_dynstr_fixture),
-        cmocka_unit_test_setup_teardown(
-            test_sim_tape_test_classify_args_reports_alloc_failure,
-            setup_sim_tape_dynstr_fixture, teardown_sim_tape_dynstr_fixture),
+        cmocka_unit_test(
+            test_sim_tape_test_process_args_builds_attach_commands),
+        cmocka_unit_test(test_sim_tape_test_aws_attach_args_builds_command),
+        cmocka_unit_test(test_sim_tape_test_classify_args_builds_command),
         cmocka_unit_test_setup_teardown(
             test_sim_tape_test_file_table_opens_and_closes,
             setup_sim_tape_fixture, teardown_sim_tape_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_tape_test_file_table_closes_partial_failure,
-            setup_sim_tape_fixture, teardown_sim_tape_fixture),
-        cmocka_unit_test_setup_teardown(
-            test_sim_tape_ansi_attach_reports_path_alloc_failure,
-            setup_sim_tape_fixture, teardown_sim_tape_fixture),
-        cmocka_unit_test_setup_teardown(
-            test_sim_tape_dos11_attach_reports_path_alloc_failure,
             setup_sim_tape_fixture, teardown_sim_tape_fixture),
         cmocka_unit_test(
             test_sim_tape_error_text_covers_named_and_generic_errors),

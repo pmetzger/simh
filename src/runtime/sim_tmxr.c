@@ -312,7 +312,7 @@
 #define NOT_MUX_USING_CODE /* sim_tmxr library define */
 
 #include "sim_defs.h"
-#include "sim_dynstr.h"
+#include "dynstr.h"
 #include "sim_serial.h"
 #include "sim_sock.h"
 #include "sim_timer.h"
@@ -993,14 +993,14 @@ return lp;                                              /* return pointer to lin
 
 */
 /* Append one comma-prefixed key=value style ACL fragment. */
-static bool tmxr_dynstr_append_acl (sim_dynstr_t *ds, const char *acl)
+static bool tmxr_dynstr_append_acl (dynstr_t *ds, const char *acl)
 {
 char gbuf[CBUFSIZE];
 const char *c = acl;
 
 while (*c != '\0') {
     c = get_glyph_nc (c, gbuf, ',');
-    if (!sim_dynstr_appendf (
+    if (!dynstr_appendf (
             ds, ";%s=%s", (gbuf[0] == '+') ? "Accept" : "Reject", gbuf + 1))
         return false;
     }
@@ -1009,55 +1009,52 @@ return true;
 
 static char *tmxr_mux_attach_string(char *old, TMXR *mp)
 {
-sim_dynstr_t ds;
+dynstr_t ds;
 int32_t i;
 TMLN *lp;
 
 free (old);
-sim_dynstr_init (&ds);
+dynstr_init (&ds);
 
 if (mp->port) {                                         /* copy port */
-    if (!sim_dynstr_appendf (&ds, "%s%s", mp->port,
+    if (!dynstr_appendf (&ds, "%s%s", mp->port,
                              mp->notelnet ? ";notelnet" :
                                             (mp->nomessage ? ";nomessage" :
                                                              "")))
-        goto oom;
+        goto fail;
     if (mp->acl) {                                      /* copy acl in pieces */
         if (!tmxr_dynstr_append_acl (&ds, mp->acl))
-            goto oom;
+            goto fail;
         }
     }
 if (mp->logfiletmpl[0])                                 /* logfile info */
-    if (!sim_dynstr_appendf (&ds, ",Log=%s", mp->logfiletmpl))
-        goto oom;
+    if (!dynstr_appendf (&ds, ",Log=%s", mp->logfiletmpl))
+        goto fail;
 if (mp->buffered)
-    if (!sim_dynstr_appendf (&ds, ",Buffered=%d", mp->buffered))
-        goto oom;
-sim_dynstr_ltrim_chars (&ds, ", ");
+    if (!dynstr_appendf (&ds, ",Buffered=%d", mp->buffered))
+        goto fail;
+dynstr_ltrim_chars (&ds, ", ");
 for (i=0; i<mp->lines; ++i) {
     char *lptr;
     lp = mp->ldsc + i;
 
     lptr = tmxr_line_attach_string(lp);
     if (lptr) {
-        if ((!sim_dynstr_append (&ds, ds.len ? "," : "")) ||
-            (!sim_dynstr_append (&ds, lptr))) {
-            free (lptr);
-            goto oom;
-            }
+        dynstr_append (&ds, ds.len ? "," : "");
+        dynstr_append (&ds, lptr);
         free (lptr);
         }
     }
 if (mp->lines == 1)
-    sim_dynstr_ltrim_chars (&ds, ", ");
+    dynstr_ltrim_chars (&ds, ", ");
 if (ds.len == 0) {
-    sim_dynstr_free (&ds);
+    dynstr_free (&ds);
     return NULL;
     }
-return sim_dynstr_take (&ds);
+return dynstr_take (&ds);
 
-oom:
-sim_dynstr_free (&ds);
+fail:
+dynstr_free (&ds);
 return NULL;
 }
 
@@ -1081,44 +1078,41 @@ return NULL;
 
 char *tmxr_line_attach_string(TMLN *lp)
 {
-sim_dynstr_t ds;
+dynstr_t ds;
 
-sim_dynstr_init (&ds);
+dynstr_init (&ds);
 
 if (lp->destination || lp->port || lp->txlogname || (lp->conn == TMXR_LINE_DISABLED)) {
     if ((lp->mp->lines > 1) || (lp->port))
-        if (!sim_dynstr_appendf (&ds, "Line=%d", (int)(lp-lp->mp->ldsc)))
-            goto oom;
+        if (!dynstr_appendf (&ds, "Line=%d", (int)(lp-lp->mp->ldsc)))
+            goto fail;
     if (lp->conn == TMXR_LINE_DISABLED)
-        if (!sim_dynstr_append (&ds, ",Disabled"))
-            goto oom;
+        dynstr_append (&ds, ",Disabled");
     if (lp->modem_control != lp->mp->modem_control)
-        if (!sim_dynstr_appendf (
+        if (!dynstr_appendf (
                 &ds, ",%s", lp->modem_control ? "Modem" : "NoModem"))
-            goto oom;
+            goto fail;
     if (lp->txbfd && (lp->txbsz != lp->mp->buffered))
-        if (!sim_dynstr_appendf (&ds, ",Buffered=%d", lp->txbsz))
-            goto oom;
+        if (!dynstr_appendf (&ds, ",Buffered=%d", lp->txbsz))
+            goto fail;
     if (!lp->txbfd && (lp->mp->buffered > 0))
-        if (!sim_dynstr_append (&ds, ",UnBuffered"))
-            goto oom;
+        dynstr_append (&ds, ",UnBuffered");
     if (lp->mp->datagram != lp->datagram)
-        if (!sim_dynstr_appendf (&ds, ",%s", lp->datagram ? "UDP" : "TCP"))
-            goto oom;
+        if (!dynstr_appendf (&ds, ",%s", lp->datagram ? "UDP" : "TCP"))
+            goto fail;
     if (lp->mp->packet != lp->packet)
-        if (!sim_dynstr_append (&ds, ",Packet"))
-            goto oom;
+        dynstr_append (&ds, ",Packet");
     if (lp->port) {
-        if (!sim_dynstr_appendf (
+        if (!dynstr_appendf (
                 &ds, ",%s%s%s", lp->port,
                 ((lp->mp->notelnet != lp->notelnet) && (!lp->datagram)) ?
                     (lp->notelnet ? ";notelnet" : ";telnet") : "",
                 ((lp->mp->nomessage != lp->nomessage) && (!lp->datagram)) ?
                     (lp->nomessage ? ";nomessage" : ";message") : ""))
-            goto oom;
+            goto fail;
         if (lp->acl) {                                      /* copy acl in pieces */
             if (!tmxr_dynstr_append_acl (&ds, lp->acl))
-                goto oom;
+                goto fail;
             }
         }
     if (lp->destination) {
@@ -1126,66 +1120,64 @@ if (lp->destination || lp->port || lp->txlogname || (lp->conn == TMXR_LINE_DISAB
             char portname[CBUFSIZE];
 
             get_glyph_nc (lp->destination, portname, ';');
-            if (!sim_dynstr_appendf (
+            if (!dynstr_appendf (
                     &ds, ",Connect=%s%s%s", portname,
                     strcmp ("9600-8N1", lp->serconfig ? lp->serconfig : "") ?
                         ";" : "",
                     strcmp ("9600-8N1", lp->serconfig ? lp->serconfig : "") ?
                         lp->serconfig : ""))
-                goto oom;
+                goto fail;
             }
         else
-            if (!sim_dynstr_appendf (
+            if (!dynstr_appendf (
                     &ds, ",Connect=%s%s", lp->destination,
                     ((lp->mp->notelnet != lp->notelnet) && (!lp->datagram)) ?
                         (lp->notelnet ? ";notelnet" : ";telnet") : ""))
-                goto oom;
+                goto fail;
         }
     if (lp->txlogname)
-        if (!sim_dynstr_appendf (&ds, ",Log=%s", lp->txlogname))
-            goto oom;
+        if (!dynstr_appendf (&ds, ",Log=%s", lp->txlogname))
+            goto fail;
     if (lp->loopback)
-        if (!sim_dynstr_append (&ds, ",Loopback"))
-            goto oom;
+        dynstr_append (&ds, ",Loopback");
     }
 if (ds.len == 0) {
-    sim_dynstr_free (&ds);
+    dynstr_free (&ds);
     return NULL;
     }
-return sim_dynstr_take (&ds);
+return dynstr_take (&ds);
 
-oom:
-sim_dynstr_free (&ds);
+fail:
+dynstr_free (&ds);
 return NULL;
 }
 
 /* Build the banner sent to a newly connected line when messages are enabled. */
 char *tmxr_connection_message(const TMXR *mp, const TMLN *lp, bool force)
 {
-sim_dynstr_t ds;
+dynstr_t ds;
 
 if ((lp->notelnet || lp->nomessage) && !force)
     return NULL;
 
-sim_dynstr_init (&ds);
+dynstr_init (&ds);
 
-if (!sim_dynstr_appendf (&ds, "\n\r\nConnected to the %s simulator ",
+if (!dynstr_appendf (&ds, "\n\r\nConnected to the %s simulator ",
                          sim_name))
-    goto oom;
+    goto fail;
 if (mp->dptr) {
-    if (!sim_dynstr_appendf (&ds, "%s device", sim_dname (mp->dptr)))
-        goto oom;
+    if (!dynstr_appendf (&ds, "%s device", sim_dname (mp->dptr)))
+        goto fail;
     if ((mp->lines > 1) &&
-        (!sim_dynstr_appendf (&ds, ", line %d", (int)(lp - mp->ldsc))))
-        goto oom;
+        (!dynstr_appendf (&ds, ", line %d", (int)(lp - mp->ldsc))))
+        goto fail;
     }
-if (!sim_dynstr_append (&ds, "\r\n\n"))
-    goto oom;
+dynstr_append (&ds, "\r\n\n");
 
-return sim_dynstr_take (&ds);
+return dynstr_take (&ds);
 
-oom:
-sim_dynstr_free (&ds);
+fail:
+dynstr_free (&ds);
 return NULL;
 }
 
