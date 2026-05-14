@@ -6,6 +6,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "vax_sys_internal.h"
 
 REG cpu_reg[1];
@@ -72,7 +73,7 @@ static char *read_stream(FILE *stream)
 
 static char *format_vax_symbol_m(t_value *bytes, uint32_t addr, t_stat *status)
 {
-    FILE *stream = tmpfile();
+    FILE *stream = sim_tmpfile();
     char *output;
 
     assert_non_null(stream);
@@ -87,7 +88,7 @@ static char *format_vax_symbol_m(t_value *bytes, uint32_t addr, t_stat *status)
 static char *format_vax_symbol(t_value *bytes, t_addr addr, int32_t sw,
                                t_stat *status)
 {
-    FILE *stream = tmpfile();
+    FILE *stream = sim_tmpfile();
     char *output;
 
     assert_non_null(stream);

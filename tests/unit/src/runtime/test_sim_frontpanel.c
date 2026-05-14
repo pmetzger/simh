@@ -3,6 +3,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "sim_frontpanel.h"
 #include "sim_sock.h"
 #include "sim_time.h"
@@ -279,7 +280,7 @@ static void test_frontpanel_debug_uses_shared_clock_wrapper(void **state)
 
     (void)state;
 
-    panel.Debug = tmpfile();
+    panel.Debug = sim_tmpfile();
     assert_non_null(panel.Debug);
     panel.debug = DBG_APP;
     sim_time_set_test_hooks(simh_test_frontpanel_clock, NULL);
@@ -305,7 +306,7 @@ static void test_frontpanel_debug_expands_telnet_bytes(void **state)
 
     (void)state;
 
-    panel.Debug = tmpfile();
+    panel.Debug = sim_tmpfile();
     assert_non_null(panel.Debug);
     panel.debug = DBG_RCV;
     sim_time_set_test_hooks(simh_test_frontpanel_clock, NULL);
@@ -331,7 +332,7 @@ static void test_frontpanel_debug_handles_truncated_telnet_byte(void **state)
 
     (void)state;
 
-    panel.Debug = tmpfile();
+    panel.Debug = sim_tmpfile();
     assert_non_null(panel.Debug);
     panel.debug = DBG_RCV;
     sim_time_set_test_hooks(simh_test_frontpanel_clock, NULL);
@@ -363,7 +364,7 @@ static void test_frontpanel_debug_handles_long_message(void **state)
     output = (char *)malloc(output_size);
     assert_non_null(output);
 
-    panel.Debug = tmpfile();
+    panel.Debug = sim_tmpfile();
     assert_non_null(panel.Debug);
     panel.debug = DBG_APP;
     sim_time_set_test_hooks(simh_test_frontpanel_clock, NULL);

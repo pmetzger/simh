@@ -12,6 +12,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "sim_console.h"
 #include "sim_host_path_internal.h"
@@ -934,7 +935,7 @@ static void test_show_version_keeps_only_sim_ostype(void **state)
 
     (void)state;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     assert_int_equal(show_version(stream, NULL, NULL, 1, NULL), SCPE_OK);
@@ -979,7 +980,7 @@ static void test_show_version_prints_zimh_banner(void **state)
 
     (void)state;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     assert_int_equal(show_version(stream, NULL, NULL, 0, NULL), SCPE_OK);

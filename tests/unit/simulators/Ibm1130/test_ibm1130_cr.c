@@ -17,6 +17,8 @@
 #endif
 
 #include "test_cmocka.h"
+
+#include "sim_tempfile.h"
 #include "test_support.h"
 
 #include "ibm1130_defs.h"
@@ -182,7 +184,7 @@ static int setup_ibm1130_cr(void **state)
                      0);
     assert_int_equal(setenv("TMPDIR", fixture->temp_dir, 1), 0);
 
-    fixture->deck = tmpfile();
+    fixture->deck = sim_tmpfile();
     assert_non_null(fixture->deck);
 
     deckfile = fixture->deck;

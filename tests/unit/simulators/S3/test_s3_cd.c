@@ -4,6 +4,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "s3_defs.h"
 #include "sim_types.h"
 
@@ -55,7 +56,7 @@ static int setup_card_reader(void **state)
         0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
     };
 
-    FILE *file = tmpfile();
+    FILE *file = sim_tmpfile();
     assert_non_null(file);
     assert_int_equal(fwrite(card, 1, sizeof(card), file), sizeof(card));
     assert_int_equal(fseek(file, 0, SEEK_SET), 0);
@@ -73,7 +74,7 @@ static int setup_card_reader(void **state)
 
 static int setup_stacker(void **state)
 {
-    FILE *file = tmpfile();
+    FILE *file = sim_tmpfile();
     assert_non_null(file);
 
     *state = file;

@@ -8,6 +8,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "scp_context.h"
 #include "sim_defs.h"
@@ -482,7 +483,7 @@ static char *capture_tmxr_debug_output(uint32_t dbits, TMLN *line,
     char *output = NULL;
     size_t output_size = 0;
 
-    capture = tmpfile();
+    capture = sim_tmpfile();
     assert_non_null(capture);
 
     sim_deb = capture;

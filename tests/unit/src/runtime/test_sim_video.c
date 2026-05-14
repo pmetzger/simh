@@ -6,6 +6,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "sim_video.h"
 
 static void assert_stream_text(FILE *stream, const char *expected)
@@ -63,14 +64,14 @@ static void test_no_video_stubs_report_unavailable(void **state)
     assert_string_equal(vid_version(), "No Video Support");
     assert_string_equal(vid_key_name(SIM_KEY_A), "");
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(vid_set_release_key(stream, NULL, 0, NULL), SCPE_NOFNC);
     assert_int_equal(vid_show_release_key(stream, NULL, 0, NULL), SCPE_OK);
     assert_stream_text(stream, "no release key");
     fclose(stream);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(vid_show_video(stream, NULL, 0, NULL), SCPE_OK);
     assert_stream_text(stream, "video support unavailable\n");

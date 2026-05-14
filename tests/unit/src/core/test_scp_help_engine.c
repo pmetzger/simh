@@ -4,6 +4,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "scp_help.h"
 #include "scp_help_engine.h"
@@ -70,7 +71,7 @@ static void test_fprint_help_prints_general_help_summary(void **state)
 
     (void)state;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     fprint_help(stream);
     assert_int_equal(simh_test_read_stream(stream, &text, &size), 0);
@@ -88,7 +89,7 @@ static void test_fprint_reg_help_lists_device_registers(void **state)
     char *text;
     size_t size;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     fprint_reg_help(stream, &fixture->device);
     assert_int_equal(simh_test_read_stream(stream, &text, &size), 0);
@@ -109,7 +110,7 @@ static void test_scp_help_flattens_simple_help_text(void **state)
     char *text;
     size_t size;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(scp_help(stream, &fixture->device, &fixture->unit,
                               SCP_HELP_FLAT | SCP_HELP_ONECMD, help, ""),
@@ -133,7 +134,7 @@ static void test_scp_help_flattens_magic_register_topic(void **state)
     char *text;
     size_t size;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(scp_help(stream, &fixture->device, &fixture->unit,
                               SCP_HELP_FLAT | SCP_HELP_ONECMD, help, ""),
@@ -162,7 +163,7 @@ static void test_scp_help_from_file_reads_and_renders_help_text(void **state)
                                           sizeof(help_file_contents) - 1),
                      0);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(scp_helpFromFile(stream, &fixture->device, &fixture->unit,
                                       SCP_HELP_FLAT | SCP_HELP_ONECMD,

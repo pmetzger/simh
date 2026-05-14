@@ -8,6 +8,7 @@
 #include "scp.h"
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "sim_defs.h"
 #include "sim_disk.h"
 #include "test_simh_personality.h"
@@ -171,7 +172,7 @@ static void assert_disk_show_output(t_stat (*show_fn)(FILE *, UNIT *, int32_t,
     char *text;
     size_t size;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     assert_int_equal(show_fn(stream, uptr, 0, NULL), SCPE_OK);
@@ -189,7 +190,7 @@ static char *capture_show_unit_text(DEVICE *dptr, UNIT *uptr)
     char *text;
     size_t size;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     assert_int_equal(show_unit(stream, dptr, uptr, -1), SCPE_OK);
@@ -711,7 +712,7 @@ static void test_sim_disk_ramdisk_sim_save_writes_save_image(void **state)
                      SCPE_OK);
     assert_int_equal(sectors, 1);
 
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
     fclose(save_state);
@@ -749,7 +750,7 @@ static void test_sim_disk_ramdisk_sim_save_writes_read_only_image(void **state)
                                         512, 1, true, 0, "TEST", 0, 0, NULL),
                      SCPE_OK);
 
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
     fclose(save_state);
@@ -775,7 +776,7 @@ static void test_sim_disk_ramdisk_sim_save_allows_default_null_save(void **state
                                         "RAMDISK:SIZE=4096", 512, 1, true, 0,
                                         "TEST", 0, 0, NULL),
                      SCPE_OK);
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
     fclose(save_state);
@@ -810,7 +811,7 @@ static void test_sim_disk_ramdisk_sim_restore_reads_save_image(void **state)
     assert_int_equal(sim_disk_wrsect(&fixture->sector_unit, 1, write_buf,
                                      &sectors, 1),
                      SCPE_OK);
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
 
@@ -860,7 +861,7 @@ static void test_sim_disk_ramdisk_sim_restore_keeps_read_only(void **state)
                                         512, 1, true, 0, "TEST", 0, 0, NULL),
                      SCPE_OK);
 
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
 
@@ -902,7 +903,7 @@ static void test_sim_disk_ramdisk_sim_restore_requires_save(void **state)
                                         "RAMDISK:SIZE=4096", 512, 1, true, 0,
                                         "TEST", 0, 0, NULL),
                      SCPE_OK);
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
 
@@ -930,7 +931,7 @@ static void test_sim_disk_ramdisk_sim_restore_requires_image(void **state)
     assert_int_equal(sim_disk_attach_ex(&fixture->sector_unit, attach_spec,
                                         512, 1, true, 0, "TEST", 0, 0, NULL),
                      SCPE_OK);
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
     assert_int_equal(simh_test_remove_path(save_path), 0);
@@ -960,7 +961,7 @@ static void test_sim_disk_ramdisk_sim_restore_rejects_wrong_size(void **state)
     assert_int_equal(sim_disk_attach_ex(&fixture->sector_unit, attach_spec,
                                         512, 1, true, 0, "TEST", 0, 0, NULL),
                      SCPE_OK);
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
     memset(short_image, 0x5A, sizeof(short_image));
@@ -988,7 +989,7 @@ static void test_sim_disk_ramdisk_sim_restore_rejects_null_save(void **state)
     assert_int_equal(sim_disk_attach_ex(&fixture->sector_unit, attach_spec,
                                         512, 1, true, 0, "TEST", 0, 0, NULL),
                      SCPE_OK);
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(sim_save(save_state), SCPE_OK);
 
@@ -1013,7 +1014,7 @@ static void test_sim_disk_ramdisk_sim_save_reports_bad_save_path(void **state)
                                         512, 1, true, 0, "TEST", 0, 0, NULL),
                      SCPE_OK);
 
-    save_state = tmpfile();
+    save_state = sim_tmpfile();
     assert_non_null(save_state);
     assert_int_equal(SCPE_BARE_STATUS(sim_save(save_state)), SCPE_OPENERR);
     fclose(save_state);

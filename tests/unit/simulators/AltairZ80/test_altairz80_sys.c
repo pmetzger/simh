@@ -154,7 +154,7 @@ static char *read_symbolic_output(FILE *stream)
 
 /*
  * Open a temporary stream for fprint_sym output using the repository's
- * portable temporary-file helper instead of tmpfile().
+ * portable temporary-file helper instead of C tmpfile().
  */
 static void open_symbolic_output(struct symbolic_output *output)
 {

@@ -5,6 +5,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "scp_breakpoint.h"
 #include "test_scp_fixture.h"
@@ -148,7 +149,7 @@ static void test_sim_brk_show_and_clear_update_output_and_state(void **state)
 
     assert_int_equal(sim_brk_set(0x20, SWMASK('B'), 0, "echo beta"), SCPE_OK);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(sim_brk_show(stream, 0x20, SWMASK('B')), SCPE_OK);
     assert_int_equal(simh_test_read_stream(stream, &text, &size), 0);

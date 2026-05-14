@@ -122,7 +122,7 @@ static void remove_temp_stream(struct temp_stream *stream)
 
 /*
  * Open a portable read/write temporary stream using the simulator tempfile
- * helper instead of tmpfile().
+ * helper instead of C tmpfile().
  */
 static void open_temp_stream(struct temp_stream *stream)
 {

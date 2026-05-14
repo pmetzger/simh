@@ -7,6 +7,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "test_scp_fixture.h"
 #include "test_simh_personality.h"
@@ -206,7 +207,7 @@ static void test_show_config_enabled_filter_hides_disabled_devices(void **state)
 
     (void)state;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     saved_switches = sim_switches;

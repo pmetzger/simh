@@ -5,6 +5,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "id_defs.h"
 
 uint32_t int_req[INTSZ];
@@ -102,7 +103,7 @@ static void test_idc_wds_returns_status_and_fills_sector_tail(void **state)
 
     (void)state;
 
-    file = tmpfile();
+    file = sim_tmpfile();
     assert_non_null(file);
     unit.fileref = file;
 

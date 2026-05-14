@@ -5,6 +5,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "altairz80_defs.h"
 
 uint32_t PCX;
@@ -138,7 +139,7 @@ static void test_uart_status_write_does_not_touch_pio_data(void **state)
 
     (void)state;
 
-    debug_stream = tmpfile();
+    debug_stream = sim_tmpfile();
     assert_non_null(debug_stream);
 
     sio_status_calls = 0;

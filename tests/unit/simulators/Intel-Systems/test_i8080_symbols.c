@@ -6,6 +6,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "system_defs.h"
 #include "i8080_symbol_internal.h"
 
@@ -96,7 +97,7 @@ static char *render_i8080_symbol(t_value *val, t_stat *status)
     FILE *stream;
     char *output;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     *status = fprint_sym(stream, 0, val, &symbol_unit, SWMASK('M'));

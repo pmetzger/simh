@@ -5,6 +5,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "test_support.h"
 
@@ -31,7 +32,7 @@ static void test_examine_array_register_summarizes_single_repeat(void **state)
     register_buffer[2] = 1;
     register_buffer[3] = 0;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(exdep_reg_loop(stream, NULL, EX_E, NULL,
                                     &test_registers[0], &test_registers[0], 0,

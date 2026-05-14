@@ -4,6 +4,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "test_simh_personality.h"
 #include "test_support.h"
@@ -37,7 +38,7 @@ static void test_sim_fprint_regex_support_reports_current_backend(void **state)
 
     backend = sim_regex_backend_name();
     version = sim_regex_backend_version();
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     sim_fprint_regex_support(stream);

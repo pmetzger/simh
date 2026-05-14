@@ -6,6 +6,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "scp_expect.h"
 #include "test_scp_expect_fixture.h"
@@ -67,7 +68,7 @@ static char *read_stream_text(FILE *stream)
 /* Capture sim_show_send_input() output into a heap string. */
 static char *capture_show_send_input_text(const SEND *snd)
 {
-    FILE *stream = tmpfile();
+    FILE *stream = sim_tmpfile();
 
     assert_non_null(stream);
     assert_int_equal(sim_show_send_input(stream, snd), SCPE_OK);
@@ -78,7 +79,7 @@ static char *capture_show_send_input_text(const SEND *snd)
 static char *capture_show_expect_text(const EXPECT *exp, const char *match,
                                       t_stat expected)
 {
-    FILE *stream = tmpfile();
+    FILE *stream = sim_tmpfile();
 
     assert_non_null(stream);
     assert_int_equal(sim_exp_show(stream, exp, match), expected);
@@ -88,7 +89,7 @@ static char *capture_show_expect_text(const EXPECT *exp, const char *match,
 /* Capture sim_show_send() output for one wrapper invocation. */
 static char *capture_show_send_wrapper_text(const char *cptr, t_stat expected)
 {
-    FILE *stream = tmpfile();
+    FILE *stream = sim_tmpfile();
 
     assert_non_null(stream);
     assert_int_equal(sim_show_send(stream, NULL, NULL, 0, cptr), expected);
@@ -98,7 +99,7 @@ static char *capture_show_send_wrapper_text(const char *cptr, t_stat expected)
 /* Capture sim_show_expect() output for one wrapper invocation. */
 static char *capture_show_expect_wrapper_text(const char *cptr, t_stat expected)
 {
-    FILE *stream = tmpfile();
+    FILE *stream = sim_tmpfile();
 
     assert_non_null(stream);
     assert_int_equal(sim_show_expect(stream, NULL, NULL, 0, cptr), expected);
@@ -607,7 +608,7 @@ static void test_expect_helpers_handle_empty_contexts(void **state)
                         "Expect facility");
     assert_int_equal(sim_exp_check(&fixture->exp, 'X'), SCPE_OK);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(sim_exp_showall(stream, &fixture->exp), SCPE_OK);
     fclose(stream);
@@ -638,7 +639,7 @@ static void test_sim_show_send_wrapper_handles_console_arguments(void **state)
     text = capture_show_send_wrapper_text("", SCPE_OK);
     free(text);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(sim_show_send(stream, NULL, NULL, 0, "extra"),
                      SCPE_2MARG);
@@ -661,7 +662,7 @@ static void test_sim_show_expect_wrapper_handles_console_arguments(void **state)
     text = capture_show_expect_wrapper_text("\"A\"", SCPE_OK);
     free(text);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(sim_show_expect(stream, NULL, NULL, 0, "\"A\" extra"),
                      SCPE_2MARG);
@@ -675,14 +676,14 @@ static void test_sim_show_expect_wrapper_rejects_invalid_filters(void **state)
 
     (void)state;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(SCPE_BARE_STATUS(sim_show_expect(stream, NULL, NULL, 0,
                                                       "plain")),
                      SCPE_ARG);
     fclose(stream);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(SCPE_BARE_STATUS(sim_show_expect(stream, NULL, NULL, 0,
                                                       "\"A")),
@@ -720,14 +721,14 @@ static void test_line_qualified_commands_reject_unknown_tmxr_lines(
     assert_int_equal(SCPE_BARE_STATUS(send_cmd(1, "TTY:9 \"A\"")), SCPE_ARG);
     assert_int_equal(SCPE_BARE_STATUS(expect_cmd(1, "TTY:9 \"A\"")), SCPE_ARG);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(SCPE_BARE_STATUS(sim_show_send(stream, NULL, NULL, 0,
                                                     "TTY:9")),
                      SCPE_ARG);
     fclose(stream);
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
     assert_int_equal(SCPE_BARE_STATUS(sim_show_expect(stream, NULL, NULL, 0,
                                                       "TTY:9")),

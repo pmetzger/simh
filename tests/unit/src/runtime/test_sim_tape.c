@@ -8,6 +8,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "sim_defs.h"
 #include "sim_fio.h"
@@ -100,7 +101,7 @@ static void assert_show_output(t_stat (*show_fn)(FILE *, UNIT *, int32_t,
     char *text;
     size_t size;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     assert_int_equal(show_fn(stream, uptr, 0, NULL), SCPE_OK);
@@ -131,7 +132,7 @@ static char *capture_tape_debug_output(struct sim_tape_fixture *fixture)
     uint8_t read_buffer[16] = {0};
     t_mtrlnt record_length;
 
-    capture = tmpfile();
+    capture = sim_tmpfile();
     assert_non_null(capture);
 
     sim_deb = capture;
@@ -486,7 +487,7 @@ static void test_sim_tape_attach_help_describes_supported_usage(void **state)
     char *text;
     size_t size;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     assert_int_equal(

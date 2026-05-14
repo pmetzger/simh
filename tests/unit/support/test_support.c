@@ -10,6 +10,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "sim_tempfile.h"
+
 /* Build one filesystem path from a base directory and relative leaf. */
 int simh_test_join_path(char *buffer, size_t buffer_size, const char *base,
                         const char *relative_path)
@@ -271,7 +273,7 @@ int simh_test_capture_stdout(simh_test_stream_writer writer, void *context,
         return -1;
     }
 
-    capture = tmpfile();
+    capture = sim_tmpfile();
     if (capture == NULL) {
         close(saved_stdout);
         return -1;

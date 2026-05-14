@@ -4,6 +4,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "sim_defs.h"
 
 void fprint_fields(FILE *stream, t_value before, t_value after,
@@ -33,7 +34,7 @@ static void assert_fields_print(BITFIELD *fields, t_value before, t_value after,
     FILE *stream;
     char *actual;
 
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     fprint_fields(stream, before, after, fields);

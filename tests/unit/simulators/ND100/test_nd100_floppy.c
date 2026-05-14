@@ -5,6 +5,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "sim_defs.h"
 #include "sim_types.h"
@@ -41,7 +42,7 @@ static FILE *create_disk_file(const uchar_t *data, size_t size)
 {
     FILE *file;
 
-    file = tmpfile();
+    file = sim_tmpfile();
     assert_non_null(file);
     if (size != 0)
         assert_int_equal(fwrite(data, 1, size, file), size);

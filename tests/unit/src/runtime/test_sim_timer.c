@@ -7,6 +7,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "scp.h"
 #include "sim_defs.h"
 #include "sim_timer_internal.h"
@@ -176,7 +177,7 @@ static void sim_timer_assert_show_throt_contains (const char *expected)
     char *text;
     FILE *stream;
 
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (sim_show_throt (stream, NULL, NULL, 0, NULL), SCPE_OK);
     text = sim_timer_read_stream_text (stream);
@@ -840,7 +841,7 @@ static void test_sim_timer_activate_after_rejects_negative_delay (void **state)
 
     sim_is_running = true;
     sim_interval = 1234;
-    debug_stream = tmpfile ();
+    debug_stream = sim_tmpfile();
     assert_non_null (debug_stream);
     sim_deb = debug_stream;
     sim_deb_switches |= SWMASK ('F');
@@ -1194,7 +1195,7 @@ static void test_sim_show_clock_queues_reports_coscheduled_entries (
     assert_int_equal (sim_clock_coschedule_tmr (&fixture->target_unit, 0, 3),
                       SCPE_OK);
 
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (
         sim_show_clock_queues (stream, NULL, NULL, 0, NULL), SCPE_OK);
@@ -1769,7 +1770,7 @@ static void test_sim_show_timers_reports_detailed_timer_state (void **state)
     simh_test_clock_value_count = 1;
     sim_time_set_test_hooks (simh_test_clock_gettime_stub, NULL);
 
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (sim_show_timers (stream, NULL, &fixture->clock_unit, 0,
                                        NULL),
@@ -1807,7 +1808,7 @@ static void test_sim_show_timers_reports_internal_timer_fallback (void **state)
     sim_register_clock_unit_tmr (NULL, SIM_NTIMERS);
     sim_start_timer_services ();
 
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (sim_show_timers (stream, NULL, NULL, 0, NULL), SCPE_OK);
     text = sim_timer_read_stream_text (stream);
@@ -1834,7 +1835,7 @@ static void test_sim_show_timers_reports_idle_status (void **state)
     assert_int_equal (sim_set_timers (0, "CATCHUP,CALIB=ALWAYS"), SCPE_OK);
     assert_int_equal (sim_set_idle (NULL, 0, "3", NULL), SCPE_OK);
 
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (sim_show_timers (stream, NULL, NULL, 0, NULL), SCPE_OK);
     text = sim_timer_read_stream_text (stream);
@@ -1926,7 +1927,7 @@ static void test_sim_timer_set_and_show_helpers (void **state)
                       SCPE_ARG);
     assert_int_equal (sim_set_timers (0, "NOCATCHUP,CALIB=50"), SCPE_OK);
 
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (sim_timer_show_catchup (stream, NULL, 0, NULL),
                       SCPE_OK);
@@ -1937,7 +1938,7 @@ static void test_sim_timer_set_and_show_helpers (void **state)
     fclose (stream);
 
     assert_int_equal (sim_set_timers (0, "CATCHUP,CALIB=ALWAYS"), SCPE_OK);
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (sim_timer_show_catchup (stream, NULL, 0, NULL),
                       SCPE_OK);
@@ -1946,7 +1947,7 @@ static void test_sim_timer_set_and_show_helpers (void **state)
     free (text);
     fclose (stream);
 
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (sim_show_idle (stream, NULL, 0, NULL), SCPE_OK);
     text = sim_timer_read_stream_text (stream);
@@ -1955,7 +1956,7 @@ static void test_sim_timer_set_and_show_helpers (void **state)
     fclose (stream);
 
     assert_int_equal (sim_set_idle (NULL, 0, "2", NULL), SCPE_OK);
-    stream = tmpfile ();
+    stream = sim_tmpfile();
     assert_non_null (stream);
     assert_int_equal (sim_show_idle (stream, NULL, 0, NULL), SCPE_OK);
     text = sim_timer_read_stream_text (stream);

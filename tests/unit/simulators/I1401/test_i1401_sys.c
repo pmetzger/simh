@@ -6,6 +6,7 @@
 
 #include "test_cmocka.h"
 
+#include "sim_tempfile.h"
 #include "i1401_defs.h"
 #include "i1401_dat.h"
 
@@ -88,7 +89,7 @@ test_symbolic_io_operand_uses_only_f_switch_for_fortran_set(void **state)
     (void)state;
 
     conv_old = false;
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     assert_int_equal(fprint_sym(stream, 0, instruction, &cpu_unit, SWMASK('M')),
@@ -113,7 +114,7 @@ test_symbolic_io_operand_uses_fortran_set_with_f_switch(void **state)
     (void)state;
 
     conv_old = false;
-    stream = tmpfile();
+    stream = sim_tmpfile();
     assert_non_null(stream);
 
     assert_int_equal(fprint_sym(stream, 0, instruction, &cpu_unit,
