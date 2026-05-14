@@ -25,10 +25,12 @@
 #include "sim_sock.h"
 
 #include "c_attrs.h"
+#include "dynstr.h"
 #include "sim_frontpanel.h"
-#include "string_util.h"
 #include "sim_time.h"
 #include "sim_types.h"
+#include "string_util.h"
+#include "xalloc.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -192,30 +194,6 @@ static uchar_t mantra[] = {
     TN_IAC, TN_DO, TN_BIN
     };
 
-static void *
-_panel_malloc (size_t size)
-{
-void *p = malloc (size);
-
-if (p == NULL)
-    sim_panel_set_error (NULL, "Out of Memory");
-return p;
-}
-
-/*
- * Duplicate an owned string and record the frontpanel error state if the
- * allocation fails.
- */
-static char *
-_panel_strdup (const char *str)
-{
-char *copy = strdup (str);
-
-if (copy == NULL)
-    sim_panel_set_error (NULL, "Out of Memory");
-return copy;
-}
-
 static void __panel_debug (PANEL *p, int dbits, const char *fmt,
                            const char *buf, int bufsize, ...)
     PRINTF_FMT(3, 6);
@@ -224,100 +202,123 @@ static void __panel_vdebug (PANEL *p, int dbits, const char *fmt,
     PRINTF_FMT(3, 0);
 void sim_panel_debug (PANEL *panel, const char *fmt, ...)
     PRINTF_FMT(2, 3);
-#define _panel_debug(p, dbits, fmt, buf, bufsize, ...) do { if (p && p->Debug && ((dbits) & p->debug)) __panel_debug (p, dbits, fmt, buf, bufsize, ##__VA_ARGS__);} while (0)
+#define _panel_debug(p, dbits, fmt, buf, bufsize, ...)                    \
+    do {                                                                  \
+        if ((p) && (p)->Debug && ((dbits) & (p)->debug))                  \
+            __panel_debug ((p), (dbits), (fmt), (buf), (bufsize),         \
+                           ##__VA_ARGS__);                                \
+    } while (0)
 
-static void __panel_vdebug (PANEL *p, int dbits, const char *fmt, const char *buf, int bufsize, va_list arglist)
+static void
+__panel_vdebug (PANEL *p, int dbits, const char *fmt, const char *buf,
+                int bufsize, va_list arglist)
 {
-size_t obufsize = 10240 + 9*bufsize;
-
-while (p && p->Debug && (dbits & p->debug)) {
-    int i, len;
+    dynstr_t obuf;
     struct timespec time_now = {0};
-    char timestamp[32];
-    char threadname[50];
-    char *obuf = (char *)_panel_malloc (obufsize);
+    int i;
 
-    (void)sim_clock_gettime(CLOCK_REALTIME, &time_now);
-    snprintf (timestamp, sizeof (timestamp), "%lld.%03d ", (long long)(time_now.tv_sec), (int)(time_now.tv_nsec/1000000));
-    snprintf (threadname, sizeof (threadname), "%s:%s ", p->parent ? p->device_name : "CPU", (pthread_getspecific (panel_thread_id)) ? (char *)pthread_getspecific (panel_thread_id) : "");
-
-    obuf[obufsize - 1] = '\0';
-    len = vsnprintf (obuf, obufsize - 1, fmt, arglist);
-    if (len < 0)
+    if (!p || !p->Debug || !(dbits & p->debug))
         return;
-    /* If the formatted result didn't fit into the buffer, then grow the buffer and try again */
-    if (len >= (int)(obufsize - 9*bufsize)) {
-        obufsize = len + 1 + 9*bufsize;
-        free (obuf);
-        continue;
+
+    dynstr_init (&obuf);
+    (void)sim_clock_gettime(CLOCK_REALTIME, &time_now);
+
+    (void)dynstr_appendf (&obuf, "%lld.%03d %s:%s ",
+                          (long long)(time_now.tv_sec),
+                          (int)(time_now.tv_nsec / 1000000),
+                          p->parent ? p->device_name : "CPU",
+                          (pthread_getspecific (panel_thread_id)) ?
+                              (char *)pthread_getspecific (panel_thread_id) :
+                              "");
+
+    if (!dynstr_vappendf (&obuf, fmt, arglist)) {
+        dynstr_free (&obuf);
+        return;
         }
 
-    for (i=0; i<bufsize; ++i) {
+    for (i=0; i<bufsize; i++) {
         switch ((uchar_t)buf[i]) {
             case TN_CR:
-                strlcat (obuf, "_TN_CR_", obufsize);
+                dynstr_append (&obuf, "_TN_CR_");
                 break;
             case TN_LF:
-                strlcat (obuf, "_TN_LF_", obufsize);
+                dynstr_append (&obuf, "_TN_LF_");
                 break;
             case TN_IAC:
-                strlcat (obuf, "_TN_IAC_", obufsize);
+                dynstr_append (&obuf, "_TN_IAC_");
+                if (i + 1 >= bufsize)
+                    break;
                 switch ((uchar_t)buf[i+1]) {
                     case TN_IAC:
-                        strlcat (obuf, "_TN_IAC_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_IAC_");
+                        i++;
                         break;
                     case TN_DONT:
-                        strlcat (obuf, "_TN_DONT_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_DONT_");
+                        i++;
                         break;
                     case TN_DO:
-                        strlcat (obuf, "_TN_DO_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_DO_");
+                        i++;
                         break;
                     case TN_WONT:
-                        strlcat (obuf, "_TN_WONT_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_WONT_");
+                        i++;
                         break;
                     case TN_WILL:
-                        strlcat (obuf, "_TN_WILL_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_WILL_");
+                        i++;
                         break;
                     default:
-                        strlappendf (obuf, obufsize, "_0x%02X_", (uchar_t)buf[i+1]); ++i;
+                        (void)dynstr_appendf (&obuf, "_0x%02X_",
+                                              (uchar_t)buf[i+1]);
+                        i++;
                         break;
                     }
+                if (i + 1 >= bufsize)
+                    break;
                 switch ((uchar_t)buf[i+1]) {
                     case TN_BIN:
-                        strlcat (obuf, "_TN_BIN_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_BIN_");
+                        i++;
                         break;
                     case TN_ECHO:
-                        strlcat (obuf, "_TN_ECHO_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_ECHO_");
+                        i++;
                         break;
                     case TN_SGA:
-                        strlcat (obuf, "_TN_SGA_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_SGA_");
+                        i++;
                         break;
                     case TN_LINE:
-                        strlcat (obuf, "_TN_LINE_", obufsize); ++i;
+                        dynstr_append (&obuf, "_TN_LINE_");
+                        i++;
                         break;
                     default:
-                        strlappendf (obuf, obufsize, "_0x%02X_", (uchar_t)buf[i+1]); ++i;
+                        (void)dynstr_appendf (&obuf, "_0x%02X_",
+                                              (uchar_t)buf[i+1]);
+                        i++;
                         break;
                     }
                     break;
             default:
                 if (isprint((u_char)buf[i]))
-                    strlappendf (obuf, obufsize, "%c", buf[i]);
+                    dynstr_append_ch (&obuf, buf[i]);
                 else {
-                    strlcat (obuf, "_", obufsize);
+                    dynstr_append (&obuf, "_");
                     if ((buf[i] >= 1) && (buf[i] <= 26))
-                        strlappendf (obuf, obufsize, "^%c", 'A' + buf[i] - 1);
+                        (void)dynstr_appendf (&obuf, "^%c",
+                                              'A' + buf[i] - 1);
                     else
-                        strlappendf (obuf, obufsize, "\\%03o", (u_char)buf[i]);
-                    strlcat (obuf, "_", obufsize);
+                        (void)dynstr_appendf (&obuf, "\\%03o",
+                                              (u_char)buf[i]);
+                    dynstr_append (&obuf, "_");
                     }
                 break;
-            }
+                }
         }
-    fprintf(p->Debug, "%s%s%s\n", timestamp, threadname, obuf);
-    free (obuf);
-    break;
-    }
+    fprintf(p->Debug, "%s\n", dynstr_cstr (&obuf));
+    dynstr_free (&obuf);
 }
 
 static void __panel_debug (PANEL *p, int dbits, const char *fmt, const char *buf, int bufsize, ...)
@@ -432,42 +433,22 @@ _panel_sendf_completion (PANEL *p, char **response, const char *completion,
 static int
 _panel_register_query_string (PANEL *panel, char **buf, size_t *buf_size)
 {
-size_t i, j, buf_data, buf_needed = 0, reg_count = 0, bit_reg_count = 0;
+size_t i, j, reg_count = 0, bit_reg_count = 0;
 const char *dev;
+dynstr_t query;
 
 pthread_mutex_lock (&panel->io_lock);
-buf_needed = 3 + 7 +                        /* EXECUTE */
-             strlen (register_get_start) +  /* # REGISTERS-START */
-             strlen (register_get_prefix);  /* SHOW TIME */
 for (i=0; i<panel->reg_count; i++) {
     if (panel->regs[i].bits)
-        ++bit_reg_count;
-    else {
-        ++reg_count;
-        buf_needed += 10 + strlen (panel->regs[i].name) + (panel->regs[i].device_name ? strlen (panel->regs[i].device_name) : 0);
-        if (panel->regs[i].element_count > 0)
-            buf_needed += 4 + 6 /* 6 digit register array index */;
-        if (panel->regs[i].indirect)
-            buf_needed += 12 + strlen (register_ind_echo) + strlen (panel->regs[i].name);
-        }
+        bit_reg_count++;
+    else
+        reg_count++;
     }
-if (bit_reg_count)
-    buf_needed += 2 + strlen (register_get_postfix);
-buf_needed += 10 + strlen (register_get_end);    /* # REGISTERS-DONE */
-if (buf_needed > *buf_size) {
-    free (*buf);
-    *buf = (char *)_panel_malloc (buf_needed);
-    if (!*buf) {
-        panel->State = Error;
-        pthread_mutex_unlock (&panel->io_lock);
-        return -1;
-        }
-    *buf_size = buf_needed;
-    }
-buf_data = 0;
+
+dynstr_init (&query);
 if (reg_count) {
-    snprintf (*buf + buf_data, buf_needed - buf_data, "EXECUTE %s;%s;", register_get_start, register_get_prefix);
-    buf_data += strlen (*buf + buf_data);
+    (void)dynstr_appendf (&query, "EXECUTE %s;%s;",
+                          register_get_start, register_get_prefix);
     }
 dev = "";
 for (i=j=0; i<panel->reg_count; i++) {
@@ -476,62 +457,52 @@ for (i=j=0; i<panel->reg_count; i++) {
     if ((panel->regs[i].indirect) || (panel->regs[i].bits))
         continue;
     if (strcmp (dev, reg_dev)) {/* devices are different */
-        char *tbuf;
-
-        buf_needed += 4 + strlen (register_dev_echo) + strlen (reg_dev);   /* # REGISTERS-for-DEVICE:XXX */
-        tbuf = (char *)_panel_malloc (buf_needed);
-        if (tbuf == NULL) {
-            panel->State = Error;
-            pthread_mutex_unlock (&panel->io_lock);
-            return -1;
-            }
-        strlcpy (tbuf, *buf, buf_needed);
-        free (*buf);
-        *buf = tbuf;
-        snprintf (*buf + buf_data, buf_needed - buf_data, "%s%s%s;", (i == 0)? "" : ";", register_dev_echo, reg_dev);
-        buf_data += strlen (*buf + buf_data);
+        (void)dynstr_appendf (&query, "%s%s%s;",
+                              (i == 0) ? "" : ";", register_dev_echo,
+                              reg_dev);
         dev = reg_dev;
         j = 0;
-        *buf_size = buf_needed;
         }
     if (panel->regs[i].element_count == 0) {
         if (j == 0)
-            snprintf (*buf + buf_data, buf_needed - buf_data, "E -16 %s %s", dev, panel->regs[i].name);
+            (void)dynstr_appendf (&query, "E -16 %s %s", dev,
+                                  panel->regs[i].name);
         else
-            snprintf (*buf + buf_data, buf_needed - buf_data, ",%s", panel->regs[i].name);
+            (void)dynstr_appendf (&query, ",%s",
+                                  panel->regs[i].name);
         }
     else {
         if (j == 0)
-            snprintf (*buf + buf_data, buf_needed - buf_data, "E -16 %s %s[0:%d]", dev, panel->regs[i].name, (int)(panel->regs[i].element_count-1));
+            (void)dynstr_appendf (&query, "E -16 %s %s[0:%d]",
+                                  dev, panel->regs[i].name,
+                                  (int)(panel->regs[i].element_count-1));
         else
-            snprintf (*buf + buf_data, buf_needed - buf_data, ",%s[0:%d]", panel->regs[i].name, (int)(panel->regs[i].element_count-1));
+            (void)dynstr_appendf (&query, ",%s[0:%d]",
+                                  panel->regs[i].name,
+                                  (int)(panel->regs[i].element_count-1));
         }
-    ++j;
-    buf_data += strlen (*buf + buf_data);
+    j++;
     }
-if (buf_data && ((*buf)[buf_data-1] != ';')) {
-    strlcpy (*buf + buf_data, ";", buf_needed - buf_data);
-    buf_data += strlen (*buf + buf_data);
-    }
+if ((query.len > 0) && (dynstr_cstr (&query)[query.len-1] != ';'))
+    dynstr_append_ch (&query, ';');
 for (i=j=0; i<panel->reg_count; i++) {
     const char *reg_dev = panel->regs[i].device_name ? panel->regs[i].device_name : "";
 
     if ((!panel->regs[i].indirect) || (panel->regs[i].bits))
         continue;
-    snprintf (*buf + buf_data, buf_needed - buf_data, "%s%s;E -16 %s %s,$;", register_ind_echo, panel->regs[i].name, reg_dev, panel->regs[i].name);
-    buf_data += strlen (*buf + buf_data);
+    (void)dynstr_appendf (&query, "%s%s;E -16 %s %s,$;",
+                          register_ind_echo, panel->regs[i].name,
+                          reg_dev, panel->regs[i].name);
     }
 if (bit_reg_count) {
-    strlcpy (*buf + buf_data, register_get_postfix, buf_needed - buf_data);
-    buf_data += strlen (*buf + buf_data);
-    strlcpy (*buf + buf_data, ";", buf_needed - buf_data);
-    buf_data += strlen (*buf + buf_data);
+    dynstr_append (&query, register_get_postfix);
+    dynstr_append_ch (&query, ';');
     }
-strlcpy (*buf + buf_data, register_get_end, buf_needed - buf_data);
-buf_data += strlen (*buf + buf_data);
-strlcpy (*buf + buf_data, "\r", buf_needed - buf_data);
-buf_data += strlen (*buf + buf_data);
-*buf_size = buf_data;
+dynstr_append (&query, register_get_end);
+dynstr_append_ch (&query, '\r');
+free (*buf);
+*buf = dynstr_take (&query);
+*buf_size = strlen (*buf);
 pthread_mutex_unlock (&panel->io_lock);
 return 0;
 }
@@ -539,36 +510,27 @@ return 0;
 static int
 _panel_establish_register_bits_collection (PANEL *panel)
 {
-size_t i, buf_data, buf_needed = 1;
+size_t i;
 int cmd_stat, bits_count = 0;
 char *buf, *response = NULL;
+dynstr_t query;
 
 pthread_mutex_lock (&panel->io_lock);
-for (i=0; i<panel->reg_count; i++) {
-    if (panel->regs[i].bits)
-        buf_needed += 9 + strlen (panel->regs[i].name) + (panel->regs[i].device_name ? strlen (panel->regs[i].device_name) : 0);
-    }
-buf = (char *)_panel_malloc (buf_needed);
-if (!buf) {
-    panel->State = Error;
-    pthread_mutex_unlock (&panel->io_lock);
-    return -1;
-    }
-*buf = '\0';
-buf_data = 0;
+dynstr_init (&query);
 for (i=0; i<panel->reg_count; i++) {
     if (panel->regs[i].bits) {
-        ++bits_count;
-        snprintf (buf + buf_data, buf_needed - buf_data, "%s%s", (bits_count != 1) ? "," : "", panel->regs[i].indirect ? "-I " : "");
-        buf_data += strlen (buf + buf_data);
+        bits_count++;
+        (void)dynstr_appendf (&query, "%s%s",
+                              (bits_count != 1) ? "," : "",
+                              panel->regs[i].indirect ? "-I " : "");
         if (panel->regs[i].device_name) {
-            snprintf (buf + buf_data, buf_needed - buf_data, "%s ", panel->regs[i].device_name);
-            buf_data += strlen (buf + buf_data);
+            (void)dynstr_appendf (&query, "%s ",
+                                  panel->regs[i].device_name);
             }
-        snprintf (buf + buf_data, buf_needed - buf_data, "%s", panel->regs[i].name);
-        buf_data += strlen (buf + buf_data);
+        dynstr_append (&query, panel->regs[i].name);
         }
     }
+buf = dynstr_take (&query);
 pthread_mutex_unlock (&panel->io_lock);
 if (_panel_sendf (panel, &cmd_stat, &response, "%s%u%s%u%s%u%s%s\r", register_collect_prefix, panel->sample_depth,
                                                                      register_collect_mid1, panel->sample_frequency,
@@ -582,6 +544,40 @@ if (_panel_sendf (panel, &cmd_stat, &response, "%s%u%s%u%s%u%s%s\r", register_co
 free (response);
 free (buf);
 return 0;
+}
+
+/*
+ * Build the repeating register query command sent by the callback thread.
+ * The simulator-side repeat command reuses the one-shot register query body,
+ * but swaps the one-shot start and completion markers for repeat markers.
+ */
+static char *
+_panel_repeat_query_string (const char *query, int interval)
+{
+    const char *start;
+    const char *body;
+    const char *end;
+    dynstr_t repeat;
+
+    start = strstr (query, register_get_start);
+    if (start == NULL)
+        return NULL;
+    body = start + strlen (register_get_start);
+    end = strstr (body, register_get_end);
+    if (end == NULL)
+        return NULL;
+
+    dynstr_init (&repeat);
+    if (!dynstr_appendf (&repeat, "%s%d%s%s", register_repeat_prefix,
+                         interval, register_repeat_units,
+                         register_repeat_start) ||
+        !dynstr_appendf (&repeat, "%.*s", (int)(end - body), body)) {
+        dynstr_free (&repeat);
+        return NULL;
+        }
+    dynstr_append (&repeat, register_repeat_end);
+
+    return dynstr_take (&repeat);
 }
 
 static PANEL **panels = NULL;
@@ -604,8 +600,8 @@ if (panel_count == 0)
     pthread_key_create (&panel_thread_id, free);
 if (!pthread_getspecific (panel_thread_id))
     pthread_setspecific (panel_thread_id, p->device_name ? p->device_name : "PanelCreator");
-++panel_count;
-panels = (PANEL **)realloc (panels, sizeof(*panels)*panel_count);
+panel_count++;
+panels = (PANEL **)xrealloc (panels, sizeof(*panels)*panel_count);
 panels[panel_count-1] = p;
 if (panel_count == 1)
     atexit (&_panel_cleanup);
@@ -655,29 +651,20 @@ union {int i; char c[sizeof (int)]; } end_test;
 
 if (sim_panel_error_buf == NULL) {  /* Preallocate an error message buffer */
     sim_panel_error_bufsize = 2048;
-    sim_panel_error_buf = (char *) malloc (sim_panel_error_bufsize);
-    if (sim_panel_error_buf == NULL) {
-        sim_panel_error_buf = (char *)"sim_panel_set_error(): Out of Memory\n";
-        sim_panel_error_bufsize = 0;
-        return NULL;
-        }
+    sim_panel_error_buf = (char *)xmalloc (sim_panel_error_bufsize);
     }
 if (simulator_panel) {
-    for (device_num=0; device_num < simulator_panel->device_count; ++device_num)
+    for (device_num=0; device_num < simulator_panel->device_count; device_num++)
         if (simulator_panel->devices[device_num] == NULL)
             break;
     if (device_num == simulator_panel->device_count) {
         sim_panel_set_error (NULL, "No free panel devices slots available %s simulator.  All %d slots are used.", simulator_panel->path, (int)simulator_panel->device_count);
         return NULL;
         }
-    p = (PANEL *)_panel_malloc (sizeof(*p));
-    if (p == NULL)
-        goto Error_Return;
+    p = (PANEL *)xmalloc (sizeof(*p));
     memset (p, 0, sizeof(*p));
     _panel_register_panel (p);
-    p->device_name = _panel_strdup (device_name);
-    if (p->device_name == NULL)
-        goto Error_Return;
+    p->device_name = xstrdup (device_name);
     p->parent = simulator_panel;
     p->Debug = p->parent->Debug;
     strlcpy (p->hostport, simulator_panel->hostport, sizeof (p->hostport));
@@ -709,32 +696,22 @@ else {
         sim_panel_set_error (NULL, "Can't stat simulator configuration '%s': %s", sim_config, strerror(errno));
         goto Error_Return;
         }
-    buf = (char *)_panel_malloc (statb.st_size+1);
-    if (buf == NULL)
-        goto Error_Return;
+    buf = (char *)xmalloc (statb.st_size+1);
     buf[statb.st_size] = '\0';
-    p = (PANEL *)_panel_malloc (sizeof(*p));
-    if (p == NULL)
-        goto Error_Return;
+    p = (PANEL *)xmalloc (sizeof(*p));
     memset (p, 0, sizeof(*p));
     _panel_register_panel (p);
     p->sock = INVALID_SOCKET;
     size_t temp_config_size = strlen (sim_config) + 40;
 
-    p->path = _panel_strdup (sim_path);
-    if (p->path == NULL)
-        goto Error_Return;
-    p->config = _panel_strdup (sim_config);
-    if (p->config == NULL)
-        goto Error_Return;
+    p->path = xstrdup (sim_path);
+    p->config = xstrdup (sim_config);
     fIn = fopen (sim_config, "r");
     if (fIn == NULL) {
         sim_panel_set_error (NULL, "Can't open configuration file '%s': %s", sim_config, strerror(errno));
         goto Error_Return;
         }
-    p->temp_config = (char *)_panel_malloc (temp_config_size);
-    if (p->temp_config == NULL)
-        goto Error_Return;
+    p->temp_config = (char *)xmalloc (temp_config_size);
     snprintf (p->temp_config, temp_config_size, "%s-Panel-%d", sim_config, getpid());
     fOut = fopen (p->temp_config, "w");
     if (fOut == NULL) {
@@ -768,9 +745,7 @@ if (debug_file) {
         sim_panel_set_error (NULL, "Can't stat temporary simulator configuration '%s': %s", p->temp_config, strerror(errno));
         goto Error_Return;
         }
-    buf = (char *)_panel_malloc (statb.st_size+1);
-    if (buf == NULL)
-        goto Error_Return;
+    buf = (char *)xmalloc (statb.st_size+1);
     buf[statb.st_size] = '\0';
     fIn = fopen (p->temp_config, "r");
     if (fIn == NULL) {
@@ -780,7 +755,7 @@ if (debug_file) {
     _panel_debug (p, DBG_XMT|DBG_RCV, "Using Temporary Configuration File '%s' containing:", NULL, 0, p->temp_config);
     i = 0;
     while (fgets (buf, statb.st_size, fIn)) {
-        ++i;
+        i++;
         buf[strlen(buf) - 1] = '\0';
         _panel_debug (p, DBG_XMT|DBG_RCV, "Line %2d: %s", NULL, 0, (int)i, buf);
         }
@@ -884,9 +859,7 @@ if (simulator_panel) {
     }
 else {
     if (device_panel_count) {
-        p->devices = (PANEL **)_panel_malloc (device_panel_count*sizeof(*p->devices));
-        if (p->devices == NULL)
-            goto Error_Return;
+        p->devices = (PANEL **)xmalloc (device_panel_count*sizeof(*p->devices));
         memset (p->devices, 0, device_panel_count*sizeof(*p->devices));
         p->device_count = device_panel_count;
         }
@@ -934,7 +907,7 @@ if (buf)
     free (buf);
 {
     const char *err = sim_panel_get_error();
-    char *errbuf = _panel_strdup (err);
+    char *errbuf = xstrdup (err);
 
     sim_panel_destroy (p);
     sim_panel_set_error (NULL, "%s", errbuf);
@@ -1108,21 +1081,12 @@ if ((bit_count != 0) && (panel->sample_depth == 0)) {
     sim_panel_set_error (NULL, "sim_panel_set_sampling_parameters() must be called first");
     return -1;
     }
-regs = (REG *)_panel_malloc ((1 + panel->reg_count)*sizeof(*regs));
-if (regs == NULL)
-    return sim_panel_set_error (panel, "_panel_add_register(): Out of Memory\n");
+regs = (REG *)xmalloc ((1 + panel->reg_count)*sizeof(*regs));
 pthread_mutex_lock (&panel->io_lock);
 memcpy (regs, panel->regs, panel->reg_count*sizeof(*regs));
 reg = &regs[panel->reg_count];
 memset (reg, 0, sizeof(*regs));
-reg->name = _panel_strdup (name);
-if (reg->name == NULL) {
-    panel->State = Error;
-    pthread_mutex_unlock (&panel->io_lock);
-    sim_panel_set_error (NULL, "_panel_add_register(): Out of Memory\n");
-    free (regs);
-    return -1;
-    }
+reg->name = xstrdup (name);
 reg->indirect = indirect;
 reg->addr = addr;
 reg->size = size;
@@ -1134,32 +1098,16 @@ for (i=0; i<strlen (reg->name); i++) {
         reg->name[i] = toupper (reg->name[i]);
     }
 if (device_name) {
-    reg->device_name = _panel_strdup (device_name);
-    if (reg->device_name == NULL) {
-        free (reg->name);
-        free (regs);
-        pthread_mutex_unlock (&panel->io_lock);
-        return sim_panel_set_error (panel, "_panel_add_register(): Out of Memory\n");
-        }
+    reg->device_name = xstrdup (device_name);
     for (i=0; i<strlen (reg->device_name); i++) {
         if (islower (reg->device_name[i]))
             reg->device_name[i] = toupper (reg->device_name[i]);
         }
     }
 for (i=0; i<panel->reg_count; i++) {
-    char *t1 = (char *)_panel_malloc (2 + strlen (regs[i].name) + (regs[i].device_name? strlen (regs[i].device_name) : 0));
-    char *t2 = (char *)_panel_malloc (2 + strlen (reg->name) + (reg->device_name? strlen (reg->device_name) : 0));
+    char *t1 = (char *)xmalloc (2 + strlen (regs[i].name) + (regs[i].device_name? strlen (regs[i].device_name) : 0));
+    char *t2 = (char *)xmalloc (2 + strlen (reg->name) + (reg->device_name? strlen (reg->device_name) : 0));
 
-    if ((t1 == NULL) || (t2 == NULL)) {
-        free (t1);
-        free (t2);
-        free (reg->name);
-        free (reg->device_name);
-        panel->State = Error;
-        free (regs);
-        pthread_mutex_unlock (&panel->io_lock);
-        return sim_panel_set_error (NULL, "_panel_add_register(): Out of Memory\n");
-        }
     snprintf (t1, 2 + strlen (regs[i].name) + (regs[i].device_name? strlen (regs[i].device_name) : 0), "%s %s", regs[i].device_name ? regs[i].device_name : "", regs[i].name);
     snprintf (t2, 2 + strlen (reg->name) + (reg->device_name? strlen (reg->device_name) : 0), "%s %s", reg->device_name ? reg->device_name : "", reg->name);
     if ((!strcmp (t1, t2)) &&
@@ -1220,7 +1168,7 @@ if (element_count > 0) {
     free (response);
     }
 pthread_mutex_lock (&panel->io_lock);
-++panel->reg_count;
+panel->reg_count++;
 free (panel->regs);
 panel->regs = regs;
 panel->new_register = 1;
@@ -2301,13 +2249,8 @@ while ((p->sock != INVALID_SOCKET) &&
             }
         /* Non Register Data Found (echo of EXAMINE or other commands and/or command output) */
         if (p->io_response_data + strlen (s) + 3 > p->io_response_size) {
-            char *t = (char *)_panel_malloc (p->io_response_data + strlen (s) + 3);
+            char *t = (char *)xmalloc (p->io_response_data + strlen (s) + 3);
 
-            if (t == NULL) {
-                _panel_debug (p, DBG_RCV, "%s", NULL, 0, sim_panel_get_error());
-                p->State = Error;
-                break;
-                }
             memcpy (t, p->io_response, p->io_response_data);
             free (p->io_response);
             p->io_response = t;
@@ -2368,12 +2311,7 @@ Start_Next_Line:
         _panel_debug (p, DBG_RSP, "State transitioning to Halt: io_wait_done: %d", NULL, 0, io_wait_done);
         p->State = Halt;
         free (p->halt_reason);
-        p->halt_reason = _panel_strdup (p->io_response);
-        if (p->halt_reason == NULL) {
-            _panel_debug (p, DBG_RCV, "%s", NULL, 0, sim_panel_get_error());
-            p->State = Error;
-            break;
-            }
+        p->halt_reason = xstrdup (p->io_response);
         }
     if (io_wait_done) {
         _panel_debug (p, DBG_RCV, "*Match Command Complete - Match signaling waiting thread", NULL, 0);
@@ -2402,7 +2340,7 @@ PANEL *p = (PANEL*)arg;
 int sched_policy;
 struct sched_param sched_priority;
 char *buf = NULL;
-size_t buf_data = 0;
+size_t buf_size = 0;
 int cmd_stat;
 
 /*
@@ -2410,7 +2348,7 @@ int cmd_stat;
    with compute bound activities.
  */
 pthread_getschedparam (pthread_self(), &sched_policy, &sched_priority);
-++sched_priority.sched_priority;
+sched_priority.sched_priority++;
 pthread_setschedparam (pthread_self(), sched_policy, &sched_priority);
 pthread_setspecific (panel_thread_id, "callback");
 _panel_debug (p, DBG_THR, "Starting", NULL, 0);
@@ -2431,7 +2369,7 @@ while ((p->sock != INVALID_SOCKET) &&
     pthread_mutex_unlock (&p->io_lock);
 
     if (new_register)           /* need to get and send updated register info */
-        _panel_register_query_string (p, &buf, &buf_data);
+        _panel_register_query_string (p, &buf, &buf_size);
 
     /* twice a second activities:                                               */
     /*  1) update the query string if it has changed                            */
@@ -2440,33 +2378,14 @@ while ((p->sock != INVALID_SOCKET) &&
     sim_sleep_msec (500);
     pthread_mutex_lock (&p->io_lock);
     if (new_register) {
-        size_t repeat_data = strlen (register_repeat_prefix) +  /* prefix */
-                             20                              +  /* max int width */
-                             strlen (register_repeat_units)  +  /* units and spacing */
-                             buf_data                        +  /* command contents */
-                             1                               +  /* ; */
-                             strlen (register_repeat_start)  +  /* auto repeat begin */
-                             1                               +  /* ; */
-                             strlen (register_repeat_end)    +  /* auto repeat completion */
-                             1                               +  /* carriage return */
-                             1;                                 /* NUL */
-        char *repeat = (char *)malloc (repeat_data);
-        char *c;
+        char *repeat = _panel_repeat_query_string (buf, interval);
 
-        c = strstr (buf, register_get_start);       /* remove register_get_start string and anything before it */
-        if (c) {                                    /* always true */
-            buf_data -= (c - buf) + strlen (register_get_start);
-            c += strlen (register_get_start);
-            }
-        snprintf (repeat, repeat_data, "%s%d%s%s%*.*s", register_repeat_prefix,
-                                      interval,
-                                      register_repeat_units,
-                                      register_repeat_start,
-                                      (int)buf_data, (int)buf_data, c);
         pthread_mutex_unlock (&p->io_lock);
-        c = strstr (repeat, register_get_end);      /* remove register_done_echo string and */
-        if (c)                                      /* always true */
-            strlcpy (c, register_repeat_end, repeat_data - (size_t)(c - repeat)); /* replace it with the register_repeat_end string */
+        if (repeat == NULL) {
+            sim_panel_set_error (p, "Unable to build register repeat query");
+            pthread_mutex_lock (&p->io_lock);
+            break;
+            }
         if (_panel_sendf (p, &cmd_stat, NULL, "%s", repeat)) {
             pthread_mutex_lock (&p->io_lock);
             free (repeat);
@@ -2520,56 +2439,98 @@ sim_panel_error_buf = NULL;
 sim_panel_error_bufsize = 0;
 }
 
-#if defined (_WIN32)
-#define vsnprintf _vsnprintf
-#endif
-
 static int sim_panel_set_error (PANEL *p, const char *fmt, ...)
 {
 va_list arglist;
 int len;
+size_t needed;
 
 if (p) {
     pthread_mutex_lock (&p->io_lock);
     p->State = Error;
     pthread_mutex_unlock (&p->io_lock);
     }
-if (sim_panel_error_bufsize == 0) {
-    sim_panel_error_bufsize = 2048;
-    sim_panel_error_buf = (char *) malloc (sim_panel_error_bufsize);
-    if (sim_panel_error_buf == NULL) {
-        sim_panel_error_buf = (char *)"sim_panel_set_error(): Out of Memory\n";
-        sim_panel_error_bufsize = 0;
-        return -1;
-        }
-    }
-sim_panel_error_buf[sim_panel_error_bufsize-1] = '\0';
 
-while (1) {                                         /* format passed string, args */
-    va_start (arglist, fmt);
-    len = vsnprintf (sim_panel_error_buf, sim_panel_error_bufsize-1, fmt, arglist);
-    va_end (arglist);
+va_start (arglist, fmt);
+len = vsnprintf (NULL, 0, fmt, arglist);
+va_end (arglist);
 
-    if (len < 0)        /* Format encoding error? */
-        break;
-    /* If the formatted result didn't fit into the buffer, then grow the buffer and try again */
-    if (len >= (int)(sim_panel_error_bufsize-1)) {
+if (len < 0)        /* Format encoding error? */
+    return -1;
+needed = (size_t)len + 1;
+
+if (needed > sim_panel_error_bufsize) {
+    char *new_buf = (char *)xmalloc (needed);
+
+    if (sim_panel_error_bufsize)
         free (sim_panel_error_buf);
-        sim_panel_error_bufsize = sim_panel_error_bufsize * 2;
-        while ((int)sim_panel_error_bufsize < len + 2)
-            sim_panel_error_bufsize = sim_panel_error_bufsize * 2;
-        sim_panel_error_buf = (char *) malloc (sim_panel_error_bufsize);
-        if (sim_panel_error_buf == NULL) {
-            sim_panel_error_buf = (char *)"sim_panel_set_error(): Out of Memory\n";
-            sim_panel_error_bufsize = 0;
-            return -1;
-            }
-        sim_panel_error_buf[sim_panel_error_bufsize-1] = '\0';
-        continue;
-        }
-    break;
+    sim_panel_error_buf = new_buf;
+    sim_panel_error_bufsize = needed;
     }
+
+va_start (arglist, fmt);
+(void)vsnprintf (sim_panel_error_buf, sim_panel_error_bufsize, fmt, arglist);
+va_end (arglist);
 return -1;
+}
+
+static int
+_panel_vformat_command (char **command, int *command_len, size_t extra_len,
+                        const char *fmt, va_list arglist)
+    PRINTF_FMT(4, 0);
+
+/*
+ * Format a frontpanel command with room for an optional protocol suffix.
+ * The input va_list is not consumed, so callers can pass their live list.
+ */
+static int
+_panel_vformat_command (char **command, int *command_len, size_t extra_len,
+                        const char *fmt, va_list arglist)
+{
+    va_list argcopy;
+    char *buf = NULL;
+    size_t bufsize = 1024;
+    int len = 0;
+
+    if (extra_len > (size_t)INT_MAX - 2)
+        return sim_panel_set_error (NULL, "Formatted command too large");
+
+    while (1) {
+        size_t needed;
+
+        free (buf);
+        buf = (char *)xmalloc (bufsize);
+
+        va_copy (argcopy, arglist);
+        len = vsnprintf (buf, bufsize, fmt, argcopy);
+        va_end (argcopy);
+
+        if (len < 0) {
+            free (buf);
+            return sim_panel_set_error (
+                NULL, "Format encoding error while processing '%s'", fmt);
+            }
+
+        if ((size_t)len > (size_t)INT_MAX - extra_len - 2) {
+            free (buf);
+            return sim_panel_set_error (NULL, "Formatted command too large");
+            }
+        needed = (size_t)len + extra_len + 2;      /* optional CR + NUL */
+
+        if (needed <= bufsize)
+            break;
+        bufsize = needed;
+        }
+
+    if (len && (buf[len-1] != '\r')) {
+        buf[len] = '\r';
+        len++;
+        buf[len] = '\0';
+        }
+
+    *command = buf;
+    *command_len = len;
+    return 0;
 }
 
 static int
@@ -2583,49 +2544,32 @@ _panel_vsendf_completion (PANEL *p, int *completion_status, char **response,
                           const char *completion_string, const char *fmt,
                           va_list arglist)
 {
-char stackbuf[1024];
-int bufsize = sizeof(stackbuf);
-char *buf = stackbuf;
+char *buf = NULL;
 int len, status_echo_len = 0, sent_len;
-int post_fix_len = completion_status ? 7 + sizeof (command_done_echo) + sizeof (command_status) : 1;
+size_t suffix_len = completion_status ?
+                    strlen (command_status) + 1 +
+                    strlen (command_done_echo) + 1 : 0;
 int ret;
 
 if (completion_status && completion_string)         /* one or the other, but */
     return -1;                                      /* not both */
 
-while (1) {                                         /* format passed string, args */
-    len = vsnprintf (buf, bufsize-1, fmt, arglist);
-
-    if (len < 0)
-        return sim_panel_set_error (NULL, "Format encoding error while processing '%s'", fmt);
-
-    /* If the formatted result didn't fit into the buffer, then grow the buffer and try again */
-    if ((len + post_fix_len) >= bufsize-1) {
-        if (buf != stackbuf)
-            free (buf);
-        bufsize = bufsize * 2;
-        if (bufsize < (len + post_fix_len + 2))
-            bufsize = len + post_fix_len + 2;
-        buf = (char *) _panel_malloc (bufsize);
-        if (buf == NULL)
-            return -1;
-        buf[bufsize-1] = '\0';
-        continue;
-        }
-    break;
-    }
-
-if (len && (buf[len-1] != '\r')) {
-    strlcpy (&buf[len], "\r", bufsize - len); /* Make sure command line is terminated */
-    ++len;
-    }
+if (_panel_vformat_command (&buf, &len, suffix_len, fmt, arglist))
+    return -1;
 
 pthread_mutex_lock (&p->io_command_lock);
-++p->command_count;
+p->command_count++;
 if (completion_status || completion_string) {
     if (completion_status) {
-        snprintf (&buf[len], bufsize - len, "%s\r%s\r", command_status, command_done_echo);
-        status_echo_len = strlen (&buf[len]);
+        status_echo_len =
+            snprintf (&buf[len], suffix_len + 1, "%s\r%s\r", command_status,
+                      command_done_echo);
+        if (status_echo_len < 0) {
+            pthread_mutex_unlock (&p->io_command_lock);
+            free (buf);
+            return sim_panel_set_error (
+                NULL, "Format encoding error while appending command status");
+            }
         }
     pthread_mutex_lock (&p->io_lock);
     p->completion_string = completion_string;
@@ -2648,7 +2592,7 @@ if (completion_status || completion_string) {
 
         while (p->io_waiting)
             pthread_cond_wait (&p->io_done, &p->io_lock); /* Wait for completion */
-        tresponse = (char *)_panel_malloc (p->io_response_data + 1);
+        tresponse = (char *)xmalloc (p->io_response_data + 1);
         if (0 == memcmp (buf, p->io_response + strlen (sim_prompt), len)) {
             char *eol, *status;
             memcpy (tresponse, p->io_response + strlen (sim_prompt) + len + 1, p->io_response_data + 1 - (strlen (sim_prompt) + len + 1));
@@ -2706,8 +2650,7 @@ else {
     }
 pthread_mutex_unlock (&p->io_command_lock);
 
-if (buf != stackbuf)
-    free (buf);
+free (buf);
 return ret;
 }
 

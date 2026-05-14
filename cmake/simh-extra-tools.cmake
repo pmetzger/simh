@@ -21,6 +21,8 @@ target_sources(stub PRIVATE ${SIMH_CORE_ROOT}/main.c)
 ## simulator targets.
 add_executable(frontpaneltest
     ${SIMH_COMPONENTS_ROOT}/frontpanel/FrontPanelTest.c
+    ${SIMH_LIB_ROOT}/dynstr.c
+    ${SIMH_LIB_ROOT}/xalloc.c
     ${SIMH_RUNTIME_ROOT}/sim_sock.c
     ${SIMH_LIB_ROOT}/string_util.c
     ${SIMH_RUNTIME_ROOT}/sim_time.c
