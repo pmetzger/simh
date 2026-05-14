@@ -42,7 +42,7 @@
 */
 
 #ifndef VAX_DEFS_H
-#define VAX_DEFS_H     0
+#define VAX_DEFS_H     1
 
 #ifndef VM_VAX
 #define VM_VAX          0

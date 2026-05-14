@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: X11
 
 #ifndef VAX_QBUS_INTERNAL_H_
-#define VAX_QBUS_INTERNAL_H_ 0
+#define VAX_QBUS_INTERNAL_H_ 1
 
 #include <stdint.h>
 

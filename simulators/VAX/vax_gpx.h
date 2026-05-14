@@ -25,7 +25,7 @@
 */
 
 #ifndef VAX_GPX_H
-#define VAX_GPX_H     0
+#define VAX_GPX_H     1
 
 #include <stdbool.h>
 #include <stdint.h>
