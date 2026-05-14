@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #ifndef XALLOC_H_
-#define XALLOC_H_ 0
+#define XALLOC_H_ 1
 
 #include <stddef.h>
 

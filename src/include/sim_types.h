@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: X11
 
 #ifndef SIM_TYPES_H_
-#define SIM_TYPES_H_ 0
+#define SIM_TYPES_H_ 1
 
 typedef unsigned int uint_t;
 typedef unsigned char uchar_t;
