@@ -3437,8 +3437,9 @@ vt11_cycle(int us, int slowdown)
             }
             refresh_rate = GETFIELD(inst,VS60?3:2,2);
             DEBUGF(" refresh=%d", refresh_rate);
-            if (sync_period != refresh_rate)
+            if (sync_period != refresh_rate) {
                 DEBUGF("old sync_period=%d, new refresh=%d", sync_period, refresh_rate);
+            }
             switch (refresh_rate) {
             case 0:                     /* continuous */
                 sync_period = 0;
