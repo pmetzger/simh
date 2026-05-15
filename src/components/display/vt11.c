@@ -171,7 +171,7 @@ extern void _sim_debug_device (uint_t dbits, DEVICE* dptr, const char* fmt, ...)
 
 #define DEBUGF(...) _sim_debug_device (vt11_dbit, vt11_dptr, ##  __VA_ARGS__)
 #else /* DEBUG_VT11 */
-#define DEBUGF(...) do {if (vt11_debug & DBG_CALL) { printf(##  __VA_ARGS__); fflush(stdout); };} while (0)
+#define DEBUGF(...) do {if (vt11_debug & DBG_CALL) { printf(__VA_ARGS__); fflush(stdout); };} while (0)
 #endif /* defined(DEBUG_VT11) || defined(VM_PDP11) */
 #else
 
@@ -2313,7 +2313,12 @@ conic3(int i, int32_t dcx, int32_t dcy, int32_t dcz, int32_t dex, int32_t dey, i
     /* just draw vector to endpoint (like real VS60 with option missing) */
     vector3(i, dex, dey, dez);
 #else
-    int32_t xs, ys, zs, xc, yc, zc, xe, ye, ze, x, y, z, nseg, seg;
+#if !defined(DEBUG_VT11) && !defined(VM_PDP11)
+    /* i is otherwise only used by DEBUGF. */
+    (void)i;
+#endif
+
+    int32_t xs, ys, zs, xc, yc, xe, ye, ze, x, y, z, nseg, seg;
     double rs, re, dr, as, da, zo, dz;
     int ons, one;                       /* ONSCREEN(xs,ys), ONSCREEN(xe,ye) */
     static double two_pi = -1.0;        /* will be set (once only) to 2*Pi */
@@ -2335,7 +2340,9 @@ conic3(int i, int32_t dcx, int32_t dcy, int32_t dcz, int32_t dex, int32_t dey, i
     zs = PNORM(zpos);
     xc = PNORM(xpos + dcx);             /* center pos. (includes offset) */
     yc = PNORM(ypos + dcy);
-    zc = PNORM(zpos + dcz);
+#if defined(DEBUG_VT11) || defined(VM_PDP11)
+    int32_t zc = PNORM(zpos + dcz);
+#endif
     xe = PNORM(xpos + dex);             /* ending pos. (includes offset) */
     ye = PNORM(ypos + dey);
     ze = PNORM(zpos + dez);
