@@ -10675,7 +10675,8 @@ debug_line_buf[debug_line_offset + len] = '\0';
 debug_line_offset += len;
 while (NULL != (eol = strchr (debug_line_buf, '\n')) || flush) {
     const char *endprefix = strstr (debug_line_buf, ")> ");
-    size_t linesize = (eol - debug_line_buf) + 1;
+    size_t linesize = (eol != NULL) ?
+        (size_t)(eol - debug_line_buf) + 1 : debug_line_offset;
 
     if ((0 != memcmp ("DBG(", debug_line_buf, 4)) || (endprefix == NULL)) {
         if (debug_line_count > 0)
@@ -10697,16 +10698,18 @@ while (NULL != (eol = strchr (debug_line_buf, '\n')) || flush) {
         }
     else {
         linesize = debug_line_offset;
+        const size_t compare_len = (eol != NULL) ?
+            (size_t)(eol - endprefix + 1) :
+            linesize - (size_t)(endprefix - debug_line_buf);
+
         if (debug_line_count == 0) {
             debug_line_buf_last_endprefix_offset = endprefix - debug_line_buf;
             memcpy (debug_line_buf_last, debug_line_buf, linesize);
             debug_line_buf_last[linesize] = '\0';
-            debug_line_buf_last_len = (NULL != eol) ? eol - endprefix + 1 : linesize;
+            debug_line_buf_last_len = compare_len;
             debug_line_count = 1;
             }
         else {
-            const size_t compare_len = eol - endprefix + 1;
-
             /* Ensure SIMH only executes memcmp() if the last message's comparison length
                is the same as the current debug line's comparison length. */
             if (debug_line_buf_last_len == compare_len &&
@@ -10729,7 +10732,7 @@ while (NULL != (eol = strchr (debug_line_buf, '\n')) || flush) {
                 debug_line_buf_last_endprefix_offset = endprefix - debug_line_buf;
                 memcpy (debug_line_buf_last, debug_line_buf, linesize);
                 debug_line_buf_last[linesize] = '\0';
-                debug_line_buf_last_len = (NULL != eol) ? compare_len : linesize;
+                debug_line_buf_last_len = compare_len;
                 debug_line_count = 1;
                 }
             }

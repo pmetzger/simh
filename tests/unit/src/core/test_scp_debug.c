@@ -1,10 +1,13 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "test_cmocka.h"
 
 #include "scp.h"
+#include "sim_tempfile.h"
+#include "test_support.h"
 
 static DEBTAB test_debug_flags[] = {
     {"LOW", 0x00000001u, "low debug bit"},
@@ -151,6 +154,131 @@ static void test_set_dev_debug_clears_named_unit_bit(void **state)
     assert_int_equal(unit.dctrl, 0x00000001u);
 }
 
+static size_t count_text_occurrences(const char *text, const char *needle)
+{
+    size_t count = 0;
+    size_t needle_len = strlen(needle);
+
+    for (const char *found = strstr(text, needle); found != NULL;
+         found = strstr(found + needle_len, needle)) {
+        ++count;
+    }
+
+    return count;
+}
+
+static void assert_text_ends_with(const char *text, const char *suffix)
+{
+    size_t text_len = strlen(text);
+    size_t suffix_len = strlen(suffix);
+
+    assert_true(text_len >= suffix_len);
+    assert_string_equal(text + text_len - suffix_len, suffix);
+}
+
+/*
+ * Partial debug writes leave SCP's internal debug state unterminated.  Emit a
+ * discarded newline so each test starts and ends with terminated debug state.
+ */
+static void reset_scp_debug_termination(void)
+{
+    _sim_debug_device(SCP_LOG_TESTING, &sim_scp_dev, "\n");
+    sim_flush_buffered_files();
+}
+
+static char *capture_scp_debug_output(void (*writer)(void))
+{
+    FILE *stream;
+    FILE *reset_stream;
+    FILE *saved_sim_deb;
+    int32_t saved_sim_deb_switches;
+    uint32_t saved_scp_debug;
+    char *output;
+    size_t output_size;
+    int reset_close_status;
+    int read_status;
+    int close_status;
+
+    stream = sim_tmpfile();
+    assert_non_null(stream);
+    reset_stream = sim_tmpfile();
+    assert_non_null(reset_stream);
+
+    saved_sim_deb = sim_deb;
+    saved_sim_deb_switches = sim_deb_switches;
+    saved_scp_debug = sim_scp_dev.dctrl;
+
+    sim_deb = reset_stream;
+    sim_deb_switches = 0;
+    sim_scp_dev.dctrl = SCP_LOG_TESTING;
+
+    reset_scp_debug_termination();
+    reset_close_status = fclose(reset_stream);
+
+    sim_deb = stream;
+    writer();
+    sim_flush_buffered_files();
+
+    read_status = simh_test_read_stream(stream, &output, &output_size);
+
+    reset_scp_debug_termination();
+
+    sim_deb = saved_sim_deb;
+    sim_deb_switches = saved_sim_deb_switches;
+    sim_scp_dev.dctrl = saved_scp_debug;
+
+    close_status = fclose(stream);
+
+    assert_int_equal(reset_close_status, 0);
+    assert_int_equal(read_status, 0);
+    assert_int_equal(close_status, 0);
+    return output;
+}
+
+static void write_partial_debug_line(void)
+{
+    _sim_debug_device(SCP_LOG_TESTING, &sim_scp_dev, "partial debug line");
+}
+
+static void test_debug_flush_writes_partial_filtered_line(void **state)
+{
+    char *output;
+
+    (void)state;
+
+    output = capture_scp_debug_output(write_partial_debug_line);
+    assert_int_equal(count_text_occurrences(output, "DBG("), 1);
+    assert_non_null(strstr(output,
+                           "> SCP-PROCESS LOG TEST: partial debug line"));
+    assert_text_ends_with(output, "partial debug line");
+
+    free(output);
+}
+
+static void write_complete_then_partial_debug_lines(void)
+{
+    _sim_debug_device(SCP_LOG_TESTING, &sim_scp_dev, "complete debug line\n");
+    _sim_debug_device(SCP_LOG_TESTING, &sim_scp_dev, "partial debug line");
+}
+
+static void
+test_debug_flush_writes_partial_line_after_complete_line(void **state)
+{
+    char *output;
+
+    (void)state;
+
+    output = capture_scp_debug_output(write_complete_then_partial_debug_lines);
+    assert_int_equal(count_text_occurrences(output, "DBG("), 2);
+    assert_non_null(
+        strstr(output, "> SCP-PROCESS LOG TEST: complete debug line\r\nDBG("));
+    assert_non_null(strstr(output,
+                           "> SCP-PROCESS LOG TEST: partial debug line"));
+    assert_text_ends_with(output, "partial debug line");
+
+    free(output);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -163,6 +291,9 @@ int main(void)
         cmocka_unit_test(test_set_dev_debug_enables_table_unit_bits),
         cmocka_unit_test(test_set_dev_debug_enables_named_high_device_bit),
         cmocka_unit_test(test_set_dev_debug_clears_named_unit_bit),
+        cmocka_unit_test(test_debug_flush_writes_partial_filtered_line),
+        cmocka_unit_test(
+            test_debug_flush_writes_partial_line_after_complete_line),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
