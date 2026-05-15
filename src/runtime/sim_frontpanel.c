@@ -204,8 +204,9 @@ void sim_panel_debug (PANEL *panel, const char *fmt, ...)
     PRINTF_FMT(2, 3);
 #define _panel_debug(p, dbits, fmt, buf, bufsize, ...)                    \
     do {                                                                  \
-        if ((p) && (p)->Debug && ((dbits) & (p)->debug))                  \
-            __panel_debug ((p), (dbits), (fmt), (buf), (bufsize),         \
+        PANEL *tmp = (p);                                                 \
+        if ((tmp) && (tmp)->Debug && ((dbits) & (tmp)->debug))            \
+            __panel_debug ((tmp), (dbits), (fmt), (buf), (bufsize),       \
                            ##__VA_ARGS__);                                \
     } while (0)
 
