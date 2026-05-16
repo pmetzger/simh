@@ -49,8 +49,8 @@ extern int32_t saved_PC, IAR[];
 extern uchar_t ebcdic_to_ascii[];
 const char *parse_addr(const char *cptr,  char *gbuf, t_addr *addr, int32_t *addrtype);
 
-int32_t printf_sym (FILE *of, char *strg, t_addr addr, uint32_t *val,
-    UNIT *uptr, int32_t sw);
+static int32_t printf_sym (FILE *of, char *strg, size_t strg_size,
+    t_addr addr, uint32_t *val, UNIT *uptr, int32_t sw);
 
 /* SCP data structures
 
@@ -266,7 +266,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     char strg[256];
 
     strg[0] = '\0';
-    r = printf_sym(of, strg, addr, val, uptr, sw);
+    r = printf_sym(of, strg, sizeof (strg), addr, val, uptr, sw);
     if (sw & SWMASK ('A'))
         strg[0] = '\0';
         else
@@ -274,8 +274,8 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
     return (r);
 }
 
-int32_t printf_sym (FILE *of, char *strg, t_addr addr, uint32_t *val,
-    UNIT *uptr, int32_t sw)
+static int32_t printf_sym (FILE *of, char *strg, size_t strg_size,
+    t_addr addr, uint32_t *val, UNIT *uptr, int32_t sw)
 {
 int32_t c1, c2, group, len1, len2, inst, aaddr, baddr;
 int32_t oplen, groupno, i, j, vpos, qbyte, da, m, n;
@@ -320,9 +320,9 @@ if (sw & SWMASK ('A')) {
 if (sw & SWMASK ('C')) {
     c2 = ebcdic_to_ascii[c1];
     if (c2 < 040 || c2 > 0177) {
-        snprintf(strg, sizeof(strg), "<%02X>", c1 & 0xff);
+        snprintf(strg, strg_size, "<%02X>", c1 & 0xff);
     } else {
-        snprintf (strg, sizeof(strg), "%c", c2 & 0xff);
+        snprintf (strg, strg_size, "%c", c2 & 0xff);
     }
     return SCPE_OK;  }
 if (!(sw & SWMASK ('M'))) return SCPE_ARG;
@@ -382,7 +382,7 @@ for (i = 0; i < nopcode; i++) {
 /* print the opcode */
 
 if (i >= nopcode) {
-    snprintf(strg, sizeof(strg), "%02X", val[0]);
+    snprintf(strg, strg_size, "%02X", val[0]);
     oplen = 1;
 } else {
     snprintf(bld, sizeof(bld), "%s ", opcode[i].op);
@@ -496,7 +496,7 @@ if (i >= nopcode) {
             snprintf(bldaddr, sizeof (bldaddr) - 1, "%s,%s", boperand, aoperand);
             break;
     }
-    snprintf(strg, sizeof(strg), "%s%s", bld, bldaddr);
+    snprintf(strg, strg_size, "%s%s", bld, bldaddr);
 }
 
 return -(oplen - 1);
