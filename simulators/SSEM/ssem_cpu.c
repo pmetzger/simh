@@ -135,7 +135,7 @@ sim_cancel_step ();                                     /* defang SCP step */
 do {
 
     if (sim_interval <= 0) {                            /* check clock queue */
-#if !UNIX_PLATFORM
+#if defined(_WIN32)
         if ((reason = sim_poll_kbd()) == SCPE_STOP) {   /* poll on platforms without reliable signalling */
             break;
         }

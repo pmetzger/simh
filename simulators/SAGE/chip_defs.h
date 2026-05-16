@@ -59,11 +59,7 @@
 #if DBG_MSG==1
 
 #define ADDRESS_FORMAT      "[0x%08x]"
-#if UNIX_PLATFORM
-#define NLP "\r\n"
-#else
 #define NLP "\n"
-#endif
 
 #define TRACE_PRINT(level,args)\
     if(sim_deb && chip->dev->dctrl & level) { \

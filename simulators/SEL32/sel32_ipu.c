@@ -2526,7 +2526,7 @@ exec2:
             }
             fprintf(stdout, "[][][][][][][][][][] IPU HALT [1][][][][][][][][][]\r\n");
 #endif
-#if OLD_WAY
+#ifdef OLD_WAY
             reason = STOP_HALT;                     /* do halt for now */
             cpustop = reason;                       /* tell IPU our state */
             fprintf(stdout, "[][][][][][][][][][] IPU HALT [1][][][][][][][][][]\r\n");
