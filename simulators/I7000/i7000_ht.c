@@ -51,7 +51,7 @@
 #include "i7000_defs.h"
 #include "sim_tape.h"
 
-#ifdef NUM_DEVS_HT
+#if NUM_DEVS_HT > 0
 #define BUFFSIZE        (MAXMEMSIZE * CHARSPERWORD)
 
 #define UNIT_HT(x)      UNIT_ATTABLE|UNIT_DISABLE|UNIT_ROABLE|UNIT_S_CHAN(x)| \

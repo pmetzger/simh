@@ -39,6 +39,7 @@
 #define NUM_DEVS_LPR    1
 #define NUM_DEVS_DR     1
 #define NUM_DEVS_MT     0
+#define NUM_DEVS_HT     0
 #define MT_CHANNEL_ZERO
 #define NUM_UNITS_MT    5
 #define NUM_UNITS_DR    16
@@ -56,6 +57,7 @@ extern uint64_t         M[];
 #define NUM_DEVS_DSK    5
 #define NUM_DEVS_COM    1
 #define NUM_DEVS_MT     3
+#define NUM_DEVS_HT     0
 #define CHAN_CHUREC     1
 #define NUM_UNITS_MT    10      /* A, B */
 #define MAXMEMSIZE      (100000)
@@ -108,6 +110,7 @@ extern uint8_t          M[];
 #define NUM_DEVS_LPR    1
 #define NUM_DEVS_DR     1
 #define NUM_DEVS_MT     0
+#define NUM_DEVS_HT     0
 #define NUM_UNITS_MT    10
 #define MT_CHANNEL_ZERO
 #define NUM_UNITS_DR    16
@@ -524,7 +527,7 @@ extern DIB         hsdrm_dib;
 extern DEVICE      hsdrm_dev;
 #endif
 
-#ifdef NUM_DEVS_HT
+#if NUM_DEVS_HT > 0
 extern DIB         ht_dib;
 extern uint32_t    ht_cmd(UNIT *, uint16_t, uint16_t);
 extern DEVICE      hta_dev;

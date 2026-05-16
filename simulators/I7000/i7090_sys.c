@@ -132,7 +132,7 @@ DIB  chron_dib = { CH_TYP_PIO|CH_TYP_76XX, 1, 0200, 0740, &chron_cmd, NULL };
 #ifdef NUM_DEVS_DSK
 DIB  dsk_dib = { CH_TYP_79XX, 0, 0, 0, &dsk_cmd, &dsk_ini };
 #endif
-#ifdef NUM_DEVS_HT
+#if NUM_DEVS_HT > 0
 DIB  ht_dib = { CH_TYP_79XX, NUM_UNITS_HT, 0, 0, &ht_cmd, NULL };
 #endif
 #ifdef NUM_DEVS_COM

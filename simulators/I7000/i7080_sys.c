@@ -120,7 +120,7 @@ DIB  mt_dib = { CH_TYP_76XX|CH_TYP_754, NUM_UNITS_MT, 0x200, 0xff00, &mt_cmd, &m
 #ifdef NUM_DEVS_CHRON
 DIB  chron_dib = { CH_TYP_76XX|CH_TYP_UREC, 1, 0x200, 0xff00, &chron_cmd, NULL };
 #endif
-#ifdef NUM_DEVS_HT
+#if NUM_DEVS_HT > 0
 DIB  ht_dib = { CH_TYP_79XX, NUM_UNITS_HT, 0, 0, &ht_cmd, NULL };
 #endif
 #ifdef NUM_DEVS_DSK
