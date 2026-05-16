@@ -617,7 +617,7 @@ typedef struct {
     uint8_t nak_crc_reason; /* CRC status for current received packet */
     DDCMP_LinkState state;  /* Current State */
     bool TimerRunning;      /* Timer Running Flag */
-    bool TimeRemaining;     /* Seconds remaining before timeout (when timer running) */
+    uint32_t TimeRemaining; /* Seconds remaining before timeout (when timer running) */
     bool Scanning;          /* Event Scanning in progress */
     uint32_t ScanningEvents; /* Event Mask while scanning */
     bool RecurseScan;       /* Scan was attempted while scanning */
