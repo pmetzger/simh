@@ -553,7 +553,7 @@ static const REG vh_reg[] = {
 };
 
 static const MTAB vh_mod[] = {
-#if !UNIBUS
+#if defined(VM_PDP11) || !UNIBUS
     { UNIT_MODEDHU,            0, "DHV mode", "DHV",
         &vh_setmode, NULL,  NULL, "Set DHV mode" },
 #endif
