@@ -749,9 +749,11 @@ extern void ka10_lights_clear_aux (int);
 #define NUM_DEVS_CR     1
 #define NUM_DEVS_CP     1
 #endif
-#define NUM_DEVS_DPY    USE_DISPLAY
-#define NUM_DEVS_WCNSLS USE_DISPLAY
-#define NUM_DEVS_OCNSLS USE_DISPLAY
+#ifdef USE_DISPLAY
+#define NUM_DEVS_DPY    1
+#define NUM_DEVS_WCNSLS 1
+#define NUM_DEVS_OCNSLS 1
+#endif
 #if PDP6_DEV
 #define NUM_DEVS_DTC    1
 #define NUM_DEVS_DCT    2
@@ -799,10 +801,14 @@ extern void ka10_lights_clear_aux (int);
 #endif
 #if KA
 #define NUM_DEVS_PMP    WAITS
-#define NUM_DEVS_DKB    (WAITS * USE_DISPLAY)
-#define NUM_DEVS_III    (WAITS * USE_DISPLAY)
-#define NUM_DEVS_TV     (WAITS * USE_DISPLAY)
-#define NUM_DEVS_DD     (WAITS * USE_DISPLAY)
+#if WAITS
+#ifdef USE_DISPLAY
+#define NUM_DEVS_DKB    1
+#define NUM_DEVS_III    1
+#define NUM_DEVS_TV     1
+#define NUM_DEVS_DD     1
+#endif
+#endif
 #define NUM_DEVS_PD     ITS
 #define NUM_DEVS_PCLK   WAITS
 #define NUM_DEVS_IMX    ITS
@@ -824,6 +830,165 @@ extern void ka10_lights_clear_aux (int);
 #endif
 #if KI
 #define NUM_DEVS_TYM    1
+#endif
+
+/*
+ * Shared PDP-10 sources test NUM_DEVS_* as numeric device counts.
+ * Model-specific blocks above define present devices; omitted optional
+ * devices default to zero here.
+ */
+#ifndef NUM_DEVS_AI
+#define NUM_DEVS_AI     0
+#endif
+#ifndef NUM_DEVS_AUXCPU
+#define NUM_DEVS_AUXCPU 0
+#endif
+#ifndef NUM_DEVS_CH10
+#define NUM_DEVS_CH10   0
+#endif
+#ifndef NUM_DEVS_CH11
+#define NUM_DEVS_CH11   0
+#endif
+#ifndef NUM_DEVS_CP
+#define NUM_DEVS_CP     0
+#endif
+#ifndef NUM_DEVS_CR
+#define NUM_DEVS_CR     0
+#endif
+#ifndef NUM_DEVS_DC
+#define NUM_DEVS_DC     0
+#endif
+#ifndef NUM_DEVS_DCS
+#define NUM_DEVS_DCS    0
+#endif
+#ifndef NUM_DEVS_DCT
+#define NUM_DEVS_DCT    0
+#endif
+#ifndef NUM_DEVS_DD
+#define NUM_DEVS_DD     0
+#endif
+#ifndef NUM_DEVS_DDC
+#define NUM_DEVS_DDC    0
+#endif
+#ifndef NUM_DEVS_DK
+#define NUM_DEVS_DK     0
+#endif
+#ifndef NUM_DEVS_DKB
+#define NUM_DEVS_DKB    0
+#endif
+#ifndef NUM_DEVS_DN
+#define NUM_DEVS_DN     0
+#endif
+#ifndef NUM_DEVS_DP
+#define NUM_DEVS_DP     0
+#endif
+#ifndef NUM_DEVS_DPY
+#define NUM_DEVS_DPY    0
+#endif
+#ifndef NUM_DEVS_DPK
+#define NUM_DEVS_DPK    0
+#endif
+#ifndef NUM_DEVS_DSK
+#define NUM_DEVS_DSK    0
+#endif
+#ifndef NUM_DEVS_DT
+#define NUM_DEVS_DT     0
+#endif
+#ifndef NUM_DEVS_DTC
+#define NUM_DEVS_DTC    0
+#endif
+#ifndef NUM_DEVS_DUP
+#define NUM_DEVS_DUP    0
+#endif
+#ifndef NUM_DEVS_DZ
+#define NUM_DEVS_DZ     0
+#endif
+#ifndef NUM_DEVS_GE
+#define NUM_DEVS_GE     0
+#endif
+#ifndef NUM_DEVS_III
+#define NUM_DEVS_III    0
+#endif
+#ifndef NUM_DEVS_IMP
+#define NUM_DEVS_IMP    0
+#endif
+#ifndef NUM_DEVS_IMX
+#define NUM_DEVS_IMX    0
+#endif
+#ifndef NUM_DEVS_KMC
+#define NUM_DEVS_KMC    0
+#endif
+#ifndef NUM_DEVS_LP
+#define NUM_DEVS_LP     0
+#endif
+#ifndef NUM_DEVS_LP20
+#define NUM_DEVS_LP20   0
+#endif
+#ifndef NUM_DEVS_MT
+#define NUM_DEVS_MT     0
+#endif
+#ifndef NUM_DEVS_MTC
+#define NUM_DEVS_MTC    0
+#endif
+#ifndef NUM_DEVS_MTY
+#define NUM_DEVS_MTY    0
+#endif
+#ifndef NUM_DEVS_NIA
+#define NUM_DEVS_NIA    0
+#endif
+#ifndef NUM_DEVS_OCNSLS
+#define NUM_DEVS_OCNSLS 0
+#endif
+#ifndef NUM_DEVS_PCLK
+#define NUM_DEVS_PCLK   0
+#endif
+#ifndef NUM_DEVS_PD
+#define NUM_DEVS_PD     0
+#endif
+#ifndef NUM_DEVS_PMP
+#define NUM_DEVS_PMP    0
+#endif
+#ifndef NUM_DEVS_PT
+#define NUM_DEVS_PT     0
+#endif
+#ifndef NUM_DEVS_RC
+#define NUM_DEVS_RC     0
+#endif
+#ifndef NUM_DEVS_RP
+#define NUM_DEVS_RP     0
+#endif
+#ifndef NUM_DEVS_RS
+#define NUM_DEVS_RS     0
+#endif
+#ifndef NUM_DEVS_SLAVE
+#define NUM_DEVS_SLAVE  0
+#endif
+#ifndef NUM_DEVS_STK
+#define NUM_DEVS_STK    0
+#endif
+#ifndef NUM_DEVS_TCU
+#define NUM_DEVS_TCU    0
+#endif
+#ifndef NUM_DEVS_TEN11
+#define NUM_DEVS_TEN11  0
+#endif
+#ifndef NUM_DEVS_TK10
+#define NUM_DEVS_TK10   0
+#endif
+#ifndef NUM_DEVS_TTY
+#define NUM_DEVS_TTY    0
+#endif
+#ifndef NUM_DEVS_TU
+#define NUM_DEVS_TU     0
+#endif
+#ifndef NUM_DEVS_TV
+#define NUM_DEVS_TV     0
+#endif
+#ifndef NUM_DEVS_TYM
+#define NUM_DEVS_TYM    0
+#endif
+#ifndef NUM_DEVS_WCNSLS
+#define NUM_DEVS_WCNSLS 0
 #endif
 
 /* Global data */

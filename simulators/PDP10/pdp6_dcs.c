@@ -32,9 +32,6 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
-#ifndef NUM_DEVS_DCS
-#define NUM_DEVS_DCS 0
-#endif
 
 #if (NUM_DEVS_DCS > 0)
 

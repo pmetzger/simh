@@ -63,9 +63,6 @@
 #include "kx10_defs.h"
 #include "sim_types.h"
 
-#ifndef NUM_DEVS_PMP
-#define NUM_DEVS_PMP 0
-#endif
 
 #if (NUM_DEVS_PMP > 0)
 #define UNIT_V_TYPE        (UNIT_V_UF + 0)

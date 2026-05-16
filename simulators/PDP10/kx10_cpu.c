@@ -890,7 +890,7 @@ void set_interrupt(int dev, int lvl) {
        dev_irq[dev>>2] = 0200 >> lvl;
        pi_pending = 1;
        IOB_PI |= 0200 >> lvl;
-#if DEBUG
+#ifdef DEBUG
        sim_debug(DEBUG_IRQ, &cpu_dev, "set irq %o %o %03o %03o %03o\n",
               dev & 0774, lvl, PIE, PIR, PIH);
 #endif
@@ -906,7 +906,7 @@ void set_interrupt_mpx(int dev, int lvl, int mpx) {
           dev_irq[dev>>2] |= mpx << 8;
        pi_pending = 1;
        IOB_PI |= 0200 >> lvl;
-#if DEBUG
+#ifdef DEBUG
        sim_debug(DEBUG_IRQ, &cpu_dev, "set mpx irq %o %o %o %03o %03o %03o\n",
               dev & 0774, lvl, mpx, PIE, PIR, PIH);
 #endif
@@ -925,7 +925,7 @@ void clr_interrupt(int dev) {
     for (lvl = i = 0; i < MAX_DEV; i++)
         lvl |= dev_irq[i];
     IOB_PI = lvl;
-#if DEBUG
+#ifdef DEBUG
     if (dev > 4)
         sim_debug(DEBUG_IRQ, &cpu_dev, "clear irq %o\n", dev & 0774);
 #endif
@@ -1006,7 +1006,7 @@ void restore_pi_hold(void) {
      for(lvl = 0100; lvl != 0; lvl >>= 1) {
         if (lvl & PIH) {
             PIR &= ~lvl;
-#if DEBUG
+#ifdef DEBUG
             sim_debug(DEBUG_IRQ, &cpu_dev, "restore irq %o %03o\n", lvl, PIH);
 #endif
             PIH &= ~lvl;
@@ -4867,7 +4867,7 @@ in_loop:
 #if KA | PDP6
 st_pi:
 #endif
-#if DEBUG
+#ifdef DEBUG
         sim_debug(DEBUG_IRQ, &cpu_dev, "trap irq %o %03o %03o \n",
                        pi_enc, PIR, PIH);
 #endif
@@ -4888,7 +4888,7 @@ st_pi:
                     break;
                 }
             }
-#if DEBUG
+#ifdef DEBUG
             sim_debug(DEBUG_IRQ, &cpu_dev, "vect irq %o %06o\n", pi_enc, AB);
 #endif
         }
@@ -4906,7 +4906,7 @@ st_pi:
         for (f = 0; f < MAX_DEV; f++) {
             if (dev_irqv[f] != 0 && dev_irq[f] & pi_mask) {
                 AB = dev_irqv[f](f << 2, AB);
-#if DEBUG
+#ifdef DEBUG
                 sim_debug(DEBUG_IRQ, &cpu_dev, "vect irq %o %03o %06o\n",
                          pi_enc, dev_irq[f], AB);
 #endif

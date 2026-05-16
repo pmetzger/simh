@@ -29,9 +29,6 @@
 #include <ctype.h>
 #include <stdint.h>
 
-#ifndef NUM_DEVS_LP
-#define NUM_DEVS_LP 0
-#endif
 
 #if (NUM_DEVS_LP > 0)
 

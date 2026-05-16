@@ -34,9 +34,6 @@
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
-#ifndef NUM_DEVS_CH11
-#define NUM_DEVS_CH11 0
-#endif
 
 #if (NUM_DEVS_CH11 > 0)
 

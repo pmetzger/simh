@@ -27,9 +27,6 @@
 #include "kx10_defs.h"
 #include "kx10_disk.h"
 
-#ifndef NUM_DEVS_RP
-#define NUM_DEVS_RP 0
-#endif
 
 #if (NUM_DEVS_RP > 0)
 #define BUF_EMPTY(u)  (u->hwmark == 0xFFFFFFFF)

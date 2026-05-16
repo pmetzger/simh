@@ -30,9 +30,6 @@
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
-#ifndef NUM_DEVS_SLAVE
-#define NUM_DEVS_SLAVE 0
-#endif
 
 #if NUM_DEVS_SLAVE > 0
 

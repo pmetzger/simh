@@ -26,9 +26,6 @@
 
 #include "kx10_defs.h"
 
-#ifndef NUM_DEVS_RS
-#define NUM_DEVS_RS 0
-#endif
 
 #if (NUM_DEVS_RS > 0)
 #define BUF_EMPTY(u)  (u->hwmark == 0xFFFFFFFF)

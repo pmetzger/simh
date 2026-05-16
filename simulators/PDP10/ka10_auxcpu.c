@@ -30,9 +30,6 @@
 #include "sim_tmxr.h"
 #include "sim_types.h"
 
-#ifndef NUM_DEVS_AUXCPU
-#define NUM_DEVS_AUXCPU 0
-#endif
 
 #if NUM_DEVS_AUXCPU > 0
 

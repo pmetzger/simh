@@ -26,9 +26,6 @@
 
 #include "kx10_defs.h"
 
-#ifndef NUM_DEVS_PCLK
-#define NUM_DEVS_PCLK 0
-#endif
 
 #if (NUM_DEVS_PCLK > 0)
 

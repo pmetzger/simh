@@ -28,9 +28,6 @@
 #include <stdint.h>
 
 #include "kx10_defs.h"
-#ifndef NUM_DEVS_DD
-#define NUM_DEVS_DD 0
-#endif
 
 #if NUM_DEVS_DD > 0
 #include "sim_video.h"

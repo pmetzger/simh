@@ -88,9 +88,6 @@
 #include <stdint.h>
 
 #include "kx10_defs.h"
-#ifndef NUM_DEVS_DTC
-#define NUM_DEVS_DTC 0
-#endif
 
 #if (NUM_DEVS_DTC > 0)
 #define DTC_DEVNUM      0210

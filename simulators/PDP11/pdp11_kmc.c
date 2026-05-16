@@ -3091,7 +3091,7 @@ static t_stat kmc_help (FILE *st, DEVICE *dptr,
 " Most configuration of KDP lines is done by the host OS and by SimH\n"
 " configuration of the DUP11 lines.\n"
 "\n"
-#if KMC_TROLL
+#ifdef KMC_TROLL
 " The KDP has two configurable parameters.\n"
 #else
 " The KDP has one configurable parameter.\n"
@@ -3099,7 +3099,7 @@ static t_stat kmc_help (FILE *st, DEVICE *dptr,
 " Line speed - this is the speed at which each communication line\n"
 " operates.  The DUP11's line speed should be set to 'unlimited' to\n"
 " avoid unpredictable interactions.\n"
-#if KMC_TROLL
+#ifdef KMC_TROLL
 " Troll - the KDP emulation includes a process that will intentionally\n"
 " drop or corrupt some messages.  This emulates the less-than-perfect\n"
 " communications lines encountered in the real world, and enables\n"

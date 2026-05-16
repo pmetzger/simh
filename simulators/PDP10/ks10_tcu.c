@@ -31,9 +31,6 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 
-#ifndef NUM_DEVS_TCU
-#define NUM_DEVS_TCU 0
-#endif
 
 #if (NUM_DEVS_TCU > 0)
 

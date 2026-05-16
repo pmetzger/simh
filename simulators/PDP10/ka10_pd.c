@@ -34,9 +34,6 @@
 
 #include "kx10_defs.h"
 
-#ifndef NUM_DEVS_PD
-#define NUM_DEVS_PD 0
-#endif
 
 #if (NUM_DEVS_PD > 0)
 

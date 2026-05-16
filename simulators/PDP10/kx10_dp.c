@@ -27,9 +27,6 @@
 #include "kx10_defs.h"
 #include "kx10_disk.h"
 
-#ifndef NUM_DEVS_DP
-#define NUM_DEVS_DP 0
-#endif
 
 #if (NUM_DEVS_DP > 0)
 

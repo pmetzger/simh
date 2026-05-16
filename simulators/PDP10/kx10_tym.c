@@ -26,9 +26,6 @@
 #include "kx10_defs.h"
 #include "sim_tmxr.h"
 
-#ifndef NUM_DEVS_TYM
-#define NUM_DEVS_TYM 0
-#endif
 
 #if NUM_DEVS_TYM > 0
 

@@ -40,9 +40,6 @@
 #include "sim_tape.h"
 #include "sim_types.h"
 
-#ifndef NUM_DEVS_MTC
-#define NUM_DEVS_MTC 0
-#endif
 
 #if (NUM_DEVS_MTC > 0)
 

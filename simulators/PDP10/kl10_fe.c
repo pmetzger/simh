@@ -319,9 +319,6 @@ DEVICE dte_dev = {
 
 
 
-#ifndef NUM_DEVS_LP20
-#define NUM_DEVS_LP20 0
-#endif
 
 #if (NUM_DEVS_LP20 > 0)
 
@@ -476,9 +473,6 @@ DEVICE lp20_dev = {
 };
 #endif
 
-#ifndef NUM_DEVS_TTY
-#define NUM_DEVS_TTY 0
-#endif
 
 #if (NUM_DEVS_TTY > 0)
 

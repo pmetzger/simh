@@ -26,9 +26,6 @@
 
 #include "kx10_defs.h"
 
-#ifndef NUM_DEVS_RC
-#define NUM_DEVS_RC 0
-#endif
 
 #if (NUM_DEVS_RC > 0)
 

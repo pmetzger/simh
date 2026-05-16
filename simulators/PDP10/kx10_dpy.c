@@ -112,9 +112,6 @@
 #include <math.h>
 #include <stdint.h>
 
-#ifndef NUM_DEVS_DPY
-#define NUM_DEVS_DPY 0
-#endif
 
 #if (NUM_DEVS_DPY > 0)
 #include "display/type340.h"

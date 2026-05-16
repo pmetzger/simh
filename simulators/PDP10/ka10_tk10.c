@@ -29,9 +29,6 @@
 #include "sim_tmxr.h"
 #include "kx10_defs.h"
 
-#ifndef NUM_DEVS_TK10
-#define NUM_DEVS_TK10 0
-#endif
 
 #if (NUM_DEVS_TK10 > 0)
 

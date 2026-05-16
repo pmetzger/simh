@@ -31,10 +31,6 @@
 #include <ctype.h>
 #include <stdint.h>
 
-#ifndef NUM_DEVS_DN
-#define NUM_DEVS_DN 0
-#endif
-
 #if KL
 #if (NUM_DEVS_DN > 0)
 #define UNIT_DUMMY      (1 << UNIT_V_UF)

@@ -29,9 +29,6 @@
 #include "kx10_defs.h"
 #include "sim_types.h"
 
-#ifndef NUM_DEVS_AI
-#define NUM_DEVS_AI 0
-#endif
 
 
 #if (NUM_DEVS_AI > 0)

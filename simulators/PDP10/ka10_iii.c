@@ -28,9 +28,6 @@
 #include <stdint.h>
 
 #include "kx10_defs.h"
-#ifndef NUM_DEVS_III
-#define NUM_DEVS_III 0
-#endif
 
 #if NUM_DEVS_III > 0
 #include "display/display.h"

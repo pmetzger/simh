@@ -27,9 +27,6 @@
 #include "kx10_defs.h"
 #include "sim_tape.h"
 
-#ifndef NUM_DEVS_TU
-#define NUM_DEVS_TU 0
-#endif
 
 #if (NUM_DEVS_TU > 0)
 
