@@ -230,6 +230,33 @@ static void read_text_file(const char *path, char *buffer, size_t size)
     free(data);
 }
 
+static void make_alias_write_command(char *command, size_t size,
+                                     const char *path)
+{
+#if defined(_WIN32)
+    assert_int_equal(snprintf(command, size,
+                              "cmd /c \"<nul set /p dummy=%%ZIMH_ALIAS%% > "
+                              "%s\"",
+                              path) < (int)size,
+                     1);
+#else
+    assert_int_equal(snprintf(command, size,
+                              "/bin/sh -c 'printf %%s \"$ZIMH_ALIAS\" > "
+                              "\"%s\"'",
+                              path) < (int)size,
+                     1);
+#endif
+}
+
+static const char *successful_system_command(void)
+{
+#if defined(_WIN32)
+    return "cmd /c exit /b 0";
+#else
+    return "/usr/bin/true";
+#endif
+}
+
 /* Temporarily replace stdin with a small prepared input file. */
 static void with_redirected_stdin(const char *contents, void (*fn)(void *ctx),
                                   void *ctx)
@@ -993,6 +1020,7 @@ static void test_show_version_prints_zimh_banner(void **state)
     assert_string_equal(actual, expected);
 }
 
+#if !defined(_WIN32)
 /* Verify SIM_OSTYPE cleanly reports no value when uname probing fails. */
 static void
 test_sim_get_env_special_ostype_handles_total_probe_failure(void **state)
@@ -1001,9 +1029,7 @@ test_sim_get_env_special_ostype_handles_total_probe_failure(void **state)
 
     (void)state;
 
-#if !defined(_WIN32)
     sim_cmdvars_set_test_uname_hook(simh_test_uname_hook_fail);
-#endif
     assert_null(_sim_get_env_special("SIM_OSTYPE", value, sizeof(value)));
     assert_int_equal(simh_test_uname_probe_calls, 1);
 }
@@ -1015,20 +1041,28 @@ static void test_sim_get_env_special_ostype_uses_cached_value(void **state)
 
     (void)state;
 
-#if !defined(_WIN32)
     sim_cmdvars_set_test_uname_hook(simh_test_uname_hook_cached);
-#endif
     assert_string_equal(
         _sim_get_env_special("SIM_OSTYPE", value, sizeof(value)), "ProbeOS");
     assert_int_equal(simh_test_uname_probe_calls, 1);
 
-#if !defined(_WIN32)
     sim_cmdvars_set_test_uname_hook(simh_test_uname_hook_fail);
-#endif
     assert_string_equal(
         _sim_get_env_special("SIM_OSTYPE", value, sizeof(value)), "ProbeOS");
     assert_int_equal(simh_test_uname_probe_calls, 1);
 }
+#else
+/* Verify SIM_OSTYPE reports the fixed Windows value. */
+static void test_sim_get_env_special_ostype_reports_windows(void **state)
+{
+    char value[CBUFSIZE];
+
+    (void)state;
+
+    assert_string_equal(
+        _sim_get_env_special("SIM_OSTYPE", value, sizeof(value)), "Windows");
+}
+#endif
 
 /* Verify time lookup degrades cleanly if localtime breakdown fails. */
 static void test_sim_get_env_special_handles_localtime_failure(void **state)
@@ -1245,8 +1279,7 @@ static void test_sim_cmdvars_system_restores_captured_alias(void **state)
     sim_cmdvars_capture_env_alias("ZIMH_ALIAS");
     assert_null(getenv("ZIMH_ALIAS"));
 
-    snprintf(command, sizeof(command),
-             "/bin/sh -c 'printf %%s \"$ZIMH_ALIAS\" > \"%s\"'", path);
+    make_alias_write_command(command, sizeof(command), path);
     assert_int_equal(sim_cmdvars_system(command), 0);
 
     read_text_file(path, contents, sizeof(contents));
@@ -1261,7 +1294,7 @@ static void test_sim_cmdvars_system_without_captured_aliases(void **state)
 {
     (void)state;
 
-    assert_int_equal(sim_cmdvars_system("/usr/bin/true"), 0);
+    assert_int_equal(sim_cmdvars_system(successful_system_command()), 0);
 }
 
 /* Verify SET ENVIRONMENT replaces a captured alias with the new real value. */
@@ -1287,8 +1320,7 @@ static void test_sim_set_environment_replaces_captured_alias(void **state)
     assert_int_equal(sim_set_environment(0, "ZIMH_ALIAS=from-set"), SCPE_OK);
     assert_string_equal(getenv("ZIMH_ALIAS"), "from-set");
 
-    snprintf(command, sizeof(command),
-             "/bin/sh -c 'printf %%s \"$ZIMH_ALIAS\" > \"%s\"'", path);
+    make_alias_write_command(command, sizeof(command), path);
     assert_int_equal(sim_cmdvars_system(command), 0);
 
     read_text_file(path, contents, sizeof(contents));
@@ -1864,12 +1896,18 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_show_version_prints_zimh_banner,
                                         setup_scp_cmdvars_fixture,
                                         teardown_scp_cmdvars_fixture),
+#if !defined(_WIN32)
         cmocka_unit_test_setup_teardown(
             test_sim_get_env_special_ostype_handles_total_probe_failure,
             setup_scp_cmdvars_fixture, teardown_scp_cmdvars_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_get_env_special_ostype_uses_cached_value,
             setup_scp_cmdvars_fixture, teardown_scp_cmdvars_fixture),
+#else
+        cmocka_unit_test_setup_teardown(
+            test_sim_get_env_special_ostype_reports_windows,
+            setup_scp_cmdvars_fixture, teardown_scp_cmdvars_fixture),
+#endif
         cmocka_unit_test_setup_teardown(
             test_sim_get_env_special_handles_localtime_failure,
             setup_scp_cmdvars_fixture, teardown_scp_cmdvars_fixture),
