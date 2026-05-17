@@ -192,9 +192,6 @@ typedef uint32_t        t_addr;
 #define T_ADDR_W        32
 #endif                                                  /* end 64b address */
 
-#if defined (_WIN32)
-#define vsnprintf _vsnprintf
-#endif
 #define STACKBUFSIZE 2048
 
 #if defined (_WIN32)
