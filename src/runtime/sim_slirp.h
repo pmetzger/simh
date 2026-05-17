@@ -11,6 +11,9 @@
 
 #include "sim_defs.h"
 #include "sim_sock.h"
+#if defined(_WIN32)
+#include <ws2tcpip.h>
+#endif
 #include "sim_types.h"
 
 /* Protocol values used by parsed host-forwarding rules. */

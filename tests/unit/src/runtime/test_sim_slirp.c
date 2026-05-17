@@ -213,7 +213,7 @@ static void put_ipv4(uint8_t *ptr, const char *addr)
 {
     struct in_addr parsed;
 
-    assert_int_not_equal(inet_aton(addr, &parsed), 0);
+    assert_int_equal(inet_pton(AF_INET, addr, &parsed), 1);
     memcpy(ptr, &parsed.s_addr, sizeof(parsed.s_addr));
 }
 
@@ -221,7 +221,7 @@ static void assert_ipv4_bytes_equal(const uint8_t *actual, const char *expected)
 {
     struct in_addr parsed;
 
-    assert_int_not_equal(inet_aton(expected, &parsed), 0);
+    assert_int_equal(inet_pton(AF_INET, expected, &parsed), 1);
     assert_memory_equal(actual, &parsed.s_addr, sizeof(parsed.s_addr));
 }
 

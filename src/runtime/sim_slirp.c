@@ -146,7 +146,8 @@ static void set_parse_error(char *errbuf, size_t errbuf_size,
 static int parse_ipv4(const char *text, struct in_addr *addr, char *errbuf,
                       size_t errbuf_size, const char *error)
 {
-    if ((text == NULL) || (*text == '\0') || (inet_aton(text, addr) == 0)) {
+    if ((text == NULL) || (*text == '\0') ||
+        (inet_pton(AF_INET, text, addr) != 1)) {
         set_parse_error(errbuf, errbuf_size, error);
         return -1;
     }
@@ -320,7 +321,7 @@ void sim_slirp_config_init(sim_slirp_config *config)
     config->ipv6_enabled = 1;
     config->ipv6_prefix_len = 64;
     config->dhcp_enabled = 1;
-    inet_aton(default_ip_addr, &config->gateway);
+    inet_pton(AF_INET, default_ip_addr, &config->gateway);
     inet_pton(AF_INET6, default_ipv6_prefix, &config->ipv6_prefix);
     inet_pton(AF_INET6, default_ipv6_gateway, &config->ipv6_gateway);
     inet_pton(AF_INET6, default_ipv6_nameserver, &config->ipv6_nameserver);
