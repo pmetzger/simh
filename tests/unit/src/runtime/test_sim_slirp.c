@@ -700,7 +700,12 @@ static void test_slirp_select_uses_backend_poll_fill(void **state)
                            sizeof(errbuf));
     assert_non_null(slirp);
 
+#if defined(_WIN32)
+    /* Winsock select() requires at least one socket, unlike POSIX select(). */
+    assert_int_equal(sim_slirp_select(slirp, 0), 0);
+#else
     assert_int_equal(sim_slirp_select(slirp, 0), 1);
+#endif
     assert_int_equal(fake_backend_state.fill_count, 1);
 
     sim_slirp_close(slirp);
