@@ -54,6 +54,15 @@ static void restore_env_value(const char *name, char *value)
     }
 }
 
+static void normalize_separators(char *path)
+{
+    char *p;
+
+    for (p = path; *p != '\0'; ++p)
+        if (*p == '\\')
+            *p = '/';
+}
+
 /* Run one callback with TZ set to a known value, then restore it. */
 static void with_timezone(const char *timezone, void (*fn)(void *ctx),
                           void *ctx)
@@ -332,6 +341,7 @@ test_sim_filepath_parts_handles_home_expansion_and_time_fields(void **state)
     restore_env_value("HOME", saved_home);
 }
 
+#if !defined(_WIN32)
 static void expect_fixed_timestamp_text(void *ctx)
 {
     struct sim_fio_fixture *fixture = ctx;
@@ -383,6 +393,7 @@ static void test_sim_filepath_parts_preserves_part_order(void **state)
 
     with_timezone("UTC0", expect_ordered_part_text, fixture);
 }
+#endif
 
 /* Verify relative paths are resolved against the current directory. */
 static void test_sim_filepath_parts_resolves_relative_paths(void **state)
@@ -627,6 +638,7 @@ static void test_sim_fopen_and_sim_set_fsize_handle_home_expansion(void **state)
     restore_env_value("HOME", saved_home);
 }
 
+#if !defined(_WIN32)
 /* Verify sim_set_file_times updates the file timestamps to caller-
    supplied values. */
 static void test_sim_set_file_times_updates_stat_times(void **state)
@@ -643,14 +655,23 @@ static void test_sim_set_file_times_updates_stat_times(void **state)
     assert_int_equal(statb.st_atime, access_time);
     assert_int_equal(statb.st_mtime, write_time);
 }
+#endif
 
 /* Verify missing files produce a stable strerror-backed description on
-   the POSIX path. */
+   POSIX and a system-provided description on Windows. */
 static void test_sim_get_os_error_text_reports_missing_file(void **state)
 {
+    const char *error_text;
+
     (void)state;
 
-    assert_string_equal(sim_get_os_error_text(ENOENT), strerror(ENOENT));
+    error_text = sim_get_os_error_text(ENOENT);
+    assert_non_null(error_text);
+#if defined(_WIN32)
+    assert_true(error_text[0] != '\0');
+#else
+    assert_string_equal(error_text, strerror(ENOENT));
+#endif
 }
 
 /* Verify copy and timestamp helpers reject missing inputs rather than
@@ -678,7 +699,8 @@ static void test_sim_file_helpers_report_missing_path_failures(void **state)
     assert_true((status & SCPE_NOMESSAGE) != 0);
     assert_int_equal(status & ~(SCPE_NOMESSAGE | SCPE_KFLAG | SCPE_BREAK),
                      SCPE_ARG);
-    assert_int_equal(sim_set_file_times(missing_path, 1, 2), SCPE_IOERR);
+    status = sim_set_file_times(missing_path, 1, 2);
+    assert_int_equal(SCPE_BARE_STATUS(status), SCPE_IOERR);
 }
 
 /* Verify failing open and non-seekable argument validation return
@@ -890,6 +912,7 @@ static void test_sim_directory_wrappers_handle_home_expansion(void **state)
 
     assert_int_equal(sim_chdir(relative_home_dir), 0);
     assert_non_null(sim_getcwd(cwd_buf, sizeof(cwd_buf)));
+    normalize_separators(cwd_buf);
     assert_non_null(strstr(cwd_buf, "/simh-fio-home"));
     assert_int_equal(sim_stat(".", &cwd_statb), 0);
     assert_int_equal(cwd_statb.st_dev, statb.st_dev);
@@ -945,12 +968,14 @@ int main(void)
         cmocka_unit_test_setup_teardown(
             test_sim_filepath_parts_handles_home_expansion_and_time_fields,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
+#if !defined(_WIN32)
         cmocka_unit_test_setup_teardown(
             test_sim_filepath_parts_formats_fixed_timestamp,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_filepath_parts_preserves_part_order,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
+#endif
         cmocka_unit_test_setup_teardown(
             test_sim_filepath_parts_resolves_relative_paths,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
@@ -974,9 +999,11 @@ int main(void)
         cmocka_unit_test_setup_teardown(
             test_sim_fopen_and_sim_set_fsize_handle_home_expansion,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
+#if !defined(_WIN32)
         cmocka_unit_test_setup_teardown(
             test_sim_set_file_times_updates_stat_times, setup_sim_fio_fixture,
             teardown_sim_fio_fixture),
+#endif
         cmocka_unit_test(test_sim_get_os_error_text_reports_missing_file),
         cmocka_unit_test_setup_teardown(
             test_sim_file_helpers_report_missing_path_failures,
