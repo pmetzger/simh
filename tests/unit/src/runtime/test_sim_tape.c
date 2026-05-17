@@ -4,7 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if !defined(_WIN32)
 #include <unistd.h>
+#else
+#include "sim_win32_compat.h"
+#endif
 
 #include "test_cmocka.h"
 
@@ -14,6 +19,7 @@
 #include "sim_fio.h"
 #include "sim_tape.h"
 #include "sim_tape_internal.h"
+#include "sim_timer.h"
 #include "sim_types.h"
 #include "test_scp_fixture.h"
 #include "test_simh_personality.h"
@@ -322,7 +328,7 @@ static void wait_for_tape_callback(struct sim_tape_callback_state *state)
 
     for (retry = 0; (retry < 1000) && (state->calls == 0); ++retry) {
         assert_int_equal(sim_process_event(), SCPE_OK);
-        usleep(1000);
+        sim_os_ms_sleep(1);
     }
 }
 
