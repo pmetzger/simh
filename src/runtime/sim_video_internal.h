@@ -33,6 +33,9 @@ typedef struct {
         SDL_JoystickID joystick_id);
     SDL_GameControllerButtonBind (*game_controller_get_bind_for_button)(
         SDL_GameController *gamecontroller, SDL_GameControllerButton button);
+    SDL_Surface *(*create_rgb_surface)(Uint32 flags, int width, int height,
+                                       int depth, Uint32 rmask, Uint32 gmask,
+                                       Uint32 bmask, Uint32 amask);
 } sim_video_sdl_hooks;
 
 /* Install SDL hooks for deterministic video gamepad unit tests. */
@@ -47,6 +50,10 @@ void sim_video_test_format_window_title(char *title_buf, size_t title_size,
 void sim_video_test_format_screenshot_name(char *name, size_t name_size,
                                            const char *filename, int index,
                                            bool multiple);
+/* Exercise screenshot logic directly without posting an SDL event. */
+t_stat sim_video_test_screenshot_displays(const char *filename);
+/* Exercise the screenshot event handler without the SDL event queue. */
+t_stat sim_video_test_screenshot_event(const char *filename);
 
 /* Exercise controller setup and cleanup without opening a real video window. */
 void sim_video_test_setup_gamepad_controllers(DEVICE *dev);

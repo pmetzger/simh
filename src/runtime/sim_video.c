@@ -176,29 +176,30 @@ typedef struct {
 } vid_gamepad_handle;
 
 static const sim_video_sdl_hooks vid_default_sdl_hooks = {
-    SDL_GetVersion,
-    SDL_InitSubSystem,
-    SDL_QuitSubSystem,
-    SDL_JoystickEventState,
-    SDL_GameControllerEventState,
-    SDL_NumJoysticks,
-    SDL_IsGameController,
-    SDL_GameControllerOpen,
-    SDL_GameControllerClose,
-    SDL_GameControllerNameForIndex,
-    SDL_JoystickOpen,
-    SDL_JoystickClose,
-    SDL_JoystickNameForIndex,
-    SDL_JoystickNumAxes,
-    SDL_JoystickNumButtons,
+    .get_version = SDL_GetVersion,
+    .init_subsystem = SDL_InitSubSystem,
+    .quit_subsystem = SDL_QuitSubSystem,
+    .joystick_event_state = SDL_JoystickEventState,
+    .game_controller_event_state = SDL_GameControllerEventState,
+    .num_joysticks = SDL_NumJoysticks,
+    .is_game_controller = SDL_IsGameController,
+    .game_controller_open = SDL_GameControllerOpen,
+    .game_controller_close = SDL_GameControllerClose,
+    .game_controller_name_for_index = SDL_GameControllerNameForIndex,
+    .joystick_open = SDL_JoystickOpen,
+    .joystick_close = SDL_JoystickClose,
+    .joystick_name_for_index = SDL_JoystickNameForIndex,
+    .joystick_num_axes = SDL_JoystickNumAxes,
+    .joystick_num_buttons = SDL_JoystickNumButtons,
 #if (SDL_MAJOR_VERSION > 2) || (SDL_MAJOR_VERSION == 2 && \
     (SDL_MINOR_VERSION > 0) || (SDL_PATCHLEVEL >= 4))
-    SDL_GameControllerFromInstanceID,
-    SDL_GameControllerGetBindForButton
+    .game_controller_from_instance_id = SDL_GameControllerFromInstanceID,
+    .game_controller_get_bind_for_button = SDL_GameControllerGetBindForButton,
 #else
-    NULL,
-    NULL
+    .game_controller_from_instance_id = NULL,
+    .game_controller_get_bind_for_button = NULL,
 #endif
+    .create_rgb_surface = SDL_CreateRGBSurface,
 };
 static sim_video_sdl_hooks vid_test_sdl_hooks;
 static const sim_video_sdl_hooks *vid_sdl = &vid_default_sdl_hooks;
@@ -2820,8 +2821,16 @@ fullname = (char *)malloc (fullname_size);
 if (!fullname)
     return SCPE_MEM;
 {
-    SDL_Surface *sshot = sim_end ? SDL_CreateRGBSurface(0, vptr->vid_width, vptr->vid_height, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000) :
-                                   SDL_CreateRGBSurface(0, vptr->vid_width, vptr->vid_height, 32, 0x0000ff00, 0x000ff000, 0xff000000, 0x000000ff) ;
+    SDL_Surface *sshot;
+
+    if (sim_end)
+        sshot = vid_sdl->create_rgb_surface (
+            0, vptr->vid_width, vptr->vid_height, 32, 0x00ff0000,
+            0x0000ff00, 0x000000ff, 0xff000000);
+    else
+        sshot = vid_sdl->create_rgb_surface (
+            0, vptr->vid_width, vptr->vid_height, 32, 0x0000ff00,
+            0x000ff000, 0xff000000, 0x000000ff);
     if (!sshot) {
         free(fullname);
         return SCPE_MEM;
@@ -2901,32 +2910,54 @@ void sim_video_test_format_screenshot_name(char *name, size_t name_size,
     vid_format_screenshot_name(name, name_size, filename, index, multiple);
 }
 
-void vid_screenshot_event (void)
+/* Capture each active display without involving SDL event dispatch.
+   Return the same unavailable-display status as _vid_screenshot() if
+   no active display is available to capture. */
+static t_stat vid_screenshot_displays(const char *filename)
 {
 VID_DISPLAY *vptr;
 int i = 0;
-size_t name_size = strlen (_screenshot_filename) + 5;
+size_t name_size = strlen (filename) + 5;
 char *name = (char *)malloc (name_size);
+t_stat stat = SCPE_UDIS | SCPE_NOMESSAGE;
 if (name == NULL) {
-    _screenshot_stat = SCPE_NXM;
-    return;
+    return SCPE_NXM;
     }
 for (vptr = &vid_first; vptr != NULL; vptr = vptr->next) {
     if (vptr->vid_width == 0)
         continue;
     if (vid_active > 1)
-        vid_format_screenshot_name (name, name_size, _screenshot_filename,
-                                    i++, true);
+        vid_format_screenshot_name (name, name_size, filename, i++, true);
     else
-        vid_format_screenshot_name (name, name_size, _screenshot_filename, i,
-                                    false);
-    _screenshot_stat = _vid_screenshot (vptr, name);
-    if (_screenshot_stat != SCPE_OK) {
+        vid_format_screenshot_name (name, name_size, filename, i, false);
+    stat = _vid_screenshot (vptr, name);
+    if (stat != SCPE_OK) {
         free (name);
-        return;
+        return stat;
         }
     }
 free (name);
+return stat;
+}
+
+/* Test seam for direct screenshot capture without SDL event dispatch. */
+t_stat sim_video_test_screenshot_displays(const char *filename)
+{
+return vid_screenshot_displays (filename);
+}
+
+/* Test seam for the screenshot event handler without the SDL event queue. */
+t_stat sim_video_test_screenshot_event(const char *filename)
+{
+_screenshot_stat = -1;
+_screenshot_filename = filename;
+vid_screenshot_event ();
+return _screenshot_stat;
+}
+
+void vid_screenshot_event (void)
+{
+_screenshot_stat = vid_screenshot_displays (_screenshot_filename);
 }
 
 t_stat vid_screenshot (const char *filename)

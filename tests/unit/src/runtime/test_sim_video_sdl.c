@@ -35,6 +35,9 @@ typedef struct {
     int game_controller_close_count;
     int joystick_close_count;
     SDL_GameControllerButtonBind button_bind;
+    int create_rgb_surface_count;
+    int expected_surface_width;
+    int expected_surface_height;
 } fake_sdl_state;
 
 static fake_sdl_state fake_sdl;
@@ -46,6 +49,8 @@ static const fake_sdl_state default_fake_sdl = {
         .bindType = SDL_CONTROLLER_BINDTYPE_BUTTON,
         .value.button = 9,
     },
+    .expected_surface_width = 16,
+    .expected_surface_height = 16,
 };
 static int fake_controller;
 static int fake_joystick;
@@ -164,24 +169,44 @@ static SDL_GameControllerButtonBind fake_game_controller_get_bind_for_button(
     return fake_sdl.button_bind;
 }
 
+static SDL_Surface *fake_create_rgb_surface(Uint32 flags, int width, int height,
+                                            int depth, Uint32 rmask,
+                                            Uint32 gmask, Uint32 bmask,
+                                            Uint32 amask)
+{
+    (void)flags;
+    (void)rmask;
+    (void)gmask;
+    (void)bmask;
+    (void)amask;
+
+    assert_int_equal(width, fake_sdl.expected_surface_width);
+    assert_int_equal(height, fake_sdl.expected_surface_height);
+    assert_int_equal(depth, 32);
+    fake_sdl.create_rgb_surface_count++;
+    return NULL;
+}
+
 static const sim_video_sdl_hooks fake_sdl_hooks = {
-    fake_get_version,
-    fake_init_subsystem,
-    fake_quit_subsystem,
-    fake_joystick_event_state,
-    fake_game_controller_event_state,
-    fake_num_joysticks,
-    fake_is_game_controller,
-    fake_game_controller_open,
-    fake_game_controller_close,
-    fake_game_controller_name_for_index,
-    fake_joystick_open,
-    fake_joystick_close,
-    fake_joystick_name_for_index,
-    fake_joystick_num_axes,
-    fake_joystick_num_buttons,
-    fake_game_controller_from_instance_id,
-    fake_game_controller_get_bind_for_button,
+    .get_version = fake_get_version,
+    .init_subsystem = fake_init_subsystem,
+    .quit_subsystem = fake_quit_subsystem,
+    .joystick_event_state = fake_joystick_event_state,
+    .game_controller_event_state = fake_game_controller_event_state,
+    .num_joysticks = fake_num_joysticks,
+    .is_game_controller = fake_is_game_controller,
+    .game_controller_open = fake_game_controller_open,
+    .game_controller_close = fake_game_controller_close,
+    .game_controller_name_for_index = fake_game_controller_name_for_index,
+    .joystick_open = fake_joystick_open,
+    .joystick_close = fake_joystick_close,
+    .joystick_name_for_index = fake_joystick_name_for_index,
+    .joystick_num_axes = fake_joystick_num_axes,
+    .joystick_num_buttons = fake_joystick_num_buttons,
+    .game_controller_from_instance_id = fake_game_controller_from_instance_id,
+    .game_controller_get_bind_for_button =
+        fake_game_controller_get_bind_for_button,
+    .create_rgb_surface = fake_create_rgb_surface,
 };
 
 static void reset_fake_sdl_defaults(void)
@@ -196,6 +221,16 @@ static int setup_fake_sdl_hooks(void **state)
     sim_video_reset_test_hooks();
     reset_fake_sdl_defaults();
     sim_video_set_test_sdl_hooks(&fake_sdl_hooks);
+    return 0;
+}
+
+static int teardown_video_window(void **state)
+{
+    (void)state;
+
+    sim_video_reset_test_hooks();
+    remove("zimh-unit-video-screenshot.bmp");
+    assert_int_equal(vid_close_all(), SCPE_OK);
     return 0;
 }
 
@@ -236,24 +271,52 @@ static void test_screenshot_name_preserves_current_suffix_rules(void **state)
     assert_string_equal(name, "screen3");
 }
 
-static void test_screenshot_reports_surface_allocation_failure(void **state)
+static void test_screenshot_direct_path_reports_surface_allocation_failure(
+    void **state)
 {
     const char *path = "zimh-unit-video-screenshot.bmp";
-    VID_DISPLAY *display = NULL;
 
     (void)state;
 
     use_dummy_sdl_drivers();
     remove(path);
 
-    assert_int_equal(vid_open_window(&display, NULL, "screenshot", 16, 16, 0),
-                     SCPE_OK);
-    assert_non_null(display);
+    assert_int_equal(vid_open(NULL, "screenshot", 16, 16, 0), SCPE_OK);
 
-    assert_int_equal(vid_screenshot(path), SCPE_MEM);
+    reset_fake_sdl_defaults();
+    sim_video_set_test_sdl_hooks(&fake_sdl_hooks);
 
+    assert_int_equal(sim_video_test_screenshot_displays(path), SCPE_MEM);
+    assert_int_equal(fake_sdl.create_rgb_surface_count, 1);
+}
+
+static void
+test_screenshot_event_handler_reports_surface_allocation_failure(void **state)
+{
+    const char *path = "zimh-unit-video-screenshot.bmp";
+
+    (void)state;
+
+    use_dummy_sdl_drivers();
     remove(path);
+
+    assert_int_equal(vid_open(NULL, "screenshot", 16, 16, 0), SCPE_OK);
+
+    reset_fake_sdl_defaults();
+    sim_video_set_test_sdl_hooks(&fake_sdl_hooks);
+
+    assert_int_equal(sim_video_test_screenshot_event(path), SCPE_MEM);
+    assert_int_equal(fake_sdl.create_rgb_surface_count, 1);
+}
+
+static void test_screenshot_direct_path_reports_no_display(void **state)
+{
+    (void)state;
+
     assert_int_equal(vid_close_all(), SCPE_OK);
+
+    assert_int_equal(sim_video_test_screenshot_displays("unused.bmp"),
+                     SCPE_UDIS | SCPE_NOMESSAGE);
 }
 
 static void dummy_gamepad_callback(int control, int value, int state)
@@ -523,7 +586,14 @@ int main(void)
         cmocka_unit_test(test_key_name_formats_known_and_unknown_keys),
         cmocka_unit_test(test_window_title_combines_simulator_and_window_title),
         cmocka_unit_test(test_screenshot_name_preserves_current_suffix_rules),
-        cmocka_unit_test(test_screenshot_reports_surface_allocation_failure),
+        cmocka_unit_test_teardown(
+            test_screenshot_direct_path_reports_surface_allocation_failure,
+            teardown_video_window),
+        cmocka_unit_test_teardown(
+            test_screenshot_event_handler_reports_surface_allocation_failure,
+            teardown_video_window),
+        cmocka_unit_test_teardown(test_screenshot_direct_path_reports_no_display,
+                                  teardown_video_window),
         cmocka_unit_test_teardown(test_gamepad_callbacks_register_before_open,
                                   teardown_gamepad_callbacks),
         cmocka_unit_test_teardown(test_gamepad_callbacks_unregister,
