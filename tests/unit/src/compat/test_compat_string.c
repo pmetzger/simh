@@ -10,11 +10,14 @@
  */
 #undef strlcpy
 #undef strlcat
-#undef strnlen
 #undef strdup
 #undef strndup
 #undef strcasecmp
 #undef strncasecmp
+
+#if defined(SIMH_NEED_STRNLEN)
+#undef strnlen
+#endif
 
 #include "string_compat.h"
 
@@ -53,6 +56,7 @@ static void test_strlcpy_zero_size_only_measures(void **state)
     assert_int_equal(buffer[0], 'x');
 }
 
+#if defined(SIMH_NEED_STRNLEN)
 /* Verify strnlen stops at the first NUL within the supplied bound. */
 static void test_strnlen_stops_at_nul(void **state)
 {
@@ -78,6 +82,7 @@ static void test_strnlen_accepts_zero_bound(void **state)
 
     assert_int_equal(strnlen("alpha", 0), 0);
 }
+#endif
 
 /* Verify strdup returns a writable copy of the complete string. */
 static void test_strdup_copies_complete_string(void **state)
@@ -158,9 +163,11 @@ int main(void)
         cmocka_unit_test(test_strlcpy_reports_truncation),
         cmocka_unit_test(test_strlcat_reports_truncation),
         cmocka_unit_test(test_strlcpy_zero_size_only_measures),
+#if defined(SIMH_NEED_STRNLEN)
         cmocka_unit_test(test_strnlen_stops_at_nul),
         cmocka_unit_test(test_strnlen_reports_bound),
         cmocka_unit_test(test_strnlen_accepts_zero_bound),
+#endif
         cmocka_unit_test(test_strdup_copies_complete_string),
         cmocka_unit_test(test_strndup_truncates_to_limit),
         cmocka_unit_test(test_strndup_stops_at_nul),
