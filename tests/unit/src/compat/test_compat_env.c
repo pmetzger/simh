@@ -42,12 +42,36 @@ static void test_setenv_respects_no_overwrite(void **state)
     assert_string_equal(getenv(simh_test_env_name), "alpha");
 }
 
+/* Verify setenv preserves an empty value as a present variable. */
+static void test_setenv_preserves_empty_value(void **state)
+{
+    const char *value;
+
+    (void)state;
+
+    assert_int_equal(setenv(simh_test_env_name, "", 1), 0);
+    value = getenv(simh_test_env_name);
+    assert_non_null(value);
+    assert_string_equal(value, "");
+}
+
 /* Verify unsetenv removes a value that was previously installed. */
 static void test_unsetenv_removes_variable(void **state)
 {
     (void)state;
 
     assert_int_equal(setenv(simh_test_env_name, "alpha", 1), 0);
+    assert_non_null(getenv(simh_test_env_name));
+    assert_int_equal(unsetenv(simh_test_env_name), 0);
+    assert_null(getenv(simh_test_env_name));
+}
+
+/* Verify unsetenv removes a present empty value. */
+static void test_unsetenv_removes_empty_variable(void **state)
+{
+    (void)state;
+
+    assert_int_equal(setenv(simh_test_env_name, "", 1), 0);
     assert_non_null(getenv(simh_test_env_name));
     assert_int_equal(unsetenv(simh_test_env_name), 0);
     assert_null(getenv(simh_test_env_name));
@@ -88,7 +112,11 @@ int main(void)
                                         setup_compat_env, teardown_compat_env),
         cmocka_unit_test_setup_teardown(test_setenv_respects_no_overwrite,
                                         setup_compat_env, teardown_compat_env),
+        cmocka_unit_test_setup_teardown(test_setenv_preserves_empty_value,
+                                        setup_compat_env, teardown_compat_env),
         cmocka_unit_test_setup_teardown(test_unsetenv_removes_variable,
+                                        setup_compat_env, teardown_compat_env),
+        cmocka_unit_test_setup_teardown(test_unsetenv_removes_empty_variable,
                                         setup_compat_env, teardown_compat_env),
         cmocka_unit_test_setup_teardown(test_env_shims_reject_invalid_names,
                                         setup_compat_env, teardown_compat_env),
