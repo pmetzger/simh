@@ -157,6 +157,18 @@ static void free_filelist_context(struct filelist_context *context)
     context->count = 0;
 }
 
+static int filelist_context_contains(const struct filelist_context *context,
+                                     const char *path)
+{
+    size_t i;
+
+    for (i = 0; i < context->count; ++i) {
+        if (strcmp(context->entries[i], path) == 0)
+            return 1;
+    }
+    return 0;
+}
+
 static int filelist_contains(char **filelist, const char *path)
 {
     size_t i;
@@ -743,6 +755,9 @@ test_sim_dir_scan_get_filelist_and_copyfile_work_together(void **state)
     assert_int_equal(sim_dir_scan(pattern, filelist_callback, &context),
                      SCPE_OK);
     assert_int_equal(context.count, 3);
+    assert_true(filelist_context_contains(&context, fixture->file_path));
+    assert_true(filelist_context_contains(&context, fixture->copy_path));
+    assert_true(filelist_context_contains(&context, second_file));
 
     filelist = sim_get_filelist(pattern);
     assert_non_null(filelist);

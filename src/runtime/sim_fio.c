@@ -1307,6 +1307,7 @@ if ((hFind =  FindFirstFileA (cptr, &File)) != INVALID_HANDLE_VALUE) {
     int64_t FileSize;
     char DirName[PATH_MAX + 1], FileName[PATH_MAX + 1];
     char *c;
+    size_t dir_len;
     const char *backslash = strchr (cptr, '\\');
     const char *slash = strchr (cptr, '/');
     const char *pathsep = (backslash && slash) ? MIN (backslash, slash) : (backslash ? backslash : slash);
@@ -1321,8 +1322,9 @@ if ((hFind =  FindFirstFileA (cptr, &File)) != INVALID_HANDLE_VALUE) {
         while ((c = strchr (DirName, '\\')))
             *c = '/';                           /* Convert backslash to slash */
         }
-    DirName[strlen (DirName)] = *pathsep;
-    DirName[strlen (DirName) + 1] = '\0';
+    dir_len = strlen (DirName);
+    DirName[dir_len] = *pathsep;
+    DirName[dir_len + 1] = '\0';
     do {
         FileSize = (((int64_t)(File.nFileSizeHigh)) << 32) | File.nFileSizeLow;
         strlcpy (FileName, DirName, sizeof (FileName));
