@@ -24,6 +24,7 @@
 
 #include "sim_sock.h"
 #include "sim_types.h"
+#include "string_compat.h"
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>

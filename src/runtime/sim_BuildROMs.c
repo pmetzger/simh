@@ -98,6 +98,8 @@ struct ROM_File_Descriptor {
 #include <time.h>
 #include <sys/stat.h>
 
+#include "string_compat.h"
+
 #define MAX_CONCURRENT_ROMS 4
 
 #if defined(_WIN32)

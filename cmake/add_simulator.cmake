@@ -445,6 +445,9 @@ build_simcore(simhi64_besm6  VIDEO INT64 BESM6_SDL_HACK)
 
 if (WITH_ROMS)
     add_executable(BuildROMs ${SIMH_RUNTIME_ROOT}/sim_BuildROMs.c)
+    if (SIMH_NEED_STRLCPY)
+        target_sources(BuildROMs PRIVATE ${SIMH_COMPAT_ROOT}/strlcpy.c)
+    endif ()
     target_include_directories(BuildROMs PUBLIC
         "${SIMH_CORE_ROOT}"
         "${SIMH_INCLUDE_ROOT}"

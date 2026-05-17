@@ -29,6 +29,7 @@
 #include "sim_frontpanel.h"
 #include "sim_time.h"
 #include "sim_types.h"
+#include "string_compat.h"
 #include "string_util.h"
 #include "xalloc.h"
 

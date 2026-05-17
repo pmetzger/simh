@@ -28,6 +28,10 @@ add_executable(frontpaneltest
     ${SIMH_RUNTIME_ROOT}/sim_time.c
     ${SIMH_RUNTIME_ROOT}/sim_frontpanel.c)
 
+if (SIMH_NEED_STRLCPY)
+    target_sources(frontpaneltest PRIVATE ${SIMH_COMPAT_ROOT}/strlcpy.c)
+endif ()
+
 target_include_directories(frontpaneltest PUBLIC
     "${SIMH_COMPAT_ROOT}"
     "${SIMH_CORE_ROOT}"
