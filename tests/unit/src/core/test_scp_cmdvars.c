@@ -206,16 +206,25 @@ static t_stat run_scp_command(const char *name, const char *args)
 }
 
 /* Create a small temporary file containing the provided bytes. */
-static void write_temp_file(char *path, size_t size, const char *contents)
+static void write_temp_file(char *path, size_t size, const char *prefix,
+                            const char *suffix, const char *contents)
 {
-    int fd = mkstemp(path);
     FILE *stream;
+    size_t contents_size;
 
-    assert_true(fd >= 0);
-    stream = fdopen(fd, "wb");
+    contents_size = strlen(contents);
+    stream = sim_tempfile_open_stream(path, size, prefix, suffix, "wb");
     assert_non_null(stream);
-    assert_int_equal(fwrite(contents, 1, size, stream), size);
-    fclose(stream);
+    assert_int_equal(fwrite(contents, 1, contents_size, stream),
+                     contents_size);
+    assert_int_equal(fclose(stream), 0);
+}
+
+/* Create one unique temporary path for tests that pass a filename onward. */
+static void write_empty_temp_file(char *path, size_t size, const char *prefix,
+                                  const char *suffix)
+{
+    write_temp_file(path, size, prefix, suffix, "");
 }
 
 /* Read one small text file into a fixed local buffer. */
@@ -261,26 +270,28 @@ static const char *successful_system_command(void)
 static void with_redirected_stdin(const char *contents, void (*fn)(void *ctx),
                                   void *ctx)
 {
-    char path[] = "/tmp/zimh-cmdvars-stdin-XXXXXX";
+    FILE *stream;
     int saved_stdin;
     int fd;
 
-    fd = mkstemp(path);
+    stream = sim_tmpfile();
+    assert_non_null(stream);
+    assert_int_equal(fwrite(contents, 1, strlen(contents), stream),
+                     strlen(contents));
+    assert_int_equal(fflush(stream), 0);
+    rewind(stream);
+    fd = fileno(stream);
     assert_true(fd >= 0);
-    assert_int_equal(write(fd, contents, strlen(contents)),
-                     (int)strlen(contents));
-    assert_int_equal(lseek(fd, 0, SEEK_SET), 0);
 
     saved_stdin = dup(STDIN_FILENO);
     assert_true(saved_stdin >= 0);
     assert_int_equal(dup2(fd, STDIN_FILENO), STDIN_FILENO);
-    close(fd);
 
     fn(ctx);
 
     assert_int_equal(dup2(saved_stdin, STDIN_FILENO), STDIN_FILENO);
     close(saved_stdin);
-    unlink(path);
+    assert_int_equal(fclose(stream), 0);
 }
 
 /* Run one callback with TZ set to a known value, then restore it. */
@@ -773,8 +784,8 @@ static void test_sim_sub_args_omits_missing_file_compare_offset(void **state)
 /* Verify FILE COMPARE publishes the first differing offset via substitution. */
 static void test_file_compare_sets_diff_offset_without_environment(void **state)
 {
-    char path1[] = "/tmp/zimh-filecmp-1-XXXXXX";
-    char path2[] = "/tmp/zimh-filecmp-2-XXXXXX";
+    char path1[CBUFSIZE];
+    char path2[CBUFSIZE];
     char quoted1[CBUFSIZE];
     char quoted2[CBUFSIZE];
     char expanded[CBUFSIZE];
@@ -782,8 +793,8 @@ static void test_file_compare_sets_diff_offset_without_environment(void **state)
 
     (void)state;
 
-    write_temp_file(path1, 4, "abXd");
-    write_temp_file(path2, 4, "abYd");
+    write_temp_file(path1, sizeof(path1), "zimh-filecmp-1-", NULL, "abXd");
+    write_temp_file(path2, sizeof(path2), "zimh-filecmp-2-", NULL, "abYd");
 
     snprintf(quoted1, sizeof(quoted1), "\"%s\"", path1);
     snprintf(quoted2, sizeof(quoted2), "\"%s\"", path2);
@@ -796,8 +807,8 @@ static void test_file_compare_sets_diff_offset_without_environment(void **state)
     expand_command("A%_FILE_COMPARE_DIFF_OFFSET%B", expanded, sizeof(expanded));
     assert_string_equal(expanded, "A2B");
 
-    unlink(path1);
-    unlink(path2);
+    assert_int_equal(simh_test_remove_path(path1), 0);
+    assert_int_equal(simh_test_remove_path(path2), 0);
 }
 
 /* Verify RUNLIMIT is still available through substitution. */
@@ -1263,17 +1274,13 @@ static void test_sim_set_environment_prompt_uses_unquoted_prompt(void **state)
 /* Verify captured host aliases are restored only while spawning a child. */
 static void test_sim_cmdvars_system_restores_captured_alias(void **state)
 {
-    char path[] = "/tmp/zimh-cmdvars-system-XXXXXX";
+    char path[CBUFSIZE];
     char command[CBUFSIZE];
     char contents[64];
-    int fd;
 
     (void)state;
 
-    fd = mkstemp(path);
-    assert_true(fd >= 0);
-    close(fd);
-    unlink(path);
+    write_empty_temp_file(path, sizeof(path), "zimh-cmdvars-system-", NULL);
 
     assert_int_equal(setenv("ZIMH_ALIAS", "from-host", 1), 0);
     sim_cmdvars_capture_env_alias("ZIMH_ALIAS");
@@ -1286,7 +1293,7 @@ static void test_sim_cmdvars_system_restores_captured_alias(void **state)
     assert_string_equal(contents, "from-host");
     assert_null(getenv("ZIMH_ALIAS"));
 
-    unlink(path);
+    assert_int_equal(simh_test_remove_path(path), 0);
 }
 
 /* Verify sim_cmdvars_system also works when there are no captured aliases. */
@@ -1300,17 +1307,13 @@ static void test_sim_cmdvars_system_without_captured_aliases(void **state)
 /* Verify SET ENVIRONMENT replaces a captured alias with the new real value. */
 static void test_sim_set_environment_replaces_captured_alias(void **state)
 {
-    char path[] = "/tmp/zimh-cmdvars-alias-XXXXXX";
+    char path[CBUFSIZE];
     char command[CBUFSIZE];
     char contents[64];
-    int fd;
 
     (void)state;
 
-    fd = mkstemp(path);
-    assert_true(fd >= 0);
-    close(fd);
-    unlink(path);
+    write_empty_temp_file(path, sizeof(path), "zimh-cmdvars-alias-", NULL);
 
     assert_int_equal(setenv("ZIMH_ALIAS", "from-host", 1), 0);
     sim_cmdvars_capture_env_alias("ZIMH_ALIAS");
@@ -1326,7 +1329,7 @@ static void test_sim_set_environment_replaces_captured_alias(void **state)
     read_text_file(path, contents, sizeof(contents));
     assert_string_equal(contents, "from-set");
 
-    unlink(path);
+    assert_int_equal(simh_test_remove_path(path), 0);
 }
 
 /* Verify SET ENVIRONMENT leaves unrelated captured aliases alone. */
@@ -1398,7 +1401,7 @@ static void test_sim_set_environment_prompt_uses_default_after_eof(void **state)
 /* Verify % expansion still handles escapes, arguments, and filepath parts. */
 static void test_sim_sub_args_handles_escape_and_do_arguments(void **state)
 {
-    char path[] = "/tmp/zimh-cmdvars-path-XXXXXX.txt";
+    char path[CBUFSIZE];
     char expanded[CBUFSIZE];
     char expected[CBUFSIZE];
     char *do_arg[10] = {0};
@@ -1406,13 +1409,10 @@ static void test_sim_sub_args_handles_escape_and_do_arguments(void **state)
     char *name_only;
     char *ext_only;
     char *name_ext;
-    int fd;
 
     (void)state;
 
-    fd = mkstemps(path, 4);
-    assert_true(fd >= 0);
-    close(fd);
+    write_empty_temp_file(path, sizeof(path), "zimh-cmdvars-path-", ".txt");
 
     do_arg[0] = "script";
     do_arg[1] = path;
@@ -1448,7 +1448,7 @@ static void test_sim_sub_args_handles_escape_and_do_arguments(void **state)
     free(name_only);
     free(ext_only);
     free(name_ext);
-    unlink(path);
+    assert_int_equal(simh_test_remove_path(path), 0);
 }
 
 /* Verify missing DO arguments and %* expansion use the remaining args. */

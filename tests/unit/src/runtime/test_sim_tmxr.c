@@ -462,15 +462,17 @@ static char *copy_line_tx_buffer(const TMLN *line)
 
 static char *make_temp_log_path(void)
 {
-    char *path = strdup("/tmp/zimh-tmxr-log-XXXXXX");
-    int fd;
+    char path[CBUFSIZE];
+    char *copy;
+    FILE *stream;
 
-    assert_non_null(path);
-    fd = mkstemp(path);
-    assert_true(fd >= 0);
-    close(fd);
-    unlink(path);
-    return path;
+    stream = sim_tempfile_open_stream(path, sizeof(path), "zimh-tmxr-log-",
+                                      NULL, "wb");
+    assert_non_null(stream);
+    assert_int_equal(fclose(stream), 0);
+    copy = strdup(path);
+    assert_non_null(copy);
+    return copy;
 }
 
 static char *capture_tmxr_debug_output(uint32_t dbits, TMLN *line,
@@ -2858,7 +2860,7 @@ static void test_tmxr_log_configuration_updates_mux_attach_string(void **state)
     assert_string_equal(output, "no logging");
     free(output);
 
-    unlink(log_path);
+    assert_int_equal(simh_test_remove_path(log_path), 0);
     free(log_path);
 }
 
