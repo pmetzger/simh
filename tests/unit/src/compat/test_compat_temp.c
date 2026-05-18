@@ -17,6 +17,7 @@
 
 #include "sim_types.h"
 #include "sim_win32_compat.h"
+#include "string_compat.h"
 
 static const char test_temp_chars[] =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

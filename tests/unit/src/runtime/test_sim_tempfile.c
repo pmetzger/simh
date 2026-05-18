@@ -13,6 +13,7 @@
 #include "sim_host_path_internal.h"
 #include "sim_tempfile.h"
 #include "sim_win32_compat.h"
+#include "string_compat.h"
 
 #if defined(_WIN32)
 #include <direct.h>
