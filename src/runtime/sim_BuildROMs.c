@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include "sim_types.h"
+#include "string_compat.h"
 /*
 
    This program builds C include files which can be used to contain the contents

@@ -27,6 +27,7 @@
 #include "sim_sock.h"
 #include "sim_timer.h"
 #include "sim_types.h"
+#include "string_compat.h"
 
 #if !defined(USE_READER_THREAD)
 #undef pthread_mutex_init
