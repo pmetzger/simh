@@ -4,7 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if !defined(_WIN32)
 #include <unistd.h>
+#else
+#include "sim_win32_compat.h"
+#endif
 
 #include "test_cmocka.h"
 

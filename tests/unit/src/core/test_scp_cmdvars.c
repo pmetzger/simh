@@ -4,7 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#if !defined(_WIN32)
 #include <unistd.h>
+#else
+#include "sim_win32_compat.h"
+#endif
 
 #if !defined(_WIN32)
 #include <sys/utsname.h>
