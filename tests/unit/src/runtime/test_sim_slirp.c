@@ -65,14 +65,12 @@ struct callback_capture {
 static struct fake_backend_state fake_backend_state;
 static const sim_slirp_backend *saved_backend;
 
-static uint32_t ipv4_addr(const char *text)
-{
-    return (uint32_t)inet_addr(text);
-}
-
 static void assert_ipv4_equal(struct in_addr actual, const char *expected)
 {
-    assert_int_equal((uint32_t)actual.s_addr, ipv4_addr(expected));
+    struct in_addr parsed;
+
+    assert_int_equal(inet_pton(AF_INET, expected, &parsed), 1);
+    assert_int_equal((uint32_t)actual.s_addr, (uint32_t)parsed.s_addr);
 }
 
 static void assert_ipv6_equal(struct in6_addr actual, const char *expected)
