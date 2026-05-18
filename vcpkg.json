@@ -1,9 +1,10 @@
 {
     "name": "zimh",
-    "version-string": "4.1.0",
+    "version-date": "2026-05-18",
     "description": [
         "ZIMH: Historical computer simulator"
     ],
+    "builtin-baseline": "89dd0f4d241136b843fb55813b2f0fa6448c204d",
     "dependencies": [
         "cmocka",
         "freetype",
