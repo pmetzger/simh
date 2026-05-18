@@ -63,7 +63,9 @@ if (WITH_NETWORK AND WITH_SLIRP AND WIN32 AND NOT MINGW AND
             "${ZIMH_LIBSLIRP_INCLUDE_DIR}"
             "${ZIMH_GLIB_INCLUDE_DIR}"
             "${ZIMH_GLIB_CONFIG_INCLUDE_DIR}")
-        target_compile_definitions(ZIMH::LIBSLIRP INTERFACE PCRE2_STATIC)
+        target_compile_definitions(ZIMH::LIBSLIRP INTERFACE
+            LIBSLIRP_STATIC
+            PCRE2_STATIC)
         target_link_libraries(ZIMH::LIBSLIRP INTERFACE
             "${ZIMH_LIBSLIRP_LIBRARY}"
             "${ZIMH_GLIB_LIBRARY}"
