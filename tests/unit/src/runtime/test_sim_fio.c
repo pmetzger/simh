@@ -63,6 +63,17 @@ static void normalize_separators(char *path)
             *p = '/';
 }
 
+#if defined(_WIN32)
+static void use_windows_separators(char *path)
+{
+    char *p;
+
+    for (p = path; *p != '\0'; ++p)
+        if (*p == '/')
+            *p = '\\';
+}
+#endif
+
 /* Run one callback with TZ set to a known value, then restore it. */
 static void with_timezone(const char *timezone, void (*fn)(void *ctx),
                           void *ctx)
@@ -638,6 +649,38 @@ static void test_sim_fopen_and_sim_set_fsize_handle_home_expansion(void **state)
     restore_env_value("HOME", saved_home);
 }
 
+/* Verify sim_fopen strips file-argument quotes without treating
+   backslashes as C string escapes. */
+static void test_sim_fopen_normalizes_quoted_paths(void **state)
+{
+    static const uint8_t data[] = {0xDE, 0xAD, 0xBE, 0xEF};
+    struct sim_fio_fixture *fixture = *state;
+    char path[1024];
+    char quoted_path[sizeof(path) + 2];
+    FILE *file;
+
+#if defined(_WIN32)
+    assert_int_equal(simh_test_join_path(path, sizeof(path),
+                                         fixture->temp_dir, "tabtest.bin"),
+                     0);
+    use_windows_separators(path);
+#else
+    assert_int_equal(simh_test_join_path(path, sizeof(path),
+                                         fixture->temp_dir,
+                                         "literal\\tpath.bin"),
+                     0);
+#endif
+    assert_int_equal(simh_test_write_file(path, data, sizeof(data)), 0);
+    assert_int_equal(snprintf(quoted_path, sizeof(quoted_path), "\"%s\"",
+                              path) < (int)sizeof(quoted_path),
+                     1);
+
+    file = sim_fopen(quoted_path, "rb");
+    assert_non_null(file);
+    assert_int_equal(sim_fsize(file), sizeof(data));
+    fclose(file);
+}
+
 #if !defined(_WIN32)
 /* Verify sim_set_file_times updates the file timestamps to caller-
    supplied values. */
@@ -998,6 +1041,9 @@ int main(void)
             teardown_sim_fio_fixture),
         cmocka_unit_test_setup_teardown(
             test_sim_fopen_and_sim_set_fsize_handle_home_expansion,
+            setup_sim_fio_fixture, teardown_sim_fio_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_fopen_normalizes_quoted_paths,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
 #if !defined(_WIN32)
         cmocka_unit_test_setup_teardown(

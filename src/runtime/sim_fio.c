@@ -57,6 +57,7 @@
 #include <stdint.h>
 
 #include "sim_defs.h"
+#include "sim_host_path.h"
 #include "sim_types.h"
 
 bool sim_end;                       /* true = little endian, false = big endian */
@@ -314,48 +315,6 @@ if ((0 != fstat (fileno (fp), &statb)) ||
 return true;
 }
 
-static char *_sim_expand_homedir (const char *file, char *dest, size_t dest_size)
-{
-uint8_t *without_quotes = NULL;
-uint32_t dsize = 0;
-
-errno = 0;
-if (((*file == '"') && (file[strlen (file) - 1] == '"')) ||
-    ((*file == '\'') && (file[strlen (file) - 1] == '\''))) {
-    without_quotes = (uint8_t*)malloc (strlen (file) + 1);
-    if (without_quotes == NULL)
-        return NULL;
-    if (SCPE_OK != sim_decode_quoted_string (file, without_quotes, &dsize)) {
-        free (without_quotes);
-        errno = EINVAL;
-        return NULL;
-    }
-    file = (const char*)without_quotes;
-}
-
-if (memcmp (file, "~/", 2) != 0)
-    strlcpy (dest, file, dest_size);
-else {
-    char *cptr = getenv("HOME");
-    char *cptr2;
-
-    if (cptr == NULL) {
-        cptr = getenv("HOMEPATH");
-        cptr2 = getenv("HOMEDRIVE");
-        }
-    else
-        cptr2 = NULL;
-    if (cptr && (dest_size > strlen (cptr) + strlen (file) + 3))
-        snprintf(dest, dest_size, "%s%s%s%s", cptr2 ? cptr2 : "", cptr, strchr (cptr, '/') ? "/" : "\\", file + 2);
-    else
-        strlcpy (dest, file, dest_size);
-    while ((strchr (dest, '\\') != NULL) && ((cptr = strchr (dest, '/')) != NULL))
-        *cptr = '\\';
-    }
-free (without_quotes);
-return dest;
-}
-
 #if defined(_WIN32)
 #include <direct.h>
 #include <io.h>
@@ -368,7 +327,7 @@ int sim_stat (const char *fname, struct stat *stat_str)
 {
 char namebuf[PATH_MAX + 1];
 
-if (NULL == _sim_expand_homedir (fname, namebuf, sizeof (namebuf)))
+if (NULL == sim_normalize_host_path (fname, namebuf, sizeof (namebuf)))
     return -1;
 return stat (namebuf, stat_str);
 }
@@ -377,7 +336,7 @@ int sim_chdir(const char *path)
 {
 char pathbuf[PATH_MAX + 1];
 
-if (NULL == _sim_expand_homedir (path, pathbuf, sizeof (pathbuf)))
+if (NULL == sim_normalize_host_path (path, pathbuf, sizeof (pathbuf)))
     return -1;
 return chdir (pathbuf);
 }
@@ -386,7 +345,7 @@ int sim_mkdir(const char *path)
 {
 char pathbuf[PATH_MAX + 1];
 
-if (NULL == _sim_expand_homedir (path, pathbuf, sizeof (pathbuf)))
+if (NULL == sim_normalize_host_path (path, pathbuf, sizeof (pathbuf)))
     return -1;
 #if defined(_WIN32)
 return mkdir (pathbuf);
@@ -399,7 +358,7 @@ int sim_rmdir(const char *path)
 {
 char pathbuf[PATH_MAX + 1];
 
-if (NULL == _sim_expand_homedir (path, pathbuf, sizeof (pathbuf)))
+if (NULL == sim_normalize_host_path (path, pathbuf, sizeof (pathbuf)))
     return -1;
 return rmdir (pathbuf);
 }
@@ -470,7 +429,7 @@ FILE* sim_fopen (const char *file, const char *mode)
 FILE *f;
 char namebuf[PATH_MAX + 1];
 
-if (NULL == _sim_expand_homedir (file, namebuf, sizeof (namebuf)))
+if (NULL == sim_normalize_host_path (file, namebuf, sizeof (namebuf)))
     return NULL;
 #if (defined (__linux) || defined (__linux__)) && !defined (DONT_DO_LARGEFILE)
 f = fopen64 (namebuf, mode);
@@ -577,9 +536,9 @@ t_stat sim_copyfile (const char *source_file, const char *dest_file, bool overwr
 {
 char sourcename[PATH_MAX + 1], destname[PATH_MAX + 1];
 
-if (NULL == _sim_expand_homedir (source_file, sourcename, sizeof (sourcename)))
+if (NULL == sim_normalize_host_path (source_file, sourcename, sizeof (sourcename)))
     return sim_messagef (SCPE_ARG, "Error Copying - Problem Parsing Source Filename '%s'\n", source_file);
-if (NULL == _sim_expand_homedir (dest_file, destname, sizeof (destname)))
+if (NULL == sim_normalize_host_path (dest_file, destname, sizeof (destname)))
     return sim_messagef (SCPE_ARG, "Error Copying - Problem Parsing Destination Filename '%s'\n", dest_file);
 if (CopyFileA (sourcename, destname, !overwrite_existing))
     return SCPE_OK;
@@ -609,7 +568,7 @@ BOOL bStat;
 
 _time_t_to_filetime (access_time, &accesstime);
 _time_t_to_filetime (write_time, &writetime);
-if (NULL == _sim_expand_homedir (file_name, filename, sizeof (filename)))
+if (NULL == sim_normalize_host_path (file_name, filename, sizeof (filename)))
     return sim_messagef (SCPE_ARG, "Error Setting File Times - Problem Source Filename '%s'\n", filename);
 hFile = CreateFileA (filename, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 if (hFile == INVALID_HANDLE_VALUE)
@@ -1276,7 +1235,7 @@ char *sim_filepath_parts(const char *filepath, const char *parts)
     char *result;
     char namebuf[PATH_MAX + 1];
 
-    if (NULL == _sim_expand_homedir(filepath, namebuf, sizeof(namebuf)))
+    if (NULL == sim_normalize_host_path(filepath, namebuf, sizeof(namebuf)))
         return NULL;
     filepath = namebuf;
 
@@ -1299,7 +1258,7 @@ WIN32_FIND_DATAA File;
 struct stat filestat;
 char WildName[PATH_MAX + 1];
 
-if (NULL == _sim_expand_homedir (cptr, WildName, sizeof (WildName)))
+if (NULL == sim_normalize_host_path (cptr, WildName, sizeof (WildName)))
     return SCPE_ARG;
 cptr = WildName;
 sim_trim_endspc (WildName);
@@ -1369,7 +1328,7 @@ char DirName[PATH_MAX + 1], WholeName[PATH_MAX + 1], WildName[PATH_MAX + 1], Mat
 memset (DirName, 0, sizeof(DirName));
 memset (WholeName, 0, sizeof(WholeName));
 memset (MatchName, 0, sizeof(MatchName));
-if (NULL == _sim_expand_homedir (cptr, WildName, sizeof (WildName)))
+if (NULL == sim_normalize_host_path (cptr, WildName, sizeof (WildName)))
     return SCPE_ARG;
 cptr = WildName;
 sim_trim_endspc (WildName);

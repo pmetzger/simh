@@ -10,8 +10,10 @@
 
 #include "sim_host_path_internal.h"
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "sim_defs.h"
 
@@ -21,6 +23,124 @@ static bool sim_host_path_copy(char *buf, size_t buf_size, const char *path)
     if (strlcpy(buf, path, buf_size) >= buf_size)
         return false;
     return true;
+}
+
+/* Strip one balanced quote layer from a host path argument.
+
+   File path quoting groups the argument but does not make the path a
+   C-style string literal. Backslashes remain path characters. */
+static bool sim_strip_host_path_quotes(const char *path, char *buf,
+                                       size_t buf_size)
+{
+    char quote;
+    const char *inner;
+    size_t copy_len;
+    size_t len;
+
+    if ((path == NULL) || (buf == NULL) || (buf_size == 0)) {
+        errno = EINVAL;
+        return false;
+    }
+
+    len = strlen(path);
+    if (len == 0) {
+        buf[0] = '\0';
+        return true;
+    }
+
+    quote = path[0];
+    if ((quote != '"') && (quote != '\'')) {
+        if (!sim_host_path_copy(buf, buf_size, path)) {
+            errno = ENAMETOOLONG;
+            return false;
+        }
+        return true;
+    }
+
+    if ((len == 1) || (path[len - 1] != quote)) {
+        errno = EINVAL;
+        return false;
+    }
+
+    for (inner = path + 1; inner < path + len - 1; ++inner) {
+        if (*inner == quote) {
+            errno = EINVAL;
+            return false;
+        }
+    }
+
+    copy_len = len - 2;
+    if (copy_len >= buf_size) {
+        errno = ENAMETOOLONG;
+        return false;
+    }
+    memcpy(buf, path + 1, copy_len);
+    buf[copy_len] = '\0';
+    return true;
+}
+
+/* Expand a leading ~/ in a host path after file-argument quoting has
+   already been stripped. */
+static bool sim_expand_home_path(const char *path, char *buf, size_t buf_size)
+{
+    const char *home;
+    const char *drive;
+    int written;
+    char *slash;
+
+    if ((path == NULL) || (buf == NULL) || (buf_size == 0)) {
+        errno = EINVAL;
+        return false;
+    }
+
+    if ((path[0] != '~') || (path[1] != '/')) {
+        if (!sim_host_path_copy(buf, buf_size, path)) {
+            errno = ENAMETOOLONG;
+            return false;
+        }
+        return true;
+    }
+
+    home = getenv("HOME");
+    if (home == NULL) {
+        home = getenv("HOMEPATH");
+        drive = getenv("HOMEDRIVE");
+    } else {
+        drive = NULL;
+    }
+
+    if (home == NULL) {
+        if (!sim_host_path_copy(buf, buf_size, path)) {
+            errno = ENAMETOOLONG;
+            return false;
+        }
+        return true;
+    }
+
+    written = snprintf(buf, buf_size, "%s%s%s%s", drive != NULL ? drive : "",
+                       home, strchr(home, '/') != NULL ? "/" : "\\", path + 2);
+    if ((written < 0) || ((size_t)written >= buf_size)) {
+        errno = ENAMETOOLONG;
+        return false;
+    }
+
+    while ((strchr(buf, '\\') != NULL) && ((slash = strchr(buf, '/')) != NULL))
+        *slash = '\\';
+    return true;
+}
+
+/* Normalize a user-supplied host path argument in caller-provided storage. */
+const char *sim_normalize_host_path(const char *path, char *buf,
+                                    size_t buf_size)
+{
+    char unquoted[PATH_MAX + 1];
+
+    errno = 0;
+    if (!sim_strip_host_path_quotes(path, unquoted, sizeof(unquoted)))
+        return NULL;
+    if (!sim_expand_home_path(unquoted, buf, buf_size))
+        return NULL;
+    return buf;
 }
 
 #if defined(_WIN32)

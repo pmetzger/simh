@@ -14,4 +14,11 @@
 /* Return the host temporary-file directory path in caller-provided storage. */
 const char *sim_host_temp_dir(char *buf, size_t buf_size);
 
+/* Normalize a user-supplied host path argument in caller-provided storage.
+   This strips one balanced outer quote layer, preserves backslashes as path
+   characters, expands a leading ~/, and returns NULL with errno set on
+   malformed quotes, invalid arguments, or truncation. */
+const char *sim_normalize_host_path(const char *path, char *buf,
+                                    size_t buf_size);
+
 #endif
