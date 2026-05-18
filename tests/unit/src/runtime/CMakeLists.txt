@@ -22,6 +22,14 @@ add_unit_test(unit-sim-tempfile
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
+add_unit_test(unit-sim-uuid
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_sim_uuid.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
 add_unit_test(unit-sim-card
     LABEL unit
     SOURCES

@@ -8,6 +8,7 @@ include(CheckCSourceRuns)
 include(CMakePushCheckState)
 
 include(pthreads-dep)
+include(uuid-dep)
 
 set(NEED_LIBRT FALSE)
 
@@ -99,6 +100,8 @@ cmake_pop_check_state()
 if (HAVE_FMEMOPEN)
     target_compile_definitions(os_features INTERFACE HAVE_FMEMOPEN)
 endif ()
+
+configure_uuid_feature(os_features)
 
 set(SIMH_COMPAT_SOURCES)
 
