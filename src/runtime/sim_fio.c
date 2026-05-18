@@ -613,10 +613,10 @@ if (NULL == _sim_expand_homedir (file_name, filename, sizeof (filename)))
     return sim_messagef (SCPE_ARG, "Error Setting File Times - Problem Source Filename '%s'\n", filename);
 hFile = CreateFileA (filename, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 if (hFile == INVALID_HANDLE_VALUE)
-    return sim_messagef (SCPE_ARG, "Can't open file '%s' to set it's times: %s\n", filename, sim_get_os_error_text (GetLastError ()));
+    return sim_messagef (SCPE_IOERR, "Can't open file '%s' to set it's times: %s\n", filename, sim_get_os_error_text (GetLastError ()));
 bStat = SetFileTime (hFile, NULL, &accesstime, &writetime);
 CloseHandle (hFile);
-return bStat ? SCPE_OK : sim_messagef (SCPE_ARG, "Error setting file '%s' times: %s\n", filename, sim_get_os_error_text (GetLastError ()));
+return bStat ? SCPE_OK : sim_messagef (SCPE_IOERR, "Error setting file '%s' times: %s\n", filename, sim_get_os_error_text (GetLastError ()));
 }
 
 
@@ -1326,6 +1326,9 @@ if ((hFind =  FindFirstFileA (cptr, &File)) != INVALID_HANDLE_VALUE) {
     DirName[dir_len] = *pathsep;
     DirName[dir_len + 1] = '\0';
     do {
+        if ((strcmp (File.cFileName, ".") == 0) ||
+            (strcmp (File.cFileName, "..") == 0))
+            continue;
         FileSize = (((int64_t)(File.nFileSizeHigh)) << 32) | File.nFileSizeLow;
         strlcpy (FileName, DirName, sizeof (FileName));
         strlcat (FileName, File.cFileName, sizeof (FileName));
