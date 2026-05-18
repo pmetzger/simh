@@ -26,15 +26,6 @@ add_unit_test(unit-compat-string
     DEFINES ${SIMH_COMPAT_STRING_DEFINES}
 )
 
-add_unit_test(unit-compat-temp
-    LABEL unit
-    SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_compat_temp.c
-        ${SIMH_COMPAT_ROOT}/tempfile.c
-    DEFINES
-        SIMH_COMPAT_TEST
-)
-
 if (WIN32)
     add_unit_test(unit-compat-time
         LABEL unit

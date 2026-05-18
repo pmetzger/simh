@@ -13,7 +13,7 @@ Examples of the intended scope:
 - `strlcat`
 - `localtime_r`
 - `gmtime_r`
-- Windows-only libc shims such as `setenv`, `mkstemp`, and `mkstemps`
+- Windows-only libc shims such as `setenv`
 - other small libc-style compatibility routines
 
 Current compatibility routines:
@@ -26,13 +26,10 @@ Current compatibility routines:
 | `gmtime_r` | `gmtime_r.c` | Windows-only | Windows CRTs |
 | `setenv` | `setenv.c` | Windows-only | Windows CRTs |
 | `unsetenv` | `setenv.c` | Windows-only | Windows CRTs |
-| `mkstemp` | `tempfile.c` | Windows-only | Windows CRTs |
-| `mkstemps` | `tempfile.c` | Windows-only | Windows CRTs |
 
 POSIX hosts should provide `localtime_r`, `gmtime_r`, `setenv`,
-`unsetenv`, and `mkstemp`.  `mkstemps` is common on POSIX systems but is
-not required by POSIX; add a feature-tested POSIX path later if the
-runtime starts depending on it outside Windows.
+and `unsetenv`. Use `src/runtime/sim_tempfile.c` for project code that
+needs temporary files instead of adding libc-style tempfile shims here.
 
 Compatibility declarations are split by scope:
 

@@ -53,12 +53,6 @@ int setenv(const char *envname, const char *envval, int overwrite);
 int unsetenv(const char *envname);
 #endif
 
-#if defined(_WIN32) || defined(SIMH_COMPAT_TEST)
-int mkstemp(char *path_template);
-
-int mkstemps(char *path_template, int suffix_len);
-#endif
-
 #endif /* _WIN32 || SIMH_COMPAT_TEST */
 
 #endif /* H_SIM_WIN32_COMPAT */

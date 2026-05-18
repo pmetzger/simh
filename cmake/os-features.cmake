@@ -148,8 +148,7 @@ if (WIN32)
     list(APPEND SIMH_COMPAT_SOURCES
         ${SIMH_COMPAT_ROOT}/localtime_r.c
         ${SIMH_COMPAT_ROOT}/gmtime_r.c
-        ${SIMH_COMPAT_ROOT}/setenv.c
-        ${SIMH_COMPAT_ROOT}/tempfile.c)
+        ${SIMH_COMPAT_ROOT}/setenv.c)
 endif ()
 
 if (SIMH_COMPAT_SOURCES)
