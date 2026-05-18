@@ -125,6 +125,34 @@ struct sim_tmxr_fixture {
 
 static struct sim_tmxr_fixture *tmxr_io_fixture;
 
+static FILE *open_capture_stream(char **output, size_t *output_size)
+{
+    *output = NULL;
+    *output_size = 0;
+#if defined(_WIN32)
+    return tmpfile();
+#else
+    return open_memstream(output, output_size);
+#endif
+}
+
+static int close_capture_stream(FILE *stream, char **output,
+                                size_t *output_size)
+{
+#if defined(_WIN32)
+    int status;
+
+    status = simh_test_read_stream(stream, output, output_size);
+    if (fclose(stream) != 0)
+        status = -1;
+    return status;
+#else
+    (void)output;
+    (void)output_size;
+    return fclose(stream);
+#endif
+}
+
 static SOCKET test_tmxr_master_sock(char *port, t_stat *status)
 {
     assert_non_null(tmxr_io_fixture);
@@ -984,15 +1012,14 @@ static void test_tmxr_show_sync_reports_missing_network_support(void **state)
 
     install_tmxr_test_io_hooks();
     fixture->io.eth_devices_result = -1;
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
 
     assert_int_equal(
         tmxr_show_sync_devices(stream, &fixture->device, &fixture->unit, 0,
                                NULL),
         SCPE_OK);
-    assert_int_equal(fflush(stream), 0);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(output);
     assert_non_null(strstr(output, "DDCMP synchronous link devices:\n"));
     assert_non_null(
@@ -1365,12 +1392,11 @@ static void test_tmxr_show_sync_lists_framer_aliases(void **state)
              sizeof(fixture->io.eth_devices_list[0].name), "%s", "framer0");
     snprintf(fixture->io.eth_devices_list[1].name,
              sizeof(fixture->io.eth_devices_list[1].name), "%s", "framer1");
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
 
     assert_int_equal(tmxr_show_sync(stream, &fixture->unit, 0, NULL), SCPE_OK);
-    assert_int_equal(fflush(stream), 0);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(output);
     assert_non_null(strstr(output, " sync0\tframer0\n"));
     assert_non_null(strstr(output, " sync1\tframer1\n"));
@@ -2666,10 +2692,10 @@ static void test_tmxr_set_lnorder_fills_unspecified_lines_with_all(void **state)
     assert_int_equal(fixture->mux.lnorder[2], 0);
     assert_int_equal(fixture->mux.lnorder[3], 2);
 
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_lnorder(stream, NULL, 0, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
 
     assert_non_null(output);
     assert_string_equal(output, "Order=1;3;0;2\n");
@@ -2765,10 +2791,10 @@ static void test_tmxr_show_summ_formats_single_and_multi_line_state(void **state
     FILE *stream;
 
     fixture->mux.lines = 1;
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_summ(stream, NULL, 0, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_string_equal(output, "disconnected");
     free(output);
 
@@ -2777,10 +2803,10 @@ static void test_tmxr_show_summ_formats_single_and_multi_line_state(void **state
     fixture->mux.lines = 4;
     fixture->lines[1].sock = (SOCKET)1;
     fixture->lines[2].serport = (SERHANDLE)(uintptr_t)1;
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_summ(stream, NULL, 0, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_string_equal(output, "2 current connections");
     free(output);
 }
@@ -2794,10 +2820,10 @@ static void test_tmxr_show_cstat_formats_disconnected_and_connected_states(
     size_t output_size = 0;
     FILE *stream;
 
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_cstat(stream, NULL, 0, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_string_equal(output, "all disconnected\n");
     free(output);
 
@@ -2810,10 +2836,10 @@ static void test_tmxr_show_cstat_formats_disconnected_and_connected_states(
     fixture->lines[2].rxcnt = 7;
     fixture->lines[2].txcnt = 9;
     assert_non_null(fixture->lines[2].ipad);
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_cstat(stream, NULL, 0, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(strstr(output, "Line 2:"));
     assert_non_null(strstr(output, "input (on)"));
     assert_non_null(strstr(output, "7"));
@@ -2843,10 +2869,10 @@ static void test_tmxr_log_configuration_updates_mux_attach_string(void **state)
     assert_non_null(strstr(fixture->unit.filename, "Line=1,Log="));
     assert_non_null(strstr(fixture->unit.filename, log_path));
 
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_log(stream, NULL, 1, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(strstr(output, log_path));
     free(output);
 
@@ -2857,10 +2883,10 @@ static void test_tmxr_log_configuration_updates_mux_attach_string(void **state)
 
     output = NULL;
     output_size = 0;
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_log(stream, NULL, 1, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_string_equal(output, "no logging");
     free(output);
 
@@ -2882,12 +2908,12 @@ static void test_tmxr_attach_help_formats_single_and_multi_line_modes(void **sta
     fixture->mux.lines = 1;
     fixture->mux.port_speed_control = true;
     fixture->mux.modem_control = true;
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(
         tmxr_attach_help(stream, &fixture->device, &fixture->unit, 0, NULL),
         SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(strstr(output, "TMXR Multiplexer Attach Help"));
     assert_non_null(strstr(output, "full modem control device"));
     assert_non_null(strstr(output, "ATTACH TMXR Connect=ser0"));
@@ -2899,12 +2925,12 @@ static void test_tmxr_attach_help_formats_single_and_multi_line_modes(void **sta
     fixture->mux.lines = 4;
     fixture->mux.port_speed_control = false;
     fixture->mux.modem_control = false;
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(
         tmxr_attach_help(stream, &fixture->device, &fixture->unit, 0, NULL),
         SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(strstr(output, "Line buffering for all 4 lines"));
     assert_non_null(strstr(output, "ATTACH TMXR Line=n,Loopback"));
     assert_non_null(strstr(output, "ATTACH TMXR Line=n,Disable"));
@@ -2999,10 +3025,10 @@ static void test_tmxr_show_lnorder_formats_sequential_and_ranges(void **state)
     FILE *stream;
 
     fixture->mux.lnorder[0] = -1;
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_lnorder(stream, NULL, 0, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_string_equal(output, "Order=0-3\n");
     free(output);
 
@@ -3012,10 +3038,10 @@ static void test_tmxr_show_lnorder_formats_sequential_and_ranges(void **state)
     fixture->mux.lnorder[1] = 1;
     fixture->mux.lnorder[2] = 3;
     fixture->mux.lnorder[3] = -1;
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_lnorder(stream, NULL, 0, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_string_equal(output, "Order=0-1;3\n");
     free(output);
 }
@@ -3042,10 +3068,10 @@ static void test_tmxr_fconns_formats_connecting_and_serial_states(void **state)
     fixture->lines[0].destination = strdup("remote:1234");
     fixture->lines[0].cnms = 1;
     assert_non_null(fixture->lines[0].destination);
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     tmxr_fconns(stream, &fixture->lines[0], 0);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(strstr(output, "line 0: "));
     assert_non_null(strstr(output, "Connection to remote port remote:1234"));
     assert_non_null(strstr(output, "Connecting"));
@@ -3061,10 +3087,10 @@ static void test_tmxr_fconns_formats_connecting_and_serial_states(void **state)
     fixture->lines[1].connecting = (SOCKET)1;
     fixture->lines[1].ipad = strdup("127.0.0.1");
     assert_non_null(fixture->lines[1].ipad);
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     tmxr_fconns(stream, &fixture->lines[1], 1);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(strstr(output, "Connection from IP address 127.0.0.1"));
     free(output);
 
@@ -3080,10 +3106,10 @@ static void test_tmxr_fconns_formats_connecting_and_serial_states(void **state)
     fixture->lines[2].modem_control = true;
     fixture->lines[2].modembits = TMXR_MDM_DTR | TMXR_MDM_CTS;
     assert_non_null(fixture->lines[2].destination);
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     tmxr_fconns(stream, &fixture->lines[2], 2);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(strstr(output, "Connected to serial port ser0"));
     assert_non_null(strstr(output, "Modem Bits: DTR CTS"));
     free(output);
@@ -3121,10 +3147,10 @@ static void test_tmxr_fstats_formats_connected_counters(void **state)
     line->txbps = 9600;
     line->bpsfactor = 2.0;
 
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     tmxr_fstats(stream, line, 0);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_non_null(strstr(output, "Line 0:"));
     assert_non_null(strstr(output, "input (on) queued/total = 1/7"));
     assert_non_null(strstr(output, "packets = 2"));
@@ -3233,10 +3259,10 @@ static void test_tmxr_port_speed_control_setters_update_expected_state(
             tmxr_clear_line_port_speed_control(&fixture->mux, 2)),
         SCPE_ALATT);
 
-    stream = open_memstream(&output, &output_size);
+    stream = open_capture_stream(&output, &output_size);
     assert_non_null(stream);
     assert_int_equal(tmxr_show_lines(stream, NULL, 0, &fixture->mux), SCPE_OK);
-    assert_int_equal(fclose(stream), 0);
+    assert_int_equal(close_capture_stream(stream, &output, &output_size), 0);
     assert_string_equal(output, "lines=4");
     free(output);
 }
