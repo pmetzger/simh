@@ -1,6 +1,5 @@
 #include "test_support.h"
 
-#include <dirent.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdint.h>
@@ -8,7 +7,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+
+#if defined(_WIN32)
+#include <direct.h>
+#include <io.h>
+#include <process.h>
+
+#ifndef PATH_MAX
+#define PATH_MAX _MAX_PATH
+#endif
+
+#define lstat stat
+#else
+#include <dirent.h>
 #include <unistd.h>
+#endif
 
 #include "sim_tempfile.h"
 
@@ -29,6 +42,49 @@ int simh_test_join_path(char *buffer, size_t buffer_size, const char *base,
 
 static int remove_directory_contents(const char *path)
 {
+#if defined(_WIN32)
+    intptr_t handle;
+    struct _finddata_t entry;
+    char pattern[PATH_MAX];
+
+    if (snprintf(pattern, sizeof(pattern), "%s/*", path) >=
+        (int)sizeof(pattern)) {
+        errno = ENAMETOOLONG;
+        return -1;
+    }
+
+    handle = _findfirst(pattern, &entry);
+    if (handle == -1) {
+        return errno == ENOENT ? 0 : -1;
+    }
+
+    do {
+        char child[PATH_MAX];
+
+        if (strcmp(entry.name, ".") == 0 || strcmp(entry.name, "..") == 0) {
+            continue;
+        }
+
+        if (snprintf(child, sizeof(child), "%s/%s", path, entry.name) >=
+            (int)sizeof(child)) {
+            _findclose(handle);
+            errno = ENAMETOOLONG;
+            return -1;
+        }
+
+        if (simh_test_remove_path(child) != 0) {
+            _findclose(handle);
+            return -1;
+        }
+    } while (_findnext(handle, &entry) == 0);
+
+    if (errno != ENOENT) {
+        _findclose(handle);
+        return -1;
+    }
+
+    return _findclose(handle) == 0 ? 0 : -1;
+#else
     DIR *dir;
     struct dirent *entry;
 
@@ -63,6 +119,7 @@ static int remove_directory_contents(const char *path)
     }
 
     return 0;
+#endif
 }
 
 const char *simh_test_source_root(void)
@@ -112,6 +169,32 @@ int simh_test_fixture_path(char *buffer, size_t buffer_size,
 int simh_test_make_temp_dir(char *buffer, size_t buffer_size,
                             const char *prefix)
 {
+#if defined(_WIN32)
+    int pid;
+    int counter;
+
+    pid = _getpid();
+    for (counter = 0; counter < 1000; counter++) {
+        int written;
+
+        written = snprintf(buffer, buffer_size, "%s/%s-%d-%d",
+                           simh_test_binary_root(), prefix, pid, counter);
+        if (written < 0 || (size_t)written >= buffer_size) {
+            errno = ENAMETOOLONG;
+            return -1;
+        }
+
+        if (_mkdir(buffer) == 0) {
+            return 0;
+        }
+        if (errno != EEXIST) {
+            return -1;
+        }
+    }
+
+    errno = EEXIST;
+    return -1;
+#else
     int written;
 
     written = snprintf(buffer, buffer_size, "%s/%s-XXXXXX",
@@ -122,6 +205,7 @@ int simh_test_make_temp_dir(char *buffer, size_t buffer_size,
     }
 
     return mkdtemp(buffer) == NULL ? -1 : 0;
+#endif
 }
 
 int simh_test_read_file(const char *path, void **data_out, size_t *size_out)
