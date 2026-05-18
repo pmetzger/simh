@@ -230,20 +230,20 @@ static void read_text_file(const char *path, char *buffer, size_t size)
     free(data);
 }
 
-static void make_alias_write_command(char *command, size_t size,
-                                     const char *path)
+static void make_env_capture_command(char *command, size_t size,
+                                     const char *name, const char *path)
 {
 #if defined(_WIN32)
     assert_int_equal(snprintf(command, size,
-                              "cmd /c \"<nul set /p dummy=%%ZIMH_ALIAS%% > "
-                              "\"\"%s\"\" & exit /b 0\"",
-                              path) < (int)size,
+                              "cmd /c \"\"%s\" \"%s\" \"%s\"\"",
+                              SIMH_CMDVARS_ENV_HELPER, name, path) <
+                         (int)size,
                      1);
 #else
     assert_int_equal(snprintf(command, size,
-                              "/bin/sh -c 'printf %%s \"$ZIMH_ALIAS\" > "
-                              "\"%s\"'",
-                              path) < (int)size,
+                              "\"%s\" \"%s\" \"%s\"",
+                              SIMH_CMDVARS_ENV_HELPER, name, path) <
+                         (int)size,
                      1);
 #endif
 }
@@ -1279,7 +1279,7 @@ static void test_sim_cmdvars_system_restores_captured_alias(void **state)
     sim_cmdvars_capture_env_alias("ZIMH_ALIAS");
     assert_null(getenv("ZIMH_ALIAS"));
 
-    make_alias_write_command(command, sizeof(command), path);
+    make_env_capture_command(command, sizeof(command), "ZIMH_ALIAS", path);
     assert_int_equal(sim_cmdvars_system(command), 0);
 
     read_text_file(path, contents, sizeof(contents));
@@ -1320,7 +1320,7 @@ static void test_sim_set_environment_replaces_captured_alias(void **state)
     assert_int_equal(sim_set_environment(0, "ZIMH_ALIAS=from-set"), SCPE_OK);
     assert_string_equal(getenv("ZIMH_ALIAS"), "from-set");
 
-    make_alias_write_command(command, sizeof(command), path);
+    make_env_capture_command(command, sizeof(command), "ZIMH_ALIAS", path);
     assert_int_equal(sim_cmdvars_system(command), 0);
 
     read_text_file(path, contents, sizeof(contents));

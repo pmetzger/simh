@@ -46,6 +46,21 @@ add_unit_test(unit-scp-expr
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
+add_executable(zimh-unit-scp-cmdvars-env-helper
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmdvars_env_helper.c
+)
+set_target_properties(zimh-unit-scp-cmdvars-env-helper PROPERTIES
+    C_STANDARD ${ZIMH_C_STANDARD}
+    C_STANDARD_REQUIRED ON
+    C_EXTENSIONS OFF
+)
+target_compile_options(zimh-unit-scp-cmdvars-env-helper
+    PRIVATE ${EXTRA_TARGET_CFLAGS}
+)
+target_link_options(zimh-unit-scp-cmdvars-env-helper
+    PRIVATE ${EXTRA_TARGET_LFLAGS}
+)
+
 add_unit_test(unit-scp-cmdvars
     LABEL unit
     SOURCES
@@ -53,6 +68,10 @@ add_unit_test(unit-scp-cmdvars
     INCLUDES
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
+target_compile_definitions(zimh-unit-scp-cmdvars PRIVATE
+    SIMH_CMDVARS_ENV_HELPER="$<TARGET_FILE:zimh-unit-scp-cmdvars-env-helper>"
+)
+add_dependencies(zimh-unit-scp-cmdvars zimh-unit-scp-cmdvars-env-helper)
 
 add_unit_test(unit-scp-message
     LABEL unit
