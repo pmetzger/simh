@@ -16,6 +16,7 @@ target_include_directories(simh_unit_support PUBLIC
     ${SIMH_CORE_ROOT}
     ${SIMH_INCLUDE_ROOT}
     ${SIMH_RUNTIME_ROOT}
+    ${SIMH_COMPAT_ROOT}
 )
 
 target_compile_definitions(simh_unit_support PRIVATE
