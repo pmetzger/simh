@@ -81,6 +81,7 @@
 #include <string.h>
 #ifdef HAVE_WINMM
 #include <windows.h>
+#include <mmsystem.h>
 #endif
 
 #define SIM_INTERNAL_CLK (SIM_NTIMERS+(1<<30))
