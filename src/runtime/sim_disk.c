@@ -61,11 +61,13 @@ Internal routines:
 #include "dynstr.h"
 #include "sim_ether.h"
 #include "sim_types.h"
+#include "sim_uuid.h"
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #if defined SIM_ASYNCH_IO
 #include <pthread.h>
@@ -5841,69 +5843,6 @@ VHDHANDLE hVHD = (VHDHANDLE)f;
 return (t_offset)(NtoHll (hVHD->Footer.CurrentSize));
 }
 
-
-#include <time.h>
-static void
-_rand_uuid_gen (void *uuidaddr)
-{
-int i;
-uint8_t *b = (uint8_t *)uuidaddr;
-uint32_t timenow = (uint32_t)time (NULL);
-
-memcpy (uuidaddr, &timenow, sizeof (timenow));
-srand ((unsigned)timenow);
-for (i=4; i<16; i++) {
-    b[i] = (uint8_t)rand();
-    }
-}
-
-#if defined (_WIN32)
-static void
-uuid_gen (void *uuidaddr)
-{
-static
-RPC_STATUS
-(RPC_ENTRY *UuidCreate_c) (void *);
-
-if (!UuidCreate_c) {
-    HINSTANCE hDll;
-    hDll = LoadLibraryA("rpcrt4.dll");
-    UuidCreate_c = (RPC_STATUS (RPC_ENTRY *) (void *))GetProcAddress(hDll, "UuidCreate");
-    }
-if (UuidCreate_c)
-    UuidCreate_c(uuidaddr);
-else
-    _rand_uuid_gen (uuidaddr);
-}
-#elif defined (SIM_HAVE_DLOPEN)
-#include <dlfcn.h>
-
-static void
-uuid_gen (void *uuidaddr)
-{
-void (*uuid_generate_c) (void *) = NULL;
-void *handle;
-
-#define S__STR_QUOTE(tok) #tok
-#define S__STR(tok) S__STR_QUOTE(tok)
-    handle = dlopen("libuuid." S__STR(SIM_HAVE_DLOPEN), RTLD_NOW|RTLD_GLOBAL);
-    if (handle)
-        uuid_generate_c = (void (*)(void *))((size_t)dlsym(handle, "uuid_generate"));
-    if (uuid_generate_c)
-        uuid_generate_c(uuidaddr);
-    else
-        _rand_uuid_gen (uuidaddr);
-    if (handle)
-        dlclose(handle);
-}
-#else
-static void
-uuid_gen (void *uuidaddr)
-{
-_rand_uuid_gen (uuidaddr);
-}
-#endif
-
 static VHDHANDLE
 sim_CreateVirtualDisk(const char *szVHDPath,
                       uint32_t SizeInSectors,
@@ -5952,7 +5891,13 @@ Footer.CreatorVersion = NtoHl (0x00040000);
 memcpy (Footer.CreatorHostOS, "Wi2k", 4);
 Footer.OriginalSize = NtoHll (SizeInBytes);
 Footer.CurrentSize = NtoHll (SizeInBytes);
-uuid_gen (Footer.UniqueID);
+if (sim_uuid_generate(Footer.UniqueID) != 0) {
+    Status = errno;
+    sim_messagef(SCPE_OPENERR,
+                 "Cannot create VHD '%s': UUID generation failed - %s\n",
+                 szVHDPath, strerror(Status));
+    goto Cleanup_Return;
+    }
 Footer.DiskType = NtoHl (bFixedVHD ? VHD_DT_Fixed : VHD_DT_Dynamic);
 Footer.DiskGeometry = NtoHl (0xFFFF10FF);
 { /* CHS Calculation */

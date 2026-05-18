@@ -14,6 +14,10 @@
 #include "test_simh_personality.h"
 #include "test_support.h"
 
+#define VHD_FOOTER_SIZE 512
+/* In a VHD footer, the Unique ID field starts after "Checksum" at offset 68. */
+#define VHD_FOOTER_UNIQUE_ID_OFFSET 68
+
 struct sim_disk_fixture {
     DEVICE byte_device;
     UNIT byte_unit;
@@ -136,6 +140,34 @@ static void attach_temp_disk_image(struct sim_disk_fixture *fixture, UNIT *uptr)
     assert_int_equal(sim_disk_attach_ex(uptr, fixture->image_path, 512, 1, true,
                                         0, "TEST", 0, 0, NULL),
                      SCPE_OK);
+}
+
+static int uuid_is_nil(const uint8_t uuid[16])
+{
+    uint8_t zero[16] = {0};
+
+    return memcmp(uuid, zero, sizeof(zero)) == 0;
+}
+
+static int uuid_has_rfc4122_variant(const uint8_t uuid[16])
+{
+    return (uuid[8] & 0xc0) == 0x80;
+}
+
+static void read_vhd_footer_uuid(const char *path, uint8_t uuid[16])
+{
+    uint8_t *data;
+    size_t size;
+    size_t footer_offset;
+
+    assert_int_equal(simh_test_read_file(path, (void **)&data, &size), 0);
+    assert_true(size >= VHD_FOOTER_SIZE);
+
+    footer_offset = size - VHD_FOOTER_SIZE;
+    assert_memory_equal(&data[footer_offset], "conectix", 8);
+    memcpy(uuid, &data[footer_offset + VHD_FOOTER_UNIQUE_ID_OFFSET], 16);
+
+    free(data);
 }
 
 static t_stat test_backend_read(UNIT *uptr, t_lba lba, uint8_t *buf,
@@ -354,6 +386,26 @@ static void test_sim_disk_detach_restores_auto_format(void **state)
 
     assert_int_equal(sim_disk_detach(&fixture->sector_unit), SCPE_OK);
     assert_int_equal(DK_GET_FMT(&fixture->sector_unit), DKUF_F_AUTO);
+}
+
+/* Verify VHD creation stores a generated UUID in the VHD footer. */
+static void test_sim_disk_create_vhd_writes_generated_uuid(void **state)
+{
+    struct sim_disk_fixture *fixture = *state;
+    uint8_t uuid[16];
+
+    assert_int_equal(sim_disk_set_fmt(&fixture->sector_unit, 0, "VHD", NULL),
+                     SCPE_OK);
+    sim_switches = 0;
+    assert_int_equal(sim_disk_attach_ex(&fixture->sector_unit,
+                                        fixture->image_path, 512, 1, true, 0,
+                                        NULL, 0, 0, NULL),
+                     SCPE_OK);
+    assert_int_equal(sim_disk_detach(&fixture->sector_unit), SCPE_OK);
+
+    read_vhd_footer_uuid(fixture->image_path, uuid);
+    assert_false(uuid_is_nil(uuid));
+    assert_true(uuid_has_rfc4122_variant(uuid));
 }
 
 #if defined (HAVE_FMEMOPEN)
@@ -1209,6 +1261,9 @@ int main(void)
         cmocka_unit_test_setup_teardown(
             test_sim_disk_detach_restores_auto_format, setup_sim_disk_fixture,
             teardown_sim_disk_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_sim_disk_create_vhd_writes_generated_uuid,
+            setup_sim_disk_fixture, teardown_sim_disk_fixture),
 #if defined (HAVE_FMEMOPEN)
         cmocka_unit_test_setup_teardown(
             test_sim_disk_ramdisk_default_size_is_volatile,
