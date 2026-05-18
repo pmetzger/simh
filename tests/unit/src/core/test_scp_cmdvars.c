@@ -236,7 +236,7 @@ static void make_alias_write_command(char *command, size_t size,
 #if defined(_WIN32)
     assert_int_equal(snprintf(command, size,
                               "cmd /c \"<nul set /p dummy=%%ZIMH_ALIAS%% > "
-                              "%s\"",
+                              "\"\"%s\"\" & exit /b 0\"",
                               path) < (int)size,
                      1);
 #else
