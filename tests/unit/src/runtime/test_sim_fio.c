@@ -7,7 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#if !defined(_WIN32)
 #include <unistd.h>
+#endif
 
 #include "test_cmocka.h"
 
@@ -761,6 +763,7 @@ static void test_sim_fopen_and_fifo_helpers_reject_bad_inputs(void **state)
     assert_int_equal(sim_set_fifo_nonblock(NULL), -1);
 }
 
+#if !defined(_WIN32)
 /* Verify sim_set_fifo_nonblock distinguishes FIFOs from regular files
    and sets O_NONBLOCK on a FIFO stream. */
 static void test_sim_set_fifo_nonblock_marks_fifo_streams(void **state)
@@ -791,6 +794,7 @@ static void test_sim_set_fifo_nonblock_marks_fifo_streams(void **state)
     assert_int_equal(sim_set_fifo_nonblock(file), -1);
     fclose(file);
 }
+#endif
 
 /* Verify directory scanning, file-list collection, and file-copying all
    operate on the same discovered file set. */
@@ -1057,9 +1061,11 @@ int main(void)
         cmocka_unit_test_setup_teardown(
             test_sim_fopen_and_fifo_helpers_reject_bad_inputs,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
+#if !defined(_WIN32)
         cmocka_unit_test_setup_teardown(
             test_sim_set_fifo_nonblock_marks_fifo_streams,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
+#endif
         cmocka_unit_test_setup_teardown(
             test_sim_dir_scan_get_filelist_and_copyfile_work_together,
             setup_sim_fio_fixture, teardown_sim_fio_fixture),
