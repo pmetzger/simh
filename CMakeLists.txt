@@ -550,7 +550,7 @@ if (NOT DO_DEPENDENCY_BUILD)
             "${SIMH_RUNTIME_ROOT}")
         target_compile_options(slirp PRIVATE ${EXTRA_TARGET_CFLAGS})
         target_link_options(slirp PRIVATE ${EXTRA_TARGET_LFLAGS})
-        target_link_libraries(slirp PUBLIC ZIMH::LIBSLIRP)
+        target_link_libraries(slirp PUBLIC ZIMH::LIBSLIRP os_features)
     endif (WITH_NETWORK AND WITH_SLIRP)
 
 ## Don't delete yet ##    set(Python_ADDITIONAL_VERSIONS 3)
