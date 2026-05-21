@@ -139,6 +139,14 @@ if (WITH_NETWORK)
         INCLUDES
             ${PROJECT_SOURCE_DIR}/tests/unit/support
     )
+
+    add_unit_test(unit-sim-ether-test-backend
+        LABEL unit
+        SOURCES
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_sim_ether_test_backend.c
+        INCLUDES
+            ${PROJECT_SOURCE_DIR}/tests/unit/support
+    )
 endif ()
 
 if (WITH_NETWORK AND WITH_SLIRP)

@@ -346,6 +346,8 @@
 #include <stdint.h>
 
 #include "sim_ether.h"
+#include "sim_ether_internal.h"
+#include "sim_ether_test_internal.h"
 #include "sim_sock.h"
 #include "string_util.h"
 #include "sim_time.h"
@@ -1016,7 +1018,7 @@ const char *eth_capabilities(void)
 #if defined (HAVE_SLIRP_NETWORK)
      ":NAT"
 #endif
-     ":UDP";
+     ":UDP:TEST";
  }
 
 #if (defined (xBSD) || defined (__APPLE__)) && (defined (HAVE_TAP_NETWORK) || defined (HAVE_PCAP_NETWORK))
@@ -1214,6 +1216,13 @@ if (used < max) {
   strlcpy(list[used].name, "udp:sourceport:remotehost:remoteport", sizeof(list[used].name));
   strlcpy(list[used].desc, "Integrated UDP bridge support", sizeof(list[used].desc));
   list[used].eth_api = ETH_API_UDP;
+  ++used;
+  }
+
+if (used < max) {
+  strlcpy(list[used].name, "test:name", sizeof(list[used].name));
+  strlcpy(list[used].desc, "Integrated test Ethernet backend", sizeof(list[used].desc));
+  list[used].eth_api = ETH_API_TEST;
   ++used;
   }
 
@@ -2124,6 +2133,11 @@ return sim_messagef (SCPE_NOFNC, "%s", msg);
 
 int wakeup_needed;
 
+if (!dev)
+  return SCPE_UNATT;
+if (dev->eth_api == ETH_API_TEST)
+  return SCPE_OK;
+
 dev->asynch_io = (sim_asynch_enabled != 0);
 dev->asynch_io_latency = latency;
 pthread_mutex_lock (&dev->lock);
@@ -2185,7 +2199,22 @@ if (bufsz < ETH_MAX_JUMBO_FRAME)
 
 /* attempt to connect device */
 memset(errbuf, 0, PCAP_ERRBUF_SIZE);
-if (0 == strncmp("tap:", savname, 4)) {
+if (0 == strncmp("test:", savname, 5)) {
+  const char *devname = savname + 5;
+  t_stat status;
+
+  while (isspace(*devname))
+      ++devname;
+  if (!*devname)
+    return sim_messagef(SCPE_OPENERR,
+                        "Eth: Must specify test backend name\n");
+  status = eth_test_open(devname, handle);
+  if (status != SCPE_OK)
+    return status;
+  *eth_api = ETH_API_TEST;
+  *fd_handle = 0;
+  }
+else if (0 == strncmp("tap:", savname, 4)) {
   const char *devname = savname + 4;
 
   while (isspace(*devname))
@@ -2463,6 +2492,19 @@ if (bpf_filter && (*eth_api == ETH_API_PCAP)) {
 return SCPE_OK;
 }
 
+/* Return true when a name explicitly identifies an integrated pseudo backend. */
+static ETH_BOOL
+eth_is_explicit_pseudo_device(const char *name)
+{
+    static const char *prefixes[] = {"test:", "tap:", "vde:", "nat:", "udp:"};
+
+    for (size_t i = 0; i < sizeof(prefixes) / sizeof(prefixes[0]); ++i)
+        if (strncasecmp(name, prefixes[i], strlen(prefixes[i])) == 0)
+            return true;
+
+    return false;
+}
+
 t_stat eth_open(ETH_DEV* dev, const char* name, DEVICE* dptr, uint32_t dbit)
 {
 t_stat r;
@@ -2491,6 +2533,10 @@ if ((strlen(name) == 4 || strlen(name) == 5)
   savname = _eth_getname(num, temp, sizeof(temp), desc, sizeof(desc));
   if (savname == NULL) /* didn't translate */
     return SCPE_OPENERR;
+  }
+else if (eth_is_explicit_pseudo_device(name)) {
+  savname = name;
+  desc[0] = '\0';
   }
 else {
   /* are they trying to use device description? */
@@ -2533,8 +2579,11 @@ dev->name = strdup(savname);
 /* save debugging information */
 dev->dptr = dptr;
 dev->dbit = dbit;
+if (dev->eth_api == ETH_API_TEST)
+  dev->reflections = 0;
 
 #if defined (USE_READER_THREAD)
+if (dev->eth_api != ETH_API_TEST)
 {
   pthread_attr_t attr;
 
@@ -2585,6 +2634,8 @@ switch (eth_api) {
   case ETH_API_UDP:
     sim_close_sock(pcap_fd);
     break;
+  case ETH_API_TEST:
+    break;
   }
 return SCPE_OK;
 }
@@ -2605,6 +2656,7 @@ dev->fd_handle = 0;
 dev->have_host_nic_phy_addr = 0;
 
 #if defined (USE_READER_THREAD)
+if (dev->eth_api != ETH_API_TEST) {
 pthread_join (dev->reader_thread, NULL);
 pthread_mutex_destroy (&dev->lock);
 pthread_cond_signal (&dev->writer_cond);
@@ -2624,6 +2676,7 @@ pthread_cond_destroy (&dev->writer_cond);
     }
   }
 ethq_destroy (&dev->read_queue);         /* release FIFO queue */
+}
 #endif
 
 _eth_close_port (dev->eth_api, pcap, pcap_fd);
@@ -3067,6 +3120,9 @@ return ((status == 0) ? SCPE_OK : SCPE_IOERR);
 
 t_stat eth_write(ETH_DEV* dev, ETH_PACK* packet, ETH_PCALLBACK routine)
 {
+if (dev && dev->eth_api == ETH_API_TEST)
+  return eth_test_write(dev, packet, routine);
+
 #ifdef USE_READER_THREAD
 ETH_WRITE_REQUEST *request;
 
@@ -3127,6 +3183,47 @@ int key = 0x3f & (eth_crc32(0, data, 6) >> 26);
 
 key ^= 0x3f;
 return (hash[key>>3] & (1 << (key&0x7)));
+}
+
+/* Return non-BPF address filter state for a received packet. */
+static void
+eth_packet_filter_status(ETH_DEV *dev, const uint8_t *data, int *to_me,
+                         int *from_me)
+{
+    int i;
+
+    *to_me = 0;
+    *from_me = 0;
+    for (i = 0; i < dev->addr_count; i++) {
+        if (memcmp(data, dev->filter_address[i], sizeof(ETH_MAC)) == 0)
+            *to_me = 1;
+        if (memcmp(&data[sizeof(ETH_MAC)], dev->filter_address[i],
+                   sizeof(ETH_MAC)) == 0)
+            *from_me = 1;
+    }
+
+    /* all multicast mode? */
+    if (dev->all_multicast && (data[0] & 0x01))
+        *to_me = 1;
+
+    /* promiscuous mode? */
+    if (dev->promiscuous)
+        *to_me = 1;
+
+    /* AUTODIN II hash mode? */
+    if ((dev->hash_filter) && (!*to_me) && (data[0] & 0x01))
+        *to_me = _eth_hash_lookup(dev->hash, data);
+}
+
+/* Return whether a non-BPF receive path should deliver a packet to dev. */
+int
+eth_packet_matches_filter(ETH_DEV *dev, const uint8_t *data)
+{
+    int to_me;
+    int from_me;
+
+    eth_packet_filter_status(dev, data, &to_me, &from_me);
+    return to_me && !from_me;
 }
 
 #if 0
@@ -3624,7 +3721,6 @@ _eth_callback(u_char* info, const struct pcap_pkthdr* header, const u_char* data
 ETH_DEV*  dev = (ETH_DEV*) info;
 int to_me;
 int from_me = 0;
-int i;
 int bpf_used;
 
 if (LOOPBACK_PHYSICAL_RESPONSE(dev, data)) {
@@ -3655,23 +3751,8 @@ switch (dev->eth_api) {
   case ETH_API_UDP:
   case ETH_API_NAT:
     bpf_used = 0;
-    to_me = 0;
     eth_packet_trace (dev, data, header->len, "received");
-
-    for (i = 0; i < dev->addr_count; i++) {
-      if (memcmp(data, dev->filter_address[i], 6) == 0) to_me = 1;
-      if (memcmp(&data[6], dev->filter_address[i], 6) == 0) from_me = 1;
-    }
-
-    /* all multicast mode? */
-    if (dev->all_multicast && (data[0] & 0x01)) to_me = 1;
-
-    /* promiscuous mode? */
-    if (dev->promiscuous) to_me = 1;
-
-    /* AUTODIN II hash mode? */
-    if ((dev->hash_filter) && (!to_me) && (data[0] & 0x01))
-      to_me = _eth_hash_lookup(dev->hash, data);
+    eth_packet_filter_status(dev, data, &to_me, &from_me);
     break;
   default:
     bpf_used = to_me = 0;                           /* Should NEVER happen */
@@ -3789,6 +3870,9 @@ if ((!dev) || (dev->eth_api == ETH_API_NONE)) return 0;
 if (!packet) return 0;
 
 packet->len = 0;
+if (dev->eth_api == ETH_API_TEST)
+  return eth_test_read(dev, packet, routine);
+
 #if !defined (USE_READER_THREAD)
 /* set read packet */
 dev->read_packet = packet;

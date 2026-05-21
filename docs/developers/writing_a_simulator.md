@@ -1252,6 +1252,20 @@ Starting at bit position `DEV_V_UF` up to but not including
 automatically saved and restored; the device need not supply a
 register for these bits.
 
+### Testing Ethernet Devices
+
+Ethernet controller unit tests can attach the simulated controller to
+the deterministic `test:` backend instead of a host network interface.
+For example, `ATTACH <device> test:name` opens a named in-process
+backend. Test code can then use `sim_ether_test.h` to inject received
+frames, inspect transmitted frames, and force transmit failures without
+PCAP, TAP, or host network privileges.
+
+The `test:` backend is intended for automated tests, not for user
+networking. It applies the same Ethernet receive filtering rules as the
+non-BPF runtime path, including address filters, promiscuous mode,
+all-multicast mode, and multicast hash filtering.
+
 ### Context
 
 The field contains a pointer to a VM-specific device context table, if

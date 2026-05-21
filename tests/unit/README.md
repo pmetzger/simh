@@ -119,6 +119,19 @@ Current helpers:
 These helpers are intentionally simple. Add to them as new unit tests
 need stable infrastructure.
 
+## Ethernet Test Backend
+
+Ethernet unit tests can attach devices to the deterministic `test:`
+backend implemented by `sim_ether_test.c`. A test opens it through the
+normal attach path with a name such as `test:case-name`, then uses
+`sim_ether_test.h` to inject received frames, pop transmitted frames,
+count queued packets, or force transmit failures.
+
+The backend is process-local and intended for synchronous unit-test
+control code. If a test drives simulator execution from another thread,
+it must serialize calls to the `sim_ether_test.h` helpers with that
+execution.
+
 ## Building And Running
 
 Configure a build with unit tests enabled:

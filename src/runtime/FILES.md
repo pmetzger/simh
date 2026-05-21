@@ -34,6 +34,19 @@ simulators: packet transport backends, host-interface discovery, and the
 runtime network abstraction above the optional PCAP, TAP, and SLiRP
 layers.
 
+## `sim_ether_test.c` and `sim_ether_test.h`
+
+These files own the deterministic `test:` Ethernet backend for unit
+tests. Use them when a test needs to inject received frames, inspect
+transmitted frames, or force transmit failures without depending on host
+network interfaces or privileges.
+
+## `sim_ether_internal.h`
+
+This private header owns shared Ethernet helper declarations used by
+multiple Ethernet implementation files but not exposed as public
+runtime API.
+
 ## `sim_fio.c` and `sim_fio.h`
 
 These files own shared host file-I/O support: file opening, sizing,
