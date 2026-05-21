@@ -78,6 +78,9 @@ struct xs_setup {
                          CSR0_BABL)
 #define CSR0_ERR        (CSR0_BABL | CSR0_CERR | CSR0_MISS | \
                          CSR0_MERR)
+#define CSR1_MASK       0xFFFE
+#define CSR2_MASK       0x00FF
+#define CSR3_MASK       0x0007
 
 /* Mode definitions */
 #define MODE_PROM       0x8000                          /* <15> Promiscuous Mode */
@@ -315,15 +318,15 @@ switch (rg) {
                 break;
 
             case 1:                                     /* NI_CSR1 */
-                data = xs->var->csr1;
+                data = xs->var->csr1 & CSR1_MASK;
                 break;
 
             case 2:                                     /* NI_CSR2 */
-                data = xs->var->csr2;
+                data = xs->var->csr2 & CSR2_MASK;
                 break;
 
             case 3:                                     /* NI_CSR3 */
-                data = xs->var->csr3;
+                data = xs->var->csr3 & CSR3_MASK;
                 break;
                 }
         sim_debug(DBG_REG, &xs_dev, "reg %d read, value = %X, PC = %08X\n", xs->var->rptr, data, fault_PC);
@@ -352,6 +355,7 @@ void xs_wr (int32_t pa, int32_t data, int32_t access)
 
 CTLR *xs = &xs_ctrl[0];
 int32_t rg = (pa >> 2) & 3;
+int32_t stop = 0;
 
 switch (rg) {
 
@@ -359,13 +363,17 @@ switch (rg) {
         switch (xs->var->rptr) {
 
             case 0:                                     /* NI_CSR0 */
-                xs->var->csr0 = (xs->var->csr0 & ~CSR0_RW) | (data & CSR0_RW);
+                if ((data & CSR_IE) == 0 ||
+                    !(xs->var->csr0 & CSR0_STOP) ||
+                    (data & (CSR0_INIT | CSR0_STRT)))
+                    xs->var->csr0 = (xs->var->csr0 & ~CSR0_RW) |
+                        (data & CSR0_RW);
                 xs->var->csr0 = xs->var->csr0 & ~(data & CSR0_W1C);
 
                 if (data & CSR0_STOP) {                 /* STOP */
-                    xs->var->csr0 = xs->var->csr0 | CSR0_STOP;
-                    xs->var->csr0 = xs->var->csr0 & ~(CSR0_STRT | CSR0_INIT | CSR0_IDON | CSR0_TXON | CSR0_RXON);
-                    xs->var->csr0 = xs->var->csr0 & ~(CSR0_ERR | CSR0_ESUM);
+                    stop = 1;
+                    xs->var->csr0 = CSR0_STOP;
+                    xs->var->csr3 = 0;
                     sim_cancel (&xs_unit);
                     }
                 else if ((data & CSR0_INIT) && (!(xs->var->csr0 & CSR0_INIT)))   /* INIT */
@@ -383,24 +391,36 @@ switch (rg) {
                     xs_process_transmit(xs);
                     }
 
-                xs_updateint (xs);
+                /*
+                 * The KA4xx interrupt request register latches device
+                 * requests until system software writes the interrupt clear
+                 * register.  NetBSD's vsbus probe samples that latch after
+                 * stopping the LANCE.
+                 */
+                if (!stop) {
+                    xs_updateint (xs);
 
-                if ((data & CSR_IE) == 0)
-                    CLR_INT (XS1);
-                else if ((xs->var->csr0 & (CSR0_INTR + CSR_IE)) == CSR0_INTR)
-                    SET_INT (XS1);
+                    if ((data & CSR_IE) == 0)
+                        CLR_INT (XS1);
+                    else if ((xs->var->csr0 &
+                              (CSR0_INTR + CSR_IE)) == CSR0_INTR)
+                        SET_INT (XS1);
+                    }
                 break;
 
             case 1:                                     /* NI_CSR1 */
-                xs->var->csr1 = (data & 0xFFFF);
+                if (xs->var->csr0 & CSR0_STOP)
+                    xs->var->csr1 = data & CSR1_MASK;
                 break;
 
             case 2:                                     /* NI_CSR2 */
-                xs->var->csr2 = (data & 0xFFFF);
+                if (xs->var->csr0 & CSR0_STOP)
+                    xs->var->csr2 = data & CSR2_MASK;
                 break;
 
             case 3:                                     /* NI_CSR3 */
-                xs->var->csr3 = data;
+                if (xs->var->csr0 & CSR0_STOP)
+                    xs->var->csr3 = data & CSR3_MASK;
                 break;
                 }
         sim_debug(DBG_REG, &xs_dev, "reg %d write, value = %X, PC = %08X\n", xs->var->rptr, data, fault_PC);
@@ -480,6 +500,7 @@ if (xs->var->ReadQ.loss) {
 
 /* while there are still packets left to process in the queue */
 while (xs->var->ReadQ.count > 0) {
+    int buffer_error = 0;
 
     /* get next receive buffer */
     ba = xs->var->rdrb + (xs->var->relen * 2) * xs->var->rxnext;
@@ -573,6 +594,28 @@ while (xs->var->ReadQ.count > 0) {
         /* tell host we received a packet */
         xs->var->csr0 |= CSR0_RINT;
         } /* if end-of-frame */
+    else {
+        uint16_t next_hdr[4];
+        uint32_t next_rx = xs->var->rxnext + 1;
+        uint32_t next_ba;
+
+        if (next_rx == xs->var->rrlen)
+            next_rx = 0;
+        if (next_rx != xs->var->rxnext) {
+            next_ba = xs->var->rdrb + (xs->var->relen * 2) * next_rx;
+            rstatus = XS_READW (next_ba, 8, next_hdr);
+            if (rstatus) {
+                xs->var->csr0 |= CSR0_MERR;
+                break;
+                }
+            buffer_error = !(next_hdr[1] & RXR_OWN);
+            }
+        else
+            buffer_error = 1;
+        if (buffer_error) {
+            xs->var->rxhdr[1] |= RXR_ERRS | RXR_BUFL;
+            }
+        }
 
     /* give buffer back to host */
     xs->var->rxhdr[1] &= ~RXR_OWN;              /* clear ownership flag */
@@ -592,6 +635,13 @@ while (xs->var->ReadQ.count > 0) {
     xs->var->rxnext += 1;
     if (xs->var->rxnext == xs->var->rrlen)
         xs->var->rxnext = 0;
+
+    if (buffer_error) {
+        ethq_remove (&xs->var->ReadQ);
+        item = 0;
+        xs->var->csr0 |= CSR0_RINT;
+        break;
+        }
 
     } /* while */
 
@@ -675,6 +725,8 @@ for (;;) {
         /* are we in internal loopback mode ? */
         if ((xs->var->mode & MODE_LOOP) && (xs->var->mode & MODE_INTL)) {
             /* just put packet in  receive buffer */
+            xs->var->write_buffer.crc_len =
+                xs->var->write_buffer.len + ETH_CRC_SIZE;
             ethq_insert (&xs->var->ReadQ, 1, &xs->var->write_buffer, 0);
             sim_debug(DBG_TRC, xs->dev, "loopback packet\n");
             }
@@ -823,9 +875,8 @@ else
 
 static void xs_setint (CTLR* xs)
 {
-if (xs->var->csr0 & CSR0_INTR)
-    return;
-xs->var->csr0 |= CSR0_INTR;
+if ((xs->var->csr0 & CSR0_INTR) == 0)
+    xs->var->csr0 |= CSR0_INTR;
 if (xs->var->csr0 & CSR_IE)
     SET_INT (XS1);
 }
@@ -868,7 +919,7 @@ static t_stat xs_reset (DEVICE *dptr)
 t_stat status;
 CTLR *xs = &xs_ctrl[0];
 
-xs->var->csr0 = 0;
+xs->var->csr0 = CSR0_STOP;
 xs->var->csr1 = 0;
 xs->var->csr2 = 0;
 xs->var->csr3 = 0;
