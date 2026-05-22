@@ -13,7 +13,7 @@ install_macports() {
 
 install_arch_linux() {
     sudo pacman -S --noconfirm pkgconf
-    sudo pacman -S --noconfirm pcre libpng libedit
+    sudo pacman -S --noconfirm pcre libpng libedit util-linux
     sudo pacman -S --noconfirm mesa
     sudo pacman -S --noconfirm libsm
     sudo pacman -S --noconfirm cmake
@@ -23,7 +23,7 @@ install_arch_linux() {
 install_linux() {
     sudo apt-get update -yqqm
     sudo apt-get install -ym pkg-config
-    sudo apt-get install -ym libpcre3-dev libpng-dev libedit-dev
+    sudo apt-get install -ym libpcre3-dev libpng-dev libedit-dev uuid-dev
     sudo apt-get install -ym libegl1-mesa-dev libgles2-mesa-dev
     sudo apt-get install -ym libsdl2-dev libfreetype6-dev libsdl2-ttf-dev
     sudo apt-get install -ym libpcap-dev libvdeplug-dev

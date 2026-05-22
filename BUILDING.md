@@ -41,7 +41,9 @@ At minimum:
 - `bison`
 - `libpcre2`
 
-On POSIX hosts, `pkg-config` is required.
+On POSIX hosts, `pkg-config` is required. POSIX hosts also need a
+system UUID generation API; on platforms where this is not part of the
+base system, install `libuuid`.
 
 PCRE2 provides the regular expression backend used by SCP EXPECT
 commands, and is required for build.
@@ -98,6 +100,13 @@ Notes:
   grammars, including the SAGE and AltairZ80 Motorola 68000 parsers.
 - On Windows, the common WinFlexBison package installs `win_bison.exe`
   instead of `bison.exe`. The CMake build accepts either executable name.
+- UUID generation is required for disk image formats that store UUIDs.
+  CMake accepts Windows RPC UUID support, `uuid_generate()` when it is
+  available from the host C library, `uuid_generate()` from `libuuid`,
+  or BSD-style `uuid_create()` with `uuid_enc_be()`. On Debian and
+  Ubuntu, install `uuid-dev`; on Fedora and RHEL, install
+  `libuuid-devel`; on Arch Linux, UUID headers are normally provided by
+  `util-linux`.
 - `cmocka` is for host-side unit tests rather than the historical
   simulator binaries themselves.
 - Python 3 is required for the full integration test suite. CMake can

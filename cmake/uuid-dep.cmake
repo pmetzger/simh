@@ -66,7 +66,20 @@ function(configure_uuid_feature target)
         return()
     endif ()
 
+    if (COMMAND zimh_dependency_package_hint)
+        zimh_dependency_package_hint(_uuid_package_hint UUID)
+    endif ()
+
+    if (_uuid_package_hint)
+        set(_uuid_package_text "\n${_uuid_package_hint}")
+    else ()
+        set(_uuid_package_text
+            "\nInstall the host UUID development package, such as "
+            "uuid-dev on Debian/Ubuntu, libuuid-devel on Fedora/RHEL, "
+            "or util-linux on Arch Linux.")
+    endif ()
+
     message(FATAL_ERROR
         "uuid_generate(), libuuid, or uuid_create() with uuid_enc_be() "
-        "is required for POSIX UUID generation")
+        "is required for UUID generation on this host.${_uuid_package_text}")
 endfunction()
