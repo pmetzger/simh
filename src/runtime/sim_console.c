@@ -3557,9 +3557,19 @@ return sim_os_fd_isatty (fd);
 #include <fcntl.h>
 #include <io.h>
 #define RAW_MODE 0
+typedef BOOL (WINAPI *sim_console_output_writer_fn)(
+    HANDLE, const uint8_t *, DWORD, LPDWORD);
+
+static BOOL WINAPI sim_console_write_console(
+    HANDLE handle, const uint8_t *outbuf, DWORD outsz, LPDWORD written);
+static BOOL WINAPI sim_console_write_file(
+    HANDLE handle, const uint8_t *outbuf, DWORD outsz, LPDWORD written);
+
 static HANDLE std_input;
 static HANDLE std_output;
 static HANDLE std_error;
+static sim_console_output_writer_fn std_output_writer =
+    sim_console_write_file;
 static DWORD saved_input_mode;
 static DWORD saved_output_mode;
 static DWORD saved_error_mode;
@@ -3615,8 +3625,12 @@ if ((std_input) &&                                      /* Not Background proces
     (std_input != INVALID_HANDLE_VALUE))
     GetConsoleMode (std_input, &saved_input_mode);      /* Save Input Mode */
 if ((std_output) &&                                     /* Not Background process? */
-    (std_output != INVALID_HANDLE_VALUE))
-    GetConsoleMode (std_output, &saved_output_mode);    /* Save Output Mode */
+    (std_output != INVALID_HANDLE_VALUE)) {
+    if (GetConsoleMode (std_output, &saved_output_mode))
+        std_output_writer = sim_console_write_console;
+    else
+        std_output_writer = sim_console_write_file;
+    }
 if ((std_error) &&                                      /* Not Background process? */
     (std_error != INVALID_HANDLE_VALUE))
     GetConsoleMode (std_error, &saved_error_mode);      /* Save Output Mode */
@@ -3767,16 +3781,27 @@ return (WAIT_OBJECT_0 == WaitForSingleObject (std_input, ms_timeout));
 static uint8_t out_buf[ESC_HOLD_MAX]; /* Buffered characters pending output */
 static int32_t out_ptr = 0;
 
+static BOOL WINAPI
+sim_console_write_console(
+    HANDLE handle, const uint8_t *outbuf, DWORD outsz, LPDWORD written)
+{
+    return WriteConsoleA(handle, outbuf, outsz, written, NULL);
+}
+
+static BOOL WINAPI
+sim_console_write_file(
+    HANDLE handle, const uint8_t *outbuf, DWORD outsz, LPDWORD written)
+{
+    return WriteFile(handle, outbuf, outsz, written, NULL);
+}
+
 static void sim_console_write(uint8_t *outbuf, int32_t outsz)
 {
     DWORD unused;
-    DWORD mode;
+    BOOL result;
 
-    if (GetConsoleMode(std_output, &mode)) {
-        WriteConsoleA(std_output, outbuf, outsz, &unused, NULL);
-    } else {
-        BOOL result = WriteFile(std_output, outbuf, outsz, &unused, NULL);
-    }
+    result = std_output_writer(std_output, outbuf, outsz, &unused);
+    (void)result;
 }
 
 static t_stat sim_out_hold_svc (UNIT *uptr)
