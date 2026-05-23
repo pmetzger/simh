@@ -133,6 +133,20 @@ add_unit_test(unit-vax440-sysdev-behavior
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax820-uba-interrupts
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax820_uba_interrupts.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_820
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax630-rom-byte-write
     LABEL unit
     SOURCES

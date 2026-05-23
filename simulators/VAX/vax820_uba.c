@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "uint_bits.h"
 #include "vax_defs.h"
 #include "vax820_uba.h"
 
@@ -143,6 +144,9 @@ static t_stat uba_wrreg (int32_t val, int32_t pa, int32_t lnt);
 static void uba_ub_nxm (int32_t ua);
 static void uba_bi_nxm (int32_t ba);
 static void uba_inv_map (int32_t ublk);
+static bool uba_adap_int_source (void);
+static bool uba_biic_error_int_en (void);
+static bool uba_adap_int_req (void);
 static void uba_adap_set_int (void);
 static void uba_adap_clr_int (void);
 static void uba_ubpdn (int32_t time);
@@ -400,11 +404,16 @@ switch (ofs) {                                          /* case on offset */
 
     case BI_BER:
         uba_biic.ber = uba_biic.ber & ~(val & BIBER_W1C);
+        uba_adap_clr_int ();                            /* possible clr int */
         break;
 
     case BI_EICR:
         uba_biic.eicr = (uba_biic.eicr & ~BIECR_RW) | (val & BIECR_RW);
         uba_biic.eicr = uba_biic.eicr & ~(val & BIECR_W1C);
+        if (!(uba_biic.eicr & BIECR_FRC)) {
+            uba_int = 0;
+            uba_biic.eicr &= ~BIECR_COM;
+            }
         break;
 
     case BI_IDEST:
@@ -431,6 +440,7 @@ switch (ofs) {                                          /* case on offset */
             }
         uba_csr = (uba_csr & ~UBACSR_WR) | (val & UBACSR_WR);
         uba_csr = uba_csr & ~(val & UBACSR_W1C);
+        uba_adap_clr_int ();                            /* possible clr int */
         break;
 
     case UBAVO_OF:                                      /* VO */
@@ -491,7 +501,9 @@ uba_ub_nxm (pa);                                        /* UB nxm */
 return;
 }
 
-/* ReadIO - read from IO - UBA only responds to byte, aligned word
+/* ReadIO - read from IO - UBA responds to byte, aligned word, and
+   aligned longword reads. Longword reads perform two Unibus word reads,
+   matching the two 16b Unibus cycles behind a 32b VAXBI transaction.
 
    Inputs:
         pa      =       physical address
@@ -509,6 +521,13 @@ if ((lnt == L_BYTE) ||                                  /* byte? */
     iod = ReadUb (pa);                                  /* DATI from Unibus */
     if (pa & 2)                                         /* position */
         iod = iod << 16;
+    }
+else if ((lnt == L_LONG) && ((pa & 1) == 0)) {          /* aligned lw? */
+    uint32_t high;
+
+    iod = ReadUb (pa);                                  /* low word */
+    high = ReadUb (pa + 2);                             /* high word */
+    iod = u32_from_u16_pair (iod, high);
     }
 else {
     printf (">>UBA: invalid read mask, pa = %x, lnt = %d\n", pa, lnt);
@@ -549,25 +568,20 @@ void uba_eval_int (void)
 {
 int32_t i, lvl;
 
-// TODO: Check BIIC register?
-if (uba_int) {
+for (i = 0; i < NEXUS_HLVL; i++)                       /* clear all UBA req */
+    nexus_req[i] &= ~(1 << TR_UBA);
+if (uba_adap_int_req ()) {
     lvl = (uba_biic.eicr >> BIECR_V_LVL) & BIECR_M_LVL;
-    for (i = 0; i < (IPL_HMAX - IPL_HMIN); i++) {
+    for (i = 0; i < NEXUS_HLVL; i++) {
         if (lvl & (1u << i)) {
             nexus_req[i] |= (1 << TR_UBA);
             }
         }
     }
-else {
-    for (i = 0; i < (IPL_HMAX - IPL_HMIN); i++)             /* clear all UBA req */
-        nexus_req[i] &= ~(1 << TR_UBA);
-    for (i = 0; i < (IPL_HMAX - IPL_HMIN); i++) {
-        if (int_req[i])
-            nexus_req[i] |= (1 << TR_UBA);
-        }
+for (i = 0; i < NEXUS_HLVL; i++) {
+    if (int_req[i])
+        nexus_req[i] |= (1 << TR_UBA);
     }
-//if (uba_int)                                            /* adapter int? */
-//    SET_NEXUS_INT (UBA);
 return;
 }
 
@@ -577,10 +591,11 @@ int32_t uba_get_ubvector (int32_t lvl)
 {
 int32_t i, vec;
 
-if ((uba_biic.eicr & (1u << (lvl + BIECR_V_LVL))) && uba_int) {         /* UBA err lvl, int? */
-//if ((lvl == (IPL_UBA - IPL_HMIN)) && uba_int) {         /* UBA lvl, int? */
+if ((uba_biic.eicr & (1u << (lvl + BIECR_V_LVL))) &&
+    uba_adap_int_req ()) {                              /* UBA err lvl, int? */
     vec = uba_biic.eicr & BIECR_VEC;
-    uba_int = 0;                                        /* clear int */
+    /* INTR transmission is not modeled separately, so IDENT only sets COM. */
+    uba_biic.eicr |= BIECR_COM;                         /* vector transmitted */
     }
 else {
     vec = uba_vo & UBAVO_VEC;
@@ -820,8 +835,8 @@ return;
 
 static void uba_bi_nxm (int32_t ba)
 {
-if ((uba_biic.ber & BIBER_BTO) == 0) {
-    uba_biic.ber |= BIBER_BTO;
+if ((uba_csr & UBACSR_BIF) == 0) {
+    uba_csr |= UBACSR_BIF;
     uba_bifa = ba;
     uba_adap_set_int ();
     }
@@ -877,10 +892,27 @@ return SCPE_OK;
 
 /* Interrupt routines */
 
+static bool uba_adap_int_source (void)
+{
+return uba_int || (uba_biic.eicr & BIECR_FRC);
+}
+
+static bool uba_biic_error_int_en (void)
+{
+return (uba_biic.csr & (BICSR_HIE | BICSR_SIE)) != 0;
+}
+
+static bool uba_adap_int_req (void)
+{
+return uba_adap_int_source () && uba_biic_error_int_en () &&
+    !(uba_biic.eicr & BIECR_COM);
+}
+
 static void uba_adap_set_int (void)
 {
 if (uba_csr & UBACSR_EIE) {
     uba_int = 1;
+    uba_biic.eicr |= BIECR_FRC;
     sim_debug (UBA_DEB_ERR, &uba_dev,
         "adapter int req, csr = %X\n", uba_csr);
     }
@@ -889,8 +921,11 @@ return;
 
 static void uba_adap_clr_int (void)
 {
-if (!(uba_csr & UBACSR_EIE))
+if (!(uba_csr & UBACSR_EIE)) {
     uba_int = 0;
+    }
+if (!uba_adap_int_source ())
+    uba_biic.eicr &= ~BIECR_COM;
 return;
 }
 
