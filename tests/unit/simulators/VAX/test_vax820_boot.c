@@ -7,6 +7,7 @@
 #include "vax_cpu.h"
 #include "vax_defs.h"
 #include "vax_kdb50_internal.h"
+#include "test_simh_personality.h"
 
 uint32_t R[16];
 uint32_t PSL;
@@ -53,7 +54,7 @@ DEVICE kdb50_dev = {
     .dwidth = 8,
     .ctxt = &kdb50_dib,
 };
-DEVICE *sim_devices[] = {&kdb50_dev, NULL};
+static DEVICE *const test_devices[] = {&kdb50_dev, NULL};
 
 /*
  * Include the implementation directly so the test can exercise the boot
@@ -69,7 +70,7 @@ int32_t uba_get_ubvector(int32_t lvl)
     return 0;
 }
 
-int32_t kdb50_get_vector(int32_t lvl)
+static int32_t kdb50_get_vector(int32_t lvl)
 {
     kdb50_vector_level = lvl;
     kdb50_vector_calls++;
@@ -200,7 +201,7 @@ TLBENT fill(uint32_t va, int32_t lnt, int32_t acc, int32_t *stat)
     return ent;
 }
 
-int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei)
+static int32_t intexc(int32_t vec, int32_t cc, int32_t ipl, int ei)
 {
     (void)vec;
     (void)cc;
@@ -290,6 +291,15 @@ static void test_kdb_boot_accepts_equals_r5_separator(void **state)
     assert_int_equal(R[5], 8);
 }
 
+static int setup_vax820_boot_tests(void **state)
+{
+    (void)state;
+
+    simh_test_reset_simulator_state();
+    assert_int_equal(simh_test_set_devices(test_devices), 0);
+    return 0;
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -298,5 +308,5 @@ int main(void)
         cmocka_unit_test(test_kdb_boot_accepts_equals_r5_separator),
     };
 
-    return cmocka_run_group_tests(tests, NULL, NULL);
+    return cmocka_run_group_tests(tests, setup_vax820_boot_tests, NULL);
 }

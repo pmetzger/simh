@@ -25,8 +25,8 @@ uint32_t fault_PC;
 int32_t hlt_pin;
 jmp_buf save_env;
 
-static uint8_t rz_test_scsi_buffer[256];
-static uint8_t rz_test_transfer_buffer[256];
+static uint8_t rz_test_scsi_buffer[512];
+static uint8_t rz_test_transfer_buffer[512];
 
 #if defined (HAVE_FMEMOPEN)
 /* Install the RZ device in a minimal simulator environment for ramdisk tests. */

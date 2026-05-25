@@ -98,7 +98,8 @@ static int fake_num_joysticks(void)
 
 static SDL_bool fake_is_game_controller(int joystick_index)
 {
-    assert_int_in_range(joystick_index, 0, 3);
+    assert_true(joystick_index >= 0);
+    assert_true(joystick_index < 4);
     fake_sdl.is_game_controller_count++;
     return fake_sdl.is_game_controller[joystick_index];
 }

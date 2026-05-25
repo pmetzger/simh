@@ -6,10 +6,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <cmocka.h>
-
 #include "sim_uuid.h"
 #include "sim_uuid_internal.h"
+#include "test_cmocka.h"
 
 static int uuid_is_nil(const uint8_t uuid[16])
 {

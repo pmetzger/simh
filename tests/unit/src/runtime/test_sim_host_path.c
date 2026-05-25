@@ -12,11 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <cmocka.h>
-
 #include "sim_host_path_internal.h"
 #include "sim_win32_compat.h"
 #include "string_compat.h"
+#include "test_cmocka.h"
 
 struct saved_env {
     const char *name;
