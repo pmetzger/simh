@@ -161,6 +161,21 @@ add_unit_test(unit-vax820-boot
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax820-stddev-timer
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax820_stddev_timer.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        SIM_ASYNCH_IO
+        VM_VAX
+        VAX_820
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax-kdb50
     LABEL unit
     SOURCES

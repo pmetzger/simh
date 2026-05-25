@@ -686,7 +686,7 @@ if ((val & TMR_CSR_RUN) == 0) {                         /* clearing run? */
         tmr_icr = icr_rd ();                            /* update itr */
     sim_cancel (&tmr_unit);                             /* cancel timer */
     }
-if ((val & CSR_DONE) &&                                 /* Interrupt Acked? */
+if ((tmr_iccs & CSR_DONE) && (val & CSR_DONE) &&        /* Interrupt Acked? */
     (10000 == (tmr_nicr ? (~tmr_nicr + 1) : 0xFFFFFFFF)))/* of 10ms tick */
     sim_rtcn_tick_ack (20, TMR_CLK);                    /* Let timers know */
 tmr_iccs = tmr_iccs & ~(val & TMR_CSR_W1C);             /* W1C csr */
