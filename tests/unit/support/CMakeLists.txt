@@ -16,10 +16,14 @@ target_include_directories(simh_unit_support PUBLIC
     ${SIMH_CORE_ROOT}
     ${SIMH_INCLUDE_ROOT}
     ${SIMH_RUNTIME_ROOT}
-    ${SIMH_COMPAT_ROOT}
 )
 
 target_compile_definitions(simh_unit_support PRIVATE
     SIMH_TEST_SOURCE_ROOT="${CMAKE_SOURCE_DIR}"
     SIMH_TEST_BINARY_ROOT="${CMAKE_BINARY_DIR}"
+)
+
+target_link_libraries(simh_unit_support PUBLIC
+    os_features
+    simhcore
 )
