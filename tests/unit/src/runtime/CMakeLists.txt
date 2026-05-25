@@ -126,6 +126,7 @@ add_unit_test(unit-sim-console
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/test_sim_console.c
     INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 

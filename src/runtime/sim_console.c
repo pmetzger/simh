@@ -124,6 +124,7 @@
 */
 
 #include "sim_defs.h"
+#include "sim_console_internal.h"
 #include "sim_time.h"
 #include "sim_tmxr.h"
 #include "sim_serial.h"
@@ -152,6 +153,27 @@ static t_stat sim_set_rem_bufsize (int32_t flag, const char *cptr);
 static t_stat sim_set_rem_connections (int32_t flag, const char *cptr);
 static t_stat sim_set_rem_timeout (int32_t flag, const char *cptr);
 static t_stat sim_set_rem_master (int32_t flag, const char *cptr);
+
+/*
+ * Classify a terminal read result after the platform code has tried to
+ * read one character from the local console.
+ */
+t_stat
+sim_console_classify_terminal_read(bool input_ready, int read_status,
+                                   int read_errno)
+{
+    if (read_status == 1)
+        return SCPE_OK;
+    if (read_status == 0)
+        return input_ready ? SCPE_EXIT : SCPE_OK;
+#if defined(EAGAIN) && defined(EWOULDBLOCK) && defined(EINTR)
+    if ((read_errno == EAGAIN) ||
+        ((EWOULDBLOCK != EAGAIN) && (read_errno == EWOULDBLOCK)) ||
+        (read_errno == EINTR))
+        return SCPE_OK;
+#endif
+    return SCPE_EXIT;
+}
 
 /* Deprecated CONSOLE HALT, CONSOLE RESPONSE and CONSOLE DELAY support */
 static t_stat sim_set_halt (int32_t flag, const char *cptr);
@@ -3134,6 +3156,8 @@ if (!sim_rem_master_mode) {
         stop_cpu = true;                                    /* Force a stop (which is picked up by sim_process_event */
         return SCPE_OK;
         }
+    if ((c != SCPE_OK) && (c < SCPE_KFLAG))
+        return c;
     if ((sim_con_tmxr.master == 0) &&                       /* not Telnet? */
         (sim_con_ldsc.serport == 0)) {                      /* and not serial? */
         if (c && sim_con_ldsc.rxbps)                        /* got something && rate limiting? */
@@ -3966,21 +3990,46 @@ static bool sim_os_fd_isatty (int fd)
 return isatty (fd) != 0;
 }
 
+static bool sim_os_poll_kbd_ready_now (void);
+
 static t_stat sim_os_poll_kbd (void)
 {
 int status;
 uchar_t buf[1];
+bool input_ready;
 
 sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_poll_kbd() - BSDTTY\n");
 
+input_ready = sim_os_poll_kbd_ready_now ();
+errno = 0;
 status = read (0, buf, 1);
 if (status != 1)
-    return SCPE_OK;
+    return sim_console_classify_terminal_read (input_ready, status, errno);
 if (sim_brk_char && (buf[0] == sim_brk_char))
     return SCPE_BREAK;
 if (sim_int_char && (buf[0] == sim_int_char))
     return SCPE_STOP;
 return (buf[0] | SCPE_KFLAG);
+}
+
+/*
+ * Return whether a local terminal read should be able to produce data
+ * immediately.  This lets the read path distinguish a normal VMIN=0
+ * zero-byte poll from EOF on a disconnected terminal.
+ */
+static bool
+sim_os_poll_kbd_ready_now (void)
+{
+    fd_set readfds;
+    struct timeval timeout;
+
+    if (!isatty (0))
+        return false;
+    FD_ZERO (&readfds);
+    FD_SET (0, &readfds);
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+    return (1 == select (1, &readfds, NULL, NULL, &timeout));
 }
 
 #if defined(SIM_ASYNCH_IO) && defined(SIM_ASYNCH_MUX)
@@ -4138,21 +4187,46 @@ static bool sim_os_fd_isatty (int fd)
 return isatty (fd) != 0;
 }
 
+static bool sim_os_poll_kbd_ready_now (void);
+
 static t_stat sim_os_poll_kbd (void)
 {
 int status;
 uchar_t buf[1];
+bool input_ready;
 
 sim_debug (DBG_TRC, &sim_con_telnet, "sim_os_poll_kbd()\n");
 
+input_ready = sim_os_poll_kbd_ready_now ();
+errno = 0;
 status = read (0, buf, 1);
 if (status != 1)
-    return SCPE_OK;
+    return sim_console_classify_terminal_read (input_ready, status, errno);
 if (sim_brk_char && (buf[0] == sim_brk_char))
     return SCPE_BREAK;
 if (sim_int_char && (buf[0] == sim_int_char))
     return SCPE_STOP;
 return (buf[0] | SCPE_KFLAG);
+}
+
+/*
+ * Return whether a local terminal read should be able to produce data
+ * immediately.  This lets the read path distinguish a normal VMIN=0
+ * zero-byte poll from EOF on a disconnected terminal.
+ */
+static bool
+sim_os_poll_kbd_ready_now (void)
+{
+    fd_set readfds;
+    struct timeval timeout;
+
+    if (!sim_ttisatty())
+        return false;
+    FD_ZERO (&readfds);
+    FD_SET (0, &readfds);
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+    return (1 == select (1, &readfds, NULL, NULL, &timeout));
 }
 
 #if defined(SIM_ASYNCH_IO) && defined(SIM_ASYNCH_MUX)
