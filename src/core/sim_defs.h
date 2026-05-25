@@ -1267,6 +1267,7 @@ extern int32_t sim_asynch_inst_latency;
         uptr->a_activate_call = (ACTIVATE_API)&caller;                 \
         sim_asynch_queue = uptr;                                       \
       }                                                                \
+      sim_asynch_check = 0;                                            \
       if (sim_idle_wait) {                                             \
         if (sim_deb) {  /* only while debug do lock/unlock overhead */ \
           AIO_UNLOCK;                                                  \
@@ -1276,7 +1277,6 @@ extern int32_t sim_asynch_inst_latency;
         pthread_cond_signal (&sim_asynch_wake);                        \
         }                                                              \
       AIO_UNLOCK;                                                      \
-      sim_asynch_check = 0;                                            \
       return SCPE_OK;                                                  \
     } else (void)0
 #endif /* USE_AIO_INTRINSICS */

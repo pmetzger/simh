@@ -286,7 +286,9 @@ struct tape_context *ctx = (struct tape_context *)uptr->tape_ctx;
         pthread_mutex_lock (&ctx->io_lock);
         ctx->io_top = TOP_DONE;
         pthread_cond_signal (&ctx->io_done);
+        pthread_mutex_unlock (&ctx->io_lock);
         sim_activate (uptr, ctx->asynch_io_latency);
+        pthread_mutex_lock (&ctx->io_lock);
     }
     pthread_mutex_unlock (&ctx->io_lock);
 

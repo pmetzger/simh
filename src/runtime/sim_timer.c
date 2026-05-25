@@ -2894,8 +2894,8 @@ if ((sim_asynch_timer) &&
                 }
             }
         sim_wallclock_entry = uptr;
-        pthread_mutex_unlock (&sim_timer_lock);
         pthread_cond_signal (&sim_timer_wake);      /* wake the timer thread to deal with it */
+        pthread_mutex_unlock (&sim_timer_lock);
         return SCPE_OK;
         }
     else {                                          /* inserting at prvptr */

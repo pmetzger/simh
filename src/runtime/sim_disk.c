@@ -322,7 +322,9 @@ while (ctx->asynch_io) {
     pthread_mutex_lock (&ctx->io_lock);
     ctx->io_dop = DOP_DONE;
     pthread_cond_signal (&ctx->io_done);
+    pthread_mutex_unlock (&ctx->io_lock);
     sim_activate (uptr, ctx->asynch_io_latency);
+    pthread_mutex_lock (&ctx->io_lock);
     }
 pthread_mutex_unlock (&ctx->io_lock);
 

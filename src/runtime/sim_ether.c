@@ -2659,7 +2659,9 @@ dev->have_host_nic_phy_addr = 0;
 if (dev->eth_api != ETH_API_TEST) {
 pthread_join (dev->reader_thread, NULL);
 pthread_mutex_destroy (&dev->lock);
+pthread_mutex_lock (&dev->writer_lock);
 pthread_cond_signal (&dev->writer_cond);
+pthread_mutex_unlock (&dev->writer_lock);
 pthread_join (dev->writer_thread, NULL);
 pthread_mutex_destroy (&dev->self_lock);
 pthread_mutex_destroy (&dev->writer_lock);
@@ -3164,8 +3166,8 @@ memcpy(request->packet.msg, packet->msg, packet->len);
   }
 
 /* Awaken writer thread to perform actual write */
-pthread_mutex_unlock (&dev->writer_lock);
 pthread_cond_signal (&dev->writer_cond);
+pthread_mutex_unlock (&dev->writer_lock);
 
 /* Return with a status from some prior write */
 if (routine)

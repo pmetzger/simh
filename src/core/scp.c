@@ -406,12 +406,12 @@ else {
         uptr->a_next = q;                               /* Mark as on list */
         } while (q != AIO_QUEUE_SET(uptr, q));
     }
-AIO_IUNLOCK;
 sim_asynch_check = 0;                             /* try to force check */
 if (sim_idle_wait) {
     sim_debug (TIMER_DBG_IDLE, &sim_timer_dev, "waking due to event on %s after %d %s\n", sim_uname(uptr), event_time, sim_vm_interval_units);
     pthread_cond_signal (&sim_asynch_wake);
     }
+AIO_IUNLOCK;
 }
 #else
 bool sim_asynch_enabled = false;
