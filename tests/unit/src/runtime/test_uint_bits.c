@@ -222,6 +222,7 @@ static void test_u16_helpers_preserve_16_bit_fields(void **state)
        This implementation does not use every parameter. */
     (void)state;
 
+    assert_int_equal(u16_from_u8_pair(0x156, 0x134), 0x3456u);
     assert_int_equal(u32_from_u16_pair(0x15678, 0x18034), 0x80345678u);
     assert_int_equal(u32_put_low_u16(0x12345678u, 0x1abcd), 0x1234abcdu);
     assert_int_equal(u32_put_high_u16(0x12345678u, 0x1abcd), 0xabcd5678u);

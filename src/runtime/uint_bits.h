@@ -305,6 +305,21 @@ static inline uint32_t u32_get_u16(uint32_t src, uint_t u8_index)
     return (src >> (u8_index << 3)) & UINT32_C(0xffff);
 }
 
+// Combine low and high u8 values into a uint16_t result.
+//
+// Each input is masked to 8 bits before being placed in the result.
+//
+// Example: u16_from_u8_pair(0x156, 0x134) returns 0x3456.
+//
+//     high src: 0x0000 01[34]
+//     low src:  0x0000 01[56]
+//     result:   0x[34] [56]
+static inline uint16_t u16_from_u8_pair(uint32_t low, uint32_t high)
+{
+    return (uint16_t)((low & UINT32_C(0xff)) |
+                      ((high & UINT32_C(0xff)) << 8));
+}
+
 // Combine low and high u16 values into a uint32_t result.
 //
 // Each input is masked to 16 bits before being placed in the result.
