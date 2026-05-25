@@ -25,6 +25,12 @@ unsigned types. C does not define signed integer overflow, and shifts of
 signed values are easy to get wrong. New simulator code should use
 unsigned types consistently for machine state.
 
+Use the shared unsigned bit and field helpers in `uint_bits.h` for
+common mask, field extraction, field insertion, and aligned byte/word
+operations. Prefer extending that API when a generally useful helper is
+missing instead of adding local one-off masks, shifts, and byte-lane
+calculations in simulator code.
+
 ## String APIs
 
 Do not use unbounded string construction APIs in new code:
