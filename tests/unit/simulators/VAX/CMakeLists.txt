@@ -147,6 +147,48 @@ add_unit_test(unit-vax820-uba-interrupts
     FEATURE_FULL64
 )
 
+add_unit_test(unit-vax820-boot
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax820_boot.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_820
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax-kdb50
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_kdb50.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_mscp.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/src/runtime
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+        ${PROJECT_SOURCE_DIR}/simulators/PDP11
+    DEFINES
+        VM_VAX
+        VAX_820
+    FEATURE_FULL64
+)
+
+add_unit_test(unit-vax-mscp
+    LABEL unit
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_vax_mscp.c
+        ${PROJECT_SOURCE_DIR}/simulators/VAX/vax_mscp.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/VAX
+    DEFINES
+        VM_VAX
+        VAX_820
+    FEATURE_FULL64
+)
+
 add_unit_test(unit-vax630-rom-byte-write
     LABEL unit
     SOURCES

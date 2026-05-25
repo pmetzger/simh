@@ -151,8 +151,11 @@
 
 #define BIICR_ABO       0xF0000000                      /* interrupt abort */
 #define BIICR_ITC       0x0F000000                      /* interrupt complete */
+#define BIICR_V_ITC     24
 #define BIICR_SNT       0x00F00000                      /* interrupt sent */
+#define BIICR_V_SNT     20
 #define BIICR_FRC       0x000F0000                      /* force */
+#define BIICR_V_FRC     16
 #define BIICR_EXV       0x00008000                      /* external vector */
 #define BIICR_VEC       0x00003FFC                      /* vector */
 #define BIICR_RW        0x000FBFFC

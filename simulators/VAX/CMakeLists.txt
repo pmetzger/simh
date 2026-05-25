@@ -612,6 +612,8 @@ add_simulator(vax8200
         vax_watch.c
         vax820_stddev.c
         vax820_bi.c
+        vax_kdb50.c
+        vax_mscp.c
         vax820_mem.c
         vax820_uba.c
         vax820_ka.c

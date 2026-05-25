@@ -87,6 +87,7 @@
 #define TR_MCTL0        2
 #define TR_MCTL1        3
 #define TR_UBA          4
+#define TR_KDB50        5
 #define NEXUS_HLVL      (IPL_HMAX - IPL_HMIN + 1)
 #define SCB_NEXUS       0x100                           /* nexus intr base */
 
@@ -105,6 +106,7 @@
 #define IPL_MCTL0       (0x15 - IPL_HMIN)
 #define IPL_MCTL1       (0x15 - IPL_HMIN)
 #define IPL_UBA         (0x15 - IPL_HMIN)
+#define IPL_KDB50       (0x15 - IPL_HMIN)
 
 /* Nexus interrupt macros */
 
@@ -421,6 +423,7 @@ typedef struct {
 #define BOOT_HK         1                               /* for VMB */
 #define BOOT_RL         2
 #define BOOT_UDA        17
+#define BOOT_KDB        33
 #define BOOT_CS         64
 
 /* Function prototypes for I/O */

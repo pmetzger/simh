@@ -36,6 +36,7 @@
 #include "vax_cpu.h"
 #include "vax_cpu1.h"
 #include "vax820_bi.h"
+#include "vax_kdb50.h"
 
 #ifdef DONT_USE_INTERNAL_ROM
 #define BOOT_CODE_FILENAME "vmb.exe"
@@ -86,6 +87,7 @@ static struct boot_dev boot_tab[] = {
     { "RQB", BOOT_UDA, 1 << 24 },
     { "RQC", BOOT_UDA, 1 << 24 },
     { "RQD", BOOT_UDA, 1 << 24 },
+    { "KDB", BOOT_KDB, 0 },
     { "CS", BOOT_CS, 0 },
     { NULL }
     };
@@ -224,7 +226,10 @@ if ((lvl <= IPL_HMAX) && (lvl >= IPL_HMIN)) {           /* nexus? */
     for (i = 0; nexus_req[l] && (i < NEXUS_NUM); i++) {
         if ((nexus_req[l] >> i) & 1) {
             nexus_req[l] = nexus_req[l] & ~(1u << i);
-            vec = SCB_NEXUS + (l << 6) + (i << 2);
+            if (i == TR_KDB50)
+                vec = kdb50_get_vector(l);
+            else
+                vec = SCB_NEXUS + (l << 6) + (i << 2);
             return vec;                                 /* return vector */
             }
         }
@@ -661,8 +666,14 @@ else if (*regptr != 0)
 for (i = 0; boot_tab[i].name != NULL; i++) {
     if (strcmp (dptr->name, boot_tab[i].name) == 0) {
         R[0] = boot_tab[i].code;
-        R[1] = TR_UBA;
-        R[2] = boot_tab[i].let | (dibp->ba & UBADDRMASK);
+        if (boot_tab[i].code == BOOT_KDB) {
+            R[1] = dibp->ba;
+            R[2] = REGBASE + ((uint32_t)dibp->ba << REG_V_NEXUS);
+            }
+        else {
+            R[1] = TR_UBA;
+            R[2] = boot_tab[i].let | (dibp->ba & UBADDRMASK);
+            }
         R[3] = unitno;
         R[4] = 0;
         R[5] = r5v;
@@ -841,6 +852,7 @@ fprintf (st, "   RQn        to boot from rqn\n");
 fprintf (st, "   RQBn       to boot from rqbn\n");
 fprintf (st, "   RQCn       to boot from rqcn\n");
 fprintf (st, "   RQDn       to boot from rqdn\n");
+fprintf (st, "   KDBn       to boot from kdbn\n");
 fprintf (st, "   TQn        to boot from tqn\n");
 fprintf (st, "   CS         to boot from console RL\n\n");
 return SCPE_OK;
