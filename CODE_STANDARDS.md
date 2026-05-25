@@ -267,6 +267,14 @@ Production behavior changes and safety refactors must be covered by
 automated tests. Write characterization tests before changing legacy
 code when the current behavior must be preserved.
 
+When production code needs a test seam for internal behavior, prefer an
+explicit internal header named after the implementation file, such as
+`foo_internal.h` for `foo.c`. Internal headers expose implementation
+entry points to unit tests and closely related implementation files;
+they are not public API. Public headers such as `foo.h` should not grow
+test-only declarations, and `_internal.h` headers should not become the
+home for interfaces intended for ordinary callers.
+
 Run focused tests for the changed area, then the relevant build target.
 For string and format changes, inspect compiler diagnostics for format,
 truncation, and bounded-string warnings.
