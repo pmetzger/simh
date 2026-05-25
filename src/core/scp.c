@@ -206,6 +206,7 @@
 #define IN_SCP_C 1          /* Include from scp.c */
 
 #include "sim_defs.h"
+#include "scp_internal.h"
 #include "sim_types.h"
 #include "scp_cmdvars.h"
 #include "scp_pcre2.h"
@@ -2621,9 +2622,6 @@ static SHTAB show_unit_tab[] = {
     { NULL, NULL, 0 }
     };
 
-
-t_stat process_stdin_commands (t_stat stat, char *argv[], bool do_called);
-
 /* Main command loop.
 
    The process entrypoint lives in main.c so that scp.c can be linked
@@ -2897,13 +2895,10 @@ while (stat != SCPE_EXIT) {                             /* in case exit */
         sim_do_ocptr[sim_do_depth] = cptr;
         sim_cptr_is_action[sim_do_depth] = false;
         }
-    if (cptr == NULL) {                                 /* EOF? or SIGINT? */
-        if (sim_ttisatty()) {
+    if (cptr == NULL) {                                 /* EOF or input error? */
+        if (sim_ttisatty())
             printf ("\n");
-            continue;                                   /* ignore tty EOF */
-            }
-        else
-            break;                                      /* otherwise exit */
+        break;
         }
     if (*cptr == 0)                                     /* ignore blank */
         continue;
