@@ -252,10 +252,13 @@ requires it.
 
 New functions should be written in the current project style even when
 they are added to legacy files. Give every new function a short header
-comment that explains what it does to a reader who is not familiar with
-the surrounding code. Include important ownership, lifetime, truncation,
-or failure behavior in that comment when those details are part of the
-function's contract.
+comment written for a maintainer entering this part of the code for the
+first time. The comment should explain what the function does for a
+reader who is not familiar with the surrounding code, including the
+function's purpose, the role it plays in the local design, and any
+assumptions the caller must understand to use or modify it safely.
+Include important ownership, lifetime, truncation, or failure behavior
+when those details are part of the function's contract.
 
 Public functions should have the same level of explanatory comment in
 the relevant header file where applicable. Static helper comments belong
