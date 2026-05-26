@@ -288,6 +288,9 @@ struct eth_device {
   pthread_mutex_t     lock;
   pthread_t     reader_thread;                          /* Reader Thread Id */
   pthread_t     writer_thread;                          /* Writer Thread Id */
+  bool          reader_thread_started;                  /* Reader thread must be joined */
+  bool          writer_thread_started;                  /* Writer thread must be joined */
+  bool          threading_initialized;                  /* Thread state needs cleanup */
   pthread_mutex_t     writer_lock;
   pthread_mutex_t     self_lock;
   pthread_cond_t      writer_cond;

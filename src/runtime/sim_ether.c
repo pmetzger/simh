@@ -1857,6 +1857,9 @@ _eth_callback(u_char* info, const struct pcap_pkthdr* header, const u_char* data
 static t_stat
 _eth_write(ETH_DEV* dev, ETH_PACK* packet, ETH_PCALLBACK routine);
 
+static t_stat
+_eth_close_port(int eth_api, pcap_t *pcap, SOCKET pcap_fd);
+
 static void
 _eth_error(ETH_DEV* dev, const char* where);
 
@@ -2112,6 +2115,54 @@ pthread_mutex_unlock (&dev->writer_lock);
 
 sim_debug(dev->dbit, dev->dptr, "Writer Thread Exiting\n");
 return NULL;
+}
+
+/*
+ * Stop any ethernet background threads that were successfully started.  The
+ * startup path can fail after creating only the reader thread, so shutdown must
+ * use explicit join-ownership flags rather than assuming both threads exist.
+ */
+static void
+eth_stop_threads(ETH_DEV *dev)
+{
+    if (dev->reader_thread_started) {
+        pthread_join(dev->reader_thread, NULL);
+        dev->reader_thread_started = false;
+    }
+    if (dev->writer_thread_started) {
+        pthread_mutex_lock(&dev->writer_lock);
+        pthread_cond_signal(&dev->writer_cond);
+        pthread_mutex_unlock(&dev->writer_lock);
+        pthread_join(dev->writer_thread, NULL);
+        dev->writer_thread_started = false;
+    }
+}
+
+/*
+ * Release ethernet threading support state after the threads have stopped, or
+ * after startup failed before any threads were created.
+ */
+static void
+eth_destroy_thread_state(ETH_DEV *dev)
+{
+    ETH_WRITE_REQUEST *buffer;
+
+    if (!dev->threading_initialized)
+        return;
+    pthread_mutex_destroy(&dev->lock);
+    pthread_mutex_destroy(&dev->self_lock);
+    pthread_mutex_destroy(&dev->writer_lock);
+    pthread_cond_destroy(&dev->writer_cond);
+    while (NULL != (buffer = dev->write_buffers)) {
+        dev->write_buffers = buffer->next;
+        free(buffer);
+    }
+    while (NULL != (buffer = dev->write_requests)) {
+        dev->write_requests = buffer->next;
+        free(buffer);
+    }
+    ethq_destroy(&dev->read_queue);
+    dev->threading_initialized = false;
 }
 #endif
 
@@ -2587,17 +2638,49 @@ if (dev->eth_api == ETH_API_TEST)
 if (dev->eth_api != ETH_API_TEST)
 {
   pthread_attr_t attr;
+  int create_status;
+  pcap_t *opened_handle;
+  SOCKET opened_fd;
+  const char *thread_name = "reader";
 
-  ethq_init (&dev->read_queue, 200);         /* initialize FIFO queue */
+  r = ethq_init (&dev->read_queue, 200);     /* initialize FIFO queue */
+  if (r != SCPE_OK) {
+    _eth_close_port (dev->eth_api, (pcap_t *)dev->handle, dev->fd_handle);
+    free(dev->name);
+    eth_zero(dev);
+    return r;
+    }
   pthread_mutex_init (&dev->lock, NULL);
   pthread_mutex_init (&dev->writer_lock, NULL);
   pthread_mutex_init (&dev->self_lock, NULL);
   pthread_cond_init (&dev->writer_cond, NULL);
+  dev->threading_initialized = true;
   pthread_attr_init(&attr);
   pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-  pthread_create (&dev->reader_thread, &attr, _eth_reader, (void *)dev);
-  pthread_create (&dev->writer_thread, &attr, _eth_writer, (void *)dev);
+  create_status = pthread_create (&dev->reader_thread, &attr, _eth_reader,
+                                  (void *)dev);
+  if (create_status == 0) {
+    dev->reader_thread_started = true;
+    thread_name = "writer";
+    create_status = pthread_create (&dev->writer_thread, &attr, _eth_writer,
+                                    (void *)dev);
+    if (create_status == 0)
+      dev->writer_thread_started = true;
+    }
   pthread_attr_destroy(&attr);
+  if (create_status != 0) {
+    opened_handle = (pcap_t *)dev->handle;
+    opened_fd = dev->fd_handle;
+    dev->handle = NULL;
+    dev->fd_handle = 0;
+    eth_stop_threads(dev);
+    eth_destroy_thread_state(dev);
+    _eth_close_port (dev->eth_api, opened_handle, opened_fd);
+    free(dev->name);
+    eth_zero(dev);
+    return sim_messagef (SCPE_OPENERR, "Eth: can't start %s thread: %s\n",
+                         thread_name, strerror(create_status));
+    }
   }
 #endif /* defined (USE_READER_THREAD */
 _eth_add_to_open_list (dev);
@@ -2658,28 +2741,9 @@ dev->have_host_nic_phy_addr = 0;
 
 #if defined (USE_READER_THREAD)
 if (dev->eth_api != ETH_API_TEST) {
-pthread_join (dev->reader_thread, NULL);
-pthread_mutex_destroy (&dev->lock);
-pthread_mutex_lock (&dev->writer_lock);
-pthread_cond_signal (&dev->writer_cond);
-pthread_mutex_unlock (&dev->writer_lock);
-pthread_join (dev->writer_thread, NULL);
-pthread_mutex_destroy (&dev->self_lock);
-pthread_mutex_destroy (&dev->writer_lock);
-pthread_cond_destroy (&dev->writer_cond);
-{
-  ETH_WRITE_REQUEST *buffer;
-   while (NULL != (buffer = dev->write_buffers)) {
-    dev->write_buffers = buffer->next;
-    free(buffer);
-    }
-  while (NULL != (buffer = dev->write_requests)) {
-    dev->write_requests = buffer->next;
-    free(buffer);
-    }
+  eth_stop_threads(dev);
+  eth_destroy_thread_state(dev);
   }
-ethq_destroy (&dev->read_queue);         /* release FIFO queue */
-}
 #endif
 
 _eth_close_port (dev->eth_api, pcap, pcap_fd);
