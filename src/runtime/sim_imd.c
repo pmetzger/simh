@@ -12,6 +12,7 @@
 #include "sim_defs.h"
 #include "sim_imd.h"
 #include "sim_types.h"
+#include "zimh_version.h"
 
 static t_stat commentParse(DISK_INFO *myDisk, uint8_t comment[], uint32_t buffLen);
 static t_stat diskParse(DISK_INFO *myDisk, uint32_t isVerbose);
@@ -384,7 +385,7 @@ t_stat diskCreate(FILE *fileref, const char *ctlr_comment)
         return(SCPE_OPENERR);
     }
 
-    fprintf(fileref, "IMD SIMH %s %s\n", __DATE__, __TIME__);
+    fprintf(fileref, "IMD ZIMH %s\n", ZIMH_VERSION);
     fputs(comment, fileref);
     free(comment);
     fprintf(fileref, "\n\n$Id: sim_imd.c 1999 2008-07-22 04:25:28Z hharte $\n");

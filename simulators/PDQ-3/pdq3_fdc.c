@@ -29,6 +29,7 @@
 */
 #include "pdq3_defs.h"
 #include "sim_imd.h"
+#include "zimh_version.h"
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -1145,7 +1146,7 @@ t_stat pdq3_diskCreate(FILE *fileref, const char *ctlr_comment) {
     fsize = ftell(fileref);
     sim_set_fsize(fileref, fsize<0 ? 0 : fsize);
 
-    fprintf(fileref, "IMD SIMH %s %s\n", __DATE__, __TIME__);
+    fprintf(fileref, "IMD ZIMH %s\n", ZIMH_VERSION);
     fputs(comment, fileref);
     free(comment);
     fprintf(fileref, "%s\n", ctlr_comment);

@@ -5312,12 +5312,11 @@ if (flag) {
 #elif defined(_M_ARM) || defined(__arm__)
     arch = " arch: ARM";
 #endif
-#if defined (__DATE__) && defined (__TIME__)
 #if !defined (SIM_BUILD_OS)
-    fprintf (st, "\n        Simulator Compiled as %s%s on %s at %s", arch, build, __DATE__, __TIME__);
+    fprintf (st, "\n        Simulator Build: %s%s", arch, build);
 #else
-    fprintf (st, "\n        Simulator Compiled as %s%s on %s at %s %s", arch, build, __DATE__, __TIME__, S_xstr(SIM_BUILD_OS));
-#endif
+    fprintf (st, "\n        Simulator Build: %s%s %s", arch, build,
+             S_xstr(SIM_BUILD_OS));
 #endif
 #if defined (SIM_BUILD_TOOL)
     fprintf (st, "\n        Build Tool: %s", S_xstr(SIM_BUILD_TOOL));

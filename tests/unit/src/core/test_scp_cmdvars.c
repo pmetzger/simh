@@ -980,7 +980,7 @@ static void test_show_version_keeps_only_sim_ostype(void **state)
     stream = sim_tmpfile();
     assert_non_null(stream);
 
-    assert_int_equal(show_version(stream, NULL, NULL, 1, NULL), SCPE_OK);
+    assert_int_equal(show_version(stream, NULL, NULL, 0, NULL), SCPE_OK);
     fclose(stream);
 
     expand_command("A%SIM_OSTYPE%B", expanded, sizeof(expanded));
@@ -1025,7 +1025,7 @@ static void test_show_version_prints_zimh_banner(void **state)
     stream = sim_tmpfile();
     assert_non_null(stream);
 
-    assert_int_equal(show_version(stream, NULL, NULL, 0, NULL), SCPE_OK);
+    assert_int_equal(show_version(stream, NULL, NULL, 1, NULL), SCPE_OK);
     rewind(stream);
     assert_non_null(fgets(actual, sizeof(actual), stream));
     fclose(stream);
@@ -1033,6 +1033,28 @@ static void test_show_version_prints_zimh_banner(void **state)
     snprintf(expected, sizeof(expected), "%s simulator ZIMH %s\n", sim_name,
              ZIMH_VERSION);
     assert_string_equal(actual, expected);
+}
+
+/* Verify show_version reports deterministic build details. */
+static void test_show_version_omits_compile_timestamp(void **state)
+{
+    char output[4096];
+    size_t bytes;
+    FILE *stream;
+
+    (void)state;
+
+    stream = sim_tmpfile();
+    assert_non_null(stream);
+
+    assert_int_equal(show_version(stream, NULL, NULL, 1, NULL), SCPE_OK);
+    rewind(stream);
+    bytes = fread(output, 1, sizeof(output) - 1, stream);
+    fclose(stream);
+    output[bytes] = '\0';
+
+    assert_non_null(strstr(output, "Simulator Build:"));
+    assert_null(strstr(output, "Simulator Compiled"));
 }
 
 #if !defined(_WIN32)
@@ -1900,6 +1922,9 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_show_version_prints_zimh_banner,
                                         setup_scp_cmdvars_fixture,
                                         teardown_scp_cmdvars_fixture),
+        cmocka_unit_test_setup_teardown(
+            test_show_version_omits_compile_timestamp,
+            setup_scp_cmdvars_fixture, teardown_scp_cmdvars_fixture),
 #if !defined(_WIN32)
         cmocka_unit_test_setup_teardown(
             test_sim_get_env_special_ostype_handles_total_probe_failure,

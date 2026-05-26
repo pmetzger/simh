@@ -3,12 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if !defined(_WIN32)
+#include <unistd.h>
+#else
+#include "sim_win32_compat.h"
+#endif
 
 #include "test_cmocka.h"
 
 #include "sim_defs.h"
 #include "sim_imd.h"
+#include "sim_tempfile.h"
 #include "test_support.h"
+#include "zimh_version.h"
 
 struct sim_imd_fixture {
     char temp_dir[1024];
@@ -43,6 +50,70 @@ static int teardown_sim_imd_fixture(void **state)
     free(fixture);
     *state = NULL;
     return 0;
+}
+
+/* Temporarily replace stdin with a small prepared input file. */
+static void with_redirected_stdin(const char *contents, void (*fn)(void *ctx),
+                                  void *ctx)
+{
+    FILE *stream;
+    int saved_stdin;
+    int fd;
+
+    stream = sim_tmpfile();
+    assert_non_null(stream);
+    assert_int_equal(fwrite(contents, 1, strlen(contents), stream),
+                     strlen(contents));
+    assert_int_equal(fflush(stream), 0);
+    rewind(stream);
+    fd = fileno(stream);
+    assert_true(fd >= 0);
+
+    saved_stdin = dup(STDIN_FILENO);
+    assert_true(saved_stdin >= 0);
+    assert_int_equal(dup2(fd, STDIN_FILENO), STDIN_FILENO);
+
+    fn(ctx);
+
+    assert_int_equal(dup2(saved_stdin, STDIN_FILENO), STDIN_FILENO);
+    close(saved_stdin);
+    assert_int_equal(fclose(stream), 0);
+}
+
+struct disk_create_context {
+    FILE *image;
+};
+
+/* Create an IMD image while stdin provides the end-of-comment marker. */
+static void run_disk_create_without_user_comment(void *ctx)
+{
+    struct disk_create_context *create_ctx = ctx;
+
+    assert_int_equal(diskCreate(create_ctx->image, "unit test"), SCPE_OK);
+}
+
+/* Verify diskCreate writes the expected ImageDisk creator line. */
+static void test_disk_create_writes_zimh_header(void **state)
+{
+    char actual[128];
+    char expected[128];
+    struct disk_create_context create_ctx;
+    FILE *image;
+
+    (void)state;
+
+    image = tmpfile();
+    assert_non_null(image);
+    create_ctx.image = image;
+
+    with_redirected_stdin(".\n", run_disk_create_without_user_comment,
+                          &create_ctx);
+    rewind(image);
+    assert_non_null(fgets(actual, sizeof(actual), image));
+    fclose(image);
+
+    snprintf(expected, sizeof(expected), "IMD ZIMH %s\n", ZIMH_VERSION);
+    assert_string_equal(actual, expected);
 }
 
 /* Verify a zero-content IMD file is rejected as invalid media. */
@@ -264,6 +335,9 @@ static void test_sect_write_persists_deleted_address_mark(void **state)
 int main(void)
 {
     const struct CMUnitTest tests[] = {
+        cmocka_unit_test_setup_teardown(test_disk_create_writes_zimh_header,
+                                        setup_sim_imd_fixture,
+                                        teardown_sim_imd_fixture),
         cmocka_unit_test_setup_teardown(test_disk_open_rejects_blank_image,
                                         setup_sim_imd_fixture,
                                         teardown_sim_imd_fixture),
