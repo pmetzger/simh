@@ -608,7 +608,6 @@ if (NOT DO_DEPENDENCY_BUILD)
             target_link_libraries(unittest INTERFACE
                 ${unittest_cmocka_target}
                 os_features
-                simh_unit_support
             )
             message(STATUS "Host-side cmocka unit tests enabled")
         else ()

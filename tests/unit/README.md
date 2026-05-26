@@ -66,10 +66,15 @@ add_unit_test(unit-scp-parse
 )
 ```
 
-## Support Library
+## Support Libraries
 
-The shared support library is `simh_unit_support`. Its public interface
-is declared in:
+The shared support libraries provide common test helpers and simulator
+personality stubs. The default library is `simh_unit_support`;
+`FEATURE_INT64` tests use `simh_unit_support_i64`, and `FEATURE_FULL64`
+tests use `simh_unit_support_z64` so typedef-sensitive symbols match the
+simulator core variant used by the test.
+
+Their public interface is declared in:
 
 - `tests/unit/support/test_support.h`
 - `tests/unit/support/test_simh_personality.h`

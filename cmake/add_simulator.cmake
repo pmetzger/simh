@@ -415,7 +415,17 @@ function(add_unit_test _targ)
                           "DEFINES;INCLUDES;SOURCES"
                           ${ARGN})
 
-    target_link_libraries(${UNIT_TARGET} PUBLIC unittest)
+    set(SIMH_UNIT_SUPPORT_LIBRARY simh_unit_support)
+    if (SIMH_FEATURE_FULL64)
+        set(SIMH_UNIT_SUPPORT_LIBRARY simh_unit_support_z64)
+    elseif (SIMH_FEATURE_INT64)
+        set(SIMH_UNIT_SUPPORT_LIBRARY simh_unit_support_i64)
+    endif ()
+
+    target_link_libraries(${UNIT_TARGET} PUBLIC
+        unittest
+        ${SIMH_UNIT_SUPPORT_LIBRARY}
+    )
     add_test(NAME ${UNIT_TEST} COMMAND ${UNIT_TARGET})
 
     set(TEST_LABEL "zimh;unit")
