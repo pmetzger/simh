@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -135,11 +136,11 @@ uba_write(t_addr addr, int ctl, uint64 data, int access)
         return 1;
     }
     if (ubm == -1) {
-        sim_debug(DEBUG_EXP, &cpu_dev, "No UBA adaptor %02o %08o %012llo\n", ctl, addr, data);
+        sim_debug(DEBUG_EXP, &cpu_dev, "No UBA adaptor %02o %08o %012" PRIo64 "\n", ctl, addr, data);
         return 1;
     }
 
-    sim_debug(DEBUG_EXP, &cpu_dev, "UBA device write %02o %08o %012llo %d\n", ctl, addr, data, access);
+    sim_debug(DEBUG_EXP, &cpu_dev, "UBA device write %02o %08o %012" PRIo64 " %d\n", ctl, addr, data, access);
     if (access == BYTE) {
         if ((addr & 1) != 0)
             data = (data & 0377) << 8;
@@ -153,7 +154,7 @@ uba_write(t_addr addr, int ctl, uint64 data, int access)
            uint32_t map = (uint32_t)(data & 03777) << 9;
            map |= (uint32_t)(data & 0740000) << 13;
            uba_map[ubm][addr & 077] = map;
-           sim_debug(DEBUG_EXP, &cpu_dev, "Wr MAP %02o %012llo %06o\n",
+           sim_debug(DEBUG_EXP, &cpu_dev, "Wr MAP %02o %012" PRIo64 " %06o\n",
                  addr & 077, data, map);
            return 0;
        } else if ((addr & 077) == 0) {
@@ -185,13 +186,13 @@ uba_write(t_addr addr, int ctl, uint64 data, int access)
         if (ctl == dibp->uba_ctl && dibp->uba_addr == (addr & (~dibp->uba_mask))) {
             uint16_t buf = (uint16_t)(data & 0177777);
             int r = dibp->wr_io(dptr, addr, buf, access);
-    sim_debug(DEBUG_EXP, &cpu_dev, "UBA device write %02o %08o %012llo %06o\n", ctl, addr, data, buf);
+    sim_debug(DEBUG_EXP, &cpu_dev, "UBA device write %02o %08o %012" PRIo64 " %06o\n", ctl, addr, data, buf);
             if (r)
                 break;
             return r;
         }
     }
-    sim_debug(DEBUG_EXP, &cpu_dev, "No UBA device write %02o %08o %012llo\n", ctl, addr, data);
+    sim_debug(DEBUG_EXP, &cpu_dev, "No UBA device write %02o %08o %012" PRIo64 "\n", ctl, addr, data);
     uba_status[ubm] |= UBST_TIM | UBST_NED;
     return 1;
 }
@@ -208,7 +209,7 @@ uba_read_npr(t_addr addr, uint16_t ctl, uint64 *data)
         return 0;
     addr = (map & PAGE_MASK) | ((addr >> 2) & 0777);
     *data = M[addr];
-    sim_debug(DEBUG_DATA, &cpu_dev, "Rd NPR %08o %08o %012llo\n", oaddr, addr, *data);
+    sim_debug(DEBUG_DATA, &cpu_dev, "Rd NPR %08o %08o %012" PRIo64 "\n", oaddr, addr, *data);
     return 1;
 }
 
@@ -223,7 +224,7 @@ uba_write_npr(t_addr addr, uint16_t ctl, uint64 data)
     if ((map & MAP_VALID) == 0)
         return 0;
     addr = (map & PAGE_MASK) | ((addr >> 2) & 0777);
-    sim_debug(DEBUG_DATA, &cpu_dev, "Wr NPR %08o %08o %012llo\n", oaddr, addr, data);
+    sim_debug(DEBUG_DATA, &cpu_dev, "Wr NPR %08o %08o %012" PRIo64 "\n", oaddr, addr, data);
     M[addr] = data;
     return 1;
 }
@@ -241,12 +242,12 @@ uba_read_npr_byte(t_addr addr, uint16_t ctl, uint8_t *data)
         return 0;
     addr = (map & PAGE_MASK) | ((addr >> 2) & 0777);
     wd = M[addr];
-    sim_debug(DEBUG_DATA, &cpu_dev, "RD NPR B %08o %08o %012llo ", oaddr, addr, wd);
+    sim_debug(DEBUG_DATA, &cpu_dev, "RD NPR B %08o %08o %012" PRIo64 " ", oaddr, addr, wd);
     if ((oaddr & 02) == 0)
         wd >>= 18;
     if ((oaddr & 01))
         wd >>= 8;
-    sim_debug(DEBUG_DATA, &cpu_dev, "%03llo\n", wd & 0377);
+    sim_debug(DEBUG_DATA, &cpu_dev, "%03" PRIo64 "\n", wd & 0377);
     *data = (uint8_t)(wd & 0377);
     return 1;
 }
@@ -268,7 +269,7 @@ uba_write_npr_byte(t_addr addr, uint16_t ctl, uint8_t data)
     msk = 0377;
     buf = (uint64)(data & msk);
     wd = M[addr];
-    sim_debug(DEBUG_DATA, &cpu_dev, "WR NPR B %08o %08o %012llo ", oaddr, addr, wd);
+    sim_debug(DEBUG_DATA, &cpu_dev, "WR NPR B %08o %08o %012" PRIo64 " ", oaddr, addr, wd);
     if ((oaddr & 02) == 0) {
         buf <<= 18;
         msk <<= 18;
@@ -280,7 +281,7 @@ uba_write_npr_byte(t_addr addr, uint16_t ctl, uint8_t data)
     wd &= ~msk;
     wd |= buf;
     M[addr] = wd;
-    sim_debug(DEBUG_DATA, &cpu_dev, "%012llo\n", wd);
+    sim_debug(DEBUG_DATA, &cpu_dev, "%012" PRIo64 "\n", wd);
     return 1;
 }
 
@@ -297,7 +298,7 @@ uba_read_npr_word(t_addr addr, uint16_t ctl, uint16_t *data)
         return 0;
     addr = (map & PAGE_MASK) | ((addr >> 2) & 0777);
     wd = M[addr];
-    sim_debug(DEBUG_DATA, &cpu_dev, "RD NPR W %08o %08o %012llo m=%o\n", oaddr, addr, wd, map);
+    sim_debug(DEBUG_DATA, &cpu_dev, "RD NPR W %08o %08o %012" PRIo64 " m=%o\n", oaddr, addr, wd, map);
     if ((oaddr & 02) == 0)
         wd >>= 18;
     *data = (uint16_t)(wd & 0177777);
@@ -321,7 +322,7 @@ uba_write_npr_word(t_addr addr, uint16_t ctl, uint16_t data)
     msk = 0177777;
     buf = (uint64)(data & msk);
     wd = M[addr];
-    sim_debug(DEBUG_DATA, &cpu_dev, "WR NPR W %08o %08o %012llo m=%o\n", oaddr, addr, wd, map);
+    sim_debug(DEBUG_DATA, &cpu_dev, "WR NPR W %08o %08o %012" PRIo64 " m=%o\n", oaddr, addr, wd, map);
     if ((oaddr & 02) == 0) {
         buf <<= 18;
         msk <<= 18;
@@ -400,7 +401,7 @@ uba_get_vect(t_addr addr, int lvl, int dev)
            return addr;
         /* Compute unibus vector */
         addr = (buffer + dev) & RMASK;
-        sim_debug(DEBUG_IRQ, &cpu_dev, "get_vect d=%03o l=%03o ir=%02o v=%012llo\n",
+        sim_debug(DEBUG_IRQ, &cpu_dev, "get_vect d=%03o l=%03o ir=%02o v=%012" PRIo64 "\n",
               dev << 2, lvl, uba_irq_ctlr[dev], buffer);
         uba_irq_ctlr[dev] = 0;
     }

@@ -24,6 +24,7 @@
 */
 
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -971,7 +972,7 @@ t_stat imp_devio(uint32_t dev, uint64 *data)
                  *data |= IMP_ERR;
              break;
         }
-        sim_debug(DEBUG_CONI, dptr, "IMP %03o CONI %012llo PC=%o\n", dev,
+        sim_debug(DEBUG_CONI, dptr, "IMP %03o CONI %012" PRIo64 " PC=%o\n", dev,
                            *data, PC);
         break;
     case DATAO:
@@ -979,14 +980,14 @@ t_stat imp_devio(uint32_t dev, uint64 *data)
         uptr->STATUS &= ~IMPOD;
         imp_data.obuf = *data;
         imp_data.obits = (uptr->STATUS & IMPO32) ? 32 : 36;
-        sim_debug(DEBUG_DATAIO, dptr, "IMP %03o DATO %012llo %d %08x PC=%o\n",
+        sim_debug(DEBUG_DATAIO, dptr, "IMP %03o DATO %012" PRIo64 " %d %08x PC=%o\n",
                  dev, *data, imp_data.obits, (uint32_t)(*data >> 4), PC);
         sim_activate(uptr, 100);
         break;
     case DATAI:
         *data = imp_data.ibuf;
         uptr->STATUS &= ~(IMPID|IMPLW);
-        sim_debug(DEBUG_DATAIO, dptr, "IMP %03o DATI %012llo %08x PC=%o\n",
+        sim_debug(DEBUG_DATAIO, dptr, "IMP %03o DATI %012" PRIo64 " %08x PC=%o\n",
                  dev, *data, (uint32_t)(*data >> 4), PC);
         if (uptr->ILEN != 0)
             uptr->STATUS |= IMPIB;
@@ -1068,7 +1069,7 @@ t_stat imp_srv(UNIT * uptr)
            uptr->OPOS += 8;
            imp_oba += 2;
            imp_owcnt++;
-           sim_debug(DEBUG_DETAIL, &imp_dev, "IMP send %08llx %07o %06o %06o\n",
+           sim_debug(DEBUG_DETAIL, &imp_dev, "IMP send %08" PRIx64 " %07o %06o %06o\n",
                (wd64 >> 4), pa, imp_owcnt, imp_ocsr);
            break;
         }
@@ -1152,7 +1153,7 @@ t_stat imp_srv(UNIT * uptr)
            }
            imp_iba += 2;
            imp_iwcnt++;
-           sim_debug(DEBUG_DETAIL, &imp_dev, "IMP rec %08llx %07o %06o %06o\n",
+           sim_debug(DEBUG_DETAIL, &imp_dev, "IMP rec %08" PRIx64 " %07o %06o %06o\n",
                (wd64 >> 4), pa, imp_owcnt, imp_ocsr);
            break;
         }

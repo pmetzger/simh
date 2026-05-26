@@ -28,6 +28,7 @@
 /* cdc1700_io.c: CDC1700 I/O subsystem
  */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -462,7 +463,7 @@ enum IOstatus doIO(bool output, DEVICE **device)
         /*
          * Trace location of the I/O instruction + instruction count
          */
-        fprintf(DBGOUT, "%s[%s: P: %04X, Inst: %llu]\r\n",
+        fprintf(DBGOUT, "%s[%s: P: %04X, Inst: %" PRIu64 "]\r\n",
                 INTprefix, name, OrigPreg, Instructions);
       }
     }

@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -922,12 +923,12 @@ t_stat rp_svc (UNIT *uptr)
             if (GET_FNC(regs[RPCS1]) == FNC_READH) {
                 rhc->buf = (((uint64)cyl) << 18) |
                          ((uint64)((GET_SF(regs[RPDA]) << 8) | GET_SF(regs[RPDA])));
-                sim_debug(DEBUG_DATA, dptr, "%s%o read word h1 %012llo %09o %06o\n",
+                sim_debug(DEBUG_DATA, dptr, "%s%o read word h1 %012" PRIo64 " %09o %06o\n",
                    dptr->name, unit, rhc->buf, rhc->cda, rhc->wcr);
                 if (rh_write(rhc) == 0)
                     goto rd_end;
                 rhc->buf = ((uint64)((020 * ctlr) + (unit + 1)) << 18) | (uint64)(unit);
-                sim_debug(DEBUG_DATA, dptr, "%s%o read word h2 %012llo %09o %06o\n",
+                sim_debug(DEBUG_DATA, dptr, "%s%o read word h2 %012" PRIo64 " %09o %06o\n",
                    dptr->name, unit, rhc->buf, rhc->cda, rhc->wcr);
                 if (rh_write(rhc) == 0)
                     goto rd_end;
@@ -935,7 +936,7 @@ t_stat rp_svc (UNIT *uptr)
         }
 
         rhc->buf = rp_buf[ctlr][uptr->DATAPTR++];
-        sim_debug(DEBUG_DATA, dptr, "%s%o read word %d %012llo %09o %06o\n",
+        sim_debug(DEBUG_DATA, dptr, "%s%o read word %d %012" PRIo64 " %09o %06o\n",
                    dptr->name, unit, uptr->DATAPTR, rhc->buf, rhc->cda, rhc->wcr);
         if (rh_write(rhc)) {
             if (uptr->DATAPTR == RP_NUMWD) {
@@ -990,18 +991,18 @@ rd_end:
             if (GET_FNC(regs[RPCS1]) == FNC_WRITEH) {
                 if (rh_read(rhc) == 0)
                     goto wr_end;
-                sim_debug(DEBUG_DATA, dptr, "%s%o write word h1 %012llo %06o\n",
+                sim_debug(DEBUG_DATA, dptr, "%s%o write word h1 %012" PRIo64 " %06o\n",
                       dptr->name, unit, rhc->buf, rhc->wcr);
                 if (rh_read(rhc) == 0)
                     goto wr_end;
-                sim_debug(DEBUG_DATA, dptr, "%s%o write word h2 %012llo %06o\n",
+                sim_debug(DEBUG_DATA, dptr, "%s%o write word h2 %012" PRIo64 " %06o\n",
                       dptr->name, unit, rhc->buf, rhc->wcr);
             }
             uptr->DATAPTR = 0;
             uptr->hwmark = 0;
         }
         sts = rh_read(rhc);
-        sim_debug(DEBUG_DATA, dptr, "%s%o write word %d %012llo %06o %06o\n",
+        sim_debug(DEBUG_DATA, dptr, "%s%o write word %d %012" PRIo64 " %06o %06o\n",
                       dptr->name, unit, uptr->DATAPTR, rhc->buf, rhc->cda, rhc->wcr);
         rp_buf[ctlr][uptr->DATAPTR++] = rhc->buf;
         if (sts == 0) {

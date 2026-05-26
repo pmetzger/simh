@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -420,7 +421,7 @@ t_stat dp_devio(uint32_t dev, uint64 *data) {
             *data |= B22_FLAG;
         }
 #endif
-        sim_debug(DEBUG_CONI, dptr, "DP %03o CONI %012llo %d PC=%o\n", dev,
+        sim_debug(DEBUG_CONI, dptr, "DP %03o CONI %012" PRIo64 " %d PC=%o\n", dev,
                            *data, ctlr, PC);
         break;
 
@@ -499,13 +500,13 @@ t_stat dp_devio(uint32_t dev, uint64 *data) {
                 res |= 0400>>unit;
             uptr++;
          }
-         sim_debug(DEBUG_DATAIO, dptr, "DP %03o DATI %012llo %d  PC=%o F=%o %o\n",
+         sim_debug(DEBUG_DATAIO, dptr, "DP %03o DATI %012" PRIo64 " %d  PC=%o F=%o %o\n",
                  dev, res, ctlr, PC, uptr->UFLAGS, sect_count);
          *data = res;
          break;
 
      case DATAO:
-         sim_debug(DEBUG_DATAIO, dptr, "DP %03o DATO %012llo, %d PC=%o\n",
+         sim_debug(DEBUG_DATAIO, dptr, "DP %03o DATO %012" PRIo64 ", %d PC=%o\n",
                  dev, *data, ctlr, PC);
          if (df10->status & BUSY) {
             uptr->STATUS |= ILL_CMD;
@@ -700,7 +701,7 @@ t_stat dp_svc (UNIT *uptr)
                r = df10_write(df10);
                break;
            }
-           sim_debug(DEBUG_DATA, dptr, "Xfer %d %08o %012llo %08o\n",
+           sim_debug(DEBUG_DATA, dptr, "Xfer %d %08o %012" PRIo64 " %08o\n",
                           uptr->DATAPTR, df10->cda, df10->buf, df10->wcr);
            uptr->DATAPTR++;
            if (uptr->DATAPTR >= RP_NUMWD || r == 0 ) {
@@ -776,7 +777,7 @@ t_stat dp_svc (UNIT *uptr)
                 }
                 r = df10_read(df10);
                 uptr->DATAPTR++;
-                sim_debug(DEBUG_DATA, dptr, "Xfer h%d %012llo\n",
+                sim_debug(DEBUG_DATA, dptr, "Xfer h%d %012" PRIo64 "\n",
                           uptr->DATAPTR, df10->buf);
                 if (uptr->DATAPTR == 36) {
                     uptr->DATAPTR = 0;
@@ -787,7 +788,7 @@ t_stat dp_svc (UNIT *uptr)
                 if (r)
                     uptr->hwmark = uptr->DATAPTR;
                 dp_buf[ctlr][uptr->DATAPTR] = (df10->buf << 1) & FMASK;
-                sim_debug(DEBUG_DATA, dptr, "Xfer %d %012llo\n",
+                sim_debug(DEBUG_DATA, dptr, "Xfer %d %012" PRIo64 "\n",
                                uptr->DATAPTR, df10->buf);
                 uptr->DATAPTR++;
                 if (uptr->DATAPTR >= RP_NUMWD || r == 0 ) {

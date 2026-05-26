@@ -27,6 +27,7 @@
    users.
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -365,17 +366,17 @@ t_stat gtyi_devio(uint32_t dev, uint64 *data)
 
   switch(dev & 03) {
   case CONO:
-    sim_debug(DEBUG_CONO, &ge_dev, "GTYI %012llo\n", *data);
+    sim_debug(DEBUG_CONO, &ge_dev, "GTYI %012" PRIo64 "\n", *data);
     uptr->STATUS &= ~GTYI_PIA;
     uptr->STATUS |= *data & GTYI_PIA;
     break;
   case CONI:
     *data = uptr->STATUS & GTYI_STATUS;
-    sim_debug(DEBUG_CONI, &ge_dev, "GTYI %012llo\n", *data);
+    sim_debug(DEBUG_CONI, &ge_dev, "GTYI %012" PRIo64 "\n", *data);
     break;
   case DATAI:
     *data = uptr->DATA | (uptr->PORT << 18);
-    sim_debug(DEBUG_DATAIO, &ge_dev, "GTYI %012llo\n", *data);
+    sim_debug(DEBUG_DATAIO, &ge_dev, "GTYI %012" PRIo64 "\n", *data);
     uptr->STATUS &= ~GTYI_DONE;
     sim_debug(DEBUG_IRQ, &ge_dev, "Clear GTYI interrupt\n");
     clr_interrupt(GTYI_DEVNUM);
@@ -394,7 +395,7 @@ t_stat gtyo_devio(uint32_t dev, uint64 *data)
 
   switch(dev & 03) {
   case CONO:
-    sim_debug(DEBUG_CONO, &ge_dev, "GTYO %012llo\n", *data);
+    sim_debug(DEBUG_CONO, &ge_dev, "GTYO %012" PRIo64 "\n", *data);
     sim_debug(DEBUG_IRQ, &ge_dev, "Clear GTYO interrupt\n");
     clr_interrupt(GTYO_DEVNUM);
     uptr->STATUS &= ~GTYO_PIA;
@@ -404,10 +405,10 @@ t_stat gtyo_devio(uint32_t dev, uint64 *data)
     break;
   case CONI:
     *data = uptr->STATUS & GTYO_STATUS;
-    sim_debug(DEBUG_CONI, &ge_dev, "GTYO %012llo\n", *data);
+    sim_debug(DEBUG_CONI, &ge_dev, "GTYO %012" PRIo64 "\n", *data);
     break;
   case DATAO:
-    sim_debug(DEBUG_DATAIO, &ge_dev, "GTYO %012llo\n", *data);
+    sim_debug(DEBUG_DATAIO, &ge_dev, "GTYO %012" PRIo64 "\n", *data);
     if (uptr->STATUS & GTYO_DONE) {
       sim_debug(DEBUG_IRQ, &ge_dev, "Clear GTYO interrupt\n");
       clr_interrupt(GTYO_DEVNUM);

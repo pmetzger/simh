@@ -94,6 +94,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -1081,7 +1082,7 @@ static t_stat dev_pi(uint32_t dev, uint64 *data) {
            parity_irq = 0;
 #endif
         check_apr_irq();
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO PI %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO PI %012" PRIo64 "\n", *data);
         break;
 
      case CONI:
@@ -1098,7 +1099,7 @@ static t_stat dev_pi(uint32_t dev, uint64 *data) {
         res |= ((uint64)parity_irq << 15);
 #endif
         *data = res;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI PI %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI PI %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
@@ -1197,7 +1198,7 @@ static t_stat dev_pag(uint32_t dev, uint64 *data) {
         if (t20_page)
             res |= 040000;
         *data = res;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI PAG %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI PAG %012" PRIo64 "\n", *data);
         break;
 
      case CONO:
@@ -1210,7 +1211,7 @@ static t_stat dev_pag(uint32_t dev, uint64 *data) {
             u_tlb[i] = 0;
         page_enable = (*data & 020000) != 0;
         t20_page = (*data & 040000) != 0;
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO PAG %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO PAG %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
@@ -1258,7 +1259,7 @@ static t_stat dev_pag(uint32_t dev, uint64 *data) {
                    u_tlb[i] = 0;
            }
            sim_debug(DEBUG_DATAIO, &cpu_dev,
-                    "DATAO PAG %012llo ebr=%06o ubr=%06o\n",
+                    "DATAO PAG %012" PRIo64 " ebr=%06o ubr=%06o\n",
                     *data, eb_ptr, ub_ptr);
        }
        break;
@@ -1275,7 +1276,7 @@ static t_stat dev_pag(uint32_t dev, uint64 *data) {
        if (QKLB)
            res |= ((uint64)prev_sect & 037) << 18;
        *data = res;
-       sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI PAG %012llo\n", *data);
+       sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI PAG %012" PRIo64 "\n", *data);
        break;
     }
     return SCPE_OK;
@@ -1325,7 +1326,7 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
         if (irq_flags & irq_enable)
             res |= 010;
         *data = res;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012" PRIo64 "\n", *data);
         break;
 
      case CONO:
@@ -1348,19 +1349,19 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
             irq_flags |= (07760 & res);
         }
         check_apr_irq();
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO APR %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO APR %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
         brk_addr = *data & RMASK;
         brk_flags = 017 & (*data >> 23);
-        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO APR %012llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO APR %012" PRIo64 "\n", *data);
         break;
 
     case DATAI:
         *data = ((uint64)brk_flags) << 23;
         *data |= (uint64)brk_addr;
-        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI APR %012llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI APR %012" PRIo64 "\n", *data);
         break;
     }
     return SCPE_OK;
@@ -1378,7 +1379,7 @@ static t_stat dev_mtr(uint32_t dev, uint64 *data) {
         if (mtr_enable)
             *data |= 02000;
         *data |= ((uint64)mtr_flags) << 12;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI MTR %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI MTR %012" PRIo64 "\n", *data);
         break;
 
      case CONO:
@@ -1393,15 +1394,15 @@ static t_stat dev_mtr(uint32_t dev, uint64 *data) {
         clr_interrupt(4 << 2);
         if (tim_val & 030000)
            set_interrupt(4 << 2, mtr_irq);
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO MTR %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO MTR %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
         /* MUUO */
         if (dev & 040) {
-            sim_debug(DEBUG_DATAIO, &cpu_dev, "BLKO MTR %012llo\n", *data);
+            sim_debug(DEBUG_DATAIO, &cpu_dev, "BLKO MTR %012" PRIo64 "\n", *data);
         } else {
-            sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO MTR %012llo\n", *data);
+            sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO MTR %012" PRIo64 "\n", *data);
         }
         break;
 
@@ -1438,7 +1439,7 @@ static t_stat dev_tim(uint32_t dev, uint64 *data) {
         res |= tim_val & 070000;
         res |= ((uint64)(tim_val & 07777)) << 18;
         *data = res;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI TIM %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI TIM %012" PRIo64 "\n", *data);
         break;
 
      case CONO:
@@ -1450,7 +1451,7 @@ static t_stat dev_tim(uint32_t dev, uint64 *data) {
             tim_val = 0;
         if (*data & 040000)  /* Enable counter */
             tim_val |= 040000;
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO TIM %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO TIM %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
@@ -1504,14 +1505,14 @@ static t_stat dev_pag(uint32_t dev, uint64 *data) {
         *data = (uint64)(pag_reload ^ 040);
         *data |= ((uint64)last_page) << 8;
         *data |= (uint64)((apr_serial == -1) ? DEF_SERIAL : apr_serial) << 26;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI PAG %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI PAG %012" PRIo64 "\n", *data);
         break;
 
      case CONO:
         /* Set Stack AC and Page Table Reload Counter */
         ac_stack = (*data >> 9) & 0760;
         pag_reload = (*data & 037) | (pag_reload & 040);
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONI PAG %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONI PAG %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
@@ -1536,7 +1537,7 @@ static t_stat dev_pag(uint32_t dev, uint64 *data) {
        }
        pag_reload = 0;
        sim_debug(DEBUG_DATAIO, &cpu_dev,
-                    "DATAO PAG %012llo ebr=%06o ubr=%06o\n",
+                    "DATAO PAG %012" PRIo64 " ebr=%06o ubr=%06o\n",
                     *data, eb_ptr, ub_ptr);
        break;
 
@@ -1551,7 +1552,7 @@ static t_stat dev_pag(uint32_t dev, uint64 *data) {
            res |= BIT3;
        res |= ((uint64)(fm_sel)) << 29;
        *data = res;
-       sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI PAG %012llo\n", *data);
+       sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI PAG %012" PRIo64 "\n", *data);
        break;
     }
     return SCPE_OK;
@@ -1588,7 +1589,7 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
         res |= (inout_fail << 7) | (clk_flg << 9) | (clk_en << 10);
         res |= (timer_irq << 14) | (parity_irq << 15) | (timer_flg << 17);
         *data = res;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012" PRIo64 "\n", *data);
         break;
 
      case CONO:
@@ -1622,17 +1623,17 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
         if (res & 0400000)
             timer_flg = 0;
         check_apr_irq();
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO APR %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO APR %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
-        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO APR %012llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO APR %012" PRIo64 "\n", *data);
         break;
 
     case DATAI:
         /* Read switches */
         *data = SW;
-        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI APR %012llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI APR %012" PRIo64 "\n", *data);
         break;
     }
     return SCPE_OK;
@@ -1696,7 +1697,7 @@ static t_stat dev_pag(uint32_t dev, uint64 *data) {
                  exec_map = 1;
                  break;
         }
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO PAG %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO PAG %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
@@ -1757,7 +1758,7 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
         res |= (mem_prot << 13) | (((FLAGS & USERIO) != 0) << 15);
         res |= (adr_flag << 14) | (push_ovf << 16) | (maoff >> 1);
         *data = res;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012" PRIo64 "\n", *data);
         break;
 
      case CONO:
@@ -1809,7 +1810,7 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
         if (res & 0400000)
             push_ovf = 0;
         check_apr_irq();
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO APR %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO APR %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
@@ -1819,14 +1820,14 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
         Pflag = 01 & (*data >> 18);
         Ph = ((0377 & (*data >> 19)) << 10) + 01777;
         Pl = ((0377 & (*data >> 28)) << 10) + 01777;
-        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO APR %012llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO APR %012" PRIo64 "\n", *data);
 sim_debug(DEBUG_DATAIO, &cpu_dev, "Rl=%06o Pl=%06o, Rh=%06o, Ph=%06o\n", Rl, Pl, Rh, Ph);
         break;
 
     case DATAI:
         /* Read switches */
         *data = SW;
-        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI APR %012llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI APR %012" PRIo64 "\n", *data);
         break;
     }
     return SCPE_OK;
@@ -4226,7 +4227,7 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
         res |= (mem_prot << 13) | (((FLAGS & USER) != 0) << 14) | (user_io << 15);
         res |= ((uint64)push_ovf << 16);
         *data = res;
-        sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &cpu_dev, "CONI APR %012" PRIo64 "\n", *data);
         break;
 
      case CONO:
@@ -4276,20 +4277,20 @@ static t_stat dev_apr(uint32_t dev, uint64 *data) {
         if (res & 0400000)   /* Bit 18 */
             push_ovf = 0;
         check_apr_irq();
-        sim_debug(DEBUG_CONO, &cpu_dev, "CONO APR %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &cpu_dev, "CONO APR %012" PRIo64 "\n", *data);
         break;
 
     case DATAO:
         /* Set protection registers */
         Rl = 0776000 & *data;
         Pl = (0776000 & (*data >> 18)) + 01777;
-        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO APR %012llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAO APR %012" PRIo64 "\n", *data);
         break;
 
     case DATAI:
         /* Read switches */
         *data = SW;
-        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI APR %012llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI APR %012" PRIo64 "\n", *data);
         break;
     }
     return SCPE_OK;
@@ -11011,7 +11012,7 @@ skip_op:
                                      MB |= BIT2;
 #endif
                                  MB |= (uint64)((apr_serial == -1) ? DEF_SERIAL : apr_serial);
-                                 sim_debug(DEBUG_DATAIO, &cpu_dev, "APRID %012llo\n", MB);
+                                 sim_debug(DEBUG_DATAIO, &cpu_dev, "APRID %012" PRIo64 "\n", MB);
                                  if (Mem_write(0, 0))
                                     goto last;
                                  AR = MB;
@@ -11051,7 +11052,7 @@ skip_op:
                                         cty_wakeup();
                                  }
                                  check_apr_irq();
-                                 sim_debug(DEBUG_CONO, &cpu_dev, "WRAPR %012llo\n", AR);
+                                 sim_debug(DEBUG_CONO, &cpu_dev, "WRAPR %012" PRIo64 "\n", AR);
                                  break;
 
                            /* 70024 */
@@ -11063,7 +11064,7 @@ skip_op:
                                      MB |= 010;
                                  if (Mem_write(0, 0))
                                      goto last;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDAPR %012llo\n", MB);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDAPR %012" PRIo64 "\n", MB);
                                  AR = MB;
                                  break;
 
@@ -11077,7 +11078,7 @@ skip_op:
                                  BR = (BR & AR) & RMASK;
                                  if (BR == 0)
                                      PC = (PC + 1) & RMASK;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "CONSZ %012llo\n", AR);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "CONSZ %012" PRIo64 "\n", AR);
                                  break;
 
                            /* 70034 */
@@ -11090,7 +11091,7 @@ skip_op:
                                  BR = (BR & AR) & RMASK;
                                  if (BR != 0)
                                      PC = (PC + 1) & RMASK;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "CONSO %012llo\n", AR);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "CONSO %012" PRIo64 "\n", AR);
                                  break;
 
                            /* 70060 */
@@ -11119,7 +11120,7 @@ skip_op:
                                     PIR &= ~(AR & 0177);
                                  }
                                  check_apr_irq();
-                                 sim_debug(DEBUG_IRQ, &cpu_dev, "WRPI %012llo\n", AR);
+                                 sim_debug(DEBUG_IRQ, &cpu_dev, "WRPI %012" PRIo64 "\n", AR);
                                  break;
 
                            /* 70064 */
@@ -11129,7 +11130,7 @@ skip_op:
                                  MB |= (PIH << 8);
                                  MB |= ((uint64)(PIR) << 18);
                                  MB |= (parity_irq << 15);
-                                 sim_debug(DEBUG_IRQ, &cpu_dev, "RDPI %012llo\n", MB);
+                                 sim_debug(DEBUG_IRQ, &cpu_dev, "RDPI %012" PRIo64 "\n", MB);
                                  if (Mem_write(0, 0))
                                      goto last;
                                  AR = MB;
@@ -11144,7 +11145,7 @@ skip_op:
                                  BR = (BR & AR) & RMASK;
                                  if (BR == 0)
                                      PC = (PC + 1) & RMASK;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "CONSZ PI %012llo\n", AR);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "CONSZ PI %012" PRIo64 "\n", AR);
                                  break;
 
                            /* 70074 */
@@ -11156,7 +11157,7 @@ skip_op:
                                  BR = (BR & AR) & RMASK;
                                  if (BR != 0)
                                      PC = (PC + 1) & RMASK;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "CONSO PI %012llo\n", AR);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "CONSO PI %012" PRIo64 "\n", AR);
                                  break;
 
                            default:
@@ -11181,7 +11182,7 @@ skip_op:
                                  MB |= ((uint64)(prev_ctx & 0160)) << 20;
                                  MB |= ((uint64)(fm_sel & 0160)) << 23;
                                  MB |= SMASK|BIT2;
-                                 sim_debug(DEBUG_DATAIO, &cpu_dev, "RDUBR %012llo\n", MB);
+                                 sim_debug(DEBUG_DATAIO, &cpu_dev, "RDUBR %012" PRIo64 "\n", MB);
                                  if (Mem_write(0, 0))
                                      goto last;
                                  AR = MB;
@@ -11224,7 +11225,7 @@ skip_op:
                                         u_tlb[f] = 0;
                                  }
                                  sim_debug(DEBUG_DATAIO, &cpu_dev,
-                                          "WRUBR  %012llo ebr=%06o ubr=%06o\n",
+                                          "WRUBR  %012" PRIo64 " ebr=%06o ubr=%06o\n",
                                           MB, eb_ptr, ub_ptr);
                                  break;
 
@@ -11240,7 +11241,7 @@ skip_op:
                                  page_enable = (AR & 020000) != 0;
                                  t20_page = (AR & 040000) != 0;
                                  page_fault = 0;
-                                 sim_debug(DEBUG_CONO, &cpu_dev, "WREBR %012llo\n", AR);
+                                 sim_debug(DEBUG_CONO, &cpu_dev, "WREBR %012" PRIo64 "\n", AR);
                                  break;
 
                            /* 70124 */
@@ -11250,7 +11251,7 @@ skip_op:
                                      MB |= 020000;
                                  if (t20_page)
                                      MB |= 040000;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDEBR %012llo\n", MB);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDEBR %012" PRIo64 "\n", MB);
                                  if (Mem_write(0, 0))
                                     goto last;
                                  AR = MB;
@@ -11285,7 +11286,7 @@ skip_op:
                            switch (AC) {
                            /* 70200 */
                            case 000:            /* RDSPB */    /* ITS SDBR1 */
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDSPD %012llo\n", spt);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDSPD %012" PRIo64 "\n", spt);
                                  MB = spt;
                                  if (Mem_write(0, 0))
                                      goto last;
@@ -11294,7 +11295,7 @@ skip_op:
 
                            /* 70204 */
                            case 001:            /* RDCSB */    /* ITS SDBR2 */
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDSPD %012llo\n", cst);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDSPD %012" PRIo64 "\n", cst);
                                  MB = cst;
                                  if (Mem_write(0, 0))
                                      goto last;
@@ -11303,7 +11304,7 @@ skip_op:
 
                            /* 70250 */
                            case 002:            /* RDPUR */    /* ITS SDBR3 */
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDSPD %012llo\n", cst_dat);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDSPD %012" PRIo64 "\n", cst_dat);
                                  MB = cst_dat;
                                  if (Mem_write(0, 0))
                                      goto last;
@@ -11312,7 +11313,7 @@ skip_op:
 
                            /* 70214 */
                            case 003:            /* RDCSTM */   /* ITS SDBR4 */
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDSPD %012llo\n", cst_msk);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDSPD %012" PRIo64 "\n", cst_msk);
                                  MB = cst_msk;
                                  if (Mem_write(0, 0))
                                      goto last;
@@ -11327,7 +11328,7 @@ skip_op:
                                  us = sim_activate_time_usecs (&cpu_unit[0]);
                                  f = 2000 - ((int)us);
                                  MB = tim_low | (f << 2);
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDTIME %012llo %012llo\n", MB, tim_high);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDTIME %012" PRIo64 " %012" PRIo64 "\n", MB, tim_high);
                                  AB = (AB + 1) & RMASK;
                                  if (Mem_write(0, 0))
                                     goto last;
@@ -11337,7 +11338,7 @@ skip_op:
                            /* 70224 */
                            case 005:            /* RDINT */
                                  MB = int_val;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDINT %012llo\n", MB);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDINT %012" PRIo64 "\n", MB);
                                  if (Mem_write(0, 0))
                                      goto last;
                                  AR = MB;
@@ -11346,7 +11347,7 @@ skip_op:
                            /* 70230 */
                            case 006:            /* RDHSB */
                                  MB = hsb;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDHSB %012llo\n", MB);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "RDHSB %012" PRIo64 "\n", MB);
                                  if (Mem_write(0, 0))
                                      goto last;
                                  AR = MB;
@@ -11378,14 +11379,14 @@ skip_op:
                                         u_tlb[f] = 0;
                                         e_tlb[f] = 0;
                                      }
-                                     sim_debug(DEBUG_CONI, &cpu_dev, "WRDBR1 %012llo\n", dbr1);
+                                     sim_debug(DEBUG_CONI, &cpu_dev, "WRDBR1 %012" PRIo64 "\n", dbr1);
                                      break;
                                  }
 #endif
                                  if (Mem_read(0, 0, 0, 0))
                                     goto last;
                                  spt = MB;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRSPB %012llo\n", spt);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRSPB %012" PRIo64 "\n", spt);
                                  break;
 
                            /* 70244 */
@@ -11397,14 +11398,14 @@ skip_op:
                                         u_tlb[f] = 0;
                                         e_tlb[f] = 0;
                                      }
-                                     sim_debug(DEBUG_CONI, &cpu_dev, "WRDBR2 %012llo\n", dbr2);
+                                     sim_debug(DEBUG_CONI, &cpu_dev, "WRDBR2 %012" PRIo64 "\n", dbr2);
                                      break;
                                  }
 #endif
                                  if (Mem_read(0, 0, 0, 0))
                                      goto last;
                                  cst = MB;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRCSB %012llo\n", cst);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRCSB %012" PRIo64 "\n", cst);
                                  break;
 
                            /* 70250 */
@@ -11416,14 +11417,14 @@ skip_op:
                                         u_tlb[f] = 0;
                                         e_tlb[f] = 0;
                                      }
-                                     sim_debug(DEBUG_CONI, &cpu_dev, "WRDBR3 %012llo\n", dbr3);
+                                     sim_debug(DEBUG_CONI, &cpu_dev, "WRDBR3 %012" PRIo64 "\n", dbr3);
                                      break;
                                  }
 #endif
                                  if (Mem_read(0, 0, 0, 0))
                                      goto last;
                                  cst_dat = MB;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRPUR %012llo\n", cst_dat);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRPUR %012" PRIo64 "\n", cst_dat);
                                  break;
 
                            /* 70254 */
@@ -11435,14 +11436,14 @@ skip_op:
                                         u_tlb[f] = 0;
                                         e_tlb[f] = 0;
                                      }
-                                     sim_debug(DEBUG_CONI, &cpu_dev, "WRDBR4 %012llo\n", dbr4);
+                                     sim_debug(DEBUG_CONI, &cpu_dev, "WRDBR4 %012" PRIo64 "\n", dbr4);
                                      break;
                                  }
 #endif
                                  if (Mem_read(0, 0, 0, 0))
                                      goto last;
                                  cst_msk = MB;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRCSTM %012llo\n", cst_msk);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRCSTM %012" PRIo64 "\n", cst_msk);
                                  break;
 
                            /* 70264 */
@@ -11450,7 +11451,7 @@ skip_op:
                                  if (Mem_read(0, 0, 0, 0))
                                     goto last;
                                  int_val = MB & ~07777;
-                                 sim_debug(DEBUG_DATAIO, &cpu_dev, "WRINT %012llo\n", int_val);
+                                 sim_debug(DEBUG_DATAIO, &cpu_dev, "WRINT %012" PRIo64 "\n", int_val);
                                  break;
 
                            /* 70260 */
@@ -11462,14 +11463,14 @@ skip_op:
                                  if (Mem_read(0, 0, 0, 0))
                                     goto last;
                                  tim_low = MB & ~07777;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRTIME %012llo %012llo\n", tim_low, tim_high);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRTIME %012" PRIo64 " %012" PRIo64 "\n", tim_low, tim_high);
                                  break;
                            /* 70270 */
                            case 016:            /* WRHSB */
                                  if (Mem_read(0, 0, 0, 0))
                                     goto last;
                                  hsb = MB;
-                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRHSB %012llo\n", MB);
+                                 sim_debug(DEBUG_CONI, &cpu_dev, "WRHSB %012" PRIo64 "\n", MB);
                                  break;
 
                            /* 70274 */
@@ -11810,7 +11811,7 @@ fetch_opr:
                                   if (QKLB)
                                       AR |= BIT1|BIT4|040000;
                                   AR |= (uint64)((apr_serial == -1) ? DEF_SERIAL : apr_serial);
-                                  sim_debug(DEBUG_DATAIO, &cpu_dev, "APRID BLKI %012llo\n", MB);
+                                  sim_debug(DEBUG_DATAIO, &cpu_dev, "APRID BLKI %012" PRIo64 "\n", MB);
                                   MB = AR;
                                   if (Mem_write(pi_cycle, 0))
                                       goto last;
@@ -11839,7 +11840,7 @@ fetch_opr:
                                       AR = 0 << 12;
                                       BR = f;
                                   }
-                                  sim_debug(DEBUG_DATAIO, &cpu_dev, "RDPERF %012llo %012llo\n", AR, BR);
+                                  sim_debug(DEBUG_DATAIO, &cpu_dev, "RDPERF %012" PRIo64 " %012" PRIo64 "\n", AR, BR);
                                   MB = AR;
                                   if (Mem_write(pi_cycle, 0))
                                       goto last;
@@ -11859,7 +11860,7 @@ fetch_opr:
                                       AR = 0 << 12;
                                       BR = 0;
                                   }
-                                  sim_debug(DEBUG_DATAIO, &cpu_dev, "RDMACT %012llo %012llo\n", AR, BR);
+                                  sim_debug(DEBUG_DATAIO, &cpu_dev, "RDMACT %012" PRIo64 " %012" PRIo64 "\n", AR, BR);
                                   MB = AR;
                                   if (Mem_write(pi_cycle, 0))
                                       goto last;
@@ -11997,7 +11998,7 @@ fetch_opr:
                                   AR = 0;
                                   BR = f << 12;
                               }
-                              sim_debug(DEBUG_DATAIO, &cpu_dev, "RDTIM %012llo, %012llo\n", AR, BR);
+                              sim_debug(DEBUG_DATAIO, &cpu_dev, "RDTIM %012" PRIo64 ", %012" PRIo64 "\n", AR, BR);
                               MB = AR;
                               if (Mem_write(pi_cycle, 0))
                                   goto last;
@@ -12021,7 +12022,7 @@ fetch_opr:
                                   AR = 0;
                                   BR = f << 12;
                               }
-                              sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI MTR %012llo %012llo\n", AR, BR);
+                              sim_debug(DEBUG_DATAIO, &cpu_dev, "DATAI MTR %012" PRIo64 " %012" PRIo64 "\n", AR, BR);
                               MB = AR;
                               if (Mem_write(pi_cycle, 0))
                                   goto last;

@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -502,7 +503,7 @@ t_stat rs_svc (UNIT *uptr)
         }
 
         rhc->buf = rs_buf[ctlr][uptr->DATAPTR++];
-        sim_debug(DEBUG_DATA, dptr, "%s%o read word %d %012llo %09o %06o\n",
+        sim_debug(DEBUG_DATA, dptr, "%s%o read word %d %012" PRIo64 " %09o %06o\n",
                 dptr->name, unit, uptr->DATAPTR, rhc->buf, rhc->cda, rhc->wcr);
         if (rh_write(rhc)) {
             if (uptr->DATAPTR == RS_NUMWD) {
@@ -547,7 +548,7 @@ rd_end:
         }
         sts = rh_read(rhc);
         rs_buf[ctlr][uptr->DATAPTR++] = rhc->buf;
-        sim_debug(DEBUG_DATA, dptr, "%s%o write word %d %012llo %09o %06o\n",
+        sim_debug(DEBUG_DATA, dptr, "%s%o write word %d %012" PRIo64 " %09o %06o\n",
                  dptr->name, unit, uptr->DATAPTR, rhc->buf, rhc->cda, rhc->wcr);
         if (sts == 0) {
             while (uptr->DATAPTR < RS_NUMWD)

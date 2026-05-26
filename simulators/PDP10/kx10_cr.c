@@ -29,6 +29,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -147,12 +148,12 @@ t_stat cr_devio(uint32_t dev, uint64 *data) {
                 uptr->STATUS |= RDY_READ;
          }
          *data = uptr->STATUS;
-         sim_debug(DEBUG_CONI, &cr_dev, "CR: CONI %012llo\n", *data);
+         sim_debug(DEBUG_CONI, &cr_dev, "CR: CONI %012" PRIo64 "\n", *data);
          break;
 
     case CONO:
          clr_interrupt(dev);
-         sim_debug(DEBUG_CONO, &cr_dev, "CR: CONO %012llo PC=%06o\n", *data, PC);
+         sim_debug(DEBUG_CONO, &cr_dev, "CR: CONO %012" PRIo64 " PC=%06o\n", *data, PC);
          if (*data & CLR_READER) {
              uptr->STATUS = 0;
              if (!CARD_RDY(uptr))
@@ -190,7 +191,7 @@ t_stat cr_devio(uint32_t dev, uint64 *data) {
              *data = uptr->DATA & ~RSIGN;
              if (uptr->DATA & RSIGN)
                  *data |= SMASK;
-             sim_debug(DEBUG_DATAIO, &cr_dev, "CR: DATAI %012llo\n", *data);
+             sim_debug(DEBUG_DATAIO, &cr_dev, "CR: DATAI %012" PRIo64 "\n", *data);
              uptr->STATUS &= ~DATA_RDY;
          } else
              *data = 0;

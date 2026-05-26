@@ -24,6 +24,7 @@
 
 #define USE_IPU_CODE
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "sel32_arith_internal.h"
@@ -4031,7 +4032,7 @@ skipit:
                 dest = s_adfd(td, source, &CC);     /* do ADFD */
 
                 sim_debug(DEBUG_DETAIL, my_dev,
-                    "%s GPR[%d] %08x %08x src %016llx result %016llx\n",
+                    "%s GPR[%d] %08x %08x src %016" PRIx64 " result %016" PRIx64 "\n",
                     (OPR&0xf)==8 ? "ADRFD":"SURFD", reg, GPR[reg], GPR[reg+1], source, dest);
                 PSD1 &= 0x87FFFFFE;                 /* clear the old CC's */
                 PSD1 |= (CC & 0x78000000);          /* update the CC's in the PSD */
@@ -4101,7 +4102,7 @@ doovr4:
                 source |= (uint64_t)GPR[sreg+1];    /* insert low order reg value */
                 dest = s_dvfd(td, source, &CC);     /* divide double values */
                 sim_debug(DEBUG_DETAIL, my_dev,
-                    "DVRFD GPR[%d] %08x %08x src %016llx result %016llx\n",
+                    "DVRFD GPR[%d] %08x %08x src %016" PRIx64 " result %016" PRIx64 "\n",
                     reg, GPR[reg], GPR[reg+1], source, dest);
                 PSD1 &= 0x87FFFFFE;                 /* clear the old CC's */
                 PSD1 |= (CC & 0x78000000);          /* update the CC's in the PSD */
@@ -4131,7 +4132,7 @@ doovr4:
                 /* convert from 64 bit double to 64 bit int */
                 dest = s_fixd(source, &CC);
                 sim_debug(DEBUG_DETAIL, my_dev,
-                    "FIXD GPR[%d] %08x %08x result %016llx\n",
+                    "FIXD GPR[%d] %08x %08x result %016" PRIx64 "\n",
                     sreg, GPR[sreg], GPR[sreg+1], dest);
                 PSD1 &= 0x87FFFFFE;                 /* clear the old CC's */
                 PSD1 |= (CC & 0x78000000);          /* update the CC's in the PSD */
@@ -4161,7 +4162,7 @@ doovr4:
                 source |= (uint64_t)GPR[sreg+1];    /* insert low order reg value */
                 dest = s_mpfd(td, source, &CC);     /* multiply double values */
                 sim_debug(DEBUG_DETAIL, my_dev,
-                    "MPRFD GPR[%d] %08x %08x src %016llx result %016llx\n",
+                    "MPRFD GPR[%d] %08x %08x src %016" PRIx64 " result %016" PRIx64 "\n",
                     reg, GPR[reg], GPR[reg+1], source, dest);
                 PSD1 &= 0x87FFFFFE;                 /* clear the old CC's */
                 PSD1 |= (CC & 0x78000000);          /* update the CC's in the PSD */
@@ -4190,7 +4191,7 @@ doovr4:
                 source |= (uint64_t)GPR[sreg+1];    /* insert low order reg value */
                 dest = s_fltd(source, &CC);         /* do conversion & set CC's */
                 sim_debug(DEBUG_DETAIL, my_dev,
-                    "FLTD GPR[%d] %08x %08x result %016llx\n",
+                    "FLTD GPR[%d] %08x %08x result %016" PRIx64 "\n",
                     sreg, GPR[sreg], GPR[sreg+1], dest);
                 PSD1 &= 0x87FFFFFE;                 /* clear the old CC's */
                 PSD1 |= (CC & 0x78000000);          /* update the CC's in the PSD */
@@ -4554,7 +4555,7 @@ doovr3:
             /* normalize the value Rd in GPR[reg] and put exponent into Rs GPR[sreg] */
             dest = s_nord(td, &GPR[sreg]);
             sim_debug(DEBUG_DETAIL, my_dev,
-                "NORD GPR[%d] %08x %08x result %016llx exp %02x\n",
+                "NORD GPR[%d] %08x %08x result %016" PRIx64 " exp %02x\n",
                 reg, GPR[reg], GPR[reg+1], dest, GPR[sreg]);
             GPR[reg+1] = (uint32_t)(dest & FMASK);  /* save the low order reg */
             GPR[reg] = (uint32_t)((dest>>32) & FMASK);/* save the hi order reg */
@@ -5792,7 +5793,7 @@ dohist:
                     }
                     dest = s_adfd(td, source, &CC); /* do ADFD */
                     sim_debug(DEBUG_DETAIL, my_dev,
-                        "%s GPR[%d] %08x %08x src %016llx result %016llx CC %08x\n",
+                        "%s GPR[%d] %08x %08x src %016" PRIx64 " result %016" PRIx64 " CC %08x\n",
                         (OPR&8) ? "ADFD":"SUFD", reg, GPR[reg], GPR[reg+1], source, dest, CC);
                     ovr = 0;
                     if (CC & CC1BIT)                /* test for overflow detection */
@@ -5870,7 +5871,7 @@ dohist:
                     dest = s_dvfd(td, source, &CC); /* do DVFD */
                 }
                 sim_debug(DEBUG_DETAIL, my_dev,
-                    "%s GPR[%d] %08x %08x src %016llx result %016llx\n",
+                    "%s GPR[%d] %08x %08x src %016" PRIx64 " result %016" PRIx64 "\n",
                     (OPR&8) ? "MPFD":"DVFD", reg, GPR[reg], GPR[reg+1], source, dest);
                 if (CC & CC1BIT)                    /* test for overflow detection */
                     ovr = 1;

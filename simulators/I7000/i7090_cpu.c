@@ -157,6 +157,7 @@
 
 #include "i7090_defs.h"
 #include "sim_timer.h"
+#include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -860,7 +861,7 @@ sim_instr(void)
                         sim_interval = sim_interval - 1;        /* count down */
                         SR = ReadP(MA);
                         sim_debug(DEBUG_TRAP, &cpu_dev,
-                          "Doing trap chan %c %o >%012llo loc %o %012llo IC=%06o %06o\n",
+                          "Doing trap chan %c %o >%012" PRIo64 " loc %o %012" PRIo64 " IC=%06o %06o\n",
                                   shiftcnt + 'A' - 1, f, temp, MA, SR, IC, iotraps);
                         if (hst_lnt) {  /* history enabled? */
                             hst_p = (hst_p + 1);        /* next entry */
@@ -908,7 +909,7 @@ sim_instr(void)
                 sim_interval = sim_interval - 1;        /* count down */
                 SR = ReadP(MA);
                 sim_debug(DEBUG_DETAIL, &cpu_dev,
-                          "Doing timer trap >%012llo loc %o %012llo\n", temp,
+                          "Doing timer trap >%012" PRIo64 " loc %o %012" PRIo64 "\n", temp,
                           MA, SR);
                 if (hst_lnt) {  /* history enabled? */
                     hst_p = (hst_p + 1);        /* next entry */
@@ -1331,7 +1332,7 @@ prottrap:
                     if (CPU_MODEL != CPU_704) {
                         if (bcore & 4)
                             goto prottrap;
-                        sim_debug(DEBUG_TRAP, &cpu_dev, "RCT %012llo\n", ioflags);
+                        sim_debug(DEBUG_TRAP, &cpu_dev, "RCT %012" PRIo64 "\n", ioflags);
                         if ((bcore & 4) || STM)
                             goto seltrap;
                         itrap = 1;
@@ -3349,7 +3350,7 @@ prottrap:
                    itrap = 1;
                 else
                    itrap = 0;
-                sim_debug(DEBUG_TRAP, &cpu_dev, "ENB %012llo %06o\n", ioflags, iotraps);
+                sim_debug(DEBUG_TRAP, &cpu_dev, "ENB %012" PRIo64 " %06o\n", ioflags, iotraps);
                 /*
                  * IBSYS can't have an trap right after ENB or it will hang
                  * on a TTR * in IBNUC.
@@ -4067,7 +4068,7 @@ prottrap:
                 relocaddr = (uint16_t)(SR & 077400);
                 relo_pend = (SR & MSIGN) ? 0: 1;
                 ihold = 1;
-                sim_debug(DEBUG_PROT, &cpu_dev, "LRI %07o %012llo\n", IC, SR);
+                sim_debug(DEBUG_PROT, &cpu_dev, "LRI %07o %012" PRIo64 "\n", IC, SR);
                 break;
             case OP_LPI:
                 /* In B core trap, else load protection */
@@ -4075,18 +4076,18 @@ prottrap:
                 limitaddr = (uint16_t)((SR >> 18) & 077400);
                 ihold = 1;
                 prot_pend = (SR & MSIGN)?0:1;
-                sim_debug(DEBUG_PROT, &cpu_dev, "LPI %07o %012llo\n", IC, SR);
+                sim_debug(DEBUG_PROT, &cpu_dev, "LPI %07o %012" PRIo64 "\n", IC, SR);
                 break;
             case OP_SRI:
                 /* In B core trap, else store relocation */
                 SR = relocaddr | ((relo_mode)? (MSIGN >> 1) : 0);
-                sim_debug(DEBUG_PROT, &cpu_dev, "SRI %07o %012llo\n", IC, SR);
+                sim_debug(DEBUG_PROT, &cpu_dev, "SRI %07o %012" PRIo64 "\n", IC, SR);
                 break;
             case OP_SPI:
                 /* In B core trap, else store protection */
                 SR = ((uint64_t)limitaddr) << 18 |
                      ((uint64_t)baseaddr);
-                sim_debug(DEBUG_PROT, &cpu_dev, "SPI %07o %012llo\n", IC, SR);
+                sim_debug(DEBUG_PROT, &cpu_dev, "SPI %07o %012" PRIo64 "\n", IC, SR);
                 break;
 
             case OP_SPOP:
@@ -4147,7 +4148,7 @@ prottrap:
 #endif
 
             default:
-                sim_printf("Invalid opcode %o IC=%o %012llo\n", opcode, IC, temp);
+                sim_printf("Invalid opcode %o IC=%o %012" PRIo64 "\n", opcode, IC, temp);
                 reason = STOP_UUO;
                 break;
             }
@@ -4428,7 +4429,7 @@ cpu_show_hist(FILE * st, UNIT * uptr, int32_t val, const void *desc)
             if (
                 (fprint_sym
                  (st, h->ic & AMASK, &sim_eval, &cpu_unit,
-                  SWMASK('M'))) > 0) fprintf(st, "(undefined) %012llo", h->op);
+                  SWMASK('M'))) > 0) fprintf(st, "(undefined) %012" PRIo64, (uint64_t)h->op);
             fputc('\n', st);    /* end line */
         }                       /* end else instruction */
     }                           /* end for */

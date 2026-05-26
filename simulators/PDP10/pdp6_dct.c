@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -99,7 +100,7 @@ dct_devio(uint32_t dev, uint64 *data) {
      switch(dev & 3) {
      case CONI:
           *data = (uint64)(uptr->STATUS);
-          sim_debug(DEBUG_CONI, &dct_dev, "DCT %03o CONI %012llo %d PC=%o\n", dev,
+          sim_debug(DEBUG_CONI, &dct_dev, "DCT %03o CONI %012" PRIo64 " %d PC=%o\n", dev,
                              *data, u, PC);
           break;
 
@@ -121,13 +122,13 @@ dct_devio(uint32_t dev, uint64 *data) {
               uptr->STATUS |= DB_MV;
               sim_activate(uptr, 10);
           }
-          sim_debug(DEBUG_DATAIO, &dct_dev, "DCT %03o DATI %012llo %d  PC=%o\n",
+          sim_debug(DEBUG_DATAIO, &dct_dev, "DCT %03o DATI %012" PRIo64 " %d  PC=%o\n",
                   dev, *data, u, PC);
           break;
 
      case DATAO:
           clr_interrupt(dev);
-          sim_debug(DEBUG_DATAIO, &dct_dev, "DCT %03o DATO %012llo, %d PC=%o\n",
+          sim_debug(DEBUG_DATAIO, &dct_dev, "DCT %03o DATO %012" PRIo64 ", %d PC=%o\n",
                   dev, *data, u, PC);
           if (uptr->STATUS & DB_RQ) {
               dct_buf[u] = *data;
@@ -218,7 +219,7 @@ dct_read (int dev, uint64 *data, int cnt)
     /* If we have data return it */
     if ((uptr->STATUS & DB_AC) == 0) {
         *data = dct_acc[u];
-         sim_debug(DEBUG_DATA, dptr, "DCT Read %012llo, %d \n",
+         sim_debug(DEBUG_DATA, dptr, "DCT Read %012" PRIo64 ", %d \n",
                  *data, u);
         uptr->STATUS &= ~(NUM_CHARS);
         uptr->STATUS |= DB_AC | DB_MV | ((cnt & 7) << 13);
@@ -253,7 +254,7 @@ dct_write (int dev, uint64 *data, int cnt)
     /* If buffer is empty put data in it. */
     if ((uptr->STATUS & DB_AC) == 0) {
         dct_acc[u] = *data;
-         sim_debug(DEBUG_DATA, dptr, "DCT Write %012llo, %d %06o\n", *data, u, uptr->STATUS);
+         sim_debug(DEBUG_DATA, dptr, "DCT Write %012" PRIo64 ", %d %06o\n", *data, u, uptr->STATUS);
         uptr->STATUS &= ~(NUM_CHARS);
         uptr->STATUS |= DB_AC | DB_MV | ((cnt & 7) << 13);
         sim_activate(uptr, 20);

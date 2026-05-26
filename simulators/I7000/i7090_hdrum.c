@@ -23,6 +23,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -149,7 +150,7 @@ t_stat hsdrm_srv(UNIT * uptr)
             switch (r) {
             case DATA_OK:
                 sim_debug(DEBUG_DATA, &hsdrm_dev,
-                          "transfer %s %o: %012llo\n\r",
+                          "transfer %s %o: %012" PRIo64 "\n\r",
                           (uptr->u5 & DRMSTA_READ) ? "read" : "write",
                           addr, buf[addr]);
                 hsdrm_addr++;

@@ -25,6 +25,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -258,7 +259,7 @@ t_stat dc_devio(uint32_t dev, uint64 *data) {
              }
          }
          dc_doscan(uptr);
-         sim_debug(DEBUG_DATAIO, &dc_dev, "DC %03o DATO %012llo PC=%06o\n",
+         sim_debug(DEBUG_DATAIO, &dc_dev, "DC %03o DATO %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
          break;
 
@@ -295,7 +296,7 @@ t_stat dc_devio(uint32_t dev, uint64 *data) {
              }
          }
          dc_doscan(uptr);
-         sim_debug(DEBUG_DATAIO, &dc_dev, "DC %03o DATI %012llo PC=%06o\n",
+         sim_debug(DEBUG_DATAIO, &dc_dev, "DC %03o DATI %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
          break;
     }

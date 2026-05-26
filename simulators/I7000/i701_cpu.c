@@ -79,6 +79,7 @@
         i701_sys.c      add sim_devices table entry
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "i7090_defs.h"
@@ -957,8 +958,8 @@ cpu_show_hist(FILE * st, UNIT * uptr, int32_t val, const void *desc)
             if (
                 (fprint_sym
                  (st, h->ic & AMASK, &sim_eval, &cpu_unit,
-                  SWMASK('M'))) > 0) fprintf(st, "(undefined) %012llo",
-                                             h->op);
+                  SWMASK('M'))) > 0) fprintf(st, "(undefined) %012" PRIo64,
+                                             (uint64_t)h->op);
             fputc('\n', st);    /* end line */
         }                       /* end else instruction */
     }                           /* end for */

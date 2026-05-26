@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -109,7 +110,7 @@ t_stat tv_devio(uint32_t dev, uint64 *data)
     switch(dev & 07) {
     case CONI|4:
         *data = tv_buttons ();
-        sim_debug (DEBUG_CONI, &tv_dev, "%07llo\n", *data);
+        sim_debug (DEBUG_CONI, &tv_dev, "%07" PRIo64 "\n", *data);
         break;
     }
 

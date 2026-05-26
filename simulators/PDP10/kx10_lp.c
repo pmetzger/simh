@@ -27,6 +27,7 @@
 
 #include "kx10_defs.h"
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdint.h>
 
 
@@ -137,12 +138,12 @@ t_stat lpt_devio(uint32_t dev, uint64 *data) {
              *data |= C128;
          if ((uptr->flags & UNIT_ATT) == 0)
              *data |= ERR_FLG;
-         sim_debug(DEBUG_CONI, &lpt_dev, "LP CONI %012llo PC=%06o\n", *data, PC);
+         sim_debug(DEBUG_CONI, &lpt_dev, "LP CONI %012" PRIo64 " PC=%06o\n", *data, PC);
          break;
 
     case CONO:
          clr_interrupt(dev);
-         sim_debug(DEBUG_CONO, &lpt_dev, "LP CONO %012llo PC=%06o\n", *data, PC);
+         sim_debug(DEBUG_CONO, &lpt_dev, "LP CONO %012" PRIo64 " PC=%06o\n", *data, PC);
          uptr->STATUS &= ~0777;
          uptr->STATUS |= ((PI_DONE|PI_ERROR|DONE_FLG|BUSY_FLG|CLR_LPT) & *data);
          if (*data & CLR_LPT) {
@@ -167,7 +168,7 @@ t_stat lpt_devio(uint32_t dev, uint64 *data) {
              uptr->STATUS |= BUSY_FLG;
              clr_interrupt(dev);
              sim_activate (&lpt_unit, lpt_unit.wait);
-             sim_debug(DEBUG_DATAIO, &lpt_dev, "LP DATO %012llo PC=%06o\n", *data, PC);
+             sim_debug(DEBUG_DATAIO, &lpt_dev, "LP DATO %012" PRIo64 " PC=%06o\n", *data, PC);
          }
          break;
     case DATAI:

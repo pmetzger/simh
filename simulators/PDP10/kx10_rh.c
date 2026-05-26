@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -567,12 +568,12 @@ t_stat rh_devio(uint32_t dev, uint64 *data) {
                   }
               }
               *data |= ((uint64)(rhc->reg)) << 30;
-              sim_debug(DEBUG_DATAIO, dptr, "%s %03o DATI %012llo %d PC=%06o\n",
+              sim_debug(DEBUG_DATAIO, dptr, "%s %03o DATI %012" PRIo64 " %d PC=%06o\n",
                           dptr->name, dev, *data, rhc->drive, PC);
               return SCPE_OK;
 
          case DATAO:
-              sim_debug(DEBUG_DATAIO, dptr, "%s %03o DATO %012llo  PC=%06o %06o\n",
+              sim_debug(DEBUG_DATAIO, dptr, "%s %03o DATO %012" PRIo64 "  PC=%06o %06o\n",
                          dptr->name, dev, *data, PC, rhc->status);
               rhc->reg = ((int)(*data >> 30)) & 077;
               rhc->imode |= 2;
@@ -710,12 +711,12 @@ t_stat rh_devio(uint32_t dev, uint64 *data) {
               *data |= ((uint64)(rhc->drive)) << 18;
         }
         *data |= ((uint64)(rhc->reg)) << 30;
-        sim_debug(DEBUG_DATAIO, dptr, "%s %03o DATI %012llo %d PC=%06o\n",
+        sim_debug(DEBUG_DATAIO, dptr, "%s %03o DATI %012" PRIo64 " %d PC=%06o\n",
                     dptr->name, dev, *data, rhc->drive, PC);
         return SCPE_OK;
 
      case DATAO:
-         sim_debug(DEBUG_DATAIO, dptr, "%s %03o DATO %012llo  PC=%06o %06o\n",
+         sim_debug(DEBUG_DATAIO, dptr, "%s %03o DATO %012" PRIo64 "  PC=%06o %06o\n",
                     dptr->name, dev, *data, PC, rhc->status);
          rhc->reg = ((int)(*data >> 30)) & 077;
          rhc->imode &= ~2;
@@ -738,7 +739,7 @@ t_stat rh_devio(uint32_t dev, uint64 *data) {
                    rhc->status |= CXR_ILC;
                    rh_setirq(rhc);
                    sim_debug(DEBUG_DATAIO, dptr,
-                       "%s %03o command abort %012llo, %d PC=%06o %06o\n",
+                       "%s %03o command abort %012" PRIo64 ", %d PC=%06o %06o\n",
                        dptr->name, dev, *data, rhc->drive, PC, rhc->status);
                    return SCPE_OK;
                 }
@@ -754,7 +755,7 @@ t_stat rh_devio(uint32_t dev, uint64 *data) {
                    rhc->xfer_drive = rhc->drive;
                 }
                 sim_debug(DEBUG_DATAIO, dptr,
-                    "%s %03o command %012llo, %d PC=%06o %06o\n",
+                    "%s %03o command %012" PRIo64 ", %d PC=%06o %06o\n",
                     dptr->name, dev, *data, rhc->drive, PC, rhc->status);
              } else if (rhc->reg == 044) {
                 /* Set KI10 Irq vector */
@@ -1070,7 +1071,7 @@ static int rh_fetch(struct rh_if *rhc) {
          rh_finish_op(rhc, 1);
          return 0;
      }
-     sim_debug(DEBUG_EXP, dptr, "%s fetch %06o %012llo\n\r", dptr->name, rhc->ccw, data);
+     sim_debug(DEBUG_EXP, dptr, "%s fetch %06o %012" PRIo64 "\n\r", dptr->name, rhc->ccw, data);
 #if KL
      if (rhc->imode == 2) {
          while((data & RH20_XFER) == 0) {
@@ -1082,7 +1083,7 @@ static int rh_fetch(struct rh_if *rhc) {
                  rh_finish_op(rhc, 1);
                  return 0;
              }
-             sim_debug(DEBUG_EXP, dptr, "%s fetch2 %06o %012llo\n\r", dptr->name, rhc->ccw, data);
+             sim_debug(DEBUG_EXP, dptr, "%s fetch2 %06o %012" PRIo64 "\n\r", dptr->name, rhc->ccw, data);
 //fprintf(stderr, "RH20 fetch2 %06o %012llo\n\r", rhc->ccw, data);
          }
          rhc->wcr = (((data >> CSHIFT) & RH20_WMASK) ^ WMASK) + 1;
@@ -1102,7 +1103,7 @@ static int rh_fetch(struct rh_if *rhc) {
              rh_finish_op(rhc, 1);
              return 0;
          }
-         sim_debug(DEBUG_EXP, dptr, "%s fetch2 %06o %012llo\n\r", dptr->name, rhc->ccw, data);
+         sim_debug(DEBUG_EXP, dptr, "%s fetch2 %06o %012" PRIo64 "\n\r", dptr->name, rhc->ccw, data);
      }
      rhc->wcr = (uint32_t)((data >> CSHIFT) & WMASK);
      rhc->cda = (uint32_t)(data & AMASK);

@@ -23,6 +23,7 @@
    through shared memory and inter-processor interrupts.
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -354,7 +355,7 @@ t_stat auxcpu_devio(uint32_t dev, uint64 *data)
 
     switch(dev & 07) {
     case CONO:
-        sim_debug(DEBUG_CONO, &auxcpu_dev, "CONO %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &auxcpu_dev, "CONO %012" PRIo64 "\n", *data);
         uptr->PIA = *data & 7;
         if (*data & 010)
           {
@@ -367,14 +368,14 @@ t_stat auxcpu_devio(uint32_t dev, uint64 *data)
         break;
     case CONI:
         *data = (uptr->STATUS & 010) | uptr->PIA;
-        sim_debug(DEBUG_CONI, &auxcpu_dev, "CONI %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &auxcpu_dev, "CONI %012" PRIo64 "\n", *data);
         break;
     case DATAI:
         *data = 0;
-        sim_debug(DEBUG_CONI, &auxcpu_dev, "DATAI %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &auxcpu_dev, "DATAI %012" PRIo64 "\n", *data);
         break;
     case DATAO:
-        sim_debug(DEBUG_CONI, &auxcpu_dev, "DATAO %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &auxcpu_dev, "DATAO %012" PRIo64 "\n", *data);
         break;
     }
 

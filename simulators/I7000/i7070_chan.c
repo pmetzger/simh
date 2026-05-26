@@ -40,6 +40,7 @@
    SENSE<0:16>          Additional flags for 7907 channels.
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "i7070_defs.h"
@@ -374,7 +375,7 @@ chan_trap:
                     temp |= M[adr] & 0xF000000000LL;
                     if (chan_dev.dctrl & cmask)
                            sim_debug(DEBUG_TRAP, &chan_dev,
-                                 "chan %d Trap: %012llx prio=%d\n\r", chan,
+                                 "chan %d Trap: %012" PRIx64 " prio=%d\n\r", chan,
                                          temp, (chan_info[chan]&CHAN_PRIO)?1:0);
                     M[adr] = temp;
                     if ((chan_info[chan] & CHAN_PRIO) ||
@@ -513,7 +514,7 @@ chan_trap:
                 if ((chan_flags[chan] & STA_WAIT) == 0) {
                     if (chan_dev.dctrl & cmask)
                         sim_debug(DEBUG_DATA, &chan_dev,
-                                  "chan %d data < %011llx\n",
+                                  "chan %d data < %011" PRIx64 "\n",
                                   chan, assembly[chan]);
                     if (caddr[chan] < MEMSIZE)
                         M[caddr[chan]] = assembly[chan];
@@ -563,7 +564,7 @@ chan_trap:
                           assembly[chan] == (ASIGN|(((uint64_t)SM_MEM) << 32))){
                             if (chan_dev.dctrl & cmask)
                                 sim_debug(DEBUG_DETAIL, &chan_dev,
-                                 "chk segment %d %d data = %012llx found\n\r",
+                                 "chk segment %d %d data = %012" PRIx64 " found\n\r",
                                          chan, bcnt[chan], assembly[chan]);
 
                             /* What we were looking for? */
@@ -576,7 +577,7 @@ chan_trap:
                             /* Check if hit end of record */
                             if (chan_dev.dctrl & cmask)
                                 sim_debug(DEBUG_DETAIL, &chan_dev,
-                                 "chk segment %d %d data = %012llx search\n\r",
+                                 "chk segment %d %d data = %012" PRIx64 " search\n\r",
                                          chan, bcnt[chan], assembly[chan]);
                         /* Correct error */
                         chan_info[chan] &= ~(CHAN_TWE|CHAN_SEOS|CHAN_SCLR);
@@ -658,7 +659,7 @@ chan_trap:
                         assembly[chan] = M[caddr[chan]];
                     if (chan_dev.dctrl & cmask)
                         sim_debug(DEBUG_DATA, &chan_dev,
-                                      "chan %d data > %011llx\n", chan,
+                                      "chan %d data > %011" PRIx64 "\n", chan,
                               assembly[chan]);
                     bcnt[chan] = 10;
                     chan_flags[chan] |= DEV_FULL;
@@ -738,7 +739,7 @@ chan_trap:
                 upd_idx(&temp, caddr[chan]);
                 bin_dec(&temp, location[chan], 0, 4);
                 if (chan_dev.dctrl & cmask)
-                    sim_debug(DEBUG_TRAP, &chan_dev, "chan %d Trap: %012llx\n",
+                    sim_debug(DEBUG_TRAP, &chan_dev, "chan %d Trap: %012" PRIx64 "\n",
                               chan, temp);
                 M[(chan - 4) + 300] = temp;
                 if ((chan_info[chan] & CHAN_PRIO) || ((temp >> 36) & 0xf) != 2)
@@ -839,7 +840,7 @@ chan_trap:
                                 M[caddr[chan]] = assembly[chan];
                                 if (chan_dev.dctrl & cmask)
                                     sim_debug(DEBUG_DATA, &chan_dev,
-                                              "chan %d data > %012llx\n",
+                                              "chan %d data > %012" PRIx64 "\n",
                                               chan, assembly[chan]);
                                 caddr[chan]++;
                                 bcnt[chan] = 10;
@@ -949,7 +950,7 @@ chan_trap:
                                 assembly[chan] = M[caddr[chan]];
                                 if (chan_dev.dctrl & cmask)
                                     sim_debug(DEBUG_DATA, &chan_dev,
-                                              "chan %d data > %012llx\n",
+                                              "chan %d data > %012" PRIx64 "\n",
                                               chan, assembly[chan]);
                                 caddr[chan]++;
                                 bcnt[chan] = 10;
@@ -1024,7 +1025,7 @@ chan_trap:
                                 /* Device has given us a dataword */
                                  if (chan_dev.dctrl & cmask)
                                      sim_debug(DEBUG_DATA, &chan_dev,
-                                               "chan %d data < %012llx\n",
+                                               "chan %d data < %012" PRIx64 "\n",
                                                chan, assembly[chan]);
                                  M[caddr[chan]] = assembly[chan];
                                  assembly[chan] = 0;
@@ -1133,7 +1134,7 @@ chan_trap:
                                 bcnt[chan] = 10;
                                 if (chan_dev.dctrl & cmask)
                                     sim_debug(DEBUG_CMD, &chan_dev,
-                                          "chan %d cmd > %012llx\n",
+                                          "chan %d cmd > %012" PRIx64 "\n",
                                           chan, assembly[chan]);
                                 if (caddr[chan] < limit[chan])
                                     caddr[chan]++;

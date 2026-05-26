@@ -23,6 +23,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "i7090_defs.h"
@@ -219,7 +220,7 @@ t_stat cdr_srv(UNIT * uptr)
 
     switch (chan_write (chan, &wd,/* (pos == 23) ? DEV_REOR :*/ 0)) {
     case DATA_OK:
-        sim_debug(DEBUG_DATA, &cdr_dev, "unit=%d read row %d %012llo\n", u,
+        sim_debug(DEBUG_DATA, &cdr_dev, "unit=%d read row %d %012" PRIo64 "\n", u,
                   pos, wd);
         pos++;
         uptr->u5 &= ~CDRPOSMASK;
@@ -282,7 +283,7 @@ cdr_boot(int32_t unit_num, DEVICE * dptr)
             if (image[col-- + b] & bit)
                  M[pos] |= mask;
         }
-        sim_debug(DEBUG_DATA, &cdr_dev, "boot read row %d %012llo\n",
+        sim_debug(DEBUG_DATA, &cdr_dev, "boot read row %d %012" PRIo64 "\n",
                   pos, M[pos]);
     }
     uptr->u5 |= pos << CDRPOSSHIFT;

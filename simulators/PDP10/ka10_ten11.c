@@ -23,6 +23,7 @@
    specific to the MIT AI lab PDP-10.
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -346,7 +347,7 @@ int ten11_read (t_addr addr, uint64 *data)
     *data = ((uint64)word1 << 20) | (word2 << 4);
 
     sim_debug (DBG_TRC, &ten11_dev,
-               "Read: (%o) %06o -> %012llo\n",
+               "Read: (%o) %06o -> %012" PRIo64 "\n",
                unibus, uaddr, *data);
   }
   return 0;
@@ -429,7 +430,7 @@ int ten11_write (t_addr addr, uint64 data)
     uaddr = ((mapping & T11ADDR) >> 10) + offset;
     uaddr <<= 2;
     sim_debug (DBG_TRC, &ten11_dev,
-               "Write: (%o) %06o <- %012llo\n",
+               "Write: (%o) %06o <- %012" PRIo64 "\n",
                unibus, uaddr, data);
 
     if ((data & 010) == 0)

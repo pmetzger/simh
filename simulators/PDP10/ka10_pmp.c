@@ -57,6 +57,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -437,12 +438,12 @@ pmp_devio(uint32_t dev, uint64 *data) {
               *data |= ((uint64)GET_UADDR(pmp_cur_unit->flags)) << 24;
           if ((pmp_status & (NXM_ERR|CHA_ERR|SEL_ERR)) != 0)
               *data |= UNU_END;
-          sim_debug(DEBUG_CONI, &pmp_dev, "PMP %03o CONI %012llo PC=%o\n",
+          sim_debug(DEBUG_CONI, &pmp_dev, "PMP %03o CONI %012" PRIo64 " PC=%o\n",
                dev, *data, PC);
           break;
 
      case CONO:
-          sim_debug(DEBUG_CONO, &pmp_dev, "PMP %03o CONO %012llo PC=%06o\n",
+          sim_debug(DEBUG_CONO, &pmp_dev, "PMP %03o CONO %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
           if (*data & 010)
              pmp_pia = *data & 7;
@@ -451,7 +452,7 @@ pmp_devio(uint32_t dev, uint64 *data) {
           break;
 
      case DATAI:
-          sim_debug(DEBUG_DATAIO, &pmp_dev, "PMP %03o DATI %012llo PC=%06o\n",
+          sim_debug(DEBUG_DATAIO, &pmp_dev, "PMP %03o DATI %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
           *data = (uint64)(pmp_addr);
           break;
@@ -460,7 +461,7 @@ pmp_devio(uint32_t dev, uint64 *data) {
           pmp_addr_hold = (*data) & RMASK;
           pmp_wc_hold = (*data >> 18) & RMASK;
           pmp_statusb |= WCMA_LD;
-          sim_debug(DEBUG_DATAIO, &pmp_dev, "PMP %03o DATO %012llo %d PC=%06o\n",
+          sim_debug(DEBUG_DATAIO, &pmp_dev, "PMP %03o DATO %012" PRIo64 " %d PC=%06o\n",
                     dev, *data, (int)(((RMASK ^ pmp_wc_hold) + 1) & RMASK), PC);
           (void)pmp_checkirq();
           break;
@@ -473,12 +474,12 @@ pmp_devio(uint32_t dev, uint64 *data) {
              *data |= CMD_EMP;
           if ((pmp_statusb & (OP1|REQ_CH|IDLE_CH)) == IDLE_CH)
              *data |= OPL;
-          sim_debug(DEBUG_CONI, &pmp_dev, "IBM %03o CONI %012llo PC=%o\n",
+          sim_debug(DEBUG_CONI, &pmp_dev, "IBM %03o CONI %012" PRIo64 " PC=%o\n",
                dev, *data, PC);
           break;
 
      case CONO|04:
-          sim_debug(DEBUG_CONO, &pmp_dev, "IBM %03o CONO %012llo PC=%06o\n",
+          sim_debug(DEBUG_CONO, &pmp_dev, "IBM %03o CONO %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
           if (*data & PWR_CLR) {    /* Power on clear */
               pmp_statusb = IDLE_CH;
@@ -525,12 +526,12 @@ pmp_devio(uint32_t dev, uint64 *data) {
           break;
 
      case DATAI|4:
-          sim_debug(DEBUG_DATAIO, &pmp_dev, "IBM %03o DATI %012llo PC=%06o\n",
+          sim_debug(DEBUG_DATAIO, &pmp_dev, "IBM %03o DATI %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
           break;
 
      case DATAO|4:
-          sim_debug(DEBUG_DATAIO, &pmp_dev, "IBM %03o DATO %012llo PC=%06o\n",
+          sim_debug(DEBUG_DATAIO, &pmp_dev, "IBM %03o DATO %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
           pmp_cmd_hold = (*data) & HOLD_MASK;
           pmp_statusb |= CMD_LD;
@@ -603,7 +604,7 @@ chan_read_byte(uint8_t *data) {
     if (pmp_cnt & BUFF_EMPTY) {
         if (Mem_read_word(pmp_addr, &pmp_data, 0))
             return pmp_posterror(NXM_ERR);
-         sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_read %06o %012llo\n",
+         sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_read %06o %012" PRIo64 "\n",
                 pmp_addr, pmp_data);
         pmp_addr++;
         pmp_cnt = 0;
@@ -622,7 +623,7 @@ chan_read_byte(uint8_t *data) {
               byte = (pmp_data << 4) & 0xf0;
               if (Mem_read_word(pmp_addr, &pmp_data, 0))
                   return pmp_posterror(NXM_ERR);
-              sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_read %06o %012llo\n",
+              sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_read %06o %012" PRIo64 "\n",
                      pmp_addr, pmp_data);
               pmp_addr++;
               xfer = 1;  /* Read in a word */
@@ -678,7 +679,7 @@ chan_write_byte(uint8_t *data) {
             pmp_cnt &= ~(BUFF_DIRTY|7);
             if (Mem_write_word(pmp_addr, &pmp_data, 0))
                 return pmp_posterror(NXM_ERR);
-            sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_write %06o %012llo\n",
+            sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_write %06o %012" PRIo64 "\n",
                           pmp_addr, pmp_data);
             pmp_addr++;
             xfer = 1;
@@ -690,7 +691,7 @@ chan_write_byte(uint8_t *data) {
               pmp_data |= (uint64)((*data >> 4) & 0xf);
               if (Mem_write_word(pmp_addr, &pmp_data, 0))
                   return pmp_posterror(NXM_ERR);
-              sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_write %06o %012llo %2x\n",
+              sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_write %06o %012" PRIo64 " %2x\n",
                          pmp_addr, pmp_data, pmp_cnt);
               pmp_addr++;
               xfer = 1;  /* Read in a word */
@@ -711,7 +712,7 @@ chan_write_byte(uint8_t *data) {
             pmp_cnt = BUFF_EMPTY;
             if (Mem_write_word(pmp_addr, &pmp_data, 0))
                 return pmp_posterror(NXM_ERR);
-            sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_write %06o %012llo %2x\n",
+            sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_write %06o %012" PRIo64 " %2x\n",
                          pmp_addr, pmp_data, pmp_cnt);
             pmp_addr++;
             xfer = 1;  /* Read in a word */
@@ -761,7 +762,7 @@ chan_end(uint8_t flags) {
             (void) pmp_posterror(NXM_ERR);
             return;
         }
-        sim_debug(DEBUG_DATA, &pmp_dev, "chan_write %012llo\n", pmp_data);
+        sim_debug(DEBUG_DATA, &pmp_dev, "chan_write %012" PRIo64 "\n", pmp_data);
         pmp_addr++;
     }
     pmp_statusb &= ~TRANS_CH;                 /* Clear transfer in progress */
@@ -774,7 +775,7 @@ chan_end(uint8_t flags) {
     /* If channel is also finished, then skip any more data commands. */
     if (pmp_status & (CHN_END|DEV_END)) {
         pmp_cnt = BUFF_CHNEND;
-        sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_endc %012llo %06o\n",
+        sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_endc %012" PRIo64 " %06o\n",
                          pmp_status, pmp_cmd);
 
         /* While command has chain data set, continue to skip */
@@ -791,7 +792,7 @@ chan_end(uint8_t flags) {
         /* Indicate that device is done */
         pmp_statusb &= ~OP1;
     }
-    sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_endf %012llo %06o\n",
+    sim_debug(DEBUG_DETAIL, &pmp_dev, "chan_endf %012" PRIo64 " %06o\n",
                          pmp_status, pmp_statusb);
     (void)pmp_checkirq();
 }

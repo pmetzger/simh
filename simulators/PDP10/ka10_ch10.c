@@ -28,6 +28,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -342,7 +343,7 @@ t_stat ch10_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 07) {
     case CONO:
-        sim_debug (DBG_REG, &ch10_dev, "CONO %012llo %012llo \n", *data, ch10_status);
+        sim_debug (DBG_REG, &ch10_dev, "CONO %012" PRIo64 " %012" PRIo64 " \n", *data, ch10_status);
         ch10_command ((uint32_t)(*data & RMASK));
         ch10_status &= ~STATUS_BITS;
         ch10_status |= *data & STATUS_BITS;
@@ -374,7 +375,7 @@ t_stat ch10_devio(uint32_t dev, uint64 *data)
               }
               tx_count+=2;
           }
-          sim_debug (DBG_DAT, &ch10_dev, "Write buffer word %d:%02x %02x %02x %02x %012llo %012llo\n",
+          sim_debug (DBG_DAT, &ch10_dev, "Write buffer word %d:%02x %02x %02x %02x %012" PRIo64 " %012" PRIo64 "\n",
                      tx_count, tx_buffer[i], tx_buffer[i+1], tx_buffer[i+2], tx_buffer[i+3], *data, ch10_status);
           return SCPE_OK;
         } else {
@@ -400,7 +401,7 @@ t_stat ch10_devio(uint32_t dev, uint64 *data)
               *data |= ((uint64)(rx_buffer[rx_pos+3]) & 0xff) << 4;
           }
           rx_count-=4;
-          sim_debug (DBG_DAT, &ch10_dev, "Read buffer word %d:%02x %02x %02x %02x %012llo %012llo\n",
+          sim_debug (DBG_DAT, &ch10_dev, "Read buffer word %d:%02x %02x %02x %02x %012" PRIo64 " %012" PRIo64 "\n",
                      rx_count, rx_buffer[rx_pos], rx_buffer[rx_pos+1], rx_buffer[rx_pos+2], rx_buffer[rx_pos+3],
                      *data, ch10_status);
           rx_pos+=4;

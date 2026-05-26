@@ -25,6 +25,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -621,7 +622,7 @@ iii_svc (UNIT *uptr)
 skip_up:
      if (uptr->STATUS & RUN_FLG) {
          iii_instr = M[uptr->MAR];
-         sim_debug(DEBUG_DETAIL, &iii_dev, "III: fetch %06o %012llo\n",
+         sim_debug(DEBUG_DETAIL, &iii_dev, "III: fetch %06o %012" PRIo64 "\n",
                       uptr->MAR, iii_instr);
          uptr->MAR++;
          uptr->MAR &= RMASK;

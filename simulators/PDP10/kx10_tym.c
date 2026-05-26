@@ -21,6 +21,7 @@
 */
 
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -737,7 +738,7 @@ static void tym_output(void)
 {
     int type, port, subtype, data;
     while (M[tym_base + OBP] != M[tym_base + OHP]) {
-        sim_debug(DEBUG_DETAIL, &tym_dev, "Output from host: %llu %012llo\n",
+        sim_debug(DEBUG_DETAIL, &tym_dev, "Output from host: %" PRIu64 " %012" PRIo64 "\n",
                    M[tym_base + OBP], word(OBP, ORNG));
         type = (word(OBP, ORNG) >> 28) & 0377;
         port = (word(OBP, ORNG) >> 20) & 0377;
@@ -770,7 +771,7 @@ static void check(const char *name, int offset, uint64 *value)
 {
     uint64 x = M[tym_base + offset];
     if (x != *value) {
-        sim_debug(DEBUG_DETAIL, &tym_dev, "%s: %012llo\n", name, x);
+        sim_debug(DEBUG_DETAIL, &tym_dev, "%s: %012" PRIo64 "\n", name, x);
         *value = x;
     }
 }

@@ -138,6 +138,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -991,7 +992,7 @@ static t_stat executeAnInstruction(void)
                       INTprefix, buf);
             }
             fprintf(DBGOUT,
-                    "%s===> Interrupt %d entered at 0x%04X, from %04X, Inst: %llu\r\n",
+                    "%s===> Interrupt %d entered at 0x%04X, from %04X, Inst: %" PRIu64 "\r\n",
                     INTprefix, i, Preg, from, Instructions);
           }
 
@@ -1019,7 +1020,7 @@ static t_stat executeAnInstruction(void)
   if (((cpu_dev.dctrl & DBG_TRACE) != 0) ||
       (((cpu_dev.dctrl & DBG_ITRACE) != 0) && (INTlevel != 0))) {
     fprintf(DBGOUT,
-            "%sA:%04X Q:%04X I:%04X M:%04X Ovf:%d Pfault: %d Inst:%llu\r\n",
+            "%sA:%04X Q:%04X I:%04X M:%04X Ovf:%d Pfault: %d Inst:%" PRIu64 "\r\n",
             INTprefix, Areg, Qreg, LoadFromMem(0xFF),
             Mreg, Oflag, Pfault, Instructions);
   }

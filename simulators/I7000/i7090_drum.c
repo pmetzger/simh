@@ -23,6 +23,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -153,7 +154,7 @@ t_stat drm_srv(UNIT * uptr)
         }
         switch (r) {
         case DATA_OK:
-            sim_debug(DEBUG_DATA, &drm_dev, "loc %6o data %012llo\n", addr,
+            sim_debug(DEBUG_DATA, &drm_dev, "loc %6o data %012" PRIo64 "\n", addr,
                                  buf[addr]);
             addr++;
             addr &= DRMMASK;

@@ -77,6 +77,7 @@
  * configured as a 1732-A (set mt type=1732-A).
  *
  */
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -624,7 +625,7 @@ static void mt_trace(UNIT *uptr, const char *what, t_stat st, bool xfer)
     else fprintf(DBGOUT, "MT%d: %s - %s\r\n", u, what, status);
   } else fprintf(DBGOUT, "MT%d: %s\r\n", u, what);
   if ((mt_dev.dctrl & DBG_DLOC) != 0)
-    fprintf(DBGOUT, "MT%d: Inst: %llu\r\n", u, Instructions);
+    fprintf(DBGOUT, "MT%d: Inst: %" PRIu64 "\r\n", u, Instructions);
 }
 
 /* MT trace routine (DSA mode) */

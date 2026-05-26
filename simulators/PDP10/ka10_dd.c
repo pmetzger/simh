@@ -25,6 +25,7 @@
    in this Software without prior written authorization from Lars Brinkhoff.
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -195,10 +196,10 @@ dd_devio(uint32_t dev, uint64 *data) {
      switch(dev & 3) {
      case CONI:
         *data = uptr->PIA | uptr->STATUS;
-        sim_debug (DEBUG_CONI, &dd_dev, "%06llo (%6o)\n", *data, PC);
+        sim_debug (DEBUG_CONI, &dd_dev, "%06" PRIo64 " (%6o)\n", *data, PC);
         break;
      case CONO:
-        sim_debug (DEBUG_CONO, &dd_dev, "%06llo (%6o)\n", *data, PC);
+        sim_debug (DEBUG_CONO, &dd_dev, "%06" PRIo64 " (%6o)\n", *data, PC);
         uptr->STATUS &= ~DD_HALT;
         clr_interrupt (DD_DEVNUM);
         uptr->PIA = (uint32_t)(*data & 7);
@@ -500,7 +501,7 @@ dd_decode (uint64 insn)
         dd_text (insn);
         break;
     case 002: case 022: case 042: case 062:
-        sim_debug(DEBUG_CMD, &dd_dev, "COMMAND: graphics %012llo\n", insn >> 4);
+        sim_debug(DEBUG_CMD, &dd_dev, "COMMAND: graphics %012" PRIo64 "\n", insn >> 4);
         dd_byte ((insn >> 28) & 0377);
         dd_byte ((insn >> 20) & 0377);
         dd_byte ((insn >> 12) & 0377);
@@ -528,7 +529,7 @@ dd_decode (uint64 insn)
         dd_command ((insn >> 3) & 7, (insn >> 12) & 0377);
         break;
     default:
-        sim_debug(DEBUG_CMD, &dd_dev, "(UNDOCUMENTED %012llo)\n", insn);
+        sim_debug(DEBUG_CMD, &dd_dev, "(UNDOCUMENTED %012" PRIo64 ")\n", insn);
         break;
     }
 }
@@ -739,11 +740,11 @@ vds_devio(uint32_t dev, uint64 *data)
 {
     switch(dev & 3) {
     case CONO:
-        sim_debug(DEBUG_CONO, &vds_dev, "%012llo (%6o)\n", *data, PC);
+        sim_debug(DEBUG_CONO, &vds_dev, "%012" PRIo64 " (%6o)\n", *data, PC);
         vds_channel = *data & 077;
         break;
     case DATAO:
-        sim_debug(DEBUG_DATAIO, &vds_dev, "%012llo (%6o)\n", *data, PC);
+        sim_debug(DEBUG_DATAIO, &vds_dev, "%012" PRIo64 " (%6o)\n", *data, PC);
         vds_changed[vds_channel] = 1;
         vds_selection[vds_channel] = (uint32_t)(*data >> 4);
         vds_sync_inhibit[vds_channel] = (*data >> 3) & 1;

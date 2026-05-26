@@ -85,6 +85,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -405,7 +406,7 @@ dtc_devio(uint32_t dev, uint64 *data) {
 
      case CONI|04:
           *data = dtc_dtsb;
-          sim_debug(DEBUG_CONI, &dtc_dev, "DTB %03o CONI %012llo PC=%o\n",
+          sim_debug(DEBUG_CONI, &dtc_dev, "DTB %03o CONI %012" PRIo64 " PC=%o\n",
                dev, *data, PC);
           break;
 
@@ -647,7 +648,7 @@ dtc_svc (UNIT *uptr)
                        break;
                   }
                   sim_debug(DEBUG_DETAIL, &dtc_dev,
-                             "DTC %o rev data word %o:%o %012llo %d %06o %06o\n",
+                             "DTC %o rev data word %o:%o %012" PRIo64 " %d %06o %06o\n",
                                 u, blk, word, data, off, fbuf[off], fbuf[off+1]);
                   break;
 
@@ -901,7 +902,7 @@ dtc_svc (UNIT *uptr)
                        break;
                   }
                   sim_debug(DEBUG_DETAIL, &dtc_dev,
-                            "DTC %o data word %o:%o %012llo %d %06o %06o\n",
+                            "DTC %o data word %o:%o %012" PRIo64 " %d %06o %06o\n",
                              u, blk, word, data, off, fbuf[off], fbuf[off+1]);
                   break;
 

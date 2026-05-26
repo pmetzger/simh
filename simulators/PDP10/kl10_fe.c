@@ -29,6 +29,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -663,7 +664,7 @@ void dte_second(UNIT *uptr) {
 #endif
 
     /* Do it */
-    sim_debug(DEBUG_DETAIL, &dte_dev, "CTY secondary %012llo\n", word);
+    sim_debug(DEBUG_DETAIL, &dte_dev, "CTY secondary %012" PRIo64 "\n", word);
     switch(word & SEC_CMDMSK) {
     default:
     case SEC_MONO:  /* Ouput character in monitor mode */
@@ -786,14 +787,14 @@ void dte_its(UNIT *uptr) {
      word = M[ITS_DTEINP];
      if ((word & SMASK) == 0) {
          M[ITS_DTEINP] = FMASK;
-         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEINP = %012llo\n", word);
+         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEINP = %012" PRIo64 "\n", word);
      }
      /* Check for output Start */
      word = M[ITS_DTEOUT];
      if ((word & SMASK) == 0) {
          cnt = word & 017777;
          ln = ((word >> 18) & 077) - 1;
-         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEOUT = %012llo\n", word);
+         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEOUT = %012" PRIo64 "\n", word);
          while (cnt > 0) {
              if (ln < 0) {
                  if (full(&cty_out))
@@ -825,13 +826,13 @@ void dte_its(UNIT *uptr) {
          M[ITS_DTEOUT] = FMASK;
          uptr->STATUS |= DTE_11DN;
          set_interrupt(DTE_DEVNUM, uptr->STATUS);
-         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEOUT = %012llo\n", word);
+         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEOUT = %012" PRIo64 "\n", word);
      }
      /* Check for line speed */
      word = M[ITS_DTELSP];
      if ((word & SMASK) == 0) {  /* Ready? */
          M[ITS_DTELSP] = FMASK;
-         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTELSP = %012llo %012llo\n", word, M[ITS_DTELPR]);
+         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTELSP = %012" PRIo64 " %012" PRIo64 "\n", word, M[ITS_DTELPR]);
      }
      dte_input();
      /* Check for output Start */
@@ -845,7 +846,7 @@ void dte_its(UNIT *uptr) {
          }
 #endif
          M[ITS_DTEOST] = FMASK;
-         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEOST = %012llo\n", word);
+         sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEOST = %012" PRIo64 "\n", word);
      }
 }
 #endif
@@ -888,10 +889,10 @@ error:
              uptr->STATUS |= DTE_10DB;
              set_interrupt(DTE_DEVNUM, dte_unit[0].STATUS);
          }
-         sim_debug(DEBUG_DETAIL, &dte_dev, "DTE: error %012llo\n", word);
+         sim_debug(DEBUG_DETAIL, &dte_dev, "DTE: error %012" PRIo64 "\n", word);
          return;
     }
-    sim_debug(DEBUG_DETAIL, &dte_dev, "DTE: status word %012llo\n", word);
+    sim_debug(DEBUG_DETAIL, &dte_dev, "DTE: status word %012" PRIo64 "\n", word);
 
     if ((word & PRI_CMT_QP) == 0) {
         goto error;
@@ -907,7 +908,7 @@ error:
         /* Get size of transfer */
         if (Mem_examine_word(0, dte_et11_off + PRI_CMTW_CNT, &iword))
             goto error;
-        sim_debug(DEBUG_EXP, &dte_dev, "DTE: count: %012llo\n", iword);
+        sim_debug(DEBUG_EXP, &dte_dev, "DTE: count: %012" PRIo64 "\n", iword);
         in->dcnt = (uint16_t)(iword & 0177777);
         /* Read in data */
         dp = &in->data[0];
@@ -1525,7 +1526,7 @@ dte_input(void)
        uint64   word;
        word = M[ITS_DTEODN];
        /* Check if ready for output done */
-       sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEODN = %012llo %d\n", word,
+       sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEODN = %012" PRIo64 " %d\n", word,
                     cty_done);
        if ((word & SMASK) != 0) {
            if (cty_done) {
@@ -1548,7 +1549,7 @@ dte_input(void)
                /* Tell 10 something is ready */
                uptr->STATUS |= DTE_10DB;
                set_interrupt(DTE_DEVNUM, uptr->STATUS);
-               sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEODN = %012llo\n",
+               sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEODN = %012" PRIo64 "\n",
                             word);
            }
        }
@@ -1583,7 +1584,7 @@ dte_input(void)
                /* Tell 10 something is ready */
                uptr->STATUS |= DTE_10DB;
                set_interrupt(DTE_DEVNUM, uptr->STATUS);
-               sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTETYI = %012llo\n",
+               sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTETYI = %012" PRIo64 "\n",
                            word);
            }
        }
@@ -1607,7 +1608,7 @@ dte_input(void)
                M[ITS_DTEHNG] = word;
                uptr->STATUS |= DTE_10DB;
                set_interrupt(DTE_DEVNUM, uptr->STATUS);
-               sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEHNG = %012llo\n",
+               sim_debug(DEBUG_DETAIL, &dte_dev, "CTY ITS DTEHNG = %012" PRIo64 "\n",
                             word);
            }
        }
@@ -1749,7 +1750,7 @@ error:
     if ((uptr->STATUS & DTE_SIND) != 0) {
         dcnt = dte_out[dte_out_ptr].dcnt;
     }
-    sim_debug(DEBUG_DATA, &dte_dev, "DTE: start: %012llo %o\n", word, dcnt);
+    sim_debug(DEBUG_DATA, &dte_dev, "DTE: start: %012" PRIo64 " %o\n", word, dcnt);
     word = (uint64)dcnt;
     if (Mem_deposit_word(0, dte_dt10_off + PRI_CMTW_CNT, &word))
         goto error;
@@ -1887,7 +1888,7 @@ dtertc_srv(UNIT * uptr)
         word = M[addr];
         word = (word + 1) & FMASK;
         M[addr] = word;
-      sim_debug(DEBUG_EXP, &dte_dev, "CTY keepalive %06o %012llo %06o\n",
+      sim_debug(DEBUG_EXP, &dte_dev, "CTY keepalive %06o %012" PRIo64 " %06o\n",
                           addr, word, optr->STATUS);
     }
 

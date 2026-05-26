@@ -29,6 +29,7 @@
 #include "sim_sock.h"
 #include "sim_tmxr.h"
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdint.h>
 
 #if KS
@@ -127,7 +128,7 @@ t_stat ctyi_svc (UNIT *uptr)
 
     if (Mem_read_word(CTY_IN, &buffer, 0))
         return SCPE_OK;
-    sim_debug(DEBUG_DETAIL, &cty_dev, "CTY Read %012llo\n", buffer);
+    sim_debug(DEBUG_DETAIL, &cty_dev, "CTY Read %012" PRIo64 "\n", buffer);
     if (buffer & CTY_CHAR) {
         cty_interrupt();
         return SCPE_OK;
@@ -155,7 +156,7 @@ t_stat ctyo_svc (UNIT *uptr)
     /* Check if any input pending? */
     if (Mem_read_word(CTY_OUT, &buffer, 0))
         return SCPE_OK;
-    sim_debug(DEBUG_DETAIL, &cty_dev, "CTY Write %012llo\n", buffer);
+    sim_debug(DEBUG_DETAIL, &cty_dev, "CTY Write %012" PRIo64 "\n", buffer);
     if (buffer & CTY_CHAR) {
         int32_t  ch;
         ch = buffer & 0377;

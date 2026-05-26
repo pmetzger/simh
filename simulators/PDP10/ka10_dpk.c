@@ -24,6 +24,7 @@
    PDP-10.
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "sim_defs.h"
@@ -135,7 +136,7 @@ static t_stat dpk_devio(uint32_t dev, uint64 *data)
 
     switch(dev & 07) {
     case CONO|4:
-        sim_debug(DEBUG_CONO, &dpk_dev, "%012llo\n", *data);
+        sim_debug(DEBUG_CONO, &dpk_dev, "%012" PRIo64 "\n", *data);
         port = (*data & DPK_ILINE) >> 12;
         if (*data & DPK_RESET)
             dpk_reset (&dpk_dev);
@@ -181,11 +182,11 @@ static t_stat dpk_devio(uint32_t dev, uint64 *data)
         case DPK_ISPEED_START:
             dpk_port[port] |= PORT_INPUT;
         ispeed:
-            sim_debug(DEBUG_CMD, &dpk_dev, "Set port %d input speed %lld\n",
+            sim_debug(DEBUG_CMD, &dpk_dev, "Set port %d input speed %" PRIu64 "\n",
                       port, (*data & DPK_SPEED) >> 9);
             break;
         default:
-            fprintf (stderr, "Unknown function: %llo\n", *data);
+            fprintf (stderr, "Unknown function: %" PRIo64 "\n", *data);
             exit (1);
             break;
         }
@@ -202,12 +203,12 @@ static t_stat dpk_devio(uint32_t dev, uint64 *data)
           }
         }
         *data = dpk_status & DPK_CONI_BITS;
-        sim_debug(DEBUG_CONI, &dpk_dev, "%07llo\n", *data);
+        sim_debug(DEBUG_CONI, &dpk_dev, "%07" PRIo64 "\n", *data);
         break;
     case DATAO|4:
         dpk_base = *data & 03777777;
         dpk_ien = ((*data & DPK_IEN) != 0);
-        sim_debug(DEBUG_DATAIO, &dpk_dev, "DATAO %06llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &dpk_dev, "DATAO %06" PRIo64 "\n", *data);
         break;
     case DATAI|4:
         if (dpk_ird == dpk_iwr) {
@@ -216,7 +217,7 @@ static t_stat dpk_devio(uint32_t dev, uint64 *data)
         }
         *data = dpk_ibuf[dpk_ird++];
         dpk_ird &= 15;
-        sim_debug(DEBUG_DATAIO, &dpk_dev, "DATAI %06llo\n", *data);
+        sim_debug(DEBUG_DATAIO, &dpk_dev, "DATAI %06" PRIo64 "\n", *data);
         if (dpk_ird == dpk_iwr) {
             dpk_status &= ~DPK_IDONE;
         }

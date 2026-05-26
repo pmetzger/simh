@@ -23,6 +23,7 @@
 */
 
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "kx10_defs.h"
@@ -471,12 +472,12 @@ t_stat nia_devio(uint32_t dev, uint64 *data)
         }
         if (nia_data.status & (NIA_CPE|NIA_RQA))
             set_interrupt(NIA_DEVNUM, nia_data.status & NIA_PIA);
-        sim_debug(DEBUG_CONO, dptr, "NIA %03o CONO %06o PC=%06o %012llo\n", dev,
+        sim_debug(DEBUG_CONO, dptr, "NIA %03o CONO %06o PC=%06o %012" PRIo64 "\n", dev,
                  (uint32_t)(*data & RMASK), PC, nia_data.status);
         break;
     case CONI:
         *data = nia_data.status|NIA_PPT|NIA_PID;
-        sim_debug(DEBUG_CONI, dptr, "NIA %03o CONI %012llo PC=%o\n", dev,
+        sim_debug(DEBUG_CONI, dptr, "NIA %03o CONI %012" PRIo64 " PC=%o\n", dev,
                            *data, PC);
         break;
     case DATAO:
@@ -494,7 +495,7 @@ t_stat nia_devio(uint32_t dev, uint64 *data)
                  dev, nia_data.rar, (uint32_t)(*data & RMASK));
             }
         }
-        sim_debug(DEBUG_DATAIO, dptr, "NIA %03o DATO %012llo PC=%o\n",
+        sim_debug(DEBUG_DATAIO, dptr, "NIA %03o DATO %012" PRIo64 " PC=%o\n",
                  dev, *data, PC);
         break;
     case DATAI:
@@ -509,7 +510,7 @@ t_stat nia_devio(uint32_t dev, uint64 *data)
                    *data = (uint64)nia_data.uver[nia_data.rar - 0274];
             }
         }
-        sim_debug(DEBUG_DATAIO, dptr, "NIA %03o DATI %012llo PC=%o\n",
+        sim_debug(DEBUG_DATAIO, dptr, "NIA %03o DATI %012" PRIo64 " PC=%o\n",
                  dev, *data, PC);
         break;
     }
@@ -562,7 +563,7 @@ void nia_start(void)
           nia_error(CHNERR);
           return;
     }
-    sim_debug(DEBUG_DETAIL, &nia_dev, "NIA PCB %012llo %o\n", nia_rh.buf,
+    sim_debug(DEBUG_DETAIL, &nia_dev, "NIA PCB %012" PRIo64 " %o\n", nia_rh.buf,
                                                               nia_rh.wcr);
     nia_data.pcb = (t_addr)(nia_rh.buf & AMASK);
     nia_data.resp_hdr = (t_addr)((nia_rh.buf + 4) & AMASK);
@@ -572,7 +573,7 @@ void nia_start(void)
           nia_error(CHNERR);
           return;
     }
-    sim_debug(DEBUG_DETAIL, &nia_dev, "NIA PIA %012llo %o\n", nia_rh.buf,
+    sim_debug(DEBUG_DETAIL, &nia_dev, "NIA PIA %012" PRIo64 " %o\n", nia_rh.buf,
                                                               nia_rh.wcr);
     nia_data.pia = (int)(nia_rh.buf & 7);
     nia_data.status |= NIA_MRN;
@@ -875,7 +876,7 @@ void nia_load_ptt(void)
             nia_error(EBSERR);
             return;
         }
-        sim_debug(DEBUG_DETAIL, &nia_dev, "NIA load ptt%d: %012llo %012llo\n",
+        sim_debug(DEBUG_DETAIL, &nia_dev, "NIA load ptt%d: %012" PRIo64 " %012" PRIo64 "\n",
               n,  word1, word2);
         if (word1 & SMASK) {
            uint16_t type;
@@ -1360,7 +1361,7 @@ t_stat nia_cmd_srv(UNIT * uptr)
        nia_data.cmd_rply = (t_addr)(word1 & AMASK);
     }
     for(i = 0; i < len; i++)
-        sim_debug(DEBUG_DETAIL, &nia_dev, "NIA rcmd: %d %09llx %012llo\n",
+        sim_debug(DEBUG_DETAIL, &nia_dev, "NIA rcmd: %d %09" PRIx64 " %012" PRIo64 "\n",
                 i, M[nia_data.cmd_entry + i], M[nia_data.cmd_entry + i]);
     (void)nia_putq(nia_data.cmd_rply, &nia_data.cmd_entry);
     sim_activate(uptr, 500);
@@ -1477,7 +1478,7 @@ nia_rec_pkt(void)
     }
 
     for(i = 0; i < 10; i++)
-         sim_debug(DEBUG_DETAIL, &nia_dev, "NIA recv: %d %09llx %012llo\n",
+         sim_debug(DEBUG_DETAIL, &nia_dev, "NIA recv: %d %09" PRIx64 " %012" PRIo64 "\n",
                  i, M[nia_data.rec_entry + i], M[nia_data.rec_entry + i]);
     /* All done with packet */
     nia_data.r_pkt = 0;

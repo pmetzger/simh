@@ -25,6 +25,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -192,7 +193,7 @@ t_stat dcs_devio(uint32_t dev, uint64 *data) {
              uptr->STATUS |= XSCN_ACT;
              dcs_doscan(uptr);
          }
-         sim_debug(DEBUG_DATAIO, &dcs_dev, "DC %03o DATO %012llo PC=%06o\n",
+         sim_debug(DEBUG_DATAIO, &dcs_dev, "DC %03o DATO %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
          break;
 
@@ -217,7 +218,7 @@ t_stat dcs_devio(uint32_t dev, uint64 *data) {
              uptr->STATUS |= RSCN_ACT;
              dcs_doscan(uptr);
          }
-         sim_debug(DEBUG_DATAIO, &dcs_dev, "DCS %03o DATI %012llo PC=%06o\n",
+         sim_debug(DEBUG_DATAIO, &dcs_dev, "DCS %03o DATI %012" PRIo64 " PC=%06o\n",
                     dev, *data, PC);
          break;
     case CONI|4:

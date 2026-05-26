@@ -24,6 +24,7 @@
    shared memory and inter-processor interrupts.
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -197,7 +198,7 @@ static t_stat process_request (UNIT *uptr, const uint8_t *request, size_t size)
       build (response, (uint8_t)((data >> 16) & 0xff));
       build (response, (uint8_t)((data >> 24) & 0xff));
       build (response, (uint8_t)((data >> 32) & 0xff));
-      sim_debug(DEBUG_DATAIO, &slave_dev, "DATI %06o -> %012llo\n",
+      sim_debug(DEBUG_DATAIO, &slave_dev, "DATI %06o -> %012" PRIo64 "\n",
                 address, data);
     } else {
       build (response, ERR);
@@ -214,7 +215,7 @@ static t_stat process_request (UNIT *uptr, const uint8_t *request, size_t size)
       data |= ((uint64)request[8]) << 32;
       M[address] = data;
       build (response, ACK);
-      sim_debug(DEBUG_DATAIO, &slave_dev, "DATO %06o <- %012llo\n",
+      sim_debug(DEBUG_DATAIO, &slave_dev, "DATO %06o <- %012" PRIo64 "\n",
                 address, data);
     } else {
       build (response, ERR);
@@ -299,7 +300,7 @@ t_stat slave_devio(uint32_t dev, uint64 *data)
 
     switch(dev & 03) {
     case CONO:
-        sim_debug(DEBUG_CONO, &slave_dev, "CONO %012llo\n", *data);
+        sim_debug(DEBUG_CONO, &slave_dev, "CONO %012" PRIo64 "\n", *data);
         uptr->PIA = *data & 7;
         if (*data & 010)
           {
@@ -314,14 +315,14 @@ t_stat slave_devio(uint32_t dev, uint64 *data)
         break;
     case CONI:
         *data = (uptr->STATUS & 010) | uptr->PIA;
-        sim_debug(DEBUG_CONI, &slave_dev, "CONI %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &slave_dev, "CONI %012" PRIo64 "\n", *data);
         break;
     case DATAI:
         *data = 0;
-        sim_debug(DEBUG_CONI, &slave_dev, "DATAI %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &slave_dev, "DATAI %012" PRIo64 "\n", *data);
         break;
     case DATAO:
-        sim_debug(DEBUG_CONI, &slave_dev, "DATAO %012llo\n", *data);
+        sim_debug(DEBUG_CONI, &slave_dev, "DATAO %012" PRIo64 "\n", *data);
         break;
     }
 

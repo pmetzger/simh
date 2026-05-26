@@ -23,6 +23,7 @@
    to the MIT Mathlab and Dynamic Modeling PDP-10s.
 */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "sim_defs.h"
@@ -103,7 +104,7 @@ static t_stat mty_devio(uint32_t dev, uint64 *data)
 
     switch(dev & 07) {
     case CONO:
-        sim_debug(DEBUG_CONO, &mty_dev, "%06llo\n", *data);
+        sim_debug(DEBUG_CONO, &mty_dev, "%06" PRIo64 "\n", *data);
         status &= ~MTY_CONO_BITS;
         status |= *data & MTY_CONO_BITS;
         line = (status & MTY_LINE) >> 12;
@@ -123,12 +124,12 @@ static t_stat mty_devio(uint32_t dev, uint64 *data)
         break;
     case CONI:
         *data = status & MTY_CONI_BITS;
-        sim_debug(DEBUG_CONI, &mty_dev, "%06llo\n", *data);
+        sim_debug(DEBUG_CONI, &mty_dev, "%06" PRIo64 "\n", *data);
         break;
     case DATAO:
         line = (status & MTY_LINE) >> 12;
         word = *data;
-        sim_debug(DEBUG_DATAIO, &mty_dev, "DATAO line %d -> %012llo\n",
+        sim_debug(DEBUG_DATAIO, &mty_dev, "DATAO line %d -> %012" PRIo64 "\n",
                   line, word);
         mty_output_word[line] = word | MTY_FIRST;
         mty_active_bitmask |= 1 << line;
@@ -138,7 +139,7 @@ static t_stat mty_devio(uint32_t dev, uint64 *data)
     case DATAI:
         line = (status & MTY_LINE) >> 12;
         *data = mty_input_character;
-        sim_debug(DEBUG_DATAIO, &mty_dev, "DATAI line %d -> %012llo\n",
+        sim_debug(DEBUG_DATAIO, &mty_dev, "DATAI line %d -> %012" PRIo64 "\n",
                   line, *data);
         status &= ~MTY_IDONE;
         sim_activate_abs (&mty_unit[0], 0);

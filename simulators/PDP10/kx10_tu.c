@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -636,7 +637,7 @@ t_stat tu_srv(UNIT * uptr)
                     rh_finish_op(rhc, 0);
                     return SCPE_OK;
                  }
-                 sim_debug(DEBUG_DATA, dptr, "%s%o readrev %012llo\n",
+                 sim_debug(DEBUG_DATA, dptr, "%s%o readrev %012" PRIo64 "\n",
                            dptr->name, unit, rhc->buf);
                  rhc->buf = 0;
              }
@@ -692,13 +693,13 @@ t_stat tu_srv(UNIT * uptr)
                      rh_finish_op(rhc, 0);
                      return SCPE_OK;
                  }
-                 sim_debug(DEBUG_DATA, dptr, "%s%o read %012llo %d\n",
+                 sim_debug(DEBUG_DATA, dptr, "%s%o read %012" PRIo64 " %d\n",
                            dptr->name, unit, rhc->buf, uptr->DATAPTR);
                  rhc->buf = 0;
              }
          } else {
              if (uptr->CPOS != 0) {
-                 sim_debug(DEBUG_DATA, dptr, "%s%o readf %012llo\n",
+                 sim_debug(DEBUG_DATA, dptr, "%s%o readf %012" PRIo64 "\n",
                               dptr->name, unit, rhc->buf);
                  rh_write(rhc);
              }
@@ -737,7 +738,7 @@ t_stat tu_srv(UNIT * uptr)
              uptr->CPOS |= 010;
 
          if (uptr->CPOS == 0)
-              sim_debug(DEBUG_DATA, dptr, "%s%o write %012llo\n",
+              sim_debug(DEBUG_DATA, dptr, "%s%o write %012" PRIo64 "\n",
                          dptr->name, unit, rhc->buf);
          /* Write next char out */
          cc = (8 * (3 - (uptr->CPOS & 07))) + 4;

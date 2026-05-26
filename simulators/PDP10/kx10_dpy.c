@@ -109,6 +109,7 @@
 
 #include "kx10_defs.h"
 #include "sim_video.h"
+#include <inttypes.h>
 #include <math.h>
 #include <stdint.h>
 
@@ -279,7 +280,7 @@ t_stat dpy_devio(uint32_t dev, uint64 *data) {
          * (Thanks to Lars for figuring this out!)
          */
         *data |= SMASK;                 /* always assigned to us */
-        sim_debug(DEBUG_CONI, &dpy_dev, "DPY  %03o CONI PC=%06o %012llo\n",
+        sim_debug(DEBUG_CONI, &dpy_dev, "DPY  %03o CONI PC=%06o %012" PRIo64 "\n",
                   dev, PC, *data);
         break;
 
@@ -307,7 +308,7 @@ t_stat dpy_devio(uint32_t dev, uint64 *data) {
         uptr->INT_COUNTDOWN = 0;
 
         /* if fed using BLKO from interrupt vector, PC will be wrong! */
-        sim_debug(DEBUG_DATAIO, &dpy_dev, "DPY %03o DATO %012llo PC=%06o\n",
+        sim_debug(DEBUG_DATAIO, &dpy_dev, "DPY %03o DATO %012" PRIo64 " PC=%06o\n",
                   dev, *data, PC);
 
         inst = (uint32_t)LRZ(*data);
@@ -701,7 +702,7 @@ t_stat wcnsls_devio(uint32_t dev, uint64 *data) {
     switch (dev & 3) {
     case CONO:
         /* CONO WCNSLS,40       ;enable spacewar consoles */
-        sim_debug (DEBUG_CONO, &wcnsls_dev, "%06llo\n", *data);
+        sim_debug (DEBUG_CONO, &wcnsls_dev, "%06" PRIo64 "\n", *data);
         dev420_cono = *data;
         if (dev420_cono & CONO_RED)
           cscope_r = (dev420_cono >> 12) & 017;
@@ -712,7 +713,7 @@ t_stat wcnsls_devio(uint32_t dev, uint64 *data) {
         break;
 
     case DATAO:
-        sim_debug (DEBUG_DATAIO, &wcnsls_dev, "DATAO %012llo\n", *data);
+        sim_debug (DEBUG_DATAIO, &wcnsls_dev, "DATAO %012" PRIo64 "\n", *data);
         if (wcnsls_unit->flags & UNIT_CSCOPE)
             cscope_plot((*data >> 9) & 0777, *data & 0777);
         break;
@@ -726,7 +727,7 @@ t_stat wcnsls_devio(uint32_t dev, uint64 *data) {
           }
         }
 
-        sim_debug(DEBUG_DATAIO, &wcnsls_dev, "WCNSLS %03o DATI %012llo PC=%06o\n",
+        sim_debug(DEBUG_DATAIO, &wcnsls_dev, "WCNSLS %03o DATI %012" PRIo64 " PC=%06o\n",
                   dev, *data, PC);
         break;
     }

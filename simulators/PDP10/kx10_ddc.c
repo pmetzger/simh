@@ -21,6 +21,7 @@
 
 */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -200,11 +201,11 @@ t_stat ddc_devio(uint32_t dev, uint64 *data) {
             uptr->SEC = 0;
          if ((uptr->STATUS & DDC_DON) != 0)
             *data |= DDC_DONE;
-         sim_debug(DEBUG_DATAIO, dptr, "DDC %03o DATI %012llo PC=%o\n",
+         sim_debug(DEBUG_DATAIO, dptr, "DDC %03o DATI %012" PRIo64 " PC=%o\n",
                   dev, *data, PC);
          break;
      case DATAO:
-         sim_debug(DEBUG_DATAIO, dptr, "DDC %03o DATO %012llo, PC=%o\n",
+         sim_debug(DEBUG_DATAIO, dptr, "DDC %03o DATO %012" PRIo64 ", PC=%o\n",
                   dev, *data, PC);
         /* Insert the command into the queue */
         if (((ddc_putptr + 1) & 0xf) != ddc_cmdptr) {
@@ -295,7 +296,7 @@ t_stat ddc_svc (UNIT *uptr)
           goto done;
        }
    }
-   sim_debug(DEBUG_DATA, dptr, "DDC %d xfer %06o %012llo\n",
+   sim_debug(DEBUG_DATA, dptr, "DDC %d xfer %06o %012" PRIo64 "\n",
                dsk, adr, ddc_buf[uptr->POS]);
    uptr->POS++;
    word = (word & LMASK) | ((adr + 1) & RMASK);
@@ -315,7 +316,7 @@ done:
        ddc_cmd[ddc_cmdptr] &= ~DDC_SEC;
        ddc_cmd[ddc_cmdptr] |= (DDC_SEC & (sec << 2));
        word += 0000100000000LL;
-       sim_debug(DEBUG_DETAIL, dptr, "DDC %d next sect %012llo %012llo\n", dsk, word, ddc_cmd[ddc_cmdptr]);
+       sim_debug(DEBUG_DETAIL, dptr, "DDC %d next sect %012" PRIo64 " %012" PRIo64 "\n", dsk, word, ddc_cmd[ddc_cmdptr]);
        if ((word & DDC_SECCNT) == 0) {
            ddc_cmd[ddc_cmdptr+1] = (word & (DDC_SECCNT|DDC_PWB)) | (adr & RMASK);
            uptr->STATUS |= DDC_DON;

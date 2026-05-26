@@ -41,6 +41,7 @@
 
 /* #define DBG_MSG */
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -1704,7 +1705,7 @@ static t_offset calculate_dj2d_sec_offset(uint8_t track, uint8_t sector)
     */
     offset += (t_offset)(sector-1) * (t_offset)(dj2d_sector_len[format]);
 
-    sim_debug(DEBUG_MSG, &dj2d_dev, DJ2D_SNAME ": OFFSET=%08llx drive=%d side=%d format=%d track=%03d sector=%03d\r\n", offset, dj2d_info->currentDrive, ds, dj2d_info->format[dj2d_info->currentDrive], track, sector);
+    sim_debug(DEBUG_MSG, &dj2d_dev, DJ2D_SNAME ": OFFSET=%08" PRIxMAX " drive=%d side=%d format=%d track=%03d sector=%03d\r\n", (uintmax_t)offset, dj2d_info->currentDrive, ds, dj2d_info->format[dj2d_info->currentDrive], track, sector);
 
     return (offset);
 }
@@ -2141,7 +2142,7 @@ static uint32_t DJ2D_WriteSector(UNIT *uptr, uint8_t track, uint8_t sector, uint
 
     rtn = sim_fwrite(buffer, 1, len, uptr->fileref);
 
-    sim_debug(WR_DATA_MSG, &dj2d_dev, DJ2D_SNAME ": WRITESEC track %03d sector %03d at offset %08llX len %d rtn=%d\n", track, sector, sec_offset, len, rtn);
+    sim_debug(WR_DATA_MSG, &dj2d_dev, DJ2D_SNAME ": WRITESEC track %03d sector %03d at offset %08" PRIXMAX " len %d rtn=%d\n", track, sector, (uintmax_t)sec_offset, len, rtn);
 
     return rtn;
 }
