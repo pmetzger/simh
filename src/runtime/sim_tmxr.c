@@ -321,6 +321,7 @@
 #include "sim_types.h"
 #include "sim_ether.h"
 #include "scp.h"
+#include "xalloc.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -469,7 +470,7 @@ static void tmxr_setup_framer(TMLN *line, ETH_PACK *packet, int len);
 static int  tmxr_framer_read (TMLN *line, char *buf, int nbytes);
 static int  tmxr_framer_write (TMLN *line, const char *buf, int32_t length);
 
-static void tmxr_add_to_open_list (TMXR* mux);
+static t_stat tmxr_add_to_open_list (TMXR* mux, bool *added);
 
 /* Preserve the existing sim_master_sock macro semantics behind a hookable
    function pointer. */
@@ -3286,6 +3287,7 @@ const char *tptr = cptr;
 bool nolog, notelnet, listennotelnet, nomessage, listennomessage, modem_control, loopback, datagram, packet, disabled;
 TMLN *lp;
 t_stat r = SCPE_OK;
+bool added_to_open_list = false;
 
 snprintf (dev_name, sizeof(dev_name), "%s%s", mp->uptr ? sim_dname (find_dev_from_unit (mp->uptr)) : "", mp->uptr ? " " : "");
 if (*tptr == '\0')
@@ -3862,8 +3864,11 @@ while (*tptr) {
         r = SCPE_OK;
         }
     }
-if (r == SCPE_OK)
-    tmxr_add_to_open_list (mp);
+if (r == SCPE_OK) {
+    r = tmxr_add_to_open_list (mp, &added_to_open_list);
+    if ((r != SCPE_OK) && added_to_open_list)
+        tmxr_close_master (mp);
+    }
 return r;
 }
 
@@ -4372,11 +4377,13 @@ else
 return SCPE_OK;
 }
 
-static void tmxr_add_to_open_list (TMXR* mux)
+static t_stat tmxr_add_to_open_list (TMXR* mux, bool *added)
 {
 int i;
 bool found = false;
+t_stat status = SCPE_OK;
 
+*added = false;
 #if defined(SIM_ASYNCH_MUX)
 pthread_mutex_lock (&sim_tmxr_poll_lock);
 #endif
@@ -4386,16 +4393,22 @@ for (i=0; i<tmxr_open_device_count; ++i)
         break;
         }
 if (!found) {
-    tmxr_open_devices = (TMXR **)realloc(tmxr_open_devices, (tmxr_open_device_count+1)*sizeof(*tmxr_open_devices));
+    tmxr_open_devices = (TMXR **)xrealloc (
+        tmxr_open_devices,
+        (tmxr_open_device_count + 1) * sizeof (*tmxr_open_devices));
     tmxr_open_devices[tmxr_open_device_count++] = mux;
-    for (i=0; i<mux->lines; i++)
+    *added = true;
+    for (i = 0; i < mux->lines; i++)
         mux->ldsc[i].send.after = mux->ldsc[i].send.delay = 0;
     }
 #if defined(SIM_ASYNCH_MUX)
 pthread_mutex_unlock (&sim_tmxr_poll_lock);
-if ((tmxr_open_device_count == 1) && (sim_asynch_enabled))
-    tmxr_start_poll ();
+if ((status == SCPE_OK) &&
+    (tmxr_open_device_count == 1) &&
+    sim_asynch_enabled)
+    status = tmxr_start_poll ();
 #endif
+return status;
 }
 
 static void _tmxr_remove_from_open_list (TMXR* mux)
@@ -4505,7 +4518,7 @@ t_stat tmxr_change_async (void)
 {
 #if defined(SIM_ASYNCH_IO)
 if (sim_asynch_enabled)
-    tmxr_start_poll ();
+    return tmxr_start_poll ();
 else
     tmxr_stop_poll ();
 #endif
@@ -4540,6 +4553,7 @@ t_stat tmxr_attach_ex (TMXR *mp, UNIT *uptr, const char *cptr, bool async)
 {
 t_stat r;
 int32_t i;
+bool added_to_open_list;
 
 #if !defined(SIM_ASYNCH_MUX)
 /* Shared helper signature.
@@ -4588,7 +4602,12 @@ if (mp->dptr) {
         mp->ldsc[i].o_uptr->dynflags |= UNIT_TM_POLL;   /* tag as polling unit */
         }
     }
-tmxr_add_to_open_list (mp);
+r = tmxr_add_to_open_list (mp, &added_to_open_list);
+if (r != SCPE_OK) {
+    /* The attach path has already populated per-line TMXR state. */
+    (void)tmxr_detach (mp, uptr);
+    return r;
+    }
 return SCPE_OK;
 }
 

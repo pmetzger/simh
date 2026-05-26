@@ -3483,6 +3483,21 @@ sim_debug (DBG_ASY, &sim_con_telnet, "_console_poll() - exiting\n");
 return NULL;
 }
 
+/* Stop the asynchronous console polling thread if it is running. */
+static void
+console_poll_stop (void)
+{
+    pthread_mutex_lock (&sim_tmxr_poll_lock);
+    if (sim_console_poll_running) {
+        pthread_cond_signal (&sim_tmxr_poll_cond);
+        pthread_mutex_unlock (&sim_tmxr_poll_lock);
+        pthread_join (sim_console_poll_thread, NULL);
+        sim_console_poll_running = false;
+    }
+    else {
+        pthread_mutex_unlock (&sim_tmxr_poll_lock);
+    }
+}
 
 #endif /* defined(SIM_ASYNCH_IO) && defined(SIM_ASYNCH_MUX) */
 
@@ -3497,6 +3512,10 @@ return sim_os_ttinit ();
 
 t_stat sim_ttrun (void)
 {
+#if defined(SIM_ASYNCH_IO) && defined(SIM_ASYNCH_MUX)
+t_stat status;
+#endif
+
 if (!sim_con_tmxr.ldsc->uptr) {                         /* If simulator didn't declare its input polling unit */
     sim_con_unit.dynflags &= ~UNIT_TM_POLL;             /* we can't poll asynchronously */
     sim_con_unit.dynflags |= TMUF_NOASYNCH;             /* disable asynchronous behavior */
@@ -3510,6 +3529,11 @@ else {
 #endif
     }
 #if defined(SIM_ASYNCH_IO) && defined(SIM_ASYNCH_MUX)
+if (sim_asynch_enabled) {
+    status = tmxr_start_poll ();
+    if (status != SCPE_OK)
+        return status;
+    }
 pthread_mutex_lock (&sim_tmxr_poll_lock);
 if (sim_asynch_enabled) {
     pthread_attr_t attr;
@@ -3525,6 +3549,7 @@ if (sim_asynch_enabled) {
     if (create_status != 0) {
         pthread_cond_destroy (&sim_console_startup_cond);
         pthread_mutex_unlock (&sim_tmxr_poll_lock);
+        tmxr_stop_poll ();
         return sim_messagef (
             SCPE_TTIERR,
             "Console: can't start asynchronous poll thread: %s\n",
@@ -3536,22 +3561,13 @@ if (sim_asynch_enabled) {
     }
 pthread_mutex_unlock (&sim_tmxr_poll_lock);
 #endif
-tmxr_start_poll ();
 return sim_os_ttrun ();
 }
 
 t_stat sim_ttcmd (void)
 {
 #if defined(SIM_ASYNCH_IO) && defined(SIM_ASYNCH_MUX)
-pthread_mutex_lock (&sim_tmxr_poll_lock);
-if (sim_console_poll_running) {
-    pthread_cond_signal (&sim_tmxr_poll_cond);
-    pthread_mutex_unlock (&sim_tmxr_poll_lock);
-    pthread_join (sim_console_poll_thread, NULL);
-    sim_console_poll_running = false;
-    }
-else
-    pthread_mutex_unlock (&sim_tmxr_poll_lock);
+console_poll_stop ();
 #endif
 tmxr_stop_poll ();
 return sim_os_ttcmd ();

@@ -4380,8 +4380,10 @@ if (cptr && (*cptr != 0))                               /* now eol? */
     return SCPE_2MARG;
 #ifdef SIM_ASYNCH_IO
 const bool flag_bool = (flag != 0);
+const bool old_asynch_enabled = sim_asynch_enabled;
+t_stat status;
 
-if (flag_bool == sim_asynch_enabled)                    /* already set correctly? */
+if (flag_bool == old_asynch_enabled)                    /* already set correctly? */
     return SCPE_OK;
 {
     uint32_t i;
@@ -4394,7 +4396,13 @@ if (flag_bool == sim_asynch_enabled)                    /* already set correctly
         }
     }
 sim_asynch_enabled = flag_bool;
-tmxr_change_async ();
+/* Start TMXR first so failure can roll back before timers and units switch. */
+status = tmxr_change_async ();
+if (status != SCPE_OK) {
+    sim_asynch_enabled = old_asynch_enabled;
+    (void)tmxr_change_async ();
+    return status;
+    }
 sim_timer_change_asynch ();
 {
     uint32_t i, j;
