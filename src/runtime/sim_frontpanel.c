@@ -85,6 +85,8 @@ struct PANEL {
     unsigned long long      simulation_time;
     unsigned long long      simulation_time_base;
     pthread_t               io_thread;
+    /* Tracks successful pthread_create() calls requiring pthread_join(). */
+    int                     io_thread_started;
     int                     io_thread_running;
     pthread_mutex_t         io_lock;
     pthread_mutex_t         io_send_lock;
@@ -100,10 +102,12 @@ struct PANEL {
     pthread_cond_t          startup_done;
     PANEL_DISPLAY_PCALLBACK callback;
     pthread_t               callback_thread;
+    int                     callback_thread_started;
     int                     callback_thread_running;
     void                    *callback_context;
     int                     usecs_between_callbacks;
     pthread_t               debugflush_thread;
+    int                     debugflush_thread_started;
     int                     debugflush_thread_running;
     uint_t                  sample_frequency;
     uint_t                  sample_dither_pct;
@@ -838,17 +842,40 @@ if (sizeof(mantra) != _panel_send (p, (char *)mantra, sizeof(mantra))) {
     }
 {
     pthread_attr_t attr;
+    int create_status;
 
     pthread_attr_init(&attr);
     pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
     pthread_mutex_lock (&p->io_lock);
     p->io_thread_running = 0;
-    pthread_create (&p->io_thread, &attr, _panel_reader, (void *)p);
+    create_status = pthread_create (&p->io_thread, &attr, _panel_reader,
+                                    (void *)p);
+    if (create_status != 0) {
+        pthread_mutex_unlock (&p->io_lock);
+        pthread_attr_destroy(&attr);
+        pthread_cond_destroy (&p->startup_done);
+        sim_panel_set_error (NULL,
+                             "Can't start frontpanel reader thread: %s",
+                             strerror (create_status));
+        goto Error_Return;
+        }
+    p->io_thread_started = 1;
     while (!p->io_thread_running)
         pthread_cond_wait (&p->startup_done, &p->io_lock); /* Wait for thread to stabilize */
     if ((p->Debug) && (p->parent == NULL)) {
         p->debugflush_thread_running = 0;
-        pthread_create (&p->debugflush_thread, &attr, _panel_debugflusher, (void *)p);
+        create_status = pthread_create (&p->debugflush_thread, &attr,
+                                        _panel_debugflusher, (void *)p);
+        if (create_status != 0) {
+            pthread_mutex_unlock (&p->io_lock);
+            pthread_attr_destroy(&attr);
+            pthread_cond_destroy (&p->startup_done);
+            sim_panel_set_error (
+                NULL, "Can't start frontpanel debug flush thread: %s",
+                strerror (create_status));
+            goto Error_Return;
+            }
+        p->debugflush_thread_started = 1;
         while (!p->debugflush_thread_running)
             pthread_cond_wait (&p->startup_done, &p->io_lock); /* Wait for thread to stabilize */
         }
@@ -990,10 +1017,15 @@ if (panel) {
             sim_sleep_msec (100);
         /* Now close the socket which should stop a pending read that hasn't completed */
         sim_close_sock (sock);
-        pthread_join (panel->io_thread, NULL);
+        if (panel->io_thread_started) {
+            pthread_join (panel->io_thread, NULL);
+            panel->io_thread_started = 0;
+            }
         }
-    if ((panel->Debug) && (panel->parent == NULL))
+    if (panel->debugflush_thread_started) {
         pthread_join (panel->debugflush_thread, NULL);
+        panel->debugflush_thread_started = 0;
+        }
     pthread_mutex_destroy (&panel->io_lock);
     pthread_mutex_destroy (&panel->io_send_lock);
     pthread_mutex_destroy (&panel->io_command_lock);
@@ -1293,23 +1325,43 @@ sim_panel_set_display_callback_interval (PANEL *panel,
                                          void *context,
                                          int usecs_between_callbacks)
 {
+PANEL_DISPLAY_PCALLBACK old_callback;
+void *old_callback_context;
+
 if (!panel) {
     sim_panel_set_error (NULL, "Invalid Panel");
     return -1;
     }
 pthread_mutex_lock (&panel->io_lock);                               /* acquire access */
+old_callback = panel->callback;
+old_callback_context = panel->callback_context;
 panel->callback = callback;
 panel->callback_context = context;
 if (usecs_between_callbacks && (0 == panel->usecs_between_callbacks)) { /* Need to start/enable callbacks */
     pthread_attr_t attr;
+    int create_status;
 
     _panel_debug (panel, DBG_THR, "Starting callback thread, Interval: %d usecs", NULL, 0, usecs_between_callbacks);
     panel->usecs_between_callbacks = usecs_between_callbacks;
     pthread_cond_init (&panel->startup_done, NULL);
     pthread_attr_init(&attr);
     pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-    pthread_create (&panel->callback_thread, &attr, _panel_callback, (void *)panel);
+    panel->callback_thread_running = 0;
+    create_status = pthread_create (&panel->callback_thread, &attr,
+                                    _panel_callback, (void *)panel);
     pthread_attr_destroy(&attr);
+    if (create_status != 0) {
+        panel->callback = old_callback;
+        panel->callback_context = old_callback_context;
+        panel->usecs_between_callbacks = 0;
+        pthread_cond_destroy (&panel->startup_done);
+        pthread_mutex_unlock (&panel->io_lock);
+        sim_panel_set_error (panel,
+                             "Can't start frontpanel callback thread: %s",
+                             strerror (create_status));
+        return -1;
+        }
+    panel->callback_thread_started = 1;
     while (!panel->callback_thread_running)
         pthread_cond_wait (&panel->startup_done, &panel->io_lock);  /* Wait for thread to stabilize */
     pthread_cond_destroy (&panel->startup_done);
@@ -1317,9 +1369,12 @@ if (usecs_between_callbacks && (0 == panel->usecs_between_callbacks)) { /* Need 
 if ((usecs_between_callbacks == 0) && panel->usecs_between_callbacks) { /* Need to stop callbacks */
     _panel_debug (panel, DBG_THR, "Shutting down callback thread", NULL, 0);
     panel->usecs_between_callbacks = 0;                             /* flag disabled */
-    pthread_mutex_unlock (&panel->io_lock);                         /* allow access */
-    pthread_join (panel->callback_thread, NULL);                    /* synchronize with thread rundown */
-    pthread_mutex_lock (&panel->io_lock);                           /* reacquire access */
+    if (panel->callback_thread_started) {
+        pthread_mutex_unlock (&panel->io_lock);                     /* allow access */
+        pthread_join (panel->callback_thread, NULL);                /* synchronize with thread rundown */
+        pthread_mutex_lock (&panel->io_lock);                       /* reacquire access */
+        panel->callback_thread_started = 0;
+        }
     }
 pthread_mutex_unlock (&panel->io_lock);
 return 0;
