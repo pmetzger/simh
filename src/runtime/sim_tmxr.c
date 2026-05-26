@@ -4001,6 +4001,7 @@ activated = (UNIT **)calloc(FD_SETSIZE, sizeof(*activated));
 sockets = (SOCKET *)calloc(FD_SETSIZE, sizeof(*sockets));
 timeout_usec = 1000000;
 pthread_mutex_lock (&sim_tmxr_poll_lock);
+sim_tmxr_poll_running = true;
 pthread_cond_signal (&sim_tmxr_startup_cond);   /* Signal we're ready to go */
 while (sim_asynch_enabled) {
     int i, j, status, select_errno;
@@ -4320,11 +4321,12 @@ if ((tmxr_open_device_count > 0) &&
     pthread_cond_init (&sim_tmxr_startup_cond, NULL);
     pthread_attr_init (&attr);
     pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
+    sim_tmxr_poll_running = false;
     pthread_create (&sim_tmxr_poll_thread, &attr, _tmxr_poll, NULL);
     pthread_attr_destroy( &attr);
-    pthread_cond_wait (&sim_tmxr_startup_cond, &sim_tmxr_poll_lock); /* Wait for thread to stabilize */
+    while (!sim_tmxr_poll_running)             /* Wait for thread to stabilize */
+        pthread_cond_wait (&sim_tmxr_startup_cond, &sim_tmxr_poll_lock);
     pthread_cond_destroy (&sim_tmxr_startup_cond);
-    sim_tmxr_poll_running = true;
     }
 pthread_mutex_unlock (&sim_tmxr_poll_lock);
 #endif

@@ -162,6 +162,7 @@ struct disk_context {
     pthread_cond_t      io_cond;
     pthread_cond_t      io_done;
     pthread_cond_t      startup_cond;
+    bool                io_thread_running;
     int                 io_dop;
     uint8_t             *buf;
     t_seccnt            *rsects;
@@ -302,6 +303,7 @@ sim_os_set_thread_priority (PRIORITY_ABOVE_NORMAL);
 sim_debug_unit (ctx->dbit, uptr, "_disk_io(unit=%d) starting\n", (int)(uptr - ctx->dptr->units));
 
 pthread_mutex_lock (&ctx->io_lock);
+ctx->io_thread_running = true;
 pthread_cond_signal (&ctx->startup_cond);   /* Signal we're ready to go */
 while (ctx->asynch_io) {
     pthread_cond_wait (&ctx->io_cond, &ctx->io_lock);
@@ -326,6 +328,7 @@ while (ctx->asynch_io) {
     sim_activate (uptr, ctx->asynch_io_latency);
     pthread_mutex_lock (&ctx->io_lock);
     }
+ctx->io_thread_running = false;
 pthread_mutex_unlock (&ctx->io_lock);
 
 sim_debug_unit (ctx->dbit, uptr, "_disk_io(unit=%d) exiting\n", (int)(uptr - ctx->dptr->units));
@@ -690,9 +693,11 @@ if (ctx->asynch_io) {
     pthread_attr_init(&attr);
     pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
     pthread_mutex_lock (&ctx->io_lock);
+    ctx->io_thread_running = false;
     pthread_create (&ctx->io_thread, &attr, _disk_io, (void *)uptr);
     pthread_attr_destroy(&attr);
-    pthread_cond_wait (&ctx->startup_cond, &ctx->io_lock); /* Wait for thread to stabilize */
+    while (!ctx->io_thread_running)            /* Wait for thread to stabilize */
+        pthread_cond_wait (&ctx->startup_cond, &ctx->io_lock);
     pthread_mutex_unlock (&ctx->io_lock);
     pthread_cond_destroy (&ctx->startup_cond);
     }

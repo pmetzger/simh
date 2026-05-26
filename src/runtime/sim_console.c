@@ -3430,6 +3430,7 @@ sim_os_set_thread_priority (PRIORITY_ABOVE_NORMAL);
 sim_debug (DBG_ASY, &sim_con_telnet, "_console_poll() - starting\n");
 
 pthread_mutex_lock (&sim_tmxr_poll_lock);
+sim_console_poll_running = true;
 pthread_cond_signal (&sim_console_startup_cond);   /* Signal we're ready to go */
 while (sim_asynch_enabled) {
 
@@ -3516,11 +3517,12 @@ if (sim_asynch_enabled) {
     pthread_cond_init (&sim_console_startup_cond, NULL);
     pthread_attr_init (&attr);
     pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
+    sim_console_poll_running = false;
     pthread_create (&sim_console_poll_thread, &attr, _console_poll, NULL);
     pthread_attr_destroy( &attr);
-    pthread_cond_wait (&sim_console_startup_cond, &sim_tmxr_poll_lock); /* Wait for thread to stabilize */
+    while (!sim_console_poll_running)          /* Wait for thread to stabilize */
+        pthread_cond_wait (&sim_console_startup_cond, &sim_tmxr_poll_lock);
     pthread_cond_destroy (&sim_console_startup_cond);
-    sim_console_poll_running = true;
     }
 pthread_mutex_unlock (&sim_tmxr_poll_lock);
 #endif
