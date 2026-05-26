@@ -79,6 +79,10 @@ if (NOT WIN32 OR MINGW)
                     pkg_check_modules(SDL2_ttf IMPORTED_TARGET sdl2_ttf)
                 endif ()
             endif ()
+
+            if (NOT FREETYPE_FOUND)
+                pkg_check_modules(FREETYPE IMPORTED_TARGET freetype2)
+            endif ()
         endif (WITH_VIDEO)
 
         if (WITH_NETWORK)
