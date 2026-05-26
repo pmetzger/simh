@@ -38,6 +38,11 @@ set(SIM_SOURCES
     ${SIMH_RUNTIME_ROOT}/sim_uuid.c
     ${SIMH_RUNTIME_ROOT}/sim_video.c)
 
+if (WITH_NETWORK AND WITH_SLIRP AND TARGET ZIMH::LIBSLIRP)
+    list(APPEND SIM_SOURCES
+        ${SIMH_RUNTIME_ROOT}/sim_slirp.c)
+endif ()
+
 if (SIMH_COMPAT_SOURCES)
     list(APPEND SIM_SOURCES
         ${SIMH_COMPAT_SOURCES})
@@ -182,6 +187,7 @@ list(APPEND ADD_SIMULATOR_OPTIONS
     "FEATURE_DISPLAY"
     "NO_INSTALL"
     "BESM6_SDL_HACK"
+    "REAL_SIMH_PERSONALITY"
     "USES_AIO"
 )
 
@@ -410,22 +416,30 @@ function(add_unit_test _targ)
     set(UNIT_TEST "zimh-${_targ}")
 
     simh_executable_template(${UNIT_TARGET} "${ARGN}")
-    cmake_parse_arguments(SIMH "FEATURE_INT64;FEATURE_FULL64;BUILDROMS;FEATURE_VIDEO,FEATURE_DISPLAY"
-                          "SOURCE_DIR;LABEL"
-                          "DEFINES;INCLUDES;SOURCES"
+    cmake_parse_arguments(SIMH "${ADD_SIMULATOR_OPTIONS}"
+                          "${ADD_SIMULATOR_1ARG}"
+                          "${ADD_SIMULATOR_NARG}"
                           ${ARGN})
 
     set(SIMH_UNIT_SUPPORT_LIBRARY simh_unit_support)
+    set(SIMH_UNIT_PERSONALITY_LIBRARY simh_unit_personality)
     if (SIMH_FEATURE_FULL64)
         set(SIMH_UNIT_SUPPORT_LIBRARY simh_unit_support_z64)
+        set(SIMH_UNIT_PERSONALITY_LIBRARY simh_unit_personality_z64)
     elseif (SIMH_FEATURE_INT64)
         set(SIMH_UNIT_SUPPORT_LIBRARY simh_unit_support_i64)
+        set(SIMH_UNIT_PERSONALITY_LIBRARY simh_unit_personality_i64)
     endif ()
 
     target_link_libraries(${UNIT_TARGET} PUBLIC
         unittest
         ${SIMH_UNIT_SUPPORT_LIBRARY}
     )
+    if (NOT SIMH_REAL_SIMH_PERSONALITY)
+        target_link_libraries(${UNIT_TARGET} PUBLIC
+            ${SIMH_UNIT_PERSONALITY_LIBRARY}
+        )
+    endif ()
     add_test(NAME ${UNIT_TEST} COMMAND ${UNIT_TARGET})
 
     set(TEST_LABEL "zimh;unit")

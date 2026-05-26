@@ -157,9 +157,6 @@ if (WITH_NETWORK AND WITH_SLIRP)
         INCLUDES
             ${PROJECT_SOURCE_DIR}/tests/unit/support
     )
-    # sim_slirp.c lives in the slirp archive but calls back into simhcore.
-    # Strict one-pass static linkers need simhcore repeated after slirp.
-    target_link_libraries(zimh-unit-sim-slirp PRIVATE slirp simhcore)
 endif ()
 
 add_unit_test(unit-sim-video

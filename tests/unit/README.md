@@ -66,13 +66,20 @@ add_unit_test(unit-scp-parse
 )
 ```
 
-## Support Libraries
+## Support Objects
 
-The shared support libraries provide common test helpers and simulator
-personality stubs. The default library is `simh_unit_support`;
-`FEATURE_INT64` tests use `simh_unit_support_i64`, and `FEATURE_FULL64`
-tests use `simh_unit_support_z64` so typedef-sensitive symbols match the
+The shared support object libraries provide common test helpers. The
+default object library is `simh_unit_support`; `FEATURE_INT64` tests use
+`simh_unit_support_i64`, and `FEATURE_FULL64` tests use
+`simh_unit_support_z64` so typedef-sensitive helper code matches the
 simulator core variant used by the test.
+
+`add_unit_test()` adds fake simulator personality symbols from
+`test_simh_personality.c` by default. This adds the matching
+`simh_unit_personality` object library directly to the test executable.
+Tests that compile a real simulator personality, such as a simulator
+`*_sys.c` file, must pass `REAL_SIMH_PERSONALITY` so the fake symbols are
+not linked.
 
 Their public interface is declared in:
 

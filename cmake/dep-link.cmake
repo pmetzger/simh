@@ -331,7 +331,10 @@ if (WITH_NETWORK)
     endif (WITH_TAP)
 
     if (WITH_SLIRP AND TARGET ZIMH::LIBSLIRP)
-        target_link_libraries(simh_network INTERFACE slirp)
+        target_compile_definitions(simh_network INTERFACE
+            HAVE_SLIRP_NETWORK
+            USE_SIMH_SLIRP_DEBUG)
+        target_link_libraries(simh_network INTERFACE ZIMH::LIBSLIRP)
         list(APPEND NETWORK_PKG_STATUS "NAT(SLiRP)")
     endif (WITH_SLIRP AND TARGET ZIMH::LIBSLIRP)
 
