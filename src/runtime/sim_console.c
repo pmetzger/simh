@@ -3513,13 +3513,23 @@ else {
 pthread_mutex_lock (&sim_tmxr_poll_lock);
 if (sim_asynch_enabled) {
     pthread_attr_t attr;
+    int create_status;
 
     pthread_cond_init (&sim_console_startup_cond, NULL);
     pthread_attr_init (&attr);
     pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
     sim_console_poll_running = false;
-    pthread_create (&sim_console_poll_thread, &attr, _console_poll, NULL);
+    create_status = pthread_create (&sim_console_poll_thread, &attr,
+                                    _console_poll, NULL);
     pthread_attr_destroy( &attr);
+    if (create_status != 0) {
+        pthread_cond_destroy (&sim_console_startup_cond);
+        pthread_mutex_unlock (&sim_tmxr_poll_lock);
+        return sim_messagef (
+            SCPE_TTIERR,
+            "Console: can't start asynchronous poll thread: %s\n",
+            strerror (create_status));
+    }
     while (!sim_console_poll_running)          /* Wait for thread to stabilize */
         pthread_cond_wait (&sim_console_startup_cond, &sim_tmxr_poll_lock);
     pthread_cond_destroy (&sim_console_startup_cond);

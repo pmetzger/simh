@@ -2624,14 +2624,25 @@ if (sim_timer_stop_time > sim_gtime())
 pthread_mutex_lock (&sim_timer_lock);
 if (sim_asynch_timer && sim_is_running) {
     pthread_attr_t attr;
+    int create_status;
 
     sim_debug (DBG_TRC, &sim_timer_dev, "sim_start_timer_services() - starting\n");
     pthread_cond_init (&sim_timer_startup_cond, NULL);
     pthread_attr_init (&attr);
     pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
     sim_timer_thread_running = false;
-    pthread_create (&sim_timer_thread, &attr, _timer_thread, NULL);
+    create_status = pthread_create (&sim_timer_thread, &attr, _timer_thread,
+                                    NULL);
     pthread_attr_destroy( &attr);
+    if (create_status != 0) {
+        pthread_cond_destroy (&sim_timer_startup_cond);
+        pthread_mutex_unlock (&sim_timer_lock);
+        (void) sim_messagef (
+            SCPE_IOERR,
+            "INT-CLOCK: can't start asynchronous timer thread: %s\n",
+            strerror (create_status));
+        return;
+    }
     while (!sim_timer_thread_running)          /* Wait for thread to stabilize */
         pthread_cond_wait (&sim_timer_startup_cond, &sim_timer_lock);
     pthread_cond_destroy (&sim_timer_startup_cond);

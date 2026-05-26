@@ -4317,13 +4317,22 @@ if ((tmxr_open_device_count > 0) &&
     sim_is_running               &&
     !sim_tmxr_poll_running) {
     pthread_attr_t attr;
+    int create_status;
 
     pthread_cond_init (&sim_tmxr_startup_cond, NULL);
     pthread_attr_init (&attr);
     pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
     sim_tmxr_poll_running = false;
-    pthread_create (&sim_tmxr_poll_thread, &attr, _tmxr_poll, NULL);
+    create_status = pthread_create (&sim_tmxr_poll_thread, &attr, _tmxr_poll,
+                                    NULL);
     pthread_attr_destroy( &attr);
+    if (create_status != 0) {
+        pthread_cond_destroy (&sim_tmxr_startup_cond);
+        pthread_mutex_unlock (&sim_tmxr_poll_lock);
+        return sim_messagef (
+            SCPE_IOERR, "TMXR: can't start asynchronous poll thread: %s\n",
+            strerror (create_status));
+    }
     while (!sim_tmxr_poll_running)             /* Wait for thread to stabilize */
         pthread_cond_wait (&sim_tmxr_startup_cond, &sim_tmxr_poll_lock);
     pthread_cond_destroy (&sim_tmxr_startup_cond);

@@ -680,6 +680,7 @@ return SCPE_NOFNC;
 #else
 struct disk_context *ctx = (struct disk_context *)uptr->disk_ctx;
 pthread_attr_t attr;
+int create_status;
 
 sim_debug_unit (ctx->dbit, uptr, "sim_disk_set_async(unit=%d)\n", (int)(uptr - ctx->dptr->units));
 
@@ -694,8 +695,21 @@ if (ctx->asynch_io) {
     pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
     pthread_mutex_lock (&ctx->io_lock);
     ctx->io_thread_running = false;
-    pthread_create (&ctx->io_thread, &attr, _disk_io, (void *)uptr);
+    create_status = pthread_create (&ctx->io_thread, &attr, _disk_io,
+                                    (void *)uptr);
     pthread_attr_destroy(&attr);
+    if (create_status != 0) {
+        pthread_mutex_unlock (&ctx->io_lock);
+        pthread_cond_destroy (&ctx->startup_cond);
+        pthread_cond_destroy (&ctx->io_done);
+        pthread_cond_destroy (&ctx->io_cond);
+        pthread_mutex_destroy (&ctx->io_lock);
+        ctx->asynch_io = false;
+        return sim_messagef (
+            SCPE_IOERR,
+            "%s: can't start asynchronous disk I/O thread: %s\n",
+            sim_uname (uptr), strerror (create_status));
+    }
     while (!ctx->io_thread_running)            /* Wait for thread to stabilize */
         pthread_cond_wait (&ctx->startup_cond, &ctx->io_lock);
     pthread_mutex_unlock (&ctx->io_lock);
