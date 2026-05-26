@@ -287,17 +287,18 @@ git diff --check -- simulators/<dir>/CMakeLists.txt
 2. rebuild the target:
 
 ```sh
-ninja -C build/release <simulator> -j8
+cmake --build build/release --target <simulator>
 ```
 
 3. run the associated regression path:
 
 ```sh
-ctest --test-dir build/release -R zimh-<name> --output-on-failure
+ctest --test-dir build/release --parallel -R zimh-<name> \
+  --output-on-failure
 ```
 
-If the project is currently using another existing build directory during the
-migration, use that directory consistently for the verification pass.
+If you are using another existing build directory for the work, use that
+directory consistently for the verification pass.
 
 ## Do Not Do These Things
 
@@ -306,14 +307,14 @@ migration, use that directory consistently for the verification pass.
 - do not add dead framework hooks such as `HAVE_UNITY_FRAMEWORK`
 - do not move generic build logic into individual simulator directories
 
-## Migration Context
+## Historical Context
 
-This repository is in the middle of moving from Makefile-owned simulator
-metadata to maintained CMake-owned simulator metadata.
+This repository moved from Makefile-owned simulator metadata to
+maintained CMake-owned simulator metadata.
 
 That means:
 
-- some simulator directories may still be in older generated style
-- the goal is to move them to the maintained local pattern described here
-- once a simulator `CMakeLists.txt` has been converted, treat it as the source
-  of truth for that simulator's local build metadata
+- simulator-local `CMakeLists.txt` files are maintained source files
+- the generator-era workflow should not be revived
+- the top-level `Makefile` should remain a compatibility wrapper rather
+  than becoming a second metadata authority

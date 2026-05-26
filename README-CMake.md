@@ -36,7 +36,7 @@ Typical release build:
 ```sh
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -S . -B build/release
 cmake --build build/release
-ctest --test-dir build/release --output-on-failure
+ctest --test-dir build/release --parallel --output-on-failure
 ```
 
 Typical debug build:
@@ -44,7 +44,7 @@ Typical debug build:
 ```sh
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -S . -B build/debug
 cmake --build build/debug
-ctest --test-dir build/debug --output-on-failure
+ctest --test-dir build/debug --parallel --output-on-failure
 ```
 
 ## Common Targets
@@ -98,22 +98,52 @@ Project-defined options follow two patterns:
 The most commonly used options are:
 
 - `CMAKE_BUILD_TYPE`
-  Default: generator-dependent.
+  Default: `Release` for single-config generators when unset.
   Use `Release`, `Debug`, or `RelWithDebInfo` for single-config
-  generators such as Ninja. `RelWithDebInfo` is optimized like a release
-  build while retaining debugger information.
+  generators such as Ninja. Multi-config generators select the
+  configuration at build and test time. `RelWithDebInfo` is optimized
+  like a release build while retaining debugger information.
+- `ZIMH_C_COMPILER`
+  Default: unset.
+  Optional project-level C compiler override. Set this before the first
+  configure of a build tree.
+- `ZIMH_C_STANDARD`
+  Default: `17`.
+  C language standard used by ZIMH-owned targets.
 - `WITH_VIDEO`
   Default: `On`.
   Enable SDL-based graphics and display support.
 - `WITH_NETWORK`
   Default: `On`.
   Enable simulator networking support.
+- `WITH_ASYNC`
+  Default: `On`.
+  Enable asynchronous I/O support.
+- `WITH_PCAP`
+  Default: `On`.
+  Enable pcap-backed Ethernet support when the dependency is available.
+- `WITH_SLIRP`
+  Default: `On`.
+  Enable SLiRP-backed user-mode networking when the dependency is
+  available.
+- `WITH_VDE`
+  Default: `On` on non-Windows hosts.
+  Enable VDE networking when the dependency is available.
+- `WITH_TAP`
+  Default: `On`.
+  Enable TAP networking support where supported by the host.
 - `WITH_ROMS`
   Default: `On`.
   Build and embed internal ROM support where applicable.
+- `WITH_UNIT_TESTS`
+  Default: `On`.
+  Build host-side unit tests.
 - `ENABLE_DEP_BUILD`
   Default: platform-dependent.
   Allow supported missing dependencies to be fetched and built locally.
+- `BUILD_SHARED_DEPS`
+  Default: `Off`.
+  Build locally fetched dependencies as shared libraries when supported.
 - `ENABLE_CPPCHECK`
   Default: `Off`.
   Enable `cppcheck` integration.
@@ -132,6 +162,12 @@ The most commonly used options are:
 - `WARNINGS_FATAL`
   Default: `Off`.
   Treat warnings as errors.
+- `ZIMH_PACKAGE_SUFFIX`
+  Default: empty.
+  Optional suffix appended to generated package artifact names.
+- `MAC_UNIVERSAL`
+  Default: `Off`.
+  Build macOS universal binaries.
 
 Examples:
 
@@ -160,11 +196,13 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -S . -B build/release
 Visual Studio generators are also supported on Windows. Example:
 
 ```powershell
-cmake -G "Visual Studio 17 2022" -A Win32 -S . -B build/release
+cmake -G "Visual Studio 18 2026" -A Win32 -S . -B build/release
 cmake --build build/release --config Release
 ctest --test-dir build/release --build-config Release \
-  --output-on-failure
+  --parallel --output-on-failure
 ```
+
+The Visual Studio 2026 generator requires CMake 4.2 or newer.
 
 ## Notes for Maintainers
 
@@ -178,8 +216,13 @@ In particular:
 
 - simulator-local metadata lives in simulator-local `CMakeLists.txt`
 - `cmake/simh-simulators.cmake` owns the top-level simulator inventory
-- `cmake/simh-packaging.cmake` owns packaging-family metadata
+- `cmake/simh-packaging.cmake` owns CPack component definitions and the
+  Markdown documentation install rule
 - `cmake/add_simulator.cmake` owns shared simulator build behavior
+
+The CMake install rule copies the current Markdown documentation under
+`docs/` to `CMAKE_INSTALL_DOCDIR`, excluding the legacy Word-document
+archive under `docs/legacy-word`.
 
 ## Historical Note
 

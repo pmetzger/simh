@@ -31,29 +31,29 @@ cmake/build-mingw        MinGW-W64 products and artifacts
 cmake/build-ninja        Ninja builder products and artifacts
 
 .EXAMPLE
-PS> cmake-builder.ps1 -flavor vs2022 -config Release
+PS> cmake-builder.ps1 -flavor vs2026 -config Release
 
 Generate/configure, build, test and install the SIMH simulator suite using
-the Visual Studio 2022 toolchain in the Release (optimized) compile
+the Visual Studio 2026 toolchain in the Release (optimized) compile
 configuration.
 
 .EXAMPLE
-PS> cmake-builder.ps1 vs2022 Release
+PS> cmake-builder.ps1 vs2026 Release
 
 Another way to generate/configure, build, test and install the SIMH simulator
-suite using the Visual Studio 2022 toolchain in the Release (optimized)
+suite using the Visual Studio 2026 toolchain in the Release (optimized)
 compile configuration.
 
 .EXAMPLE
-PS> cmake-builder.ps1 vs2019 Debug -notest -noinstall
+PS> cmake-builder.ps1 vs2026 Debug -notest -noinstall
 
 Generate/configure and build the SIMH simulator suite with the Visual Studio
-2019 toolchain in the Debug compile configuration. Does not execute tests and
+2026 toolchain in the Debug compile configuration. Does not execute tests and
 does not run the install phase.
 
 .EXAMPLE
 
-PS> cmake-builder.ps1 -flavor vs2019 -config Release -installonly
+PS> cmake-builder.ps1 -flavor vs2026 -config Release -installonly
 
 Run the install phase using the configured CMake install prefix. Does not
 generate/configure, but will build to ensure that compile targets (simulator
@@ -62,8 +62,8 @@ executables) are up-to-date.
 
 param (
     ## String arguments are positional, so if the user invokes this script
-    ## as "cmake-builder.ps1 vs2022 Debug", it's the same as saying
-    ## "cmake-builder.ps1 -flavor vs2022 -config Debug"
+    ## as "cmake-builder.ps1 vs2026 Debug", it's the same as saying
+    ## "cmake-builder.ps1 -flavor vs2026 -config Debug"
 
 
     ## The build environment's "flavor" that determines which CMake generator is used
@@ -72,20 +72,15 @@ param (
     ##
     ## Supported flavors:
     ## ------------------
-    ## vs2022          Visual Studio 2022 (default)
+    ## vs2026          Visual Studio 2026 (default; requires CMake 4.2+)
+    ## vs2026-x64      Visual Studio 2026 64-bit
+    ## vs2022          Visual Studio 2022
     ## vs2022-xp       Visual Studio 2022 XP compat
     ## vs2022-x64      Visual Studio 2022 64-bit
-    ## vs2019          Visual Studio 2019
-    ## vs2019-xp       Visual Studio 2019 XP compat
-    ## vs2019-x64      Visual Studio 2019 64-bit
-    ## vs2017          Visual Studio 2017
-    ## vs2017-xp       Visual Studio 2017 XP compat
-    ## vs2017-x64      Visual Studio 2017 64-bit
-    ## vs2015          Visual Studio 2015
     ## mingw-make      MinGW GCC/mingw32-make
     ## mingw-ninja     MinGW GCC/ninja
     [Parameter(Mandatory=$false)]
-    [string] $flavor         = "vs2022",
+    [string] $flavor         = "vs2026",
 
     ## The target build configuration. Valid values are "Release", "Debug",
     ## and "RelWithDebInfo"
@@ -205,16 +200,11 @@ $multiConfig = $false
 $singleConfig = $true
 
 $cmakeGenMap = @{
+    "vs2026"      = [GeneratorInfo]::new("Visual Studio 18 2026", $multiConfig,  $false, "",     @("-A", "Win32"));
+    "vs2026-x64"  = [GeneratorInfo]::new("Visual Studio 18 2026", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
     "vs2022"      = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "Win32"));
     "vs2022-xp"   = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
     "vs2022-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
-    "vs2019"      = [GeneratorInfo]::new("Visual Studio 16 2019", $multiConfig,  $false, "",     @("-A", "Win32"));
-    "vs2019-xp"   = [GeneratorInfo]::new("Visual Studio 16 2019", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
-    "vs2019-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
-    "vs2017"      = [GeneratorInfo]::new("Visual Studio 15 2017", $multiConfig,  $false, "",     @("-A", "Win32"));
-    "vs2017-xp"   = [GeneratorInfo]::new("Visual Studio 15 2017", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
-    "vs2017-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
-    "vs2015"      = [GeneratorInfo]::new("Visual Studio 14 2015", $multiConfig,  $false, "",     @());
     "mingw-make"  = [GeneratorInfo]::new("MinGW Makefiles",       $singleConfig, $false, "",     @());
     "mingw-ninja" = [GeneratorInfo]::new("Ninja",                 $singleConfig, $false, "",     @())
 }

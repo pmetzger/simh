@@ -26,7 +26,7 @@ set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME "runtime_support")
 
 # After we know where everything will install, let CPack figure out
 # how to assemble it into a package file.
-set(CPACK_PACKAGE_VENDOR "The Open-SIMH project")
+set(CPACK_PACKAGE_VENDOR "The ZIMH Project")
 
 if (ZIMH_PACKAGE_SUFFIX)
     set(buildSuffix "${ZIMH_PACKAGE_SUFFIX}")
@@ -40,14 +40,10 @@ else ()
         endif ()
 
         ## If using Visual Studio, append the compiler and toolkit:
-        if (CMAKE_GENERATOR MATCHES "Visual Studio 17 .*")
+        if (CMAKE_GENERATOR MATCHES "Visual Studio 18 .*")
+            list(APPEND buildSuffix "vs2026")
+        elseif (CMAKE_GENERATOR MATCHES "Visual Studio 17 .*")
             list(APPEND buildSuffix "vs2022")
-        elseif (CMAKE_GENERATOR MATCHES "Visual Studio 16 .*")
-            list(APPEND buildSuffix "vs2019")
-        elseif (CMAKE_GENERATOR MATCHES "Visual Studio 15 .*")
-            list(APPEND buildSuffix "vs2017")
-        elseif (CMAKE_GENERATOR MATCHES "Visual Studio 14 .*")
-            list(APPEND buildSuffix "vs2015")
         endif ()
         if (CMAKE_GENERATOR_TOOLSET MATCHES "v[0-9][0-9][0-9]_xp")
             string(APPEND buildSuffix "xp")

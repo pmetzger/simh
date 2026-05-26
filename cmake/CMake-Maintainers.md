@@ -39,8 +39,8 @@ The files that matter most are:
   path/source variables.
 
 - `cmake/simh-packaging.cmake`
-  The maintained CPack component and simulator-family packaging
-  metadata.
+  The maintained CPack component definitions and Markdown documentation
+  install rule.
 
 - `cmake/platform-quirks.cmake`
   Compiler and platform-specific warning, optimization, and linker
@@ -214,8 +214,8 @@ This file defines:
 
 - the runtime support component
 - simulator family components
-- the mapping from `PKG_FAMILY` names used by simulator targets to CPack
-  components
+- the CPack components named by simulator target `PKG_FAMILY` fields
+- the Markdown documentation install rule
 
 Examples:
 
@@ -235,6 +235,7 @@ That file handles:
 
 - package naming
 - generator-specific settings
+- generated package dependency metadata
 - installer customization wiring
 
 ## Tests
@@ -253,13 +254,13 @@ Common maintainer workflows:
   - `cmake --build build/release --target experimental-simulators`
 
 - run all configured tests:
-  - `ctest --test-dir build/release --output-on-failure`
+  - `ctest --test-dir build/release --parallel --output-on-failure`
 
 - run a simulator regression slice:
-  - `ctest --test-dir build/release -R zimh-pdp11 --output-on-failure`
+  - `ctest --test-dir build/release --parallel -R zimh-pdp11 --output-on-failure`
 
 - run host-side unit tests:
-  - `ctest --test-dir build/release -R 'zimh-unit-' --output-on-failure`
+  - `ctest --test-dir build/release --parallel -R 'zimh-unit-' --output-on-failure`
 
 ## When To Edit Which File
 
