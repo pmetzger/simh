@@ -231,14 +231,32 @@ the upstream version or commit used for substantial vendor imports.
 
 ## Licensing
 
-New ZIMH-owned source files should use SPDX license headers from the
-start. When touching older SIMH-owned source files, convert the existing
-license header to the appropriate SPDX form as part of the local edit
-when that can be done without obscuring the functional change.
+Every new ZIMH-owned source file should start with SPDX headers. Use
+the current year, credit `The ZIMH Project`, and use the MIT license:
 
-Do not rewrite imported third-party source merely to convert license
-text. License cleanup in vendored code should happen only as part of a
-deliberate vendor import or integration pass.
+```c
+// SPDX-FileCopyrightText: 2026 The ZIMH Project
+// SPDX-License-Identifier: MIT
+```
+
+Place the SPDX lines immediately after the file's brief identifying
+comment, if the file has one. SPDX headers should come before long
+history blocks, extended file commentary, includes, include guards, or
+substantive code.
+
+When making significant changes to older SIMH-derived files, replace
+existing in-file license boilerplate with SPDX headers as part of the
+same edit. Preserve the original copyright holder and year range, and
+choose the SPDX license identifier that matches the license text being
+replaced, such as `X11` or `MIT`.
+
+Avoid broad license-only churn in otherwise unrelated changes, but do
+not leave large legacy license blocks in files that are already being
+meaningfully updated. Do not edit vendored or imported third-party
+source solely to convert license text; we try to keep such code as close
+to upstream as practical and touch it only when necessary for integration
+or maintenance. License cleanup in vendored code should happen only as
+part of a deliberate vendor import or integration pass.
 
 ## Formatting
 

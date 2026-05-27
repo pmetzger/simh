@@ -3,6 +3,10 @@
 Please read projects/TESTING.md to understand our methodology for
 doing tests.
 
+Please also read CODE_STANDARDS.md before making source changes. It
+captures repository coding, documentation, testing, and review
+expectations that supplement this guidance.
+
 Our dogma is that tests must provide us with complete assurance that
 changes have not broken the functionality of the system. We seek 100%
 test coverage with fully automated tests. We accept that the tests
