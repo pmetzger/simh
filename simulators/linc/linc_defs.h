@@ -62,14 +62,14 @@ extern DEVICE kbd_dev;
 extern DEVICE tape_dev;
 extern DEVICE tty_dev;
 
-extern t_stat build_dev_tab(void);
-extern t_stat cpu_do(void);
-extern void dpy_dis(uint16_t h, uint16_t x, uint16_t y);
-extern void crt_point (uint16_t x, uint16_t y);
-extern void crt_toggle_fullscreen(void);
-extern uint16_t kbd_key(uint16_t wait);
-extern int kbd_struck(void);
-extern void tape_op(void);
-extern t_stat tape_metadata(FILE *, uint16_t *, int16_t *, int16_t *);
+t_stat build_dev_tab(void);
+t_stat cpu_do(void);
+void dpy_dis(uint16_t h, uint16_t x, uint16_t y);
+void crt_point (uint16_t x, uint16_t y);
+void crt_toggle_fullscreen(void);
+uint16_t kbd_key(uint16_t wait);
+int kbd_struck(void);
+void tape_op(void);
+t_stat tape_metadata(FILE *, uint16_t *, int16_t *, int16_t *);
 
 #endif /* LINC_DEFS_H_ */

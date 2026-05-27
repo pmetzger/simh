@@ -142,11 +142,11 @@ typedef struct i8259 {
     int intvector;
 } I8259;
 
-extern t_stat i8259_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
-extern t_stat i8259_read(I8259* pic,int addr,uint32_t* value);
-extern t_stat i8259_write(I8259* pic,int addr, uint32_t value);
-extern t_stat i8259_reset(I8259* chip);
-extern t_stat i8259_raiseint(I8259* chip,int level);
+t_stat i8259_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+t_stat i8259_read(I8259* pic,int addr,uint32_t* value);
+t_stat i8259_write(I8259* pic,int addr, uint32_t value);
+t_stat i8259_reset(I8259* chip);
+t_stat i8259_raiseint(I8259* chip,int level);
 
 /* Debug flags */
 #define DBG_PIC_RD (1 << 0)
@@ -218,10 +218,10 @@ typedef struct i8251 {
 } I8251;
 
 /* default handlers */
-extern t_stat i8251_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
-extern t_stat i8251_write(I8251* chip,int port,uint32_t value);
-extern t_stat i8251_read(I8251* chip,int port,uint32_t* value);
-extern t_stat i8251_reset(I8251* chip);
+t_stat i8251_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+t_stat i8251_write(I8251* chip,int port,uint32_t value);
+t_stat i8251_read(I8251* chip,int port,uint32_t* value);
+t_stat i8251_reset(I8251* chip);
 
 /* Debug flags */
 #define DBG_UART_RD  (1 << 0)
@@ -279,8 +279,8 @@ typedef struct i8253 {
 #define I8253_ST_LATCH      0x08
 
 /* default handlers */
-extern t_stat i8253_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
-extern t_stat i8253_reset(I8253* chip);
+t_stat i8253_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+t_stat i8253_reset(I8253* chip);
 
 /* Debug flags */
 #define DBG_TMR_RD (1 << 0)
@@ -357,16 +357,16 @@ typedef struct i8272 {
     I8272_DRIVE_INFO drive[I8272_MAX_DRIVES];
 } I8272;
 
-extern t_stat i8272_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
-extern t_stat i8272_write(I8272* chip, int addr, uint32_t value);
-extern t_stat i8272_read(I8272* chip,int addr,uint32_t* value);
-extern t_stat i8272_reset(I8272* chip);
-extern void   i8272_seldrv(I8272* chip,int drvnum);
-extern t_stat i8272_abortio(I8272* chip);
-extern t_stat i8272_finish(I8272* chip);
-extern t_stat i8272_attach(UNIT *uptr, const char *cptr);
-extern t_stat i8272_detach(UNIT *uptr);
-extern t_stat i8272_setDMA(I8272* chip, uint32_t dma_addr);
+t_stat i8272_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+t_stat i8272_write(I8272* chip, int addr, uint32_t value);
+t_stat i8272_read(I8272* chip,int addr,uint32_t* value);
+t_stat i8272_reset(I8272* chip);
+void   i8272_seldrv(I8272* chip,int drvnum);
+t_stat i8272_abortio(I8272* chip);
+t_stat i8272_finish(I8272* chip);
+t_stat i8272_attach(UNIT *uptr, const char *cptr);
+t_stat i8272_detach(UNIT *uptr);
+t_stat i8272_setDMA(I8272* chip, uint32_t dma_addr);
 
 /* Debug flags */
 #define DBG_FD_ERROR   (1 << 0)
@@ -413,9 +413,9 @@ typedef struct i8255 {
     uint32_t last_portc; /* for edge detection */
     uint32_t ctrl;
 } I8255;
-extern t_stat i8255_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
-extern t_stat i8255_read(I8255* chip,int port,uint32_t* data);
-extern t_stat i8255_write(I8255* chip,int port,uint32_t data);
+t_stat i8255_io(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask);
+t_stat i8255_read(I8255* chip,int port,uint32_t* data);
+t_stat i8255_write(I8255* chip,int port,uint32_t data);
 #define I8255_RISEEDGE(port,bit) ((chip->last_##port & bit)==0 && (chip->port & bit))
 #define I8255_FALLEDGE(port,bit) ((chip->last_##port & bit) && (chip->port & bit)==0)
 #define I8255_ISSET(port,bit) ((chip->port & (bit))==(bit))

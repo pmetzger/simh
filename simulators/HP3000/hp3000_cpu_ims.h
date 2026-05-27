@@ -151,8 +151,8 @@ typedef enum {
    cpu_power_cmd    : process the POWER commands
 */
 
-extern t_stat cpu_cold_cmd  (int32_t arg, const char *buf);
-extern t_stat cpu_power_cmd (int32_t arg, const char *buf);
+t_stat cpu_cold_cmd  (int32_t arg, const char *buf);
+t_stat cpu_power_cmd (int32_t arg, const char *buf);
 
 
 /* Global SIO order structures.
@@ -176,9 +176,9 @@ extern const char *const sio_order_name [];
 
 extern uint32_t iop_interrupt_request_set;
 
-extern uint32_t iop_initialize   (void);
-extern uint32_t iop_poll         (void);
-extern HP_WORD iop_direct_io    (HP_WORD device_number, IO_COMMAND io_cmd, HP_WORD write_value);
+uint32_t iop_initialize   (void);
+uint32_t iop_poll         (void);
+HP_WORD iop_direct_io    (HP_WORD device_number, IO_COMMAND io_cmd, HP_WORD write_value);
 
 
 /* Global multiplexer channel state and functions.
@@ -191,8 +191,8 @@ extern HP_WORD iop_direct_io    (HP_WORD device_number, IO_COMMAND io_cmd, HP_WO
 
 extern uint32_t mpx_request_set;
 
-extern void mpx_initialize (void);
-extern void mpx_service    (uint32_t ticks_elapsed);
+void mpx_initialize (void);
+void mpx_service    (uint32_t ticks_elapsed);
 
 
 /* Global selector channel state and functions
@@ -205,5 +205,5 @@ extern void mpx_service    (uint32_t ticks_elapsed);
 
 extern bool sel_request;
 
-extern void sel_initialize (void);
-extern void sel_service    (uint32_t ticks_elapsed);
+void sel_initialize (void);
+void sel_service    (uint32_t ticks_elapsed);

@@ -216,8 +216,8 @@ typedef struct _HIDB HIDB;
 //   I really hate sharing things like this, but it's the only way to get the
 // modem transmitter timing exactly right!
 extern uint32_t rtc_interval;
-extern t_stat mi_tx_service (uint32_t quantum);
-extern t_stat hi_tx_service (uint32_t quantum);
+t_stat mi_tx_service (uint32_t quantum);
+t_stat hi_tx_service (uint32_t quantum);
 
 // Prototypes for UDP modem/host interface emulation routines ...
 #define NOLINK  (-1)

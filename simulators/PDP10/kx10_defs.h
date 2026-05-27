@@ -453,30 +453,30 @@ extern DEBTAB crd_debug[];
 
 #if KL
 /* DTE memory access functions, n = DTE# */
-extern int      Mem_examine_word(int n, int wrd, uint64 *data);
-extern int      Mem_deposit_word(int n, int wrd, uint64 *data);
-extern int      Mem_read_byte(int n, uint16_t *data, int byte);
-extern int      Mem_write_byte(int n, uint16_t *data);
+int      Mem_examine_word(int n, int wrd, uint64 *data);
+int      Mem_deposit_word(int n, int wrd, uint64 *data);
+int      Mem_read_byte(int n, uint16_t *data, int byte);
+int      Mem_write_byte(int n, uint16_t *data);
 #endif
 
 /*
  * Access main memory. Returns 0 if access ok, 1 if out of memory range.
  * On KI10 and KL10, optional EPT flag indicates address relative to ept.
  */
-extern int      Mem_read_word(t_addr addr, uint64 *data, int ept);
-extern int      Mem_write_word(t_addr addr, uint64 *data, int ept);
+int      Mem_read_word(t_addr addr, uint64 *data, int ept);
+int      Mem_write_word(t_addr addr, uint64 *data, int ept);
 
 #if MPX_DEV
-extern void set_interrupt_mpx(int dev, int lvl, int mpx);
+void        set_interrupt_mpx(int dev, int lvl, int mpx);
 #else
 #define set_interrupt_mpx(d,l,m)   set_interrupt(d,l)
 #endif
-extern void     set_interrupt(int dev, int lvl);
-extern void     clr_interrupt(int dev);
-extern void     check_apr_irq(void);
-extern int      check_irq_level(void);
-extern void     restore_pi_hold(void);
-extern void     set_pi_hold(void);
+void            set_interrupt(int dev, int lvl);
+void            clr_interrupt(int dev);
+void            check_apr_irq(void);
+int             check_irq_level(void);
+void            restore_pi_hold(void);
+void            set_pi_hold(void);
 extern UNIT     cpu_unit[];
 extern UNIT     ten11_unit[];
 #if KS
@@ -732,10 +732,10 @@ int     rh_write(struct rh_if *rh);
 
 
 /* Console lights. */
-extern void ka10_lights_init (void);
-extern void ka10_lights_main (uint64_t);
-extern void ka10_lights_set_aux (int);
-extern void ka10_lights_clear_aux (int);
+void ka10_lights_init (void);
+void ka10_lights_main (uint64_t);
+void ka10_lights_set_aux (int);
+void ka10_lights_clear_aux (int);
 #endif
 
 #define IBM_DEV        04000
@@ -1021,10 +1021,10 @@ extern UNIT     auxcpu_unit[];
 //extern UNIT     slave_unit[];
 #endif
 #if NUM_DEVS_III
-extern uint32_t iii_keyboard_line (void *);
+uint32_t iii_keyboard_line (void *);
 #endif
 #if NUM_DEVS_DD
-extern uint32_t dd_keyboard_line (void *);
+uint32_t dd_keyboard_line (void *);
 #endif
 
 #if PIDP10

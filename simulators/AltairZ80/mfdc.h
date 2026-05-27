@@ -37,5 +37,5 @@
 
 #include <stdint.h>
 
-extern uint8_t MFDC_Read(const uint32_t Addr);
-extern uint8_t MFDC_Write(const uint32_t Addr, uint8_t cData);
+uint8_t MFDC_Read(const uint32_t Addr);
+uint8_t MFDC_Write(const uint32_t Addr, uint8_t cData);

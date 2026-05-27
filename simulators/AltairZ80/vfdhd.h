@@ -37,4 +37,4 @@
 
 #include <stdint.h>
 
-extern int32_t mfdhd_dev(const int32_t port, const int32_t io, const int32_t data);
+int32_t mfdhd_dev(const int32_t port, const int32_t io, const int32_t data);

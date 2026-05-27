@@ -61,7 +61,7 @@
 
 /* PIC base address */
 #define U73_ADDR    0xffc041
-extern t_stat       sage_raiseint(int level); /* sage specific interrupt handler */
+t_stat       sage_raiseint(int level); /* sage specific interrupt handler */
 
 /* 8255 for dip switches and floppy control */
 #define U22_ADDR    0xffc021

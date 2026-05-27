@@ -685,27 +685,27 @@ extern const BITSET_FORMAT outbound_format;     /* the outbound signal format st
 
 /* System interface global SCP support routines declared in scp.h
 
-extern t_stat sim_load   (FILE       *fptr,  const char *cptr, const char *fnam, int     flag);
-extern t_stat fprint_sym (FILE       *ofile, t_addr     addr,  t_value    *val,  UNIT    *uptr, int32_t sw);
-extern t_stat parse_sym  (const char *cptr,  t_addr     addr,  UNIT       *uptr, t_value *val,  int32_t sw);
+t_stat sim_load   (FILE       *fptr,  const char *cptr, const char *fnam, int     flag);
+t_stat fprint_sym (FILE       *ofile, t_addr     addr,  t_value    *val,  UNIT    *uptr, int32_t sw);
+t_stat parse_sym  (const char *cptr,  t_addr     addr,  UNIT       *uptr, t_value *val,  int32_t sw);
 */
 
 /* System interface global SCP support routines */
 
-extern t_stat hp_set_dib  (UNIT *uptr, int32_t code,  const char *cptr, void       *desc);
-extern t_stat hp_show_dib (FILE *st,   UNIT  *uptr, int32_t    code,  const void *desc);
+t_stat hp_set_dib  (UNIT *uptr, int32_t code,  const char *cptr, void       *desc);
+t_stat hp_show_dib (FILE *st,   UNIT  *uptr, int32_t    code,  const void *desc);
 
 
 /* System interface global utility routines */
 
-extern t_stat fprint_cpu  (FILE *ofile, t_value *val, uint32_t radix, int32_t switches);
-extern uint32_t fprint_edit (FILE *ofile, t_value *val, uint32_t radix, uint32_t byte_address);
+t_stat fprint_cpu  (FILE *ofile, t_value *val, uint32_t radix, int32_t switches);
+uint32_t fprint_edit (FILE *ofile, t_value *val, uint32_t radix, uint32_t byte_address);
 
-extern const char *fmt_status (uint32_t status);
+const char *fmt_status (uint32_t status);
 #include "hp3000_format.h"
 
-extern void   hp_debug           (DEVICE *dptr, uint32_t flag,
+void   hp_debug           (DEVICE *dptr, uint32_t flag,
                                   const char *format, ...) PRINTF_FMT(3, 4);
-extern bool hp_device_conflict (void);
+bool hp_device_conflict (void);
 
-extern void hp_one_time_init (void);    /* One time initialization activities now called in cpu_reset() */
+void hp_one_time_init (void);    /* One time initialization activities now called in cpu_reset() */

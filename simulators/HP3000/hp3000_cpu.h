@@ -1084,39 +1084,39 @@ extern const HP_WORD cpu_ccb_table [256];       /* byte-value to condition-code 
 
 /* Global CPU functions */
 
-extern void cpu_push       (void);
-extern void cpu_pop        (void);
-extern void cpu_queue_up   (void);
-extern void cpu_queue_down (void);
-extern void cpu_flush      (void);
-extern void cpu_adjust_sr  (uint32_t target);
-extern void cpu_mark_stack (void);
+void cpu_push       (void);
+void cpu_pop        (void);
+void cpu_queue_up   (void);
+void cpu_queue_down (void);
+void cpu_flush      (void);
+void cpu_adjust_sr  (uint32_t target);
+void cpu_mark_stack (void);
 
-extern void   cpu_ea      (HP_WORD mode_disp, ACCESS_CLASS *class, HP_WORD *offset, BYTE_SELECTOR *selector);
-extern uint32_t cpu_byte_ea (ACCESS_CLASS class, uint32_t byte_offset, uint32_t block_length);
+void   cpu_ea      (HP_WORD mode_disp, ACCESS_CLASS *class, HP_WORD *offset, BYTE_SELECTOR *selector);
+uint32_t cpu_byte_ea (ACCESS_CLASS class, uint32_t byte_offset, uint32_t block_length);
 
-extern void cpu_setup_irq_handler  (IRQ_CLASS class, HP_WORD parameter);
-extern void cpu_setup_ics_irq      (IRQ_CLASS class, TRAP_CLASS trap);
-extern void cpu_run_mode_interrupt (HP_WORD device_number);
-extern void cpu_setup_code_segment (HP_WORD label, HP_WORD *status, HP_WORD *entry_0);
-extern void cpu_setup_data_segment (HP_WORD segment_number, HP_WORD *bank, HP_WORD *address);
-extern void cpu_call_procedure     (HP_WORD label, HP_WORD offset);
-extern void cpu_exit_procedure     (HP_WORD new_q, HP_WORD new_sm, HP_WORD parameter);
-extern void cpu_start_dispatcher   (void);
-extern void cpu_update_pclk        (void);
+void cpu_setup_irq_handler  (IRQ_CLASS class, HP_WORD parameter);
+void cpu_setup_ics_irq      (IRQ_CLASS class, TRAP_CLASS trap);
+void cpu_run_mode_interrupt (HP_WORD device_number);
+void cpu_setup_code_segment (HP_WORD label, HP_WORD *status, HP_WORD *entry_0);
+void cpu_setup_data_segment (HP_WORD segment_number, HP_WORD *bank, HP_WORD *address);
+void cpu_call_procedure     (HP_WORD label, HP_WORD offset);
+void cpu_exit_procedure     (HP_WORD new_q, HP_WORD new_sm, HP_WORD parameter);
+void cpu_start_dispatcher   (void);
+void cpu_update_pclk        (void);
 
 
 /* Global CPU instruction execution routines */
 
-extern bool cpu_interrupt_pending (t_stat *status);
-extern t_stat cpu_branch_short      (bool check_loop);
+bool cpu_interrupt_pending (t_stat *status);
+t_stat cpu_branch_short      (bool check_loop);
 
-extern HP_WORD cpu_add_16 (HP_WORD augend,       HP_WORD addend);
-extern HP_WORD cpu_sub_16 (HP_WORD minuend,      HP_WORD subtrahend);
-extern HP_WORD cpu_mpy_16 (HP_WORD multiplicand, HP_WORD multiplier);
+HP_WORD cpu_add_16 (HP_WORD augend,       HP_WORD addend);
+HP_WORD cpu_sub_16 (HP_WORD minuend,      HP_WORD subtrahend);
+HP_WORD cpu_mpy_16 (HP_WORD multiplicand, HP_WORD multiplier);
 
-extern t_stat cpu_stack_op                      (void);
-extern t_stat cpu_shift_branch_bit_op           (void);
-extern t_stat cpu_move_spec_fw_imm_field_reg_op (void);
-extern t_stat cpu_io_cntl_prog_imm_mem_op       (void);
-extern t_stat cpu_cis_op                        (void);
+t_stat cpu_stack_op                      (void);
+t_stat cpu_shift_branch_bit_op           (void);
+t_stat cpu_move_spec_fw_imm_field_reg_op (void);
+t_stat cpu_io_cntl_prog_imm_mem_op       (void);
+t_stat cpu_cis_op                        (void);

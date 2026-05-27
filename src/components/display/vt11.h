@@ -88,48 +88,48 @@ extern uchar_t vt11_init;               /* set after display_init() called */
 /* The display file is an array of 16-bit words. */
 typedef uint16_t vt11word;
 
-extern int32_t vt11_get_dpc(void);      /* read Display PC */
-extern int32_t vt11_get_mpr(void);      /* read mode parameter register */
-extern int32_t vt11_get_xpr(void);      /* read graphplot incr/X pos register */
-extern int32_t vt11_get_ypr(void);      /* read char code/Y pos register */
-extern int32_t vt11_get_rr(void);       /* read relocate register */
-extern int32_t vt11_get_spr(void);      /* read status parameter register */
-extern int32_t vt11_get_xor(void);      /* read X offset register */
-extern int32_t vt11_get_yor(void);      /* read Y offset register */
-extern int32_t vt11_get_anr(void);      /* read associative name register */
-extern int32_t vt11_get_scr(void);      /* read slave console/color register */
-extern int32_t vt11_get_nr(void);       /* read name register */
-extern int32_t vt11_get_sdr(void);      /* read stack data register */
-extern int32_t vt11_get_str(void);      /* read char string term register */
-extern int32_t vt11_get_sar(void);      /* read stack address/maint register */
-extern int32_t vt11_get_zpr(void);      /* read Z position register */
-extern int32_t vt11_get_zor(void);      /* read Z offset register */
+int32_t vt11_get_dpc(void);      /* read Display PC */
+int32_t vt11_get_mpr(void);      /* read mode parameter register */
+int32_t vt11_get_xpr(void);      /* read graphplot incr/X pos register */
+int32_t vt11_get_ypr(void);      /* read char code/Y pos register */
+int32_t vt11_get_rr(void);       /* read relocate register */
+int32_t vt11_get_spr(void);      /* read status parameter register */
+int32_t vt11_get_xor(void);      /* read X offset register */
+int32_t vt11_get_yor(void);      /* read Y offset register */
+int32_t vt11_get_anr(void);      /* read associative name register */
+int32_t vt11_get_scr(void);      /* read slave console/color register */
+int32_t vt11_get_nr(void);       /* read name register */
+int32_t vt11_get_sdr(void);      /* read stack data register */
+int32_t vt11_get_str(void);      /* read char string term register */
+int32_t vt11_get_sar(void);      /* read stack address/maint register */
+int32_t vt11_get_zpr(void);      /* read Z position register */
+int32_t vt11_get_zor(void);      /* read Z offset register */
 
-extern void vt11_set_dpc(uint16_t);     /* write Display PC */
-extern void vt11_set_mpr(uint16_t);     /* write mode parameter register */
-extern void vt11_set_xpr(uint16_t);     /* write graphplot inc/X pos register */
-extern void vt11_set_ypr(uint16_t);     /* write char code/Y pos register */
-extern void vt11_set_rr(uint16_t);      /* write relocate register */
-extern void vt11_set_spr(uint16_t);     /* write status parameter register */
-extern void vt11_set_xor(uint16_t);     /* write X offset register */
-extern void vt11_set_yor(uint16_t);     /* write Y offset register */
-extern void vt11_set_anr(uint16_t);     /* write associative name register */
-extern void vt11_set_scr(uint16_t);     /* write slave console/color register */
-extern void vt11_set_nr(uint16_t);      /* write name register */
-extern void vt11_set_sdr(uint16_t);     /* write stack data register */
-extern void vt11_set_str(uint16_t);     /* write char string term register */
-extern void vt11_set_sar(uint16_t);     /* write stack address/maint register */
-extern void vt11_set_zpr(uint16_t);     /* write Z position register */
-extern void vt11_set_zor(uint16_t);     /* write Z offset register */
+void vt11_set_dpc(uint16_t);     /* write Display PC */
+void vt11_set_mpr(uint16_t);     /* write mode parameter register */
+void vt11_set_xpr(uint16_t);     /* write graphplot inc/X pos register */
+void vt11_set_ypr(uint16_t);     /* write char code/Y pos register */
+void vt11_set_rr(uint16_t);      /* write relocate register */
+void vt11_set_spr(uint16_t);     /* write status parameter register */
+void vt11_set_xor(uint16_t);     /* write X offset register */
+void vt11_set_yor(uint16_t);     /* write Y offset register */
+void vt11_set_anr(uint16_t);     /* write associative name register */
+void vt11_set_scr(uint16_t);     /* write slave console/color register */
+void vt11_set_nr(uint16_t);      /* write name register */
+void vt11_set_sdr(uint16_t);     /* write stack data register */
+void vt11_set_str(uint16_t);     /* write char string term register */
+void vt11_set_sar(uint16_t);     /* write stack address/maint register */
+void vt11_set_zpr(uint16_t);     /* write Z position register */
+void vt11_set_zor(uint16_t);     /* write Z offset register */
 
-extern void vt11_reset(void *, int);    /* reset the display processor */
-extern int  vt11_cycle(int, int);       /* perform a display processor cycle */
+void vt11_reset(void *, int);    /* reset the display processor */
+int  vt11_cycle(int, int);       /* perform a display processor cycle */
 
 /*
  * callbacks from VT11/VS60 simulator (to SIMH PDP-11 VT driver, for example)
  */
-extern int  vt_fetch(uint32_t, vt11word *);     /* get a display-file word */
-extern void vt_stop_intr(void);         /* post a display-stop interrupt */
-extern void vt_lpen_intr(void);         /* post a surface-related interrupt */
-extern void vt_char_intr(void);         /* post a bad-char./timeout interrupt */
-extern void vt_name_intr(void);         /* post a name-match interrupt */
+int  vt_fetch(uint32_t, vt11word *);     /* get a display-file word */
+void vt_stop_intr(void);         /* post a display-stop interrupt */
+void vt_lpen_intr(void);         /* post a surface-related interrupt */
+void vt_char_intr(void);         /* post a bad-char./timeout interrupt */
+void vt_name_intr(void);         /* post a name-match interrupt */

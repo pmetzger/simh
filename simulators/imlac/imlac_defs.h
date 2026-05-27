@@ -56,20 +56,20 @@ typedef struct {
   SUBDEV subdev[4];
 } IMDEV;
 
-extern t_stat build_dev_tab (void);
-extern void flag_on (uint16_t flag);
-extern void flag_off (uint16_t flag);
-extern uint16_t flag_check (uint16_t flag);
-extern void dp_on (int flag);
-extern uint16_t dp_is_on (void);
-extern void crt_point (uint16_t x, uint16_t y);
-extern void crt_line (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
-extern void crt_idle (void);
-extern void crt_hvc (void);
-extern void rom_data (uint16_t *data);
-extern void rom_tty (void);
-extern void rom_stty (void);
-extern void rom_ptr (void);
+t_stat build_dev_tab (void);
+void flag_on (uint16_t flag);
+void flag_off (uint16_t flag);
+uint16_t flag_check (uint16_t flag);
+void dp_on (int flag);
+uint16_t dp_is_on (void);
+void crt_point (uint16_t x, uint16_t y);
+void crt_line (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+void crt_idle (void);
+void crt_hvc (void);
+void rom_data (uint16_t *data);
+void rom_tty (void);
+void rom_stty (void);
+void rom_ptr (void);
 
 extern REG cpu_reg[];
 extern uint16_t M[];

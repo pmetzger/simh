@@ -458,21 +458,21 @@ extern DEVICE       cp_dev;
 
 #ifdef NUM_DEVS_TP
 extern DIB          tp_dib;
-extern uint32_t     tp_cmd(UNIT *, uint16_t, uint16_t);
+uint32_t            tp_cmd(UNIT *, uint16_t, uint16_t);
 extern DEVICE       tpa_dev;
 #endif
 
 #ifdef NUM_DEVS_CDR
 extern DIB          cdr_dib;
 extern DEVICE       cdr_dev;
-extern uint32_t     cdr_cmd(UNIT *, uint16_t, uint16_t);
+uint32_t            cdr_cmd(UNIT *, uint16_t, uint16_t);
 #endif
 
 #ifdef NUM_DEVS_CDP
 extern DIB          cdp_dib;
 extern DEVICE       cdp_dev;
-extern uint32_t     cdp_cmd(UNIT *, uint16_t, uint16_t);
-extern void         cdp_ini(UNIT *, bool);
+uint32_t            cdp_cmd(UNIT *, uint16_t, uint16_t);
+void                cdp_ini(UNIT *, bool);
 #endif
 
 #ifdef STACK_DEV
@@ -482,54 +482,54 @@ extern DEVICE       stack_dev;
 #ifdef NUM_DEVS_LPR
 extern DIB          lpr_dib;
 extern DEVICE       lpr_dev;
-extern uint32_t     lpr_cmd(UNIT *, uint16_t, uint16_t);
-extern void         lpr_ini(UNIT *, bool);
+uint32_t            lpr_cmd(UNIT *, uint16_t, uint16_t);
+void                lpr_ini(UNIT *, bool);
 #endif
 
 #ifdef NUM_DEVS_CON
 extern DIB          con_dib;
 extern DEVICE       con_dev;
-extern uint32_t     con_cmd(UNIT *, uint16_t, uint16_t);
-extern void         con_ini(UNIT *, bool);
+uint32_t            con_cmd(UNIT *, uint16_t, uint16_t);
+void                con_ini(UNIT *, bool);
 #endif
 
 #ifdef NUM_DEVS_CHRON
 extern DIB         chron_dib;
 extern DEVICE      chron_dev;
-extern uint32_t    chron_cmd(UNIT *, uint16_t, uint16_t);
+uint32_t           chron_cmd(UNIT *, uint16_t, uint16_t);
 #endif
 
 #ifdef NUM_DEVS_COM
-extern uint32_t    com_cmd(UNIT *, uint16_t, uint16_t);
+uint32_t           com_cmd(UNIT *, uint16_t, uint16_t);
 extern DIB         com_dib;
 extern DEVICE      com_dev;
 extern DEVICE      coml_dev;
 #endif
 
 #ifdef NUM_DEVS_DR
-extern uint32_t    drm_cmd(UNIT *, uint16_t, uint16_t);
-extern void        drm_ini(UNIT *, bool);
+uint32_t           drm_cmd(UNIT *, uint16_t, uint16_t);
+void               drm_ini(UNIT *, bool);
 extern DIB         drm_dib;
 extern DEVICE      drm_dev;
 #endif
 
 #ifdef NUM_DEVS_DSK
-extern uint32_t    dsk_cmd(UNIT *, uint16_t, uint16_t);
-extern void        dsk_ini(UNIT *, bool);
+uint32_t           dsk_cmd(UNIT *, uint16_t, uint16_t);
+void               dsk_ini(UNIT *, bool);
 extern DIB         dsk_dib;
 extern DEVICE      dsk_dev;
 #endif
 
 #ifdef NUM_DEVS_HD
-extern uint32_t    hsdrm_cmd(UNIT *, uint16_t, uint16_t);
-extern void        hsdrm_ini(UNIT *, bool);
+uint32_t           hsdrm_cmd(UNIT *, uint16_t, uint16_t);
+void               hsdrm_ini(UNIT *, bool);
 extern DIB         hsdrm_dib;
 extern DEVICE      hsdrm_dev;
 #endif
 
 #if NUM_DEVS_HT > 0
 extern DIB         ht_dib;
-extern uint32_t    ht_cmd(UNIT *, uint16_t, uint16_t);
+uint32_t           ht_cmd(UNIT *, uint16_t, uint16_t);
 extern DEVICE      hta_dev;
 #if NUM_DEVS_HT > 1
 extern DEVICE      htb_dev;
@@ -538,8 +538,8 @@ extern DEVICE      htb_dev;
 
 #if (NUM_DEVS_MT > 0) || defined(MT_CHANNEL_ZERO)
 extern DIB         mt_dib;
-extern uint32_t    mt_cmd(UNIT *, uint16_t, uint16_t);
-extern void        mt_ini(UNIT *, bool);
+uint32_t           mt_cmd(UNIT *, uint16_t, uint16_t);
+void               mt_ini(UNIT *, bool);
 #ifdef MT_CHANNEL_ZERO
 extern DEVICE      mtz_dev;
 #endif
@@ -640,9 +640,9 @@ extern int         cycle_time;
 
 extern const char mem_to_ascii[64];
 
-extern const char *cpu_description(DEVICE *dptr);
+const char *cpu_description(DEVICE *dptr);
 extern const char *chan_type_name[];
-extern void help_set_chan_type(FILE *st, DEVICE *dptr, const char *name);
-extern void sys_init(void);
+void help_set_chan_type(FILE *st, DEVICE *dptr, const char *name);
+void sys_init(void);
 
 #endif /* _I7000_H_ */

@@ -69,22 +69,22 @@ enum display_type {
  * must be called before first call to display_age()
  * (but called implicitly by display_point())
  */
-extern int display_init(enum display_type, int scale, void *dptr);
+int display_init(enum display_type, int scale, void *dptr);
 
 /*
  * close display
  */
-extern void display_close(void *dptr);
+void display_close(void *dptr);
 
 /* return size of virtual display */
-extern int display_xpoints(void);
-extern int display_ypoints(void);
+int display_xpoints(void);
+int display_ypoints(void);
 
 /* virtual points between display and menu sections */
 #define VR48_GUTTER 8   /* just a guess */
 
 /* conversion factor from virtual points and displayed pixels */
-extern int display_scale(void);
+int display_scale(void);
 
 /*
  * simulate passage of time; first argument is simulated microseconds elapsed,
@@ -92,12 +92,12 @@ extern int display_scale(void);
  * see comments in display.c for why you should call it often!!
  * Under X11 polls for window events!!
  */
-extern int display_age(int,int);
+int display_age(int,int);
 
 /*
  * Return true if the display is blank.
  */
-extern int display_is_blank(void);
+int display_is_blank(void);
 
 /*
  * display intensity levels.
@@ -113,37 +113,37 @@ extern int display_is_blank(void);
  *
  * Display initialized on first call.
  */
-extern int display_point(int,int,int,int);
+int display_point(int,int,int,int);
 
 /*
  * plot a line; arguments are start and end x, y, intensity
  *
  * Display initialized on first call.
  */
-extern void display_line(int,int,int,int,int);
+void display_line(int,int,int,int,int);
 
 /*
  * force window system to output bits to screen;
  * call after adding points, or aging the screen
  * collect any window system input (mouse or keyboard)
  */
-extern void display_sync(void);
+void display_sync(void);
 
 /*
  * currently a noop
  */
-extern void display_reset(void);
+void display_reset(void);
 
 /*
  * ring the bell
  */
-extern void display_beep(void);
+void display_beep(void);
 
 /*
  * Set light-pen radius; maximum radius in display coordinates
  * from a "lit" location that the light pen will see.
  */
-extern void display_lp_radius(int);
+void display_lp_radius(int);
 
 /*
  * set by simulated spacewar switch box switches
@@ -241,5 +241,5 @@ extern uchar_t display_tablet;
  * users of this library are expected to provide these calls.
  * simulator will set up to 36 simulated switches.
  */
-extern void cpu_get_switches(unsigned long *p1, unsigned long *p2);
-extern void cpu_set_switches(unsigned long, unsigned long);
+void cpu_get_switches(unsigned long *p1, unsigned long *p2);
+void cpu_set_switches(unsigned long, unsigned long);

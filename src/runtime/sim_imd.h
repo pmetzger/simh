@@ -80,17 +80,17 @@ typedef struct {
     TRACK_INFO track[MAX_CYL][MAX_HEAD];
 } DISK_INFO;
 
-extern DISK_INFO *diskOpen(FILE *fileref, uint32_t isVerbose);
-extern DISK_INFO *diskOpenEx(FILE *fileref, uint32_t isVerbose, DEVICE *device, uint32_t debugmask, uint32_t verbosedebugmask);
-extern t_stat diskClose(DISK_INFO **myDisk);
-extern t_stat diskCreate(FILE *fileref, const char *ctlr_comment);
-extern uint32_t imdGetSides(DISK_INFO *myDisk);
-extern uint32_t imdIsWriteLocked(DISK_INFO *myDisk);
+DISK_INFO *diskOpen(FILE *fileref, uint32_t isVerbose);
+DISK_INFO *diskOpenEx(FILE *fileref, uint32_t isVerbose, DEVICE *device, uint32_t debugmask, uint32_t verbosedebugmask);
+t_stat diskClose(DISK_INFO **myDisk);
+t_stat diskCreate(FILE *fileref, const char *ctlr_comment);
+uint32_t imdGetSides(DISK_INFO *myDisk);
+uint32_t imdIsWriteLocked(DISK_INFO *myDisk);
 
-extern t_stat sectSeek(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head);
-extern t_stat sectRead(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head, uint32_t Sector, uint8_t *buf, uint32_t buflen, uint32_t *flags, uint32_t *readlen);
-extern t_stat sectWrite(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head, uint32_t Sector, uint8_t *buf, uint32_t buflen, uint32_t *flags, uint32_t *writelen);
-extern t_stat trackWrite(DISK_INFO *myDisk,
+t_stat sectSeek(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head);
+t_stat sectRead(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head, uint32_t Sector, uint8_t *buf, uint32_t buflen, uint32_t *flags, uint32_t *readlen);
+t_stat sectWrite(DISK_INFO *myDisk, uint32_t Cyl, uint32_t Head, uint32_t Sector, uint8_t *buf, uint32_t buflen, uint32_t *flags, uint32_t *writelen);
+t_stat trackWrite(DISK_INFO *myDisk,
                uint32_t Cyl,
                uint32_t Head,
                uint32_t numSectors,
@@ -99,6 +99,6 @@ extern t_stat trackWrite(DISK_INFO *myDisk,
                uint8_t mode,
                uint8_t fillbyte,
                uint32_t *flags);
-extern t_stat assignDiskType(UNIT *uptr);
+t_stat assignDiskType(UNIT *uptr);
 
 #endif

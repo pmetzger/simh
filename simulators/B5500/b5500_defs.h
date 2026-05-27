@@ -104,7 +104,7 @@ extern uint8_t     parity_table[64];
 extern uint8_t     mem_to_ascii[64];
 extern const char  con_to_ascii[64];
 extern const char  ascii_to_con[128];
-extern t_stat      fprint_sym(FILE *, t_addr, t_value *, UNIT *, int32_t);
+t_stat             fprint_sym(FILE *, t_addr, t_value *, UNIT *, int32_t);
 extern int32_t     tmxr_poll;
 
 /* Generic devices common to all */
@@ -116,7 +116,7 @@ extern DEVICE      chan_dev;
 /* Global device definitions */
 #if (NUM_DEVS_CDR > 0) | (NUM_DEVS_CDP > 0)
 extern DEVICE       cdr_dev;
-extern t_stat       card_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
+t_stat              card_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif
 
 #if (NUM_DEVS_CDP > 0)
@@ -125,33 +125,33 @@ extern DEVICE       cdp_dev;
 
 #if (NUM_DEVS_LPR > 0)
 extern DEVICE       lpr_dev;
-extern t_stat       lpr_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
+t_stat              lpr_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif
 
 #if (NUM_DEVS_CON > 0)
 extern DEVICE       con_dev;
-extern t_stat       con_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
+t_stat              con_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif
 
 #if (NUM_DEVS_DTC > 0)
 extern DEVICE      dtc_dev;
-extern t_stat      dtc_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
+t_stat             dtc_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif
 
 #if (NUM_DEVS_DR > 0)
 extern DEVICE      drm_dev;
-extern t_stat      drm_cmd(uint16_t, uint16_t, uint8_t, uint16_t *, uint8_t);
+t_stat             drm_cmd(uint16_t, uint16_t, uint8_t, uint16_t *, uint8_t);
 #endif
 
 #if (NUM_DEVS_DSK > 0)
 extern DEVICE      dsk_dev;
-extern t_stat      dsk_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
+t_stat             dsk_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 extern DEVICE      esu_dev;
 #endif
 
 #if (NUM_DEVS_MT > 0)
 extern DEVICE      mt_dev;
-extern t_stat      mt_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
+t_stat             mt_cmd(uint16_t, uint16_t, uint8_t, uint16_t *);
 #endif  /* NUM_DEVS_MT */
 
 /* Character codes */

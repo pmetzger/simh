@@ -532,28 +532,28 @@ typedef CNTLR_VARS *CVPTR;                      /* a pointer to a controller sta
 
 /* Tape library global controller routines */
 
-extern CNTLR_IFN_IBUS tl_controller (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags, CNTLR_IBUS data);
-extern t_stat         tl_onoffline  (CVPTR cvptr, UNIT *uptr, bool online);
+CNTLR_IFN_IBUS tl_controller (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags, CNTLR_IBUS data);
+t_stat         tl_onoffline  (CVPTR cvptr, UNIT *uptr, bool online);
 
-extern HP_WORD tl_status (CVPTR cvptr);
-extern t_stat  tl_reset  (CVPTR cvptr);
-extern void    tl_clear  (CVPTR cvptr);
+HP_WORD tl_status (CVPTR cvptr);
+t_stat  tl_reset  (CVPTR cvptr);
+void    tl_clear  (CVPTR cvptr);
 
 /* Tape library global utility routines */
 
-extern const char *tl_opcode_name (CNTLR_OPCODE opcode);
-extern const char *tl_unit_name   (int32_t      unit);
+const char *tl_opcode_name (CNTLR_OPCODE opcode);
+const char *tl_unit_name   (int32_t      unit);
 
 /* Tape library global SCP support routines */
 
-extern t_stat tl_attach (CVPTR cvptr, UNIT *uptr, const char *cptr);
-extern t_stat tl_detach (UNIT  *uptr);
+t_stat tl_attach (CVPTR cvptr, UNIT *uptr, const char *cptr);
+t_stat tl_detach (UNIT  *uptr);
 
-extern t_stat tl_set_timing   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat tl_set_model    (UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat tl_set_density  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat tl_set_reelsize (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat tl_set_timing   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat tl_set_model    (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat tl_set_density  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat tl_set_reelsize (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
-extern t_stat tl_show_timing   (FILE *st, UNIT *uptr, int32_t value, const void *desc);
-extern t_stat tl_show_density  (FILE *st, UNIT *uptr, int32_t value, const void *desc);
-extern t_stat tl_show_reelsize (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+t_stat tl_show_timing   (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+t_stat tl_show_density  (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+t_stat tl_show_reelsize (FILE *st, UNIT *uptr, int32_t value, const void *desc);

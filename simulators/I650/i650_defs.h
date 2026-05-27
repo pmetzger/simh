@@ -68,9 +68,9 @@ extern int              IAS_NegativeZeroFlag[60];
 extern int              IAS_TimingRing;
 extern int              InterLockCount[8];
 
-extern int WriteAddr(int AR, int64_t d, int NegZero);
-extern int ReadAddr(int AR, int64_t * d, int * NegZero);
-extern const char * DecodeOpcode(int64_t d, int * opcode, int * DA, int * IA);
+int WriteAddr(int AR, int64_t d, int NegZero);
+int ReadAddr(int AR, int64_t * d, int * NegZero);
+const char * DecodeOpcode(int64_t d, int * opcode, int * DA, int * IA);
 
 
 /* digits contants */
@@ -115,14 +115,14 @@ extern DEVICE       cp_dev;
 
 extern DIB          cdr_dib;
 extern DEVICE       cdr_dev;
-extern uint32_t     cdr_cmd(UNIT *, uint16_t, uint16_t);
+uint32_t            cdr_cmd(UNIT *, uint16_t, uint16_t);
 extern UNIT         cdr_unit[4];
 extern uint16_t     ReadStaker[3 * MAX_CARDS_IN_READ_STAKER_HOPPER * 80];
 extern int          ReadStakerLast[3];
 
 extern DIB          cdp_dib;
 extern DEVICE       cdp_dev;
-extern uint32_t     cdp_cmd(UNIT *, uint16_t, uint16_t);
+uint32_t            cdp_cmd(UNIT *, uint16_t, uint16_t);
 extern UNIT         cdp_unit[4];
 
 /* Card read-punch device status information stored in u5 */
@@ -133,13 +133,13 @@ extern UNIT         cdp_unit[4];
 
 extern DIB          mt_dib;
 extern DEVICE       mt_dev;
-extern uint32_t     mt_cmd(UNIT *, uint16_t, uint16_t);
+uint32_t            mt_cmd(UNIT *, uint16_t, uint16_t);
 extern UNIT         mt_unit[6];
 extern int          LastTapeSelected;
 extern int          LastTapeIndicator;
 extern const char * TapeIndicatorStr[11];
-extern int          mt_ready(int n);
-extern void         mt_ini(UNIT * uptr, bool f);
+int                 mt_ready(int n);
+void                mt_ini(UNIT * uptr, bool f);
 
 /* Tape Indicator status */
 #define MT_IND_WRT_PROT    1    // attempting to write to a write protected tape
@@ -155,10 +155,10 @@ extern void         mt_ini(UNIT * uptr, bool f);
 
 extern DIB          dsk_dib;
 extern DEVICE       dsk_dev;
-extern uint32_t     dsk_cmd(int, int32_t, uint16_t);
+uint32_t            dsk_cmd(int, int32_t, uint16_t);
 extern UNIT         dsk_unit[4];
-extern int          dsk_ready(int n, int arm);
-extern void         dsk_ini(UNIT * uptr, bool f);
+int                 dsk_ready(int n, int arm);
+void                dsk_ini(UNIT * uptr, bool f);
 
 /* Disk Indicator status */
 #define DSK_IND_BADADDR     1    // invalid unit/arm/disk plate/track accessed
@@ -174,16 +174,16 @@ extern struct card_wirings {
 
 extern char    digits_ascii[31];
 extern char    mem_to_ascii[101];
-extern int     ascii_to_NN(int ch);
-extern uint16_t sim_ascii_to_hol(char c);
-extern char    sim_hol_to_ascii(uint16_t hol);
+int            ascii_to_NN(int ch);
+uint16_t        sim_ascii_to_hol(char c);
+char           sim_hol_to_ascii(uint16_t hol);
 
 /* Generic devices common to all */
 extern DEVICE      cpu_dev;
 extern UNIT        cpu_unit;
 extern REG         cpu_reg[];
 
-extern const char *cpu_description(DEVICE *dptr);
+const char *cpu_description(DEVICE *dptr);
 
 /* Opcodes */
 // Instructions on Basic machine
@@ -370,8 +370,8 @@ extern t_opcode  base_ops[100];
 #define UNIT_CARD_PRINT    ( 0x2000 << UNIT_V_CARD_MODE)
 
 /* Decimal helper functions */
-extern int Get_HiDigit(int64_t d);
-extern int Shift_Digits(int64_t * d, int nDigits);
-extern char * word_to_ascii(char * buf, int CharStart, int CharLen, int64_t d);
+int Get_HiDigit(int64_t d);
+int Shift_Digits(int64_t * d, int nDigits);
+char * word_to_ascii(char * buf, int CharStart, int CharLen, int64_t d);
 
-extern void vm_init(void);  /* One time initialization activities now called in cpu_reset() */
+void vm_init(void);  /* One time initialization activities now called in cpu_reset() */

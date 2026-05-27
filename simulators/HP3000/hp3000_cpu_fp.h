@@ -111,4 +111,4 @@ static const FP_OPND FP_NOP = { { 0, 0, 0, 0 }, in_s, trap_None };    /* an unne
 
 /* Floating-point global routines */
 
-extern FP_OPND fp_exec (FP_OPR operator, FP_OPND left, FP_OPND right);
+FP_OPND fp_exec (FP_OPR operator, FP_OPND left, FP_OPND right);

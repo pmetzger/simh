@@ -308,23 +308,23 @@ extern jmp_buf cpu_halt;
 /*
  * Процедуры работы с памятью
  */
-extern void mmu_store (int addr, t_value word);
-extern t_value mmu_load (int addr);
-extern t_value mmu_fetch (int addr);
-extern t_value mmu_prefetch (int addr, int actual);
-extern void mmu_setcache (int idx, t_value word);
-extern t_value mmu_getcache (int idx);
-extern void mmu_setrp (int idx, t_value word);
-extern void mmu_setup (void);
-extern void mmu_setprotection (int idx, t_value word);
-extern void mmu_print_brz (void);
+void mmu_store (int addr, t_value word);
+t_value mmu_load (int addr);
+t_value mmu_fetch (int addr);
+t_value mmu_prefetch (int addr, int actual);
+void mmu_setcache (int idx, t_value word);
+t_value mmu_getcache (int idx);
+void mmu_setrp (int idx, t_value word);
+void mmu_setup (void);
+void mmu_setprotection (int idx, t_value word);
+void mmu_print_brz (void);
 
 /*
  * Utility functions
  */
-extern unsigned short gost_to_unicode(uchar_t);
-extern void gost_putc(uchar_t, FILE *);
-extern int odd_parity(uchar_t);
+unsigned short gost_to_unicode(uchar_t);
+void gost_putc(uchar_t, FILE *);
+int odd_parity(uchar_t);
 
 /*
  * Выполнение обращения к барабану.

@@ -60,12 +60,12 @@ typedef struct SERPORT *SERHANDLE;
 
 #include "sim_tmxr.h"                           /* need TMLN definition and modem definitions */
 
-extern SERHANDLE sim_open_serial    (char *name, TMLN *lp, t_stat *status);
-extern t_stat    sim_config_serial  (SERHANDLE port, const char *config);
-extern t_stat    sim_control_serial (SERHANDLE port, int32_t bits_to_set, int32_t bits_to_clear, int32_t *incoming_bits);
-extern int32_t   sim_read_serial    (SERHANDLE port, char *buffer, int32_t count, char *brk);
-extern int32_t   sim_write_serial   (SERHANDLE port, char *buffer, int32_t count);
-extern void      sim_close_serial   (SERHANDLE port);
-extern t_stat    sim_show_serial    (FILE* st, DEVICE *dptr, UNIT* uptr, int32_t val, const char* desc);
+SERHANDLE sim_open_serial    (char *name, TMLN *lp, t_stat *status);
+t_stat    sim_config_serial  (SERHANDLE port, const char *config);
+t_stat    sim_control_serial (SERHANDLE port, int32_t bits_to_set, int32_t bits_to_clear, int32_t *incoming_bits);
+int32_t   sim_read_serial    (SERHANDLE port, char *buffer, int32_t count, char *brk);
+int32_t   sim_write_serial   (SERHANDLE port, char *buffer, int32_t count);
+void      sim_close_serial   (SERHANDLE port);
+t_stat    sim_show_serial    (FILE* st, DEVICE *dptr, UNIT* uptr, int32_t val, const char* desc);
 
 #endif

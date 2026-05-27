@@ -63,7 +63,7 @@ void ty342_set_grid(int, int);
 /*
  * calls from type340.c into host simulator
  */
-extern ty340word ty340_fetch(ty340word);
-extern void ty340_store(ty340word, ty340word);
-extern void ty340_lp_int(ty340word x, ty340word y);
-extern void ty340_rfd(void);
+ty340word ty340_fetch(ty340word);
+void ty340_store(ty340word, ty340word);
+void ty340_lp_int(ty340word x, ty340word y);
+void ty340_rfd(void);

@@ -779,68 +779,68 @@ void uba_debug_dma_in (uint32_t ba, a10 pa_start, a10 pa_end);
 void uba_debug_dma_out (uint32_t ba, a10 pa_start, a10 pa_end);
 void uba_debug_dma_nxm (const char *msg, a10 pa10, uint32_t ba, int32_t bc);
 
-extern d10 Read (a10 ea, int32_t prv);                  /* read, read check */
-extern d10 ReadM (a10 ea, int32_t prv);                 /* read, write check */
-extern d10 ReadE (a10 ea);                              /* read, exec */
-extern d10 ReadP (a10 ea);                              /* read, physical */
-extern void Write (a10 ea, d10 val, int32_t prv);       /* write */
-extern void WriteE (a10 ea, d10 val);                   /* write, exec */
-extern void WriteP (a10 ea, d10 val);                   /* write, physical */
-extern bool AccViol (a10 ea, int32_t prv, int32_t mode); /* access check */
-extern d10 imul (d10 val, d10 mb);
-extern bool idiv (d10 val, d10 mb, d10 *rs);
-extern void mul (d10 val, d10 mb, d10 *rs);
-extern bool divi (int32_t ac, d10 mb, d10 *rs);
-extern void dmul (int32_t ac, d10 *rs);
-extern void ddiv (int32_t ac, d10 *rs);
-extern d10 fad (d10 val, d10 mb, bool rnd, int32_t inv);
-extern d10 fmp (d10 val, d10 mb, bool rnd);
-extern bool fdv (d10 val, d10 mb, d10 *rs, bool rnd);
-extern d10 fsc (d10 val, a10 ea);
-extern d10 fltr (d10 mb);
-extern void fix (int32_t ac, d10 mb, bool rnd);
-extern void dfad (int32_t ac, d10 *rs, int32_t inv);
-extern void dfmp (int32_t ac, d10 *rs);
-extern void dfdv (int32_t ac, d10 *rs);
-extern bool rdtim (a10 ea, int32_t prv);
-extern bool rdint (a10 ea, int32_t prv);
-extern bool wrtim (a10 ea, int32_t prv);
-extern bool wrint (a10 ea, int32_t prv);
-extern t_stat tim_set_mod (UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern void fe_intr (void);
-extern void set_dyn_ptrs (void);
-extern d10 map (a10 ea, int32_t prv);
-extern a10 conmap (a10 ea, int32_t mode, int32_t sw);
-extern bool clrpt (a10 ea, int32_t prv);
-extern bool wrebr (a10 ea, int32_t prv);
-extern bool rdebr (a10 ea, int32_t prv);
-extern bool wrubr (a10 ea, int32_t prv);
-extern bool rdubr (a10 ea, int32_t prv);
-extern bool wrhsb (a10 ea, int32_t prv);
-extern bool rdhsb (a10 ea, int32_t prv);
-extern bool wrspb (a10 ea, int32_t prv);
-extern bool rdspb (a10 ea, int32_t prv);
-extern bool wrcsb (a10 ea, int32_t prv);
-extern bool rdcsb (a10 ea, int32_t prv);
-extern bool wrpur (a10 ea, int32_t prv);
-extern bool rdpur (a10 ea, int32_t prv);
-extern bool wrcstm (a10 ea, int32_t prv);
-extern bool rdcstm (a10 ea, int32_t prv);
-extern bool clrcsh (a10 ea, int32_t prv);
-extern bool ldbr1 (a10 ea, int32_t prv);
-extern bool sdbr1 (a10 ea, int32_t prv);
-extern bool ldbr2 (a10 ea, int32_t prv);
-extern bool sdbr2 (a10 ea, int32_t prv);
-extern bool ldbr3 (a10 ea, int32_t prv);
-extern bool sdbr3 (a10 ea, int32_t prv);
-extern bool ldbr4 (a10 ea, int32_t prv);
-extern bool sdbr4 (a10 ea, int32_t prv);
-extern bool wrpcst (a10 ea, int32_t prv);
-extern bool rdpcst (a10 ea, int32_t prv);
-extern bool lpmr (a10 ea, int32_t prv);
-extern bool spm (a10 ea, int32_t prv);
-extern int xtend (int32_t ac, int32_t ea, int32_t pflgs);
-extern void xtcln (int32_t rlog);
+d10 Read (a10 ea, int32_t prv);                  /* read, read check */
+d10 ReadM (a10 ea, int32_t prv);                 /* read, write check */
+d10 ReadE (a10 ea);                              /* read, exec */
+d10 ReadP (a10 ea);                              /* read, physical */
+void Write (a10 ea, d10 val, int32_t prv);       /* write */
+void WriteE (a10 ea, d10 val);                   /* write, exec */
+void WriteP (a10 ea, d10 val);                   /* write, physical */
+bool AccViol (a10 ea, int32_t prv, int32_t mode); /* access check */
+d10 imul (d10 val, d10 mb);
+bool idiv (d10 val, d10 mb, d10 *rs);
+void mul (d10 val, d10 mb, d10 *rs);
+bool divi (int32_t ac, d10 mb, d10 *rs);
+void dmul (int32_t ac, d10 *rs);
+void ddiv (int32_t ac, d10 *rs);
+d10 fad (d10 val, d10 mb, bool rnd, int32_t inv);
+d10 fmp (d10 val, d10 mb, bool rnd);
+bool fdv (d10 val, d10 mb, d10 *rs, bool rnd);
+d10 fsc (d10 val, a10 ea);
+d10 fltr (d10 mb);
+void fix (int32_t ac, d10 mb, bool rnd);
+void dfad (int32_t ac, d10 *rs, int32_t inv);
+void dfmp (int32_t ac, d10 *rs);
+void dfdv (int32_t ac, d10 *rs);
+bool rdtim (a10 ea, int32_t prv);
+bool rdint (a10 ea, int32_t prv);
+bool wrtim (a10 ea, int32_t prv);
+bool wrint (a10 ea, int32_t prv);
+t_stat tim_set_mod (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+void fe_intr (void);
+void set_dyn_ptrs (void);
+d10 map (a10 ea, int32_t prv);
+a10 conmap (a10 ea, int32_t mode, int32_t sw);
+bool clrpt (a10 ea, int32_t prv);
+bool wrebr (a10 ea, int32_t prv);
+bool rdebr (a10 ea, int32_t prv);
+bool wrubr (a10 ea, int32_t prv);
+bool rdubr (a10 ea, int32_t prv);
+bool wrhsb (a10 ea, int32_t prv);
+bool rdhsb (a10 ea, int32_t prv);
+bool wrspb (a10 ea, int32_t prv);
+bool rdspb (a10 ea, int32_t prv);
+bool wrcsb (a10 ea, int32_t prv);
+bool rdcsb (a10 ea, int32_t prv);
+bool wrpur (a10 ea, int32_t prv);
+bool rdpur (a10 ea, int32_t prv);
+bool wrcstm (a10 ea, int32_t prv);
+bool rdcstm (a10 ea, int32_t prv);
+bool clrcsh (a10 ea, int32_t prv);
+bool ldbr1 (a10 ea, int32_t prv);
+bool sdbr1 (a10 ea, int32_t prv);
+bool ldbr2 (a10 ea, int32_t prv);
+bool sdbr2 (a10 ea, int32_t prv);
+bool ldbr3 (a10 ea, int32_t prv);
+bool sdbr3 (a10 ea, int32_t prv);
+bool ldbr4 (a10 ea, int32_t prv);
+bool sdbr4 (a10 ea, int32_t prv);
+bool wrpcst (a10 ea, int32_t prv);
+bool rdpcst (a10 ea, int32_t prv);
+bool lpmr (a10 ea, int32_t prv);
+bool spm (a10 ea, int32_t prv);
+int xtend (int32_t ac, int32_t ea, int32_t pflgs);
+void xtcln (int32_t rlog);
 
 t_stat set_addr (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 t_stat set_addr_flt (UNIT *uptr, int32_t val, const char *cptr, void *desc);

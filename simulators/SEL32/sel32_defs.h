@@ -333,9 +333,9 @@ typedef struct chp {
 
 /* Device information block */
 #define FIFO_SIZE 256                   /* fifo to hold 128 double words of status */
-extern  int32_t FIFO_Put(uint16_t chsa, uint32_t entry);
-extern  int32_t FIFO_Get(uint16_t chsa, uint32_t *old);
-extern  int32_t FIFO_Num(uint16_t chsa);
+int32_t FIFO_Put(uint16_t chsa, uint32_t entry);
+int32_t FIFO_Get(uint16_t chsa, uint32_t *old);
+int32_t FIFO_Num(uint16_t chsa);
 
 #define IOCLQ_SIZE 32                   /* fifo to hold 32 iocl cmds */
 
@@ -345,9 +345,9 @@ typedef struct ioclq {
         int16_t ioclq_out;
 } IOCLQ;
 
-extern  int32_t IOCLQ_Put(IOCLQ *qptr, uint32_t entry);
-extern  int32_t IOCLQ_Get(IOCLQ *qptr, uint32_t *old);
-extern  int32_t IOCLQ_Num(IOCLQ *qptr);
+int32_t IOCLQ_Put(IOCLQ *qptr, uint32_t entry);
+int32_t IOCLQ_Get(IOCLQ *qptr, uint32_t *old);
+int32_t IOCLQ_Num(IOCLQ *qptr);
 
 typedef struct dib {
         /* Pre start I/O operation */
@@ -586,24 +586,24 @@ extern DEBTAB dev_debug[];
 #define PC PC_Global
 
 /* Definitions for commonly used functions */
-extern  t_stat  set_dev_addr(UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern  t_stat  show_dev_addr(FILE * st, UNIT *uptr, int32_t v, const void *desc);
-extern  int32_t itm_rdwr(uint32_t cmd, int32_t cnt, uint32_t level);
-extern  void    chan_end(uint16_t chan, uint16_t flags);
-extern  int     chan_read_byte(uint16_t chsa, uint8_t *data);
-extern  int     chan_write_byte(uint16_t chsa, uint8_t *data);
-extern  int     fprint_inst(FILE *of, uint32_t val, int32_t sw);
-extern  int     readfull(CHANP *chp, uint32_t maddr, uint32_t *word);
-extern  void    set_devattn(uint16_t addr, uint16_t flags);
-extern  void    set_devwake(uint16_t chsa, uint16_t flags);
-extern  t_stat  chan_boot(uint16_t addr, DEVICE *dptr);
-extern  t_stat  stopxio(uint16_t addr, uint32_t *status);
-extern  int     test_write_byte_end(uint16_t chsa);
-extern  DEVICE *get_dev(UNIT *uptr);
-extern  t_stat  set_inch(UNIT *uptr, uint32_t inch_addr, uint32_t num_inch); /* set inch addr */
-extern  CHANP  *find_chanp_ptr(uint16_t chsa);  /* find chanp pointer */
+t_stat  set_dev_addr(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat  show_dev_addr(FILE * st, UNIT *uptr, int32_t v, const void *desc);
+int32_t itm_rdwr(uint32_t cmd, int32_t cnt, uint32_t level);
+void    chan_end(uint16_t chan, uint16_t flags);
+int     chan_read_byte(uint16_t chsa, uint8_t *data);
+int     chan_write_byte(uint16_t chsa, uint8_t *data);
+int     fprint_inst(FILE *of, uint32_t val, int32_t sw);
+int     readfull(CHANP *chp, uint32_t maddr, uint32_t *word);
+void    set_devattn(uint16_t addr, uint16_t flags);
+void    set_devwake(uint16_t chsa, uint16_t flags);
+t_stat  chan_boot(uint16_t addr, DEVICE *dptr);
+t_stat  stopxio(uint16_t addr, uint32_t *status);
+int     test_write_byte_end(uint16_t chsa);
+DEVICE *get_dev(UNIT *uptr);
+t_stat  set_inch(UNIT *uptr, uint32_t inch_addr, uint32_t num_inch); /* set inch addr */
+CHANP  *find_chanp_ptr(uint16_t chsa);  /* find chanp pointer */
 #ifdef USE_IPU_THREAD
-extern  void   *ipu_sim_instr(void *value);
+void   *ipu_sim_instr(void *value);
 #endif
 
 #ifndef CPUONLY
@@ -660,9 +660,9 @@ sel32_write_halfword_to(uint32_t *memory, uint32_t addr, uint32_t data)
 extern  uint32_t RDYQ[];                /* ready queue */
 extern  uint32_t RDYQIN;                /* input index */
 extern  uint32_t RDYQOUT;               /* output index */
-extern  int32_t RDYQ_Put(uint32_t entry);
-extern  int32_t RDYQ_Get(uint32_t *old);
-extern  int32_t RDYQ_Num(void);
+int32_t RDYQ_Put(uint32_t entry);
+int32_t RDYQ_Get(uint32_t *old);
+int32_t RDYQ_Num(void);
 #define RDYQ_SIZE 128
 #endif
 
@@ -677,8 +677,8 @@ struct InstHistory
     uint32_t reg[16];                   /* regs/bregs for operation */
 };
 
-extern  char *dump_mem(uint32_t mp, int cnt);
-extern  char *dump_buf(uint8_t *mp, int32_t off, int cnt);
+char *dump_mem(uint32_t mp, int cnt);
+char *dump_buf(uint8_t *mp, int32_t off, int cnt);
 
 #define get_chan(chsa)  ((chsa>>8)&0x7f)    /* get channel number from ch/sa */
 

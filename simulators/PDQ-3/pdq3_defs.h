@@ -306,20 +306,20 @@ extern OPTABLE optable[];
 #define DEBUG_VALIDOP(op)     (optable[op].flags >= 0)
 #define DEBUG_PRE             0x01
 #define DEBUG_POST            0x02
-extern t_stat dbg_init(void);
-extern t_stat dbg_check(t_value data,uint8_t prepost);
-extern t_stat dbg_dump_tib(FILE* fd, uint16_t base);
-extern t_stat dbg_dump_queue(FILE* fd, const char* qname, uint16_t q);
-extern t_stat dbg_dump_mscw(FILE* fd, uint16_t base);
-extern t_stat dbg_dump_seg(FILE* fd, uint16_t segptr);
-extern t_stat dbg_dump_segtbl(FILE* fd);
-extern t_stat dbg_segtrack(uint16_t segbase);
-extern t_stat dbg_procenter(uint16_t segbase, uint16_t procno, uint16_t mscw, uint16_t osegb);
-extern t_stat dbg_procleave(void);
-extern void dbg_enable(void);
-extern t_stat dbg_calltree(FILE* fd);
-extern t_stat dbg_enteralias(const char* key, const char* value);
-extern t_stat dbg_listalias(FILE*);
+t_stat dbg_init(void);
+t_stat dbg_check(t_value data,uint8_t prepost);
+t_stat dbg_dump_tib(FILE* fd, uint16_t base);
+t_stat dbg_dump_queue(FILE* fd, const char* qname, uint16_t q);
+t_stat dbg_dump_mscw(FILE* fd, uint16_t base);
+t_stat dbg_dump_seg(FILE* fd, uint16_t segptr);
+t_stat dbg_dump_segtbl(FILE* fd);
+t_stat dbg_segtrack(uint16_t segbase);
+t_stat dbg_procenter(uint16_t segbase, uint16_t procno, uint16_t mscw, uint16_t osegb);
+t_stat dbg_procleave(void);
+void dbg_enable(void);
+t_stat dbg_calltree(FILE* fd);
+t_stat dbg_enteralias(const char* key, const char* value);
+t_stat dbg_listalias(FILE*);
 /* floating point */
 typedef union flcvt {
   float f;
@@ -353,38 +353,38 @@ extern uint16_t reg_ssr;
 extern uint16_t reg_cpuserial;
 extern uint32_t reg_intpending;
 
-extern t_stat Read(t_addr base, t_addr woffset, uint16_t *data, uint32_t dctrl);
-extern t_stat Write(t_addr base, t_addr boffset, uint16_t data, uint32_t dctrl);
-extern t_stat ReadB(t_addr base, t_addr boffset, uint16_t *data, uint32_t dctrl);
-extern t_stat WriteB(t_addr base, t_addr boffset, uint16_t data, uint32_t dctrl);
-extern t_stat ReadEx(t_addr base, t_addr woffset, uint16_t *data);
-extern t_stat ReadBEx(t_addr base, t_addr boffset, uint16_t *data);
+t_stat Read(t_addr base, t_addr woffset, uint16_t *data, uint32_t dctrl);
+t_stat Write(t_addr base, t_addr boffset, uint16_t data, uint32_t dctrl);
+t_stat ReadB(t_addr base, t_addr boffset, uint16_t *data, uint32_t dctrl);
+t_stat WriteB(t_addr base, t_addr boffset, uint16_t data, uint32_t dctrl);
+t_stat ReadEx(t_addr base, t_addr woffset, uint16_t *data);
+t_stat ReadBEx(t_addr base, t_addr boffset, uint16_t *data);
 
-extern t_stat rom_read(t_addr base, uint16_t *data);
-extern t_stat rom_write(t_addr base, uint16_t data);
-extern void pdq3_sprint_addr (char *buf, DEVICE *dptr, t_addr addr);
-extern void pdq3_fprint_addr (FILE *st, DEVICE *dptr, t_addr addr);
-extern t_addr pdq3_parse_addr (DEVICE *dptr, const char *cptr, const char **tptr);
-extern void pdq3_vm_init (void);
-extern t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
+t_stat rom_read(t_addr base, uint16_t *data);
+t_stat rom_write(t_addr base, uint16_t data);
+void pdq3_sprint_addr (char *buf, DEVICE *dptr, t_addr addr);
+void pdq3_fprint_addr (FILE *st, DEVICE *dptr, t_addr addr);
+t_addr pdq3_parse_addr (DEVICE *dptr, const char *cptr, const char **tptr);
+void pdq3_vm_init (void);
+t_stat fprint_sym_m (FILE *of, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
 
-extern t_stat con_read(t_addr ioaddr, uint16_t *data);
-extern t_stat con_write(t_addr ioaddr, uint16_t data);
-extern t_stat con_binit(void);
-extern t_stat fdc_boot(int32_t unitnum, DEVICE *dptr);
-extern t_stat fdc_read(t_addr ioaddr, uint16_t *data);
-extern t_stat fdc_write(t_addr ioaddr, uint16_t data);
-extern t_stat fdc_autoload(int unitnum);
-extern t_stat fdc_binit(void);
-extern t_stat tim_read(t_addr ioaddr, uint16_t *data);
-extern t_stat tim_write(t_addr ioaddr, uint16_t data);
+t_stat con_read(t_addr ioaddr, uint16_t *data);
+t_stat con_write(t_addr ioaddr, uint16_t data);
+t_stat con_binit(void);
+t_stat fdc_boot(int32_t unitnum, DEVICE *dptr);
+t_stat fdc_read(t_addr ioaddr, uint16_t *data);
+t_stat fdc_write(t_addr ioaddr, uint16_t data);
+t_stat fdc_autoload(int unitnum);
+t_stat fdc_binit(void);
+t_stat tim_read(t_addr ioaddr, uint16_t *data);
+t_stat tim_write(t_addr ioaddr, uint16_t data);
 
-extern void cpu_assertInt(int level, bool tf);
-extern t_stat cpu_raiseInt(int level);
-extern t_stat cpu_setIntVec(uint16_t vector,int level);
-extern void   cpu_setRegs(uint16_t ctp, uint16_t ssv, uint16_t rq);
-extern void   cpu_finishAutoload(void);
-extern t_stat cpu_buserror(void);
+void cpu_assertInt(int level, bool tf);
+t_stat cpu_raiseInt(int level);
+t_stat cpu_setIntVec(uint16_t vector,int level);
+void   cpu_setRegs(uint16_t ctp, uint16_t ssv, uint16_t rq);
+void   cpu_finishAutoload(void);
+t_stat cpu_buserror(void);
 
 typedef t_stat (*IOREAD)(t_addr ioaddr, uint16_t *data);
 typedef t_stat (*IOWRITE)(t_addr ioaddr, uint16_t data);
@@ -403,15 +403,15 @@ typedef struct _devctxt {
   IOINFO* ioi;
 } DEVCTXT;
 
-extern t_stat pdq3_ioinit(void);
-extern t_stat add_ioh(IOINFO* ioi);
-extern t_stat del_ioh(IOINFO* ioi);
-extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
-extern t_stat set_iovec(UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern t_stat show_iovec(FILE *st, UNIT *uptr, int value, const void *desc);
-extern t_stat set_ioprio(UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern t_stat show_ioprio(FILE *st, UNIT *uptr, int value, const void *desc);
-extern t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat pdq3_ioinit(void);
+t_stat add_ioh(IOINFO* ioi);
+t_stat del_ioh(IOINFO* ioi);
+t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat set_iovec(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_iovec(FILE *st, UNIT *uptr, int value, const void *desc);
+t_stat set_ioprio(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_ioprio(FILE *st, UNIT *uptr, int value, const void *desc);
+t_stat cpu_set_size (UNIT *uptr, int32_t val, const char *cptr, void *desc);
 
 #endif

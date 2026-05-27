@@ -1033,7 +1033,7 @@ char* m68ki_disassemble_quick(uint_t pc, uint_t cpu_type);
 
 /* ---------------------------- Read Immediate ---------------------------- */
 
-extern uint pmmu_translate_addr(uint addr_in);
+uint pmmu_translate_addr(uint addr_in);
 
 /* Handles all immediate reads, does address error check, function code setting,
  * and prefetching if they are enabled in m68kconf.h
@@ -1985,7 +1985,7 @@ static inline void m68ki_exception_1111(void)
 }
 
 #if M68K_ILLG_HAS_CALLBACK == OPT_SPECIFY_HANDLER
-extern int m68ki_illg_callback(int);
+int m68ki_illg_callback(int);
 #endif
 
 /* Exception for illegal instructions */

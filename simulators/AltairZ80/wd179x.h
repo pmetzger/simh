@@ -37,17 +37,17 @@
 
 #include <stdint.h>
 
-extern t_stat wd179x_attach(UNIT *uptr, const char *cptr);
-extern t_stat wd179x_detach(UNIT *uptr);
-extern uint8_t WD179X_Set_DMA(const uint32_t dma_addr);
-extern uint8_t WD179X_Read(const uint32_t Addr);
-extern uint8_t WD179X_Write(const uint32_t Addr, uint8_t cData);
+t_stat wd179x_attach(UNIT *uptr, const char *cptr);
+t_stat wd179x_detach(UNIT *uptr);
+uint8_t WD179X_Set_DMA(const uint32_t dma_addr);
+uint8_t WD179X_Read(const uint32_t Addr);
+uint8_t WD179X_Write(const uint32_t Addr, uint8_t cData);
 
-extern void wd179x_external_restore(void);
-extern void wd179x_connect_external_fifo(uint16_t fifo_len, uint8_t *storage);
-extern void wd179x_reset_external_fifo(void);
-extern uint8_t wd179x_get_nheads(void);
-extern void wd179x_set_drive_rpm(int rpm);
+void wd179x_external_restore(void);
+void wd179x_connect_external_fifo(uint16_t fifo_len, uint8_t *storage);
+void wd179x_reset_external_fifo(void);
+uint8_t wd179x_get_nheads(void);
+void wd179x_set_drive_rpm(int rpm);
 
 #define WD179X_FDC_MSR       0   /* R=FDC Main Status Register, W=Drive Select Register */
 #define WD179X_FDC_DATA      1   /* R/W FDC Data Register */

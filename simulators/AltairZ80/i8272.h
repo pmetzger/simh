@@ -37,11 +37,11 @@
 
 #include <stdint.h>
 
-extern t_stat i8272_attach(UNIT *uptr, const char *cptr);
-extern t_stat i8272_detach(UNIT *uptr);
-extern uint8_t I8272_Set_DMA(const uint32_t dma_addr);
-extern uint8_t I8272_Read(const uint32_t Addr);
-extern uint8_t I8272_Write(const uint32_t Addr, uint8_t cData);
+t_stat i8272_attach(UNIT *uptr, const char *cptr);
+t_stat i8272_detach(UNIT *uptr);
+uint8_t I8272_Set_DMA(const uint32_t dma_addr);
+uint8_t I8272_Read(const uint32_t Addr);
+uint8_t I8272_Write(const uint32_t Addr, uint8_t cData);
 
 #define I8272_FDC_MSR       0   /* R=FDC Main Status Register, W=Drive Select Register */
 #define I8272_FDC_DATA      1   /* R/W FDC Data Register */

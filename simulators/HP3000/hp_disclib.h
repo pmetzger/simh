@@ -542,24 +542,24 @@ typedef CNTLR_VARS          *CVPTR;             /* pointer to a controller state
 
 /* Disc library global controller routines */
 
-extern CNTLR_IFN_IBUS dl_controller  (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags, CNTLR_IBUS data);
-extern t_stat         dl_load_unload (CVPTR cvptr, UNIT *uptr, bool load);
+CNTLR_IFN_IBUS dl_controller  (CVPTR cvptr, UNIT *uptr, CNTLR_FLAG_SET flags, CNTLR_IBUS data);
+t_stat         dl_load_unload (CVPTR cvptr, UNIT *uptr, bool load);
 
 /* Disc library global utility routines */
 
-extern const char *dl_opcode_name (CNTLR_TYPE   controller, CNTLR_OPCODE opcode);
-extern const char *dl_status_name (CNTLR_STATUS status);
+const char *dl_opcode_name (CNTLR_TYPE   controller, CNTLR_OPCODE opcode);
+const char *dl_status_name (CNTLR_STATUS status);
 
 /* Disc library global SCP support routines */
 
-extern t_stat dl_attach (CVPTR cvptr, UNIT *uptr, const char *cptr);
-extern t_stat dl_detach (CVPTR cvptr, UNIT *uptr);
+t_stat dl_attach (CVPTR cvptr, UNIT *uptr, const char *cptr);
+t_stat dl_detach (CVPTR cvptr, UNIT *uptr);
 
-extern t_stat dl_set_model   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat dl_set_protect (UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat dl_set_diag    (UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat dl_set_timing  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat dl_set_model   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat dl_set_protect (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat dl_set_diag    (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat dl_set_timing  (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
-extern t_stat dl_show_protect (FILE *st, UNIT *uptr, int32_t value, const void *desc);
-extern t_stat dl_show_diag    (FILE *st, UNIT *uptr, int32_t value, const void *desc);
-extern t_stat dl_show_timing  (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+t_stat dl_show_protect (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+t_stat dl_show_diag    (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+t_stat dl_show_timing  (FILE *st, UNIT *uptr, int32_t value, const void *desc);

@@ -583,66 +583,66 @@ extern uint32_t  cpu_pending_interrupt;         /* the select code of a pending 
 
 /* Microcode dispatcher functions (grouped by cpu module number) */
 
-extern t_stat cpu_uig_0   (uint32_t intrq, bool int_ack);   /* [0] UIG group 0 dispatcher */
-extern t_stat cpu_uig_1   (uint32_t intrq);                 /* [0] UIG group 1 dispatcher */
-extern t_stat cpu_ds      (void);                           /* [0] Distributed System stub */
-extern t_stat cpu_user    (void);                           /* [0] User firmware dispatcher */
+t_stat cpu_uig_0   (uint32_t intrq, bool int_ack);   /* [0] UIG group 0 dispatcher */
+t_stat cpu_uig_1   (uint32_t intrq);                 /* [0] UIG group 1 dispatcher */
+t_stat cpu_ds      (void);                           /* [0] Distributed System stub */
+t_stat cpu_user    (void);                           /* [0] User firmware dispatcher */
 
-extern t_stat cpu_eau (void);                           /* [1] EAU group simulator */
-extern t_stat cpu_iop (uint32_t intrq);                 /* [1] 2000 I/O Processor */
+t_stat cpu_eau (void);                           /* [1] EAU group simulator */
+t_stat cpu_iop (uint32_t intrq);                 /* [1] 2000 I/O Processor */
 
 #if !defined (HAVE_INT64)                               /* int64 support unavailable */
-extern t_stat cpu_fp  (void);                           /* [1] Firmware Floating Point */
+t_stat cpu_fp  (void);                           /* [1] Firmware Floating Point */
 #endif
 
-extern t_stat cpu_dms (uint32_t intrq);                 /* [2] Dynamic mapping system */
-extern t_stat cpu_eig (HP_WORD IR, uint32_t intrq);     /* [2] Extended instruction group */
+t_stat cpu_dms (uint32_t intrq);                 /* [2] Dynamic mapping system */
+t_stat cpu_eig (HP_WORD IR, uint32_t intrq);     /* [2] Extended instruction group */
 
-extern t_stat cpu_ffp (uint32_t intrq);                 /* [3] Fast FORTRAN Processor */
-extern t_stat cpu_dbi (HP_WORD IR);                     /* [3] Double-Integer instructions */
+t_stat cpu_ffp (uint32_t intrq);                 /* [3] Fast FORTRAN Processor */
+t_stat cpu_dbi (HP_WORD IR);                     /* [3] Double-Integer instructions */
 
 #if defined (HAVE_INT64)                                /* int64 support available */
-extern t_stat cpu_fpp (HP_WORD IR);                     /* [4] Floating Point Processor */
-extern t_stat cpu_sis (HP_WORD IR);                     /* [4] Scientific Instruction Set */
+t_stat cpu_fpp (HP_WORD IR);                     /* [4] Floating Point Processor */
+t_stat cpu_sis (HP_WORD IR);                     /* [4] Scientific Instruction Set */
 #endif
 
-extern t_stat cpu_rte_ema (void);                       /* [5] RTE-IV EMA */
-extern t_stat cpu_signal  (void);                       /* [5] SIGNAL/1000 Instructions */
+t_stat cpu_rte_ema (void);                       /* [5] RTE-IV EMA */
+t_stat cpu_signal  (void);                       /* [5] SIGNAL/1000 Instructions */
 
 #if defined (HAVE_INT64)                                /* int64 support available */
-extern t_stat cpu_vis (void);                           /* [5] Vector Instruction Set */
+t_stat cpu_vis (void);                           /* [5] Vector Instruction Set */
 #endif
 
-extern t_stat cpu_rte_os (bool int_ack);                /* [6] RTE-6 OS */
+t_stat cpu_rte_os (bool int_ack);                /* [6] RTE-6 OS */
 
-extern t_stat cpu_rte_vma (void);                       /* [7] RTE-6 VMA */
+t_stat cpu_rte_vma (void);                       /* [7] RTE-6 VMA */
 
 
 /* Microcode helper functions */
 
-extern OP     ReadOp  (HP_WORD va, OPSIZE precision);               /* generalized operand read */
-extern void   WriteOp (HP_WORD va, OP operand, OPSIZE precision);   /* generalized operand write */
-extern t_stat cpu_ops (OP_PAT pattern, OPS op);                     /* operand processor */
+OP     ReadOp  (HP_WORD va, OPSIZE precision);               /* generalized operand read */
+void   WriteOp (HP_WORD va, OP operand, OPSIZE precision);   /* generalized operand write */
+t_stat cpu_ops (OP_PAT pattern, OPS op);                     /* operand processor */
 
 
 /* CPU global SCP support routine declarations declared in scp.h
 
-extern t_stat sim_instr (void);
+t_stat sim_instr (void);
 */
 
 
 /* CPU global SCP support routine declarations */
 
-extern void cpu_post_cmd (bool from_scp);
+void cpu_post_cmd (bool from_scp);
 
 
 /* CPU global utility routine declarations */
 
-extern t_stat cpu_iog               (HP_WORD instruction);
-extern t_stat cpu_resolve_indirects (bool is_interruptible);
-extern void   cpu_microcode_abort   (MICRO_ABORT abort_reason);
+t_stat cpu_iog               (HP_WORD instruction);
+t_stat cpu_resolve_indirects (bool is_interruptible);
+void   cpu_microcode_abort   (MICRO_ABORT abort_reason);
 
 
 /* I/O subsystem global utility routine declarations */
 
-extern uint32_t io_poll_interrupts (FLIP_FLOP interrupt_system);
+uint32_t io_poll_interrupts (FLIP_FLOP interrupt_system);

@@ -356,20 +356,20 @@ typedef enum {
 extern UNIT  *cpu_pclk_uptr;                            /* pointer to the process clock unit */
 extern bool cpu_is_calibrated;                          /* true if the process clock is calibrated */
 
-extern void cpu_front_panel (HP_WORD    switch_reg,     /* set the CPU front panel switches as directed */
+void cpu_front_panel (HP_WORD    switch_reg,     /* set the CPU front panel switches as directed */
                              PANEL_TYPE request);
 
 
 /* Global asynchronous signal assertion functions */
 
-extern void iop_assert_INTREQ (DIB *dib_pointer);       /* assert the interrupt request signal */
-extern void iop_assert_PFWARN (void);                   /* assert the power failure warning signal */
+void iop_assert_INTREQ (DIB *dib_pointer);       /* assert the interrupt request signal */
+void iop_assert_PFWARN (void);                   /* assert the power failure warning signal */
 
-extern void mpx_assert_REQ    (DIB *dib_pointer);       /* assert the multiplexer channel request signal */
-extern void mpx_assert_SRn    (DIB *dib_pointer);       /* assert the multiplexer channel service request signal */
+void mpx_assert_REQ    (DIB *dib_pointer);       /* assert the multiplexer channel request signal */
+void mpx_assert_SRn    (DIB *dib_pointer);       /* assert the multiplexer channel service request signal */
 
-extern void sel_assert_REQ    (DIB *dib_pointer);       /* assert the selector channel request signal */
-extern void sel_assert_CHANSR (DIB *dib_pointer);       /* assert the selector channel service request signal */
+void sel_assert_REQ    (DIB *dib_pointer);       /* assert the selector channel request signal */
+void sel_assert_CHANSR (DIB *dib_pointer);       /* assert the selector channel service request signal */
 
 
 /* Global channel state */
@@ -385,4 +385,4 @@ extern bool atc_is_polling;                             /* true if the ATC is po
 
 /* Global CLK functions */
 
-extern void clk_update_counter (void);                  /* update the system clock counter register */
+void clk_update_counter (void);                  /* update the system clock counter register */

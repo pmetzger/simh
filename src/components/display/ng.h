@@ -41,13 +41,13 @@
 extern int32_t ng_type;
 extern int32_t ng_scale;
 
-extern int32_t ng_get_csr(void);
-extern int32_t ng_get_reloc(void);
-extern void ng_set_csr(uint16_t);
-extern void ng_set_reloc(uint16_t);
+int32_t ng_get_csr(void);
+int32_t ng_get_reloc(void);
+void ng_set_csr(uint16_t);
+void ng_set_reloc(uint16_t);
 
-extern int  ng_init(void *, int);
-extern int  ng_cycle(int, int);
+int  ng_init(void *, int);
+int  ng_cycle(int, int);
 
-extern int  ng_fetch(uint32_t, uint16_t *);   /* get a display-file word */
-extern int  ng_store(uint32_t, uint16_t);
+int  ng_fetch(uint32_t, uint16_t *);   /* get a display-file word */
+int  ng_store(uint32_t, uint16_t);

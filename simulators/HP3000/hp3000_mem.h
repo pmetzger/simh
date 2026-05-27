@@ -143,22 +143,22 @@ t_stat mem_deposit (t_value value,       t_addr address, UNIT *uptr, int32_t swi
    fmt_bcd_operand  : format a BCD operand in memory into a character string
 */
 
-extern bool mem_initialize (uint32_t memory_size);
-extern bool mem_is_empty   (uint32_t starting_address);
-extern void   mem_fill       (uint32_t starting_address, HP_WORD fill_value);
+bool mem_initialize (uint32_t memory_size);
+bool mem_is_empty   (uint32_t starting_address);
+void   mem_fill       (uint32_t starting_address, HP_WORD fill_value);
 
-extern bool mem_read  (DEVICE *dptr, ACCESS_CLASS classification, uint32_t offset, HP_WORD *value);
-extern bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32_t offset, HP_WORD  value);
+bool mem_read  (DEVICE *dptr, ACCESS_CLASS classification, uint32_t offset, HP_WORD *value);
+bool mem_write (DEVICE *dptr, ACCESS_CLASS classification, uint32_t offset, HP_WORD  value);
 
-extern void   mem_init_byte   (BYTE_ACCESS *bap, ACCESS_CLASS class, HP_WORD *byte_offset, uint32_t block_length);
-extern void   mem_set_byte    (BYTE_ACCESS *bap);
-extern uint8_t mem_lookup_byte (BYTE_ACCESS *bap, uint8_t index);
-extern uint8_t mem_read_byte   (BYTE_ACCESS *bap);
-extern void   mem_write_byte  (BYTE_ACCESS *bap, uint8_t byte);
-extern void   mem_modify_byte (BYTE_ACCESS *bap, uint8_t byte);
-extern void   mem_post_byte   (BYTE_ACCESS *bap);
-extern void   mem_update_byte (BYTE_ACCESS *bap);
+void   mem_init_byte   (BYTE_ACCESS *bap, ACCESS_CLASS class, HP_WORD *byte_offset, uint32_t block_length);
+void   mem_set_byte    (BYTE_ACCESS *bap);
+uint8_t mem_lookup_byte (BYTE_ACCESS *bap, uint8_t index);
+uint8_t mem_read_byte   (BYTE_ACCESS *bap);
+void   mem_write_byte  (BYTE_ACCESS *bap, uint8_t byte);
+void   mem_modify_byte (BYTE_ACCESS *bap, uint8_t byte);
+void   mem_post_byte   (BYTE_ACCESS *bap);
+void   mem_update_byte (BYTE_ACCESS *bap);
 
-extern char   *fmt_byte_operand            (uint32_t byte_address, uint32_t byte_count);
-extern char   *fmt_translated_byte_operand (uint32_t byte_address, uint32_t byte_count, uint32_t table_address);
-extern char   *fmt_bcd_operand             (uint32_t byte_address, uint32_t digit_count);
+char   *fmt_byte_operand            (uint32_t byte_address, uint32_t byte_count);
+char   *fmt_translated_byte_operand (uint32_t byte_address, uint32_t byte_count, uint32_t table_address);
+char   *fmt_bcd_operand             (uint32_t byte_address, uint32_t digit_count);

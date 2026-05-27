@@ -445,16 +445,16 @@ typedef BOOT_LOADER LOADER_ARRAY [2];           /* array (21xx, 1000) of bootstr
 
 /* CPU global utility routine declarations */
 
-extern uint32_t cpu_copy_loader (const LOADER_ARRAY boot, uint32_t sc, HP_WORD sr_clear, HP_WORD sr_set);
-extern bool cpu_io_stop     (UNIT *uptr);
+uint32_t cpu_copy_loader (const LOADER_ARRAY boot, uint32_t sc, HP_WORD sr_clear, HP_WORD sr_set);
+bool cpu_io_stop     (UNIT *uptr);
 
 
 /* I/O subsystem global utility routine declarations */
 
-extern void io_assert (DEVICE *dptr, IO_ASSERTION assertion);
+void io_assert (DEVICE *dptr, IO_ASSERTION assertion);
 
 
 /* Main memory global utility routine declarations */
 
-extern HP_WORD mem_examine  (uint32_t address);
-extern void    mem_deposit  (uint32_t address, HP_WORD value);
+HP_WORD mem_examine  (uint32_t address);
+void    mem_deposit  (uint32_t address, HP_WORD value);

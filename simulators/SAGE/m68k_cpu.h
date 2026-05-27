@@ -169,50 +169,50 @@ typedef struct {
     uint32_t io_incr;   /* I/O Address increment */
 } PNP_INFO;
 
-extern t_stat add_iohandler(UNIT* u,void* ctxt,
+t_stat add_iohandler(UNIT* u,void* ctxt,
     t_stat (*io)(IOHANDLER* ioh,uint32_t* value,uint32_t rw,uint32_t mask));
-extern t_stat del_iohandler(void* ctxt);
-extern t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
-extern t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
+t_stat del_iohandler(void* ctxt);
+t_stat set_iobase(UNIT *uptr, int32_t val, const char *cptr, void *desc);
+t_stat show_iobase(FILE *st, UNIT *uptr, int32_t val, const void *desc);
 
 /* public memory access routines */
-extern t_stat ReadPB(t_addr a, uint32_t* val);
-extern t_stat ReadPW(t_addr a, uint32_t* val);
-extern t_stat ReadPL(t_addr a, uint32_t* val);
-extern t_stat WritePB(t_addr a, uint32_t val);
-extern t_stat WritePW(t_addr a, uint32_t val);
-extern t_stat WritePL(t_addr a, uint32_t val);
+t_stat ReadPB(t_addr a, uint32_t* val);
+t_stat ReadPW(t_addr a, uint32_t* val);
+t_stat ReadPL(t_addr a, uint32_t* val);
+t_stat WritePB(t_addr a, uint32_t val);
+t_stat WritePW(t_addr a, uint32_t val);
+t_stat WritePL(t_addr a, uint32_t val);
 
-extern t_stat ReadVB(t_addr a, uint32_t* val);
-extern t_stat ReadVW(t_addr a, uint32_t* val);
-extern t_stat ReadVL(t_addr a, uint32_t* val);
-extern t_stat WriteVB(t_addr a, uint32_t val);
-extern t_stat WriteVW(t_addr a, uint32_t val);
-extern t_stat WriteVL(t_addr a, uint32_t val);
+t_stat ReadVB(t_addr a, uint32_t* val);
+t_stat ReadVW(t_addr a, uint32_t* val);
+t_stat ReadVL(t_addr a, uint32_t* val);
+t_stat WriteVB(t_addr a, uint32_t val);
+t_stat WriteVW(t_addr a, uint32_t val);
+t_stat WriteVL(t_addr a, uint32_t val);
 extern t_stat (*TranslateAddr)(t_addr in,t_addr* out,IOHANDLER** ioh,int rw,int fc,int dma);
-extern t_stat m68k_translateaddr(t_addr in,t_addr* out,IOHANDLER** ioh,int rw,int fc,int dma);
+t_stat m68k_translateaddr(t_addr in,t_addr* out,IOHANDLER** ioh,int rw,int fc,int dma);
 extern t_stat (*Mem)(t_addr a,uint8_t** mem);
-extern t_stat m68k_mem(t_addr a,uint8_t** mem);
+t_stat m68k_mem(t_addr a,uint8_t** mem);
 
 /* cpu_mod for alternative implementations */
-extern t_stat m68k_set_cpu(UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat m68k_show_cpu(FILE* st,UNIT *uptr, int32_t value, const void *desc);
-extern t_stat m68k_set_size(UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat m68k_set_fpu(UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat m68k_set_nofpu(UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat m68kcpu_set_flag(UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat m68kcpu_set_noflag(UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat m68kcpu_reset(DEVICE* dptr);
-extern t_stat m68kcpu_ex(t_value* eval_array, t_addr addr, UNIT *uptr, int32_t switches);
-extern t_stat m68kcpu_dep(t_value value, t_addr addr, UNIT* uptr, int32_t switches);
-extern t_stat m68kcpu_boot(int32_t unitno,DEVICE* dptr);
-extern t_stat m68k_ioinit(void);
-extern t_stat m68kcpu_peripheral_reset(void);
-extern t_stat m68k_alloc_mem(void);
-extern t_stat m68k_raise_vectorint(int level,int vector);
-extern t_stat m68k_raise_autoint(int level);
+t_stat m68k_set_cpu(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat m68k_show_cpu(FILE* st,UNIT *uptr, int32_t value, const void *desc);
+t_stat m68k_set_size(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat m68k_set_fpu(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat m68k_set_nofpu(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat m68kcpu_set_flag(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat m68kcpu_set_noflag(UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat m68kcpu_reset(DEVICE* dptr);
+t_stat m68kcpu_ex(t_value* eval_array, t_addr addr, UNIT *uptr, int32_t switches);
+t_stat m68kcpu_dep(t_value value, t_addr addr, UNIT* uptr, int32_t switches);
+t_stat m68kcpu_boot(int32_t unitno,DEVICE* dptr);
+t_stat m68k_ioinit(void);
+t_stat m68kcpu_peripheral_reset(void);
+t_stat m68k_alloc_mem(void);
+t_stat m68k_raise_vectorint(int level,int vector);
+t_stat m68k_raise_autoint(int level);
 
-extern char*  m68k_getsym(t_addr val, char* outbuf);
+char*  m68k_getsym(t_addr val, char* outbuf);
 
 /* overloadable callbacks */
 extern void (*m68kcpu_trapcallback)(DEVICE* cpudev,int trapnum);

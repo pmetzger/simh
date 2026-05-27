@@ -24,9 +24,9 @@
 #define FMT_CHAR_SIZE 8
 #define FMT_BITSET_SIZE 1024
 
-extern const char *fmt_char_buf(char *buffer, size_t buffer_size,
+const char *fmt_char_buf(char *buffer, size_t buffer_size,
                                 uint32_t charval);
-extern const char *fmt_bitset_buf(char *buffer, size_t buffer_size,
+const char *fmt_bitset_buf(char *buffer, size_t buffer_size,
                                   uint32_t bitset, const BITSET_FORMAT bitfmt);
 
 #define fmt_char(charval)                                                      \

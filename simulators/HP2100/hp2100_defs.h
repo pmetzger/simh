@@ -912,28 +912,28 @@ extern const HP_WORD odd_parity [256];          /* a table of parity bits for od
 
 /* System interface global SCP support routines declared in scp.h
 
-extern t_stat sim_load   (FILE *fptr, const char *cptr, const char *fnam, int flag);
-extern t_stat fprint_sym (FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
-extern t_stat parse_sym  (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw);
+t_stat sim_load   (FILE *fptr, const char *cptr, const char *fnam, int flag);
+t_stat fprint_sym (FILE *ofile, t_addr addr, t_value *val, UNIT *uptr, int32_t sw);
+t_stat parse_sym  (const char *cptr, t_addr addr, UNIT *uptr, t_value *val, int32_t sw);
 */
 
 /* System interface global SCP support routine declarations */
 
-extern t_stat hp_attach   (UNIT *uptr, const char *cptr);
-extern t_stat hp_set_dib  (UNIT *uptr, int32_t count, const char *cptr, void *desc);
-extern t_stat hp_show_dib (FILE *st, UNIT *uptr, int32_t count, const void *desc);
+t_stat hp_attach   (UNIT *uptr, const char *cptr);
+t_stat hp_set_dib  (UNIT *uptr, int32_t count, const char *cptr, void *desc);
+t_stat hp_show_dib (FILE *st, UNIT *uptr, int32_t count, const void *desc);
 
 
 /* System interface global utility routine declarations */
 
-extern t_stat fprint_cpu (FILE *ofile, t_addr addr, t_value *val, uint32_t radix, SYMBOL_SOURCE source);
+t_stat fprint_cpu (FILE *ofile, t_addr addr, t_value *val, uint32_t radix, SYMBOL_SOURCE source);
 
 #include "hp2100_format.h"
 
-extern void   hp_initialize_trace (uint32_t device_max, uint32_t flag_max);
-extern void   hp_trace            (DEVICE *dptr, uint32_t flag,
+void   hp_initialize_trace (uint32_t device_max, uint32_t flag_max);
+void   hp_trace            (DEVICE *dptr, uint32_t flag,
                                    const char *format, ...) PRINTF_FMT(3, 4);
-extern void   hp_enbdis_pair      (DEVICE *ccptr, DEVICE *dcptr);
-extern int32_t hp_sync_poll        (POLLMODE poll_mode);
+void   hp_enbdis_pair      (DEVICE *ccptr, DEVICE *dcptr);
+int32_t hp_sync_poll        (POLLMODE poll_mode);
 
-extern void hp_one_time_init (void);    /* One time initialization activities now called in cpu_reset() */
+void hp_one_time_init (void);    /* One time initialization activities now called in cpu_reset() */

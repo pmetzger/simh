@@ -300,12 +300,12 @@ extern const char *sim_vm_release_message;
 extern DEVICE *sim_devices[];
 extern REG *sim_PC;
 extern const char *sim_stop_messages[SCPE_BASE];
-extern t_stat sim_instr (void);
-extern t_stat sim_load (FILE *ptr, const char *cptr, const char *fnam, int flag);
+t_stat sim_instr (void);
+t_stat sim_load (FILE *ptr, const char *cptr, const char *fnam, int flag);
 extern int32_t sim_emax;
-extern t_stat fprint_sym (FILE *ofile, t_addr addr, t_value *val,
+t_stat fprint_sym (FILE *ofile, t_addr addr, t_value *val,
     UNIT *uptr, int32_t sw);
-extern t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
+t_stat parse_sym (const char *cptr, t_addr addr, UNIT *uptr, t_value *val,
     int32_t sw);
 
 /* The per-simulator init routine is a weak global that defaults to NULL

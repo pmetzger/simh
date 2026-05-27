@@ -235,21 +235,21 @@ extern DEBTAB   di_deb [];
 /* Disc interface global VM routines */
 
 extern INTERFACE di_interface;
-extern t_stat    di_reset (DEVICE *dptr);
+t_stat           di_reset (DEVICE *dptr);
 
 /* Disc interface global SCP routines */
 
-extern t_stat di_set_address (UNIT *uptr, int32_t value, const char *cptr, void *desc);
-extern t_stat di_set_cable   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat di_set_address (UNIT *uptr, int32_t value, const char *cptr, void *desc);
+t_stat di_set_cable   (UNIT *uptr, int32_t value, const char *cptr, void *desc);
 
-extern t_stat di_show_address (FILE *st, UNIT *uptr, int32_t value, const void *desc);
-extern t_stat di_show_cable   (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+t_stat di_show_address (FILE *st, UNIT *uptr, int32_t value, const void *desc);
+t_stat di_show_cable   (FILE *st, UNIT *uptr, int32_t value, const void *desc);
 
 /* Disc interface global bus routines */
 
-extern bool di_bus_source    (CARD_ID card, uint8_t data);
-extern void   di_bus_control   (CARD_ID card, uint32_t unit, uint8_t assert, uint8_t deny);
-extern void   di_poll_response (CARD_ID card, uint32_t unit, FLIP_FLOP response);
+bool di_bus_source    (CARD_ID card, uint8_t data);
+void   di_bus_control   (CARD_ID card, uint32_t unit, uint8_t assert, uint8_t deny);
+void   di_poll_response (CARD_ID card, uint32_t unit, FLIP_FLOP response);
 
 
 /* Amigo disc global bus routines */

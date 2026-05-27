@@ -31,20 +31,20 @@
 
 /* unless you're writing a new driver, you shouldn't be looking here! */
 
-extern int ws_init(const char *, int, int, int, void *);
+int ws_init(const char *, int, int, int, void *);
 void ws_shutdown(void);
-extern void *ws_color_rgb(int, int, int);
-extern void *ws_color_black(void);
-extern void *ws_color_white(void);
-extern void ws_display_point(int, int, void *);
-extern void ws_sync(void);
-extern int ws_poll(int *, int);
-extern void ws_beep(void);
+void *ws_color_rgb(int, int, int);
+void *ws_color_black(void);
+void *ws_color_white(void);
+void ws_display_point(int, int, void *);
+void ws_sync(void);
+int ws_poll(int *, int);
+void ws_beep(void);
 
 /* entries into display.c from below: */
-extern void display_keyup(int);
-extern void display_keydown(int);
-extern void display_repaint(void);
+void display_keyup(int);
+void display_keydown(int);
+void display_repaint(void);
 
 /*
  * Globals set by O/S display level to SCALED location in display
@@ -62,4 +62,4 @@ extern int ws_lp_x, ws_lp_y;
  * O/S services in theory independent of window system,
  * but in (current) practice not!
  */
-extern unsigned long os_elapsed(void);
+unsigned long os_elapsed(void);

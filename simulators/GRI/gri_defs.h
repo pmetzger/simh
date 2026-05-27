@@ -137,16 +137,16 @@ struct gdev {
     uint32_t    (*SF)(uint32_t);                        /* skip func */
 };
 
-extern uint32_t tty_rd (uint32_t src);
-extern t_stat tty_wr (uint32_t dst, uint32_t val);
-extern t_stat tty_fo (uint32_t op);
-extern uint32_t tty_sf (uint32_t op);
-extern uint32_t hsrp_rd (uint32_t src);
-extern t_stat hsrp_wr (uint32_t dst, uint32_t val);
-extern t_stat hsrp_fo (uint32_t op);
-extern uint32_t hsrp_sf (uint32_t op);
-extern t_stat rtc_fo (uint32_t op);
-extern uint32_t rtc_sf (uint32_t op);
+uint32_t tty_rd (uint32_t src);
+t_stat tty_wr (uint32_t dst, uint32_t val);
+t_stat tty_fo (uint32_t op);
+uint32_t tty_sf (uint32_t op);
+uint32_t hsrp_rd (uint32_t src);
+t_stat hsrp_wr (uint32_t dst, uint32_t val);
+t_stat hsrp_fo (uint32_t op);
+uint32_t hsrp_sf (uint32_t op);
+t_stat rtc_fo (uint32_t op);
+uint32_t rtc_sf (uint32_t op);
 
 /* Trap (jump) */
 

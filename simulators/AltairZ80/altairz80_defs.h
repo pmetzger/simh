@@ -103,19 +103,19 @@ typedef struct {
 } PNP_INFO;
 
 extern ChipType chiptype;
-extern int32_t find_unit_index(UNIT *uptr);
-extern void hdsk_prepareRead(void);
-extern void hdsk_prepareWrite(void);
-extern void hdsk_setSelectedDisk(const int32_t disk);
-extern void hdsk_setSelectedSector(const int32_t sector);
-extern void hdsk_setSelectedTrack(const int32_t track);
-extern void hdsk_setSelectedDMA(const int32_t dma);
-extern int32_t hdsk_getStatus(void);
-extern bool hdsk_checkParameters(void);
-extern int32_t hdsk_read(void);
-extern int32_t hdsk_write(void);
-extern int32_t hdsk_flush(void);
-extern t_stat parse_sym_m68k(char *c, t_addr a, UNIT *u, t_value *val, int32_t sw);
-extern void raise_scp300f_interrupt(uint8_t isr_index);
+int32_t find_unit_index(UNIT *uptr);
+void hdsk_prepareRead(void);
+void hdsk_prepareWrite(void);
+void hdsk_setSelectedDisk(const int32_t disk);
+void hdsk_setSelectedSector(const int32_t sector);
+void hdsk_setSelectedTrack(const int32_t track);
+void hdsk_setSelectedDMA(const int32_t dma);
+int32_t hdsk_getStatus(void);
+bool hdsk_checkParameters(void);
+int32_t hdsk_read(void);
+int32_t hdsk_write(void);
+int32_t hdsk_flush(void);
+t_stat parse_sym_m68k(char *c, t_addr a, UNIT *u, t_value *val, int32_t sw);
+void raise_scp300f_interrupt(uint8_t isr_index);
 
 #endif

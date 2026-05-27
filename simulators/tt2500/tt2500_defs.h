@@ -82,16 +82,16 @@ typedef struct {
   void (*write)(uint16_t reg, uint16_t data);
 } TTDEV;
 
-extern t_stat build_dev_tab (void);
-extern void flag_on (uint16_t flag);
-extern void flag_off (uint16_t flag);
-extern uint16_t cpu_alu (uint16_t insn, uint16_t op, uint16_t adata, uint16_t bdata);
-extern void dpy_magic (uint16_t data, uint16_t *r2, uint16_t *r3, uint16_t r4, uint16_t r5);
-extern void dpy_chartv (uint16_t data);
-extern void dpy_quit_callback (void);
-extern void crt_line (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t i);
-extern void tv_line (int row, uint8_t *data, uint8_t *chars);
-extern void tv_refresh (void);
+t_stat build_dev_tab (void);
+void flag_on (uint16_t flag);
+void flag_off (uint16_t flag);
+uint16_t cpu_alu (uint16_t insn, uint16_t op, uint16_t adata, uint16_t bdata);
+void dpy_magic (uint16_t data, uint16_t *r2, uint16_t *r3, uint16_t r4, uint16_t r5);
+void dpy_chartv (uint16_t data);
+void dpy_quit_callback (void);
+void crt_line (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t i);
+void tv_line (int row, uint8_t *data, uint8_t *chars);
+void tv_refresh (void);
 
 extern REG cpu_reg[];
 extern uint16_t MEM[], CRM[];
