@@ -90,17 +90,17 @@
 #endif
 #endif /* USE_READER_THREAD */
 
-/* give priority to USE_NETWORK over USE_SHARED */
-#if defined(USE_NETWORK) && defined(USE_SHARED)
-#undef USE_SHARED
+/* give priority to USE_NETWORK over USE_LOADED_WINPCAP */
+#if defined(USE_NETWORK) && defined(USE_LOADED_WINPCAP)
+#undef USE_LOADED_WINPCAP
 #endif
-/* USE_SHARED is retained for the Windows pcap runtime-loading path. */
-#if defined(USE_SHARED) && !defined(_WIN32)
-#undef USE_SHARED
+/* USE_LOADED_WINPCAP is only for the Windows pcap runtime-loading path. */
+#if defined(USE_LOADED_WINPCAP) && !defined(_WIN32)
+#undef USE_LOADED_WINPCAP
 #endif
 
-/* USE_SHARED implies shared pcap, so force HAVE_PCAP_NETWORK */
-#if defined(USE_SHARED) && !defined(HAVE_PCAP_NETWORK)
+/* USE_LOADED_WINPCAP provides pcap support, so force HAVE_PCAP_NETWORK */
+#if defined(USE_LOADED_WINPCAP) && !defined(HAVE_PCAP_NETWORK)
 #define HAVE_PCAP_NETWORK 1
 #endif
 

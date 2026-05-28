@@ -29,8 +29,8 @@
   networking is needed - there may be known workarounds.
 
   Define one of the two macros below to enable networking:
-    USE_NETWORK - Create statically linked network code
-    USE_SHARED  - Create dynamically loaded Windows pcap code
+    USE_NETWORK        - Create normally linked network code
+    USE_LOADED_WINPCAP - Create dynamically loaded Windows pcap code
 
   ------------------------------------------------------------------------------
 
@@ -772,7 +772,7 @@ t_stat eth_show_devices (FILE* st, DEVICE *dptr, UNIT* uptr, int32_t val, const 
 return eth_show (st, uptr, val, NULL);
 }
 
-#if defined (USE_NETWORK) || defined (USE_SHARED)
+#if defined (USE_NETWORK) || defined (USE_LOADED_WINPCAP)
 
 static const char* _eth_getname(int number, char* name, size_t name_size,
                                 char *desc, size_t desc_size)
@@ -931,7 +931,7 @@ t_stat eth_show (FILE* st, UNIT* uptr, int32_t val, const void* desc)
 /*                        Non-implemented versions                            */
 /*============================================================================*/
 
-#if !defined (USE_NETWORK) && !defined (USE_SHARED)
+#if !defined (USE_NETWORK) && !defined (USE_LOADED_WINPCAP)
 const char *eth_capabilities(void)
     {return "no Ethernet";}
 t_stat eth_open(ETH_DEV* dev, const char* name, DEVICE* dptr, uint32_t dbit)
@@ -1255,7 +1255,7 @@ return used;
 #include <winreg.h>
 #endif
 
-#if defined(USE_SHARED) && defined(_WIN32)
+#if defined(USE_LOADED_WINPCAP) && defined(_WIN32)
 /* Dynamic DLL loading technique and modified source comes from
    Etherial/WireShark capture_pcap.c */
 
@@ -1492,7 +1492,7 @@ int pcap_setnonblock(pcap_t* a, int nonblock, char *errbuf) {
     return 0;
   }
 }
-#endif /* defined(USE_SHARED) && defined(_WIN32) */
+#endif /* defined(USE_LOADED_WINPCAP) && defined(_WIN32) */
 
 /* Some platforms have always had pcap_sendpacket */
 #if defined(_WIN32)

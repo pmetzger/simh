@@ -245,24 +245,6 @@ IF (NEED_LIBRT)
     target_link_libraries(os_features INTERFACE rt)
 ENDIF (NEED_LIBRT)
 
-check_include_file(dlfcn.h have_dlfcn_h)
-if (have_dlfcn_h)
-    cmake_push_check_state()
-
-    set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_DL_LIBS})
-    check_symbol_exists(dlopen dlfcn.h have_dlopen)
-
-    if (have_dlopen)
-        target_link_libraries(os_features INTERFACE ${CMAKE_DL_LIBS})
-
-        set(dlext ${CMAKE_SHARED_LIBRARY_SUFFIX})
-        string(REPLACE "." "" dlext "${dlext}")
-        target_compile_definitions(os_features INTERFACE SIM_HAVE_DLOPEN=${dlext})
-    endif (have_dlopen)
-
-    cmake_pop_check_state()
-endif (have_dlfcn_h)
-
 if (NOT MSVC AND NOT (WIN32 AND CMAKE_C_COMPILER_ID MATCHES ".*Clang"))
     # Need the math library on non-Windows platforms
     target_link_libraries(os_features INTERFACE m)
