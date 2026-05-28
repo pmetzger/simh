@@ -50,7 +50,7 @@ add_executable(zimh-unit-scp-cmdvars-env-helper
     ${CMAKE_CURRENT_SOURCE_DIR}/cmdvars_env_helper.c
 )
 set_target_properties(zimh-unit-scp-cmdvars-env-helper PROPERTIES
-    C_STANDARD ${ZIMH_C_STANDARD}
+    C_STANDARD ${CMAKE_C_STANDARD}
     C_STANDARD_REQUIRED ON
     C_EXTENSIONS OFF
 )

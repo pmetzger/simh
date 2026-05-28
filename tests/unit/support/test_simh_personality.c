@@ -22,7 +22,7 @@ void simh_test_reset_simulator_state(void)
     sim_prog_name = NULL;
     memset(sim_name, 0, sizeof(sim_name));
     memcpy(sim_name, "zimh-unit", sizeof("zimh-unit"));
-    memset(sim_stop_messages, 0, sizeof(sim_stop_messages));
+    memset(&sim_stop_messages[0], 0, sizeof(sim_stop_messages));
     sim_emax = 0;
     sim_dfdev = NULL;
     sim_dfunit = NULL;

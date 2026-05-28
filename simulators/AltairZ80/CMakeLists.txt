@@ -27,7 +27,7 @@ add_executable(altairz80_m68kmake
     "${altairz80_musashi_source_dir}/m68kmake.c"
 )
 set_target_properties(altairz80_m68kmake PROPERTIES
-    C_STANDARD ${ZIMH_C_STANDARD}
+    C_STANDARD ${CMAKE_C_STANDARD}
     C_STANDARD_REQUIRED ON
     C_EXTENSIONS OFF
 )

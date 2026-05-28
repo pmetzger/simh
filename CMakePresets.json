@@ -1,0 +1,407 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "windows-ninja-release",
+      "displayName": "Windows build: Ninja Release + vcpkg",
+      "description": "Automatically uses the vcpkg toolchain if VCPKG_ROOT is set in the environment.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-win64",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "VCPKG_INSTALL_OPTIONS": "--no-print-usage"
+      }
+    },
+    {
+      "name": "windows-ninja-debug",
+      "displayName": "Windows build: Ninja Debug + vcpkg",
+      "description": "Ninja debug build using vcpkg toolchain.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-win64",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "VCPKG_INSTALL_OPTIONS": "--no-print-usage"
+      }
+    },
+    {
+      "name": "windows-vs2022",
+      "displayName": "VS2022-x64",
+      "description": "VS 2022 Windows build using vcpkg",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "set"
+      },
+      "binaryDir": "${sourceDir}/build-vs2022",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "VCPKG_INSTALL_OPTIONS": "--no-print-usage"
+      }
+    },
+    {
+      "name": "windows-vs2026",
+      "displayName": "VS2026-x64",
+      "description": "VS 2026 Windows build using vcpkg",
+      "generator": "Visual Studio 18 2026",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "set"
+      },
+      "binaryDir": "${sourceDir}/build-vs2026",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "VCPKG_INSTALL_OPTIONS": "--no-print-usage"
+      }
+    },
+    {
+      "name": "make-debug", 
+      "displayName": "Makefile Debug", 
+      "description": "Makefile-based debug build",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "make-release", 
+      "displayName": "Makefile Release", 
+      "description": "Makefile-based release build",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ninja-debug", 
+      "displayName": "Ninja Debug", 
+      "description": "Ninja-based debug build",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "ninja-release", 
+      "displayName": "Ninja Release", 
+      "description": "Ninja-based release build",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ninja", 
+      "displayName": "Ninja", 
+      "description": "Ninja-based build, user sets CMAKE_BUILD_TYPE",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "xcode-debug", 
+      "displayName": "XCode Debug", 
+      "description": "macOS XCode-based debug build",
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "xcode-release", 
+      "displayName": "XCode Release", 
+      "description": "macOS XCode-based release build",
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "xcode", 
+      "displayName": "XCode", 
+      "description": "macOS XCode-based build, user sets CMAKE_BUILD_TYPE",
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/build"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-ninja-release",
+      "configurePreset": "windows-ninja-release",
+      "displayName": "Build: Windows Ninja Release"
+    },
+    {
+      "name": "windows-ninja-debug",
+      "configurePreset": "windows-ninja-debug",
+      "displayName": "Build: Windows Ninja Debug"
+    },
+    {
+      "name": "windows-vs2022-debug",
+      "configurePreset": "windows-vs2022",
+      "configuration": "Debug",
+      "displayName": "Build: VS2022 Debug"
+    },
+    {
+      "name": "windows-vs2022-release",
+      "configurePreset": "windows-vs2022",
+      "configuration": "Release",
+      "displayName": "Build: VS2022 Release"
+    },
+    {
+      "name": "windows-vs2026-debug",
+      "configurePreset": "windows-vs2026",
+      "configuration": "Debug",
+      "displayName": "Build: VS2026 Debug"
+    },
+    {
+      "name": "windows-vs2026-release",
+      "configurePreset": "windows-vs2026",
+      "configuration": "Release",
+      "displayName": "Build: VS2026 Release"
+    },
+    {
+      "name": "make-debug",
+      "configurePreset": "make-debug",
+      "displayName": "Build: Makefile Debug"
+    },
+    {
+      "name": "make-release",
+      "configurePreset": "make-release",
+      "displayName": "Build: Makefile Release"
+    },
+    {
+      "name": "ninja-debug",
+      "configurePreset": "ninja-debug",
+      "displayName": "Build: Ninja Debug"
+    },
+    {
+      "name": "ninja-release",
+      "configurePreset": "ninja-release",
+      "displayName": "Build: Ninja Release"
+    },
+    {
+      "name": "ninja",
+      "configurePreset": "ninja",
+      "displayName": "Build: Ninja (Default)"
+    },
+    {
+      "name": "xcode-debug",
+      "configurePreset": "xcode-debug",
+      "configuration": "Debug",
+      "displayName": "Build: Xcode Debug"
+    },
+    {
+      "name": "xcode-release",
+      "configurePreset": "xcode-release",
+      "configuration": "Release",
+      "displayName": "Build: Xcode Release"
+    },
+    {
+      "name": "xcode",
+      "configurePreset": "xcode",
+      "displayName": "Build: Xcode (Default)"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-ninja-release",
+      "configurePreset": "windows-ninja-release",
+      "displayName": "Test: Windows Ninja Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "windows-ninja-debug",
+      "configurePreset": "windows-ninja-debug",
+      "displayName": "Test: Windows Ninja Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "windows-vs2022-debug",
+      "configurePreset": "windows-vs2022",
+      "configuration": "Debug",
+      "displayName": "Test: VS2022 Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "windows-vs2022-release",
+      "configurePreset": "windows-vs2022",
+      "configuration": "Release",
+      "displayName": "Test: VS2022 Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "windows-vs2026-debug",
+      "configurePreset": "windows-vs2026",
+      "configuration": "Debug",
+      "displayName": "Test: VS2026 Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "windows-vs2026-release",
+      "configurePreset": "windows-vs2026",
+      "configuration": "Release",
+      "displayName": "Test: VS2026 Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "make-debug",
+      "configurePreset": "make-debug",
+      "displayName": "Test: Makefile Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "make-release",
+      "configurePreset": "make-release",
+      "displayName": "Test: Makefile Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "ninja-debug",
+      "configurePreset": "ninja-debug",
+      "displayName": "Test: Ninja Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "ninja-release",
+      "configurePreset": "ninja-release",
+      "displayName": "Test: Ninja Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "ninja",
+      "configurePreset": "ninja",
+      "displayName": "Test: Ninja (Default)",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "xcode-debug",
+      "configurePreset": "xcode-debug",
+      "configuration": "Debug",
+      "displayName": "Test: Xcode Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "xcode-release",
+      "configurePreset": "xcode-release",
+      "configuration": "Release",
+      "displayName": "Test: Xcode Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    },
+    {
+      "name": "xcode",
+      "configurePreset": "xcode",
+      "displayName": "Test: Xcode (Default)",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "jobs": 8,
+        "timeout": 300
+      }
+    }
+  ]
+}

@@ -1,398 +1,270 @@
 # Building the Project
 
-This file explains how to build the project from a normal developer
-checkout.
+This file explains how to build and test the project from a normal developer
+checkout using CMake Presets.
 
-The project uses CMake and supports out-of-tree builds. Do not try to
-configure directly in the repository root.
+The project uses CMake and requires out-of-tree builds managed through unified
+configuration, build, and test presets. Do not try to configure directly in
+the repository root.
 
-The top-level `Makefile` is a thin compatibility wrapper over the
-`build/release` CMake build. The native interface is still CMake and
-CTest; the `make` entry points simply forward into that configured tree.
+The top-level `Makefile` remains as a thin compatibility wrapper over the
+default POSIX build layout. The native interface is completely driven via
+CMake Presets and CTest.
 
-## Compiler Support and OS Support
+## Compiler and OS Support
 
-We support builds for machines running recent vintage POSIX operating
-systems and recent vintage Microsoft Windows. We support builds for
-relatively recent compilers on those operating systems.
+We support builds for machines running recent vintage POSIX operating systems
+(Linux, macOS, FreeBSD) and recent vintage Microsoft Windows (Windows 10 or
+newer).
 
-Windows builds require Windows 10 or newer.
+Unlike legacy SIMH forks, _we explicitly do not support_ building on obsolete
+operating systems or compilers.
 
+Our goal is to maintain a clean, supportable, and modern codebase that can be
+preserved into the far future. We do not provide continuous integration for
+unmaintainable architectures, nor do we accept patches that complicate the
+codebase for legacy toolchains.
 
-Unlike the SIMH project, we do not support building on very old
-operating systems and compilers. Our goal is to have clean,
-supportable code that can be maintained into the very far future, and
-unfortunately, support for building on very old configurations (say
-VMS) is too difficult, both because we cannot set up continuous
-integration for such systems and because they complicate the code
-significantly.
+The codebase officially targets the C17 standard, though it is verified to
+compile seamlessly under configurations ranging from C99 to C23. Compilers
+lacking native C11 support are explicitly unsupported.
 
-We currently aim at code supporting the C17 standard, but we have
-checked that the code will build and run with the C standard set
-anywhere from C99 to C23 successfully. We do not explicitly support
-compilers from before C11, and will not take patches to fix problems
-on very old toolchains.
+## Dependencies
 
-## What you need installed
+### Core Requirements
 
-At minimum:
+At minimum, your host environment must have the following installed:
 
-- a C compiler toolchain
-- `cmake`
-- `ninja`
-- `git`
-- `bison`
-- `libpcre2`
+- A modern C compiler toolchain (C11/C17 capable)
+- `cmake` (v3.21 or newer required for full preset compatibility)
+- `ninja` or system `make`
+- `git` and `bison`
+- `libpcre2` (Backend for SCP EXPECT routing commands)
+- `pkg-config` / `pkgconf` (Required on POSIX hosts)
+- `libuuid` / system UUID generation API
 
-On POSIX hosts, `pkg-config` is required. POSIX hosts also need a
-system UUID generation API; on platforms where this is not part of the
-base system, install `libuuid`.
+### Optional Feature Packages
 
-PCRE2 provides the regular expression backend used by SCP EXPECT
-commands, and is required for build.
+To compile with full graphics, console editing, and advanced networking
+features, ensure the following are available:
 
-For the full feature build, install the libraries used by optional
-features:
+- `SDL2` & `SDL2_ttf` — Windowing, raw input, and high-quality text rendering.
+- `freetype` — Embedded font glyph rasterization.
+- `libpng` & `zlib` — Image loading and compressed file-handling paths.
+- `libedit` — Interactive command-line history and editing (POSIX only).
+- `libpcap` — Physical/bridged host network interface packet capture.
+- `libslirp` — Local NAT networking capabilities (POSIX >= 4.7.0; Windows >= 4.9.0).
+- `libvdeplug` — Virtual Distributed Ethernet backend (POSIX only).
 
-- `SDL2`
-  Provides the windowing, input, and rendering layer used by the
-  project’s video/graphics support, and is required for video-enabled
-  builds.
-- `SDL2_ttf`
-  Adds text rendering for SDL-based displays and is required for
-  video-enabled builds.
-- `freetype`
-  Supplies font loading and glyph rasterization used by the SDL display
-  stack. Freetype is required for video-enabled builds.
-- `libpng`
-  Adds PNG image support used by graphics and image-loading paths.
-- `zlib`
-  Provides compression support used by image and related file-handling
-  code.
-- `libedit`
-  Enables SCP command-line editing and history support. Unfortunately,
-  libedit is not available for Windows.
+### Test Environment
 
-For testing, you will need:
+- `cmocka` (1.1.5 or newer) — Host-side C unit-testing framework.
+- Python 3 — Driver engine for system integration tests.
 
-- `cmocka` 1.1.5 or newer
-  Provides the host-side C unit-test framework used under `tests/unit/`.
-- Python 3
-  Runs integration-test drivers that need more than a simple simulator
-  command script.
+### Installing Dependencies via Script (POSIX and Unixen)
 
-For networking, you will need the libraries for the backends you enable:
-
-- `libpcap`
-  Enables direct host-interface packet capture and injection for the
-  optional network backends.
-- `libslirp`
-  Provides the SLIRP/NAT backend when SLIRP support is enabled with the
-  external libslirp backend. POSIX builds require libslirp 4.7.0 or
-  newer. Windows builds require libslirp 4.9.0 or newer because older
-  releases do not expose the socket-handle callbacks needed on Win64.
-- `libvdeplug`
-  Provides the VDE2/VDE4 backend when VDE support is enabled. VDE
-  support is not available on Windows.
-
-Notes:
-
-- The source tree assumes a compiler with at least C11 support. A modern
-  C17-capable compiler is preferred.
-- `bison` is required to generate parser sources from checked-in yacc
-  grammars, including the SAGE and AltairZ80 Motorola 68000 parsers.
-- On Windows, the common WinFlexBison package installs `win_bison.exe`
-  instead of `bison.exe`. The CMake build accepts either executable name.
-- UUID generation is required for disk image formats that store UUIDs.
-  CMake accepts Windows RPC UUID support, `uuid_generate()` when it is
-  available from the host C library, `uuid_generate()` from `libuuid`,
-  or BSD-style `uuid_create()` with `uuid_enc_be()`. On Debian and
-  Ubuntu, install `uuid-dev`; on Fedora and RHEL, install
-  `libuuid-devel`; on Arch Linux, UUID headers are normally provided by
-  `util-linux`.
-- `cmocka` is for host-side unit tests rather than the historical
-  simulator binaries themselves.
-- Python 3 is required for the full integration test suite. CMake can
-  configure without Python, but Python-backed tests are skipped when no
-  interpreter is found.
-- `SDL2_ttf` is the usual missing piece when a video-enabled build does
-  not configure successfully.
-- `libedit` is optional, but without it SCP falls back to plainer
-  console input without interactive line-editing support.
-  `libedit` support is not currently available for Windows because no
-  port of the library to Windows exists.
-- SLIRP/NAT builds using the external backend require `libslirp`; on
-  Debian and Ubuntu this is normally provided by `libslirp-dev`.
-- VDE builds require `libvdeplug`; on Debian and Ubuntu this is
-  normally provided by `libvdeplug-dev`.
-- Some networking features may also use additional system libraries,
-  depending on the platform and enabled options.
-
-## Installing dependencies
-
-The repository already contains a helper script for installing build and
-feature dependencies on common Unix-like environments:
+The helper utility scripts below are available to automate dependency
+setup across standard environments:
 
 ```sh
-tools/ci/deps/deps.sh linux
-tools/ci/deps/deps.sh osx
-tools/ci/deps/deps.sh macports
+tools/ci/deps/deps.sh linux        # Debian / Ubuntu apt pipeline
+tools/ci/deps/deps.sh osx          # macOS Homebrew pipeline
+tools/ci/deps/deps.sh macports     # macOS MacPorts pipeline
 ```
 
-Use the variant that matches your environment.
+N.B.: The Github and Gitlab CI/CD pipelines use these utility scripts to
+install dependencies, so if they work on CI/CD pipelines, they should work for
+you!
 
-If you prefer to install packages manually, make sure the compiler,
-CMake, Ninja, and the feature libraries listed above are visible through
-the normal compiler and CMake search paths. (POSIX hosts require
-packages to be visible via `pkg-config`.)
+### Installing Dependencies on Windows
 
-## Recommended build layout
+Windows dependencies split into two categories: external utilities and library
+dependencies.
 
-Create a dedicated build directory under `build/`, for example:
+- External utilities, such as `cmake`, `git`, `bison` and `python`/`python3`
+  should be installed by an appropriate package manager, such as
+  [scoop.sh](https://scoop.sh/).
+
+- [`vcpkg`](https://vcpkg.io/) manages library dependencies, and locally
+  installs `SDL2`, `SDL2_ttf`, ..., into the build tree during the `cmake`
+  build process.
+
+  __BE SURE TO SET `VCPKG_ROOT` in your environment so that `cmake` understands
+  the `vcpkg` toolchain file's location.__
+
+---
+
+## The Preset Workflow
+
+The project defines uniform environments via `CMakePresets.json`. This
+eliminates the need to remember explicit compiler choices, binary directories,
+or toolchain paths.
+
+### 1. Symmetric Environments (Linux & macOS Ninja/Make)
+
+For standard UNIX targets, the configuration, build, and test preset names
+match exactly.
 
 ```sh
-mkdir -p build/release
+# Step 1: Configure the tree
+cmake --preset ninja-release
+
+# Step 2: Build the targets
+cmake --build --preset ninja-release
 ```
 
-You may choose a different build directory name, but keep it separate
-from the source tree.
+*Generated binaries will land inside `build/release/bin/`. For debug variants,
+ substitute `ninja-debug` (which outputs to `build/debug/bin/`).*
 
-Built executables stay inside the build tree. For the standard
-layouts above, look under:
+### 2. Multi-Config Frameworks (macOS Xcode & Windows MSVC)
 
-- `build/release/bin`
-- `build/debug/bin`
+Multi-configuration generators use a base configuration layout that handles
+building distinct targets cleanly.
 
-## Full-feature build
+#### macOS Xcode:
+```sh
+# Configure the Xcode project spaces
+cmake --preset xcode
 
-Use this when all optional dependencies, including `SDL2_ttf`, are
-installed:
+# Build a specific configuration layout
+cmake --build --preset xcode --config Release
+```
+*Generated binaries land inside `build/bin/Release/`.*
+
+#### Windows (Visual Studio 2022 / 2026 with vcpkg):
+
+Windows presets explicitly map static compilation configurations via `vcpkg`
+toolchains. Because configurations are bound directly to the build presets,
+choose the suffix matching your target:
+
+```pwsh
+# Configure using the Visual Studio 2022 preset
+cmake --preset windows-vs2022
+
+# Compile either the Debug or Release target variants
+cmake --build --preset windows-vs2022-release
+cmake --build --preset windows-vs2022-debug
+```
+
+*Generated binaries will map to `build-vs2022/bin/Release/` or
+ `build-vs2022/bin/Debug/` respectively.*
+
+---
+
+## Overriding Preset Variables & Feature Selection
+
+Presets contain default configurations, but they can be fully customized or
+trimmed at configuration time by passing standard `-D` compilation arguments.
+
+### Compiling Without Video/Graphics Support
+
+If your target machine lacks `SDL2_ttf` or a full graphical environment, you
+can safely strip video capabilities while utilizing your preset:
 
 ```sh
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -S . -B build/release
-ninja -C build/release
-ctest --test-dir build/release --output-on-failure --timeout 300
+cmake --preset ninja-release -DWITH_VIDEO=Off
+cmake --build --preset ninja-release
 ```
 
-This enables the normal default feature set, including video support.
+### Common Configuration Toggles
+- `-DWITH_VIDEO=Off` — Completely disable SDL structural subsystems (Default:
+  `On`).
+- `-DWITH_NETWORK=Off` — Strip out all external network code stacks (Default:
+  `On`).
+- `-DWITH_PCAP=Off` — Disable bridge/pcap network capture layers (Default:
+  `On`).
+- `-DWARNINGS_FATAL=On` — Escalate all compiler warnings into hard build
+  errors (Default: `Off`).
+- `-DRELEASE_LTO=On` — Force Link-Time Optimization routines on Release
+  compilation (Default: `Off`).
 
-## Build without SDL/video support
+---
 
-If the SDL stack is incomplete, especially if `SDL2_ttf` is missing, use
-this configuration instead:
+## Selective Compilation Targets
+
+To avoid compiling the entire matrix of historical simulators, you can isolate
+compilation to a specific architecture by targeting it explicitly through the
+preset engine:
 
 ```sh
-cmake -G Ninja -DWITH_VIDEO=Off -DCMAKE_BUILD_TYPE=Release -S . -B build/release
-ninja -C build/release -j 8
-ctest --test-dir build/release -j 8 --output-on-failure --timeout 300
+cmake --build --preset ninja-release --target pdp11
+cmake --build --preset ninja-release --target vax
 ```
 
-This is the safest fallback build when the graphics dependencies are not
-fully installed.
+### Key Top-Level Targets
 
-## Running just the build
+- **Standard Simulator Engine Set:** `cmake --build --preset ninja-release`
+- **Experimental Simulators:** `--target experimental-simulators`
+- **Host Unit Testing Binary Array:** `--target unit-tests`
+- **System Integration Testing Framework:** `--target integration-tests`
 
-The compatibility `Makefile` preserves a small set of convenience entry
-points. These two commands are equivalent for the default build:
+*Simulator targets are unprefixed during execution, but compiled output
+ filenames are standardized with the `zimh-` prefix (e.g., `zimh-pdp11`).*
+
+---
+
+## Running the Test Suites
+
+The project includes pre-configured **Test Presets** that map directly to your
+build layouts. These automated presets encapsulate standard execution
+optimization flags, automatically running with the following defaults:
+
+- 8 parallel execution threads (`-j 8`)
+- Extended output diagnostics on failure (`--output-on-failure`)
+- A 5-minute guard timeout per test item (`--timeout 300`)
+
+Once compilation under a preset concludes successfully, invoke `ctest
+--preset` passing the corresponding target environment:
 
 ```sh
-make all
-cmake --build build/release
+# For symmetric layout environments (Linux, macOS Ninja)
+ctest --preset ninja-release
+ctest --preset ninja-debug
+
+# For multi-config or asymmetric environments (Windows MSVC)
+ctest --preset windows-vs2022-release
+ctest --preset windows-vs2022-debug
 ```
 
-If you have already configured successfully and only want to rebuild:
+### Fallback Manual Invocation
+
+If you need to bypass a preset configuration to pass custom `ctest` filtering
+flags (like running a specific subset of tests via `-R`), direct `ctest` to
+the preset's binary directory manually:
 
 ```sh
-ninja -C build/release
+ctest --test-dir build/release -R pdp11 -j 4
 ```
 
-The plain default build in a configured tree builds the normal default
-simulator set. For example, if you use a build directory such as
-`build/release`, then:
+Alternatively, you can route testing passes straight through the build
+architecture pipelines:
 
 ```sh
-cmake --build build/release
+cmake --build --preset ninja-release --target unit-tests
 ```
 
-builds the normal default simulator set for that configured tree.
+### Known Environmental Testing Constraints
 
-There is also an explicit target for the experimental simulator set:
-
-```sh
-cmake --build build/release --target experimental-simulators
-```
-
-## Common build targets
-
-Build an individual simulator by naming its target directly:
-
-```sh
-cmake --build build/release --target pdp11
-cmake --build build/release --target vax
-```
-
-Common top-level targets include:
-
-- default build
-  `cmake --build build/release`
-  Builds the normal default simulator set for the configured tree.
-- `experimental-simulators`
-  `cmake --build build/release --target experimental-simulators`
-  Builds the experimental simulator set.
-- `unit-tests`
-  `cmake --build build/release --target unit-tests`
-  Builds and runs the host-side `zimh-unit-*` suite.
-- `integration-tests`
-  `cmake --build build/release --target integration-tests`
-  Builds and runs the simulator `zimh-*` integration suite.
-- `stub`
-  `cmake --build build/release --target stub`
-  Builds the stub simulator skeleton under `src/components/stub/`.
-  This is a developer/sample target for people working on new simulator
-  integrations, not part of the normal simulator set or automated test
-  suite.
-- `frontpaneltest`
-  `cmake --build build/release --target frontpaneltest`
-  Builds the front panel sample and manual diagnostic program.
-- `extra-tools`
-  `cmake --build build/release --target extra-tools`
-  Builds the developer/sample utility targets, currently `stub` and
-  `frontpaneltest`.
-
-Resulting executables land in the configured build tree's `bin/`
-subdirectory. Simulator target names are unprefixed, while generated
-simulator executable names use the `zimh-` prefix. For example:
-
-- `build/release/bin/zimh-pdp11`
-- `build/release/bin/zimh-vax`
-- `build/release/bin/frontpaneltest`
-- `build/release/bin/stub`
-
-## Running just the tests
-
-The compatibility `Makefile` also preserves these convenience entry
-points:
-
-```sh
-make unit-tests
-make integration-tests
-make test
-```
-
-They forward to the corresponding CMake/CTest workflows in
-`build/release`.
-
-If the build tree is already configured and built:
-
-```sh
-ctest --test-dir build/release -j 8 --output-on-failure --timeout 300
-```
-
-There are also explicit build targets for the two main test groups:
-
-```sh
-cmake --build build/release --target unit-tests
-cmake --build build/release --target integration-tests
-```
-
-## Common options
-
-Some useful CMake options:
-
-- `-DCMAKE_BUILD_TYPE=RelWithDebInfo`
-  Build optimized binaries while retaining debugger information. This is
-  useful for profiling, debugger sessions, and tools such as Valgrind.
-- `-DWITH_VIDEO=Off`
-  Disable SDL-based graphics support. Default: `On`.
-- `-DWITH_NETWORK=Off`
-  Disable optional networking features. Default: `On`.
-- `-DWITH_PCAP=Off`
-  Disable pcap-backed Ethernet support. Default: `On`.
-- `-DWITH_VDE=Off`
-  Disable VDE2/VDE4 networking support. Default: `On` on non-Windows
-  builds. VDE support is always disabled on Windows.
-- `-DWARNINGS_FATAL=On`
-  Treat warnings as errors. Default: `Off`.
-- `-DRELEASE_LTO=On`
-  Enable link-time optimization in release builds. Default: `Off`.
-- `-DDEBUG_WALL=On`
-  Turn on stronger warning settings for debug builds. Default: `Off`.
-- `-DENABLE_WINAPI_DEPRECATION_WARNINGS=On`
-  Enable WinAPI deprecation warnings. Default: `Off`.
-- `-DWITH_ROMS=Off`
-  Disable internal ROM generation and embedding. Default: `On`.
-
-Example:
-
-```sh
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DWITH_VIDEO=Off \
-  -DDEBUG_WALL=On -S . -B build/debug
-```
-
-## Reconfiguring safely
-
-CMake caches aggressively. If you change major options, especially
-feature toggles such as `WITH_VIDEO`, it is often simplest to remove the
-old build directory and configure again.
-
-Example:
-
-```sh
-rm -rf build/release
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -S . -B build/release
-```
-
-Or use a new build directory name instead.
-
-## Interpreting test results
-
-In constrained sandboxed environments, one test has been known to fail
-for environmental reasons rather than build correctness:
+When operating inside strictly confined containers or restricted sandbox
+execution spaces, you may encounter a failure on the following target:
 
 - `zimh-uc15`
 
-That simulator uses shared memory. If `shm_open` is blocked by the
-environment, the test will fail even when the build itself is correct.
+This specific simulator relies heavily on internal POSIX shared memory
+interfaces. If your environment or execution platform blocks `shm_open`
+routines via a sandbox policy, this test will fail. This indicates an
+environmental restriction rather than a structural code defect; execution will
+succeed normally on native hardware.
 
-On a normal developer machine with shared memory available, that test
-should be expected to run normally.
+## Safe Tree Reconfigurations
 
-## Verifying dependencies manually
-
-You can quickly check whether common dependencies are visible:
-
-```sh
-pkg-config --atleast-version=1.1.5 cmocka
-pkg-config --modversion sdl2
-pkg-config --modversion SDL2_ttf
-pkg-config --modversion freetype2
-pkg-config --modversion libpng
-pkg-config --modversion zlib
-pkg-config --modversion libedit
-pkg-config --modversion slirp
-python3 --version
-bison --version
-```
-
-- On Windows, `pkg-config` will not work.
-- On Windows with WinFlexBison, use `win_bison --version` instead.
-
-If `SDL2_ttf` is missing, a full video-enabled build is not ready yet.
-
-## Selecting a non-default compiler
-
-Use `ZIMH_C_COMPILER` to configure a build tree with a specific C
-compiler. This is useful for shaking out compiler-specific warnings and
-evaluation-order assumptions, for example by building with GNU GCC on a
-host that normally defaults to Clang.
-
-Example:
+CMake aggressively caches values inside build spaces. If you modify
+fundamental feature flags (such as toggling `WITH_VIDEO`) or make significant
+modifications to your environment, the most reliable approach is to clean the
+preset's defined folder and restart:
 
 ```sh
-cmake -G Ninja -DZIMH_C_COMPILER=/opt/local/bin/gcc-mp-15 \
-  -DCMAKE_BUILD_TYPE=Release -S . -B build/gcc-ordering
+# Wipe and reconfigure a standard layout folder
+rm -rf build/release
+cmake --preset ninja-release
 ```
-
-Set this option only when configuring a fresh build directory. CMake
-selects the compiler early and caches that choice, so changing compiler
-families in an existing build tree is not supported.

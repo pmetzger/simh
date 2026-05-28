@@ -14,7 +14,7 @@ function(add_simh_unit_support_objects target core_library)
     add_library(${target} OBJECT ${SIMH_UNIT_SUPPORT_SOURCES})
 
     set_target_properties(${target} PROPERTIES
-        C_STANDARD ${ZIMH_C_STANDARD}
+        C_STANDARD ${CMAKE_C_STANDARD}
         C_STANDARD_REQUIRED ON
         C_EXTENSIONS OFF
     )
@@ -50,7 +50,7 @@ function(add_simh_unit_personality_objects target core_library)
     add_library(${target} OBJECT ${SIMH_UNIT_PERSONALITY_SOURCES})
 
     set_target_properties(${target} PROPERTIES
-        C_STANDARD ${ZIMH_C_STANDARD}
+        C_STANDARD ${CMAKE_C_STANDARD}
         C_STANDARD_REQUIRED ON
         C_EXTENSIONS OFF
     )

@@ -19,10 +19,6 @@ int32_t crd_err;
 int32_t cur_cpu;
 int32_t cpu_msk = 1;
 int32_t in_ie;
-#ifdef SIM_ASYNCH_IO
-int32_t sim_asynch_latency = 4000;
-int32_t sim_asynch_inst_latency = 20;
-#endif
 jmp_buf save_env;
 DEVICE cpu_dev;
 UNIT cpu_unit;
