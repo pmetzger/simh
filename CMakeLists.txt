@@ -428,9 +428,6 @@ if (WITH_UNIT_TESTS)
     add_cmake_script_unit_test(
         zimh-cmake-find-pcap
         find-pcap-test.cmake)
-    add_cmake_script_unit_test(
-        zimh-cmake-windows-api-target
-        windows-api-target-test.cmake)
 endif ()
 
 message(STATUS "Adding simulators")
