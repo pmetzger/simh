@@ -182,38 +182,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.21" AND
     set(SIMH_CMAKE_RUNTIME_DEPENDENCIES_SUPPORTED TRUE)
 endif ()
 
-# SIMH_DEP_TOPDIR: This is the top-level directory where dependencies live. It's cached so that
-# scripts (e.g., cmake-builder.ps1) can update PATH to find shared objects and DLLs.
-#
-# Only add to search paths if local dependency builds are enabled.
-set(SIMH_DEP_TOPDIR
-    ${CMAKE_SOURCE_DIR}/cmake/dependencies/${SIMH_SYSTEM_ID}
-    CACHE PATH "Top-level directory for SIMH library dependencies")
-
-# SIMH_DEP_PATCHES: This is where various external package patches live. Also cached just in case
-# it's needed by a script.
-set(SIMH_DEP_PATCHES ${CMAKE_SOURCE_DIR}/cmake/patches
-        CACHE PATH "Top-level directory for external dependency patches")
-
 ##-- Options --##
-set(ENABLE_DEP_BUILD_OPTVAL FALSE)
-if (DEFINED ENABLE_DEP_BUILD)
-    set(ENABLE_DEP_BUILD_OPTVAL ${ENABLE_DEP_BUILD})
-else ()
-    ## For Windows, always build dependencies by default.
-    if (WIN32 AND NOT DEFINED ENV{MSYSTEM} AND NOT USING_VCPKG)
-        message(STATUS
-            "Setting ENABLE_DEP_BUILD to TRUE, will BUILD missing "
-            "dependencies")
-        set(ENABLE_DEP_BUILD_OPTVAL TRUE)
-    else ()
-        message(STATUS
-            "Setting ENABLE_DEP_BUILD to FALSE, will NOT BUILD missing "
-            "dependencies")
-        set(ENABLE_DEP_BUILD_OPTVAL FALSE)
-    endif ()
-endif ()
-
 set(MAC_UNIVERSAL_OPTVAL FALSE)
 if (NOT DEFINED MAC_UNIVERSAL)
     if (APPLE)
@@ -228,11 +197,8 @@ else ()
     endif ()
 endif ()
 
-option(ENABLE_DEP_BUILD
-       "Enable (=1)/disable (=0) building supported missing dependencies into the local dependency prefix."
-       ${ENABLE_DEP_BUILD_OPTVAL})
 option(BUILD_SHARED_DEPS
-       "Enable (=1)/disable (=0) building dependencies as shared libraries/DLLs (def: disabled)"
+       "Prefer shared dependency runtime linkage when supported by the dependency provider."
        FALSE)
 option(WITH_ASYNC
        "Enable (=1)/disable (=0) Asynchronous I/O and threading."
@@ -293,38 +259,6 @@ option(MAC_UNIVERSAL
 
 unset(NO_DEP_BUILD CACHE)
 
-if (ENABLE_DEP_BUILD)
-    message(STATUS "Missing dependencies WILL BE BUILT.")
-else ()
-    message(STATUS "Missing dependencies WILL NOT BE BUILT.")
-endif ()
-
-# Places where CMake should look for dependent package configuration fragments and artifacts:
-set(SIMH_PREFIX_PATH_LIST)
-if (NOT (USING_VCPKG OR NOT ENABLE_DEP_BUILD))
-    list(APPEND CMAKE_INCLUDE_PATH ${SIMH_DEP_TOPDIR})
-    list(APPEND SIMH_PREFIX_PATH_LIST ${SIMH_DEP_TOPDIR})
-    list(APPEND CMAKE_PREFIX_PATH ${SIMH_PREFIX_PATH_LIST})
-endif ()
-
-## libpcap, if not found, will put its headers in $CMAKE_BINARY_DIR/include.
-## Make sure we can find them.
-list(APPEND CMAKE_INCLUDE_PATH "${CMAKE_BINARY_DIR}/include")
-
-## Additional command line arguments for dependencies. Need this because Powershell will report
-## an error if anything is sent to stderr and $ErrorDefaultAction is set to "Stop".
-set(DEP_CMAKE_ARGS "-Wno-dev" "--no-warn-unused-cli")
-
-## build-stage directory hierarchy for dependency installs:
-if (ENABLE_DEP_BUILD AND NOT USING_VCPKG AND NOT EXISTS ${SIMH_DEP_TOPDIR})
-    message(STATUS "Creating dependency library directory hierarchy")
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${SIMH_DEP_TOPDIR} ${SIMH_DEP_TOPDIR}/include ${SIMH_DEP_TOPDIR}/lib
-                    ${SIMH_DEP_TOPDIR}/bin
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    )
-endif ()
-
 ## Keep runtime outputs in the active build tree.
 set(SIMH_RUNTIME_OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${SIMH_RUNTIME_OUTPUT_DIR}")
@@ -338,22 +272,6 @@ endforeach ()
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${SIMH_INCLUDE_ROOT})
 
-if (NOT USING_VCPKG AND ENABLE_DEP_BUILD)
-    # Make sure we can include and link from the dependency directory
-    list(APPEND CMAKE_LIBRARY_PATH ${SIMH_DEP_TOPDIR}/lib)
-    link_directories(${SIMH_DEP_TOPDIR}/lib)
-    list(APPEND CMAKE_INCLUDE_PATH ${SIMH_DEP_TOPDIR}/include)
-    include_directories(${SIMH_DEP_TOPDIR}/include)
-endif ()
-
-## CMake policy tweaks
-
-if (CMAKE_VERSION GREATER_EQUAL 3.24)
-    ## Until I figure out a way to add DOWNLOAD_EXTRACT_TIMESTAMP to the call to
-    ## ExternalProject_Add cleanly..
-    cmake_policy(SET CMP0135 NEW)
-endif()
-
 ## "Standard" includes
 include(CheckCSourceCompiles)
 include(CheckIncludeFile)
@@ -365,14 +283,6 @@ include(dependency-report)
 
 ## Deal with platform quirkiness
 include(platform-quirks)
-
-# Find packages, arrange for dependency download/compile/install:
-#
-# SIMH_BUILD_DEPS is the list of the dependencies' names, for pretty-printing.
-# SIMH_DEP_TARGETS is the list of dependency targets' names that we'll actually build.
-
-set(SIMH_BUILD_DEPS)
-set(SIMH_DEP_TARGETS)
 
 set(THREADING_PKG_STATUS "unknown")
 set(ZLIB_PKG_STATUS "unknown")
@@ -390,8 +300,6 @@ set(NETWORK_PKG_STATUS)
 #     )
 # endif ()
 
-# SIMH local packages:
-include(build_dep_matrix)
 include(os-features)
 include(dep-locate)
 include(dep-link)
@@ -515,150 +423,64 @@ unset(_feature_text)
 
 unset(ROM_STATUS)
 
-if (NOT DEFINED DO_DEPENDENCY_BUILD OR SIMH_BUILD_DEPS)
-    if (DEFINED DO_DEPENDENCY_BUILD AND NOT DO_DEPENDENCY_BUILD AND SIMH_BUILD_DEPS)
-        message(FATAL_ERROR "Dependency libraries did not build successfully!!??")
-    endif()
+include (add_simulator)
 
-    if (SIMH_BUILD_DEPS)
-        message(STATUS "Building dependency libraries as a superbuild")
-        set(DO_DEPENDENCY_BUILD ON CACHE BOOL "Superbuild flag" FORCE)
+message(STATUS "Adding simulators")
+include(simh-simulators)
+include(simh-extra-tools)
+
+if (WITH_UNIT_TESTS)
+    set(unittest_cmocka_target "")
+
+    if (WIN32)
+        if (TARGET cmocka::cmocka)
+            set(unittest_cmocka_target cmocka::cmocka)
+        endif ()
     else ()
-        set(DO_DEPENDENCY_BUILD OFF CACHE BOOL "Superbuild flag" FORCE)
+        if (CMOCKA_FOUND)
+            set(unittest_cmocka_target PkgConfig::CMOCKA)
+        endif ()
     endif ()
-else ()
-    set(DO_DEPENDENCY_BUILD ${DO_DEPENDENCY_BUILD} CACHE BOOL "Superbuild flag" FORCE)
+
+    if (unittest_cmocka_target)
+        add_library(unittest INTERFACE)
+        add_subdirectory(tests/unit)
+        target_link_libraries(unittest INTERFACE
+            ${unittest_cmocka_target}
+            os_features
+        )
+        message(STATUS "Host-side cmocka unit tests enabled")
+    else ()
+        message(STATUS "Host-side unit tests requested but cmocka was not found")
+    endif ()
+
+    unset(unittest_cmocka_target)
 endif ()
 
-if (NOT DO_DEPENDENCY_BUILD)
-    include (add_simulator)
-
-## Don't delete yet ##    set(Python_ADDITIONAL_VERSIONS 3)
-## Don't delete yet ##    include(FindPythonInterp)
-## Don't delete yet ##    if (PYTHONINTERP_FOUND AND PYTHON_VERSION_MAJOR GREATER_EQUAL 3)
-## Don't delete yet ##        add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/cmake/simh-simulators.cmake
-## Don't delete yet ##          COMMAND ${PYTHON_EXECUTABLE} "-m" generate "--srcdir" "${CMAKE_SOURCE_DIR}"
-## Don't delete yet ##            MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/Makefile
-## Don't delete yet ##            COMMENT "Updating cmake/simh-simulators.cmake"
-## Don't delete yet ##            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake
-## Don't delete yet ##            COMMAND_EXPAND_LISTS)
-## Don't delete yet ##        message(STATUS "Added Makefile update rule.")
-## Don't delete yet ##    endif (PYTHONINTERP_FOUND AND PYTHON_VERSION_MAJOR GREATER_EQUAL 3)
-## Don't delete yet ##
-## Don't delete yet ##    if (${CMAKE_SOURCE_DIR}/Makefile IS_NEWER_THAN ${CMAKE_SOURCE_DIR}/cmake/simh-simulators.cmake)
-## Don't delete yet ##        if (NOT PYTHONINTERP_FOUND OR PYTHON_VERSION_MAJOR LESS 3)
-## Don't delete yet ##            if (NOT PYTHONINTERP_FOUND)
-## Don't delete yet ##                message("!! Python not found")
-## Don't delete yet ##            elseif (PYTHON_VERSION_MAJOR LESS 3)
-## Don't delete yet ##                message("!! Python is not python3")
-## Don't delete yet ##            endif (NOT PYTHONINTERP_FOUND)
-## Don't delete yet ##
-## Don't delete yet ##            message("!!")
-## Don't delete yet ##            message("!! Cannot update cmake/simh-simulators.cmake, using older version.")
-## Don't delete yet ##            message("!! Proceed with caution: This build might not succeed.")
-## Don't delete yet ##            message("!!")
-## Don't delete yet ##            message(STATUS "Keeping existing cmake/simh-simulators.cmake")
-## Don't delete yet ##        else (NOT PYTHONINTERP_FOUND OR PYTHON_VERSION_MAJOR LESS 3)
-## Don't delete yet ##            message(STATUS "Updating cmake/simh-simulators.cmake")
-## Don't delete yet ##            execute_process(COMMAND ${PYTHON_EXECUTABLE} "-m" generate "--srcdir" "${CMAKE_SOURCE_DIR}"
-## Don't delete yet ##                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake)
-## Don't delete yet ##        endif (NOT PYTHONINTERP_FOUND OR PYTHON_VERSION_MAJOR LESS 3)
-## Don't delete yet ##    endif ()
-
-    message(STATUS "Adding simulators")
-    include(simh-simulators)
-    include(simh-extra-tools)
-
-    if (WITH_UNIT_TESTS)
-        set(unittest_cmocka_target "")
-
-        if (WIN32)
-            if (TARGET cmocka::cmocka)
-                set(unittest_cmocka_target cmocka::cmocka)
-            endif ()
-        else ()
-            if (CMOCKA_FOUND)
-                set(unittest_cmocka_target PkgConfig::CMOCKA)
-            endif ()
-        endif ()
-
-        if (unittest_cmocka_target)
-            add_library(unittest INTERFACE)
-            add_subdirectory(tests/unit)
-            target_link_libraries(unittest INTERFACE
-                ${unittest_cmocka_target}
-                os_features
-            )
-            message(STATUS "Host-side cmocka unit tests enabled")
-        else ()
-            message(STATUS "Host-side unit tests requested but cmocka was not found")
-        endif ()
-
-        unset(unittest_cmocka_target)
-    endif ()
-
-    get_property(SIMH_UNIT_TEST_TARGETS GLOBAL PROPERTY SIMH_UNIT_TEST_TARGETS)
-    if (SIMH_UNIT_TEST_TARGETS)
-        list(REMOVE_DUPLICATES SIMH_UNIT_TEST_TARGETS)
-        add_custom_target(unit-tests
-            COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-                    -L unit
-            DEPENDS ${SIMH_UNIT_TEST_TARGETS}
-            USES_TERMINAL
-            COMMENT "Building and running host-side unit tests"
-        )
-    endif ()
-
-    get_property(SIMH_INTEGRATION_TARGETS GLOBAL PROPERTY
-                 SIMH_INTEGRATION_TARGETS)
-    if (SIMH_INTEGRATION_TARGETS)
-        list(REMOVE_DUPLICATES SIMH_INTEGRATION_TARGETS)
-        add_custom_target(integration-tests
-            COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-                    -L integration
-            DEPENDS ${SIMH_INTEGRATION_TARGETS}
-            USES_TERMINAL
-            COMMENT "Building and running simulator integration tests"
-        )
-    endif ()
-
-    include(cpack-setup)
-    include(simh-packaging)
-else ()
-    message(STATUS "")
-    message(STATUS "Building the following dependency libraries:")
-    message(STATUS "")
-    foreach(dep ${SIMH_BUILD_DEPS})
-        message(STATUS "    ${dep}")
-    endforeach ()
-    message(STATUS "")
-
-    ExternalProject_Add (simh_superbuild
-        DEPENDS
-            ${SIMH_DEP_TARGETS}
-        SOURCE_DIR
-            ${CMAKE_SOURCE_DIR}
-        CMAKE_ARGS
-            -DDO_DEPENDENCY_BUILD:BOOL=OFF
-            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-            -DZIMH_C_STANDARD=${ZIMH_C_STANDARD}
-        INSTALL_COMMAND ""
-        BINARY_DIR
-            ${CMAKE_BINARY_DIR}
-        USES_TERMINAL_CONFIGURE TRUE
-        USES_TERMINAL_BUILD     TRUE
+get_property(SIMH_UNIT_TEST_TARGETS GLOBAL PROPERTY SIMH_UNIT_TEST_TARGETS)
+if (SIMH_UNIT_TEST_TARGETS)
+    list(REMOVE_DUPLICATES SIMH_UNIT_TEST_TARGETS)
+    add_custom_target(unit-tests
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+                -L unit
+        DEPENDS ${SIMH_UNIT_TEST_TARGETS}
+        USES_TERMINAL
+        COMMENT "Building and running host-side unit tests"
     )
-
-    ## Ensure that the next build rechecks the dependency
-    ## libraries that were just built and finds them.
-    unset(Freetype_FOUND CACHE)
-    unset(PCAP_FOUND CACHE)
-    unset(PCRE_FOUND CACHE)
-    unset(PCRE2_FOUND CACHE)
-    unset(PNG_FOUND CACHE)
-    unset(PTW_FOUND CACHE)
-    unset(SDL2_FOUND CACHE)
-    unset(SDL2_ttf_FOUND CACHE)
-    unset(ZLIB_FOUND CACHE)
 endif ()
+
+get_property(SIMH_INTEGRATION_TARGETS GLOBAL PROPERTY
+             SIMH_INTEGRATION_TARGETS)
+if (SIMH_INTEGRATION_TARGETS)
+    list(REMOVE_DUPLICATES SIMH_INTEGRATION_TARGETS)
+    add_custom_target(integration-tests
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+                -L integration
+        DEPENDS ${SIMH_INTEGRATION_TARGETS}
+        USES_TERMINAL
+        COMMENT "Building and running simulator integration tests"
+    )
+endif ()
+
+include(cpack-setup)
+include(simh-packaging)

@@ -121,7 +121,8 @@ The most commonly used options are:
   Enable asynchronous I/O support.
 - `WITH_PCAP`
   Default: `On`.
-  Enable pcap-backed Ethernet support when the dependency is available.
+  Enable pcap-backed Ethernet support. With this enabled, pcap headers
+  must be installed and discoverable at configure time.
 - `WITH_SLIRP`
   Default: `On`.
   Enable SLiRP-backed user-mode networking when the dependency is
@@ -138,12 +139,10 @@ The most commonly used options are:
 - `WITH_UNIT_TESTS`
   Default: `On`.
   Build host-side unit tests.
-- `ENABLE_DEP_BUILD`
-  Default: platform-dependent.
-  Allow supported missing dependencies to be fetched and built locally.
 - `BUILD_SHARED_DEPS`
   Default: `Off`.
-  Build locally fetched dependencies as shared libraries when supported.
+  Prefer shared dependency runtime linkage when supported by the
+  dependency provider.
 - `ENABLE_CPPCHECK`
   Default: `Off`.
   Enable `cppcheck` integration.
@@ -175,15 +174,6 @@ Examples:
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DWITH_VIDEO=Off \
   -DDEBUG_WALL=On -S . -B build/debug
 ```
-
-```sh
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_DEP_BUILD=On \
-  -S . -B build/release
-```
-
-`ENABLE_DEP_BUILD` is a fallback convenience for awkward environments.
-It is not the preferred normal workflow on platforms where system
-packages are easy to install.
 
 ## Generators
 

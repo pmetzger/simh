@@ -34,6 +34,10 @@ zimh_dependency_package_hint(hint CMOCKA)
 assert_equal("${hint}" "Fedora/RHEL package: dnf install libcmocka-devel"
              "Fedora cmocka hint")
 
+zimh_dependency_package_hint(hint PCAP)
+assert_equal("${hint}" "Fedora/RHEL package: dnf install libpcap-devel"
+             "Fedora libpcap hint")
+
 set(ZIMH_DEPENDENCY_HINT_PLATFORM Arch)
 zimh_dependency_package_hint(hint VDE)
 assert_equal("${hint}" "Arch package: pacman -S vde2" "Arch VDE hint")

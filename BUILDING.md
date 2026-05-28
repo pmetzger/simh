@@ -303,6 +303,8 @@ Some useful CMake options:
   Disable SDL-based graphics support. Default: `On`.
 - `-DWITH_NETWORK=Off`
   Disable optional networking features. Default: `On`.
+- `-DWITH_PCAP=Off`
+  Disable pcap-backed Ethernet support. Default: `On`.
 - `-DWITH_VDE=Off`
   Disable VDE2/VDE4 networking support. Default: `On` on non-Windows
   builds. VDE support is always disabled on Windows.
@@ -316,11 +318,6 @@ Some useful CMake options:
   Enable WinAPI deprecation warnings. Default: `Off`.
 - `-DWITH_ROMS=Off`
   Disable internal ROM generation and embedding. Default: `On`.
-- `-DENABLE_DEP_BUILD=On`
-  Allow CMake to fetch and build supported missing dependencies into the
-  local dependency prefix. This is a fallback convenience for awkward
-  environments, not the preferred normal workflow. Default: `On` on
-  Windows non-vcpkg builds, `Off` elsewhere.
 
 Example:
 

@@ -521,13 +521,6 @@ foreach ($phase in $scriptPhases) {
             $argList = $testArgs
 
             $env:PATH = $modPath
-
-            $depTopDir = $(& $cmakeCmd -L -N ${buildDir} | Select-String "SIMH_DEP_TOPDIR")
-            if ($depTopDir) {
-                ## RHS of the cached variable's value.
-                $depTopDir = $depTopDir.Line.Split('=')[1]
-                $env:PATH =  "${depTopdir}\bin;${env:PATH}"
-            }
         }
 
         "install" {

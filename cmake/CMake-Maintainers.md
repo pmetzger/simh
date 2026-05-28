@@ -192,6 +192,9 @@ Dependency logic is split into three parts:
 
 The important design rule is:
 
+- dependencies come from the host or the configured package manager; the
+  CMake build does not fetch and build third-party libraries as a
+  configure/build fallback
 - prefer feature detection when the real question is capability
 - only use platform-family conditionals when the behavior is truly tied
   to a platform family

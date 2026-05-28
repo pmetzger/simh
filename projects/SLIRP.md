@@ -27,7 +27,7 @@ with external libslirp.
    - `WITH_SLIRP=OFF`;
    - missing libslirp;
    - too-old libslirp; and
-   - dependency-list output when `ENABLE_DEP_BUILD=OFF`.
+   - missing-dependency report output.
 
 4. Fake host socket interposition
 

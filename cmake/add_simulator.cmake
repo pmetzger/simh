@@ -359,8 +359,7 @@ function (add_simulator _targ)
     file(TO_NATIVE_PATH "${test_output_dir}" native_test_output_dir)
 
     if (BUILD_SHARED_DEPS)
-        ## Make sure that the tests can find the DLLs/shared objects:
-        file(TO_NATIVE_PATH "${SIMH_DEP_TOPDIR}/bin" native_dep_bindir)
+        ## Make sure that the tests can find built DLLs/shared objects.
         file(TO_NATIVE_PATH "${SIMH_RUNTIME_OUTPUT_DIR}" native_binary_dir)
     endif ()
 
@@ -374,14 +373,15 @@ function (add_simulator _targ)
 
     if (WIN32)
         if (BUILD_SHARED_DEPS)
-            set(test_path "PATH=${native_dep_bindir}\\\$<SEMICOLON>${native_binary_dir}\\$<SEMICOLON>")
+            set(test_path "PATH=${native_binary_dir}\\$<SEMICOLON>")
             string(REPLACE ";" "\\\$<SEMICOLON>" escaped_path "$ENV{PATH}")
             string(APPEND test_path "${escaped_path}")
             list(APPEND test_add_env "${test_path}")
         endif ()
     else ()
         if (BUILD_SHARED_DEPS)
-            list(APPEND test_add_env "LD_LIBRARY_PATH=${native_dep_bindir}:${native_binary_dir}:\$LD_LIBRARY_PATH")
+            list(APPEND test_add_env
+                 "LD_LIBRARY_PATH=${native_binary_dir}:\$LD_LIBRARY_PATH")
         endif ()
     endif ()
 

@@ -1,14 +1,10 @@
-##=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
+##=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
 ## dep-locate.cmake
 ##
-## Consolidated list of runtime dependencies for simh, probed/found via
-## CMake's find_package() and pkg_check_modules() when 'pkgconfig' is
-## available.
-##=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
-
-##-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-## Find packages:
-##-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+## Locate host-provided runtime dependencies for ZIMH. Missing required
+## dependencies are reported through dependency-report.cmake so users get a
+## single actionable configure failure.
+##=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
 
 find_package(PCRE2)
 
@@ -20,20 +16,16 @@ endif ()
 set(LIBSLIRP_PROBE
     "pkg-config slirp >= ${LIBSLIRP_MIN_VERSION} or vcpkg libslirp")
 
-if (NOT ZLIB_FOUND)
-    set(ZLIB_USE_STATIC_LIBS ON)
-    find_package(ZLIB)
-endif ()
+set(ZLIB_USE_STATIC_LIBS ON)
+find_package(ZLIB)
 
 if (WITH_VIDEO)
     if (NOT USING_VCPKG)
-        ## LEGACY strategy:
         find_package(PNG)
         find_package(Freetype)
         find_package(SDL2 NAMES sdl2 SDL2)
         find_package(SDL2_ttf NAMES sdl2_ttf SDL2_ttf)
     else ()
-        ## vcpkg strategy:
         find_package(PNG REQUIRED)
         find_package(SDL2 CONFIG)
         find_package(SDL2_ttf CONFIG)
@@ -45,11 +37,10 @@ if (WITH_NETWORK)
         find_package(VDE QUIET)
     endif ()
 
-    ## pcap is special: Headers only and dynamically loaded.
     if (WITH_PCAP)
         find_package(PCAP)
-    endif (WITH_PCAP)
-endif (WITH_NETWORK)
+    endif ()
+endif ()
 
 if (NOT WIN32 OR MINGW)
     find_package(PkgConfig QUIET)
@@ -83,7 +74,7 @@ if (NOT WIN32 OR MINGW)
             if (NOT FREETYPE_FOUND)
                 pkg_check_modules(FREETYPE IMPORTED_TARGET freetype2)
             endif ()
-        endif (WITH_VIDEO)
+        endif ()
 
         if (WITH_NETWORK)
             if (WITH_VDE AND NOT VDE_FOUND)
@@ -94,82 +85,70 @@ if (NOT WIN32 OR MINGW)
                 pkg_check_modules(LIBSLIRP IMPORTED_TARGET
                                   "slirp>=${LIBSLIRP_MIN_VERSION}")
             endif ()
-        endif (WITH_NETWORK)
+        endif ()
     endif ()
 endif ()
 
 include(libslirp-target)
 
-##-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-## Add rules for the superbuild if dependencies need to be built:
-##-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+if (NOT ZLIB_FOUND)
+    zimh_record_missing_dependency(
+        NAME "zlib"
+        REASON "compressed file support requires it"
+        PROBE "CMake package ZLIB or pkg-config package zlib"
+        PACKAGE_KEY ZLIB)
+endif ()
 
-if (NOT ENABLE_DEP_BUILD)
-    ## Not going to build dependencies.  Still record missing packages so the
-    ## top-level configuration can fail before partially configured targets
-    ## reach compile-time missing-header errors.
-    if (NOT ZLIB_FOUND)
+if (NOT PCRE2_FOUND)
+    zimh_record_missing_dependency(
+        NAME "libpcre2"
+        REASON "regular expression support requires it"
+        PROBE "CMake package PCRE2 or pkg-config package libpcre2-8"
+        PACKAGE_KEY PCRE2)
+endif ()
+
+if (WITH_VIDEO)
+    if (NOT PNG_FOUND)
         zimh_record_missing_dependency(
-            NAME "zlib"
-            REASON "compressed file support requires it"
-            PROBE "CMake package ZLIB or pkg-config package zlib"
-            PACKAGE_KEY ZLIB)
+            NAME "libpng"
+            REASON "WITH_VIDEO=ON"
+            PROBE "CMake package PNG or pkg-config package libpng16"
+            DISABLE "-DWITH_VIDEO=OFF"
+            PACKAGE_KEY PNG)
     endif ()
-
-    if (NOT PCRE2_FOUND)
+    if (NOT SDL2_FOUND)
         zimh_record_missing_dependency(
-            NAME "libpcre2"
-            REASON "regular expression support requires it"
-            PROBE "CMake package PCRE2 or pkg-config package libpcre2-8"
-            PACKAGE_KEY PCRE2)
+            NAME "SDL2"
+            REASON "WITH_VIDEO=ON"
+            PROBE "CMake package SDL2 or pkg-config package sdl2"
+            DISABLE "-DWITH_VIDEO=OFF"
+            PACKAGE_KEY SDL2)
     endif ()
-
-    if (WITH_VIDEO)
-        if (NOT PNG_FOUND)
-            zimh_record_missing_dependency(
-                NAME "libpng"
-                REASON "WITH_VIDEO=ON"
-                PROBE "CMake package PNG or pkg-config package libpng16"
-                DISABLE "-DWITH_VIDEO=OFF"
-                PACKAGE_KEY PNG)
-        endif ()
-        if (NOT SDL2_FOUND)
-            zimh_record_missing_dependency(
-                NAME "SDL2"
-                REASON "WITH_VIDEO=ON"
-                PROBE "CMake package SDL2 or pkg-config package sdl2"
-                DISABLE "-DWITH_VIDEO=OFF"
-                PACKAGE_KEY SDL2)
-        endif ()
-        if (NOT FREETYPE_FOUND)
-            zimh_record_missing_dependency(
-                NAME "freetype"
-                REASON "WITH_VIDEO=ON"
-                PROBE "CMake package Freetype or pkg-config package freetype2"
-                DISABLE "-DWITH_VIDEO=OFF"
-                PACKAGE_KEY FREETYPE)
-        endif ()
-        if (NOT SDL2_ttf_FOUND)
-            zimh_record_missing_dependency(
-                NAME "SDL2_ttf"
-                REASON "WITH_VIDEO=ON"
-                PROBE "CMake package SDL2_ttf or pkg-config package SDL2_ttf"
-                DISABLE "-DWITH_VIDEO=OFF"
-                PACKAGE_KEY SDL2_TTF)
-        endif ()
-    endif ()
-
-    if (WITH_NETWORK AND WITH_SLIRP AND NOT TARGET ZIMH::LIBSLIRP)
+    if (NOT FREETYPE_FOUND)
         zimh_record_missing_dependency(
-            NAME "libslirp"
-            VERSION ">= ${LIBSLIRP_MIN_VERSION}"
-            REASON "WITH_NETWORK=ON and WITH_SLIRP=ON"
-            PROBE "${LIBSLIRP_PROBE}"
-            DISABLE "-DWITH_SLIRP=OFF"
-            PACKAGE_KEY LIBSLIRP)
+            NAME "freetype"
+            REASON "WITH_VIDEO=ON"
+            PROBE "CMake package Freetype or pkg-config package freetype2"
+            DISABLE "-DWITH_VIDEO=OFF"
+            PACKAGE_KEY FREETYPE)
     endif ()
+    if (NOT SDL2_ttf_FOUND)
+        zimh_record_missing_dependency(
+            NAME "SDL2_ttf"
+            REASON "WITH_VIDEO=ON"
+            PROBE "CMake package SDL2_ttf or pkg-config package SDL2_ttf"
+            DISABLE "-DWITH_VIDEO=OFF"
+            PACKAGE_KEY SDL2_TTF)
+    endif ()
+endif ()
 
-    return ()
+if (WITH_NETWORK AND WITH_PCAP AND NOT PCAP_FOUND)
+    zimh_record_missing_dependency(
+        NAME "libpcap"
+        REASON "WITH_NETWORK=ON and WITH_PCAP=ON"
+        PROBE "pcap headers through CMake package PCAP"
+        DISABLE "-DWITH_PCAP=OFF"
+        PACKAGE_KEY PCAP)
 endif ()
 
 if (WITH_NETWORK AND WITH_SLIRP AND NOT TARGET ZIMH::LIBSLIRP)
@@ -181,226 +160,3 @@ if (WITH_NETWORK AND WITH_SLIRP AND NOT TARGET ZIMH::LIBSLIRP)
         DISABLE "-DWITH_SLIRP=OFF"
         PACKAGE_KEY LIBSLIRP)
 endif ()
-
-include (ExternalProject)
-
-# Source URLs (to make it easy to update versions):
-set(ZLIB_SOURCE_URL     "https://github.com/madler/zlib/archive/v1.2.13.zip")
-set(PCRE2_SOURCE_URL    "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.40/pcre2-10.40.zip")
-set(PNG_SOURCE_URL      "https://github.com/glennrp/libpng/archive/refs/tags/v1.6.40.tar.gz")
-## Freetype also needs multiple URLs to chase a working mirror:
-list(APPEND FREETYPE_SOURCE_URL
-    "https://github.com/freetype/freetype/archive/refs/tags/VER-2-13-0.zip"
-    "https://sourceforge.net/projects/freetype/files/freetype2/2.13.1/ft2131.zip/download?use_mirror=cytranet"
-    "https://sourceforge.net/projects/freetype/files/freetype2/2.13.1/ft2131.zip/download?use_mirror=phoenixnap"
-    "https://sourceforge.net/projects/freetype/files/freetype2/2.13.1/ft2131.zip/download?use_mirror=versaweb"
-    "https://sourceforge.net/projects/freetype/files/freetype2/2.13.1/ft2131.zip/download?use_mirror=netactuate"
-    "https://sourceforge.net/projects/freetype/files/freetype2/2.13.1/ft2131.zip/download?use_mirror=cfhcable"
-    "https://sourceforge.net/projects/freetype/files/freetype2/2.13.1/ft2131.zip/download?use_mirror=freefr"
-    "https://sourceforge.net/projects/freetype/files/freetype2/2.13.1/ft2131.zip/download?use_mirror=master"
-    "https://download.savannah.gnu.org/releases/freetype/freetype-2.13.1.tar.xz"
-    "https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-2-13-0/freetype-VER-2-13-0.zip"
-)
-set(SDL2_SOURCE_URL     "https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.28.1.zip")
-set(SDL2_TTF_SOURCE_URL "https://github.com/libsdl-org/SDL_ttf/archive/refs/tags/release-2.20.2.zip")
-
-## Need to build ZLIB for both PCRE2 and libpng16:
-if (NOT ZLIB_FOUND)
-    ExternalProject_Add(zlib-dep
-        URL ${ZLIB_SOURCE_URL}
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-        ## These patches come from vcpkg so that only the static libraries are built and
-        ## installed. If the patches don't apply cleanly (and there's a build error), that
-        ## means a version number got bumped and need to see what patches, if any, are
-        ## still applicable.
-        PATCH_COMMAND
-            git -c core.longpaths=true -c core.autocrlf=false --work-tree=. --git-dir=.git
-            apply
-                "${SIMH_DEP_PATCHES}/zlib/0001-Prevent-invalid-inclusions-when-HAVE_-is-set-to-0.patch"
-                "${SIMH_DEP_PATCHES}/zlib/0002-skip-building-examples.patch"
-                "${SIMH_DEP_PATCHES}/zlib/0003-build-static-or-shared-not-both.patch"
-                "${SIMH_DEP_PATCHES}/zlib/0004-android-and-mingw-fixes.patch"
-                --ignore-whitespace --whitespace=nowarn --verbose
-    )
-
-    BuildDepMatrix(zlib-dep zlib CMAKE_ARGS -DBUILD_SHARED_LIBS:Bool=${BUILD_SHARED_DEPS})
-
-    list(APPEND SIMH_BUILD_DEPS zlib)
-    list(APPEND SIMH_DEP_TARGETS zlib-dep)
-    message(STATUS "Building ZLIB from ${ZLIB_SOURCE_URL}.")
-    set(ZLIB_PKG_STATUS "ZLIB source build")
-endif ()
-
-IF (NOT PCRE2_FOUND)
-    set(PCRE_DEPS)
-    IF (TARGET zlib-dep)
-        list(APPEND PCRE_DEPS zlib-dep)
-    ENDIF (TARGET zlib-dep)
-
-    set(PCRE_CMAKE_ARGS -DBUILD_SHARED_LIBS:Bool=${BUILD_SHARED_DEPS})
-    set(PCRE_URL ${PCRE2_SOURCE_URL})
-    list(APPEND PCRE_CMAKE_ARGS
-        -DPCRE2_BUILD_PCREGREP:Bool=Off
-        -DPCRE2_SUPPORT_LIBEDIT:Bool=Off
-        -DPCRE2_SUPPORT_LIBREADLINE:Bool=Off
-    )
-
-    # IF(MSVC)
-    #   list(APPEND PCRE_CMAKE_ARGS -DINSTALL_MSVC_PDB=On)
-    # ENDIF(MSVC)
-
-    message(STATUS "Building PCRE2 from ${PCRE_URL}")
-    set(PCRE_PKG_STATUS "pcre2 source build")
-
-    ExternalProject_Add(pcre-ext
-        URL
-            ${PCRE_URL}
-        DEPENDS
-            ${PCRE_DEPS}
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-    )
-
-    BuildDepMatrix(pcre-ext pcre CMAKE_ARGS ${PCRE_CMAKE_ARGS})
-
-    list(APPEND SIMH_BUILD_DEPS pcre)
-    list(APPEND SIMH_DEP_TARGETS pcre-ext)
-ENDIF ()
-
-set(BUILD_WITH_VIDEO FALSE)
-IF (WITH_VIDEO)
-    IF (NOT PNG_FOUND)
-        set(PNG_DEPS)
-        if (NOT ZLIB_FOUND)
-            list(APPEND PNG_DEPS zlib-dep)
-        endif (NOT ZLIB_FOUND)
-
-        ExternalProject_Add(png-dep
-            URL
-                ${PNG_SOURCE_URL}
-            DEPENDS
-                ${PNG_DEPS}
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ""
-        )
-
-        ## Work around the GCC 8.1.0 SEH index regression.
-        set(PNG_CMAKE_BUILD_TYPE_RELEASE "Release")
-        if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND
-            CMAKE_C_COMPILER_VERSION VERSION_EQUAL "8.1" AND
-            NOT CMAKE_BUILD_VERSION)
-            message(STATUS "PNG: Build using MinSizeRel CMAKE_BUILD_TYPE with GCC 8.1")
-            set(PNG_CMAKE_BUILD_TYPE_RELEASE "MinSizeRel")
-        endif()
-
-        BuildDepMatrix(png-dep libpng
-            CMAKE_ARGS
-                -DPNG_SHARED:Bool=${BUILD_SHARED_DEPS}
-                -DPNG_STATUS:Bool=On
-                -DPNG_EXECUTABLES:Bool=Off
-                -DPNG_TESTS:Bool=Off
-            RELEASE_BUILD ${PNG_CMAKE_BUILD_TYPE_RELEASE}
-        )
-
-        list(APPEND SIMH_BUILD_DEPS "png")
-        list(APPEND SIMH_DEP_TARGETS "png-dep")
-        message(STATUS "Building PNG from ${PNG_SOURCE_URL}")
-        list(APPEND VIDEO_PKG_STATUS "PNG source build")
-    ENDIF (NOT PNG_FOUND)
-
-    IF (NOT SDL2_FOUND)
-        ExternalProject_Add(sdl2-dep
-            URL ${SDL2_SOURCE_URL}
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ""
-        )
-
-        BuildDepMatrix(sdl2-dep SDL2 CMAKE_ARGS "-DBUILD_SHARED_LIBS:Bool=${BUILD_SHARED_DEPS}")
-
-        list(APPEND SIMH_BUILD_DEPS "SDL2")
-        list(APPEND SIMH_DEP_TARGETS "sdl2-dep")
-        message(STATUS "Building SDL2 from ${SDL2_SOURCE_URL}.")
-        list(APPEND VIDEO_PKG_STATUS "SDL2 source build")
-    ENDIF (NOT SDL2_FOUND)
-
-    IF (NOT FREETYPE_FOUND)
-        set(FREETYPE_DEPS)
-        if (TARGET zlib-dep)
-            list(APPEND FREETYPE_DEPS zlib-dep)
-        endif ()
-        if (TARGET png-dep)
-            list(APPEND FREETYPE_DEPS png-dep)
-        endif ()
-
-        ExternalProject_Add(freetype-dep
-            URL
-                ${FREETYPE_SOURCE_URL}
-            DEPENDS
-                ${FREETYPE_DEPS}
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ""
-        )
-
-        BuildDepMatrix(freetype-dep Freetype
-            CMAKE_ARGS
-                "-DBUILD_SHARED_LIBS:Bool=${BUILD_SHARED_DEPS}"
-                "-DFT_DISABLE_BZIP2:Bool=TRUE"
-                "-DFT_DISABLE_HARFBUZZ:Bool=TRUE"
-                "-DFT_DISABLE_BROTLI:Bool=TRUE"
-        )
-
-        list(APPEND SIMH_BUILD_DEPS "Freetype")
-        list(APPEND SIMH_DEP_TARGETS freetype-dep)
-        message(STATUS "Building Freetype from ${FREETYPE_SOURCE_URL}.")
-    ENDIF ()
-
-    IF (NOT SDL2_ttf_FOUND)
-        set(SDL2_ttf_DEPS)
-        if (TARGET sdl2-dep)
-            list(APPEND SDL2_ttf_DEPS sdl2-dep)
-        endif (TARGET sdl2-dep)
-        if (TARGET freetype-dep)
-            list(APPEND SDL2_ttf_DEPS freetype-dep)
-        endif ()
-
-        ExternalProject_Add(sdl2-ttf-dep
-            URL
-                ${SDL2_TTF_SOURCE_URL}
-            DEPENDS
-                ${SDL2_ttf_DEPS}
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ""
-            PATCH_COMMAND
-                git -c core.longpaths=true -c core.autocrlf=false --work-tree=. --git-dir=.git
-                apply
-                    "${SIMH_DEP_PATCHES}/SDL_ttf/fix-pkgconfig.patch"
-                    --ignore-whitespace --whitespace=nowarn --verbose
-        )
-
-        set(sdl2_ttf_cmake_args)
-        list(APPEND sdl2_ttf_cmake_args
-                "-DBUILD_SHARED_LIBS:Bool=${BUILD_SHARED_DEPS}"
-                "-DSDL2TTF_SAMPLES:Bool=Off"
-                "-DSDL2TTF_VENDORED:Bool=Off"
-                "-DSDL2TTF_HARFBUZZ:Bool=Off"
-        )
-
-        BuildDepMatrix(sdl2-ttf-dep SDL2_ttf CMAKE_ARGS ${sdl2_ttf_cmake_args})
-
-        list(APPEND SIMH_BUILD_DEPS "SDL2_ttf")
-        list(APPEND SIMH_DEP_TARGETS "sdl2-ttf-dep")
-        message(STATUS "Building SDL2_ttf from https://www.libsdl.org/release/SDL2_ttf-2.0.15.zip.")
-        list(APPEND VIDEO_PKG_STATUS "SDL2_ttf source build")
-    ENDIF (NOT SDL2_ttf_FOUND)
-
-    set(BUILD_WITH_VIDEO TRUE)
-ELSE ()
-    set(VIDEO_PKG_STATUS "video support disabled")
-ENDIF(WITH_VIDEO)

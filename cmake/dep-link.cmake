@@ -6,14 +6,6 @@ add_library(simh_regexp INTERFACE)
 add_library(simh_video INTERFACE)
 add_library(simh_network INTERFACE)
 
-## LIBPCAP is a special case
-set(LIBPCAP_PROJECT "libpcap")
-set(LIBPCAP_ARCHIVE_NAME "libpcap")
-set(LIBPCAP_RELEASE "1.10.1")
-set(LIBPCAP_ARCHIVE_TYPE "tar.gz")
-set(LIBPCAP_TAR_ARCHIVE "${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}.${LIBPCAP_ARCHIVE_TYPE}")
-set(LIBPCAP_SOURCE_URL  "https://github.com/the-tcpdump-group/libpcap/archive/refs/tags/${LIBPCAP_TAR_ARCHIVE}")
-
 function(fix_interface_libs _targ)
 get_target_property(_aliased ${_targ} ALIASED_TARGET)
     if(NOT _aliased)
@@ -219,72 +211,19 @@ if (WITH_NETWORK)
     set(network_runtime USE_SHARED)
     ## pcap is normally headers-only because the runtime dynamically loads it.
     if (WITH_PCAP)
-        find_package(PCAP)
-
-        if (NOT PCAP_FOUND)
-            list(APPEND NETWORK_PKG_STATUS "PCAP dynamic (unpacked)")
-
-            message(STATUS "Downloading ${LIBPCAP_SOURCE_URL}")
-            message(STATUS "Destination ${CMAKE_BINARY_DIR}/libpcap")
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/libpcap"
-                RESULT_VARIABLE LIBPCAP_MKDIR
-            )
-            if (NOT (${LIBPCAP_MKDIR} EQUAL 0))
-                message(FATAL_ERROR "Could not create ${CMAKE_CMAKE_BINARY_DIR}/libpcap")
-            endif (NOT (${LIBPCAP_MKDIR} EQUAL 0))
-
-            file(DOWNLOAD "${LIBPCAP_SOURCE_URL}" "${CMAKE_BINARY_DIR}/libpcap/libpcap.${LIBPCAP_ARCHIVE_TYPE}"
-                    STATUS LIBPCAP_DOWNLOAD
-                )
-            list(GET LIBPCAP_DOWNLOAD 0 LIBPCAP_DL_STATUS)
-            if (NOT (${LIBPCAP_DL_STATUS} EQUAL 0))
-                list(GET LIBPCAP_DOWNLOAD 1 LIBPCAP_DL_ERROR)
-                message(FATAL_ERROR "Download failed: ${LIBPCAP_DL_ERROR}")
-            endif (NOT (${LIBPCAP_DL_STATUS} EQUAL 0))
-
-            message(STATUS "Extracting headers ${LIBPCAP_SOURCE_URL}")
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E tar xvf "${CMAKE_BINARY_DIR}/libpcap/libpcap.${LIBPCAP_ARCHIVE_TYPE}"
-                    "${LIBPCAP_PROJECT}-${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}/pcap.h"
-                    "${LIBPCAP_PROJECT}-${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}/pcap/*.h"
-                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libpcap"
-                RESULT_VARIABLE LIBPCAP_EXTRACT
-            )
-            if (NOT (${LIBPCAP_EXTRACT} EQUAL 0))
-                message(FATAL_ERROR "Extract failed.")
-            endif (NOT (${LIBPCAP_EXTRACT} EQUAL 0))
-
-            message(STATUS "Copying headers from ${CMAKE_BINARY_DIR}/libpcap/${LIBPCAP_PROJECT}-${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}/pcap")
-            message(STATUS "Destination ${CMAKE_BINARY_DIR}/include/pcap")
-            execute_process(
-                COMMAND "${CMAKE_COMMAND}" -E copy_directory
-                    "${LIBPCAP_PROJECT}-${LIBPCAP_ARCHIVE_NAME}-${LIBPCAP_RELEASE}/"
-                    "${CMAKE_BINARY_DIR}/include/"
-                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libpcap"
-                RESULT_VARIABLE LIBPCAP_COPYDIR
-            )
-            if (NOT (${LIBPCAP_COPYDIR} EQUAL 0))
-                message(FATAL_ERROR "Copy failed.")
-            endif (NOT (${LIBPCAP_COPYDIR} EQUAL 0))
-
-            ## And try finding it again...
-            find_package(PCAP)
-        else ()
-            list (APPEND NETWORK_PKG_STATUS "PCAP dynamic")
-        endif ()
-
-
         if (PCAP_FOUND)
             set(network_runtime USE_SHARED)
-            foreach(hdr "${PCAP_INCLUDE_DIRS}")
-              file(STRINGS ${hdr}/pcap/pcap.h hdrcontent REGEX "pcap_compile *\\(.*const")
-              # message("hdrcontent: ${hdrcontent}")
-              list(LENGTH hdrcontent have_bpf_const)
-              if (${have_bpf_const} GREATER 0)
-                message(STATUS "pcap_compile requires BPF_CONST_STRING")
-                list(APPEND network_runtime BPF_CONST_STRING)
-              endif()
+            list(APPEND NETWORK_PKG_STATUS "PCAP dynamic")
+            foreach(hdr IN LISTS PCAP_INCLUDE_DIRS)
+                if (EXISTS "${hdr}/pcap/pcap.h")
+                    file(STRINGS "${hdr}/pcap/pcap.h" hdrcontent
+                         REGEX "pcap_compile *\\(.*const")
+                    list(LENGTH hdrcontent have_bpf_const)
+                    if (${have_bpf_const} GREATER 0)
+                        message(STATUS "pcap_compile requires BPF_CONST_STRING")
+                        list(APPEND network_runtime BPF_CONST_STRING)
+                    endif()
+                endif ()
             endforeach()
 
             target_include_directories(simh_network INTERFACE "${PCAP_INCLUDE_DIRS}")
