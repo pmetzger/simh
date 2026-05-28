@@ -80,10 +80,6 @@ verboseMode=
 simTarget=
 cpack_suffix=
 
-## CMake supports "-S" flag (implies -B works as well.) Otherwise, it's
-## the older invocation command line.
-cmakeSFlag=
-
 ## This script really needs GNU getopt. Really. And try reallly hard to
 ## find the version that supports "--long-opt"
 ##
@@ -131,10 +127,6 @@ ctest=$(which ctest) || {
 }
 
 echo "** $(${cmake} --version)"
-
-$(${cmake} -h 2>&1 | grep -- "-S" > /dev/null) && {
-  cmakeSFlag=yes
-}
 
 canParallel=no
 (${cmake} --build /tmp --help 2>&1 | grep parallel > /dev/null) && {
@@ -385,20 +377,11 @@ for ph in ${phases}; do
         echo "${scriptName}: Removing CMakeCache.txt and CMakeFiles"
         rm -rf ${buildSubdir}/CMakeCache.txt ${buildSubdir}/CMakefiles
 
-        if [[ "x${cmakeSFlag}" != x ]]; then
-          echo "${cmake} -G "\"${buildFlavor}\"" -DCMAKE_BUILD_TYPE="${buildConfig}" -S "${simhTopDir}" -B ${buildSubdir} ${generateArgs}"
-          ${cmake} -G "${buildFlavor}" -DCMAKE_BUILD_TYPE="${buildConfig}" -S "${simhTopDir}" -B "${buildSubdir}" ${generateArgs} || { \
-            echo "*** ${scriptName}: Errors detected during environment generation. Exiting."
-            exit 1
-          }
-        else
-          echo "${cmake} -G "\"${buildFlavor}\"" -DCMAKE_BUILD_TYPE="${buildConfig}" "${simhTopDir}" ${generateArgs}"
-          ( cd "${buildSubdir}"; \
-            ${cmake} -G "${buildFlavor}" -DCMAKE_BUILD_TYPE="${buildConfig}" "${simhTopDir}" ${generateArgs}) || { \
-              echo "*** ${scriptName}: Errors detected during environment generation. Exiting.";
-              exit 1
-            }
-        fi
+        echo "${cmake} -G "\"${buildFlavor}\"" -DCMAKE_BUILD_TYPE="${buildConfig}" -S "${simhTopDir}" -B ${buildSubdir} ${generateArgs}"
+        ${cmake} -G "${buildFlavor}" -DCMAKE_BUILD_TYPE="${buildConfig}" -S "${simhTopDir}" -B "${buildSubdir}" ${generateArgs} || { \
+          echo "*** ${scriptName}: Errors detected during environment generation. Exiting."
+          exit 1
+        }
         ;;
     build)
         ${cmake} --build "${buildSubdir}" ${buildArgs} ${verboseMode} -- ${buildPostArgs} || {

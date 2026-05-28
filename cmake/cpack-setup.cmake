@@ -73,17 +73,15 @@ set(CPACK_PACKAGE_CONTACT    "open-simh@nowhere.org")
 set(CPACK_PACKAGE_MAINTAINER "open-simh@nowhere.org")
 
 ## Runtime dependencies:
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.21")
-    ## Don't install runtime dependencies on Linux platforms. The platform's
-    ## package management system will take care of this for us.
-    if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        if (SIMH_CMAKE_RUNTIME_DEPENDENCIES_SUPPORTED)
-            install(RUNTIME_DEPENDENCY_SET simhRuntime
-                COMPONENT runtime_support
-                PRE_EXCLUDE_REGEXES ${pre_runtime_exclusions}
-                POST_EXCLUDE_REGEXES  ${post_runtime_exclusions}
-            )
-        endif ()
+## Don't install runtime dependencies on Linux platforms. The platform's
+## package management system will take care of this for us.
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if (SIMH_CMAKE_RUNTIME_DEPENDENCIES_SUPPORTED)
+        install(RUNTIME_DEPENDENCY_SET simhRuntime
+            COMPONENT runtime_support
+            PRE_EXCLUDE_REGEXES ${pre_runtime_exclusions}
+            POST_EXCLUDE_REGEXES  ${post_runtime_exclusions}
+        )
     endif ()
 endif ()
 

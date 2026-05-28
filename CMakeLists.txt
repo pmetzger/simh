@@ -99,9 +99,7 @@ endif ()
 ##
 ## Note: See cmake\build_dep_matrix.cmake to see how this is propagated down
 ## into the dependency libraries.
-if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
-    cmake_policy(SET CMP0091 NEW)
-endif()
+cmake_policy(SET CMP0091 NEW)
 
 project(zimh VERSION "${ZIMH_VERSION}" LANGUAGES C)
 
@@ -157,10 +155,9 @@ else ()
     string(APPEND SIMH_SYSTEM_ID "-32")
 endif ()
 set(SIMH_CMAKE_RUNTIME_DEPENDENCIES_SUPPORTED FALSE)
-if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.21" AND
-    (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR
-     CMAKE_SYSTEM_NAME STREQUAL "Linux" OR
-     WIN32))
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR
+    CMAKE_SYSTEM_NAME STREQUAL "Linux" OR
+    WIN32)
     ## CMake documents file(GET_RUNTIME_DEPENDENCIES), and therefore
     ## install(RUNTIME_DEPENDENCY_SET), as supporting Windows, Linux, and
     ## macOS.  Revisit this list if CMake adds support for more platforms.
