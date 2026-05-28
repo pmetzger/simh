@@ -136,7 +136,7 @@ Function CreateJunction
     goto create_junction_end  
   ${EndIf}
   
-  CreateDirectory "$4"  ; Windows XP requires that the destination exists
+  CreateDirectory "$4"  ; Create the destination before turning it into a junction
   StrCpy $4 "\??\$4"
   StrLen $0 $4
   IntOp $0 $0 * 2  

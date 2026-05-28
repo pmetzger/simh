@@ -75,7 +75,6 @@ param (
     ## vs2026          Visual Studio 2026 (default; requires CMake 4.2+)
     ## vs2026-x64      Visual Studio 2026 64-bit
     ## vs2022          Visual Studio 2022
-    ## vs2022-xp       Visual Studio 2022 XP compat
     ## vs2022-x64      Visual Studio 2022 64-bit
     ## mingw-make      MinGW GCC/mingw32-make
     ## mingw-ninja     MinGW GCC/ninja
@@ -203,7 +202,6 @@ $cmakeGenMap = @{
     "vs2026"      = [GeneratorInfo]::new("Visual Studio 18 2026", $multiConfig,  $false, "",     @("-A", "Win32"));
     "vs2026-x64"  = [GeneratorInfo]::new("Visual Studio 18 2026", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
     "vs2022"      = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "Win32"));
-    "vs2022-xp"   = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "Win32", "-T", "v141_xp"));
     "vs2022-x64"  = [GeneratorInfo]::new("Visual Studio 17 2022", $multiConfig,  $false, "",     @("-A", "x64", "-T", "host=x64"));
     "mingw-make"  = [GeneratorInfo]::new("MinGW Makefiles",       $singleConfig, $false, "",     @());
     "mingw-ninja" = [GeneratorInfo]::new("Ninja",                 $singleConfig, $false, "",     @())

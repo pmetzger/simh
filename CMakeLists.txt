@@ -76,19 +76,8 @@ set(SIMH_INCLUDE_PATH_LIST
 list(APPEND CMAKE_MODULE_PATH ${SIMH_INCLUDE_PATH_LIST})
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
-## vcpkg sanity checking: Cannot use vcpkg and XP toolkit together. If this is
-## a XP build, disable vcpkg:
 set(USING_VCPKG FALSE)
 if (DEFINED ENV{VCPKG_ROOT})
-    if (CMAKE_GENERATOR_TOOLSET MATCHES "v[0-9][0-9][0-9]_xp")
-        message(FATAL_ERROR
-            "Configuration conflict: Cannot build XP binaries with vcpkg. Either "
-            "unset VCPKG_ROOT in your environment or remove the '-T' toolkit option."
-            "\n"
-            "Also remove CMakeCache.txt and recursively remove the CMakeFiles "
-            "subdirectory in your build folder before reconfiguring.")
-    endif ()
-
     set(USING_VCPKG TRUE)
 
     ## Defer loading the CMAKE_TOOLCHAIN_FILE:
@@ -167,10 +156,6 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 else ()
     string(APPEND SIMH_SYSTEM_ID "-32")
 endif ()
-if (CMAKE_GENERATOR MATCHES "Visual Studio .*" AND CMAKE_GENERATOR_TOOLSET MATCHES "v[0-9][0-9][0-9]_xp")
-    string(APPEND SIMH_SYSTEM_ID "-XP")
-endif ()
-
 set(SIMH_CMAKE_RUNTIME_DEPENDENCIES_SUPPORTED FALSE)
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.21" AND
     (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR
@@ -280,6 +265,7 @@ include(CheckTypeSize)
 include(CheckCCompilerFlag)
 include(FindPackageHandleStandardArgs)
 include(dependency-report)
+include(windows-api-target)
 
 ## Deal with platform quirkiness
 include(platform-quirks)
@@ -442,6 +428,9 @@ if (WITH_UNIT_TESTS)
     add_cmake_script_unit_test(
         zimh-cmake-find-pcap
         find-pcap-test.cmake)
+    add_cmake_script_unit_test(
+        zimh-cmake-windows-api-target
+        windows-api-target-test.cmake)
 endif ()
 
 message(STATUS "Adding simulators")

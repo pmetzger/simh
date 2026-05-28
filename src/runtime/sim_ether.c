@@ -5,12 +5,12 @@
 /*
   ------------------------------------------------------------------------------
 
-  This ethernet simulation is based on the PCAP and WinPcap packages.
+  This ethernet simulation is based on libpcap-compatible packages.
 
-  PCAP/WinPcap was chosen as the basis for network code since it is the most
+  The pcap API was chosen as the basis for network code since it is the most
   "universal" of the various network packages available. Using this style has
-  allowed rapid network development for the major SIMH platforms. Developing
-  a network package specifically for SIMH was rejected due to the time required;
+  allowed rapid network development for the major SIMH platforms. Developing a
+  network package specifically for SIMH was rejected due to the time required;
   the advantage would be a more easily compiled and integrated code set.
 
   There are various problems associated with use of ethernet networking, which
@@ -24,28 +24,27 @@
   driving). However, the host network programming interfaces tend to operate at
   the user level of functionality, so getting to the full functionality of
   the network interface usually requires that the person executing the
-  network code be a privileged user of the host system. See the PCAP/WinPcap
+  network code be a privileged user of the host system. See the pcap
   documentation for the appropriate host platform if unprivileged use of
   networking is needed - there may be known workarounds.
 
   Define one of the two macros below to enable networking:
     USE_NETWORK - Create statically linked network code
-    USE_SHARED  - Create dynamically linked network code
+    USE_SHARED  - Create dynamically loaded Windows pcap code
 
   ------------------------------------------------------------------------------
 
   Supported/Tested Platforms:
 
-  Windows(NT,2K,XP,2K3,Vista,Win7)     WinPcap-4.1.3 Npcap-V0.9994
+  Windows                   Npcap, or compatible legacy WinPcap runtime
   Linux                     libpcap at least 0.9
   OpenBSD,FreeBSD,NetBSD    libpcap at least 0.9
   MAC OS/X                  libpcap at least 0.9
 
-  WinPcap is no longer developed or supported by was available from:
-                        http://winpcap.polito.it/
-  Npcap is a complete replacement for systems running Windows7 and later
-  and is available from:
+  Npcap is the maintained Windows pcap implementation and is available from:
                         https://nmap.org/npcap
+  Legacy WinPcap-compatible installations may also provide the wpcap.dll and
+  packet.dll ABI used by this code, but WinPcap itself is no longer maintained.
   libpcap for other Unix platforms is available at:
         NOTE: As of the release of this version of sim_ether.c ALL current
               *nix platforms ship with a sufficiently new version of
@@ -78,7 +77,7 @@
   can update the table above.  If it doesn't work, then the following #define
   variables can influence the operation on an untested platform.
 
-  USE_BPF           - Determines if this code leverages a libpcap/WinPcap
+  USE_BPF           - Determines if this code leverages a pcap
                       provided bpf packet filtering facility.  All tested
                       environments have bpf facilities that work the way we
                       need them to.  However a new one might not.  undefine
@@ -1026,7 +1025,7 @@ const char *eth_capabilities(void)
 
 #if defined (HAVE_PCAP_NETWORK)
 /*============================================================================*/
-/*      WIN32, Linux, macOS, and xBSD routines use WinPcap and libpcap        */
+/*      WIN32, Linux, macOS, and xBSD routines use pcap-compatible APIs       */
 /*============================================================================*/
 
 #include <pcap.h>
@@ -1098,11 +1097,13 @@ for (i=0; i<used; i++) {
   HKEY reghnd;
 
   /* These registry keys don't seem to exist for all devices, so we simply ignore errors. */
-  /* Windows XP x64 registry uses wide characters by default,
-     so we force use of narrow characters by using the 'A'(ANSI) version of RegOpenKeyEx.
-     This could cause some problems later, if this code is internationalized. Ideally,
-     the pcap lookup will return wide characters, and we should use them to build a wide
-     registry key, rather than hardcoding the string as we do here. */
+  /* pcap_findalldevs returns device names here as byte strings, not Windows
+     wide-character strings. This code therefore builds the registry key as a
+     byte string and uses the ANSI registry APIs consistently. That can lose
+     information if adapter names need characters outside the active Windows
+     code page. If this path is internationalized later, the pcap device name
+     should be converted or obtained as a wide string and the registry key
+     should be built for the wide registry APIs instead. */
   if (list[i].name[strlen( "\\Device\\NPF_" )] == '{') {
     snprintf( regkey, sizeof(regkey), "SYSTEM\\CurrentControlSet\\Control\\Network\\"
               "{4D36E972-E325-11CE-BFC1-08002BE10318}\\%s\\Connection", list[i].name+
@@ -1112,7 +1113,6 @@ for (i=0; i<used; i++) {
     reglen = sizeof(regval);
 
     /* look for user-defined adapter name, bail if not found */
-    /* same comment about Windows XP x64 (above) using RegQueryValueEx */
     if ((status = RegQueryValueExA (reghnd, "Name", NULL, &regtype, regval, &reglen)) != ERROR_SUCCESS) {
       RegCloseKey (reghnd);
       continue;
@@ -1266,7 +1266,7 @@ static int lib_loaded = 0;                  /* 0=not loaded, 1=loaded, 2=library
 static const char* lib_name = "wpcap.dll";
 
 static char no_pcap[PCAP_ERRBUF_SIZE] =
-    "wpcap.dll failed to load, install Npcap or WinPcap 4.1.3 to use pcap networking";
+    "wpcap.dll failed to load, install Npcap or a compatible pcap runtime to use pcap networking";
 
 /* define pointers to pcap functions needed */
 static void    (*p_pcap_close) (pcap_t *);
@@ -1498,7 +1498,7 @@ int pcap_setnonblock(pcap_t* a, int nonblock, char *errbuf) {
 #if defined(_WIN32)
 #define HAS_PCAP_SENDPACKET 1
 #else
-/* The latest libpcap and WinPcap all have pcap_sendpacket */
+/* The latest libpcap implementations all have pcap_sendpacket */
 #if !defined (NEED_PCAP_SENDPACKET)
 #define HAS_PCAP_SENDPACKET 1
 #endif
@@ -1506,7 +1506,7 @@ int pcap_setnonblock(pcap_t* a, int nonblock, char *errbuf) {
 
 #if !defined (HAS_PCAP_SENDPACKET)
 /* libpcap has no function to write a packet, so we need to implement
-   pcap_sendpacket() for compatibility with the WinPcap base code.
+   pcap_sendpacket() for compatibility with the Windows pcap base code.
    Return value: 0=Success, -1=Failure */
 int pcap_sendpacket(pcap_t* handle, const u_char* msg, int len)
 {
@@ -1519,7 +1519,7 @@ int pcap_sendpacket(pcap_t* handle, const u_char* msg, int len)
 #endif /* !HAS_PCAP_SENDPACKET */
 
 #if defined(_WIN32)
-/* extracted from WinPcap's Packet32.h */
+/* Extracted from the Windows Packet32.h pcap API. */
 struct _PACKET_OID_DATA {
     uint32_t Oid;               ///< OID code. See the Microsoft DDK documentation or the file ntddndis.h
                                 ///< for a complete list of valid codes.
@@ -1543,9 +1543,20 @@ static int pcap_mac_if_win32(const char *AdapterName, uchar_t MACAddress[6])
   int (*p_PacketRequest)(LPADAPTER  AdapterObject,BOOLEAN Set,PPACKET_OID_DATA  OidData);
 
   hDll = LoadLibraryA("packet.dll");
-  p_PacketOpenAdapter = (LPADAPTER (*)(const char *AdapterName))GetProcAddress(hDll, "PacketOpenAdapter");
-  p_PacketCloseAdapter = (void (*)(LPADAPTER lpAdapter))GetProcAddress(hDll, "PacketCloseAdapter");
-  p_PacketRequest = (int (*)(LPADAPTER  AdapterObject,BOOLEAN Set,PPACKET_OID_DATA  OidData))GetProcAddress(hDll, "PacketRequest");
+  if (hDll == NULL)
+    return -1;
+  p_PacketOpenAdapter = (LPADAPTER (*)(const char *AdapterName))
+      GetProcAddress(hDll, "PacketOpenAdapter");
+  p_PacketCloseAdapter = (void (*)(LPADAPTER lpAdapter))
+      GetProcAddress(hDll, "PacketCloseAdapter");
+  p_PacketRequest = (int (*)(LPADAPTER  AdapterObject,BOOLEAN Set,
+                             PPACKET_OID_DATA OidData))
+      GetProcAddress(hDll, "PacketRequest");
+  if ((p_PacketOpenAdapter == NULL) || (p_PacketCloseAdapter == NULL) ||
+      (p_PacketRequest == NULL)) {
+    FreeLibrary(hDll);
+    return -1;
+    }
 
   /* Open the selected adapter */
 
@@ -4012,7 +4023,7 @@ if (!promiscuous) {
   }
 
 /* construct source filters - this prevents packets from being reflected back
-   by systems where WinPcap and libpcap cause packet reflections. Note that
+   by systems where pcap causes packet reflections. Note that
    some systems do not reflect packets at all. This *assumes* that the
    simulated NIC will not send out packets with multicast source fields. */
 if ((addr_count > 0) && (reflections > 0)) {

@@ -196,6 +196,12 @@ ctest --test-dir build/release --build-config Release \
 
 The Visual Studio 2026 generator requires CMake 4.2 or newer.
 
+Windows builds must target the Windows 10 API level or newer. ZIMH does
+not define `WINVER` or `_WIN32_WINNT`; it relies on the selected
+compiler, SDK, generator, toolchain file, and command line to expose the
+normal modern Windows API surface. If either macro is set below `0x0A00`,
+CMake rejects the configuration.
+
 ## Notes for Maintainers
 
 If you are changing how simulators are declared or packaged, use these

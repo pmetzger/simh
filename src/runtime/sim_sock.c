@@ -29,16 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined(AF_INET6) && defined(_WIN32)
+#if defined(_WIN32)
 #include <ws2tcpip.h>
-#endif
-
-#ifdef SIM_HAVE_DLOPEN
-#include <dlfcn.h>
-#endif
-
-#ifndef WSAAPI
-#define WSAAPI
 #endif
 
 #if defined(SHUT_RDWR) && !defined(SD_BOTH)
@@ -117,339 +109,6 @@ if (s != INVALID_SOCKET) {
     }
 return INVALID_SOCKET;
 }
-
-typedef void    (WSAAPI *freeaddrinfo_func) (struct addrinfo *ai);
-static freeaddrinfo_func p_freeaddrinfo;
-
-typedef int     (WSAAPI *getaddrinfo_func) (const char *hostname,
-                                 const char *service,
-                                 const struct addrinfo *hints,
-                                 struct addrinfo **res);
-static getaddrinfo_func p_getaddrinfo;
-
-#if !defined(EAI_OVERFLOW)
-#define EAI_OVERFLOW EAI_FAIL
-#endif
-
-#if defined (_WIN32)
-typedef DWORD getnameinfo_len_t;
-#else
-typedef socklen_t getnameinfo_len_t;
-#endif
-
-typedef int (WSAAPI *getnameinfo_func) (const struct sockaddr *sa,
-                                        socklen_t salen,
-                                        char *host,
-                                        getnameinfo_len_t hostlen,
-                                        char *serv,
-                                        getnameinfo_len_t servlen,
-                                        int flags);
-static getnameinfo_func p_getnameinfo;
-
-#if defined (_WIN32) || !defined (AF_INET6) || defined (TEST_INFO_STUBS)
-#define NEED_ADDRINFO_STUBS 1
-#endif
-
-#if defined (NEED_ADDRINFO_STUBS)
-static void    WSAAPI s_freeaddrinfo (struct addrinfo *ai)
-{
-struct addrinfo *a, *an;
-
-for (a=ai; a != NULL; a=an) {
-    an = a->ai_next;
-    free (a->ai_canonname);
-    free (a->ai_addr);
-    free (a);
-    }
-}
-
-static int     WSAAPI s_getaddrinfo (const char *hostname,
-                                     const char *service,
-                                     const struct addrinfo *hints,
-                                     struct addrinfo **res)
-{
-struct hostent *he;
-struct servent *se = NULL;
-struct sockaddr_in *sin;
-struct addrinfo *result = NULL;
-struct addrinfo *ai, *lai = NULL;
-struct addrinfo dhints;
-struct in_addr ipaddr;
-struct in_addr *fixed[2];
-struct in_addr **ips = NULL;
-struct in_addr **ip;
-const char *cname = NULL;
-int port = 0;
-
-// Validate parameters
-if ((hostname == NULL) && (service == NULL))
-    return EAI_NONAME;
-
-if (hints) {
-    if ((hints->ai_family != PF_INET) && (hints->ai_family != PF_UNSPEC))
-        return EAI_FAMILY;
-    switch (hints->ai_socktype)
-        {
-        default:
-            return EAI_SOCKTYPE;
-        case SOCK_DGRAM:
-        case SOCK_STREAM:
-        case 0:
-            break;
-        }
-    }
-else {
-    hints = &dhints;
-    memset(&dhints, 0, sizeof(dhints));
-    dhints.ai_family = PF_UNSPEC;
-    }
-if (service) {
-    char *c;
-
-    port = strtoul(service, &c, 10);
-    port = htons((unsigned short)port);
-    if ((port == 0) || (*c != '\0')) {
-        switch (hints->ai_socktype)
-            {
-            case SOCK_DGRAM:
-                se = getservbyname(service, "udp");
-                break;
-            case SOCK_STREAM:
-            case 0:
-                se = getservbyname(service, "tcp");
-                break;
-            }
-        if (NULL == se)
-            return EAI_SERVICE;
-        port = se->s_port;
-        }
-    }
-
-if (hostname) {
-    if ((0xffffffff != (ipaddr.s_addr = inet_addr(hostname))) ||
-        (0 == strcmp("255.255.255.255", hostname))) {
-        fixed[0] = &ipaddr;
-        fixed[1] = NULL;
-        if ((hints->ai_flags & AI_CANONNAME) && !(hints->ai_flags & AI_NUMERICHOST)) {
-            he = gethostbyaddr((char *)&ipaddr, 4, AF_INET);
-            if (NULL != he)
-                cname = he->h_name;
-            else
-                cname = hostname;
-            }
-        ips = fixed;
-        }
-    else {
-        if (hints->ai_flags & AI_NUMERICHOST)
-            return EAI_NONAME;
-        he = gethostbyname(hostname);
-        if (he) {
-            ips = (struct in_addr **)he->h_addr_list;
-            if (hints->ai_flags & AI_CANONNAME)
-                cname = he->h_name;
-            }
-        else {
-            switch (h_errno)
-                {
-                case HOST_NOT_FOUND:
-                case NO_DATA:
-                    return EAI_NONAME;
-                case TRY_AGAIN:
-                    return EAI_AGAIN;
-                default:
-                    return EAI_FAIL;
-                }
-            }
-        }
-    }
-else {
-    if (hints->ai_flags & AI_PASSIVE)
-        ipaddr.s_addr = htonl(INADDR_ANY);
-    else
-        ipaddr.s_addr = htonl(INADDR_LOOPBACK);
-    fixed[0] = &ipaddr;
-    fixed[1] = NULL;
-    ips = fixed;
-    }
-for (ip=ips; (ip != NULL) && (*ip != NULL); ++ip) {
-    ai = (struct addrinfo *)calloc(1, sizeof(*ai));
-    if (NULL == ai) {
-        s_freeaddrinfo(result);
-        return EAI_MEMORY;
-        }
-    ai->ai_family = PF_INET;
-    ai->ai_socktype = hints->ai_socktype;
-    ai->ai_protocol = hints->ai_protocol;
-    ai->ai_addr = NULL;
-    ai->ai_addrlen = sizeof(struct sockaddr_in);
-    ai->ai_canonname = NULL;
-    ai->ai_next = NULL;
-    ai->ai_addr = (struct sockaddr *)calloc(1, sizeof(struct sockaddr_in));
-    if (NULL == ai->ai_addr) {
-        free(ai);
-        s_freeaddrinfo(result);
-        return EAI_MEMORY;
-        }
-    sin = (struct sockaddr_in *)ai->ai_addr;
-    sin->sin_family = PF_INET;
-    sin->sin_port = (unsigned short)port;
-    memcpy(&sin->sin_addr, *ip, sizeof(sin->sin_addr));
-    if (NULL == result)
-        result = ai;
-    else
-        lai->ai_next = ai;
-    lai = ai;
-    }
-if (cname) {
-    size_t canonname_size = strlen(cname) + 1;
-
-    result->ai_canonname = (char *)calloc(1, canonname_size);
-    if (NULL == result->ai_canonname) {
-        s_freeaddrinfo(result);
-        return EAI_MEMORY;
-        }
-    strlcpy(result->ai_canonname, cname, canonname_size);
-    }
-*res = result;
-return 0;
-}
-
-#ifndef EAI_OVERFLOW
-#define EAI_OVERFLOW WSAENAMETOOLONG
-#endif
-
-static int     WSAAPI s_getnameinfo (const struct sockaddr *sa, socklen_t salen,
-                                     char *host, getnameinfo_len_t hostlen,
-                                     char *serv, getnameinfo_len_t servlen,
-                                     int flags)
-{
-struct hostent *he;
-struct servent *se = NULL;
-const struct sockaddr_in *sin = (const struct sockaddr_in *)sa;
-
-/* Generic function signature.
-   This implementation does not use every parameter. */
-(void) salen;
-
-if (sin->sin_family != PF_INET)
-    return EAI_FAMILY;
-if ((NULL == host) && (NULL == serv))
-    return EAI_NONAME;
-if ((serv) && (servlen > 0)) {
-    if (flags & NI_NUMERICSERV)
-        se = NULL;
-    else
-        if (flags & NI_DGRAM)
-            se = getservbyport(sin->sin_port, "udp");
-        else
-            se = getservbyport(sin->sin_port, "tcp");
-    if (se) {
-        if (servlen <= strlen(se->s_name))
-            return EAI_OVERFLOW;
-        strlcpy(serv, se->s_name, servlen);
-        }
-    else {
-        char buf[16];
-
-        snprintf(buf, sizeof(buf), "%d", ntohs(sin->sin_port));
-        if (servlen <= strlen(buf))
-            return EAI_OVERFLOW;
-        strlcpy(serv, buf, servlen);
-        }
-    }
-if ((host) && (hostlen > 0)) {
-    if (flags & NI_NUMERICHOST)
-        he = NULL;
-    else
-        he = gethostbyaddr((const char *)&sin->sin_addr, 4, AF_INET);
-    if (he) {
-        if (hostlen < strlen(he->h_name)+1)
-            return EAI_OVERFLOW;
-        strlcpy(host, he->h_name, hostlen);
-        }
-    else {
-        if (flags & NI_NAMEREQD)
-            return EAI_NONAME;
-        if (hostlen < strlen(inet_ntoa(sin->sin_addr))+1)
-            return EAI_OVERFLOW;
-        strlcpy(host, inet_ntoa(sin->sin_addr), hostlen);
-        }
-    }
-return 0;
-}
-#endif                                                  /* NEED_ADDRINFO_STUBS */
-
-#if defined(_WIN32)
-
-#if !defined(IPV6_V6ONLY)           /* Older XP environments may not define IPV6_V6ONLY */
-#define IPV6_V6ONLY           27    /* Treat wildcard bind as AF_INET6-only. */
-#endif
-#if defined(TEST_INFO_STUBS)
-#undef IPV6_V6ONLY
-#undef AF_INET6
-#endif
-/* Dynamic DLL load variables */
-#ifdef _WIN32
-static HINSTANCE hLib = 0;                      /* handle to DLL */
-#else
-static void *hLib = NULL;                       /* handle to Library */
-#endif
-static int lib_loaded = 0;                      /* 0=not loaded, 1=loaded, 2=library load failed, 3=Func load failed */
-static const char* lib_name = "Ws2_32.dll";
-
-/* load function pointer from DLL */
-typedef int (*_func)();
-
-static void load_function(const char* function, _func* func_ptr) {
-#ifdef _WIN32
-    *func_ptr = (_func)GetProcAddress(hLib, function);
-#else
-    *func_ptr = (_func)dlsym(hLib, function);
-#endif
-    if (*func_ptr == 0) {
-    sim_printf ("Sockets: Failed to find function '%s' in %s\r\n", function, lib_name);
-    lib_loaded = 3;
-  }
-}
-
-/* load Ws2_32.dll as required */
-int load_ws2(void) {
-  switch(lib_loaded) {
-    case 0:                  /* not loaded */
-            /* attempt to load DLL */
-#ifdef _WIN32
-      hLib = LoadLibraryA(lib_name);
-#else
-      hLib = dlopen(lib_name, RTLD_NOW);
-#endif
-      if (hLib == 0) {
-        /* failed to load DLL */
-        sim_printf ("Sockets: Failed to load %s\r\n", lib_name);
-        lib_loaded = 2;
-        break;
-      } else {
-        /* library loaded OK */
-        lib_loaded = 1;
-      }
-
-      /* load required functions; sets dll_load=3 on error */
-      load_function("getaddrinfo",       (_func *) &p_getaddrinfo);
-      load_function("getnameinfo",       (_func *) &p_getnameinfo);
-      load_function("freeaddrinfo",      (_func *) &p_freeaddrinfo);
-
-      if (lib_loaded != 1) {
-        /* unsuccessful load, connect stubs */
-        p_getaddrinfo = (getaddrinfo_func)s_getaddrinfo;
-        p_getnameinfo = (getnameinfo_func)s_getnameinfo;
-        p_freeaddrinfo = (freeaddrinfo_func)s_freeaddrinfo;
-      }
-      break;
-    default:                /* loaded or failed */
-      break;
-  }
-  return (lib_loaded == 1) ? 1 : 0;
-}
-#endif
 
 /* OS independent routines
 
@@ -601,10 +260,10 @@ if (validate_addr) {
     int status;
 
     if ((hostp == NULL) ||
-        (0 != p_getaddrinfo(hostp, NULL, NULL, &ai_host)))
+        (0 != getaddrinfo(hostp, NULL, NULL, &ai_host)))
         return -1;
-    if (p_getaddrinfo(validate_addr, NULL, NULL, &ai_validate)) {
-        p_freeaddrinfo (ai_host);
+    if (getaddrinfo(validate_addr, NULL, NULL, &ai_validate)) {
+        freeaddrinfo (ai_host);
         return -1;
         }
     status = -1;
@@ -626,8 +285,8 @@ if (validate_addr) {
              (0 == strcmp("::1", hostp))))
             status = 0;
         }
-    p_freeaddrinfo (ai_host);
-    p_freeaddrinfo (ai_validate);
+    freeaddrinfo (ai_host);
+    freeaddrinfo (ai_validate);
     return status;
     }
 return 0;
@@ -686,13 +345,13 @@ if (c != NULL) {
     v_cpy[validate_len] = '\0';                         /* NUL terminate the result */
     validate_addr = v_cpy;                              /* Use the original string minus the prefix specifier */
     }
-if (p_getaddrinfo(validate_addr, NULL, NULL, &ai_validate))
+if (getaddrinfo(validate_addr, NULL, NULL, &ai_validate))
     return status;
 if (acl == NULL) {          /* Just checking validate_addr syntax? */
     status = 0;
     if ((ai_validate->ai_family == AF_INET) && (bits > 32))
         status = -1;
-    p_freeaddrinfo (ai_validate);
+    freeaddrinfo (ai_validate);
     return status;
     }
 status = -1;
@@ -727,7 +386,7 @@ while ((*acl != '\0') && !done) {
         *c = '\0';
         }
 
-    if (p_getaddrinfo(rule, NULL, NULL, &ai_rule))
+    if (getaddrinfo(rule, NULL, NULL, &ai_rule))
         break;
 
     for (ai = ai_rule; (ai != NULL) && (done == 0); ai = ai->ai_next) {
@@ -776,9 +435,9 @@ while ((*acl != '\0') && !done) {
                 }
             }
         }
-    p_freeaddrinfo (ai_rule);
+    freeaddrinfo (ai_rule);
     }
-p_freeaddrinfo (ai_validate);
+freeaddrinfo (ai_validate);
 return status;
 }
 
@@ -847,29 +506,9 @@ wVersionRequested = MAKEWORD (2, 2);
 err = WSAStartup (wVersionRequested, &wsaData);         /* start Winsock */
 if (err != 0)
     sim_printf ("Winsock: startup error %d\n", err);
-#if defined(AF_INET6)
-load_ws2 ();
-#endif                                                  /* endif AF_INET6 */
-#else                                                   /* Use native addrinfo APIs */
-#if defined(AF_INET6)
-    p_getaddrinfo = (getaddrinfo_func)getaddrinfo;
-    p_getnameinfo = (getnameinfo_func)getnameinfo;
-    p_freeaddrinfo = (freeaddrinfo_func)freeaddrinfo;
-#else
-    /* Native APIs not available, connect stubs */
-    p_getaddrinfo = (getaddrinfo_func)s_getaddrinfo;
-    p_getnameinfo = (getnameinfo_func)s_getnameinfo;
-    p_freeaddrinfo = (freeaddrinfo_func)s_freeaddrinfo;
-#endif                                                  /* endif AF_INET6 */
 #endif                                                  /* endif _WIN32 */
 #if defined (SIGPIPE)
 signal (SIGPIPE, SIG_IGN);                              /* no pipe signals */
-#endif
-#if defined(TEST_INFO_STUBS)
-/* force use of stubs */
-p_getaddrinfo = (getaddrinfo_func)s_getaddrinfo;
-p_getnameinfo = (getnameinfo_func)s_getnameinfo;
-p_freeaddrinfo = (freeaddrinfo_func)s_freeaddrinfo;
 #endif
 }
 
@@ -978,7 +617,7 @@ hints.ai_flags = AI_PASSIVE;
 hints.ai_family = AF_UNSPEC;
 hints.ai_protocol = IPPROTO_TCP;
 hints.ai_socktype = SOCK_STREAM;
-if (p_getaddrinfo(host[0] ? host : NULL, port[0] ? port : NULL, &hints, &result)) {
+if (getaddrinfo(host[0] ? host : NULL, port[0] ? port : NULL, &hints, &result)) {
     if (parse_status)
         *parse_status = -1;
     return newsock;
@@ -1011,7 +650,7 @@ if (newsock == INVALID_SOCKET) {                        /* socket error? */
         goto retry;
         }
 #endif
-    p_freeaddrinfo(result);
+    freeaddrinfo(result);
     return newsock;
     }
 #ifdef IPV6_V6ONLY
@@ -1033,7 +672,7 @@ else {
     }
 #endif
 sta = bind (newsock, preferred->ai_addr, preferred->ai_addrlen);
-p_freeaddrinfo(result);
+freeaddrinfo(result);
 if (sta == SOCKET_ERROR)                                /* bind error? */
     return sim_err_sock (newsock, "bind");
 if (!(opt_flags & SIM_SOCK_OPT_BLOCKING)) {
@@ -1062,14 +701,14 @@ memset(&hints, 0, sizeof(hints));
 hints.ai_family = AF_UNSPEC;
 hints.ai_protocol = ((opt_flags & SIM_SOCK_OPT_DATAGRAM) ? IPPROTO_UDP : IPPROTO_TCP);
 hints.ai_socktype = ((opt_flags & SIM_SOCK_OPT_DATAGRAM) ? SOCK_DGRAM : SOCK_STREAM);
-if (p_getaddrinfo(host[0] ? host : NULL, port[0] ? port : NULL, &hints, &result))
+if (getaddrinfo(host[0] ? host : NULL, port[0] ? port : NULL, &hints, &result))
     return INVALID_SOCKET;
 
 if (sourcehostport) {
 
     /* Validate the local/source side address which we'll bind to */
     if (sim_parse_addr (sourcehostport, host, sizeof(host), NULL, port, sizeof(port), NULL, NULL)) {
-        p_freeaddrinfo (result);
+        freeaddrinfo (result);
         return INVALID_SOCKET;
         }
 
@@ -1078,23 +717,23 @@ if (sourcehostport) {
     hints.ai_family = result->ai_family;                /* Same family as connect destination */
     hints.ai_protocol = ((opt_flags & SIM_SOCK_OPT_DATAGRAM) ? IPPROTO_UDP : IPPROTO_TCP);
     hints.ai_socktype = ((opt_flags & SIM_SOCK_OPT_DATAGRAM) ? SOCK_DGRAM : SOCK_STREAM);
-    if (p_getaddrinfo(host[0] ? host : NULL, port[0] ? port : NULL, &hints, &source)) {
-        p_freeaddrinfo (result);
+    if (getaddrinfo(host[0] ? host : NULL, port[0] ? port : NULL, &hints, &source)) {
+        freeaddrinfo (result);
         return INVALID_SOCKET;
         }
 
     newsock = sim_create_sock (result->ai_family, opt_flags & SIM_SOCK_OPT_DATAGRAM);/* create socket */
     if (newsock == INVALID_SOCKET) {                    /* socket error? */
-        p_freeaddrinfo (result);
-        p_freeaddrinfo (source);
+        freeaddrinfo (result);
+        freeaddrinfo (source);
         return newsock;
         }
 
     sta = bind (newsock, source->ai_addr, source->ai_addrlen);
-    p_freeaddrinfo(source);
+    freeaddrinfo(source);
     source = NULL;
     if (sta == SOCKET_ERROR) {                          /* bind error? */
-        p_freeaddrinfo (result);
+        freeaddrinfo (result);
         return sim_err_sock (newsock, "bind");
         }
     }
@@ -1102,7 +741,7 @@ if (sourcehostport) {
 if (newsock == INVALID_SOCKET) {                        /* socket error? */
     newsock = sim_create_sock (result->ai_family, opt_flags & SIM_SOCK_OPT_DATAGRAM);/* create socket */
     if (newsock == INVALID_SOCKET) {                    /* socket error? */
-        p_freeaddrinfo (result);
+        freeaddrinfo (result);
         return newsock;
         }
     }
@@ -1110,14 +749,14 @@ if (newsock == INVALID_SOCKET) {                        /* socket error? */
 if (!(opt_flags & SIM_SOCK_OPT_BLOCKING)) {
     sta = sim_setnonblock (newsock);                    /* set nonblocking */
     if (sta == SOCKET_ERROR) {                          /* fcntl error? */
-        p_freeaddrinfo (result);
+        freeaddrinfo (result);
         return sim_err_sock (newsock, "setnonblock");
         }
     }
 if ((!(opt_flags & SIM_SOCK_OPT_DATAGRAM)) && (opt_flags & SIM_SOCK_OPT_NODELAY)) {
     sta = sim_setnodelay (newsock);                     /* set nodelay */
     if (sta == SOCKET_ERROR) {                          /* setsock error? */
-        p_freeaddrinfo (result);
+        freeaddrinfo (result);
         return sim_err_sock (newsock, "setnodelay");
         }
     }
@@ -1130,7 +769,7 @@ if (!(opt_flags & SIM_SOCK_OPT_DATAGRAM)) {
         return sim_err_sock (newsock, "setsockopt KEEPALIVE");
     }
 sta = connect (newsock, result->ai_addr, result->ai_addrlen);
-p_freeaddrinfo (result);
+freeaddrinfo (result);
 if (sta == SOCKET_ERROR) {
     if (opt_flags & SIM_SOCK_OPT_BLOCKING) {
         if ((WSAGetLastError () == WSAETIMEDOUT)    ||                        /* expected errors after a connect failure */
@@ -1190,7 +829,7 @@ if (newsock == INVALID_SOCKET) {                        /* error? */
     }
 if (connectaddr != NULL) {
     *connectaddr = (char *)calloc(1, NI_MAXHOST+1);
-    p_getnameinfo((struct sockaddr *)&clientname, size, *connectaddr, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+    getnameinfo((struct sockaddr *)&clientname, size, *connectaddr, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
     sim_sock_convert_ipv4_mapped_ipv6(*connectaddr);
     }
 
@@ -1258,10 +897,10 @@ int ret = 0;
 
 *hostnamebuf = '\0';
 *portnamebuf = '\0';
-ret = p_getnameinfo(addr, size, hostnamebuf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+ret = getnameinfo(addr, size, hostnamebuf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 sim_sock_convert_ipv4_mapped_ipv6(hostnamebuf);
 if (!ret)
-    ret = p_getnameinfo(addr, size, NULL, 0, portnamebuf, NI_MAXSERV, NI_NUMERICSERV);
+    ret = getnameinfo(addr, size, NULL, 0, portnamebuf, NI_MAXSERV, NI_NUMERICSERV);
 return ret;
 }
 

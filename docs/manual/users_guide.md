@@ -304,96 +304,39 @@ $ cc -DVM_PDP10 -DUSE_INT64 -DBSDTTY pdp10_*.c scp.c sim_*.c -lm -o pdp10
 
 ### Compiling with Ethernet Support
 
-The Windows-specific Ethernet code uses the npcap or the WinPCAP 4.x
-package. These packages provides the libpcap functionality package
-that is freely available for Unix systems. Building simulators with
-built-in Ethernet support can be done if the required npcap/WinPcap
-components are available on your build system at compile time. These
-components are available by downloading the file:
+The Windows-specific Ethernet code uses a pcap-compatible package.
+Npcap is the maintained Windows implementation and provides the pcap
+functionality that is normally available through libpcap on Unix
+systems. Building simulators with built-in Ethernet support can be done
+if the required pcap-compatible components are available on your build
+system at compile time. CMake finds those files through normal package
+discovery, the `PCAP_DIR` environment variable, or vcpkg when the build
+is configured to use vcpkg.
 
-<https://github.com/open-simh/windows-build/archive/windows-build.zip>
+In order for a simulator built with Ethernet support to provide working
+Ethernet functionality at run time, Npcap or another compatible runtime
+providing `wpcap.dll` and `packet.dll` must be installed on the system.
+Npcap is recommended for current Windows systems. In order to install
+Npcap, perform the following steps:
 
-This zip file contains a file called `README.md` which explains how to
-locate the unpacked zip file contents to build simulators with
-Ethernet support. If your build environment has git, the build
-activity will automatically download the windows-build components the
-first time you build a simulator.
-
-In order for a simulator (built with Ethernet support) to provide
-working Ethernet functionality at run time, npcap WinPCAP must be
-installed on the system. In order to install the npcap or WinPcap
-package the following should be performed:
-
-- Download npcap from <https://npcap.com/#download> or WinPcap
-  <https://www.winpcap.org.>
+- Download Npcap from <https://npcap.com/#download>.
 
 - Install the package as directed.
 
-### Compiling Under Visual C++
+### Compiling with Visual Studio
 
-Visual C++ requires projects to be defined for each executable which
-is being built. You can define your own project for each simulator you
-are interested in, or you can use the predefined project definitions
-for this simulator release.
+Windows builds use CMake to generate Visual Studio projects. For
+example:
 
-#### Using the predefined project definitions
+```powershell
+cmake -G "Visual Studio 18 2026" -A Win32 -S . -B build/release
+cmake --build build/release --config Release
+ctest --test-dir build/release --build-config Release `
+  --parallel --output-on-failure
+```
 
-The current SIMH source includes a directory “Visual Studio Projects”
-which contains the visual studio projects for all supported
-simulators. This directory contains a file named `0ReadMe_Projects.txt`
-which explains how to locate SIMH source files with respect to the
-related required build components provide in the `windows_build.zip`
-file mentioned above in “Compiling with Ethernet Support”.
-
-These projects produce executables in the `BIN\NT\Win32-Debug` or
-`BIN\NT\Win32-Release` directories. All intermediate build files are
-kept in `BIN\NT\Project\{simulator-name}` directories.
-
-#### Defining your own Visual C++ project definitions
-
-Each simulator must be organized as a separate Visual C++ project. Starting from an empty console application,
-
-- Add all the files from the simulator file manifest to the project.
-- Open the Properties (Visual Studio Express 2008) box.
-- Under C/C++, Category: General, add any required preprocessor
-  definitions (for example, `USE_INT64`).
-- Under C/C++, Category: Preprocessor, add the top level simulation
-  directory to the Additional Include Directories. For the VAX and
-  PDP-10, you must also add the PDP-11 directory.
-- Under Link, add `wsock32.lib` and `winmm.lib` at the end of the list of
-  Object/Module Libraries.
-- If you are building the PDP-11 and VAX with Ethernet support, you
-  must also add the WinPCAP libraries (`packet.lib`, `wpcap.lib`) to the
-  list of Object/Module libraries.
-
-If you are using Visual C++ .NET, you must turn off `/Wp64` (warn
-about potential 64b incompatibilities) and disable Unicode
-processing. You will also have to turn off warning 4996 (“deprecated”
-string functions), or lower the warning level to `/W1`. Otherwise, the
-compilations will generate a lot of spurious conversion warnings.
-
-Alternatively, you can start from a preexisting Visual Studio
-project which may have similar components to the project you are
-trying to create. Starting from such a project is done by copying the
-existing `.vcproj` file to a project file with a new name. The MOST
-IMPORTANT step of this process is to assure that the copy of the
-project file has a unique GUID. Generate a new GUID by invoking the
-guidgen.exe program from the Visual Studio directories
-(`C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\Tools\guidgen.exe`).
-Click on the Copy button to get the newly generated GUID into the
-clipboard. Open the target project file in a text editor (notepad) and
-replace the ProjectGUID value with the clipboard contents. Replace the
-Name value (`PDP1` for example) with the name of your new
-simulator. Carefully do a global replace of all instances of the prior
-Name value (`PDP1` in this case) with the name of your new
-simulator. Save the project file.
-
-The next step is to add the project file to the existing SIMH
-solution. Open the `simh.sln` with visual studio and in the Solution
-Explorer pane, right click on the Solution Simh and select
-`Add->Existing Project`. Browse and select your new project file. All
-other changes to the project file (the particular source and include
-files which make up your simulator) can be added or adjusted here.
+See `README-CMake.md` for current CMake options and dependency
+requirements.
 
 ### Compiling Under MinGW
 

@@ -16,6 +16,9 @@ We support builds for machines running recent vintage POSIX operating
 systems and recent vintage Microsoft Windows. We support builds for
 relatively recent compilers on those operating systems.
 
+Windows builds require Windows 10 or newer.
+
+
 Unlike the SIMH project, we do not support building on very old
 operating systems and compilers. Our goal is to have clean,
 supportable code that can be maintained into the very far future, and
