@@ -121,8 +121,10 @@ The most commonly used options are:
   Enable asynchronous I/O support.
 - `WITH_PCAP`
   Default: `On`.
-  Enable pcap-backed Ethernet support. With this enabled, pcap headers
-  must be installed and discoverable at configure time.
+  Enable pcap-backed Ethernet support. With this enabled, pcap
+  development files must be installed and discoverable at configure
+  time. On Windows, users also need a pcap-compatible runtime installed
+  to use pcap networking.
 - `WITH_SLIRP`
   Default: `On`.
   Enable SLiRP-backed user-mode networking when the dependency is

@@ -146,7 +146,7 @@ if (WITH_NETWORK AND WITH_PCAP AND NOT PCAP_FOUND)
     zimh_record_missing_dependency(
         NAME "libpcap"
         REASON "WITH_NETWORK=ON and WITH_PCAP=ON"
-        PROBE "pcap headers through CMake package PCAP"
+        PROBE "pcap development files through CMake package PCAP"
         DISABLE "-DWITH_PCAP=OFF"
         PACKAGE_KEY PCAP)
 endif ()

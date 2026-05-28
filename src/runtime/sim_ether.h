@@ -94,8 +94,8 @@
 #if defined(USE_NETWORK) && defined(USE_SHARED)
 #undef USE_SHARED
 #endif
-/* USE_SHARED only works on Windows or if SIM_HAVE_DLOPEN */
-#if defined(USE_SHARED) && !defined(_WIN32) && !defined(SIM_HAVE_DLOPEN)
+/* USE_SHARED is retained for the Windows pcap runtime-loading path. */
+#if defined(USE_SHARED) && !defined(_WIN32)
 #undef USE_SHARED
 #endif
 

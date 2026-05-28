@@ -425,6 +425,25 @@ unset(ROM_STATUS)
 
 include (add_simulator)
 
+if (WITH_UNIT_TESTS)
+    function(add_cmake_script_unit_test test_name script_name)
+        add_test(
+            NAME ${test_name}
+            COMMAND ${CMAKE_COMMAND}
+                    -DTEST_ROOT=${CMAKE_BINARY_DIR}/cmake-tests/${test_name}
+                    -P "${CMAKE_SOURCE_DIR}/cmake/tests/${script_name}")
+        set_tests_properties(${test_name} PROPERTIES
+            LABELS "zimh;unit;zimh-cmake")
+    endfunction()
+
+    add_cmake_script_unit_test(
+        zimh-cmake-dependency-report
+        dependency-report-test.cmake)
+    add_cmake_script_unit_test(
+        zimh-cmake-find-pcap
+        find-pcap-test.cmake)
+endif ()
+
 message(STATUS "Adding simulators")
 include(simh-simulators)
 include(simh-extra-tools)

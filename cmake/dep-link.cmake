@@ -208,12 +208,15 @@ endif ()
 
 
 if (WITH_NETWORK)
-    set(network_runtime USE_SHARED)
-    ## pcap is normally headers-only because the runtime dynamically loads it.
+    set(network_runtime USE_NETWORK)
     if (WITH_PCAP)
         if (PCAP_FOUND)
-            set(network_runtime USE_SHARED)
-            list(APPEND NETWORK_PKG_STATUS "PCAP dynamic")
+            if (WIN32)
+                set(network_runtime USE_SHARED)
+                list(APPEND NETWORK_PKG_STATUS "PCAP dynamic")
+            else ()
+                list(APPEND NETWORK_PKG_STATUS "PCAP linked")
+            endif ()
             foreach(hdr IN LISTS PCAP_INCLUDE_DIRS)
                 if (EXISTS "${hdr}/pcap/pcap.h")
                     file(STRINGS "${hdr}/pcap/pcap.h" hdrcontent
@@ -227,8 +230,7 @@ if (WITH_NETWORK)
             endforeach()
 
             target_include_directories(simh_network INTERFACE "${PCAP_INCLUDE_DIRS}")
-            if (ZIMH_PCAP_LINK_REQUIRED)
-                ## Temporary platform fix until pcap dynamic loading is removed.
+            if (NOT WIN32)
                 target_link_libraries(simh_network INTERFACE ${PCAP_LIBRARIES})
             endif ()
             target_compile_definitions(simh_network INTERFACE HAVE_PCAP_NETWORK)
@@ -277,10 +279,9 @@ if (WITH_NETWORK)
         list(APPEND NETWORK_PKG_STATUS "NAT(SLiRP)")
     endif (WITH_SLIRP AND TARGET ZIMH::LIBSLIRP)
 
-    ## Finally, set the network runtime
+    ## Finally, set the network runtime.
     if (NOT network_runtime)
-        ## Default to USE_SHARED... USE_NETWORK is deprecated.
-        set(network_runtime USE_SHARED)
+        set(network_runtime USE_NETWORK)
     endif (NOT network_runtime)
 
     target_compile_definitions(simh_network INTERFACE ${network_runtime})

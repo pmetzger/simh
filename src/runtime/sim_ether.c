@@ -863,8 +863,6 @@ static char* eth_getdesc_byname(char* name, char* temp, size_t temp_size)
 static ETH_DEV **eth_open_devices = NULL;
 static int eth_open_device_count = 0;
 
-static char *(*p_pcap_lib_version) (void);
-
 static void _eth_add_to_open_list (ETH_DEV* dev)
 {
 ETH_DEV **tmp = (ETH_DEV**)realloc(eth_open_devices, (eth_open_device_count+1)*sizeof(*eth_open_devices));
@@ -1257,43 +1255,18 @@ return used;
 #include <winreg.h>
 #endif
 
-#ifdef SIM_HAVE_DLOPEN
-#include <dlfcn.h>
-#endif
-
-#if defined(USE_SHARED) && (defined(_WIN32) || defined(SIM_HAVE_DLOPEN))
+#if defined(USE_SHARED) && defined(_WIN32)
 /* Dynamic DLL loading technique and modified source comes from
    Etherial/WireShark capture_pcap.c */
 
 /* Dynamic DLL load variables */
-#ifdef _WIN32
 static HINSTANCE hLib = NULL;               /* handle to DLL */
-#else
-static void *hLib = 0;                      /* handle to Library */
-#endif
 static int lib_loaded = 0;                  /* 0=not loaded, 1=loaded, 2=library load failed, 3=Func load failed */
 
-#define __STR_QUOTE(tok) #tok
-#define __STR(tok) __STR_QUOTE(tok)
-static const char* lib_name =
-#if defined(_WIN32)
-                          "wpcap.dll";
-#elif defined(__APPLE__)
-                          "/usr/lib/libpcap.A.dylib";
-#else
-                          "libpcap." __STR(SIM_HAVE_DLOPEN);
-#endif
+static const char* lib_name = "wpcap.dll";
 
 static char no_pcap[PCAP_ERRBUF_SIZE] =
-#if defined(_WIN32)
     "wpcap.dll failed to load, install Npcap or WinPcap 4.1.3 to use pcap networking";
-#elif defined(__APPLE__)
-    "/usr/lib/libpcap.A.dylib failed to load, install libpcap to use pcap networking";
-#else
-    "libpcap." __STR(SIM_HAVE_DLOPEN) " failed to load, install libpcap to use pcap networking";
-#endif
-#undef __STR
-#undef __STR_QUOTE
 
 /* define pointers to pcap functions needed */
 static void    (*p_pcap_close) (pcap_t *);
@@ -1304,17 +1277,11 @@ static int     (*p_pcap_findalldevs) (pcap_if_t **, char *);
 static void    (*p_pcap_freealldevs) (pcap_if_t *);
 static void    (*p_pcap_freecode) (struct bpf_program *);
 static char*   (*p_pcap_geterr) (pcap_t *);
+static char*   (*p_pcap_lib_version) (void);
 static int     (*p_pcap_lookupnet) (const char *, bpf_u_int32 *, bpf_u_int32 *, char *);
 static pcap_t* (*p_pcap_open_live) (const char *, int, int, int, char *);
-#ifdef _WIN32
 static int     (*p_pcap_setmintocopy) (pcap_t* handle, int);
 static HANDLE  (*p_pcap_getevent) (pcap_t *);
-#else
-#ifdef MUST_DO_SELECT
-static int     (*p_pcap_get_selectable_fd) (pcap_t *);
-#endif
-static int     (*p_pcap_fileno) (pcap_t *);
-#endif
 static int     (*p_pcap_sendpacket) (pcap_t* handle, const u_char* msg, int len);
 static int     (*p_pcap_setfilter) (pcap_t *, struct bpf_program *);
 static int     (*p_pcap_setnonblock)(pcap_t* a, int nonblock, char *errbuf);
@@ -1323,11 +1290,7 @@ static int     (*p_pcap_setnonblock)(pcap_t* a, int nonblock, char *errbuf);
 typedef int (*_func)(void);
 
 static void load_function(const char* function, _func* func_ptr) {
-#ifdef _WIN32
     *func_ptr = (_func)((size_t)GetProcAddress(hLib, function));
-#else
-    *func_ptr = (_func)((size_t)dlsym(hLib, function));
-#endif
     if (*func_ptr == 0) {
     sim_printf ("Eth: Failed to find function '%s' in %s\n", function, lib_name);
     lib_loaded = 3;
@@ -1339,7 +1302,6 @@ static int load_pcap(void) {
   switch(lib_loaded) {
     case 0:                  /* not loaded */
             /* attempt to load DLL */
-#ifdef _WIN32
       {
         BOOL(WINAPI *p_SetDllDirectory)(LPCTSTR);
         UINT(WINAPI *p_GetSystemDirectory)(LPTSTR lpBuffer, UINT uSize);
@@ -1358,9 +1320,6 @@ static int load_pcap(void) {
         if (hLib == NULL)
           hLib = LoadLibraryA(lib_name);
         }
-#else
-      hLib = dlopen(lib_name, RTLD_NOW);
-#endif
       if (hLib == 0) {
         /* failed to load DLL */
         lib_loaded = 2;
@@ -1381,15 +1340,8 @@ static int load_pcap(void) {
       load_function("pcap_geterr",       (_func *) &p_pcap_geterr);
       load_function("pcap_lookupnet",    (_func *) &p_pcap_lookupnet);
       load_function("pcap_open_live",    (_func *) &p_pcap_open_live);
-#ifdef _WIN32
       load_function("pcap_setmintocopy", (_func *) &p_pcap_setmintocopy);
       load_function("pcap_getevent",     (_func *) &p_pcap_getevent);
-#else
-#ifdef MUST_DO_SELECT
-      load_function("pcap_get_selectable_fd",     (_func *) &p_pcap_get_selectable_fd);
-#endif
-      load_function("pcap_fileno",       (_func *) &p_pcap_fileno);
-#endif
       load_function("pcap_sendpacket",   (_func *) &p_pcap_sendpacket);
       load_function("pcap_setfilter",    (_func *) &p_pcap_setfilter);
       load_function("pcap_setnonblock",  (_func *) &p_pcap_setnonblock);
@@ -1501,7 +1453,6 @@ pcap_t* pcap_open_live(const char* a, int b, int c, int d, char* e) {
   }
 }
 
-#ifdef _WIN32
 int pcap_setmintocopy(pcap_t* a, int b) {
   if (load_pcap() != 0) {
     return p_pcap_setmintocopy(a, b);
@@ -1517,26 +1468,6 @@ HANDLE pcap_getevent(pcap_t* a) {
     return (HANDLE) 0;
   }
 }
-
-#else
-#ifdef MUST_DO_SELECT
-int pcap_get_selectable_fd(pcap_t* a) {
-  if (load_pcap() != 0) {
-    return p_pcap_get_selectable_fd(a);
-  } else {
-    return 0;
-  }
-}
-#endif
-
-int pcap_fileno(pcap_t * a) {
-  if (load_pcap() != 0) {
-    return p_pcap_fileno(a);
-  } else {
-    return 0;
-  }
-}
-#endif
 
 int pcap_sendpacket(pcap_t* a, const u_char* b, int c) {
   if (load_pcap() != 0) {
@@ -1561,7 +1492,7 @@ int pcap_setnonblock(pcap_t* a, int nonblock, char *errbuf) {
     return 0;
   }
 }
-#endif /* defined(USE_SHARED) && (defined(_WIN32) || defined(SIM_HAVE_DLOPEN)) */
+#endif /* defined(USE_SHARED) && defined(_WIN32) */
 
 /* Some platforms have always had pcap_sendpacket */
 #if defined(_WIN32)

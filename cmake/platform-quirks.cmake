@@ -256,10 +256,3 @@ if (CMAKE_HOST_APPLE)
         set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
     endif ()
 endif()
-
-## Temporary pcap exception while runtime dynamic loading remains.  Remove this
-## when pcap becomes a normal optional linked dependency.
-set(ZIMH_PCAP_LINK_REQUIRED FALSE)
-if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-    set(ZIMH_PCAP_LINK_REQUIRED TRUE)
-endif ()
