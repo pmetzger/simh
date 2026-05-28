@@ -118,7 +118,6 @@ set(CMAKE_C_STANDARD "${ZIMH_C_STANDARD}")
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-include(vcpkg-setup)
 include(GNUInstallDirs)
 
 ## Provide a default CMAKE_BUILD_TYPE if CMAKE_CONFIGURATION_TYPES is empty or not defined.
@@ -240,6 +239,8 @@ option(MAC_UNIVERSAL
        ${MAC_UNIVERSAL_OPTVAL})
 
 unset(NO_DEP_BUILD CACHE)
+
+include(vcpkg-setup)
 
 ## Keep runtime outputs in the active build tree.
 set(SIMH_RUNTIME_OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin")
@@ -425,6 +426,9 @@ if (WITH_UNIT_TESTS)
     add_cmake_script_unit_test(
         zimh-cmake-find-pcap
         find-pcap-test.cmake)
+    add_cmake_script_unit_test(
+        zimh-cmake-vcpkg-triplet
+        vcpkg-triplet-test.cmake)
 endif ()
 
 message(STATUS "Adding simulators")
