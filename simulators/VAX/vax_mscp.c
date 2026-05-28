@@ -1404,24 +1404,23 @@ bool vax_mscp_init(vax_mscp *ctlr, const vax_mscp_bus *bus)
 
 bool vax_mscp_reset_with_bus(vax_mscp *ctlr, const vax_mscp_bus *bus)
 {
-    vax_mscp_bus new_bus;
-    vax_mscp_unit unit[VAX_MSCP_MAX_UNITS];
-    uint16_t last_fail_code;
-    uint8_t last_fail_valid;
-
     if (ctlr == NULL || !valid_bus(bus))
         return false;
 
-    new_bus = *bus;
-    last_fail_code = ctlr->last_fail_code;
-    last_fail_valid = ctlr->last_fail_valid;
-    memcpy(unit, ctlr->unit, sizeof(unit));
-    memset(ctlr, 0, sizeof(*ctlr));
-    ctlr->bus = new_bus;
-    ctlr->profile = new_bus.profile;
-    memcpy(ctlr->unit, unit, sizeof(ctlr->unit));
-    ctlr->last_fail_code = last_fail_code;
-    ctlr->last_fail_valid = last_fail_valid;
+    /*
+     * Keep this explicit reset list synchronized with struct vax_mscp.
+     * unit[] and last-fail state intentionally survive controller reset.
+     */
+    ctlr->bus = *bus;
+    ctlr->profile = bus->profile;
+    ctlr->saw = 0;
+    ctlr->s1 = 0;
+    ctlr->interrupt_vector = 0;
+    ctlr->comm = 0;
+    ctlr->cmd_index = 0;
+    ctlr->rsp_index = 0;
+    ctlr->purge_interrupt = 0;
+    ctlr->last_fail_pending = 0;
     ctlr->sa = UQSSP_STEP1 | UQSSP_DI | UQSSP_MP;
     ctlr->state = VAX_MSCP_STATE_STEP1;
     return true;

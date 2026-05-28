@@ -78,6 +78,11 @@ typedef struct {
 } vax_mscp_unit;
 
 typedef struct {
+    /*
+     * vax_mscp_reset_with_bus() preserves bus, profile, unit[],
+     * last_fail_code, and last_fail_valid. Update its explicit reset list
+     * when adding reset-transient fields here.
+     */
     vax_mscp_bus bus;
     const vax_mscp_profile *profile;
     uint16_t sa;
