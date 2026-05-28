@@ -6,6 +6,10 @@
 ## Not yet: if this directory later gets a local unit-test subtree, declare
 ## it explicitly here with add_subdirectory(unit-tests).
 
+# Open SIMH generated NO_INSTALL for this simulator, apparently because
+# "pdp10" was not supposed to be installed, but add_simulator() ignored
+# this flag and installed the target anyway. It is unclear why this was
+# set.
 add_simulator(pdp10
     SOURCES
         pdp10_fe.c
@@ -35,7 +39,6 @@ add_simulator(pdp10
         VM_PDP10
     FEATURE_INT64
     LABEL PDP10
-    NO_INSTALL
     TEST pdp10)
 
 
