@@ -32,28 +32,6 @@
 set(EXTRA_TARGET_CFLAGS)
 set(EXTRA_TARGET_LFLAGS)
 
-# For 64-bit builds (and this is especially true for MSVC), set the library
-# architecture.
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    ## Strongly encourage (i.e., force) CMake to look in the x64 architecture
-    ## directories:
-    if (MSVC OR MINGW)
-        # set(CMAKE_C_LIBRARY_ARCHITECTURE "x64")
-        # set(CMAKE_LIBRARY_ARCHITECTURE "x64")
-    elseif (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
-        ## Linux has architecture-specific subdirectories where CMake needs to
-        ## search for headers. Currently, we know about x64 and ARM architecture
-        ## variants.
-        foreach (arch "x86_64-linux-gnu" "aarch64-linux-gnu" "arm-linux-gnueabihf")
-            if (EXISTS "/usr/lib/${arch}")
-                message(STATUS "CMAKE_LIBRARY_ARCHITECTURE set to ${arch}")
-                set(CMAKE_C_LIBRARY_ARCHITECTURE "${arch}")
-                set(CMAKE_LIBRARY_ARCHITECTURE "${arch}")
-            endif()
-        endforeach()
-    endif ()
-endif()
-
 if (WIN32)
     ## At some point, bring this back in to deal with MS ISO C99 deprecation.
     ## Right now, it's not in the code base and the warnings are squelched.
