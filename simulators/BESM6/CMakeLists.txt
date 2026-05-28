@@ -21,6 +21,14 @@ set(cand_fontdirs
       "/System/Library/Frameworks/JavaVM.framework/Versions"
       "$ENV{WINDIR}/Fonts")
 
+if(DEFINED EXTRA_FONT_PATH)
+    # Semicolons are really annoying to pass on the command line,
+    # so we allow colons instead.
+    string(REPLACE ":" ";" extra ${EXTRA_FONT_PATH})
+    list(PREPEND cand_fontdirs ${extra})
+    unset(extra)
+endif()
+
 foreach (fdir ${cand_fontdirs})
     foreach (font ${cand_fonts})
         if (EXISTS ${fdir}/${font})

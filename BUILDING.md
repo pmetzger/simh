@@ -321,6 +321,9 @@ Some useful CMake options:
   local dependency prefix. This is a fallback convenience for awkward
   environments, not the preferred normal workflow. Default: `On` on
   Windows non-vcpkg builds, `Off` elsewhere.
+- `-DEXTRA_FONT_PATH=dir1[:dir2[:...]]`
+  Search for fonts in one or more extra directories. Separate them with
+  a colon.
 
 Example:
 
