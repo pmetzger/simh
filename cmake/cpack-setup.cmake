@@ -73,9 +73,9 @@ set(CPACK_PACKAGE_CONTACT    "open-simh@nowhere.org")
 set(CPACK_PACKAGE_MAINTAINER "open-simh@nowhere.org")
 
 ## Runtime dependencies:
-## Don't install runtime dependencies on Linux platforms. The platform's
-## package management system will take care of this for us.
-if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+## Do not install runtime dependencies on POSIX platforms. Their
+## package managers should take care of dependency resolution for us.
+if (WIN32)
     if (SIMH_CMAKE_RUNTIME_DEPENDENCIES_SUPPORTED)
         install(RUNTIME_DEPENDENCY_SET simhRuntime
             COMPONENT runtime_support
