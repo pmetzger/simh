@@ -25,6 +25,9 @@ Before updating a subtree:
 
 ## Musashi
 
+Musashi is a portable Motorola 68000-family CPU emulation core.  ZIMH imports
+it for use by the AltairZ80 simulator.
+
 - Prefix: `third_party/musashi/`
 - Upstream: `https://github.com/kstenerud/Musashi.git`
 - Upstream branch: `master`
