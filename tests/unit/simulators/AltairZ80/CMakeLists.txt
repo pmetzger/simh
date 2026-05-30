@@ -52,6 +52,16 @@ add_unit_test(unit-altairz80-m68k-zimh-conf
         ${PROJECT_SOURCE_DIR}/third_party/musashi
 )
 
+add_unit_test(unit-altairz80-m68ksim-callbacks
+    LABEL AltairZ80
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_m68ksim_callbacks.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/AltairZ80
+        ${PROJECT_SOURCE_DIR}/simulators/AltairZ80/m68k
+        ${PROJECT_SOURCE_DIR}/tests/unit/support
+)
+
 add_unit_test(unit-altairz80-flashwriter2
     LABEL AltairZ80
     SOURCES
