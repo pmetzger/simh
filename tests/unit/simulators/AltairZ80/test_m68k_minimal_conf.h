@@ -1,5 +1,0 @@
-#define OPT_OFF 0
-#define OPT_ON 1
-#define OPT_SPECIFY_HANDLER 2
-
-#define M68K_COMPILE_FOR_MAME OPT_OFF

@@ -13,7 +13,14 @@ set(altairz80_musashi_binary_dir "${CMAKE_CURRENT_BINARY_DIR}/musashi")
 set(altairz80_m68kops_c "${altairz80_musashi_binary_dir}/m68kops.c")
 set(altairz80_m68kops_h "${altairz80_musashi_binary_dir}/m68kops.h")
 
-set(altairz80_m68kasm_c "${CMAKE_CURRENT_BINARY_DIR}/m68k/m68kasm.c")
+set(altairz80_m68kasm_c "${CMAKE_CURRENT_BINARY_DIR}/m68kasm.c")
+
+set(altairz80_musashi_sources
+    "${altairz80_musashi_source_dir}/m68kcpu.c"
+    "${altairz80_musashi_source_dir}/m68kdasm.c"
+    "${altairz80_musashi_source_dir}/softfloat/softfloat.c"
+    "${altairz80_m68kops_c}"
+)
 
 add_executable(altairz80_m68kmake
     EXCLUDE_FROM_ALL
@@ -25,6 +32,8 @@ set_target_properties(altairz80_m68kmake PROPERTIES
     C_EXTENSIONS OFF
 )
 
+# Generate Musashi opcode tables in the build tree.  The subtree stays a clean
+# upstream import, and CMake treats the generated source as a build artifact.
 add_custom_command(
     OUTPUT
         "${altairz80_m68kops_c}"
@@ -43,13 +52,11 @@ add_custom_command(
 add_custom_command(
     OUTPUT
         "${altairz80_m68kasm_c}"
-    COMMAND "${CMAKE_COMMAND}" -E make_directory
-        "${CMAKE_CURRENT_BINARY_DIR}/m68k"
     COMMAND "${BISON_COMMAND}"
         -o "${altairz80_m68kasm_c}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/m68k/m68kasm.y"
+        "${CMAKE_CURRENT_SOURCE_DIR}/m68kasm.y"
     DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/m68k/m68kasm.y"
+        "${CMAKE_CURRENT_SOURCE_DIR}/m68kasm.y"
     ${BISON_JOB_POOL}
     VERBATIM
 )
@@ -107,11 +114,8 @@ add_simulator(altairz80
         s100_hdc1001.c
         s100_if3.c
         s100_adcs6.c
-        "${altairz80_musashi_source_dir}/m68kcpu.c"
-        "${altairz80_musashi_source_dir}/m68kdasm.c"
+        ${altairz80_musashi_sources}
         ${altairz80_m68kasm_c}
-        "${altairz80_musashi_source_dir}/softfloat/softfloat.c"
-        "${altairz80_m68kops_c}"
         m68ksim.c
     DEFINES
         MUSASHI_CNF=\"m68kconf_zimh.h\"
