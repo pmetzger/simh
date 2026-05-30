@@ -4,6 +4,7 @@ add_unit_test(unit-altairz80-dazzler
         ${CMAKE_CURRENT_SOURCE_DIR}/test_s100_dazzler.c
     INCLUDES
         ${PROJECT_SOURCE_DIR}/simulators/AltairZ80
+        ${PROJECT_SOURCE_DIR}/third_party/musashi
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
@@ -13,6 +14,7 @@ add_unit_test(unit-altairz80-ibc-smd-hdc
         ${CMAKE_CURRENT_SOURCE_DIR}/test_ibc_smd_hdc.c
     INCLUDES
         ${PROJECT_SOURCE_DIR}/simulators/AltairZ80
+        ${PROJECT_SOURCE_DIR}/third_party/musashi
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
@@ -58,7 +60,7 @@ add_unit_test(unit-altairz80-m68ksim-callbacks
         ${CMAKE_CURRENT_SOURCE_DIR}/test_m68ksim_callbacks.c
     INCLUDES
         ${PROJECT_SOURCE_DIR}/simulators/AltairZ80
-        ${PROJECT_SOURCE_DIR}/simulators/AltairZ80/m68k
+        ${PROJECT_SOURCE_DIR}/third_party/musashi
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 
@@ -90,6 +92,7 @@ simh_executable_template(zimh-unit-altairz80-sys
         ${CMAKE_CURRENT_SOURCE_DIR}/test_altairz80_sys.c
     INCLUDES
         ${PROJECT_SOURCE_DIR}/simulators/AltairZ80
+        ${PROJECT_SOURCE_DIR}/third_party/musashi
         ${PROJECT_SOURCE_DIR}/tests/unit/support
 )
 

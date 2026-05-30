@@ -35,7 +35,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "m68k/m68k.h"
+#include "m68k.h"
 #include "sim_types.h"
 
 #define SWITCHCPU_DEFAULT 0xfd

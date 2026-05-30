@@ -81,7 +81,8 @@
 #include <stdint.h>
 
 #include "altairz80_defs.h"
-#include "m68k/m68k.h"
+#include "m68k.h"
+#include "m68ksim.h"
 #include "sim_types.h"
 
 /* Read/write macros */

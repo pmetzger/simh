@@ -8,7 +8,37 @@
 
 zimh_find_bison(BISON_COMMAND BISON_JOB_POOL)
 
+set(altairz80_musashi_source_dir "${PROJECT_SOURCE_DIR}/third_party/musashi")
+set(altairz80_musashi_binary_dir "${CMAKE_CURRENT_BINARY_DIR}/musashi")
+set(altairz80_m68kops_c "${altairz80_musashi_binary_dir}/m68kops.c")
+set(altairz80_m68kops_h "${altairz80_musashi_binary_dir}/m68kops.h")
+
 set(altairz80_m68kasm_c "${CMAKE_CURRENT_BINARY_DIR}/m68k/m68kasm.c")
+
+add_executable(altairz80_m68kmake
+    EXCLUDE_FROM_ALL
+    "${altairz80_musashi_source_dir}/m68kmake.c"
+)
+set_target_properties(altairz80_m68kmake PROPERTIES
+    C_STANDARD ${ZIMH_C_STANDARD}
+    C_STANDARD_REQUIRED ON
+    C_EXTENSIONS OFF
+)
+
+add_custom_command(
+    OUTPUT
+        "${altairz80_m68kops_c}"
+        "${altairz80_m68kops_h}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory
+        "${altairz80_musashi_binary_dir}"
+    COMMAND "$<TARGET_FILE:altairz80_m68kmake>"
+        "${altairz80_musashi_binary_dir}"
+        "${altairz80_musashi_source_dir}/m68k_in.c"
+    DEPENDS
+        altairz80_m68kmake
+        "${altairz80_musashi_source_dir}/m68k_in.c"
+    VERBATIM
+)
 
 add_custom_command(
     OUTPUT
@@ -77,18 +107,19 @@ add_simulator(altairz80
         s100_hdc1001.c
         s100_if3.c
         s100_adcs6.c
-        m68k/m68kcpu.c
-        m68k/m68kdasm.c
+        "${altairz80_musashi_source_dir}/m68kcpu.c"
+        "${altairz80_musashi_source_dir}/m68kdasm.c"
         ${altairz80_m68kasm_c}
-        m68k/m68kopac.c
-        m68k/m68kopdm.c
-        m68k/softfloat/softfloat.c
-        m68k/m68kopnz.c
-        m68k/m68kops.c
+        "${altairz80_musashi_source_dir}/softfloat/softfloat.c"
+        "${altairz80_m68kops_c}"
         m68ksim.c
+    DEFINES
+        MUSASHI_CNF=\"m68kconf_zimh.h\"
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}
+        ${altairz80_musashi_binary_dir}
+        ${altairz80_musashi_source_dir}
     FEATURE_VIDEO
     LABEL AltairZ80
     PKG_FAMILY altairz80_family

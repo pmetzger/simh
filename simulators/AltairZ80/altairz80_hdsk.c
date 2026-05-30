@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "m68k/m68k.h"
+#include "m68k.h"
 #include "sim_imd.h"
 
 /* Debug flags */

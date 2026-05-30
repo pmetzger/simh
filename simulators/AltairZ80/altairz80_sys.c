@@ -36,7 +36,7 @@
 #include <string.h>
 
 #include "altairz80_defs.h"
-#include "m68k/m68k.h"
+#include "m68k.h"
 #include "sim_types.h"
 
 #define SIM_EMAX 6

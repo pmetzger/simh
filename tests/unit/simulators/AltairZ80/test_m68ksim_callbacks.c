@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#define MUSASHI_CNF "m68kconf_zimh.h"
+
 #include "m68ksim.c"
 
 uint32_t PCX;
