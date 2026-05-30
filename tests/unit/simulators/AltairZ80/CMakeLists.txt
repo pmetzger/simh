@@ -43,6 +43,15 @@ add_unit_test(unit-altairz80-m68k-bool-namespace
         ${PROJECT_SOURCE_DIR}/simulators/AltairZ80/m68k
 )
 
+add_unit_test(unit-altairz80-m68k-zimh-conf
+    LABEL AltairZ80
+    SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_m68k_zimh_conf.c
+    INCLUDES
+        ${PROJECT_SOURCE_DIR}/simulators/AltairZ80
+        ${PROJECT_SOURCE_DIR}/third_party/musashi
+)
+
 add_unit_test(unit-altairz80-flashwriter2
     LABEL AltairZ80
     SOURCES
