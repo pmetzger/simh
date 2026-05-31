@@ -1,8 +1,8 @@
 # Simulator Catalog
 
 This page lists the user-facing simulator targets in the CMake build.
-Each entry names the build target and gives a short description of the
-system or family it represents.
+Each entry starts with the target name used by CMake and then gives a
+human-readable description of the system or family it represents.
 
 Unless otherwise noted, these targets are part of the normal simulator
 inventory and can be built directly with:
@@ -21,14 +21,14 @@ cmake --build build/release --target <target>
 - `pdp7`: DEC PDP-7.
 - `pdp8`: DEC PDP-8.
 - `pdp9`: DEC PDP-9.
-- `pdp10`: Shared PDP-10 simulator build.
-- `pdp10-ka`: PDP-10 KA10.
-- `pdp10-ki`: PDP-10 KI10.
-- `pdp10-kl`: PDP-10 KL10.
-- `pdp10-ks`: PDP-10 KS10.
+- `pdp10`: Shared DEC PDP-10 simulator build.
+- `pdp10-ka`: DEC PDP-10 KA10.
+- `pdp10-ki`: DEC PDP-10 KI10.
+- `pdp10-kl`: DEC PDP-10 KL10.
+- `pdp10-ks`: DEC PDP-10 KS10.
 - `pdp11`: DEC PDP-11.
 - `pdp15`: DEC PDP-15.
-- `uc15`: UC15, a PDP-11-derived machine.
+- `uc15`: DEC UC15, a PDP-11-derived machine.
 
 ### VAX family
 
@@ -42,7 +42,8 @@ cmake --build build/release --target <target>
 - `microvax3100e`: DEC MicroVAX 3100e.
 - `microvax3100m80`: DEC MicroVAX 3100 Model 80.
 - `rtvax1000`: DEC RTVAX 1000.
-- `vax`: Generic VAX system.
+- `vax`: Generic VAX executable, commonly used for the MicroVAX
+  3900/VAXserver 3900 configuration.
 - `vax730`: DEC VAX-11/730.
 - `vax750`: DEC VAX-11/750.
 - `vax780`: DEC VAX-11/780.
@@ -57,15 +58,15 @@ cmake --build build/release --target <target>
 
 ## IBM
 
-- `i1401`: IBM 1401.
-- `i1620`: IBM 1620.
-- `i650`: IBM 650.
-- `i701`: IBM 701.
-- `i7010`: IBM 7010.
-- `i704`: IBM 704.
-- `i7070`: IBM 7070.
-- `i7080`: IBM 7080.
-- `i7090`: IBM 7090.
+- `i1401`: IBM 1401 data processing system.
+- `i1620`: IBM 1620 scientific computer.
+- `i650`: IBM 650 magnetic drum computer.
+- `i701`: IBM 701 Defense Calculator.
+- `i7010`: IBM 7010 and 1410 family systems.
+- `i704`: IBM 704 scientific computer.
+- `i7070`: IBM 7070 and 7074 family systems.
+- `i7080`: IBM 7080, 702, 705, and 705 III family systems.
+- `i7090`: IBM 7090, 7094, 709, and 704 family systems.
 - `i7094`: IBM 7094.
 - `ibm1130`: IBM 1130.
 - `s3`: IBM System/3.
@@ -84,7 +85,7 @@ cmake --build build/release --target <target>
 
 ## Hewlett-Packard
 
-- `hp2100`: HP 2100/1000 family.
+- `hp2100`: HP 2116, HP 2100, HP 21MX, and HP 1000 family systems.
 - `hp3000`: HP 3000 family.
 
 ## Data General
@@ -94,8 +95,9 @@ cmake --build build/release --target <target>
 
 ## Scientific Data Systems and related systems
 
-- `sds`: Scientific Data Systems family.
-- `sigma`: SDS Sigma family.
+- `sds`: Scientific Data Systems SDS 940.
+- `sigma`: Scientific Data Systems/Xerox Data Systems Sigma 32-bit
+  family.
 - `sel32`: Gould/SEL 32-bit systems.
 
 ## Burroughs
@@ -108,7 +110,7 @@ cmake --build build/release --target <target>
 
 ## Honeywell
 
-- `h316`: Honeywell H-316.
+- `h316`: Honeywell H-316 and H-516 family.
 
 ## AT&T
 
@@ -122,7 +124,7 @@ cmake --build build/release --target <target>
 ## Interdata
 
 - `id16`: Interdata 16-bit systems.
-- `id32`: Interdata 32-bit systems.
+- `id32`: Interdata 7/32 and 8/32 32-bit systems.
 
 ## GRI Systems
 
@@ -130,7 +132,7 @@ cmake --build build/release --target <target>
 
 ## Librascope
 
-- `lgp`: Librascope LGP family.
+- `lgp`: Librascope/Royal McBee LGP-30 and LGP-21 family.
 
 ## Imlac
 
@@ -144,12 +146,12 @@ cmake --build build/release --target <target>
 
 ## Other systems
 
-- `altair`: MITS Altair 8800.
+- `altair`: MITS Altair 8800 with Intel 8080 CPU.
 - `altairz80`: Altair Z80 system with M68000 support.
-- `besm6`: Soviet BESM-6.
+- `besm6`: Soviet BESM-6 mainframe.
 - `linc`: DEC LINC.
 - `ssem`: Manchester Small-Scale Experimental Machine.
 - `swtp6800mp-a`: SWTP 6800 MP-A.
 - `swtp6800mp-a2`: SWTP 6800 MP-A2.
 - `tt2500`: TT2500 terminal system.
-- `tx-0`: MIT TX-0.
+- `tx-0`: MIT Lincoln Laboratory TX-0.
