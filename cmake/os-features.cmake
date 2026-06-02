@@ -3,11 +3,44 @@
 ## Author: B. Scott Michel
 ## "scooter me fecit"
 
+include_guard(GLOBAL)
+
 include(CheckSymbolExists)
 include(CheckCSourceRuns)
 include(CMakePushCheckState)
 
-include(pthreads-dep)
+# =============================================================================
+# The threading interface library: thread_lib
+# =============================================================================
+
+# Ensure the interface target exists
+if(NOT TARGET thread_lib)
+    add_library(thread_lib INTERFACE)
+endif()
+
+# Windows / vcpkg Path: Check for our modernized pthreads4w target
+if(NOT TARGET PTW::PTW AND WIN32)
+    find_package(PTW)
+endif()
+
+if(TARGET PTW::PTW)
+    # Forward all header paths, multi-config libs, and definitions to thread_lib
+    target_link_libraries(thread_lib INTERFACE PTW::PTW)
+    target_compile_definitions(thread_lib INTERFACE SIM_ASYNCH_IO HAVE_PTHREAD)
+    
+    message(STATUS "pthreads-dep: Using modern PTW::PTW interface target")
+
+# 2. POSIX Path: Fallback to native system threads (Linux, FreeBSD, macOS)
+else()
+    # FindThreads looks for -pthread, -lpthread, etc. based on platform/compiler
+    find_package(Threads REQUIRED)
+    
+    target_link_libraries(thread_lib INTERFACE Threads::Threads)
+    target_compile_definitions(thread_lib INTERFACE SIM_ASYNCH_IO HAVE_PTHREAD)
+    
+    message(STATUS "pthreads-dep: Using system native Threads::Threads")
+endif()
+
 include(uuid-dep)
 
 set(NEED_LIBRT FALSE)

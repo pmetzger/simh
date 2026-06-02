@@ -66,6 +66,24 @@ TLBENT fill(uint32_t va, int32_t lnt, int32_t acc, int32_t *stat)
     return (TLBENT){0, 0};
 }
 
+int32_t ReadIO (uint32_t pa, int32_t lnt)
+{
+    /* Stubbed I/O read for uncalled memory access paths. */
+    (void) pa;
+    (void) lnt;
+
+    return 0;
+}
+
+int32_t ReadIOU (uint32_t pa, int32_t lnt)
+{
+    /* Stubbed I/O read for uncalled memory access paths. */
+    (void) pa;
+    (void) lnt;
+
+    return 0;
+}
+
 void WriteIO(uint32_t pa, int32_t val, int32_t lnt)
 {
     /* Stubbed I/O write for uncalled memory access paths. */

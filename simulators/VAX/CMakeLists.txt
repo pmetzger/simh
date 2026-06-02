@@ -365,7 +365,7 @@ add_simulator(rtvax1000
     PKG_FAMILY vax_family
     TEST vax-diag)
 
-add_simulator(vax
+add_simulator(microvax3900
     SOURCES
         ${VAX}
     INCLUDES
@@ -381,33 +381,26 @@ add_simulator(vax
     PKG_FAMILY vax_family
     TEST vax-diag)
 
-set(vax_binary_dir "${SIMH_RUNTIME_OUTPUT_DIR}")
+## vax is an alias for microvax3900
+add_executable(vax ALIAS microvax3900)
 
-## Preserve the historical microvax3900 alias for the vax target in the build tree.
-add_custom_command(TARGET vax POST_BUILD
-    COMMAND "${CMAKE_COMMAND}"
-        -DSRCFILE=zimh-vax${CMAKE_EXECUTABLE_SUFFIX}
-        -DDSTFILE=zimh-microvax3900${CMAKE_EXECUTABLE_SUFFIX}
-        -DWORKING_DIR=${vax_binary_dir}
-        -P ${CMAKE_SOURCE_DIR}/cmake/file-link-copy.cmake
-    COMMENT "Symlink zimh-vax${CMAKE_EXECUTABLE_SUFFIX} to zimh-microvax3900${CMAKE_EXECUTABLE_SUFFIX}"
-    WORKING_DIRECTORY ${vax_binary_dir})
-
-## Mirror the vax-target microvax3900 alias in the install tree.
-install(
-    CODE "
-        execute_process(
-            COMMAND ${CMAKE_COMMAND}
-                -DSRCFILE=zimh-vax${CMAKE_EXECUTABLE_SUFFIX}
-                -DDSTFILE=zimh-microvax3900${CMAKE_EXECUTABLE_SUFFIX}
-                -DWORKING_DIR=\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin
-                -P ${CMAKE_SOURCE_DIR}/cmake/file-link-copy.cmake)"
-    COMPONENT vax_family)
+### FIXME!
+# ## Mirror the vax-target microvax3900 alias in the install tree.
+# install(
+#     CODE "
+#         execute_process(
+#             COMMAND ${CMAKE_COMMAND} -E create_symlink 
+#                 \"$<TARGET_FILE_NAME:microvax3900>\" 
+#                 \"vax${CMAKE_EXECUTABLE_SUFFIX}\"
+#             WORKING_DIRECTORY \"$<TARGET_FILE_DIR:microvax3900>\"
+#             COMMENT \"Creating vax.exe alias for microvax3900.exe\"
+#             VERBATIM"
+#     COMPONENT vax_family)
 
 add_test(
     NAME zimh-vax-sysdev-bool
     COMMAND
-        $<TARGET_FILE:vax>
+        $<TARGET_FILE:microvax3900>
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/vax-sysdev-bool_test.ini")
 set_tests_properties(
     zimh-vax-sysdev-bool

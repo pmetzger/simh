@@ -1,0 +1,87 @@
+name: zimh cross-platform build
+
+on:
+  push:
+
+  pull_request:
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }} - ${{ matrix.config }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2022]
+        config: [Debug, Release]
+        include:
+          - os: ubuntu-latest
+            preset: ninja
+            build_dir: build
+          - os: macos-latest
+            preset: xcode
+            build_dir: build
+          - os: windows-2022
+            preset: windows-vs2022
+            build_dir: build-vs2022
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v5
+      with:
+        submodules: recursive
+
+    # -------------------------------------------------------------------------
+    # Windows-Only: vcpkg Environment & Binary Caching
+    #
+    # Note: PRESERVE VCPKG_ROOT in $GITHUB_ENV!
+    # -------------------------------------------------------------------------
+
+    - name: Initialize vcpkg Environment (Windows)
+      if: matrix.os == 'windows-2022'
+      shell: pwsh
+      run: |
+        echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+        echo "VCPKG_DEFAULT_BINARY_CACHE=${{ github.workspace }}\.vcpkg_cache" >> $env:GITHUB_ENV
+        New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\.vcpkg_cache"
+
+    - name: Cache vcpkg Binary Archives (Windows)
+      if: matrix.os == 'windows-2022'
+      uses: actions/cache@v5
+      with:
+        path: ${{ github.workspace }}\.vcpkg_cache
+        key: vcpkg-windows-${{ matrix.config }}-${{ hashFiles('**/vcpkg.json') }}
+        restore-keys: |
+          vcpkg-windows-${{ matrix.config }}-
+          vcpkg-windows-
+
+    - name: Ubuntu setup package manager & system dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo sh tools/ci/deps/deps.sh linux
+
+    - name: macOS setup and dependencies
+      if: matrix.os == 'macos-latest'
+      run: |
+        sh tools/ci/deps/deps.sh osx
+
+    - name: Windows setup
+      if: matrix.os == 'windows-2022'
+      shell: pwsh
+      run: |
+           Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+           Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+           scoop install winflexbison
+           echo "$env:USERPROFILE\scoop\shims" >> $env:GITHUB_PATH
+
+    - name: Configure CMake via Preset
+      # This leverages your unified CMakePresets.json configuration
+      run: cmake --preset ${{ matrix.preset }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+    - name: Build Simulators
+      # Builds using the configuration matrix (Debug/Release) targeting the preset's output binaries
+      run: cmake --build ${{ matrix.build_dir }} --config ${{ matrix.config }}

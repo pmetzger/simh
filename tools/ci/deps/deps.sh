@@ -2,13 +2,13 @@
 
 install_osx() {
     brew update
-    brew install pkg-config pcre libpng libedit sdl2 freetype2 sdl2_ttf \
-        vde cmake gnu-getopt coreutils zlib
+    brew install pkgconf libpng libedit sdl2 sdl2_ttf freetype \
+        vde cmake gnu-getopt coreutils zlib cmocka ninja
 }
 
 install_macports() {
-    sudo port install pkgconfig pcre libpng libedit libsdl2 freetype libsdl2_ttf \
-        vde2 cmake util-linux coreutils zlib
+    sudo port install pkgconf pcre2 libpng libedit libsdl2 freetype libsdl2_ttf \
+        vde2 cmake util-linux coreutils zlib cmocka
 }
 
 install_arch_linux() {
@@ -27,7 +27,7 @@ install_linux() {
     sudo apt-get install -ym libegl1-mesa-dev libgles2-mesa-dev
     sudo apt-get install -ym libsdl2-dev libfreetype6-dev libsdl2-ttf-dev
     sudo apt-get install -ym libpcap-dev libvdeplug-dev
-    sudo apt-get install -ym cmake cmake-data ninja-build
+    sudo apt-get install -ym cmake cmake-data ninja-build libcmocka-dev 
 }
 
 install_mingw32() {

@@ -26,7 +26,7 @@ foreach (utility IN LISTS IBM1130_UTILITY_NAMES)
         ${IBM1130_UTILITY_COMMON_SOURCES}
         ${SIMH_COMPAT_SOURCES})
     set_target_properties(${target} PROPERTIES
-        C_STANDARD ${ZIMH_C_STANDARD}
+        C_STANDARD ${CMAKE_C_STANDARD}
         C_STANDARD_REQUIRED ON
         C_EXTENSIONS OFF
         OUTPUT_NAME ${utility})

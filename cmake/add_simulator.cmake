@@ -38,7 +38,7 @@ set(SIM_SOURCES
     ${SIMH_RUNTIME_ROOT}/sim_uuid.c
     ${SIMH_RUNTIME_ROOT}/sim_video.c)
 
-if (WITH_NETWORK AND WITH_SLIRP AND TARGET ZIMH::LIBSLIRP)
+if (WITH_NETWORK AND WITH_SLIRP AND HAVE_LIBSLIRP)
     list(APPEND SIM_SOURCES
         ${SIMH_RUNTIME_ROOT}/sim_slirp.c)
 endif ()
@@ -90,7 +90,7 @@ function(build_simcore _targ)
     # don't export out to the dependencies (hence PRIVATE.)
     foreach (lib IN ITEMS "${_targ}" "${sim_aio_lib}")
         set_target_properties(${lib} PROPERTIES
-            C_STANDARD ${ZIMH_C_STANDARD}
+            C_STANDARD ${CMAKE_C_STANDARD}
             C_STANDARD_REQUIRED ON
             C_EXTENSIONS OFF
             EXCLUDE_FROM_ALL True
@@ -214,6 +214,42 @@ list(APPEND ADD_SIMULATOR_NARG
     "TEST_ARGS"
 )
 
+## -----------------------------------------------------------------------------
+## .. cmake:command:: simh_executable_template
+##
+##   Creates a standardized build target for a SIMH simulator or unit test, handling cross-platform compiler
+##   flags, output directory management, and library linking policy.
+##
+##    .. code-block:: cmake
+##
+##       simh_executable_template(target_name
+##           [SOURCES source_files...]
+##           [INCLUDES include_dirs...]
+##           [DEFINES defines...]
+##           [FEATURE_INT64]
+##           [FEATURE_FULL64]
+##           [FEATURE_VIDEO]
+##           [FEATURE_DISPLAY]
+##           [USES_AIO]
+##           [BESM6_SDL_HACK]
+##       )
+##
+##   :param target_name: The name of the executable target to create.
+##
+##   :option SOURCES: List of C source files to compile.
+##   :option INCLUDES: List of include directories. Paths are automatically normalized to absolute paths.
+##   :option DEFINES: List of preprocessor definitions to inject into the target.
+##
+##   :feature FEATURE_INT64: Links against the ``simhi64`` core library instead of ``simhcore``.
+##   :feature FEATURE_FULL64: Links against the ``simhz64`` core library.
+##   :feature FEATURE_VIDEO: Enables video/display support logic.
+##   :feature USES_AIO: Adds asynchronous I/O compile definitions and links the AIO-variant of the core library.
+##
+##   .. note::
+##
+##   This function abstracts the platform-specific linking requirements (e.g., ``-mconsole`` on MinGW,
+##   ``/SUBSYSTEM:CONSOLE`` on MSVC).
+##   -----------------------------------------------------------------------------
 function (simh_executable_template _targ)
     cmake_parse_arguments(SIMH "${ADD_SIMULATOR_OPTIONS}" "${ADD_SIMULATOR_1ARG}" "${ADD_SIMULATOR_NARG}" ${ARGN})
 
@@ -229,16 +265,15 @@ function (simh_executable_template _targ)
 
     add_executable("${_targ}" "${SIMH_SOURCES}")
     set_target_properties(${_targ} PROPERTIES
-        C_STANDARD ${ZIMH_C_STANDARD}
+        C_STANDARD ${CMAKE_C_STANDARD}
         C_STANDARD_REQUIRED ON
         C_EXTENSIONS OFF
-        RUNTIME_OUTPUT_DIRECTORY "${SIMH_RUNTIME_OUTPUT_DIR}"
     )
     foreach (_cfg IN ITEMS Debug Release RelWithDebInfo MinSizeRel)
         string(TOUPPER "${_cfg}" _cfg_uc)
         set_property(TARGET ${_targ}
             PROPERTY "RUNTIME_OUTPUT_DIRECTORY_${_cfg_uc}"
-            "${SIMH_RUNTIME_OUTPUT_DIR}")
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
     endforeach ()
     target_compile_options(${_targ} PRIVATE ${EXTRA_TARGET_CFLAGS})
     target_link_options(${_targ} PRIVATE ${EXTRA_TARGET_LFLAGS})
@@ -297,13 +332,36 @@ function (simh_executable_template _targ)
 
     # Uses AIO...
     if (SIMH_USES_AIO)
-        set(SIMH_SIMLIB "${SIMH_SIMLIB}_aio")
+        string(APPEND SIMH_SIMLIB "_aio")
     endif()
 
     target_link_libraries("${_targ}" PUBLIC "${SIMH_SIMLIB}")
 endfunction ()
 
-
+## -----------------------------------------------------------------------------
+## .. cmake:command:: add_simulator
+##
+##    High-level macro to define a SIMH simulator target. This encapsulates
+##    the full build recipe, including source bundling, common SIMH definitions, 
+##    dependency resolution (via the Adapter Pattern), and runtime output staging.
+##
+##    :param target_name: The name of the simulator target.
+##    :option SOURCES: List of source files.
+##    :option INCLUDES: List of include directories.
+##    :option DEFINES: List of target-specific preprocessor definitions.
+##    :option FEATURE_INT64: Links against ``simhi64`` core library.
+##    :option FEATURE_FULL64: Links against ``simhz64`` core library.
+##    :option FEATURE_VIDEO: Enables video/display support logic.
+##    :option USES_AIO: Enables asynchronous I/O support.
+##    :option BUILDROMS: Triggers a post-build command to generate simulator ROMs.
+##    :option LABEL: The simulator family/label (e.g., VAX, PDP11).
+##    :option PKG_FAMILY: Grouping identifier for packaging/installation.
+##
+##    .. note::
+##       This function serves as the primary entry point for new simulators. 
+##       It calls ``simh_executable_template`` internally to ensure consistency 
+##       across the build tree. 
+## -----------------------------------------------------------------------------
 function (add_simulator _targ)
     simh_executable_template(${_targ} "${ARGN}")
     cmake_parse_arguments(SIMH "${ADD_SIMULATOR_OPTIONS}" "${ADD_SIMULATOR_1ARG}" "${ADD_SIMULATOR_NARG}" ${ARGN})
@@ -359,7 +417,7 @@ function (add_simulator _targ)
 
     if (BUILD_SHARED_DEPS)
         ## Make sure that the tests can find built DLLs/shared objects.
-        file(TO_NATIVE_PATH "${SIMH_RUNTIME_OUTPUT_DIR}" native_binary_dir)
+        file(TO_NATIVE_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" native_binary_dir)
     endif ()
 
     ## Build up test environment:
@@ -410,16 +468,36 @@ function (add_simulator _targ)
 endfunction ()
 
 
+## -----------------------------------------------------------------------------
+## .. cmake:command:: add_unit_test
+##
+##    Creates a unit test target, building upon simh_executable_template().
+##
+##    :param target_name: The name of the test executable.
+##    :option LIBRARIES: (Optional) List of additional libraries to link.
+##    (Inherits all standard options from simh_executable_template)
+## -----------------------------------------------------------------------------
 function(add_unit_test _targ)
     set(UNIT_TARGET "zimh-${_targ}")
     set(UNIT_TEST "zimh-${_targ}")
 
+    set(SAVED_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests")
+    
+    # Pass all arguments down to the executable template
     simh_executable_template(${UNIT_TARGET} "${ARGN}")
-    cmake_parse_arguments(SIMH "${ADD_SIMULATOR_OPTIONS}"
-                          "${ADD_SIMULATOR_1ARG}"
-                          "${ADD_SIMULATOR_NARG}"
-                          ${ARGN})
 
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${SAVED_RUNTIME_OUTPUT_DIRECTORY}")
+
+    # Parse arguments locally to extract features.
+    cmake_parse_arguments(SIMH 
+        "${ADD_SIMULATOR_OPTIONS}"
+        "${ADD_SIMULATOR_1ARG}"
+        "${ADD_SIMULATOR_NARG}" 
+        ${ARGN}
+    )
+
+    # Determine the correct unit support/personality libraries based on features
     set(SIMH_UNIT_SUPPORT_LIBRARY simh_unit_support)
     set(SIMH_UNIT_PERSONALITY_LIBRARY simh_unit_personality)
     if (SIMH_FEATURE_FULL64)
@@ -430,6 +508,7 @@ function(add_unit_test _targ)
         set(SIMH_UNIT_PERSONALITY_LIBRARY simh_unit_personality_i64)
     endif ()
 
+    # Link the standard unit test infrastructure
     target_link_libraries(${UNIT_TARGET} PUBLIC
         unittest
         ${SIMH_UNIT_SUPPORT_LIBRARY}
@@ -439,16 +518,20 @@ function(add_unit_test _targ)
             ${SIMH_UNIT_PERSONALITY_LIBRARY}
         )
     endif ()
+
+    # Register the test with CTest
     add_test(NAME ${UNIT_TEST} COMMAND ${UNIT_TARGET})
 
+    # Apply standard and custom Labels
     set(TEST_LABEL "zimh;unit")
     if (SIMH_LABEL)
-      list(APPEND TEST_LABEL "zimh-${SIMH_LABEL}")
+        list(APPEND TEST_LABEL "zimh-${SIMH_LABEL}")
     endif ()
     set_tests_properties(${UNIT_TEST} PROPERTIES LABELS "${TEST_LABEL}")
 
+    # Add to the global tracking property
     set_property(GLOBAL APPEND PROPERTY SIMH_UNIT_TEST_TARGETS ${UNIT_TARGET})
-endfunction ()
+endfunction()
 
 ##~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
 ## Now build things!

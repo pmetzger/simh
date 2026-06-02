@@ -1,75 +1,44 @@
-# Locate the pthreads4w library and pthreads.h header
-#
-# This module defines:
-#
-# ::
-#
-#   PTW_C_LIBRARY, the "pthread[GV]C3" library
-#   PTW_CE_LIBRARY, the "pthread[GV]CE3" library
-#   PTW_SE_LIBRARY, the "pthread[GV]SE3" library
-#   PTW_INCLUDE_DIR, where to find the headers
-#   PTW_FOUND, if false, do not try to link against
-#
-# Tweaks:
-# 1. PTW_PATH: A list of directories in which to search
-# 2. PTW_DIR: An environment variable to the directory where you've unpacked or installed PCRE.
-#
-# "scooter me fecit"
+# =============================================================================
+# FindPTW.cmake (Unified Manifest-Aware Threading Wrapper)
+# =============================================================================
+# Simplifies threading targeting across vcpkg (Windows) and native toolchains
+# (Linux, FreeBSD, macOS). Maps everything to the unified 'PTW::PTW' target.
+# =============================================================================
 
-if (WIN32)
-    include(SelectLibraryConfigurations)
+if(TARGET PTW::PTW)
+    return()
+endif()
 
-    find_path(PTW_INCLUDE_DIR pthread.h
-      HINTS
-        ENV PTW_DIR
-        # path suffixes to search inside ENV{PTW_DIR}
-        PATH_SUFFIXES include include/pthreads4w
-        PATHS ${PTW_PATH}
-      )
+set(PTW_FOUND FALSE)
 
-    # if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    #    set(LIB_PATH_SUFFIXES lib64 x64 amd64 x86_64-linux-gnu)
-    #   else ()
-    #     set(LIB_PATH_SUFFIXES x86)
-    #   endif ()
+# Windows Pathway: Resolve vcpkg's 'pthreads' port target
+if(WIN32)
+    find_package(PThreads4W QUIET)
+    if(TARGET PThreads4W::PThreads4W)
+        add_library(PTW::PTW INTERFACE IMPORTED)
+        target_link_libraries(PTW::PTW INTERFACE PThreads4W::PThreads4W)
+        set(PTW_FOUND TRUE)
+    endif()
+endif()
 
-    foreach (flavor C CE SE)
-        if (MSVC)
-            set(libflavor V${flavor}3)
-        elseif (MINGW)
-            set(libflavor G${flavor}3)
-        endif (MSVC)
+# POSIX Pathway: Resolve native system threads (or alternative setups)
+if(NOT PTW_FOUND)
+    find_package(Threads QUIET)
+    if(TARGET Threads::Threads)
+        add_library(PTW::PTW INTERFACE IMPORTED)
+        target_link_libraries(PTW::PTW INTERFACE Threads::Threads)
+        set(PTW_FOUND TRUE)
+    endif()
+endif()
 
-        find_library(PTW_${flavor}_LIBRARY_RELEASE
-            NAMES
-                libpthread${libflavor}  pthread${libflavor}
-            HINTS
-                ENV PTW_ DIR
-            PATH_SUFFIXES
-                ${LIB_PATH_SUFFIXES}
-            PATHS
-                ${PTW_PATH}
-        )
-
-        find_library(PTW_${flavor}_LIBRARY_DEBUG
-            NAMES
-                libpthread${libflavor}d  pthread${libflavor}d
-            HINTS
-                ENV PTW_ DIR
-            PATH_SUFFIXES
-                ${LIB_PATH_SUFFIXES}
-            PATHS
-                ${PTW_PATH}
-        )
-
-        SELECT_LIBRARY_CONFIGURATIONS(PTW_${flavor})
-    endforeach ()
-
-    include(FindPackageHandleStandardArgs)
-
-    # Minimally, we want the include directory and the C library...
-    find_package_handle_standard_args(
-        PTW
-        REQUIRED_VARS PTW_C_LIBRARY PTW_INCLUDE_DIR
+# Hard-Stop Configuration Failure
+if(NOT PTW_FOUND)
+    message(FATAL_ERROR 
+        "\n[CMake FATAL ERROR] A mandatory execution dependency is missing!\n"
+        " Could not locate a valid threading environment.\n"
+        "  - On Windows: Verify vcpkg has downloaded and compiled the 'pthreads' package.\n"
+        "  - On POSIX: Ensure system pthread development headers/libraries are installed.\n"
     )
-endif ()
+endif()
+
+set(PTW_FOUND TRUE CACHE INTERNAL "Threading library available status")

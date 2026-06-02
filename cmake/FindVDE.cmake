@@ -1,64 +1,29 @@
-## Locate the VDE2/VDE4 libvdeplug headers and library.
-##
-## :::
-##
-## Author: B. Scott Michel
-## "scooter me fecit"
+## =============================================================================
+## FindVDE.cmake (Modernized Adapter)
+## =============================================================================
+include(FindPackageHandleStandardArgs)
 
-if (WITH_VDE)
-    find_package(PkgConfig QUIET)
-    if (PKG_CONFIG_FOUND)
-        pkg_check_modules(PC_VDE QUIET VDEPLUG)
+find_package(PkgConfig QUIET)
+if (PKG_CONFIG_FOUND)
+    pkg_check_modules(PC_VDE QUIET IMPORTED_TARGET vdeplug)
+endif()
 
-        if (PC_VDE_VERSION)
-            set(VDEPLUG_VERSION "${PC_VDE_VERSION}")
-        endif (PC_VDE_VERSION)
-    endif ()
+if (TARGET PkgConfig::PC_VDE)
+    add_library(VDE::VDE ALIAS PkgConfig::PC_VDE)
+    set(VDE_FOUND TRUE)
+else()
+    # Manual fallback for systems where pkg-config might be missing
+    find_path(VDE_INCLUDE_DIR NAMES libvdeplug.h PATH_SUFFIXES vde2)
+    find_library(VDE_LIBRARY NAMES vdeplug)
 
-    find_path(VDEPLUG_INCLUDE_DIR libvdeplug.h
-            HINTS
-                ${PC_VDE_INCLUDE_DIRS}
-            PATH_SUFFIXES
-                include/libvdeplug
-                include/vde2
-                include/VDE2
-                include
-            )
+    if (VDE_INCLUDE_DIR AND VDE_LIBRARY)
+        add_library(VDE::VDE UNKNOWN IMPORTED)
+        set_target_properties(VDE::VDE PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${VDE_INCLUDE_DIR}"
+            IMPORTED_LOCATION "${VDE_LIBRARY}"
+        )
+        set(VDE_FOUND TRUE)
+    endif()
+endif()
 
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-      set(LIB_PATH_SUFFIXES lib64 x64 amd64 x86_64-linux-gnu aarch64-linux-gnu)
-    else ()
-      set(LIB_PATH_SUFFIXES x86)
-    endif ()
-
-    find_library(VDEPLUG_LIBRARY_RELEASE
-            NAMES
-                vdeplug
-            HINTS
-                ${PC_VDE_LIBRARY_DIRS}
-            PATH_SUFFIXES
-                ${LIB_PATH_SUFFIXES}
-    )
-
-    if (VDEPLUG_INCLUDE_DIR)
-        ## TBD: Get version info. The header file doesn't provide a way to grep
-        ## for it. vde_switch will output a version number, but can't really
-        ## depend on the user having installed the whole VDE package.
-    endif ()
-
-    include(SelectLibraryConfigurations)
-
-    select_library_configurations(VDEPLUG)
-
-    set(VDEPLUG_LIBRARIES ${VDEPLUG_LIBRARY})
-    set(VDEPLUG_INCLUDE_DIRS ${VDEPLUG_INCLUDE_DIR})
-
-    include(FindPackageHandleStandardArgs)
-
-    find_package_handle_standard_args(VDE
-        REQUIRED_VARS
-            VDEPLUG_LIBRARY
-            VDEPLUG_INCLUDE_DIR
-        # VERSION_VAR VDEPLUG_VERSION_STRING
-    )
-endif (WITH_VDE)
+find_package_handle_standard_args(VDE DEFAULT_MSG VDE_FOUND)
