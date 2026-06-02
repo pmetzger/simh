@@ -66,11 +66,6 @@ list(APPEND CMAKE_MODULE_PATH
 # Launch the project!
 project(zimh VERSION "${ZIMH_VERSION}" LANGUAGES C)
 
-# Language Standards
-set(CMAKE_C_STANDARD 17)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
-
 # Output the version file:
 file(MAKE_DIRECTORY "${ZIMH_GENERATED_INCLUDE_DIR}")
 configure_file(
@@ -85,7 +80,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
-# 7. Core Feature Options
+# Core Feature Options
 option(BUILD_SHARED_DEPS "Prefer shared dependency runtime linkage." OFF)
 option(WITH_ASYNC       "Enable Asynchronous I/O and threading." ON)
 option(WITH_NETWORK     "Enable simulator networking support." ON)
@@ -108,6 +103,9 @@ option(ENABLE_CPPCHECK  "Enable 'cppcheck' static code analysis." OFF)
 option(WARNINGS_FATAL   "Treat compile-time warnings as errors." OFF)
 option(RELEASE_LTO      "Use Link Time Optimization (LTO) in Release builds." OFF)
 option(DEBUG_WALL       "Turn on maximal compiler warnings in Debug builds." OFF)
+
+# C dialect override
+include(c-dialect)
 
 # Modern Runtime Output Alignment
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")

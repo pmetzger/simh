@@ -167,6 +167,7 @@ cmake --build --preset ninja-release
 ```
 
 ### Common Configuration Toggles
+
 - `-DWITH_VIDEO=Off` — Completely disable SDL structural subsystems (Default:
   `On`).
 - `-DWITH_NETWORK=Off` — Strip out all external network code stacks (Default:
@@ -177,6 +178,8 @@ cmake --build --preset ninja-release
   errors (Default: `Off`).
 - `-DRELEASE_LTO=On` — Force Link-Time Optimization routines on Release
   compilation (Default: `Off`).
+- `-DC_DIALIECT={11|17|23|26}` - Set the C compiler's dialect to C11,
+  C17, C23 or C26.
 
 ---
 
