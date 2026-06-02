@@ -150,7 +150,7 @@ static void assert_abort_case(const char *name)
 #if defined(_WIN32)
     char *const args[] = {(char *)test_program_path, "--expect-abort",
                           (char *)name, NULL};
-    int status = _spawnv(_P_WAIT, test_program_path, args);
+    intptr_t status    = _spawnv(_P_WAIT, test_program_path, args);
 
     assert_int_not_equal(status, -1);
     assert_int_not_equal(status, 0);
